@@ -1,0 +1,84 @@
+﻿Der Buildvorgang wurde am 8/5/2012 9:55:28 PM gestartet.
+     1>Projekt "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\DOGL.vcxproj" auf Knoten "2", build Ziel(e).
+     1>InitializeBuildStatus:
+         Aktualisieren des Timestamps von "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\DOGL.unsuccessfulbuild".
+       ClCompile:
+         Alle Ausgaben sind aktuell.
+       Link:
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\bin\Debug\DOGL.dll" /NOLOGO /LIBPATH:C:\Users\Dominik\Entwicklung\Libraries\glew\lib /LIBPATH:C:\Users\Dominik\Entwicklung\Libraries\assimp\lib\Debug\ opengl32.lib glew32.lib assimp.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\DOGL.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\bin\Debug\DOGL.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\bin\Debug\DOGL.lib" /MACHINE:X86 /DLL C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Engine.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\BaseGeometryObject.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\FullscreenQuad.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Mesh.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Model.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\VertexDeclarations.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\VolumeMesh.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\FileReader.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\GLSLpreprocessor.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\ModelLoader.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\OBJimporter.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\PathService.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\ShaderLoader.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\TextureLoader.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\TextureTGA.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\DirectionalLight.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Light.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\PointLight.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\SpotLight.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\TransformSQT.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\GLDeferredRenderer.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\GLRenderer.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\GLTexture.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\GLVolumeRenderer.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\GLBufferUploader.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\GLResourceManager.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\GLResourcePathManager.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\TextureManager.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Material.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_Colored.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_Bloom.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_BrightPass.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_DirLighting.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_FinalComposite.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_FXAA.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_GaussianBlur.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_LumaTimeAdaption.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_PointLighting.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_Textured.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_Textured3D.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_FSquad_ToneMapping.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_Pointlight_Illumination.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_Test.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_Textured.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_TexturedNormal.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_TexturedNormalSpecular.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_VolCube_Rasterize.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_VolCube_Raycast_DSM.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\MAT_VolCube_Raycast_Simple.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\VolumeMaterial.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Pass_GaussianBlur.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Shader.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Uniform.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\UniformRegistry.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\UniformUtil.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\AABoundingBox.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\BaseRenderableObject.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\BoundingSphere.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Camera.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\CameraController.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\Entity.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\SceneManager.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\SceneNode.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\VolumeEntity.obj
+         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\NameRegistry.obj
+            Bibliothek "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\bin\Debug\DOGL.lib" und Objekt "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\bin\Debug\DOGL.exp" werden erstellt.
+         DOGL.vcxproj -> C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\bin\Debug\DOGL.dll
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\bin\Debug\DOGL.dll;#2" /manifest C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\DOGL.dll.intermediate.manifest
+       FinalizeBuildStatus:
+         Die Datei "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\DOGL.unsuccessfulbuild" wird gelöscht.
+         Aktualisieren des Timestamps von "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\\obj\Debug\DOGL.lastbuildstate".
+     1>Die Erstellung des Projekts "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\DOGL\DOGL.vcxproj" ist abgeschlossen, build Ziel(e).
+
+Das Erstellen war erfolgreich.
+
+Verstrichene Zeit 00:00:02.87

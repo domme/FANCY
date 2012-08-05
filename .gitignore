@@ -1,0 +1,9 @@
+*.exe
+
+*.dll
+
+*.lib
+
+*.opensdf
+
+ipch/*
