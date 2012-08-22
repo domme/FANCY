@@ -6,4 +6,5 @@
 
 *.opensdf
 
+*.sdf
 ipch/*

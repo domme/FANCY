@@ -2,45 +2,17 @@
 #define ENGINE_H
 
 #include "includes.h"
-#include "Scene/SceneManager.h"
-#include "Scene/CameraController.h"
 #include "Rendering/TextureSemantics.h"
 
 //#include <assimp/aiAnim.h>
 
 class Camera;
-class Renderer;
-
-struct DLLEXPORT SDebugTexturePass
-{
-	SDebugTexturePass( TextureSemantics::eTexSemantic eSemantic ) { m_eTexSemantic = eSemantic; }
-	TextureSemantics::eTexSemantic m_eTexSemantic;
-};
+class GLRenderer;
 
 class DLLEXPORT Engine
 {
 public:
-
-	enum ERenderMode
-	{
-		RENDER_FORWARD,
-		RENDER_DEFERRED,
-		RENDER_DEPTH,
-	};
-
-	enum EVolumeMode
-	{
-		VOLUMES_SHOW_ONLY,
-		VOLUMES_DONT_SHOW,
-		VOLUMES_SHOW_BOTH,
-	};
-
-	enum ECameraChangeMode 
-	{
-		CHANGE_TEMPORAL, //don't update the Camera controller
-		CHANGE_PERMANENT,
-	};
-
+		
 
 	static Engine&	GetInstance();
 
@@ -49,15 +21,7 @@ public:
 	void					Init(  uint uScreenWidth, uint uScreenHeight ,const glm::vec4& v4AmbientColor, const glm::vec4& v4ClearColor, float fClearDepth );
 	glm::mat4*				GetWorldMat();
 	Camera*					GetCurrentCamera();
-	void					SetCurrentCamera( Camera* const pCam, ECameraChangeMode eChangeMode = CHANGE_TEMPORAL )
-							{
-								if( eChangeMode == CHANGE_PERMANENT )
-								{
-									m_pCameraController->setControlledCamera( pCam );
-								}
-
-								m_pRenderCamera = pCam;
-							}
+	void					SetCurrentCamera( Camera* pCam ) { m_pRenderCamera = pCam; } 
 
 	GLRenderer*				GetRenderer() { return m_pRenderer; }
 	float					GetFPS();
@@ -66,11 +30,7 @@ public:
 
 	const glm::vec4&		GetClearColor() const { return m_v4ClearColor; }
 	void					SetClearColor( const glm::vec4& v4Clear ) { m_v4ClearColor = v4Clear; }
-
-	SceneManager*			GetScene() { return m_pScene; }
-	void					SetScene( SceneManager* pScene ) { m_pScene = pScene; }
-
-	
+		
 
 	float					GetClearDepth() const { return m_fClearDepth; }
 	void					SetClearDepth( float d ) { m_fClearDepth = d; }
@@ -81,12 +41,7 @@ public:
 	uint					GetElapsedTime() const { return m_uAbsElapsedTicksMS; }
 	float					GetMovementMul() const { return (float) m_uDeltaTicksMS / 1000.0f; }
 	
-	ERenderMode				getRenderMode() const { return m_eRenderMode; }
-	void					setRenderMode( ERenderMode eMode ) { m_eRenderMode = eMode; }
 	uint					getNextMeshID() { return m_uNumMeshes++; }
-
-	const std::vector<SDebugTexturePass>& GetDebugTexturePasses() { return m_vDebugTexturePasses; }
-	void AddDebugTexturePass( TextureSemantics::eTexSemantic eSemantic ) { m_vDebugTexturePasses.push_back( SDebugTexturePass( eSemantic ) ); }
 
 	void					SetDebugTexturesVisible( bool bVisible ) { m_bShowDebugTextures = bVisible; }
 	bool					GetDebugTexturesVisible() const { return m_bShowDebugTextures; }
@@ -105,9 +60,6 @@ public:
 
 	void					SetUseBloom( bool bBloom ) { m_bUseBloom = bBloom; } 
 	bool					GetUseBloom() const { return m_bUseBloom; }
-
-	void					SetVolumeMode( EVolumeMode eVolMode ) { m_eVolumeMode = eVolMode; }
-	EVolumeMode				GetVolumeMode() const { return m_eVolumeMode; } 
 
 		
 
@@ -144,8 +96,6 @@ private:
 
 	glm::mat4			m_gMatWorld;
 	Camera*				m_pRenderCamera;
-	CameraController*	m_pCameraController;
-	SceneManager*		m_pScene;
 	GLRenderer*			m_pRenderer;
 
 	float				m_fCurrentFPS;
@@ -160,10 +110,7 @@ private:
 	uint				m_uScreenHeight;
 	uint				m_uScreenWidth;
 	void				UpdateFPS( const uint elapsedTicksMS );
-	ERenderMode			m_eRenderMode;
 	uint				m_uNumMeshes;
-
-	EVolumeMode			m_eVolumeMode;
 	
 	float				m_fHDRexposure;
 	float				m_fHDRlightAdaption;
@@ -174,9 +121,6 @@ private:
 	bool				m_bUseToneMapping;
 	bool				m_bUseBloom;
 
-	
-
-	std::vector<SDebugTexturePass> m_vDebugTexturePasses;
 
 };
 

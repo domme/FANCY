@@ -104,7 +104,5 @@ void Mesh::SetVertexInfo( VertexDeclaration* pNewVertexInfo )
 
 void Mesh::Init( const std::vector<glm::vec3>& vertexPositions )
 {
-	Engine::GetInstance().GetRenderer()->InitMesh( this );
-	
 	initBoundingGeometry( vertexPositions );
 }

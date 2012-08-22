@@ -3,14 +3,13 @@
 
 #include "../includes.h"
 
-#include "../Scene/BaseRenderableObject.h"
 #include "../Light/Light.h"
+#include "../Geometry/Mesh.h"
 
 template<typename object_type>
 class DLLEXPORT NameRegistry
 {
 	friend class ObjectRegistry;
-	friend class NodeRegistry;
 	
 	public:
 		
@@ -148,7 +147,7 @@ uint NameRegistry<object_type>::getNumRegisteredObjects()
 }
 
 
-class ObjectRegistry : public NameRegistry<BaseRenderableObject>
+class ObjectRegistry : public NameRegistry<Mesh>
 {
 	public:
 		static ObjectRegistry& getInstance();
@@ -158,15 +157,6 @@ class ObjectRegistry : public NameRegistry<BaseRenderableObject>
 		virtual ~ObjectRegistry();
 };
 
-class NodeRegistry : public NameRegistry<SceneNode>
-{
-	public:
-		static NodeRegistry& getInstance();
-	
-	private:
-		NodeRegistry();
-		virtual ~NodeRegistry();
-};
 
 class LightRegistry : public NameRegistry<Light>
 {

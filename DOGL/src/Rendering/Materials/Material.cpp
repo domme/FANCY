@@ -9,8 +9,7 @@
 #include <sstream>
 
 Material::Material() : 
-m_pDeferredShader( NULL ),
-	m_pForwardShader( NULL ),
+m_pShader( NULL ),
 	m_fOpacity( 0.0f ),
 	m_v3AmbientReflectivity( 1.0f, 1.0f, 1.0f ),
 	m_v3DiffuseReflectivity( 1.0f, 1.0f, 1.0f ),
@@ -23,8 +22,7 @@ m_pDeferredShader( NULL ),
 }
 
 Material::Material(  Material& other  ) :
-m_pDeferredShader( NULL ),
-	m_pForwardShader( NULL ),
+	m_pShader( NULL ),
 	m_fOpacity( 0.0f ),
 	m_v3AmbientReflectivity( 1.0f, 1.0f, 1.0f ),
 	m_v3DiffuseReflectivity( 1.0f, 1.0f, 1.0f ),
@@ -33,11 +31,8 @@ m_pDeferredShader( NULL ),
 	m_fGlossiness( 0.0f ),
 	m_fSpecularExponent( 1.0f )
 {
-	if( other.m_pDeferredShader )
-		m_pDeferredShader = new Shader( *other.m_pDeferredShader );
-
-	if( other.m_pForwardShader )
-		m_pForwardShader = new Shader( *other.m_pForwardShader );
+	if( other.m_pShader )
+		m_pShader = new Shader( *other.m_pShader );
 
 	m_fOpacity = other.m_fOpacity;
 	m_v3AmbientReflectivity = other.m_v3AmbientReflectivity;
@@ -51,8 +46,7 @@ m_pDeferredShader( NULL ),
 
 Material::~Material()
 {
-	SAFE_DELETE( m_pDeferredShader );
-	SAFE_DELETE( m_pForwardShader );
+	SAFE_DELETE( m_pShader );
 }
 
 void Material::assignAttributeSemantic( Shader* pShader, const String& szName, ShaderSemantics::Semantic eSemantic )

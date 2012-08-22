@@ -16,8 +16,6 @@ public:
 	const glm::vec3& getCachedDirection() const { return m_v3CachedDirection; }
 
 	virtual void update();
-	virtual void onTransformChanged( const glm::mat4& newTransform );
-	virtual void onAttatchedToNode();
 	virtual void renderShadowMap();
 	void setUmbraAngle( float fUmbra ) { m_fUmbraAngle = fUmbra; }
 	void setUmbraAngleDeg( float fUmbraDeg ) { m_fUmbraAngle = glm::radians( fUmbraDeg ); }

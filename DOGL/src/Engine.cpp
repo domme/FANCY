@@ -5,16 +5,13 @@
 #include "IO/PathService.h"
 
 #include "Rendering/GLRenderer.h"
-#include "Rendering/GLDeferredRenderer.h"
 
 Engine::Engine() :
 m_fCurrentFPS( 0.0f ), 
 m_uCurrentElapsedTicksMS( 0 ),
 m_uCurrentFrameCount( 0 ),
 m_pRenderCamera( NULL ),
-m_pCameraController( NULL ),
 m_pRenderer( NULL ),
-m_pScene( NULL ),
 m_uNumMeshes( 1 ),
 m_bInitialized( false ),
 m_bShowDebugTextures( false ),
@@ -22,8 +19,7 @@ m_bUseFXAA( true ),
 m_bUseToneMapping( true ),
 m_bUseBloom( true ), 
 m_fHDRexposure( 0.5f ),
-m_fHDRlightAdaption( 0.04f ),
-m_eVolumeMode( Engine::VOLUMES_SHOW_BOTH ) 
+m_fHDRlightAdaption( 0.04f )
 {
 
 }
@@ -31,7 +27,6 @@ m_eVolumeMode( Engine::VOLUMES_SHOW_BOTH )
 Engine::~Engine()
 {
 	SAFE_DELETE( m_pRenderCamera ); 
-	SAFE_DELETE( m_pScene );
 }
 
 Engine& Engine::GetInstance()
@@ -52,11 +47,6 @@ void Engine::Update( const uint elapsedTicksMS )
 
 void Engine::Render( const uint elapsedTicksMS )
 {
-	if( !m_pScene )
-		return;
-
-	m_pRenderer->RenderScene( m_pScene ); 
-
 	m_uCurrentFrameCount++; //increment framecount for fps calculations
 }
 
@@ -81,8 +71,6 @@ void Engine::Init( uint uScreenWidth, uint uScreenHeight, const glm::vec4& v4Amb
 	glClearColor( v4ClearColor.r, v4ClearColor.g, v4ClearColor.b, v4ClearColor.a );
 	glClearDepth( fClearDepth );
 
-	setRenderMode( RENDER_DEFERRED );
-	
 	PathService::SetResourceLocation( "..\\..\\..\\Resources\\" );
 
 	//Initialize a default camera for the scene. The camera can be overwritten from anywhere in the engine though

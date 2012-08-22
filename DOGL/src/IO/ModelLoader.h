@@ -4,7 +4,6 @@
 #include "../Includes.h"
 
 #include "../Geometry/Mesh.h"
-#include "../Geometry/Model.h"
 #include "ModelLoader_LogStream.h"
 
 #include <assimp/assimp.hpp>

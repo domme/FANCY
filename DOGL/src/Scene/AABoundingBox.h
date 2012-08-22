@@ -18,8 +18,6 @@ public:
 	bool contains( const AABoundingBox& box ) const;
 
 	AABoundingBox combine( const AABoundingBox& rBox );
-	AABoundingBox intersectionBox( const AABoundingBox& rBox );
-
 
 	glm::vec3 getMidPoint() const;
 

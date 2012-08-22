@@ -1,6 +1,5 @@
 #include "ModelLoader.h"
 #include "../Geometry/Mesh.h"
-#include "../Geometry/Model.h"
 #include "../Geometry/VertexDeclarations.h"
 
 #include "PathService.h"
@@ -11,18 +10,8 @@
 #include "assimp/DefaultLogger.h"
 
 //Materials
-#include "../Rendering/Materials/MAT_FSquad_Textured.h"
-#include "../Rendering/Materials/MAT_Test.h"
-#include "../Rendering/Materials/MAT_Textured.h"
-#include "../Rendering/Materials/MAT_TexturedNormal.h"
-#include "../Rendering/Materials/MAT_TexturedNormalSpecular.h"
-#include "../Rendering/Materials/MAT_Colored.h"
-
 #include "../Rendering/Managers/GLBufferUploader.h"
 #include "../Rendering/Managers/GLResourcePathManager.h"
-
-#include "../Scene/SceneManager.h"
-#include "../Scene/SceneNode.h"
 
 #include "PathService.h"
 
@@ -68,8 +57,8 @@ Mesh* ModelLoader::LoadSingleMeshGeometry(  const String& szModelPath )
 	return processMesh( pAiScene, pAiScene->mMeshes[ 0 ], szModelPath, NULL, 0, false );
 }
 
-
-SceneNode* ModelLoader::LoadAsset( const String& szModelPath, SceneManager* pScene )
+//TODO: Find another way to load complex Scenes into the Engine without relying on SceneNodes
+/*SceneNode* ModelLoader::LoadAsset( const String& szModelPath, SceneManager* pScene )
 {
 	String szAbsPath = PathService::convertToAbsPath( szModelPath );
 	String szModelFolder = PathService::GetContainingFolder( szModelPath );
@@ -257,12 +246,12 @@ Material* ModelLoader::processMaterial( const aiScene* pAiScene, const aiMateria
 	}
 
 	//Note: Uncomment to debug with single color
-	/*
-	MAT_Colored* pMat = new MAT_Colored();
-	pMat->Init();
+	
+	//MAT_Colored* pMat = new MAT_Colored();
+	//pMat->Init();
 
-	returnMaterial = pMat;
-	*/
+	//returnMaterial = pMat;
+	
 	
 
 	//Get Properties that all materials have in common
@@ -293,11 +282,11 @@ Material* ModelLoader::processMaterial( const aiScene* pAiScene, const aiMateria
 		fSpecExponent = 255.0f;
 
 	returnMaterial->SetSpecularExponent( fSpecExponent / 255.0f ); //conversion to 0...1
-	returnMaterial->SetGlossiness( /*fGloss*/ 1.0f ); //Hack for now till I figured out a nice way to import that from maya...
+	returnMaterial->SetGlossiness(  1.0f ); //Hack for now till I figured out a nice way to import that from maya...
 	returnMaterial->SetDiffuseReflectivity( glm::vec3( 1.0f, 1.0f, 1.0f ) ); //Hack for now till I figured out a nice way to import that from maya...
 
 	return returnMaterial;
-}
+} */
 
 Mesh* ModelLoader::processMesh( const aiScene* pAiScene, aiMesh* paiMesh, const String& szModelPath, Material** vpMaterials, uint i, bool assignMaterial /* = true */ )
 {
@@ -494,7 +483,7 @@ Mesh* ModelLoader::processMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 	return pMesh;	
 }
 
-
+/*
 void ModelLoader::processNode( SceneManager* pScene, const aiScene* pAiScene, SceneNode* pNode, aiNode* pAiNode, Mesh** vMeshes )
 {
 	SceneNode* pCurrNode = pNode->createChildSceneNode( String( pAiNode->mName.data ) );
@@ -514,7 +503,7 @@ void ModelLoader::processNode( SceneManager* pScene, const aiScene* pAiScene, Sc
 		processNode( pScene, pAiScene, pCurrNode, paiChildNode, vMeshes ); //Recursively handle the child nodes
 	}
 }
-
+*/
 
 glm::mat4 ModelLoader::matFromAiMat( const aiMatrix4x4& mat )
 {

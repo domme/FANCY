@@ -32,7 +32,7 @@
       <UniqueIdentifier>{26873394-966d-4fcc-ba71-cf0b1ece1025}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Rendering\Materials">
-      <UniqueIdentifier>{8dcb50ee-41ea-4e37-87c5-a49619f32129}</UniqueIdentifier>
+      <UniqueIdentifier>{02afd460-d464-4297-89fa-2f2bc1776a23}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,19 +51,10 @@
     <ClInclude Include="src\Geometry\BaseGeometryObject.h">
       <Filter>src\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Geometry\FullscreenQuad.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
     <ClInclude Include="src\Geometry\Mesh.h">
       <Filter>src\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\Geometry\Model.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
     <ClInclude Include="src\Geometry\VertexDeclarations.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Geometry\VolumeMesh.h">
       <Filter>src\Geometry</Filter>
     </ClInclude>
     <ClInclude Include="src\IO\FileReader.h">
@@ -105,14 +96,8 @@
     <ClInclude Include="src\Light\SpotLight.h">
       <Filter>src\Light</Filter>
     </ClInclude>
-    <ClInclude Include="src\Math\TransformSQT.h">
-      <Filter>src\Math</Filter>
-    </ClInclude>
     <ClInclude Include="src\Math\QuaternionService.h">
       <Filter>src\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\GLDeferredRenderer.h">
-      <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\GLRenderer.h">
       <Filter>src\Rendering</Filter>
@@ -120,19 +105,10 @@
     <ClInclude Include="src\Rendering\GLTexture.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\GLVolumeRenderer.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\ISceneRenderer.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\Rendering\IUniform.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\IUniformObserver.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Pass_GaussianBlur.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\Shader.h">
@@ -159,28 +135,10 @@
     <ClInclude Include="src\Scene\AABoundingBox.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene\BaseRenderableObject.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\Scene\BoundingSphere.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\Camera.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene\CameraController.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene\Entity.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene\SceneManager.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene\SceneNode.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene\VolumeEntity.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Services\FBOservice.h">
@@ -204,69 +162,6 @@
     <ClInclude Include="src\Rendering\Managers\TextureManager.h">
       <Filter>src\Rendering\Managers</Filter>
     </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_VolCube_Raycast_Simple.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_Colored.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_Bloom.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_BrightPass.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_DirLighting.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_FinalComposite.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_FXAA.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_GaussianBlur.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_LumaTimeAdaption.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_PointLighting.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_Textured.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_Textured3D.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_ToneMapping.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_Pointlight_Illumination.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_Test.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_Textured.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_TexturedNormal.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_TexturedNormalSpecular.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_VolCube_Rasterize.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\MAT_VolCube_Raycast_DSM.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\VolumeMaterial.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
     <ClInclude Include="src\Rendering\Materials\Material.h">
       <Filter>src\Rendering\Materials</Filter>
     </ClInclude>
@@ -278,19 +173,10 @@
     <ClCompile Include="src\Geometry\BaseGeometryObject.cpp">
       <Filter>src\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\Geometry\FullscreenQuad.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
     <ClCompile Include="src\Geometry\Mesh.cpp">
       <Filter>src\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\Geometry\Model.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
     <ClCompile Include="src\Geometry\VertexDeclarations.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Geometry\VolumeMesh.cpp">
       <Filter>src\Geometry</Filter>
     </ClCompile>
     <ClCompile Include="src\IO\FileReader.cpp">
@@ -329,22 +215,10 @@
     <ClCompile Include="src\Light\SpotLight.cpp">
       <Filter>src\Light</Filter>
     </ClCompile>
-    <ClCompile Include="src\Math\TransformSQT.cpp">
-      <Filter>src\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\GLDeferredRenderer.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\Rendering\GLRenderer.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\GLTexture.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\GLVolumeRenderer.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Pass_GaussianBlur.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\Shader.cpp">
@@ -362,28 +236,10 @@
     <ClCompile Include="src\Scene\AABoundingBox.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene\BaseRenderableObject.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\Scene\BoundingSphere.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\Camera.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene\CameraController.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene\Entity.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene\SceneManager.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene\SceneNode.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene\VolumeEntity.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Services\NameRegistry.cpp">
@@ -400,69 +256,6 @@
     </ClCompile>
     <ClCompile Include="src\Rendering\Managers\TextureManager.cpp">
       <Filter>src\Rendering\Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_Colored.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_Bloom.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_BrightPass.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_DirLighting.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_FinalComposite.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_FXAA.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_GaussianBlur.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_LumaTimeAdaption.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_PointLighting.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_Textured.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_Textured3D.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_ToneMapping.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_Pointlight_Illumination.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_Test.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_Textured.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_TexturedNormal.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_TexturedNormalSpecular.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_VolCube_Rasterize.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_VolCube_Raycast_DSM.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\MAT_VolCube_Raycast_Simple.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\VolumeMaterial.cpp">
-      <Filter>src\Rendering\Materials</Filter>
     </ClCompile>
     <ClCompile Include="src\Rendering\Materials\Material.cpp">
       <Filter>src\Rendering\Materials</Filter>

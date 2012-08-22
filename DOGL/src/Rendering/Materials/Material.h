@@ -4,7 +4,6 @@
 
 #include "../../Includes.h"
 #include "../Shader.h"
-#include "../../Math/TransformSQT.h"
 #include "../GLTexture.h"
 #include "../IUniform.h"
 
@@ -20,6 +19,14 @@ namespace ESamplingDirection
 }
 
 
+struct SMaterialDescription
+{
+	uint8 uNumTexturesDiffuse;
+	uint8 uNumTexturesNormal;
+	uint8 uNumTexturesGloss;
+	uint8 uNumTexturesSpecular;
+};
+
 class Material
 {
 public:
@@ -34,11 +41,8 @@ public:
 
 	virtual void UpdateUniform( IUniform* pUniform ) const;
 
-	Shader* GetDeferredShader() { return m_pDeferredShader; }
-	const Shader* GetDeferredShader() const { return m_pDeferredShader; }
-
-	Shader* GetForwardShader() { return m_pForwardShader; }
-	const Shader* GetForwardShader() const { return m_pForwardShader; }
+	Shader* GetShader() { return m_pShader; }
+	const Shader* GetShader() const { return m_pShader; }
 
 	const glm::vec3& GetAmbientReflectivity() const { return m_v3AmbientReflectivity; }
 	void SetAmbientReflectivity( const glm::vec3& ambient ) { m_v3AmbientReflectivity = ambient; }
@@ -64,8 +68,7 @@ public:
 	void				ValidateMaterial() const;
 	
 protected:
-	Shader* m_pDeferredShader;
-	Shader* m_pForwardShader;
+	Shader* m_pShader;
 	glm::vec3 m_v3AmbientReflectivity;
 	glm::vec3 m_v3Color;
 	glm::vec3 m_v3SpecularColor;

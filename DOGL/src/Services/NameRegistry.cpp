@@ -12,34 +12,12 @@ ObjectRegistry& ObjectRegistry::getInstance()
 	return instance;
 }
 
-ObjectRegistry::ObjectRegistry() : NameRegistry<BaseRenderableObject>()
+ObjectRegistry::ObjectRegistry() : NameRegistry<Mesh>()
 {
 	
 }
 
 ObjectRegistry::~ObjectRegistry()
-{
-	
-}
-
-
-////////////////////////////////////////////////////////
-// NodeRegistry implementation
-////////////////////////////////////////////////////////
-NodeRegistry& NodeRegistry::getInstance()
-{
-	static NodeRegistry instance;
-	
-	return instance;
-}
-
-NodeRegistry::NodeRegistry() : NameRegistry<SceneNode>()
-{
-	
-}
-
-
-NodeRegistry::~NodeRegistry()
 {
 	
 }

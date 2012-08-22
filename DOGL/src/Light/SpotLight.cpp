@@ -3,7 +3,7 @@
 #include "../Engine.h"
 #include "../Scene/Camera.h"
 #include "../Services/NameRegistry.h"
-#include "../Scene/SceneNode.h"
+
 
 SpotLight::SpotLight() : Light(),
 	m_fExponent( 0.0f ),
@@ -19,23 +19,12 @@ SpotLight::~SpotLight()
 
 }
 
-void SpotLight::onTransformChanged( const glm::mat4& newTransform )
-{
-	m_clLightViewCamera.SetView( glm::inverse( newTransform ) );
-}
 
 void SpotLight::update()
 {
 	
 }
 
-void SpotLight::onAttatchedToNode()
-{
-	m_clLightViewCamera.SetView( glm::inverse( m_pNode->getGlobalTransformMAT() ) );
-	float fSideOffset = glm::tan( m_fUmbraAngle );
-	fSideOffset *= 0.9;
-	m_clLightViewCamera.InitPerspectiveProjection( -fSideOffset, fSideOffset, -fSideOffset, fSideOffset, 1.0f, 1000.0f );
-}
 
 void SpotLight::renderShadowMap()
 {	

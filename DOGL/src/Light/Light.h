@@ -2,7 +2,6 @@
 #define LIGHT_H
 
 #include "../includes.h"
-#include "../Scene/BaseRenderableObject.h"
 #include "../Geometry/Mesh.h"
 #include "../Scene/Camera.h"
 //#include "OpenGL_Includes.h"
@@ -11,7 +10,7 @@
 
 class Engine;
 
-class Light : public BaseRenderableObject
+class Light
 {
 public:
 
@@ -25,7 +24,6 @@ public:
 		Light();
 		virtual ~Light();
 
-		virtual void destroyEntity();
 		virtual void render();
 		virtual void renderShadowMap();
 		virtual const BoundingSphere& getBoundingSphere() { return m_BoundingSphere; }
@@ -35,7 +33,7 @@ public:
 		
 		void				setColor( const glm::vec3& v3Color )	{ m_v3Color = v3Color; }
 		void				setIntensity( float fIntensity )		{ m_fIntensity = fIntensity; }
-		void				setEnabled( bool bEnabled )			{ m_bEnabled = bEnabled; }
+		void				setEnabled( bool bEnabled )				{ m_bEnabled = bEnabled; }
 		void				setChachedPosition( glm::vec3 vPos )	{ m_vChachedPosition = vPos; }
 
 		ELightTpye			getLightType() const { return m_eLightType; }
@@ -46,13 +44,14 @@ public:
 		const Camera*		GetCamera() const { return &m_clLightViewCamera; }
 
 protected:
+		bool			m_bEnabled;
 		glm::vec3		m_v3Color;
 		float			m_fIntensity;
 		ELightTpye		m_eLightType;
 		glm::vec3		m_vChachedPosition;
 		BoundingSphere	m_BoundingSphere;
 		Engine*			m_pEngine;
-		Camera					m_clLightViewCamera;
+		Camera			m_clLightViewCamera;
 		
 		void		Init();
 };

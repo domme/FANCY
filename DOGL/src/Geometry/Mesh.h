@@ -6,7 +6,6 @@
 #include "../Rendering/Materials/Material.h"
 #include "../Rendering/Shader.h"
 #include "VertexDeclarations.h"
-#include "../Math/TransformSQT.h"
 #include "BaseGeometryObject.h"
 
 class Renderer;
@@ -17,7 +16,6 @@ class DLLEXPORT Mesh : public BaseGeometryObject
 {
 	friend class OBJimporter;
 	friend class GLRenderer;
-	friend class GLDeferredRenderer;
 	friend class GLSLProgram;
 
 public:
