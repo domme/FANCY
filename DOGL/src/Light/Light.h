@@ -10,7 +10,7 @@
 
 class Engine;
 
-class Light
+class DLLEXPORT Light
 {
 public:
 

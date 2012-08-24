@@ -20,12 +20,12 @@ class DLLEXPORT GLTexture
 		bool SetTexture3D( const String& szRelativeTextureBasePath, uint uStartIndex, uint uEndIndex, const String& szExtension );
 		bool HasTexture() const { return m_bInitialized; }
 
-		const glm::vec3& GetTextureSize() const { return m_v3TextureSize; }
+		const glm::ivec3& GetTextureSize() const { return m_v3TextureSize; }
 
 	protected:
 		GLuint			m_uGlTextureLocation;
 		bool			m_bInitialized;
-		glm::vec3	  	m_v3TextureSize;
+		glm::ivec3	  	m_v3TextureSize;
 };
 
 

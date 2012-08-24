@@ -4,8 +4,6 @@
 
 #include "PathService.h"
 
-#include "ObjImporter.h"
-
 #include "assimp/Logger.h"
 #include "assimp/DefaultLogger.h"
 
@@ -54,7 +52,7 @@ Mesh* ModelLoader::LoadSingleMeshGeometry(  const String& szModelPath )
 		LOG( String( "WARNING: Loading single Mesh from File with more Meshes! " ) + szModelPath );
 
 
-	return processMesh( pAiScene, pAiScene->mMeshes[ 0 ], szModelPath, NULL, 0, false );
+	return ProcessMesh( pAiScene, pAiScene->mMeshes[ 0 ], szModelPath, NULL, 0, false );
 }
 
 //TODO: Find another way to load complex Scenes into the Engine without relying on SceneNodes
@@ -288,7 +286,7 @@ Material* ModelLoader::processMaterial( const aiScene* pAiScene, const aiMateria
 	return returnMaterial;
 } */
 
-Mesh* ModelLoader::processMesh( const aiScene* pAiScene, aiMesh* paiMesh, const String& szModelPath, Material** vpMaterials, uint i, bool assignMaterial /* = true */ )
+Mesh* ModelLoader::ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const String& szModelPath, Material** vpMaterials, uint i, bool assignMaterial /* = true */ )
 {
 	GLVBOpathManager& rVBOpathMgr = GLVBOpathManager::GetInstance();
 	GLIBOpathManager& rIBOpathMgr = GLIBOpathManager::GetInstance();
@@ -303,7 +301,7 @@ Mesh* ModelLoader::processMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 
 	else
 	{
-		stringstream ss;
+		std::stringstream ss;
 		ss << szModelPath << "_Mesh_" << i;
 		szName = ss.str();
 	}
@@ -330,7 +328,7 @@ Mesh* ModelLoader::processMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 		pVertexInfo->AddVertexElement( pVertexInfo->ComputeCurrentOffset(), Vertex::DataType::FLOAT3, ShaderSemantics::NORMAL );
 
 	//UVs
-	for( int i = 0; i < paiMesh->GetNumUVChannels() && i < ShaderSemantics::MAX_UV_CHANNELS; ++i )
+	for( unsigned int i = 0; i < paiMesh->GetNumUVChannels() && i < ShaderSemantics::MAX_UV_CHANNELS; ++i )
 		if( paiMesh->HasTextureCoords( i ) )
 			pVertexInfo->AddVertexElement( pVertexInfo->ComputeCurrentOffset(), Vertex::DataType::FLOAT2, (ShaderSemantics::Semantic) ( ShaderSemantics::UV0 + i ) );
 	
@@ -351,11 +349,11 @@ Mesh* ModelLoader::processMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 		const std::vector<VertexElement>& vVertexElements = pVertexInfo->GetVertexElements();
 
 
-		for( int i = 0; i < paiMesh->mNumVertices; ++i )
+		for( unsigned int i = 0; i < paiMesh->mNumVertices; ++i )
 		{
 			uint8* pVertex = &pVBOdata[ pVertexInfo->GetStride() * i ];
 
-			for( int iVelement = 0; iVelement < vVertexElements.size(); ++iVelement )
+			for( unsigned int iVelement = 0; iVelement < vVertexElements.size(); ++iVelement )
 			{
 				const VertexElement& clElement = vVertexElements[ iVelement ];
 
@@ -446,11 +444,11 @@ Mesh* ModelLoader::processMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 			uint* pIBOdata = (uint*) malloc( sizeof( uint ) * uNumIndices );
 
 			uint uIdx = 0;
-			for( int iFace = 0; iFace < paiMesh->mNumFaces; ++iFace )
+			for( unsigned int iFace = 0; iFace < paiMesh->mNumFaces; ++iFace )
 			{
 				aiFace& rFace = paiMesh->mFaces[ iFace ];
 
-				for( int iFaceIndex = 0; iFaceIndex < rFace.mNumIndices; ++iFaceIndex )
+				for( unsigned int iFaceIndex = 0; iFaceIndex < rFace.mNumIndices; ++iFaceIndex )
 				{
 					pIBOdata[ uIdx++ ] = rFace.mIndices[ iFaceIndex ];
 				}
@@ -472,7 +470,7 @@ Mesh* ModelLoader::processMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 	//Translate ai-positions to glm-positions
 	//Ugly but necessary for mesh-initialization for now
 	std::vector<glm::vec3> vPositions;
-	for( int i = 0; i < paiMesh->mNumVertices; ++i )
+	for( unsigned int i = 0; i < paiMesh->mNumVertices; ++i )
 		vPositions.push_back( glm::vec3( paiMesh->mVertices[ i ].x, paiMesh->mVertices[ i ].y, paiMesh->mVertices[ i ].z ) );
 
 	pMesh->Init( vPositions );

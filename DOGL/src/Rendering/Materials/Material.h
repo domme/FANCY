@@ -36,7 +36,7 @@ public:
 	
 	virtual bool Init() = 0;
 	virtual GLuint GetTextureAtIndex( uint uIdx ) const { return 0; }
-	virtual const glm::vec3& GetTextureSizeAtIndex( uint uIdx ) const { return glm::vec3( 0.0f, 0.0f, 0.0f ); }
+	virtual const glm::vec3& GetTextureSizeAtIndex( uint uIdx ) const = 0;
 	virtual Material* Clone() = 0;
 
 	virtual void UpdateUniform( IUniform* pUniform ) const;

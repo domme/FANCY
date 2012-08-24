@@ -81,8 +81,8 @@ protected:
 
 	uint	m_uScreenWidth;
 	uint	m_uScreenHeight;
-	glm::vec4	m_v4Viewport;
-	glm::vec4	m_v4TempViewport;
+	glm::ivec4	m_v4Viewport;
+	glm::ivec4	m_v4TempViewport;
 
 	Engine* m_pEngine;
 

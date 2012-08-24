@@ -5,7 +5,7 @@
 #include "../Scene/BoundingSphere.h"
 #include "../Scene/AABoundingBox.h"
 
-class BaseGeometryObject
+class DLLEXPORT BaseGeometryObject
 {
 public:
 	const BoundingSphere&	GetBoundingSphere() const { return m_clBoundingSphere; }

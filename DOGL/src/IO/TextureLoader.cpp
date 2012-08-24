@@ -684,8 +684,8 @@ bool TextureLoader::loadPFMfile( const String& szAbsPath, uint* pWidth, uint* pH
 	float* p = *ppImageData;
 
 	// read the values and store them 
-	for ( int j = 0; j < envMapHeight ; j++ )  { 
-		for ( int i = 0; i < envMapWidth ; i++ )  { 
+	for ( unsigned int j = 0; j < envMapHeight ; j++ )  { 
+		for ( unsigned int i = 0; i < envMapWidth ; i++ )  { 
 
 			fread( f, 4, 1, infile ); 
 			red = f[0]; 
@@ -700,7 +700,7 @@ bool TextureLoader::loadPFMfile( const String& szAbsPath, uint* pWidth, uint* pH
 			*p++ = green; 
 			*p++ = blue; 
 
-			float L = (red + green + blue) / 3.0; 
+			float L = (red + green + blue) / 3.0f; 
 			//if (L > LMax) 
 			//LMax = L; 
 		} 
@@ -753,8 +753,8 @@ bool TextureLoader::loadPFMfile_Grayscale16( const String& szAbsPath, uint* pWid
 	glm::float16* p = *ppImageData;
 
 	// read the values and store them 
-	for ( int j = 0; j < envMapHeight ; j++ )  { 
-		for ( int i = 0; i < envMapWidth ; i++ )  { 
+	for (unsigned  int j = 0; j < envMapHeight ; j++ )  { 
+		for ( unsigned int i = 0; i < envMapWidth ; i++ )  { 
 
 			fread( f, 2, 1, infile ); 
 			red = static_cast<glm::float16>( f[0] ); 
@@ -806,13 +806,13 @@ bool TextureLoader::loadPFMfile_Grayscale( const String& szAbsPath, uint* pWidth
 	fscanf( infile,"%f", &f[0] ); 
 	fgetc( infile ); 
 
-	float red, green, blue; 
+	float red; 
 
 	float* p = *ppImageData;
 
 	// read the values and store them 
-	for ( int j = 0; j < envMapHeight ; j++ )  { 
-		for ( int i = 0; i < envMapWidth ; i++ )  { 
+	for ( unsigned int j = 0; j < envMapHeight ; j++ )  { 
+		for ( unsigned int i = 0; i < envMapWidth ; i++ )  { 
 
 			fread( f, 4, 1, infile ); 
 			red = static_cast<float>( f[0] ); 
@@ -834,7 +834,7 @@ bool TextureLoader::loadPFMfile_Grayscale( const String& szAbsPath, uint* pWidth
 
 GLuint TextureLoader::CreateVolumeTransferFunction1D( const std::vector<float>& vIntensities, float fMaxIntensity, const std::vector<glm::vec4>& vColors )
 {
-	GLuint uTex;
+	GLuint uTex = 0;
 
 
 

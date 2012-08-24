@@ -69,9 +69,6 @@
     <ClInclude Include="src\IO\ModelLoader_LogStream.h">
       <Filter>src\IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\IO\OBJimporter.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
     <ClInclude Include="src\IO\PathService.h">
       <Filter>src\IO</Filter>
     </ClInclude>
@@ -186,9 +183,6 @@
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\IO\ModelLoader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IO\OBJimporter.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\IO\PathService.cpp">

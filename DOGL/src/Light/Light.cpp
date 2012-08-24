@@ -1,7 +1,6 @@
 #include "Light.h"
 #include "../Scene/AABoundingBox.h"
 #include "../Services/NameRegistry.h"
-#include "../IO/OBJimporter.h"
 #include "../Engine.h"
 
 #include "../Services/FBOservice.h"

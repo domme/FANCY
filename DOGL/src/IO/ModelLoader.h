@@ -22,13 +22,12 @@ public:
 
 	SceneNode* LoadAsset( const String& szModelPath, SceneManager* pScene );
 	Mesh* LoadSingleMeshGeometry( const String& szModelPath );
+	Mesh* ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const String& szModelPath, Material** vpMaterials, uint i, bool assignMaterial = true );
 
 private:
 	ModelLoader();
-	void processNode( SceneManager* pScene, const aiScene* pAiScene, SceneNode* pNode, aiNode* pAiNode, Mesh** vMeshes );
-	Mesh* processMesh( const aiScene* pAiScene, aiMesh* paiMesh, const String& szModelPath, Material** vpMaterials, uint i, bool assignMaterial = true );
-	Material* processMaterial( const aiScene* pAiScene, const aiMaterial* paiMaterial, const String& szModelFolder );
-
+	
+	
 	glm::mat4 matFromAiMat( const aiMatrix4x4& mat );
 
 	Assimp::Importer		m_aiImporter;

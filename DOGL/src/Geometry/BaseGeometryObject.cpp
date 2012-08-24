@@ -15,7 +15,7 @@ void BaseGeometryObject::initBoundingGeometry( const std::vector<glm::vec3>& vPo
 
 	float fR = 0.0f;
 	//look for the greatest length between center point and vertex
-	for( int i = 0; i < vPositions.size(); ++i )
+	for( unsigned int i = 0; i < vPositions.size(); ++i )
 	{
 		const glm::vec3& currVec = vPositions[ i ];
 		float fCurrR = glm::length( v3Center - currVec );

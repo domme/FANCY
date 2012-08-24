@@ -264,7 +264,7 @@ void GLRenderer::prepareLightRendering( const Camera* pCamera, const Light* pLig
 	using namespace ShaderSemantics;
 	typedef std::vector<IUniform*>								UniformVecT;
 	typedef std::map<ShaderSemantics::Semantic, UniformVecT>	UniformMapT;
-		
+
 	const DirectionalLight* pDirLight		= NULL;
 	const PointLight*		pPointLight		= NULL;
 	const SpotLight*		pSpotLight		= NULL;

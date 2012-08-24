@@ -123,7 +123,7 @@ void Engine::UpdateFPS( const uint elapsedTicksMS )
 	 
 	if(  m_uCurrentElapsedTicksMS > 1000 ) //1 sec is over
 	{
-		m_fCurrentFPS = m_uCurrentFrameCount;
+		m_fCurrentFPS = static_cast<float>( m_uCurrentFrameCount );
 		m_uCurrentFrameCount = 0;
 		m_uCurrentElapsedTicksMS = 0;
 	}

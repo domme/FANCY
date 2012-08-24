@@ -15,7 +15,7 @@ GLResourcePathManager::~GLResourcePathManager()
 
 bool GLResourcePathManager::HasResource( const String& szPath )
 {
-	return m_mapPathRes.count( szPath );
+	return m_mapPathRes.count( szPath ) > 0;
 }
 
 GLuint GLResourcePathManager::GetResource( const String& szPath )
