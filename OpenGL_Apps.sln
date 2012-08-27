@@ -1,7 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DOGL", "DOGL\DOGL.vcxproj", "{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libGL", "libGL\libGL.vcxproj", "{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DeferredRenderer", "DeferredRenderer\DeferredRenderer.vcxproj", "{A2D667FB-57F8-4263-B289-1E23530B3471}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD} = {0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +18,10 @@ Global
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Debug|Win32.Build.0 = Debug|Win32
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Release|Win32.ActiveCfg = Release|Win32
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Release|Win32.Build.0 = Release|Win32
+		{A2D667FB-57F8-4263-B289-1E23530B3471}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A2D667FB-57F8-4263-B289-1E23530B3471}.Debug|Win32.Build.0 = Debug|Win32
+		{A2D667FB-57F8-4263-B289-1E23530B3471}.Release|Win32.ActiveCfg = Release|Win32
+		{A2D667FB-57F8-4263-B289-1E23530B3471}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

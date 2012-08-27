@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\Geometry\FullscreenQuad.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Math\TransformSQT.cpp" />
+    <ClCompile Include="src\Rendering\GLDeferredRenderer.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_Colored.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_Bloom.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_BrightPass.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_DirLighting.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_FinalComposite.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_FXAA.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_GaussianBlur.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_LumaTimeAdaption.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_PointLighting.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_Textured.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_FSquad_ToneMapping.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_Pointlight_Illumination.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_Test.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_Textured.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_TexturedNormal.cpp" />
+    <ClCompile Include="src\Rendering\Materials\MAT_TexturedNormalSpecular.cpp" />
+    <ClCompile Include="src\Rendering\Pass_GaussianBlur.cpp" />
+    <ClCompile Include="src\Scene\BaseRenderableObject.cpp" />
+    <ClCompile Include="src\Scene\Entity.cpp" />
+    <ClCompile Include="src\Scene\NodeRegistry.cpp" />
+    <ClCompile Include="src\Scene\ObjectRegistry.cpp" />
+    <ClCompile Include="src\Scene\SceneManager.cpp" />
+    <ClCompile Include="src\Scene\SceneNode.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\Geometry\FullscreenQuad.h" />
+    <ClInclude Include="src\Math\TransformSQT.h" />
+    <ClInclude Include="src\Rendering\GLDeferredRenderer.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_Colored.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_Bloom.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_BrightPass.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_DirLighting.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_FinalComposite.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_FXAA.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_GaussianBlur.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_LumaTimeAdaption.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_PointLighting.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_Textured.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_FSquad_ToneMapping.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_Pointlight_Illumination.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_Test.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_Textured.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_TexturedNormal.h" />
+    <ClInclude Include="src\Rendering\Materials\MAT_TexturedNormalSpecular.h" />
+    <ClInclude Include="src\Rendering\Pass_GaussianBlur.h" />
+    <ClInclude Include="src\Scene\BaseRenderableObject.h" />
+    <ClInclude Include="src\Scene\Entity.h" />
+    <ClInclude Include="src\Scene\NodeRegistry.h" />
+    <ClInclude Include="src\Scene\ObjectRegistry.h" />
+    <ClInclude Include="src\Scene\SceneManager.h" />
+    <ClInclude Include="src\Scene\SceneNode.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A2D667FB-57F8-4263-B289-1E23530B3471}</ProjectGuid>
+    <RootNamespace>DeferredRenderer</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(GLEW_HOME)\include;$(FREEGLUT_HOME)\include\GL;$(GLM_HOME)\;$(SolutionDir)\libGL\src\;$(ASSIMP_HOME)\include\</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(GLEW_HOME)\lib;$(FREEGLUT_HOME)\lib\x86\Debug\;$(IntDir)\;$(ASSIMP_HOME)\lib\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;freeglut.lib;libGL.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(GLEW_HOME)\include;$(FREEGLUT_HOME)\GL;$(GLM_HOME)\;;$(SolutionDir)\libGL\src\;$(ASSIMP_HOME)\include\</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(GLEW_HOME)\lib;$(FREEGLUT_HOME)\lib\x85\Debug\;&amp;(IntDir)\;$(ASSIMP_HOME)\lib\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;freeglut.lib;libGL.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
