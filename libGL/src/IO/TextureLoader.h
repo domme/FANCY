@@ -5,7 +5,7 @@
 #include "../Rendering/Managers/TextureManager.h"
 
 
-class TextureLoader
+class DLLEXPORT TextureLoader
 {
 public:
 	

@@ -7,7 +7,7 @@
 
 class IUniformObserver;
 
-class IUniform
+class DLLEXPORT IUniform
 {
 public:
 	virtual ~IUniform() {};

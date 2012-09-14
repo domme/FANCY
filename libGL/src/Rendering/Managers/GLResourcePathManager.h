@@ -3,7 +3,7 @@
 
 #include "../../Includes.h"
 
-class GLResourcePathManager
+class DLLEXPORT GLResourcePathManager
 {
 public:
 	~GLResourcePathManager();
@@ -21,7 +21,7 @@ protected:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class GLTexturePathManager : public GLResourcePathManager
+class DLLEXPORT GLTexturePathManager : public GLResourcePathManager
 {
 public:
 	static GLTexturePathManager& GetInstance() { static GLTexturePathManager instance; return instance; }
@@ -30,7 +30,7 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class GLShaderPathManager : public GLResourcePathManager
+class DLLEXPORT GLShaderPathManager : public GLResourcePathManager
 {
 public:
 	static GLShaderPathManager& GetInstance() { static GLShaderPathManager instance; return instance; }
@@ -38,7 +38,7 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class GLVBOpathManager : public GLResourcePathManager
+class DLLEXPORT GLVBOpathManager : public GLResourcePathManager
 {
 public:
 	static GLVBOpathManager& GetInstance() { static GLVBOpathManager instance; return instance; }
@@ -46,7 +46,7 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class GLIBOpathManager : public GLResourcePathManager
+class DLLEXPORT GLIBOpathManager : public GLResourcePathManager
 {
 public:
 	static GLIBOpathManager& GetInstance() { static GLIBOpathManager instance; return instance; }

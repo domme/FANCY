@@ -3,7 +3,7 @@
 
 #include "Uniform.h"
 
-class UniformUtil
+class  DLLEXPORT UniformUtil
 {
 public:
 	static void UpdateUniforms( const std::vector<IUniform*>& rvUniforms, const glm::mat4& value ); 

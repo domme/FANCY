@@ -31,7 +31,7 @@ class  SceneManager
 		DirectionalLight*						createDirectionalLight( const String& szName, const glm::vec3& v3LightColor = glm::vec3( 1.0f, 1.0f, 1.0f ), float fIntensity = 1.0f );
 		SpotLight*								createSpotLight( const String& szName, const glm::vec3& v3LightColor = glm::vec3( 1.0f, 1.0f, 1.0f ), float fIntensity = 1.0f, float fUmbraAngleDeg = 20.0f, float fPenumbraAngleDeg = 5.0f, float fExponent = 1.0f );
 
-		SceneNode*								LoadAssetIntoScene( const String& szPath );
+//		SceneNode*								LoadAssetIntoScene( const String& szPath );
 
 
 		std::vector<Entity*>&					GetRenderObjects()					{ return m_vCachedRenderObjects; }

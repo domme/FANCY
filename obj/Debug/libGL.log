@@ -1,429 +1,477 @@
-﻿Der Buildvorgang wurde am 8/27/2012 10:49:57 PM gestartet.
-     1>Projekt "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\libGL\libGL.vcxproj" auf Knoten "2", build Ziel(e).
+﻿Build started 9/14/2012 11:59:15 PM.
+     1>Project "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\libGL\libGL.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
-         "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.unsuccessfulbuild" wird erstellt, da "AlwaysCreate" angegeben wurde.
+         Touching "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.unsuccessfulbuild".
        ClCompile:
-         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\Dominik\Entwicklung\Libraries\glew\include /I"C:\Users\Dominik\Entwicklung\Libraries\glm-0.9.3.4\\" /IC:\Users\Dominik\Entwicklung\Libraries\assimp\include /ZI /nologo /W3 /WX- /Od /Oy- /D _CRT_SECURE_NO_DEPRECATE /D __WINDOWS /D _WINDLL /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\\" /Fd"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt src\Light\DirectionalLight.cpp src\Light\SpotLight.cpp src\Rendering\GLRenderer.cpp
-         GLRenderer.cpp
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(57): warning C4251: 'Shader::m_mapActiveUniforms': class 'std::map<_Kty,_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Kty=String,
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(58): warning C4251: 'Shader::m_mapActiveAttributes': class 'std::map<_Kty,_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Kty=String,
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(60): warning C4251: 'Shader::m_vAttributes': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(61): warning C4251: 'Shader::m_vCachedUniforms': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(62): warning C4251: 'Shader::m_vDirtyUniforms': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(64): warning C4251: 'AABoundingBox::m_v3MinPos': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'AABoundingBox' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(65): warning C4251: 'AABoundingBox::m_v3MaxPos': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'AABoundingBox' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(63): warning C4251: 'Camera::m_matView': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::lowp_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(64): warning C4251: 'Camera::m_matProjection': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::lowp_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(65): warning C4251: 'Camera::m_matViewProj': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::lowp_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(67): warning C4251: 'Camera::m_v3View': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(68): warning C4251: 'Camera::m_v3Position': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(69): warning C4251: 'Camera::m_v3Up': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(70): warning C4251: 'Camera::m_v3Side': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\gltexture.h(28): warning C4251: 'GLTexture::m_v3TextureSize': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'GLTexture' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\geometry\basegeometryobject.h(18): warning C4251: 'BaseGeometryObject::m_clBoundingSphere': class 'BoundingSphere' erfordert eine DLL-Schnittstelle, die von Clients von class 'BaseGeometryObject' verwendet wird
-                 c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\boundingsphere.h(8): Siehe Deklaration von 'BoundingSphere'
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\geometry\basegeometryobject.h(20): warning C4251: 'BaseGeometryObject::m_szName': class 'std::basic_string<_Elem,_Traits,_Ax>' erfordert eine DLL-Schnittstelle, die von Clients von class 'BaseGeometryObject' verwendet wird
-                 with
-                 [
-                     _Elem=char,
-                     _Traits=std::char_traits<char>,
-                     _Ax=std::allocator<char>
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(48): warning C4251: 'Light::m_v3Color': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Light' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(51): warning C4251: 'Light::m_BoundingSphere': class 'BoundingSphere' erfordert eine DLL-Schnittstelle, die von Clients von class 'Light' verwendet wird
-                 c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\boundingsphere.h(8): Siehe Deklaration von 'BoundingSphere'
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(54): warning C4251: 'Light::m_mat4TransformWS': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Light' verwendet wird
-                 with
-                 [
-                     T=glm::lowp_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\io\texturetga.h(68): warning C4251: 'TextureTGA::m_imageData': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'TextureTGA' verwendet wird
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\paino_000\Documents\Entwicklung\Libraries\glew\include /I"C:\Users\paino_000\Documents\Entwicklung\Libraries\glm-0.9.3.4\\" /IC:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\include /ZI /nologo /W3 /WX- /Od /Oy- /D _CRT_SECURE_NO_DEPRECATE /D __WINDOWS /D _WINDLL /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\\" /Fd"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt src\Geometry\BaseGeometryObject.cpp src\Geometry\Mesh.cpp src\Geometry\VertexDeclarations.cpp src\IO\FileReader.cpp src\IO\GLSLpreprocessor.cpp src\IO\ModelLoader.cpp src\IO\PathService.cpp src\IO\ShaderLoader.cpp src\IO\TextureLoader.cpp
+         TextureLoader.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\texturetga.h(68): warning C4251: 'TextureTGA::m_imageData' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'TextureTGA'
                  with
                  [
                      _Ty=unsigned char
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.h(119): warning C4251: 'GLRenderer::m_v4Viewport': struct 'glm::detail::tvec4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'GLRenderer' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_int
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.h(120): warning C4251: 'GLRenderer::m_v4TempViewport': struct 'glm::detail::tvec4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'GLRenderer' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_int
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.h(121): warning C4251: 'GLRenderer::m_v4AmbientLightColor': struct 'glm::detail::tvec4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'GLRenderer' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.h(122): warning C4251: 'GLRenderer::m_v4ClearColor': struct 'glm::detail::tvec4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'GLRenderer' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\directionallight.h(24): warning C4251: 'DirectionalLight::m_v3Direction': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'DirectionalLight' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\spotlight.h(31): warning C4251: 'SpotLight::m_v3Direction': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'SpotLight' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\io\modelloader.h(35): warning C4251: 'ModelLoader::m_aiImporter': class 'Assimp::Importer' erfordert eine DLL-Schnittstelle, die von Clients von class 'ModelLoader' verwendet wird
-                 c:\users\dominik\entwicklung\libraries\assimp\include\assimp\assimp.hpp(118): Siehe Deklaration von 'Assimp::Importer'
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\io\modelloader.h(36): warning C4251: 'ModelLoader::m_clLogStream': class 'ModelLoader_LogStream' erfordert eine DLL-Schnittstelle, die von Clients von class 'ModelLoader' verwendet wird
-                 c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\io\modelloader_logstream.h(7): Siehe Deklaration von 'ModelLoader_LogStream'
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.cpp(226): warning C4805: '!=': unsichere Kombination von Typ 'bool' mit Typ 'GLboolean' in einer Operation
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.cpp(227): warning C4805: '!=': unsichere Kombination von Typ 'bool' mit Typ 'GLboolean' in einer Operation
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.cpp(228): warning C4805: '!=': unsichere Kombination von Typ 'bool' mit Typ 'GLboolean' in einer Operation
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.cpp(229): warning C4805: '!=': unsichere Kombination von Typ 'bool' mit Typ 'GLboolean' in einer Operation
-         SpotLight.cpp
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(57): warning C4251: 'Shader::m_mapActiveUniforms': class 'std::map<_Kty,_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\managers\glresourcepathmanager.h(20): warning C4251: 'GLResourcePathManager::m_mapPathRes' : class 'std::map<_Kty,_Ty>' needs to have dll-interface to be used by clients of class 'GLResourcePathManager'
                  with
                  [
                      _Kty=String,
-                     _Ty=IUniform *
+                     _Ty=GLuint
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(58): warning C4251: 'Shader::m_mapActiveAttributes': class 'std::map<_Kty,_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Kty=String,
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(60): warning C4251: 'Shader::m_vAttributes': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(61): warning C4251: 'Shader::m_vCachedUniforms': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(62): warning C4251: 'Shader::m_vDirtyUniforms': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\gltexture.h(28): warning C4251: 'GLTexture::m_v3TextureSize': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'GLTexture' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(64): warning C4251: 'AABoundingBox::m_v3MinPos': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'AABoundingBox' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(65): warning C4251: 'AABoundingBox::m_v3MaxPos': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'AABoundingBox' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\geometry\basegeometryobject.h(18): warning C4251: 'BaseGeometryObject::m_clBoundingSphere': class 'BoundingSphere' erfordert eine DLL-Schnittstelle, die von Clients von class 'BaseGeometryObject' verwendet wird
-                 c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\boundingsphere.h(8): Siehe Deklaration von 'BoundingSphere'
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\geometry\basegeometryobject.h(20): warning C4251: 'BaseGeometryObject::m_szName': class 'std::basic_string<_Elem,_Traits,_Ax>' erfordert eine DLL-Schnittstelle, die von Clients von class 'BaseGeometryObject' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\pathservice.h(20): warning C4251: 'PathService::m_szRelativeResourcePath' : class 'std::basic_string<_Elem,_Traits,_Ax>' needs to have dll-interface to be used by clients of class 'PathService'
                  with
                  [
                      _Elem=char,
                      _Traits=std::char_traits<char>,
                      _Ax=std::allocator<char>
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(63): warning C4251: 'Camera::m_matView': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::lowp_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(64): warning C4251: 'Camera::m_matProjection': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::lowp_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(65): warning C4251: 'Camera::m_matViewProj': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::lowp_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(67): warning C4251: 'Camera::m_v3View': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(68): warning C4251: 'Camera::m_v3Position': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(69): warning C4251: 'Camera::m_v3Up': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(70): warning C4251: 'Camera::m_v3Side': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(48): warning C4251: 'Light::m_v3Color': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Light' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(51): warning C4251: 'Light::m_BoundingSphere': class 'BoundingSphere' erfordert eine DLL-Schnittstelle, die von Clients von class 'Light' verwendet wird
-                 c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\boundingsphere.h(8): Siehe Deklaration von 'BoundingSphere'
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(54): warning C4251: 'Light::m_mat4TransformWS': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Light' verwendet wird
-                 with
-                 [
-                     T=glm::lowp_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\spotlight.h(31): warning C4251: 'SpotLight::m_v3Direction': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'SpotLight' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\services\nameregistry.h(33): warning C4251: 'NameRegistry<object_type>::m_mapRegistry': class 'std::map<String,object_type*>' erfordert eine DLL-Schnittstelle, die von Clients von class 'NameRegistry<object_type>' verwendet wird
-                 c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\services\nameregistry.h(34): Siehe Verweis auf die Instanziierung der gerade kompilierten Klassen-template "NameRegistry<object_type>".
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\services\nameregistry.h(33): warning C4251: 'NameRegistry<object_type>::m_mapRegistry': class 'std::map<_Kty,_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'NameRegistry<object_type>' verwendet wird
-                 with
-                 [
-                     object_type=Light
-                 ]
-                 and
-                 [
-                     _Kty=String,
-                     _Ty=Light *
-                 ]
-                 and
-                 [
-                     object_type=Light
-                 ]
-                 c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\services\nameregistry.h(151): Siehe Verweis auf die Instanziierung der gerade kompilierten Klassen-template "NameRegistry<object_type>".
-                 with
-                 [
-                     object_type=Light
-                 ]
-         DirectionalLight.cpp
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(57): warning C4251: 'Shader::m_mapActiveUniforms': class 'std::map<_Kty,_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
+         ShaderLoader.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\managers\glresourcepathmanager.h(20): warning C4251: 'GLResourcePathManager::m_mapPathRes' : class 'std::map<_Kty,_Ty>' needs to have dll-interface to be used by clients of class 'GLResourcePathManager'
                  with
                  [
                      _Kty=String,
-                     _Ty=IUniform *
+                     _Ty=GLuint
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(58): warning C4251: 'Shader::m_mapActiveAttributes': class 'std::map<_Kty,_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Kty=String,
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(60): warning C4251: 'Shader::m_vAttributes': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(61): warning C4251: 'Shader::m_vCachedUniforms': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(62): warning C4251: 'Shader::m_vDirtyUniforms': class 'std::vector<_Ty>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Shader' verwendet wird
-                 with
-                 [
-                     _Ty=IUniform *
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\rendering\gltexture.h(28): warning C4251: 'GLTexture::m_v3TextureSize': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'GLTexture' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(64): warning C4251: 'AABoundingBox::m_v3MinPos': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'AABoundingBox' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(65): warning C4251: 'AABoundingBox::m_v3MaxPos': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'AABoundingBox' verwendet wird
-                 with
-                 [
-                     T=glm::mediump_float
-                 ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\geometry\basegeometryobject.h(18): warning C4251: 'BaseGeometryObject::m_clBoundingSphere': class 'BoundingSphere' erfordert eine DLL-Schnittstelle, die von Clients von class 'BaseGeometryObject' verwendet wird
-                 c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\boundingsphere.h(8): Siehe Deklaration von 'BoundingSphere'
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\geometry\basegeometryobject.h(20): warning C4251: 'BaseGeometryObject::m_szName': class 'std::basic_string<_Elem,_Traits,_Ax>' erfordert eine DLL-Schnittstelle, die von Clients von class 'BaseGeometryObject' verwendet wird
+         PathService.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\pathservice.h(20): warning C4251: 'PathService::m_szRelativeResourcePath' : class 'std::basic_string<_Elem,_Traits,_Ax>' needs to have dll-interface to be used by clients of class 'PathService'
                  with
                  [
                      _Elem=char,
                      _Traits=std::char_traits<char>,
                      _Ax=std::allocator<char>
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(63): warning C4251: 'Camera::m_matView': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
+         ModelLoader.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(57): warning C4251: 'Shader::m_mapActiveUniforms' : class 'std::map<_Kty,_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Kty=String,
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(58): warning C4251: 'Shader::m_mapActiveAttributes' : class 'std::map<_Kty,_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Kty=String,
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(60): warning C4251: 'Shader::m_vAttributes' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(61): warning C4251: 'Shader::m_vCachedUniforms' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(62): warning C4251: 'Shader::m_vDirtyUniforms' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\pathservice.h(20): warning C4251: 'PathService::m_szRelativeResourcePath' : class 'std::basic_string<_Elem,_Traits,_Ax>' needs to have dll-interface to be used by clients of class 'PathService'
+                 with
+                 [
+                     _Elem=char,
+                     _Traits=std::char_traits<char>,
+                     _Ax=std::allocator<char>
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\gltexture.h(28): warning C4251: 'GLTexture::m_v3TextureSize' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'GLTexture'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\materials\material.h(72): warning C4251: 'Material::m_v3AmbientReflectivity' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Material'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\materials\material.h(73): warning C4251: 'Material::m_v3Color' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Material'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\materials\material.h(74): warning C4251: 'Material::m_v3SpecularColor' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Material'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\materials\material.h(75): warning C4251: 'Material::m_v3DiffuseReflectivity' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Material'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(13): warning C4251: 'Vertex::VertexType::Position' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of struct 'Vertex::VertexType'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(18): warning C4251: 'Vertex::PosTex::TextureCoord' : struct 'glm::detail::tvec2<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosTex'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(23): warning C4251: 'Vertex::PosNormTex::Normal' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosNormTex'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(24): warning C4251: 'Vertex::PosNormTex::TextureCoord' : struct 'glm::detail::tvec2<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosNormTex'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(29): warning C4251: 'Vertex::PosNormTexTan::Tangent' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosNormTexTan'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(114): warning C4251: 'VertexDeclaration::m_vElements' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'VertexDeclaration'
+                 with
+                 [
+                     _Ty=VertexElement
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(64): warning C4251: 'AABoundingBox::m_v3MinPos' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'AABoundingBox'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(65): warning C4251: 'AABoundingBox::m_v3MaxPos' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'AABoundingBox'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\boundingsphere.h(38): warning C4251: 'BoundingSphere::m_vCenter' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'BoundingSphere'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\basegeometryobject.h(20): warning C4251: 'BaseGeometryObject::m_szName' : class 'std::basic_string<_Elem,_Traits,_Ax>' needs to have dll-interface to be used by clients of class 'BaseGeometryObject'
+                 with
+                 [
+                     _Elem=char,
+                     _Traits=std::char_traits<char>,
+                     _Ax=std::allocator<char>
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\modelloader.h(35): warning C4251: 'ModelLoader::m_aiImporter' : class 'Assimp::Importer' needs to have dll-interface to be used by clients of class 'ModelLoader'
+                 c:\users\paino_000\documents\entwicklung\libraries\assimp\include\assimp\assimp.hpp(118) : see declaration of 'Assimp::Importer'
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\modelloader.h(36): warning C4251: 'ModelLoader::m_clLogStream' : class 'ModelLoader_LogStream' needs to have dll-interface to be used by clients of class 'ModelLoader'
+                 c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\modelloader_logstream.h(7) : see declaration of 'ModelLoader_LogStream'
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\managers\glresourcepathmanager.h(20): warning C4251: 'GLResourcePathManager::m_mapPathRes' : class 'std::map<_Kty,_Ty>' needs to have dll-interface to be used by clients of class 'GLResourcePathManager'
+                 with
+                 [
+                     _Kty=String,
+                     _Ty=GLuint
+                 ]
+         GLSLpreprocessor.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\pathservice.h(20): warning C4251: 'PathService::m_szRelativeResourcePath' : class 'std::basic_string<_Elem,_Traits,_Ax>' needs to have dll-interface to be used by clients of class 'PathService'
+                 with
+                 [
+                     _Elem=char,
+                     _Traits=std::char_traits<char>,
+                     _Ax=std::allocator<char>
+                 ]
+         FileReader.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\pathservice.h(20): warning C4251: 'PathService::m_szRelativeResourcePath' : class 'std::basic_string<_Elem,_Traits,_Ax>' needs to have dll-interface to be used by clients of class 'PathService'
+                 with
+                 [
+                     _Elem=char,
+                     _Traits=std::char_traits<char>,
+                     _Ax=std::allocator<char>
+                 ]
+         VertexDeclarations.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(13): warning C4251: 'Vertex::VertexType::Position' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of struct 'Vertex::VertexType'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(18): warning C4251: 'Vertex::PosTex::TextureCoord' : struct 'glm::detail::tvec2<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosTex'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(23): warning C4251: 'Vertex::PosNormTex::Normal' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosNormTex'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(24): warning C4251: 'Vertex::PosNormTex::TextureCoord' : struct 'glm::detail::tvec2<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosNormTex'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(29): warning C4251: 'Vertex::PosNormTexTan::Tangent' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosNormTexTan'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(114): warning C4251: 'VertexDeclaration::m_vElements' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'VertexDeclaration'
+                 with
+                 [
+                     _Ty=VertexElement
+                 ]
+         Mesh.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(57): warning C4251: 'Shader::m_mapActiveUniforms' : class 'std::map<_Kty,_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Kty=String,
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(58): warning C4251: 'Shader::m_mapActiveAttributes' : class 'std::map<_Kty,_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Kty=String,
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(60): warning C4251: 'Shader::m_vAttributes' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(61): warning C4251: 'Shader::m_vCachedUniforms' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\shader.h(62): warning C4251: 'Shader::m_vDirtyUniforms' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'Shader'
+                 with
+                 [
+                     _Ty=IUniform *
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\pathservice.h(20): warning C4251: 'PathService::m_szRelativeResourcePath' : class 'std::basic_string<_Elem,_Traits,_Ax>' needs to have dll-interface to be used by clients of class 'PathService'
+                 with
+                 [
+                     _Elem=char,
+                     _Traits=std::char_traits<char>,
+                     _Ax=std::allocator<char>
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\gltexture.h(28): warning C4251: 'GLTexture::m_v3TextureSize' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'GLTexture'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\materials\material.h(72): warning C4251: 'Material::m_v3AmbientReflectivity' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Material'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\materials\material.h(73): warning C4251: 'Material::m_v3Color' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Material'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\materials\material.h(74): warning C4251: 'Material::m_v3SpecularColor' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Material'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\materials\material.h(75): warning C4251: 'Material::m_v3DiffuseReflectivity' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Material'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(13): warning C4251: 'Vertex::VertexType::Position' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of struct 'Vertex::VertexType'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(18): warning C4251: 'Vertex::PosTex::TextureCoord' : struct 'glm::detail::tvec2<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosTex'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(23): warning C4251: 'Vertex::PosNormTex::Normal' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosNormTex'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(24): warning C4251: 'Vertex::PosNormTex::TextureCoord' : struct 'glm::detail::tvec2<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosNormTex'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(29): warning C4251: 'Vertex::PosNormTexTan::Tangent' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of struct 'Vertex::PosNormTexTan'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\vertexdeclarations.h(114): warning C4251: 'VertexDeclaration::m_vElements' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'VertexDeclaration'
+                 with
+                 [
+                     _Ty=VertexElement
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(64): warning C4251: 'AABoundingBox::m_v3MinPos' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'AABoundingBox'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(65): warning C4251: 'AABoundingBox::m_v3MaxPos' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'AABoundingBox'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\boundingsphere.h(38): warning C4251: 'BoundingSphere::m_vCenter' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'BoundingSphere'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\basegeometryobject.h(20): warning C4251: 'BaseGeometryObject::m_szName' : class 'std::basic_string<_Elem,_Traits,_Ax>' needs to have dll-interface to be used by clients of class 'BaseGeometryObject'
+                 with
+                 [
+                     _Elem=char,
+                     _Traits=std::char_traits<char>,
+                     _Ax=std::allocator<char>
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(63): warning C4251: 'Camera::m_matView' : struct 'glm::detail::tmat4x4<T>' needs to have dll-interface to be used by clients of class 'Camera'
                  with
                  [
                      T=glm::lowp_float
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(64): warning C4251: 'Camera::m_matProjection': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(64): warning C4251: 'Camera::m_matProjection' : struct 'glm::detail::tmat4x4<T>' needs to have dll-interface to be used by clients of class 'Camera'
                  with
                  [
                      T=glm::lowp_float
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(65): warning C4251: 'Camera::m_matViewProj': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(65): warning C4251: 'Camera::m_matViewProj' : struct 'glm::detail::tmat4x4<T>' needs to have dll-interface to be used by clients of class 'Camera'
                  with
                  [
                      T=glm::lowp_float
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(67): warning C4251: 'Camera::m_v3View': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(67): warning C4251: 'Camera::m_v3View' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Camera'
                  with
                  [
                      T=glm::mediump_float
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(68): warning C4251: 'Camera::m_v3Position': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(68): warning C4251: 'Camera::m_v3Position' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Camera'
                  with
                  [
                      T=glm::mediump_float
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(69): warning C4251: 'Camera::m_v3Up': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(69): warning C4251: 'Camera::m_v3Up' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Camera'
                  with
                  [
                      T=glm::mediump_float
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(70): warning C4251: 'Camera::m_v3Side': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Camera' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\camera.h(70): warning C4251: 'Camera::m_v3Side' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Camera'
                  with
                  [
                      T=glm::mediump_float
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(48): warning C4251: 'Light::m_v3Color': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Light' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\uniformregistry.h(34): warning C4251: 'UniformRegistry::m_mapUniforms' : class 'std::map<_Kty,_Ty>' needs to have dll-interface to be used by clients of class 'UniformRegistry'
+                 with
+                 [
+                     _Kty=ShaderSemantics::Semantic,
+                     _Ty=std::vector<IUniform *>
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(48): warning C4251: 'Light::m_v3Color' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'Light'
                  with
                  [
                      T=glm::mediump_float
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(51): warning C4251: 'Light::m_BoundingSphere': class 'BoundingSphere' erfordert eine DLL-Schnittstelle, die von Clients von class 'Light' verwendet wird
-                 c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\scene\boundingsphere.h(8): Siehe Deklaration von 'BoundingSphere'
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(54): warning C4251: 'Light::m_mat4TransformWS': struct 'glm::detail::tmat4x4<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'Light' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\light\light.h(54): warning C4251: 'Light::m_mat4TransformWS' : struct 'glm::detail::tmat4x4<T>' needs to have dll-interface to be used by clients of class 'Light'
                  with
                  [
                      T=glm::lowp_float
                  ]
-     1>c:\users\dominik\dropbox\entwicklung\opengl_apps\libgl\src\light\directionallight.h(24): warning C4251: 'DirectionalLight::m_v3Direction': struct 'glm::detail::tvec3<T>' erfordert eine DLL-Schnittstelle, die von Clients von class 'DirectionalLight' verwendet wird
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\io\texturetga.h(68): warning C4251: 'TextureTGA::m_imageData' : class 'std::vector<_Ty>' needs to have dll-interface to be used by clients of class 'TextureTGA'
+                 with
+                 [
+                     _Ty=unsigned char
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.h(119): warning C4251: 'GLRenderer::m_v4Viewport' : struct 'glm::detail::tvec4<T>' needs to have dll-interface to be used by clients of class 'GLRenderer'
+                 with
+                 [
+                     T=glm::mediump_int
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.h(120): warning C4251: 'GLRenderer::m_v4TempViewport' : struct 'glm::detail::tvec4<T>' needs to have dll-interface to be used by clients of class 'GLRenderer'
+                 with
+                 [
+                     T=glm::mediump_int
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.h(121): warning C4251: 'GLRenderer::m_v4AmbientLightColor' : struct 'glm::detail::tvec4<T>' needs to have dll-interface to be used by clients of class 'GLRenderer'
                  with
                  [
                      T=glm::mediump_float
                  ]
-         Code wird generiert...
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\glrenderer.h(122): warning C4251: 'GLRenderer::m_v4ClearColor' : struct 'glm::detail::tvec4<T>' needs to have dll-interface to be used by clients of class 'GLRenderer'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\rendering\managers\glresourcemanager.h(23): warning C4251: 'GLResourceManager::m_mapResRef' : class 'std::map<_Kty,_Ty>' needs to have dll-interface to be used by clients of class 'GLResourceManager'
+                 with
+                 [
+                     _Kty=GLuint,
+                     _Ty=uint
+                 ]
+         BaseGeometryObject.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(64): warning C4251: 'AABoundingBox::m_v3MinPos' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'AABoundingBox'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\aaboundingbox.h(65): warning C4251: 'AABoundingBox::m_v3MaxPos' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'AABoundingBox'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\scene\boundingsphere.h(38): warning C4251: 'BoundingSphere::m_vCenter' : struct 'glm::detail::tvec3<T>' needs to have dll-interface to be used by clients of class 'BoundingSphere'
+                 with
+                 [
+                     T=glm::mediump_float
+                 ]
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\geometry\basegeometryobject.h(20): warning C4251: 'BaseGeometryObject::m_szName' : class 'std::basic_string<_Elem,_Traits,_Ax>' needs to have dll-interface to be used by clients of class 'BaseGeometryObject'
+                 with
+                 [
+                     _Elem=char,
+                     _Traits=std::char_traits<char>,
+                     _Ax=std::allocator<char>
+                 ]
+         Generating Code...
        Link:
-         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.dll" /NOLOGO /LIBPATH:C:\Users\Dominik\Entwicklung\Libraries\glew\lib /LIBPATH:C:\Users\Dominik\Entwicklung\Libraries\assimp\lib\Debug\ /LIBPATH:C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\ opengl32.lib glew32.lib assimp.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\bin\Debug\libGL.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.lib" /MACHINE:X86 /DLL C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\BaseGeometryObject.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Mesh.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\VertexDeclarations.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\FileReader.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLSLpreprocessor.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\ModelLoader.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\PathService.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\ShaderLoader.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\TextureLoader.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\TextureTGA.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\DirectionalLight.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Light.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\PointLight.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\SpotLight.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLRenderer.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLTexture.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLBufferUploader.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLResourceManager.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLResourcePathManager.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\TextureManager.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Material.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Shader.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Uniform.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\UniformRegistry.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\UniformUtil.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\AABoundingBox.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\BoundingSphere.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Camera.obj
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\NameRegistry.obj
-         LINK : C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.dll wurde nicht gefunden oder beim letzten inkrementellen Linkvorgang nicht erstellt; vollständiger Link wird durchgeführt.
-            Bibliothek "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.lib" und Objekt "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.exp" werden erstellt.
-         libGL.vcxproj -> C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.dll
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.dll" /NOLOGO /LIBPATH:C:\Users\paino_000\Documents\Entwicklung\Libraries\glew\lib /LIBPATH:C:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\lib\Debug\ /LIBPATH:C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\ opengl32.lib glew32.lib assimp.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\bin\Debug\libGL.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.lib" /MACHINE:X86 /DLL C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\BaseGeometryObject.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Mesh.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\VertexDeclarations.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\FileReader.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLSLpreprocessor.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\ModelLoader.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\PathService.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\ShaderLoader.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\TextureLoader.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\TextureTGA.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\DirectionalLight.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Light.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\PointLight.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\SpotLight.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLRenderer.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLTexture.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLBufferUploader.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLResourceManager.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\GLResourcePathManager.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\TextureManager.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Material.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Shader.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Uniform.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\UniformRegistry.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\UniformUtil.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\AABoundingBox.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\BoundingSphere.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Camera.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\NameRegistry.obj
+            Creating library C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.lib and object C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.exp
+         libGL.vcxproj -> C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.dll
        Manifest:
-         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.dll;#2" /manifest C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.dll.intermediate.manifest
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.dll;#2" /manifest C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.dll.intermediate.manifest
        PostBuildEvent:
-         xcopy C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.lib C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\ /Y
-         xcopy C:\Users\Dominik\Entwicklung\Libraries\assimp\lib\Debug\assimp32.dll C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\ /Y
+         xcopy C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.lib C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\ /Y
+         xcopy C:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\lib\Debug\assimp32.dll C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\ /Y
          :VCEnd
-         C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.lib
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\libGL.lib
          1 Datei(en) kopiert
-         C:\Users\Dominik\Entwicklung\Libraries\assimp\lib\Debug\Assimp32.dll
+         C:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\lib\Debug\Assimp32.dll
          1 Datei(en) kopiert
        FinalizeBuildStatus:
-         Die Datei "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.unsuccessfulbuild" wird gelöscht.
-         Aktualisieren des Timestamps von "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.lastbuildstate".
-     1>Die Erstellung des Projekts "C:\Users\Dominik\Dropbox\Entwicklung\OpenGL_Apps\libGL\libGL.vcxproj" ist abgeschlossen, build Ziel(e).
+         Deleting file "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.unsuccessfulbuild".
+         Touching "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\libGL.lastbuildstate".
+     1>Done Building Project "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\libGL\libGL.vcxproj" (build target(s)).
 
-Das Erstellen war erfolgreich.
+Build succeeded.
 
-Verstrichene Zeit 00:00:05.21
+Time Elapsed 00:00:15.92

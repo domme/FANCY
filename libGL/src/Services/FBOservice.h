@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-class FBOservice
+class DLLEXPORT FBOservice
 {
 public:
 	static void checkFBOErrors()

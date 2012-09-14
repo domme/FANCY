@@ -29,7 +29,7 @@ void FullscreenQuad::init()
 	m_pMaterial = new MAT_FSquad_Textured;
 	m_pMaterial->Init();
 
-	
+
 	Vertex::PosTex vertices[ 4 ];
 
 	vertices[ 0 ].Position = glm::vec3( -1.0f, -1.0f, 0.0f );

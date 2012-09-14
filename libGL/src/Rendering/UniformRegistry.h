@@ -5,7 +5,7 @@
 #include "ShaderSemantics.h"
 #include "IUniform.h"
 
-class UniformRegistry
+class DLLEXPORT UniformRegistry
 {
 public:
 	static UniformRegistry& GetInstance()

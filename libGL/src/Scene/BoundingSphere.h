@@ -4,7 +4,7 @@
 #include "../includes.h"
 #include "AABoundingBox.h"
 
-class BoundingSphere 
+class DLLEXPORT BoundingSphere 
 {
 public:
 	BoundingSphere();

@@ -3,7 +3,7 @@
 
 #include "../Includes.h"
 
-class ShaderLoader
+class DLLEXPORT ShaderLoader
 {
 public: 
 	~ShaderLoader();

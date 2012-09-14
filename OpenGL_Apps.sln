@@ -8,6 +8,108 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DeferredRenderer", "Deferre
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD} = {0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{DE2875D5-4600-4F06-8AC5-39EDE76171EA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{E4A047CC-B6C9-4B5F-B0E2-DF778F701191}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Models\cube.mtl = resources\Models\cube.mtl
+		resources\Models\cube.obj = resources\Models\cube.obj
+		resources\Models\splat_sphere.obj = resources\Models\splat_sphere.obj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helper", "Helper", "{661986AD-F357-4A1A-B650-7172B2F8246B}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Models\Helper\PointlightBounds.obj = resources\Models\Helper\PointlightBounds.obj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sibenik", "Sibenik", "{0A34B330-F5B2-4CD3-A187-05601A5CC8B7}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Models\Sibenik\Sibenik_omme.dae = resources\Models\Sibenik\Sibenik_omme.dae
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Earth", "Earth", "{99F6F4D5-4E28-4BBA-840D-60591C901773}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Models\Earth\Earth.dae = resources\Models\Earth\Earth.dae
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Textures", "Textures", "{6103D87D-B1A7-45BB-8CC8-35C2E98C61B3}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Textures\UV.tga = resources\Textures\UV.tga
+		resources\Textures\white.tga = resources\Textures\white.tga
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Earth", "Earth", "{03B6BC28-A5C8-4CC8-96E8-4B7C34E6581B}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Textures\Earth\earth_atmos_2048.tga = resources\Textures\Earth\earth_atmos_2048.tga
+		resources\Textures\Earth\earth_normal_2048.tga = resources\Textures\Earth\earth_normal_2048.tga
+		resources\Textures\Earth\earth_specular_2048.tga = resources\Textures\Earth\earth_specular_2048.tga
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sibenik", "Sibenik", "{25A65E28-4846-42F8-9359-E2E8563FB0E5}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Textures\Sibenik\kamen-bump.tga = resources\Textures\Sibenik\kamen-bump.tga
+		resources\Textures\Sibenik\kamen-normal.tga = resources\Textures\Sibenik\kamen-normal.tga
+		resources\Textures\Sibenik\KAMEN-stup.tga = resources\Textures\Sibenik\KAMEN-stup.tga
+		resources\Textures\Sibenik\kamen.tga = resources\Textures\Sibenik\kamen.tga
+		resources\Textures\Sibenik\mramor6x6-bump.tga = resources\Textures\Sibenik\mramor6x6-bump.tga
+		resources\Textures\Sibenik\mramor6x6-normal.tga = resources\Textures\Sibenik\mramor6x6-normal.tga
+		resources\Textures\Sibenik\mramor6x6.tga = resources\Textures\Sibenik\mramor6x6.tga
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Volumes", "Volumes", "{C0ECD888-BEC5-4E1B-A202-F6BAADE7BDB8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shader", "Shader", "{503CE5F5-665E-4D09-AB42-EDA0AEDDD1BD}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Shader\FSQuad_Bloom.frag = resources\Shader\FSQuad_Bloom.frag
+		resources\Shader\FSQuad_BrightPass.frag = resources\Shader\FSQuad_BrightPass.frag
+		resources\Shader\FSQuad_DebugImage.frag = resources\Shader\FSQuad_DebugImage.frag
+		resources\Shader\FSQuad_DebugImage.vert = resources\Shader\FSQuad_DebugImage.vert
+		resources\Shader\FSQuad_DebugImage3D.frag = resources\Shader\FSQuad_DebugImage3D.frag
+		resources\Shader\FSQuad_DirLighting.frag = resources\Shader\FSQuad_DirLighting.frag
+		resources\Shader\FSQuad_FinalComposite.frag = resources\Shader\FSQuad_FinalComposite.frag
+		resources\Shader\FSQuad_GaussianBlur.frag = resources\Shader\FSQuad_GaussianBlur.frag
+		resources\Shader\FSQuad_PointLighting.frag = resources\Shader\FSQuad_PointLighting.frag
+		resources\Shader\FSQuad_Postpro.vert = resources\Shader\FSQuad_Postpro.vert
+		resources\Shader\FSQuad_Postpro_simple.vert = resources\Shader\FSQuad_Postpro_simple.vert
+		resources\Shader\MAT_Colored.frag = resources\Shader\MAT_Colored.frag
+		resources\Shader\MAT_Colored.vert = resources\Shader\MAT_Colored.vert
+		resources\Shader\MAT_Textured.frag = resources\Shader\MAT_Textured.frag
+		resources\Shader\MAT_Textured.vert = resources\Shader\MAT_Textured.vert
+		resources\Shader\MAT_TexturedNormal.frag = resources\Shader\MAT_TexturedNormal.frag
+		resources\Shader\MAT_TexturedNormal.vert = resources\Shader\MAT_TexturedNormal.vert
+		resources\Shader\MAT_TexturedNormalSpecular.frag = resources\Shader\MAT_TexturedNormalSpecular.frag
+		resources\Shader\MAT_TexturedNormalSpecular.vert = resources\Shader\MAT_TexturedNormalSpecular.vert
+		resources\Shader\Test.frag = resources\Shader\Test.frag
+		resources\Shader\Test.vert = resources\Shader\Test.vert
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FXAA", "FXAA", "{05388F55-1C2D-4938-BA4A-B5F1476CF1A4}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Shader\FXAA\FSQuad_FXAA.frag = resources\Shader\FXAA\FSQuad_FXAA.frag
+		resources\Shader\FXAA\FSQuad_FXAA.vert = resources\Shader\FXAA\FSQuad_FXAA.vert
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lights", "Lights", "{F75688A3-0CC7-4C9A-B983-1ECCD8014671}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Shader\Lights\Pointlight_Illumination.frag = resources\Shader\Lights\Pointlight_Illumination.frag
+		resources\Shader\Lights\Pointlight_Illumination.vert = resources\Shader\Lights\Pointlight_Illumination.vert
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ToneMapping", "ToneMapping", "{EC239B03-3074-4238-B357-0061CAC38BFE}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Shader\ToneMapping\FSQuad_LumaTimeAdaption.frag = resources\Shader\ToneMapping\FSQuad_LumaTimeAdaption.frag
+		resources\Shader\ToneMapping\FSQuad_ToneMap.frag = resources\Shader\ToneMapping\FSQuad_ToneMap.frag
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Volume", "Volume", "{366F824E-9832-414C-83B0-90416ADAA3F5}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Shader\Volume\VolCube_Rasterize.frag = resources\Shader\Volume\VolCube_Rasterize.frag
+		resources\Shader\Volume\VolCube_Rasterize.vert = resources\Shader\Volume\VolCube_Rasterize.vert
+		resources\Shader\Volume\VolCube_Rasterize_Raycast.vert = resources\Shader\Volume\VolCube_Rasterize_Raycast.vert
+		resources\Shader\Volume\VolCube_Raycast_DSM.frag = resources\Shader\Volume\VolCube_Raycast_DSM.frag
+		resources\Shader\Volume\VolCube_Raycast_simple.frag = resources\Shader\Volume\VolCube_Raycast_simple.frag
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,5 +127,20 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E4A047CC-B6C9-4B5F-B0E2-DF778F701191} = {DE2875D5-4600-4F06-8AC5-39EDE76171EA}
+		{6103D87D-B1A7-45BB-8CC8-35C2E98C61B3} = {DE2875D5-4600-4F06-8AC5-39EDE76171EA}
+		{503CE5F5-665E-4D09-AB42-EDA0AEDDD1BD} = {DE2875D5-4600-4F06-8AC5-39EDE76171EA}
+		{661986AD-F357-4A1A-B650-7172B2F8246B} = {E4A047CC-B6C9-4B5F-B0E2-DF778F701191}
+		{0A34B330-F5B2-4CD3-A187-05601A5CC8B7} = {E4A047CC-B6C9-4B5F-B0E2-DF778F701191}
+		{99F6F4D5-4E28-4BBA-840D-60591C901773} = {E4A047CC-B6C9-4B5F-B0E2-DF778F701191}
+		{03B6BC28-A5C8-4CC8-96E8-4B7C34E6581B} = {6103D87D-B1A7-45BB-8CC8-35C2E98C61B3}
+		{25A65E28-4846-42F8-9359-E2E8563FB0E5} = {6103D87D-B1A7-45BB-8CC8-35C2E98C61B3}
+		{C0ECD888-BEC5-4E1B-A202-F6BAADE7BDB8} = {6103D87D-B1A7-45BB-8CC8-35C2E98C61B3}
+		{05388F55-1C2D-4938-BA4A-B5F1476CF1A4} = {503CE5F5-665E-4D09-AB42-EDA0AEDDD1BD}
+		{F75688A3-0CC7-4C9A-B983-1ECCD8014671} = {503CE5F5-665E-4D09-AB42-EDA0AEDDD1BD}
+		{EC239B03-3074-4238-B357-0061CAC38BFE} = {503CE5F5-665E-4D09-AB42-EDA0AEDDD1BD}
+		{366F824E-9832-414C-83B0-90416ADAA3F5} = {503CE5F5-665E-4D09-AB42-EDA0AEDDD1BD}
 	EndGlobalSection
 EndGlobal

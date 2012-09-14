@@ -27,7 +27,7 @@ struct SMaterialDescription
 	uint8 uNumTexturesSpecular;
 };
 
-class Material
+class DLLEXPORT Material
 {
 public:
 	Material();

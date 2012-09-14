@@ -3,7 +3,7 @@
 
 #include "../../Includes.h"
 
-class GLResourceManager
+class DLLEXPORT GLResourceManager
 {
 public:
 
@@ -24,7 +24,7 @@ protected:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class GLTextureResourceManager : public GLResourceManager
+class DLLEXPORT GLTextureResourceManager : public GLResourceManager
 {
 public:
 	static GLTextureResourceManager& GetInstance() { static GLTextureResourceManager instance; return instance; }
@@ -37,7 +37,7 @@ protected:
 
 
 //////////////////////////////////////////////////////////////////////////
-class GLVBOResourceManager : public GLResourceManager
+class DLLEXPORT GLVBOResourceManager : public GLResourceManager
 {
 public:
 	static GLVBOResourceManager& GetInstance() { static GLVBOResourceManager instance; return instance; }
@@ -49,7 +49,7 @@ protected:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class GLIBOResourceManager : public GLResourceManager
+class DLLEXPORT GLIBOResourceManager : public GLResourceManager
 {
 public:
 	static GLIBOResourceManager& GetInstance() { static GLIBOResourceManager instance; return instance; }
@@ -62,7 +62,7 @@ protected:
 
 
 //////////////////////////////////////////////////////////////////////////
-class GLProgramResourceManager : public GLResourceManager
+class DLLEXPORT GLProgramResourceManager : public GLResourceManager
 {
 public:
 	static GLProgramResourceManager& GetInstance() { static GLProgramResourceManager instance; return instance; }

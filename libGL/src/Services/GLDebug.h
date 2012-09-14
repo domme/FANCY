@@ -3,7 +3,7 @@
 
 #include "../Includes.h"
 
-class GLDebug
+class DLLEXPORT GLDebug
 {
 public:
 	static void GL_ErrorCheckStart()

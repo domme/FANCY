@@ -147,7 +147,7 @@ uint NameRegistry<object_type>::getNumRegisteredObjects()
 }
 
 
-class LightRegistry : public NameRegistry<Light>
+class DLLEXPORT LightRegistry : public NameRegistry<Light>
 {
 	public:
 		static LightRegistry& getInstance();

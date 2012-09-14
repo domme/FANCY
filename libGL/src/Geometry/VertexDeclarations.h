@@ -8,23 +8,23 @@
 
 namespace Vertex
 {
-	struct VertexType
+	struct DLLEXPORT VertexType
 	{
 		glm::vec3 Position;
 	};
 
-	struct PosTex : VertexType
+	struct DLLEXPORT PosTex : VertexType
 	{
 		glm::vec2 TextureCoord;
 	};
 
-	struct PosNormTex : VertexType
+	struct DLLEXPORT PosNormTex : VertexType
 	{
 		glm::vec3 Normal;
 		glm::vec2 TextureCoord;
 	};
 	
-	struct PosNormTexTan : PosNormTex
+	struct DLLEXPORT PosNormTexTan : PosNormTex
 	{
 		glm::vec3 Tangent;
 	};
@@ -43,7 +43,7 @@ namespace Vertex
 	}
 }
 
-class VertexElement
+class DLLEXPORT VertexElement
 {
 public:
 	VertexElement() : m_u16Offset( 0 ), m_eDataType( Vertex::DataType::FLOAT3 ), m_eShaderSemantic( ShaderSemantics::POSITION ), m_u8DataCount( 1 ) {}
@@ -63,7 +63,7 @@ protected:
 	uint8							_padding;
 };
 
-class VertexDeclaration
+class DLLEXPORT VertexDeclaration 
 {
 
 friend class ModelLoader;

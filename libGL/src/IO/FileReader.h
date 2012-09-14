@@ -3,7 +3,7 @@
 
 #include "../includes.h"
 
-class FileReader
+class DLLEXPORT FileReader
 {
 	public:
 				

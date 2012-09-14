@@ -22,7 +22,7 @@ public:
 	static ModelLoader& GetInstance() { static ModelLoader instance; return instance; }
 	~ModelLoader();
 
-	SceneNode* LoadAsset( const String& szModelPath, SceneManager* pScene );
+	//SceneNode* LoadAsset( const String& szModelPath, SceneManager* pScene );
 	Mesh* LoadSingleMeshGeometry( const String& szModelPath );
 	Mesh* ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const String& szModelPath, Material** vpMaterials, uint i, bool assignMaterial = true );
 

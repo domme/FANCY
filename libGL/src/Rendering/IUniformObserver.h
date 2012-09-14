@@ -3,7 +3,7 @@
 
 #include "IUniform.h"
 
-class IUniformObserver
+class DLLEXPORT IUniformObserver
 {
 public:
 	 virtual void UniformChanged( IUniform* pUniform ) = 0;

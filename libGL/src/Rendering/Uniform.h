@@ -11,7 +11,7 @@
 #define EPSILON 0.001f
 
 template<typename ValueT>
-class Uniform : public IUniform
+class DLLEXPORT Uniform : public IUniform
 {
 	friend class Shader;
 	friend class GLRenderer;
@@ -98,7 +98,7 @@ void Uniform<ValueT>::cleanup()
 //////////////////////////////////////////////////////////////////////////
 // List specialized Uniform-Derivations here
 //////////////////////////////////////////////////////////////////////////
-class UniformVec2 : public Uniform<glm::vec2> 
+class DLLEXPORT UniformVec2 : public Uniform<glm::vec2> 
 {
 protected:
 	virtual bool valueIsDifferent( const glm::vec2& value ) const
@@ -122,7 +122,7 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
-class UniformVec3 : public Uniform<glm::vec3>
+class DLLEXPORT UniformVec3 : public Uniform<glm::vec3>
 {
 protected:
 	virtual bool valueIsDifferent( const glm::vec3& value ) const
@@ -146,7 +146,7 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class UniformVec4 : public Uniform<glm::vec4>
+class DLLEXPORT UniformVec4 : public Uniform<glm::vec4>
 {
 protected:
 	virtual bool valueIsDifferent( const glm::vec4& value ) const
@@ -171,7 +171,7 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class UniformFloat : public Uniform<float>
+class DLLEXPORT UniformFloat : public Uniform<float>
 {
 protected:
 	virtual bool valueIsDifferent( const float& value ) const
@@ -193,7 +193,7 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class UniformInt : public Uniform<int>
+class DLLEXPORT UniformInt : public Uniform<int>
 {
 protected:
 	virtual bool valueIsDifferent( const int& value ) const
@@ -216,7 +216,7 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
-class UniformMat2 : public Uniform<glm::mat2>
+class DLLEXPORT UniformMat2 : public Uniform<glm::mat2>
 {
 protected:
 	virtual bool valueIsDifferent( const glm::mat2& value ) const
@@ -241,7 +241,7 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class UniformMat3 : public Uniform<glm::mat3>
+class DLLEXPORT UniformMat3 : public Uniform<glm::mat3>
 {
 protected:
 	virtual bool valueIsDifferent( const glm::mat3& value ) const
@@ -274,7 +274,7 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
-class UniformMat4 : public Uniform<glm::mat4>
+class DLLEXPORT UniformMat4 : public Uniform<glm::mat4>
 {
 protected:
 	virtual bool valueIsDifferent( const glm::mat4& value ) const
@@ -319,7 +319,7 @@ public:
 /* x-Component: Texture Unit index
    y-Component: Texture Handle											*/
 /************************************************************************/
-class UniformTexture1D : public Uniform<glm::ivec2>
+class DLLEXPORT UniformTexture1D : public Uniform<glm::ivec2>
 {
 protected:
 	virtual bool valueIsDifferent( const glm::ivec2& value ) const
@@ -348,7 +348,7 @@ public:
 /* x-Component: Texture Unit index
    y-Component: Texture Handle											*/
 /************************************************************************/
-class UniformTexture2D : public Uniform<glm::ivec2>
+class DLLEXPORT UniformTexture2D : public Uniform<glm::ivec2>
 {
 protected:
 	virtual bool valueIsDifferent( const glm::ivec2& value ) const
@@ -377,7 +377,7 @@ public:
 /* x-Component: Texture Unit index
    y-Component: Texture Handle											*/
 /************************************************************************/
-class UniformTexture3D : public Uniform<glm::ivec2>
+class DLLEXPORT UniformTexture3D : public Uniform<glm::ivec2>
 {
 protected:
 	virtual bool valueIsDifferent( const glm::ivec2& value ) const
@@ -406,7 +406,7 @@ public:
 /* x-Component: Texture Unit index
    y-Component: Texture Handle											*/
 /************************************************************************/
-class UniformTextureCube : public Uniform<glm::ivec2>
+class DLLEXPORT UniformTextureCube : public Uniform<glm::ivec2>
 {
 protected:
 	virtual bool valueIsDifferent( const glm::ivec2& value ) const
@@ -432,7 +432,7 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
-class UniformBool : public Uniform<bool>
+class DLLEXPORT UniformBool : public Uniform<bool>
 {
 protected:
 	virtual bool valueIsDifferent( const bool& value ) const

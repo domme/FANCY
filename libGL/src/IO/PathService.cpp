@@ -51,6 +51,11 @@ void PathService::convertToAbsPath( String& szRelPath, bool bInResources /* = tr
 		szRelPath = getExePath() + szRelPath;
 }
 
+void PathService::SetResourceLocation( const String& szResource )
+{
+	m_szRelativeResourcePath = szResource;
+}
+
 String PathService::getResourcesPath()
 {
 	static String szPath = "";

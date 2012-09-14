@@ -133,14 +133,14 @@ SceneNode* SceneManager::getRootNode()
 	return m_pRootNode;
 }
 
-SceneNode* SceneManager::LoadAssetIntoScene( const String& szPath )
+/*SceneNode* SceneManager::LoadAssetIntoScene( const String& szPath )
 {
 	SceneNode* pNode = ModelLoader::GetInstance().LoadAsset( szPath, this );
 
 	m_pRootNode->AppendChildSceneNode( pNode );
 
 	return pNode;
-}
+} */
 
 Entity* SceneManager::CreateEntity( std::unique_ptr<Mesh> pMesh )
 {
