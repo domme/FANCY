@@ -60,8 +60,9 @@ void GLResourcePathManager::HandleResourceDeletion( GLuint uResource )
 
 	else
 	{
-		LOG( std::string( "WARNING: No Path-entry found for GL-Resource" ) );
-		assert(false); //Break here
+		std::stringstream ss;
+		ss << "WARNING: No Path-entry found for GL-Resource with handle " << uResource;
+		LOG( ss.str() );
 	}
 }
 

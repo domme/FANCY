@@ -690,7 +690,7 @@ void GLRenderer::prepareFrameRendering( const Camera* pCamera, const glm::mat4& 
 	} 
 }
 
-void GLRenderer::prepareMeshRendering( const Mesh* pMesh, const glm::mat4& matModel, const glm::mat4& matWorld, const Camera* pCamera, const Material* pMaterial /*= NULL*/, Shader* pShader /* = NULL */,  const Light* pLight /* = NULL */ )
+void GLRenderer::prepareMeshRendering( Mesh* pMesh, const glm::mat4& matModel, const glm::mat4& matWorld, const Camera* pCamera, Material* pMaterial /*= NULL*/, Shader* pShader /* = NULL */,  const Light* pLight /* = NULL */ )
 {
 	using namespace ShaderSemantics;
 
@@ -817,7 +817,7 @@ void GLRenderer::prepareMeshRendering( const Mesh* pMesh, const glm::mat4& matMo
 
 }
 
-void GLRenderer::RenderMesh( const Mesh* pMesh, const glm::mat4& matModel, const glm::mat4& matWorld, const Camera* pCamera, const Material* pMaterial /* = NULL */, Shader* pShader /* = NULL */, const Light* pLight /* = NULL */ ) 
+void GLRenderer::RenderMesh( Mesh* pMesh, const glm::mat4& matModel, const glm::mat4& matWorld, const Camera* pCamera, Material* pMaterial /* = NULL */, Shader* pShader /* = NULL */, const Light* pLight /* = NULL */ ) 
 {
 	if( !pMaterial )
 		pMaterial = pMesh->GetMaterial();
@@ -825,6 +825,9 @@ void GLRenderer::RenderMesh( const Mesh* pMesh, const glm::mat4& matModel, const
 //#ifdef _DEBUG
 		pMaterial->ValidateMaterial();
 //#endif
+
+	if( !pShader )
+		pShader = pMaterial->GetShader();
 
 	prepareMeshRendering( pMesh, matModel, matWorld, pCamera, pMaterial, pShader, pLight );
 	

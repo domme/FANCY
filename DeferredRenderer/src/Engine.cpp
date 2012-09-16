@@ -46,12 +46,12 @@ void Engine::Update( const uint elapsedTicksMS )
 
 void Engine::Render( const uint elapsedTicksMS )
 {
+	m_uCurrentFrameCount++; //increment framecount for fps calculations
+	
 	if( !m_pScene )
 		return;
 
 	m_pDeferredRenderer->RenderScene( m_pScene );
-
-	m_uCurrentFrameCount++; //increment framecount for fps calculations
 }
 
 
@@ -62,8 +62,6 @@ void Engine::Init( uint uScreenWidth, uint uScreenHeight, const glm::vec4& v4Amb
 		//don't let the engine be initialized more than once - would really lead to confusing behavior ;-)
 		return;
 	}
-
-	
 
 	glewInit();
 
@@ -79,7 +77,7 @@ void Engine::Init( uint uScreenWidth, uint uScreenHeight, const glm::vec4& v4Amb
 
 	setRenderMode( RENDER_DEFERRED );
 	
-	PathService::SetResourceLocation( "..\\..\\..\\Resources\\" );
+	PathService::SetResourceLocation( "..\\..\\Resources\\" );
 
 	//Initialize a default camera for the scene. The camera can be overwritten from anywhere in the engine though
 	m_pRenderCamera = new Camera();

@@ -1,97 +1,60 @@
-﻿Build started 9/14/2012 11:59:35 PM.
+﻿Build started 9/16/2012 5:58:20 PM.
      1>Project "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\DeferredRenderer\DeferredRenderer.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
-         Touching "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\DeferredRenderer.unsuccessfulbuild".
+         Creating "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\DeferredRenderer.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\paino_000\Documents\Entwicklung\Libraries\glew\include /I"C:\Users\paino_000\Documents\Entwicklung\Libraries\freeglut-2.8.0\include\GL" /I"C:\Users\paino_000\Documents\Entwicklung\Libraries\glm-0.9.3.4\\" /IC:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\libGL\src\ /IC:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\include\ /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\\" /Fd"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt src\Engine.cpp src\Geometry\FullscreenQuad.cpp src\Rendering\GLDeferredRenderer.cpp src\Rendering\Materials\MAT_Colored.cpp src\Rendering\Materials\MAT_FSquad_Bloom.cpp src\Rendering\Materials\MAT_FSquad_BrightPass.cpp src\Rendering\Materials\MAT_FSquad_DirLighting.cpp src\Rendering\Materials\MAT_FSquad_FXAA.cpp src\Rendering\Materials\MAT_FSquad_FinalComposite.cpp src\Rendering\Materials\MAT_FSquad_GaussianBlur.cpp src\Rendering\Materials\MAT_FSquad_LumaTimeAdaption.cpp src\Rendering\Materials\MAT_FSquad_PointLighting.cpp src\Rendering\Materials\MAT_FSquad_Textured.cpp src\Rendering\Materials\MAT_FSquad_ToneMapping.cpp src\Rendering\Materials\MAT_Pointlight_Illumination.cpp src\Rendering\Materials\MAT_Test.cpp src\Rendering\Materials\MAT_Textured.cpp src\Rendering\Materials\MAT_TexturedNormal.cpp src\Rendering\Materials\MAT_TexturedNormalSpecular.cpp src\Rendering\Pass_GaussianBlur.cpp src\Scene\Entity.cpp src\Scene\NodeRegistry.cpp src\Scene\ObjectRegistry.cpp src\Scene\SceneManager.cpp src\Scene\SceneNode.cpp src\main.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\paino_000\Documents\Entwicklung\Libraries\glew\include /I"C:\Users\paino_000\Documents\Entwicklung\Libraries\freeglut-2.8.0\include\GL" /I"C:\Users\paino_000\Documents\Entwicklung\Libraries\glm-0.9.3.4\\" /IC:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\libGL\src\ /IC:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\include\ /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /D _MBCS /D _CRT_SECURE_NO_WARNINGS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\\" /Fd"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt src\Engine.cpp src\Geometry\FullscreenQuad.cpp src\Rendering\GLDeferredRenderer.cpp src\Rendering\Materials\MAT_Colored.cpp src\Rendering\Materials\MAT_FSquad_Bloom.cpp src\Rendering\Materials\MAT_FSquad_BrightPass.cpp src\Rendering\Materials\MAT_FSquad_DirLighting.cpp src\Rendering\Materials\MAT_FSquad_FXAA.cpp src\Rendering\Materials\MAT_FSquad_FinalComposite.cpp src\Rendering\Materials\MAT_FSquad_GaussianBlur.cpp src\Rendering\Materials\MAT_FSquad_LumaTimeAdaption.cpp src\Rendering\Materials\MAT_FSquad_PointLighting.cpp src\Rendering\Materials\MAT_FSquad_Textured.cpp src\Rendering\Materials\MAT_FSquad_ToneMapping.cpp src\Rendering\Materials\MAT_Pointlight_Illumination.cpp src\Rendering\Materials\MAT_Test.cpp src\Rendering\Materials\MAT_Textured.cpp src\Rendering\Materials\MAT_TexturedNormal.cpp src\Rendering\Materials\MAT_TexturedNormalSpecular.cpp src\Rendering\Pass_GaussianBlur.cpp src\Scene\Entity.cpp src\Scene\NodeRegistry.cpp src\Scene\ObjectRegistry.cpp src\Scene\SceneLoader.cpp src\Scene\SceneManager.cpp src\Scene\SceneNode.cpp src\main.cpp
          main.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\main.cpp(77): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\main.cpp(77): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
          SceneNode.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          SceneManager.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+         SceneLoader.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(41): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(48): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(58): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(63): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(80): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(88): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(105): warning C4482: nonstandard extension used: enum 'aiTextureType' used in qualified name
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(106): warning C4482: nonstandard extension used: enum 'aiTextureType' used in qualified name
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(107): warning C4482: nonstandard extension used: enum 'aiTextureType' used in qualified name
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(108): warning C4482: nonstandard extension used: enum 'aiTextureType' used in qualified name
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(109): warning C4482: nonstandard extension used: enum 'aiTextureType' used in qualified name
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\sceneloader.cpp(111): warning C4482: nonstandard extension used: enum 'aiTextureType' used in qualified name
          ObjectRegistry.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          NodeRegistry.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          Entity.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
      1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\scene\entity.cpp(73): warning C4172: returning address of local variable or temporary
          Pass_GaussianBlur.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
      1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\rendering\pass_gaussianblur.cpp(94): warning C4018: '<' : signed/unsigned mismatch
      1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\rendering\pass_gaussianblur.cpp(136): warning C4018: '<' : signed/unsigned mismatch
      1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\rendering\pass_gaussianblur.cpp(143): warning C4018: '<' : signed/unsigned mismatch
          MAT_TexturedNormalSpecular.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_TexturedNormal.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_Textured.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_Test.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_Pointlight_Illumination.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_FSquad_ToneMapping.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_FSquad_Textured.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_FSquad_PointLighting.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_FSquad_LumaTimeAdaption.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_FSquad_GaussianBlur.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_FSquad_FinalComposite.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_FSquad_FXAA.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
-         MAT_FSquad_DirLighting.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          Generating Code...
          Compiling...
+         MAT_FSquad_DirLighting.cpp
          MAT_FSquad_BrightPass.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_FSquad_Bloom.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          MAT_Colored.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          GLDeferredRenderer.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
      1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\rendering\gldeferredrenderer.cpp(794): warning C4244: 'initializing' : conversion from 'float' to 'uint', possible loss of data
      1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\includes.h(44): warning C4101: 'b' : unreferenced local variable
                  c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\rendering\gldeferredrenderer.cpp(607) : see reference to function template instantiation 'void staticAssert_impl<true>(void)' being compiled
          FullscreenQuad.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
          Engine.cpp
-     1>c:\users\paino_000\documents\entwicklung\libraries\glm-0.9.3.4\glm\gtx\string_cast.inl(30): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
-     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\engine.cpp(138): warning C4244: '=' : conversion from 'uint' to 'float', possible loss of data
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\engine.cpp(136): warning C4244: '=' : conversion from 'uint' to 'float', possible loss of data
          Generating Code...
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\DeferredRenderer.exe" /NOLOGO /LIBPATH:C:\Users\paino_000\Documents\Entwicklung\Libraries\glew\lib /LIBPATH:"C:\Users\paino_000\Documents\Entwicklung\Libraries\freeglut-2.8.0\lib\x86\Debug\\" /LIBPATH:C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\\ /LIBPATH:C:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\lib\Debug\ libGL.lib glew32.lib freeglut.lib assimp.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\DeferredRenderer.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\bin\Debug\DeferredRenderer.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\DeferredRenderer.lib" /MACHINE:X86 C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Engine.obj
@@ -120,8 +83,10 @@
          C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Entity.obj
          C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\NodeRegistry.obj
          C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\ObjectRegistry.obj
+         C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\SceneLoader.obj
          C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\SceneManager.obj
          C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\SceneNode.obj
+         LINK : C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\DeferredRenderer.exe not found or not built by the last incremental link; performing full link
          DeferredRenderer.vcxproj -> C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\DeferredRenderer.exe
        Manifest:
          C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\DeferredRenderer.exe;#1" /manifest C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\DeferredRenderer.exe.intermediate.manifest
@@ -132,4 +97,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:44.38
+Time Elapsed 00:00:49.46

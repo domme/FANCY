@@ -14,7 +14,7 @@ class SceneManager;
 class  SceneNode
 {
 	friend class SceneManager;
-	friend class ModelLoader;	
+	friend class SceneLoader;	
 
 public:
 	virtual ~SceneNode();

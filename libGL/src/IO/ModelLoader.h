@@ -12,8 +12,6 @@
 
 #include "ModelLoader_LogStream.h"
 
-class SceneManager;
-class SceneNode;
 class Mesh;
 
 class DLLEXPORT ModelLoader
@@ -22,15 +20,17 @@ public:
 	static ModelLoader& GetInstance() { static ModelLoader instance; return instance; }
 	~ModelLoader();
 
-	//SceneNode* LoadAsset( const String& szModelPath, SceneManager* pScene );
 	Mesh* LoadSingleMeshGeometry( const String& szModelPath );
 	Mesh* ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const String& szModelPath, Material** vpMaterials, uint i, bool assignMaterial = true );
+	Assimp::Importer&	GetImporter() { return m_aiImporter; }
+	
+	glm::mat4 MatFromAiMat( const aiMatrix4x4& mat );	
 
 private:
 	ModelLoader();
 	
 	
-	glm::mat4 matFromAiMat( const aiMatrix4x4& mat );
+	
 
 	Assimp::Importer		m_aiImporter;
 	ModelLoader_LogStream	m_clLogStream;

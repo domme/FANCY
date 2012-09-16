@@ -37,6 +37,7 @@
     <ClCompile Include="src\Scene\Entity.cpp" />
     <ClCompile Include="src\Scene\NodeRegistry.cpp" />
     <ClCompile Include="src\Scene\ObjectRegistry.cpp" />
+    <ClCompile Include="src\Scene\SceneLoader.cpp" />
     <ClCompile Include="src\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Scene\SceneNode.cpp" />
   </ItemGroup>
@@ -66,6 +67,7 @@
     <ClInclude Include="src\Scene\Entity.h" />
     <ClInclude Include="src\Scene\NodeRegistry.h" />
     <ClInclude Include="src\Scene\ObjectRegistry.h" />
+    <ClInclude Include="src\Scene\SceneLoader.h" />
     <ClInclude Include="src\Scene\SceneManager.h" />
     <ClInclude Include="src\Scene\SceneNode.h" />
   </ItemGroup>
@@ -108,6 +110,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(GLEW_HOME)\include;$(FREEGLUT_HOME)\include\GL;$(GLM_HOME)\;$(SolutionDir)\libGL\src\;$(ASSIMP_HOME)\include\</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -122,6 +126,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>$(GLEW_HOME)\include;$(FREEGLUT_HOME)\GL;$(GLM_HOME)\;;$(SolutionDir)\libGL\src\;$(ASSIMP_HOME)\include\</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

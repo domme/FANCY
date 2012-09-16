@@ -1,10 +1,10 @@
 #include <Includes.h>
-#include <IO/ModelLoader.h>
 #include <Light/DirectionalLight.h>
 #include <Light/PointLight.h>
 #include <Light/SpotLight.h>
 
 #include "SceneManager.h"
+#include "SceneLoader.h"
 #include "../Engine.h"
 
 SceneManager::SceneManager() :
@@ -133,14 +133,14 @@ SceneNode* SceneManager::getRootNode()
 	return m_pRootNode;
 }
 
-/*SceneNode* SceneManager::LoadAssetIntoScene( const String& szPath )
+SceneNode* SceneManager::LoadAssetIntoScene( const String& szPath )
 {
-	SceneNode* pNode = ModelLoader::GetInstance().LoadAsset( szPath, this );
+	SceneNode* pNode = SceneLoader::GetInstance().LoadAsset( szPath, this );
 
 	m_pRootNode->AppendChildSceneNode( pNode );
 
 	return pNode;
-} */
+} 
 
 Entity* SceneManager::CreateEntity( std::unique_ptr<Mesh> pMesh )
 {

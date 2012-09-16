@@ -98,6 +98,9 @@
     <ClCompile Include="src\Scene\ObjectRegistry.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scene\SceneLoader.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Scene\SceneNode.h">
@@ -177,6 +180,9 @@
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene\ObjectRegistry.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene\SceneLoader.h">
       <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>
