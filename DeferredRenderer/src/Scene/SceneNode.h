@@ -2,6 +2,7 @@
 #ifndef SCENENODE_H
 #define	SCENENODE_H
 
+#include <Light/Light.h>
 #include <Events/Events.h>
 #include <includes.h>
 
@@ -31,6 +32,7 @@ public:
 	void										setTransform( const TransformSQT& rClTransform );
 	void										setTransform( const glm::mat4& matTransform ) { setTransform( TransformSQT( matTransform ) ); }
 	void										updateTransform( const glm::mat4& rParentGlobalMat );
+	void										SetScene( SceneManager* pScene ) {m_pParentScene = pScene; }
 
 	bool										AppendChildSceneNode( SceneNode* pNode );
 	SceneNode*									createChildSceneNode( const std::string& szName ); 
@@ -40,6 +42,7 @@ public:
 	bool										removeChildSceneNode( const std::string& szName );
 	bool										removeChildSceneNode( SceneNode* pNode );
 	bool										attatchEntity( BaseRenderableObject* const _pNewEntity );
+	bool										AttatchLight( Light* pLight );
 	bool										removeEntity( const BaseRenderableObject* _pRemoveEntity, bool bDeleteFromProgram = false );
 	bool										removeEntity( const String& name, bool bDeleteFromProgram = false );
 	BaseRenderableObject*						getEntity( const String& name );
@@ -63,11 +66,13 @@ private:
 	void										updateTransformsFromParent();
 
 	std::vector<BaseRenderableObject*>			m_vEntities;
+	std::vector<Light*>							m_vLights;
 	std::vector<SceneNode*>						m_vChildNodes;
 	TransformSQT								m_clLocalTransform;
 	glm::mat4									m_clMatGlobalTransform;
 	String										m_szName;
 	SceneNode*									m_pParentNode;
+	SceneManager*								m_pParentScene;
 
 
 

@@ -29,6 +29,7 @@ void SceneManager::generalInit()
 
 	//create root node
 	m_pRootNode = new SceneNode( "root" );
+	m_pRootNode->SetScene( this ); 
 	m_pNodeRegistry->registerObject( m_pRootNode->getName(), m_pRootNode );	
 }
 
@@ -40,23 +41,21 @@ void SceneManager::prepareRender()
 	m_vCachedRenderObjects.clear();
 	m_vCachedVolumeObjects.clear();
 
+	m_vCachedLightEntries.clear();
 	m_pRootNode->prepareRender();
-	gatherAndPreprocessLights();
+	preprocessLights();
 }
 
-void SceneManager::gatherAndPreprocessLights()
+void SceneManager::preprocessLights()
 {
-	m_vCachedLights.clear();
 	m_vCachedPointLights.clear();
 	m_vChachedSpotLights.clear();
 	m_vCachedDirectionalLights.clear();
+	
 
-
-	m_pLightRegistry->collectAllRegisteredObjects( m_vCachedLights );
-
-	for( uint uIdx = 0; uIdx <  m_vCachedLights.size(); ++uIdx )
+	for( uint uIdx = 0; uIdx < m_vCachedLightEntries.size(); ++uIdx )
 	{
-		preprocessLight( m_vCachedLights[ uIdx ] );
+		preprocessLight( m_vCachedLightEntries[ uIdx ].pLight, m_vCachedLightEntries[ uIdx ].pNode );
 	}
 
 	//Reorder the cached lights so that they are ordered by their lighttypes
@@ -66,7 +65,7 @@ void SceneManager::gatherAndPreprocessLights()
 	m_vCachedLights.insert( m_vCachedLights.end(), m_vChachedSpotLights.begin(), m_vChachedSpotLights.end() );
 }
 
-void SceneManager::preprocessLight( Light* pLight )
+void SceneManager::preprocessLight( Light* pLight, SceneNode* pNode )
 {
 	if( !pLight ) 
 	{
@@ -78,15 +77,15 @@ void SceneManager::preprocessLight( Light* pLight )
 	switch( eLightType )
 	{
 	case Light::LIGHTTYPE_DIRECTIONAL:
-		preprocessDirectionalLight( (DirectionalLight*) pLight );
+		preprocessDirectionalLight( (DirectionalLight*) pLight, pNode );
 		break;
 
 	case Light::LIGHTTYPE_POINT:
-		preprocessPointLight( (PointLight*) pLight );
+		preprocessPointLight( (PointLight*) pLight, pNode );
 		break;
 
 	case Light::LIGHTTYPE_SPOT:
-		preprocessSpotLight( (SpotLight*) pLight );
+		preprocessSpotLight( (SpotLight*) pLight, pNode );
 		break;
 
 	default:
@@ -97,35 +96,38 @@ void SceneManager::preprocessLight( Light* pLight )
 	pLight->update();
 }
 
-void SceneManager::preprocessPointLight( PointLight* pPointLight )
+void SceneManager::preprocessPointLight( PointLight* pPointLight, SceneNode* pNode )
 {
 	m_vCachedPointLights.push_back( pPointLight );
 
 	pPointLight->renderShadowMap();
 }
 
-void SceneManager::preprocessSpotLight( SpotLight* pSpotLight )
+void SceneManager::preprocessSpotLight( SpotLight* pSpotLight, SceneNode* pNode )
 {
 	m_vChachedSpotLights.push_back( pSpotLight );
 
-	//Note: Assume spotlight-direction is already in worldspace
-	/*glm::vec4 v4LocalZ = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
-	glm::vec4 v4Direction = pSpotLight->getNode()->getGlobalTransformMAT() * v4LocalZ; 
-	pSpotLight->setCachedDirection(  glm::normalize( glm::vec3( v4Direction.x, v4Direction.y, v4Direction.z ) ) ); */
+	glm::vec4 v4LocalZ = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
+	glm::vec4 v4Direction = pNode->getGlobalTransformMAT() * v4LocalZ;
+	pSpotLight->setDirection(  glm::normalize( glm::vec3( v4Direction.x, v4Direction.y, v4Direction.z ) ) );
 
 	pSpotLight->renderShadowMap();
 }
 
-void SceneManager::preprocessDirectionalLight( DirectionalLight* pDirLight )
+void SceneManager::preprocessDirectionalLight( DirectionalLight* pDirLight, SceneNode* pNode )
 {
 	m_vCachedDirectionalLights.push_back( pDirLight );
 
-	//Note: Assume directional light direction is already in worldspace
-	/*glm::vec4 v4LocalZ = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
-	glm::vec4 v4Direction = pDirLight->getNode()->getGlobalTransformMAT() * v4LocalZ; 
-	pDirLight->setCachedDirection( glm::normalize( glm::vec3( v4Direction.x, v4Direction.y, v4Direction.z ) ) );*/
+	glm::vec4 v4LocalZ = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
+	glm::vec4 v4Direction = pNode->getGlobalTransformMAT() * v4LocalZ; 
+	pDirLight->setDirection( glm::normalize( glm::vec3( v4Direction.x, v4Direction.y, v4Direction.z ) ) );
 
 	pDirLight->renderShadowMap();
+}
+
+void SceneManager::AddLightToRenderCache( Light* pLight, SceneNode* pNode )
+{
+	m_vCachedLightEntries.push_back( SLightCacheEntry( pLight, pNode ) );
 }
 
 SceneNode* SceneManager::getRootNode() 
@@ -219,7 +221,6 @@ SpotLight* SceneManager::createSpotLight( const String& szName, const glm::vec3&
 	{
 		return NULL;
 	}
-		
 
 	SpotLight* pSpotLight = new SpotLight();
 	pSpotLight->setColor( v3LightColor );

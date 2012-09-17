@@ -3,6 +3,10 @@
 #include <freeglut.h>
 #include <Includes.h>
 #include <Rendering/GLRenderer.h>
+#include <Light/Light.h>
+#include <Light/DirectionalLight.h>
+#include <Light/PointLight.h>
+#include <Light/SpotLight.h>
 
 #include "Engine.h"
 
@@ -20,7 +24,7 @@ static Camera*			pCamera;
 static int iScreenWidth						= 600;
 static int iScreenHeight					= 800;
 static const float PI						= 3.1415926535897932f;
-static const glm::vec4 c_v4AmbientColor		( 0.2f, 0.2f, 0.2f, 1.0f );
+static const glm::vec4 c_v4AmbientColor		( 0.1f, 0.1f, 0.1f, 1.0f );
 static const glm::vec4 c_v4ClearColor		( 0.0f, 0.0f, 0.0f, 0.0f );
 static const bool bUseFrameCap				= false;
 static const unsigned int uFrameMScap		= 16;
@@ -62,7 +66,7 @@ void setupScene()
 	pLightNode->setRotation( -PI/4.0f, glm::vec3( 1.0f, 0.0f, 0.0f ) );
 
 	DirectionalLight* pDirLight = pSceneManager->createDirectionalLight( "DirLight1", glm::vec3( 1.0f, 1.0f, 1.0f ), 0.5f );
-	//pLightNode->attatchEntity( pDirLight );
+	pLightNode->AttatchLight( pDirLight );
 
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_COLOR_GLOSS );
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );

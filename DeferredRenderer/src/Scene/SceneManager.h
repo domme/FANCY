@@ -16,6 +16,18 @@ class DirectionalLight;
 class SpotLight;
 class PointLight;
 
+struct SLightCacheEntry
+{
+	SLightCacheEntry( Light* _pLight, SceneNode* _pNode )
+	{
+		pLight = _pLight;
+		pNode = _pNode;
+	}
+
+	Light* pLight;
+	SceneNode* pNode;
+};
+
 class  SceneManager
 {
 	friend class Entity;
@@ -36,7 +48,7 @@ class  SceneManager
 
 		std::vector<Entity*>&					GetRenderObjects()					{ return m_vCachedRenderObjects; }
 		std::vector<VolumeEntity*>&				GetVolumeObjects()					{ return m_vCachedVolumeObjects; }
-		const std::vector<Light*>&				getCachedLights()			 const	{ return m_vCachedLights; }
+		const std::vector<Light*>&	getCachedLights()			 const	{ return m_vCachedLights; }
 		const std::vector<PointLight*>&			getCachedPointLights()		 const	{ return m_vCachedPointLights; }
 		const std::vector<DirectionalLight*>&	getCachedDirectionalLights() const	{ return m_vCachedDirectionalLights; }
 		const std::vector<SpotLight*>&			getCachedSpotLights()		 const	{ return m_vChachedSpotLights; }
@@ -51,19 +63,21 @@ class  SceneManager
 		const AABoundingBox&					getSceneBoundsWS() const			{ return m_clSceneBounds; }
 		float									getMaxSceneSize() const				{ return m_fMaxSceneSize; }
 		String									GenerateNextUniqueMeshName();
+		void									AddLightToRenderCache( Light* pLight, SceneNode* pNode );
 		
 	private:
 		void									 generalInit();
-		void									 gatherAndPreprocessLights();
-		void									 preprocessLight( Light* pLight );
-		void									 preprocessPointLight( PointLight* pPointLight );
-		void									 preprocessSpotLight( SpotLight* pSpotLight );
-		void									 preprocessDirectionalLight( DirectionalLight* pDirLight );
+		void									 preprocessLights();
+		void									 preprocessLight( Light* pLight, SceneNode* pNode );
+		void									 preprocessPointLight( PointLight* pPointLight, SceneNode* pNode );
+		void									 preprocessSpotLight( SpotLight* pSpotLight, SceneNode* pNode );
+		void									 preprocessDirectionalLight( DirectionalLight* pDirLight, SceneNode* pNode );
 
 		SceneNode*								m_pRootNode;
 		NodeRegistry*							m_pNodeRegistry;
 		ObjectRegistry*							m_pObjectRegistry;	
 		LightRegistry*							m_pLightRegistry;
+		std::vector<SLightCacheEntry>			m_vCachedLightEntries;
 		std::vector<Light*>						m_vCachedLights;
 		float									m_fMaxSceneSize;
 		uint									m_uGenericMeshCounter;

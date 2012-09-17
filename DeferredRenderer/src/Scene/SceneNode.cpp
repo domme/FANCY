@@ -9,6 +9,7 @@
 
 SceneNode::SceneNode( const String& szName ) :
 m_pParentNode( NULL ),
+m_pParentScene( NULL ), 
 m_szName( "" )
 {
 	m_szName = szName;
@@ -52,6 +53,11 @@ void SceneNode::render( ) const
 
 void SceneNode::prepareRender()
 {
+	for( uint uIdx = 0; uIdx < m_vLights.size(); ++uIdx )
+	{
+		m_pParentScene->AddLightToRenderCache( m_vLights[ uIdx ], this );
+	}
+
 	for( uint uIdx = 0; uIdx < m_vEntities.size(); ++uIdx )
 	{
 		m_vEntities[ uIdx ]->prepareRender();
@@ -209,6 +215,7 @@ bool SceneNode::AppendChildSceneNode( SceneNode* pNode )
 		registry.registerObject( pNode->getName(), pNode );
 
 	pNode->m_pParentNode = this;
+	pNode->SetScene( m_pParentScene );
 	m_vChildNodes.push_back( pNode );
 	updateChildrenTransforms();
 
@@ -324,6 +331,18 @@ bool SceneNode::attatchEntity( BaseRenderableObject* const _pNewEntity )
 	return true;
 }
 
+bool SceneNode::AttatchLight( Light* pLight )
+{
+	if( std::find( m_vLights.begin(), m_vLights.end(), pLight ) != m_vLights.end() )
+	{
+		return false;
+	}
+
+	m_vLights.push_back( pLight );
+	return true;
+}
+
+
 bool SceneNode::removeEntity( const BaseRenderableObject* _pRemoveEntity, bool bDeleteFromProgram )
 {
 	if( !_pRemoveEntity )
@@ -364,3 +383,4 @@ const String SceneNode::getName() const
 {
 	return m_szName;
 }
+
