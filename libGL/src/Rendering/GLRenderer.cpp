@@ -341,7 +341,7 @@ void GLRenderer::prepareLightRendering( const Camera* pCamera, const Light* pLig
 
 		if( pLight )
 		{
-			glm::vec3 posWS = pLight->getPositionWS();
+			glm::vec3 posWS = pLight->GetPosition();
 			UniformUtil::UpdateUniforms( rvUniforms, posWS );
 		}
 	}
@@ -355,7 +355,7 @@ void GLRenderer::prepareLightRendering( const Camera* pCamera, const Light* pLig
 
 		if( pLight )
 		{
-			glm::vec3 posWS = pLight->getPositionWS();
+			glm::vec3 posWS = pLight->GetPosition();
 
 			glm::vec4 posVS4 = matView * glm::vec4( posWS.x, posWS.y, posWS.z, 1.0 );
 			glm::vec3 posVS = glm::vec3( posVS4.x, posVS4.y, posVS4.z );

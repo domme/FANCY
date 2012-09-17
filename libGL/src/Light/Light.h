@@ -31,9 +31,7 @@ public:
 		void				setColor( const glm::vec3& v3Color )	{ m_v3Color = v3Color; }
 		void				setIntensity( float fIntensity )		{ m_fIntensity = fIntensity; }
 		void				setEnabled( bool bEnabled )				{ m_bEnabled = bEnabled; }
-		void				setPositionWS( const glm::vec3 v3Pos )  { m_mat4TransformWS[ 3 ] = glm::vec4( v3Pos, 1.0f ); }
-		glm::vec3			getPositionWS()	const					{ return glm::vec3( m_mat4TransformWS[ 3 ].x, m_mat4TransformWS[ 3 ].y, m_mat4TransformWS[ 3 ].z ); } 
-
+		
 		ELightTpye			getLightType() const { return m_eLightType; }
 		const glm::vec3&	getColor() const { return m_v3Color; }
 		float				getIntensity() const { return m_fIntensity; }
@@ -41,7 +39,8 @@ public:
 		
 		const Camera*		GetCamera() const { return &m_clLightViewCamera; }
 
-		const glm::mat4		getTransformWS() const { return m_mat4TransformWS; }
+		const glm::vec3&	GetPosition() const { return m_v3Position; }
+		void				SetPosition( const glm::vec3& rPos ) { m_v3Position = rPos; }
 
 protected:
 		bool			m_bEnabled;
@@ -50,9 +49,8 @@ protected:
 		ELightTpye		m_eLightType;
 		BoundingSphere	m_BoundingSphere;
 		Camera			m_clLightViewCamera;
+		glm::vec3		m_v3Position;
 
-		glm::mat4		m_mat4TransformWS;
-		
 		void		Init();
 };
 

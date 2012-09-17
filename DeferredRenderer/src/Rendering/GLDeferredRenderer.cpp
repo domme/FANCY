@@ -546,11 +546,17 @@ void GLDeferredRenderer::renderPointLight( PointLight* pLight, const SceneManage
 							0.0f, 0.0f, 1.0f, 0.0f,
 							0.0f, 0.0f, 0.0f, 1.0f );
 
-	const glm::mat4& matLightModelWorld = pLight->getTransformWS();
-	glm::vec3 v3LightPos = glm::vec3( matLightModelWorld[ 3 ][ 0 ], matLightModelWorld[ 3 ][ 1 ], matLightModelWorld[ 3 ][ 2 ] );
+	
+	const glm::vec3& v3LightPos = pLight->GetPosition();
 	const glm::vec3& v3CamPos = pCamera->getPosition();
 
 	float fCamLightDistance = glm::length( v3LightPos - v3CamPos ); 
+
+	glm::mat4 matLightWorld = matIdentity;
+	matLightWorld[ 3 ][ 0 ] = v3LightPos.x;
+	matLightWorld[ 3 ][ 1 ] = v3LightPos.y;
+	matLightWorld[ 3 ][ 2 ] = v3LightPos.z;
+	
 	
 	//Mark all pixels occupied by the backside AND Occluded by geometry
 	// Stencil 1 -> 2
@@ -563,7 +569,7 @@ void GLDeferredRenderer::renderPointLight( PointLight* pLight, const SceneManage
 	m_pGLrenderer->setStencilFunc( GL_EQUAL, 1, m_pGLrenderer->getStencilMask() );
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_INCR, GL_KEEP );
 
-	m_pGLrenderer->RenderMesh( m_pPointlightMesh._Myptr, matIdentity, matLightModelWorld, pCamera, m_pPointlightMesh->GetMaterial() );
+	m_pGLrenderer->RenderMesh( m_pPointlightMesh._Myptr, matLightWorld, *m_pEngine->GetWorldMat(), pCamera, m_pPointlightMesh->GetMaterial() );
 
 	//De-Mark pixels in front of the front side of the bounding region
 	// Stencil 2 -> 1
@@ -572,7 +578,7 @@ void GLDeferredRenderer::renderPointLight( PointLight* pLight, const SceneManage
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_DECR, GL_KEEP );
 
 	
-	m_pGLrenderer->RenderMesh( m_pPointlightMesh._Myptr, matIdentity, matLightModelWorld, pCamera, m_pPointlightMesh->GetMaterial() );
+	m_pGLrenderer->RenderMesh( m_pPointlightMesh._Myptr, matLightWorld, *m_pEngine->GetWorldMat(), pCamera, m_pPointlightMesh->GetMaterial() );
 
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
 	m_pGLrenderer->setDepthTest( false );

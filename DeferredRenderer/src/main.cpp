@@ -62,11 +62,36 @@ void setupScene()
 {
 	pSceneManager->LoadAssetIntoScene( "Models/Sibenik/sibenik_omme.dae" );
 
+	//Dir light
 	SceneNode* pLightNode = pSceneManager->getRootNode()->createChildSceneNode( "DirlightNode" );
 	pLightNode->setRotation( -PI/4.0f, glm::vec3( 1.0f, 0.0f, 0.0f ) );
-
 	DirectionalLight* pDirLight = pSceneManager->createDirectionalLight( "DirLight1", glm::vec3( 1.0f, 1.0f, 1.0f ), 0.5f );
 	pLightNode->AttatchLight( pDirLight );
+
+	//Pointlight 1
+	SceneNode* pPointLightNode1 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode" );
+	pPointLightNode1->setTranslation( glm::vec3( 0.4f, -13.0f, -5.7f ) );
+	PointLight* pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 2.5f, 1.0f, 5.0f );
+	pPointLightNode1->AttatchLight( pPointLight );
+
+	//Pointlight 2
+	SceneNode* pPointLightNode2 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode2" );
+	pPointLightNode2->setTranslation( glm::vec3( -17.25f, -13.7f, 6.6f ) );
+	PointLight* pPointLight2 = pSceneManager->createPointLight( "Pointlight2", glm::vec3( 1.0f, 0.0f, 0.0f ), 2.0f, 0.5f, 5.0f );
+	pPointLightNode2->AttatchLight( pPointLight2 );
+
+	//Pointlight 3
+	SceneNode* pPointLightNode3 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode3" );
+	pPointLightNode3->setTranslation( glm::vec3( 8.7f, -10.0f, 6.7f ) );
+	PointLight* pPointLight3 = pSceneManager->createPointLight( "Pointlight3", glm::vec3( 1.0f, 0.0f, 0.0f ), 1.5f, 3.0f, 7.0f );
+	pPointLightNode3->AttatchLight( pPointLight3 );
+
+	//Pointlight 4
+	SceneNode* pPointLightNode4 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode4" );
+	pPointLightNode4->setTranslation( glm::vec3( 17.7f, -8.3f, -0.05f ) );
+	PointLight* pPointLight4 = pSceneManager->createPointLight( "Pointlight4", glm::vec3( 1.0f, 1.0f, 1.0f ), 1.2f, 3.0f, 7.0f );
+	pPointLightNode4->AttatchLight( pPointLight4 );
+
 
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_COLOR_GLOSS );
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );

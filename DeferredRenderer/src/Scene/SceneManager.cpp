@@ -98,6 +98,11 @@ void SceneManager::preprocessLight( Light* pLight, SceneNode* pNode )
 
 void SceneManager::preprocessPointLight( PointLight* pPointLight, SceneNode* pNode )
 {
+	glm::vec4 v4Position ( 0.0f, 0.0f, 0.0f, 1.0f );
+	v4Position = pNode->getGlobalTransformMAT() * v4Position;
+
+	pPointLight->SetPosition( glm::vec3( v4Position.x, v4Position.y, v4Position.z ) );
+
 	m_vCachedPointLights.push_back( pPointLight );
 
 	pPointLight->renderShadowMap();

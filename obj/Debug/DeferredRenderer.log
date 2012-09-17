@@ -1,10 +1,13 @@
-﻿Build started 9/17/2012 9:52:25 PM.
+﻿Build started 9/17/2012 10:34:25 PM.
      1>Project "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\DeferredRenderer\DeferredRenderer.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
-         Creating "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\DeferredRenderer.unsuccessfulbuild" because "AlwaysCreate" was specified.
+         Touching "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\DeferredRenderer.unsuccessfulbuild".
        ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\paino_000\Documents\Entwicklung\Libraries\glew\include /I"C:\Users\paino_000\Documents\Entwicklung\Libraries\freeglut-2.8.0\include\GL" /I"C:\Users\paino_000\Documents\Entwicklung\Libraries\glm-0.9.3.4\\" /IC:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\libGL\src\ /IC:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\include\ /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /D _MBCS /D _CRT_SECURE_NO_WARNINGS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\\" /Fd"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt src\Scene\SceneManager.cpp
-         SceneManager.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\paino_000\Documents\Entwicklung\Libraries\glew\include /I"C:\Users\paino_000\Documents\Entwicklung\Libraries\freeglut-2.8.0\include\GL" /I"C:\Users\paino_000\Documents\Entwicklung\Libraries\glm-0.9.3.4\\" /IC:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\libGL\src\ /IC:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\include\ /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /D _MBCS /D _CRT_SECURE_NO_WARNINGS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\\" /Fd"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt src\Rendering\GLDeferredRenderer.cpp
+         GLDeferredRenderer.cpp
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\rendering\gldeferredrenderer.cpp(800): warning C4244: 'initializing' : conversion from 'float' to 'uint', possible loss of data
+     1>c:\users\paino_000\dropbox\entwicklung\opengl_apps\libgl\src\includes.h(44): warning C4101: 'b' : unreferenced local variable
+                 c:\users\paino_000\dropbox\entwicklung\opengl_apps\deferredrenderer\src\rendering\gldeferredrenderer.cpp(613) : see reference to function template instantiation 'void staticAssert_impl<true>(void)' being compiled
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\DeferredRenderer.exe" /NOLOGO /LIBPATH:C:\Users\paino_000\Documents\Entwicklung\Libraries\glew\lib /LIBPATH:"C:\Users\paino_000\Documents\Entwicklung\Libraries\freeglut-2.8.0\lib\x86\Debug\\" /LIBPATH:C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\\ /LIBPATH:C:\Users\paino_000\Documents\Entwicklung\Libraries\assimp\lib\Debug\ libGL.lib glew32.lib freeglut.lib assimp.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\DeferredRenderer.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\bin\Debug\DeferredRenderer.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\bin\Debug\DeferredRenderer.lib" /MACHINE:X86 C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\Engine.obj
          C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\\obj\Debug\FullscreenQuad.obj
@@ -46,4 +49,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.22
+Time Elapsed 00:00:03.05
