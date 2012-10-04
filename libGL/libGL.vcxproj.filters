@@ -34,6 +34,9 @@
     <Filter Include="src\Rendering\Materials">
       <UniqueIdentifier>{02afd460-d464-4297-89fa-2f2bc1776a23}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Debug">
+      <UniqueIdentifier>{30337951-e4ed-4569-ae32-a56fd850d166}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Includes.h">
@@ -156,6 +159,12 @@
     <ClInclude Include="src\Rendering\Materials\Material.h">
       <Filter>src\Rendering\Materials</Filter>
     </ClInclude>
+    <ClInclude Include="src\Debug\PerformanceCheck.h">
+      <Filter>src\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Debug\StatsGui.h">
+      <Filter>src\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Geometry\BaseGeometryObject.cpp">
@@ -244,6 +253,12 @@
     </ClCompile>
     <ClCompile Include="src\Rendering\Materials\Material.cpp">
       <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Debug\PerformanceCheck.cpp">
+      <Filter>src\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Debug\StatsGui.cpp">
+      <Filter>src\Debug</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

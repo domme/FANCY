@@ -58,12 +58,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(GLEW_HOME)\include;$(GLM_HOME)\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(FREEGLUT_HOME)\include\GL;$(GLEW_HOME)\include;$(GLM_HOME)\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;__WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(GLEW_HOME)\lib;$(ASSIMP_HOME)\lib\$(Configuration)\;$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(FREEGLUT_HOME)\lib\x86\Debug\;$(GLEW_HOME)\lib;$(ASSIMP_HOME)\lib\$(Configuration)\;$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glew32.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -77,15 +77,15 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(GLEW_HOME)\include;$(GLM_HOME)\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(FREEGLUT_HOME)\include\GL;$(GLEW_HOME)\include;$(GLM_HOME)\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;__WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(GLEW_HOME)\lib;$(ASSIMP_HOME)\lib\$(Configuration)\;$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(FREEGLUT_HOME)\lib\x86\Release\;$(GLEW_HOME)\lib;$(ASSIMP_HOME)\lib\$(Configuration)\;$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freeglut.lib;opengl32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy $(OutDir)libGL.lib $(IntDir) /Y
@@ -93,6 +93,8 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Debug\PerformanceCheck.h" />
+    <ClInclude Include="src\Debug\StatsGui.h" />
     <ClInclude Include="src\Events\Events.h" />
     <ClInclude Include="src\Geometry\BaseGeometryObject.h" />
     <ClInclude Include="src\Geometry\Mesh.h" />
@@ -135,6 +137,8 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
     <ClInclude Include="src\Services\NameRegistry.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Debug\PerformanceCheck.cpp" />
+    <ClCompile Include="src\Debug\StatsGui.cpp" />
     <ClCompile Include="src\Geometry\BaseGeometryObject.cpp" />
     <ClCompile Include="src\Geometry\Mesh.cpp" />
     <ClCompile Include="src\Geometry\VertexDeclarations.cpp" />

@@ -13,6 +13,7 @@
 
 //OpenGL includes
 #include <glew.h>
+#include <freeglut.h>
 
 
 
@@ -71,7 +72,8 @@ void staticAssert_impl()
 	function;					\
 								\
 	bInit = true;				\
-}								
+}	
+													\
 
 #define ARRAY_LENGTH( arr ) sizeof( arr ) / sizeof( arr[ 0 ] )
 

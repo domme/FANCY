@@ -26,7 +26,7 @@ GLuint ShaderLoader::LoadShaderProgram( const String& szVertexShaderPath, const 
 			*pbSuccess = true;
 
 		return rShaderPathMgr.GetResource( szProgramKey );
-	}
+	} 
 		
 	//Shader program not loaded yet!
 	GLuint uVertexShader, uFragmentShader, uShaderProgram;

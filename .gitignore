@@ -6,5 +6,16 @@
 
 *.opensdf
 
+*.pdb
+
+*.obj
+
 *.sdf
 ipch/*
+obj/Debug/Camera.obj
+*.obj
+obj/
+bin/
+bin/
+bin/*
+DeferredRendererQt/Debug/
