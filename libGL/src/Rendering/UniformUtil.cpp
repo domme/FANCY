@@ -1,5 +1,6 @@
 #include "UniformUtil.h"
 
+#include "Uniform.h"
 
 
 void UniformUtil::UpdateUniform( IUniform* pIUniform, const glm::mat4& value )

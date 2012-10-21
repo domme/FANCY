@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;cxx;c;def</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h</Extensions>
-    </Filter>
     <Filter Include="Form Files">
       <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
       <Extensions>ui</Extensions>
@@ -48,14 +40,11 @@
     <Filter Include="Rendering\Materials">
       <UniqueIdentifier>{1d3edf71-436f-4db9-88b0-322c5e7bcb22}</UniqueIdentifier>
     </Filter>
+    <Filter Include="QtFiles">
+      <UniqueIdentifier>{c3903f90-5303-40d6-aaa6-d54ba2096488}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="deferredrendererqt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_deferredrendererqt.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
@@ -64,9 +53,6 @@
     </ClCompile>
     <ClCompile Include="GeneratedFiles\qrc_deferredrendererqt.cpp">
       <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="engineqglwidget.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_engineqglwidget.cpp">
       <Filter>Generated Files\Debug</Filter>
@@ -155,23 +141,28 @@
     <ClCompile Include="Geometry\FullscreenQuad.cpp">
       <Filter>Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="Engine.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="deferredrendererqt.cpp" />
+    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="engineqglwidget.cpp" />
+    <ClCompile Include="GeneratedFiles\Debug\moc_DeferredRendererQApp.cpp">
+      <Filter>Generated Files\Debug</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_DeferredRendererQApp.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredRendererQApp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="deferredrendererqt.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="deferredrendererqt.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
     <CustomBuild Include="deferredrendererqt.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="engineqglwidget.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
+    <CustomBuild Include="engineqglwidget.h" />
+    <CustomBuild Include="deferredrendererqt.h" />
+    <CustomBuild Include="DeferredRendererQApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_deferredrendererqt.h">
@@ -258,8 +249,6 @@
     <ClInclude Include="Geometry\FullscreenQuad.h">
       <Filter>Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="Engine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClInclude Include="Engine.h" />
   </ItemGroup>
 </Project>

@@ -2,7 +2,9 @@
 #define MODELLOADER_LOGSTREAM
 
 #include "../Includes.h"
-#include <assimp/LogStream.h>
+
+#include <assimp/LogStream.hpp>
+
 
 class ModelLoader_LogStream : public Assimp::LogStream
 {

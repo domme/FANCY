@@ -1,6 +1,9 @@
 #include "PathService.h"
 #include <stdio.h>
+
+#ifdef __WINDOWS
 #include <Windows.h>
+#endif
 
 #ifdef __OSX
 #include <mach-o/dyld.h>

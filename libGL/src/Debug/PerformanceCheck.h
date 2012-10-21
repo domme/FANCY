@@ -24,6 +24,7 @@ public:
 	static void SetCallDelay( uint32 uCallDelay );
 	static void SetEnabled( bool bEnabled );
 	static void SetOutputFlags( uint32 uFlags );
+	static bool HasUpdates();
 
 private:
 	void logPerformanceCheck_CONSOLE( double f64Delay );
@@ -43,7 +44,7 @@ private:
 	PerformanceCheck __clPerfCheck;					\
 	__clPerfCheck.StartPerformanceCheck( message );	\
 	func;											\
-	__clPerfCheck.FinishAndLogPerformanceCheck();		\
+	__clPerfCheck.FinishAndLogPerformanceCheck();	\
 }
 
 

@@ -195,7 +195,11 @@ GLuint TextureLoader::LoadTexture2D( const String& szPath, bool* pbSuccess /* = 
 		glGenTextures( 1, &uTextureLoc);
 		glBindTexture( GL_TEXTURE_2D, uTextureLoc );
 		//Pass the actual Texture Data
+#ifdef __WINDOWS
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F, uWidth, uHeight,	0, GL_RGB, GL_FLOAT, pData );
+#else
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F_ARB, uWidth, uHeight,	0, GL_RGB, GL_FLOAT, pData );
+#endif
 		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -454,8 +458,11 @@ GLuint TextureLoader::LoadTexture3D( const String& szBasePath, uint uStartIndex,
 		glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+#ifdef __WINDOWS
 		glTexImage3D( GL_TEXTURE_3D, 0, GL_RGB32F, uWidth, uHeight, uNumTextures, 0, GL_RGB, GL_FLOAT, pTexturesData );
-
+#else
+        glTexImage3D( GL_TEXTURE_3D, 0, GL_RGB32F_ARB, uWidth, uHeight, uNumTextures, 0, GL_RGB, GL_FLOAT, pTexturesData );
+#endif
 		glBindTexture( GL_TEXTURE_3D, 0 );
 
 		delete( pTexturesData );

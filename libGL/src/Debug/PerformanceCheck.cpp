@@ -1,6 +1,6 @@
 #include "PerformanceCheck.h"
 
-#include "StatsGui.h"
+#include "StatsManager.h"
 
 uint32 PerformanceCheck::m_u32CallDelay = 0;
 uint32 PerformanceCheck::m_u32CallCount = 0;
@@ -16,15 +16,16 @@ m_szMessage( "" )
 
 void PerformanceCheck::FrameStart()
 {
-	++m_u32CallCount;
-
 	if( m_u32CallCount > m_u32CallDelay )
 		m_u32CallCount = 0;
+	
+	++m_u32CallCount;
 }
 
 void PerformanceCheck::StartPerformanceCheck( const String& szMessage )
 {
-	if( !m_bEnable )
+#ifdef __WINDOWS
+    if( !m_bEnable )
 		return;
 
 	if( m_u32CallDelay > 0 && m_u32CallCount < m_u32CallDelay )
@@ -36,13 +37,15 @@ void PerformanceCheck::StartPerformanceCheck( const String& szMessage )
 	uint64 u64Ticks =iTicks.QuadPart;
 
 	m_u64StartTime = u64Ticks;
-	m_szMessage = szMessage;	
+	m_szMessage = szMessage;
+#endif
 }
 
 
 void PerformanceCheck::FinishAndLogPerformanceCheck()
 {
-	if( !m_bEnable )
+#ifdef __WINDOWS
+    if( !m_bEnable )
 		return;
 
 	if( m_u32CallDelay > 0 && m_u32CallCount < m_u32CallDelay )
@@ -74,7 +77,8 @@ void PerformanceCheck::FinishAndLogPerformanceCheck()
 
 	if( m_u32OutputFlags & PerfStatsOutput::SCREEN )
 		logPerfoamanceCheck_SCREEN( f64Delay );
-	
+    
+#endif
 }
 
 void PerformanceCheck::SetCallDelay( uint32 uCallDelay )
@@ -92,9 +96,15 @@ void PerformanceCheck::SetOutputFlags( uint32 uFlags )
 	m_u32OutputFlags = uFlags;
 }
 
+bool PerformanceCheck::HasUpdates()
+{
+	 return m_u32CallDelay == 0 || m_u32CallCount >= m_u32CallDelay;
+}
+
 void PerformanceCheck::logPerformanceCheck_CONSOLE( double f64Delay )
 {
 	std::stringstream ss;
+	ss.precision( 5 );
 	ss << m_szMessage << " duration: " << f64Delay;
 
 	LOG( ss.str() );
@@ -102,8 +112,8 @@ void PerformanceCheck::logPerformanceCheck_CONSOLE( double f64Delay )
 
 void PerformanceCheck::logPerfoamanceCheck_SCREEN( double f64Delay )
 {
-	std::stringstream ss;
-	ss << m_szMessage << " duration: " << f64Delay;
-	
-	StatsGui::GetInstance().AddGuiLineValue( ss.str(), f64Delay );
+	StatsManager::GetInstance().AddGuiLineValue( m_szMessage, f64Delay );
 }
+
+
+

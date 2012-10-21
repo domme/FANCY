@@ -4,8 +4,9 @@
 
 #include "PathService.h"
 
-#include "assimp/Logger.h"
-#include "assimp/DefaultLogger.h"
+
+#include "assimp/Logger.hpp"
+#include "assimp/DefaultLogger.hpp"
 
 //Materials
 #include "../Rendering/Managers/GLBufferUploader.h"

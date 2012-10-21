@@ -63,12 +63,12 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(FREEGLUT_HOME)\lib\x86\Debug\;$(GLEW_HOME)\lib;$(ASSIMP_HOME)\lib\$(Configuration)\;$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(FREEGLUT_HOME)\lib\x86\Debug\;$(GLEW_HOME)\lib;$(ASSIMP_HOME)\lib\x86\;$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glew32.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy $(OutDir)libGL.lib $(IntDir) /Y
-xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
+xcopy $(ASSIMP_HOME)\bin\x86\assimp32.dll $(OutDir) /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -94,7 +94,7 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Debug\PerformanceCheck.h" />
-    <ClInclude Include="src\Debug\StatsGui.h" />
+    <ClInclude Include="src\Debug\StatsManager.h" />
     <ClInclude Include="src\Events\Events.h" />
     <ClInclude Include="src\Geometry\BaseGeometryObject.h" />
     <ClInclude Include="src\Geometry\Mesh.h" />
@@ -138,7 +138,7 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Debug\PerformanceCheck.cpp" />
-    <ClCompile Include="src\Debug\StatsGui.cpp" />
+    <ClCompile Include="src\Debug\StatsManager.cpp" />
     <ClCompile Include="src\Geometry\BaseGeometryObject.cpp" />
     <ClCompile Include="src\Geometry\Mesh.cpp" />
     <ClCompile Include="src\Geometry\VertexDeclarations.cpp" />

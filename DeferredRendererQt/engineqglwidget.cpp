@@ -7,21 +7,18 @@
 #include <Light/PointLight.h>
 #include <Light/SpotLight.h>
 #include <Debug/PerformanceCheck.h>
-#include <Debug/StatsGui.h>
+#include <Debug/StatsManager.h>
+
 
 #include "Engine.h"
 
 #include "Scene/SceneManager.h"
 
-struct SKeyState
-{
-	bool vbKeysDown[ 256 ];
-};
-
 static Engine*			pEngine;
 static SceneManager*	pSceneManager;
 static Camera*			pCamera;
-static StatsGui*		pStatsGUI;
+static StatsManager*	pStatsGUI;
+static GLRenderer*		pRenderer;
 
 static int iScreenWidth						= 600;
 static int iScreenHeight					= 800;
@@ -34,13 +31,18 @@ static const int iTimerRedrawID				= 0;
 static int iLastElapsedTime					= 0;
 static int iMouseXLast						= 0;
 static int iMouseYLast						= 0;
-static float fCameraSpeed					= 10.0f;
-static SKeyState clKeyState;
+static float fCameraSpeed					= 100.0f;
 
 EngineQGLwidget::EngineQGLwidget(QWidget *parent)
-	: QGLWidget(parent)
+	: QGLWidget(parent),
+	m_pTextEditFrameDurations( NULL )
 {
+	m_clRenderTime = QTime::currentTime();
+	m_clRenderTime.restart();
 
+	setFocusPolicy( Qt::FocusPolicy::StrongFocus );
+
+	
 }
 
 EngineQGLwidget::~EngineQGLwidget()
@@ -50,6 +52,8 @@ EngineQGLwidget::~EngineQGLwidget()
 
 void EngineQGLwidget::initializeGL()
 {
+	m_pTextEditFrameDurations = parentWidget()->findChild<QTextEdit*>( "durationsTextEdit" );
+
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
@@ -62,20 +66,21 @@ void EngineQGLwidget::initializeGL()
 	pSceneManager = new SceneManager();
 	pEngine->SetScene( pSceneManager );
 
+	pRenderer = pEngine->GetRenderer();
+
 	pCamera = pEngine->GetCurrentCamera();
 
-	for( int i = 0; i < ARRAY_LENGTH( clKeyState.vbKeysDown ); ++i )
-	{
-		clKeyState.vbKeysDown[ i ] = false;
-	}
-
-	//PerformanceCheck::SetCallDelay( 100 );
+	PerformanceCheck::SetCallDelay( 100 );
 	PerformanceCheck::SetEnabled( true );
 	PerformanceCheck::SetOutputFlags( PerfStatsOutput::SCREEN );
 
-	pStatsGUI = &StatsGui::GetInstance();
+	pStatsGUI = &StatsManager::GetInstance();
 
 	setupEngineScene();
+
+	connect( &m_clFPStimer, SIGNAL( timeout() ), this, SLOT( updateGL() ) );
+	m_clFPStimer.start( 16 );
+	m_bGLcontextReady = true;
 }
 
 
@@ -133,22 +138,142 @@ void EngineQGLwidget::resizeGL( int width, int height )
 	pStatsGUI->SetScreenPosition( glm::vec2( 5.0f, height - 10.0f ) );
 }
 
+void EngineQGLwidget::onPaintGL()
+{
+	repaint();
+}
+
+void EngineQGLwidget::drawStats()
+{
+	if( !PerformanceCheck::HasUpdates() )
+		return;
+
+
+	std::string szStatsString;
+
+	const std::vector<String>& vStatsLines = pStatsGUI->GetStatsLines();
+
+	for( int i = 0; i < vStatsLines.size(); ++i )
+	{
+		szStatsString += vStatsLines[ i ] + "\n";
+	}
+
+	m_pTextEditFrameDurations->setText( QString( szStatsString.c_str() ) );
+	pStatsGUI->Clear();
+}
+
 void EngineQGLwidget::paintGL()
 {
 	int iCurrElapsedTime = glutGet( GLUT_ELAPSED_TIME );
 	int iDeltaTime = iCurrElapsedTime - iLastElapsedTime;
 	iLastElapsedTime = iCurrElapsedTime;
 
-	//pStatsGUI->Clear();
-	//pStatsGUI->AddGuiLineValue( "FPS: ", pEngine->GetFPS() );
-
-	//processInputs();
+	PerformanceCheck::FrameStart();
+	pStatsGUI->AddGuiLineValue( "FPS: ", pEngine->GetFPS() );
 
 	pEngine->Update( iDeltaTime );
 	pEngine->Render( iDeltaTime );
 
-	//drawTextOverlays();
+	drawStats();
+}
 
-	//glFlush();
-	//glutSwapBuffers();
+void EngineQGLwidget::mouseMoveEvent( QMouseEvent* event )
+{
+	if( !m_bGLcontextReady )
+		return;
+
+	int dx = ( event->x() - m_iLastMouseX );
+	int dy = ( event->y() - m_iLastMouseY );
+
+	m_iLastMouseX = event->x();
+	m_iLastMouseY = event->y();
+
+	if( m_bMousePressed )
+		pEngine->GetCurrentCamera()->RotateFromMouseMove( dx, dy );
+
+	
+}
+
+void EngineQGLwidget::mousePressEvent( QMouseEvent* event )
+{
+	if( m_bMousePressed )
+		return;
+
+	m_iLastMouseX = event->x();
+	m_iLastMouseY = event->y();
+	m_bMousePressed = true;
+	
+}
+
+void EngineQGLwidget::mouseReleaseEvent( QMouseEvent* event )
+{
+	if( !m_bMousePressed )
+		return;
+
+	m_bMousePressed = false;
+}
+
+void EngineQGLwidget::keyPressEvent( QKeyEvent* event )
+{
+	float fRealCameraSpeed = fCameraSpeed * pEngine->GetMovementMul();
+
+	switch( event->key() )
+	{
+	case Qt::Key_W:
+		{
+			if( m_bMousePressed )
+				pEngine->GetCurrentCamera()->MoveForward( fRealCameraSpeed );
+		}
+		break;
+
+	case Qt::Key_S:
+		{
+			if( m_bMousePressed )
+				pEngine->GetCurrentCamera()->MoveForward( -fRealCameraSpeed );
+
+		}
+		break;
+
+	case Qt::Key_A:
+		{
+			if( m_bMousePressed )
+				pEngine->GetCurrentCamera()->MoveSideways( -fRealCameraSpeed );
+
+		}
+		break;
+
+	case Qt::Key_D:
+		{
+			if( m_bMousePressed )
+				pEngine->GetCurrentCamera()->MoveSideways( fRealCameraSpeed );
+
+		}
+		break;
+	}
+	
+}
+
+void EngineQGLwidget::keyReleaseEvent( QKeyEvent* event )
+{
+	
+}
+
+void EngineQGLwidget::onToggleDebugDisplay( int iCheckState )
+{
+	pRenderer->SetDebugTexturesVisible( iCheckState == Qt::Checked );
+}
+
+void EngineQGLwidget::onToggleFXAA( int iCheckState )
+{
+	pRenderer->SetFXAAenabled( iCheckState == Qt::Checked );
+}
+
+void EngineQGLwidget::onToggleBloom( int iCheckState )
+{
+	pRenderer->SetUseBloom( iCheckState == Qt::Checked );
+}
+
+void EngineQGLwidget::onToggleHDR( int iCheckState )
+{
+	pRenderer->SetToneMappingEnabled( iCheckState == Qt::Checked );
 }

@@ -2,6 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:OpenGL_Apps/libGLtestApp/libGLtestApp.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:OpenGL_Apps/DeferredRendererQt/DeferredRendererQt/DeferredRendererQt.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:OpenGL_Apps/libGL/libGL.xcodeproj">
    </FileRef>
 </Workspace>

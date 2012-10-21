@@ -1,7 +1,8 @@
 #ifndef UNIFORMUTIL_H
 #define UNIFORMUTIL_H
 
-#include "Uniform.h"
+#include "../Includes.h"
+#include "IUniform.h"
 
 class  DLLEXPORT UniformUtil
 {

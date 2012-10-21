@@ -55,7 +55,7 @@ void NameRegistry<object_type>::destroyRegistry()
 	if( getNumRegisteredObjects() < 1 )
 		return;
 
-	std::map<String, object_type*>::iterator iter;
+	typename std::map<String, object_type*>::iterator iter;
 
 	for( iter = m_mapRegistry.begin(); iter != m_mapRegistry.end(); ++iter )
 	{

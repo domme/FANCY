@@ -40,7 +40,7 @@ public:
 
 
 		m_eSemantic = eSemantic;
-
+        
 		if( UniformUtil::IsGlobalSemantic( m_eSemantic ) )
 			rRegistry.RegisterUniformForSemantic( this, m_eSemantic );
 

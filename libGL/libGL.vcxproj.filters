@@ -162,7 +162,7 @@
     <ClInclude Include="src\Debug\PerformanceCheck.h">
       <Filter>src\Debug</Filter>
     </ClInclude>
-    <ClInclude Include="src\Debug\StatsGui.h">
+    <ClInclude Include="src\Debug\StatsManager.h">
       <Filter>src\Debug</Filter>
     </ClInclude>
   </ItemGroup>
@@ -257,7 +257,7 @@
     <ClCompile Include="src\Debug\PerformanceCheck.cpp">
       <Filter>src\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="src\Debug\StatsGui.cpp">
+    <ClCompile Include="src\Debug\StatsManager.cpp">
       <Filter>src\Debug</Filter>
     </ClCompile>
   </ItemGroup>

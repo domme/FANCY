@@ -5,10 +5,9 @@
 
 #include "../Geometry/Mesh.h"
 
-
-#include <assimp/assimp.hpp>
-#include <assimp/aiScene.h>
-#include <assimp/aiPostProcess.h>
+#include <assimp/importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "ModelLoader_LogStream.h"
 

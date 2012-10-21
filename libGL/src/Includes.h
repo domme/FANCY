@@ -8,12 +8,17 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-#include <Windows.h>
 
+#ifdef __WINDOWS
+    #include <Windows.h>
+    #include <glew.h>
+    #include <freeglut.h>
+
+#else
+    #include <GLUT/glut.h>
+#endif
 
 //OpenGL includes
-#include <glew.h>
-#include <freeglut.h>
 
 
 
@@ -36,7 +41,12 @@ void LOG( T s )
 {
 	std::ostringstream ss;
 	ss << s << '\n';
+    
+#ifdef __WINDOWS
 	OutputDebugStringA( ss.str().c_str() );
+#else
+    std::cout << ss.str();
+#endif
 }
 
 template<bool T>
