@@ -15,8 +15,8 @@ public:
 	float getExponent() const									{ return m_fExponent; }
 	const glm::vec3& getDirection() const						{ return m_v3Direction; }
 
-	virtual void update();
-	virtual void renderShadowMap();
+	virtual void Update();
+	virtual void RenderShadowMap();
 	void setUmbraAngle( float fUmbra )							{ m_fUmbraAngle = fUmbra; }
 	void setUmbraAngleDeg( float fUmbraDeg )					{ m_fUmbraAngle = glm::radians( fUmbraDeg ); }
 	void setPenumbraAngle( float fPenumbra )					{ m_fPenumbraAngle = fPenumbra; }

@@ -81,7 +81,7 @@ void SceneLoader::processNode( SceneManager* pScene, const aiScene* pAiScene, Sc
 	{
 		uint uMeshIdx = pAiNode->mMeshes[ i ];
 		Mesh* pCurrMesh = new Mesh( *vMeshes[ uMeshIdx ] ); //Clone the mesh to allow multiple meshes defined in one file
-		Entity* pEntity = pScene->CreateEntity( std::unique_ptr<Mesh>( pCurrMesh ) );
+		Entity* pEntity = pScene->CreateEntity( pCurrMesh );
 		pCurrNode->attatchEntity( pEntity );
 	}
 
@@ -172,7 +172,9 @@ Material* SceneLoader::processMaterial( const aiScene* pAiScene, const aiMateria
 
 		float fBumpIntensity = 1.0f;
 		paiMaterial->Get( AI_MATKEY_BUMPSCALING, fBumpIntensity );
-		pMat->SetBumpIntensity( fBumpIntensity * fGlobalNormalMod );
+		//pMat->SetBumpIntensity( fBumpIntensity * fGlobalNormalMod );
+		pMat->SetBumpIntensity( fBumpIntensity );
+	
 
 		returnMaterial = pMat;
 	}
@@ -215,6 +217,7 @@ Material* SceneLoader::processMaterial( const aiScene* pAiScene, const aiMateria
 
 		float fBumpIntensity = 1.0f;
 		paiMaterial->Get( AI_MATKEY_BUMPSCALING, fBumpIntensity );
+		LOG( fBumpIntensity );
 		pMat->SetBumpIntensity( fBumpIntensity * fGlobalNormalMod );
 
 		returnMaterial = pMat;

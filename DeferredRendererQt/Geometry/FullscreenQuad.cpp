@@ -18,14 +18,15 @@ FullscreenQuad::FullscreenQuad() : m_pMaterial( NULL ), m_pEngine( NULL )
 
 FullscreenQuad::~FullscreenQuad()
 {
-
+	SAFE_DELETE( m_pMesh );
+	//SAFE_DELETE( m_pMaterial );
 }
 
 void FullscreenQuad::init()
 {
 	m_pEngine = &Engine::GetInstance();
 
-	m_pMesh = std::unique_ptr<Mesh>( new Mesh );
+	m_pMesh = new Mesh;
 	m_pMaterial = new MAT_FSquad_Textured;
 	m_pMaterial->Init();
 
@@ -74,7 +75,7 @@ void FullscreenQuad::RenderTexture( GLuint uTexture )
 	static glm::mat4 matIdentity;
 	
 	m_pMaterial->SetTexture( uTexture );
-	m_pEngine->GetRenderer()->RenderMesh( m_pMesh._Myptr, matIdentity, matIdentity, m_pEngine->GetCurrentCamera() );
+	m_pEngine->GetRenderer()->RenderMesh( m_pMesh, matIdentity, matIdentity, m_pEngine->GetCurrentCamera() );
 }
 
 
@@ -83,7 +84,7 @@ void FullscreenQuad::RenderWithMaterial( Material* pMat  )
 	static glm::mat4 matIdentity;
 
 	m_pMesh->SetMaterial( pMat );
-	m_pEngine->GetRenderer()->RenderMesh( m_pMesh._Myptr, matIdentity, matIdentity, m_pEngine->GetCurrentCamera(), pMat, pMat->GetShader() );
+	m_pEngine->GetRenderer()->RenderMesh( m_pMesh, matIdentity, matIdentity, m_pEngine->GetCurrentCamera(), pMat, pMat->GetShader() );
 	m_pMesh->SetMaterial( m_pMaterial );
 }
 

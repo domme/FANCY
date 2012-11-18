@@ -18,6 +18,8 @@ void onDisplay()
 {
     glClear( GL_COLOR_BUFFER_BIT );
     
+
+    
     glFlush();
     glutSwapBuffers();
 }

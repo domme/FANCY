@@ -12,13 +12,13 @@ DirectionalLight::~DirectionalLight()
 
 }
 
-void DirectionalLight::update()
+void DirectionalLight::Update()
 {
 	
 }
 
 
-void DirectionalLight::renderShadowMap()
+void DirectionalLight::RenderShadowMap()
 {	
 	
 }

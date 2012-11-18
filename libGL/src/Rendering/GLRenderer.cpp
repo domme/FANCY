@@ -271,11 +271,11 @@ void GLRenderer::prepareLightRendering( const Camera* pCamera, const Light* pLig
 	
 	const glm::mat4& matView = pCamera->GetView();
 	
-	if( pLight->getLightType() == Light::LIGHTTYPE_DIRECTIONAL )
+	if( pLight->GetLightType() == Light::LIGHTTYPE_DIRECTIONAL )
 		pDirLight = dynamic_cast<const DirectionalLight*>( pLight );
-	else if( pLight->getLightType() == Light::LIGHTTYPE_POINT )
+	else if( pLight->GetLightType() == Light::LIGHTTYPE_POINT )
 		pPointLight = dynamic_cast<const PointLight*>( pLight );
-	else if( pLight->getLightType() == Light::LIGHTTYPE_SPOT )
+	else if( pLight->GetLightType() == Light::LIGHTTYPE_SPOT )
 		pSpotLight = dynamic_cast<const SpotLight*>( pLight );
 	
 
@@ -373,7 +373,7 @@ void GLRenderer::prepareLightRendering( const Camera* pCamera, const Light* pLig
 
 		if( pLight )
 		{
-			const glm::vec3& color = pLight->getColor();
+			const glm::vec3& color = pLight->GetColor();
 			UniformUtil::UpdateUniforms( rvUniforms, color );
 		}
 
@@ -386,7 +386,7 @@ void GLRenderer::prepareLightRendering( const Camera* pCamera, const Light* pLig
 
 		if( pLight )
 		{
-			float fI = pLight->getIntensity();
+			float fI = pLight->GetIntensity();
 			UniformUtil::UpdateUniforms( rvUniforms, fI );
 		}
 
@@ -400,7 +400,7 @@ void GLRenderer::prepareLightRendering( const Camera* pCamera, const Light* pLig
 
 		if( pLight )
 		{
-			const glm::vec3& color = pLight->getColor() * pLight->getIntensity();
+			const glm::vec3& color = pLight->GetColor() * pLight->GetIntensity();
 			UniformUtil::UpdateUniforms( rvUniforms, color );
 		}
 
@@ -718,11 +718,11 @@ void GLRenderer::prepareMeshRendering( Mesh* pMesh, const glm::mat4& matModel, c
 			
 		if( pLight )
 		{
-				if( pLight->getLightType() == Light::LIGHTTYPE_DIRECTIONAL )
+				if( pLight->GetLightType() == Light::LIGHTTYPE_DIRECTIONAL )
 					pDirLight = dynamic_cast<const DirectionalLight*>( pLight );
-				else if( pLight->getLightType() == Light::LIGHTTYPE_POINT )
+				else if( pLight->GetLightType() == Light::LIGHTTYPE_POINT )
 					pPointLight = dynamic_cast<const PointLight*>( pLight );
-				else if( pLight->getLightType() == Light::LIGHTTYPE_SPOT )
+				else if( pLight->GetLightType() == Light::LIGHTTYPE_SPOT )
 					pSpotLight = dynamic_cast<const SpotLight*>( pLight );
 		}
 		
@@ -807,9 +807,10 @@ void GLRenderer::prepareMeshRendering( Mesh* pMesh, const glm::mat4& matModel, c
 
 			} break;
 
-			default:
-				//If not found here, this Uniform will be handled by the material
-				pMaterial->UpdateUniform( pUniform );
+
+		default:
+			//If not found here, this Uniform will be handled by the material
+			pMaterial->UpdateUniform( pUniform );
 			break;
 
 		}

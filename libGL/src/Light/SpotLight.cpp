@@ -19,13 +19,13 @@ SpotLight::~SpotLight()
 }
 
 
-void SpotLight::update()
+void SpotLight::Update()
 {
 	
 }
 
 
-void SpotLight::renderShadowMap()
+void SpotLight::RenderShadowMap()
 {	
 	
 }

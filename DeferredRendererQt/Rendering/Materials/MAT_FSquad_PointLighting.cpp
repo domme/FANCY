@@ -4,7 +4,8 @@
 MAT_FSquad_PointLighting::MAT_FSquad_PointLighting() : Material(), m_uColorGlossTex( GLUINT_HANDLE_INVALID ), 
 	m_uSpecTex( GLUINT_HANDLE_INVALID ),
 	m_uDepthTex( GLUINT_HANDLE_INVALID ),
-	m_uNormalTex( GLUINT_HANDLE_INVALID )
+	m_uNormalTex( GLUINT_HANDLE_INVALID ),
+	m_uCubeShadowTex( GLUINT_HANDLE_INVALID )
 {
 
 }
@@ -35,11 +36,16 @@ bool MAT_FSquad_PointLighting::Init()
 	assignUniformSemantic( m_pShader,  "fNear" ,  ShaderSemantics::FRUSTUM_NEAR );
 	assignUniformSemantic( m_pShader,  "iScreenHeight" ,  ShaderSemantics::SCREEN_HEIGHT );
 	assignUniformSemantic( m_pShader, "view", ShaderSemantics::VIEW );
-
+	assignUniformSemantic( m_pShader, "viewI", ShaderSemantics::VIEWI );
+	assignUniformSemantic( m_pShader, "lightView", ShaderSemantics::LIGHTVIEW );
+	assignUniformSemantic( m_pShader, "lightProj", ShaderSemantics::LIGHTPROJ );
+	
+	
 	assignUniformSemantic( m_pShader,  "colorGloss" ,  ShaderSemantics::TEXTURE,  GBuffer::ColorGloss );
 	assignUniformSemantic( m_pShader,  "specN" ,  ShaderSemantics::TEXTURE,  GBuffer::Spec );
 	assignUniformSemantic( m_pShader,  "normals" ,  ShaderSemantics::TEXTURE,  GBuffer::Normal );
 	assignUniformSemantic( m_pShader,  "depth" ,  ShaderSemantics::TEXTURE,  GBuffer::Depth );
+	assignUniformSemantic( m_pShader, "shadowCubeTex", ShaderSemantics::TEXTURE_CUBE, 4 );
 	
 	assignUniformSemantic( m_pShader,  "v3LightPosVS" ,  ShaderSemantics::LIGHTPOSVIEW );
 	assignUniformSemantic( m_pShader,  "v3LightColor" ,  ShaderSemantics::LIGHTCOLORINTENSITY );
@@ -64,6 +70,11 @@ GLuint MAT_FSquad_PointLighting::GetTextureAtIndex( uint uIdx ) const
 
 	case GBuffer::Depth:
 		return m_uDepthTex;
+
+	case 4:
+		return m_uCubeShadowTex;
+
+
 	}
 
 	return GLUINT_HANDLE_INVALID;

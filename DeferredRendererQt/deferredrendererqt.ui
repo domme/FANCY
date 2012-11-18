@@ -6,12 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>947</width>
-    <height>599</height>
+    <width>1280</width>
+    <height>720</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="baseSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>DeferredRendererQt</string>
+  </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -38,6 +53,7 @@
       <property name="autoFillBackground">
        <bool>false</bool>
       </property>
+      <zorder>SideControlsWidget</zorder>
      </widget>
     </item>
     <item>
@@ -59,7 +75,7 @@
     <item>
      <widget class="QWidget" name="SideControlsWidget" native="true">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -73,32 +89,20 @@
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QLabel" name="RenderDurationLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string>Frame-Durations:</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QTextEdit" name="durationsTextEdit">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="sizeIncrement">
-          <size>
-           <width>1</width>
-           <height>1</height>
-          </size>
-         </property>
-         <property name="undoRedoEnabled">
-          <bool>false</bool>
-         </property>
-         <property name="lineWrapMode">
-          <enum>QTextEdit::NoWrap</enum>
-         </property>
-         <property name="readOnly">
+        <widget class="QTableView" name="statsTableView">
+         <property name="sortingEnabled">
           <bool>true</bool>
          </property>
         </widget>
@@ -121,12 +125,18 @@
          <property name="text">
           <string>Use HDR-Rendering</string>
          </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="fxaaCB">
          <property name="text">
           <string>Use FXAA</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -141,6 +151,9 @@
         <widget class="QCheckBox" name="bloomCB">
          <property name="text">
           <string>Use Bloom</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -167,7 +180,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>947</width>
+     <width>1280</width>
      <height>20</height>
     </rect>
    </property>

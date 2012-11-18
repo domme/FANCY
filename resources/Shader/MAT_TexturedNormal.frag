@@ -28,9 +28,11 @@ void main()
 	outputColor[1] = vec4( v3SpecularColor, fSpecExp );
 
 	//Normal
-	vec3 v3Nmap = fBumpIntensity * normalize( ( 2.0 * texture2D( normTex, tex ).xyz - 1.0 ) );
-	vec3 v3FinalNormal = normalize( normV + tanV * v3Nmap.x + bitanV * v3Nmap.y );
-	outputColor[2] = vec4( ( v3FinalNormal + 1.0 ) / 2.0, 1.0 );
+	vec3 v3Nmap = fBumpIntensity * normalize( ( texture2D( normTex, tex ).xyz * 2.0 - 1.0 ) );
+	
+	vec3 v3FinalNormal = normalize( normV * v3Nmap.z + tanV * v3Nmap.x + bitanV * v3Nmap.y );
+
+	outputColor[2] = vec4( ( v3FinalNormal + 1.0 ) / 2.0, 0.0 );
 	
 	float fDepth = abs( ( posV.z - fNear )  / ( fFar - fNear ) );
 	outputColor[3] = vec4( fDepth );

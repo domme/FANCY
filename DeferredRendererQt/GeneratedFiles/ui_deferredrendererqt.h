@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'deferredrendererqt.ui'
 **
-** Created: Sat 20. Oct 23:27:50 2012
+** Created: Sun 4. Nov 18:28:06 2012
 **      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -23,7 +23,7 @@
 #include <QtGui/QMenuBar>
 #include <QtGui/QPushButton>
 #include <QtGui/QStatusBar>
-#include <QtGui/QTextEdit>
+#include <QtGui/QTableView>
 #include <QtGui/QToolBar>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QWidget>
@@ -41,7 +41,7 @@ public:
     QWidget *SideControlsWidget;
     QVBoxLayout *verticalLayout_3;
     QLabel *RenderDurationLabel;
-    QTextEdit *durationsTextEdit;
+    QTableView *statsTableView;
     QFrame *leftHorLine;
     QCheckBox *hdrCB;
     QCheckBox *fxaaCB;
@@ -56,7 +56,14 @@ public:
     {
         if (DeferredRendererQtClass->objectName().isEmpty())
             DeferredRendererQtClass->setObjectName(QString::fromUtf8("DeferredRendererQtClass"));
-        DeferredRendererQtClass->resize(947, 599);
+        DeferredRendererQtClass->resize(1280, 720);
+        QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(DeferredRendererQtClass->sizePolicy().hasHeightForWidth());
+        DeferredRendererQtClass->setSizePolicy(sizePolicy);
+        DeferredRendererQtClass->setBaseSize(QSize(0, 0));
+        DeferredRendererQtClass->setDockOptions(QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks);
         centralWidget = new QWidget(DeferredRendererQtClass);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         horizontalLayout_3 = new QHBoxLayout(centralWidget);
@@ -65,11 +72,11 @@ public:
         horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
         engineQGLwidget = new EngineQGLwidget(centralWidget);
         engineQGLwidget->setObjectName(QString::fromUtf8("engineQGLwidget"));
-        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(engineQGLwidget->sizePolicy().hasHeightForWidth());
-        engineQGLwidget->setSizePolicy(sizePolicy);
+        QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(engineQGLwidget->sizePolicy().hasHeightForWidth());
+        engineQGLwidget->setSizePolicy(sizePolicy1);
         engineQGLwidget->setMinimumSize(QSize(320, 320));
         engineQGLwidget->setBaseSize(QSize(320, 320));
         engineQGLwidget->setAutoFillBackground(false);
@@ -78,11 +85,11 @@ public:
 
         line = new QFrame(centralWidget);
         line->setObjectName(QString::fromUtf8("line"));
-        QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Expanding);
-        sizePolicy1.setHorizontalStretch(0);
-        sizePolicy1.setVerticalStretch(0);
-        sizePolicy1.setHeightForWidth(line->sizePolicy().hasHeightForWidth());
-        line->setSizePolicy(sizePolicy1);
+        QSizePolicy sizePolicy2(QSizePolicy::Fixed, QSizePolicy::Expanding);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(line->sizePolicy().hasHeightForWidth());
+        line->setSizePolicy(sizePolicy2);
         line->setFocusPolicy(Qt::StrongFocus);
         line->setFrameShape(QFrame::VLine);
         line->setFrameShadow(QFrame::Sunken);
@@ -91,9 +98,6 @@ public:
 
         SideControlsWidget = new QWidget(centralWidget);
         SideControlsWidget->setObjectName(QString::fromUtf8("SideControlsWidget"));
-        QSizePolicy sizePolicy2(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        sizePolicy2.setHorizontalStretch(0);
-        sizePolicy2.setVerticalStretch(0);
         sizePolicy2.setHeightForWidth(SideControlsWidget->sizePolicy().hasHeightForWidth());
         SideControlsWidget->setSizePolicy(sizePolicy2);
         SideControlsWidget->setBaseSize(QSize(100, 100));
@@ -103,26 +107,27 @@ public:
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
         RenderDurationLabel = new QLabel(SideControlsWidget);
         RenderDurationLabel->setObjectName(QString::fromUtf8("RenderDurationLabel"));
+        QSizePolicy sizePolicy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        sizePolicy3.setHorizontalStretch(0);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(RenderDurationLabel->sizePolicy().hasHeightForWidth());
+        RenderDurationLabel->setSizePolicy(sizePolicy3);
 
         verticalLayout_3->addWidget(RenderDurationLabel);
 
-        durationsTextEdit = new QTextEdit(SideControlsWidget);
-        durationsTextEdit->setObjectName(QString::fromUtf8("durationsTextEdit"));
-        durationsTextEdit->setMaximumSize(QSize(16777215, 16777215));
-        durationsTextEdit->setSizeIncrement(QSize(1, 1));
-        durationsTextEdit->setUndoRedoEnabled(false);
-        durationsTextEdit->setLineWrapMode(QTextEdit::NoWrap);
-        durationsTextEdit->setReadOnly(true);
+        statsTableView = new QTableView(SideControlsWidget);
+        statsTableView->setObjectName(QString::fromUtf8("statsTableView"));
+        statsTableView->setSortingEnabled(true);
 
-        verticalLayout_3->addWidget(durationsTextEdit);
+        verticalLayout_3->addWidget(statsTableView);
 
         leftHorLine = new QFrame(SideControlsWidget);
         leftHorLine->setObjectName(QString::fromUtf8("leftHorLine"));
-        QSizePolicy sizePolicy3(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        sizePolicy3.setHorizontalStretch(0);
-        sizePolicy3.setVerticalStretch(0);
-        sizePolicy3.setHeightForWidth(leftHorLine->sizePolicy().hasHeightForWidth());
-        leftHorLine->setSizePolicy(sizePolicy3);
+        QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        sizePolicy4.setHorizontalStretch(0);
+        sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(leftHorLine->sizePolicy().hasHeightForWidth());
+        leftHorLine->setSizePolicy(sizePolicy4);
         leftHorLine->setFrameShape(QFrame::HLine);
         leftHorLine->setFrameShadow(QFrame::Sunken);
 
@@ -130,11 +135,13 @@ public:
 
         hdrCB = new QCheckBox(SideControlsWidget);
         hdrCB->setObjectName(QString::fromUtf8("hdrCB"));
+        hdrCB->setChecked(true);
 
         verticalLayout_3->addWidget(hdrCB);
 
         fxaaCB = new QCheckBox(SideControlsWidget);
         fxaaCB->setObjectName(QString::fromUtf8("fxaaCB"));
+        fxaaCB->setChecked(true);
 
         verticalLayout_3->addWidget(fxaaCB);
 
@@ -145,16 +152,17 @@ public:
 
         bloomCB = new QCheckBox(SideControlsWidget);
         bloomCB->setObjectName(QString::fromUtf8("bloomCB"));
+        bloomCB->setChecked(true);
 
         verticalLayout_3->addWidget(bloomCB);
 
         ExitButton = new QPushButton(SideControlsWidget);
         ExitButton->setObjectName(QString::fromUtf8("ExitButton"));
-        QSizePolicy sizePolicy4(QSizePolicy::Preferred, QSizePolicy::Fixed);
-        sizePolicy4.setHorizontalStretch(0);
-        sizePolicy4.setVerticalStretch(0);
-        sizePolicy4.setHeightForWidth(ExitButton->sizePolicy().hasHeightForWidth());
-        ExitButton->setSizePolicy(sizePolicy4);
+        QSizePolicy sizePolicy5(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        sizePolicy5.setHorizontalStretch(0);
+        sizePolicy5.setVerticalStretch(0);
+        sizePolicy5.setHeightForWidth(ExitButton->sizePolicy().hasHeightForWidth());
+        ExitButton->setSizePolicy(sizePolicy5);
 
         verticalLayout_3->addWidget(ExitButton);
 
@@ -164,7 +172,7 @@ public:
         DeferredRendererQtClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(DeferredRendererQtClass);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 947, 20));
+        menuBar->setGeometry(QRect(0, 0, 1280, 20));
         DeferredRendererQtClass->setMenuBar(menuBar);
         mainToolBar = new QToolBar(DeferredRendererQtClass);
         mainToolBar->setObjectName(QString::fromUtf8("mainToolBar"));

@@ -57,7 +57,7 @@ GLuint ShaderLoader::LoadShaderProgram( const String& szVertexShaderPath, const 
 		
 		if( pbSuccess )
 			*pbSuccess = false;
-		
+
 		return 0;
 	}
 

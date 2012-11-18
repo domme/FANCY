@@ -63,12 +63,12 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(FREEGLUT_HOME)\lib\x86\Debug\;$(GLEW_HOME)\lib;$(ASSIMP_HOME)\lib\x86\;$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(FREEGLUT_HOME)\lib\x86\Debug\;$(GLEW_HOME)\lib;$(ASSIMP_HOME)\lib\assimp_release-dll_win32\;$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glew32.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy $(OutDir)libGL.lib $(IntDir) /Y
-xcopy $(ASSIMP_HOME)\bin\x86\assimp32.dll $(OutDir) /Y</Command>
+xcopy $(ASSIMP_HOME)\bin\assimp_release-dll_win32\assimp32.dll $(OutDir) /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

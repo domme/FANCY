@@ -28,8 +28,6 @@ public:
 private:
 	ModelLoader();
 	
-	
-	
 
 	Assimp::Importer		m_aiImporter;
 	ModelLoader_LogStream	m_clLogStream;

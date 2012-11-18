@@ -21,7 +21,7 @@ private:
 	FullscreenQuad();
 	void init();
 
-	std::unique_ptr<Mesh>	m_pMesh;
+	Mesh*					m_pMesh;
 	MAT_FSquad_Textured*	m_pMaterial;
 	Engine*					m_pEngine;
 };

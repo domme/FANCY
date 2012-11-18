@@ -5,10 +5,12 @@
 #include <QGLWidget>
 #include <QTime>
 #include <QTimer>
-#include <QTextEdit>
+#include <QTableView>
 
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QStandardItemModel>
+#include <QStandardItem>
 
 class EngineQGLwidget : public QGLWidget
 {
@@ -31,6 +33,8 @@ public slots:
 protected:
 	void setupEngineScene();
 	void drawStats();
+	void processInputs();
+	void update();
 
 	virtual void initializeGL();
 	virtual void resizeGL( int x, int y );
@@ -40,11 +44,12 @@ protected:
 	virtual void mouseReleaseEvent( QMouseEvent* event );
 	virtual void keyPressEvent ( QKeyEvent* event );
 	virtual void keyReleaseEvent ( QKeyEvent* event );
-
+	void setupSibenikScene();
 private:
 	QTime m_clRenderTime;
 	QTimer m_clFPStimer;
-	QTextEdit* m_pTextEditFrameDurations;
+	QTableView* m_pTableFrameDurations;
+	QStandardItemModel* m_pStatsItemModel;
 
 	uint m_uCurrentDelay;
 	int m_iLastMouseX;

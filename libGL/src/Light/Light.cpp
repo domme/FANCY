@@ -7,37 +7,57 @@
 
 Light::Light() :
 m_v3Color( 1.0f, 1.0f, 1.0f ),
-m_fIntensity( 1.0f )
+m_fIntensity( 1.0f ),
+m_bCastShadows( true ),
+m_bEnabled( true ),
+m_v3Position( 0.0f, 0.0f, 0.0f ),
+m_iv2ShadowmapResolution( 1024, 1024 ),
+m_bShadowmapInitialized( false ),
+m_uNumShadowmapPasses( 0 ),
+m_bDirty( true )
 {
-	Init();
+	
 }
 
 Light::~Light()
 {
 }
 
-void Light::update()
+void Light::Update()
 {
 	//dummy in base class
 }
 
-void Light::prepareRender()
-{
-	//dummy in Base class
-}
 
 void Light::Init()
 {
 	
 }
 
-void Light::renderShadowMap()
+void Light::PrepareShadowmapPass( uint uPassIndex )
 {
-	//Dummy - will be implemented in the Lights which cast shadows
+	//DUMMY in base class
 }
 
-
-void Light::render()
+void Light::initShadowmap()
 {
-	
+	//DUMMY in base class
+}
+
+void Light::destroyShadowmap()
+{
+	//DUMMY in base class
+}
+
+void Light::SetShadowmapResolution( const glm::ivec2& v2Res )
+{
+	 m_iv2ShadowmapResolution = v2Res; 
+	 
+	 //Re-initialize shadowmap
+	 initShadowmap();
+}
+
+void Light::PostprocessShadowmap()
+{
+	//DUMMY in base class
 }

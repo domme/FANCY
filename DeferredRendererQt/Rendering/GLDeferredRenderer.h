@@ -69,13 +69,15 @@ class GLDeferredRenderer
 
 		void updateTextures();
 		void updatePostproMaterials();
-		void renderEntity( const Entity* pEntity, const SceneManager* pScene, const Camera* pCamera );
-		void renderDirLight( DirectionalLight* pLight, const SceneManager* pScene, const Camera* pCamera );
-		void renderPointLight( PointLight* pLight, const SceneManager* pScene, const Camera* pCamera );
+		void renderEntities( SceneManager* pScene, Camera* pCamera );
+		void renderEntity( Entity* pEntity, const SceneManager* pScene, const Camera* pCamera );
+		void renderDirLight( DirectionalLight* pLight, SceneManager* pScene, Camera* pCamera );
+		void renderPointLight( PointLight* pLight, SceneManager* pScene, Camera* pCamera );
 		
 
 
 		void deleteResoultionDependentResources();
+
 
 
 		//Tone-mapping stuff
@@ -223,7 +225,7 @@ class GLDeferredRenderer
 		MAT_FSquad_FinalComposite*		m_pMAT_FinalComposite;
 		
 		//Helper-Meshes
-		std::unique_ptr<Mesh> m_pPointlightMesh;
+		Mesh*							m_pPointlightMesh;
 
 };
 

@@ -14,8 +14,8 @@ class DLLEXPORT DirectionalLight : public Light
 		DirectionalLight();
 		virtual ~DirectionalLight();
 
-		virtual void renderShadowMap();
-		virtual void update();
+		virtual void RenderShadowMap();
+		virtual void Update();
 
 		const glm::vec3& getDirection() const				{ return m_v3Direction; }
 		void setDirection( const glm::vec3& v3Direction )	{ m_v3Direction = v3Direction; }

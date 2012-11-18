@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B41CEFE816559A4400FF874E /* StatsManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B41CEFE616559A4400FF874E /* StatsManager.cpp */; };
+		B41CEFE916559A4400FF874E /* StatsManager.h in Headers */ = {isa = PBXBuildFile; fileRef = B41CEFE716559A4400FF874E /* StatsManager.h */; };
 		B42813621620C35200DB4C56 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B42813611620C35200DB4C56 /* OpenGL.framework */; };
 		B42813641620C35A00DB4C56 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B42813631620C35A00DB4C56 /* GLUT.framework */; };
 		B453F0AB1622061F00FBF4C5 /* libassimpd.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B453F0AA1622061F00FBF4C5 /* libassimpd.dylib */; };
 		B4BDD982161E1DD300CA868B /* PerformanceCheck.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B4BDD92B161E1B9A00CA868B /* PerformanceCheck.cpp */; };
 		B4BDD983161E1DD300CA868B /* PerformanceCheck.h in Sources */ = {isa = PBXBuildFile; fileRef = B4BDD92C161E1B9A00CA868B /* PerformanceCheck.h */; };
-		B4BDD984161E1DD300CA868B /* StatsGui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B4BDD92D161E1B9A00CA868B /* StatsGui.cpp */; };
-		B4BDD985161E1DD300CA868B /* StatsGui.h in Sources */ = {isa = PBXBuildFile; fileRef = B4BDD92E161E1B9A00CA868B /* StatsGui.h */; };
 		B4BDD986161E1DD300CA868B /* Events.h in Sources */ = {isa = PBXBuildFile; fileRef = B4BDD930161E1B9A00CA868B /* Events.h */; };
 		B4BDD987161E1DD300CA868B /* BaseGeometryObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B4BDD932161E1B9A00CA868B /* BaseGeometryObject.cpp */; };
 		B4BDD988161E1DD300CA868B /* BaseGeometryObject.h in Sources */ = {isa = PBXBuildFile; fileRef = B4BDD933161E1B9A00CA868B /* BaseGeometryObject.h */; };
@@ -86,14 +86,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B41CEFE616559A4400FF874E /* StatsManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StatsManager.cpp; sourceTree = "<group>"; };
+		B41CEFE716559A4400FF874E /* StatsManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatsManager.h; sourceTree = "<group>"; };
 		B42813611620C35200DB4C56 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		B42813631620C35A00DB4C56 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		B453F0AA1622061F00FBF4C5 /* libassimpd.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libassimpd.dylib; path = "../../../../../../Documents/Development/Libraries/assimp--3.0.1270-sdk/bin/assimp_Debug_MacOSX/libassimpd.dylib"; sourceTree = "<group>"; };
 		B4BDD91E161E195200CA868B /* liblibGL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = liblibGL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		B4BDD92B161E1B9A00CA868B /* PerformanceCheck.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PerformanceCheck.cpp; sourceTree = "<group>"; };
 		B4BDD92C161E1B9A00CA868B /* PerformanceCheck.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PerformanceCheck.h; sourceTree = "<group>"; };
-		B4BDD92D161E1B9A00CA868B /* StatsGui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = StatsGui.cpp; sourceTree = "<group>"; };
-		B4BDD92E161E1B9A00CA868B /* StatsGui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatsGui.h; sourceTree = "<group>"; };
 		B4BDD930161E1B9A00CA868B /* Events.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Events.h; sourceTree = "<group>"; };
 		B4BDD932161E1B9A00CA868B /* BaseGeometryObject.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BaseGeometryObject.cpp; sourceTree = "<group>"; };
 		B4BDD933161E1B9A00CA868B /* BaseGeometryObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BaseGeometryObject.h; sourceTree = "<group>"; };
@@ -201,10 +201,10 @@
 		B4BDD92F161E1B9A00CA868B /* Debug */ = {
 			isa = PBXGroup;
 			children = (
+				B41CEFE616559A4400FF874E /* StatsManager.cpp */,
+				B41CEFE716559A4400FF874E /* StatsManager.h */,
 				B4BDD92B161E1B9A00CA868B /* PerformanceCheck.cpp */,
 				B4BDD92C161E1B9A00CA868B /* PerformanceCheck.h */,
-				B4BDD92D161E1B9A00CA868B /* StatsGui.cpp */,
-				B4BDD92E161E1B9A00CA868B /* StatsGui.h */,
 			);
 			path = Debug;
 			sourceTree = "<group>";
@@ -374,6 +374,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B41CEFE916559A4400FF874E /* StatsManager.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -430,8 +431,6 @@
 			files = (
 				B4BDD982161E1DD300CA868B /* PerformanceCheck.cpp in Sources */,
 				B4BDD983161E1DD300CA868B /* PerformanceCheck.h in Sources */,
-				B4BDD984161E1DD300CA868B /* StatsGui.cpp in Sources */,
-				B4BDD985161E1DD300CA868B /* StatsGui.h in Sources */,
 				B4BDD986161E1DD300CA868B /* Events.h in Sources */,
 				B4BDD987161E1DD300CA868B /* BaseGeometryObject.cpp in Sources */,
 				B4BDD988161E1DD300CA868B /* BaseGeometryObject.h in Sources */,
@@ -501,6 +500,7 @@
 				B4BDD9CA161E1DD400CA868B /* GLDebug.h in Sources */,
 				B4BDD9CB161E1DD400CA868B /* NameRegistry.cpp in Sources */,
 				B4BDD9CC161E1DD400CA868B /* NameRegistry.h in Sources */,
+				B41CEFE816559A4400FF874E /* StatsManager.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

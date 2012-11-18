@@ -20,18 +20,20 @@ StatsManager& StatsManager::GetInstance()
 
 void StatsManager::AddGuiLineValue( const String& szMessage, float fValue )
 {
-	std::stringstream ss;
-	ss.precision( 5 );
-	ss << szMessage << fValue;
-	m_vGuiLines.push_back( ss.str() );
+	SStatsEntry entry;
+	entry.m_szMessage = szMessage;
+	entry.m_f64Value = fValue;
+
+	m_vStats.push_back( entry );
 }
 
 void StatsManager::AddGuiLineValue( const String& szMessage, double fValue )
 {
-	std::stringstream ss;
-	ss.precision( 5 );
-	ss << szMessage << " " << fValue;
-	m_vGuiLines.push_back( ss.str() );
+	SStatsEntry entry;
+	entry.m_szMessage = szMessage;
+	entry.m_f64Value = fValue;
+
+	m_vStats.push_back( entry );
 }
 
 void StatsManager::RenderGuiLinesGLUT()
@@ -48,11 +50,14 @@ void StatsManager::RenderGuiLinesGLUT()
 	gluOrtho2D( 0, m_v2ViewportSize.x, 0, m_v2ViewportSize.y );
 	glColor4f( 1.0f, 0.0f, 0.0f, 1.0f );
 
-	for( int i = 0; i < m_vGuiLines.size(); ++i )
+	for( int i = 0; i < m_vStats.size(); ++i )
 	{
+		std::stringstream ss;
+		ss << m_vStats[ i ].m_szMessage << " " << m_vStats[ i ].m_f64Value;
+
 		glRasterPos2i( m_v2ScreenPosition.x, m_v2ScreenPosition.y - 15 * i );
 #ifdef __WINDOWS
-        glutBitmapString( GLUT_BITMAP_HELVETICA_12, (const unsigned char*) m_vGuiLines[ i ].c_str() );
+        glutBitmapString( GLUT_BITMAP_HELVETICA_12, (const unsigned char*) ss.str().c_str() );
 #endif
 	}
 }

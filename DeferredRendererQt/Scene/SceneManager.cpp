@@ -72,7 +72,7 @@ void SceneManager::preprocessLight( Light* pLight, SceneNode* pNode )
 		return;
 	}
 	
-	Light::ELightTpye eLightType = pLight->getLightType();
+	Light::ELightTpye eLightType = pLight->GetLightType();
 
 	switch( eLightType )
 	{
@@ -93,41 +93,31 @@ void SceneManager::preprocessLight( Light* pLight, SceneNode* pNode )
 	}
 
 	//Handle all update tasks of the light if it has any...
-	pLight->update();
+	pLight->Update();
 }
 
 void SceneManager::preprocessPointLight( PointLight* pPointLight, SceneNode* pNode )
 {
-	glm::vec4 v4Position ( 0.0f, 0.0f, 0.0f, 1.0f );
-	v4Position = pNode->getGlobalTransformMAT() * v4Position;
-
-	pPointLight->SetPosition( glm::vec3( v4Position.x, v4Position.y, v4Position.z ) );
+	const glm::mat4& rLightMat = pNode->getGlobalTransformMAT();
+	pPointLight->SetPosition( glm::vec3( rLightMat[ 3 ][ 0 ], rLightMat[ 3 ][ 1 ], rLightMat[ 3 ][ 2 ] ) );
 
 	m_vCachedPointLights.push_back( pPointLight );
-
-	pPointLight->renderShadowMap();
 }
 
 void SceneManager::preprocessSpotLight( SpotLight* pSpotLight, SceneNode* pNode )
 {
+	const glm::mat4 rLightMat = pNode->getGlobalTransformMAT();
+	pSpotLight->setDirection( glm::normalize( glm::vec3( rLightMat[ 2 ][ 0 ], rLightMat[ 2 ][ 1 ], rLightMat[ 2 ][ 2 ] ) ) );
+
 	m_vChachedSpotLights.push_back( pSpotLight );
-
-	glm::vec4 v4LocalZ = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
-	glm::vec4 v4Direction = pNode->getGlobalTransformMAT() * v4LocalZ;
-	pSpotLight->setDirection(  glm::normalize( glm::vec3( v4Direction.x, v4Direction.y, v4Direction.z ) ) );
-
-	pSpotLight->renderShadowMap();
 }
 
 void SceneManager::preprocessDirectionalLight( DirectionalLight* pDirLight, SceneNode* pNode )
 {
 	m_vCachedDirectionalLights.push_back( pDirLight );
 
-	glm::vec4 v4LocalZ = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
-	glm::vec4 v4Direction = pNode->getGlobalTransformMAT() * v4LocalZ; 
-	pDirLight->setDirection( glm::normalize( glm::vec3( v4Direction.x, v4Direction.y, v4Direction.z ) ) );
-
-	pDirLight->renderShadowMap();
+	const glm::mat4 rLightMat = pNode->getGlobalTransformMAT(); 
+	pDirLight->setDirection( glm::normalize( glm::vec3( rLightMat[ 2 ][ 0 ], rLightMat[ 2 ][ 1 ], rLightMat[ 2 ][ 2 ] ) ) );
 }
 
 void SceneManager::AddLightToRenderCache( Light* pLight, SceneNode* pNode )
@@ -149,7 +139,7 @@ SceneNode* SceneManager::LoadAssetIntoScene( const String& szPath )
 	return pNode;
 } 
 
-Entity* SceneManager::CreateEntity( std::unique_ptr<Mesh> pMesh )
+Entity* SceneManager::CreateEntity( Mesh* pMesh )
 {
 	if( !pMesh )
 	{
@@ -195,10 +185,12 @@ PointLight*	SceneManager::createPointLight( const String& szName, const glm::vec
 		
 
 	PointLight* pNewLight = new PointLight();
-	pNewLight->setColor( v3LightColor );
-	pNewLight->setIntensity( fIntenisty );
+	pNewLight->SetColor( v3LightColor );
+	pNewLight->SetIntensity( fIntenisty );
 	pNewLight->setFalloffStart( fFalloffDistanceStart );
 	pNewLight->setFalloffEnd( fFalloffDistanceEnd );
+	pNewLight->Init();
+
 	m_pLightRegistry->registerObject( szName, pNewLight );
 
 	return pNewLight;
@@ -213,8 +205,10 @@ DirectionalLight* SceneManager::createDirectionalLight( const String& szName, co
 
 	
 	DirectionalLight* pNewLight = new DirectionalLight();
-	pNewLight->setColor( v3LightColor );
-	pNewLight->setIntensity( fIntensity );
+	pNewLight->SetColor( v3LightColor );
+	pNewLight->SetIntensity( fIntensity );
+
+	pNewLight->Init();
 	m_pLightRegistry->registerObject( szName, pNewLight );
 
 	return pNewLight;
@@ -228,11 +222,14 @@ SpotLight* SceneManager::createSpotLight( const String& szName, const glm::vec3&
 	}
 
 	SpotLight* pSpotLight = new SpotLight();
-	pSpotLight->setColor( v3LightColor );
-	pSpotLight->setIntensity( fIntensity );
+	
+	pSpotLight->SetColor( v3LightColor );
+	pSpotLight->SetIntensity( fIntensity );
 	pSpotLight->setPenumbraAngleDeg( fPenumbraAngleDeg );
 	pSpotLight->setUmbraAngleDeg( fUmbraAngleDeg );
 	pSpotLight->setExponent( fExponent );
+
+	pSpotLight->Init();
 	m_pLightRegistry->registerObject( szName, pSpotLight );
 
 	return pSpotLight;

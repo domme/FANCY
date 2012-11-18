@@ -18,9 +18,9 @@ Entity::~Entity()
 	
 }
 
-bool Entity::SetMesh( std::unique_ptr<Mesh> pMesh )
+bool Entity::SetMesh( Mesh* pMesh )
 {
-	m_pMesh = std::move( pMesh );
+	m_pMesh = pMesh;
 	
 	return true;
 }

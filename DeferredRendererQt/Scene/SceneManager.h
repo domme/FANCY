@@ -37,7 +37,7 @@ class  SceneManager
 		SceneManager();
 		virtual ~SceneManager();
 
-		Entity*									CreateEntity( std::unique_ptr<Mesh> pMesh );
+		Entity*									CreateEntity( Mesh* pMesh );
 		//Entity*									CreateEntity( const String& szName, const String& szModelFileNameRelative );
 		PointLight*								createPointLight( const String& szName, const glm::vec3& v3LightColor = glm::vec3( 1.0f, 1.0f, 1.0f ) , float fIntenisty = 1.0f, float fFalloffDistanceStart = 10.0f, float fFalloffDistanceEnd = 80.0f );
 		DirectionalLight*						createDirectionalLight( const String& szName, const glm::vec3& v3LightColor = glm::vec3( 1.0f, 1.0f, 1.0f ), float fIntensity = 1.0f );

@@ -123,7 +123,7 @@ void GLDeferredRenderer::Init( uint uWidth, uint uHeight, GLRenderer* glRenderer
 	m_pMAT_Pointlight->Init();
 	
 	Mesh* pPointlightMesh = ModelLoader::GetInstance().LoadSingleMeshGeometry( "Models/Helper/PointlightBounds.obj" );
-	m_pPointlightMesh = std::unique_ptr<Mesh>( std::move( pPointlightMesh ) );
+	m_pPointlightMesh = pPointlightMesh;
 
 	MAT_Pointlight_Illumination* pMat = new MAT_Pointlight_Illumination();
 	pMat->Init();
@@ -262,7 +262,7 @@ void GLDeferredRenderer::updateTextures()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F, m_uScreenWidth, m_uScreenHeight, 0, GL_RGB, GL_FLOAT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, m_uScreenWidth, m_uScreenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_uGBuffer[ GBuffer::Normal ], 0 );
 
 	glBindTexture( GL_TEXTURE_2D, m_uGBuffer[ GBuffer::Depth ] );
@@ -478,9 +478,9 @@ float haltonNumber( int base, int index )
 
 
 
-void GLDeferredRenderer::renderEntity( const Entity* pEntity, const SceneManager* pScene, const Camera *pCamera )
+void GLDeferredRenderer::renderEntity( Entity* pEntity, const SceneManager* pScene, const Camera *pCamera )
 {
-	const std::unique_ptr<Mesh>& pMesh = pEntity->GetMesh();
+	Mesh* pMesh = pEntity->GetMesh();
 
 	if( !pMesh )
 		return;
@@ -492,35 +492,57 @@ void GLDeferredRenderer::renderEntity( const Entity* pEntity, const SceneManager
 
 	const glm::mat4& matModel = pEntity->getNode()->getLocalTransform().getAsMat4();
 		
-	m_pGLrenderer->RenderMesh( pMesh._Myptr, matModel, pScene->getRootNode()->getGlobalTransformMAT(), pCamera, pMesh->GetMaterial(), pShader );
+	m_pGLrenderer->RenderMesh( pMesh, matModel, pScene->getRootNode()->getGlobalTransformMAT(), pCamera, pMesh->GetMaterial(), pShader );
+}
+
+
+void GLDeferredRenderer::renderEntities( SceneManager* pScene, Camera* pCamera )
+{
+	const std::vector<Entity*>& vRenderObjects = pScene->GetRenderObjects();
+
+	for( uint i = 0; i < vRenderObjects.size(); ++i )
+	{
+		renderEntity( vRenderObjects[ i ], pScene, pCamera );
+	}
 }
 
 
 
-void GLDeferredRenderer::renderDirLight( DirectionalLight* pLight, const SceneManager* pScene, const Camera* pCamera )
+
+void GLDeferredRenderer::renderDirLight( DirectionalLight* pLight, SceneManager* pScene, Camera* pCamera )
 {
 	m_pFSquad->RenderWithMaterial( m_pMAT_Dirlight );
 }
 
-void GLDeferredRenderer::renderPointLight( PointLight* pLight, const SceneManager* pScene, const Camera* pCamera )
+void GLDeferredRenderer::renderPointLight( PointLight* pLight, SceneManager* pScene, Camera* pCamera )
 {
-	glm::mat4 matIdentity ( 1.0f, 0.0f, 0.0f, 0.0f,
-							0.0f, 1.0f, 0.0f, 0.0f,
-							0.0f, 0.0f, 1.0f, 0.0f,
-							0.0f, 0.0f, 0.0f, 1.0f );
+	//Render all shadow-map passes to construct shadow-cubemap
+	//////////////////////////////////////////////////////////////////////////
+	if( pLight->GetDirty() )
+	{
+		PerformanceCheck clPerfCheck;
+		clPerfCheck.StartPerformanceCheck( "Render Pointlight Shadowmap" );
 
+		uint uNumShadowPasses = pLight->GetNumShadowmapPasses();
 	
-	const glm::vec3& v3LightPos = pLight->GetPosition();
-	const glm::vec3& v3CamPos = pCamera->getPosition();
+		m_pGLrenderer->setColorMask( false, false, false, false ); //Deactivate color-channel writes
 
-	float fCamLightDistance = glm::length( v3LightPos - v3CamPos ); 
+		m_pGLrenderer->saveViewport();
+		m_pGLrenderer->setViewport( 0, 0, pLight->GetShadowmapResolution().x, pLight->GetShadowmapResolution().y );
 
-	glm::mat4 matLightWorld = matIdentity;
-	matLightWorld[ 3 ][ 0 ] = v3LightPos.x;
-	matLightWorld[ 3 ][ 1 ] = v3LightPos.y;
-	matLightWorld[ 3 ][ 2 ] = v3LightPos.z;
+		for( uint i = 0; i < uNumShadowPasses; ++i )
+		{
+			pLight->PrepareShadowmapPass( i ); //Apply the correct camera-transformations, bind the FBO and clear the cube-side contents
+			renderEntities( pScene, pCamera );
+		}
 	
-	
+		m_pGLrenderer->restoreViewport();
+		clPerfCheck.FinishAndLogPerformanceCheck();
+		pLight->SetDirty( false );
+
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+	}
+
 	//Mark all pixels occupied by the backside AND Occluded by geometry
 	// Stencil 1 -> 2
 	m_pGLrenderer->setCulling(true);
@@ -532,7 +554,7 @@ void GLDeferredRenderer::renderPointLight( PointLight* pLight, const SceneManage
 	m_pGLrenderer->setStencilFunc( GL_EQUAL, 1, m_pGLrenderer->getStencilMask() );
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_INCR, GL_KEEP );
 
-	m_pGLrenderer->RenderMesh( m_pPointlightMesh._Myptr, matLightWorld, *m_pEngine->GetWorldMat(), pCamera, m_pPointlightMesh->GetMaterial() );
+	m_pGLrenderer->RenderMesh( m_pPointlightMesh, glm::mat4( 1.0f ) , *m_pEngine->GetWorldMat(), pCamera, m_pPointlightMesh->GetMaterial() );
 
 	//De-Mark pixels in front of the front side of the bounding region
 	// Stencil 2 -> 1
@@ -541,12 +563,13 @@ void GLDeferredRenderer::renderPointLight( PointLight* pLight, const SceneManage
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_DECR, GL_KEEP );
 
 	
-	m_pGLrenderer->RenderMesh( m_pPointlightMesh._Myptr, matLightWorld, *m_pEngine->GetWorldMat(), pCamera, m_pPointlightMesh->GetMaterial() );
+	m_pGLrenderer->RenderMesh( m_pPointlightMesh, glm::mat4( 1.0f ), *m_pEngine->GetWorldMat(), pCamera, m_pPointlightMesh->GetMaterial() );
 
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
-	m_pGLrenderer->setDepthTest( false );
 	m_pGLrenderer->setColorMask( true, true, true, true );
+	m_pGLrenderer->setDepthTest( false );
 
+	m_pMAT_Pointlight->SetShadowCubeTex( pLight->GetShdowCubeMap() );
 	m_pFSquad->RenderWithMaterial( m_pMAT_Pointlight );
 }
 
@@ -579,17 +602,12 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 
 	glDrawBuffers( GBuffer::num, eDrawBuffers );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
-		
-	const std::vector<Entity*>& vRenderObjects = pSceneManager->GetRenderObjects();
-
+	
 	PerformanceCheck clPerfCheck;
 	clPerfCheck.StartPerformanceCheck( "Render Entities" );
-	for( uint i = 0; i < vRenderObjects.size(); ++i )
-	{
-		renderEntity( vRenderObjects[ i ], pSceneManager, pCamera );
-	}
+	renderEntities( pSceneManager, pCamera );
 	clPerfCheck.FinishAndLogPerformanceCheck();
-
+		
 	//////////////////////////////////////////////////////////////////////////
 	// Lights Passes
 	//////////////////////////////////////////////////////////////////////////
@@ -626,7 +644,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 		renderDirLight( vDirLights[ i ], pSceneManager, pCamera );	
 	}
 	clPerfCheck.FinishAndLogPerformanceCheck();
-	
+
 	clPerfCheck.StartPerformanceCheck( "Render Point lights" );
 	for( uint i = 0; i < vPointLights.size(); ++i )
 	{
@@ -654,7 +672,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
 	
 
-	CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_FinalComposite ), "Render final picture before Postpros" );
+	CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_FinalComposite ), "Final before Postpro" );
 
 	GLuint uSceneTexture = 0;
 	GLuint uSceneFBO = 0;
@@ -764,6 +782,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 
 	//*/
 	//Render every debug-Operation
+
 	if( m_pGLrenderer->GetDebugTexturesVisible() && m_pEngine->GetDebugTexturePasses().size() )
 	{
 		m_pGLrenderer->saveViewport();
