@@ -24,7 +24,7 @@ static SceneNode*		pDirlightNode;
 static int iScreenWidth						= 600;
 static int iScreenHeight					= 800;
 static const float PI						= 3.1415926535897932f;
-static const glm::vec4 c_v4AmbientColor		( 0.1f, 0.1f, 0.1f, 1.0f );
+static const glm::vec4 c_v4AmbientColor		( 0.0f, 0.0f, 0.0f, 1.0f );
 static const glm::vec4 c_v4ClearColor		( 0.0f, 0.0f, 0.0f, 0.0f );
 static const bool bUseFrameCap				= false;
 static const unsigned int uFrameMScap		= 16;
@@ -102,7 +102,7 @@ void EngineQGLwidget::setupSibenikScene()
 	pDirlightNode = pSceneManager->getRootNode()->createChildSceneNode( "DirlightNode" );
 	pDirlightNode->setRotation( PI/4.0f, glm::vec3( 1.0f, 0.0f, 0.0f ) );
 	DirectionalLight* pDirLight = pSceneManager->createDirectionalLight( "DirLight1", glm::vec3( 1.0f, 1.0f, 1.0f ), 0.5f );
-	pDirlightNode->AttatchLight( pDirLight );
+//	pDirlightNode->AttatchLight( pDirLight );
 
 	//Pointlight 1
 	SceneNode* pPointLightNode1 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode" );
@@ -110,6 +110,7 @@ void EngineQGLwidget::setupSibenikScene()
 	PointLight* pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 2.5f, 1.0f, 5.0f );
 	pPointLightNode1->AttatchLight( pPointLight );
 
+	/*
 	//Pointlight 2
 	SceneNode* pPointLightNode2 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode2" );
 	pPointLightNode2->setTranslation( glm::vec3( -17.25f, -13.7f, 6.6f ) );
@@ -127,6 +128,7 @@ void EngineQGLwidget::setupSibenikScene()
 	pPointLightNode4->setTranslation( glm::vec3( 17.7f, -8.3f, -0.05f ) );
 	PointLight* pPointLight4 = pSceneManager->createPointLight( "Pointlight4", glm::vec3( 1.0f, 1.0f, 1.0f ), 1.2f, 3.0f, 7.0f );
 	pPointLightNode4->AttatchLight( pPointLight4 );
+	*/
 }
 
 
@@ -137,7 +139,7 @@ void EngineQGLwidget::setupEngineScene()
 
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_COLOR_GLOSS );
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );
-	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_DEPTH );
+	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_DEPTH );
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_SPECULAR);
 	pEngine->AddDebugTexturePass( TextureSemantics::LIGHTING );
 	pEngine->AddDebugTexturePass( TextureSemantics::LUMINANCE );

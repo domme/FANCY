@@ -84,6 +84,8 @@ void GLRenderer::init( uint uWidth, uint uHeight )
 	setDepthFunc( GL_LESS );
 	setDepthTest( true );
 
+	glEnable( GL_TEXTURE_CUBE_MAP );
+
 	
 	SetResolution( uWidth, uHeight );
 }

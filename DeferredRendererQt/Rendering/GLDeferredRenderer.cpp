@@ -240,7 +240,7 @@ void GLDeferredRenderer::updateTextures()
 	
 
 	glBindFramebuffer( GL_FRAMEBUFFER, m_uDeferredFBO );
-	
+
 	glBindTexture( GL_TEXTURE_2D, m_uGBuffer[ GBuffer::ColorGloss ] );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
@@ -509,23 +509,18 @@ void GLDeferredRenderer::renderEntities( SceneManager* pScene, Camera* pCamera )
 
 
 
-void GLDeferredRenderer::renderDirLight( DirectionalLight* pLight, SceneManager* pScene, Camera* pCamera )
-{
-	m_pFSquad->RenderWithMaterial( m_pMAT_Dirlight );
-}
-
-void GLDeferredRenderer::renderPointLight( PointLight* pLight, SceneManager* pScene, Camera* pCamera )
+void GLDeferredRenderer::renderShadowMap( PointLight* pLight, SceneManager* pScene, Camera* pCamera )
 {
 	//Render all shadow-map passes to construct shadow-cubemap
 	//////////////////////////////////////////////////////////////////////////
-	if( pLight->GetDirty() )
+	//if( pLight->GetDirty() )
 	{
 		PerformanceCheck clPerfCheck;
 		clPerfCheck.StartPerformanceCheck( "Render Pointlight Shadowmap" );
 
 		uint uNumShadowPasses = pLight->GetNumShadowmapPasses();
-	
-		m_pGLrenderer->setColorMask( false, false, false, false ); //Deactivate color-channel writes
+
+		//m_pGLrenderer->setColorMask( false, false, false, false ); //Deactivate color-channel writes
 
 		m_pGLrenderer->saveViewport();
 		m_pGLrenderer->setViewport( 0, 0, pLight->GetShadowmapResolution().x, pLight->GetShadowmapResolution().y );
@@ -533,16 +528,29 @@ void GLDeferredRenderer::renderPointLight( PointLight* pLight, SceneManager* pSc
 		for( uint i = 0; i < uNumShadowPasses; ++i )
 		{
 			pLight->PrepareShadowmapPass( i ); //Apply the correct camera-transformations, bind the FBO and clear the cube-side contents
-			renderEntities( pScene, pCamera );
+			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+			renderEntities( pScene, pLight->GetCamera() );
 		}
-	
+
 		m_pGLrenderer->restoreViewport();
 		clPerfCheck.FinishAndLogPerformanceCheck();
 		pLight->SetDirty( false );
-
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	}
+}
 
+void GLDeferredRenderer::renderShadowMap( DirectionalLight* pLight, SceneManager* pScene, Camera* pCamera )
+{
+
+}
+
+
+void GLDeferredRenderer::renderDirLight( DirectionalLight* pLight, SceneManager* pScene, Camera* pCamera )
+{
+	m_pFSquad->RenderWithMaterial( m_pMAT_Dirlight );
+}
+
+void GLDeferredRenderer::renderPointLight( PointLight* pLight, SceneManager* pScene, Camera* pCamera )
+{
 	//Mark all pixels occupied by the backside AND Occluded by geometry
 	// Stencil 1 -> 2
 	m_pGLrenderer->setCulling(true);
@@ -615,6 +623,20 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	const std::vector<PointLight*>& vPointLights = pSceneManager->getCachedPointLights();
 	const std::vector<SpotLight*>& vSpotLights = pSceneManager->getCachedSpotLights();
 
+	//Render shadowmaps of all dirty lights:
+	clPerfCheck.StartPerformanceCheck( "Render Pointlight Shadows" );
+	for( uint i = 0; i < vPointLights.size(); ++i )
+	{
+		m_pGLrenderer->setCurrLightIndex( vDirLights.size() + i );
+		m_pGLrenderer->prepareLightRendering( pCamera, vPointLights[ i ] );
+		renderShadowMap( vPointLights[ i ], pSceneManager, pCamera );
+	}
+
+	clPerfCheck.FinishAndLogPerformanceCheck();
+
+	//Re-enable color-channel writes after shadowmap-rendering
+	m_pGLrenderer->setColorMask( true, true, true, true );
+	
 	glBindFramebuffer( GL_FRAMEBUFFER, m_uLightingFBO_06 ); 
 	static GLenum eDrawBuffer[] = { GL_COLOR_ATTACHMENT0 };
 	glDrawBuffers( 1, eDrawBuffers );
@@ -806,3 +828,4 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 		m_pGLrenderer->restoreViewport();
 	}
 }
+

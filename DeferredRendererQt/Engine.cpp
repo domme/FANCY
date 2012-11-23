@@ -76,6 +76,7 @@ void Engine::Init( uint uScreenWidth, uint uScreenHeight, const glm::vec4& v4Amb
 	glClearColor( v4ClearColor.r, v4ClearColor.g, v4ClearColor.b, v4ClearColor.a );
 	glClearDepth( fClearDepth );
 
+
 	setRenderMode( RENDER_DEFERRED );
 	
 	PathService::SetResourceLocation( "..\\..\\Resources\\" );

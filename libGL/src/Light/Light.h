@@ -41,7 +41,9 @@ public:
 		float							GetIntensity() const { return m_fIntensity; }
 
 		
+		Camera*							GetCamera() { return &m_clLightViewCamera; }
 		const Camera*					GetCamera() const { return &m_clLightViewCamera; }
+
 
 		const glm::vec3&				GetPosition() const { return m_v3Position; }
 		void							SetPosition( const glm::vec3& rPos ) { m_v3Position = rPos; }

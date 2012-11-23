@@ -73,7 +73,8 @@ class GLDeferredRenderer
 		void renderEntity( Entity* pEntity, const SceneManager* pScene, const Camera* pCamera );
 		void renderDirLight( DirectionalLight* pLight, SceneManager* pScene, Camera* pCamera );
 		void renderPointLight( PointLight* pLight, SceneManager* pScene, Camera* pCamera );
-		
+		void renderShadowMap( PointLight* pLight, SceneManager* pScene, Camera* pCamera ); 
+		void renderShadowMap( DirectionalLight* pLight, SceneManager* pScene, Camera* pCamera );
 
 
 		void deleteResoultionDependentResources();

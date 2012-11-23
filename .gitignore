@@ -19,3 +19,8 @@ bin/
 bin/
 bin/*
 DeferredRendererQt/Debug/
+bin/Debug/libGL.exp
+bin/Debug/DeferredRenderer.ilk
+bin/Debug/DeferredRenderer.pdb
+bin/Debug/libGL.exp
+bin/Debug/libGL.ilk

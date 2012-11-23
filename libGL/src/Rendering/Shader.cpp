@@ -334,6 +334,7 @@ IUniform* Shader::createUniformFromDescription( const GLenum& eType, const Strin
 		break;
 
 	case GL_SAMPLER_1D:
+	case GL_SAMPLER_1D_SHADOW:
 		{
 			UniformTexture1D* pUniformImpl = new UniformTexture1D();
 			pUniformImpl->m_iglHandle = iGLlocation;
@@ -343,6 +344,7 @@ IUniform* Shader::createUniformFromDescription( const GLenum& eType, const Strin
 		} break;
 		
 	case GL_SAMPLER_2D:
+	case GL_SAMPLER_2D_SHADOW:
 		{
 			UniformTexture2D* pUniformImpl = new UniformTexture2D();
 			pUniformImpl->m_iglHandle = iGLlocation;
@@ -361,6 +363,7 @@ IUniform* Shader::createUniformFromDescription( const GLenum& eType, const Strin
 		} break;
 
 	case GL_SAMPLER_CUBE:
+	case GL_SAMPLER_CUBE_SHADOW:
 		{
 			UniformTextureCube* pUniformImpl = new UniformTextureCube();
 			pUniformImpl->m_iglHandle = iGLlocation;
