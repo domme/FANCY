@@ -57,7 +57,7 @@ void StatsManager::RenderGuiLinesGLUT()
 
 		glRasterPos2i( m_v2ScreenPosition.x, m_v2ScreenPosition.y - 15 * i );
 #ifdef __WINDOWS
-        glutBitmapString( GLUT_BITMAP_HELVETICA_12, (const unsigned char*) ss.str().c_str() );
+       // glutBitmapString( GLUT_BITMAP_HELVETICA_12, (const unsigned char*) ss.str().c_str() );
 #endif
 	}
 }

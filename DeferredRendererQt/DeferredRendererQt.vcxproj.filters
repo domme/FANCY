@@ -25,21 +25,6 @@
       <Extensions>cpp;moc</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
-    <Filter Include="Scene">
-      <UniqueIdentifier>{21acbdd8-dd5d-4137-8cb6-62e36033798e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering">
-      <UniqueIdentifier>{7317767d-3377-499f-851f-3c25d69b6772}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Math">
-      <UniqueIdentifier>{7c08c88b-b25a-4198-9df8-53d15c3d8530}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Geometry">
-      <UniqueIdentifier>{b96b97a1-9fcf-4349-85ec-e5c246692cac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering\Materials">
-      <UniqueIdentifier>{1d3edf71-436f-4db9-88b0-322c5e7bcb22}</UniqueIdentifier>
-    </Filter>
     <Filter Include="QtFiles">
       <UniqueIdentifier>{c3903f90-5303-40d6-aaa6-d54ba2096488}</UniqueIdentifier>
     </Filter>
@@ -60,90 +45,8 @@
     <ClCompile Include="GeneratedFiles\Release\moc_engineqglwidget.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="Scene\BaseRenderableObject.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\Entity.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\NodeRegistry.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\ObjectRegistry.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\SceneLoader.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\SceneManager.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\SceneNode.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\GLDeferredRenderer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Pass_GaussianBlur.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_Colored.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_Bloom.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_BrightPass.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_DirLighting.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_FinalComposite.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_FXAA.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_GaussianBlur.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_LumaTimeAdaption.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_PointLighting.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_Textured.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_FSquad_ToneMapping.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_Pointlight_Illumination.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_Test.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_Textured.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_TexturedNormal.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Materials\MAT_TexturedNormalSpecular.cpp">
-      <Filter>Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\TransformSQT.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Geometry\FullscreenQuad.cpp">
-      <Filter>Geometry</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="deferredrendererqt.cpp" />
-    <ClCompile Include="Engine.cpp" />
     <ClCompile Include="engineqglwidget.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_DeferredRendererQApp.cpp">
       <Filter>Generated Files\Debug</Filter>
@@ -168,87 +71,5 @@
     <ClInclude Include="GeneratedFiles\ui_deferredrendererqt.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\BaseRenderableObject.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\Entity.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\NodeRegistry.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\ObjectRegistry.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\SceneLoader.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\SceneManager.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene\SceneNode.h">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\GLDeferredRenderer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Pass_GaussianBlur.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_TexturedNormalSpecular.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_Colored.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_Bloom.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_BrightPass.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_DirLighting.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_FinalComposite.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_FXAA.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_GaussianBlur.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_LumaTimeAdaption.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_PointLighting.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_Textured.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_FSquad_ToneMapping.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_Pointlight_Illumination.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_Test.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_Textured.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Materials\MAT_TexturedNormal.h">
-      <Filter>Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\TransformSQT.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Geometry\FullscreenQuad.h">
-      <Filter>Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine.h" />
   </ItemGroup>
 </Project>
