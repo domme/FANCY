@@ -25,10 +25,10 @@ public:
 		virtual void					Init();
 		virtual const BoundingSphere&	GetBoundingSphere() { return m_BoundingSphere; }
 		virtual void					Update();
-		virtual void					PrepareShadowmapPass( uint uPassIndex );
+		virtual void					PrepareShadowmapPass( int uPassIndex );
 		virtual void					PostprocessShadowmap();
 
-		uint							GetNumShadowmapPasses() { return m_uNumShadowmapPasses; }
+		int								GetNumShadowmapPasses() { return m_uNumShadowmapPasses; }
 		
 
 		void							SetColor( const glm::vec3& v3Color )	{ m_v3Color = v3Color; }
@@ -55,8 +55,9 @@ public:
 		void							SetShadowmapResolution( const glm::ivec2& v2Res );
 
 		void							SetDirty( bool bDirty ) { m_bDirty = bDirty; }
-		bool							GetDirty() { return m_bDirty; }
+		bool							GetDirty() const { return m_bDirty; }
 
+		GLuint							GetShadowmapFBO() const { return m_uShadowmapFBO; }
 		
 protected:
 		bool			m_bDirty;
@@ -70,11 +71,13 @@ protected:
 		glm::vec3		m_v3Position;
 		BoundingSphere	m_BoundingSphere;
 		Camera			m_clLightViewCamera;
-		uint			m_uNumShadowmapPasses;
+		int				m_uNumShadowmapPasses;
+		GLuint			m_uShadowmapFBO;
 
 
 		virtual void					initShadowmap();
 		virtual void					destroyShadowmap();
+	
 
 		
 };

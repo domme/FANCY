@@ -59,6 +59,8 @@ EngineQGLwidget::~EngineQGLwidget()
 
 void EngineQGLwidget::initializeGL()
 {
+	glewInit();
+
 	m_pTableFrameDurations = parentWidget()->findChild<QTableView*>( "statsTableView" );
 	m_pStatsItemModel = new QStandardItemModel( 0, 2, this );
 	m_pStatsItemModel->setHorizontalHeaderItem( 0, new QStandardItem( QString( "Process" ) ) );
@@ -150,7 +152,6 @@ void EngineQGLwidget::resizeGL( int width, int height )
 {
 	iScreenWidth = width;
 	iScreenHeight = height;
-	glViewport( 0, 0, width, height );
 	pEngine->SetResolution( width, height );
 	pStatsGUI->SetViewportSize( glm::vec2( width, height ) );
 	pStatsGUI->SetScreenPosition( glm::vec2( 5.0f, height - 10.0f ) );

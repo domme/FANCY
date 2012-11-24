@@ -515,26 +515,40 @@ void GLDeferredRenderer::renderShadowMap( PointLight* pLight, SceneManager* pSce
 	//////////////////////////////////////////////////////////////////////////
 	//if( pLight->GetDirty() )
 	{
+		pLight->SetDirty( false );
+
 		PerformanceCheck clPerfCheck;
 		clPerfCheck.StartPerformanceCheck( "Render Pointlight Shadowmap" );
 
 		uint uNumShadowPasses = pLight->GetNumShadowmapPasses();
 
 		//m_pGLrenderer->setColorMask( false, false, false, false ); //Deactivate color-channel writes
+		
+		
 
 		m_pGLrenderer->saveViewport();
-		m_pGLrenderer->setViewport( 0, 0, pLight->GetShadowmapResolution().x, pLight->GetShadowmapResolution().y );
+		
+		
+		glBindFramebuffer( GL_FRAMEBUFFER, pLight->GetShadowmapFBO() );
+		glDrawBuffer( GL_COLOR_ATTACHMENT0 );
 
-		for( uint i = 0; i < uNumShadowPasses; ++i )
+		glClearColor( 1.0f, 0.0f, 0.0f, 1.0f ); //DEBUG
+		m_pGLrenderer->setViewport( 0, 0, pLight->GetShadowmapResolution().x, pLight->GetShadowmapResolution().y );
+				
+		for( int i = 0; i < uNumShadowPasses; ++i )
 		{
 			pLight->PrepareShadowmapPass( i ); //Apply the correct camera-transformations, bind the FBO and clear the cube-side contents
-			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+			glClear( GL_COLOR_BUFFER_BIT );
 			renderEntities( pScene, pLight->GetCamera() );
 		}
 
+		glClearColor( 0.0f, 0.0f, 0.0f, 0.0f ); //DEBUG */
+
 		m_pGLrenderer->restoreViewport();
 		clPerfCheck.FinishAndLogPerformanceCheck();
-		pLight->SetDirty( false );
+
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+		glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
 	}
 }
 
@@ -801,6 +815,8 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 
 	else
 		m_pFSquad->RenderTexture( m_uFinalTonemappedTex_09 );
+
+	//m_pFSquad->RenderTexture( vPointLights[ 0 ]->GetShdowCubeMap() );
 
 	//*/
 	//Render every debug-Operation

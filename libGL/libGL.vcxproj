@@ -99,7 +99,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level2</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(FREEGLUT_HOME)\include\GL;$(GLEW_HOME)\include;$(GLM_HOME)\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;__WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>

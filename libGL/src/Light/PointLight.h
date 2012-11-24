@@ -9,11 +9,11 @@ class DLLEXPORT PointLight : public Light
 	friend class GLVolumeRenderer;
 
 	public:
-							PointLight();
+		PointLight();
 		virtual				~PointLight();
 		virtual void		Update();	
 		virtual void		Init();
-		virtual void		PrepareShadowmapPass( uint uPassIndex );
+		virtual void		PrepareShadowmapPass( int uPassIndex );
 		virtual void		PostprocessShadowmap();
 
 		float				getFalloffStart() const { return m_fFalloffStart; }
@@ -22,7 +22,9 @@ class DLLEXPORT PointLight : public Light
 		float				getFalloffEnd() const { return m_fFalloffEnd; }
 		void				setFalloffEnd( float fFalloffEnd ) { m_fFalloffEnd = fFalloffEnd; }
 
+
 		GLuint				GetShdowCubeMap() { return m_uShadowCubeDepthTex; }
+		GLuint				GetDebugTex() { return m_uDebugTex; }
 		
 		
 	protected:
@@ -32,13 +34,17 @@ class DLLEXPORT PointLight : public Light
 
 
 		GLuint				m_uShadowCubeDepthTex;
-		GLuint				m_uShadowCubeFBO;
-
+		
 		//GLuint				m_uShadowFBOs[ 6 ];
 		//GLuint				m_uShadowDepthTextures[ 6 ];
 		//GLuint				m_uShadowColorTextures[ 6 ];
 
 		glm::quat			m_quatShadowCamOrientations[ 6 ];
+
+
+		//DEBUG:
+		GLuint				m_uDebugFBO;
+		GLuint				m_uDebugTex;
 
 		virtual	void		initShadowmap();
 		virtual void		destroyShadowmap();

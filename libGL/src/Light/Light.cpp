@@ -14,7 +14,8 @@ m_v3Position( 0.0f, 0.0f, 0.0f ),
 m_iv2ShadowmapResolution( 1024, 1024 ),
 m_bShadowmapInitialized( false ),
 m_uNumShadowmapPasses( 0 ),
-m_bDirty( true )
+m_bDirty( true ),
+m_uShadowmapFBO( GLUINT_HANDLE_INVALID )
 {
 	
 }
@@ -34,7 +35,7 @@ void Light::Init()
 	
 }
 
-void Light::PrepareShadowmapPass( uint uPassIndex )
+void Light::PrepareShadowmapPass( int uPassIndex )
 {
 	//DUMMY in base class
 }
@@ -46,7 +47,7 @@ void Light::initShadowmap()
 
 void Light::destroyShadowmap()
 {
-	//DUMMY in base class
+	glDeleteFramebuffers( 1, &m_uShadowmapFBO );
 }
 
 void Light::SetShadowmapResolution( const glm::ivec2& v2Res )

@@ -73,7 +73,7 @@ public:
 	SceneManager*			GetScene() { return m_pScene; }
 	void					SetScene( SceneManager* pScene ) { m_pScene = pScene; }
 
-	
+
 
 	float					GetClearDepth() const { return m_fClearDepth; }
 	void					SetClearDepth( float d ) { m_fClearDepth = d; }
@@ -83,7 +83,7 @@ public:
 	uint					GetScreenHeight() const { return m_uScreenHeight; }
 	uint					GetElapsedTime() const { return m_uAbsElapsedTicksMS; }
 	float					GetMovementMul() const { return (float) m_uDeltaTicksMS / 1000.0f; }
-	
+
 	ERenderMode				getRenderMode() const { return m_eRenderMode; }
 	void					setRenderMode( ERenderMode eMode ) { m_eRenderMode = eMode; }
 	uint					getNextMeshID() { return m_uNumMeshes++; }

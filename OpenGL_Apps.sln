@@ -112,6 +112,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DeferredRendererQt", "Defer
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DeferredRenderer", "DeferredRenderer\DeferredRenderer.vcxproj", "{03A80150-E3AE-417D-9226-D80B6085A2BC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DeferredRendererGLUT", "DeferredRendererGLUT\DeferredRendererGLUT.vcxproj", "{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD} = {0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -141,6 +146,12 @@ Global
 		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Release|Win32.ActiveCfg = Release|Win32
 		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Release|Win32.Build.0 = Release|Win32
 		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Release|x64.ActiveCfg = Release|Win32
+		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Debug|Win32.Build.0 = Debug|Win32
+		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Debug|x64.ActiveCfg = Debug|Win32
+		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Release|Win32.ActiveCfg = Release|Win32
+		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Release|Win32.Build.0 = Release|Win32
+		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

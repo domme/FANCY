@@ -108,7 +108,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level2</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(FREEGLUT_HOME)\include\GL;$(GLEW_HOME)\include;$(GLM_HOME)\;$(SolutionDir)\libGL\src\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;__WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -116,7 +116,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(FREEGLUT_HOME)\lib\x86\Debug\;$(GLEW_HOME)\lib;$(ASSIMP_HOME)\lib\assimp_release-dll_win32\;$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;assimp.lib;libGL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy $(OutDir)DeferredRenderer.lib $(IntDir) /Y</Command>

@@ -5,9 +5,9 @@
 *.lib
 
 *.opensdf
-
+*.ilk
 *.pdb
-
+*.suo
 *.obj
 
 *.sdf
