@@ -34,6 +34,7 @@ void main()
 
 	outputColor[2] = vec4( ( v3FinalNormal + 1.0 ) / 2.0, 0.0 );
 	
-	float fDepth = abs( ( posV.z - fNear )  / ( fFar - fNear ) );
+	//depth
+	float fDepth = abs( posV.z / fFar ); //abs( ( posV.z - fNear )  / ( fFar - fNear ) );
 	outputColor[3] = vec4( fDepth );
 }

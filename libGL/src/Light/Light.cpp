@@ -62,3 +62,16 @@ void Light::PostprocessShadowmap()
 {
 	//DUMMY in base class
 }
+
+void Light::SetPosition( const glm::vec3& rPos )
+{
+	 m_v3Position = rPos;
+	 onPositionChanged();
+}
+
+void Light::onPositionChanged()
+{
+	//dummy in base class
+}
+
+

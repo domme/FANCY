@@ -48,6 +48,7 @@ class DLLEXPORT PointLight : public Light
 
 		virtual	void		initShadowmap();
 		virtual void		destroyShadowmap();
+		virtual void		onPositionChanged();
 
 		void				initShadowCamera();
 };

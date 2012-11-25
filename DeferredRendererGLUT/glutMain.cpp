@@ -230,6 +230,7 @@ static int iMouseYLast						= 0;
 static float fCameraSpeed					= 10.0f;
 static SKeyState clKeyState;
 static SceneNode*		pDirlightNode;
+static SceneNode* pPointLightNode1;
 
 
 void initEngine()
@@ -269,7 +270,7 @@ void setupScene()
 //	pDirlightNode->AttatchLight( pDirLight );
 
 	//Pointlight 1
-	SceneNode* pPointLightNode1 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode" );
+	pPointLightNode1 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode" );
 	pPointLightNode1->setTranslation( glm::vec3( 0.4f, -13.0f, -5.7f ) );
 	//pPointLightNode1->setTranslation( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 
@@ -404,6 +405,7 @@ void reshape( int width, int height )
 
 void onIdle()
 {
+	pPointLightNode1->translate( glm::vec3( -0.02f, 0.0f, 0.0f ) );
 	glutPostRedisplay();
 }
 

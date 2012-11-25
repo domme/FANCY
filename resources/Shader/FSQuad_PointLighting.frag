@@ -11,7 +11,7 @@ uniform sampler2D specN;
 uniform sampler2D normals;
 uniform sampler2D depth;
 
-uniform samplerCube shadowCubeTex;
+uniform highp samplerCube shadowCubeTex;
 
 uniform vec3 v3LightPosVS;
 uniform vec3 v3LightColor;
@@ -22,33 +22,34 @@ uniform mat4 lightProj;
 uniform mat4 viewI;
 
 
-
 void main( void )
 {
 	float fGloss = texture2D( colorGloss, tex ).w;
 	float fDepth = texture2D( depth, tex ).x;
 	vec3 P = v3ViewDir * fDepth;
+
 	vec3 N = normalize( texture2D( normals, tex ).xyz * 2.0 - 1.0 );
 	vec4 specColorN = texture2D( specN, tex );
 
 	vec3 L = v3LightPosVS - P;
 	float fD = length( L );
 
-	vec3 L_WS = ( ( viewI * vec4( -L, 0.0 ) ) ).xyz;
+	vec3 L_WS = normalize( ( ( viewI * vec4( -L, 0.0 ) ) ).xyz );
 	float fDepthForSM = textureCube( shadowCubeTex, L_WS ).x;
 	
-	float fShadow = float( fDepthForSM < ( fD / fRend ) ); 
+	float fDepthForLight = fD;//abs( ( fD - 1.0 ) / ( fRend - 1.0 ) );
+	float fShadow = float( fDepthForSM - 5.0 < fDepthForLight );
 		
-	//float fShadow = texture( shadowCubeTex, vec4( L_WS, fD / fRend - 0.05 ) ); //float( abs( fDepthForSM ) < ( fD ) ); 
+	//float fShadow = texture( shadowCubeTex, vec4( L_WS, fD / fRend + 0.05 ) ); //float( abs( fDepthForSM ) < ( fD ) ); 
 		
 	L = normalize( L );
 	vec3 H = normalize( normalize( -P ) + L );
 		
-	float fFalloff = 1.0; //clamp( ( fRend - fD ) / ( fRend - fRstart ), 0.0, 1.0 );
+	float fFalloff = clamp( ( fRend - fD ) / ( fRend - fRstart ), 0.0, 1.0 );
 
 	float NL = max( 0, dot( N, L ) );
 	
-	vec3 v3Color = ( 1.0 - fShadow ) * ( v3LightColor * fFalloff * NL  + specColorN.xyz * fFalloff * 2.0 * pow( max( 0, dot( N, H ) ), specColorN.w * 255.0 ) ); 
+	vec3 v3Color = ( 1.0 - fShadow ) * ( v3LightColor * fFalloff * NL ); //+ specColorN.xyz * fFalloff * 2.0 * pow( max( 0, dot( N, H ) ), specColorN.w * 255.0 ) ); 
 
 	
 	if( fShadow > 0.0 )
@@ -56,8 +57,10 @@ void main( void )
 
 	else
 		color = vec4( 0.0, 1.0, 0.0, 1.0 ); 
-		
-	color = vec4( textureCube( shadowCubeTex, L_WS ) );
+
+	
+	
+	//color = vec4( textureCube( shadowCubeTex, L_WS ) );
 	//color = vec4( v3Color, 1.0 ); 
 		
 

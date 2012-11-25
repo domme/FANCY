@@ -46,7 +46,7 @@ public:
 
 
 		const glm::vec3&				GetPosition() const { return m_v3Position; }
-		void							SetPosition( const glm::vec3& rPos ) { m_v3Position = rPos; }
+		void							SetPosition( const glm::vec3& rPos );
 
 		bool							GetCastShadows() const { return m_bCastShadows; }
 		void							SetCastShadows( bool bCastShadows ) { m_bCastShadows = bCastShadows; }
@@ -77,6 +77,7 @@ protected:
 
 		virtual void					initShadowmap();
 		virtual void					destroyShadowmap();
+		virtual void					onPositionChanged();
 	
 
 		

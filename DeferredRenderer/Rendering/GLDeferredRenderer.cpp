@@ -515,36 +515,37 @@ void GLDeferredRenderer::renderShadowMap( PointLight* pLight, SceneManager* pSce
 	//////////////////////////////////////////////////////////////////////////
 	//if( pLight->GetDirty() )
 	{
-		pLight->SetDirty( false );
+	//	pLight->SetDirty( false );
 
 		PerformanceCheck clPerfCheck;
 		clPerfCheck.StartPerformanceCheck( "Render Pointlight Shadowmap" );
 
 		uint uNumShadowPasses = pLight->GetNumShadowmapPasses();
 
-		//m_pGLrenderer->setColorMask( false, false, false, false ); //Deactivate color-channel writes
+		m_pGLrenderer->setColorMask( false, false, false, false ); //Deactivate color-channel writes
 		
 		m_pGLrenderer->saveViewport();
-		
-		pLight->SetPosition( m_pEngine->GetCurrentCamera()->getPosition() );		
+				
+		//pLight->SetPosition( m_pEngine->GetCurrentCamera()->getPosition() );
+
 		glBindFramebuffer( GL_FRAMEBUFFER, pLight->GetShadowmapFBO() );
-		//glDrawBuffer( GL_NONE );
+		glDrawBuffer( GL_NONE );
 
 		m_pGLrenderer->setViewport( 0, 0, pLight->GetShadowmapResolution().x, pLight->GetShadowmapResolution().y );
-				
+		
 		for( int i = 0; i < uNumShadowPasses; ++i )
 		{
 			pLight->PrepareShadowmapPass( i ); //Apply the correct camera-transformations, bind the FBO and clear the cube-side contents
 			m_pGLrenderer->prepareFrameRendering( pLight->GetCamera(), pScene->getRootNode()->getGlobalTransformMAT() ); //Has to be called again because the camera changes :(
 			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-			renderEntities( pScene, pLight->GetCamera() );
+			renderEntities( pScene, pLight->GetCamera() );	
 		}
+
 
 		m_pGLrenderer->restoreViewport();
 		clPerfCheck.FinishAndLogPerformanceCheck();
 
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-		glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
 	}
 }
 
@@ -601,6 +602,16 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	//Update Scene graph
 	CHECK_PERFORMANCE( pSceneManager->prepareRender(), "UpdateSceneGraph" ); 
 
+	//Set States for shadowmap-rendering and g-buffer
+	m_pGLrenderer->setDepthTest( true );
+	m_pGLrenderer->setDepthMask( GL_TRUE );
+	m_pGLrenderer->setBlending( false );
+	m_pGLrenderer->setCulling( true );
+	m_pGLrenderer->setCullFace( GL_BACK );
+	m_pGLrenderer->setStencilTest( true );
+	m_pGLrenderer->setStencilFunc( GL_ALWAYS, 1, 0xFFFFFFFF );
+	m_pGLrenderer->setStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
+
 
 	//////////////////////////////////////////////////////////////////////////
 	//Shadow-map updates
@@ -610,11 +621,12 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	const std::vector<SpotLight*>& vSpotLights = pSceneManager->getCachedSpotLights();
 
 	//Render shadowmaps of all dirty lights:
+
 	clPerfCheck.StartPerformanceCheck( "Render Pointlight Shadows" );
 	for( uint i = 0; i < vPointLights.size(); ++i )
 	{
 		m_pGLrenderer->setCurrLightIndex( vDirLights.size() + i );
-		m_pGLrenderer->prepareLightRendering( vPointLights[ i ]->GetCamera(), vPointLights[ i ] );
+		m_pGLrenderer->prepareLightRendering( pCamera, vPointLights[ i ] );
 		renderShadowMap( vPointLights[ i ], pSceneManager, vPointLights[ i ]->GetCamera() );
 	}
 
@@ -623,24 +635,14 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	//Re-enable color-channel writes after shadowmap-rendering
 	m_pGLrenderer->setColorMask( true, true, true, true );
 	//////////////////////////////////////////////////////////////////////////
-
-
+		
 	//Update all global uniforms to render from the viewer-camera
 	CHECK_PERFORMANCE( m_pGLrenderer->prepareFrameRendering( m_pEngine->GetCurrentCamera(), pSceneManager->getRootNode()->getGlobalTransformMAT() ), "UpdateGlobalUniforms" ); //Recalculate and Update per-frame ("global") Uniforms
 
 	//////////////////////////////////////////////////////////////////////////
 	//G-Buffer Pass
 	//////////////////////////////////////////////////////////////////////////
-	m_pGLrenderer->setDepthTest( true );
-	m_pGLrenderer->setDepthMask( GL_TRUE );
-	m_pGLrenderer->setBlending( false );
-	m_pGLrenderer->setCulling( true );
-	m_pGLrenderer->setCullFace( GL_BACK );
-	m_pGLrenderer->setStencilTest( true );
-	m_pGLrenderer->setStencilFunc( GL_ALWAYS, 1, 0xFFFFFFFF );
-	m_pGLrenderer->setStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
 	
-
 	static GLenum eDrawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 	STATIC_ASSERT( ARRAY_LENGTH( eDrawBuffers ) == GBuffer::num );
 
@@ -824,6 +826,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 
 	else
 		m_pFSquad->RenderTexture( m_uFinalTonemappedTex_09 );
+
 
 	//m_pFSquad->RenderTexture( vPointLights[ 0 ]->GetShdowCubeMap() );
 

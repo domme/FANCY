@@ -25,6 +25,9 @@ void main()
 	outputColor[2] = vec4( ( normalize( normV ) + 1.0 ) / 2.0, 1.0 );
 
 	//Depth
-	float fDepth = abs( ( posV.z - fNear )  / ( fFar - fNear ) );
+	float fDepth = abs( posV.z / fFar ); //abs( ( posV.z - fNear )  / ( fFar - fNear ) );
 	outputColor[3] = vec4( fDepth );
+
+
+
 }

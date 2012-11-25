@@ -51,10 +51,15 @@ public:
 	
 	void SetValue( const ValueT& value ) 
 	{ 
-		if( valueIsDifferent( value ) )
+		m_clValue = value;
+		notifyValueChange();
+
+		/*if( valueIsDifferent( value ) )
+		{
 			m_clValue = value;
 
-		notifyValueChange();
+			notifyValueChange();
+		}*/
 	}
 
 	virtual void SetObserver( IUniformObserver* pObserver ) { if( pObserver ) m_pObserver = pObserver; }

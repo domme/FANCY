@@ -78,26 +78,26 @@ void PointLight::initShadowmap()
 	glGenFramebuffers( 1, &m_uShadowmapFBO );
 	glGenTextures( 1, &m_uShadowCubeDepthTex );
 
+	glBindFramebuffer( GL_FRAMEBUFFER, m_uShadowmapFBO );
 	glBindTexture( GL_TEXTURE_CUBE_MAP, m_uShadowCubeDepthTex );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
-	glBindFramebuffer( GL_FRAMEBUFFER, m_uShadowmapFBO );
-	GLuint depthbuffer;
-	glGenRenderbuffers(1, &depthbuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y );
-	
-	// attach it
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer );
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
 	/*glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);*/
+
+	
+	/*GLuint depthbuffer;
+	glGenRenderbuffers(1, &depthbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y );
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer );
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);*/
+
+	
 	
 	
 
@@ -111,19 +111,19 @@ void PointLight::initShadowmap()
 		faceData[ i + 3 ] = 255;
 	} */
 	
-	for( int i = 0; i < 6; ++i )
-		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
+	//for( int i = 0; i < 6; ++i )
+		//glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
 
-	//for( uint i = 0; i < 6; ++i )
-		//glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+	for( uint i = 0; i < 6; ++i )
+		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32F, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
 
 	//delete[] faceData;
 	
 	
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_uShadowCubeDepthTex, 0 ); 
+	//glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_uShadowCubeDepthTex, 0 ); 
 	
-	//glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_uShadowCubeDepthTex, 0 ); 
-	//glDrawBuffer( GL_NONE );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_uShadowCubeDepthTex, 0 ); 
+	glDrawBuffer( GL_NONE );
 	FBOservice::checkFBOErrors();
 	//////////////////////////////////////////////////////////////////////////
 
@@ -158,7 +158,7 @@ void PointLight::initShadowCamera()
 {
 	//m_clLightViewCamera.SetProjection( glm::perspective( glm::radians( 90.0f ), 1.0f, 1.0f, 100.0f /*m_fFalloffEnd */ ) );
 	//m_clLightViewCamera.InitPerspectiveProjection( glm::radians( 90.0f ), 1.0f, 1.0f, 100.0f );
-	m_clLightViewCamera.InitPerspectiveProjection( 90.0f, 1.0f, 1.0f, m_fFalloffEnd );
+	m_clLightViewCamera.InitPerspectiveProjection( 90.0f, 1.0f, 1.0f, 200.0f );
 	
 	//////////////////////////////////////////////////////////////////////////
 	//Create and store the depth-camera orientations
@@ -216,12 +216,12 @@ void PointLight::PrepareShadowmapPass( int uPassIndex )
 		break;
 	}
 
-	m_clLightViewCamera.SetView( glm::lookAt( m_v3Position, v3At, v3Up ) );
+	m_clLightViewCamera.InitView( m_v3Position, v3At, v3Up );
 	
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + uPassIndex, m_uShadowCubeDepthTex, 0 );
+	//glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + uPassIndex, m_uShadowCubeDepthTex, 0 );
 	
-	//glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + uPassIndex, m_uShadowCubeDepthTex, 0 );
-	//glDrawBuffer( GL_NONE );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + uPassIndex, m_uShadowCubeDepthTex, 0 );
+	glDrawBuffer( GL_NONE );
 
 	FBOservice::checkFBOErrors();
 	
@@ -233,4 +233,9 @@ void PointLight::PrepareShadowmapPass( int uPassIndex )
 void PointLight::PostprocessShadowmap()
 {
 
+}
+
+void PointLight::onPositionChanged()
+{
+	m_clLightViewCamera.InitView( m_v3Position, m_v3Position + glm::vec3( 0.0f, 0.0f, 1.0f ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
 }
