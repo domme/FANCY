@@ -20,6 +20,7 @@ static Camera*			pCamera;
 static StatsManager*	pStatsGUI;
 static GLRenderer*		pRenderer;
 static SceneNode*		pDirlightNode;
+static SceneNode* pPointLightNode1;
 
 static int iScreenWidth						= 600;
 static int iScreenHeight					= 800;
@@ -104,12 +105,12 @@ void EngineQGLwidget::setupSibenikScene()
 	pDirlightNode = pSceneManager->getRootNode()->createChildSceneNode( "DirlightNode" );
 	pDirlightNode->setRotation( PI/4.0f, glm::vec3( 1.0f, 0.0f, 0.0f ) );
 	DirectionalLight* pDirLight = pSceneManager->createDirectionalLight( "DirLight1", glm::vec3( 1.0f, 1.0f, 1.0f ), 0.5f );
-//	pDirlightNode->AttatchLight( pDirLight );
+	//pDirlightNode->AttatchLight( pDirLight );
 
 	//Pointlight 1
-	SceneNode* pPointLightNode1 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode" );
-	pPointLightNode1->setTranslation( glm::vec3( 0.4f, -13.0f, -5.7f ) );
-	PointLight* pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 2.5f, 1.0f, 5.0f );
+	pPointLightNode1 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode" );
+	pPointLightNode1->setTranslation( glm::vec3( 0.4f, -12.0f, -5.7f ) );
+	PointLight* pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 1.0f, 1.0f, 5.0f );
 	pPointLightNode1->AttatchLight( pPointLight );
 
 	/*
@@ -140,11 +141,11 @@ void EngineQGLwidget::setupEngineScene()
 	setupSibenikScene();
 
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_COLOR_GLOSS );
-	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );
+	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );
 	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_DEPTH );
-	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_SPECULAR);
+	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_SPECULAR);
 	pEngine->AddDebugTexturePass( TextureSemantics::LIGHTING );
-	pEngine->AddDebugTexturePass( TextureSemantics::LUMINANCE );
+	//pEngine->AddDebugTexturePass( TextureSemantics::LUMINANCE );
 }
 
 
@@ -205,6 +206,8 @@ void EngineQGLwidget::processInputs()
 void EngineQGLwidget::update()
 {
 	pDirlightNode->rotate( 0.005f, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+
+	//pPointLightNode1->translate( glm::vec3( 0.0f, 0.02f, 0.0f ) );
 }
 
 void EngineQGLwidget::paintGL()

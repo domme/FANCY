@@ -113,7 +113,7 @@ void Engine::SetResolution( uint uWidth, uint uHeight )
 
 	m_pRenderer->SetResolution( uWidth, uHeight );
 	m_pDeferredRenderer->SetResolution( uWidth, uHeight );
-	m_pRenderCamera->InitPerspectiveProjection( 60.0f, ( (float) uWidth / (float) uHeight ) , 1.0f, 2000.0f );
+	m_pRenderCamera->InitPerspectiveProjection( 60.0f, ( (float) uWidth / (float) uHeight ) , 1.0f, 200.0f );
 }
 
 glm::mat4* Engine::GetWorldMat()

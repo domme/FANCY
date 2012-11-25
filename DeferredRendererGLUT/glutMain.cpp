@@ -219,7 +219,7 @@ static Camera*			pCamera;
 static int iScreenWidth						= 600;
 static int iScreenHeight					= 800;
 static const float PI						= 3.1415926535897932f;
-static const glm::vec4 c_v4AmbientColor		( 0.2f, 0.2f, 0.2f, 1.0f );
+static const glm::vec4 c_v4AmbientColor		( 0.0f, 0.0f, 0.0f, 0.0f );
 static const glm::vec4 c_v4ClearColor		( 0.0f, 0.0f, 0.0f, 0.0f );
 static const bool bUseFrameCap				= false;
 static const unsigned int uFrameMScap		= 16;
@@ -247,11 +247,14 @@ void initEngine()
 	pEngine->SetScene( pSceneManager );
 
 	pCamera = pEngine->GetCurrentCamera();
+	//pCamera->SetProjection( glm::perspectiveFov( glm::radians( 90.0f ), (float) iScreenWidth, (float) iScreenHeight, 1.0f, 200.0f ) );
 
 	for( int i = 0; i < ARRAY_LENGTH( clKeyState.vbKeysDown ); ++i )
 	{
 		clKeyState.vbKeysDown[ i ] = false;
 	}
+
+	pEngine->GetRenderer()->SetDebugTexturesVisible( true );
 }
 
 void setupScene()
@@ -268,7 +271,9 @@ void setupScene()
 	//Pointlight 1
 	SceneNode* pPointLightNode1 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode" );
 	pPointLightNode1->setTranslation( glm::vec3( 0.4f, -13.0f, -5.7f ) );
-	PointLight* pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 2.5f, 1.0f, 5.0f );
+	//pPointLightNode1->setTranslation( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+
+	PointLight* pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 1.0f, 9.5f, 10.0f );
 	pPointLightNode1->AttatchLight( pPointLight );
 
 	/*
@@ -293,10 +298,10 @@ void setupScene()
 
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_COLOR_GLOSS );
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );
-	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_DEPTH );
-	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_SPECULAR );
+	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_DEPTH );
+	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_SPECULAR );
 	pEngine->AddDebugTexturePass( TextureSemantics::LIGHTING );
-	pEngine->AddDebugTexturePass( TextureSemantics::LUMINANCE );
+	//pEngine->AddDebugTexturePass( TextureSemantics::LUMINANCE );
 }
 
 void onMouseMoveActive( int x, int y )

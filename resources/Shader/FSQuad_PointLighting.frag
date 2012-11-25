@@ -11,7 +11,7 @@ uniform sampler2D specN;
 uniform sampler2D normals;
 uniform sampler2D depth;
 
-uniform samplerCubeShadow shadowCubeTex;
+uniform samplerCube shadowCubeTex;
 
 uniform vec3 v3LightPosVS;
 uniform vec3 v3LightColor;
@@ -34,32 +34,31 @@ void main( void )
 	vec3 L = v3LightPosVS - P;
 	float fD = length( L );
 
-	vec3 L_WS =  ( lightView * ( viewI * vec4( L, 0.0 ) ) ).xyz;
-	//float fDepthForSM = //textureCube( shadowCubeTex, L_WS ).x /* * fRend */;
+	vec3 L_WS = ( ( viewI * vec4( -L, 0.0 ) ) ).xyz;
+	float fDepthForSM = textureCube( shadowCubeTex, L_WS ).x;
 	
-	float fShadow = texture( shadowCubeTex, vec4( L_WS, fD / fRend - 0.0005 ) ); //float( abs( fDepthForSM ) < ( fD ) ); 
+	float fShadow = float( fDepthForSM < ( fD / fRend ) ); 
+		
+	//float fShadow = texture( shadowCubeTex, vec4( L_WS, fD / fRend - 0.05 ) ); //float( abs( fDepthForSM ) < ( fD ) ); 
 		
 	L = normalize( L );
 	vec3 H = normalize( normalize( -P ) + L );
 		
-	float fFalloff = clamp( ( fRend - fD ) / ( fRend - fRstart ), 0.0, 1.0 );
+	float fFalloff = 1.0; //clamp( ( fRend - fD ) / ( fRend - fRstart ), 0.0, 1.0 );
 
 	float NL = max( 0, dot( N, L ) );
 	
-	vec3 v3Color = fShadow * ( v3LightColor * fFalloff * NL  + specColorN.xyz * fFalloff * 2.0 * pow( max( 0, dot( N, H ) ), specColorN.w * 255.0 ) ); 
+	vec3 v3Color = ( 1.0 - fShadow ) * ( v3LightColor * fFalloff * NL  + specColorN.xyz * fFalloff * 2.0 * pow( max( 0, dot( N, H ) ), specColorN.w * 255.0 ) ); 
 
 	
-	//color = textureCube( shadowCubeTex, L_WS );
-
-	if( fShadow > 1.0 )
-		color = vec4( 1.0, 0.0, 0.0, 1.0 );
-
-	else if( fShadow < 1.0 )
-		color = vec4(  1.0, 1.0, 0.0, 1.0 );
-
-	else if( abs( fShadow - 1.0 ) < 0.0001 )
-		color = vec4( 0.0, 1.0, 0.0, 1.0 ); 
+	if( fShadow > 0.0 )
+		color = vec4(  1.0, 0.0, 0.0, 1.0 );
 
 	else
-		color = vec4( v3Color, 1.0 );
+		color = vec4( 0.0, 1.0, 0.0, 1.0 ); 
+		
+	color = vec4( textureCube( shadowCubeTex, L_WS ) );
+	//color = vec4( v3Color, 1.0 ); 
+		
+
 }

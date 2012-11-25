@@ -524,25 +524,21 @@ void GLDeferredRenderer::renderShadowMap( PointLight* pLight, SceneManager* pSce
 
 		//m_pGLrenderer->setColorMask( false, false, false, false ); //Deactivate color-channel writes
 		
-		
-
 		m_pGLrenderer->saveViewport();
 		
-		
+		pLight->SetPosition( m_pEngine->GetCurrentCamera()->getPosition() );		
 		glBindFramebuffer( GL_FRAMEBUFFER, pLight->GetShadowmapFBO() );
-		glDrawBuffer( GL_COLOR_ATTACHMENT0 );
+		//glDrawBuffer( GL_NONE );
 
-		glClearColor( 1.0f, 0.0f, 0.0f, 1.0f ); //DEBUG
 		m_pGLrenderer->setViewport( 0, 0, pLight->GetShadowmapResolution().x, pLight->GetShadowmapResolution().y );
 				
 		for( int i = 0; i < uNumShadowPasses; ++i )
 		{
 			pLight->PrepareShadowmapPass( i ); //Apply the correct camera-transformations, bind the FBO and clear the cube-side contents
-			glClear( GL_COLOR_BUFFER_BIT );
+			m_pGLrenderer->prepareFrameRendering( pLight->GetCamera(), pScene->getRootNode()->getGlobalTransformMAT() ); //Has to be called again because the camera changes :(
+			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 			renderEntities( pScene, pLight->GetCamera() );
 		}
-
-		glClearColor( 0.0f, 0.0f, 0.0f, 0.0f ); //DEBUG */
 
 		m_pGLrenderer->restoreViewport();
 		clPerfCheck.FinishAndLogPerformanceCheck();
@@ -600,8 +596,36 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 {
 	Camera* pCamera = m_pEngine->GetCurrentCamera();
 	const glm::vec4& clearColor = m_pEngine->GetClearColor();
+	PerformanceCheck clPerfCheck;
 
-	CHECK_PERFORMANCE( pSceneManager->prepareRender(), "UpdateSceneGraph" ); //Update Scene graph
+	//Update Scene graph
+	CHECK_PERFORMANCE( pSceneManager->prepareRender(), "UpdateSceneGraph" ); 
+
+
+	//////////////////////////////////////////////////////////////////////////
+	//Shadow-map updates
+	//////////////////////////////////////////////////////////////////////////
+	const std::vector<DirectionalLight*>& vDirLights = pSceneManager->getCachedDirectionalLights();
+	const std::vector<PointLight*>& vPointLights = pSceneManager->getCachedPointLights();
+	const std::vector<SpotLight*>& vSpotLights = pSceneManager->getCachedSpotLights();
+
+	//Render shadowmaps of all dirty lights:
+	clPerfCheck.StartPerformanceCheck( "Render Pointlight Shadows" );
+	for( uint i = 0; i < vPointLights.size(); ++i )
+	{
+		m_pGLrenderer->setCurrLightIndex( vDirLights.size() + i );
+		m_pGLrenderer->prepareLightRendering( vPointLights[ i ]->GetCamera(), vPointLights[ i ] );
+		renderShadowMap( vPointLights[ i ], pSceneManager, vPointLights[ i ]->GetCamera() );
+	}
+
+	clPerfCheck.FinishAndLogPerformanceCheck();
+
+	//Re-enable color-channel writes after shadowmap-rendering
+	m_pGLrenderer->setColorMask( true, true, true, true );
+	//////////////////////////////////////////////////////////////////////////
+
+
+	//Update all global uniforms to render from the viewer-camera
 	CHECK_PERFORMANCE( m_pGLrenderer->prepareFrameRendering( m_pEngine->GetCurrentCamera(), pSceneManager->getRootNode()->getGlobalTransformMAT() ), "UpdateGlobalUniforms" ); //Recalculate and Update per-frame ("global") Uniforms
 
 	//////////////////////////////////////////////////////////////////////////
@@ -625,32 +649,17 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	glDrawBuffers( GBuffer::num, eDrawBuffers );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	
-	PerformanceCheck clPerfCheck;
+	
 	clPerfCheck.StartPerformanceCheck( "Render Entities" );
 	renderEntities( pSceneManager, pCamera );
 	clPerfCheck.FinishAndLogPerformanceCheck();
+	//////////////////////////////////////////////////////////////////////////
+
+
 		
 	//////////////////////////////////////////////////////////////////////////
 	// Lights Passes
 	//////////////////////////////////////////////////////////////////////////
-	const std::vector<DirectionalLight*>& vDirLights = pSceneManager->getCachedDirectionalLights();
-	const std::vector<PointLight*>& vPointLights = pSceneManager->getCachedPointLights();
-	const std::vector<SpotLight*>& vSpotLights = pSceneManager->getCachedSpotLights();
-
-	//Render shadowmaps of all dirty lights:
-	clPerfCheck.StartPerformanceCheck( "Render Pointlight Shadows" );
-	for( uint i = 0; i < vPointLights.size(); ++i )
-	{
-		m_pGLrenderer->setCurrLightIndex( vDirLights.size() + i );
-		m_pGLrenderer->prepareLightRendering( pCamera, vPointLights[ i ] );
-		renderShadowMap( vPointLights[ i ], pSceneManager, pCamera );
-	}
-
-	clPerfCheck.FinishAndLogPerformanceCheck();
-
-	//Re-enable color-channel writes after shadowmap-rendering
-	m_pGLrenderer->setColorMask( true, true, true, true );
-	
 	glBindFramebuffer( GL_FRAMEBUFFER, m_uLightingFBO_06 ); 
 	static GLenum eDrawBuffer[] = { GL_COLOR_ATTACHMENT0 };
 	glDrawBuffers( 1, eDrawBuffers );

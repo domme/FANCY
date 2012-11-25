@@ -100,7 +100,7 @@ void SceneManager::preprocessPointLight( PointLight* pPointLight, SceneNode* pNo
 {
 	const glm::mat4& rLightMat = pNode->getGlobalTransformMAT();
 	pPointLight->SetPosition( glm::vec3( rLightMat[ 3 ][ 0 ], rLightMat[ 3 ][ 1 ], rLightMat[ 3 ][ 2 ] ) );
-
+	
 	m_vCachedPointLights.push_back( pPointLight );
 }
 
