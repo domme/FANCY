@@ -1,6 +1,6 @@
 #version 330
 
-out vec4 outputColor[4];
+out vec4 outputColor[5];
 
 smooth in vec3 posV;
 smooth in vec3 normV;
@@ -28,6 +28,8 @@ void main()
 	float fDepth = abs( posV.z / fFar ); //abs( ( posV.z - fNear )  / ( fFar - fNear ) );
 	outputColor[3] = vec4( fDepth );
 
+	//Pos
+	outputColor[4] = vec4( posV, 1.0 );
 
 
 }

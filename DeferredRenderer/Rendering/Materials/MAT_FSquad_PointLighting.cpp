@@ -45,7 +45,8 @@ bool MAT_FSquad_PointLighting::Init()
 	assignUniformSemantic( m_pShader,  "specN" ,  ShaderSemantics::TEXTURE,  GBuffer::Spec );
 	assignUniformSemantic( m_pShader,  "normals" ,  ShaderSemantics::TEXTURE,  GBuffer::Normal );
 	assignUniformSemantic( m_pShader,  "depth" ,  ShaderSemantics::TEXTURE,  GBuffer::Depth );
-	assignUniformSemantic( m_pShader, "shadowCubeTex", ShaderSemantics::TEXTURE_CUBE, 4 );
+	assignUniformSemantic( m_pShader,  "posTex" ,  ShaderSemantics::TEXTURE,  GBuffer::Pos );
+	assignUniformSemantic( m_pShader, "shadowCubeTex", ShaderSemantics::TEXTURE_CUBE, 5 );
 	
 	assignUniformSemantic( m_pShader,  "v3LightPosVS" ,  ShaderSemantics::LIGHTPOSVIEW );
 	assignUniformSemantic( m_pShader,  "v3LightColor" ,  ShaderSemantics::LIGHTCOLORINTENSITY );
@@ -71,7 +72,10 @@ GLuint MAT_FSquad_PointLighting::GetTextureAtIndex( uint uIdx ) const
 	case GBuffer::Depth:
 		return m_uDepthTex;
 
-	case 4:
+	case GBuffer::Pos:
+		return m_uPosTex;
+
+	case 5:
 		return m_uCubeShadowTex;
 
 

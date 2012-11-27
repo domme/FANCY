@@ -10,6 +10,7 @@ uniform sampler2D colorGloss;
 uniform sampler2D specN;
 uniform sampler2D normals;
 uniform sampler2D depth;
+uniform highp sampler2D posTex;
 
 uniform highp samplerCube shadowCubeTex;
 
@@ -26,7 +27,7 @@ void main( void )
 {
 	float fGloss = texture2D( colorGloss, tex ).w;
 	float fDepth = texture2D( depth, tex ).x;
-	vec3 P = v3ViewDir * fDepth;
+	vec3 P = texture2D( posTex, tex ).xyz; //v3ViewDir * fDepth;
 
 	vec3 N = normalize( texture2D( normals, tex ).xyz * 2.0 - 1.0 );
 	vec4 specColorN = texture2D( specN, tex );
@@ -34,11 +35,11 @@ void main( void )
 	vec3 L = v3LightPosVS - P;
 	float fD = length( L );
 
-	vec3 L_WS = normalize( ( ( viewI * vec4( -L, 0.0 ) ) ).xyz );
+	vec3 L_WS = ( ( viewI * vec4( -L, 0.0 ) ) ).xyz;
 	float fDepthForSM = textureCube( shadowCubeTex, L_WS ).x;
 	
-	float fDepthForLight = fD;//abs( ( fD - 1.0 ) / ( fRend - 1.0 ) );
-	float fShadow = float( fDepthForSM - 5.0 < fDepthForLight );
+	float fDepthForLight = fD / fRend; //abs( ( fD - 1.0 ) / ( fRend - 1.0 ) );
+	float fShadow = float( fDepthForSM < fDepthForLight - 0.21 );
 		
 	//float fShadow = texture( shadowCubeTex, vec4( L_WS, fD / fRend + 0.05 ) ); //float( abs( fDepthForSM ) < ( fD ) ); 
 		
@@ -60,7 +61,7 @@ void main( void )
 
 	
 	
-	//color = vec4( textureCube( shadowCubeTex, L_WS ) );
+	//color = vec4( textureCube( shadowCubeTex, L_WS ) ).xxxx;
 	//color = vec4( v3Color, 1.0 ); 
 		
 

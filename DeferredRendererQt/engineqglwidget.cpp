@@ -141,7 +141,7 @@ void EngineQGLwidget::setupEngineScene()
 	setupSibenikScene();
 
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_COLOR_GLOSS );
-	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );
+	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );
 	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_DEPTH );
 	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_SPECULAR);
 	pEngine->AddDebugTexturePass( TextureSemantics::LIGHTING );
@@ -207,7 +207,7 @@ void EngineQGLwidget::update()
 {
 	pDirlightNode->rotate( 0.005f, glm::vec3( 0.0f, 1.0f, 0.0f ) );
 
-	pPointLightNode1->translate( glm::vec3( -0.02f, 0.0f, 0.0f ) );
+	pPointLightNode1->translate( glm::vec3( -0.04f, 0.0f, 0.04f ) );
 }
 
 void EngineQGLwidget::paintGL()
