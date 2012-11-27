@@ -22,7 +22,7 @@ void main()
 	posV = ( MWV * vec4( position, 1.0 ) ).xyz;
 	normV = normalize( ( MWVIT * vec4( normal, 0.0 ) ).xyz );
 	tanV = normalize( ( MWV * vec4( tangent, 0.0 ) ).xyz );
-	bitanV = normalize( cross( normV, tanV ) );
+	bitanV = normalize( cross( tanV, normV ) );
 
 	tex = uv;
 }

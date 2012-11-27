@@ -522,9 +522,9 @@ void GLDeferredRenderer::renderShadowMap( PointLight* pLight, SceneManager* pSce
 {
 	//Render all shadow-map passes to construct shadow-cubemap
 	//////////////////////////////////////////////////////////////////////////
-	//if( pLight->GetDirty() )
+	if( pLight->GetDirty() )
 	{
-	//	pLight->SetDirty( false );
+		pLight->SetDirty( false );
 
 		PerformanceCheck clPerfCheck;
 		clPerfCheck.StartPerformanceCheck( "Render Pointlight Shadowmap" );

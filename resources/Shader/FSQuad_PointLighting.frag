@@ -36,12 +36,12 @@ void main( void )
 	float fD = length( L );
 
 	vec3 L_WS = ( ( viewI * vec4( -L, 0.0 ) ) ).xyz;
-	float fDepthForSM = textureCube( shadowCubeTex, L_WS ).x;
+	float fDepthForSM = texture( shadowCubeTex, L_WS ).x;
 	
-	float fDepthForLight = fD / fRend; //abs( ( fD - 1.0 ) / ( fRend - 1.0 ) );
-	float fShadow = float( fDepthForSM < fDepthForLight - 0.21 );
+	float fDepthForLight = abs( ( fD - 1.0 ) / ( fRend - 1.0 ) );
+	float fShadow = float( fDepthForSM < fDepthForLight - 0.11 ); /* clamp( abs( fDepthForSM - fDepthForLight ), 0.0, 1.0 );  */ 
 		
-	//float fShadow = texture( shadowCubeTex, vec4( L_WS, fD / fRend + 0.05 ) ); //float( abs( fDepthForSM ) < ( fD ) ); 
+	//float fShadow = texture( shadowCubeTex, vec4( L_WS, fDepthForLight -1000 ) ); //float( abs( fDepthForSM ) < ( fD ) ); 
 		
 	L = normalize( L );
 	vec3 H = normalize( normalize( -P ) + L );
@@ -50,7 +50,7 @@ void main( void )
 
 	float NL = max( 0, dot( N, L ) );
 	
-	vec3 v3Color = ( 1.0 - fShadow ) * ( v3LightColor * fFalloff * NL ); //+ specColorN.xyz * fFalloff * 2.0 * pow( max( 0, dot( N, H ) ), specColorN.w * 255.0 ) ); 
+	vec3 v3Color = ( 1.0 - fShadow ) * ( ( v3LightColor * fFalloff * NL ) + specColorN.xyz * fFalloff * 2.0 * pow( max( 0, dot( N, H ) ), specColorN.w * 255.0 ) ); 
 
 	
 	if( fShadow > 0.0 )
@@ -59,10 +59,11 @@ void main( void )
 	else
 		color = vec4( 0.0, 1.0, 0.0, 1.0 ); 
 
+	color = vec4( 1.0 - fShadow ); 
 	
-	
+	//color = vec4( ( fDepthForSM - fDepthForLight ) * ( fDepthForSM - fDepthForLight ) );   
 	//color = vec4( textureCube( shadowCubeTex, L_WS ) ).xxxx;
-	//color = vec4( v3Color, 1.0 ); 
+	color = vec4( v3Color, 1.0 ); 
 		
 
 }
