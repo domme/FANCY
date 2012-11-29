@@ -10,7 +10,7 @@ uniform sampler2D colorGloss;
 uniform sampler2D specN;
 uniform sampler2D normals;
 uniform sampler2D depth;
-uniform highp sampler2D posTex;
+//uniform highp sampler2D posTex;
 
 uniform highp samplerCube shadowCubeTex;
 
@@ -18,6 +18,10 @@ uniform vec3 v3LightPosVS;
 uniform vec3 v3LightColor;
 uniform float fRstart;
 uniform float fRend;
+
+uniform float fFar;
+uniform float fNear;
+
 uniform mat4 lightView;
 uniform mat4 lightProj;
 uniform mat4 viewI;
@@ -27,8 +31,8 @@ void main( void )
 {
 	float fGloss = texture2D( colorGloss, tex ).w;
 	float fDepth = texture2D( depth, tex ).x;
-	vec3 P = texture2D( posTex, tex ).xyz; //v3ViewDir * fDepth;
-
+	vec3 P = v3ViewDir * fDepth;
+	
 	vec3 N = normalize( texture2D( normals, tex ).xyz * 2.0 - 1.0 );
 	vec4 specColorN = texture2D( specN, tex );
 
@@ -36,10 +40,10 @@ void main( void )
 	float fD = length( L );
 
 	vec3 L_WS = ( ( viewI * vec4( -L, 0.0 ) ) ).xyz;
-	float fDepthForSM = texture( shadowCubeTex, L_WS ).x;
-	
-	float fDepthForLight = abs( ( fD - 1.0 ) / ( fRend - 1.0 ) );
-	float fShadow = float( fDepthForSM < fDepthForLight - 0.11 ); /* clamp( abs( fDepthForSM - fDepthForLight ), 0.0, 1.0 );  */ 
+	float fDepthForSM = texture( shadowCubeTex, L_WS ).x * fRend;
+
+	float fDepthForLight = fD; 
+	float fShadow = float( fDepthForSM < fDepthForLight - 1.9 ); /* clamp( abs( fDepthForSM - fDepthForLight ), 0.0, 1.0 );  */ 
 		
 	//float fShadow = texture( shadowCubeTex, vec4( L_WS, fDepthForLight -1000 ) ); //float( abs( fDepthForSM ) < ( fD ) ); 
 		
@@ -58,12 +62,15 @@ void main( void )
 
 	else
 		color = vec4( 0.0, 1.0, 0.0, 1.0 ); 
-
-	color = vec4( 1.0 - fShadow ); 
+		
+	
+	//color = vec4( 1.0 - fShadow ); 
 	
 	//color = vec4( ( fDepthForSM - fDepthForLight ) * ( fDepthForSM - fDepthForLight ) );   
 	//color = vec4( textureCube( shadowCubeTex, L_WS ) ).xxxx;
+
 	color = vec4( v3Color, 1.0 ); 
+	
 		
 
 }

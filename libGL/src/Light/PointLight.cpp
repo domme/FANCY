@@ -70,6 +70,7 @@ void PointLight::initShadowmap()
 	m_bShadowmapInitialized = true;
 
 	glEnable(GL_TEXTURE_CUBE_MAP);
+	 glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	//glGenFramebuffers( 6, m_uShadowFBOs );
 	//glGenTextures( 6, m_uShadowDepthTextures );
@@ -80,11 +81,11 @@ void PointLight::initShadowmap()
 
 	glBindFramebuffer( GL_FRAMEBUFFER, m_uShadowmapFBO );
 	glBindTexture( GL_TEXTURE_CUBE_MAP, m_uShadowCubeDepthTex );
-	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_MIRRORED_REPEAT );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0 );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0 );
 	/*glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
@@ -95,7 +96,7 @@ void PointLight::initShadowmap()
 	GLuint depthbuffer;
 	glGenRenderbuffers(1, &depthbuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y );
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y );
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer );
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
@@ -114,7 +115,7 @@ void PointLight::initShadowmap()
 	} */
 	
 	for( int i = 0; i < 6; ++i )
-		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_R32F, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y, 0, GL_RED, GL_FLOAT, NULL );
+		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_LUMINANCE32F_ARB, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y, 0, GL_LUMINANCE, GL_FLOAT, NULL );
 
 	//for( uint i = 0; i < 6; ++i )
 		//glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32F, m_iv2ShadowmapResolution.x, m_iv2ShadowmapResolution.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );

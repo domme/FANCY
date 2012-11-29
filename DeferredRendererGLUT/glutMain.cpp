@@ -271,10 +271,8 @@ void setupScene()
 
 	//Pointlight 1
 	pPointLightNode1 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode" );
-	pPointLightNode1->setTranslation( glm::vec3( 0.4f, -13.0f, -5.7f ) );
-	//pPointLightNode1->setTranslation( glm::vec3( 0.0f, 0.0f, 0.0f ) );
-
-	PointLight* pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 1.0f, 9.5f, 10.0f );
+	pPointLightNode1->setTranslation( glm::vec3( 0.4f, -12.0f, -5.7f ) );
+	PointLight* pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 1.0f, 9.0f, 10.0f );
 	pPointLightNode1->AttatchLight( pPointLight );
 
 	/*
@@ -405,7 +403,7 @@ void reshape( int width, int height )
 
 void onIdle()
 {
-	pPointLightNode1->translate( glm::vec3( -0.02f, 0.0f, 0.0f ) );
+	//pPointLightNode1->translate( glm::vec3( -0.02f, 0.0f, 0.0f ) );
 	glutPostRedisplay();
 }
 

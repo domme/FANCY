@@ -39,7 +39,6 @@ namespace GBuffer
 		Spec,
 		Normal,
 		Depth,
-		Pos,
 
 		num
 	};

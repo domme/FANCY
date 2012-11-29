@@ -270,16 +270,16 @@ void GLDeferredRenderer::updateTextures()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32F, m_uScreenWidth, m_uScreenHeight, 0, GL_RED, GL_FLOAT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_LUMINANCE32F_ARB, m_uScreenWidth, m_uScreenHeight, 0, GL_LUMINANCE, GL_FLOAT, NULL );
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_uGBuffer[ GBuffer::Depth ], 0 );
 
-	glBindTexture( GL_TEXTURE_2D, m_uGBuffer[ GBuffer::Pos ] );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F, m_uScreenWidth, m_uScreenHeight, 0, GL_RGB, GL_FLOAT, NULL );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_uGBuffer[ GBuffer::Pos ], 0 );
+	//glBindTexture( GL_TEXTURE_2D, m_uGBuffer[ GBuffer::Pos ] );
+	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
+	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
+	//glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F, m_uScreenWidth, m_uScreenHeight, 0, GL_RGB, GL_FLOAT, NULL );
+	//glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_uGBuffer[ GBuffer::Pos ], 0 );
 
 	glBindTexture( GL_TEXTURE_2D, m_uDeferredDepthStencilTex );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
@@ -454,7 +454,6 @@ void GLDeferredRenderer::updateTextures()
 	m_pMAT_Pointlight->SetDepthTex( m_uGBuffer[ GBuffer::Depth ] );
 	m_pMAT_Pointlight->SetSpecTex( m_uGBuffer[ GBuffer::Spec ] );
 	m_pMAT_Pointlight->SetNormalTex( m_uGBuffer[ GBuffer::Normal ] );
-	m_pMAT_Pointlight->SetPosTex( m_uGBuffer[ GBuffer::Pos ] );
 
 	m_pMAT_FinalComposite->SetColorGlossTex( m_uGBuffer[ GBuffer::ColorGloss] );
 	m_pMAT_FinalComposite->SetLocalIllumTex( m_uLightingTex_06 );	
@@ -538,8 +537,8 @@ void GLDeferredRenderer::renderShadowMap( PointLight* pLight, SceneManager* pSce
 		//pLight->SetPosition( m_pEngine->GetCurrentCamera()->getPosition() );
 
 		glBindFramebuffer( GL_FRAMEBUFFER, pLight->GetShadowmapFBO() );
-		GLenum drawBufs[] = { GL_NONE, GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT0, GL_NONE };
-		glDrawBuffers( 5, drawBufs );
+		GLenum drawBufs[] = { GL_NONE, GL_NONE, GL_NONE, GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers( 4, drawBufs );
 
 		m_pGLrenderer->setViewport( 0, 0, pLight->GetShadowmapResolution().x, pLight->GetShadowmapResolution().y );
 		
@@ -653,7 +652,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	//G-Buffer Pass
 	//////////////////////////////////////////////////////////////////////////
 	
-	static GLenum eDrawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
+	static GLenum eDrawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 	STATIC_ASSERT( ARRAY_LENGTH( eDrawBuffers ) == GBuffer::num );
 
 	glBindFramebuffer( GL_FRAMEBUFFER, m_uDeferredFBO );
@@ -713,6 +712,9 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 
 	m_pGLrenderer->setCurrLightIndex( 0 );
 	m_pGLrenderer->SetLightModeActive( false );
+
+	//DEBUG:
+	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
 	
 	//////////////////////////////////////////////////////////////////////////

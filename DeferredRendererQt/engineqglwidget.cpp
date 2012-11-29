@@ -21,6 +21,7 @@ static StatsManager*	pStatsGUI;
 static GLRenderer*		pRenderer;
 static SceneNode*		pDirlightNode;
 static SceneNode* pPointLightNode1;
+PointLight* pPointLight;
 
 static int iScreenWidth						= 600;
 static int iScreenHeight					= 800;
@@ -110,10 +111,10 @@ void EngineQGLwidget::setupSibenikScene()
 	//Pointlight 1
 	pPointLightNode1 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode" );
 	pPointLightNode1->setTranslation( glm::vec3( 0.4f, -12.0f, -5.7f ) );
-	PointLight* pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 1.0f, 9.0f, 10.0f );
+	pPointLight = pSceneManager->createPointLight( "Pointlight1", glm::vec3( 0.0f, 0.0f, 1.0f ), 2.0f, 9.0f, 10.0f );
 	pPointLightNode1->AttatchLight( pPointLight );
 
-	
+	///*
 	//Pointlight 2
 	SceneNode* pPointLightNode2 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode2" );
 	pPointLightNode2->setTranslation( glm::vec3( -17.25f, -13.7f, 6.6f ) );
@@ -128,9 +129,10 @@ void EngineQGLwidget::setupSibenikScene()
 
 	//Pointlight 4
 	SceneNode* pPointLightNode4 = pSceneManager->getRootNode()->createChildSceneNode( "PointlightNode4" );
-	pPointLightNode4->setTranslation( glm::vec3( 17.7f, -8.3f, -0.05f ) );
-	PointLight* pPointLight4 = pSceneManager->createPointLight( "Pointlight4", glm::vec3( 1.0f, 1.0f, 1.0f ), 1.2f, 9.0f, 10.0f );
+	pPointLightNode4->setTranslation( glm::vec3( 10.7f, -8.3f, -0.05f ) );
+	PointLight* pPointLight4 = pSceneManager->createPointLight( "Pointlight4", glm::vec3( 1.0f, 1.0f, 1.0f ), 1.2f, 8.5f, 9.0f );
 	pPointLightNode4->AttatchLight( pPointLight4 );
+	//*/
 	
 }
 
@@ -143,9 +145,9 @@ void EngineQGLwidget::setupEngineScene()
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_COLOR_GLOSS );
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );
 	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_DEPTH );
-	//pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_SPECULAR);
+	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_SPECULAR);
 	pEngine->AddDebugTexturePass( TextureSemantics::LIGHTING );
-	//pEngine->AddDebugTexturePass( TextureSemantics::LUMINANCE );
+	pEngine->AddDebugTexturePass( TextureSemantics::LUMINANCE );
 }
 
 
@@ -206,8 +208,20 @@ void EngineQGLwidget::processInputs()
 void EngineQGLwidget::update()
 {
 	pDirlightNode->rotate( 0.005f, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+	static float x = -0.02f;
+	static float fXPos = 0.4f;
 
-	//pPointLightNode1->translate( glm::vec3( -0.04f, 0.0f, 0.04f ) );
+	if( fXPos < -17.0f )
+		x = 0.02f;
+
+	if( fXPos > 0.4f )
+		x = -0.02f;
+
+	fXPos += x;
+		
+	pPointLightNode1->translate( glm::vec3( x, 0.0f, 0.0f ) );
+	pPointLight->SetDirty( true );
+	
 }
 
 void EngineQGLwidget::paintGL()
