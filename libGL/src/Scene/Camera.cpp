@@ -122,22 +122,12 @@ void Camera::SetProjection( const glm::mat4& rNewMatProjection )
 
 void Camera::recalculateMembers()
 {
-	glm::vec4 v4LocalUp = glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f );
-	glm::vec4 v4LocalSide = glm::vec4( 1.0f, 0.0f, 0.0f, 0.0f );
-	glm::vec4 v4LocalView = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
-	glm::vec4 v4LocalPos = glm::vec4( 0.0f, 0.0f, 0.0f, 1.0f );
-
 	glm::mat4 m4ViewInv = GetViewInv();
 
-	glm::vec4 v4TransformedUp = m4ViewInv * v4LocalUp;
-	glm::vec4 v4TransformedSide = m4ViewInv * v4LocalSide;
-	glm::vec4 v4TransformedView = m4ViewInv * v4LocalView;
-	glm::vec4 v4TransformedPos = m4ViewInv * v4LocalPos;
-
-	m_v3Position = glm::vec3( v4TransformedPos.x, v4TransformedPos.y, v4TransformedPos.z ) ;
-	m_v3Side = glm::normalize( glm::vec3( v4TransformedSide.x, v4TransformedSide.y, v4TransformedSide.z ) );
-	m_v3Up = glm::normalize( glm::vec3( v4TransformedUp.x, v4TransformedUp.y, v4TransformedUp.z ) );
-	m_v3View = glm::normalize( glm::vec3( v4TransformedView.x, v4TransformedView.y, v4TransformedView.z ) );
+	m_v3Up		 =	glm::vec3( m4ViewInv[1][0], m4ViewInv[1][1], m4ViewInv[1][2] );
+	m_v3Side	 =	glm::vec3( m4ViewInv[0][0], m4ViewInv[0][1], m4ViewInv[0][2] );
+	m_v3View	 =  -glm::vec3( m4ViewInv[2][0], m4ViewInv[2][1], m4ViewInv[2][2] );
+	m_v3Position =	glm::vec3( m4ViewInv[3][0], m4ViewInv[3][1], m4ViewInv[3][2] );
 }
 
 
@@ -156,6 +146,8 @@ void Camera::RecalculateMatrix()
 {
 	m_matView = glm::lookAt( m_v3Position,  m_v3Position + m_v3View, m_v3Up ); 
 	m_v3Side = glm::normalize( glm::cross( m_v3View, m_v3Up ) );
+
+
 }
 
 AABoundingBox Camera::getWSAABB()

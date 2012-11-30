@@ -22,7 +22,5 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
-  <PropertyGroup>
-    <QTDIR>C:\Qt\4.8.3</QTDIR>
-  </PropertyGroup>
+  <PropertyGroup />
 </Project>

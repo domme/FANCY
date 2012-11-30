@@ -61,6 +61,7 @@ public:
 protected:
 
 	glm::mat4 m_matView;
+	glm::mat4 m_matViewInverse;
 	glm::mat4 m_matProjection;
 	glm::mat4 m_matViewProj;
 	
