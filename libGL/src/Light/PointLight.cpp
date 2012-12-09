@@ -140,7 +140,7 @@ void PointLight::initShadowCamera()
 {
 	//m_clLightViewCamera.SetProjection( glm::perspective( glm::radians( 90.0f ), 1.0f, 1.0f, 100.0f /*m_fFalloffEnd */ ) );
 	//m_clLightViewCamera.InitPerspectiveProjection( glm::radians( 90.0f ), 1.0f, 1.0f, 100.0f );
-	m_clLightViewCamera.InitPerspectiveProjection( 90.0f, 1.0f, 1.0f, m_fFalloffEnd );
+	m_clLightViewCamera.SetProjectionPersp( 90.0f, 1.0f, 1.0f, 1.0f, m_fFalloffEnd );
 	
 	//////////////////////////////////////////////////////////////////////////
 	//Create and store the depth-camera orientations
@@ -198,7 +198,7 @@ void PointLight::PrepareShadowmapPass( int uPassIndex )
 		break;
 	}
 
-	m_clLightViewCamera.InitView( m_v3Position, v3At, v3Up );
+	m_clLightViewCamera.SetView( glm::lookAt( m_v3Position, v3At, v3Up ) );
 	
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + uPassIndex, m_uShadowCubeDepthTex, 0 );
 	
@@ -219,5 +219,5 @@ void PointLight::PostprocessShadowmap()
 
 void PointLight::onPositionChanged()
 {
-	m_clLightViewCamera.InitView( m_v3Position, m_v3Position + glm::vec3( 0.0f, 0.0f, 1.0f ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+	m_clLightViewCamera.SetView( glm::lookAt( m_v3Position, m_v3Position + glm::vec3( 0.0f, 0.0f, 1.0f ), glm::vec3( 0.0f, 1.0f, 0.0f ) ) );
 }

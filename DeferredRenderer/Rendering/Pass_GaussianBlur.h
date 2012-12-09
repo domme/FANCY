@@ -17,7 +17,7 @@ class Pass_GaussianBlur
 
 		void Init( uint uBlurStrength, uint uDestWidth, uint uDestHeight, GLenum eInternalFormat, GLenum eFormat, GLenum eDataType );
 
-		void BlurTextureIntoFBO( GLuint uSrcTexture, GLuint uDestFBO, uint uDestWidth, uint uDestHeight, GLenum eInternalFormat, GLenum eFormat, GLenum eDatatype, GLRenderer* pRenderer, uint uBlurStrength = 3 );
+		void BlurTextureIntoFBO( GLuint uSrcTexture, GLuint uDestFBO, uint uDestWidth, uint uDestHeight, GLenum eInternalFormat, GLenum eFormat, GLenum eDatatype, GLRenderer* pRenderer, Camera* pCamera, uint uBlurStrength = 3 );
 
 	private:
 		Pass_GaussianBlur();

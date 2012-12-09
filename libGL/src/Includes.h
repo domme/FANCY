@@ -36,6 +36,8 @@
 #define BUFFER_OFFSET(i) ( (char*) NULL + (i) )
 
 
+
+
 template<typename T>
 void LOG( T s )
 {
@@ -48,6 +50,18 @@ void LOG( T s )
     std::cout << ss.str();
 #endif
 }
+
+/* For some reason this specialization doesnt work...
+void LOG( glm::vec3 vec )
+{
+	std::stringstream ss;
+	ss << vec.x << " " << vec.y << " " << vec.z;
+
+	LOG( ss.str() );
+} */
+
+
+
 
 template<bool T>
 void staticAssert_impl()

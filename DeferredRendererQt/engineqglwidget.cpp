@@ -83,7 +83,7 @@ void EngineQGLwidget::initializeGL()
 
 	pRenderer = pEngine->GetRenderer();
 
-	pCamera = pEngine->GetCurrentCamera();
+	pCamera = pSceneManager->GetCamera();
 
 	PerformanceCheck::SetCallDelay( 100 );
 	PerformanceCheck::SetEnabled( true );
@@ -253,9 +253,7 @@ void EngineQGLwidget::mouseMoveEvent( QMouseEvent* event )
 	m_iLastMouseY = event->y();
 
 	if( m_bMousePressed )
-		pEngine->GetCurrentCamera()->RotateFromMouseMove( dx, dy );
-
-	
+		pSceneManager->GetCamera()->RotateFromMouseMove( dx, dy );
 }
 
 void EngineQGLwidget::mousePressEvent( QMouseEvent* event )

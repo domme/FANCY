@@ -247,7 +247,7 @@ void initEngine()
 	pSceneManager = new SceneManager();
 	pEngine->SetScene( pSceneManager );
 
-	pCamera = pEngine->GetCurrentCamera();
+	pCamera = pSceneManager->GetCamera();
 	//pCamera->SetProjection( glm::perspectiveFov( glm::radians( 90.0f ), (float) iScreenWidth, (float) iScreenHeight, 1.0f, 200.0f ) );
 
 	for( int i = 0; i < ARRAY_LENGTH( clKeyState.vbKeysDown ); ++i )

@@ -135,7 +135,7 @@ void SceneNode::setRotation( const float fAngle, const glm::vec3& rAxis )
 void SceneNode::updateTransform( const glm::mat4& rParentGlobalMat )
 {
 	m_clMatGlobalTransform = rParentGlobalMat * m_clLocalTransform.getAsMat4(); //apply parent transformation first and then add local transform
-	m_clGlobalTransformChanged.raiseEvent( m_clMatGlobalTransform );
+	m_clGlobalTransformChanged.RaiseEvent( m_clMatGlobalTransform );
 
 	updateChildrenTransforms();
 }
@@ -159,7 +159,7 @@ void SceneNode::updateTransformsFromParent()
 	}
 
 	//Since matrices do not have a compare-functionality and since storing yet another matrix is a waste of memory, just raise the event all the time for now...
-	m_clGlobalTransformChanged.raiseEvent( m_clMatGlobalTransform );
+	m_clGlobalTransformChanged.RaiseEvent( m_clMatGlobalTransform );
 
 	updateChildrenTransforms();
 }

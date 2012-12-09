@@ -53,7 +53,7 @@ public:
 	void										prepareRender();
 	void										render() const;
 
-	EventHandler1Param<const glm::mat4&>		m_clGlobalTransformChanged;
+	Delegate1Param<glm::mat4>					m_clGlobalTransformChanged;
 
 private:
 	SceneNode( const String& name );

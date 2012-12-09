@@ -14,8 +14,8 @@ public:
 	static FullscreenQuad&	getInstance();
 	~FullscreenQuad();
 
-	void					RenderTexture( GLuint uTexture );
-	void					RenderWithMaterial( Material* pMat );
+	void					RenderTexture( GLuint uTexture, Camera* pCamera );
+	void					RenderWithMaterial( Material* pMat, Camera* pCamera );
 
 private:
 	FullscreenQuad();

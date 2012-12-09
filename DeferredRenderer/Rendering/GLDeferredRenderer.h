@@ -52,7 +52,9 @@ class GLDeferredRenderer
 		GLuint GetOutputTexture() const { return m_uFinalCompositeTex_07; }
 		GLuint GetOutputFBO() const { return m_uFinalCompositeFBO_07; }
 		void Init( uint uWidth, uint uHeight, GLRenderer* glRenderer );
-		void SetResolution( uint uWidth, uint uHeight );
+		
+		void OnResolutionChanged( glm::ivec2 vRes );
+
 		void RenderScene( SceneManager* pSceneManager );
 
 	protected:

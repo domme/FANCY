@@ -86,16 +86,17 @@ void GLRenderer::init( uint uWidth, uint uHeight )
 
 	glEnable( GL_TEXTURE_CUBE_MAP );
 
-	
-	SetResolution( uWidth, uHeight );
+	OnResolutionChanged( glm::ivec2( uWidth, uHeight ) );
 }
 
-void GLRenderer::SetResolution( uint uWidth, uint uHeight )
+
+void GLRenderer::OnResolutionChanged( glm::ivec2 iv2Resolution )
 {
-	m_uScreenWidth = uWidth;
-	m_uScreenHeight = uHeight;
-	setViewport( 0, 0, uWidth, uHeight );
+	m_uScreenWidth = iv2Resolution.x;
+	m_uScreenHeight = iv2Resolution.y;
+	setViewport( 0, 0, m_uScreenWidth, m_uScreenHeight );
 }
+
 
 void GLRenderer::setDepthTest( bool bEnable )
 {
@@ -606,17 +607,17 @@ void GLRenderer::prepareFrameRendering( const Camera* pCamera, const glm::mat4& 
 
 			case FRUSTUM_NEAR:
 				{
-					UniformUtil::UpdateUniforms( rvUniforms, pCamera->getNearPlane() );
+					UniformUtil::UpdateUniforms( rvUniforms, pCamera->GetNearPlane() );
 				} break;
 
 			case FRUSTUM_FAR:
 				{
-					UniformUtil::UpdateUniforms( rvUniforms, pCamera->getFarPlane() );
+					UniformUtil::UpdateUniforms( rvUniforms, pCamera->GetFarPlane() );
 				} break;
 
 			case FRUSTUM_YFOV:
 				{
-					UniformUtil::UpdateUniforms( rvUniforms, pCamera->getFovRad() );
+					UniformUtil::UpdateUniforms( rvUniforms, pCamera->GetFovRad() );
 				} break;
 
 			case SCREEN_WIDTH:
@@ -685,7 +686,7 @@ void GLRenderer::prepareFrameRendering( const Camera* pCamera, const glm::mat4& 
 
 			case CAMERAPOSWORLD:
 				{
-					UniformUtil::UpdateUniforms( rvUniforms, pCamera->getPosition() );
+					UniformUtil::UpdateUniforms( rvUniforms, pCamera->GetPosition() );
 				} break;
 
 		} //end switch

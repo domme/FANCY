@@ -12,8 +12,6 @@ m_pDeferredRenderer( NULL ),
 m_fCurrentFPS( 0.0f ), 
 m_uCurrentElapsedTicksMS( 0 ),
 m_uCurrentFrameCount( 0 ),
-m_pRenderCamera( NULL ),
-m_pCameraController( NULL ),
 m_pRenderer( NULL ),
 m_pScene( NULL ),
 m_uNumMeshes( 1 ),
@@ -25,7 +23,6 @@ m_eVolumeMode( Engine::VOLUMES_SHOW_BOTH )
 
 Engine::~Engine()
 {
-	SAFE_DELETE( m_pRenderCamera ); 
 	SAFE_DELETE( m_pScene );
 }
 
@@ -39,9 +36,6 @@ Engine& Engine::GetInstance()
 void Engine::Update( const uint elapsedTicksMS )
 {
 	UpdateFPS( elapsedTicksMS );
-	
-	//m_pCameraController->Update();
-	m_pRenderCamera->Update( elapsedTicksMS );
 }
 
 
@@ -81,24 +75,16 @@ void Engine::Init( uint uScreenWidth, uint uScreenHeight, const glm::vec4& v4Amb
 	
 	PathService::SetResourceLocation( "..\\..\\Resources\\" );
 
-	//Initialize a default camera for the scene. The camera can be overwritten from anywhere in the engine though
-	m_pRenderCamera = new Camera();
-	m_pRenderCamera->InitPerspectiveProjection( 60.0f, ( (float) uScreenWidth / (float) uScreenHeight ) , 1.0f, 200.0f );
-
-    glm::vec3 v3Eye( 0.0f, 0.0f, 0.0f );
-	glm::vec3 v3At( 0.0f, 0.0f, -1.0f );
-	glm::vec3 v3Up( 0.0f, 1.0f, 0.0f );
-
-	m_pRenderCamera->InitView( v3Eye, v3At, v3Up );
-
 	//m_pCameraController = &CameraController::getInstance();
 	//m_pCameraController->Init( m_pRenderCamera );
 
 	m_pRenderer = &GLRenderer::GetInstance();
 	m_pRenderer->init( uScreenWidth, uScreenHeight );
+	//AddResolutionListener<GLRenderer>( m_pRenderer, &GLRenderer::OnResolutionChanged );
 
 	m_pDeferredRenderer = &GLDeferredRenderer::GetInstance();
 	m_pDeferredRenderer->Init( m_uScreenWidth, m_uScreenHeight, m_pRenderer );
+	//AddResolutionListener<GLDeferredRenderer>( m_pDeferredRenderer, (*m_pDeferredRenderer).OnResolutionChanged ); 
     
 	m_bInitialized = true;
 }
@@ -111,9 +97,13 @@ void Engine::SetResolution( uint uWidth, uint uHeight )
 	m_uScreenWidth = uWidth;
 	m_uScreenHeight = uHeight;
 
-	m_pRenderer->SetResolution( uWidth, uHeight );
-	m_pDeferredRenderer->SetResolution( uWidth, uHeight );
-	m_pRenderCamera->InitPerspectiveProjection( 60.0f, ( (float) uWidth / (float) uHeight ) , 1.0f, 200.0f );
+	//m_delegateResolutionChanged.raiseEvent( glm::ivec2( uWidth, uHeight ) );
+
+	//TODO: add them to the resolution-event instead!
+	glm::ivec2 newRes ( uWidth, uHeight ); 
+	m_pRenderer->OnResolutionChanged( newRes );
+	m_pDeferredRenderer->OnResolutionChanged( newRes );
+	m_pScene->OnResolutionChanged( newRes );
 }
 
 glm::mat4* Engine::GetWorldMat()
@@ -121,10 +111,6 @@ glm::mat4* Engine::GetWorldMat()
 	return &m_gMatWorld;
 }
 
-Camera* Engine::GetCurrentCamera()
-{
-	return m_pRenderCamera;
-}
 
 
 void Engine::UpdateFPS( const uint elapsedTicksMS )
@@ -145,3 +131,9 @@ float Engine::GetFPS()
 {
 	return m_fCurrentFPS;
 }
+
+//template<typename ObjectT>
+//int Engine::AddResolutionListener( ObjectT* pListener, void (ObjectT::*callbackFunc) (glm::vec2) )
+//{
+//	m_delegateResolutionChanged.registerListener( pListener, callbackFunc );
+//}

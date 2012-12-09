@@ -7,6 +7,7 @@
 #include "UniformRegistry.h"
 #include "../Light/Light.h"
 #include "Managers/TextureManager.h"
+#include "../Events/Events.h"
 
 //#include "../Light/Light.h"
 
@@ -25,7 +26,10 @@ public:
 	void InitMesh( Mesh* pMesh );
 	void InitVolumeMesh( VolumeMesh* pVolumeMesh );
 	void init( uint uWidth, uint uHeight );
-	void SetResolution( uint uWidth, uint uHeight );
+	//void SetResolution( uint uWidth, uint uHeight );
+
+	void OnResolutionChanged( glm::ivec2 iv2Resolution );
+	//ListenerSingleParam<GLRenderer> GetResolutionChangedListener() { return ListenerSingleParam<GLRenderer>( this, OnResolutionChanged ); }
 
 	bool	GetLightModeActive() const { return m_bActiveLightMode; }
 	void	SetLightModeActive( bool bActive ) { m_bActiveLightMode = bActive; }

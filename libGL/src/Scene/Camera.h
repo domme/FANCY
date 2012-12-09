@@ -10,80 +10,70 @@ class DLLEXPORT Camera
 	friend class CameraController;
 
 public:
-
-	struct SFrustumPlane
-	{
-		float a;
-		float b;
-		float c;
-		float d;
-	};
-
 	Camera();
 	virtual ~Camera();
 
-	void InitView( const glm::vec4& _v4Eye, const glm::vec4& _v4At, const glm::vec4& _v4UserUpDir );
-	void InitView( const glm::vec3& _v3Eye, const glm::vec3& _v3At, const glm::vec3& _v3UserUpDir );
-	void InitPerspectiveProjection( const float fFov, const float fRatio, const float fNear, const float fFar );
-	void InitPerspectiveProjection( float fLeft, float fRight, float fBottom, float fTop, float fNear, float fFar );
-	void InitOrthogonalProjection( float fLeft, float fRight, float fBottom, float fTop, float fDummyFarPlane );
-	void InitOrthogonalProjection( float l, float r, float b, float t, float n, float f );
-
-	void MoveForward( float fSpeed );
-	void MoveSideways( float fSpeed );
-
-	const glm::mat4& GetView() const { return m_matView; }
-	const glm::mat4& GetProjection() const { return m_matProjection; }
-	const glm::mat4 GetViewProjection() const { return m_matViewProj; }
-	const glm::vec3& getPosition() const { return m_v3Position; }
-	glm::mat4 const GetViewInvT() const { return glm::transpose( glm::inverse( m_matView ) ); }
-	glm::mat4 const GetViewInv() const { return glm::inverse( m_matView ); }
-	glm::mat4 const GetViewInvInvT() const { return glm::inverse( GetViewInvT() ); }
-	glm::mat4 const GetViewT() const { return glm::transpose( m_matView ); }
-
-	void SetView( const glm::mat4& rNewMatView );
-	void SetProjection( const glm::mat4& rNewMatProjection );
-	void SetFarPlane( float fFar ) { m_fFar = fFar; }
-	float getFarPlane() const { return m_fFar; }
-	float getNearPlane() const { return m_fNear; }
-	float getFovRad() const { return glm::radians( m_fFov ); }
-	float getFovDeg() const { return m_fFov; }
-	const SFrustumPlane* getFrustumPlanes() const { return m_FrustumPlanes; }
-	AABoundingBox getWSAABB();
-	std::vector<glm::vec3> getWSfrustumCorners();
-
-	void Update( const uint elapsedTicksMS );
-
-	bool IsVisible( const BoundingSphere& rSphereWS );
-
-	void RotateFromMouseMove( float dx, float dy );
-		
-protected:
-
-	glm::mat4 m_matView;
-	glm::mat4 m_matViewInverse;
-	glm::mat4 m_matProjection;
-	glm::mat4 m_matViewProj;
+	const glm::mat4&		GetView() const						{ return m_matView; }
+	const glm::mat4&		GetProjection() const				{ return m_matProjection; }
+	const glm::mat4			GetViewProjection() const			{ return m_matViewProj; }
+	glm::mat4 const			GetViewInvT() const					{ return glm::transpose( glm::inverse( m_matView ) ); }
+	glm::mat4 const			GetViewInv() const					{ return glm::inverse( m_matView ); }
+	glm::mat4 const			GetViewInvInvT() const				{ return glm::inverse( GetViewInvT() ); }
+	glm::mat4 const			GetViewT() const					{ return glm::transpose( m_matView ); }
+	void					SetFarPlane( float fFar )			{ m_fFar = fFar; }
+	float					GetFarPlane() const					{ return m_fFar; }
+	float					GetNearPlane() const				{ return m_fNear; }
+	float					GetFovRad() const					{ return glm::radians( m_fFovDeg ); }
+	float					GetFovDeg() const					{ return m_fFovDeg; }
+	float					GetAspectRatio() const				{ return m_fWidth / m_fHeight; }
 	
-	glm::vec3 m_v3View;
-	glm::vec3 m_v3Position;
-	glm::vec3 m_v3Up;
-	glm::vec3 m_v3Side;
+	glm::vec3				GetPosition() const;
+	glm::vec3				GetSide() const;
+	glm::vec3				GetForward() const;
+	glm::vec3				GetUp() const;
+	void					SetPosition( const glm::vec3& v3Pos );
+	void					MoveForward( float fSpeed );
+	void					MoveSideways( float fSpeed );
+	void					SetView( const glm::mat4& rNewMatView );
+	bool					IsVisible( const BoundingSphere& rSphereWS );
+	void					SetProjectionPersp( float yFov_deg, float fWidth, float fHeight, float fNear, float fFar );
+	void					SetProjectionOrtho( float fLeft, float fRight, float fBottom, float fTop, float fNear, float fFar ); 
+	AABoundingBox			getWSAABB();
+	std::vector<glm::vec3>	getWSfrustumCorners();
+	void					RotateFromMouseMove( float dx, float dy );
+	void					SetOrientation( const glm::vec3& v3Side, const glm::vec3& v3Up, const glm::vec3& v3Forward );
+		
+private:
+	enum EFrusumPlane
+	{
+		PLANE_LEFT = 0,
+		PLANE_RIGHT,
+		PLANE_BOTTOM,
+		PLANE_TOP,
+		PLANE_NEAR,
+		PLANE_FAR
+	};
 
-	float		m_fFov;
-
+	glm::mat4	m_matView;
+	glm::mat4	m_matViewInverse;
+	glm::mat4	m_matProjection;
+	glm::mat4	m_matViewProj;
+	
+	float		m_fFovDeg;
 	float		m_fFar;
 	float		m_fNear;
 	float		m_fMovementSpeed;
-	SFrustumPlane m_FrustumPlanes[ 6 ];
+	glm::vec4	m_v4FrustumPlanesVS[ 6 ];
+	float		m_fFocalLength;
+	bool		m_bIsOrtho;
+	float		m_fWidth;
+	float		m_fHeight;
 
-	void CheckOriantationMatrix( const uint elapsedTicksMS );
-	void RecalculateMatrix();
-	void UpdateViewProj() { m_matViewProj = m_matProjection * m_matView; }
-	void UpdateFrustumPlanes();
-	void recalculateMembers();
+	void		updateFrustumPlanes();
+	void		paramsChanged();
+	void		rotateViewQuat( const float angle, const glm::vec3 v3Axis );
 	
-	void RotateViewQuat( const float angle, const glm::vec3 v3Axis );
+
 };
 
 #endif

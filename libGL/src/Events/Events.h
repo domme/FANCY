@@ -3,28 +3,55 @@
 
 #include "../includes.h"
 
+/**********************************************************************//**
+* This header-file includes different types of events and event-handlers for different
+* parameters.
+* In this event-system, each Listener-class should store a Listener-Object
+* as a member-variable. This Listener is used as an adapter which encapsulates
+* the pointer to the listener-object and the member-function pointer to call back.
+* The Listener-Adapter object should be stored to ensure unregistration can be done.
+************************************************************************/
+
+/**********************************************************************//**
+* The Base-Listener is used as a common base-type for all kinds of 
+* object-types with the same parameter in their callback-functions
+************************************************************************/
 template <typename Param1T>
-class BaseEvent
+class BaseListener1
 {
 	public:
-		virtual void raiseEvent( Param1T param ) = 0;
+		virtual void Notify( const Param1T& param ) = 0;
 };
 
 
-
+/**********************************************************************//**
+* The Listener1 is the template for the actual Listener-Adapter
+************************************************************************/
 template<typename ObjectT, typename Param1T>
-class Event1Param : public BaseEvent<Param1T>
+class Listener1 : public BaseListener1<Param1T>
 {
-	typedef void (ObjectT::*CallbackFuncT ) ( Param1T );
+	typedef void (ObjectT::*CallbackFuncT ) ( const Param1T& );
 
 	public:
-		Event1Param(ObjectT* pObject, CallbackFuncT pCallbackFunc )
+		Listener1() : 
+		  m_pCallbackFunc( 0 ), m_pListenerObject( NULL ), BaseListener1<Param1T>()
+		{
+
+		}
+
+		Listener1( ObjectT* pObject, CallbackFuncT pCallbackFunc ) :
+			m_pCallbackFunc( 0 ), m_pListenerObject( NULL ), BaseListener1<Param1T>()
+		{
+			Init( pObject, pCallbackFunc );
+		}
+
+		void Init( ObjectT* pObject, CallbackFuncT pCallbackFunc )
 		{
 			m_pCallbackFunc = pCallbackFunc;
 			m_pListenerObject = pObject;
 		}
 
-		virtual void raiseEvent( Param1T param )
+		virtual void Notify( const Param1T& param )
 		{
 			(m_pListenerObject->*m_pCallbackFunc)( param );
 		}
@@ -36,49 +63,38 @@ class Event1Param : public BaseEvent<Param1T>
 };
 
 
+/**********************************************************************//**
+* The Delegate is the Event-Manager and allows registering/unregistering
+* Listeners.
+************************************************************************/
 template<typename Param1T>
-class EventHandler1Param
+class Delegate1Param
 {
 	public:
-		EventHandler1Param() : m_iCount( 0 )
+		void RegisterListener( BaseListener1<Param1T>* pListener )
 		{
-
+			if( std::find( m_vListeners.begin(), m_vListeners.end(), pListener ) == m_vListeners.end() )
+				m_vListeners.push_back( pListener );
 		}
 
-		template<typename ObjectT>
-		int registerListener( ObjectT* pObject, void (ObjectT::*CallbackFuncT ) ( Param1T ) )
+		void UnregisterListener( BaseListener1<Param1T>* pListener )
 		{
-			m_mapListeners[ m_iCount ] = (new Event1Param<ObjectT, Param1T >( pObject, CallbackFuncT ) );
-			return m_iCount++;
+			std::vector<BaseListener1<Param1T>*>::iterator it;
+			it = std::find( m_vListeners.begin(), m_vListeners.end(), pListener );
+			if( it != m_vListeners.end() )
+				m_vListeners.erase( it );
 		}
 
-		bool unregisterListener( int iIndex )
+		void RaiseEvent( const Param1T& param )
 		{
-			typename std::map<int, BaseEvent<Param1T>*>::iterator it;
-			it = m_mapListeners.find( iIndex );
-			if( it != m_mapListeners.end() )
+			for( uint i = 0; i < m_vListeners.size(); ++i )
 			{
-				delete it->second;
-				m_mapListeners.erase( it );
-				return true;
-			}
-
-			return false;
-		}
-
-		void raiseEvent( Param1T param )
-		{
-			typename std::map<int, BaseEvent<Param1T>*>::iterator it;
-			it = m_mapListeners.begin();
-			for( ; it != m_mapListeners.end(); it++ )
-			{
-				it->second->raiseEvent( param );
+				m_vListeners[ i ]->Notify( param );
 			}
 		}
 
 	private:
-		std::map<int, BaseEvent<Param1T>*> m_mapListeners;
-		int m_iCount;
+		std::vector<BaseListener1<Param1T>*> m_vListeners;
 };		
 
 

@@ -70,21 +70,21 @@ void FullscreenQuad::init()
 	m_pMesh->Create( pVertexInfo, m_pMaterial, vertexPos );
 }
 
-void FullscreenQuad::RenderTexture( GLuint uTexture )
+void FullscreenQuad::RenderTexture( GLuint uTexture, Camera* pCamera )
 {
 	static glm::mat4 matIdentity;
 	
 	m_pMaterial->SetTexture( uTexture );
-	m_pEngine->GetRenderer()->RenderMesh( m_pMesh, matIdentity, matIdentity, m_pEngine->GetCurrentCamera() );
+	m_pEngine->GetRenderer()->RenderMesh( m_pMesh, matIdentity, matIdentity, pCamera );
 }
 
 
-void FullscreenQuad::RenderWithMaterial( Material* pMat  )
+void FullscreenQuad::RenderWithMaterial( Material* pMat, Camera* pCamera )
 {
 	static glm::mat4 matIdentity;
 
 	m_pMesh->SetMaterial( pMat );
-	m_pEngine->GetRenderer()->RenderMesh( m_pMesh, matIdentity, matIdentity, m_pEngine->GetCurrentCamera(), pMat, pMat->GetShader() );
+	m_pEngine->GetRenderer()->RenderMesh( m_pMesh, matIdentity, matIdentity, pCamera, pMat, pMat->GetShader() );
 	m_pMesh->SetMaterial( m_pMaterial );
 }
 

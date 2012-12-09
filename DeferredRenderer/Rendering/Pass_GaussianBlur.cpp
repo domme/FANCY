@@ -196,7 +196,7 @@ void Pass_GaussianBlur::createGaussAndOffsetTex()
 }
 
 
-void Pass_GaussianBlur::BlurTextureIntoFBO( GLuint uSrcTexture, GLuint uDestFBO, uint uDestWidth, uint uDestHeight, GLenum eInternalFormat, GLenum eFormat, GLenum eDatatype, GLRenderer* pRenderer, uint uBlurStrength /* = 3 */ )
+void Pass_GaussianBlur::BlurTextureIntoFBO( GLuint uSrcTexture, GLuint uDestFBO, uint uDestWidth, uint uDestHeight, GLenum eInternalFormat, GLenum eFormat, GLenum eDatatype, GLRenderer* pRenderer, Camera* pCamera, uint uBlurStrength /* = 3 */ )
 {
 	if( m_uWidth			!= uDestWidth ||
 		m_uHeight			!= uDestHeight ||
@@ -230,11 +230,11 @@ void Pass_GaussianBlur::BlurTextureIntoFBO( GLuint uSrcTexture, GLuint uDestFBO,
 	glBindFramebuffer( GL_FRAMEBUFFER, m_uTempFBO );
 	m_clBlurMat.SetInputTexture( uSrcTexture );
 	m_clBlurMat.SetSamplingDirection( ESamplingDirection::DIRECTION_HORIZONTAL );
-	m_pFSquad->RenderWithMaterial( &m_clBlurMat );
+	m_pFSquad->RenderWithMaterial( &m_clBlurMat, pCamera );
 
 	//2nd Pass: Blur Vertical into Dest-FBO
 	glBindFramebuffer( GL_FRAMEBUFFER, uDestFBO );
 	m_clBlurMat.SetInputTexture( m_uTempTex );
 	m_clBlurMat.SetSamplingDirection( ESamplingDirection::DIRECTION_VERTICAL );
-	m_pFSquad->RenderWithMaterial( &m_clBlurMat );
+	m_pFSquad->RenderWithMaterial( &m_clBlurMat, pCamera );
 }

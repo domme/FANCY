@@ -12,7 +12,7 @@ m_pNode( 0 ),
 m_bEnabled( true ),
 m_bVisible( true )
 {
-
+	m_clTransformChangedListenerAdapter.Init( this, &BaseRenderableObject::onTransformChanged ); 
 }
 
 
@@ -93,7 +93,7 @@ bool BaseRenderableObject::attatchToNode( SceneNode* const pNode, uint16 u16Atta
 	//here is obsolete...
 	m_pNode = pNode;
 
-	m_iTransformChangedListenerID = pNode->m_clGlobalTransformChanged.registerListener<BaseRenderableObject>(this, &BaseRenderableObject::onTransformChanged );
+	pNode->m_clGlobalTransformChanged.RegisterListener( &m_clTransformChangedListenerAdapter );
 
 	onAttatchedToNode();
 	return true;
@@ -105,8 +105,8 @@ void BaseRenderableObject::detatch()
 	{
 		return;
 	}
-	
-	m_pNode->m_clGlobalTransformChanged.unregisterListener( m_iTransformChangedListenerID );
+
+	m_pNode->m_clGlobalTransformChanged.UnregisterListener( &m_clTransformChangedListenerAdapter );
 	m_pNode = NULL;
 }
 

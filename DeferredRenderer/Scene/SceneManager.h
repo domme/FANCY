@@ -37,6 +37,9 @@ class DLLEXPORT  SceneManager
 		SceneManager();
 		virtual ~SceneManager();
 
+
+		void									OnResolutionChanged( glm::ivec2 res ); 
+
 		Entity*									CreateEntity( Mesh* pMesh );
 		//Entity*									CreateEntity( const String& szName, const String& szModelFileNameRelative );
 		PointLight*								createPointLight( const String& szName, const glm::vec3& v3LightColor = glm::vec3( 1.0f, 1.0f, 1.0f ) , float fIntenisty = 1.0f, float fFalloffDistanceStart = 10.0f, float fFalloffDistanceEnd = 80.0f );
@@ -64,6 +67,11 @@ class DLLEXPORT  SceneManager
 		float									getMaxSceneSize() const				{ return m_fMaxSceneSize; }
 		String									GenerateNextUniqueMeshName();
 		void									AddLightToRenderCache( Light* pLight, SceneNode* pNode );
+		void									SetCamera( Camera* pCamera )		{ m_pCamera = pCamera; }
+		Camera*									GetCamera()							{ return m_pCamera; }
+		const Camera*							GetCamera() const					{ return m_pCamera; }
+
+
 		
 	private:
 		void									 generalInit();
@@ -81,14 +89,17 @@ class DLLEXPORT  SceneManager
 		std::vector<Light*>						m_vCachedLights;
 		float									m_fMaxSceneSize;
 		uint									m_uGenericMeshCounter;
-
+		
 		std::vector<PointLight*>				m_vCachedPointLights;
 		std::vector<DirectionalLight*>			m_vCachedDirectionalLights;
 		std::vector<SpotLight*>					m_vChachedSpotLights;
 		std::vector<Entity*>					m_vCachedRenderObjects;
 		std::vector<VolumeEntity*>				m_vCachedVolumeObjects;
 
+
 		AABoundingBox							m_clSceneBounds;
+
+		Camera*									m_pCamera;
 };
 
 

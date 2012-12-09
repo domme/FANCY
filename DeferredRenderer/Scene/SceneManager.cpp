@@ -9,7 +9,13 @@
 
 SceneManager::SceneManager() :
 m_fMaxSceneSize( 0 ),
-m_uGenericMeshCounter( 0 )
+m_uGenericMeshCounter( 0 ),
+m_pCamera( NULL ),
+m_pRootNode( NULL ),
+m_pLightRegistry( NULL ),
+m_pNodeRegistry( NULL ),
+m_pObjectRegistry( NULL ),
+m_clSceneBounds( glm::vec3( -1.0f, -1.0f, -1.0f ), glm::vec3( 1.0f, 1.0f, 1.0f ) )
 {
 	generalInit();
 }
@@ -19,6 +25,9 @@ SceneManager::~SceneManager()
 	m_pObjectRegistry->destroyRegistry();
 	m_pNodeRegistry->destroyRegistry();
 	m_pLightRegistry->destroyRegistry();
+
+	SAFE_DELETE( m_pRootNode );
+	SAFE_DELETE( m_pCamera ); 
 }
 
 void SceneManager::generalInit()
@@ -31,7 +40,20 @@ void SceneManager::generalInit()
 	m_pRootNode = new SceneNode( "root" );
 	m_pRootNode->SetScene( this ); 
 	m_pNodeRegistry->registerObject( m_pRootNode->getName(), m_pRootNode );	
+
+	m_pCamera = new Camera();
+	glm::vec3 v3Eye( 0.0f, 0.0f, 0.0f );
+	glm::vec3 v3At( 0.0f, 0.0f, -1.0f );
+	glm::vec3 v3Up( 0.0f, 1.0f, 0.0f );
+	m_pCamera->SetView( glm::lookAt( v3Eye, v3At, v3Up ) );
 }
+
+
+void SceneManager::OnResolutionChanged( glm::ivec2 res )
+{
+	m_pCamera->SetProjectionPersp( 60.0f, (float) res.x, (float) res.y, 1.0f, 200.0f );
+}
+
 
 void SceneManager::prepareRender()
 {

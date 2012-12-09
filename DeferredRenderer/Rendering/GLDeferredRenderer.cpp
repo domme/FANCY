@@ -156,22 +156,24 @@ void GLDeferredRenderer::Init( uint uWidth, uint uHeight, GLRenderer* glRenderer
 	m_pMAT_Bloom = new MAT_FSquad_Bloom();
 	m_pMAT_Bloom->Init();
 
-	SetResolution( uWidth, uHeight );
+	OnResolutionChanged( glm::ivec2( uWidth, uHeight ) );
 
 	//TEST
 	//m_uDicomTestImage = TextureLoader::GetInstance().LoadTexture3D( "Textures/Volumes/HeadTorso/HeadTorso", 100, 460, "pbm" );	
 	//m_uDicomTestImage = TextureLoader::GetInstance().LoadTexture2D( "Textures/Volumes/HeadTorso/HeadTorso001.pbm" );
 }
 
-void GLDeferredRenderer::SetResolution( uint uWidth, uint uHeight )
+
+void GLDeferredRenderer::OnResolutionChanged( glm::ivec2 vRes )
 {
-	m_uScreenWidth = uWidth;
-	m_uScreenHeight = uHeight;
+	m_uScreenWidth = vRes.x;
+	m_uScreenHeight = vRes.y;
 
 	updateTextures();
 
 	updatePostproMaterials();
 }
+
 
 void GLDeferredRenderer::updatePostproMaterials()
 {
@@ -566,7 +568,7 @@ void GLDeferredRenderer::renderShadowMap( DirectionalLight* pLight, SceneManager
 
 void GLDeferredRenderer::renderDirLight( DirectionalLight* pLight, SceneManager* pScene, Camera* pCamera )
 {
-	m_pFSquad->RenderWithMaterial( m_pMAT_Dirlight );
+	m_pFSquad->RenderWithMaterial( m_pMAT_Dirlight, pCamera );
 }
 
 void GLDeferredRenderer::renderPointLight( PointLight* pLight, SceneManager* pScene, Camera* pCamera )
@@ -598,13 +600,13 @@ void GLDeferredRenderer::renderPointLight( PointLight* pLight, SceneManager* pSc
 	m_pGLrenderer->setDepthTest( false );
 
 	m_pMAT_Pointlight->SetShadowCubeTex( pLight->GetShdowCubeMap() );
-	m_pFSquad->RenderWithMaterial( m_pMAT_Pointlight );
+	m_pFSquad->RenderWithMaterial( m_pMAT_Pointlight, pCamera );
 }
 
 
 void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 {
-	Camera* pCamera = m_pEngine->GetCurrentCamera();
+	Camera* pCamera = pSceneManager->GetCamera();
 	const glm::vec4& clearColor = m_pEngine->GetClearColor();
 	PerformanceCheck clPerfCheck;
 
@@ -646,7 +648,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	//////////////////////////////////////////////////////////////////////////
 		
 	//Update all global uniforms to render from the viewer-camera
-	CHECK_PERFORMANCE( m_pGLrenderer->prepareFrameRendering( m_pEngine->GetCurrentCamera(), pSceneManager->getRootNode()->getGlobalTransformMAT() ), "UpdateGlobalUniforms" ); //Recalculate and Update per-frame ("global") Uniforms
+	CHECK_PERFORMANCE( m_pGLrenderer->prepareFrameRendering( pSceneManager->GetCamera(), pSceneManager->getRootNode()->getGlobalTransformMAT() ), "UpdateGlobalUniforms" ); //Recalculate and Update per-frame ("global") Uniforms
 
 	//////////////////////////////////////////////////////////////////////////
 	//G-Buffer Pass
@@ -731,7 +733,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
 	
 
-	CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_FinalComposite ), "Final before Postpro" );
+	CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_FinalComposite, pCamera ), "Final before Postpro" );
 
 	GLuint uSceneTexture = 0;
 	GLuint uSceneFBO = 0;
@@ -760,20 +762,20 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 		m_pGLrenderer->saveViewport();
 		m_pGLrenderer->setViewport( 0, 0, uBLURTEX_WIDTH, uBLURTEX_HEIGHT );
 		glBindFramebuffer( GL_FRAMEBUFFER, m_uBrightPassFBO_02 );
-		m_pFSquad->RenderWithMaterial( m_pMAT_BrightPass );
+		m_pFSquad->RenderWithMaterial( m_pMAT_BrightPass, pCamera );
 
 		//Blur in several passes
-		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBrightPassTex_02, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, 5 ), "Blur1" );
-		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, 5 ), "Blur2" );
-		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, 5 ), "Blur3" );
-		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, 5 ), "Blur4" );
+		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBrightPassTex_02, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur1" );
+		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur2" );
+		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur3" );
+		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur4" );
 
 		m_pGLrenderer->restoreViewport();
 
 		//Apply the actual bloom
 		glBindFramebuffer( GL_FRAMEBUFFER, m_uFinalBeforeTonemapFBO_08 );
 		
-		CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_Bloom ), "Bloom" );
+		CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_Bloom, pCamera ), "Bloom" );
 	}
 
 	else
@@ -810,7 +812,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 		m_pGLrenderer->setViewport( 0, 0, 512, 512 );
 		glBindFramebuffer( GL_FRAMEBUFFER, m_uFinalLuminanceFBO_03 );
 		glClear( GL_COLOR_BUFFER_BIT );
-		CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_LumaTimeAdaption ), "LumaAdaption" );
+		CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_LumaTimeAdaption, pCamera ), "LumaAdaption" );
 		m_pGLrenderer->restoreViewport();
 
 		//Generate Mipmaps for the Final luminance Texture
@@ -822,7 +824,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 	//Tonemapping and gamma correction
 	glBindFramebuffer( GL_FRAMEBUFFER, m_uFinalTonemapFBO_09 );
 	glClear( GL_COLOR_BUFFER_BIT );
-	CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_ToneMap ), "Tonemap and Gamma correction" );
+	CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_ToneMap, pCamera ), "Tonemap and Gamma correction" );
 	//////////////////////////////////////////////////////////////////////////
 
 	//////////////////////////////////////////////////////////////////////////
@@ -833,11 +835,11 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 
 	if( m_pGLrenderer->GetFXAAenabled() )
 	{
-		CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_FXAA ), "FXAA" );
+		CHECK_PERFORMANCE( m_pFSquad->RenderWithMaterial( m_pMAT_FXAA, pCamera ), "FXAA" );
 	}
 
 	else
-		m_pFSquad->RenderTexture( m_uFinalTonemappedTex_09 );
+		m_pFSquad->RenderTexture( m_uFinalTonemappedTex_09, pCamera );
 
 
 	//m_pFSquad->RenderTexture( vPointLights[ 0 ]->GetShdowCubeMap() );
@@ -862,7 +864,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 			m_pGLrenderer->setViewport( uElementWidth * uIdx, 0, uElementWidth, uElementHeight ); 
 
 			if( eSemantic < TextureSemantics::TEX_3D_DSM)
-				m_pFSquad->RenderTexture( m_pTextureManager->LookupTexture( eSemantic ) );
+				m_pFSquad->RenderTexture( m_pTextureManager->LookupTexture( eSemantic ), pCamera );
 		}
 
 		m_pGLrenderer->restoreViewport();

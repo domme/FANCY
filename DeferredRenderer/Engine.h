@@ -38,11 +38,7 @@ public:
 		VOLUMES_SHOW_BOTH,
 	};
 
-	enum ECameraChangeMode 
-	{
-		CHANGE_TEMPORAL, //don't update the Camera controller
-		CHANGE_PERMANENT,
-	};
+	
 
 
 	static Engine&	GetInstance();
@@ -51,17 +47,7 @@ public:
 	virtual void			Render( const uint elapsedTicksMS );
 	void					Init(  uint uScreenWidth, uint uScreenHeight ,const glm::vec4& v4AmbientColor, const glm::vec4& v4ClearColor, float fClearDepth );
 	glm::mat4*				GetWorldMat();
-	Camera*					GetCurrentCamera();
-	void					SetCurrentCamera( Camera* const pCam, ECameraChangeMode eChangeMode = CHANGE_TEMPORAL )
-							{
-								if( eChangeMode == CHANGE_PERMANENT )
-								{
-									m_pCameraController->setControlledCamera( pCam );
-								}
-
-								m_pRenderCamera = pCam;
-							}
-
+	
 	GLRenderer*				GetRenderer() { return m_pRenderer; }
 	float					GetFPS();
 	const glm::vec4&		GetAmbientLightColor() const { return m_v4AmbientColor; }
@@ -96,42 +82,15 @@ public:
 	void					SetVolumeMode( EVolumeMode eVolMode ) { m_eVolumeMode = eVolMode; }
 	EVolumeMode				GetVolumeMode() const { return m_eVolumeMode; } 
 
-		
-
-	template<typename ObjectT>
-	int RegisterKeyDownListener( ObjectT* pListener, void (ObjectT::*callbackFunc) (uint16) )
-	{
-		//TODO: Reimplement!
-		return -1;
-	}
-
-	static bool UnregisterKeyDownListener( int id )
-	{
-		//TODO: Reimplement!
-		return false;
-	}
-
-
-	template<typename ObjectT>
-	int RegisterKeyClickedListener( ObjectT* pListener, void (ObjectT::*callbackFunc) (uint16) )
-	{
-		//TODO: Reimplement!
-		return -1;
-	}
-
-	static bool UnregisterKeyClickedListener( int id )
-	{
-		//TODO: Reimplement!
-		return false;
-	}
+//	template<typename ObjectT>
+	//int						AddResolutionListener( ObjectT* pListener, void (ObjectT::*callbackFunc) (glm::vec2) );
+	
 
 private:
 	Engine();
 	~Engine();	
 
 	glm::mat4			m_gMatWorld;
-	Camera*				m_pRenderCamera;
-	CameraController*	m_pCameraController;
 	SceneManager*		m_pScene;
 	GLRenderer*			m_pRenderer;
 
@@ -153,15 +112,15 @@ private:
 	EVolumeMode			m_eVolumeMode;
 	GLDeferredRenderer* m_pDeferredRenderer;
 	
-	
-
 	bool				m_bInitialized;
-
-
-	
 
 	std::vector<SDebugTexturePass> m_vDebugTexturePasses;
 
+//	DelegateSingleParam<glm::ivec2> m_delegateResolutionChanged;
+
 };
+
+
+
 
 #endif
