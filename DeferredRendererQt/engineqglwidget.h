@@ -45,6 +45,7 @@ protected:
 	virtual void keyPressEvent ( QKeyEvent* event );
 	virtual void keyReleaseEvent ( QKeyEvent* event );
 	void setupSibenikScene();
+	void setupTestScene();
 private:
 	QTime m_clRenderTime;
 	QTimer m_clFPStimer;

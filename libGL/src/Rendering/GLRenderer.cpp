@@ -834,7 +834,7 @@ void GLRenderer::RenderMesh( Mesh* pMesh, const glm::mat4& matModel, const glm::
 		pShader = pMaterial->GetShader();
 
 	prepareMeshRendering( pMesh, matModel, matWorld, pCamera, pMaterial, pShader, pLight );
-	
+
 	const VertexDeclaration* pVertexInfo = pMesh->GetVertexInfo();
 	const std::vector<VertexElement>& vVertexElements = pVertexInfo->GetVertexElements();
 	

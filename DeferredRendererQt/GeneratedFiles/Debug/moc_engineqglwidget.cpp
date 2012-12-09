@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'engineqglwidget.h'
 **
-** Created: Fri 30. Nov 09:24:46 2012
+** Created: Sun 9. Dec 17:53:24 2012
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.3)
 **
 ** WARNING! All changes made in this file will be lost!

@@ -273,8 +273,22 @@ void Camera::updateFrustumPlanes()
 	}
 }
 
-bool Camera::IsVisible( const BoundingSphere& rSphereWS )
+bool Camera::IsVisible( const BoundingSphere& rSphereWS ) const
 {
+	BoundingSphere bSphereVS = rSphereWS * m_matView;
+
+	//1) Cull if behind camera
+	if( bSphereVS.getCenterPoint().z > bSphereVS.getRadius() )
+		return false;
+
+	//2) Cull if behind far plane
+	if( glm::abs( bSphereVS.getCenterPoint().z ) - m_fFar > bSphereVS.getRadius() )
+		return false;
+
+	//3) Cull if in front of near plane
+	if( bSphereVS.getCenterPoint().z < 0.0f && m_fNear - glm::abs( bSphereVS.getCenterPoint().z ) > bSphereVS.getRadius() )
+		return false;
+
 	return true;
 }
 

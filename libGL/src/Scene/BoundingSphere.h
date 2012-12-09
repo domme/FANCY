@@ -15,7 +15,7 @@ public:
 	~BoundingSphere();
 	
 	//Operators
-	BoundingSphere operator*( const glm::mat4& matTransform ) const;
+	const BoundingSphere operator*( const glm::mat4& matTransform ) const;
 
 
 	const glm::vec3& getCenterPoint() const  { return m_vCenter; }

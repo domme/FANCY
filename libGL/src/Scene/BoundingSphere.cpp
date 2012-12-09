@@ -17,7 +17,7 @@ AABoundingBox BoundingSphere::getAABB() const
 	return returnBox;
 }
 
-BoundingSphere BoundingSphere::operator* ( const glm::mat4& matTransform ) const
+const BoundingSphere BoundingSphere::operator* ( const glm::mat4& matTransform ) const
 {
 	BoundingSphere resultSphere;
 	glm::vec4 v4Center = matTransform * glm::vec4( m_vCenter, 1.0f );
@@ -25,9 +25,9 @@ BoundingSphere BoundingSphere::operator* ( const glm::mat4& matTransform ) const
 	resultSphere.m_vCenter.y = v4Center.y;
 	resultSphere.m_vCenter.z = v4Center.z;
 
-	//get the scaling factor of this matrix - assuming a uniform scaling!
-	float fScaleFact = matTransform[ 0 ][ 0 ];
-	resultSphere.m_fRadius = m_fRadius * fScaleFact;
+	//Note: ignore scaling for now
+	resultSphere.m_fRadius = m_fRadius;
+
 	return resultSphere;
 }
 

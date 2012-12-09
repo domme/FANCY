@@ -500,8 +500,13 @@ void GLDeferredRenderer::renderEntity( Entity* pEntity, const SceneManager* pSce
 	if( !pShader )
 		return;
 
+	if( !pCamera->IsVisible( pMesh->GetBoundingSphere() ) )
+	{
+		LOG( "Mesh culled" );
+		return;
+	}
+
 	const glm::mat4& matModel = pEntity->getNode()->getLocalTransform().getAsMat4();
-		
 	m_pGLrenderer->RenderMesh( pMesh, matModel, pScene->getRootNode()->getGlobalTransformMAT(), pCamera, pMesh->GetMaterial(), pShader );
 }
 

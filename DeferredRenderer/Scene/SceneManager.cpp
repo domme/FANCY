@@ -51,7 +51,7 @@ void SceneManager::generalInit()
 
 void SceneManager::OnResolutionChanged( glm::ivec2 res )
 {
-	m_pCamera->SetProjectionPersp( 60.0f, (float) res.x, (float) res.y, 1.0f, 200.0f );
+	m_pCamera->SetProjectionPersp( 60.0f, (float) res.x, (float) res.y, 1.0f, 50.0f );
 }
 
 

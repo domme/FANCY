@@ -14,14 +14,14 @@
 
 #include "Scene/SceneManager.h"
 
-static Engine*			pEngine;
-static SceneManager*	pSceneManager;
-static Camera*			pCamera;
-static StatsManager*	pStatsGUI;
-static GLRenderer*		pRenderer;
-static SceneNode*		pDirlightNode;
-static SceneNode* pPointLightNode1;
-PointLight* pPointLight;
+static Engine*			pEngine = NULL;
+static SceneManager*	pSceneManager = NULL;
+static Camera*			pCamera = NULL;
+static StatsManager*	pStatsGUI = NULL;
+static GLRenderer*		pRenderer = NULL;
+static SceneNode*		pDirlightNode = NULL;
+static SceneNode* pPointLightNode1 = NULL;
+PointLight* pPointLight = NULL;
 
 static int iScreenWidth						= 600;
 static int iScreenHeight					= 800;
@@ -98,10 +98,22 @@ void EngineQGLwidget::initializeGL()
 	m_bGLcontextReady = true;
 }
 
+void EngineQGLwidget::setupTestScene()
+{
+	//pSceneManager->LoadAssetIntoScene( "Models/Test_LightCamera.dae" );
+	pSceneManager->LoadAssetIntoScene( "Models/Test_Culling.dae" );
+	pCamera->SetPosition( glm::vec3( 0.0f, 2.0f, 50.0f ) );
+
+	pDirlightNode = pSceneManager->getRootNode()->createChildSceneNode( "DirlightNode" );
+	pDirlightNode->setRotation( PI/4.0f, glm::vec3( 1.0f, 0.0f, 0.0f ) );
+	DirectionalLight* pDirLight = pSceneManager->createDirectionalLight( "DirLight1", glm::vec3( 1.0f, 1.0f, 1.0f ), 0.2f );
+	pDirlightNode->AttatchLight( pDirLight );
+}
+
 void EngineQGLwidget::setupSibenikScene()
 {
 	pSceneManager->LoadAssetIntoScene( "Models/Sibenik/sibenik_omme.dae" );
-
+	
 	//Dir light
 	pDirlightNode = pSceneManager->getRootNode()->createChildSceneNode( "DirlightNode" );
 	pDirlightNode->setRotation( PI/4.0f, glm::vec3( 1.0f, 0.0f, 0.0f ) );
@@ -140,7 +152,8 @@ void EngineQGLwidget::setupSibenikScene()
 void EngineQGLwidget::setupEngineScene()
 {
 	//pSceneManager->LoadAssetIntoScene( "Models/Test_LightCamera.dae" );
-	setupSibenikScene();
+	//setupSibenikScene();
+	setupTestScene();
 
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_COLOR_GLOSS );
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );
@@ -207,7 +220,10 @@ void EngineQGLwidget::processInputs()
 
 void EngineQGLwidget::update()
 {
-	pDirlightNode->rotate( 0.005f, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+	if( pDirlightNode )
+		pDirlightNode->rotate( 0.005f, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+
+
 	static float x = -0.02f;
 	static float fXPos = 0.4f;
 
@@ -218,9 +234,13 @@ void EngineQGLwidget::update()
 		x = -0.02f;
 
 	fXPos += x;
-		
-	pPointLightNode1->translate( glm::vec3( x, 0.0f, 0.0f ) );
-	pPointLight->SetDirty( true );
+	
+	if( pPointLight && pPointLightNode1 )
+	{
+		pPointLightNode1->translate( glm::vec3( x, 0.0f, 0.0f ) );
+		pPointLight->SetDirty( true );
+	}
+	
 	
 }
 

@@ -35,7 +35,7 @@ public:
 	void					MoveForward( float fSpeed );
 	void					MoveSideways( float fSpeed );
 	void					SetView( const glm::mat4& rNewMatView );
-	bool					IsVisible( const BoundingSphere& rSphereWS );
+	bool					IsVisible( const BoundingSphere& rSphereWS ) const;
 	void					SetProjectionPersp( float yFov_deg, float fWidth, float fHeight, float fNear, float fFar );
 	void					SetProjectionOrtho( float fLeft, float fRight, float fBottom, float fTop, float fNear, float fFar ); 
 	AABoundingBox			getWSAABB();
