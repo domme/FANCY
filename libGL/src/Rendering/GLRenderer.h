@@ -44,7 +44,7 @@ public:
 	void setDepthTest( bool bEnable );
 	void setDepthFunc( GLenum func );
 	void setDepthMask( GLboolean bMask ); 
-	void setColorMask( bool bR, bool bG, bool bB, bool bA );
+	void setColorMask( GLboolean bR, GLboolean bG, GLboolean bB, GLboolean bA );
 	void setStencilTest( bool bEnable );
 	void setStencilFunc( GLenum func, GLint ref, GLuint mask );
 	void setStencilOp( GLenum stencilFail, GLenum depthFail, GLenum depthPass );

@@ -501,7 +501,7 @@ void GLDeferredRenderer::renderEntity( Entity* pEntity, const SceneManager* pSce
 		return;
 
 	//Culling
-	if( !pCamera->IsVisible( pMesh->GetBoundingSphere() ) )
+	if( !pCamera->IsVisible( pEntity->getBoundingSphere() * pEntity->getNode()->getGlobalTransformMAT() ) )
 	{
 		//LOG( "Mesh culled" );
 		return;
@@ -861,7 +861,7 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 		float fTargetRatio = ( (float) m_uScreenWidth ) / (float) m_uScreenHeight;
 		uint uScaling = vTexturePasses.size() > 1 ? vTexturePasses.size() : 2;
 		uint uElementWidth = m_uScreenWidth / uScaling;
-		uint uElementHeight = ( (float) uElementWidth ) / fTargetRatio;
+		uint uElementHeight = static_cast<uint>( ( (float) uElementWidth ) / fTargetRatio );
 
 		for( uint8 uIdx = 0; uIdx < vTexturePasses.size(); ++uIdx )
 		{

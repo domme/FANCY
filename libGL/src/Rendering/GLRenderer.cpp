@@ -224,7 +224,7 @@ void GLRenderer::setDepthMask( GLboolean bMask )
 	m_bDepthMask = bMask;
 }
 
-void GLRenderer::setColorMask( bool bR, bool bG, bool bB, bool bA )
+void GLRenderer::setColorMask( GLboolean bR, GLboolean bG, GLboolean bB, GLboolean bA )
 {
 	if( bR != m_bColorMask_r || 
 		bG != m_bColorMask_g ||

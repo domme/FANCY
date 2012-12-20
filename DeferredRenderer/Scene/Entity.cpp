@@ -69,8 +69,7 @@ void Entity::updateSceneBounds()
 
 const BoundingSphere& Entity::getBoundingSphere()
 {
-	//TODO: Make more efficient! (propably cache it within the same frame?)
-	return ( m_pMesh->GetBoundingSphere() * m_pNode->getGlobalTransformMAT() );
+	return m_pMesh->GetBoundingSphere();
 }
 
 void Entity::destroyEntity()

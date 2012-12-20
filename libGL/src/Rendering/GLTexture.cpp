@@ -62,9 +62,9 @@ void GLTexture::SetTexture( GLuint uGLtexLoc )
 	
 	if( pTexInfo )
 	{
-		m_v3TextureSize.x = pTexInfo->m_uWidth;
-		m_v3TextureSize.y = pTexInfo->m_uHeight;
-		m_v3TextureSize.z = pTexInfo->m_uDepth;
+		m_v3TextureSize.x = static_cast<float>(pTexInfo->m_uWidth);
+		m_v3TextureSize.y = static_cast<float>(pTexInfo->m_uHeight);
+		m_v3TextureSize.z = static_cast<float>(pTexInfo->m_uDepth);
 	}
 		
 	m_bInitialized = true;
@@ -79,9 +79,9 @@ bool GLTexture::SetTexture( const String& szRelativeTexturePath )
 	if( !bSuccess )
 		return false;
 
-	m_v3TextureSize.x = sInfo.m_uWidth;
-	m_v3TextureSize.y = sInfo.m_uHeight;
-	m_v3TextureSize.z = sInfo.m_uDepth;
+	m_v3TextureSize.x = static_cast<float>(sInfo.m_uWidth);
+	m_v3TextureSize.y = static_cast<float>(sInfo.m_uHeight);
+	m_v3TextureSize.z = static_cast<float>(sInfo.m_uDepth);
 
 	GLTextureResourceManager::GetInstance().AddResource( uTexture );
 	
@@ -104,9 +104,9 @@ bool GLTexture::SetTexture3D( const String& szRelativeTextureBasePath, uint uSta
 	if( !bSuccess )
 		return false;
 
-	m_v3TextureSize.x = sInfo.m_uWidth;
-	m_v3TextureSize.y = sInfo.m_uHeight;
-	m_v3TextureSize.z = sInfo.m_uDepth;
+	m_v3TextureSize.x = static_cast<float>(sInfo.m_uWidth);
+	m_v3TextureSize.y = static_cast<float>(sInfo.m_uHeight);
+	m_v3TextureSize.z = static_cast<float>(sInfo.m_uDepth);
 
 	GLTextureResourceManager::GetInstance().AddResource( uTexture );
 

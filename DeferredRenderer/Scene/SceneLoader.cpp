@@ -102,13 +102,13 @@ Material* SceneLoader::processMaterial( const aiScene* pAiScene, const aiMateria
 	paiMaterial->Get( AI_MATKEY_NAME, szName );
 
 	//Determine the Textures defined - and choose the exact type of Engine-Material depending on that
-	uint uNumTexturesDiffuse = paiMaterial->GetTextureCount( aiTextureType::aiTextureType_DIFFUSE );
-	uint uNumTexturesAmbient = paiMaterial->GetTextureCount( aiTextureType::aiTextureType_AMBIENT );
-	uint uNumTexturesNormal = paiMaterial->GetTextureCount( aiTextureType::aiTextureType_NORMALS );
-	uint uNumTexturesSpecular = paiMaterial->GetTextureCount( aiTextureType::aiTextureType_SPECULAR );
-	uint uNumTexturesGloss = paiMaterial->GetTextureCount( aiTextureType::aiTextureType_SHININESS );
+	uint uNumTexturesDiffuse = paiMaterial->GetTextureCount( aiTextureType_DIFFUSE );
+	uint uNumTexturesAmbient = paiMaterial->GetTextureCount( aiTextureType_AMBIENT );
+	uint uNumTexturesNormal = paiMaterial->GetTextureCount( aiTextureType_NORMALS );
+	uint uNumTexturesSpecular = paiMaterial->GetTextureCount( aiTextureType_SPECULAR );
+	uint uNumTexturesGloss = paiMaterial->GetTextureCount( aiTextureType_SHININESS );
 
-	uint uNumTexturesUnknown = paiMaterial->GetTextureCount( aiTextureType::aiTextureType_UNKNOWN );
+	uint uNumTexturesUnknown = paiMaterial->GetTextureCount( aiTextureType_UNKNOWN );
 	if( uNumTexturesUnknown != 0 )
 		LOG( std::string( "WARNING: There are unknown textures defined in Material " ) + std::string( szName.data ) );
 

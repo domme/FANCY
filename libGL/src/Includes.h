@@ -103,7 +103,7 @@ void staticAssert_impl()
 
 
 //DLL-Export MACROS
-#ifdef __WINDOWS
+#if defined(__WINDOWS) && defined(__LIB_DYNAMIC)
 	#define DLLEXPORT __declspec(dllexport)
 #else
 	#define DLLEXPORT 
