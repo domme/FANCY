@@ -1,0 +1,38 @@
+﻿Build started 10/4/2012 9:54:07 PM.
+     1>Project "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\DeferredRendererQt\DeferredRendererQt.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\DeferredRendererQt.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       CustomBuild:
+         Uic'ing deferredrendererqt.ui...
+         Qt: Untested Windows version 6.2 detected!
+         Moc'ing engineqglwidget.h...
+         Qt: Untested Windows version 6.2 detected!
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I.\GeneratedFiles /I. /IC:\Users\paino_000\Documents\Entwicklung\QtSDK\Desktop\Qt\4.8.1\msvc2010\include /I.\GeneratedFiles\Debug /IC:\Users\paino_000\Documents\Entwicklung\QtSDK\Desktop\Qt\4.8.1\msvc2010\include\QtCore /IC:\Users\paino_000\Documents\Entwicklung\QtSDK\Desktop\Qt\4.8.1\msvc2010\include\QtGui /IC:\Users\paino_000\Documents\Entwicklung\QtSDK\Desktop\Qt\4.8.1\msvc2010\include\QtOpenGL /Zi /nologo /W1 /WX- /Od /Oy- /D UNICODE /D WIN32 /D QT_LARGEFILE_SUPPORT /D QT_DLL /D QT_CORE_LIB /D QT_GUI_LIB /D QT_OPENGL_LIB /Gm- /EHsc /MDd /GS /fp:precise /Zc:wchar_t- /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt GeneratedFiles\Debug\moc_deferredrendererqt.cpp GeneratedFiles\Debug\moc_engineqglwidget.cpp deferredrendererqt.cpp engineqglwidget.cpp main.cpp
+         moc_deferredrendererqt.cpp
+         moc_engineqglwidget.cpp
+         deferredrendererqt.cpp
+         engineqglwidget.cpp
+         main.cpp
+         Generating Code...
+         All outputs are up-to-date.
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\Win32\Debug\\DeferredRendererQt.exe" /NOLOGO /LIBPATH:C:\Users\paino_000\Documents\Entwicklung\QtSDK\Desktop\Qt\4.8.1\msvc2010\lib qtmaind.lib QtCored4.lib QtGuid4.lib QtOpenGLd4.lib opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\DeferredRendererQt.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\Win32\Debug\DeferredRendererQt.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\Win32\Debug\DeferredRendererQt.lib" /MACHINE:X86 Debug\deferredrendererqt.obj
+         Debug\engineqglwidget.obj
+         Debug\moc_deferredrendererqt.obj
+         Debug\moc_engineqglwidget.obj
+         Debug\qrc_deferredrendererqt.obj
+         Debug\main.obj
+         LINK : C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\Win32\Debug\\DeferredRendererQt.exe not found or not built by the last incremental link; performing full link
+     1>qtmaind.lib(qtmain_win.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'qtmaind.lib(qtmain_win.obj)' or at 'C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\Win32\Debug\vc100.pdb'; linking object as if no debug info
+         DeferredRendererQt.vcxproj -> C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\Win32\Debug\DeferredRendererQt.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\Win32\Debug\\DeferredRendererQt.exe;#1" /manifest Debug\DeferredRendererQt.exe.intermediate.manifest
+       FinalizeBuildStatus:
+         Deleting file "Debug\DeferredRendererQt.unsuccessfulbuild".
+         Touching "Debug\DeferredRendererQt.lastbuildstate".
+     1>Done Building Project "C:\Users\paino_000\Dropbox\Entwicklung\OpenGL_Apps\DeferredRendererQt\DeferredRendererQt.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:15.61

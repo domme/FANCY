@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'deferredrendererqt.ui'
 **
-** Created: Thu 20. Dec 19:43:37 2012
+** Created: Thu 20. Dec 20:27:18 2012
 **      by: Qt User Interface Compiler version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
