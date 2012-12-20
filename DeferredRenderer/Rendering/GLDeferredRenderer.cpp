@@ -500,9 +500,10 @@ void GLDeferredRenderer::renderEntity( Entity* pEntity, const SceneManager* pSce
 	if( !pShader )
 		return;
 
+	//Culling
 	if( !pCamera->IsVisible( pMesh->GetBoundingSphere() ) )
 	{
-		LOG( "Mesh culled" );
+		//LOG( "Mesh culled" );
 		return;
 	}
 

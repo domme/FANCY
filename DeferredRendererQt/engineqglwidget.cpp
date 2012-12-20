@@ -152,8 +152,8 @@ void EngineQGLwidget::setupSibenikScene()
 void EngineQGLwidget::setupEngineScene()
 {
 	//pSceneManager->LoadAssetIntoScene( "Models/Test_LightCamera.dae" );
-	//setupSibenikScene();
-	setupTestScene();
+	setupSibenikScene();
+	//setupTestScene();
 
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_COLOR_GLOSS );
 	pEngine->AddDebugTexturePass( TextureSemantics::GBUFFER_NORMAL );

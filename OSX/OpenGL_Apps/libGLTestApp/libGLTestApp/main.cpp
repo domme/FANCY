@@ -34,8 +34,6 @@ void init()
     glClearColor( 1.0f, 0.0f, 0.0f, 0.0f );
     
     pRenderer = &GLRenderer::GetInstance();
-
-    
 }
 
 

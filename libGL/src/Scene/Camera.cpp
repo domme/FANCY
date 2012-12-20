@@ -276,17 +276,26 @@ void Camera::updateFrustumPlanes()
 bool Camera::IsVisible( const BoundingSphere& rSphereWS ) const
 {
 	BoundingSphere bSphereVS = rSphereWS * m_matView;
+	const glm::vec3& v3Center = bSphereVS.getCenterPoint();
+	float fRadius = bSphereVS.getRadius();
 
 	//1) Cull if behind camera
-	if( bSphereVS.getCenterPoint().z > bSphereVS.getRadius() )
+	if( v3Center.z > fRadius )
 		return false;
 
 	//2) Cull if behind far plane
-	if( glm::abs( bSphereVS.getCenterPoint().z ) - m_fFar > bSphereVS.getRadius() )
+	if( glm::abs( v3Center.z ) - m_fFar > fRadius )
 		return false;
 
 	//3) Cull if in front of near plane
-	if( bSphereVS.getCenterPoint().z < 0.0f && m_fNear - glm::abs( bSphereVS.getCenterPoint().z ) > bSphereVS.getRadius() )
+	if( v3Center.z < 0.0f && m_fNear - glm::abs( v3Center.z ) > fRadius )
+		return false;
+
+	//4) Cull if outside for all frustum-planes. NOTE/TODO: PLANE_NEAR and PLANE_FAR should be not needed, because they are already accounted for in step 2) and 3)
+	if( glm::dot( v3Center, glm::vec3( m_v4FrustumPlanesVS[ PLANE_LEFT ] ) ) < -fRadius || 
+		glm::dot( v3Center, glm::vec3( m_v4FrustumPlanesVS[ PLANE_RIGHT ] ) ) < -fRadius || 
+		glm::dot( v3Center, glm::vec3( m_v4FrustumPlanesVS[ PLANE_BOTTOM ] ) ) < -fRadius || 
+		glm::dot( v3Center, glm::vec3( m_v4FrustumPlanesVS[ PLANE_TOP ] ) ) < -fRadius )
 		return false;
 
 	return true;
