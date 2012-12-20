@@ -71,7 +71,7 @@
     <ClInclude Include="Scene\SceneNode.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libGL\libGL.vcxproj">
+    <ProjectReference Include="..\fancy_core\fancy_core.vcxproj">
       <Project>{0562febf-6fa8-4abd-8ff9-d7b3b8a889fd}</Project>
     </ProjectReference>
   </ItemGroup>
@@ -110,7 +110,7 @@
     <ClCompile>
       <WarningLevel>Level2</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(FREEGLUT_HOME)\include\GL;$(GLEW_HOME)\include;$(GLM_HOME)\;$(SolutionDir)\libGL\src\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(FREEGLUT_HOME)\include\GL;$(GLEW_HOME)\include;$(GLM_HOME)\;$(SolutionDir)\fancy_core\src\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>__LIB_STATIC;_CRT_SECURE_NO_DEPRECATE;__WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -119,7 +119,7 @@
       <AdditionalDependencies>opengl32.lib;glew32.lib;assimp.lib;libGL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(OutDir)DeferredRenderer.lib $(IntDir) /Y</Command>
+      <Command>xcopy $(OutDir)$(TargetFileName) $(IntDir) /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

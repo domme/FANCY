@@ -111,7 +111,7 @@
       <AdditionalDependencies>opengl32.lib;glew32.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(OutDir)libGL.lib $(IntDir) /Y
+      <Command>xcopy $(OutDir)$(TargetFileName) $(IntDir) /Y
 xcopy $(ASSIMP_HOME)\bin\assimp_release-dll_win32\assimp32.dll $(OutDir) /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
