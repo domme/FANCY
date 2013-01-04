@@ -168,6 +168,9 @@
     <ClInclude Include="src\StdAfx.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\IO\lodepng.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Geometry\BaseGeometryObject.cpp">
@@ -265,6 +268,9 @@
     </ClCompile>
     <ClCompile Include="src\StdAfx.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IO\lodepng.cpp">
+      <Filter>src\IO</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

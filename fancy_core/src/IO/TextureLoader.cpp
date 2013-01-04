@@ -10,6 +10,7 @@
 
 #include "../Includes.h"
 
+#include "lodepng.h"
 
 TextureLoader::TextureLoader()
 {
@@ -143,6 +144,54 @@ GLuint TextureLoader::LoadTexture2D( const String& szPath, bool* pbSuccess /* = 
 	
 	uint uWidth = 0;
 	uint uHeight = 0;
+
+	if( szFileType == "png" )
+	{
+		std::vector<unsigned char> imageData;
+		std::vector<unsigned char> buffer;
+
+		lodepng::load_file( buffer, szAbsPath );
+
+		uint width, height;
+		lodepng::State pngState;
+		pngState.decoder.color_convert = false;
+	//	uint err = lodepng::decode( imageData, width, height, pngState, reinterpret_cast<const unsigned char*>( szAbsPath.c_str() ), static_cast<size_t>( szAbsPath.size() ) );
+		//uint err = lodepng::decode( imageData, width, height, szAbsPath );
+		//uint err = lodepng::decode( imageData, width, height, pngState, vPath );
+		uint err = lodepng::decode( imageData, width, height, pngState, buffer );
+
+		if( err != 0 )
+		{
+			std::stringstream errMsgStream;
+			errMsgStream << lodepng_error_text( err );
+			LOG( std::string( "ERROR: Failed to load Texture: " ) + szPath  + ": " + errMsgStream.str() );
+
+			if( pbSuccess )
+				*pbSuccess = false;
+
+			return GLUINT_HANDLE_INVALID;
+		}
+
+		LodePNGColorMode& color = pngState.info_raw;
+		
+		uWidth = width;
+		uHeight = height;
+
+		glGenTextures( 1, &uTextureLoc );
+
+		glBindTexture( GL_TEXTURE_2D, uTextureLoc );
+		glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, true );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ); 
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		//Pass the actual Texture Data
+		if( color.colortype == LodePNGColorType::LCT_RGB )
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*> ( &imageData[0] ) );
+		else if( color.colortype == LodePNGColorType::LCT_RGBA )
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*> ( &imageData[0] ) );
+
+		glGenerateMipmap( GL_TEXTURE_2D );
+		glBindTexture( GL_TEXTURE_2D, 0 );
+	}
 
 	if( szFileType == "tga" )
 	{

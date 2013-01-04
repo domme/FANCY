@@ -186,6 +186,7 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
     <ClInclude Include="src\Includes.h" />
     <ClInclude Include="src\IO\FileReader.h" />
     <ClInclude Include="src\IO\GLSLpreprocessor.h" />
+    <ClInclude Include="src\IO\lodepng.h" />
     <ClInclude Include="src\IO\ModelLoader.h" />
     <ClInclude Include="src\IO\ModelLoader_LogStream.h" />
     <ClInclude Include="src\IO\PathService.h" />
@@ -229,6 +230,7 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
     <ClCompile Include="src\Geometry\VertexDeclarations.cpp" />
     <ClCompile Include="src\IO\FileReader.cpp" />
     <ClCompile Include="src\IO\GLSLpreprocessor.cpp" />
+    <ClCompile Include="src\IO\lodepng.cpp" />
     <ClCompile Include="src\IO\ModelLoader.cpp" />
     <ClCompile Include="src\IO\PathService.cpp" />
     <ClCompile Include="src\IO\ShaderLoader.cpp" />
