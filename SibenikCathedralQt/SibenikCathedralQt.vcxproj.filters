@@ -55,6 +55,7 @@
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
     <ClCompile Include="DeferredRendererQApp.cpp" />
+    <ClCompile Include="StdAfx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="deferredrendererqt.ui">
@@ -71,5 +72,6 @@
     <ClInclude Include="GeneratedFiles\ui_deferredrendererqt.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="StdAfx.h" />
   </ItemGroup>
 </Project>

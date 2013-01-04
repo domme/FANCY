@@ -103,7 +103,9 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(FREEGLUT_HOME)\include\GL;$(GLEW_HOME)\include;$(GLM_HOME)\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>__LIB_STATIC;_CRT_SECURE_NO_DEPRECATE;__WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -111,8 +113,8 @@
       <AdditionalDependencies>opengl32.lib;glew32.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(OutDir)$(TargetFileName) $(IntDir) /Y
-xcopy $(ASSIMP_HOME)\bin\assimp_release-dll_win32\assimp32.dll $(OutDir) /Y</Command>
+      <Command>xcopy "$(OutDir)$(TargetFileName)" "$(IntDir)" /Y
+xcopy "$(ASSIMP_HOME)\bin\assimp_release-dll_win32\assimp32.dll" "$(OutDir)" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -217,6 +219,7 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
     <ClInclude Include="src\Services\FBOservice.h" />
     <ClInclude Include="src\Services\GLDebug.h" />
     <ClInclude Include="src\Services\NameRegistry.h" />
+    <ClInclude Include="src\StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Debug\PerformanceCheck.cpp" />
@@ -250,6 +253,10 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
     <ClCompile Include="src\Scene\BoundingSphere.cpp" />
     <ClCompile Include="src\Scene\Camera.cpp" />
     <ClCompile Include="src\Services\NameRegistry.cpp" />
+    <ClCompile Include="src\StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

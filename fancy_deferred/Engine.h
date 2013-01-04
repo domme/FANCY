@@ -59,8 +59,6 @@ public:
 	SceneManager*			GetScene() { return m_pScene; }
 	void					SetScene( SceneManager* pScene ) { m_pScene = pScene; }
 
-
-
 	float					GetClearDepth() const { return m_fClearDepth; }
 	void					SetClearDepth( float d ) { m_fClearDepth = d; }
 

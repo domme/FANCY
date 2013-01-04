@@ -83,6 +83,7 @@
       <Filter>Rendering\Materials</Filter>
     </ClCompile>
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="StdAfx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scene\SceneNode.h">
@@ -167,6 +168,7 @@
       <Filter>Rendering\Materials</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scene">

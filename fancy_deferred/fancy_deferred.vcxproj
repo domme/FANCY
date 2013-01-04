@@ -39,6 +39,9 @@
     <ClCompile Include="Scene\SceneLoader.cpp" />
     <ClCompile Include="Scene\SceneManager.cpp" />
     <ClCompile Include="Scene\SceneNode.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h" />
@@ -69,6 +72,7 @@
     <ClInclude Include="Scene\SceneLoader.h" />
     <ClInclude Include="Scene\SceneManager.h" />
     <ClInclude Include="Scene\SceneNode.h" />
+    <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\fancy_core\fancy_core.vcxproj">
@@ -112,6 +116,10 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(FREEGLUT_HOME)\include\GL;$(GLEW_HOME)\include;$(GLM_HOME)\;$(SolutionDir)\fancy_core\src\;$(ASSIMP_HOME)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>__LIB_STATIC;_CRT_SECURE_NO_DEPRECATE;__WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ForcedUsingFiles>
+      </ForcedUsingFiles>
+      <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -119,7 +127,7 @@
       <AdditionalDependencies>opengl32.lib;glew32.lib;assimp.lib;libGL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(OutDir)$(TargetFileName) $(IntDir) /Y</Command>
+      <Command>xcopy "$(OutDir)$(TargetFileName)" "$(IntDir)" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,6 +136,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

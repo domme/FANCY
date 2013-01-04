@@ -165,6 +165,9 @@
     <ClInclude Include="src\Debug\StatsManager.h">
       <Filter>src\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="src\StdAfx.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Geometry\BaseGeometryObject.cpp">
@@ -259,6 +262,9 @@
     </ClCompile>
     <ClCompile Include="src\Debug\StatsManager.cpp">
       <Filter>src\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StdAfx.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

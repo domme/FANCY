@@ -36,8 +36,6 @@
 #define BUFFER_OFFSET(i) ( (char*) NULL + (i) )
 
 
-
-
 template<typename T>
 void LOG( T s )
 {
