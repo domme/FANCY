@@ -5,7 +5,6 @@
 #include <iostream>
 #include "Materials/Material.h"
 #include "../Geometry/Mesh.h"
-#include "../IO/TextureTGA.h"
 #include "../IO/GLSLpreprocessor.h"
 #include "../IO/PathService.h"
 #include "../IO/ShaderLoader.h"

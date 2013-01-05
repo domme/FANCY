@@ -1,6 +1,4 @@
 #include "TextureLoader.h"
-
-#include "TextureTGA.h"
 #include "../Rendering/Managers/GLResourcePathManager.h"
 
 
@@ -63,50 +61,59 @@ GLuint TextureLoader::LoadTexture1D( const String& szPath, bool* pbSuccess /* = 
 
 	uint uWidth;
 
-	if( szFileType == "tga" )
+	if( szFileType == "png" )
 	{
-		TextureTGA texture;
-		if( !texture.load( szAbsPath ) )
+		std::vector<unsigned char> imageData;
+		std::vector<unsigned char> buffer;
+
+		lodepng::load_file( buffer, szAbsPath );
+
+		uint width, height;
+		lodepng::State pngState;
+		pngState.decoder.color_convert = false;
+		//	uint err = lodepng::decode( imageData, width, height, pngState, reinterpret_cast<const unsigned char*>( szAbsPath.c_str() ), static_cast<size_t>( szAbsPath.size() ) );
+		//uint err = lodepng::decode( imageData, width, height, szAbsPath );
+		//uint err = lodepng::decode( imageData, width, height, pngState, vPath );
+		uint err = lodepng::decode( imageData, width, height, pngState, buffer );
+
+		if( err != 0 )
 		{
-			LOG( std::string( "ERROR: Failed to load Texture: " ) + szPath );
-			return 0;
+			std::stringstream errMsgStream;
+			errMsgStream << lodepng_error_text( err );
+			LOG( std::string( "ERROR: Failed to load Texture: " ) + szPath  + ": " + errMsgStream.str() );
+
+			if( pbSuccess )
+				*pbSuccess = false;
+
+			return GLUINT_HANDLE_INVALID;
 		}
 
-		if( texture.getHeight() > 1 )
-			LOG( "ERROR: Texture " + szPath + " Is no 1D-Texture!" );
+		LodePNGColorMode& color = pngState.info_raw;
 
-		uWidth = texture.getWidth();
+		uWidth = width;
 		
-#ifdef _DEBUG
-		GLDebug::GL_ErrorCheckStart();
-#endif
 		glGenTextures( 1, &uTextureLoc );
 
 		glBindTexture( GL_TEXTURE_1D, uTextureLoc );
-		glTexParameterf( GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ); 
-		glTexParameterf( GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_1D, GL_GENERATE_MIPMAP, true );
+		glTexParameterf( GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ); 
+		glTexParameterf( GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		//Pass the actual Texture Data
-		if( texture.getBitsPerPixel() == 24 )
-			glTexImage1D( GL_TEXTURE_1D, 0, GL_SRGB8, texture.getWidth(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture.getImageData() );
-		else if( texture.getBitsPerPixel() == 32 )
-			glTexImage1D( GL_TEXTURE_1D, 0, GL_SRGB8_ALPHA8, texture.getWidth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture.getImageData() );
-			//glTexImage1D( GL_TEXTURE_1D, 0, GL_RGBA8, texture.getWidth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture.getImageData() );
-		else
-			LOG( "WARNING: Texture " + szPath + " Has an unsupported pixel format!" );
+		if( color.colortype == LCT_RGB )
+			glTexImage1D( GL_TEXTURE_1D, 0, GL_SRGB8, width, 0, GL_RGB, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*> ( &imageData[0] ) );
+		else if( color.colortype == LCT_RGBA )
+			glTexImage1D( GL_TEXTURE_1D, 0, GL_SRGB8_ALPHA8, width, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*> ( &imageData[0] ) );
+		 
+		glGenerateMipmap( GL_TEXTURE_1D );
 		glBindTexture( GL_TEXTURE_1D, 0 );
-		texture.unload();
-
-#ifdef _DEBUG
-		GLDebug::GL_ErrorCheckFinish();
-#endif
-
-		if( pbSuccess )
-			*pbSuccess = true;
 		
 	}
 
 	if( uTextureLoc != GLUINT_HANDLE_INVALID )
 	{
+		if( pbSuccess )
+			*pbSuccess = true;
+
 		STextureInfo sInfo = STextureInfo( uWidth, 1, 1 ); 
 
 		if( pTextureInfo )
@@ -184,49 +191,15 @@ GLuint TextureLoader::LoadTexture2D( const String& szPath, bool* pbSuccess /* = 
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ); 
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 		//Pass the actual Texture Data
-		if( color.colortype == LodePNGColorType::LCT_RGB )
+		if( color.colortype == LCT_RGB )
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*> ( &imageData[0] ) );
-		else if( color.colortype == LodePNGColorType::LCT_RGBA )
+		else if( color.colortype == LCT_RGBA )
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*> ( &imageData[0] ) );
 
 		glGenerateMipmap( GL_TEXTURE_2D );
 		glBindTexture( GL_TEXTURE_2D, 0 );
 	}
 
-	if( szFileType == "tga" )
-	{
-		TextureTGA texture;
-		if( !texture.load( szAbsPath ) )
-		{
-			LOG( std::string( "ERROR: Failed to load Texture: " ) + szPath );
-			
-			if( pbSuccess )
-				*pbSuccess = false;
-
-			return GLUINT_HANDLE_INVALID;
-		}
-
-		uWidth = texture.getWidth();
-		uHeight = texture.getHeight();
-	
-		glGenTextures( 1, &uTextureLoc );
-
-		glBindTexture( GL_TEXTURE_2D, uTextureLoc );
-		glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, true );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ); 
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-		//Pass the actual Texture Data
-		if( texture.getBitsPerPixel() == 24 )
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_SRGB8, texture.getWidth(), texture.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture.getImageData() );
-		else if( texture.getBitsPerPixel() == 32 )
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, texture.getWidth(), texture.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture.getImageData() );
-		else
-			LOG( "WARNING: Texture " + szPath + " Has an unsupported pixel format!" );
-		glGenerateMipmap( GL_TEXTURE_2D );
-		glBindTexture( GL_TEXTURE_2D, 0 );
-		texture.unload();
-	}
-	
 	else if( szFileType == "pfm" )
 	{
 		float* pData = NULL;
@@ -369,84 +342,7 @@ GLuint TextureLoader::LoadTexture3D( const String& szBasePath, uint uStartIndex,
 	LOG( "Loading 3D-Texture " + szBasePath + "..." );
 #endif
 
-	if( szFileType == "tga" )
-	{
-		std::stringstream ss;
-		ss << szAbsPath << uintToPaddedString( uStartIndex, uMaxDigits )  << "." << szFileType;
-
-		String szFinalPath = ss.str();
-
-		TextureTGA tex;
-		if( ! tex.load( szFinalPath ) )
-		{
-			LOG( "Texture " + szFinalPath + " failed to load!" );
-
-			if( pbSuccess )
-				*pbSuccess = false;
-
-			return 0;
-		}
-
-		uHeight = tex.getHeight();
-		uWidth = tex.getWidth();
-				
-		unsigned char* pTexturesData = new unsigned char[ uHeight * uWidth * 3 * uNumTextures ];
-		
-		for( uint uIdx = 0; uIdx < uHeight * uWidth * 3; ++uIdx )
-		{
-			pTexturesData[ uIdx ] = tex.getImageData()[ uIdx ];
-		}
-		tex.unload();
-
-
-		for( uint iImgIndex = uStartIndex + 1, iTexIdx = 1; iImgIndex <= uEndIndex; ++iImgIndex, ++iTexIdx )
-		{
-			std::stringstream ss;
-			ss << szAbsPath << uintToPaddedString( iImgIndex, uMaxDigits ) << "." << szFileType;
-
-			String szFinalPath = ss.str();
-
-			TextureTGA tex;
-			if( ! tex.load( szFinalPath ) )
-			{
-				LOG( "Texture " + szFinalPath + " failed to load!" );
-
-				if( pbSuccess )
-					*pbSuccess = false;
-
-				return 0;
-			}
-
-
-			for( uint uIdx = 0; uIdx < uHeight * uWidth * 3; ++uIdx )
-			{
-				pTexturesData[ uHeight * uWidth * 3 * ( iTexIdx - 1 ) + uIdx ] = tex.getImageData()[ uIdx ];
-			}
-
-			tex.unload();
-		}
-
-#ifdef _DEBUG
-		LOG( "... Finished loading 3D-Texture " + szBasePath );
-#endif
-		glGenTextures( 1, &uTextureLoc);
-		glBindTexture( GL_TEXTURE_3D, uTextureLoc );
-		glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-		glTexImage3D( GL_TEXTURE_3D, 0, GL_SRGB8, uWidth, uHeight, uNumTextures, 0, GL_RGB, GL_UNSIGNED_BYTE, pTexturesData );
-		
-		glBindTexture( GL_TEXTURE_3D, 0 );
-
-		delete( pTexturesData );
-
-		if( pbSuccess )
-			*pbSuccess = true;
-	}
-
-	else if(  szFileType == "pfm" )
+	if(  szFileType == "pfm" )
 	{
 		float* pData = NULL;
 		

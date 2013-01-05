@@ -192,7 +192,6 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
     <ClInclude Include="src\IO\PathService.h" />
     <ClInclude Include="src\IO\ShaderLoader.h" />
     <ClInclude Include="src\IO\TextureLoader.h" />
-    <ClInclude Include="src\IO\TextureTGA.h" />
     <ClInclude Include="src\Light\DirectionalLight.h" />
     <ClInclude Include="src\Light\Light.h" />
     <ClInclude Include="src\Light\PointLight.h" />
@@ -235,7 +234,6 @@ xcopy $(ASSIMP_HOME)\lib\$(Configuration)\assimp32.dll $(OutDir) /Y</Command>
     <ClCompile Include="src\IO\PathService.cpp" />
     <ClCompile Include="src\IO\ShaderLoader.cpp" />
     <ClCompile Include="src\IO\TextureLoader.cpp" />
-    <ClCompile Include="src\IO\TextureTGA.cpp" />
     <ClCompile Include="src\Light\DirectionalLight.cpp" />
     <ClCompile Include="src\Light\Light.cpp" />
     <ClCompile Include="src\Light\PointLight.cpp" />

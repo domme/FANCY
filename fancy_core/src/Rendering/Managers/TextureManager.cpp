@@ -1,5 +1,4 @@
 #include "TextureManager.h"
-#include "../../IO/TextureTGA.h"
 #include "../../IO/PathService.h"
 
 TextureManager& TextureManager::getInstance()

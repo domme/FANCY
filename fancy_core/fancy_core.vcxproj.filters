@@ -75,9 +75,6 @@
     <ClInclude Include="src\IO\TextureLoader.h">
       <Filter>src\IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\IO\TextureTGA.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
     <ClInclude Include="src\Light\DirectionalLight.h">
       <Filter>src\Light</Filter>
     </ClInclude>
@@ -198,9 +195,6 @@
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\IO\TextureLoader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IO\TextureTGA.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\Light\DirectionalLight.cpp">

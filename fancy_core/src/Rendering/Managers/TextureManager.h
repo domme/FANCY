@@ -2,7 +2,6 @@
 #define TEXTUREMANAGER_H
 
 #include "../../includes.h"
-#include "../../IO/TextureTGA.h"
 #include "../TextureSemantics.h"
 //#include "OpenGL_Includes.h"
 
