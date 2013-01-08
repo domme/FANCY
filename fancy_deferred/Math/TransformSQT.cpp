@@ -19,16 +19,10 @@ TransformSQT::~TransformSQT()
 
 TransformSQT::TransformSQT( const glm::mat4& rMat )
 {
-#ifdef MAT_ROW_MAJOR
 	m_v3Translation = glm::vec3( rMat[ 3 ][ 0 ], rMat[ 3 ][ 1 ], rMat[ 3 ][ 2 ] );
-#else
-	m_v3Translation = glm::vec3( rMat[ 0 ][ 3 ], rMat[ 1 ][ 3 ], rMat[ 2 ][ 3 ] );
-#endif
-
 	m_v3Scale = glm::vec3( rMat[ 0 ][ 0 ], rMat[ 1 ][ 1 ], rMat[ 2 ][ 2 ] );
 	m_quatRotation = glm::normalize( glm::quat_cast( rMat ) );
 }
-
 
 
 TransformSQT TransformSQT::concatenate( const TransformSQT& rOtherTransform ) const

@@ -1,11 +1,15 @@
 #include "SceneLoader.h"
 
-
+#include "../Engine.h"
+#include "Scene/Camera.h"
 #include "../Rendering/Materials/MAT_Colored.h"
 #include "../Rendering/Materials/MAT_Test.h"
 #include "../Rendering/Materials/MAT_Textured.h"
 #include "../Rendering/Materials/MAT_TexturedNormal.h"
 #include "../Rendering/Materials/MAT_TexturedNormalSpecular.h"
+#include "Light/Light.h"
+#include "Light/PointLight.h"
+#include "Light/DirectionalLight.h"
 
 static const float fGlobalNormalMod = 1.0f;
 
@@ -33,7 +37,7 @@ SceneNode* SceneLoader::LoadAsset( const String& szModelPath, SceneManager* pSce
 
 	if( !pAiScene )
 	{
-		LOG( String( "Import failed of Scene : " ) + szModelPath );
+		LOG( String( "Import failed of Scene : " ) + szModelPath + ": " + clImporter.GetErrorString() );
 		return NULL;
 	}
 
@@ -50,7 +54,7 @@ SceneNode* SceneLoader::LoadAsset( const String& szModelPath, SceneManager* pSce
 		vpMeshes[ i ] = rModelLoader.ProcessMesh( pAiScene, pAiScene->mMeshes[ i ], szModelPath, vpMaterials, i );
 	}
 
-	SceneNode* pAssetRootNode = new SceneNode( szModelPath );
+	SceneNode* pAssetRootNode = pScene->getRootNode()->createChildSceneNode( szModelPath );
 	processNode( pScene, pAiScene, pAssetRootNode, pAiScene->mRootNode, vpMeshes );
 
 
@@ -65,8 +69,92 @@ SceneNode* SceneLoader::LoadAsset( const String& szModelPath, SceneManager* pSce
 
 	delete[] vpMeshes;
 
+
+	//After loading meshes and materials look for a possible camera to use and lights to set
+	if( pAiScene->HasCameras() )
+	{
+		//Just use the first camera there is for now
+		aiCamera* pAiCam = pAiScene->mCameras[ 0 ];
+		aiNode* pCameraNode = pAiScene->mRootNode->FindNode( pAiCam->mName.C_Str() );
+		glm::mat4 matCameraToWorld = rModelLoader.MatFromAiMat( pCameraNode->mTransformation );
+
+		//glm::mat4 matCameraToWorld( 1.0f );
+
+	/*	aiNode* pCurrNode = pCameraNode;
+		while( pCurrNode != NULL )
+		{
+			matCameraToWorld = rModelLoader.MatFromAiMat( pCurrNode->mTransformation ) * matCameraToWorld;
+			pCurrNode = pCurrNode->mParent;
+		} */
+		
+		float fScreenHeight = Engine::GetInstance().GetScreenHeight();
+		float fScreenWidth = Engine::GetInstance().GetScreenWidth();
+		float fAspect = fScreenWidth / fScreenHeight;
+		float fYfovRad = pAiCam->mHorizontalFOV / fAspect;
+
+		Camera* pCamera = new Camera();
+		pCamera->SetView( glm::inverse( matCameraToWorld ) );
+		pCamera->SetProjectionPersp( glm::degrees( fYfovRad ), fScreenWidth, fScreenHeight, pAiCam->mClipPlaneNear, pAiCam->mClipPlaneFar );
+		
+		pScene->SetCamera( pCamera );
+	}
+
+	if( pAiScene->HasLights() )
+	{
+		for( uint i = 0; i < pAiScene->mNumLights; ++i )
+		{
+			aiLight* paiLight = pAiScene->mLights[ i ];
+			aiNode* paiLightNode = pAiScene->mRootNode->FindNode( paiLight->mName );
+
+			if( !paiLightNode )
+				continue;
+			
+			switch( paiLight->mType )
+			{
+				case aiLightSource_POINT:
+				{
+					String szName = paiLight->mName.C_Str();
+					SceneNode* pNode = pScene->getRootNode()->createChildSceneNode( szName );
+					pNode->setTransform( rModelLoader.MatFromAiMat( paiLightNode->mTransformation ) );
+
+					//Note:
+					//Unfortunately, Assimp does not provide info about intensity or start/end, so these values will either be 
+					//set to a standard value (intensity) or calculated from other info
+					PointLight* pLight = pScene->createPointLight(  szName, 
+																	glm::vec3( paiLight->mColorDiffuse.r, paiLight->mColorDiffuse.g, paiLight->mColorDiffuse.b ),
+																	2.0f,		
+																	0.0f,		
+																	( 1.0f / ( glm::max( paiLight->mAttenuationQuadratic, paiLight->mAttenuationLinear ) ) / 100.0f ) );
+
+					
+					pNode->AttatchLight( pLight );
+				}
+				break;
+
+				case aiLightSource_DIRECTIONAL:
+				{
+					String szName = paiLight->mName.C_Str();
+					SceneNode* pNode = pScene->getRootNode()->createChildSceneNode( szName );
+					pNode->setTransform( rModelLoader.MatFromAiMat( paiLightNode->mTransformation ) );
+
+					//Note:
+					//Unfortunately, Assimp does not provide info about intensity or start/end, so these values will either be 
+					//set to a standard value (intensity) or calculated from other info
+					DirectionalLight* pLight = pScene->createDirectionalLight(  szName, 
+																	glm::vec3( paiLight->mColorDiffuse.r, paiLight->mColorDiffuse.g, paiLight->mColorDiffuse.b ),
+																	0.8f );
+
+					pNode->AttatchLight( pLight );
+				}
+				break;
+
+			};
+		}
+
+	}
+
+
 	clImporter.FreeScene();
-	
 	return pAssetRootNode;
 }
 

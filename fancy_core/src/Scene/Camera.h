@@ -72,6 +72,7 @@ private:
 	void		updateFrustumPlanes();
 	void		paramsChanged();
 	void		rotateViewQuat( const float angle, const glm::vec3 v3Axis );
+
 	
 
 };

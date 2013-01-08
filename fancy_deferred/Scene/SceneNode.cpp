@@ -179,15 +179,7 @@ SceneNode* SceneNode::createChildSceneNode( const std::string& szName )
 	if( registry.isObjectRegistered( szName ) )
 	{
 		SceneNode* pNode = registry.getObject( szName );
-		if( pNode->getParent() == this ) //already a child of this node!
-		{
-			return pNode;
-		}
-
-		else //node exists already but not as a child of this node
-		{
-			return NULL;
-		}
+		return pNode; //Node already exists. (May not be a child of this node though!)
 	}
 
 	else //node non-existent yet

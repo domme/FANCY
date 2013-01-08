@@ -51,7 +51,7 @@ class DLLEXPORT  SceneManager
 
 		std::vector<Entity*>&					GetRenderObjects()					{ return m_vCachedRenderObjects; }
 		std::vector<VolumeEntity*>&				GetVolumeObjects()					{ return m_vCachedVolumeObjects; }
-		const std::vector<Light*>&	getCachedLights()			 const	{ return m_vCachedLights; }
+		const std::vector<Light*>&				getCachedLights()			 const	{ return m_vCachedLights; }
 		const std::vector<PointLight*>&			getCachedPointLights()		 const	{ return m_vCachedPointLights; }
 		const std::vector<DirectionalLight*>&	getCachedDirectionalLights() const	{ return m_vCachedDirectionalLights; }
 		const std::vector<SpotLight*>&			getCachedSpotLights()		 const	{ return m_vChachedSpotLights; }
@@ -67,7 +67,7 @@ class DLLEXPORT  SceneManager
 		float									getMaxSceneSize() const				{ return m_fMaxSceneSize; }
 		String									GenerateNextUniqueMeshName();
 		void									AddLightToRenderCache( Light* pLight, SceneNode* pNode );
-		void									SetCamera( Camera* pCamera )		{ m_pCamera = pCamera; }
+		void									SetCamera( Camera* pCamera )		{ if( m_pCamera ) SAFE_DELETE( m_pCamera ); m_pCamera = pCamera; }
 		Camera*									GetCamera()							{ return m_pCamera; }
 		const Camera*							GetCamera() const					{ return m_pCamera; }
 

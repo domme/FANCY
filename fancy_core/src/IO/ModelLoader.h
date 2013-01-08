@@ -23,11 +23,12 @@ public:
 	Mesh* ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const String& szModelPath, Material** vpMaterials, uint i, bool assignMaterial = true );
 	Assimp::Importer&	GetImporter() { return m_aiImporter; }
 	
-	glm::mat4 MatFromAiMat( const aiMatrix4x4& mat );	
+	glm::mat4 MatFromAiMat( const aiMatrix4x4& mat );
 
 private:
 	ModelLoader();
 	
+
 
 	Assimp::Importer		m_aiImporter;
 	ModelLoader_LogStream	m_clLogStream;

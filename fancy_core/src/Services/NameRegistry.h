@@ -29,7 +29,7 @@ class DLLEXPORT NameRegistry
 		NameRegistry();
 		virtual ~NameRegistry();
 		typedef		std::map<String, object_type*>						ObjectMap;
-		
+				
 		ObjectMap 				m_mapRegistry;
 };
 

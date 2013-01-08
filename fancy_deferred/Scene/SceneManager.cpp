@@ -156,8 +156,6 @@ SceneNode* SceneManager::LoadAssetIntoScene( const String& szPath )
 {
 	SceneNode* pNode = SceneLoader::GetInstance().LoadAsset( szPath, this );
 
-	m_pRootNode->AppendChildSceneNode( pNode );
-
 	return pNode;
 } 
 

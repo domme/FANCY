@@ -146,8 +146,18 @@ void Camera::paramsChanged()
 
 void Camera::RotateFromMouseMove( float dx, float dy )
 {
-	rotateViewQuat( dy, GetSide() );
+	//Ugly hack incoming here...
+	static bool bFistTime = true;
+
+	if( bFistTime )
+	{
+		bFistTime = false;
+		return;
+	}
+	//////////////////////////////////////////////////////////////////////////
+
 	rotateViewQuat( dx, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+	rotateViewQuat( dy, GetSide() );
 }
 
 void Camera::rotateViewQuat( const float angle, const glm::vec3 v3Axis )

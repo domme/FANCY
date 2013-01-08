@@ -20,6 +20,8 @@ public:
 private:
 	SceneLoader(void);
 
+
+
 };
 
 #endif

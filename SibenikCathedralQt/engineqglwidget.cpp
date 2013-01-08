@@ -16,7 +16,6 @@
 
 static Engine*			pEngine = NULL;
 static SceneManager*	pSceneManager = NULL;
-static Camera*			pCamera = NULL;
 static StatsManager*	pStatsGUI = NULL;
 static GLRenderer*		pRenderer = NULL;
 static SceneNode*		pDirlightNode = NULL;
@@ -26,7 +25,7 @@ PointLight* pPointLight = NULL;
 static int iScreenWidth						= 600;
 static int iScreenHeight					= 800;
 static const float PI						= 3.1415926535897932f;
-static const glm::vec4 c_v4AmbientColor		( 0.1f, 0.1f, 0.1f, 1.0f );
+static const glm::vec4 c_v4AmbientColor		( 0.4f, 0.4f, 0.4f, 1.0f );
 static const glm::vec4 c_v4ClearColor		( 0.0f, 0.0f, 0.0f, 0.0f );
 static const bool bUseFrameCap				= false;
 static const unsigned int uFrameMScap		= 16;
@@ -83,7 +82,6 @@ void EngineQGLwidget::initializeGL()
 
 	pRenderer = pEngine->GetRenderer();
 
-	pCamera = pSceneManager->GetCamera();
 
 	PerformanceCheck::SetCallDelay( 100 );
 	PerformanceCheck::SetEnabled( true );
@@ -91,7 +89,8 @@ void EngineQGLwidget::initializeGL()
 
 	pStatsGUI = &StatsManager::GetInstance();
 
-	setupEngineScene();
+	//setupEngineScene();
+	setupTestScene();
 
 	connect( &m_clFPStimer, SIGNAL( timeout() ), this, SLOT( updateGL() ) );
 	m_clFPStimer.start( 16 );
@@ -100,14 +99,13 @@ void EngineQGLwidget::initializeGL()
 
 void EngineQGLwidget::setupTestScene()
 {
-	//pSceneManager->LoadAssetIntoScene( "Models/Test_LightCamera.dae" );
-	pSceneManager->LoadAssetIntoScene( "Models/Test_Culling.dae" );
-	pCamera->SetPosition( glm::vec3( 0.0f, 2.0f, 50.0f ) );
-
-	pDirlightNode = pSceneManager->getRootNode()->createChildSceneNode( "DirlightNode" );
+	pSceneManager->LoadAssetIntoScene( "Models/Test_LightCamera.dae" );
+	//pSceneManager->LoadAssetIntoScene( "Models/BlenderTestExport.dae" );
+	
+	/*pDirlightNode = pSceneManager->getRootNode()->createChildSceneNode( "DirlightNode" );
 	pDirlightNode->setRotation( PI/4.0f, glm::vec3( 1.0f, 0.0f, 0.0f ) );
 	DirectionalLight* pDirLight = pSceneManager->createDirectionalLight( "DirLight1", glm::vec3( 1.0f, 1.0f, 1.0f ), 0.2f );
-	pDirlightNode->AttatchLight( pDirLight );
+	pDirlightNode->AttatchLight( pDirLight ); */
 }
 
 void EngineQGLwidget::setupSibenikScene()
@@ -204,6 +202,7 @@ void EngineQGLwidget::drawStats()
 void EngineQGLwidget::processInputs()
 {
 	float fRealCameraSpeed = fCameraSpeed * pEngine->GetMovementMul();
+	Camera* pCamera = pSceneManager->GetCamera();
 
 	if( bMoveForward )
 		pCamera->MoveForward( fRealCameraSpeed );
