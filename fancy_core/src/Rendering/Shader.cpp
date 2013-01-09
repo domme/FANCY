@@ -362,7 +362,9 @@ IUniform* Shader::createUniformFromDescription( const GLenum& eType, const Strin
 		} break;
 
 	case GL_SAMPLER_CUBE:
+#ifdef __WINDOWS
 	case GL_SAMPLER_CUBE_SHADOW:
+#endif
 		{
 			UniformTextureCube* pUniformImpl = new UniformTextureCube();
 			pUniformImpl->m_iglHandle = iGLlocation;

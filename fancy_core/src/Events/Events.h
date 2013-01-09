@@ -79,7 +79,7 @@ class Delegate1Param
 
 		void UnregisterListener( BaseListener1<Param1T>* pListener )
 		{
-			std::vector<BaseListener1<Param1T>*>::iterator it;
+			typename std::vector<BaseListener1<Param1T>*>::iterator it;
 			it = std::find( m_vListeners.begin(), m_vListeners.end(), pListener );
 			if( it != m_vListeners.end() )
 				m_vListeners.erase( it );

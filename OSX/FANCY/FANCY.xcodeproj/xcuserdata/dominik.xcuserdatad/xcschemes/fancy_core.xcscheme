@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B4F768FF16317FD4000F6603"
-               BuildableName = "libGLtestApp.app"
-               BlueprintName = "libGLtestApp"
-               ReferencedContainer = "container:libGLtestApp.xcodeproj">
+               BlueprintIdentifier = "B46FCD8F169DFE3A00243BA4"
+               BuildableName = "libfancy_core.a"
+               BlueprintName = "fancy_core"
+               ReferencedContainer = "container:FANCY.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,15 +29,6 @@
       buildConfiguration = "Debug">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B4F768FF16317FD4000F6603"
-            BuildableName = "libGLtestApp.app"
-            BlueprintName = "libGLtestApp"
-            ReferencedContainer = "container:libGLtestApp.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </TestAction>
    <LaunchAction
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
@@ -48,15 +39,6 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B4F768FF16317FD4000F6603"
-            BuildableName = "libGLtestApp.app"
-            BlueprintName = "libGLtestApp"
-            ReferencedContainer = "container:libGLtestApp.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -66,15 +48,6 @@
       useCustomWorkingDirectory = "NO"
       buildConfiguration = "Release"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B4F768FF16317FD4000F6603"
-            BuildableName = "libGLtestApp.app"
-            BlueprintName = "libGLtestApp"
-            ReferencedContainer = "container:libGLtestApp.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

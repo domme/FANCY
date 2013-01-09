@@ -4,15 +4,15 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>DeferredRendererQt.xcscheme</key>
+		<key>fancy_core.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>0</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>B453F0BC16220B6B00FBF4C5</key>
+		<key>B46FCD8F169DFE3A00243BA4</key>
 		<dict>
 			<key>primary</key>
 			<true/>
