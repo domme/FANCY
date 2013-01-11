@@ -99,6 +99,10 @@ void Camera::SetPosition( const glm::vec3& v3Pos )
 	m_matView[ 3 ] = glm::vec4( v3ViewSide * -v3Pos.x + v3ViewUp * -v3Pos.y + v3ViewForward * -v3Pos.z, 1.0f ); 
 
 	paramsChanged();
+
+	std::stringstream ss;
+	ss << v3Pos.x << " " << v3Pos.y << " " << v3Pos.z;
+	LOG( ss.str() );
 }
 
 

@@ -117,6 +117,7 @@ typedef glm::uint64				uint64;
 typedef glm::uint8				uint8;
 typedef glm::uint				uint;
 typedef glm::half				float16;
+typedef double                  float64;
 
 
 //typedef VertexDeclarations::PosNormTexTanBitan VertexType;

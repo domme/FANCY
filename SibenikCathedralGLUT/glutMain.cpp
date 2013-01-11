@@ -192,11 +192,13 @@ int main( int argc, char* argv[] )
 */
 
 
+#ifdef __WINDOWS
+    #include <glew.h>
+#endif
 
-#include <glew.h>
-#include <glm\glm.hpp>
-#include <freeglut.h>
+
 #include <Includes.h>
+#include <freeglut.h>
 #include <Rendering/GLRenderer.h>
 #include <Light/Light.h>
 #include <Light/DirectionalLight.h>

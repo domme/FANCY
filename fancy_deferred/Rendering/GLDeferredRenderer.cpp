@@ -38,7 +38,7 @@
 
 #ifdef __WINDOWS
 #include <random>
-#else ifdef __OSX
+#elif defined __OSX
 #include <time.h>
 #endif
 
@@ -133,7 +133,11 @@ void GLDeferredRenderer::Init( uint uWidth, uint uHeight, GLRenderer* glRenderer
 
 
 	m_pPassGaussianBlur = &Pass_GaussianBlur::GetInstance();
+#ifdef __WINDOWS
 	m_pPassGaussianBlur->Init( 5, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT );
+#elif defined __OSX
+    m_pPassGaussianBlur->Init( 5, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F_ARB, GL_RGB, GL_FLOAT );
+#endif
 
 	m_pGLrenderer->setDepthFunc( GL_LESS );
 	m_pGLrenderer->setDepthTest( true );
@@ -302,7 +306,11 @@ void GLDeferredRenderer::updateTextures()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT );
+#ifdef __WINDOWS
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL );
+#elif defined __OSX
+    	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F_ARB, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL );
+#endif
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_uSmall_RGB32F_Tex_01, 0 );
 
 	FBOservice::checkFBOErrors();
@@ -314,8 +322,13 @@ void GLDeferredRenderer::updateTextures()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT );
+#ifdef __WINDOWS
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL );
+#elif defined __OSX
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F_ARB, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL );
+#endif
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_uSmall_RGB32F_Tex_02, 0 );
+
 
 	FBOservice::checkFBOErrors();
 
@@ -370,7 +383,11 @@ void GLDeferredRenderer::updateTextures()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
+#ifdef __WINDOWS
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F, m_uScreenWidth, m_uScreenHeight, 0, GL_RGB, GL_FLOAT, NULL );
+#elif defined __OSX
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F_ARB, m_uScreenWidth, m_uScreenHeight, 0, GL_RGB, GL_FLOAT, NULL );
+#endif
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_uRGB32F_Tex_08, 0 );
 
 	FBOservice::checkFBOErrors();
@@ -400,7 +417,12 @@ void GLDeferredRenderer::updateTextures()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
+#ifdef __WINDOWS
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F, m_uScreenWidth, m_uScreenHeight, 0, GL_RGB, GL_FLOAT, NULL );
+#elif defined __OSX
+    	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F_ARB, m_uScreenWidth, m_uScreenHeight, 0, GL_RGB, GL_FLOAT, NULL );
+#endif
+    
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_uRGB32F_Tex_06, 0 );
 
 	//Use the same depth/Stencil texture as for the G-Buffer FBO
@@ -418,7 +440,11 @@ void GLDeferredRenderer::updateTextures()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
+#ifdef __WINDOWS
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F, m_uScreenWidth, m_uScreenHeight, 0, GL_RGB, GL_FLOAT, NULL );
+#elif defined __OSX
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB32F_ARB, m_uScreenWidth, m_uScreenHeight, 0, GL_RGB, GL_FLOAT, NULL );
+#endif
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_uRGB32F_Tex_07, 0 );
 
 	//Use the same depth/Stencil texture as for the G-Buffer FBO
@@ -771,10 +797,17 @@ void GLDeferredRenderer::RenderScene( SceneManager* pSceneManager )
 		m_pFSquad->RenderWithMaterial( m_pMAT_BrightPass, pCamera );
 
 		//Blur in several passes
+#ifdef __WINDOWS
 		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBrightPassTex_02, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur1" );
 		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur2" );
 		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur3" );
 		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur4" );
+#elif defined __OSX
+        CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBrightPassTex_02, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F_ARB, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur1" );
+		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F_ARB, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur2" );
+		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F_ARB, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur3" );
+		CHECK_PERFORMANCE( m_pPassGaussianBlur->BlurTextureIntoFBO( m_uBloomTex_01, m_uBloomFBO_01, uBLURTEX_WIDTH, uBLURTEX_HEIGHT, GL_RGB32F_ARB, GL_RGB, GL_FLOAT, m_pGLrenderer, pCamera, 5 ), "Blur4" );
+#endif
 
 		m_pGLrenderer->restoreViewport();
 

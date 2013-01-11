@@ -5,13 +5,12 @@
 #include <Rendering/TextureSemantics.h>
 
 #include "Scene/SceneManager.h"
-#include "Scene/CameraController.h"
 
 
 //#include <assimp/aiAnim.h>
 
 class Camera;
-class Renderer;
+class GLRenderer;
 class GLDeferredRenderer;
 
 struct DLLEXPORT SDebugTexturePass

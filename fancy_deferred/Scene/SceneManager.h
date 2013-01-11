@@ -15,6 +15,7 @@ class Light;
 class DirectionalLight;
 class SpotLight;
 class PointLight;
+class VolumeEntity;
 
 struct DLLEXPORT SLightCacheEntry
 {

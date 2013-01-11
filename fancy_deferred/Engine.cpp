@@ -58,7 +58,9 @@ void Engine::Init( uint uScreenWidth, uint uScreenHeight, const glm::vec4& v4Amb
 		return;
 	}
 
+#ifdef __WINDOWS
 	glewInit();
+#endif
 
 	m_uScreenWidth = uScreenWidth;
 	m_uScreenHeight = uScreenHeight;
