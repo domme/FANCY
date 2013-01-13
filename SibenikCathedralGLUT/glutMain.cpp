@@ -193,7 +193,7 @@ int main( int argc, char* argv[] )
 
 
 #ifdef __WINDOWS
-    #include <glew.h>
+    #include <GL/glew.h>
 #endif
 
 

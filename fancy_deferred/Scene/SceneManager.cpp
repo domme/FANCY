@@ -172,6 +172,14 @@ Entity* SceneManager::CreateEntity( Mesh* pMesh )
 	return pNewEntity;
 }
 
+SceneNode* SceneManager::findNode( const String& szName )
+{
+	if( m_pNodeRegistry->isObjectRegistered( szName ) )
+		return m_pNodeRegistry->getObject( szName );
+
+	return NULL;
+}
+
 //Entity* SceneManager::CreateEntity( const String& szName, const String& szModelFileNameRelative )
 //{
 //    if( m_pObjectRegistry->isObjectRegistered( szName ) )

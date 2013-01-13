@@ -76,16 +76,16 @@ SceneNode* SceneLoader::LoadAsset( const String& szModelPath, SceneManager* pSce
 		//Just use the first camera there is for now
 		aiCamera* pAiCam = pAiScene->mCameras[ 0 ];
 		aiNode* pCameraNode = pAiScene->mRootNode->FindNode( pAiCam->mName.C_Str() );
-		glm::mat4 matCameraToWorld = rModelLoader.MatFromAiMat( pCameraNode->mTransformation );
+		
 
-		//glm::mat4 matCameraToWorld( 1.0f );
+		glm::mat4 matCameraToWorld( 1.0f );
 
-	/*	aiNode* pCurrNode = pCameraNode;
+		aiNode* pCurrNode = pCameraNode;
 		while( pCurrNode != NULL )
 		{
 			matCameraToWorld = rModelLoader.MatFromAiMat( pCurrNode->mTransformation ) * matCameraToWorld;
 			pCurrNode = pCurrNode->mParent;
-		} */
+		}
 		
 		float fScreenHeight = Engine::GetInstance().GetScreenHeight();
 		float fScreenWidth = Engine::GetInstance().GetScreenWidth();
@@ -114,11 +114,11 @@ SceneNode* SceneLoader::LoadAsset( const String& szModelPath, SceneManager* pSce
 				case aiLightSource_POINT:
 				{
 					String szName = paiLight->mName.C_Str();
-					SceneNode* pNode = pScene->getRootNode()->createChildSceneNode( szName );
+					SceneNode* pNode = pScene->findNode( szName );
 					pNode->setTransform( rModelLoader.MatFromAiMat( paiLightNode->mTransformation ) );
 
 					//Note:
-					//Unfortunately, Assimp does not provide info about intensity or start/end, so these values will either be 
+					//Unfortunately, Assimp does not prosssvide info about intensity or start/end, so these values will either be 
 					//set to a standard value (intensity) or calculated from other info
 					PointLight* pLight = pScene->createPointLight(  szName, 
 																	glm::vec3( paiLight->mColorDiffuse.r, paiLight->mColorDiffuse.g, paiLight->mColorDiffuse.b ),
@@ -163,6 +163,19 @@ void SceneLoader::processNode( SceneManager* pScene, const aiScene* pAiScene, Sc
 	ModelLoader& rModelLoader = ModelLoader::GetInstance();
 
 	SceneNode* pCurrNode = pNode->createChildSceneNode( String( pAiNode->mName.data ) );
+	
+	/*
+	if( !strcmp( pAiNode->mName.C_Str(), "Scene" ) )
+	{
+		pCurrNode->setTransform( glm::mat4( 1.0f ) );
+
+	}
+	
+	else
+		pCurrNode->setTransform( rModelLoader.MatFromAiMat( pAiNode->mTransformation ) );
+		
+	*/
+
 	pCurrNode->setTransform( rModelLoader.MatFromAiMat( pAiNode->mTransformation ) );
 
 	for( int i = 0; i < pAiNode->mNumMeshes; ++i )

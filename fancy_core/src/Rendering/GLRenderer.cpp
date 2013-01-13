@@ -693,15 +693,14 @@ void GLRenderer::prepareFrameRendering( const Camera* pCamera, const glm::mat4& 
 	} 
 }
 
-void GLRenderer::prepareMeshRendering( Mesh* pMesh, const glm::mat4& matModel, const glm::mat4& matWorld, const Camera* pCamera, Material* pMaterial /*= NULL*/, Shader* pShader /* = NULL */,  const Light* pLight /* = NULL */ )
+void GLRenderer::prepareMeshRendering( Mesh* pMesh, const glm::mat4& matModelWorld, const Camera* pCamera, Material* pMaterial /*= NULL*/, Shader* pShader /* = NULL */,  const Light* pLight /* = NULL */ )
 {
 	using namespace ShaderSemantics;
 
 	const glm::mat4& matView = pCamera->GetView();
 	const glm::mat4& matProj = pCamera->GetProjection();
-	const glm::mat4 matModelWorld = matWorld * matModel;
 	const glm::mat4 matModelWorldViewProj = matProj * matView * matModelWorld;
-	const glm::mat4 matWorldView = matView * matWorld;
+	const glm::mat4 matWorldView = matView;
 	const glm::mat4 matModelWorldView = matView * matModelWorld;
 
 	
@@ -821,7 +820,7 @@ void GLRenderer::prepareMeshRendering( Mesh* pMesh, const glm::mat4& matModel, c
 
 }
 
-void GLRenderer::RenderMesh( Mesh* pMesh, const glm::mat4& matModel, const glm::mat4& matWorld, const Camera* pCamera, Material* pMaterial /* = NULL */, Shader* pShader /* = NULL */, const Light* pLight /* = NULL */ ) 
+void GLRenderer::RenderMesh( Mesh* pMesh, const glm::mat4& matModelWorld, const Camera* pCamera, Material* pMaterial /* = NULL */, Shader* pShader /* = NULL */, const Light* pLight /* = NULL */ ) 
 {
 	if( !pMaterial )
 		pMaterial = pMesh->GetMaterial();
@@ -833,7 +832,7 @@ void GLRenderer::RenderMesh( Mesh* pMesh, const glm::mat4& matModel, const glm::
 	if( !pShader )
 		pShader = pMaterial->GetShader();
 
-	prepareMeshRendering( pMesh, matModel, matWorld, pCamera, pMaterial, pShader, pLight );
+	prepareMeshRendering( pMesh, matModelWorld, pCamera, pMaterial, pShader, pLight );
 
 	const VertexDeclaration* pVertexInfo = pMesh->GetVertexInfo();
 	const std::vector<VertexElement>& vVertexElements = pVertexInfo->GetVertexElements();

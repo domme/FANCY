@@ -20,7 +20,10 @@ TransformSQT::~TransformSQT()
 TransformSQT::TransformSQT( const glm::mat4& rMat )
 {
 	m_v3Translation = glm::vec3( rMat[ 3 ][ 0 ], rMat[ 3 ][ 1 ], rMat[ 3 ][ 2 ] );
-	m_v3Scale = glm::vec3( rMat[ 0 ][ 0 ], rMat[ 1 ][ 1 ], rMat[ 2 ][ 2 ] );
+	m_v3Scale = glm::vec3(	glm::length( glm::vec3( rMat[ 0 ][ 0 ], rMat[ 0 ][ 1 ], rMat[ 0 ][ 2 ] ) ),
+							glm::length( glm::vec3( rMat[ 1 ][ 0 ], rMat[ 1 ][ 1 ], rMat[ 1 ][ 2 ] ) ),
+							glm::length( glm::vec3( rMat[ 2 ][ 0 ], rMat[ 2 ][ 1 ], rMat[ 2 ][ 2 ] ) ) );
+
 	m_quatRotation = glm::normalize( glm::quat_cast( rMat ) );
 }
 
@@ -29,11 +32,11 @@ TransformSQT TransformSQT::concatenate( const TransformSQT& rOtherTransform ) co
 {
 	TransformSQT result;
 	result.setData( *this );
-	
+
 	result.m_v3Translation	+= rOtherTransform.m_v3Translation;
 	result.m_v3Scale		*= rOtherTransform.m_v3Scale;
 	result.m_quatRotation	= glm::normalize( glm::cross( result.m_quatRotation, rOtherTransform.m_quatRotation ) );
-	
+
 	return result;
 }
 
@@ -51,15 +54,8 @@ void TransformSQT::setData( const TransformSQT& rOtherTransform )
 
 const glm::mat4 TransformSQT::getAsMat4() const
 {
-	glm::mat4 returnMat ( 1, 0, 0, 0,
-						  0, 1, 0, 0,
-						  0, 0, 1, 0,
-						  0, 0, 0, 1 );
-	
-	returnMat *= glm::translate( m_v3Translation );
-	returnMat *= glm::scale( m_v3Scale );
-	returnMat *= glm::mat4_cast( m_quatRotation );
-	
+	glm::mat4 returnMat = glm::scale( m_v3Scale ) * glm::mat4_cast( m_quatRotation );
+	returnMat[ 3 ] = glm::vec4( m_v3Translation, 1.0f );
 	return returnMat;
 }
 

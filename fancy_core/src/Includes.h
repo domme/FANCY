@@ -11,7 +11,7 @@
 
 #ifdef __WINDOWS
     #include <Windows.h>
-    #include <glew.h>
+    #include <GL/glew.h>
     #include <freeglut.h>
 
 #else

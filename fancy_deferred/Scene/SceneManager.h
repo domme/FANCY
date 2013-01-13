@@ -62,6 +62,7 @@ class DLLEXPORT  SceneManager
 		bool									detatchFromScene( const String& szObjectName );
 		SceneNode*								getRootNode();
 		const SceneNode* const					getRootNode() const					{ return m_pRootNode; }
+		SceneNode*								findNode( const String& szName ); 
 		void									prepareRender();
 		void									updateSceneBounds( const AABoundingBox& rAABB );
 		const AABoundingBox&					getSceneBoundsWS() const			{ return m_clSceneBounds; }

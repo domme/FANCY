@@ -533,8 +533,7 @@ void GLDeferredRenderer::renderEntity( Entity* pEntity, const SceneManager* pSce
 		return;
 	}
 
-	const glm::mat4& matModel = pEntity->getNode()->getLocalTransform().getAsMat4();
-	m_pGLrenderer->RenderMesh( pMesh, matModel, pScene->getRootNode()->getGlobalTransformMAT(), pCamera, pMesh->GetMaterial(), pShader );
+	m_pGLrenderer->RenderMesh( pMesh, pEntity->getNode()->getGlobalTransformMAT(), pCamera, pMesh->GetMaterial(), pShader );
 }
 
 
@@ -616,7 +615,7 @@ void GLDeferredRenderer::renderPointLight( PointLight* pLight, SceneManager* pSc
 	m_pGLrenderer->setStencilFunc( GL_EQUAL, 1, m_pGLrenderer->getStencilMask() );
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_INCR, GL_KEEP );
 
-	m_pGLrenderer->RenderMesh( m_pPointlightMesh, glm::mat4( 1.0f ) , *m_pEngine->GetWorldMat(), pCamera, m_pPointlightMesh->GetMaterial() );
+	m_pGLrenderer->RenderMesh( m_pPointlightMesh, pScene->getRootNode()->getGlobalTransformMAT(), pCamera, m_pPointlightMesh->GetMaterial() );
 
 	//De-Mark pixels in front of the front side of the bounding region
 	// Stencil 2 -> 1
@@ -625,7 +624,7 @@ void GLDeferredRenderer::renderPointLight( PointLight* pLight, SceneManager* pSc
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_DECR, GL_KEEP );
 
 	
-	m_pGLrenderer->RenderMesh( m_pPointlightMesh, glm::mat4( 1.0f ), *m_pEngine->GetWorldMat(), pCamera, m_pPointlightMesh->GetMaterial() );
+	m_pGLrenderer->RenderMesh( m_pPointlightMesh, pScene->getRootNode()->getGlobalTransformMAT(), pCamera, m_pPointlightMesh->GetMaterial() );
 
 	m_pGLrenderer->setStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
 	m_pGLrenderer->setColorMask( true, true, true, true );

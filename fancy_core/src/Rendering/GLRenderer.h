@@ -35,10 +35,10 @@ public:
 	void	SetLightModeActive( bool bActive ) { m_bActiveLightMode = bActive; }
 	//void	SetLightPass( ELightTpye eLightType ) { m_eActiveLightPass = eLightType; }
 
-	void RenderMesh( Mesh* pMesh, const glm::mat4& matModel, const glm::mat4& matWorld, const Camera* pCamera, Material* pMaterial = NULL, Shader* pShader = NULL,  const Light* pLight = NULL );
+	void RenderMesh( Mesh* pMesh, const glm::mat4& matModelWorld, const Camera* pCamera, Material* pMaterial = NULL, Shader* pShader = NULL,  const Light* pLight = NULL );
 	void prepareFrameRendering( const Camera* pCamera, const glm::mat4& matWorld );
 	void prepareLightRendering( const Camera* pCamera, const Light* pLight );
-	void prepareMeshRendering( Mesh* pMesh, const glm::mat4& matModel, const glm::mat4& matWorld, const Camera* pCamera, Material* pMaterial = NULL, Shader* pShader = NULL,  const Light* pLight = NULL );
+	void prepareMeshRendering( Mesh* pMesh, const glm::mat4& matModelWorld, const Camera* pCamera, Material* pMaterial = NULL, Shader* pShader = NULL,  const Light* pLight = NULL );
 
 
 	void setDepthTest( bool bEnable );
