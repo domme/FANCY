@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{DE2875D5-4600-4F06-8AC5-39EDE76171EA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{E4A047CC-B6C9-4B5F-B0E2-DF778F701191}"
@@ -107,8 +107,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fancy_core", "fancy_core\fa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fancy_deferred", "fancy_deferred\fancy_deferred.vcxproj", "{03A80150-E3AE-417D-9226-D80B6085A2BC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SibenikCathedralGLUT", "SibenikCathedralGLUT\SibenikCathedralGLUT.vcxproj", "{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SibenikCathedralQt", "SibenikCathedralQt\SibenikCathedralQt.vcxproj", "{CE3319AA-7BCD-401D-841E-C6E865F38DD3}"
 EndProject
 Global
@@ -129,16 +127,11 @@ Global
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Release|x64.Build.0 = Release|x64
 		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Debug|Win32.ActiveCfg = Debug|Win32
 		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Debug|Win32.Build.0 = Debug|Win32
-		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Debug|x64.ActiveCfg = Debug|Win32
+		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Debug|x64.ActiveCfg = Debug|x64
+		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Debug|x64.Build.0 = Debug|x64
 		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Release|Win32.ActiveCfg = Release|Win32
 		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Release|Win32.Build.0 = Release|Win32
 		{03A80150-E3AE-417D-9226-D80B6085A2BC}.Release|x64.ActiveCfg = Release|Win32
-		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Debug|Win32.ActiveCfg = Debug|Win32
-		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Debug|Win32.Build.0 = Debug|Win32
-		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Debug|x64.ActiveCfg = Debug|Win32
-		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Release|Win32.ActiveCfg = Release|Win32
-		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Release|Win32.Build.0 = Release|Win32
-		{716DF276-CDC8-42E8-AF58-8C5EBCD456AD}.Release|x64.ActiveCfg = Release|Win32
 		{CE3319AA-7BCD-401D-841E-C6E865F38DD3}.Debug|Win32.ActiveCfg = Debug|Win32
 		{CE3319AA-7BCD-401D-841E-C6E865F38DD3}.Debug|Win32.Build.0 = Debug|Win32
 		{CE3319AA-7BCD-401D-841E-C6E865F38DD3}.Debug|x64.ActiveCfg = Debug|x64

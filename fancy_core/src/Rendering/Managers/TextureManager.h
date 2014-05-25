@@ -11,12 +11,12 @@ class DLLEXPORT TextureManager
 		static TextureManager& getInstance();
 		~TextureManager();
 
-		GLuint LookupTexture( TextureSemantics::eTexSemantic eSemantic ) { return m_vInternalTextures[ eSemantic ]; }
-		void DeclareTexture( TextureSemantics::eTexSemantic eSemantic, GLuint uTex ) { m_vInternalTextures[ eSemantic ] = uTex; }
+		uint32 LookupTexture( TextureSemantics::eTexSemantic eSemantic ) { return m_vInternalTextures[ eSemantic ]; }
+		void DeclareTexture( TextureSemantics::eTexSemantic eSemantic, uint32 uTex ) { m_vInternalTextures[ eSemantic ] = uTex; }
 
 	private:
 		TextureManager();
-		GLuint m_vInternalTextures[ TextureSemantics::NUM ]; 
+		uint32 m_vInternalTextures[ TextureSemantics::NUM ]; 
 
 };
 
@@ -39,16 +39,16 @@ public:
 	static TextureInformationRegistry& GetInstance() { static TextureInformationRegistry instance; return instance; }
 	~TextureInformationRegistry();
 
-	const STextureInfo* GetInfoForTexture( GLuint uTex );
-	void AddTextureInfo( GLuint uTex, const STextureInfo& sTextureInfo );
-	void DeleteTexture( GLuint uTex );
+	const STextureInfo* GetInfoForTexture( uint32 uTex );
+	void AddTextureInfo( uint32 uTex, const STextureInfo& sTextureInfo );
+	void DeleteTexture( uint32 uTex );
 
 
 private:
 	TextureInformationRegistry() {}
-	std::map<GLuint, STextureInfo> m_mapTextureInfo;
+	std::map<uint32, STextureInfo> m_mapTextureInfo;
 
-	typedef std::map<GLuint, STextureInfo>::iterator MapIter;
+	typedef std::map<uint32, STextureInfo>::iterator MapIter;
 };
 
 #endif

@@ -84,9 +84,9 @@ public:
 	uint32								GetVertexCount() const { return m_u32VertexCount; }
 	uint32								GetIndexCount() const { return m_u32IndexCount; }
 	bool								GetUseIndices() const { return m_bUseIndices; }
-	GLuint								GetVertexBufferLoc() const { return m_uVertexBufferLoc; }
-	GLuint								GetIndexBufferLoc() const { return m_uIndexBufferLoc; }
-	GLuint								GetPrimitiveType() const { return m_uPrimitiveType; }
+	uint32								GetVertexBufferLoc() const { return m_uVertexBufferLoc; }
+	uint32								GetIndexBufferLoc() const { return m_uIndexBufferLoc; }
+	uint32								GetPrimitiveType() const { return m_uPrimitiveType; }
 	bool								GetVertexElement( ShaderSemantics::Semantic eSemantic, const VertexElement** ppElement ) const;
 
 	void AddVertexElement( uint16 u16Offset, Vertex::DataType::EDataType dataType, ShaderSemantics::Semantic semantic );
@@ -96,18 +96,18 @@ public:
 	void SetUseIndices( bool bIndices ) { m_bUseIndices = bIndices; }
 	void SetVertexCount( uint32 u32VertexCount ) { m_u32VertexCount = u32VertexCount; }
 	void SetIndexCount( uint32 u32IndexCount ) { m_u32IndexCount = u32IndexCount; }
-	void SetVertexBufferLoc( GLuint loc ) { m_uVertexBufferLoc = loc; }
-	void SetIndexBufferLoc( GLuint loc ) { m_uIndexBufferLoc = loc; }
-	void SetPrimitiveType( GLuint uType ) { m_uPrimitiveType = uType; }
+	void SetVertexBufferLoc( uint32 loc ) { m_uVertexBufferLoc = loc; }
+	void SetIndexBufferLoc( uint32 loc ) { m_uIndexBufferLoc = loc; }
+	void SetPrimitiveType( uint32 uType ) { m_uPrimitiveType = uType; }
 	uint ComputeCurrentOffset();
 
 protected:
 	uint32 m_u32VertexCount;
 	uint32 m_u32IndexCount;
 
-	GLuint	m_uVertexBufferLoc;
-	GLuint	m_uIndexBufferLoc;
-	GLuint	m_uPrimitiveType;
+	uint32	m_uVertexBufferLoc;
+	uint32	m_uIndexBufferLoc;
+	uint32	m_uPrimitiveType;
 
 	bool m_bUseIndices;
 	uint16 m_u16Stride;

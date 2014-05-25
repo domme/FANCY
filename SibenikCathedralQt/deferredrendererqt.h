@@ -1,7 +1,7 @@
 #ifndef DEFERREDRENDERERQT_H
 #define DEFERREDRENDERERQT_H
 
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QMainWindow>
 #include "ui_deferredrendererqt.h"
 
 class DeferredRendererQt : public QMainWindow
@@ -9,7 +9,7 @@ class DeferredRendererQt : public QMainWindow
 	Q_OBJECT
 
 public:
-	DeferredRendererQt(QWidget *parent = 0, Qt::WFlags flags = 0);
+	DeferredRendererQt(QWidget *parent = 0, Qt::WindowFlags flags = 0);
 	~DeferredRendererQt();
 
 private:

@@ -23,8 +23,8 @@ class DLLEXPORT PointLight : public Light
 		void				setFalloffEnd( float fFalloffEnd ) { m_fFalloffEnd = fFalloffEnd; }
 
 
-		GLuint				GetShdowCubeMap() { return m_uShadowCubeDepthTex; }
-		GLuint				GetDebugTex() { return m_uDebugTex; }
+		uint32				GetShdowCubeMap() { return m_uShadowCubeDepthTex; }
+		uint32				GetDebugTex() { return m_uDebugTex; }
 		
 		
 	protected:
@@ -33,18 +33,18 @@ class DLLEXPORT PointLight : public Light
 		float				m_fFalloffEnd;
 
 
-		GLuint				m_uShadowCubeDepthTex;
+		uint32				m_uShadowCubeDepthTex;
 		
-		//GLuint				m_uShadowFBOs[ 6 ];
-		//GLuint				m_uShadowDepthTextures[ 6 ];
-		//GLuint				m_uShadowColorTextures[ 6 ];
+		//uint32				m_uShadowFBOs[ 6 ];
+		//uint32				m_uShadowDepthTextures[ 6 ];
+		//uint32				m_uShadowColorTextures[ 6 ];
 
 		glm::quat			m_quatShadowCamOrientations[ 6 ];
 
 
 		//DEBUG:
-		GLuint				m_uDebugFBO;
-		GLuint				m_uDebugTex;
+		uint32				m_uDebugFBO;
+		uint32				m_uDebugTex;
 
 		virtual	void		initShadowmap();
 		virtual void		destroyShadowmap();

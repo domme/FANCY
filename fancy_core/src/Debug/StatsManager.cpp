@@ -55,7 +55,7 @@ void StatsManager::RenderGuiLinesGLUT()
 		std::stringstream ss;
 		ss << m_vStats[ i ].m_szMessage << " " << m_vStats[ i ].m_f64Value;
 
-		glRasterPos2i( static_cast<GLint>(m_v2ScreenPosition.x), static_cast<GLint>(m_v2ScreenPosition.y - 15 * i) );
+		glRasterPos2i( static_cast<int32>(m_v2ScreenPosition.x), static_cast<int32>(m_v2ScreenPosition.y - 15 * i) );
 #ifdef __WINDOWS
        // glutBitmapString( GLUT_BITMAP_HELVETICA_12, (const unsigned char*) ss.str().c_str() );
 #endif

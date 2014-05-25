@@ -2,15 +2,15 @@
 #define ENGINEQGLWIDGET_H
 
 #include <Includes.h> //Must come before QGLWidget because of glew
-#include <QGLWidget>
-#include <QTime>
-#include <QTimer>
-#include <QTableView>
-
-#include <QKeyEvent>
-#include <QMouseEvent>
-#include <QStandardItemModel>
-#include <QStandardItem>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QTableView>
+#include <QtCore/QTimer>
+#include <QtCore/QTime>
+#include <QtGui/QKeyEvent>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QStandardItemModel>
+#include <QtGui/QStandardItem>
+#include <QtOpenGL/QGLWidget>
 
 class EngineQGLwidget : public QGLWidget
 {

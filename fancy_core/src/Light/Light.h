@@ -57,7 +57,7 @@ public:
 		void							SetDirty( bool bDirty ) { m_bDirty = bDirty; }
 		bool							GetDirty() const { return m_bDirty; }
 
-		GLuint							GetShadowmapFBO() const { return m_uShadowmapFBO; }
+		uint32							GetShadowmapFBO() const { return m_uShadowmapFBO; }
 		
 protected:
 		bool			m_bDirty;
@@ -72,7 +72,7 @@ protected:
 		BoundingSphere	m_BoundingSphere;
 		Camera			m_clLightViewCamera;
 		int				m_uNumShadowmapPasses;
-		GLuint			m_uShadowmapFBO;
+		uint32			m_uShadowmapFBO;
 
 
 		virtual void					initShadowmap();

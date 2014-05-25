@@ -16,7 +16,7 @@ public:
 	virtual void SetObserver( IUniformObserver* pObserver ) = 0;
 	virtual IUniform* SetSemantic( ShaderSemantics::Semantic eSemantic ) = 0;
 	virtual ShaderSemantics::Semantic GetSemantic() const = 0;
-	virtual GLint GetGLhandle() const  = 0;
+	virtual int32 GetGLhandle() const  = 0;
 	virtual int GetIndex() const = 0;
 	virtual void SetIndex( int iN ) = 0;
 	virtual const String& GetName() const = 0;

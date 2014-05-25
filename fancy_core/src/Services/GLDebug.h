@@ -13,7 +13,7 @@ public:
 
 	static void GL_ErrorCheckFinish()
 	{
-		GLenum err = glGetError();
+		uint32 err = glGetError();
 
 		switch( err )
 		{

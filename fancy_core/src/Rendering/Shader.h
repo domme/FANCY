@@ -22,7 +22,7 @@ struct SShaderSemantic
 	std::string szName;
 	ShaderSemantics::Semantic eSemantic;
 	int iN;
-	GLuint uGLlocation;
+	uint32 uGLlocation;
 }; */
 
 class DLLEXPORT Shader : public IUniformObserver
@@ -31,7 +31,7 @@ public:
 	Shader();
 	Shader( Shader& other );
 	virtual ~Shader();
-	static GLenum TexUnitFromIdx( uint uIndex ); 
+	static uint32 TexUnitFromIdx( uint uIndex ); 
 
 	void LoadShader( const std::string& szVertexShaderPath, const std::string& szFragmentShaderPath );
 	//bool AddAtribute( const String& szName, ShaderSemantics::Semantic semantic, int iNumber = 0 );
@@ -61,9 +61,9 @@ protected:
 	UniformVectorType m_vCachedUniforms;
 	UniformVectorType m_vDirtyUniforms;
 	
-	GLuint m_uShaderProgram;
-	static IUniform* createUniformFromDescription( const GLenum& eType, const String& szName, GLint iGLlocation );
-	static IUniform* createAttributeFromDescription( const GLenum& eType, const String& szName, GLint iGLlocation );
+	uint32 m_uShaderProgram;
+	static IUniform* createUniformFromDescription( const uint32& eType, const String& szName, int32 iGLlocation );
+	static IUniform* createAttributeFromDescription( const uint32& eType, const String& szName, int32 iGLlocation );
 	void deleteResources();
 
 	

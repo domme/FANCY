@@ -1,6 +1,5 @@
 #include "engineqglwidget.h"
 #include <glm\glm.hpp>
-#include <freeglut.h>
 #include <Rendering/GLRenderer.h>
 #include <Light/Light.h>
 #include <Light/DirectionalLight.h>
@@ -8,7 +7,6 @@
 #include <Light/SpotLight.h>
 #include <Debug/PerformanceCheck.h>
 #include <Debug/StatsManager.h>
-
 
 #include "Engine.h"
 
@@ -247,7 +245,7 @@ void EngineQGLwidget::paintGL()
 {
 	PerformanceCheck::FrameStart();
 
-	int iCurrElapsedTime = glutGet( GLUT_ELAPSED_TIME );
+	int iCurrElapsedTime = 17; //glutGet( GLUT_ELAPSED_TIME );
 	int iDeltaTime = iCurrElapsedTime - iLastElapsedTime;
 	iLastElapsedTime = iCurrElapsedTime;
 

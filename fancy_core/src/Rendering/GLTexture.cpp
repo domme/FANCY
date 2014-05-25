@@ -32,7 +32,7 @@ GLTexture::~GLTexture()
 bool GLTexture::SetTexture1D( const String& szRelativeTexturePath )
 {
 	bool bSuccess = false;
-	GLuint uTexture = TextureLoader::GetInstance().LoadTexture1D( szRelativeTexturePath, &bSuccess );
+	uint32 uTexture = TextureLoader::GetInstance().LoadTexture1D( szRelativeTexturePath, &bSuccess );
 
 	if( !bSuccess )
 		return false;
@@ -49,7 +49,7 @@ bool GLTexture::SetTexture1D( const String& szRelativeTexturePath )
 	return bSuccess;
 }
 
-void GLTexture::SetTexture( GLuint uGLtexLoc )
+void GLTexture::SetTexture( uint32 uGLtexLoc )
 {
 	GLTextureResourceManager::GetInstance().AddResource( uGLtexLoc );
 	
@@ -74,7 +74,7 @@ bool GLTexture::SetTexture( const String& szRelativeTexturePath )
 {
 	bool bSuccess = false;
 	STextureInfo sInfo;
-	GLuint uTexture = TextureLoader::GetInstance().LoadTexture2D( szRelativeTexturePath, &bSuccess, &sInfo );
+	uint32 uTexture = TextureLoader::GetInstance().LoadTexture2D( szRelativeTexturePath, &bSuccess, &sInfo );
 
 	if( !bSuccess )
 		return false;
@@ -88,31 +88,6 @@ bool GLTexture::SetTexture( const String& szRelativeTexturePath )
 	if( m_bInitialized )
 		GLTextureResourceManager::GetInstance().HandleDelete( m_uGlTextureLocation );
 	
-	m_uGlTextureLocation = uTexture;
-
-	m_bInitialized = true;
-
-	return bSuccess;
-}
-
-bool GLTexture::SetTexture3D( const String& szRelativeTextureBasePath, uint uStartIndex, uint uEndIndex, const String& szExtension )
-{
-	bool bSuccess = false;
-	STextureInfo sInfo;
-	GLuint uTexture = TextureLoader::GetInstance().LoadTexture3D( szRelativeTextureBasePath, uStartIndex, uEndIndex, szExtension, &bSuccess, &sInfo );
-
-	if( !bSuccess )
-		return false;
-
-	m_v3TextureSize.x = static_cast<float>(sInfo.m_uWidth);
-	m_v3TextureSize.y = static_cast<float>(sInfo.m_uHeight);
-	m_v3TextureSize.z = static_cast<float>(sInfo.m_uDepth);
-
-	GLTextureResourceManager::GetInstance().AddResource( uTexture );
-
-	if( m_bInitialized )
-		GLTextureResourceManager::GetInstance().HandleDelete( m_uGlTextureLocation );
-
 	m_uGlTextureLocation = uTexture;
 
 	m_bInitialized = true;

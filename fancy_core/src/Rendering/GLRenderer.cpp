@@ -112,7 +112,7 @@ void GLRenderer::setDepthTest( bool bEnable )
 	m_bDepthTest = bEnable;
 }
 
-void GLRenderer::setDepthFunc( GLenum func )
+void GLRenderer::setDepthFunc( uint32 func )
 {
 	if( m_eDepthFunc == func )
 		return;
@@ -138,7 +138,7 @@ void GLRenderer::setStencilTest( bool bEnable )
 }
 
 
-void GLRenderer::setStencilFunc( GLenum func, GLint ref, GLuint mask )
+void GLRenderer::setStencilFunc( uint32 func, int32 ref, uint32 mask )
 {
 	if( m_eStencilFunc == func && m_iStencilRef == ref && m_uStencilMask == mask )
 		return;
@@ -151,7 +151,7 @@ void GLRenderer::setStencilFunc( GLenum func, GLint ref, GLuint mask )
 }
 
 
-void GLRenderer::setStencilOp( GLenum stencilFail, GLenum depthFail, GLenum depthPass )
+void GLRenderer::setStencilOp( uint32 stencilFail, uint32 depthFail, uint32 depthPass )
 {
 	if( m_eStencilOp_sFail == stencilFail && m_eStencilOp_depthFail == depthFail && m_eStencilOp_depthPass == depthPass )
 		return;
@@ -179,7 +179,7 @@ void GLRenderer::setCulling( bool bEnable )
 }
 
 
-void GLRenderer::setCullFace( GLenum faceDir )
+void GLRenderer::setCullFace( uint32 faceDir )
 {
 	if( m_eCullFaceDir == faceDir )
 		return;
@@ -203,7 +203,7 @@ void GLRenderer::setBlending( bool bEnable )
 	m_bBlending = bEnable;
 }
 
-void GLRenderer::setBlendFunc( GLenum src, GLenum dest )
+void GLRenderer::setBlendFunc( uint32 src, uint32 dest )
 {
 	if( src == m_eBlendSrc && dest == m_eBlendDest )
 		return;
@@ -214,7 +214,7 @@ void GLRenderer::setBlendFunc( GLenum src, GLenum dest )
 	m_eBlendDest = dest;
 }
 
-void GLRenderer::setDepthMask( GLboolean bMask )
+void GLRenderer::setDepthMask( bool bMask )
 {
 	if( bMask == m_bDepthMask )
 		return;
@@ -224,7 +224,7 @@ void GLRenderer::setDepthMask( GLboolean bMask )
 	m_bDepthMask = bMask;
 }
 
-void GLRenderer::setColorMask( GLboolean bR, GLboolean bG, GLboolean bB, GLboolean bA )
+void GLRenderer::setColorMask( bool bR, bool bG, bool bB, bool bA )
 {
 	if( bR != m_bColorMask_r || 
 		bG != m_bColorMask_g ||
@@ -842,7 +842,7 @@ void GLRenderer::RenderMesh( Mesh* pMesh, const glm::mat4& matModelWorld, const 
 	if( pVertexInfo->GetUseIndices() )
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pVertexInfo->GetIndexBufferLoc() );
 
-	GLuint uEnabledVertexAttribs[ 20 ];
+	uint32 uEnabledVertexAttribs[ 20 ];
 	uint8 u8AttribIdx = 0;
 
 	pShader->ApplyShader();
@@ -854,7 +854,7 @@ void GLRenderer::RenderMesh( Mesh* pMesh, const glm::mat4& matModelWorld, const 
 	{
 		const IUniform* pAttribute = rAttributes[ i ];
 		ShaderSemantics::Semantic eSemantic = pAttribute->GetSemantic();
-		GLint iAttributeHandle = pAttribute->GetGLhandle();
+		int32 iAttributeHandle = pAttribute->GetGLhandle();
 
 		
 		const VertexElement* pElement;

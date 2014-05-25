@@ -8,18 +8,18 @@ class DLLEXPORT GLResourceManager
 public:
 
 	~GLResourceManager();
-	void HandleDelete( GLuint uglResource );
-	void AddResource( GLuint uglResource );
-	bool HasResource( GLuint uglResource );
-	int GetResourceUseCount( GLuint uglResource );
+	void HandleDelete( uint32 uglResource );
+	void AddResource( uint32 uglResource );
+	bool HasResource( uint32 uglResource );
+	int GetResourceUseCount( uint32 uglResource );
 
 protected:
 	GLResourceManager();
 
-	virtual void deleteResource( GLuint uglResource );
+	virtual void deleteResource( uint32 uglResource );
 	virtual String getDebugMgrName() = 0;
 	
-	typedef std::map<GLuint, uint> MapType;
+	typedef std::map<uint32, uint> MapType;
 	MapType m_mapResRef;
 };
 
@@ -31,7 +31,7 @@ public:
 
 protected:
 	GLTextureResourceManager() {};
-	virtual void deleteResource( GLuint uglResource );
+	virtual void deleteResource( uint32 uglResource );
 	virtual String getDebugMgrName() { return "Texture\t"; }
 };
 
@@ -45,7 +45,7 @@ public:
 protected:
 	GLVBOResourceManager() {};
 	virtual String getDebugMgrName() { return "VBO\t\t"; }
-	virtual void deleteResource( GLuint uglResource );
+	virtual void deleteResource( uint32 uglResource );
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ public:
 protected:
 	GLIBOResourceManager() {};
 	virtual String getDebugMgrName() { return "IBO\t\t"; }
-	virtual void deleteResource( GLuint uglResource );
+	virtual void deleteResource( uint32 uglResource );
 };
 
 
@@ -70,7 +70,7 @@ public:
 protected:
 	GLProgramResourceManager() {};
 	virtual String getDebugMgrName() { return "Shader\t"; }
-	virtual void deleteResource( GLuint uglResource );
+	virtual void deleteResource( uint32 uglResource );
 };
 
 #endif

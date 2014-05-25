@@ -9,13 +9,13 @@ public:
 	~ShaderLoader();
 	static ShaderLoader& GetInstance() { static ShaderLoader instance; return instance; }
 
-	GLuint LoadShaderProgram( const String& szVertexShaderPath, const String& szFragmentShaderPath, bool* pbSuccess = NULL );
+	uint32 LoadShaderProgram( const String& szVertexShaderPath, const String& szFragmentShaderPath, bool* pbSuccess = NULL );
 
 protected:
 	ShaderLoader();
 
-	void printShaderErrorLog( const GLuint uShaderHandler, const String& szShaderName );
-	void printProgramErrorLog( const GLuint uProgramHandler, const String& szProgramName );
+	void printShaderErrorLog( const uint32 uShaderHandler, const String& szShaderName );
+	void printProgramErrorLog( const uint32 uProgramHandler, const String& szProgramName );
 };
 
 #endif

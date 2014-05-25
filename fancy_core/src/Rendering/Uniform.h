@@ -27,7 +27,7 @@ public:
 	
 	virtual int						GetIndex() const { return m_iN; }
 	virtual void					SetIndex( int iN ) { m_iN = iN; }
-	virtual GLint					GetGLhandle() const { return m_iglHandle; }
+	virtual int32					GetGLhandle() const { return m_iglHandle; }
 	virtual ShaderSemantics::Semantic GetSemantic() const { return m_eSemantic; }
 	
 	//Has to be inline for some reason...
@@ -66,7 +66,7 @@ public:
 	
 protected:
 	ValueT						m_clValue;
-	GLint						m_iglHandle;
+	int32						m_iglHandle;
 	String						m_szName;
 	bool						m_bRecalculate;
 	ShaderSemantics::Semantic	m_eSemantic;

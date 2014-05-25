@@ -10,7 +10,7 @@ class DLLEXPORT FBOservice
 public:
 	static void checkFBOErrors()
 	{
-		GLenum error = glCheckFramebufferStatus( GL_FRAMEBUFFER );
+		uint32 error = glCheckFramebufferStatus( GL_FRAMEBUFFER );
 
 		switch( error )
 		{

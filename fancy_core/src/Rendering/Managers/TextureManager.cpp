@@ -22,20 +22,20 @@ TextureManager::~TextureManager()
 
 TextureInformationRegistry::~TextureInformationRegistry() {}
 
-const STextureInfo* TextureInformationRegistry::GetInfoForTexture( GLuint uTex )
+const STextureInfo* TextureInformationRegistry::GetInfoForTexture( uint32 uTex )
 {
 	MapIter iter = m_mapTextureInfo.find( uTex );
 	
 	return iter != m_mapTextureInfo.end() ? &iter->second : NULL;
 }
 
-void TextureInformationRegistry::AddTextureInfo( GLuint uTex, const STextureInfo& sTextureInfo )
+void TextureInformationRegistry::AddTextureInfo( uint32 uTex, const STextureInfo& sTextureInfo )
 {
 	m_mapTextureInfo[ uTex ] = sTextureInfo;
 }
 
 
-void TextureInformationRegistry::DeleteTexture( GLuint uTex )
+void TextureInformationRegistry::DeleteTexture( uint32 uTex )
 {
 	MapIter iter = m_mapTextureInfo.find( uTex );
 

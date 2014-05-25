@@ -1,0 +1,80 @@
+﻿Build started 25.05.2014 17:21:51.
+     1>Project "F:\Entwicklung\FANCY\fancy_deferred\fancy_deferred.vcxproj" on node 2 (Build target(s)).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V110\Microsoft.CppBuild.targets(345,5): warning MSB8004: Intermediate Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Intermediate Directory.
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V110\Microsoft.CppBuild.targets(346,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+     1>InitializeBuildStatus:
+         Touching "F:\Entwicklung\FANCY\/_build_temp/x64/Debug\fancy_deferred.unsuccessfulbuild".
+       ClCompile:
+         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\x86_amd64\CL.exe /c /I\include\GL /I\include /I\ /IF:\Entwicklung\FANCY\\fancy_core\src\ /I\include /IF:\Entwicklung\FANCY\/dependencies/include/ /Zi /nologo /W2 /WX- /Od /D __LIB_STATIC /D _CRT_SECURE_NO_DEPRECATE /D __WINDOWS /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"F:\Entwicklung\FANCY\/_build_temp/x64/Debug\fancy_deferred.pch" /Fo"F:\Entwicklung\FANCY\/_build_temp/x64/Debug\\" /Fd"F:\Entwicklung\FANCY\/_build_temp/x64/Debug\vc110.pdb" /Gd /TP /FIStdAfx.h /errorReport:prompt Engine.cpp Geometry\FullscreenQuad.cpp Rendering\GLDeferredRenderer.cpp Rendering\Materials\MAT_Colored.cpp Rendering\Materials\MAT_FSquad_Bloom.cpp Rendering\Materials\MAT_FSquad_BrightPass.cpp Rendering\Materials\MAT_FSquad_DirLighting.cpp Rendering\Materials\MAT_FSquad_FXAA.cpp Rendering\Materials\MAT_FSquad_FinalComposite.cpp Rendering\Materials\MAT_FSquad_GaussianBlur.cpp Rendering\Materials\MAT_FSquad_LumaTimeAdaption.cpp Rendering\Materials\MAT_FSquad_PointLighting.cpp Rendering\Materials\MAT_FSquad_Textured.cpp Rendering\Materials\MAT_FSquad_ToneMapping.cpp Rendering\Materials\MAT_Pointlight_Illumination.cpp Rendering\Materials\MAT_Test.cpp Rendering\Materials\MAT_Textured.cpp Rendering\Materials\MAT_TexturedNormal.cpp Rendering\Materials\MAT_TexturedNormalSpecular.cpp Rendering\Pass_GaussianBlur.cpp Scene\BaseRenderableObject.cpp Scene\Entity.cpp Scene\NodeRegistry.cpp Scene\ObjectRegistry.cpp Scene\SceneLoader.cpp Scene\SceneManager.cpp Scene\SceneNode.cpp
+         SceneNode.cpp
+         SceneManager.cpp
+         SceneLoader.cpp
+     1>Scene\SceneLoader.cpp(90): warning C4244: 'initializing' : conversion from 'uint' to 'float', possible loss of data
+     1>Scene\SceneLoader.cpp(91): warning C4244: 'initializing' : conversion from 'uint' to 'float', possible loss of data
+         ObjectRegistry.cpp
+         NodeRegistry.cpp
+         Entity.cpp
+         BaseRenderableObject.cpp
+         Pass_GaussianBlur.cpp
+         MAT_TexturedNormalSpecular.cpp
+         MAT_TexturedNormal.cpp
+         MAT_Textured.cpp
+         MAT_Test.cpp
+         MAT_Pointlight_Illumination.cpp
+         MAT_FSquad_ToneMapping.cpp
+         MAT_FSquad_Textured.cpp
+         MAT_FSquad_PointLighting.cpp
+         MAT_FSquad_LumaTimeAdaption.cpp
+         MAT_FSquad_GaussianBlur.cpp
+         MAT_FSquad_FinalComposite.cpp
+         MAT_FSquad_FXAA.cpp
+         Generating Code...
+         Compiling...
+         MAT_FSquad_DirLighting.cpp
+         MAT_FSquad_BrightPass.cpp
+         MAT_FSquad_Bloom.cpp
+         MAT_Colored.cpp
+         GLDeferredRenderer.cpp
+         FullscreenQuad.cpp
+         Engine.cpp
+         Generating Code...
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\x86_amd64\Lib.exe /OUT:"F:\Entwicklung\FANCY\/bin/x64/Debug\fancy_deferred.lib" /NOLOGO /MACHINE:X64 F:\Entwicklung\FANCY\/_build_temp/x64/Debug\Engine.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\FullscreenQuad.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\TransformSQT.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\GLDeferredRenderer.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_Colored.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_Bloom.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_BrightPass.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_DirLighting.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_FinalComposite.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_FXAA.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_GaussianBlur.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_LumaTimeAdaption.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_PointLighting.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_Textured.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_FSquad_ToneMapping.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_Pointlight_Illumination.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_Test.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_Textured.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_TexturedNormal.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\MAT_TexturedNormalSpecular.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\Pass_GaussianBlur.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\BaseRenderableObject.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\Entity.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\NodeRegistry.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\ObjectRegistry.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\SceneLoader.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\SceneManager.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\SceneNode.obj
+         F:\Entwicklung\FANCY\/_build_temp/x64/Debug\StdAfx.obj
+         fancy_deferred.vcxproj -> F:\Entwicklung\FANCY\/bin/x64/Debug\fancy_deferred.lib
+       FinalizeBuildStatus:
+         Deleting file "F:\Entwicklung\FANCY\/_build_temp/x64/Debug\fancy_deferred.unsuccessfulbuild".
+         Touching "F:\Entwicklung\FANCY\/_build_temp/x64/Debug\fancy_deferred.lastbuildstate".
+     1>Done Building Project "F:\Entwicklung\FANCY\fancy_deferred\fancy_deferred.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:05.65

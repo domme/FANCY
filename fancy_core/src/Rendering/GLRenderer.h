@@ -42,23 +42,23 @@ public:
 
 
 	void setDepthTest( bool bEnable );
-	void setDepthFunc( GLenum func );
-	void setDepthMask( GLboolean bMask ); 
-	void setColorMask( GLboolean bR, GLboolean bG, GLboolean bB, GLboolean bA );
+	void setDepthFunc( uint32 func );
+	void setDepthMask( bool bMask ); 
+	void setColorMask( bool bR, bool bG, bool bB, bool bA );
 	void setStencilTest( bool bEnable );
-	void setStencilFunc( GLenum func, GLint ref, GLuint mask );
-	void setStencilOp( GLenum stencilFail, GLenum depthFail, GLenum depthPass );
+	void setStencilFunc( uint32 func, int32 ref, uint32 mask );
+	void setStencilOp( uint32 stencilFail, uint32 depthFail, uint32 depthPass );
 	void setCulling( bool bEnable );
-	void setCullFace( GLenum faceDir );
+	void setCullFace( uint32 faceDir );
 	void setBlending( bool bEnable );
-	void setBlendFunc( GLenum src, GLenum dest );
+	void setBlendFunc( uint32 src, uint32 dest );
 	void setViewport( int x, int y, int width, int height );
 	void setCurrLightIndex( uint uIdx )					{ m_uCurrLightIdx = uIdx; }
 	uint getCurrLightIndex()							{ return m_uCurrLightIdx; }
 	uint getStencilMask()								{ return m_uStencilMask; }
 	void setStencilMask( uint uMask )					{ m_uStencilMask = uMask; }
-	GLint getStencilRef()								{ return m_iStencilRef; }
-	void setStencilRef( GLint iRef )					{ m_iStencilRef = iRef; } 
+	int32 getStencilRef()								{ return m_iStencilRef; }
+	void setStencilRef( int32 iRef )					{ m_iStencilRef = iRef; } 
 	uint getScreenWidth()								{ return m_uScreenWidth; }
 	uint getScreenHeight()								{ return m_uScreenHeight; }
 	void setAmbientLightColor( const glm::vec4& aCol )	{ m_v4AmbientLightColor = aCol; }
@@ -92,24 +92,24 @@ protected:
 
 	
 	bool		m_bDepthTest;
-	GLenum		m_eDepthFunc;
+	uint32		m_eDepthFunc;
 	bool		m_bStencilTest;
-	GLenum		m_eStencilFunc;
-	GLint		m_iStencilRef;
-	GLuint		m_uStencilMask;
-	GLenum		m_eStencilOp_sFail;
-	GLenum		m_eStencilOp_depthFail;
-	GLenum		m_eStencilOp_depthPass;
+	uint32		m_eStencilFunc;
+	int32		m_iStencilRef;
+	uint32		m_uStencilMask;
+	uint32		m_eStencilOp_sFail;
+	uint32		m_eStencilOp_depthFail;
+	uint32		m_eStencilOp_depthPass;
 	bool		m_bCulling;
-	GLenum		m_eCullFaceDir;
+	uint32		m_eCullFaceDir;
 	bool		m_bBlending;
-	GLenum		m_eBlendSrc;
-	GLenum		m_eBlendDest;
-	GLboolean	m_bDepthMask;
-	GLboolean	m_bColorMask_r;
-	GLboolean	m_bColorMask_g;
-	GLboolean	m_bColorMask_b;
-	GLboolean	m_bColorMask_a;
+	uint32		m_eBlendSrc;
+	uint32		m_eBlendDest;
+	bool	m_bDepthMask;
+	bool	m_bColorMask_r;
+	bool	m_bColorMask_g;
+	bool	m_bColorMask_b;
+	bool	m_bColorMask_a;
 	float				m_fHDRexposure;
 	float				m_fHDRlightAdaption;
 	bool				m_bShowDebugTextures;

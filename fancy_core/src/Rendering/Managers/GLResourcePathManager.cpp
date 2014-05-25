@@ -18,7 +18,7 @@ bool GLResourcePathManager::HasResource( const String& szPath )
 	return m_mapPathRes.count( szPath ) > 0;
 }
 
-GLuint GLResourcePathManager::GetResource( const String& szPath )
+uint32 GLResourcePathManager::GetResource( const String& szPath )
 {
 	MapType::iterator iter = m_mapPathRes.find( szPath );
 
@@ -29,7 +29,7 @@ GLuint GLResourcePathManager::GetResource( const String& szPath )
 }
 
 
-void GLResourcePathManager::AddResource( const String& szPath, GLuint uResource )
+void GLResourcePathManager::AddResource( const String& szPath, uint32 uResource )
 {
 	String szSearch = szPath;
 	if( HasResource( szSearch ) )
@@ -38,7 +38,7 @@ void GLResourcePathManager::AddResource( const String& szPath, GLuint uResource 
 	m_mapPathRes[ szSearch ] = uResource;
 }
 
-void GLResourcePathManager::HandleResourceDeletion( GLuint uResource )
+void GLResourcePathManager::HandleResourceDeletion( uint32 uResource )
 {
 	if( m_mapPathRes.size() == 0 )
 		return;
@@ -69,7 +69,7 @@ void GLResourcePathManager::HandleResourceDeletion( GLuint uResource )
 //////////////////////////////////////////////////////////////////////////
 //TexturePathManager
 
-void GLTexturePathManager::HandleResourceDeletion( GLuint uResource )
+void GLTexturePathManager::HandleResourceDeletion( uint32 uResource )
 {
 	GLResourcePathManager::HandleResourceDeletion( uResource );
 	

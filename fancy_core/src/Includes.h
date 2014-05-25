@@ -8,24 +8,21 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-
-#ifdef __WINDOWS
-    #include <Windows.h>
-    #include <GL/glew.h>
-    #include <freeglut.h>
-
-#else
-    #include <GLUT/glut.h>
-#endif
-
-//OpenGL includes
-
-
+#include <Windows.h>
 
 //Math includes
-#include <glm/core/setup.hpp>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+
+// OpenGL inlcudes
+#if defined (_USRDLL)
+  #define GLEW_DLL
+#else // !_USRDLL
+  #define GLEW_BUILD
+#endif // _USRDLL
+
+#include "GL/glew.h"
+#include "GL/GL.h"
 
 //Vertex types
 //#include "Geometry/VertexDeclarations.h"
@@ -39,11 +36,11 @@
 template<typename T>
 void LOG( T s )
 {
-	std::ostringstream ss;
-	ss << s << '\n';
+  std::ostringstream ss;
+  ss << s << '\n';
     
 #ifdef __WINDOWS
-	OutputDebugStringA( ss.str().c_str() );
+  OutputDebugStringA( ss.str().c_str() );
 #else
     std::cout << ss.str();
 #endif
@@ -52,10 +49,10 @@ void LOG( T s )
 /* For some reason this specialization doesnt work...
 void LOG( glm::vec3 vec )
 {
-	std::stringstream ss;
-	ss << vec.x << " " << vec.y << " " << vec.z;
+  std::stringstream ss;
+  ss << vec.x << " " << vec.y << " " << vec.z;
 
-	LOG( ss.str() );
+  LOG( ss.str() );
 } */
 
 
@@ -64,47 +61,47 @@ void LOG( glm::vec3 vec )
 template<bool T>
 void staticAssert_impl()
 {
-	bool b[ T ];
+  bool b[ T ];
 }
 
 #define STATIC_ASSERT( value ) \
 {								\
-	staticAssert_impl<value>(); \
+  staticAssert_impl<value>(); \
 }
 
 #define RUN_NOT_FIRST( function ) \
 {								\
-	static bool bFirst = false; \
-								\
-	if( bFirst )				\
-	{							\
-		function;				\
-	}							\
-								\
-	bFirst = true;				\
+  static bool bFirst = false; \
+                \
+  if( bFirst )				\
+  {							\
+    function;				\
+  }							\
+                \
+  bFirst = true;				\
 }
 
 #define RUN_ONLY_ONCE_STATIC( function ) \
 {								\
-	static bool bInit = false;	\
-								\
-	if( bInit == true )			\
-		return;					\
-								\
-	function;					\
-								\
-	bInit = true;				\
+  static bool bInit = false;	\
+                \
+  if( bInit == true )			\
+    return;					\
+                \
+  function;					\
+                \
+  bInit = true;				\
 }	
-													\
+                          \
 
 #define ARRAY_LENGTH( arr ) sizeof( arr ) / sizeof( arr[ 0 ] )
 
 
 //DLL-Export MACROS
 #if defined(__WINDOWS) && defined(__LIB_DYNAMIC)
-	#define DLLEXPORT __declspec(dllexport)
+  #define DLLEXPORT __declspec(dllexport)
 #else
-	#define DLLEXPORT 
+  #define DLLEXPORT 
 #endif
 
 #define GLUINT_HANDLE_INVALID 0xFFFFFFFF
@@ -115,9 +112,9 @@ typedef glm::uint16				uint16;
 typedef glm::uint32				uint32;
 typedef glm::uint64				uint64;
 typedef glm::uint8				uint8;
-typedef glm::uint				uint;
-typedef glm::half				float16;
-typedef double                  float64;
+typedef glm::uint				  uint;
+typedef glm::int32        int32;
+typedef double            float64;
 
 
 //typedef VertexDeclarations::PosNormTexTanBitan VertexType;

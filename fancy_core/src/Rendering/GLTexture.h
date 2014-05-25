@@ -12,20 +12,19 @@ class DLLEXPORT GLTexture
 		GLTexture( GLTexture& other );
 		virtual ~GLTexture();
 
-		GLuint getGlLocation() const { return m_uGlTextureLocation; }
+		uint32 getGlLocation() const { return m_uGlTextureLocation; }
 
-		void SetTexture( GLuint uGLtexLoc );
+		void SetTexture( uint32 uGLtexLoc );
 		bool SetTexture( const String& szRelativeTexturePath );
 		bool SetTexture1D( const String& szRelativeTexturePath );
-		bool SetTexture3D( const String& szRelativeTextureBasePath, uint uStartIndex, uint uEndIndex, const String& szExtension );
 		bool HasTexture() const { return m_bInitialized; }
 
 		const glm::vec3& GetTextureSize() const { return m_v3TextureSize; }
 
 	protected:
-		GLuint			m_uGlTextureLocation;
-		bool			m_bInitialized;
-		glm::vec3	  	m_v3TextureSize;
+		uint32			m_uGlTextureLocation;
+		bool			  m_bInitialized;
+		glm::vec3	  m_v3TextureSize;
 };
 
 

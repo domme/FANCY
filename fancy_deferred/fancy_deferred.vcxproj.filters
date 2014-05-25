@@ -168,7 +168,6 @@
       <Filter>Rendering\Materials</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h" />
-    <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Scene">

@@ -82,7 +82,7 @@ void Shader::LoadShader( const std::string& szVertexShaderPath, const std::strin
 	}
 
 	bool bSuccess = false;
-	GLuint uProgram = ShaderLoader::GetInstance().LoadShaderProgram( szVertexShaderPath, szFragmentShaderPath, &bSuccess );
+	uint32 uProgram = ShaderLoader::GetInstance().LoadShaderProgram( szVertexShaderPath, szFragmentShaderPath, &bSuccess );
 
 	if( !bSuccess )
 	{
@@ -96,8 +96,8 @@ void Shader::LoadShader( const std::string& szVertexShaderPath, const std::strin
 
 
 	//Now build active uniform-map and active attribute-map
-	GLint iNumActiveUniforms = 0;
-	GLint iNumActiveAttributes = 0;
+	int32 iNumActiveUniforms = 0;
+	int32 iNumActiveAttributes = 0;
 	glGetProgramiv( m_uShaderProgram, GL_ACTIVE_UNIFORMS, &iNumActiveUniforms );
 	glGetProgramiv( m_uShaderProgram, GL_ACTIVE_ATTRIBUTES, &iNumActiveAttributes );
 
@@ -105,9 +105,9 @@ void Shader::LoadShader( const std::string& szVertexShaderPath, const std::strin
 	{
 		GLchar szNameBuf[ BUFSIZE ];
 		GLsizei iActualNameLength = 0;
-		GLint iUniformSize = 0;
-		GLenum eUniformType;
-		GLint iUniformLoc = -1;
+		int32 iUniformSize = 0;
+		uint32 eUniformType;
+		int32 iUniformLoc = -1;
 		IUniform* pUniform = NULL;
 
 		glGetActiveUniform( m_uShaderProgram, i, BUFSIZE, &iActualNameLength, &iUniformSize, &eUniformType, szNameBuf );
@@ -129,9 +129,9 @@ void Shader::LoadShader( const std::string& szVertexShaderPath, const std::strin
 	{
 		GLchar szNameBuf[ BUFSIZE ];
 		GLsizei iActualNameLength = 0;
-		GLint iAttributeSize = 0;
-		GLenum eAttributeType;
-		GLint iAttributeLoc = -1;
+		int32 iAttributeSize = 0;
+		uint32 eAttributeType;
+		int32 iAttributeLoc = -1;
 		IUniform* pAttribute = NULL;
 
 		glGetActiveAttrib( m_uShaderProgram, i, BUFSIZE, &iActualNameLength, &iAttributeSize, &eAttributeType, szNameBuf );
@@ -150,7 +150,7 @@ void Shader::LoadShader( const std::string& szVertexShaderPath, const std::strin
 	
 }
 
-IUniform* Shader::createAttributeFromDescription( const GLenum& eType, const String& szName, GLint iGLlocation )
+IUniform* Shader::createAttributeFromDescription( const uint32& eType, const String& szName, int32 iGLlocation )
 {
 	IUniform* pUniform = NULL;
 
@@ -247,7 +247,7 @@ IUniform* Shader::createAttributeFromDescription( const GLenum& eType, const Str
 	return pUniform;
 }
 
-IUniform* Shader::createUniformFromDescription( const GLenum& eType, const String& szName, GLint iGLlocation )
+IUniform* Shader::createUniformFromDescription( const uint32& eType, const String& szName, int32 iGLlocation )
 {
 	IUniform* pUniform = NULL;
 

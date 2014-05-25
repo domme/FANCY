@@ -35,7 +35,7 @@ public:
 	~Material();
 	
 	virtual bool Init() = 0;
-	virtual GLuint GetTextureAtIndex( uint uIdx ) const { return 0; }
+	virtual uint32 GetTextureAtIndex( uint uIdx ) const { return 0; }
 	virtual glm::vec3 GetTextureSizeAtIndex( uint uIdx ) const { return glm::vec3( 0.0f, 0.0f, 0.0f ); };
 	virtual Material* Clone() = 0;
 

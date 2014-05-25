@@ -14,7 +14,7 @@ ShaderLoader::~ShaderLoader()
 
 }
 
-GLuint ShaderLoader::LoadShaderProgram( const String& szVertexShaderPath, const String& szFragmentShaderPath, bool* pbSuccess /* = NULL */ )
+uint32 ShaderLoader::LoadShaderProgram( const String& szVertexShaderPath, const String& szFragmentShaderPath, bool* pbSuccess /* = NULL */ )
 {
 	GLShaderPathManager& rShaderPathMgr = GLShaderPathManager::GetInstance();
 	
@@ -29,7 +29,7 @@ GLuint ShaderLoader::LoadShaderProgram( const String& szVertexShaderPath, const 
 	} 
 		
 	//Shader program not loaded yet!
-	GLuint uVertexShader, uFragmentShader, uShaderProgram;
+	uint32 uVertexShader, uFragmentShader, uShaderProgram;
 
 	String szVertexShaderSrc = "";
 	String szFragmentShaderSrc = "";
@@ -38,7 +38,7 @@ GLuint ShaderLoader::LoadShaderProgram( const String& szVertexShaderPath, const 
 	GLSLpreprocessor::getInstance().preprocessShader( szFragmentShaderSrc, szFragmentShaderPath );
 	
 
-	GLint iResult;
+	int32 iResult;
 	//create the shader Objects and the program
 	uVertexShader = glCreateShader( GL_VERTEX_SHADER );
 	uFragmentShader = glCreateShader( GL_FRAGMENT_SHADER );
@@ -110,19 +110,19 @@ GLuint ShaderLoader::LoadShaderProgram( const String& szVertexShaderPath, const 
 	return uShaderProgram;
 }
 
-void ShaderLoader::printShaderErrorLog( const GLuint uShaderHandler, const String& szShaderName )
+void ShaderLoader::printShaderErrorLog( const uint32 uShaderHandler, const String& szShaderName )
 {
 	GLchar szInfo[ 2048 ];
-	GLint  iLength = 0;
+	int32  iLength = 0;
 	glGetShaderInfoLog( uShaderHandler, 2048, &iLength, szInfo);
 
 	LOG( "\n\n" + szShaderName + ":\n" + String( szInfo ) + "\n" );
 }
 
-void ShaderLoader::printProgramErrorLog( const GLuint uProgramHandler, const String& szProgramName )
+void ShaderLoader::printProgramErrorLog( const uint32 uProgramHandler, const String& szProgramName )
 {
 	GLchar szInfo[ 2048 ];
-	GLint  iLength = 0;
+	int32  iLength = 0;
 	glGetProgramInfoLog( uProgramHandler, 2048, &iLength, szInfo);
 
 	LOG( "\n\n" + szProgramName + ":\n" + String( szInfo ) + "\n" );

@@ -10,7 +10,7 @@ GLResourceManager::GLResourceManager()
 
 GLResourceManager::~GLResourceManager()
 {
-	for( std::map<GLuint, uint>::iterator iter = m_mapResRef.begin(); iter != m_mapResRef.end(); ++iter )
+	for( std::map<uint32, uint>::iterator iter = m_mapResRef.begin(); iter != m_mapResRef.end(); ++iter )
 	{
 		deleteResource( iter->first );
 	}
@@ -18,12 +18,12 @@ GLResourceManager::~GLResourceManager()
 	m_mapResRef.clear();
 }
 
-bool GLResourceManager::HasResource( GLuint uglResource )
+bool GLResourceManager::HasResource( uint32 uglResource )
 {
 	return m_mapResRef.find( uglResource ) != m_mapResRef.end();
 }
 
-void GLResourceManager::HandleDelete( GLuint uglResource )
+void GLResourceManager::HandleDelete( uint32 uglResource )
 {
 	if( m_mapResRef.size() == 0 )
 		return;
@@ -54,7 +54,7 @@ void GLResourceManager::HandleDelete( GLuint uglResource )
 
 }
 
-void GLResourceManager::AddResource( GLuint uglResource )
+void GLResourceManager::AddResource( uint32 uglResource )
 {
 	MapType::iterator iter = m_mapResRef.find( uglResource );
 
@@ -69,7 +69,7 @@ void GLResourceManager::AddResource( GLuint uglResource )
 	LOG( ss.str() );
 }
 
-int GLResourceManager::GetResourceUseCount( GLuint uglResource )
+int GLResourceManager::GetResourceUseCount( uint32 uglResource )
 {
 	MapType::iterator iter = m_mapResRef.find( uglResource );
 
@@ -79,7 +79,7 @@ int GLResourceManager::GetResourceUseCount( GLuint uglResource )
 	return iter->second;
 }
 
-void GLResourceManager::deleteResource( GLuint uglResource )
+void GLResourceManager::deleteResource( uint32 uglResource )
 {
 	//Dummy in base class
 }
@@ -89,7 +89,7 @@ void GLResourceManager::deleteResource( GLuint uglResource )
 //////////////////////////////////////////////////////////////////////////
 //GLTextureResourceManager
 //////////////////////////////////////////////////////////////////////////
-void GLTextureResourceManager::deleteResource( GLuint uglResource )
+void GLTextureResourceManager::deleteResource( uint32 uglResource )
 {
 	glDeleteTextures( 1, &uglResource );
 	GLTexturePathManager::GetInstance().HandleResourceDeletion( uglResource );
@@ -99,7 +99,7 @@ void GLTextureResourceManager::deleteResource( GLuint uglResource )
 //////////////////////////////////////////////////////////////////////////
 //GLVBOResourceManager
 //////////////////////////////////////////////////////////////////////////
-void GLVBOResourceManager::deleteResource( GLuint uglResource )
+void GLVBOResourceManager::deleteResource( uint32 uglResource )
 {
 	glDeleteBuffers( 1, &uglResource );
 	GLVBOpathManager::GetInstance().HandleResourceDeletion( uglResource );
@@ -109,7 +109,7 @@ void GLVBOResourceManager::deleteResource( GLuint uglResource )
 //////////////////////////////////////////////////////////////////////////
 //GLIBOResourceManager
 //////////////////////////////////////////////////////////////////////////
-void GLIBOResourceManager::deleteResource( GLuint uglResource )
+void GLIBOResourceManager::deleteResource( uint32 uglResource )
 {
 	glDeleteBuffers( 1, &uglResource );
 	GLIBOpathManager::GetInstance().HandleResourceDeletion( uglResource );
@@ -119,7 +119,7 @@ void GLIBOResourceManager::deleteResource( GLuint uglResource )
 //////////////////////////////////////////////////////////////////////////
 //GLProgramResourceManager
 //////////////////////////////////////////////////////////////////////////
-void GLProgramResourceManager::deleteResource( GLuint uglResource )
+void GLProgramResourceManager::deleteResource( uint32 uglResource )
 {
 	glDeleteProgram( uglResource );
 	GLShaderPathManager::GetInstance().HandleResourceDeletion( uglResource );

@@ -13,7 +13,7 @@ GLBufferUploader::~GLBufferUploader()
 
 }
 
-GLuint GLBufferUploader::UploadBufferData( void* pData, uint32 u32NumElements, uint16 u16Stride, GLuint uGLbufferType, GLuint uGLstorageHint )
+uint32 GLBufferUploader::UploadBufferData( void* pData, uint32 u32NumElements, uint16 u16Stride, uint32 uGLbufferType, uint32 uGLstorageHint )
 {
 	//GLResourcePathManager* pResPathMgr = NULL;
 
@@ -29,7 +29,7 @@ GLuint GLBufferUploader::UploadBufferData( void* pData, uint32 u32NumElements, u
 	//		return pResPathMgr->GetResource( *pszMeshIdentifier );
 	//}
 
-	GLuint uBuffer;
+	uint32 uBuffer;
 
 	glGenBuffers( 1, &uBuffer ); 
 

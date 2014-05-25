@@ -9,14 +9,14 @@ public:
 	~GLResourcePathManager();
 
 	bool HasResource( const String& szPath );
-	GLuint GetResource( const String& szPath );
-	virtual void AddResource( const String& szPath, GLuint uResource );
-	virtual void HandleResourceDeletion( GLuint uResource );
+	uint32 GetResource( const String& szPath );
+	virtual void AddResource( const String& szPath, uint32 uResource );
+	virtual void HandleResourceDeletion( uint32 uResource );
 
 protected:
 	GLResourcePathManager();
 
-	typedef std::map<String, GLuint> MapType;
+	typedef std::map<String, uint32> MapType;
 	MapType m_mapPathRes;
 };
 
@@ -26,7 +26,7 @@ class DLLEXPORT GLTexturePathManager : public GLResourcePathManager
 public:
 	static GLTexturePathManager& GetInstance() { static GLTexturePathManager instance; return instance; }
 
-	virtual void HandleResourceDeletion( GLuint uResource );
+	virtual void HandleResourceDeletion( uint32 uResource );
 };
 
 //////////////////////////////////////////////////////////////////////////
