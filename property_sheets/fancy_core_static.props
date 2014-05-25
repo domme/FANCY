@@ -6,6 +6,7 @@
   <ItemDefinitionGroup>
     <Link>
       <AdditionalDependencies>fancy_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)/lib/$(Platform)/$(Configuration)/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)/fancy_core/src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

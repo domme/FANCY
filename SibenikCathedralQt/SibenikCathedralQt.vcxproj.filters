@@ -67,14 +67,12 @@
     <CustomBuild Include="engineqglwidget.h" />
     <CustomBuild Include="deferredrendererqt.h" />
     <CustomBuild Include="DeferredRendererQApp.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="GeneratedFiles\ui_deferredrendererqt.h">
+    <CustomBuild Include="StdAfx.h" />
+    <CustomBuild Include="..\fancy_deferred\StdAfx.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StdAfx.h" />
-    <ClInclude Include="..\fancy_deferred\StdAfx.h">
+    </CustomBuild>
+    <CustomBuild Include="GeneratedFiles\ui_deferredrendererqt.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
+    </CustomBuild>
   </ItemGroup>
 </Project>

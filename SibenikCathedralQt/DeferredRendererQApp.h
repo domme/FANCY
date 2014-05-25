@@ -1,7 +1,7 @@
 #ifndef DEFERREDRENDERERQAPP_H
 #define DEFERREDRENDERERQAPP_H
 
-#include <QtWidgets/QApplication.h>
+#include <QtWidgets/QApplication>
 
 class DeferredRendererQApp : public QApplication
 {

@@ -1,0 +1,19 @@
+﻿Build started 25.05.2014 18:55:20.
+     1>Project "F:\Entwicklung\FANCY\fancy_core\fancy_core.vcxproj" on node 2 (Build target(s)).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V110\Microsoft.CppBuild.targets(345,5): warning MSB8004: Intermediate Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Intermediate Directory.
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V110\Microsoft.CppBuild.targets(346,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+     1>InitializeBuildStatus:
+         Creating "F:\Entwicklung\FANCY\/_build_temp/x64/Debug\fancy_core.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+       Link:
+         All outputs are up-to-date.
+         fancy_core.vcxproj -> F:\Entwicklung\FANCY\/lib/x64/Debug\fancy_core.dll
+       FinalizeBuildStatus:
+         Deleting file "F:\Entwicklung\FANCY\/_build_temp/x64/Debug\fancy_core.unsuccessfulbuild".
+         Touching "F:\Entwicklung\FANCY\/_build_temp/x64/Debug\fancy_core.lastbuildstate".
+     1>Done Building Project "F:\Entwicklung\FANCY\fancy_core\fancy_core.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.04

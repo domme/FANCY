@@ -15,12 +15,6 @@
 #include <glm/ext.hpp>
 
 // OpenGL inlcudes
-#if defined (_USRDLL)
-  #define GLEW_DLL
-#else // !_USRDLL
-  #define GLEW_BUILD
-#endif // _USRDLL
-
 #include "GL/glew.h"
 #include "GL/GL.h"
 

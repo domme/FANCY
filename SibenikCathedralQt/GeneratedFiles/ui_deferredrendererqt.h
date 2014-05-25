@@ -1,8 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'deferredrendererqt.ui'
 **
-** Created: Sun 13. Jan 23:14:25 2013
-**      by: Qt User Interface Compiler version 4.8.4
+** Created by: Qt User Interface Compiler version 5.2.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -11,22 +10,22 @@
 #define UI_DEFERREDRENDERERQT_H
 
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QCheckBox>
-#include <QtGui/QFrame>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QHeaderView>
-#include <QtGui/QLabel>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenuBar>
-#include <QtGui/QPushButton>
-#include <QtGui/QStatusBar>
-#include <QtGui/QTableView>
-#include <QtGui/QToolBar>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QWidget>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QTableView>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
 #include <engineqglwidget.h>
 
 QT_BEGIN_NAMESPACE
@@ -55,7 +54,7 @@ public:
     void setupUi(QMainWindow *DeferredRendererQtClass)
     {
         if (DeferredRendererQtClass->objectName().isEmpty())
-            DeferredRendererQtClass->setObjectName(QString::fromUtf8("DeferredRendererQtClass"));
+            DeferredRendererQtClass->setObjectName(QStringLiteral("DeferredRendererQtClass"));
         DeferredRendererQtClass->resize(1280, 720);
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         sizePolicy.setHorizontalStretch(0);
@@ -65,13 +64,13 @@ public:
         DeferredRendererQtClass->setBaseSize(QSize(0, 0));
         DeferredRendererQtClass->setDockOptions(QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks);
         centralWidget = new QWidget(DeferredRendererQtClass);
-        centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
+        centralWidget->setObjectName(QStringLiteral("centralWidget"));
         horizontalLayout_3 = new QHBoxLayout(centralWidget);
         horizontalLayout_3->setSpacing(6);
         horizontalLayout_3->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
+        horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
         engineQGLwidget = new EngineQGLwidget(centralWidget);
-        engineQGLwidget->setObjectName(QString::fromUtf8("engineQGLwidget"));
+        engineQGLwidget->setObjectName(QStringLiteral("engineQGLwidget"));
         QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Expanding);
         sizePolicy1.setHorizontalStretch(0);
         sizePolicy1.setVerticalStretch(0);
@@ -84,7 +83,7 @@ public:
         horizontalLayout_3->addWidget(engineQGLwidget);
 
         line = new QFrame(centralWidget);
-        line->setObjectName(QString::fromUtf8("line"));
+        line->setObjectName(QStringLiteral("line"));
         QSizePolicy sizePolicy2(QSizePolicy::Fixed, QSizePolicy::Expanding);
         sizePolicy2.setHorizontalStretch(0);
         sizePolicy2.setVerticalStretch(0);
@@ -97,16 +96,16 @@ public:
         horizontalLayout_3->addWidget(line);
 
         SideControlsWidget = new QWidget(centralWidget);
-        SideControlsWidget->setObjectName(QString::fromUtf8("SideControlsWidget"));
+        SideControlsWidget->setObjectName(QStringLiteral("SideControlsWidget"));
         sizePolicy2.setHeightForWidth(SideControlsWidget->sizePolicy().hasHeightForWidth());
         SideControlsWidget->setSizePolicy(sizePolicy2);
         SideControlsWidget->setBaseSize(QSize(100, 100));
         verticalLayout_3 = new QVBoxLayout(SideControlsWidget);
         verticalLayout_3->setSpacing(6);
         verticalLayout_3->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
+        verticalLayout_3->setObjectName(QStringLiteral("verticalLayout_3"));
         RenderDurationLabel = new QLabel(SideControlsWidget);
-        RenderDurationLabel->setObjectName(QString::fromUtf8("RenderDurationLabel"));
+        RenderDurationLabel->setObjectName(QStringLiteral("RenderDurationLabel"));
         QSizePolicy sizePolicy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
         sizePolicy3.setHorizontalStretch(0);
         sizePolicy3.setVerticalStretch(0);
@@ -116,13 +115,13 @@ public:
         verticalLayout_3->addWidget(RenderDurationLabel);
 
         statsTableView = new QTableView(SideControlsWidget);
-        statsTableView->setObjectName(QString::fromUtf8("statsTableView"));
+        statsTableView->setObjectName(QStringLiteral("statsTableView"));
         statsTableView->setSortingEnabled(true);
 
         verticalLayout_3->addWidget(statsTableView);
 
         leftHorLine = new QFrame(SideControlsWidget);
-        leftHorLine->setObjectName(QString::fromUtf8("leftHorLine"));
+        leftHorLine->setObjectName(QStringLiteral("leftHorLine"));
         QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Fixed);
         sizePolicy4.setHorizontalStretch(0);
         sizePolicy4.setVerticalStretch(0);
@@ -134,30 +133,30 @@ public:
         verticalLayout_3->addWidget(leftHorLine);
 
         hdrCB = new QCheckBox(SideControlsWidget);
-        hdrCB->setObjectName(QString::fromUtf8("hdrCB"));
+        hdrCB->setObjectName(QStringLiteral("hdrCB"));
         hdrCB->setChecked(true);
 
         verticalLayout_3->addWidget(hdrCB);
 
         fxaaCB = new QCheckBox(SideControlsWidget);
-        fxaaCB->setObjectName(QString::fromUtf8("fxaaCB"));
+        fxaaCB->setObjectName(QStringLiteral("fxaaCB"));
         fxaaCB->setChecked(true);
 
         verticalLayout_3->addWidget(fxaaCB);
 
         debugDisplayCB = new QCheckBox(SideControlsWidget);
-        debugDisplayCB->setObjectName(QString::fromUtf8("debugDisplayCB"));
+        debugDisplayCB->setObjectName(QStringLiteral("debugDisplayCB"));
 
         verticalLayout_3->addWidget(debugDisplayCB);
 
         bloomCB = new QCheckBox(SideControlsWidget);
-        bloomCB->setObjectName(QString::fromUtf8("bloomCB"));
+        bloomCB->setObjectName(QStringLiteral("bloomCB"));
         bloomCB->setChecked(true);
 
         verticalLayout_3->addWidget(bloomCB);
 
         ExitButton = new QPushButton(SideControlsWidget);
-        ExitButton->setObjectName(QString::fromUtf8("ExitButton"));
+        ExitButton->setObjectName(QStringLiteral("ExitButton"));
         QSizePolicy sizePolicy5(QSizePolicy::Preferred, QSizePolicy::Fixed);
         sizePolicy5.setHorizontalStretch(0);
         sizePolicy5.setVerticalStretch(0);
@@ -171,14 +170,14 @@ public:
 
         DeferredRendererQtClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(DeferredRendererQtClass);
-        menuBar->setObjectName(QString::fromUtf8("menuBar"));
+        menuBar->setObjectName(QStringLiteral("menuBar"));
         menuBar->setGeometry(QRect(0, 0, 1280, 20));
         DeferredRendererQtClass->setMenuBar(menuBar);
         mainToolBar = new QToolBar(DeferredRendererQtClass);
-        mainToolBar->setObjectName(QString::fromUtf8("mainToolBar"));
+        mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
         DeferredRendererQtClass->addToolBar(Qt::TopToolBarArea, mainToolBar);
         statusBar = new QStatusBar(DeferredRendererQtClass);
-        statusBar->setObjectName(QString::fromUtf8("statusBar"));
+        statusBar->setObjectName(QStringLiteral("statusBar"));
         DeferredRendererQtClass->setStatusBar(statusBar);
 
         retranslateUi(DeferredRendererQtClass);
@@ -193,13 +192,13 @@ public:
 
     void retranslateUi(QMainWindow *DeferredRendererQtClass)
     {
-        DeferredRendererQtClass->setWindowTitle(QApplication::translate("DeferredRendererQtClass", "DeferredRendererQt", 0, QApplication::UnicodeUTF8));
-        RenderDurationLabel->setText(QApplication::translate("DeferredRendererQtClass", "Frame-Durations:", 0, QApplication::UnicodeUTF8));
-        hdrCB->setText(QApplication::translate("DeferredRendererQtClass", "Use HDR-Rendering", 0, QApplication::UnicodeUTF8));
-        fxaaCB->setText(QApplication::translate("DeferredRendererQtClass", "Use FXAA", 0, QApplication::UnicodeUTF8));
-        debugDisplayCB->setText(QApplication::translate("DeferredRendererQtClass", "Debug Display", 0, QApplication::UnicodeUTF8));
-        bloomCB->setText(QApplication::translate("DeferredRendererQtClass", "Use Bloom", 0, QApplication::UnicodeUTF8));
-        ExitButton->setText(QApplication::translate("DeferredRendererQtClass", "Exit", 0, QApplication::UnicodeUTF8));
+        DeferredRendererQtClass->setWindowTitle(QApplication::translate("DeferredRendererQtClass", "DeferredRendererQt", 0));
+        RenderDurationLabel->setText(QApplication::translate("DeferredRendererQtClass", "Frame-Durations:", 0));
+        hdrCB->setText(QApplication::translate("DeferredRendererQtClass", "Use HDR-Rendering", 0));
+        fxaaCB->setText(QApplication::translate("DeferredRendererQtClass", "Use FXAA", 0));
+        debugDisplayCB->setText(QApplication::translate("DeferredRendererQtClass", "Debug Display", 0));
+        bloomCB->setText(QApplication::translate("DeferredRendererQtClass", "Use Bloom", 0));
+        ExitButton->setText(QApplication::translate("DeferredRendererQtClass", "Exit", 0));
     } // retranslateUi
 
 };
