@@ -62,6 +62,15 @@ void Engine::Init( uint uScreenWidth, uint uScreenHeight, const glm::vec4& v4Amb
 	glewInit();
 #endif
 
+  int glMajor, glMinor;
+  glGetIntegerv(GL_MAJOR_VERSION, &glMajor);
+  glGetIntegerv(GL_MINOR_VERSION, &glMinor);
+
+  LOG<std::string>((const char*) glGetString(GL_VENDOR));
+  LOG<std::string>((const char*) glGetString(GL_RENDERER));
+  LOG<std::string>((const char*) glGetString(GL_VERSION));
+  LOG<std::string>((const char*) glGetString(GL_SHADING_LANGUAGE_VERSION));
+
 	m_uScreenWidth = uScreenWidth;
 	m_uScreenHeight = uScreenHeight;
 
@@ -75,8 +84,6 @@ void Engine::Init( uint uScreenWidth, uint uScreenHeight, const glm::vec4& v4Amb
 
 	setRenderMode( RENDER_DEFERRED );
 	
-	PathService::SetResourceLocation( "..\\..\\Resources\\" );
-
 	//m_pCameraController = &CameraController::getInstance();
 	//m_pCameraController->Init( m_pRenderCamera );
 

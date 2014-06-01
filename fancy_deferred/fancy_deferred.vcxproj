@@ -128,6 +128,7 @@
     <Import Project="..\property_sheets\GLEW_32_static.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\fancy_core_static.props" />
+    <Import Project="..\property_sheets\Assimp_debug_Win32.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -136,6 +137,7 @@
     <Import Project="..\property_sheets\GLEW_64_static.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\fancy_core_static.props" />
+    <Import Project="..\property_sheets\Assimp_debug_x64.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -144,6 +146,7 @@
     <Import Project="..\property_sheets\GLEW_32_static.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\fancy_core_static.props" />
+    <Import Project="..\property_sheets\Assimp_release_Win32.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -152,24 +155,28 @@
     <Import Project="..\property_sheets\GLEW_64_static.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\fancy_core_static.props" />
+    <Import Project="..\property_sheets\Assimp_release_x64.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)/bin/$(Platform)/$(Configuration)</OutDir>
-    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)</IntDir>
+    <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)</OutDir>
+    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)/bin/$(Platform)/$(Configuration)</OutDir>
+    <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)</OutDir>
+    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)/bin/$(Platform)/$(Configuration)</OutDir>
+    <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)</OutDir>
     <TargetExt>.dll</TargetExt>
+    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)/bin/$(Platform)/$(Configuration)</OutDir>
+    <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)</OutDir>
     <TargetExt>.dll</TargetExt>
+    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -181,6 +188,8 @@
       <ForcedUsingFiles>
       </ForcedUsingFiles>
       <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -202,6 +211,8 @@
       <ForcedUsingFiles>
       </ForcedUsingFiles>
       <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -221,6 +232,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -242,6 +254,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

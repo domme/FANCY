@@ -129,6 +129,8 @@ uint32 TextureLoader::LoadTexture1D( const String& szPath, bool* pbSuccess /* = 
   return uTextureLoc;
 }
 
+
+
 //TODO: Add import-options like filtering, mip-mapping etc...
 uint32 TextureLoader::LoadTexture2D( const String& szPath, bool* pbSuccess /* = NULL */, STextureInfo* pTextureInfo /* = NULL */  )
 {

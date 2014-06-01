@@ -1,6 +1,9 @@
 #ifndef DOMENGINE_INCLUDES_H
 #define DOMENGINE_INCLUDES_H
 
+// Disable some warnings...
+#pragma warning( disable : 4251 )  // "...Needs to have a dll-interface to be used by clients"
+
 //STD includes
 #include <string>
 #include <map>
@@ -18,6 +21,7 @@
 #include "GL/glew.h"
 #include "GL/GL.h"
 
+
 //Vertex types
 //#include "Geometry/VertexDeclarations.h"
 
@@ -25,7 +29,6 @@
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }
 #define SAFE_DELETE_ARR(p) if( p[ 0 ] ) delete[] p;
 #define BUFFER_OFFSET(i) ( (char*) NULL + (i) )
-
 
 template<typename T>
 void LOG( T s )
@@ -92,11 +95,7 @@ void staticAssert_impl()
 
 
 //DLL-Export MACROS
-#if defined(__WINDOWS) && defined(__LIB_DYNAMIC)
-  #define DLLEXPORT __declspec(dllexport)
-#else
-  #define DLLEXPORT 
-#endif
+#define DLLEXPORT __declspec(dllexport)
 
 #define GLUINT_HANDLE_INVALID 0xFFFFFFFF
 

@@ -11,6 +11,10 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)/fancy_core/src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

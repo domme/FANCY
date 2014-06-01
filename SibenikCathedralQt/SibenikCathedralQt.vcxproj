@@ -92,8 +92,8 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/bin/$(Platform)/$(Configuration)</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)/bin/$(Platform)/$(Configuration)</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/bin/$(Platform)/$(Configuration)</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)</IntDir>
   </PropertyGroup>
@@ -107,6 +107,7 @@
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -115,6 +116,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_core.dll* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_deferred.dll* /Y
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -124,6 +130,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -132,6 +139,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_core.dll* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_deferred.dll* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_core.pdb $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_core.pdb* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.pdb $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_deferred.pdb* /Y
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -143,6 +157,7 @@
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
       <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
       <PrecompiledHeader>Use</PrecompiledHeader>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,6 +166,11 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_core.dll* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_deferred.dll* /Y
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -160,6 +180,7 @@
       </DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -168,6 +189,11 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_core.dll* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_deferred.dll* /Y
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DeferredRendererQApp.cpp" />
@@ -403,8 +429,21 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\fancy_core\fancy_core.vcxproj">
+      <Project>{0562febf-6fa8-4abd-8ff9-d7b3b8a889fd}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
     <ProjectReference Include="..\fancy_deferred\fancy_deferred.vcxproj">
       <Project>{03a80150-e3ae-417d-9226-d80b6085a2bc}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

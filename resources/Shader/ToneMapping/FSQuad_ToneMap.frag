@@ -13,13 +13,13 @@ out vec4 color;
 
 void main( void )
 {
-	color = texture2D( inputTex, tex );
+	color = texture( inputTex, tex );
 	
 
 	if( bToneMappingEnabled )
 	{
 		float currL = dot( color.rgb, vec3( 0.299, 0.587, 0.114 ) );
-		float avgL = texture2DLod( avgLuminanceTex, vec2( 0.5, 0.5 ), 7 ).r;
+		float avgL = textureLod( avgLuminanceTex, vec2( 0.5, 0.5 ), 7 ).r;
 		//float targetL = exposure * ( exposure/avgL + 1.0 ) / (exposure + 1);
 		//color.rgb = sqrt( color.rgb * targetL );
 	

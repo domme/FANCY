@@ -19,12 +19,12 @@ float fGaussOffsetStep = 1.0 / float(kernelSize);
 
 float offset( int x )
 {
-	return texture1D( tOffsets, float(x) * fGaussOffsetStep ).r; 
+	return texture( tOffsets, float(x) * fGaussOffsetStep ).r; 
 }
                                                                                          
 float gauss( int x )                                                                   
 {    
-	return texture1D( tGauss, float(x) * fGaussOffsetStep ).r;
+	return texture( tGauss, float(x) * fGaussOffsetStep ).r;
 }
                                                                                          
 vec4 blurGauss()                                                                         
@@ -46,19 +46,19 @@ vec4 blurGauss()
                                                     
    
    float fWeights = gauss( 0 );
-   vec4 v4Color = texture2D( tImg, tex + centerOffset ) * fWeights;
+   vec4 v4Color = texture( tImg, tex + centerOffset ) * fWeights;
    
    //float k = 1.0;
    
-   for( int i = 1; i < kernelSize; ++i )                                  
+   for( int i = 1; i < kernelSize; ++i )
    {        
 		float fWeight = gauss( i );
 		fWeights += 2.0 * fWeight;
    		vec2 v2SamplingPos = ( tex + centerOffset ) + v2SamplingDir * offset( i ) * fStep;
-		v4Color += texture2D( tImg, v2SamplingPos ) * fWeight;
+		v4Color += texture( tImg, v2SamplingPos ) * fWeight;
 		
-		v2SamplingPos = ( tex + centerOffset ) - v2SamplingDir * offset( i ) * fStep;                                                                                                                           
-		v4Color += texture2D( tImg, v2SamplingPos ) * fWeight;
+		v2SamplingPos = ( tex + centerOffset ) - v2SamplingDir * offset( i ) * fStep;
+		v4Color += texture( tImg, v2SamplingPos ) * fWeight;
 		
 		//k += 2.0;
    }                                                                                     
@@ -69,7 +69,7 @@ vec4 blurGauss()
 void main( void )                                                                            
 {   
 	fGaussOffsetStep = 1.0 / float(kernelSize);
-	color = vec4( blurGauss().xyz, texture2D( tImg, tex ).a );
+	color = vec4( blurGauss().xyz, texture( tImg, tex ).a );
    
 	//color = vec4( 1.0, 0.0, 0.0, 1.0 );
    //color = texture2D( tImg, tex );
