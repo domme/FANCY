@@ -4,267 +4,408 @@
     <Filter Include="src">
       <UniqueIdentifier>{119cc715-1dea-4811-898b-fe3023e1235c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Events">
-      <UniqueIdentifier>{9b0a9dd7-966c-4fac-bd0c-a8acb63597b8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Geometry">
-      <UniqueIdentifier>{340c6814-d612-47da-81dc-e6ea8b472501}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\IO">
-      <UniqueIdentifier>{990c5dcb-5526-4cef-b515-f87e35f68960}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Light">
-      <UniqueIdentifier>{ae8fe043-4f0a-4c21-b046-476bb9586017}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Math">
-      <UniqueIdentifier>{0e81bbff-939f-4888-beca-f1e9da033136}</UniqueIdentifier>
+      <UniqueIdentifier>{cf808716-0597-492b-83ce-d3521a9641d7}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Rendering">
-      <UniqueIdentifier>{d9225510-fb7f-4a95-b266-11c8d6d6a5f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Scene">
-      <UniqueIdentifier>{a1301d1b-a562-42a8-892e-1926a06fee96}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Services">
-      <UniqueIdentifier>{ce0164dc-b8f4-40a0-b4fe-071f60cbf95a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Rendering\Managers">
-      <UniqueIdentifier>{26873394-966d-4fcc-ba71-cf0b1ece1025}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Rendering\Materials">
-      <UniqueIdentifier>{02afd460-d464-4297-89fa-2f2bc1776a23}</UniqueIdentifier>
+      <UniqueIdentifier>{da98f0a5-f47c-4aa9-aee2-adaacecdc0ff}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Debug">
-      <UniqueIdentifier>{30337951-e4ed-4569-ae32-a56fd850d166}</UniqueIdentifier>
+      <UniqueIdentifier>{af5f6d52-a9aa-498f-b526-b079c9326059}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Geometry">
+      <UniqueIdentifier>{00c69bda-1f86-44fb-95ef-39fe0da5594e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Scene">
+      <UniqueIdentifier>{0643b0af-b26f-4449-898c-4a9c91556345}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Common">
+      <UniqueIdentifier>{3bbf5b5b-c9b6-4fb6-a957-965e0ce00c59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Rendering\Materials">
+      <UniqueIdentifier>{b1784d83-d074-4980-ae5a-cd01ee46814e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Includes.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Events\Events.h">
-      <Filter>src\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Geometry\BaseGeometryObject.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Geometry\Mesh.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Geometry\VertexDeclarations.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\IO\FileReader.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\IO\GLSLpreprocessor.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\IO\ModelLoader.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\IO\ModelLoader_LogStream.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\IO\PathService.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\IO\ShaderLoader.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\IO\TextureLoader.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Light\DirectionalLight.h">
-      <Filter>src\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Light\Light.h">
-      <Filter>src\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Light\PointLight.h">
-      <Filter>src\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Light\SpotLight.h">
-      <Filter>src\Light</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Math\QuaternionService.h">
-      <Filter>src\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\GLRenderer.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\GLTexture.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\IUniform.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\IUniformObserver.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Shader.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\ShaderSemantics.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\TextureIncludes.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\TextureSemantics.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Uniform.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\UniformRegistry.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\UniformUtil.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene\AABoundingBox.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene\BoundingSphere.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene\Camera.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Services\FBOservice.h">
-      <Filter>src\Services</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Services\GLDebug.h">
-      <Filter>src\Services</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Services\NameRegistry.h">
-      <Filter>src\Services</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Managers\GLBufferUploader.h">
-      <Filter>src\Rendering\Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Managers\GLResourcePathManager.h">
-      <Filter>src\Rendering\Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Managers\GLResourceManager.h">
-      <Filter>src\Rendering\Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Managers\TextureManager.h">
-      <Filter>src\Rendering\Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering\Materials\Material.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Debug\PerformanceCheck.h">
-      <Filter>src\Debug</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Debug\StatsManager.h">
-      <Filter>src\Debug</Filter>
-    </ClInclude>
     <ClInclude Include="src\StdAfx.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\IO\lodepng.h">
+    <ClInclude Include="src\QuaternionService.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderLoader.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderSemantics.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AABoundingBox.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BaseGeometryObject.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoundingSphere.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Buffer.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ComputeOperation.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ConstantBuffer.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DirectionalLight.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Events.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FancyCorePrerequisites.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FileReader.h">
       <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLResourcePathManager.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLSLpreprocessor.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Light.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GPUProgram.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GPUDataStage.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LoadableObject.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lodepng.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Material.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModelLoader_LogStream.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModelLoader.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NameRegistry.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PathService.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PerformanceCheck.h">
+      <Filter>src\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PointLight.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderOperation.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SpotLight.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StatsManager.h">
+      <Filter>src\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Texture.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextureLoader.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VertexDeclarations.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_Colored.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_Bloom.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_BrightPass.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_DirLighting.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_FinalComposite.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_FXAA.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_GaussianBlur.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_LumaTimeAdaption.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_PointLighting.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_Textured.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_FSquad_ToneMapping.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_Pointlight_Illumination.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_Test.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_Textured.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_TexturedNormal.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MAT_TexturedNormalSpecular.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SceneNode.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SceneManager.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BaseRenderableObject.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Entity.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FullscreenQuad.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DeferredRenderAlgorithm.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Pass_GaussianBlur.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SceneLoader.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextureSemantics.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextureManager.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TransformSQT.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GPUResourceManager.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Geometry\BaseGeometryObject.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Geometry\Mesh.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Geometry\VertexDeclarations.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IO\FileReader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IO\GLSLpreprocessor.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IO\ModelLoader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IO\PathService.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IO\ShaderLoader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\IO\TextureLoader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Light\DirectionalLight.cpp">
-      <Filter>src\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Light\Light.cpp">
-      <Filter>src\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Light\PointLight.cpp">
-      <Filter>src\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Light\SpotLight.cpp">
-      <Filter>src\Light</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\GLRenderer.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\GLTexture.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Shader.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Uniform.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\UniformRegistry.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\UniformUtil.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene\AABoundingBox.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene\BoundingSphere.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene\Camera.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Services\NameRegistry.cpp">
-      <Filter>src\Services</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Managers\GLBufferUploader.cpp">
-      <Filter>src\Rendering\Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Managers\GLResourceManager.cpp">
-      <Filter>src\Rendering\Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Managers\GLResourcePathManager.cpp">
-      <Filter>src\Rendering\Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Managers\TextureManager.cpp">
-      <Filter>src\Rendering\Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering\Materials\Material.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Debug\PerformanceCheck.cpp">
-      <Filter>src\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Debug\StatsManager.cpp">
-      <Filter>src\Debug</Filter>
-    </ClCompile>
     <ClCompile Include="src\StdAfx.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\IO\lodepng.cpp">
+    <ClCompile Include="src\ShaderLoader.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AABoundingBox.cpp">
+      <Filter>src\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BaseGeometryObject.cpp">
+      <Filter>src\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BoundingSphere.cpp">
+      <Filter>src\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Buffer.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ComputeOperation.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ConstantBuffer.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DirectionalLight.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileReader.cpp">
       <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLResourcePathManager.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLSLpreprocessor.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Light.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GPUDataStage.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GPUProgram.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LoadableObject.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lodepng.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Material.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModelLoader.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>src\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NameRegistry.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PathService.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PerformanceCheck.cpp">
+      <Filter>src\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PointLight.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderOperation.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SpotLight.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StatsManager.cpp">
+      <Filter>src\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Texture.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureLoader.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VertexDeclarations.cpp">
+      <Filter>src\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_Colored.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_Bloom.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_BrightPass.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_DirLighting.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_FinalComposite.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_FXAA.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_GaussianBlur.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_LumaTimeAdaption.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_PointLighting.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_Textured.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_FSquad_ToneMapping.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_Pointlight_Illumination.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_Test.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_Textured.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_TexturedNormal.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MAT_TexturedNormalSpecular.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneManager.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneNode.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BaseRenderableObject.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Entity.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FullscreenQuad.cpp">
+      <Filter>src\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DeferredRenderAlgorithm.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Pass_GaussianBlur.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneLoader.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureManager.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TransformSQT.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GPUResourceManager.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

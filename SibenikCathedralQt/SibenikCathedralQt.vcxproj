@@ -48,7 +48,6 @@
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\GLEW_32_static.props" />
     <Import Project="..\property_sheets\fancy_core_static.props" />
-    <Import Project="..\property_sheets\fancy_deferred_static.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -56,14 +55,12 @@
     <Import Project="..\property_sheets\Qt_520_x64_debug.props" />
     <Import Project="..\property_sheets\GLEW_64_static.props" />
     <Import Project="..\property_sheets\fancy_core_static.props" />
-    <Import Project="..\property_sheets\fancy_deferred_static.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\GLEW_32_static.props" />
     <Import Project="..\property_sheets\fancy_core_static.props" />
-    <Import Project="..\property_sheets\fancy_deferred_static.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -71,7 +68,6 @@
     <Import Project="..\property_sheets\Qt_520_x64_release.props" />
     <Import Project="..\property_sheets\GLEW_64_static.props" />
     <Import Project="..\property_sheets\fancy_core_static.props" />
-    <Import Project="..\property_sheets\fancy_deferred_static.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -141,9 +137,11 @@ XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.dll $(Soluti
     </Link>
     <PostBuildEvent>
       <Command>XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_core.dll* /Y
-XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_deferred.dll* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_rendersystemDX11.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_rendersystemDX11.dll* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_rendersystemGL4.dll $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_rendersystemGL4.dll* /Y
 XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_core.pdb $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_core.pdb* /Y
-XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.pdb $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_deferred.pdb* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_rendersystemDX11.pdb $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_rendersystemDX11.pdb* /Y
+XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_rendersystemGL4.pdb $(SolutionDir)bin\$(Platform)\$(Configuration)\fancy_rendersystemGL4.pdb* /Y
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -437,13 +435,11 @@ XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.dll $(Soluti
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\fancy_deferred\fancy_deferred.vcxproj">
-      <Project>{03a80150-e3ae-417d-9226-d80b6085a2bc}</Project>
-      <Private>true</Private>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    <ProjectReference Include="..\fancy_rendersystemDX11\fancy_rendersystemDX11.vcxproj">
+      <Project>{55121469-5e16-432d-8944-f4a6e0713c51}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\fancy_rendersystemGL4\fancy_rendersystemGL4.vcxproj">
+      <Project>{8bd5688f-83b4-401b-bf9b-afc968d3fa0f}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

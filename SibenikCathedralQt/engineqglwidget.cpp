@@ -16,7 +16,7 @@
 static Engine*			pEngine = NULL;
 static SceneManager*	pSceneManager = NULL;
 static StatsManager*	pStatsGUI = NULL;
-static GLRenderer*		pRenderer = NULL;
+static Renderer*		pRenderer = NULL;
 static SceneNode*		pDirlightNode = NULL;
 static SceneNode* pPointLightNode1 = NULL;
 PointLight* pPointLight = NULL;
