@@ -154,11 +154,11 @@ public:
   virtual bool _init() override;
   virtual bool _destroy() override;
 
-  virtual void _setDepthStencilState(const DepthStencilState& clState) override;
+  virtual void _onDepthStencilStateChanged(const DepthStencilState& clState, const DepthStencilState& clOldState) override;
+  virtual void _onBlendStateChange(const BlendState& clState, const BlendState& clOldState) override;
   virtual void _setFillMode(FillMode eFillMode) override;
   virtual void _setCullMode(CullMode eCullMode) override;
   virtual void _setWindingOrder(WindingOrder eWindingOrder) override;
-  virtual void _setBlendState(const BlendState& clState) override;
 
   // TODO: Mesh will become a thin geometric representation in the future
   virtual void _render(Mesh* pMesh) override;  
@@ -167,7 +167,7 @@ public:
   virtual void _dispatchComputeIndirect( /*params ?*/ ) override;
 
   /// Resource-bindings
-  virtual void _bindRenderTargets(Texture** pTexList, uint8 u8NumRTs) override;
+  virtual void _onRenderTargetsChanged(Texture** pTexList, uint8 u8NumRTs) override;
   virtual void _bindReadTextures(ShaderStage eShaderStage, const Texture** pTexList, uint8 u8NumTextures) override;
   virtual void _bindReadBuffers(ShaderStage eShaderStage,  const Buffer** pBufferList, uint8 u8NumBuffers) override;
   virtual void _bindConstantBuffers(ShaderStage eShaderStage, const ConstantBuffer** pBufferList, uint8 u8NumBuffers) override;

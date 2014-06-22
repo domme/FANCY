@@ -22,7 +22,7 @@ bool RendererGL4::_destroy()
   // TODO: Gather all GL-resources here and destroy them? Or simply destroy internal stuff?
 }
 
-void RendererGL4::_setDepthStencilState( const DepthStencilState& clState )
+void RendererGL4::_onDepthStencilStateChanged( const DepthStencilState& clState )
 {
   
 }
@@ -42,7 +42,7 @@ void RendererGL4::_setWindingOrder( WindingOrder eWindingOrder )
 
 }
 
-void RendererGL4::_setBlendState( const BlendState& clState )
+void RendererGL4::_onBlendStateChange( const BlendState& clState )
 {
 
 }
@@ -67,7 +67,7 @@ void RendererGL4::_dispatchComputeIndirect( /*params ?*/ )
 
 }
 
-void RendererGL4::_bindRenderTargets( Texture** pTexList, uint8 u8NumRTs )
+void RendererGL4::_onRenderTargetsChanged( Texture** pTexList, uint8 u8NumRTs )
 {
 
 }

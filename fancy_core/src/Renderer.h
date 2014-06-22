@@ -213,12 +213,12 @@ public:
   RendererImpl();
   virtual ~RendererImpl();
   
-  virtual void _setDepthStencilState(const DepthStencilState& clState) = 0;
+  virtual void _onDepthStencilStateChanged(const DepthStencilState& clState, const DepthStencilState& clOldState) = 0;
+  virtual void _onBlendStateChange(const BlendState& clState, const BlendState& clOldState) = 0;
   virtual void _setFillMode(FillMode eFillMode) = 0;
   virtual void _setCullMode(CullMode eCullMode) = 0;
   virtual void _setWindingOrder(WindingOrder eWindingOrder) = 0;
-  virtual void _setBlendState(const BlendState& clState) = 0;
-      
+        
   // TODO: Mesh will become a thin geometric representation in the future
   virtual void _render(Mesh* pMesh) = 0;  
   virtual void _renderIndirect( /*params ?*/ ) = 0;
@@ -226,7 +226,7 @@ public:
   virtual void _dispatchComputeIndirect( /*params ?*/ ) = 0;
 
   /// Resource-bindings
-  virtual void _bindRenderTargets(Texture** pTexList, uint8 u8NumRTs) = 0;
+  virtual void _onRenderTargetsChanged(Texture** pTexList, uint8 u8NumRTs) = 0;
   virtual void _bindReadTextures(ShaderStage eShaderStage,
                                  const Texture** pTexList,
                                  uint8 u8NumTextures) = 0;
@@ -242,7 +242,6 @@ public:
   virtual void _bindGPUProgram(ShaderStage  eShaderStage, const GPUProgram* pProgram) = 0;
 };
 
-
 struct PipelineState
 {
   DepthStencilState   clDepthStencilState;
@@ -251,18 +250,8 @@ struct PipelineState
   CullMode      eCullMode;
   WindingOrder  eWindingOrder;
   Texture* pBoundRenderTargets [FANCY_MAX_NUM_BOUND_RENDERTARGETS];
+  uint32 uRenderTargetBindMask;
 };
-
-struct ResourceState
-{
-  Texture* pBoundReadTextures [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_READ_TEXTURES];
-  Buffer* pBoundReadBuffers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_READ_BUFFERS];
-  ConstantBuffer* pBoundConstantBuffers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS];
-  TextureSampler* pBoundTextureSamplers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_SAMPLERS];
-  GPUProgram*     pBoundGPUPrograms [ShaderStage::NUM];
-};
-
-
 
 enum class ResourceRebindFlags {
   NONE              = 0x0000,
@@ -405,10 +394,30 @@ protected:
   RendererImpl* m_pImpl;
   /// The current cached state of the pipeline
   PipelineState m_clPipelineState;
-  /// The current cached state of the bound resources
-  ResourceState m_clResourceState;
+  PipelineState m_clPipelineState2;
+ 
+  /// Pointer to the current and old resource-/pipeline-states. Swapped on each change
+  PipelineState* m_pPipelineState;
+  PipelineState* m_pOldPipelineState;
+
   /// Mask indicating which pipeline states have to be re-bound to the pipeline
   uint        m_uPipelineRebindMask;
+
+  Texture* pBoundReadTextures [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_READ_TEXTURES];
+  uint32 uReadTextureBindMask [ShaderStage::NUM];
+
+  Buffer* pBoundReadBuffers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_READ_BUFFERS];
+  uint32 uReadBufferBindMask [ShaderStage::NUM];
+
+  ConstantBuffer* pBoundConstantBuffers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS];
+  uint32 uConstantBufferBindMask[ShaderStage::NUM];
+
+  TextureSampler* pBoundTextureSamplers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_SAMPLERS];
+  uint32 uTextureSamplerBindMask[ShaderStage::NUM];
+
+  GPUProgram*     pBoundGPUPrograms [ShaderStage::NUM];
+  uint32 uGPUprogramBindMask;
+
   /// Mask indicating which resources have to be re-bound to each shaderStage
   uint        m_uResourceRebindMask[ShaderStage::NUM];
   /// Indicates if the current code-block is between begin/end ChangePipelineState;

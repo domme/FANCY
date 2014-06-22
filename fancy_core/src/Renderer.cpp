@@ -7,6 +7,10 @@ Renderer::Renderer() :
   m_uPipelineRebindMask(static_cast<uint>(PipelineRebindFlags::ALL)),
   m_bChangingPipelineState(false),
   m_bChangingResourceState(false),
+  m_pPipelineState(&m_clPipelineState),
+  m_pOldPipelineState(&m_clPipelineState2),
+  m_pResourceState(&m_clResourceState),
+  m_pOldResourceState(&m_clResourceState2),
   LoadableObject::LoadableObject()
 {
   memset(m_uResourceRebindMask, static_cast<uint>(ResourceRebindFlags::ALL), sizeof(m_uResourceRebindMask));
@@ -77,6 +81,7 @@ bool Renderer::setImplementation( RendererImpl* pImpl )
 void Renderer::beginChangePipelineState()
 {
   ASSERT_M(!m_bChangingPipelineState, "Call to beginChangePipelineState before end detected!");
+  std::swap(m_pPipelineState, m_pOldPipelineState);
   m_bChangingPipelineState = true;
   m_uPipelineRebindMask = static_cast<uint>(PipelineRebindFlags::NONE);
 }
@@ -93,11 +98,11 @@ void Renderer::endChangePipelineState()
   {
     if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL)) > 0)
     {
-      m_pImpl->_setDepthStencilState(m_clPipelineState.clDepthStencilState);
+      m_pImpl->_onDepthStencilStateChanged(m_clPipelineState.clDepthStencilState);
     }
     if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::BLENDING)) > 0)
     {
-      m_pImpl->_setBlendState(m_clPipelineState.clBlendState);
+      m_pImpl->_onBlendStateChange(m_clPipelineState.clBlendState);
     }
     if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::FILLMODE)) > 0)
     {
@@ -113,7 +118,7 @@ void Renderer::endChangePipelineState()
     }
     if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::RENDERTARGETS)) > 0)
     {
-      m_pImpl->_bindRenderTargets(m_clPipelineState.pBoundRenderTargets,
+      m_pImpl->_onRenderTargetsChanged(m_clPipelineState.pBoundRenderTargets,
                                   FANCY_MAX_NUM_BOUND_RENDERTARGETS);
     }
   }
@@ -125,6 +130,7 @@ void Renderer::endChangePipelineState()
 void Renderer::beginChangeResourceState()
 {
   ASSERT_M(!m_bChangingResourceState, "Call to beginChangingResourceState before end detected!");
+  std::swap(m_clResourceState, m_clOldResourceState);
   m_bChangingResourceState = true;
   memset(m_uResourceRebindMask, static_cast<uint>(ResourceRebindFlags::NONE), sizeof(m_uResourceRebindMask));
 }
