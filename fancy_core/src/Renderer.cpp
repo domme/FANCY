@@ -4,12 +4,12 @@ using namespace FANCY::Core::Rendering;
 
 Renderer::Renderer() :
   m_pImpl(0),
-  m_uPipelineRebindMask(PipelineRebindFlags::ALL),
+  m_uPipelineRebindMask(static_cast<uint>(PipelineRebindFlags::ALL)),
   m_bChangingPipelineState(false),
   m_bChangingResourceState(false),
   LoadableObject::LoadableObject()
 {
-  memset(m_uResourceRebindMask, ResourceRebindFlags::ALL, sizeof(m_uResourceRebindMask));
+  memset(m_uResourceRebindMask, static_cast<uint>(ResourceRebindFlags::ALL), sizeof(m_uResourceRebindMask));
 }
 
 Renderer::~Renderer()
@@ -62,13 +62,13 @@ bool Renderer::setImplementation( RendererImpl* pImpl )
     // TODO: Notify textures, buffers, GPUprograms to reload in the new impl!
     beginChangePipelineState();
     {
-      m_uPipelineRebindMask = PipelineRebindFlags::ALL;
+      m_uPipelineRebindMask = static_cast<uint>(PipelineRebindFlags::ALL);
     }
     endChangePipelineState();
 
     beginChangeResourceState();
     {
-      memset(m_uResourceRebindMask, ResourceRebindFlags::ALL, sizeof(m_uResourceRebindMask));
+      memset(m_uResourceRebindMask, static_cast<uint>(ResourceRebindFlags::ALL), sizeof(m_uResourceRebindMask));
     }
     endChangeResourceState();
   }
@@ -78,7 +78,7 @@ void Renderer::beginChangePipelineState()
 {
   ASSERT_M(!m_bChangingPipelineState, "Call to beginChangePipelineState before end detected!");
   m_bChangingPipelineState = true;
-  m_uPipelineRebindMask = PipelineRebindFlags::NONE;
+  m_uPipelineRebindMask = static_cast<uint>(PipelineRebindFlags::NONE);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::endChangePipelineState()
@@ -89,36 +89,36 @@ void Renderer::endChangePipelineState()
   // Call the implementation depending on the set rebind flags
   // TODO: Might be a bit inefficient to call the impl multiple times...
   //       let the impl handle the rebindMask in the future?
-  if ((m_uPipelineRebindMask & PipelineRebindFlags::ALL) > 0)
+  if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::ALL)) > 0)
   {
-    if ((m_uPipelineRebindMask & PipelineRebindFlags::DEPTHSTENCIL) > 0)
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL)) > 0)
     {
       m_pImpl->_setDepthStencilState(m_clPipelineState.clDepthStencilState);
     }
-    if ((m_uPipelineRebindMask & PipelineRebindFlags::BLENDING) > 0)
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::BLENDING)) > 0)
     {
       m_pImpl->_setBlendState(m_clPipelineState.clBlendState);
     }
-    if ((m_uPipelineRebindMask & PipelineRebindFlags::FILLMODE) > 0)
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::FILLMODE)) > 0)
     {
       m_pImpl->_setFillMode(m_clPipelineState.eFillMode);
     }
-    if ((m_uPipelineRebindMask & PipelineRebindFlags::CULLMODE) > 0)
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::CULLMODE)) > 0)
     {
       m_pImpl->_setCullMode(m_clPipelineState.eCullMode);
     }
-    if ((m_uPipelineRebindMask & PipelineRebindFlags::WINDINGORDER) > 0)
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::WINDINGORDER)) > 0)
     {
       m_pImpl->_setWindingOrder(m_clPipelineState.eWindingOrder);
     }
-    if ((m_uPipelineRebindMask & PipelineRebindFlags::RENDERTARGETS) > 0)
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::RENDERTARGETS)) > 0)
     {
       m_pImpl->_bindRenderTargets(m_clPipelineState.pBoundRenderTargets,
                                   FANCY_MAX_NUM_BOUND_RENDERTARGETS);
     }
   }
 
-  m_uPipelineRebindMask = PipelineRebindFlags::NONE;
+  m_uPipelineRebindMask = static_cast<uint>(PipelineRebindFlags::NONE);
   m_bChangingPipelineState = false;
 }
 //////////////////////////////////////////////////////////////////////////
@@ -126,7 +126,7 @@ void Renderer::beginChangeResourceState()
 {
   ASSERT_M(!m_bChangingResourceState, "Call to beginChangingResourceState before end detected!");
   m_bChangingResourceState = true;
-  memset(m_uResourceRebindMask, ResourceRebindFlags::NONE, sizeof(m_uResourceRebindMask));
+  memset(m_uResourceRebindMask, static_cast<uint>(ResourceRebindFlags::NONE), sizeof(m_uResourceRebindMask));
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::endChangeResourceState()
@@ -137,44 +137,44 @@ void Renderer::endChangeResourceState()
   // Call the implementation depending on the set rebind flags
   // TODO: Might be a bit inefficient to call the impl multiple times...
   //       let the impl handle the rebindMask in the future?
-  for(uint iShaderStage = 0; iShaderStage < ShaderStage::NUM; ++iShaderStage)
+  for(uint iShaderStage = 0; iShaderStage < static_cast<uint>(ShaderStage::NUM); ++iShaderStage)
   {
     uint uRebindMask = m_uResourceRebindMask[iShaderStage];
-    if((uRebindMask & ResourceRebindFlags::ALL) > 0)
+    if((uRebindMask & static_cast<uint>(ResourceRebindFlags::ALL)) > 0)
     {
-      if((uRebindMask & ResourceRebindFlags::READ_TEXTURES) > 0)
+      if((uRebindMask & static_cast<uint>(ResourceRebindFlags::READ_TEXTURES)) > 0)
       {
-        m_pImpl->_bindReadTextures(static_cast<ShaderStage::Enum>(iShaderStage),
+        m_pImpl->_bindReadTextures(static_cast<ShaderStage>(iShaderStage),
                                    m_clResourceState.pBoundReadTextures[iShaderStage],
                                    FANCY_MAX_NUM_BOUND_READ_TEXTURES);
       }
-      if((uRebindMask & ResourceRebindFlags::READ_BUFFERS) > 0)
+      if((uRebindMask & static_cast<uint>(ResourceRebindFlags::READ_BUFFERS)) > 0)
       {
-        m_pImpl->_bindReadBuffers(static_cast<ShaderStage::Enum>(iShaderStage),
+        m_pImpl->_bindReadBuffers(static_cast<ShaderStage>(iShaderStage),
                                   m_clResourceState.pBoundReadBuffers[iShaderStage],
                                   FANCY_MAX_NUM_BOUND_READ_BUFFERS);
       }
-      if((uRebindMask & ResourceRebindFlags::CONSTANT_BUFFERS) > 0)
+      if((uRebindMask & static_cast<uint>(ResourceRebindFlags::CONSTANT_BUFFERS)) > 0)
       {
-        m_pImpl->_bindConstantBuffers(static_cast<ShaderStage::Enum>(iShaderStage),
+        m_pImpl->_bindConstantBuffers(static_cast<ShaderStage>(iShaderStage),
                                       m_clResourceState.pBoundConstantBuffers[iShaderStage],
                                       FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS);
       }
-      if((uRebindMask & ResourceRebindFlags::TEXTURE_SAMPLERS) > 0)
+      if((uRebindMask & static_cast<uint>(ResourceRebindFlags::TEXTURE_SAMPLERS)) > 0)
       {
-        m_pImpl->_bindTextureSamplers(static_cast<ShaderStage::Enum>(iShaderStage),
+        m_pImpl->_bindTextureSamplers(static_cast<ShaderStage>(iShaderStage),
                                       m_clResourceState.pBoundTextureSamplers[iShaderStage],
                                       FANCY_MAX_NUM_BOUND_SAMPLERS);
       }
-      if((uRebindMask & ResourceRebindFlags::GPU_PROGRAMS) > 0)
+      if((uRebindMask & static_cast<uint>(ResourceRebindFlags::GPU_PROGRAMS)) > 0)
       {
-        m_pImpl->_bindGPUProgram(static_cast<ShaderStage::Enum>(iShaderStage),
+        m_pImpl->_bindGPUProgram(static_cast<ShaderStage>(iShaderStage),
                                  m_clResourceState.pBoundGPUPrograms[iShaderStage]);
       }
     }
   }
 
-  m_uPipelineRebindMask = PipelineRebindFlags::NONE;
+  m_uPipelineRebindMask = static_cast<uint>(PipelineRebindFlags::NONE);
   m_bChangingPipelineState = false;
 }
 //////////////////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ void Renderer::setDepthTestEnabled( bool bEnabled )
   }
 
   m_clPipelineState.clDepthStencilState.bDepthTestEnabled = bEnabled;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::setDepthWriteEnabled( bool bEnabled )
@@ -201,10 +201,10 @@ void Renderer::setDepthWriteEnabled( bool bEnabled )
   }
 
   m_clPipelineState.clDepthStencilState.bDepthWriteEnabled = bEnabled;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setDepthCompFunc( CompFunc::Enum eFunc )
+void Renderer::setDepthCompFunc( CompFunc eFunc )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -214,7 +214,7 @@ void Renderer::setDepthCompFunc( CompFunc::Enum eFunc )
   }
 
   m_clPipelineState.clDepthStencilState.eDepthCompFunc = eFunc;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::setStencilEnabled( bool bEnabled )
@@ -227,7 +227,7 @@ void Renderer::setStencilEnabled( bool bEnabled )
   }
 
   m_clPipelineState.clDepthStencilState.bStencilEnabled = bEnabled;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::setStencilRefValue( uint uRefValue )
@@ -240,7 +240,7 @@ void Renderer::setStencilRefValue( uint uRefValue )
   }
 
   m_clPipelineState.clDepthStencilState.uStencilRef = uRefValue;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::setStencilReadMask( uint8 uReadMask )
@@ -253,7 +253,7 @@ void Renderer::setStencilReadMask( uint8 uReadMask )
   }
 
   m_clPipelineState.clDepthStencilState.u8StencilReadMask = uReadMask;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::setStencilWriteMask( uint8 uWriteMask )
@@ -266,10 +266,10 @@ void Renderer::setStencilWriteMask( uint8 uWriteMask )
   }
 
   m_clPipelineState.clDepthStencilState.u8StencilWriteMask = uWriteMask;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setStencilFailOp_FF( StencilOp::Enum eOp )
+void Renderer::setStencilFailOp_FF( StencilOp eOp )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -279,10 +279,10 @@ void Renderer::setStencilFailOp_FF( StencilOp::Enum eOp )
   }
 
   m_clPipelineState.clDepthStencilState.eStencilFailOp_FF = eOp;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setStencilDepthFailOp_FF( StencilOp::Enum eOp )
+void Renderer::setStencilDepthFailOp_FF( StencilOp eOp )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -292,10 +292,10 @@ void Renderer::setStencilDepthFailOp_FF( StencilOp::Enum eOp )
   }
 
   m_clPipelineState.clDepthStencilState.eStencilDepthFailOp_FF = eOp;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setStencilPassOp_FF( StencilOp::Enum eOp )
+void Renderer::setStencilPassOp_FF( StencilOp eOp )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -305,10 +305,10 @@ void Renderer::setStencilPassOp_FF( StencilOp::Enum eOp )
   }
 
   m_clPipelineState.clDepthStencilState.eStencilPassOp_FF = eOp;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setStencilCompFunc_FF( CompFunc::Enum eFunc )
+void Renderer::setStencilCompFunc_FF( CompFunc eFunc )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -318,10 +318,10 @@ void Renderer::setStencilCompFunc_FF( CompFunc::Enum eFunc )
   }
 
   m_clPipelineState.clDepthStencilState.eStencilCompFunc_FF = eFunc;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setStencilFailOp_BF( StencilOp::Enum eOp )
+void Renderer::setStencilFailOp_BF( StencilOp eOp )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -331,10 +331,10 @@ void Renderer::setStencilFailOp_BF( StencilOp::Enum eOp )
   }
 
   m_clPipelineState.clDepthStencilState.eStencilFailOp_BF = eOp;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setStencilDepthFailOp_BF( StencilOp::Enum eOp )
+void Renderer::setStencilDepthFailOp_BF( StencilOp eOp )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -344,10 +344,10 @@ void Renderer::setStencilDepthFailOp_BF( StencilOp::Enum eOp )
   }
 
   m_clPipelineState.clDepthStencilState.eStencilDepthFailOp_BF = eOp;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setStencilPassOp_BF( StencilOp::Enum eOp )
+void Renderer::setStencilPassOp_BF( StencilOp eOp )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -357,10 +357,10 @@ void Renderer::setStencilPassOp_BF( StencilOp::Enum eOp )
   }
 
   m_clPipelineState.clDepthStencilState.eStencilPassOp_BF = eOp;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setStencilCompFunc_BF( CompFunc::Enum eFunc )
+void Renderer::setStencilCompFunc_BF( CompFunc eFunc )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -370,7 +370,7 @@ void Renderer::setStencilCompFunc_BF( CompFunc::Enum eFunc )
   }
 
   m_clPipelineState.clDepthStencilState.eStencilCompFunc_BF = eFunc;
-  m_uPipelineRebindMask |= PipelineRebindFlags::DEPTHSTENCIL;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::setAlphaToCoverageEnabled( bool bEnabled )
@@ -383,7 +383,7 @@ void Renderer::setAlphaToCoverageEnabled( bool bEnabled )
   }
 
   m_clPipelineState.clBlendState.bAlphaToCoverageEnabled = bEnabled;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::setBlendStatePerRTEnabled( bool bEnabled )
@@ -396,7 +396,7 @@ void Renderer::setBlendStatePerRTEnabled( bool bEnabled )
   }
 
   m_clPipelineState.clBlendState.bBlendStatePerRT = bEnabled;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::setBlendingEnabled( bool bEnabled, uint8 u8RenderTargetIndex )
@@ -410,10 +410,10 @@ void Renderer::setBlendingEnabled( bool bEnabled, uint8 u8RenderTargetIndex )
   }
 
   m_clPipelineState.clBlendState.bBlendEnabled[u8RenderTargetIndex] = bEnabled;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setSrcBlendInput( BlendInput::Enum eBlendInput, uint8 u8RenderTargetIndex )
+void Renderer::setSrcBlendInput( BlendInput eBlendInput, uint8 u8RenderTargetIndex )
 {
   ASSERT_M(u8RenderTargetIndex < FANCY_MAX_NUM_BOUND_RENDERTARGETS, "Referenced an undefined renderTarget");
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
@@ -424,10 +424,10 @@ void Renderer::setSrcBlendInput( BlendInput::Enum eBlendInput, uint8 u8RenderTar
   }
 
   m_clPipelineState.clBlendState.eSrcBlend[u8RenderTargetIndex] = eBlendInput;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setDestBlendInput( BlendInput::Enum eBlendInput, uint8 u8RenderTargetIndex )
+void Renderer::setDestBlendInput( BlendInput eBlendInput, uint8 u8RenderTargetIndex )
 {
   ASSERT_M(u8RenderTargetIndex < FANCY_MAX_NUM_BOUND_RENDERTARGETS, "Referenced an undefined renderTarget");
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
@@ -438,10 +438,10 @@ void Renderer::setDestBlendInput( BlendInput::Enum eBlendInput, uint8 u8RenderTa
   }
 
   m_clPipelineState.clBlendState.eDestBlend[u8RenderTargetIndex] = eBlendInput;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setBlendOp( BlendOp::Enum eBlendOp, uint8 u8RenderTargetIndex )
+void Renderer::setBlendOp( BlendOp eBlendOp, uint8 u8RenderTargetIndex )
 {
   ASSERT_M(u8RenderTargetIndex < FANCY_MAX_NUM_BOUND_RENDERTARGETS, "Referenced an undefined renderTarget");
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
@@ -452,10 +452,10 @@ void Renderer::setBlendOp( BlendOp::Enum eBlendOp, uint8 u8RenderTargetIndex )
   }
 
   m_clPipelineState.clBlendState.eBlendOp[u8RenderTargetIndex] = eBlendOp;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setSrcBlendAlphaInput( BlendInput::Enum eBlendInput, uint8 u8RenderTargetIndex )
+void Renderer::setSrcBlendAlphaInput( BlendInput eBlendInput, uint8 u8RenderTargetIndex )
 {
   ASSERT_M(u8RenderTargetIndex < FANCY_MAX_NUM_BOUND_RENDERTARGETS, "Referenced an undefined renderTarget");
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
@@ -466,10 +466,10 @@ void Renderer::setSrcBlendAlphaInput( BlendInput::Enum eBlendInput, uint8 u8Rend
   }
 
   m_clPipelineState.clBlendState.eSrcBlendAlpha[u8RenderTargetIndex] = eBlendInput;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setDestBlendAlphaInput( BlendInput::Enum eBlendInput, uint8 u8RenderTargetIndex )
+void Renderer::setDestBlendAlphaInput( BlendInput eBlendInput, uint8 u8RenderTargetIndex )
 {
   ASSERT_M(u8RenderTargetIndex < FANCY_MAX_NUM_BOUND_RENDERTARGETS, "Referenced an undefined renderTarget");
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
@@ -480,10 +480,10 @@ void Renderer::setDestBlendAlphaInput( BlendInput::Enum eBlendInput, uint8 u8Ren
   }
 
   m_clPipelineState.clBlendState.eDestBlendAlpha[u8RenderTargetIndex] = eBlendInput;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setBlendOpAlpha( BlendOp::Enum eBlendOp, uint8 u8RenderTargetIndex )
+void Renderer::setBlendOpAlpha( BlendOp eBlendOp, uint8 u8RenderTargetIndex )
 {
   ASSERT_M(u8RenderTargetIndex < FANCY_MAX_NUM_BOUND_RENDERTARGETS, "Referenced an undefined renderTarget");
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
@@ -494,7 +494,7 @@ void Renderer::setBlendOpAlpha( BlendOp::Enum eBlendOp, uint8 u8RenderTargetInde
   }
 
   m_clPipelineState.clBlendState.eBlendOpAlpha[u8RenderTargetIndex] = eBlendOp;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::setRenderTargetWriteMask( uint8 u8Mask, uint8 u8RenderTargetIndex )
@@ -508,10 +508,10 @@ void Renderer::setRenderTargetWriteMask( uint8 u8Mask, uint8 u8RenderTargetIndex
   }
 
   m_clPipelineState.clBlendState.u8RTwriteMask[u8RenderTargetIndex] = u8Mask;
-  m_uPipelineRebindMask |= PipelineRebindFlags::BLENDING;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::BLENDING);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setFillMode( FillMode::Enum eFillMode )
+void Renderer::setFillMode( FillMode eFillMode )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -521,10 +521,10 @@ void Renderer::setFillMode( FillMode::Enum eFillMode )
   }
 
   m_clPipelineState.eFillMode = eFillMode;
-  m_uPipelineRebindMask |= PipelineRebindFlags::FILLMODE;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::FILLMODE);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setCullMode( CullMode::Enum eCullMode )
+void Renderer::setCullMode( CullMode eCullMode )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
 
@@ -534,10 +534,10 @@ void Renderer::setCullMode( CullMode::Enum eCullMode )
   }
 
   m_clPipelineState.eCullMode = eCullMode;
-  m_uPipelineRebindMask |= PipelineRebindFlags::CULLMODE;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::CULLMODE);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::setWindingOrder( WindingOrder::Enum eWindingOrder )
+void Renderer::setWindingOrder( WindingOrder eWindingOrder )
 {
   ASSERT_M(m_bChangingPipelineState, "Tried to change pipeline state outside of begin/end changePipelineState()!");
   
@@ -547,7 +547,7 @@ void Renderer::setWindingOrder( WindingOrder::Enum eWindingOrder )
   }
 
   m_clPipelineState.eWindingOrder = eWindingOrder;
-  m_uPipelineRebindMask |= PipelineRebindFlags::WINDINGORDER;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::WINDINGORDER);
 }
 //////////////////////////////////////////////////////////////////////////
 void Renderer::bindRenderTarget( Texture* pRTTexture, uint8 u8RenderTargetIndex )
@@ -561,75 +561,75 @@ void Renderer::bindRenderTarget( Texture* pRTTexture, uint8 u8RenderTargetIndex 
   }
 
   m_clPipelineState.pBoundRenderTargets[u8RenderTargetIndex] = pRTTexture;
-  m_uPipelineRebindMask |= PipelineRebindFlags::RENDERTARGETS;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::RENDERTARGETS);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::bindReadTexture( Texture* pTexture, ShaderStage::Enum eShaderStage, uint8 u8RegisterIndex )
+void Renderer::bindReadTexture( Texture* pTexture, ShaderStage eShaderStage, uint8 u8RegisterIndex )
 {
   ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_READ_TEXTURES, "Referenced an undefined texture register");
   ASSERT_M(m_bChangingResourceState, "Tried to change resource state outside of begin/end changeResourceState()!");
 
-  if(m_clResourceState.pBoundReadTextures[eShaderStage][u8RegisterIndex] == pTexture)
+  if(m_clResourceState.pBoundReadTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pTexture)
   {
     return;
   }
 
-  m_clResourceState.pBoundReadTextures[eShaderStage][u8RegisterIndex] = pTexture;
-  m_uResourceRebindMask[eShaderStage] |= ResourceRebindFlags::READ_TEXTURES;
+  m_clResourceState.pBoundReadTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pTexture;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_TEXTURES);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::bindReadBuffer( Buffer* pBuffer, ShaderStage::Enum eShaderStage, uint8 u8RegisterIndex )
+void Renderer::bindReadBuffer( Buffer* pBuffer, ShaderStage eShaderStage, uint8 u8RegisterIndex )
 {
   ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_READ_BUFFERS, "Referenced an undefined buffer register");
   ASSERT_M(m_bChangingResourceState, "Tried to change resource state outside of begin/end changeResourceState()!");
 
-  if(m_clResourceState.pBoundReadBuffers[eShaderStage][u8RegisterIndex] == pBuffer)
+  if(m_clResourceState.pBoundReadBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pBuffer)
   {
     return;
   }
 
-  m_clResourceState.pBoundReadBuffers[eShaderStage][u8RegisterIndex] = pBuffer;
-  m_uResourceRebindMask[eShaderStage] |= ResourceRebindFlags::READ_BUFFERS;
+  m_clResourceState.pBoundReadBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pBuffer;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_BUFFERS);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::bindConstantBuffer( ConstantBuffer* pConstantBuffer, ShaderStage::Enum eShaderStage, uint8 u8RegisterIndex )
+void Renderer::bindConstantBuffer( ConstantBuffer* pConstantBuffer, ShaderStage eShaderStage, uint8 u8RegisterIndex )
 {
   ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS, "Referenced an undefined constant buffer register");
   ASSERT_M(m_bChangingResourceState, "Tried to change resource state outside of begin/end changeResourceState()!");
 
-  if(m_clResourceState.pBoundConstantBuffers[eShaderStage][u8RegisterIndex] == pConstantBuffer)
+  if(m_clResourceState.pBoundConstantBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pConstantBuffer)
   {
     return;
   }
 
-  m_clResourceState.pBoundConstantBuffers[eShaderStage][u8RegisterIndex] = pConstantBuffer;
-  m_uResourceRebindMask[eShaderStage] |= ResourceRebindFlags::CONSTANT_BUFFERS;
+  m_clResourceState.pBoundConstantBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pConstantBuffer;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::CONSTANT_BUFFERS);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::bindTextureSampler( TextureSampler* pSampler, ShaderStage::Enum eShaderStage, uint8 u8RegisterIndex )
+void Renderer::bindTextureSampler( TextureSampler* pSampler, ShaderStage eShaderStage, uint8 u8RegisterIndex )
 {
   ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_SAMPLERS, "Referenced an undefined sampler register");
   ASSERT_M(m_bChangingResourceState, "Tried to change resource state outside of begin/end changeResourceState()!");
 
-  if(m_clResourceState.pBoundTextureSamplers[eShaderStage][u8RegisterIndex] == pSampler)
+  if(m_clResourceState.pBoundTextureSamplers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pSampler)
   {
     return;
   }
 
-  m_clResourceState.pBoundTextureSamplers[eShaderStage][u8RegisterIndex] = pSampler;
-  m_uResourceRebindMask[eShaderStage] |= ResourceRebindFlags::TEXTURE_SAMPLERS;
+  m_clResourceState.pBoundTextureSamplers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pSampler;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::TEXTURE_SAMPLERS);
 }
 //////////////////////////////////////////////////////////////////////////
-void Renderer::bindGPUProgram( GPUProgram* pProgram, ShaderStage::Enum eShaderStage )
+void Renderer::bindGPUProgram( GPUProgram* pProgram, ShaderStage eShaderStage )
 {
   ASSERT_M(m_bChangingResourceState, "Tried to change resource state outside of begin/end changeResourceState()!");
 
-  if(m_clResourceState.pBoundGPUPrograms[eShaderStage] == pProgram)
+  if(m_clResourceState.pBoundGPUPrograms[static_cast<uint>(eShaderStage)] == pProgram)
   {
     return;
   }
 
-  m_clResourceState.pBoundGPUPrograms[eShaderStage] = pProgram;
-  m_uResourceRebindMask[eShaderStage] |= ResourceRebindFlags::GPU_PROGRAMS;
+  m_clResourceState.pBoundGPUPrograms[static_cast<uint>(eShaderStage)] = pProgram;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::GPU_PROGRAMS);
 }
 //////////////////////////////////////////////////////////////////////////

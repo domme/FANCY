@@ -17,7 +17,7 @@ namespace AdapterGL {
 
   // Comp Func
   template<>
-  GLenum toGLType(const CompFunc::Enum& generalType) {
+  GLenum toGLType(const CompFunc& generalType) {
     switch (generalType) {
       case CompFunc::NEVER:     return GL_NEVER;
       case CompFunc::LESS:      return GL_LESS;
@@ -32,11 +32,11 @@ namespace AdapterGL {
   }
 //////////////////////////////////////////////////////////////////////////
   template<>
-  GLenum toGLType(const StencilOp::Enum& generalType) {
+  GLenum toGLType(const StencilOp& generalType) {
     switch (generalType) {
       case StencilOp::KEEP:             return GL_KEEP;
       case StencilOp::ZERO:             return GL_ZERO;
-      case StencilOp::REPLACE:          return GL_REPLACE;   
+      case StencilOp::REPLACE:          return GL_REPLACE;
       case StencilOp::INCREMENT_CLAMP:  return GL_INCR; 
       case StencilOp::DECREMENT_CLAMP:  return GL_DECR;
       case StencilOp::INVERT:           return GL_INVERT;
@@ -47,7 +47,7 @@ namespace AdapterGL {
   }
 //////////////////////////////////////////////////////////////////////////
   template<>
-  GLenum toGLType(const FillMode::Enum& generalType) {
+  GLenum toGLType(const FillMode& generalType) {
     switch (generalType) {
       case FillMode::WIREFRAME: return GL_LINE;
       case FillMode::SOLID:     return GL_FILL;
@@ -56,7 +56,7 @@ namespace AdapterGL {
   }
 //////////////////////////////////////////////////////////////////////////
   template<>
-  GLenum toGLType(const CullMode::Enum& generalType) {
+  GLenum toGLType(const CullMode& generalType) {
     switch (generalType) {
       case CullMode::NONE:  return GL_NONE; // Special type. Requires call to glDisable(CULLING)
       case CullMode::FRONT: return GL_FRONT;
@@ -66,7 +66,7 @@ namespace AdapterGL {
   }
 //////////////////////////////////////////////////////////////////////////
   template<>
-  GLenum toGLType(const WindingOrder::Enum& generalType) {
+  GLenum toGLType(const WindingOrder& generalType) {
     switch (generalType) {
       case WindingOrder::CCW: return GL_CCW;
       case WindingOrder::CW:  return GL_CW;
@@ -75,7 +75,7 @@ namespace AdapterGL {
   }
 //////////////////////////////////////////////////////////////////////////
   template<>
-  GLenum toGLType(const BlendInput::Enum& generalType) {
+  GLenum toGLType(const BlendInput& generalType) {
     switch (generalType) {
       case BlendInput::ZERO:                return GL_ZERO;
       case BlendInput::ONE:                 return GL_ONE;
@@ -103,7 +103,7 @@ namespace AdapterGL {
   }
 //////////////////////////////////////////////////////////////////////////
   template<>
-  GLenum toGLType(const BlendOp::Enum& generalType) {
+  GLenum toGLType(const BlendOp& generalType) {
     switch (generalType) {
       case BlendOp::ADD:            return GL_FUNC_ADD;
       case BlendOp::SUBTRACT:       return GL_FUNC_SUBTRACT;
@@ -115,7 +115,7 @@ namespace AdapterGL {
   }
 //////////////////////////////////////////////////////////////////////////
   template<>
-  GLenum toGLType(const ShaderStage::Enum& generalType) {
+  GLenum toGLType(const ShaderStage& generalType) {
     switch (generalType) {
       case ShaderStage::VERTEX:       return GL_VERTEX_SHADER;
       case ShaderStage::FRAGMENT:     return GL_FRAGMENT_SHADER;
@@ -127,15 +127,16 @@ namespace AdapterGL {
     }
   }
 //////////////////////////////////////////////////////////////////////////
-  /// Retrieve the shader-stage flag used for calls like "glUseProgramStages()"
-  GLuint getGLShaderStageFlag(const ShaderStage::Enum& generalType) {
+  template<>
+  GLuint toGLType(const ShaderStageFlag& generalType) {
     switch (generalType) {
-      case ShaderStage::VERTEX:       return GL_VERTEX_SHADER_BIT;
-      case ShaderStage::FRAGMENT:     return GL_FRAGMENT_SHADER_BIT;
-      case ShaderStage::GEOMETRY:     return GL_GEOMETRY_SHADER_BIT;
-      case ShaderStage::TESS_DOMAIN:  return GL_TESS_EVALUATION_SHADER_BIT;
-      case ShaderStage::TESS_HULL:    return GL_TESS_CONTROL_SHADER_BIT;
-      case ShaderStage::COMPUTE:      return GL_COMPUTE_SHADER_BIT;
+      case ShaderStageFlag::VERTEX:       return GL_VERTEX_SHADER_BIT;
+      case ShaderStageFlag::FRAGMENT:     return GL_FRAGMENT_SHADER_BIT;
+      case ShaderStageFlag::GEOMETRY:     return GL_GEOMETRY_SHADER_BIT;
+      case ShaderStageFlag::TESS_DOMAIN:  return GL_TESS_EVALUATION_SHADER_BIT;
+      case ShaderStageFlag::TESS_HULL:    return GL_TESS_CONTROL_SHADER_BIT;
+      case ShaderStageFlag::COMPUTE:      return GL_COMPUTE_SHADER_BIT;
+      case ShaderStageFlag::ALL:          return GL_ALL_SHADER_BITS;
       default: ASSERT_M(false, "Missing GL values"); return GL_ALL_SHADER_BITS;
     }
   }
@@ -154,9 +155,9 @@ public:
   virtual bool _destroy() override;
 
   virtual void _setDepthStencilState(const DepthStencilState& clState) override;
-  virtual void _setFillMode(FillMode::Enum eFillMode) override;
-  virtual void _setCullMode(CullMode::Enum eCullMode) override;
-  virtual void _setWindingOrder(WindingOrder::Enum eWindingOrder) override;
+  virtual void _setFillMode(FillMode eFillMode) override;
+  virtual void _setCullMode(CullMode eCullMode) override;
+  virtual void _setWindingOrder(WindingOrder eWindingOrder) override;
   virtual void _setBlendState(const BlendState& clState) override;
 
   // TODO: Mesh will become a thin geometric representation in the future
@@ -167,11 +168,11 @@ public:
 
   /// Resource-bindings
   virtual void _bindRenderTargets(Texture** pTexList, uint8 u8NumRTs) override;
-  virtual void _bindReadTextures(ShaderStage::Enum eShaderStage, const Texture** pTexList, uint8 u8NumTextures) override;
-  virtual void _bindReadBuffers(ShaderStage::Enum eShaderStage,  const Buffer** pBufferList, uint8 u8NumBuffers) override;
-  virtual void _bindConstantBuffers(ShaderStage::Enum eShaderStage, const ConstantBuffer** pBufferList, uint8 u8NumBuffers) override;
-  virtual void _bindTextureSamplers(ShaderStage::Enum eShaderStage, const TextureSampler** pTexSamplerList, uint8 u8NumTexSamplers) override;
-  virtual void _bindGPUProgram(ShaderStage::Enum  eShaderStage, const GPUProgram* pProgram) override;
+  virtual void _bindReadTextures(ShaderStage eShaderStage, const Texture** pTexList, uint8 u8NumTextures) override;
+  virtual void _bindReadBuffers(ShaderStage eShaderStage,  const Buffer** pBufferList, uint8 u8NumBuffers) override;
+  virtual void _bindConstantBuffers(ShaderStage eShaderStage, const ConstantBuffer** pBufferList, uint8 u8NumBuffers) override;
+  virtual void _bindTextureSamplers(ShaderStage eShaderStage, const TextureSampler** pTexSamplerList, uint8 u8NumTexSamplers) override;
+  virtual void _bindGPUProgram(ShaderStage  eShaderStage, const GPUProgram* pProgram) override;
 };
 
 } // end of namespace Rendering

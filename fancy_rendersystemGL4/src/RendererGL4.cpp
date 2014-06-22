@@ -27,17 +27,17 @@ void RendererGL4::_setDepthStencilState( const DepthStencilState& clState )
   
 }
 
-void RendererGL4::_setFillMode( FillMode::Enum eFillMode )
+void RendererGL4::_setFillMode( FillMode eFillMode )
 {
 
 }
 
-void RendererGL4::_setCullMode( CullMode::Enum eCullMode )
+void RendererGL4::_setCullMode( CullMode eCullMode )
 {
 
 }
 
-void RendererGL4::_setWindingOrder( WindingOrder::Enum eWindingOrder )
+void RendererGL4::_setWindingOrder( WindingOrder eWindingOrder )
 {
 
 }
@@ -72,27 +72,27 @@ void RendererGL4::_bindRenderTargets( Texture** pTexList, uint8 u8NumRTs )
 
 }
 
-void RendererGL4::_bindReadTextures( ShaderStage::Enum eShaderStage, const Texture** pTexList, uint8 u8NumTextures )
+void RendererGL4::_bindReadTextures( ShaderStage eShaderStage, const Texture** pTexList, uint8 u8NumTextures )
 {
 
 }
 
-void RendererGL4::_bindReadBuffers( ShaderStage::Enum eShaderStage, const Buffer** pBufferList, uint8 u8NumBuffers )
+void RendererGL4::_bindReadBuffers( ShaderStage eShaderStage, const Buffer** pBufferList, uint8 u8NumBuffers )
 {
 
 }
 
-void RendererGL4::_bindConstantBuffers( ShaderStage::Enum eShaderStage, const ConstantBuffer** pBufferList, uint8 u8NumBuffers )
+void RendererGL4::_bindConstantBuffers( ShaderStage eShaderStage, const ConstantBuffer** pBufferList, uint8 u8NumBuffers )
 {
 
 }
 
-void RendererGL4::_bindTextureSamplers( ShaderStage::Enum eShaderStage, const TextureSampler** pTexSamplerList, uint8 u8NumTexSamplers )
+void RendererGL4::_bindTextureSamplers( ShaderStage eShaderStage, const TextureSampler** pTexSamplerList, uint8 u8NumTexSamplers )
 {
 
 }
 
-void RendererGL4::_bindGPUProgram( ShaderStage::Enum eShaderStage, const GPUProgram* pProgram )
+void RendererGL4::_bindGPUProgram( ShaderStage eShaderStage, const GPUProgram* pProgram )
 {
 
 }
