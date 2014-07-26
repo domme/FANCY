@@ -1,20 +1,24 @@
-#ifndef INCLUDE_RENDERERGL4
-#define INCLUDE_RENDERERGL4
+#ifndef INCLUDE_RENDERERGL4_H
+#define INCLUDE_RENDERERGL4_H
 
-#include <FancyCorePrerequisites.h>
-#include <Renderer.h>
+#include "FancyCorePrerequisites.h"
+#include "RendererPrerequisites.h"
+#include "LoadableObject.h"
 
-#include "OpenGLprerequisites.h"
-
-namespace FANCY { namespace Core { namespace Rendering {
+namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
 
 // Adapter-methods to translate between the state-enums
-namespace AdapterGL {
-  template<typename T, typename R>
-  R toGLType(const T& generalType) {ASSERT_M(false, "Dummy-template called");}
-  template<typename T, typename R>
-  T toGeneralType(const R& glType) {ASSERT_M(false, "Dummy-template called");}
-
+//-----------------------------------------------------------------------//
+  template<typename T>
+  GLenum toGLType(const T& generalType) {ASSERT_M(false, "Dummy-template called"); return 0;}
+  template<typename T>
+  T toGeneralType(const GLenum& glType) {ASSERT_M(false, "Dummy-template called");}
+//-----------------------------------------------------------------------//
+  template<typename T>
+  GLuint toGLFlag(const T& generalType) {ASSERT_M(false, "Dummy-template called"); return 0;}
+  template<typename T>
+  T toGeneralFlag(const GLuint& glType) {ASSERT_M(false, "Dummy-template called");}
+//-----------------------------------------------------------------------//
   // Comp Func
   template<>
   GLenum toGLType(const CompFunc& generalType) {
@@ -128,7 +132,7 @@ namespace AdapterGL {
   }
 //////////////////////////////////////////////////////////////////////////
   template<>
-  GLuint toGLType(const ShaderStageFlag& generalType) {
+  GLuint toGLFlag(const ShaderStageFlag& generalType) {
     switch (generalType) {
       case ShaderStageFlag::VERTEX:       return GL_VERTEX_SHADER_BIT;
       case ShaderStageFlag::FRAGMENT:     return GL_FRAGMENT_SHADER_BIT;
@@ -140,43 +144,116 @@ namespace AdapterGL {
       default: ASSERT_M(false, "Missing GL values"); return GL_ALL_SHADER_BITS;
     }
   }
-//////////////////////////////////////////////////////////////////////////
-}  // end namespace AdapterGL
-
-
-
-class DLLEXPORT RendererGL4 : public FANCY::Core::Rendering::RendererImpl
+//-----------------------------------------------------------------------//
+class RendererGL4 : public LoadableObject
 {
 public:
-  RendererGL4();
-  virtual ~RendererGL4();
+	virtual ~RendererGL4();
 
-  virtual bool _init() override;
-  virtual bool _destroy() override;
+	virtual bool _init() override;
+	virtual bool _destroy() override;
 
-  virtual void _onDepthStencilStateChanged(const DepthStencilState& clState, const DepthStencilState& clOldState) override;
-  virtual void _onBlendStateChange(const BlendState& clState, const BlendState& clOldState) override;
-  virtual void _setFillMode(FillMode eFillMode) override;
-  virtual void _setCullMode(CullMode eCullMode) override;
-  virtual void _setWindingOrder(WindingOrder eWindingOrder) override;
+  /// Sets the render-system to a valid state. Should be called just before the first frame
+  void postInit();
 
-  // TODO: Mesh will become a thin geometric representation in the future
-  virtual void _render(Mesh* pMesh) override;  
-  virtual void _renderIndirect( /*params ?*/ ) override;
-  virtual void _dispatchCompute( /*params ?*/ ) override;
-  virtual void _dispatchComputeIndirect( /*params ?*/ ) override;
+  /// Sets the blendState that should be active upon in next draw call
+	void setBlendState(const BlendState& clBlendState);
+  /// Retrieves the cached blendState configured for the next draw call
+  const BlendState& getBlendState() const {return m_clBlendState;}
 
-  /// Resource-bindings
-  virtual void _onRenderTargetsChanged(Texture** pTexList, uint8 u8NumRTs) override;
-  virtual void _bindReadTextures(ShaderStage eShaderStage, const Texture** pTexList, uint8 u8NumTextures) override;
-  virtual void _bindReadBuffers(ShaderStage eShaderStage,  const Buffer** pBufferList, uint8 u8NumBuffers) override;
-  virtual void _bindConstantBuffers(ShaderStage eShaderStage, const ConstantBuffer** pBufferList, uint8 u8NumBuffers) override;
-  virtual void _bindTextureSamplers(ShaderStage eShaderStage, const TextureSampler** pTexSamplerList, uint8 u8NumTexSamplers) override;
-  virtual void _bindGPUProgram(ShaderStage  eShaderStage, const GPUProgram* pProgram) override;
+  /// Sets the depthstencil-state that should be active in the next draw call
+  void setDepthStencilState(const DepthStencilState& clDepthStencilState);
+  /// Retrieves the depthstencil-state cached for the next draw call
+  const DepthStencilState& getDepthStencilState() const {return m_clDepthStencilState;}
+
+	void setFillMode(const FillMode eFillMode);
+	FillMode getFillMode() const { return m_eFillMode; }
+
+	void setCullMode(const CullMode eCullMode);
+	CullMode getCullMode() const { return m_eCullMode; }
+
+	void setWindingOrder(const WindingOrder eWindingOrder);
+	WindingOrder getWindingOrder() const { return m_eWindingOrder; }
+
+  void setColorWriteMask(const uint32 uWriteMask);
+  void setColorWriteMask(const bool bRed, const bool bGreen, const bool bBlue, const bool bAlpha);
+  uint32 getColorWriteMask() const { return m_uColorWriteMask; }
+
+	void setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
+  void removeAllRenderTargets();
+	Texture* getBoundRenderTarget(const uint8 u8RenderTargetIndex) const 
+	{ ASSERT(u8RenderTargetIndex < FANCY_MAX_NUM_RENDERTARGETS); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
+
+	void setReadTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+	void setReadBuffer(Buffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+	void setConstantBuffer(ConstantBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+	void setTextureSampler(TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+	void setGPUProgram(GPUProgram* pProgram, const ShaderStage eShaderStage);
+
+protected:
+	RendererGL4();
+
+  enum Constants {
+    kPoolSizeFBO = 20
+  };
+  
+  /// Applies all dirty states and resources to the hardware
+  void bindStatesToPipeline();
+  void bindResourcesToPipeline(const ShaderStage eShaderStage);
+  void bindBlendState();
+  void _bindBlendValuesMultiRT(const uint32 uBlendStateRebindMask, 
+    const uint8 u8BlendStateRebindRTcount, const uint8 u8BlendStateRebindRTmask);
+  void _bindBlendValuesSingleRT(const uint32 uBlendStateRebindMask);
+  void bindDepthStencilState();
+  void bindRenderTargets();
+  GLuint createOrRetrieveFBO(Texture** ppRenderTextures, uint8 u8RenderTextureCount);
+
+  //void applyReadTextures(
+	
+  /// Mask indicating which pipeline states have to be re-bound to the pipeline
+	uint          m_uPipelineRebindMask;  // Needed?
+	/// Mask indicating which resources have to be re-bound to each shaderStage
+	uint32        m_uResourceRebindMask[ShaderStage::NUM];  // Needed?
+	
+	/// Cached textures per shaderStage bound/to bind to the pipeline
+	Texture*	    m_pCachedReadTextures [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_READ_TEXTURES];
+	/// Mask identifying which textures need to be bind in the next draw call
+	uint32		    m_uReadTextureBindMask [ShaderStage::NUM];
+
+	Buffer*		    m_pCachedReadBuffers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_READ_BUFFERS];
+	uint32		    m_uReadBufferBindMask [ShaderStage::NUM];
+
+	ConstantBuffer*		m_pCachedConstantBuffers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS];
+	uint32				    m_uConstantBufferBindMask[ShaderStage::NUM];
+
+	TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_SAMPLERS];
+	uint32				    m_uTextureSamplerBindMask[ShaderStage::NUM];
+
+	Texture*			    m_pCachedRenderTargets [FANCY_MAX_NUM_RENDERTARGETS];
+  GLuint            m_uCachedFBO;
+  GLuint            m_uFBOpool[kPoolSizeFBO];
+
+	GPUProgram*			    m_pBoundGPUPrograms [ShaderStage::NUM];
+	uint32				      m_uGPUprogramBindMask;
+
+	DepthStencilState   m_clDepthStencilState;
+  uint32              m_uDepthStencilRebindMask;
+
+	BlendState			    m_clBlendState;
+  uint32              m_uBlendStateRebindMask;
+  uint8               m_u8BlendStateRebindRTmask;
+  uint8               m_u8BlendStateRebindRTcount;     
+
+	FillMode			      m_eFillMode;
+	CullMode			      m_eCullMode;
+	WindingOrder		    m_eWindingOrder;
+  uint32              m_uColorWriteMask;
 };
 
+} // end of namespace GL4
 } // end of namespace Rendering
 } // end of namespace Core
 } // end of namespace FANCY
 
-#endif  // INCLUDE_RENDERERGL4
+
+#endif  // INCLUDE_RENDERERGL4_H

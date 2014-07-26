@@ -435,12 +435,6 @@ XCOPY $(SolutionDir)lib\$(Platform)\$(Configuration)\fancy_deferred.dll $(Soluti
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\fancy_rendersystemDX11\fancy_rendersystemDX11.vcxproj">
-      <Project>{55121469-5e16-432d-8944-f4a6e0713c51}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\fancy_rendersystemGL4\fancy_rendersystemGL4.vcxproj">
-      <Project>{8bd5688f-83b4-401b-bf9b-afc968d3fa0f}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -106,17 +106,20 @@ void staticAssert_impl()
 
 typedef std::string String;
 
-typedef glm::uint16				uint16;
-typedef glm::uint32				uint32;
-typedef glm::uint64				uint64;
-typedef glm::uint8				uint8;
-typedef glm::uint				  uint;
-typedef glm::int32        int32;
-typedef double            float64;
+typedef glm::uint16		uint16;
+typedef glm::uint32		uint32;
+typedef glm::uint64		uint64;
+typedef glm::uint8		uint8;
+typedef glm::uint		uint;
+typedef glm::int32      int32;
+typedef double          float64;
 
 
-//typedef VertexDeclarations::PosNormTexTanBitan VertexType;
-
+//-----------------------------------------------------------------------//
+// Functional defines
+//-----------------------------------------------------------------------//
+/// Enables various sanity-checks and validations
+#define FANCY_RENDERSYSTEM_USE_VALIDATION
 
 
 #endif

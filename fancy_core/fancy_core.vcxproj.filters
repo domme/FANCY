@@ -25,6 +25,9 @@
     <Filter Include="src\Rendering\Materials">
       <UniqueIdentifier>{b1784d83-d074-4980-ae5a-cd01ee46814e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Rendering\GL4">
+      <UniqueIdentifier>{3ea804fc-afc0-4188-8cd8-c2558fd4e149}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\StdAfx.h">
@@ -225,6 +228,18 @@
     <ClInclude Include="src\GPUResourceManager.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\RendererGL4.h">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLBufferUploader.h">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLDebug.h">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RendererPrerequisites.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -406,6 +421,12 @@
     </ClCompile>
     <ClCompile Include="src\GPUResourceManager.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLBufferUploader.cpp">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RendererGL4.cpp">
+      <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

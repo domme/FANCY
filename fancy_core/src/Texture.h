@@ -21,6 +21,9 @@ class DLLEXPORT Texture
 
 		const glm::vec3& GetTextureSize() const { return m_v3TextureSize; }
 
+    /// NEW API
+    bool isDepthStencilTexture();
+
 	protected:
 		uint32			m_uGlTextureLocation;
 		bool			  m_bInitialized;
