@@ -65,7 +65,7 @@ void staticAssert_impl()
 
 #define ASSERT_M( value, message ) \
 { \
-  if(!value) { \
+  if(!(value)) { \
     LOG(message); \
     DebugBreak(); \
   }\

@@ -28,6 +28,9 @@
     <Filter Include="src\Rendering\GL4">
       <UniqueIdentifier>{3ea804fc-afc0-4188-8cd8-c2558fd4e149}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Math">
+      <UniqueIdentifier>{df3b2819-40ab-4734-9789-c9d138468e7c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\StdAfx.h">
@@ -240,6 +243,10 @@
     <ClInclude Include="src\RendererPrerequisites.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="src\GLutil.h" />
+    <ClInclude Include="src\MathUtil.h">
+      <Filter>src\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -428,5 +435,7 @@
     <ClCompile Include="src\RendererGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
+    <ClCompile Include="src\GLutil.cpp" />
+    <ClCompile Include="src\RendererPrerequisites.cpp" />
   </ItemGroup>
 </Project>

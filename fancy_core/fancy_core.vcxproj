@@ -231,6 +231,7 @@
     <ClInclude Include="src\LoadableObject.h" />
     <ClInclude Include="src\lodepng.h" />
     <ClInclude Include="src\Material.h" />
+    <ClInclude Include="src\MathUtil.h" />
     <ClInclude Include="src\MAT_Colored.h" />
     <ClInclude Include="src\MAT_FSquad_Bloom.h" />
     <ClInclude Include="src\MAT_FSquad_BrightPass.h" />

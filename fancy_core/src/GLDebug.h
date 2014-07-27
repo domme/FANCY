@@ -1,18 +1,18 @@
-#ifndef GLDEBUG_H
-#define GLDEBUG_H
+#ifndef INCLUDE_GLDEBUG_H
+#define INCLUDE_GLDEBUG_H
 
-#include <FancyCorePrerequisites.h>
+#include "FancyCorePrerequisites.h"
 #include "OpenGLprerequisites.h"
 
-class DLLEXPORT GLDebug
+namespace FANCY { namespace Core { namespace Rendering {
+
+class GLDebug
 {
 public:
-	static void GL_ErrorCheckStart()
-	{
-		glGetError();
-	}
-
-	static void GL_ErrorCheckFinish()
+//---------------------------------------------------------------------------//
+	static void GL_ErrorCheckStart() { glGetError(); }
+//---------------------------------------------------------------------------//
+	static void GL_ErrorCheckEnd()
 	{
 		uint32 err = glGetError();
 
@@ -54,7 +54,40 @@ public:
 				}break;
 		}
 	}
+//---------------------------------------------------------------------------//
+  static void validateFBOcompleteness()
+  {
+    uint32 error = glCheckFramebufferStatus( GL_FRAMEBUFFER );
 
+    switch( error )
+    {
+    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" );
+      assert( false );
+      break;
+    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" );
+      assert( false );
+      break;
+    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER" );
+      assert( false );
+      break;
+    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER" );
+      assert( false );
+      break;
+    case GL_FRAMEBUFFER_UNSUPPORTED:
+      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_UNSUPPORTED" );
+      assert( false );
+      break;
+    }
+
+    assert( error == GL_FRAMEBUFFER_COMPLETE, "FBO incomplete" );
+  }
+//---------------------------------------------------------------------------//
 };
 
-#endif
+} } } // end of namespace FANCY::Core::Rendering
+
+#endif  // INCLUDE_GLDEBUG_H

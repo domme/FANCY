@@ -2,6 +2,7 @@
 #define INCLUDE_GLUTIL_H
 
 #include "RendererPrerequisites.h"
+#include "FancyCorePrerequisites.h"
 
 class GLutil {
   public:

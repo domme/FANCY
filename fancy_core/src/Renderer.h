@@ -3,6 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include PLATFORM_DEPENDENT_INCLUDE_RENDERER;
 
 namespace FANCY { namespace Core {  namespace Rendering {
 

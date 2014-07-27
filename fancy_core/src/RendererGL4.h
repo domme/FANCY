@@ -175,13 +175,12 @@ public:
 	void setWindingOrder(const WindingOrder eWindingOrder);
 	WindingOrder getWindingOrder() const { return m_eWindingOrder; }
 
-  void setColorWriteMask(const uint32 uWriteMask);
-  void setColorWriteMask(const bool bRed, const bool bGreen, const bool bBlue, const bool bAlpha);
-  uint32 getColorWriteMask() const { return m_uColorWriteMask; }
-
+  void setDepthStencilRenderTarget(Texture* pDStexture);
 	void setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
   void removeAllRenderTargets();
-	Texture* getBoundRenderTarget(const uint8 u8RenderTargetIndex) const 
+  
+  Texture* getCachedDepthStencilRenderTarget() { return m_pCachedDepthStencilTarget; }
+	Texture* getCachedRenderTarget(const uint8 u8RenderTargetIndex) const 
 	{ ASSERT(u8RenderTargetIndex < FANCY_MAX_NUM_RENDERTARGETS); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
 
 	void setReadTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
@@ -191,12 +190,20 @@ public:
 	void setGPUProgram(GPUProgram* pProgram, const ShaderStage eShaderStage);
 
 protected:
-	RendererGL4();
-
+//-----------------------------------------------------------------------//
   enum Constants {
     kPoolSizeFBO = 20
   };
-  
+//-----------------------------------------------------------------------//
+  struct FBOcacheEntry {
+    FBOcacheEntry() : glHandle(GLUINT_HANDLE_INVALID), hash(0) {}
+    GLuint glHandle;
+    size_t hash;
+  };
+//-----------------------------------------------------------------------//
+
+	RendererGL4();
+
   /// Applies all dirty states and resources to the hardware
   void bindStatesToPipeline();
   void bindResourcesToPipeline(const ShaderStage eShaderStage);
@@ -206,7 +213,7 @@ protected:
   void _bindBlendValuesSingleRT(const uint32 uBlendStateRebindMask);
   void bindDepthStencilState();
   void bindRenderTargets();
-  GLuint createOrRetrieveFBO(Texture** ppRenderTextures, uint8 u8RenderTextureCount);
+  GLuint createOrRetrieveFBO(Texture** ppRenderTextures, uint8 u8RenderTextureCount, Texture* pDStexture);
 
   //void applyReadTextures(
 	
@@ -230,8 +237,12 @@ protected:
 	uint32				    m_uTextureSamplerBindMask[ShaderStage::NUM];
 
 	Texture*			    m_pCachedRenderTargets [FANCY_MAX_NUM_RENDERTARGETS];
+  Texture*          m_pCachedDepthStencilTarget;
+
+  /// The currently bound FBO
   GLuint            m_uCachedFBO;
-  GLuint            m_uFBOpool[kPoolSizeFBO];
+  /// Pool of available FBO formats
+  FBOcacheEntry     m_FBOpool[kPoolSizeFBO];
 
 	GPUProgram*			    m_pBoundGPUPrograms [ShaderStage::NUM];
 	uint32				      m_uGPUprogramBindMask;
@@ -242,12 +253,11 @@ protected:
 	BlendState			    m_clBlendState;
   uint32              m_uBlendStateRebindMask;
   uint8               m_u8BlendStateRebindRTmask;
-  uint8               m_u8BlendStateRebindRTcount;     
+  uint8               m_u8BlendStateRebindRTcount;
 
 	FillMode			      m_eFillMode;
 	CullMode			      m_eCullMode;
 	WindingOrder		    m_eWindingOrder;
-  uint32              m_uColorWriteMask;
 };
 
 } // end of namespace GL4

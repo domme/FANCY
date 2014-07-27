@@ -1,4 +1,7 @@
 #include "RendererGL4.h"
+#include "MathUtil.h"
+#include "Texture.h"
+#include "GLDebug.h"
 
 using namespace FANCY::Core::Rendering::GL4;
 //-----------------------------------------------------------------------//
@@ -34,17 +37,58 @@ static enum class BlendStateRebindFlags {
   RT_WRITE_MASK         = 0x00000400
 };
 //-----------------------------------------------------------------------//
+static enum class PipelineRebindFlags {
+  NONE                        = 0x0000,
+  DEPTHSTENCIL                = 0x0001,
+  BLENDING                    = 0x0002,
+  FILLMODE                    = 0x0004,
+  CULLMODE                    = 0x0008,
+  WINDINGORDER                = 0x0010,
+  RENDERTARGETS               = 0x0020,
+  ALL                         = 0xFFFF
+};
+//-----------------------------------------------------------------------//
+static enum class ResourceRebindFlags {
+  NONE              = 0x0000,
+  READ_TEXTURES     = 0x0001,
+  READ_BUFFERS      = 0x0002,
+  CONSTANT_BUFFERS  = 0x0004,
+  TEXTURE_SAMPLERS  = 0x0008,
+  GPU_PROGRAMS      = 0x0010,
+  ALL               = 0xFFFF
+};
+//---------------------------------------------------------------------------//
+GLenum getColorAttachmentFromIndex(uint8 i) 
+{
+  switch (i)
+  {
+    case 0: return GL_COLOR_ATTACHMENT0;
+    case 1: return GL_COLOR_ATTACHMENT1;
+    case 2: return GL_COLOR_ATTACHMENT2;
+    case 3: return GL_COLOR_ATTACHMENT3;
+    case 4: return GL_COLOR_ATTACHMENT4;
+    case 5: return GL_COLOR_ATTACHMENT5;
+    case 6: return GL_COLOR_ATTACHMENT6;
+    case 7: return GL_COLOR_ATTACHMENT7;
+  default:
+    ASSERT_M(false, "Color attachment index not supported");
+    return GL_COLOR_ATTACHMENT8;
+    break;
+  }
+}
+//---------------------------------------------------------------------------//
 RendererGL4::RendererGL4() :
-	m_uPipelineRebindMask(0),
+  m_uPipelineRebindMask(0),
   m_uGPUprogramBindMask(0),
   m_uDepthStencilRebindMask(0),
   m_uBlendStateRebindMask(0),
   m_u8BlendStateRebindRTmask(0),
   m_u8BlendStateRebindRTcount(0),
+  m_pCachedDepthStencilTarget(0),
   m_uCachedFBO(0),
-	LoadableObject::LoadableObject()
+  LoadableObject::LoadableObject()
 {
-	memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
+  memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
 
   memset(m_pCachedReadTextures, 0, sizeof(m_pCachedReadTextures));
   memset(m_uReadTextureBindMask, 0, sizeof(m_uReadTextureBindMask));
@@ -61,8 +105,6 @@ RendererGL4::RendererGL4() :
   memset(m_pCachedRenderTargets, 0, sizeof(m_pCachedRenderTargets));
 
   memset(m_pBoundGPUPrograms, 0, sizeof(m_pBoundGPUPrograms)); 
-
-  memset(m_uFBOpool, GLUINT_HANDLE_INVALID, sizeof(m_pBoundGPUPrograms));
 }
 //-----------------------------------------------------------------------//
 RendererGL4::~RendererGL4()
@@ -72,7 +114,7 @@ RendererGL4::~RendererGL4()
 //-----------------------------------------------------------------------//
 bool RendererGL4::_init()
 {
-	
+  
 }
 //-----------------------------------------------------------------------//
 bool RendererGL4::_destroy()
@@ -260,62 +302,55 @@ void RendererGL4::setBlendState(const BlendState& clBlendState)
 //-----------------------------------------------------------------------//
 void RendererGL4::setFillMode( const FillMode eFillMode )
 {
-	if(getFillMode() == eFillMode) {
-		return;
-	}
+  if(getFillMode() == eFillMode) {
+    return;
+  }
 
-	m_eFillMode = eFillMode;
-	m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::FILLMODE);
+  m_eFillMode = eFillMode;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::FILLMODE);
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::setCullMode( const CullMode eCullMode )
 {
-	if(getCullMode() == eCullMode) {
-		return;
-	}
+  if(getCullMode() == eCullMode) {
+    return;
+  }
 
-	m_eCullMode = eCullMode;
-	m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::CULLMODE);
+  m_eCullMode = eCullMode;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::CULLMODE);
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::setWindingOrder( const WindingOrder eWindingOrder ) 
 {
-	if(getWindingOrder() == eWindingOrder) {
-		return;
-	}
-
-	m_eWindingOrder = eWindingOrder;
-	m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::WINDINGORDER);
-}
-//-----------------------------------------------------------------------//
-void RendererGL4::setColorWriteMask(const bool bRed, const bool bGreen, const bool bBlue, const bool bAlpha)
-{
-  uint uColorMask = 0xFF000000 * (uint) bRed
-                  | 0x00FF0000 * (uint) bGreen
-                  | 0x0000FF00 * (uint) bBlue
-                  | 0x000000FF * (uint) bAlpha;
-
-  setColorWriteMask(uColorMask);
-}
-//-----------------------------------------------------------------------//
-void RendererGL4::setColorWriteMask(const uint32 uWriteMask)
-{
-  if (uWriteMask != m_uColorWriteMask) {
-    m_uColorWriteMask = uWriteMask;
-    m_uPipelineRebindMask |= (uint) PipelineRebindFlags::COLOR_WRITE_MASK;
+  if(getWindingOrder() == eWindingOrder) {
+    return;
   }
+
+  m_eWindingOrder = eWindingOrder;
+  m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::WINDINGORDER);
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::setRenderTarget( Texture* pRTTexture, const uint8 u8RenderTargetIndex )
 {
-	ASSERT_M(u8RenderTargetIndex < FANCY_MAX_NUM_RENDERTARGETS, "RenderTarget-index not supported");
-	
-	if(getBoundRenderTarget(u8RenderTargetIndex) == pRTTexture) {
-		return;
-	}
+  ASSERT_M(u8RenderTargetIndex < FANCY_MAX_NUM_RENDERTARGETS, "RenderTarget-index not supported");
+  //ASSERT_M(pRTTexture->isDepthStencilTexture(), "Tried to set depthStencil-texture as color-rendertexture");
+  
+  if(getCachedRenderTarget(u8RenderTargetIndex) == pRTTexture) {
+    return;
+  }
 
-	m_pCachedRenderTargets[u8RenderTargetIndex] = pRTTexture;
+  m_pCachedRenderTargets[u8RenderTargetIndex] = pRTTexture;
   m_uPipelineRebindMask |= static_cast<uint>(PipelineRebindFlags::RENDERTARGETS);
+}
+//---------------------------------------------------------------------------//
+void RendererGL4::setDepthStencilRenderTarget( Texture* pDStexture )
+{
+  if (getCachedDepthStencilRenderTarget() == pDStexture) {
+    return;
+  }
+
+  m_pCachedDepthStencilTarget = pDStexture;
+  m_uPipelineRebindMask |= (uint) PipelineRebindFlags::RENDERTARGETS;
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::removeAllRenderTargets()
@@ -327,60 +362,60 @@ void RendererGL4::removeAllRenderTargets()
 //-----------------------------------------------------------------------//
 void RendererGL4::setReadTexture( Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
 {
-	ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_READ_TEXTURES, "Referenced an undefined texture register");
-	
-	if(m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pTexture) {
-		return;
-	}
+  ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_READ_TEXTURES, "Referenced an undefined texture register");
+  
+  if(m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pTexture) {
+    return;
+  }
 
-	m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pTexture;
-	m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_TEXTURES);
+  m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pTexture;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_TEXTURES);
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::setReadBuffer( Buffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
 {
-	ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_READ_BUFFERS, "Referenced an undefined buffer register");
-	
-	if(m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pBuffer) {
-		return;
-	}
+  ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_READ_BUFFERS, "Referenced an undefined buffer register");
+  
+  if(m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pBuffer) {
+    return;
+  }
 
-	m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pBuffer;
-	m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_BUFFERS);
+  m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pBuffer;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_BUFFERS);
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::setConstantBuffer( ConstantBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
 {
-	ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS, "Referenced an undefined constant buffer register");
-	
-	if(m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pConstantBuffer) {
-		return;
-	}
+  ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS, "Referenced an undefined constant buffer register");
+  
+  if(m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pConstantBuffer) {
+    return;
+  }
 
-	m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pConstantBuffer;
-	m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::CONSTANT_BUFFERS);
+  m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pConstantBuffer;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::CONSTANT_BUFFERS);
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::setTextureSampler( TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
 {
-	ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_SAMPLERS, "Referenced an undefined sampler register");
-	
-	if(m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pSampler) {
-		return;
-	}
+  ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_SAMPLERS, "Referenced an undefined sampler register");
+  
+  if(m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pSampler) {
+    return;
+  }
 
-	m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pSampler;
-	m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::TEXTURE_SAMPLERS);
+  m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pSampler;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::TEXTURE_SAMPLERS);
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::setGPUProgram( GPUProgram* pProgram, const ShaderStage eShaderStage )
 {
-	if(m_pBoundGPUPrograms[static_cast<uint>(eShaderStage)] == pProgram) {
-		return;
-	}
+  if(m_pBoundGPUPrograms[static_cast<uint>(eShaderStage)] == pProgram) {
+    return;
+  }
 
-	m_pBoundGPUPrograms[static_cast<uint>(eShaderStage)] = pProgram;
-	m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::GPU_PROGRAMS);
+  m_pBoundGPUPrograms[static_cast<uint>(eShaderStage)] = pProgram;
+  m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::GPU_PROGRAMS);
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::bindStatesToPipeline()
@@ -415,13 +450,6 @@ void RendererGL4::bindStatesToPipeline()
 
   if (m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::RENDERTARGETS) > 0) {
     bindRenderTargets();
-  }
-
-  if ((m_uPipelineRebindMask & (uint) PipelineRebindFlags::COLOR_WRITE_MASK) > 0 ) {
-    glColorMask((m_uColorWriteMask & 0xFF00000000) > 0,
-                (m_uColorWriteMask & 0x00FF000000) > 0,
-                (m_uColorWriteMask & 0x0000FF0000) > 0,
-                (m_uColorWriteMask & 0x000000FF00) > 0);
   }
 
   m_uPipelineRebindMask = 0;
@@ -500,7 +528,11 @@ void RendererGL4::_bindBlendValuesSingleRT(const uint32 uBlendStateRebindMask)
   }
   
   if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::RT_WRITE_MASK)) > 0) {
-    // Not supported in GL?
+    glColorMask(
+      (m_clBlendState.uRTwriteMask[0] & 0xFF00000000) > 0,
+      (m_clBlendState.uRTwriteMask[0] & 0x00FF000000) > 0,
+      (m_clBlendState.uRTwriteMask[0] & 0x0000FF0000) > 0,
+      (m_clBlendState.uRTwriteMask[0] & 0x000000FF00) > 0);
   }
 }
 //-----------------------------------------------------------------------//
@@ -551,7 +583,11 @@ void RendererGL4::_bindBlendValuesMultiRT(const uint32 uBlendStateRebindMask,
     }
 
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::RT_WRITE_MASK)) > 0) {
-      // Not supported in GL?
+      glColorMaski( iRT,
+        (m_clBlendState.uRTwriteMask[iRT] & 0xFF00000000) > 0,
+        (m_clBlendState.uRTwriteMask[iRT] & 0x00FF000000) > 0,
+        (m_clBlendState.uRTwriteMask[iRT] & 0x0000FF0000) > 0,
+        (m_clBlendState.uRTwriteMask[iRT] & 0x000000FF00) > 0);
     }
   }
 }
@@ -621,7 +657,6 @@ void RendererGL4::bindDepthStencilState()
 //-----------------------------------------------------------------------//
 void RendererGL4::bindRenderTargets()
 {
- #if defined(FANCY_RENDERSYSTEM_USE_VALIDATION)
   // The actual (packed) list of renderTextures to use
   Texture* rtListPatched[FANCY_MAX_NUM_RENDERTARGETS] = {nullptr};
   uint8 u8RenderTextureCount = 0;
@@ -644,20 +679,66 @@ void RendererGL4::bindRenderTargets()
     }
   }
   
-  const GLuint uFBOtoUse = createOrRetrieveFBO(rtListPatched, u8RenderTextureCount);
-#else  // !FANCY_RENDERSYSTEM_USE_VALIDATION
-  const GLuint uFBOtoUse = createOrRetrieveFBO(rtListPatched, u8RenderTextureCount);
-#endif // FANCY_RENDERSYSTEM_USE_VALIDATION
+  const GLuint uFBOtoUse = createOrRetrieveFBO(rtListPatched, u8RenderTextureCount, m_pCachedDepthStencilTarget);
 
   if (uFBOtoUse == m_uCachedFBO) {
     return;
   }
   m_uCachedFBO = uFBOtoUse;
   glBindFramebuffer(GL_FRAMEBUFFER, uFBOtoUse);
+
+  // Default: Enable all drawbuffers. 
+  // TODO: Better to determine drawbuffers from blendState::RTwritemask?
+  static GLenum drawBuffers[FANCY_MAX_NUM_RENDERTARGETS] = 
+  {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, 
+  GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6};
+  glDrawBuffers(u8RenderTextureCount, drawBuffers);
 }
 //-----------------------------------------------------------------------//
-GLuint RendererGL4::createOrRetrieveFBO(Texture** pRenderTextures, uint8 u8RenderTextureCount)
+GLuint RendererGL4::createOrRetrieveFBO(Texture** pRenderTextures, uint8 u8RenderTextureCount, Texture* pDStexture)
 {
+  size_t hash = 0;
+  for (uint8 i = 0; i < u8RenderTextureCount; ++i) {
+    MathUtil::hash_combine(hash, reinterpret_cast<size_t>(*pRenderTextures));
+  }
+  MathUtil::hash_combine(hash, reinterpret_cast<size_t>(pDStexture));
+
+  for (uint8 i = 0; i < _countof(m_FBOpool); ++i) 
+  {
+    if (m_FBOpool[i].hash == hash) {
+      return m_FBOpool[i].glHandle;
+    }
+  }
+
+  // No suitable FBO found in the pool: create one in a lazy fashion...
+  // find the first unused FBO in the pool
+  RendererGL4::FBOcacheEntry* pFBOentry = nullptr;
+  for (uint8 i = 0; i < _countof(m_FBOpool); ++i) 
+  {
+    if (m_FBOpool[i].glHandle == GLUINT_HANDLE_INVALID) {
+      pFBOentry = &m_FBOpool[i];
+      break;
+    }
+  }
+
+  ASSERT_M(pFBOentry != nullptr, "No free FBO found in the pool. Increase its size?" );
+
+  pFBOentry->hash = hash;
+  glGenFramebuffers(1, &pFBOentry->glHandle);
+  glBindFramebuffer(GL_FRAMEBUFFER, pFBOentry->glHandle);
+  for (uint8 i = 0; i < u8RenderTextureCount; ++i )
+  {
+    glFramebufferTexture2D(GL_FRAMEBUFFER, getColorAttachmentFromIndex(i), GL_TEXTURE_2D, pRenderTextures[i]->getGlLocation(), 0);
+  }
+  if (pDStexture) 
+  {
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, pDStexture->getGlLocation(), 0);
+  }
+#if defined (FANCY_RENDERSYSTEM_USE_VALIDATION)
+  GLDebug::validateFBOcompleteness();
+#endif // FANCY_RENDERSYSTEM_USE_VALIDATION
+  glBindFramebuffer(GL_FRAMEBUFFER, m_uCachedFBO);  // Is this necessary?
   
+  // TODO: Add support for 1D, 3D, cubemap RenderTargets
 }
 //-----------------------------------------------------------------------//

@@ -1,34 +1,18 @@
-#ifndef GLTEXTURE_H
-#define GLTEXTURE_H
+#ifndef INCLUDE_TEXTURE_H
+#define INCLUDE_TEXTURE_H
 
-#include "../includes.h"
-//#include "OpenGL_Includes.h"
-#include "../IO/PathService.h"
+#include "FancyCorePrerequisites.h"
+#include "RendererPrerequisites.h"
+#include PLATFORM_DEPENDENT_INCLUDE_TEXTURE
 
-class DLLEXPORT Texture
+namespace FANCY { namespace Core { namespace Rendering {
+
+class Texture : public PLATFORM_DEPENDENT_NAME(Texture) 
 {
-	public:
-		Texture();
-		Texture( Texture& other );
-		virtual ~Texture();
 
-		uint32 getGlLocation() const { return m_uGlTextureLocation; }
-
-		void SetTexture( uint32 uGLtexLoc );
-		bool SetTexture( const String& szRelativeTexturePath );
-		bool SetTexture1D( const String& szRelativeTexturePath );
-		bool HasTexture() const { return m_bInitialized; }
-
-		const glm::vec3& GetTextureSize() const { return m_v3TextureSize; }
-
-    /// NEW API
-    bool isDepthStencilTexture();
-
-	protected:
-		uint32			m_uGlTextureLocation;
-		bool			  m_bInitialized;
-		glm::vec3	  m_v3TextureSize;
 };
 
+} } } // end of namespace FANCY::Core::Rendering
 
-#endif
+
+#endif  // INCLUDE_TEXTURE_H
