@@ -81,9 +81,6 @@
     <ClInclude Include="src\GLResourcePathManager.h">
       <Filter>src\IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\GLSLpreprocessor.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
     <ClInclude Include="src\Light.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
@@ -247,6 +244,15 @@
     <ClInclude Include="src\MathUtil.h">
       <Filter>src\Math</Filter>
     </ClInclude>
+    <ClInclude Include="src\GLSLpreprocessor.h">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GPUProgramGL4.h">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextureGL4.h">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -283,9 +289,6 @@
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\GLResourcePathManager.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GLSLpreprocessor.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\Light.cpp">
@@ -437,5 +440,14 @@
     </ClCompile>
     <ClCompile Include="src\GLutil.cpp" />
     <ClCompile Include="src\RendererPrerequisites.cpp" />
+    <ClCompile Include="src\GLSLpreprocessor.cpp">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GPUProgramGL4 .cpp">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureGL4.cpp">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

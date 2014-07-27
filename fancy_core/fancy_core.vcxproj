@@ -222,6 +222,7 @@
     <ClInclude Include="src\GLBufferUploader.h" />
     <ClInclude Include="src\GLDebug.h" />
     <ClInclude Include="src\GLutil.h" />
+    <ClInclude Include="src\GPUProgramGL4.h" />
     <ClInclude Include="src\GPUResourceManager.h" />
     <ClInclude Include="src\GLResourcePathManager.h" />
     <ClInclude Include="src\GLSLpreprocessor.h" />
@@ -270,6 +271,7 @@
     <ClInclude Include="src\StatsManager.h" />
     <ClInclude Include="src\StdAfx.h" />
     <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\TextureGL4.h" />
     <ClInclude Include="src\TextureLoader.h" />
     <ClInclude Include="src\TextureManager.h" />
     <ClInclude Include="src\TextureSemantics.h" />
@@ -293,6 +295,7 @@
     <ClCompile Include="src\DeferredRenderAlgorithm.cpp" />
     <ClCompile Include="src\GLBufferUploader.cpp" />
     <ClCompile Include="src\GLutil.cpp" />
+    <ClCompile Include="src\GPUProgramGL4 .cpp" />
     <ClCompile Include="src\GPUResourceManager.cpp" />
     <ClCompile Include="src\GLResourcePathManager.cpp" />
     <ClCompile Include="src\GLSLpreprocessor.cpp" />
@@ -340,6 +343,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\TextureGL4.cpp" />
     <ClCompile Include="src\TextureLoader.cpp" />
     <ClCompile Include="src\TextureManager.cpp" />
     <ClCompile Include="src\TransformSQT.cpp" />
