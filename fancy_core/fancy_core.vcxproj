@@ -204,6 +204,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\AABoundingBox.h" />
+    <ClInclude Include="src\AdapterGL4.h" />
     <ClInclude Include="src\BaseGeometryObject.h" />
     <ClInclude Include="src\BaseRenderableObject.h" />
     <ClInclude Include="src\BoundingSphere.h" />

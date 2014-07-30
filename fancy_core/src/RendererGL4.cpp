@@ -2,6 +2,7 @@
 #include "MathUtil.h"
 #include "Texture.h"
 #include "GLDebug.h"
+#include "AdapterGL4.h"
 
 using namespace FANCY::Core::Rendering::GL4;
 //-----------------------------------------------------------------------//
@@ -425,19 +426,19 @@ void RendererGL4::bindStatesToPipeline()
   }
 
   if (m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::WINDINGORDER) > 0) {
-    glFrontFace(toGLType(m_eWindingOrder));
+    glFrontFace(Adapter::toGLType(m_eWindingOrder));
   }
 
   if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::CULLMODE)) > 0) {
     if (m_eCullMode == CullMode::NONE) {
       GL_SET_CAP(GL_CULL_FACE, false);  // Disables culling in general
     } else {
-      glCullFace(toGLType(m_eCullMode));
+      glCullFace(Adapter::toGLType(m_eCullMode));
     }
   }
 
   if (m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::FILLMODE) > 0) {
-    glPolygonMode(GL_FRONT_AND_BACK, toGLType(m_eWindingOrder));
+    glPolygonMode(GL_FRONT_AND_BACK, Adapter::toGLType(m_eWindingOrder));
   }
 
   if (m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL) > 0) {
@@ -511,19 +512,19 @@ void RendererGL4::_bindBlendValuesSingleRT(const uint32 uBlendStateRebindMask)
   if(bApplyBlendFunc) 
   {
     if (!bSeperateBlend) {
-      glBlendFunc(toGLType(m_clBlendState.eSrcBlend[0]), toGLType(m_clBlendState.eDestBlend[0]));
+      glBlendFunc(Adapter::toGLType(m_clBlendState.eSrcBlend[0]), Adapter::toGLType(m_clBlendState.eDestBlend[0]));
     } else {
-      glBlendFuncSeparate(toGLType(m_clBlendState.eSrcBlend[0]), toGLType(m_clBlendState.eDestBlend[0]),
-                          toGLType(m_clBlendState.eSrcBlendAlpha[0]), toGLType(m_clBlendState.eDestBlendAlpha[0]));
+      glBlendFuncSeparate(Adapter::toGLType(m_clBlendState.eSrcBlend[0]), Adapter::toGLType(m_clBlendState.eDestBlend[0]),
+                          Adapter::toGLType(m_clBlendState.eSrcBlendAlpha[0]), Adapter::toGLType(m_clBlendState.eDestBlendAlpha[0]));
     }
   }
 
   if (bApplyBlendOp)
   {
     if (!bSeperateBlend) {
-      glBlendEquation(toGLType(m_clBlendState.eBlendOp[0]));
+      glBlendEquation(Adapter::toGLType(m_clBlendState.eBlendOp[0]));
     } else {
-      glBlendEquationSeparate(toGLType(m_clBlendState.eBlendOp[0]), toGLType(m_clBlendState.eBlendOpAlpha[0]));
+      glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.eBlendOp[0]), Adapter::toGLType(m_clBlendState.eBlendOpAlpha[0]));
     }
   }
   
@@ -566,19 +567,19 @@ void RendererGL4::_bindBlendValuesMultiRT(const uint32 uBlendStateRebindMask,
     if(bApplyBlendFunc) 
     {
       if (!bSeperateBlend) {
-        glBlendFunci(iRT, toGLType(m_clBlendState.eSrcBlend[iRT]), toGLType(m_clBlendState.eDestBlend[iRT]));
+        glBlendFunci(iRT, Adapter::toGLType(m_clBlendState.eSrcBlend[iRT]), Adapter::toGLType(m_clBlendState.eDestBlend[iRT]));
       } else {
-        glBlendFuncSeparatei(iRT, toGLType(m_clBlendState.eSrcBlend[iRT]), toGLType(m_clBlendState.eDestBlend[iRT]),
-          toGLType(m_clBlendState.eSrcBlendAlpha[iRT]), toGLType(m_clBlendState.eDestBlendAlpha[iRT]));
+        glBlendFuncSeparatei(iRT, Adapter::toGLType(m_clBlendState.eSrcBlend[iRT]), Adapter::toGLType(m_clBlendState.eDestBlend[iRT]),
+          Adapter::toGLType(m_clBlendState.eSrcBlendAlpha[iRT]), Adapter::toGLType(m_clBlendState.eDestBlendAlpha[iRT]));
       }
     }
 
     if (bApplyBlendOp)
     {
       if (!bSeperateBlend) {
-        glBlendEquation(toGLType(m_clBlendState.eBlendOp[iRT]));
+        glBlendEquation(Adapter::toGLType(m_clBlendState.eBlendOp[iRT]));
       } else {
-        glBlendEquationSeparate(toGLType(m_clBlendState.eBlendOp[iRT]), toGLType(m_clBlendState.eBlendOpAlpha[iRT]));
+        glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.eBlendOp[iRT]), Adapter::toGLType(m_clBlendState.eBlendOpAlpha[iRT]));
       }
     }
 
@@ -608,7 +609,7 @@ void RendererGL4::bindDepthStencilState()
   }
 
   if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::DEPTH_COMP_FUNC) > 0) {
-    glDepthFunc(toGLType(m_clDepthStencilState.eDepthCompFunc));
+    glDepthFunc(Adapter::toGLType(m_clDepthStencilState.eDepthCompFunc));
   }
 
   if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_ENABLED) > 0) {
@@ -631,14 +632,14 @@ void RendererGL4::bindDepthStencilState()
 
   if (bNeedStencilFunc && !bUseTwoSidedStencil) 
   {
-    glStencilFunc(toGLType(m_clDepthStencilState.eStencilCompFunc[0]),
+    glStencilFunc(Adapter::toGLType(m_clDepthStencilState.eStencilCompFunc[0]),
                   m_clDepthStencilState.iStencilRef,
                   m_clDepthStencilState.uStencilReadMask);
   }
   else if (bNeedStencilFunc)
   {
-    glStencilFuncSeparate(toGLType(m_clDepthStencilState.eStencilCompFunc[(uint)FaceType::FRONT]),
-                          toGLType(m_clDepthStencilState.eStencilCompFunc[(uint)FaceType::BACK]),
+    glStencilFuncSeparate(Adapter::toGLType(m_clDepthStencilState.eStencilCompFunc[(uint)FaceType::FRONT]),
+                          Adapter::toGLType(m_clDepthStencilState.eStencilCompFunc[(uint)FaceType::BACK]),
                           m_clDepthStencilState.iStencilRef,
                           m_clDepthStencilState.uStencilReadMask);
   }
@@ -728,11 +729,11 @@ GLuint RendererGL4::createOrRetrieveFBO(Texture** pRenderTextures, uint8 u8Rende
   glBindFramebuffer(GL_FRAMEBUFFER, pFBOentry->glHandle);
   for (uint8 i = 0; i < u8RenderTextureCount; ++i )
   {
-    glFramebufferTexture2D(GL_FRAMEBUFFER, getColorAttachmentFromIndex(i), GL_TEXTURE_2D, pRenderTextures[i]->getGlLocation(), 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, getColorAttachmentFromIndex(i), GL_TEXTURE_2D, pRenderTextures[i]->getGLhandle(), 0);
   }
   if (pDStexture) 
   {
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, pDStexture->getGlLocation(), 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, pDStexture->getGLhandle(), 0);
   }
 #if defined (FANCY_RENDERSYSTEM_USE_VALIDATION)
   GLDebug::validateFBOcompleteness();
