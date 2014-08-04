@@ -3,4 +3,6 @@
 
 #include <GL/glew.h>
 
+#define GLUINT_HANDLE_INVALID 0xFFFFFFFF
+
 #endif  // INCLUDE_OPENGLPREREQUISITES

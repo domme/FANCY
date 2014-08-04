@@ -10,17 +10,6 @@ namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
 class TextureGL4 : public LoadableObject {
 public:
 //---------------------------------------------------------------------------//
-  struct TextureParametersGL : public TextureParameters {
-    TextureParametersGL() : eFormatGL(0), eInternalFormatGL(0), 
-      ePixelTypeGL(0), eTextureTypeGL(0), eTexBindQueryGL(0) {}
-
-    GLenum      eFormatGL;
-    GLenum      eInternalFormatGL;
-    GLenum      ePixelTypeGL;
-    GLenum      eTextureTypeGL;
-    GLenum      eTexBindQueryGL;
-  };
-//---------------------------------------------------------------------------//
   enum class CreationMethod {
     UPLOADED_ONCE = 0,
     UPLOADED_OFTEN
@@ -33,9 +22,9 @@ public:
   virtual bool _destroy() override;
 
   void create(const TextureParameters& clDeclaration, CreationMethod eCreationMethod = CreationMethod::UPLOADED_ONCE);
-  void setPixelData(void* pData, size_t uDataSizeBytes, 
+  void setPixelData(void* pData, uint uDataSizeBytes, 
    glm::u32vec3 rectPosOffset = glm::u32vec3(0,0,0), glm::u32vec3 rectDimensions = glm::u32vec3(0,0,0));
-  void* lock(GpuResoruceMapOption option = GpuResoruceMapOption::WRITE_DISCARD); 
+  void* lock(GpuResoruceLockOption option = GpuResoruceLockOption::WRITE_DISCARD); 
   void unlock();
 
   GLuint getGLhandle() { return m_uGLhandle; }
@@ -49,6 +38,17 @@ public:
   uint getNumDimensions() {return m_clStateInfo.numDimensions; }
 
 protected:
+  //---------------------------------------------------------------------------//
+  struct TextureParametersGL : public TextureParameters {
+    TextureParametersGL() : eFormatGL(0), eInternalFormatGL(0), 
+      ePixelTypeGL(0), eTextureTypeGL(0), eTexBindQueryGL(0) {}
+
+    GLenum      eFormatGL;
+    GLenum      eInternalFormatGL;
+    GLenum      ePixelTypeGL;
+    GLenum      eTextureTypeGL;
+    GLenum      eTexBindQueryGL;
+  };
 //---------------------------------------------------------------------------//
   struct TextureInfos {
     TextureInfos() : isSRGB(0), isLocked(0), isArrayTexture(0), isCubemap(0), 

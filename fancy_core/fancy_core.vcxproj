@@ -223,6 +223,8 @@
     <ClInclude Include="src\GLBufferUploader.h" />
     <ClInclude Include="src\GLDebug.h" />
     <ClInclude Include="src\GLutil.h" />
+    <ClInclude Include="src\GpuBuffer.h" />
+    <ClInclude Include="src\GpuBufferGL4.h" />
     <ClInclude Include="src\GPUProgramGL4.h" />
     <ClInclude Include="src\GPUResourceManager.h" />
     <ClInclude Include="src\GLResourcePathManager.h" />
@@ -296,6 +298,7 @@
     <ClCompile Include="src\DeferredRenderAlgorithm.cpp" />
     <ClCompile Include="src\GLBufferUploader.cpp" />
     <ClCompile Include="src\GLutil.cpp" />
+    <ClCompile Include="src\GpuBufferGL4.cpp" />
     <ClCompile Include="src\GPUProgramGL4 .cpp" />
     <ClCompile Include="src\GPUResourceManager.cpp" />
     <ClCompile Include="src\GLResourcePathManager.cpp" />

@@ -148,7 +148,7 @@ namespace FANCY { namespace Core { namespace Rendering {  namespace GL4 {
     glBindTexture(eTextureType, static_cast<GLuint>(origBoundTexture));
   }
 //---------------------------------------------------------------------------//
-  void TextureGL4::setPixelData( void* pData, size_t uDataSizeBytes, 
+  void TextureGL4::setPixelData( void* pData, uint uDataSizeBytes, 
     glm::u32vec3 rectPosOffset /* = glm::ivec3(0,0,0) */, glm::u32vec3 rectDimensions /*= glm::ivec3(0,0,0) */ )
   {
     ASSERT_M(pData && uDataSizeBytes > 0, "Invalid texture data specified");
@@ -216,7 +216,7 @@ namespace FANCY { namespace Core { namespace Rendering {  namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  void* TextureGL4::lock( GpuResoruceMapOption option /*= GpuResoruceMapOption::WRITE_DISCARD*/ )
+  void* TextureGL4::lock( GpuResoruceLockOption option /*= GpuResoruceMapOption::WRITE_DISCARD*/ )
   {
     ASSERT_M(false, "lock/unlock not supported on OpenGL textures");
   }

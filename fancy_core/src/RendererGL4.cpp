@@ -287,7 +287,7 @@ void RendererGL4::setBlendState(const BlendState& clBlendState)
     if (m_clBlendState.uRTwriteMask[iRT] != clBlendState.uRTwriteMask[iRT]) {
       m_clBlendState.uRTwriteMask[iRT] = clBlendState.uRTwriteMask[iRT];
       uBlendStateRebindMask |= (uint) BlendStateRebindFlags::RT_WRITE_MASK;
-      u8BlendStateRebindRTmask |= (1 << iRT);
+      u8BlendStateRebindRTmask |= (1u << iRT);
       u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
     }
   }
@@ -698,11 +698,11 @@ void RendererGL4::bindRenderTargets()
 //-----------------------------------------------------------------------//
 GLuint RendererGL4::createOrRetrieveFBO(Texture** pRenderTextures, uint8 u8RenderTextureCount, Texture* pDStexture)
 {
-  size_t hash = 0;
+  uint hash = 0;
   for (uint8 i = 0; i < u8RenderTextureCount; ++i) {
-    MathUtil::hash_combine(hash, reinterpret_cast<size_t>(*pRenderTextures));
+    MathUtil::hash_combine(hash, reinterpret_cast<uint>(*pRenderTextures));
   }
-  MathUtil::hash_combine(hash, reinterpret_cast<size_t>(pDStexture));
+  MathUtil::hash_combine(hash, reinterpret_cast<uint>(pDStexture));
 
   for (uint8 i = 0; i < _countof(m_FBOpool); ++i) 
   {

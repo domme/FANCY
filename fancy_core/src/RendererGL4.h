@@ -61,7 +61,7 @@ protected:
   struct FBOcacheEntry {
     FBOcacheEntry() : glHandle(GLUINT_HANDLE_INVALID), hash(0) {}
     GLuint glHandle;
-    size_t hash;
+    uint hash;
   };
 //-----------------------------------------------------------------------//
 

@@ -48,12 +48,12 @@ BlendState::BlendState() :
 
   memset(bAlphaSeparateBlend, sizeof(bAlphaSeparateBlend), false);
   memset(bBlendEnabled, sizeof(bBlendEnabled), false);
-  memset(eSrcBlend, sizeof(eSrcBlend), (size_t) BlendInput::ONE);
-  memset(eDestBlend, sizeof(eDestBlend), (size_t) BlendInput::ONE);
-  memset(eBlendOp, sizeof(eBlendOp), (size_t) BlendOp::ADD);
-  memset(eSrcBlendAlpha, sizeof(eSrcBlendAlpha), (size_t) BlendInput::ONE);
-  memset(eDestBlendAlpha, sizeof(eDestBlendAlpha), (size_t) BlendInput::ONE);
-  memset(eBlendOpAlpha, sizeof(eBlendOpAlpha), (size_t) BlendOp::ADD);
+  memset(eSrcBlend, sizeof(eSrcBlend), (uint) BlendInput::ONE);
+  memset(eDestBlend, sizeof(eDestBlend), (uint) BlendInput::ONE);
+  memset(eBlendOp, sizeof(eBlendOp), (uint) BlendOp::ADD);
+  memset(eSrcBlendAlpha, sizeof(eSrcBlendAlpha), (uint) BlendInput::ONE);
+  memset(eDestBlendAlpha, sizeof(eDestBlendAlpha), (uint) BlendInput::ONE);
+  memset(eBlendOpAlpha, sizeof(eBlendOpAlpha), (uint) BlendOp::ADD);
   memset(uRTwriteMask, sizeof(uRTwriteMask), (uint32)-1);
 }
 //---------------------------------------------------------------------------//

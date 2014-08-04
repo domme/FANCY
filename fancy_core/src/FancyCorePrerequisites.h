@@ -1,5 +1,5 @@
-#ifndef DOMENGINE_INCLUDES_H
-#define DOMENGINE_INCLUDES_H
+#ifndef INCLUDE_FANCYCOREPREREQUISITES_H
+#define INCLUDE_FANCYCOREPREREQUISITES_H
 
 // Disable some warnings...
 #pragma warning( disable : 4251 )  // "...Needs to have a dll-interface to be used by clients"
@@ -47,72 +47,52 @@ void LOG( glm::vec3 vec )
   LOG( ss.str() );
 } */
 
-template<bool T>
-void staticAssert_impl()
-{
-  bool b[ T ];
-}
-
-#define STATIC_ASSERT( value ) \
-{								\
-  staticAssert_impl<value>(); \
-}
-
-#define ASSERT( value ) \
-{ \
-  if(!value) DebugBreak(); \
-}
-
-#define ASSERT_M( value, message ) \
-{ \
-  if(!(value)) { \
-    LOG(message); \
-    DebugBreak(); \
-  }\
-}
-
-#define RUN_NOT_FIRST( function ) \
-{								\
-  static bool bFirst = false; \
-                \
-  if( bFirst )				\
-  {							\
-    function;				\
-  }							\
-                \
-  bFirst = true;				\
-}
-
-#define RUN_ONLY_ONCE_STATIC( function ) \
-{								\
-  static bool bInit = false;	\
-                \
-  if( bInit == true )			\
-    return;					\
-                \
-  function;					\
-                \
-  bInit = true;				\
-}	
-                          \
-
-#define ARRAY_LENGTH( arr ) sizeof( arr ) / sizeof( arr[ 0 ] )
-
-
+//---------------------------------------------------------------------------//
+  #define STATIC_ASSERT( condition, message ) \
+  {								\
+    static_assert(condition, message); \
+  }
+//---------------------------------------------------------------------------//
+  #define ASSERT( value ) \
+  { \
+    if(!value) DebugBreak(); \
+  }
+//---------------------------------------------------------------------------//
+  #define ASSERT_M( value, message ) \
+  { \
+    if(!(value)) { \
+      LOG(message); \
+      DebugBreak(); \
+    }\
+  }
+//---------------------------------------------------------------------------//
+  #define RUN_NOT_FIRST( function ) \
+  {								\
+    static bool bFirst = false; \
+                  \
+    if( bFirst )  \
+    {							\
+      function;		\
+    }							\
+                  \
+    bFirst = true; \
+  }
+//---------------------------------------------------------------------------//
+  #define RUN_ONLY_ONCE_STATIC( function ) \
+  {								\
+    static bool bInit = false;	\
+                  \
+    if( bInit == true )			\
+      return;					\
+                  \
+    function;					\
+                  \
+    bInit = true;				\
+  }	
+//---------------------------------------------------------------------------//
 //DLL-Export MACROS
 #define DLLEXPORT __declspec(dllexport)
 
-#define GLUINT_HANDLE_INVALID 0xFFFFFFFF
-
-typedef std::string String;
-
-typedef glm::uint16		uint16;
-typedef glm::uint32		uint32;
-typedef glm::uint64		uint64;
-typedef glm::uint8		uint8;
-typedef glm::uint		uint;
-typedef glm::int32      int32;
-typedef double          float64;
 
 
 //-----------------------------------------------------------------------//
@@ -120,6 +100,45 @@ typedef double          float64;
 //-----------------------------------------------------------------------//
 /// Enables various sanity-checks and validations
 #define FANCY_RENDERSYSTEM_USE_VALIDATION
+/// Enables the storage of strings in ObjectNames
+#define FANCY_COMMON_USE_OBJECTNAME_STRINGS
+//---------------------------------------------------------------------------//
 
+//---------------------------------------------------------------------------//
+// Forward declarations
+//---------------------------------------------------------------------------//
+namespace FANCY { namespace Core { 
+//---------------------------------------------------------------------------//
+  namespace Common {
+    class ObjectName;
+  }
+//---------------------------------------------------------------------------//
+  namespace Geometry {
+    class Model;
+    class SubModel;
+    class Mesh;
+    class SubMesh;
+  }
+//---------------------------------------------------------------------------//
+} } // end of namespace FANCY::Core
 
-#endif
+//---------------------------------------------------------------------------//
+// Typedefs
+//---------------------------------------------------------------------------//
+  namespace FANCY { namespace Core {
+    typedef std::string String;
+
+    typedef glm::uint16		uint16;
+    typedef glm::uint32		uint32;
+    typedef glm::uint64		uint64;
+    typedef glm::uint8		uint8;
+    typedef size_t		    uint;
+    typedef glm::int32    int32;
+    typedef double        float64;
+  } }  // end of namespace FANCY::Core
+//---------------------------------------------------------------------------//
+  template<class T>
+  using DynamicArray = std::string<T>;
+//---------------------------------------------------------------------------//
+
+#endif  // INCLUDE_FANCYCOREPREREQUISITES_H

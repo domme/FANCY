@@ -50,11 +50,13 @@ namespace FANCY { namespace Core {
         class RendererGL4;
         class TextureGL4;
         class GPUProgramGL4;
+        class GpuBufferGL4;
       }
       #define PLATFORM_DEPENDENT_NAME(name) FANCY::Core::Rendering::GL4::name##GL4
       #define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GPUProgramGL4.h"
+      #define PLATFORM_DEPENDENT_INCLUDE_GPUBUFFER "GpuBufferGL4.h"
     #elif defined (RENDERER_DX11)
       namespace DX11 {}
       #define PLATFORM_DEPENDENT_NAME(name) FANCY::Core::Rendering::GL4::name##DX11
@@ -265,12 +267,41 @@ namespace FANCY { namespace Core {
       NUM
     };
   //---------------------------------------------------------------------------//
-    enum class GpuResoruceMapOption {
+    enum class GpuResourceAccessFlags {
+      /// No special access flags
+      NONE                = 0x00000000,
+      /// Allow CPU read-access only
+      READ                = 0x00000001,
+      /// Allow CPU write-access only
+      WRITE               = 0x00000002,
+      /// CPU will change data frequently
+      DYNAMIC              = 0x00000008,
+      /// CPU-access may remain valid even during GPU-access
+      PERSISTENT_LOCKABLE = 0x00000010, //GL4: GL_MAP_PERSISTENT_BIT
+      /// Changes from CPU/GPU are immediately visible to GPU/CPU
+      COHERENT            = 0x00000020,
+      /// Try to use CPU-RAM as backing storage
+      PREFER_CPU_STORAGE  = 0x00000040
+    };
+  //---------------------------------------------------------------------------//
+    // Note: Could make bitfield-flags instead, but this would suggest that each field
+    // can be combined - even in DX11. Instead TODO: Reduce/expand this set of options during experiments
+    enum class GpuResoruceLockOption {
       READ = 0,
       WRITE,
       READ_WRITE,
       WRITE_DISCARD,
-
+      READ_WRITE_DISCARD,
+      READ_UNSYNCHRONIZED,  // GL4-only?
+      WRITE_UNSYNCHRONIZED,
+      READ_WRITE_UNSYNCHRONIZED,
+      READ_PERSISTENT,      // GL4-only?
+      WRITE_PERSISTENT,
+      READ_WRITE_PERSISTENT,
+      READ_PERSISTENT_COHERENT,
+      WRITE_PERSISTENT_COHERENT,
+      READ_WRITE_PERSISTENT_COHERENT,
+      
       NUM
     };
   //---------------------------------------------------------------------------//
@@ -289,11 +320,33 @@ namespace FANCY { namespace Core {
       /// (optional) pointer to pixelData
       void* pPixelData;
       /// (optional) size of the pixelData
-      size_t uPixelDataSizeBytes;
+      uint uPixelDataSizeBytes;
 
       uint8 u8NumMipLevels;
     };
-  //---------------------------------------------------------------------------//
+ //---------------------------------------------------------------------------//
+    enum class BufferUsage {
+      CONSTANT_BUFFER = 0,
+      VERTEX_BUFFER,
+      INDEX_BUFFER,
+      DRAW_INDIRECT_BUFFER,
+      DISPATCH_INDIRECT_BUFFER,
+      RESOURCE_BUFFER,
+      RESOURCE_BUFFER_RW,
+      RESOURCE_BUFFER_LARGE,
+      RESOURCE_BUFFER_LARGE_RW
+    };
+ //---------------------------------------------------------------------------//
+    struct BufferParameters {
+      BufferParameters() : uNumElements(0), uElementSizeBytes(0),
+        ePrimaryUsageType(BufferUsage::CONSTANT_BUFFER), uAccessFlags(0) {}
+
+      uint uNumElements;
+      uint uElementSizeBytes;
+      BufferUsage ePrimaryUsageType;
+      uint32 uAccessFlags;
+    };
+ //---------------------------------------------------------------------------//
   } // end of namespace Rendering 
 } }  // end of namespace FANCY::Core
 //---------------------------------------------------------------------------//
