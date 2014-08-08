@@ -4,7 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
   /// TODO: Make template?
   class GpuBufferGL4
@@ -51,7 +51,7 @@ namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
   //---------------------------------------------------------------------------//
   };
 
-} } } } // end of namespace FANCY::Core::Rendering::GL4
+} } } } // end of namespace Fancy::Core::Rendering::GL4
 
 
 #endif  // INCLUDE_GPUBUFFERGL4_H

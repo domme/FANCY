@@ -17,34 +17,49 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-//Vertex types
-//#include "Geometry/VertexDeclarations.h"
-
 //Common MACRO defines
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }
 #define SAFE_DELETE_ARR(p) if( p[ 0 ] ) delete[] p;
 #define BUFFER_OFFSET(i) ( (char*) NULL + (i) )
+//---------------------------------------------------------------------------//  
+  template<typename T>
+  void _log_impl(T s, String szPrefix)
+  {
+    std::ostringstream ss;
+    ss << szPrefix << s << '\n';
 
-template<typename T>
-void LOG( T s )
-{
-  std::ostringstream ss;
-  ss << s << '\n';
-    
 #ifdef __WINDOWS
-  OutputDebugStringA( ss.str().c_str() );
+    OutputDebugStringA( ss.str().c_str() );
 #else
     std::cout << ss.str();
 #endif
-}
-
+  };
+//---------------------------------------------------------------------------//
+  template<typename T>
+  void log_Info( T s )
+  {
+    _log_impl(s, "Info: ");
+  }
+//---------------------------------------------------------------------------//
+  template<typename T>
+  void log_Warning( T s )
+  {
+    _log_impl(s, "Warning: ");
+  }
+//---------------------------------------------------------------------------//
+  template<typename T>
+  void log_Error( T s )
+  {
+    _log_impl(s, "ERROR: ");
+  }
+//---------------------------------------------------------------------------//
 /* For some reason this specialization doesnt work...
-void LOG( glm::vec3 vec )
+void log_Info( glm::vec3 vec )
 {
   std::stringstream ss;
   ss << vec.x << " " << vec.y << " " << vec.z;
 
-  LOG( ss.str() );
+  log_Info( ss.str() );
 } */
 
 //---------------------------------------------------------------------------//
@@ -61,7 +76,7 @@ void LOG( glm::vec3 vec )
   #define ASSERT_M( value, message ) \
   { \
     if(!(value)) { \
-      LOG(message); \
+      log_Info(message); \
       DebugBreak(); \
     }\
   }
@@ -107,7 +122,7 @@ void LOG( glm::vec3 vec )
 //---------------------------------------------------------------------------//
 // Forward declarations
 //---------------------------------------------------------------------------//
-namespace FANCY { namespace Core { 
+namespace Fancy { namespace Core { 
 //---------------------------------------------------------------------------//
   namespace Common {
     class ObjectName;
@@ -117,15 +132,15 @@ namespace FANCY { namespace Core {
     class Model;
     class SubModel;
     class Mesh;
-    class SubMesh;
+    class GeometryData;
   }
 //---------------------------------------------------------------------------//
-} } // end of namespace FANCY::Core
+} } // end of namespace Fancy::Core
 
 //---------------------------------------------------------------------------//
 // Typedefs
 //---------------------------------------------------------------------------//
-  namespace FANCY { namespace Core {
+  namespace Fancy { namespace Core {
     typedef std::string String;
 
     typedef glm::uint16		uint16;
@@ -135,7 +150,7 @@ namespace FANCY { namespace Core {
     typedef size_t		    uint;
     typedef glm::int32    int32;
     typedef double        float64;
-  } }  // end of namespace FANCY::Core
+  } }  // end of namespace Fancy::Core
 //---------------------------------------------------------------------------//
   template<class T>
   using DynamicArray = std::string<T>;

@@ -1,6 +1,6 @@
 #include "RendererPrerequisites.h"
 
-using namespace FANCY::Core::Rendering;
+using namespace Fancy::Core::Rendering;
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 DepthStencilState::DepthStencilState() :

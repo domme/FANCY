@@ -2,15 +2,20 @@
 #define INCLUDE_MODEL_H
 
 #include "FancyCorePrerequisites.h"
+#include "RendererPrerequisites.h"
 #include "ObjectName.h"
 #include "FixedArray.h"
 
-namespace FANCY { namespace Core { namespace Geometry {
+namespace Fancy { namespace Core { namespace Geometry {
 //---------------------------------------------------------------------------//
   class SubModel;
 //---------------------------------------------------------------------------//
-  typedef FixedArray<SubModel*, 512> SubModelList;
+  const uint32 kMaxNumSubModelsPerModel = 256;
 //---------------------------------------------------------------------------//
+  typedef FixedArray<SubModel*, kMaxNumSubModelsPerModel> SubModelList;
+//---------------------------------------------------------------------------//
+  /*@brief: A Model is a collection of several SubModels. Each SubModel is potentially rendered with a different material
+  and a different mesh */ 
   class Model 
   {
     public:
@@ -33,6 +38,6 @@ namespace FANCY { namespace Core { namespace Geometry {
       ObjectName m_Name;
   };
 //---------------------------------------------------------------------------//
-} } }  // end of namespace FANCY::Core::Geometry
+} } }  // end of namespace Fancy::Core::Geometry
 
 #endif  // INCLUDE_MODEL_H

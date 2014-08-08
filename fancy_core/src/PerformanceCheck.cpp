@@ -107,7 +107,7 @@ void PerformanceCheck::logPerformanceCheck_CONSOLE( double f64Delay )
 	ss.precision( 5 );
 	ss << m_szMessage << " duration: " << f64Delay;
 
-	LOG( ss.str() );
+	log_Info( ss.str() );
 }
 
 void PerformanceCheck::logPerfoamanceCheck_SCREEN( double f64Delay )

@@ -62,7 +62,7 @@ void GLResourcePathManager::HandleResourceDeletion( uint32 uResource )
 	{
 		std::stringstream ss;
 		ss << "WARNING: No Path-entry found for GL-Resource with handle " << uResource;
-		LOG( ss.str() );
+		log_Info( ss.str() );
 	}
 }
 

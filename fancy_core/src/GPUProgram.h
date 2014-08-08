@@ -1,72 +1,17 @@
-#ifndef SHADER_H
-#define SHADER_H
+#ifndef INCLUDE_GPUPROGRAM_H
+#define INCLUDE_GPUPROGRAM_H
 
-#include "../includes.h"
-#include "ShaderSemantics.h"
-#include "IUniformObserver.h"
-#include "IUniform.h"
+#include "FancyCorePrerequisites.h"
+#include "RendererPrerequisites.h"
+#include PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM
 
-class Mesh;
+namespace Fancy { namespace Core { namespace Rendering {
 
-/*
-struct SShaderSemantic
-{
-	SShaderSemantic( const std::string& _szName, ShaderSemantics::Semantic _eSemantic ) 
-	{
-		szName = _szName;
-		eSemantic = _eSemantic;
-		iN = -1;
-		uGLlocation = 0xFFFFFFFF;
-	}
+  class GpuProgram : public PLATFORM_DEPENDENT_NAME(GpuProgram)
+  {
 
-	std::string szName;
-	ShaderSemantics::Semantic eSemantic;
-	int iN;
-	uint32 uGLlocation;
-}; */
+  };
 
-class DLLEXPORT Shader : public IUniformObserver
-{
-public:
-	Shader();
-	Shader( Shader& other );
-	virtual ~Shader();
-	static uint32 TexUnitFromIdx( uint uIndex ); 
+} } } // end of namespace Fancy::Core::Rendering
 
-	void LoadShader( const std::string& szVertexShaderPath, const std::string& szFragmentShaderPath );
-	//bool AddAtribute( const String& szName, ShaderSemantics::Semantic semantic, int iNumber = 0 );
-	//bool AddUniform( const String& szName, ShaderSemantics::Semantic semantic, int iNumber = 0 );
-	IUniform* GetUniformByName( const String& szName );
-	IUniform* GetAttributeByName( const String& szName ); 
-	const std::vector<IUniform*>& GetUniforms() { return m_vCachedUniforms; }
-	const std::vector<IUniform*>& GetAttributes() { return m_vAttributes; }
-
-	uint GetVertexAttribLocation( const char* szVertexAttrname );
-	uint GetUniformLocation( const char* szUniformLoc );
-
-	void ApplyShader() const;
-
-	virtual void UniformChanged( IUniform* pUniform );
-	virtual void CleanUniforms();
-
-	
-protected:
-	typedef std::map<String, IUniform*> UniformMapType;
-	typedef std::vector<IUniform*> UniformVectorType;
-
-	UniformMapType m_mapActiveUniforms;
-	UniformMapType m_mapActiveAttributes; //TODO: Not sure if needed yet
-
-	UniformVectorType m_vAttributes;
-	UniformVectorType m_vCachedUniforms;
-	UniformVectorType m_vDirtyUniforms;
-	
-	uint32 m_uShaderProgram;
-	static IUniform* createUniformFromDescription( const uint32& eType, const String& szName, int32 iGLlocation );
-	static IUniform* createAttributeFromDescription( const uint32& eType, const String& szName, int32 iGLlocation );
-	void deleteResources();
-
-	
-};
-
-#endif
+#endif  // INCLUDE_GPUPROGRAM_H

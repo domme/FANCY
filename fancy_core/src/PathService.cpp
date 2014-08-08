@@ -125,7 +125,7 @@ void PathService::removeAppName( String& szPath )
 		}
 
 		else
-			LOG( String( "App-name could not be removed for path " ) + szPath );
+			log_Info( String( "App-name could not be removed for path " ) + szPath );
 	}
 	 
 

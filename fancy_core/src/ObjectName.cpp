@@ -2,7 +2,7 @@
 
 #include "MathUtil.h"
 
-namespace FANCY { namespace Core {
+namespace Fancy { namespace Core {
 //---------------------------------------------------------------------------//
   namespace internal 
   {
@@ -40,7 +40,7 @@ namespace FANCY { namespace Core {
 
   }
 //---------------------------------------------------------------------------//
-  String ObjectName::toString()
+  String ObjectName::toString() const
   {
 #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
     return m_szName;
@@ -75,19 +75,9 @@ namespace FANCY { namespace Core {
     return clOther.m_uNameHash == m_uNameHash;
   }
 //---------------------------------------------------------------------------//
-  bool ObjectName::operator==( const String& szOther )
-  {
-    uint hash = internal::hashFromName(szOther);
 
-    return hash == m_uNameHash; 
-  }
 //---------------------------------------------------------------------------//
   bool ObjectName::operator!=( const ObjectName& clOther )
-  {
-    return !(*this == clOther);
-  }
-//---------------------------------------------------------------------------//
-  bool ObjectName::operator!=( const String& clOther )
   {
     return !(*this == clOther);
   }
@@ -97,4 +87,38 @@ namespace FANCY { namespace Core {
     return m_uNameHash < clOther.m_uNameHash;
   }
 //---------------------------------------------------------------------------//
-} } // end of namespace FANCY { namespace Core { namespace Common {
+
+//---------------------------------------------------------------------------//
+  String operator+(const String& szString, const ObjectName& name )
+  {
+    return szString + name.toString();
+  }
+//---------------------------------------------------------------------------//
+  String operator+( const ObjectName& name, const String& szString )
+  {
+    return name.toString() + szString;
+  }
+//---------------------------------------------------------------------------//
+  bool operator==(const String& szString, const ObjectName& name)
+  {
+    uint hash = internal::hashFromName(szString);
+    return hash == name.getHash(); 
+  }
+//---------------------------------------------------------------------------//
+  bool operator==( const ObjectName& name, const String& szString )
+  {
+    return szString == name; 
+  }
+//---------------------------------------------------------------------------//
+  bool operator!=( const String& szString, const ObjectName& name )
+  {
+    return !(szString == name);
+  }
+//---------------------------------------------------------------------------//
+  bool operator!=( const ObjectName& name, const String& szString )
+  {
+    return !(szString == name);
+  }
+//---------------------------------------------------------------------------//
+
+} } // end of namespace Fancy { namespace Core { namespace Common {

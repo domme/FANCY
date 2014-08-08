@@ -40,18 +40,18 @@ Mesh* ModelLoader::LoadSingleMeshGeometry(  const String& szModelPath )
 
 	if( !pAiScene )
 	{
-		LOG( String( "Import failed of Scene : " ) + szModelPath );
+		log_Info( String( "Import failed of Scene : " ) + szModelPath );
 		return NULL;
 	}
 
 	if( pAiScene->mNumMeshes == 0 )
 	{
-		LOG( String( "No Mesh in Scene " ) + szModelPath );
+		log_Info( String( "No Mesh in Scene " ) + szModelPath );
 		return NULL;
 	}
 
 	else if( pAiScene->mNumMeshes > 1 )
-		LOG( String( "WARNING: Loading single Mesh from File with more Meshes! " ) + szModelPath );
+		log_Info( String( "WARNING: Loading single Mesh from File with more Meshes! " ) + szModelPath );
 
 
 	return ProcessMesh( pAiScene, pAiScene->mMeshes[ 0 ], szModelPath, NULL, 0, false );
@@ -84,11 +84,11 @@ Mesh* ModelLoader::ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 	if( assignMaterial )
 		pMesh->SetMaterial( vpMaterials[ paiMesh->mMaterialIndex ]->Clone() );
 
-	VertexDeclaration* pVertexInfo = new VertexDeclaration;
+	VertexLayout* pVertexInfo = new VertexLayout;
 	
 	if( !paiMesh->HasPositions() )
 	{
-		LOG( std::string( "ERROR: Mesh " ) + pMesh->GetName() + std::string( " has no Vertex Positions!" ) );
+		log_Info( std::string( "ERROR: Mesh " ) + pMesh->GetName() + std::string( " has no Vertex Positions!" ) );
 		delete pMesh;
 		return NULL;
 	}

@@ -12,7 +12,7 @@ public:
 	ModelLoader_LogStream() {}
 	~ModelLoader_LogStream() {}
 
-	void write( const char* message ) { LOG( String( message ) ); }
+	void write( const char* message ) { log_Info( String( message ) ); }
 };
 
 #endif

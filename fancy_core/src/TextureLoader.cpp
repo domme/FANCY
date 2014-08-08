@@ -80,7 +80,7 @@ uint32 TextureLoader::LoadTexture1D( const String& szPath, bool* pbSuccess /* = 
     {
       std::stringstream errMsgStream;
       errMsgStream << lodepng_error_text( err );
-      LOG( std::string( "ERROR: Failed to load Texture: " ) + szPath  + ": " + errMsgStream.str() );
+      log_Info( std::string( "ERROR: Failed to load Texture: " ) + szPath  + ": " + errMsgStream.str() );
 
       if( pbSuccess )
         *pbSuccess = false;
@@ -173,7 +173,7 @@ uint32 TextureLoader::LoadTexture2D( const String& szPath, bool* pbSuccess /* = 
     {
       std::stringstream errMsgStream;
       errMsgStream << lodepng_error_text( err );
-      LOG( std::string( "ERROR: Failed to load Texture: " ) + szPath  + ": " + errMsgStream.str() );
+      log_Info( std::string( "ERROR: Failed to load Texture: " ) + szPath  + ": " + errMsgStream.str() );
 
       if( pbSuccess )
         *pbSuccess = false;

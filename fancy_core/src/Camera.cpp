@@ -34,9 +34,9 @@ Camera::~Camera()
 	   << m_matView[ 0 ].z << "\t" << m_matView[ 1 ].z << "\t" << m_matView[ 2 ].z << "\t" << m_matView[ 3 ].z << "\n"
 	   << m_matView[ 0 ].w << "\t" << m_matView[ 1 ].w << "\t" << m_matView[ 2 ].w << "\t" << m_matView[ 3 ].w << "\n";
 
-	LOG( "Constructed View-Mat:" );
-	LOG( ss.str() );
-	LOG( "" );
+	log_Info( "Constructed View-Mat:" );
+	log_Info( ss.str() );
+	log_Info( "" );
 	*/
 
 void Camera::SetOrientation( const glm::vec3& v3Side, const glm::vec3& v3Up, const glm::vec3& v3Forward )
@@ -102,7 +102,7 @@ void Camera::SetPosition( const glm::vec3& v3Pos )
 
 	std::stringstream ss;
 	ss << v3Pos.x << " " << v3Pos.y << " " << v3Pos.z;
-	LOG( ss.str() );
+	log_Info( ss.str() );
 }
 
 

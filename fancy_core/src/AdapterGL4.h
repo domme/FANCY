@@ -4,7 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   
   namespace Adapter {
     // Adapter-methods to translate between the state-enums
@@ -215,7 +215,7 @@ namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   }  // end of namespace Adapter
 
-} } } } // end of namespace FANCY::Core::Rendering::GL4
+} } } } // end of namespace Fancy::Core::Rendering::GL4
 
 
 

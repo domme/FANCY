@@ -37,7 +37,7 @@ SceneNode* SceneLoader::LoadAsset( const String& szModelPath, SceneManager* pSce
 
 	if( !pAiScene )
 	{
-		LOG( String( "Import failed of Scene : " ) + szModelPath + ": " + clImporter.GetErrorString() );
+		log_Info( String( "Import failed of Scene : " ) + szModelPath + ": " + clImporter.GetErrorString() );
 		return NULL;
 	}
 
@@ -211,7 +211,7 @@ Material* SceneLoader::processMaterial( const aiScene* pAiScene, const aiMateria
 
 	uint uNumTexturesUnknown = paiMaterial->GetTextureCount( aiTextureType_UNKNOWN );
 	if( uNumTexturesUnknown != 0 )
-		LOG( std::string( "WARNING: There are unknown textures defined in Material " ) + std::string( szName.data ) );
+		log_Info( std::string( "WARNING: There are unknown textures defined in Material " ) + std::string( szName.data ) );
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -318,7 +318,7 @@ Material* SceneLoader::processMaterial( const aiScene* pAiScene, const aiMateria
 
 		float fBumpIntensity = 1.0f;
 		paiMaterial->Get( AI_MATKEY_BUMPSCALING, fBumpIntensity );
-		LOG( fBumpIntensity );
+		log_Info( fBumpIntensity );
 		pMat->SetBumpIntensity( fBumpIntensity * fGlobalNormalMod );
 
 		returnMaterial = pMat;

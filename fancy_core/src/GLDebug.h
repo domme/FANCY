@@ -4,7 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "OpenGLprerequisites.h"
 
-namespace FANCY { namespace Core { namespace Rendering {
+namespace Fancy { namespace Core { namespace Rendering {
 
 class GLDebug
 {
@@ -20,37 +20,37 @@ public:
 		{
 			case GL_INVALID_ENUM:
 				{
-					LOG( "GL-ERROR: INVALID ENUM" );
+					log_Info( "GL-ERROR: INVALID ENUM" );
 				}break;
 
 			case GL_INVALID_VALUE:
 				{
-					LOG( "GL-ERROR: INVALID VALUE" );
+					log_Info( "GL-ERROR: INVALID VALUE" );
 				}break;
 
 			case GL_INVALID_OPERATION:
 				{
-					LOG( "GL-ERROR: INVALID OPERATION" );
+					log_Info( "GL-ERROR: INVALID OPERATION" );
 				}break;
 
 			case GL_STACK_OVERFLOW:
 				{
-					LOG( "GL-ERROR: STACK OVERFLOW" );
+					log_Info( "GL-ERROR: STACK OVERFLOW" );
 				}break;
 
 			case GL_STACK_UNDERFLOW:
 				{
-					LOG( "GL-ERROR: STACK UNDERFLOW" );
+					log_Info( "GL-ERROR: STACK UNDERFLOW" );
 				}break;
 
 			case GL_OUT_OF_MEMORY:
 				{
-					LOG( "GL-ERROR: OUT OF MEMORY" );
+					log_Info( "GL-ERROR: OUT OF MEMORY" );
 				}break;
 
 			case GL_TABLE_TOO_LARGE:
 				{
-					LOG( "GL-ERROR: TABLE TOO LARGE" );
+					log_Info( "GL-ERROR: TABLE TOO LARGE" );
 				}break;
 		}
 	}
@@ -62,23 +62,23 @@ public:
     switch( error )
     {
     case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" );
+      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" );
       assert( false );
       break;
     case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" );
+      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" );
       assert( false );
       break;
     case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER" );
+      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER" );
       assert( false );
       break;
     case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER" );
+      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER" );
       assert( false );
       break;
     case GL_FRAMEBUFFER_UNSUPPORTED:
-      LOG( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_UNSUPPORTED" );
+      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_UNSUPPORTED" );
       assert( false );
       break;
     }
@@ -88,6 +88,6 @@ public:
 //---------------------------------------------------------------------------//
 };
 
-} } } // end of namespace FANCY::Core::Rendering
+} } } // end of namespace Fancy::Core::Rendering
 
 #endif  // INCLUDE_GLDEBUG_H

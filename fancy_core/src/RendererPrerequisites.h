@@ -11,13 +11,16 @@
 
 // Common defines for the RenderSystem
 // TODO: Check these values again...
-#define FANCY_MAX_NUM_RENDERTARGETS 7 // (-1 for depth-stencil target)
-#define FANCY_MAX_NUM_BOUND_SAMPLERS 16
-#define FANCY_MAX_NUM_BOUND_READ_BUFFERS 32
-#define FANCY_MAX_NUM_BOUND_READ_TEXTURES 32
-#define FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS 8
+namespace Fancy { enum {
+  kMaxNumRenderTargets = 7u, // (-1 for depth-stencil target)
+  kMaxNumBoundSamplers = 16u,
+  kMaxNumBoundReadBuffers = 32u,
+  kMaxNumReadTextures = 32u,
+  kMaxNumBoundConstantBuffers = 8u,
+  kMaxNumGpuProgramResources = 32u
+}; }
 //---------------------------------------------------------------------------//
-namespace FANCY { namespace Core {
+namespace Fancy { namespace Core {
 //---------------------------------------------------------------------------//
   enum class MemoryCategory {
     TEXTURES,
@@ -39,9 +42,12 @@ namespace FANCY { namespace Core {
     class RenderOperation;
     class Texture;
     class TextureSampler;
-    class Buffer;
+    class GpuBuffer;
     class ConstantBuffer;
-    class GPUProgram;
+    class GpuProgram;
+    class GeometryData;
+    class GpuProgramPipeline;
+    class GpuProgramCompiler;
   //---------------------------------------------------------------------------//
   // Forward-declarations of platform-dependent rendering classes
     #if defined (RENDERER_OPENGL4)
@@ -49,17 +55,23 @@ namespace FANCY { namespace Core {
       {
         class RendererGL4;
         class TextureGL4;
-        class GPUProgramGL4;
+        class GpuProgramGL4;
         class GpuBufferGL4;
+        class GpuProgramPipelineGL4;
+        class GpuProgramCompilerGL4;
       }
-      #define PLATFORM_DEPENDENT_NAME(name) FANCY::Core::Rendering::GL4::name##GL4
+
+      #define PLATFORM_DEPENDENT_NAME(name) Fancy::Core::Rendering::GL4::name##GL4
       #define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GPUProgramGL4.h"
+      #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GpuProgramGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUBUFFER "GpuBufferGL4.h"
+      #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineGL4.h"
+      #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerGL4.h"
+
     #elif defined (RENDERER_DX11)
       namespace DX11 {}
-      #define PLATFORM_DEPENDENT_NAME(name) FANCY::Core::Rendering::GL4::name##DX11
+      #define PLATFORM_DEPENDENT_NAME(name) Fancy::Core::Rendering::GL4::name##DX11
     #endif // RENDERER
   //---------------------------------------------------------------------------//
 
@@ -158,7 +170,8 @@ namespace FANCY { namespace Core {
       TESS_DOMAIN,   
       COMPUTE,                  
 
-      NUM
+      NUM,
+      NONE
     };
   //---------------------------------------------------------------------------//
     enum class ShaderStageFlag {
@@ -221,15 +234,15 @@ namespace FANCY { namespace Core {
       bool              bAlphaToCoverageEnabled;
       bool              bBlendStatePerRT;
 
-      bool              bAlphaSeparateBlend [FANCY_MAX_NUM_RENDERTARGETS];
-      bool              bBlendEnabled       [FANCY_MAX_NUM_RENDERTARGETS];
-      BlendInput        eSrcBlend           [FANCY_MAX_NUM_RENDERTARGETS];
-      BlendInput        eDestBlend          [FANCY_MAX_NUM_RENDERTARGETS];
-      BlendOp           eBlendOp            [FANCY_MAX_NUM_RENDERTARGETS];
-      BlendInput        eSrcBlendAlpha      [FANCY_MAX_NUM_RENDERTARGETS];
-      BlendInput        eDestBlendAlpha     [FANCY_MAX_NUM_RENDERTARGETS];
-      BlendOp           eBlendOpAlpha       [FANCY_MAX_NUM_RENDERTARGETS];
-      uint32            uRTwriteMask        [FANCY_MAX_NUM_RENDERTARGETS];
+      bool              bAlphaSeparateBlend [kMaxNumRenderTargets];
+      bool              bBlendEnabled       [kMaxNumRenderTargets];
+      BlendInput        eSrcBlend           [kMaxNumRenderTargets];
+      BlendInput        eDestBlend          [kMaxNumRenderTargets];
+      BlendOp           eBlendOp            [kMaxNumRenderTargets];
+      BlendInput        eSrcBlendAlpha      [kMaxNumRenderTargets];
+      BlendInput        eDestBlendAlpha     [kMaxNumRenderTargets];
+      BlendOp           eBlendOpAlpha       [kMaxNumRenderTargets];
+      uint32            uRTwriteMask        [kMaxNumRenderTargets];
     };
   //---------------------------------------------------------------------------//
     enum class PixelFormat {
@@ -347,8 +360,27 @@ namespace FANCY { namespace Core {
       uint32 uAccessFlags;
     };
  //---------------------------------------------------------------------------//
+    enum class VertexSemantics {
+      NONE = 0,
+
+      POSITION,
+      NORMAL,
+      TANGENT,
+      BITANGENT,
+      TEXCOORD0,
+      TEXCOORD1,
+      TEXCOORD2,
+      TEXCOORD3,
+      TEXCOORD4,
+      TEXCOORD5,
+      TEXCOORD6,
+      TEXCOORD7,
+
+      NUM
+    };  
+//---------------------------------------------------------------------------//
   } // end of namespace Rendering 
-} }  // end of namespace FANCY::Core
+} }  // end of namespace Fancy::Core
 //---------------------------------------------------------------------------//
 
 #endif  // INCLUDE_RENDERERPREREQUISITES

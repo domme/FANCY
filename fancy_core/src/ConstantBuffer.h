@@ -3,7 +3,7 @@
 
 #include "Includes.h"
 
-namespace FANCY { namespace Core { namespace Rendering {
+namespace Fancy { namespace Core { namespace Rendering {
 
   class ConstantBuffer {
 
@@ -11,7 +11,7 @@ namespace FANCY { namespace Core { namespace Rendering {
 
 } // end of namespace Rendering
 } // end of namespace Core
-} // end of namespace FANCY
+} // end of namespace Fancy
 
 
 

@@ -2,7 +2,7 @@
 #include "RendererPrerequisites.h"
 
 
-namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   namespace internal 
   {
@@ -277,4 +277,4 @@ namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
     glBindBuffer(m_clParameters.eInitialBufferTargetGL, origBoundBuffer);
   }
 //---------------------------------------------------------------------------//
-} } } } // end of namespace FANCY::Core::Rendering::GL4
+} } } } // end of namespace Fancy::Core::Rendering::GL4

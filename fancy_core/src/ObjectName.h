@@ -3,7 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 
-namespace FANCY { namespace Core {
+namespace Fancy { namespace Core {
 //---------------------------------------------------------------------------//
   class ObjectName {
     //---------------------------------------------------------------------------//
@@ -12,16 +12,15 @@ namespace FANCY { namespace Core {
       ObjectName(const String& szString);
       ~ObjectName();
     //---------------------------------------------------------------------------//
-      String toString();
+      String toString() const;
+      uint getHash() const {return m_uNameHash;}
     //---------------------------------------------------------------------------//
       void operator=(const ObjectName& clOther);
       void operator=(const String& szOther);
     //---------------------------------------------------------------------------//
       bool operator==(const ObjectName& clOther);
-      bool operator==(const String& szOther);
     //---------------------------------------------------------------------------//
       bool operator!=(const ObjectName& clOther);
-      bool operator!=(const String& clOther);
     //---------------------------------------------------------------------------//
       bool operator<(const ObjectName& clOther);
     //---------------------------------------------------------------------------//
@@ -31,11 +30,23 @@ namespace FANCY { namespace Core {
   #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
       uint   m_uNameHash;
   };
+//---------------------------------------------------------------------------//
+  String operator+(const String& szString, const ObjectName& name);
+  String operator+(const ObjectName& name, const String& szString);
+//---------------------------------------------------------------------------//
+  bool operator==(const String& szOther, const ObjectName& name);
+  bool operator==(const ObjectName& name, const String& szOther);
+//---------------------------------------------------------------------------//
+  bool operator!=(const String& szString, const ObjectName& name);
+  bool operator!=(const ObjectName& name, const String& szString);
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-} } // end of namespace FANCY::Core
+} } // end of namespace Fancy::Core
+
+
 
 //---------------------------------------------------------------------------//
-#define _N(name) FANCY::Core::ObjectName(name)
+#define _N(name) Fancy::Core::ObjectName(name)
 //---------------------------------------------------------------------------//
 #endif  // INCLUDE_OBJECTNAME_H

@@ -194,7 +194,7 @@ void PointLight::PrepareShadowmapPass( int uPassIndex )
 		break;
 
 		default:
-			LOG( "ERROR: Undefined Cubemap face specified!" );
+			log_Info( "ERROR: Undefined Cubemap face specified!" );
 		break;
 	}
 

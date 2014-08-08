@@ -4,7 +4,7 @@
 #include "GLDebug.h"
 #include "AdapterGL4.h"
 
-using namespace FANCY::Core::Rendering::GL4;
+using namespace Fancy::Core::Rendering::GL4;
 //-----------------------------------------------------------------------//
 #define GL_SET_CAP(eCap, bEnabled) { if(bEnabled) glEnable(eCap); else glDisable(eCap); }
 #define GL_SET_CAPi(eCap, index, bEnabled) { if(bEnabled) glEnablei(eCap, index); else glDisablei(eCap, index); }
@@ -225,7 +225,7 @@ void RendererGL4::setBlendState(const BlendState& clBlendState)
     uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLENDSTATE_PER_RT;
   }
 
-  const uint8 rtUpperBound = m_clBlendState.bBlendStatePerRT ? FANCY_MAX_NUM_RENDERTARGETS : 1;
+  const uint8 rtUpperBound = m_clBlendState.bBlendStatePerRT ? kMaxNumRenderTargets : 1;
   for (uint8 iRT = 0; iRT < rtUpperBound; ++iRT)
   {
     if (m_clBlendState.bAlphaSeparateBlend[iRT] != clBlendState.bAlphaSeparateBlend[iRT]) {
@@ -333,7 +333,7 @@ void RendererGL4::setWindingOrder( const WindingOrder eWindingOrder )
 //-----------------------------------------------------------------------//
 void RendererGL4::setRenderTarget( Texture* pRTTexture, const uint8 u8RenderTargetIndex )
 {
-  ASSERT_M(u8RenderTargetIndex < FANCY_MAX_NUM_RENDERTARGETS, "RenderTarget-index not supported");
+  ASSERT_M(u8RenderTargetIndex < kMaxNumRenderTargets, "RenderTarget-index not supported");
   //ASSERT_M(pRTTexture->isDepthStencilTexture(), "Tried to set depthStencil-texture as color-rendertexture");
   
   if(getCachedRenderTarget(u8RenderTargetIndex) == pRTTexture) {
@@ -356,14 +356,14 @@ void RendererGL4::setDepthStencilRenderTarget( Texture* pDStexture )
 //-----------------------------------------------------------------------//
 void RendererGL4::removeAllRenderTargets()
 {
-  for (uint8 i = 0; i < FANCY_MAX_NUM_RENDERTARGETS; ++i) {
+  for (uint8 i = 0; i < kMaxNumRenderTargets; ++i) {
     setRenderTarget(nullptr, i);
   }
 }
 //-----------------------------------------------------------------------//
 void RendererGL4::setReadTexture( Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
 {
-  ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_READ_TEXTURES, "Referenced an undefined texture register");
+  ASSERT_M(u8RegisterIndex < kMaxNumReadTextures, "Referenced an undefined texture register");
   
   if(m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pTexture) {
     return;
@@ -375,7 +375,7 @@ void RendererGL4::setReadTexture( Texture* pTexture, const ShaderStage eShaderSt
 //-----------------------------------------------------------------------//
 void RendererGL4::setReadBuffer( Buffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
 {
-  ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_READ_BUFFERS, "Referenced an undefined buffer register");
+  ASSERT_M(u8RegisterIndex < kMaxNumBoundReadBuffers, "Referenced an undefined buffer register");
   
   if(m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pBuffer) {
     return;
@@ -387,7 +387,7 @@ void RendererGL4::setReadBuffer( Buffer* pBuffer, const ShaderStage eShaderStage
 //-----------------------------------------------------------------------//
 void RendererGL4::setConstantBuffer( ConstantBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
 {
-  ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS, "Referenced an undefined constant buffer register");
+  ASSERT_M(u8RegisterIndex < kMaxNumBoundConstantBuffers, "Referenced an undefined constant buffer register");
   
   if(m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pConstantBuffer) {
     return;
@@ -399,7 +399,7 @@ void RendererGL4::setConstantBuffer( ConstantBuffer* pConstantBuffer, const Shad
 //-----------------------------------------------------------------------//
 void RendererGL4::setTextureSampler( TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
 {
-  ASSERT_M(u8RegisterIndex < FANCY_MAX_NUM_BOUND_SAMPLERS, "Referenced an undefined sampler register");
+  ASSERT_M(u8RegisterIndex < kMaxNumBoundSamplers, "Referenced an undefined sampler register");
   
   if(m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pSampler) {
     return;
@@ -659,11 +659,11 @@ void RendererGL4::bindDepthStencilState()
 void RendererGL4::bindRenderTargets()
 {
   // The actual (packed) list of renderTextures to use
-  Texture* rtListPatched[FANCY_MAX_NUM_RENDERTARGETS] = {nullptr};
+  Texture* rtListPatched[kMaxNumRenderTargets] = {nullptr};
   uint8 u8RenderTextureCount = 0;
 
   // Detect "holes" in renderTexture-array
-  for(uint8 i = 0; i < FANCY_MAX_NUM_RENDERTARGETS; ++i) 
+  for(uint8 i = 0; i < kMaxNumRenderTargets; ++i) 
   {
     if (m_pCachedRenderTargets[i] != nullptr) 
     {
@@ -674,7 +674,7 @@ void RendererGL4::bindRenderTargets()
     {
       // There is a hole in the list: skip it
       while(m_pCachedRenderTargets[i] == nullptr 
-        && i < FANCY_MAX_NUM_RENDERTARGETS) {
+        && i < kMaxNumRenderTargets) {
         ++i;
       }
     }
@@ -690,7 +690,7 @@ void RendererGL4::bindRenderTargets()
 
   // Default: Enable all drawbuffers. 
   // TODO: Better to determine drawbuffers from blendState::RTwritemask?
-  static GLenum drawBuffers[FANCY_MAX_NUM_RENDERTARGETS] = 
+  static GLenum drawBuffers[kMaxNumRenderTargets] = 
   {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, 
   GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6};
   glDrawBuffers(u8RenderTextureCount, drawBuffers);

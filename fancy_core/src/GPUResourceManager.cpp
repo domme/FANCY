@@ -42,14 +42,14 @@ void GPUResourceManager::HandleDelete( uint32 uglResource )
 
 		std::stringstream ss;
 		ss << "Deleting \t\t\t" << getDebugMgrName() << uglResource;
-		LOG( ss.str() );
+		log_Info( ss.str() );
 	}
 
 	else
 	{
 		std::stringstream ss;
 		ss << "Decreasing \t\t" << getDebugMgrName() << uglResource << " - Reference-count is now: " << m_mapResRef[ uglResource ];
-		LOG( ss.str() );
+		log_Info( ss.str() );
 	}
 
 }
@@ -66,7 +66,7 @@ void GPUResourceManager::AddResource( uint32 uglResource )
 
 	std::stringstream ss;
 	ss << "Adding \t\t\t" << getDebugMgrName() << uglResource << " - Reference-count is now: " << m_mapResRef[ uglResource ];
-	LOG( ss.str() );
+	log_Info( ss.str() );
 }
 
 int GPUResourceManager::GetResourceUseCount( uint32 uglResource )

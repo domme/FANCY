@@ -5,14 +5,14 @@
 #include "RendererPrerequisites.h"
 #include PLATFORM_DEPENDENT_INCLUDE_TEXTURE
 
-namespace FANCY { namespace Core { namespace Rendering {
+namespace Fancy { namespace Core { namespace Rendering {
 
 class Texture : public PLATFORM_DEPENDENT_NAME(Texture) 
 {
 
 };
 
-} } } // end of namespace FANCY::Core::Rendering
+} } } // end of namespace Fancy::Core::Rendering
 
 
 #endif  // INCLUDE_TEXTURE_H

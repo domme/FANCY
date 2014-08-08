@@ -1,11 +1,12 @@
 #ifndef INCLUDE_RENDERERGL4_H
 #define INCLUDE_RENDERERGL4_H
 
+
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "LoadableObject.h"
 
-namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
 //---------------------------------------------------------------------------//
 class RendererGL4 : public LoadableObject
@@ -44,7 +45,7 @@ public:
   
   Texture* getCachedDepthStencilRenderTarget() { return m_pCachedDepthStencilTarget; }
 	Texture* getCachedRenderTarget(const uint8 u8RenderTargetIndex) const 
-	{ ASSERT(u8RenderTargetIndex < FANCY_MAX_NUM_RENDERTARGETS); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
+	{ ASSERT(u8RenderTargetIndex < kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
 
 	void setReadTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
 	void setReadBuffer(Buffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
@@ -86,20 +87,20 @@ protected:
 	uint32        m_uResourceRebindMask[ShaderStage::NUM];  // Needed?
 	
 	/// Cached textures per shaderStage bound/to bind to the pipeline
-	Texture*	    m_pCachedReadTextures [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_READ_TEXTURES];
+	Texture*	    m_pCachedReadTextures [ShaderStage::NUM][kMaxNumReadTextures];
 	/// Mask identifying which textures need to be bind in the next draw call
 	uint32		    m_uReadTextureBindMask [ShaderStage::NUM];
 
-	Buffer*		    m_pCachedReadBuffers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_READ_BUFFERS];
+	GpuBuffer*		m_pCachedReadBuffers [ShaderStage::NUM][kMaxNumBoundReadBuffers];
 	uint32		    m_uReadBufferBindMask [ShaderStage::NUM];
 
-	ConstantBuffer*		m_pCachedConstantBuffers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_CONSTANT_BUFFERS];
+	ConstantBuffer*		m_pCachedConstantBuffers [ShaderStage::NUM][kMaxNumBoundConstantBuffers];
 	uint32				    m_uConstantBufferBindMask[ShaderStage::NUM];
 
-	TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][FANCY_MAX_NUM_BOUND_SAMPLERS];
+	TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][kMaxNumBoundSamplers];
 	uint32				    m_uTextureSamplerBindMask[ShaderStage::NUM];
 
-	Texture*			    m_pCachedRenderTargets [FANCY_MAX_NUM_RENDERTARGETS];
+	Texture*			    m_pCachedRenderTargets [kMaxNumRenderTargets];
   Texture*          m_pCachedDepthStencilTarget;
 
   /// The currently bound FBO
@@ -126,7 +127,7 @@ protected:
 } // end of namespace GL4
 } // end of namespace Rendering
 } // end of namespace Core
-} // end of namespace FANCY
+} // end of namespace Fancy
 
 
 #endif  // INCLUDE_RENDERERGL4_H

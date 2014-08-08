@@ -1,7 +1,7 @@
 #include "TextureGL4.h"
 #include "AdapterGL4.h"
 
-namespace FANCY { namespace Core { namespace Rendering {  namespace GL4 {
+namespace Fancy { namespace Core { namespace Rendering {  namespace GL4 {
 //---------------------------------------------------------------------------//
   TextureGL4::TextureGL4() :
     m_uGLhandle(GLUINT_HANDLE_INVALID),
@@ -226,6 +226,6 @@ namespace FANCY { namespace Core { namespace Rendering {  namespace GL4 {
     ASSERT_M(false, "lock/unlock not supported on OpenGL textures");
   }
 //---------------------------------------------------------------------------//
-} } } } // end of namespace FANCY::Core::Rendering::GL4
+} } } } // end of namespace Fancy::Core::Rendering::GL4
 
 

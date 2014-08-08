@@ -5,7 +5,7 @@
 #include "RendererPrerequisites.h"
 #include "LoadableObject.h"
 
-namespace FANCY { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
 class TextureGL4 : public LoadableObject {
 public:
@@ -68,7 +68,7 @@ protected:
 //---------------------------------------------------------------------------//
 };
 
-} } } } // end of namespace FANCY::Core::Rendering::GL4
+} } } } // end of namespace Fancy::Core::Rendering::GL4
 
 
 #endif  // INCLUDE_TEXTUREGL4_H

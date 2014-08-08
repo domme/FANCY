@@ -3,7 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 
-namespace FANCY { namespace Core {
+namespace Fancy { namespace Core {
 //---------------------------------------------------------------------------//
   template<class T, uint32 capacity>
   class FixedArrayDatastore_Stack
@@ -56,20 +56,24 @@ namespace FANCY { namespace Core {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  template<class T, uint32 capacity, class StorageType = FixedArrayDatastore_Stack>
-  class FixedArray : StorageType<T, capacity>
+  template<class T, uint32 u32Capacity, template<class, uint32> StorageType = FixedArrayDatastore_Stack>
+  class FixedArray : StorageType<T, u32Capacity>
   {
     public:
       FixedArray();
       virtual ~FixedArray();
     //---------------------------------------------------------------------------//  
-      uint32 capacity() const {return capacity;}
+      uint32 capacity() const {return u32Capacity;}
       uint32 size() const {return m_u32Size;}
+      bool empty() const {return m_u32Size > 0u;}
       void clear() {m_u32Size = 0u;}
-      void push_back(const T& clElement) {ASSERT_M(m_u32Size < m_u32Capacity, "Array is full"); m_Array[m_u32Size++] = clElement;}
+      void push_back(const T& clElement) {ASSERT_M(m_u32Size < u32Capacity, "Array is full"); m_Array[m_u32Size++] = clElement;}
     //---------------------------------------------------------------------------//
-      const T& operator[](const uint32 u32Index) const {ASSERT(u32Index < m_u32Size); return m_Array[u32Index];}
+      T& back() { ASSERT(m_u32Size > 0); return m_Array[m_u32Size - 1u]; }
+      const T& back() const { ASSERT(m_u32Size > 0); return m_Array[m_u32Size - 1u]; }
+    //---------------------------------------------------------------------------//
       T& operator[](const uint32 u32Index) {ASSERT(u32Index < m_u32Size); return m_Array[u32Index];}
+      const T& operator[](const uint32 u32Index) const {ASSERT(u32Index < m_u32Size); return m_Array[u32Index];}
     //---------------------------------------------------------------------------//
     private:
       uint32 m_u32Size;
@@ -83,7 +87,7 @@ namespace FANCY { namespace Core {
 
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace FANCY::Core
+} }  // end of namespace Fancy::Core
 
 
 #endif  // INCLUDE_FIXEDARRAY_H

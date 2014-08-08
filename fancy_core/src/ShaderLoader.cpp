@@ -116,7 +116,7 @@ void ShaderLoader::printShaderErrorLog( const uint32 uShaderHandler, const Strin
 	int32  iLength = 0;
 	glGetShaderInfoLog( uShaderHandler, 2048, &iLength, szInfo);
 
-	LOG( "\n\n" + szShaderName + ":\n" + String( szInfo ) + "\n" );
+	log_Info( "\n\n" + szShaderName + ":\n" + String( szInfo ) + "\n" );
 }
 
 void ShaderLoader::printProgramErrorLog( const uint32 uProgramHandler, const String& szProgramName )
@@ -125,5 +125,5 @@ void ShaderLoader::printProgramErrorLog( const uint32 uProgramHandler, const Str
 	int32  iLength = 0;
 	glGetProgramInfoLog( uProgramHandler, 2048, &iLength, szInfo);
 
-	LOG( "\n\n" + szProgramName + ":\n" + String( szInfo ) + "\n" );
+	log_Info( "\n\n" + szProgramName + ":\n" + String( szInfo ) + "\n" );
 }

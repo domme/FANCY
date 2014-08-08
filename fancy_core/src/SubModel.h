@@ -5,7 +5,7 @@
 #include "ObjectName.h"
 #include "FixedArray.h"
 
-namespace FANCY { namespace Core { namespace Geometry {
+namespace Fancy { namespace Core { namespace Geometry {
 //---------------------------------------------------------------------------//
   class Mesh;
   class Material;
@@ -19,14 +19,16 @@ namespace FANCY { namespace Core { namespace Geometry {
     const ObjectName& getName() {return m_Name;}
     void setName(const ObjectName& clNewName) {m_Name = clNewName;}
 
+    Material* getMaterial() {return m_pMaterial;}
+    Mesh* getMesh() {return m_pMesh;}
     
-    //---------------------------------------------------------------------------//
+   //---------------------------------------------------------------------------//
   private:
     Material* m_pMaterial;
     Mesh* m_pMesh;
     ObjectName m_Name;
   };
   //---------------------------------------------------------------------------//
-} } }  // end of namespace FANCY::Core::Geometry
+} } }  // end of namespace Fancy::Core::Geometry
 
 #endif  // INCLUDE_SUBMODEL_H
