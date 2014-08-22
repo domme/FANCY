@@ -1,55 +1,56 @@
 #include "GpuBufferGL4.h"
 #include "RendererPrerequisites.h"
 
+#include "TimeManager.h"
 
 namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   namespace internal 
   {
-    GLenum mapBufferUsage(BufferUsage eGeneralUsage, GLenum& eBindingQueryGL);
-    GLenum mapLockOption(Rendering::GpuResoruceLockOption eLockOption);
+    GLenum mapBufferUsage(GpuBufferUsage eGeneralUsage, GLenum& eBindingQueryGL);
+    GLuint mapLockOption(Rendering::GpuResoruceLockOption eLockOption);
   }
 //---------------------------------------------------------------------------//
-  GLenum internal::mapBufferUsage(BufferUsage eGeneralUsage, GLenum& eBindingQueryGL) 
+  GLenum internal::mapBufferUsage(GpuBufferUsage eGeneralUsage, GLenum& eBindingQueryGL) 
   {
     GLenum eUsageGL;
 
     switch (eGeneralUsage)
     {
-      case BufferUsage::CONSTANT_BUFFER: 
+      case GpuBufferUsage::CONSTANT_BUFFER: 
         eUsageGL = GL_UNIFORM_BUFFER; 
         eBindingQueryGL = GL_UNIFORM_BUFFER_BINDING;
         break;
-      case BufferUsage::VERTEX_BUFFER:
+      case GpuBufferUsage::VERTEX_BUFFER:
         eUsageGL = GL_ARRAY_BUFFER;
         eBindingQueryGL = GL_ARRAY_BUFFER_BINDING;
         break;
-      case BufferUsage::INDEX_BUFFER:
+      case GpuBufferUsage::INDEX_BUFFER:
         eUsageGL = GL_ELEMENT_ARRAY_BUFFER;
         eBindingQueryGL = GL_ELEMENT_ARRAY_BUFFER_BINDING;
         break;
-      case BufferUsage::DRAW_INDIRECT_BUFFER:
+      case GpuBufferUsage::DRAW_INDIRECT_BUFFER:
         eUsageGL = GL_DRAW_INDIRECT_BUFFER;
         eBindingQueryGL = GL_DRAW_INDIRECT_BUFFER_BINDING;
         break;
-      case BufferUsage::DISPATCH_INDIRECT_BUFFER:
+      case GpuBufferUsage::DISPATCH_INDIRECT_BUFFER:
         eUsageGL = GL_DISPATCH_INDIRECT_BUFFER;
         eBindingQueryGL = GL_DISPATCH_INDIRECT_BUFFER_BINDING;
         break;
-      case BufferUsage::RESOURCE_BUFFER:
+      case GpuBufferUsage::RESOURCE_BUFFER:
         eUsageGL = GL_TEXTURE_BUFFER;
         eBindingQueryGL = GL_TEXTURE_BINDING_BUFFER; // WTF? Oo
         break;
-      case BufferUsage::RESOURCE_BUFFER_RW:
+      case GpuBufferUsage::RESOURCE_BUFFER_RW:
         // In GL, we don't need to distinguish between read-only and read/write at this point
         eUsageGL = GL_TEXTURE_BUFFER;  
         eBindingQueryGL = GL_TEXTURE_BINDING_BUFFER;
         break;
-      case BufferUsage::RESOURCE_BUFFER_LARGE:
+      case GpuBufferUsage::RESOURCE_BUFFER_LARGE:
         eUsageGL = GL_SHADER_STORAGE_BUFFER;
         eBindingQueryGL = GL_SHADER_STORAGE_BUFFER_BINDING;
         break;
-      case BufferUsage::RESOURCE_BUFFER_LARGE_RW:
+      case GpuBufferUsage::RESOURCE_BUFFER_LARGE_RW:
         // Again, no need to distinguish here
         eUsageGL = GL_SHADER_STORAGE_BUFFER;
         eBindingQueryGL = GL_SHADER_STORAGE_BUFFER_BINDING;
@@ -62,7 +63,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     return eUsageGL;
   }
 //---------------------------------------------------------------------------//
-  GLenum internal::mapLockOption(Rendering::GpuResoruceLockOption eLockOption)
+  GLuint internal::mapLockOption(Rendering::GpuResoruceLockOption eLockOption)
   {
     switch (eLockOption)
     {
@@ -113,9 +114,13 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
+  
+//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
   GpuBufferGL4::GpuBufferGL4() :
-    m_uGLhandle(GLUINT_HANDLE_INVALID)
+    m_pCachedLockPtr(nullptr),
+    m_uDerivedInternalBufferCount(1u),
+    m_eMultiBufferStrategy(MultiBufferingStrategy::NONE)
   {
 
   }
@@ -131,20 +136,35 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       return;
     }
 
-    ASSERT_M(!isLocked(), "Trying to destroy a locked buffer");
+    ASSERT_M( isLockedPersistent() || !isLocked(), "Trying to destroy a locked buffer");
 
-    glDeleteBuffers(1, &m_uGLhandle);
-    m_uGLhandle = GLUINT_HANDLE_INVALID;
+    // Persistent buffers stay locked and have to be unlocked here
+    if (isLockedPersistent())
+    {
+      for (uint32 i = 0; i < MultiBuffering::kGpuMultiBufferingCount; ++i)
+      {
+        _unlock(i);
+      }
+    }
+
+    for (uint32 i = 0; i < MultiBuffering::kGpuMultiBufferingCount; ++i)
+    {
+      glDeleteBuffers(1, &m_vGLhandles[i]);
+    }
+    m_vGLhandles.clear();
+
+    m_clStateInfos.isLocked = false;
+    m_clStateInfos.isLockedPersistent = false;
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferGL4::create( const BufferParameters& clParameters, void* pInitialData /*= nullptr*/ )
+  void GpuBufferGL4::create( const GpuBufferParameters& clParameters, void* pInitialData /*= nullptr*/ )
   {
     destroy();
 
     ASSERT_M(clParameters.uElementSizeBytes > 0 && clParameters.uNumElements > 0,
        "Invalid buffer size specified");
 
-    static_cast<BufferParameters>(m_clParameters) = clParameters;
+    static_cast<GpuBufferParameters>(m_clParameters) = clParameters;
 
     GLenum eUsageTarget;
     GLenum eBindingQuery;
@@ -193,19 +213,77 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       ASSERT_M(false, "Coherent buffers also need to be persistent");
     }
 
+    // Derive the appropriate multibuffering settings
+    if (!m_clParameters.bIsMultiBuffered)
+    {
+      m_uDerivedInternalBufferCount = 1u;
+      m_eMultiBufferStrategy = MultiBufferingStrategy::NONE;
+    }
+    else  // Multibuffering is used 
+    {
+      // Note: Here we assume that persistant mapping also means the buffer is
+      //        multibuffered internally using an offset... have to see if this is always desired
+      if ( (uAccessFlagsGL & GL_MAP_PERSISTENT_BIT) > 0 ) 
+      {
+        m_eMultiBufferStrategy = MultiBufferingStrategy::OFFSETS;
+        m_uDerivedInternalBufferCount = 1u;
+      } 
+      else 
+      {
+        m_eMultiBufferStrategy = MultiBufferingStrategy::BUFFERS;
+        m_uDerivedInternalBufferCount = MultiBuffering::kGpuMultiBufferingCount;
+      }
+    }
+
+    // Create and allocate the buffer
+    m_clParameters.uAccessFlagsGL = uAccessFlagsGL;
+    m_clParameters.uTotalSizeBytes = 
+      clParameters.uNumElements * clParameters.uElementSizeBytes;
+
     // Retrieve the currently bound buffer to restore it later
     GLint originalBufferBinding;
     glGetIntegerv(eBindingQuery, &originalBufferBinding);
 
-    // Create the actual OpenGL-buffer
-    glGenBuffers(1, &m_uGLhandle);
-    // Here, we use the non-indexed version of bindBuffer for all buffer-targets.
-    // Following the standard, this should be valid without modifying the indexed buffer states
-    glBindBuffer(eUsageTarget, m_uGLhandle);
+    if (m_eMultiBufferStrategy == MultiBufferingStrategy::NONE || 
+        m_eMultiBufferStrategy == MultiBufferingStrategy::BUFFERS)
+    {
+      for (uint32 i = 0; i < m_uDerivedInternalBufferCount; ++i)
+      {
+        uint32 uGlHandle;
 
-    m_clParameters.uAccessFlagsGL = uAccessFlagsGL;
-    m_clParameters.uTotalSizeBytes = clParameters.uNumElements * clParameters.uElementSizeBytes;
-    glBufferStorage(eUsageTarget, m_clParameters.uTotalSizeBytes, pInitialData, uAccessFlagsGL);
+        glGenBuffers(1, &uGlHandle);
+        glBindBuffer(eUsageTarget, uGlHandle);
+
+        glBufferStorage(eUsageTarget, 
+            m_clParameters.uTotalSizeBytes, 
+            pInitialData, uAccessFlagsGL);
+
+        m_vGLhandles.push_back(uGlHandle);
+      }
+    }
+    else  // MultiBufferingStrategy::OFFSETS
+    {
+      uint32 uGlHandle;
+
+      glGenBuffers(1, &uGlHandle);
+      glBindBuffer(eUsageTarget, uGlHandle);
+
+      // Allocate additional storage but update the initial data in substeps 
+      // (because multibuffering should be transparent for high-level and pInitialData is
+      // assumed to point to a single-buffer data store)
+      glBufferStorage(eUsageTarget, 
+        m_clParameters.uTotalSizeBytes * MultiBuffering::kGpuMultiBufferingCount, 
+        nullptr, uAccessFlagsGL);
+
+      for (uint32 iBufferPart = 0; iBufferPart < MultiBuffering::kGpuMultiBufferingCount; ++iBufferPart)
+      {
+        glBufferSubData(eUsageTarget,
+          iBufferPart * m_clParameters.uTotalSizeBytes,
+          m_clParameters.uTotalSizeBytes, pInitialData );
+      }
+
+      m_vGLhandles.push_back(uGlHandle);
+    }
 
     // Restore the originally bound buffer
     glBindBuffer(eUsageTarget, static_cast<GLuint>(originalBufferBinding));
@@ -221,10 +299,11 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     const GLenum bindingQueryGL = m_clParameters.eBindingQueryType;
 
     glGetIntegerv(bindingQueryGL, &origBoundBuffer);
-    glBindBuffer(targetGL, m_uGLhandle);
+    glBindBuffer(targetGL, getGLhandle());
 
     // Try to use orphaning/renaming if the whole buffer is being reset
-    const bool bResetWholeBuffer = (uOffsetElements == 0 && uNumElements == 0) ||
+    const bool bResetWholeBuffer = 
+      (uOffsetElements == 0 && uNumElements == 0) ||
       (uOffsetElements == 0 && uNumElements == m_clParameters.uNumElements);
 
     if(bResetWholeBuffer) {
@@ -242,39 +321,86 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   void* GpuBufferGL4::lock( GpuResoruceLockOption eLockOption, 
     uint uOffsetElements /* = 0 */, uint uNumElements /* = 0 */ )
   {
+    const GLuint uLockOptionsGL = internal::mapLockOption(eLockOption);
+
+    // We always keep persistently locked buffers locked for its entrie lifetime, so just return the
+    // cached and appropriately offset pointer here
+    if ((uLockOptionsGL & GL_MAP_PERSISTENT_BIT) > 0 && isLocked())
+    {
+      if (m_eMultiBufferStrategy == MultiBufferingStrategy::NONE ||
+          m_eMultiBufferStrategy == MultiBufferingStrategy::BUFFERS)
+      {
+        return m_pCachedLockPtr;
+      }
+      else  // MultiBufferingStrategy::OFFSETS
+      {
+        return static_cast<uint8*>(m_pCachedLockPtr) + (getBufferIndex() * m_clParameters.uTotalSizeBytes); 
+      }
+    }
+    
     ASSERT_M(isValid(), "Tried to lock an uninitialized buffer");
     ASSERT_M(!isLocked(), "Buffer is already locked");
     ASSERT_M(uOffsetElements < m_clParameters.uNumElements, "Invalid lock-range provided");
 
     const uint offsetBytes = uOffsetElements * m_clParameters.uElementSizeBytes;
     const uint rangeBytes = uNumElements * m_clParameters.uElementSizeBytes;
-    const GLenum eLockOptionsGL = internal::mapLockOption(eLockOption);
-
+    
     GLint origBoundBuffer;
     glGetIntegerv(m_clParameters.eBindingQueryType, &origBoundBuffer);
-    glBindBuffer(m_clParameters.eInitialBufferTargetGL, m_uGLhandle);
+    glBindBuffer(m_clParameters.eInitialBufferTargetGL, getGLhandle());
 
-    void* ptr = glMapBufferRange(m_clParameters.eInitialBufferTargetGL, 
-         offsetBytes, rangeBytes, eLockOptionsGL);
+    m_pCachedLockPtr = glMapBufferRange(m_clParameters.eInitialBufferTargetGL, 
+         offsetBytes, rangeBytes, uLockOptionsGL);
 
     glBindBuffer(m_clParameters.eInitialBufferTargetGL, origBoundBuffer);
 
-    ASSERT_M(ptr, "Buffer-lock failed");
-    return ptr;
-  }
+    ASSERT_M(m_pCachedLockPtr, "Buffer-lock failed");
+    m_clStateInfos.isLocked = true;
+    if ((uLockOptionsGL & GL_MAP_PERSISTENT_BIT) > 0u)
+    {
+      m_clStateInfos.isLockedPersistent = true;
+    }
 
+    void* returnPtr = m_pCachedLockPtr;
+
+    if (m_eMultiBufferStrategy == MultiBufferingStrategy::OFFSETS)
+    {
+      returnPtr = static_cast<uint8*>(returnPtr) + (getBufferIndex() * m_clParameters.uTotalSizeBytes);
+    }
+
+    return returnPtr;
+  }
 //---------------------------------------------------------------------------//
   void GpuBufferGL4::unlock()
   {
-    ASSERT_M(isLocked(), "Tried to unlock and unlocked buffer");
+    // Don't unlock persistently mapped resources
+    if (isLockedPersistent() && isLocked())
+    {
+      return;
+    }
 
+    ASSERT_M(isLocked(), "Tried to unlock and unlocked buffer");
+    _unlock(getBufferIndex());
+
+    m_clStateInfos.isLocked = false;
+    m_clStateInfos.isLockedPersistent = false;
+  }
+//---------------------------------------------------------------------------//
+  void GpuBufferGL4::_unlock(uint32 uBufferIndex)
+  {
     GLint origBoundBuffer;
     glGetIntegerv(m_clParameters.eBindingQueryType, &origBoundBuffer);
-    glBindBuffer(m_clParameters.eInitialBufferTargetGL, m_uGLhandle);
+    glBindBuffer(m_clParameters.eInitialBufferTargetGL, m_vGLhandles[uBufferIndex]);
 
     glUnmapBuffer(m_clParameters.eInitialBufferTargetGL);
 
     glBindBuffer(m_clParameters.eInitialBufferTargetGL, origBoundBuffer);
   }
+//---------------------------------------------------------------------------//
+  bool GpuBufferGL4::isValid() const
+  {
+    return getGLhandle() != GLUINT_HANDLE_INVALID;
+  }
+//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } } } } // end of namespace Fancy::Core::Rendering::GL4

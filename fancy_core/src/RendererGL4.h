@@ -20,6 +20,9 @@ public:
   /// Sets the render-system to a valid state. Should be called just before the first frame
   void postInit();
 
+  void beginFrame();
+  void endFrame();
+
   /// Sets the blendState that should be active upon in next draw call
 	void setBlendState(const BlendState& clBlendState);
   /// Retrieves the cached blendState configured for the next draw call
@@ -48,10 +51,10 @@ public:
 	{ ASSERT(u8RenderTargetIndex < kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
 
 	void setReadTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-	void setReadBuffer(Buffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+	void setReadBuffer(GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
 	void setConstantBuffer(ConstantBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
 	void setTextureSampler(TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-	void setGPUProgram(GPUProgram* pProgram, const ShaderStage eShaderStage);
+	void setGpuProgram(GpuProgram* pProgram, const ShaderStage eShaderStage);
 
 protected:
 //-----------------------------------------------------------------------//
@@ -108,7 +111,7 @@ protected:
   /// Pool of available FBO formats
   FBOcacheEntry     m_FBOpool[kPoolSizeFBO];
 
-	GPUProgram*			    m_pBoundGPUPrograms [ShaderStage::NUM];
+	GpuProgram*			    m_pBoundGPUPrograms [ShaderStage::NUM];
 	uint32				      m_uGPUprogramBindMask;
 
 	DepthStencilState   m_clDepthStencilState;

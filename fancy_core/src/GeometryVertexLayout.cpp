@@ -1,29 +1,29 @@
-#include "VertexLayout.h"
+#include "GeometryVertexLayout.h"
 
 namespace Fancy { namespace Core { namespace Rendering {
 //---------------------------------------------------------------------------//
-  VertexElement::VertexElement() :
+  GeometryVertexElement::GeometryVertexElement() :
     eSemantics(VertexSemantics::NONE),
-    u32OffsetBytes(0u),
-    u32SizeBytes(0u)
+    u32OffsetBytes(0u), u32SizeBytes(0u),
+    eFormat(DataFormat::RGB_32F)
   {
 
   }
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  VertexLayout::VertexLayout() :
+  GeometryVertexLayout::GeometryVertexLayout() :
     m_u32StrideBytes(0u)
   {
 
   }
 //---------------------------------------------------------------------------//
-  VertexLayout::~VertexLayout()
+  GeometryVertexLayout::~GeometryVertexLayout()
   {
 
   }
 //---------------------------------------------------------------------------//
-  void VertexLayout::addVertexElement( const VertexElement& clVertexElement )
+  void GeometryVertexLayout::addVertexElement( const GeometryVertexElement& clVertexElement )
   {
     ASSERT_M(clVertexElement.u32SizeBytes > 0, "Invalid vertex element");
 

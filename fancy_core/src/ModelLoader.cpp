@@ -84,7 +84,7 @@ Mesh* ModelLoader::ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 	if( assignMaterial )
 		pMesh->SetMaterial( vpMaterials[ paiMesh->mMaterialIndex ]->Clone() );
 
-	VertexLayout* pVertexInfo = new VertexLayout;
+	GeometryVertexLayout* pVertexInfo = new GeometryVertexLayout;
 	
 	if( !paiMesh->HasPositions() )
 	{
@@ -94,7 +94,7 @@ Mesh* ModelLoader::ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 	}
 	
 	//POSITION
-	pVertexInfo->AddVertexElement( VertexElement( 0, Vertex::DataType::FLOAT3, ShaderSemantics::POSITION ) );
+	pVertexInfo->AddVertexElement( GeometryVertexElement( 0, Vertex::DataType::FLOAT3, ShaderSemantics::POSITION ) );
 	
 	//NORMAL
 	if( paiMesh->HasNormals() )
@@ -119,7 +119,7 @@ Mesh* ModelLoader::ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 		uint8* pVBOdata = (uint8*) malloc( pVertexInfo->GetStride() * paiMesh->mNumVertices );
 		memset( pVBOdata, 0, pVertexInfo->GetStride() * paiMesh->mNumVertices );
 
-		const std::vector<VertexElement>& vVertexElements = pVertexInfo->GetVertexElements();
+		const std::vector<GeometryVertexElement>& vVertexElements = pVertexInfo->GetVertexElements();
 
 
 		for( unsigned int i = 0; i < paiMesh->mNumVertices; ++i )
@@ -128,7 +128,7 @@ Mesh* ModelLoader::ProcessMesh( const aiScene* pAiScene, aiMesh* paiMesh, const 
 
 			for( unsigned int iVelement = 0; iVelement < vVertexElements.size(); ++iVelement )
 			{
-				const VertexElement& clElement = vVertexElements[ iVelement ];
+				const GeometryVertexElement& clElement = vVertexElements[ iVelement ];
 
 				switch( clElement.GetSemantic() )
 				{

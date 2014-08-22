@@ -9,6 +9,8 @@
 #include "OpenGLprerequisites.h"
 #endif // RENDERER_OPENGL4
 
+#include "FancyCorePrerequisites.h"
+
 // Common defines for the RenderSystem
 // TODO: Check these values again...
 namespace Fancy { enum {
@@ -16,8 +18,9 @@ namespace Fancy { enum {
   kMaxNumBoundSamplers = 16u,
   kMaxNumBoundReadBuffers = 32u,
   kMaxNumReadTextures = 32u,
-  kMaxNumBoundConstantBuffers = 8u,
-  kMaxNumGpuProgramResources = 32u
+  kMaxNumBoundConstantBuffers = 12u,
+  kMaxNumGpuProgramResources = 32u,
+  kNumConstantBufferFloats = 256u
 }; }
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Core {
@@ -35,6 +38,14 @@ namespace Fancy { namespace Core {
   #define FANCY_FREE(pData, memoryCategory) free(pData)
 //---------------------------------------------------------------------------//
   namespace Rendering {
+//---------------------------------------------------------------------------//
+    namespace MultiBuffering {
+      enum { kGpuMultiBufferingCount = 2u };
+      
+      uint32 getCurrentBufferIndex();
+      void beginFrame();
+    }
+//---------------------------------------------------------------------------//
   // Forward-declarations of common rendering classes
     class Mesh;
     class VolumeMesh;
@@ -245,7 +256,7 @@ namespace Fancy { namespace Core {
       uint32            uRTwriteMask        [kMaxNumRenderTargets];
     };
   //---------------------------------------------------------------------------//
-    enum class PixelFormat {
+    enum class DataFormat {
       NONE = 0,
       SRGB_8_A_8,
       RGBA_8,
@@ -320,13 +331,13 @@ namespace Fancy { namespace Core {
   //---------------------------------------------------------------------------//
     struct TextureParameters {
       TextureParameters() : u16Width(0u), u16Height(0u), u16Depth(0u),
-        eFormat(PixelFormat::NONE), uCreationFlags(0u), pPixelData(nullptr),
+        eFormat(DataFormat::NONE), uCreationFlags(0u), pPixelData(nullptr),
         uPixelDataSizeBytes(0), bIsDepthStencil(false) {}
 
       uint16 u16Width;
       uint16 u16Height;
       uint16 u16Depth;
-      PixelFormat eFormat;
+      DataFormat eFormat;
       uint32 uCreationFlags;
       /// true if the texture should be a depth- or depthStencil Texture
       bool bIsDepthStencil;
@@ -338,8 +349,8 @@ namespace Fancy { namespace Core {
       uint8 u8NumMipLevels;
     };
  //---------------------------------------------------------------------------//
-    enum class BufferUsage {
-      CONSTANT_BUFFER = 0,
+    enum class GpuBufferUsage {
+      CONSTANT_BUFFER = 0u,
       VERTEX_BUFFER,
       INDEX_BUFFER,
       DRAW_INDIRECT_BUFFER,
@@ -350,14 +361,15 @@ namespace Fancy { namespace Core {
       RESOURCE_BUFFER_LARGE_RW
     };
  //---------------------------------------------------------------------------//
-    struct BufferParameters {
-      BufferParameters() : uNumElements(0), uElementSizeBytes(0),
-        ePrimaryUsageType(BufferUsage::CONSTANT_BUFFER), uAccessFlags(0) {}
+    struct GpuBufferParameters {
+      GpuBufferParameters() : uNumElements(0u), bIsMultiBuffered(false), 
+        uElementSizeBytes(0u), ePrimaryUsageType(GpuBufferUsage::CONSTANT_BUFFER), uAccessFlags(0u) {}
 
       uint uNumElements;
-      uint uElementSizeBytes;
-      BufferUsage ePrimaryUsageType;
+      uint32 uElementSizeBytes;
       uint32 uAccessFlags;
+      GpuBufferUsage ePrimaryUsageType;
+      bool bIsMultiBuffered;
     };
  //---------------------------------------------------------------------------//
     enum class VertexSemantics {
@@ -377,7 +389,22 @@ namespace Fancy { namespace Core {
       TEXCOORD7,
 
       NUM
-    };  
+    };
+//---------------------------------------------------------------------------//
+    enum class ConstantBufferType {
+      NONE = 0,
+
+      PER_LAUNCH,
+      PER_FRAME,
+      PER_VIEWPORT,
+      PER_STAGE,
+      PER_CAMERA,
+      PER_LIGHT,
+      PER_MATERIAL,
+      PER_DRAW,
+
+      NUM
+    };
 //---------------------------------------------------------------------------//
   } // end of namespace Rendering 
 } }  // end of namespace Fancy::Core

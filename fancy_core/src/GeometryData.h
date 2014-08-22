@@ -13,12 +13,12 @@ namespace Fancy { namespace Core { namespace Geometry {
       GeometryData();
       ~GeometryData();
 
-      Rendering::VertexLayout* getVertexDeclaration() {return m_pVertexLayout;}
+      Rendering::GeometryVertexLayout* getVertexDeclaration() {return m_pVertexLayout;}
       Rendering::GpuBuffer* getVertexBuffer() {return m_pVertexBuffer;}
       Rendering::GpuBuffer* getIndexBuffer() {return m_pIndexBuffer;}
 
     protected:
-      Rendering::VertexLayout* m_pVertexLayout;
+      Rendering::GeometryVertexLayout* m_pVertexLayout;
       Rendering::GpuBuffer* m_pVertexBuffer;  // TODO: put into array for multiple vertex-streams?
       Rendering::GpuBuffer* m_pIndexBuffer;
   };

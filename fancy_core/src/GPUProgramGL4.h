@@ -4,26 +4,48 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "GpuProgramResource.h"
+#include "VertexInputLayout.h"
 
 namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
-  
+  struct ShaderStageInterfaceElement
+  {
+    ShaderStageInterfaceElement() : 
+      uLocation(0u), uArraySize(0u), uOffset(0u), 
+      uBlockIndex(0u), eTypeGL(0u), uAtomicCountBufIndex(0u) {}
+
+    ObjectName name;
+    GLuint uLocation;
+    GLuint uArraySize;
+    GLuint uArrayStride;
+    GLuint uOffset;
+    GLuint uBlockIndex;
+    GLenum eTypeGL;
+    GLuint uAtomicCountBufIndex;
+  };
+//---------------------------------------------------------------------------//
+  struct ShaderStageFragmentOutput
+  {
+    ShaderStageFragmentOutput() :
+      uRtIndex(0u), eFormat(DataFormat::NONE) {}
+
+    /// Name in glsl
+    ObjectName name;
+    /// Rendertarget index
+    GLuint uRtIndex;
+    /// expected format of the output
+    DataFormat eFormat;
+  };
+//---------------------------------------------------------------------------//
+  const uint32 kMaxNumShaderStageInterfaceElements = 16;
+  typedef FixedArray<ShaderStageInterfaceElement, kMaxNumShaderStageInterfaceElements> ShaderStageInterfaceList;
+  typedef FixedArray<ShaderStageFragmentOutput, kMaxNumShaderStageInterfaceElements> ShaderStageFragmentOutputList;
 //---------------------------------------------------------------------------//
   class GpuProgramGL4
   {
   //---------------------------------------------------------------------------//
     friend class GpuProgramCompilerGL4;
-  //---------------------------------------------------------------------------//
-    struct InterfaceElement
-    {
-      ObjectName name;
-      GLuint uLocation;
-      GLuint uArraySize;
-      GLuint uOffset;
-      GLenum eTypeGL;
-      GLuint uAtomicCountBufIndex;
-
-    };
+    friend class RendererGL4;
   //---------------------------------------------------------------------------//
     public:
       GpuProgramGL4();
@@ -36,11 +58,26 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     //---------------------------------------------------------------------------//
     protected:
       void destroy();
-
+      
+      /// Name of the shader as loaded from disk
       ObjectName m_Name;
+      /// GL-internal handle to the program object
       GLuint m_uProgramHandleGL;
+      /// ShaderStage this program defines
       ShaderStage m_eShaderStage;
+      /// List of resources defined in the shader (buffers, textures, ...)
       GpuResourceInfoList m_vResourceInfos;
+      /// Expected layout of incoming vertices. Only valid for vertex-programs
+      VertexInputLayout m_clVertexInputLayout;
+      /// List of incoming inter-stage varyings. Not valid for vertex-programs
+      ShaderStageInterfaceList m_vInputInterfaces;
+      /// List of outgoing inter-stage varyings.
+      ShaderStageInterfaceList m_vOutputInterfaces;
+      /// List of output-elements in the fragment shader stage
+      ShaderStageFragmentOutputList m_vFragmentOutputs;
+
+
+
     //---------------------------------------------------------------------------//
   };
 //---------------------------------------------------------------------------//

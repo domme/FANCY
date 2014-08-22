@@ -18,11 +18,11 @@ namespace Fancy { namespace Core {
       void operator=(const ObjectName& clOther);
       void operator=(const String& szOther);
     //---------------------------------------------------------------------------//
-      bool operator==(const ObjectName& clOther);
+      bool operator==(const ObjectName& clOther) const;
     //---------------------------------------------------------------------------//
-      bool operator!=(const ObjectName& clOther);
+      bool operator!=(const ObjectName& clOther) const;
     //---------------------------------------------------------------------------//
-      bool operator<(const ObjectName& clOther);
+      bool operator<(const ObjectName& clOther) const;
     //---------------------------------------------------------------------------//
     private:
   #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)

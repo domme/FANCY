@@ -4,22 +4,24 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+#include "FixedArray.h"
 
-  /// TODO: Make template?
+namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+//---------------------------------------------------------------------------//
   class GpuBufferGL4
   {
     public:
       GpuBufferGL4();
       ~GpuBufferGL4();
 
-      bool isLocked() {return m_clStateInfos.isLocked;}
-      bool isValid() {return m_uGLhandle != GLUINT_HANDLE_INVALID;}
-      GLuint getGLhandle() {return m_uGLhandle;}
-      uint getTotalSizeBytes() {return m_clParameters.uTotalSizeBytes; }
+      bool isLocked() const { return m_clStateInfos.isLocked; }
+      bool isLockedPersistent() const { return m_clStateInfos.isLockedPersistent; }
+      bool isValid() const { !m_vGLhandles.empty(); }
+      GLuint getGLhandle() const { return m_vGLhandles[getBufferIndex()]; }
+      uint getTotalSizeBytes() const { return m_clParameters.uTotalSizeBytes; }
 
       void setBufferData(void* pData, uint uOffsetElements = 0, uint uNumElements = 0);
-      void create(const BufferParameters& clParameters, void* pInitialData = nullptr);
+      void create(const GpuBufferParameters& clParameters, void* pInitialData = nullptr);
       void destroy();
       void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0, uint uNumElements = 0);
       void unlock();
@@ -27,7 +29,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     private:
   //---------------------------------------------------------------------------//
       struct BufferParametersGL 
-        : public BufferParameters
+        : public GpuBufferParameters
       {
         BufferParametersGL() : eInitialBufferTargetGL(0), eBindingQueryType(0),
           uAccessFlagsGL(0), uTotalSizeBytes(0) {}
@@ -39,15 +41,32 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
         uint uTotalSizeBytes;
       };
   //---------------------------------------------------------------------------//
-      struct BufferInfos {
-        BufferInfos() : isLocked(0) {}
+      struct BufferState {
+        BufferState() : 
+          isLocked(0u), 
+          isLockedPersistent(0u) {}
 
         uint isLocked : 1;
+        uint isLockedPersistent : 1;
       };
   //---------------------------------------------------------------------------//
+      enum class MultiBufferingStrategy {
+        NONE = 0,
+        BUFFERS,  // toggling between distinct buffers
+        OFFSETS   // toggling between offsets in one larger buffer
+      };
+  //---------------------------------------------------------------------------//
+      void _unlock(uint32 uBufferIndex);
+      uint32 getBufferIndex() const {return m_uDerivedInternalBufferCount == 1u ? 0u 
+                                        : MultiBuffering::getCurrentBufferIndex();}
+      
       BufferParametersGL m_clParameters;
-      BufferInfos m_clStateInfos;
-      GLuint m_uGLhandle;
+      BufferState m_clStateInfos;
+      uint32 m_uDerivedInternalBufferCount;
+      MultiBufferingStrategy m_eMultiBufferStrategy;
+
+      FixedArray<GLuint, MultiBuffering::kGpuMultiBufferingCount> m_vGLhandles;
+      void* m_pCachedLockPtr;
   //---------------------------------------------------------------------------//
   };
 

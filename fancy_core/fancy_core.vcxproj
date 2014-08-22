@@ -207,7 +207,6 @@
     <ClInclude Include="src\BaseRenderableObject.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\ComputeOperation.h" />
-    <ClInclude Include="src\ConstantBuffer.h" />
     <ClInclude Include="src\DirectionalLight.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\Entity.h" />
@@ -225,6 +224,7 @@
     <ClInclude Include="src\GpuProgramCompiler.h" />
     <ClInclude Include="src\GpuProgramCompilerGL4.h" />
     <ClInclude Include="src\GpuProgramGL4.h" />
+    <ClInclude Include="src\GpuProgramInterfaces.h" />
     <ClInclude Include="src\GpuProgramPipeline.h" />
     <ClInclude Include="src\GpuProgramPipelineGL4.h" />
     <ClInclude Include="src\GpuProgramResource.h" />
@@ -255,6 +255,7 @@
     <ClInclude Include="src\SceneLoader.h" />
     <ClInclude Include="src\SceneManager.h" />
     <ClInclude Include="src\SceneNode.h" />
+    <ClInclude Include="src\ShaderConstantsManager.h" />
     <ClInclude Include="src\ShaderLoader.h" />
     <ClInclude Include="src\ShaderSemantics.h" />
     <ClInclude Include="src\SpotLight.h" />
@@ -267,15 +268,15 @@
     <ClInclude Include="src\TextureLoader.h" />
     <ClInclude Include="src\TextureManager.h" />
     <ClInclude Include="src\TextureSemantics.h" />
+    <ClInclude Include="src\TimeManager.h" />
     <ClInclude Include="src\TransformSQT.h" />
     <ClInclude Include="src\VertexInputLayout.h" />
-    <ClInclude Include="src\VertexLayout.h" />
+    <ClInclude Include="src\GeometryVertexLayout.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\BaseRenderableObject.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ComputeOperation.cpp" />
-    <ClCompile Include="src\ConstantBuffer.cpp" />
     <ClCompile Include="src\DirectionalLight.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\Entity.cpp" />
@@ -311,6 +312,7 @@
     <ClCompile Include="src\SceneLoader.cpp" />
     <ClCompile Include="src\SceneManager.cpp" />
     <ClCompile Include="src\SceneNode.cpp" />
+    <ClCompile Include="src\ShaderConstantsManager.cpp" />
     <ClCompile Include="src\ShaderLoader.cpp" />
     <ClCompile Include="src\SpotLight.cpp" />
     <ClCompile Include="src\StatsManager.cpp" />
@@ -324,9 +326,10 @@
     <ClCompile Include="src\TextureGL4.cpp" />
     <ClCompile Include="src\TextureLoader.cpp" />
     <ClCompile Include="src\TextureManager.cpp" />
+    <ClCompile Include="src\TimeManager.cpp" />
     <ClCompile Include="src\TransformSQT.cpp" />
     <ClCompile Include="src\VertexInputLayout.cpp" />
-    <ClCompile Include="src\VertexLayout.cpp" />
+    <ClCompile Include="src\GeometryVertexLayout.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

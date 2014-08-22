@@ -127,42 +127,42 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     }
     //---------------------------------------------------------------------------//
     /// Returns the internal format (prior to any modifications)
-    GLenum toGLType(const PixelFormat& generalType) 
+    GLenum toGLType(const DataFormat& generalType) 
     {
       switch (generalType)
       {
-        case PixelFormat::SRGB_8_A_8:     return GL_SRGB8_ALPHA8;
-        case PixelFormat::RGBA_8:         return GL_RGBA8;
-        case PixelFormat::SRGB_8:         return GL_SRGB8;
-        case PixelFormat::RGB_8:          return GL_RGB8;
-        case PixelFormat::RGB_11_11_10F:  return GL_R11F_G11F_B10F;
-        case PixelFormat::RGBA_16F:       return GL_RGBA16F;
-        case PixelFormat::RGB_16F:        return GL_RGB16F;
-        case PixelFormat::RG_16F:         return GL_RG16F;
-        case PixelFormat::R_16F:          return GL_R16F;
-        case PixelFormat::RGBA_32F:       return GL_RGBA32F;
-        case PixelFormat::RGB_32F:        return GL_RGB32F;
-        case PixelFormat::RG_32F:         return GL_RG32F;
-        case PixelFormat::R_32F:          return GL_R32F;
-        case PixelFormat::RGBA_32UI:      return GL_RGBA32UI;
-        case PixelFormat::RGB_32UI:       return GL_RGB32UI;
-        case PixelFormat::RG_32UI:        return GL_RG32UI;
-        case PixelFormat::R_32UI:         return GL_R32UI;
-        case PixelFormat::RGBA_16UI:      return GL_RGBA16UI;
-        case PixelFormat::RGB_16UI:       return GL_RGB16UI;
-        case PixelFormat::RG_16UI:        return GL_RG16UI;
-        case PixelFormat::R_16UI:         return GL_R16UI;
-        case PixelFormat::RGBA_8UI:       return GL_RGBA8UI;
-        case PixelFormat::RGB_8UI:        return GL_RGB8UI;
-        case PixelFormat::RG_8UI:         return GL_RG8UI;
-        case PixelFormat::R_8UI:          return GL_R8UI;
-        case PixelFormat::DS_24_8:        return GL_DEPTH24_STENCIL8;
+        case DataFormat::SRGB_8_A_8:     return GL_SRGB8_ALPHA8;
+        case DataFormat::RGBA_8:         return GL_RGBA8;
+        case DataFormat::SRGB_8:         return GL_SRGB8;
+        case DataFormat::RGB_8:          return GL_RGB8;
+        case DataFormat::RGB_11_11_10F:  return GL_R11F_G11F_B10F;
+        case DataFormat::RGBA_16F:       return GL_RGBA16F;
+        case DataFormat::RGB_16F:        return GL_RGB16F;
+        case DataFormat::RG_16F:         return GL_RG16F;
+        case DataFormat::R_16F:          return GL_R16F;
+        case DataFormat::RGBA_32F:       return GL_RGBA32F;
+        case DataFormat::RGB_32F:        return GL_RGB32F;
+        case DataFormat::RG_32F:         return GL_RG32F;
+        case DataFormat::R_32F:          return GL_R32F;
+        case DataFormat::RGBA_32UI:      return GL_RGBA32UI;
+        case DataFormat::RGB_32UI:       return GL_RGB32UI;
+        case DataFormat::RG_32UI:        return GL_RG32UI;
+        case DataFormat::R_32UI:         return GL_R32UI;
+        case DataFormat::RGBA_16UI:      return GL_RGBA16UI;
+        case DataFormat::RGB_16UI:       return GL_RGB16UI;
+        case DataFormat::RG_16UI:        return GL_RG16UI;
+        case DataFormat::R_16UI:         return GL_R16UI;
+        case DataFormat::RGBA_8UI:       return GL_RGBA8UI;
+        case DataFormat::RGB_8UI:        return GL_RGB8UI;
+        case DataFormat::RG_8UI:         return GL_RG8UI;
+        case DataFormat::R_8UI:          return GL_R8UI;
+        case DataFormat::DS_24_8:        return GL_DEPTH24_STENCIL8;
         default: ASSERT_M(false, "Missing GL values"); return GL_RGBA8;
       }
     }
 //---------------------------------------------------------------------------//
     /// Retrieves matching values for OpenGL format, internalFormat and pixelFormat
-    void mapGLpixelFormats(const PixelFormat& generalPixelFormat, bool isDepthStencilFormat,
+    void mapGLpixelFormats(const DataFormat& generalPixelFormat, bool isDepthStencilFormat,
       GLenum& eFormat, GLenum& eInternalFormat, GLenum& ePixelType) 
     {
       eInternalFormat = toGLType(generalPixelFormat);

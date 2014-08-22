@@ -48,9 +48,6 @@
     <ClInclude Include="src\ComputeOperation.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\ConstantBuffer.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\DirectionalLight.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
@@ -201,9 +198,6 @@
     <ClInclude Include="src\GLutil.h">
       <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
-    <ClInclude Include="src\VertexLayout.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\GeometryData.h">
       <Filter>src\Geometry</Filter>
     </ClInclude>
@@ -216,8 +210,6 @@
     <ClInclude Include="src\GpuProgram.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuProgramPipeline.h" />
-    <ClInclude Include="src\GpuProgramPipelineGL4.h" />
     <ClInclude Include="src\GpuProgramResource.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -226,6 +218,24 @@
     </ClInclude>
     <ClInclude Include="src\GpuProgramCompiler.h">
       <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuProgramInterfaces.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GeometryVertexLayout.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderConstantsManager.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuProgramPipeline.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuProgramPipelineGL4.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TimeManager.h">
+      <Filter>src\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -239,9 +249,6 @@
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\ComputeOperation.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ConstantBuffer.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\DirectionalLight.cpp">
@@ -370,16 +377,26 @@
     <ClCompile Include="src\VertexInputLayout.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\VertexLayout.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\GpuProgramGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgramPipeline.cpp" />
-    <ClCompile Include="src\GpuProgramPipelineGL4.cpp" />
     <ClCompile Include="src\GpuProgramCompilerGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GeometryVertexLayout.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgramPipeline.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgramPipelineGL4.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShaderConstantsManager.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TimeManager.cpp">
+      <Filter>src\Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -70,19 +70,19 @@ namespace Fancy { namespace Core {
 #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   }
 //---------------------------------------------------------------------------//
-  bool ObjectName::operator==( const ObjectName& clOther )
+  bool ObjectName::operator==( const ObjectName& clOther ) const
   {
     return clOther.m_uNameHash == m_uNameHash;
   }
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  bool ObjectName::operator!=( const ObjectName& clOther )
+  bool ObjectName::operator!=( const ObjectName& clOther ) const
   {
     return !(*this == clOther);
   }
 //---------------------------------------------------------------------------//
-  bool ObjectName::operator<( const ObjectName& clOther )
+  bool ObjectName::operator<( const ObjectName& clOther ) const
   {
     return m_uNameHash < clOther.m_uNameHash;
   }
