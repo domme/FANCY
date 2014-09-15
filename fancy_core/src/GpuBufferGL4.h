@@ -19,6 +19,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       bool isValid() const { !m_vGLhandles.empty(); }
       GLuint getGLhandle() const { return m_vGLhandles[getBufferIndex()]; }
       uint getTotalSizeBytes() const { return m_clParameters.uTotalSizeBytes; }
+      uint32 getNumElements() const { return m_clParameters.uNumElements; }
 
       void setBufferData(void* pData, uint uOffsetElements = 0, uint uNumElements = 0);
       void create(const GpuBufferParameters& clParameters, void* pInitialData = nullptr);

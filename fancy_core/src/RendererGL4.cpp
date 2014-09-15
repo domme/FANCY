@@ -3,6 +3,8 @@
 #include "Texture.h"
 #include "GLDebug.h"
 #include "AdapterGL4.h"
+#include "GeometryData.h"
+#include "GPUProgram.h"
 
 namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
@@ -78,15 +80,38 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  namespace internal {
+    GLuint getGLShaderStageBit(ShaderStage eShaderStage);
+  }
+//---------------------------------------------------------------------------//
+  GLuint internal::getGLShaderStageBit(ShaderStage eShaderStage)
+  {
+    switch (eShaderStage)
+    {
+      case Fancy::Core::Rendering::ShaderStage::VERTEX: return GL_VERTEX_SHADER_BIT;
+      case Fancy::Core::Rendering::ShaderStage::FRAGMENT: return GL_FRAGMENT_SHADER_BIT;
+      case Fancy::Core::Rendering::ShaderStage::GEOMETRY: return GL_GEOMETRY_SHADER_BIT;
+      case Fancy::Core::Rendering::ShaderStage::TESS_HULL: return GL_TESS_CONTROL_SHADER_BIT;
+      case Fancy::Core::Rendering::ShaderStage::TESS_DOMAIN: return GL_TESS_EVALUATION_SHADER_BIT;
+      case Fancy::Core::Rendering::ShaderStage::COMPUTE: return GL_COMPUTE_SHADER_BIT;
+      default: ASSERT(false); return GL_VERTEX_SHADER_BIT;
+    }
+  }
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
   RendererGL4::RendererGL4() :
-    m_uPipelineRebindMask(0),
-    m_uGPUprogramBindMask(0),
-    m_uDepthStencilRebindMask(0),
-    m_uBlendStateRebindMask(0),
-    m_u8BlendStateRebindRTmask(0),
-    m_u8BlendStateRebindRTcount(0),
-    m_pCachedDepthStencilTarget(0),
-    m_uCachedFBO(0),
+    m_uPipelineRebindMask(0u),
+    m_uGPUprogramBindMask(0u),
+    m_uDepthStencilRebindMask(0u),
+    m_uBlendStateRebindMask(0u),
+    m_u8BlendStateRebindRTmask(0u),
+    m_u8BlendStateRebindRTcount(0u),
+    m_pCachedDepthStencilTarget(nullptr),
+    m_uCurrentFBO(0u),
+    m_uCurrentGpuProgramPipeline(0u),
+    m_uCurrentVAObinding(0u),
     LoadableObject::LoadableObject()
   {
     memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
@@ -105,7 +130,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
     memset(m_pCachedRenderTargets, 0, sizeof(m_pCachedRenderTargets));
 
-    memset(m_pBoundGPUPrograms, 0, sizeof(m_pBoundGPUPrograms)); 
+    memset(m_pBoundGPUPrograms, 0, sizeof(m_pBoundGPUPrograms));
   }
 //-----------------------------------------------------------------------//
   RendererGL4::~RendererGL4()
@@ -417,6 +442,12 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
     m_pBoundGPUPrograms[static_cast<uint>(eShaderStage)] = pProgram;
     m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::GPU_PROGRAMS);
+    // For now we re-set all resources if a shader has changed.
+    // TODO: Avoid this in the future. Try to hide individual setGpuProgram() calls in a monolythic call to the renderer API.
+    if (pProgram)
+    {
+      m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::ALL);
+    }
   }
 //-----------------------------------------------------------------------//
   void RendererGL4::bindStatesToPipeline()
@@ -474,7 +505,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     }
 
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLENDSTATE_PER_RT)) > 0)  {
-      // Noting todo. Just use glBlendFuncSeperatei() and related functions if enabled
+      // Noting to do. Just use glBlendFuncSeperatei() and related functions if enabled
     }
 
     if (m_clBlendState.bBlendStatePerRT) {
@@ -492,7 +523,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   void RendererGL4::_bindBlendValuesSingleRT(const uint32 uBlendStateRebindMask)
   {
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_ENABLED)) > 0) {
-      GL_SET_CAP(GL_BEVEL_NV, m_clBlendState.bBlendEnabled[0]);
+      GL_SET_CAP(GL_BLEND, m_clBlendState.bBlendEnabled[0]);
     }
 
     const bool bSeperateBlend = m_clBlendState.bAlphaSeparateBlend[0];
@@ -674,18 +705,20 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       {
         // There is a hole in the list: skip it
         while(m_pCachedRenderTargets[i] == nullptr 
-          && i < kMaxNumRenderTargets) {
+          && i < kMaxNumRenderTargets) 
+        {
           ++i;
         }
       }
     }
   
-    const GLuint uFBOtoUse = createOrRetrieveFBO(rtListPatched, u8RenderTextureCount, m_pCachedDepthStencilTarget);
+    const GLuint uFBOtoUse = 
+      createOrRetrieveFBO(rtListPatched, u8RenderTextureCount, m_pCachedDepthStencilTarget);
 
-    if (uFBOtoUse == m_uCachedFBO) {
+    if (uFBOtoUse == m_uCurrentFBO) {
       return;
     }
-    m_uCachedFBO = uFBOtoUse;
+    m_uCurrentFBO = uFBOtoUse;
     glBindFramebuffer(GL_FRAMEBUFFER, uFBOtoUse);
 
     // Default: Enable all drawbuffers. 
@@ -713,7 +746,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
     // No suitable FBO found in the pool: create one in a lazy fashion...
     // find the first unused FBO in the pool
-    RendererGL4::FBOcacheEntry* pFBOentry = nullptr;
+    RendererGL4::GpuCacheEntry* pFBOentry = nullptr;
     for (uint8 i = 0; i < _countof(m_FBOpool); ++i) 
     {
       if (m_FBOpool[i].glHandle == GLUINT_HANDLE_INVALID) {
@@ -731,18 +764,66 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     {
       glFramebufferTexture2D(GL_FRAMEBUFFER, getColorAttachmentFromIndex(i), GL_TEXTURE_2D, pRenderTextures[i]->getGLhandle(), 0);
     }
-    if (pDStexture) 
+    if (pDStexture)
     {
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, pDStexture->getGLhandle(), 0);
     }
   #if defined (FANCY_RENDERSYSTEM_USE_VALIDATION)
     GLDebug::validateFBOcompleteness();
   #endif // FANCY_RENDERSYSTEM_USE_VALIDATION
-    glBindFramebuffer(GL_FRAMEBUFFER, m_uCachedFBO);  // Is this necessary?
+    glBindFramebuffer(GL_FRAMEBUFFER, m_uCurrentFBO);  // Is this necessary?
   
     // TODO: Add support for 1D, 3D, cubemap RenderTargets
   }
-//-----------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  GLuint RendererGL4::createOrRetrieveProgramPipeline()
+  {
+    uint32 hash = 0;
+    for (uint32 i = 0u; i < _countof(m_pBoundGPUPrograms); ++i)
+    {
+      MathUtil::hash_combine(hash, reinterpret_cast<uint>(m_pBoundGPUPrograms[i]));
+    }
+
+    for (uint32 i = 0u; i < _countof(m_GpuProgramPipelinePool); ++i)
+    {
+      if (m_GpuProgramPipelinePool[i].hash == hash)
+      {
+        return m_GpuProgramPipelinePool[i].glHandle;
+      }
+    }
+
+    // No suitable program pipeline found. Create one layzily...
+    RendererGL4::GpuCacheEntry* pCacheEntry = nullptr;
+    for (uint32 i = 0u; i < _countof(m_GpuProgramPipelinePool); ++i)
+    {
+      if (m_GpuProgramPipelinePool[i].glHandle == GLUINT_HANDLE_INVALID)
+      {
+        pCacheEntry = &m_GpuProgramPipelinePool[i];
+      }
+    }
+
+    ASSERT_M(pCacheEntry != nullptr, "No free program pipeline object found in the pool");
+
+    uint32 uPipeline;
+    glGenProgramPipelines(1, &uPipeline);
+    for (uint32 i = 0u; i < _countof(m_pBoundGPUPrograms); ++i)
+    {
+      GpuProgram* pProgram = m_pBoundGPUPrograms[i];
+      GLuint shaderStageBit = internal::getGLShaderStageBit(pProgram->getShaderStage());
+      glUseProgramStages(uPipeline, shaderStageBit, pProgram->getProgramHandle());
+    }
+
+    pCacheEntry->hash = hash;
+    pCacheEntry->glHandle = uPipeline;
+    
+    return uPipeline;
+  }
+//---------------------------------------------------------------------------//
+  GLuint RendererGL4::createOrRetrieveVAO( const GeometryVertexLayout* pGeoVertexLayout, const VertexInputLayout* pVertexInputLayout )
+  {
+
+  }
+//---------------------------------------------------------------------------//
   void RendererGL4::beginFrame()
   {
     MultiBuffering::beginFrame();
@@ -751,6 +832,47 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   void RendererGL4::endFrame()
   {
 
+  }
+//---------------------------------------------------------------------------//
+  void RendererGL4::renderGeometry(Geometry::GeometryData* pGeometry)
+  {
+    // First create or retrieve a programPipeline object and bind it. 
+    GLuint uProgPipeline = createOrRetrieveProgramPipeline();
+    glBindProgramPipeline(uProgPipeline);
+    m_uCurrentGpuProgramPipeline = uProgPipeline;
+        
+    // Then bind resources to it
+    bindStatesToPipeline();
+    
+    bindResourcesToPipeline(ShaderStage::VERTEX);
+    bindResourcesToPipeline(ShaderStage::GEOMETRY);
+    bindResourcesToPipeline(ShaderStage::TESS_HULL);
+    bindResourcesToPipeline(ShaderStage::TESS_DOMAIN);
+    bindResourcesToPipeline(ShaderStage::FRAGMENT);
+
+    // Lastly, set up the vertex stream from the geometry and patch attributes if necessary
+    GLuint uVBOtoBind = pGeometry->getVertexBuffer()->getGLhandle();
+    if (uVBOtoBind != m_uCurrentVBO)
+    {
+      m_uCurrentVBO = uVBOtoBind;
+      glBindBuffer(GL_ARRAY_BUFFER, uVBOtoBind);
+    }
+
+    GLuint uIBOtoBind = pGeometry->getIndexBuffer()->getGLhandle();
+    if (uIBOtoBind != m_uCurrentIBO)
+    {
+      m_uCurrentIBO = uIBOtoBind;
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, uIBOtoBind);
+    }
+
+    const GeometryVertexLayout* vertLayoutGeo = pGeometry->getGeometryVertexLayout();
+    const VertexInputLayout* vertLayoutShader = 
+      m_pBoundGPUPrograms[(uint32)ShaderStage::VERTEX]->getVertexInputLayout();
+
+    GLuint uVAO = createOrRetrieveVAO(vertLayoutGeo, vertLayoutShader);
+    
+    // TODO: Set up instanced, indirect rendering etc.
+    glDrawArrays(GL_TRIANGLES, 0, pGeometry->getNumIndices());
   }
 //---------------------------------------------------------------------------//
 

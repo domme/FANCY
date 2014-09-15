@@ -38,6 +38,10 @@ namespace Fancy { namespace Core {
   #define FANCY_ALLOCATE(sizeBytes, memoryCategory) malloc(sizeBytes)
   #define FANCY_FREE(pData, memoryCategory) free(pData)
 //---------------------------------------------------------------------------//
+  namespace Geometry {
+    class GeometryData;
+  }
+//---------------------------------------------------------------------------//
   namespace Rendering {
 //---------------------------------------------------------------------------//
     namespace MultiBuffering {
@@ -57,7 +61,6 @@ namespace Fancy { namespace Core {
     class GpuBuffer;
     class ConstantBuffer;
     class GpuProgram;
-    class GeometryData;
     class GpuProgramPipeline;
     class GpuProgramCompiler;
   //---------------------------------------------------------------------------//

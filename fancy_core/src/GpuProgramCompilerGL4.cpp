@@ -344,8 +344,8 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
     GLint numResources = 0;  // Will contain the overall number of uniforms - including block uniforms
     glGetProgramInterfaceiv(uProgram, GL_UNIFORM, GL_ACTIVE_RESOURCES, &numResources);
-    const GLenum vProperties[] = {GL_BLOCK_INDEX​, GL_TYPE​, GL_NAME_LENGTH​, GL_LOCATION};
-    
+    const GLenum vProperties[] = {GL_BLOCK_INDEX, GL_TYPE​, GL_NAME_LENGTH​, GL_LOCATION};
+
     for(int iUniform = 0; iUniform < numResources; ++iUniform)
     {
       GLint vPropertyValues[_countof(vProperties)];

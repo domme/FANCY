@@ -55,6 +55,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       GLuint getProgramHandle() const {return m_uProgramHandleGL;}
       ShaderStage getShaderStage() const {return m_eShaderStage;}
       const GpuResourceInfoList& getResourceInfoList() const {return m_vResourceInfos;}
+      const VertexInputLayout* getVertexInputLayout() const {return &m_clVertexInputLayout;}
     //---------------------------------------------------------------------------//
     protected:
       void destroy();
@@ -75,9 +76,6 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       ShaderStageInterfaceList m_vOutputInterfaces;
       /// List of output-elements in the fragment shader stage
       ShaderStageFragmentOutputList m_vFragmentOutputs;
-
-
-
     //---------------------------------------------------------------------------//
   };
 //---------------------------------------------------------------------------//

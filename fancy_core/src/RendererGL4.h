@@ -56,19 +56,21 @@ public:
 	void setTextureSampler(TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
 	void setGpuProgram(GpuProgram* pProgram, const ShaderStage eShaderStage);
 
+  void renderGeometry(Geometry::GeometryData* pGeometry);
 protected:
 //-----------------------------------------------------------------------//
   enum Constants {
-    kPoolSizeFBO = 20
+    kPoolSizeFBO = 20u,
+    kPoolSizeGpuProgramPipelines = 50u,
+    kPoolSizeVAO = 20u
   };
 //-----------------------------------------------------------------------//
-  struct FBOcacheEntry {
-    FBOcacheEntry() : glHandle(GLUINT_HANDLE_INVALID), hash(0) {}
+  struct GpuCacheEntry {
+    GpuCacheEntry() : glHandle(GLUINT_HANDLE_INVALID), hash(0u) {}
     GLuint glHandle;
     uint hash;
   };
 //-----------------------------------------------------------------------//
-
 	RendererGL4();
 
   /// Applies all dirty states and resources to the hardware
@@ -81,9 +83,9 @@ protected:
   void bindDepthStencilState();
   void bindRenderTargets();
   GLuint createOrRetrieveFBO(Texture** ppRenderTextures, uint8 u8RenderTextureCount, Texture* pDStexture);
+  GLuint createOrRetrieveProgramPipeline();
+  GLuint createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, const VertexInputLayout* pVertexInputLayout);
 
-  //void applyReadTextures(
-	
   /// Mask indicating which pipeline states have to be re-bound to the pipeline
 	uint          m_uPipelineRebindMask;  // Needed?
 	/// Mask indicating which resources have to be re-bound to each shaderStage
@@ -101,15 +103,28 @@ protected:
 	uint32				    m_uConstantBufferBindMask[ShaderStage::NUM];
 
 	TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][kMaxNumBoundSamplers];
-	uint32				    m_uTextureSamplerBindMask[ShaderStage::NUM];
+  uint32				    m_uTextureSamplerBindMask[ShaderStage::NUM];
 
 	Texture*			    m_pCachedRenderTargets [kMaxNumRenderTargets];
   Texture*          m_pCachedDepthStencilTarget;
 
   /// The currently bound FBO
-  GLuint            m_uCachedFBO;
+  GLuint            m_uCurrentFBO;
   /// Pool of available FBO formats
-  FBOcacheEntry     m_FBOpool[kPoolSizeFBO];
+  GpuCacheEntry     m_FBOpool[kPoolSizeFBO];
+
+  /// The currently bound GPU program pipeline
+  GLuint            m_uCurrentGpuProgramPipeline;
+  /// Pool of available GpuProgramPipeline Objects
+  GpuCacheEntry     m_GpuProgramPipelinePool[kPoolSizeGpuProgramPipelines];
+
+  /// The currently bound VAO
+  GLuint            m_uCurrentVAObinding;
+  /// Pool of available VAOs
+  GpuCacheEntry     m_VAOpool[kPoolSizeVAO];
+
+  GLuint            m_uCurrentVBO;
+  GLuint            m_uCurrentIBO;
 
 	GpuProgram*			    m_pBoundGPUPrograms [ShaderStage::NUM];
 	uint32				      m_uGPUprogramBindMask;

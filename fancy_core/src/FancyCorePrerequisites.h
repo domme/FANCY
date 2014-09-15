@@ -147,7 +147,8 @@ namespace Fancy { namespace Core {
     typedef glm::uint32		uint32;
     typedef glm::uint64		uint64;
     typedef glm::uint8		uint8;
-    typedef size_t		    uint;
+    //typedef size_t		    uint; // TODO: Not sure if its a good idea to promote a standard uint to 64bit yet...
+    typedef glm::uint32     uint;
     typedef glm::int32    int32;
     typedef double        float64;
   } }  // end of namespace Fancy::Core
