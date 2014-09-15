@@ -70,7 +70,7 @@ void log_Info( glm::vec3 vec )
 //---------------------------------------------------------------------------//
   #define ASSERT( value ) \
   { \
-    if(!value) DebugBreak(); \
+    if(!(value)) DebugBreak(); \
   }
 //---------------------------------------------------------------------------//
   #define ASSERT_M( value, message ) \

@@ -11,17 +11,37 @@ namespace Fancy { namespace Core { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class GpuResourceAccessType {
     READ_ONLY = 0,
-    WRITE_ONLY,
     READ_WRITE
+  };
+//---------------------------------------------------------------------------//
+  enum class GpuResourceType {
+    NONE = 0,
+    TEXTURE_1D,
+    TEXTURE_2D,
+    TEXTURE_3D,
+    TEXTURE_CUBE,
+    TEXTURE_1D_SHADOW,
+    TEXTURE_2D_SHADOW,
+    TEXTURE_CUBE_SHADOW,
+    BUFFER_TEXTURE,
+    BUFFER,
+    SAMPLER,
+
+    NUM
   };
 //---------------------------------------------------------------------------//
   /// TODO: Make this platform-dependent?
   /// Describes a resource (texture, buffer, ...) used in a gpuProgram as returned from reflection
   struct GpuProgramResourceInfo {
+    GpuProgramResourceInfo()
+      : u32RegisterIndex(0u),
+        eAccessType(GpuResourceAccessType::READ_ONLY), 
+        eResourceType(GpuResourceType::NONE) {}
+
     uint32 u32RegisterIndex;
-    uint32 u32Type; // represents platform-dependent typtes (e.g. GL_IMAGE_2D, GL_FLOAT_2, ...)
     ObjectName name;
     GpuResourceAccessType eAccessType;
+    GpuResourceType eResourceType;
   };
 //---------------------------------------------------------------------------//
  typedef FixedArray<GpuProgramResourceInfo, kMaxNumGpuProgramResources> GpuResourceInfoList;

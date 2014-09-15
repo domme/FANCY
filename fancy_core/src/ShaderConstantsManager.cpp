@@ -1,15 +1,110 @@
 
 #include "ShaderConstantsManager.h"
 
+#include <hash_map>
+
 #include "GpuBuffer.h"
 
 namespace Fancy { namespace Core { namespace Rendering {
 //---------------------------------------------------------------------------//
-  
+  namespace internal
+  {
+    typedef std::hash_map<ObjectName, ConstantBufferType> ConstantBufferTypeMap;
+    typedef std::hash_map<ObjectName, ConstantSemantics> ConstantSemanticsMap;
+
+    ConstantBufferTypeMap mapConstantBufferTypes;
+    ConstantSemanticsMap mapConstantSemantics;
+    
+    void initialize();
+    ConstantBufferType getConstantBufferTypeFromSemantics(ConstantSemantics eSemantic);
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void internal::initialize()
+  {
+    // Init all possible constants
+    mapConstantBufferTypes[_N(PER_LAUNCH)] = ConstantBufferType::PER_LAUNCH;
+    mapConstantBufferTypes[_N(PER_FRAME)] = ConstantBufferType::PER_FRAME;
+    mapConstantBufferTypes[_N(PER_VIEWPORT)] = ConstantBufferType::PER_VIEWPORT;
+    mapConstantBufferTypes[_N(PER_STAGE)] = ConstantBufferType::PER_STAGE;
+    mapConstantBufferTypes[_N(PER_CAMERA)] = ConstantBufferType::PER_CAMERA;
+    mapConstantBufferTypes[_N(PER_LIGHT)] = ConstantBufferType::PER_LIGHT;
+    mapConstantBufferTypes[_N(PER_MATERIAL)] = ConstantBufferType::PER_MATERIAL;
+    mapConstantBufferTypes[_N(PER_DRAW)] = ConstantBufferType::PER_DRAW;
+    
+    mapConstantSemantics[_N(c_RenderTargetSize)] = ConstantSemantics::RENDERTARGET_SIZE;
+    mapConstantSemantics[_N(c_ViewMatrix)] = ConstantSemantics::VIEW_MATRIX;
+    mapConstantSemantics[_N(c_ViewInverseMatrix)] = ConstantSemantics::VIEW_INVERSE_MATRIX;
+    mapConstantSemantics[_N(c_ProjectionMatrix)] = ConstantSemantics::PROJECTION_MATRIX;
+    mapConstantSemantics[_N(c_ViewProjectionMatrix)] = ConstantSemantics::VIEWPROJECTION_INVERSE_MATRIX;
+    mapConstantSemantics[_N(c_NearFarParameters)] = ConstantSemantics::NEARFAR_PARAMETERS; 
+    mapConstantSemantics[_N(c_CameraPosWS)] = ConstantSemantics::CAMERA_POSITION_WORLDSPACE;
+    mapConstantSemantics[_N(c_DirLightParameters)] = ConstantSemantics::DIRLIGHT_PARAMETERS;
+    mapConstantSemantics[_N(c_PointLightParameters)] = ConstantSemantics::POINTLIGHT_PARAMETERS;
+    mapConstantSemantics[_N(c_SpotLightParameters)] = ConstantSemantics::SPOTLIGHT_PARAMETERS;
+    mapConstantSemantics[_N(c_LightColorIntensity)] = ConstantSemantics::LIGHT_COLORINTENSITY;
+    mapConstantSemantics[_N(c_LightPosWS)] = ConstantSemantics::LIGHT_POSITION_WORLDSPACE;
+    mapConstantSemantics[_N(c_LightPosVS)] = ConstantSemantics::LIGHT_POSITION_VIEWSPACE;
+    mapConstantSemantics[_N(c_MatDiffIntensity)] = ConstantSemantics::DIFFUSE_MATERIAL_COLORINTENSITY;
+    mapConstantSemantics[_N(c_MatSpecIntensity)] = ConstantSemantics::SPECULAR_MATERIAL_COLORINTENSITY;
+    mapConstantSemantics[_N(c_WorldMatrix)] = ConstantSemantics::WORLD_MATRIX;
+    mapConstantSemantics[_N(c_WorldInverseMatrix)] = ConstantSemantics::WORLD_INVERSE_MATRIX;
+    mapConstantSemantics[_N(c_WorldViewMatrix)] = ConstantSemantics::WORLDVIEW_MATRIX;
+    mapConstantSemantics[_N(c_WorldViewInverseMatrix)] = ConstantSemantics::WORLDVIEW_INVERSE_MATRIX;
+    mapConstantSemantics[_N(c_WorldViewProjectionMatrix)] = ConstantSemantics::WORLDVIEWPROJECTION_MATRIX;
+    mapConstantSemantics[_N(c_WorldViewProjectionInverseMatrix)] = ConstantSemantics::WORLDVIEWPROJECTION_INVERSE_MATRIX;
+    ASSERT(mapConstantSemantics.size() == (uint32)ConstantSemantics::NUM);
+  }
+//---------------------------------------------------------------------------//
+  ConstantBufferType internal::getConstantBufferTypeFromSemantics(ConstantSemantics eSemantic)
+  {
+    ConstantBufferType eBufferType = ConstantBufferType::NONE;
+
+    if (eSemantic > ConstantSemantics::PER_LAUNCH_BEGIN &&
+      eSemantic < ConstantSemantics::PER_LAUNCH_END) 
+    {
+      eBufferType = ConstantBufferType::PER_LAUNCH;
+    }
+    else if (eSemantic > ConstantSemantics::PER_FRAME_BEGIN &&
+      eSemantic < ConstantSemantics::PER_FRAME_END) 
+    {
+      eBufferType = ConstantBufferType::PER_FRAME;
+    }
+    else if (eSemantic > ConstantSemantics::PER_VIEWPORT_BEGIN &&
+      eSemantic < ConstantSemantics::PER_VIEWPORT_END) 
+    {
+      eBufferType = ConstantBufferType::PER_VIEWPORT;
+    }
+    else if (eSemantic > ConstantSemantics::PER_STAGE_BEGIN &&
+      eSemantic < ConstantSemantics::PER_STAGE_END) 
+    {
+      eBufferType = ConstantBufferType::PER_STAGE;
+    }
+    else if (eSemantic > ConstantSemantics::PER_CAMERA_BEGIN &&
+      eSemantic < ConstantSemantics::PER_CAMERA_END) 
+    {
+      eBufferType = ConstantBufferType::PER_CAMERA;
+    }
+    else if (eSemantic > ConstantSemantics::PER_MATERIAL_BEGIN &&
+      eSemantic < ConstantSemantics::PER_MATERIAL_END) 
+    {
+      eBufferType = ConstantBufferType::PER_MATERIAL;
+    }
+    else if (eSemantic > ConstantSemantics::PER_DRAW_BEGIN &&
+      eSemantic < ConstantSemantics::PER_DRAW_END) 
+    {
+      eBufferType = ConstantBufferType::PER_DRAW;
+    }
+
+    return eBufferType;
+  }
+//---------------------------------------------------------------------------//
+
 //---------------------------------------------------------------------------//
   ShaderConstantsManager::ShaderConstantsManager()
   {
     memset(m_vConstantBuffers, 0x0, sizeof(m_vConstantBuffers));
+    internal::initialize();
   }
 //---------------------------------------------------------------------------//
   ShaderConstantsManager::~ShaderConstantsManager()
@@ -22,6 +117,30 @@ namespace Fancy { namespace Core { namespace Rendering {
         m_vConstantBuffers[i] = nullptr;
       }
     }
+  }  
+//---------------------------------------------------------------------------//
+  ConstantSemantics ShaderConstantsManager::getSemanticFromName( const ObjectName& clName )
+  {
+    internal::ConstantSemanticsMap::const_iterator it = internal::mapConstantSemantics.find(clName);
+    ASSERT(it != internal::mapConstantSemantics.end());
+    if(it != internal::mapConstantSemantics.end())
+    {
+      return (*it).second;
+    }
+
+    return ConstantSemantics::NONE;
+  }
+//---------------------------------------------------------------------------//
+  Fancy::Core::Rendering::ConstantBufferType ShaderConstantsManager::getConstantBufferTypeFromName( const ObjectName& clName )
+  {
+    internal::ConstantBufferTypeMap::const_iterator it = internal::mapConstantBufferTypes.find(clName);
+    ASSERT(it != internal::mapConstantBufferTypes.end());
+    if (it != internal::mapConstantBufferTypes.end())
+    {
+      return (*it).second;
+    }
+
+    return ConstantBufferType::NONE;
   }
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::updateConstants( ConstantBufferType eType )
@@ -171,56 +290,23 @@ namespace Fancy { namespace Core { namespace Rendering {
   }
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::
-    registerElement( const ConstantBufferElement& element, ConstantSemantics eElementSemantic )
+    registerElement( const ConstantBufferElement& element, ConstantSemantics eElementSemantic, ConstantBufferType eConstantBufferType )
   {
-    const uint32 uSemanticIdx = static_cast<uint32>(eElementSemantic);
-    ASSERT_M(m_vConstantBufferElements[uSemanticIdx].uSizeBytes != 0u, 
-      "Constant buffer element already registered");
+    // Sanity-check on the detected update rate vs passed buffertype
+    ASSERT_M(internal::getConstantBufferTypeFromSemantics(eElementSemantic) == eConstantBufferType,
+      "Mismatch between the constant-semantic and the requested buffer type");
 
+    const uint32 uSemanticIdx = static_cast<uint32>(eElementSemantic);
+    if (m_vConstantBufferElements[uSemanticIdx].uSizeBytes > 0u) 
+    {
+      // Element is already registered 
+      return;
+    }
     m_vConstantBufferElements[uSemanticIdx] = element;
 
-    // determine the required update-rate and allocate a buffer when needed
-    ConstantBufferType eBufferType = ConstantBufferType::NONE;
-
-    if (eElementSemantic > ConstantSemantics::PER_LAUNCH_BEGIN &&
-        eElementSemantic < ConstantSemantics::PER_LAUNCH_END) 
-    {
-        eBufferType = ConstantBufferType::PER_LAUNCH;
-    }
-    else if (eElementSemantic > ConstantSemantics::PER_FRAME_BEGIN &&
-             eElementSemantic < ConstantSemantics::PER_FRAME_END) 
-    {
-        eBufferType = ConstantBufferType::PER_FRAME;
-    }
-    else if (eElementSemantic > ConstantSemantics::PER_VIEWPORT_BEGIN &&
-             eElementSemantic < ConstantSemantics::PER_VIEWPORT_END) 
-    {
-         eBufferType = ConstantBufferType::PER_VIEWPORT;
-    }
-    else if (eElementSemantic > ConstantSemantics::PER_STAGE_BEGIN &&
-             eElementSemantic < ConstantSemantics::PER_STAGE_END) 
-    {
-        eBufferType = ConstantBufferType::PER_STAGE;
-    }
-    else if (eElementSemantic > ConstantSemantics::PER_CAMERA_BEGIN &&
-             eElementSemantic < ConstantSemantics::PER_CAMERA_END) 
-    {
-        eBufferType = ConstantBufferType::PER_CAMERA;
-    }
-    else if (eElementSemantic > ConstantSemantics::PER_MATERIAL_BEGIN &&
-             eElementSemantic < ConstantSemantics::PER_MATERIAL_END) 
-    {
-        eBufferType = ConstantBufferType::PER_MATERIAL;
-    }
-    else if (eElementSemantic > ConstantSemantics::PER_DRAW_BEGIN &&
-             eElementSemantic < ConstantSemantics::PER_DRAW_END) 
-    {
-      eBufferType = ConstantBufferType::PER_DRAW;
-    }
-    
-    const uint32 uBufferTypeIdx = static_cast<uint32>(eBufferType);
-    const bool bufferAllocationNeeded = m_vConstantBuffers[uBufferTypeIdx] == nullptr;
-    if (bufferAllocationNeeded)
+    // Allocate the constant buffer storage if needed
+    const uint32 uBufferTypeIdx = static_cast<uint32>(eConstantBufferType);
+    if (m_vConstantBuffers[uBufferTypeIdx] == nullptr)
     {
       GpuBuffer* const pBuffer = FANCY_NEW(GpuBuffer, MemoryCategory::BUFFERS);
 
@@ -229,7 +315,8 @@ namespace Fancy { namespace Core { namespace Rendering {
       bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::WRITE 
                                 | (uint32)GpuResourceAccessFlags::DYNAMIC 
                                 | (uint32)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
-      bufferParams.uNumElements = kNumConstantBufferFloats * internal::kNumMultiBuffers;
+      bufferParams.bIsMultiBuffered = true;
+      bufferParams.uNumElements = kNumConstantBufferFloats;
       bufferParams.uElementSizeBytes = sizeof(float);
 
       pBuffer->create(bufferParams);

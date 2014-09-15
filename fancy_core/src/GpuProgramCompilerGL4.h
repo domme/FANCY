@@ -19,12 +19,13 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
   protected:
     bool reflectProgram(GpuProgramGL4& rGpuProgram);
+    void reflectConstants(GLuint uProgram);
+    void reflectResources(GLuint uProgram, GpuResourceInfoList& rResourceInfos) const;
     void reflectVertexInputs(GLuint uProgram, VertexInputLayout& rVertexLayout) const;
     void reflectFragmentOutputs(GLuint uProgram, ShaderStageFragmentOutputList& vFragmentOutputs) const;
     void reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList) const;
     void reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList) const;
     
-
     const uint32 kMaxNumLogChars = 10000u;
     char m_LogBuffer[kMaxNumLogChars];
   };

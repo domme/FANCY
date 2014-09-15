@@ -67,6 +67,7 @@ namespace Fancy { namespace Core {
       uint32 size() const {return m_u32Size;}
       bool empty() const {return m_u32Size > 0u;}
       void clear() {m_u32Size = 0u;}
+      void resize(uint32 uNewSize) {ASSERT_M(uNewSize <= u32Capacity, "Array too small"); m_u32Size = uNewSize; }
       void push_back(const T& clElement) {ASSERT_M(m_u32Size < u32Capacity, "Array is full"); m_Array[m_u32Size++] = clElement;}
     //---------------------------------------------------------------------------//
       T& back() { ASSERT(m_u32Size > 0); return m_Array[m_u32Size - 1u]; }

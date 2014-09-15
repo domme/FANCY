@@ -20,7 +20,8 @@ namespace Fancy { enum {
   kMaxNumReadTextures = 32u,
   kMaxNumBoundConstantBuffers = 12u,
   kMaxNumGpuProgramResources = 32u,
-  kNumConstantBufferFloats = 256u
+  kNumConstantBufferFloats = 256u,
+  kMaxNumConstantBufferElements = 128u
 }; }
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Core {
@@ -405,6 +406,9 @@ namespace Fancy { namespace Core {
 
       NUM
     };
+//---------------------------------------------------------------------------//
+    
+
 //---------------------------------------------------------------------------//
   } // end of namespace Rendering 
 } }  // end of namespace Fancy::Core

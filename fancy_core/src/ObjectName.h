@@ -44,9 +44,11 @@ namespace Fancy { namespace Core {
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Core
 
-
-
 //---------------------------------------------------------------------------//
-#define _N(name) Fancy::Core::ObjectName(name)
+#if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
+  #define _N(name) Fancy::Core::ObjectName("#name")
+#else // !FANCY_COMMON_USE_OBJECTNAME_STRINGS
+  #define _N(name) Fancy::Core::ObjectName(ObjectNameValues::name)
+#endif // FANCY_COMMON_USE_OBJECTNAME_STRINGS
 //---------------------------------------------------------------------------//
 #endif  // INCLUDE_OBJECTNAME_H

@@ -81,13 +81,15 @@ namespace Fancy { namespace Core { namespace Rendering {
   struct ConstantBufferElement
   {
     ConstantBufferElement() : 
-      uOffsetBytes(0u), uSizeBytes(0u), uIndex(0u) {}
+      uOffsetBytes(0u), uSizeBytes(0u), eFormat(DataFormat::NONE) {}
 
     ObjectName name;
     uint32 uOffsetBytes;
     uint32 uSizeBytes;
-    uint32 uIndex;
+    DataFormat eFormat;
   };
+//---------------------------------------------------------------------------//
+  
 //---------------------------------------------------------------------------//
   class ShaderConstantsManager
   {
@@ -98,9 +100,12 @@ namespace Fancy { namespace Core { namespace Rendering {
       /// Returns false if no constant buffer exists for this type
       bool hasConstantBuffer(ConstantBufferType eType) {return m_vConstantBuffers[(uint32)eType] != nullptr;}
       /// Registers an element obtained from shader-reflection
-      void registerElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic);
+      void registerElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, ConstantBufferType eConstantBufferType);
       /// Binds all constant buffers to the pipeline
       void bindConstantBuffers();
+
+      ConstantSemantics getSemanticFromName(const ObjectName& clName);
+      ConstantBufferType getConstantBufferTypeFromName(const ObjectName& clName);
 
     private:
       ShaderConstantsManager();
