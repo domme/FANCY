@@ -70,6 +70,13 @@ protected:
     GLuint glHandle;
     uint hash;
   };
+//---------------------------------------------------------------------------//
+  struct VaoCacheEntry {
+    VaoCacheEntry() : glHandle(GLUINT_HANDLE_INVALID), hash(0u) {}
+    GLuint glHandle;
+    uint hash;
+    uint32 uStreamMask;
+  };
 //-----------------------------------------------------------------------//
 	RendererGL4();
 
@@ -82,9 +89,14 @@ protected:
   void _bindBlendValuesSingleRT(const uint32 uBlendStateRebindMask);
   void bindDepthStencilState();
   void bindRenderTargets();
+  void bindVBO(GLuint uVBO) {if (m_uCurrentVBO == uVBO) return; m_uCurrentVBO = uVBO; glBindBuffer(GL_ARRAY_BUFFER, uVBO);}
+  void bindIBO(GLuint uIBO) {if (m_uCurrentIBO == uIBO) return; m_uCurrentIBO = uIBO; glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, uIBO);}
+  void bindVAO(GLuint uVAO) {if (m_uCurrentVAO == uVAO) return; m_uCurrentVAO = uVAO; glBindVertexArray(uVAO);}
+
   GLuint createOrRetrieveFBO(Texture** ppRenderTextures, uint8 u8RenderTextureCount, Texture* pDStexture);
   GLuint createOrRetrieveProgramPipeline();
-  GLuint createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, const VertexInputLayout* pVertexInputLayout);
+  const VaoCacheEntry& createOrRetrieveVAO(const Geometry::GeometryData* pGeometryData, const VertexInputLayout* pVertexInputLayout);
+
 
   /// Mask indicating which pipeline states have to be re-bound to the pipeline
 	uint          m_uPipelineRebindMask;  // Needed?
@@ -119,9 +131,9 @@ protected:
   GpuCacheEntry     m_GpuProgramPipelinePool[kPoolSizeGpuProgramPipelines];
 
   /// The currently bound VAO
-  GLuint            m_uCurrentVAObinding;
+  GLuint            m_uCurrentVAO;
   /// Pool of available VAOs
-  GpuCacheEntry     m_VAOpool[kPoolSizeVAO];
+  VaoCacheEntry     m_VAOpool[kPoolSizeVAO];
 
   GLuint            m_uCurrentVBO;
   GLuint            m_uCurrentIBO;

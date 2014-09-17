@@ -61,6 +61,16 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     ALL               = 0xFFFF
   };
 //---------------------------------------------------------------------------//
+  static enum class VertexBufferBindingFlags {
+    GEOMETRY_STREAM        = 0x001,
+    PATCHING_STREAM_VEC4   = 0x002
+  };
+//---------------------------------------------------------------------------//
+  static enum class VertexBufferBindingPoints {
+    GEOMETRY_STREAM        = 0,
+    PATCHING_STREAM        = 1
+  };
+//---------------------------------------------------------------------------//
   GLenum getColorAttachmentFromIndex(uint8 i) 
   {
     switch (i)
@@ -111,7 +121,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     m_pCachedDepthStencilTarget(nullptr),
     m_uCurrentFBO(0u),
     m_uCurrentGpuProgramPipeline(0u),
-    m_uCurrentVAObinding(0u),
+    m_uCurrentVAO(0u),
     LoadableObject::LoadableObject()
   {
     memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
@@ -135,12 +145,12 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   RendererGL4::~RendererGL4()
   {
-
+    // TODO: Release all pooled GL-Objects
   }
 //-----------------------------------------------------------------------//
   bool RendererGL4::_init()
   {
-  
+    
   }
 //-----------------------------------------------------------------------//
   bool RendererGL4::_destroy()
@@ -151,6 +161,8 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   void RendererGL4::postInit()
   {
     // TODO: Set the render-system to the OpenGL-default values
+
+
   }
 //-----------------------------------------------------------------------//
   void RendererGL4::setDepthStencilState(const DepthStencilState& clDepthStencilState)
@@ -819,9 +831,140 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     return uPipeline;
   }
 //---------------------------------------------------------------------------//
-  GLuint RendererGL4::createOrRetrieveVAO( const GeometryVertexLayout* pGeoVertexLayout, const VertexInputLayout* pVertexInputLayout )
+  const RendererGL4::VaoCacheEntry& 
+    RendererGL4::createOrRetrieveVAO(const Geometry::GeometryData* pGeometryData, 
+                                     const VertexInputLayout* pVertexInputLayout )
   {
+    const GeometryVertexLayout* pGeoVertexLayout = pGeometryData->getGeometryVertexLayout();
 
+    // The fast path: Calc the hash of both layouts
+    uint32 uHash = 0;
+    MathUtil::hash_combine(uHash, reinterpret_cast<uint32>(pGeoVertexLayout));
+    MathUtil::hash_combine(uHash, reinterpret_cast<uint32>(pVertexInputLayout));
+
+    for (uint32 i = 0u; i < _countof(m_VAOpool); ++i)
+    {
+      if (m_VAOpool[i].hash == uHash) 
+      {
+        return m_VAOpool[i];
+      }
+    }
+
+    // No suitable cached VAO found in the pool. Create one
+    VaoCacheEntry* pCacheEntry = nullptr;
+    for (uint32 i = 0u; i < _countof(m_VAOpool); ++i)
+    {
+      if (m_VAOpool[i].glHandle == GLUINT_HANDLE_INVALID)
+      {
+        pCacheEntry = &m_VAOpool[i];
+      }
+    }
+
+    ASSERT_M(pCacheEntry != nullptr, "No free VAO found in the pool");
+
+    // Create a mapping between the geometric vertices to the shader attributes
+    struct MappingEntry 
+    {
+      const VertexInputElement* pInputElement;
+      const GeometryVertexElement* pGeomElement;
+    };
+
+    struct PatchingEntry
+    {
+      const VertexInputElement* pInputElement;
+    };
+
+    FixedArray<MappingEntry, kMaxNumInputVertexAttributes> vMappingEntries;
+    FixedArray<PatchingEntry, kMaxNumInputVertexAttributes> vPatchingEntries;
+
+    for (uint32 iInputElem = 0u; iInputElem < pVertexInputLayout->getNumVertexInputElements(); ++iInputElem)
+    {
+      const VertexInputElement& rInputElement = pVertexInputLayout->getVertexInputElement(iInputElem);
+      MappingEntry mappingEntry = {nullptr};
+
+      // Look for the corresponding semantic in the geometry vertices
+      for (uint32 iGeomElem = 0u; iGeomElem < pGeoVertexLayout->getNumVertexElements(); ++iGeomElem)
+      {
+        const GeometryVertexElement& rGeomElement = pGeoVertexLayout->getVertexElement(iGeomElem);
+        if (rInputElement.eSemantics == rGeomElement.eSemantics) 
+        {
+          mappingEntry.pInputElement = &rInputElement;
+          mappingEntry.pGeomElement = &rGeomElement;
+          break;
+        }
+      }
+
+      if (mappingEntry.pInputElement)
+      {
+        // We found a mapping
+        vMappingEntries.push_back(mappingEntry);
+      }
+      else
+      {
+        // No geometry-stream available for this attribute. We need to patch it
+        PatchingEntry patchingEntry;
+        patchingEntry.pInputElement = &rInputElement;
+        vPatchingEntries.push_back(patchingEntry);
+      }
+    }
+
+    // Create a new vertex layout from the given geometry and shader layouts
+    GLuint uVAO;
+    glGenVertexArrays(1, &uVAO);
+    bindVAO(uVAO);
+
+    for (uint32 i = 0u; i < kMaxNumInputVertexAttributes; ++i)
+    {
+      glDisableVertexAttribArray(i);
+    }
+    
+    uint32 uStreamMask = 0u;
+    if (vMappingEntries.size() > 0u)
+    {
+      // We have at least one matching attribute stream
+      uStreamMask |= (uint32) VertexBufferBindingFlags::GEOMETRY_STREAM;
+    }
+    if (vMappingEntries.size() < pVertexInputLayout->getNumVertexInputElements())
+    {
+      // We need to patch some attributes
+      uStreamMask |= (uint32) VertexBufferBindingFlags::PATCHING_STREAM_VEC4;
+    }
+
+    // Set up the vertex format for each mapped attribute
+    for (uint32 i = 0u; i < vMappingEntries.size(); ++i)
+    {
+      const VertexInputElement* pInputElement = vMappingEntries[i].pInputElement;
+      glEnableVertexAttribArray(pInputElement->u32RegisterIndex);
+      //glVertexAttribFormat(pInputElement->u32RegisterIndex, pInputElement->u32SizeBytes,  )
+    }
+
+
+
+    
+    
+    
+    /*
+    bindVBO(uVBO);
+
+    for (uint32 i = 0u; i < vMappingEntries.size(); ++i)
+    {
+      const MappingEntry& rMapping = vMappingEntries[i];
+      GeometryVertexElement
+
+      glEnableVertexAttribArray(i);
+      glVertexAttribPointer(i, )
+    }
+    for (uint32 i = vMappingEntries.size(); i < kMaxNumInputVertexAttributes; ++i)
+    {
+      glDisableVertexAttribArray(i);
+    }
+    */
+
+    pCacheEntry->glHandle = uVAO;
+    pCacheEntry->hash = uHash;
+    pCacheEntry->uStreamMask = uStreamMask;
+
+    return *pCacheEntry;
   }
 //---------------------------------------------------------------------------//
   void RendererGL4::beginFrame()
@@ -837,7 +980,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   void RendererGL4::renderGeometry(Geometry::GeometryData* pGeometry)
   {
     // First create or retrieve a programPipeline object and bind it. 
-    GLuint uProgPipeline = createOrRetrieveProgramPipeline();
+    const GLuint uProgPipeline = createOrRetrieveProgramPipeline();
     glBindProgramPipeline(uProgPipeline);
     m_uCurrentGpuProgramPipeline = uProgPipeline;
         
@@ -850,26 +993,18 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     bindResourcesToPipeline(ShaderStage::TESS_DOMAIN);
     bindResourcesToPipeline(ShaderStage::FRAGMENT);
 
-    // Lastly, set up the vertex stream from the geometry and patch attributes if necessary
-    GLuint uVBOtoBind = pGeometry->getVertexBuffer()->getGLhandle();
-    if (uVBOtoBind != m_uCurrentVBO)
-    {
-      m_uCurrentVBO = uVBOtoBind;
-      glBindBuffer(GL_ARRAY_BUFFER, uVBOtoBind);
-    }
-
-    GLuint uIBOtoBind = pGeometry->getIndexBuffer()->getGLhandle();
-    if (uIBOtoBind != m_uCurrentIBO)
-    {
-      m_uCurrentIBO = uIBOtoBind;
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, uIBOtoBind);
-    }
+    const GLuint uVBOtoUse = pGeometry->getVertexBuffer()->getGLhandle();
+    const GLuint uIBOtoUse = pGeometry->getIndexBuffer()->getGLhandle();
 
     const GeometryVertexLayout* vertLayoutGeo = pGeometry->getGeometryVertexLayout();
     const VertexInputLayout* vertLayoutShader = 
       m_pBoundGPUPrograms[(uint32)ShaderStage::VERTEX]->getVertexInputLayout();
 
-    GLuint uVAO = createOrRetrieveVAO(vertLayoutGeo, vertLayoutShader);
+    const GLuint uVAOtoUse = createOrRetrieveVAO(uVBOtoUse, vertLayoutGeo, vertLayoutShader);
+    
+    bindVAO(uVAOtoUse);
+    bindVBO(uVBOtoUse);
+    bindIBO(uIBOtoUse);
     
     // TODO: Set up instanced, indirect rendering etc.
     glDrawArrays(GL_TRIANGLES, 0, pGeometry->getNumIndices());
