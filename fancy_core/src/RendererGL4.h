@@ -82,22 +82,23 @@ protected:
 
   /// Applies all dirty states and resources to the hardware
   void bindStatesToPipeline();
-  void bindResourcesToPipeline(const ShaderStage eShaderStage);
+  void bindResourcesToPipeline();
+  void bindReadTextures(const GpuResourceInfoList& vResourceInfos, const Texture** ppTexturesToBind, uint32 maxNumTextures);
+  void bindTextureSamplers(const GpuResourceInfoList& vResourceInfos, const TextureSampler** ppSamplersToBind, uint32 maxNumSamplers);
+
   void bindBlendState();
   void _bindBlendValuesMultiRT(const uint32 uBlendStateRebindMask, 
     const uint8 u8BlendStateRebindRTcount, const uint8 u8BlendStateRebindRTmask);
   void _bindBlendValuesSingleRT(const uint32 uBlendStateRebindMask);
   void bindDepthStencilState();
   void bindRenderTargets();
-  void bindVBO(GLuint uVBO) {if (m_uCurrentVBO == uVBO) return; m_uCurrentVBO = uVBO; glBindBuffer(GL_ARRAY_BUFFER, uVBO);}
   void bindIBO(GLuint uIBO) {if (m_uCurrentIBO == uIBO) return; m_uCurrentIBO = uIBO; glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, uIBO);}
   void bindVAO(GLuint uVAO) {if (m_uCurrentVAO == uVAO) return; m_uCurrentVAO = uVAO; glBindVertexArray(uVAO);}
 
   GLuint createOrRetrieveFBO(Texture** ppRenderTextures, uint8 u8RenderTextureCount, Texture* pDStexture);
   GLuint createOrRetrieveProgramPipeline();
-  const VaoCacheEntry& createOrRetrieveVAO(const Geometry::GeometryData* pGeometryData, const VertexInputLayout* pVertexInputLayout);
-
-
+  const VaoCacheEntry& createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, const VertexInputLayout* pVertexInputLayout);
+  
   /// Mask indicating which pipeline states have to be re-bound to the pipeline
 	uint          m_uPipelineRebindMask;  // Needed?
 	/// Mask indicating which resources have to be re-bound to each shaderStage

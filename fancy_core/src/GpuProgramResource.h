@@ -38,6 +38,13 @@ namespace Fancy { namespace Core { namespace Rendering {
         eAccessType(GpuResourceAccessType::READ_ONLY), 
         eResourceType(GpuResourceType::NONE) {}
 
+    bool isTexture() const
+    {
+      return     eResourceType != GpuResourceType::NONE
+              && eResourceType >= GpuResourceType::TEXTURE_1D 
+              && eResourceType <= GpuResourceType::BUFFER_TEXTURE;
+    }
+
     uint32 u32RegisterIndex;
     ObjectName name;
     GpuResourceAccessType eAccessType;

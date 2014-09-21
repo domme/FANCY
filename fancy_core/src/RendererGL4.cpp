@@ -63,36 +63,27 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   static enum class VertexBufferBindingFlags {
     GEOMETRY_STREAM        = 0x001,
-    PATCHING_STREAM_VEC4   = 0x002
+    INSTANCE_STREAM_1      = 0x002,
+    INSTANCE_STREAM_2      = 0x004,
+    INSTANCE_STREAM_3      = 0x008,
+    PATCHING_STREAM_VEC4   = 0x010
   };
 //---------------------------------------------------------------------------//
   static enum class VertexBufferBindingPoints {
     GEOMETRY_STREAM        = 0,
-    PATCHING_STREAM        = 1
+    INSTANCE_STREAM_1      = 1,
+    INSTANCE_STREAM_2      = 2,
+    INSTANCE_STREAM_3      = 3,
+    PATCHING_STREAM        = 4
   };
 //---------------------------------------------------------------------------//
-  GLenum getColorAttachmentFromIndex(uint8 i) 
-  {
-    switch (i)
-    {
-      case 0: return GL_COLOR_ATTACHMENT0;
-      case 1: return GL_COLOR_ATTACHMENT1;
-      case 2: return GL_COLOR_ATTACHMENT2;
-      case 3: return GL_COLOR_ATTACHMENT3;
-      case 4: return GL_COLOR_ATTACHMENT4;
-      case 5: return GL_COLOR_ATTACHMENT5;
-      case 6: return GL_COLOR_ATTACHMENT6;
-      case 7: return GL_COLOR_ATTACHMENT7;
-    default:
-      ASSERT_M(false, "Color attachment index not supported");
-      return GL_COLOR_ATTACHMENT8;
-      break;
-    }
-  }
-//---------------------------------------------------------------------------//
+ 
 //---------------------------------------------------------------------------//
   namespace internal {
     GLuint getGLShaderStageBit(ShaderStage eShaderStage);
+    GLenum getColorAttachmentFromIndex(uint32 uIndex);
+    GLenum getTextureUnitFromIndex(uint32 uIndex);
+    GLuint getGLTextureTypeFromGLSLresourceType(GpuResourceType eResourceType);
   }
 //---------------------------------------------------------------------------//
   GLuint internal::getGLShaderStageBit(ShaderStage eShaderStage)
@@ -109,7 +100,59 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
+  GLenum internal::getColorAttachmentFromIndex(uint32 uIndex) 
+  {
+    switch (uIndex)
+    {
+    case 0: return GL_COLOR_ATTACHMENT0;
+    case 1: return GL_COLOR_ATTACHMENT1;
+    case 2: return GL_COLOR_ATTACHMENT2;
+    case 3: return GL_COLOR_ATTACHMENT3;
+    case 4: return GL_COLOR_ATTACHMENT4;
+    case 5: return GL_COLOR_ATTACHMENT5;
+    case 6: return GL_COLOR_ATTACHMENT6;
+    case 7: return GL_COLOR_ATTACHMENT7;
+    default:
+      ASSERT_M(false, "Color attachment index not supported");
+      return GL_COLOR_ATTACHMENT8;
+      break;
+    }
+  }
+//---------------------------------------------------------------------------//
+  GLenum internal::getTextureUnitFromIndex(uint32 uIndex)
+  {
+    ASSERT(uIndex < kMaxNumReadTextures);
+    return GL_TEXTURE0 + uIndex;
+  }
+//---------------------------------------------------------------------------//
+  GLenum internal::getGLTextureTypeFromGLSLresourceType(GpuResourceType eResourceType)
+  {
+    switch (eResourceType)
+    {
+      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_1D:
+        return GL_TEXTURE_1D;
+      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_2D:
+        return GL_TEXTURE_2D;
+      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_3D:
+        return GL_TEXTURE_3D;
+      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_CUBE:
+        return GL_TEXTURE_CUBE_MAP;
+      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_1D_SHADOW:
+        return GL_TEXTURE_1D;
+      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_2D_SHADOW:
+        return GL_TEXTURE_2D;
+      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_CUBE_SHADOW:
+        return GL_TEXTURE_CUBE_MAP;
+      case Fancy::Core::Rendering::GpuResourceType::BUFFER_TEXTURE:
+        return GL_TEXTURE_BUFFER;
+      default:
+        ASSERT_M(false, "The provided glsl resource is no texture");
+    }
 
+    return GL_TEXTURE_1D;
+  }
+//---------------------------------------------------------------------------//
+  
 //---------------------------------------------------------------------------//
   RendererGL4::RendererGL4() :
     m_uPipelineRebindMask(0u),
@@ -454,8 +497,11 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
     m_pBoundGPUPrograms[static_cast<uint>(eShaderStage)] = pProgram;
     m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::GPU_PROGRAMS);
+
     // For now we re-set all resources if a shader has changed.
-    // TODO: Avoid this in the future. Try to hide individual setGpuProgram() calls in a monolythic call to the renderer API.
+    // TODO: Avoid this in the future. Try to hide individual setGpuProgram() calls in a 
+    // monolithic call to the renderer API (e.g. by wrapping it in a material-object) 
+    // that is the only public thing to set in the renderer interface.
     if (pProgram)
     {
       m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::ALL);
@@ -499,11 +545,102 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     m_uPipelineRebindMask = 0;
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::bindResourcesToPipeline( const ShaderStage eShaderStage )
+  void RendererGL4::bindResourcesToPipeline()
   {
+    for (uint32 iShaderStage = 0u; iShaderStage < (uint32) ShaderStage::NUM; ++iShaderStage)
+    {
+      const GpuProgram* pGpuProgram = m_pBoundGPUPrograms[iShaderStage];
+      const uint32 resourceRebindMask = m_uResourceRebindMask[iShaderStage];
+      m_uResourceRebindMask[iShaderStage] = 0u;
+      
+      if (!pGpuProgram || resourceRebindMask == 0u)
+      {
+        continue;
+      }
 
+      const GpuResourceInfoList& resourceInfoList = pGpuProgram->getResourceInfoList();
+      
+      // Read textures
+      if (resourceRebindMask & (uint32) ResourceRebindFlags::READ_TEXTURES)
+      {
+        bindReadTextures(resourceInfoList, m_pCachedReadTextures[iShaderStage],
+          _countof(m_pCachedReadTextures[iShaderStage]));
+      }
+
+      // Sampler objects
+      if (resourceRebindMask & (uint32) ResourceRebindFlags::TEXTURE_SAMPLERS)
+      {
+        bindTextureSamplers(resourceInfoList, m_pCachedTextureSamplers[iShaderStage],
+          _countof(m_pCachedTextureSamplers[iShaderStage]));
+      }
+
+      // Read buffers
+      if (resourceRebindMask & (uint32) ResourceRebindFlags::READ_BUFFERS)
+      {
+        // 
+      }
+
+      
+
+    }
+
+    
   }
-//-----------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void RendererGL4::bindReadTextures(const GpuResourceInfoList& vResourceInfos, const Texture** ppTexturesToBind, uint32 uMaxNumTextures)
+  {
+    for (uint32 iResourceInfos = 0u, uTextureIndex = 0u; 
+         iResourceInfos < vResourceInfos.size() && uTextureIndex < uMaxNumTextures;
+         ++iResourceInfos)
+    {
+      const GpuProgramResourceInfo& resourceInfo = vResourceInfos[iResourceInfos];
+      if (!resourceInfo.isTexture()) 
+      {
+        continue;
+      }
+
+      const Texture* pTextureToBind = ppTexturesToBind[uTextureIndex];
+      ASSERT_M(pTextureToBind, "A texture is requested by the shader but no texture has been set to this register index");
+                  
+      const GLenum eTextureUnitGL = 
+        internal::getTextureUnitFromIndex(uTextureIndex);
+
+      const GLuint uTextureTargetGL = 
+        internal::getGLTextureTypeFromGLSLresourceType(resourceInfo.eResourceType);
+
+      glActiveTexture(eTextureUnitGL);
+      glBindTexture(uTextureTargetGL, pTextureToBind->getGLhandle());
+      glUniform1i(resourceInfo.u32RegisterIndex, uTextureIndex);
+
+      ++uTextureIndex;
+    }
+  }
+//---------------------------------------------------------------------------//
+  void RendererGL4::bindTextureSamplers(const GpuResourceInfoList& vResourceInfos, const TextureSampler** ppSamplersToBind, uint32 uMaxNumSamplers)
+  {
+    for (uint32 iResourceInfos = 0u, uTextureIndex = 0u; 
+      iResourceInfos < vResourceInfos.size() && uTextureIndex < uMaxNumSamplers;
+      ++iResourceInfos)
+    {
+      const GpuProgramResourceInfo& resourceInfo = vResourceInfos[iResourceInfos];
+      if (!resourceInfo.isTexture()) 
+      {
+        continue;
+      }
+
+      const TextureSampler* pSamplerToBind = ppSamplersToBind[uTextureIndex];
+      ASSERT_M(pSamplerToBind, "A texture is requested by the shader but no textureSampler has been set to this register index");
+
+      const GLenum eTextureUnitGL = 
+        internal::getTextureUnitFromIndex(uTextureIndex);
+
+      glActiveTexture(eTextureUnitGL);
+      glBindSampler(uTextureIndex, pSamplerToBind->getGLhandle());
+
+      ++uTextureIndex;
+    }
+  }
+//---------------------------------------------------------------------------//
   void RendererGL4::bindBlendState()
   {
     ASSERT_M(m_uBlendStateRebindMask > 0, 
@@ -774,11 +911,13 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     glBindFramebuffer(GL_FRAMEBUFFER, pFBOentry->glHandle);
     for (uint8 i = 0; i < u8RenderTextureCount; ++i )
     {
-      glFramebufferTexture2D(GL_FRAMEBUFFER, getColorAttachmentFromIndex(i), GL_TEXTURE_2D, pRenderTextures[i]->getGLhandle(), 0);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, internal::getColorAttachmentFromIndex(i), 
+        GL_TEXTURE_2D, pRenderTextures[i]->getGLhandle(), 0);
     }
     if (pDStexture)
     {
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, pDStexture->getGLhandle(), 0);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, 
+        GL_TEXTURE_2D, pDStexture->getGLhandle(), 0);
     }
   #if defined (FANCY_RENDERSYSTEM_USE_VALIDATION)
     GLDebug::validateFBOcompleteness();
@@ -832,37 +971,33 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   }
 //---------------------------------------------------------------------------//
   const RendererGL4::VaoCacheEntry& 
-    RendererGL4::createOrRetrieveVAO(const Geometry::GeometryData* pGeometryData, 
-                                     const VertexInputLayout* pVertexInputLayout )
+    RendererGL4::createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, 
+                                     const VertexInputLayout* pVertexInputLayout)
   {
-    const GeometryVertexLayout* pGeoVertexLayout = pGeometryData->getGeometryVertexLayout();
-
-    // The fast path: Calc the hash of both layouts
+    // The fast path: Calc the hash of both layouts and look for an existing VAO to return
     uint32 uHash = 0;
     MathUtil::hash_combine(uHash, reinterpret_cast<uint32>(pGeoVertexLayout));
     MathUtil::hash_combine(uHash, reinterpret_cast<uint32>(pVertexInputLayout));
 
+    VaoCacheEntry* pCacheEntry = nullptr;
     for (uint32 i = 0u; i < _countof(m_VAOpool); ++i)
     {
       if (m_VAOpool[i].hash == uHash) 
       {
         return m_VAOpool[i];
       }
-    }
-
-    // No suitable cached VAO found in the pool. Create one
-    VaoCacheEntry* pCacheEntry = nullptr;
-    for (uint32 i = 0u; i < _countof(m_VAOpool); ++i)
-    {
-      if (m_VAOpool[i].glHandle == GLUINT_HANDLE_INVALID)
+      else if (m_VAOpool[i].glHandle == GLUINT_HANDLE_INVALID)
       {
         pCacheEntry = &m_VAOpool[i];
+        break;
       }
     }
 
+    // No suitable cached VAO found in the pool. Create one and establish the vertex stream
+
     ASSERT_M(pCacheEntry != nullptr, "No free VAO found in the pool");
 
-    // Create a mapping between the geometric vertices to the shader attributes
+    // Create a mapping between the geometric vertices and the shader attributes
     struct MappingEntry 
     {
       const VertexInputElement* pInputElement;
@@ -930,6 +1065,9 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       uStreamMask |= (uint32) VertexBufferBindingFlags::PATCHING_STREAM_VEC4;
     }
 
+    // TODO: The patching stream is currently not in use... do we even have to use it in desktop-opengl?
+    // Currently, I believe a default value of (0,0,0,1) is fed to the vertex assembly if a shader-attribute is not backed by a geo-stream
+
     // Set up the vertex format for each mapped attribute
     for (uint32 i = 0u; i < vMappingEntries.size(); ++i)
     {
@@ -945,30 +1083,10 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       glVertexAttribFormat(pInputElement->u32RegisterIndex, uNumComponentsGeo, 
         eDataTypeGeoGL, GL_FALSE, pGeomElement->u32OffsetBytes);
 
+      // TODO: Support mutliple streams (e.g. instancing) at this point...
+      glVertexAttribBinding(pInputElement->u32RegisterIndex, (uint32)VertexBufferBindingPoints::GEOMETRY_STREAM);
     }
-
-
-
     
-    
-    
-    /*
-    bindVBO(uVBO);
-
-    for (uint32 i = 0u; i < vMappingEntries.size(); ++i)
-    {
-      const MappingEntry& rMapping = vMappingEntries[i];
-      GeometryVertexElement
-
-      glEnableVertexAttribArray(i);
-      glVertexAttribPointer(i, )
-    }
-    for (uint32 i = vMappingEntries.size(); i < kMaxNumInputVertexAttributes; ++i)
-    {
-      glDisableVertexAttribArray(i);
-    }
-    */
-
     pCacheEntry->glHandle = uVAO;
     pCacheEntry->hash = uHash;
     pCacheEntry->uStreamMask = uStreamMask;
@@ -990,18 +1108,16 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   {
     // First create or retrieve a programPipeline object and bind it. 
     const GLuint uProgPipeline = createOrRetrieveProgramPipeline();
-    glBindProgramPipeline(uProgPipeline);
-    m_uCurrentGpuProgramPipeline = uProgPipeline;
-        
-    // Then bind resources to it
+    if (m_uCurrentGpuProgramPipeline != uProgPipeline)
+    {
+      glBindProgramPipeline(uProgPipeline);
+      m_uCurrentGpuProgramPipeline = uProgPipeline;
+    }
+            
+    // Bind resources to the pipeline
     bindStatesToPipeline();
+    bindResourcesToPipeline();
     
-    bindResourcesToPipeline(ShaderStage::VERTEX);
-    bindResourcesToPipeline(ShaderStage::GEOMETRY);
-    bindResourcesToPipeline(ShaderStage::TESS_HULL);
-    bindResourcesToPipeline(ShaderStage::TESS_DOMAIN);
-    bindResourcesToPipeline(ShaderStage::FRAGMENT);
-
     const GLuint uVBOtoUse = pGeometry->getVertexBuffer()->getGLhandle();
     const GLuint uIBOtoUse = pGeometry->getIndexBuffer()->getGLhandle();
 
@@ -1009,10 +1125,29 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     const VertexInputLayout* vertLayoutShader = 
       m_pBoundGPUPrograms[(uint32)ShaderStage::VERTEX]->getVertexInputLayout();
 
-    const GLuint uVAOtoUse = createOrRetrieveVAO(uVBOtoUse, vertLayoutGeo, vertLayoutShader);
+    const VaoCacheEntry uVaoEntry = 
+      createOrRetrieveVAO(vertLayoutGeo, vertLayoutShader);
+
+    bindVAO(uVaoEntry.glHandle);
     
-    bindVAO(uVAOtoUse);
-    bindVBO(uVBOtoUse);
+    // Bind the stream-buffers
+    if (uVaoEntry.uStreamMask & (uint32)VertexBufferBindingFlags::GEOMETRY_STREAM)
+    {
+      if (m_uCurrentVBO != uVBOtoUse)
+      {
+        glBindVertexBuffer((uint32) VertexBufferBindingPoints::GEOMETRY_STREAM, uVBOtoUse, 
+          0, vertLayoutGeo->getStrideBytes());
+        m_uCurrentVBO = uVBOtoUse;
+      }
+    }
+    // TODO: Add support for per-instance attributes here...
+    /*if (uVaoEntry.uStreamMask & (uint32)VertexBufferBindingFlags::INSTANCE_STREAM_1)
+    {
+      
+    } */
+
+
+
     bindIBO(uIBOtoUse);
     
     // TODO: Set up instanced, indirect rendering etc.

@@ -74,11 +74,13 @@ namespace Fancy { namespace Core {
         class GpuBufferGL4;
         class GpuProgramPipelineGL4;
         class GpuProgramCompilerGL4;
+        class TextureSamplerGL4;
       }
 
       #define PLATFORM_DEPENDENT_NAME(name) Fancy::Core::Rendering::GL4::name##GL4
       #define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureGL4.h"
+      #define PLATFORM_DEPENDENT_INCLUDE_TEXTURESAMPLER "TextureSamplerGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GpuProgramGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUBUFFER "GpuBufferGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineGL4.h"
@@ -410,8 +412,38 @@ namespace Fancy { namespace Core {
       NUM
     };
 //---------------------------------------------------------------------------//
-    
+    enum class SamplerFilterMode {
+      NEAREST = 0,
+      BILINEAR,
+      TRILINEAR,
+      ANISOTROPIC,
 
+      NUM
+    };
+//---------------------------------------------------------------------------//
+    enum class SamplerAddressMode {
+      WRAP = 0,
+      CLAMP_EDGE,
+      MIRROR_CLAMP_EDGE,
+      CLAMP_BORDER,
+      REPEAT,
+      MIRROR_REPEAT,
+
+      NUM
+    };
+//---------------------------------------------------------------------------//
+    struct TextureSamplerProperties {
+      SamplerFilterMode minFiltering;
+      SamplerFilterMode magFiltering;
+      SamplerAddressMode addressModeX;
+      SamplerAddressMode addressModeY;
+      SamplerAddressMode addressModeZ;
+      CompFunc           comparisonMode;
+      glm::vec4          borderColor;
+      uint8              u8MinimumMipmapLevel;
+      uint8              u8MaximumMipmapLevel;
+      uint8              u8MipmapBias;
+    };
 //---------------------------------------------------------------------------//
   } // end of namespace Rendering 
 } }  // end of namespace Fancy::Core

@@ -27,15 +27,15 @@ public:
   void* lock(GpuResoruceLockOption option = GpuResoruceLockOption::WRITE_DISCARD); 
   void unlock();
 
-  GLuint getGLhandle() { return m_uGLhandle; }
-  bool isDepthStencilTexture() { return m_clParameters.bIsDepthStencil; }
-  bool isSRGBtexture() { return m_clStateInfo.isSRGB; }
-  bool isLocked() { return m_clStateInfo.isLocked; }
-  bool isCubemap() {return m_clParameters.eTextureTypeGL == GL_TEXTURE_CUBE_MAP; }
-  bool isArrayTexture() {return m_clStateInfo.isArrayTexture; }
-  bool isValid() { return m_uGLhandle != GLUINT_HANDLE_INVALID; }
+  GLuint getGLhandle() const { return m_uGLhandle; }
+  bool isDepthStencilTexture() const { return m_clParameters.bIsDepthStencil; }
+  bool isSRGBtexture() const { return m_clStateInfo.isSRGB; }
+  bool isLocked() const { return m_clStateInfo.isLocked; }
+  bool isCubemap() const {return m_clParameters.eTextureTypeGL == GL_TEXTURE_CUBE_MAP; }
+  bool isArrayTexture() const {return m_clStateInfo.isArrayTexture; }
+  bool isValid() const { return m_uGLhandle != GLUINT_HANDLE_INVALID; }
   /// retrieve the number of dimensions (1D, 2D, 3D (cubemap & volume))
-  uint getNumDimensions() {return m_clStateInfo.numDimensions; }
+  uint getNumDimensions() const {return m_clStateInfo.numDimensions; }
 
 protected:
   //---------------------------------------------------------------------------//

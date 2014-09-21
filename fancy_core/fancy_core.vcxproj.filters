@@ -237,6 +237,12 @@
     <ClInclude Include="src\TimeManager.h">
       <Filter>src\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\TextureSampler.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextureSamplerGL4.h">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -397,6 +403,9 @@
     </ClCompile>
     <ClCompile Include="src\TimeManager.cpp">
       <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureSamplerGL4.cpp">
+      <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
