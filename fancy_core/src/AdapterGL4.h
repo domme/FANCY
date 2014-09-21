@@ -213,6 +213,38 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       }
     }  
 //---------------------------------------------------------------------------//
+    void getGLtypeAndNumComponentsFromFormat(const DataFormat& eFormat, 
+      uint32& ruComponents, GLenum& reTypeGL)
+    {
+      switch (eFormat)
+      {
+        case DataFormat::RGBA_8: 
+        case DataFormat::SRGB_8:    ruComponents = 4; reTypeGL = GL_UNSIGNED_BYTE; break;
+        case DataFormat::RGB_8:     ruComponents = 3; reTypeGL = GL_UNSIGNED_BYTE; break;
+        case DataFormat::RGBA_16F:  ruComponents = 4; reTypeGL = GL_HALF_FLOAT; break;
+        case DataFormat::RGB_16F:   ruComponents = 3; reTypeGL = GL_HALF_FLOAT; break;
+        case DataFormat::RG_16F:    ruComponents = 2; reTypeGL = GL_HALF_FLOAT; break;
+        case DataFormat::R_16F:     ruComponents = 1; reTypeGL = GL_HALF_FLOAT; break;
+        case DataFormat::RGBA_32F:  ruComponents = 4; reTypeGL = GL_FLOAT; break;
+        case DataFormat::RGB_32F:   ruComponents = 3; reTypeGL = GL_FLOAT; break;
+        case DataFormat::RG_32F:    ruComponents = 2; reTypeGL = GL_FLOAT; break;
+        case DataFormat::R_32F:     ruComponents = 1; reTypeGL = GL_FLOAT; break;
+        case DataFormat::RGBA_32UI: ruComponents = 4; reTypeGL = GL_UNSIGNED_INT; break;
+        case DataFormat::RGB_32UI:  ruComponents = 3; reTypeGL = GL_UNSIGNED_INT; break;
+        case DataFormat::RG_32UI:   ruComponents = 2; reTypeGL = GL_UNSIGNED_INT; break;
+        case DataFormat::R_32UI:    ruComponents = 1; reTypeGL = GL_UNSIGNED_INT; break;
+        case DataFormat::RGBA_16UI: ruComponents = 4; reTypeGL = GL_UNSIGNED_SHORT; break;
+        case DataFormat::RGB_16UI:  ruComponents = 3; reTypeGL = GL_UNSIGNED_SHORT; break;
+        case DataFormat::RG_16UI:   ruComponents = 2; reTypeGL = GL_UNSIGNED_SHORT; break;
+        case DataFormat::R_16UI:    ruComponents = 1; reTypeGL = GL_UNSIGNED_SHORT; break;
+        case DataFormat::RGBA_8UI:  ruComponents = 4; reTypeGL = GL_UNSIGNED_BYTE; break;
+        case DataFormat::RGB_8UI:   ruComponents = 3; reTypeGL = GL_UNSIGNED_BYTE; break;
+        case DataFormat::RG_8UI:    ruComponents = 2; reTypeGL = GL_UNSIGNED_BYTE; break;
+        case DataFormat::R_8UI:     ruComponents = 1; reTypeGL = GL_UNSIGNED_BYTE; break;
+        default: ASSERT_M(false, "Format cannot be converted to a GL-type");
+      }
+    }
+//---------------------------------------------------------------------------//
   }  // end of namespace Adapter
 
 } } } } // end of namespace Fancy::Core::Rendering::GL4

@@ -934,8 +934,17 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     for (uint32 i = 0u; i < vMappingEntries.size(); ++i)
     {
       const VertexInputElement* pInputElement = vMappingEntries[i].pInputElement;
+      const GeometryVertexElement* pGeomElement = vMappingEntries[i].pGeomElement;
+
+      uint32 uNumComponentsGeo = 0u;
+      GLenum eDataTypeGeoGL = GL_FLOAT;
+      Adapter::getGLtypeAndNumComponentsFromFormat(pGeomElement->eFormat, uNumComponentsGeo, eDataTypeGeoGL);
+
       glEnableVertexAttribArray(pInputElement->u32RegisterIndex);
-      //glVertexAttribFormat(pInputElement->u32RegisterIndex, pInputElement->u32SizeBytes,  )
+      
+      glVertexAttribFormat(pInputElement->u32RegisterIndex, uNumComponentsGeo, 
+        eDataTypeGeoGL, GL_FALSE, pGeomElement->u32OffsetBytes);
+
     }
 
 
