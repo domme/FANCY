@@ -3,6 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "OpenGLprerequisites.h"
 
 #include "ObjectName.h"
 
@@ -16,7 +17,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     ~TextureSamplerGL4();
   //---------------------------------------------------------------------------//
     const ObjectName& getName() const {return m_Name;}
-    GLuint getProgramHandle() const {return m_uHandleGL;}
+    GLuint getGLhandle() const {return m_uHandleGL;}
 
     const TextureSamplerProperties& getProperties() const {return m_properties;}
     void create(const ObjectName& rName, const TextureSamplerProperties& rProperties);
@@ -24,12 +25,10 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   protected:
     void destroy();
 
-    /// Name of the shader as loaded from disk
+    /// Name given to the sampler object by the api
     ObjectName m_Name;
-    /// GL-internal handle to the program object
+    /// GL-internal handle to the OpenGL sampler object
     GLuint m_uHandleGL;
-    /// ShaderStage this program defines
-    ShaderStage m_eShaderStage;
     /// Internal properties of the sampler defined at creation time
     TextureSamplerProperties m_properties;
   };

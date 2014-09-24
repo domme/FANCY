@@ -3,26 +3,45 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "GpuProgramResource.h"
 
 namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   
   namespace Adapter {
+    //---------------------------------------------------------------------------//
+      GLenum mapResourceTypeToGLbindingTarget(const GpuResourceType& generalType) {
+        switch (generalType)
+        {
+          case GpuResourceType::TEXTURE_1D:   return GL_TEXTURE_1D;
+          case GpuResourceType::TEXTURE_1D_SHADOW: return GL_TEXTURE_1D;
+          case GpuResourceType::TEXTURE_2D:   return GL_TEXTURE_2D;
+          case GpuResourceType::TEXTURE_2D_SHADOW : return GL_TEXTURE_2D;
+          case GpuResourceType::TEXTURE_3D: return GL_TEXTURE_3D;
+          case GpuResourceType::TEXTURE_CUBE: return GL_TEXTURE_CUBE_MAP;
+          case GpuResourceType::TEXTURE_CUBE_SHADOW: return GL_TEXTURE_CUBE_MAP;
+          case GpuResourceType::BUFFER_TEXTURE: return GL_TEXTURE_BUFFER;
+          case GpuResourceType::BUFFER: return GL_SHADER_STORAGE_BUFFER;
+          default:
+            ASSERT_M(false, "Resource type has no binding target");
+          break;
+        }
+      }
     // Adapter-methods to translate between the state-enums
     //-----------------------------------------------------------------------//
     // Comp Func
-    GLenum toGLType(const CompFunc& generalType) {
-      switch (generalType) {
-      case CompFunc::NEVER:     return GL_NEVER;
-      case CompFunc::LESS:      return GL_LESS;
-      case CompFunc::EQUAL:     return GL_EQUAL;
-      case CompFunc::LEQUAL:    return GL_LEQUAL;
-      case CompFunc::GREATER:   return GL_GREATER;
-      case CompFunc::NOTEQUAL:  return GL_NOTEQUAL;
-      case CompFunc::GEQUAL:    return GL_GEQUAL;
-      case CompFunc::ALWAYS:    return GL_ALWAYS;
-      default: ASSERT_M(false, "Missing GL values"); return GL_LESS;
+      GLenum toGLType(const CompFunc& generalType) {
+        switch (generalType) {
+        case CompFunc::NEVER:     return GL_NEVER;
+        case CompFunc::LESS:      return GL_LESS;
+        case CompFunc::EQUAL:     return GL_EQUAL;
+        case CompFunc::LEQUAL:    return GL_LEQUAL;
+        case CompFunc::GREATER:   return GL_GREATER;
+        case CompFunc::NOTEQUAL:  return GL_NOTEQUAL;
+        case CompFunc::GEQUAL:    return GL_GEQUAL;
+        case CompFunc::ALWAYS:    return GL_ALWAYS;
+        default: ASSERT_M(false, "Missing GL values"); return GL_LESS;
+        }
       }
-    }
     //---------------------------------------------------------------------------//
     GLenum toGLType(const StencilOp& generalType) {
       switch (generalType) {

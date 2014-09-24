@@ -333,12 +333,16 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
     reflectConstants(uProgramHandle);
 
-    reflectResources(uProgramHandle, rGpuProgram.m_vResourceInfos);
+    reflectResources(uProgramHandle, rGpuProgram.m_vReadTextureInfos,
+      rGpuProgram.m_vReadBufferInfos, rGpuProgram.m_vWriteTextureInfos, 
+      rGpuProgram.m_vWriteBufferInfos);
 
     return true;
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramCompilerGL4::reflectResources( GLuint uProgram, GpuResourceInfoList& rResourceInfos ) const
+  void GpuProgramCompilerGL4::reflectResources( GLuint uProgram, 
+    GpuResourceInfoList& rReadTextureInfos, GpuResourceInfoList& rReadBufferInfos, 
+    GpuResourceInfoList& rWriteTextureInfos, GpuResourceInfoList& rWriteBufferInfos) const
   {
     // We assume that all uniforms which don't  belong to a block are resources (i.e. buffers, samplers, textures)
 
@@ -363,12 +367,44 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
       // Construct the resourceInfo object
       GpuProgramResourceInfo resourceInfo;
+      resourceInfo.name = szName;
       resourceInfo.u32RegisterIndex = vPropertyValues[3];
       internal::getResourceTypeAndAccessTypeFromGLtype(vProperties[1], 
         resourceInfo.eResourceType, resourceInfo.eAccessType);
-      resourceInfo.name = szName;
+      
+      resourceInfo.bindingTargetGL = 
+        Adapter::mapResourceTypeToGLbindingTarget(resourceInfo.eResourceType);
 
-      rResourceInfos.push_back(resourceInfo);
+      // The "format qualifier" for glsl images. TODO: can this be reflected?
+      // resourceInfo.dataFormatGL =
+      
+      const bool isTexture = resourceInfo.eResourceType != GpuResourceType::NONE
+                    && resourceInfo.eResourceType >= GpuResourceType::TEXTURE_1D 
+                    && resourceInfo.eResourceType <= GpuResourceType::BUFFER_TEXTURE;
+
+      const bool isBuffer = resourceInfo.eResourceType == GpuResourceType::BUFFER;
+
+      const bool isReadOnly = resourceInfo.eAccessType == GpuResourceAccessType::READ_ONLY;
+
+      if (isTexture)
+      {
+        if (isReadOnly)
+          rReadTextureInfos.push_back(resourceInfo);
+        else 
+          rWriteTextureInfos.push_back(resourceInfo);
+      }
+      else if (isBuffer)
+      {
+        if (isReadOnly)
+          rReadBufferInfos.push_back(resourceInfo);
+        else
+          rWriteBufferInfos.push_back(resourceInfo);
+      }
+      else
+      {
+        // Non-implemented case
+        ASSERT_M(false, "GpuResource type not supported yet");
+      }
     }
   }
 //---------------------------------------------------------------------------//

@@ -18,6 +18,7 @@ namespace Fancy { enum {
   kMaxNumBoundSamplers = 16u,
   kMaxNumBoundReadBuffers = 32u,
   kMaxNumReadTextures = 32u,
+  kMaxNumWriteTextures = 8u,
   kMaxNumBoundConstantBuffers = 12u,
   kMaxNumGpuProgramResources = 32u,
   kNumConstantBufferFloats = 256u,
@@ -63,6 +64,7 @@ namespace Fancy { namespace Core {
     class GpuProgram;
     class GpuProgramPipeline;
     class GpuProgramCompiler;
+    class GpuProgramResource;
   //---------------------------------------------------------------------------//
   // Forward-declarations of platform-dependent rendering classes
     #if defined (RENDERER_OPENGL4)
@@ -75,6 +77,7 @@ namespace Fancy { namespace Core {
         class GpuProgramPipelineGL4;
         class GpuProgramCompilerGL4;
         class TextureSamplerGL4;
+        class GpuProgramResourceGL4;
       }
 
       #define PLATFORM_DEPENDENT_NAME(name) Fancy::Core::Rendering::GL4::name##GL4
@@ -85,6 +88,7 @@ namespace Fancy { namespace Core {
       #define PLATFORM_DEPENDENT_INCLUDE_GPUBUFFER "GpuBufferGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerGL4.h"
+      #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceGL4.h"
 
     #elif defined (RENDERER_DX11)
       namespace DX11 {}
@@ -337,14 +341,14 @@ namespace Fancy { namespace Core {
   //---------------------------------------------------------------------------//
     struct TextureParameters {
       TextureParameters() : u16Width(0u), u16Height(0u), u16Depth(0u),
-        eFormat(DataFormat::NONE), uCreationFlags(0u), pPixelData(nullptr),
+        eFormat(DataFormat::NONE), uAccessFlags(0u), pPixelData(nullptr),
         uPixelDataSizeBytes(0), bIsDepthStencil(false) {}
 
       uint16 u16Width;
       uint16 u16Height;
       uint16 u16Depth;
       DataFormat eFormat;
-      uint32 uCreationFlags;
+      uint32 uAccessFlags;
       /// true if the texture should be a depth- or depthStencil Texture
       bool bIsDepthStencil;
       /// (optional) pointer to pixelData
@@ -433,16 +437,30 @@ namespace Fancy { namespace Core {
     };
 //---------------------------------------------------------------------------//
     struct TextureSamplerProperties {
-      SamplerFilterMode minFiltering;
-      SamplerFilterMode magFiltering;
+      TextureSamplerProperties() :
+        minFiltering(SamplerFilterMode::NEAREST),
+        magFiltering(SamplerFilterMode::NEAREST),
+        addressModeX(SamplerAddressMode::WRAP),
+        addressModeY(SamplerAddressMode::WRAP),
+        addressModeZ(SamplerAddressMode::WRAP),
+        comparisonFunc(CompFunc::ALWAYS),
+        borderColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)),
+        fMinLod(0.0f),
+        fMaxLod(FLT_MAX),
+        fLodBias(0.0f),
+        fMaxAnisotropy(1.0f) {}
+
+      SamplerFilterMode  minFiltering;
+      SamplerFilterMode  magFiltering;
       SamplerAddressMode addressModeX;
       SamplerAddressMode addressModeY;
       SamplerAddressMode addressModeZ;
-      CompFunc           comparisonMode;
+      CompFunc           comparisonFunc;
       glm::vec4          borderColor;
-      uint8              u8MinimumMipmapLevel;
-      uint8              u8MaximumMipmapLevel;
-      uint8              u8MipmapBias;
+      float              fMinLod;
+      float              fMaxLod;
+      float              fLodBias;
+      float              fMaxAnisotropy;
     };
 //---------------------------------------------------------------------------//
   } // end of namespace Rendering 

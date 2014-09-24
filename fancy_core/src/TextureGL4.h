@@ -36,6 +36,8 @@ public:
   bool isValid() const { return m_uGLhandle != GLUINT_HANDLE_INVALID; }
   /// retrieve the number of dimensions (1D, 2D, 3D (cubemap & volume))
   uint getNumDimensions() const {return m_clStateInfo.numDimensions; }
+  GLenum getInternalFormatGL() const {return m_clParameters.eInternalFormatGL;}
+  const TextureParameters& getParameters() const {return m_clParameters;}
 
 protected:
   //---------------------------------------------------------------------------//

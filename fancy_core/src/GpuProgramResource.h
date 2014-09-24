@@ -3,6 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE
 
 #include "ObjectName.h"
 #include "FixedArray.h"
@@ -30,20 +31,12 @@ namespace Fancy { namespace Core { namespace Rendering {
     NUM
   };
 //---------------------------------------------------------------------------//
-  /// TODO: Make this platform-dependent?
   /// Describes a resource (texture, buffer, ...) used in a gpuProgram as returned from reflection
-  struct GpuProgramResourceInfo {
+  struct GpuProgramResourceInfo : public PLATFORM_DEPENDENT_NAME(GpuProgramResource) {
     GpuProgramResourceInfo()
       : u32RegisterIndex(0u),
         eAccessType(GpuResourceAccessType::READ_ONLY), 
         eResourceType(GpuResourceType::NONE) {}
-
-    bool isTexture() const
-    {
-      return     eResourceType != GpuResourceType::NONE
-              && eResourceType >= GpuResourceType::TEXTURE_1D 
-              && eResourceType <= GpuResourceType::BUFFER_TEXTURE;
-    }
 
     uint32 u32RegisterIndex;
     ObjectName name;

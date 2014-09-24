@@ -228,6 +228,7 @@
     <ClInclude Include="src\GpuProgramPipeline.h" />
     <ClInclude Include="src\GpuProgramPipelineGL4.h" />
     <ClInclude Include="src\GpuProgramResource.h" />
+    <ClInclude Include="src\GpuProgramResourceGL4.h" />
     <ClInclude Include="src\GPUResourceManager.h" />
     <ClInclude Include="src\GLResourcePathManager.h" />
     <ClInclude Include="src\GLSLpreprocessor.h" />

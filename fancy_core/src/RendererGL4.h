@@ -51,6 +51,7 @@ public:
 	{ ASSERT(u8RenderTargetIndex < kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
 
 	void setReadTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setWriteTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
 	void setReadBuffer(GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
 	void setConstantBuffer(ConstantBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
 	void setTextureSampler(TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
@@ -85,6 +86,7 @@ protected:
   void bindResourcesToPipeline();
   void bindReadTextures(const GpuResourceInfoList& vResourceInfos, const Texture** ppTexturesToBind, uint32 maxNumTextures);
   void bindTextureSamplers(const GpuResourceInfoList& vResourceInfos, const TextureSampler** ppSamplersToBind, uint32 maxNumSamplers);
+  void bindWriteTextures(const GpuResourceInfoList& vResourceInfos, const Texture** ppTexturesToBind, uint32 maxNumTextures);
 
   void bindBlendState();
   void _bindBlendValuesMultiRT(const uint32 uBlendStateRebindMask, 
@@ -108,6 +110,9 @@ protected:
 	Texture*	    m_pCachedReadTextures [ShaderStage::NUM][kMaxNumReadTextures];
 	/// Mask identifying which textures need to be bind in the next draw call
 	uint32		    m_uReadTextureBindMask [ShaderStage::NUM];
+
+  Texture*      m_pCachedWriteTextures [ShaderStage::NUM][kMaxNumWriteTextures];
+  uint32        m_uWriteTextureBindMask [ShaderStage::NUM];
 
 	GpuBuffer*		m_pCachedReadBuffers [ShaderStage::NUM][kMaxNumBoundReadBuffers];
 	uint32		    m_uReadBufferBindMask [ShaderStage::NUM];

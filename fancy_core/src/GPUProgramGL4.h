@@ -54,7 +54,10 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       const ObjectName& getName() const {return m_Name;}
       GLuint getProgramHandle() const {return m_uProgramHandleGL;}
       ShaderStage getShaderStage() const {return m_eShaderStage;}
-      const GpuResourceInfoList& getResourceInfoList() const {return m_vResourceInfos;}
+      const GpuResourceInfoList& getReadTextureInfoList() const {return m_vReadTextureInfos;}
+      const GpuResourceInfoList& getReadBufferInfoList() const {return m_vReadBufferInfos;}
+      const GpuResourceInfoList& getWriteTextureInfoList() const {return m_vWriteTextureInfos;}
+      const GpuResourceInfoList& getWriteBufferInfoList() const {return m_vWriteBufferInfos;}
       const VertexInputLayout* getVertexInputLayout() const {return &m_clVertexInputLayout;}
     //---------------------------------------------------------------------------//
     protected:
@@ -66,8 +69,6 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       GLuint m_uProgramHandleGL;
       /// ShaderStage this program defines
       ShaderStage m_eShaderStage;
-      /// List of resources defined in the shader (buffers, textures, ...)
-      GpuResourceInfoList m_vResourceInfos;
       /// Expected layout of incoming vertices. Only valid for vertex-programs
       VertexInputLayout m_clVertexInputLayout;
       /// List of incoming inter-stage varyings. Not valid for vertex-programs
@@ -76,6 +77,13 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       ShaderStageInterfaceList m_vOutputInterfaces;
       /// List of output-elements in the fragment shader stage
       ShaderStageFragmentOutputList m_vFragmentOutputs;
+
+      /// Lists of resources defined in the shader (buffers, textures, ...)
+      GpuResourceInfoList m_vReadTextureInfos;
+      GpuResourceInfoList m_vReadBufferInfos;
+      GpuResourceInfoList m_vWriteTextureInfos;
+      GpuResourceInfoList m_vWriteBufferInfos;
+      // TODO: Add lists for other opaque types (e.g. atomics)
     //---------------------------------------------------------------------------//
   };
 //---------------------------------------------------------------------------//
