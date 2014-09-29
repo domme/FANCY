@@ -60,7 +60,6 @@ namespace Fancy { namespace Core {
     class Texture;
     class TextureSampler;
     class GpuBuffer;
-    class ConstantBuffer;
     class GpuProgram;
     class GpuProgramPipeline;
     class GpuProgramCompiler;

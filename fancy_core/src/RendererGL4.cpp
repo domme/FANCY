@@ -174,15 +174,19 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
     memset(m_pCachedReadTextures, 0, sizeof(m_pCachedReadTextures));
     memset(m_uReadTextureBindMask, 0, sizeof(m_uReadTextureBindMask));
+    memset(m_uNumReadTexturesToBind, 0u, sizeof(m_uNumReadTexturesToBind));
 
     memset(m_pCachedReadBuffers, 0, sizeof(m_pCachedReadBuffers));
     memset(m_uReadBufferBindMask, 0, sizeof(m_uReadBufferBindMask));
+    memset(m_uNumReadBuffersToBind, 0u, sizeof(m_uNumReadBuffersToBind));
 
     memset(m_pCachedConstantBuffers, 0, sizeof(m_pCachedConstantBuffers));
     memset(m_uConstantBufferBindMask, 0, sizeof(m_uConstantBufferBindMask));
+    memset(m_uNumConstantBuffersToBind, 0u, sizeof(m_uNumConstantBuffersToBind));
 
     memset(m_pCachedTextureSamplers, 0, sizeof(m_pCachedTextureSamplers));
     memset(m_uTextureSamplerBindMask, 0, sizeof(m_uTextureSamplerBindMask));
+    memset(m_uNumTextureSamplersToBind, 0u, sizeof(m_uNumTextureSamplersToBind));
 
     memset(m_pCachedRenderTargets, 0, sizeof(m_pCachedRenderTargets));
 
@@ -444,64 +448,84 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     }
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setReadTexture( Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
+  void RendererGL4::setReadTexture( Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8RegisterIndex < kMaxNumReadTextures, "Referenced an undefined texture unit");
+    ASSERT_M(u8Index < kMaxNumReadTextures, "Referenced an undefined texture unit");
   
-    if(m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pTexture) {
+    if(m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8Index] == pTexture) {
       return;
     }
 
-    m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pTexture;
+    m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8Index] = pTexture;
     m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_TEXTURES);
+
+    m_uNumReadTexturesToBind[static_cast<uint>(eShaderStage)] = 
+      glm::max(m_uNumReadTexturesToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
+    m_uReadTextureBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setWriteTexture( Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
+  void RendererGL4::setWriteTexture( Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8RegisterIndex < kMaxNumWriteTextures, "Referenced an undefined image unit");
+    ASSERT_M(u8Index < kMaxNumWriteTextures, "Referenced an undefined image unit");
 
-    if(m_pCachedWriteTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pTexture) {
+    if(m_pCachedWriteTextures[static_cast<uint>(eShaderStage)][u8Index] == pTexture) {
       return;
     }
 
-    m_pCachedWriteTextures[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pTexture;
+    m_pCachedWriteTextures[static_cast<uint>(eShaderStage)][u8Index] = pTexture;
     m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::WRITE_TEXTURES);
+
+    m_uNumWriteTexturesToBind[static_cast<uint>(eShaderStage)] = 
+      glm::max(m_uNumWriteTexturesToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
+    m_uWriteTextureBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setReadBuffer( GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
+  void RendererGL4::setReadBuffer( GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8RegisterIndex < kMaxNumBoundReadBuffers, "Referenced an undefined buffer register");
+    ASSERT_M(u8Index < kMaxNumBoundReadBuffers, "Referenced an undefined buffer register");
   
-    if(m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pBuffer) {
+    if(m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8Index] == pBuffer) {
       return;
     }
 
-    m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pBuffer;
+    m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8Index] = pBuffer;
     m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_BUFFERS);
+
+    m_uNumReadBuffersToBind[static_cast<uint>(eShaderStage)] = 
+      glm::max(m_uNumReadBuffersToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
+    m_uReadBufferBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setConstantBuffer( ConstantBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
+  void RendererGL4::setConstantBuffer(GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8Index)
   {
-    ASSERT_M(u8RegisterIndex < kMaxNumBoundConstantBuffers, "Referenced an undefined constant buffer register");
+    ASSERT_M(u8Index < (uint32) ConstantBufferType::NUM, "Referenced an undefined constant buffer register");
   
-    if(m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pConstantBuffer) {
+    if(m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8Index] == pConstantBuffer) {
       return;
     }
 
-    m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pConstantBuffer;
+    m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8Index] = pConstantBuffer;
     m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::CONSTANT_BUFFERS);
+
+    m_uNumConstantBuffersToBind[static_cast<uint>(eShaderStage)] = 
+      glm::max(m_uNumConstantBuffersToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
+    m_uConstantBufferBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setTextureSampler( TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex )
+  void RendererGL4::setTextureSampler( TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8RegisterIndex < kMaxNumBoundSamplers, "Referenced an undefined sampler register");
+    ASSERT_M(u8Index < kMaxNumBoundSamplers, "Referenced an undefined sampler register");
   
-    if(m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8RegisterIndex] == pSampler) {
+    if(m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8Index] == pSampler) {
       return;
     }
 
-    m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8RegisterIndex] = pSampler;
+    m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8Index] = pSampler;
     m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::TEXTURE_SAMPLERS);
+
+    m_uNumTextureSamplersToBind[static_cast<uint>(eShaderStage)] = 
+      glm::max(m_uNumTextureSamplersToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
+    m_uTextureSamplerBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
   void RendererGL4::setGpuProgram( GpuProgram* pProgram, const ShaderStage eShaderStage )
@@ -519,10 +543,26 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     // that is the only public thing to set in the renderer interface.
     if (pProgram)
     {
-      m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::ALL);
+      invalidateResourceCache((uint32)eShaderStage);
     }
   }
-//-----------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void RendererGL4::invalidateResourceCache(const uint32 uShaderStageIdx)
+  {
+    m_uResourceRebindMask[uShaderStageIdx] |= static_cast<uint>(ResourceRebindFlags::ALL);
+
+    // Reset this stuff during material change?
+    // Determine the needed rebind-counts
+    /*m_uNumReadTexturesToBind[uShaderStageIdx] = kMaxNumReadTextures;
+    for(uint32 i = kMaxNumReadTextures - 1u; i >= 0u; --i)
+    {
+      if (m_pCachedReadTextures[uShaderStageIdx][i] != nullptr)
+      {
+        m_uNumReadTexturesToBind[]
+      }
+    } */
+  }
+//---------------------------------------------------------------------------//
   void RendererGL4::bindStatesToPipeline()
   {
     if (m_uPipelineRebindMask == 0) {
@@ -562,106 +602,115 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::bindResourcesToPipeline()
   {
-    for (uint32 iShaderStage = 0u; iShaderStage < (uint32) ShaderStage::NUM; ++iShaderStage)
+    for (uint32 uStageIdx = 0u; uStageIdx < (uint32) ShaderStage::NUM; ++uStageIdx)
     {
-      const GpuProgram* pGpuProgram = m_pBoundGPUPrograms[iShaderStage];
-      const uint32 resourceRebindMask = m_uResourceRebindMask[iShaderStage];
-      m_uResourceRebindMask[iShaderStage] = 0u;
+      const GpuProgram* pGpuProgram = m_pBoundGPUPrograms[uStageIdx];
+      const uint32 uResourceRebindMask = m_uResourceRebindMask[uStageIdx];
+      m_uResourceRebindMask[uStageIdx] = 0u;
       
-      if (!pGpuProgram || resourceRebindMask == 0u)
+      if (!pGpuProgram || uResourceRebindMask == 0u)
       {
         continue;
       }
 
-      // Read textures
-      if (resourceRebindMask & (uint32) ResourceRebindFlags::READ_TEXTURES)
+      // Constant buffers
+      if (uResourceRebindMask & (uint32) ResourceRebindFlags::CONSTANT_BUFFERS)
       {
-        bindReadTextures(pGpuProgram->getReadTextureInfoList(), m_pCachedReadTextures[iShaderStage],
-          _countof(m_pCachedReadTextures[iShaderStage]));
+        const GpuBuffer** ppConstantBuffersToBind = m_pCachedConstantBuffers[uStageIdx];
+        const uint32 uConstantBufferBindMask = m_uConstantBufferBindMask[uStageIdx];
+        m_uConstantBufferBindMask[uStageIdx] = 0u;
+
+        const uint32 uNumConstantBuffersToBind = m_uNumConstantBuffersToBind[uStageIdx];
+        m_uNumConstantBuffersToBind[uStageIdx] = 0u;
+
+        for (uint32 i = 0u; i < uNumConstantBuffersToBind; ++i)
+        {
+          if ((uConstantBufferBindMask & (1 << i)) > 0)
+          {
+            const GpuBuffer* pConstantBuffer = ppConstantBuffersToBind[i];
+            const GLuint uGLhandle = pConstantBuffer ? pConstantBuffer->getGLhandle() : 0u;
+
+            glBindBufferBase(GL_UNIFORM_BUFFER, i, uGLhandle);
+          }
+        }
+      }
+
+      // Read textures
+      if (uResourceRebindMask & (uint32) ResourceRebindFlags::READ_TEXTURES)
+      {
+        const Texture** ppTexturesToBind = m_pCachedReadTextures[uStageIdx];
+        const uint32 uReadTextureBindMask = m_uReadTextureBindMask[uStageIdx];
+        m_uReadTextureBindMask[uStageIdx] = 0u;
+
+        const uint32 uNumReadTexturesToBind = m_uNumReadTexturesToBind[uStageIdx];
+        m_uNumReadTexturesToBind[uStageIdx] = 0u;
+        for (uint32 i = 0u; i < uNumReadTexturesToBind; ++i)
+        {
+          if ((uReadTextureBindMask & (1 << i)) > 0)
+          {
+            const Texture* pTexture = ppTexturesToBind[i];
+            const GLuint uGlhandle = pTexture ? pTexture->getGLhandle() : 0u;
+
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(pTexture ? pTexture->getTextureTypeGL() : GL_TEXTURE_2D, uGlhandle);
+          }
+        }
       }
 
       // Sampler objects
-      if (resourceRebindMask & (uint32) ResourceRebindFlags::TEXTURE_SAMPLERS)
+      if (uResourceRebindMask & (uint32) ResourceRebindFlags::TEXTURE_SAMPLERS)
       {
-        bindTextureSamplers(pGpuProgram->getReadTextureInfoList(), m_pCachedTextureSamplers[iShaderStage],
-          _countof(m_pCachedTextureSamplers[iShaderStage]));
-      }
+        const TextureSampler** ppSamplersToBind = m_pCachedTextureSamplers[uStageIdx];
+        const uint32 uSamplerBindMask = m_uTextureSamplerBindMask[uStageIdx];
+        m_uTextureSamplerBindMask[uStageIdx] = 0u;
 
-      // Read buffers
-      if (resourceRebindMask & (uint32) ResourceRebindFlags::READ_BUFFERS)
-      {
-        // TODO: Have to be handled as either ShaderStorage buffers or BufferTextures internally... 
+        const uint32 uNumSamplersToBind = m_uNumTextureSamplersToBind[uStageIdx];
+        m_uNumTextureSamplersToBind[uStageIdx] = 0u;
+        for (uint32 i = 0u; i < uNumSamplersToBind; ++i)
+        {
+          if ((uSamplerBindMask & (1 << i)) > 0)
+          {
+            const TextureSampler* pSampler = ppSamplersToBind[i];
+            const GLuint uGlhandle = pSampler ? pSampler->getGLhandle() : 0u;
+
+            glBindSampler(i, uGlhandle);  
+          }
+        }
       }
 
       // Write textures
-      if (resourceRebindMask & (uint32) ResourceRebindFlags::WRITE_TEXTURES)
+      if (uResourceRebindMask & (uint32) ResourceRebindFlags::WRITE_TEXTURES)
       {
-        bindWriteTextures(pGpuProgram->getWriteTextureInfoList(), m_pCachedWriteTextures[iShaderStage],
-          _countof(m_pCachedWriteTextures[iShaderStage]));
+        const Texture** ppTexturesToBind = m_pCachedWriteTextures[uStageIdx];
+        const uint32 uWriteTextureBindMask = m_uWriteTextureBindMask[uStageIdx];
+        m_uWriteTextureBindMask[uStageIdx] = 0u;
+
+        const uint uNumWriteTexturesTobind = m_uNumWriteTexturesToBind[uStageIdx];
+        m_uNumWriteTexturesToBind[uStageIdx] = 0u;
+        for (uint32 i = 0u; i < uNumWriteTexturesTobind; ++i)
+        {
+          if ((uWriteTextureBindMask & (1 << i)) > 0)
+          {
+            const Texture* pTexture = ppTexturesToBind[i];
+            const GLuint uGlhandle = pTexture ? pTexture->getGLhandle() : 0u;
+            const GLenum eGLinternalFormat = pTexture ? pTexture->getInternalFormatGL() : GL_RGBA8;
+
+            glBindImageTexture(i, uGlhandle, 0, GL_FALSE, 0, GL_READ_WRITE, eGLinternalFormat);
+          }
+        }
       }
 
-      // Write buffers
-      if (resourceRebindMask & (uint32) ResourceRebindFlags::WRITE_BUFFERS)
+      // Read buffers
+      if (uResourceRebindMask & (uint32) ResourceRebindFlags::READ_BUFFERS)
       {
         // TODO: Have to be handled as either ShaderStorage buffers or BufferTextures internally... 
       }
-    }
-  }
-//---------------------------------------------------------------------------//
-  void RendererGL4::bindReadTextures(const GpuResourceInfoList& vReadTextureInfos, const Texture** ppTexturesToBind, uint32 uMaxNumTextures)
-  {
-    for (uint32 iResourceInfos = 0u, uTextureIndex = 0u; 
-         iResourceInfos < vReadTextureInfos.size() && uTextureIndex < uMaxNumTextures;
-         ++iResourceInfos)
-    {
-      const GpuProgramResourceInfo& resourceInfo = vReadTextureInfos[iResourceInfos];
-      
-      const Texture* pTextureToBind = ppTexturesToBind[uTextureIndex];
-      ASSERT_M(pTextureToBind, "A texture is requested by the shader but no texture has been set to this register index");
-                  
-      const GLenum eTextureUnitGL = 
-        internal::getTextureUnitFromIndex(uTextureIndex);
 
-      const GLuint uTextureTargetGL = resourceInfo.bindingTargetGL;
-        
-      glActiveTexture(eTextureUnitGL);
-      glBindTexture(uTextureTargetGL, pTextureToBind->getGLhandle());
-      glUniform1i(resourceInfo.u32RegisterIndex, uTextureIndex);
-
-      ++uTextureIndex;
-    }
-  }
-//---------------------------------------------------------------------------//
-  void RendererGL4::bindWriteTextures( const GpuResourceInfoList& vWriteTextureInfos, const Texture** ppTexturesToBind, uint32 uMaxNumTextures )
-  {
-    for (uint32 iResourceInfos = 0u, uTextureImageUnit = 0u; 
-      iResourceInfos < vWriteTextureInfos.size() && uTextureImageUnit < uMaxNumTextures;
-      ++iResourceInfos)
-    {
-      const GpuProgramResourceInfo& resourceInfo = vWriteTextureInfos[iResourceInfos];
-      
-      const Texture* pTextureToBind = ppTexturesToBind[uTextureImageUnit];
-      ASSERT_M(pTextureToBind, "A texture is requested by the shader but no texture has been set to this register index");
-
-      glBindImageTexture(uTextureImageUnit, pTextureToBind->getGLhandle(), 
-        0, GL_FALSE, 0, GL_READ_WRITE, pTextureToBind->getInternalFormatGL());
-      ++uTextureImageUnit;
-    }
-  }
-//---------------------------------------------------------------------------//
-  void RendererGL4::bindTextureSamplers(const GpuResourceInfoList& vReadTextureInfos, const TextureSampler** ppSamplersToBind, uint32 uMaxNumSamplers)
-  {
-    for (uint32 iResourceInfos = 0u, uTextureUnitIdx = 0u; 
-      iResourceInfos < vReadTextureInfos.size() && uTextureUnitIdx < uMaxNumSamplers;
-      ++iResourceInfos)
-    {
-      const GpuProgramResourceInfo& resourceInfo = vReadTextureInfos[iResourceInfos];
-
-      const TextureSampler* pSamplerToBind = ppSamplersToBind[uTextureUnitIdx];
-      ASSERT_M(pSamplerToBind, "A texture is requested by the shader but no textureSampler has been set to this register index");
-
-      glBindSampler(uTextureUnitIdx, pSamplerToBind->getGLhandle());
-      ++uTextureUnitIdx;
+      // Write buffers
+      if (uResourceRebindMask & (uint32) ResourceRebindFlags::WRITE_BUFFERS)
+      {
+        // TODO: Have to be handled as either ShaderStorage buffers or BufferTextures internally... 
+      }
     }
   }
 //---------------------------------------------------------------------------//

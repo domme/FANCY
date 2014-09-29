@@ -512,7 +512,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       const uint32 uNumUniformsInBlock = vPropertyValues[1];
       
       // Sanity-check of the binding point. We require it to match the eCbufferType
-      ASSERT_M(uUniformBlockBinding < ConstantBufferType::NUM &&
+      ASSERT_M(uUniformBlockBinding < (uint) ConstantBufferType::NUM &&
                (ConstantBufferType) uUniformBlockBinding == eCbufferType, 
                "CBuffer-name does not match its expected binding point");
 
@@ -555,6 +555,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
         ShaderConstantsManager::getInstance().registerElement(cBufferElement, eSemantics, eCbufferType);
       }
+    }
   }
 //---------------------------------------------------------------------------//
   void GpuProgramCompilerGL4::reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList) const
