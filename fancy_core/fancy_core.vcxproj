@@ -236,6 +236,7 @@
     <ClInclude Include="src\LoadableObject.h" />
     <ClInclude Include="src\lodepng.h" />
     <ClInclude Include="src\Material.h" />
+    <ClInclude Include="src\MaterialPass.h" />
     <ClInclude Include="src\MathUtil.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Model.h" />
@@ -244,7 +245,6 @@
     <ClInclude Include="src\NameRegistry.h" />
     <ClInclude Include="src\ObjectName.h" />
     <ClInclude Include="src\OpenGLprerequisites.h" />
-    <ClInclude Include="src\Pass_GaussianBlur.h" />
     <ClInclude Include="src\PathService.h" />
     <ClInclude Include="src\PerformanceCheck.h" />
     <ClInclude Include="src\PointLight.h" />
@@ -299,12 +299,12 @@
     <ClCompile Include="src\LoadableObject.cpp" />
     <ClCompile Include="src\lodepng.cpp" />
     <ClCompile Include="src\Material.cpp" />
+    <ClCompile Include="src\MaterialPass.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\ModelLoader.cpp" />
     <ClCompile Include="src\NameRegistry.cpp" />
     <ClCompile Include="src\ObjectName.cpp" />
-    <ClCompile Include="src\Pass_GaussianBlur.cpp" />
     <ClCompile Include="src\PathService.cpp" />
     <ClCompile Include="src\PerformanceCheck.cpp" />
     <ClCompile Include="src\PointLight.cpp" />

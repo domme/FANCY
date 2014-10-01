@@ -116,7 +116,7 @@ protected:
   uint32        m_uWriteTextureBindMask [ShaderStage::NUM];
   uint32        m_uNumWriteTexturesToBind[ShaderStage::NUM];
 
-	GpuBuffer*		m_pCachedReadBuffers [ShaderStage::NUM][kMaxNumBoundReadBuffers];
+	GpuBuffer*		m_pCachedReadBuffers [ShaderStage::NUM][kMaxNumReadBuffers];
 	uint32		    m_uReadBufferBindMask [ShaderStage::NUM];
   uint32        m_uNumReadBuffersToBind[ShaderStage::NUM];
 

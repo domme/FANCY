@@ -16,7 +16,8 @@
 namespace Fancy { enum {
   kMaxNumRenderTargets = 7u, // (-1 for depth-stencil target)
   kMaxNumBoundSamplers = 16u,
-  kMaxNumBoundReadBuffers = 32u,
+  kMaxNumReadBuffers = 32u,
+  kMaxNumWriteBuffers = 8u,
   kMaxNumReadTextures = 32u,
   kMaxNumWriteTextures = 8u,
   kMaxNumBoundConstantBuffers = 12u,

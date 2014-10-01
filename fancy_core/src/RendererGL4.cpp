@@ -482,7 +482,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setReadBuffer( GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < kMaxNumBoundReadBuffers, "Referenced an undefined buffer register");
+    ASSERT_M(u8Index < kMaxNumReadBuffers, "Referenced an undefined buffer register");
   
     if(m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8Index] == pBuffer) {
       return;

@@ -28,6 +28,9 @@
     <Filter Include="src\Math">
       <UniqueIdentifier>{df3b2819-40ab-4734-9789-c9d138468e7c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Rendering\Materials">
+      <UniqueIdentifier>{93e6f866-a173-4b27-973f-a4c43f442dbe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\StdAfx.h">
@@ -71,9 +74,6 @@
     </ClInclude>
     <ClInclude Include="src\lodepng.h">
       <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Material.h">
-      <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\ModelLoader_LogStream.h">
       <Filter>src\IO</Filter>
@@ -127,9 +127,6 @@
       <Filter>src\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\DeferredRenderAlgorithm.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Pass_GaussianBlur.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\SceneLoader.h">
@@ -243,6 +240,13 @@
     <ClInclude Include="src\TextureSamplerGL4.h">
       <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
+    <ClInclude Include="src\GpuProgramResourceGL4.h" />
+    <ClInclude Include="src\Material.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MaterialPass.h">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -274,9 +278,6 @@
     </ClCompile>
     <ClCompile Include="src\lodepng.cpp">
       <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Material.cpp">
-      <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\ModelLoader.cpp">
       <Filter>src\IO</Filter>
@@ -327,9 +328,6 @@
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\DeferredRenderAlgorithm.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Pass_GaussianBlur.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\SceneLoader.cpp">
@@ -406,6 +404,12 @@
     </ClCompile>
     <ClCompile Include="src\TextureSamplerGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Material.cpp">
+      <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MaterialPass.cpp">
+      <Filter>src\Rendering\Materials</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
