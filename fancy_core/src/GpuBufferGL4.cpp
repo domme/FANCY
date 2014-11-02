@@ -3,7 +3,7 @@
 
 #include "TimeManager.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   namespace internal 
   {
@@ -397,10 +397,5 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     glBindBuffer(m_clParameters.eInitialBufferTargetGL, origBoundBuffer);
   }
 //---------------------------------------------------------------------------//
-  bool GpuBufferGL4::isValid() const
-  {
-    return getGLhandle() != GLUINT_HANDLE_INVALID;
-  }
 //---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-} } } } // end of namespace Fancy::Core::Rendering::GL4
+} } } // end of namespace Fancy::Rendering::GL4

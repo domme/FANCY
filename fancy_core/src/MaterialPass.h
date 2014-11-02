@@ -6,10 +6,9 @@
 
 #include "FixedArray.h"
 #include "ObjectName.h"
-
 #include "GpuProgram.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   typedef FixedArray<Texture*, kMaxNumReadTextures> ReadTextureList;
   typedef FixedArray<Texture*, kMaxNumWriteTextures> WriteTextureList;
@@ -26,22 +25,21 @@ namespace Fancy { namespace Core { namespace Rendering {
     TextureSamplerList textureSamplers[(uint32) ShaderStage::NUM];
   };
 //---------------------------------------------------------------------------//
-  class MaterialPass 
+  class MaterialPass
   {
     public:
       MaterialPass();
       ~MaterialPass();
 
+      const ObjectName& getName() const { return m_Name; }
+      const MaterialPassData* getMaterialPassData() const {return m_pData;}
       void setMaterialPassData(const MaterialPassData* pData);
-      const MaterialPassData* getMaterialPassData() {return m_pData;}
-
-      const GpuProgram* getGpuProgram(const ShaderStage eShaderStage) {return m_pGpuProgram[(uint32) eShaderStage];}
-
+      const GpuProgram* getGpuProgram(const ShaderStage eShaderStage) const {return m_pGpuProgram[(uint32) eShaderStage];}
       FillMode getFillMode() const {return m_eFillMode;}
       CullMode getCullMode() const {return m_eCullMode;}
       WindingOrder getWindingOrder() const {return m_eWindingOrder;}
-      const BlendState& getBlendState() const {return m_clBlendState;}
-      const DepthStencilState& getDepthStencilState() const {return m_clDepthStencilState;}
+      const BlendState* getBlendState() const {return m_pBlendState;}
+      const DepthStencilState* getDepthStencilState() const {return m_pDepthStencilState;}
 
     private:
       ObjectName m_Name;
@@ -50,12 +48,12 @@ namespace Fancy { namespace Core { namespace Rendering {
       FillMode m_eFillMode;
       CullMode m_eCullMode;
       WindingOrder m_eWindingOrder;
-      BlendState m_clBlendState;
-      DepthStencilState m_clDepthStencilState;
+      BlendState* m_pBlendState;
+      DepthStencilState* m_pDepthStencilState;
 
       const MaterialPassData* m_pData;
   };
 //---------------------------------------------------------------------------//
-} } } // end of namespace Fancy::Core::Rendering
+} } // end of namespace Fancy::Rendering
 
 #endif  // INCLUDE_MATERIALPASS_H

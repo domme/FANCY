@@ -3,7 +3,7 @@
 #include "AdapterGL4.h"
 #include "ShaderConstantsManager.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   namespace internal 
   {
@@ -348,7 +348,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
     GLint numResources = 0;  // Will contain the overall number of uniforms - including block uniforms
     glGetProgramInterfaceiv(uProgram, GL_UNIFORM, GL_ACTIVE_RESOURCES, &numResources);
-    const GLenum vProperties[] = {GL_BLOCK_INDEX, GL_TYPE​, GL_NAME_LENGTH​, GL_LOCATION};
+    const GLenum vProperties[] = {GL_BLOCK_INDEX, GL_TYPE, GL_NAME_LENGTH, GL_LOCATION};
 
     for(int iUniform = 0; iUniform < numResources; ++iUniform)
     {
@@ -362,16 +362,16 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
         continue;
       }
       
-      String szName(vPropertyValues[GL_NAME_LENGTH], ' ');
+      String szName(vPropertyValues[2], ' ');
       glGetProgramResourceName(uProgram, GL_UNIFORM, iUniform, szName.size(), nullptr, &szName[0]);
 
       // Construct the resourceInfo object
       GpuProgramResourceInfo resourceInfo;
       resourceInfo.name = szName;
       resourceInfo.u32RegisterIndex = vPropertyValues[3];
-      internal::getResourceTypeAndAccessTypeFromGLtype(vProperties[1], 
+      internal::getResourceTypeAndAccessTypeFromGLtype(vPropertyValues[1], 
         resourceInfo.eResourceType, resourceInfo.eAccessType);
-      
+            
       resourceInfo.bindingTargetGL = 
         Adapter::mapResourceTypeToGLbindingTarget(resourceInfo.eResourceType);
 
@@ -419,7 +419,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     const GLenum vProperties[] = {GL_TYPE, GL_LOCATION};
     for (uint32 i = 0u; i < iNumResources; ++i)
     {
-      GLchar _name[128] = {0u};
+      GLchar _name[256] = {0u};
       glGetProgramResourceName(uProgram, eInterface, i, _countof(_name), nullptr, _name);
 
       GLint vPropertyValues[_countof(vProperties)] = {0x0};
@@ -566,11 +566,6 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   void GpuProgramCompilerGL4::reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList) const
   {
     // TODO: Implement
-  }
-
-
-
-  //---------------------------------------------------------------------------//
-  
+  } 
 //---------------------------------------------------------------------------//
-} } } } // end of namespace Fancy::Core::Rendering:GL4
+} } } // end of namespace Fancy::Rendering:GL4

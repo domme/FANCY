@@ -2,7 +2,7 @@
 
 #include "MathUtil.h"
 
-namespace Fancy { namespace Core {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace internal 
   {
@@ -121,4 +121,4 @@ namespace Fancy { namespace Core {
   }
 //---------------------------------------------------------------------------//
 
-} } // end of namespace Fancy { namespace Core { namespace Common {
+} // end of namespace Fancy { namespace Common {

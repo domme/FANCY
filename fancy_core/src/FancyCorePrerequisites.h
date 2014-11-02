@@ -23,7 +23,7 @@
 #define BUFFER_OFFSET(i) ( (char*) NULL + (i) )
 //---------------------------------------------------------------------------//  
   template<typename T>
-  void _log_impl(T s, String szPrefix)
+  void _log_impl(T s, const std::string& szPrefix)
   {
     std::ostringstream ss;
     ss << szPrefix << s << '\n';
@@ -122,7 +122,7 @@ void log_Info( glm::vec3 vec )
 //---------------------------------------------------------------------------//
 // Forward declarations
 //---------------------------------------------------------------------------//
-namespace Fancy { namespace Core { 
+namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Common {
     class ObjectName;
@@ -135,12 +135,12 @@ namespace Fancy { namespace Core {
     class GeometryData;
   }
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Core
+} // end of namespace Fancy
 
 //---------------------------------------------------------------------------//
 // Typedefs
 //---------------------------------------------------------------------------//
-  namespace Fancy { namespace Core {
+  namespace Fancy {
     typedef std::string String;
 
     typedef glm::uint16		uint16;
@@ -151,10 +151,13 @@ namespace Fancy { namespace Core {
     typedef glm::uint32     uint;
     typedef glm::int32    int32;
     typedef double        float64;
-  } }  // end of namespace Fancy::Core
+
+    // TODO: This seems to give compile-errors on VS 2012
+    //template<class T>
+    //using DynamicArray = std::vector<T>;
+  }  // end of namespace Fancy
 //---------------------------------------------------------------------------//
-  template<class T>
-  using DynamicArray = std::string<T>;
+  
 //---------------------------------------------------------------------------//
 
 #endif  // INCLUDE_FANCYCOREPREREQUISITES_H

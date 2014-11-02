@@ -3,7 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 
-namespace Fancy { namespace Core {
+namespace Fancy {
 
 class MathUtil {
 public:
@@ -32,7 +32,6 @@ private:
   ~MathUtil();
 };
 
-} // end of namespace Core
 } // end of namespace Fancy
 
 #endif  // INCLUDE_MATHUTIL_H

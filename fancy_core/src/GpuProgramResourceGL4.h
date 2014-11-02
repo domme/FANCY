@@ -5,7 +5,7 @@
 #include "RendererPrerequisites.h"
 #include "OpenGLprerequisites.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy {namespace Rendering { namespace GL4 {
   struct GpuProgramResourceGL4 {
     /// e.g. GL_TEXTURE_1D/2D/3D for textures
     GLenum bindingTargetGL;
@@ -13,6 +13,6 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     GLenum dataFormatGL;
   };
 
-} } } } // end of namespace Fancy::Core::Rendering::GL4
+} } } // end of namespace Fancy::Rendering::GL4
 
 #endif INCLUDE_GPUPROGRAMRESOURCEGL4_H

@@ -5,8 +5,11 @@
 #include "RendererPrerequisites.h"
 #include "FixedArray.h"
 #include "ObjectName.h"
+#include "GpuProgramResource.h"
+#include "VertexInputLayout.h"
+#include "GPUProgramGL4.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   class GpuProgramCompilerGL4
   {
@@ -28,10 +31,10 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     void reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList) const;
     void reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList) const;
     
-    const uint32 kMaxNumLogChars = 10000u;
+    static const uint32 kMaxNumLogChars = 10000u;
     char m_LogBuffer[kMaxNumLogChars];
   };
 //---------------------------------------------------------------------------//
-} } } } // end of namespace Fancy::Core::Rendering:GL4
+} } } // end of namespace Fancy::Rendering:GL4
 
 #endif  // INCLUDE_GPUPROGRAMPIPELINEGL4_H

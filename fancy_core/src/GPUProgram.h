@@ -5,13 +5,13 @@
 #include "RendererPrerequisites.h"
 #include PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 
   class GpuProgram : public PLATFORM_DEPENDENT_NAME(GpuProgram)
   {
 
   };
 
-} } } // end of namespace Fancy::Core::Rendering
+} } // end of namespace Fancy::Rendering
 
 #endif  // INCLUDE_GPUPROGRAM_H

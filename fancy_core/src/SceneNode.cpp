@@ -1,3 +1,6 @@
+#pragma region Old SceneNode code
+
+/*
 #include <includes.h>
 #include <Math/QuaternionService.h>
 
@@ -375,4 +378,7 @@ const String SceneNode::getName() const
 {
 	return m_szName;
 }
+*/
 
+
+#pragma endregion Old SceneNode code

@@ -5,7 +5,7 @@
 
 #include "GpuBuffer.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   namespace internal
   {
@@ -131,7 +131,7 @@ namespace Fancy { namespace Core { namespace Rendering {
     return ConstantSemantics::NONE;
   }
 //---------------------------------------------------------------------------//
-  Fancy::Core::Rendering::ConstantBufferType ShaderConstantsManager::getConstantBufferTypeFromName( const ObjectName& clName )
+  Fancy::Rendering::ConstantBufferType ShaderConstantsManager::getConstantBufferTypeFromName( const ObjectName& clName )
   {
     internal::ConstantBufferTypeMap::const_iterator it = internal::mapConstantBufferTypes.find(clName);
     ASSERT(it != internal::mapConstantBufferTypes.end());
@@ -325,4 +325,4 @@ namespace Fancy { namespace Core { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//
-} } } 
+} } 

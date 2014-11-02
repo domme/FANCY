@@ -6,7 +6,7 @@
 
 #include "FixedArray.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   class GpuBufferGL4
   {
@@ -16,7 +16,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 
       bool isLocked() const { return m_clStateInfos.isLocked; }
       bool isLockedPersistent() const { return m_clStateInfos.isLockedPersistent; }
-      bool isValid() const { !m_vGLhandles.empty(); }
+      bool isValid() const { return !m_vGLhandles.empty(); }
       GLuint getGLhandle() const { return m_vGLhandles[getBufferIndex()]; }
       uint getTotalSizeBytes() const { return m_clParameters.uTotalSizeBytes; }
       uint32 getNumElements() const { return m_clParameters.uNumElements; }
@@ -71,7 +71,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   //---------------------------------------------------------------------------//
   };
 
-} } } } // end of namespace Fancy::Core::Rendering::GL4
+} } } // end of namespace Fancy::Rendering::GL4
 
 
 #endif  // INCLUDE_GPUBUFFERGL4_H

@@ -1,6 +1,6 @@
 #include "VertexInputLayout.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   namespace Validation 
   {
@@ -45,4 +45,4 @@ namespace Fancy { namespace Core { namespace Rendering {
   }
 //---------------------------------------------------------------------------//
 
-} } }  // end of namespace Fancy::Core::Rendering
+} }  // end of namespace Fancy::Rendering

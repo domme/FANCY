@@ -1,7 +1,7 @@
-#ifndef EVENTS_H
-#define EVENTS_H
+#ifndef INCLUDE_EVENTS_H
+#define INCLUDE_EVENTS_H
 
-#include "../includes.h"
+#include "FancyCorePrerequisites.h"
 
 /**********************************************************************//**
 * This header-file includes different types of events and event-handlers for different
@@ -97,5 +97,4 @@ class Delegate1Param
 		std::vector<BaseListener1<Param1T>*> m_vListeners;
 };		
 
-
-#endif
+#endif  // INCLUDE_EVENTS_H

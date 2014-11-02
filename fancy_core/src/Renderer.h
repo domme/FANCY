@@ -5,7 +5,7 @@
 #include "RendererPrerequisites.h"
 #include PLATFORM_DEPENDENT_INCLUDE_RENDERER;
 
-namespace Fancy { namespace Core {  namespace Rendering {
+namespace Fancy { namespace Rendering {
 
 class Renderer : public PLATFORM_DEPENDENT_NAME(Renderer)
 {
@@ -18,7 +18,6 @@ class Renderer : public PLATFORM_DEPENDENT_NAME(Renderer)
 };
 
 } // end of namespace Rendering
-} // end of namespace Core
 } // end of namespace Fancy
 
 #endif  // INCLUDE_RENDERER_H

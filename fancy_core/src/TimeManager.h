@@ -3,7 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 
-namespace Fancy { namespace Core {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class TimeManager 
   {
@@ -20,7 +20,7 @@ namespace Fancy { namespace Core {
       uint32 m_uCurrentFrameIndex;
   };
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Core
+}  // end of namespace Fancy
 
 
 #endif  // INCLUDE_TIMEMANAGER_H

@@ -7,8 +7,8 @@
 #include "GeometryVertexLayout.h"
 #include "GpuBuffer.h"
 
-namespace Fancy { namespace Core { namespace Geometry {
-
+namespace Fancy { namespace Geometry {
+//---------------------------------------------------------------------------//
   class GeometryData {
     public:
       GeometryData();
@@ -28,7 +28,7 @@ namespace Fancy { namespace Core { namespace Geometry {
       uint32 m_uVertexStrideBytes;
       uint32 m_uNumVertices;
   };
-
-} } }  // end of namespace Fancy::Core::Geometry::
+//---------------------------------------------------------------------------//
+} }  // end of namespace Fancy::Geometry::
 
 #endif  // INCLUDE_GEOMETRYDATA_H

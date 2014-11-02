@@ -1,4 +1,7 @@
 
+#pragma region Old SceneNode code
+
+/*
 #ifndef SCENENODE_H
 #define	SCENENODE_H
 
@@ -82,3 +85,5 @@ private:
 
 
 #endif
+*/
+#pragma endregion Old SceneNode code

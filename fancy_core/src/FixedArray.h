@@ -3,7 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 
-namespace Fancy { namespace Core {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   template<class T, uint32 capacity>
   class FixedArrayDatastore_Stack
@@ -56,8 +56,9 @@ namespace Fancy { namespace Core {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  template<class T, uint32 u32Capacity, template<class, uint32> StorageType = FixedArrayDatastore_Stack>
-  class FixedArray : StorageType<T, u32Capacity>
+  //template<class T, uint32 u32Capacity, template<class, uint32> StorageType = FixedArrayDatastore_Stack>
+  template<class T, uint32 u32Capacity>
+  class FixedArray : FixedArrayDatastore_Stack<T, u32Capacity>
   {
     public:
       FixedArray();
@@ -80,15 +81,22 @@ namespace Fancy { namespace Core {
       uint32 m_u32Size;
   };
 //---------------------------------------------------------------------------//
-  template<class T, uint32 capacity, class StorageType /* = FixedArrayDatastore_Stack */>
-  FixedArray<T, capacity, StorageType>::FixedArray() :
+  //template<class T, uint32 capacity, class StorageType /* = FixedArrayDatastore_Stack */>
+  //FixedArray<T, capacity, StorageType>::FixedArray() :
+  //  m_u32Size(0), 
+  //  StorageType<T, capacity>()
+  //{
+  //
+  //}
+  template<class T, uint32 u32Capacity>
+  FixedArray<T, u32Capacity>::FixedArray() :
     m_u32Size(0), 
-    StorageType<T, capacity>()
+    FixedArrayDatastore_Stack<T, u32Capacity>()
   {
 
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Core
+} // end of namespace Fancy
 
 
 #endif  // INCLUDE_FIXEDARRAY_H

@@ -5,7 +5,7 @@
 #include "ObjectName.h"
 #include "FixedArray.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct GeometryVertexElement 
   {
@@ -45,7 +45,7 @@ namespace Fancy { namespace Core { namespace Rendering {
       VertexElementList m_vVertexElements;
   };
 //---------------------------------------------------------------------------//
-} } }  // end of namespace Fancy::Core::Rendering
+} }  // end of namespace Fancy::Rendering
 
 
 #endif  // INCLUDE_VERTEXLAYOUT_H

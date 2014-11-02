@@ -1,7 +1,7 @@
 
 #include "TimeManager.h"
 
-namespace Fancy { namespace Core {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   TimeManager::TimeManager() :
     m_uCurrentFrameIndex(0u)
@@ -20,5 +20,5 @@ namespace Fancy { namespace Core {
   }
 //---------------------------------------------------------------------------//
  
-} }  // end of namespace Fancy::Core
+}  // end of namespace Fancy
 

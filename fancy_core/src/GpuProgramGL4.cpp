@@ -1,6 +1,6 @@
 #include "GpuProgramGL4.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   GpuProgramGL4::GpuProgramGL4() :
     m_eShaderStage(ShaderStage::NONE),
@@ -24,4 +24,4 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     m_eShaderStage = ShaderStage::NONE;
   }
 //---------------------------------------------------------------------------//
-} } } }  // end of namespace Fancy::Core::Rendering::GL4
+} } }  // end of namespace Fancy::Rendering::GL4

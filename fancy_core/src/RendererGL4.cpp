@@ -7,7 +7,7 @@
 #include "GPUProgram.h"
 #include "TextureSampler.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   #define GL_SET_CAP(eCap, bEnabled) { if(bEnabled) glEnable(eCap); else glDisable(eCap); }
   #define GL_SET_CAPi(eCap, index, bEnabled) { if(bEnabled) glEnablei(eCap, index); else glDisablei(eCap, index); }
@@ -93,12 +93,12 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   {
     switch (eShaderStage)
     {
-      case Fancy::Core::Rendering::ShaderStage::VERTEX: return GL_VERTEX_SHADER_BIT;
-      case Fancy::Core::Rendering::ShaderStage::FRAGMENT: return GL_FRAGMENT_SHADER_BIT;
-      case Fancy::Core::Rendering::ShaderStage::GEOMETRY: return GL_GEOMETRY_SHADER_BIT;
-      case Fancy::Core::Rendering::ShaderStage::TESS_HULL: return GL_TESS_CONTROL_SHADER_BIT;
-      case Fancy::Core::Rendering::ShaderStage::TESS_DOMAIN: return GL_TESS_EVALUATION_SHADER_BIT;
-      case Fancy::Core::Rendering::ShaderStage::COMPUTE: return GL_COMPUTE_SHADER_BIT;
+      case Fancy::Rendering::ShaderStage::VERTEX: return GL_VERTEX_SHADER_BIT;
+      case Fancy::Rendering::ShaderStage::FRAGMENT: return GL_FRAGMENT_SHADER_BIT;
+      case Fancy::Rendering::ShaderStage::GEOMETRY: return GL_GEOMETRY_SHADER_BIT;
+      case Fancy::Rendering::ShaderStage::TESS_HULL: return GL_TESS_CONTROL_SHADER_BIT;
+      case Fancy::Rendering::ShaderStage::TESS_DOMAIN: return GL_TESS_EVALUATION_SHADER_BIT;
+      case Fancy::Rendering::ShaderStage::COMPUTE: return GL_COMPUTE_SHADER_BIT;
       default: ASSERT(false); return GL_VERTEX_SHADER_BIT;
     }
   }
@@ -132,21 +132,21 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   {
     switch (eResourceType)
     {
-      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_1D:
+      case Fancy::Rendering::GpuResourceType::TEXTURE_1D:
         return GL_TEXTURE_1D;
-      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_2D:
+      case Fancy::Rendering::GpuResourceType::TEXTURE_2D:
         return GL_TEXTURE_2D;
-      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_3D:
+      case Fancy::Rendering::GpuResourceType::TEXTURE_3D:
         return GL_TEXTURE_3D;
-      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_CUBE:
+      case Fancy::Rendering::GpuResourceType::TEXTURE_CUBE:
         return GL_TEXTURE_CUBE_MAP;
-      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_1D_SHADOW:
+      case Fancy::Rendering::GpuResourceType::TEXTURE_1D_SHADOW:
         return GL_TEXTURE_1D;
-      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_2D_SHADOW:
+      case Fancy::Rendering::GpuResourceType::TEXTURE_2D_SHADOW:
         return GL_TEXTURE_2D;
-      case Fancy::Core::Rendering::GpuResourceType::TEXTURE_CUBE_SHADOW:
+      case Fancy::Rendering::GpuResourceType::TEXTURE_CUBE_SHADOW:
         return GL_TEXTURE_CUBE_MAP;
-      case Fancy::Core::Rendering::GpuResourceType::BUFFER_TEXTURE:
+      case Fancy::Rendering::GpuResourceType::BUFFER_TEXTURE:
         return GL_TEXTURE_BUFFER;
       default:
         ASSERT_M(false, "The provided glsl resource is no texture");
@@ -167,8 +167,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     m_pCachedDepthStencilTarget(nullptr),
     m_uCurrentFBO(0u),
     m_uCurrentGpuProgramPipeline(0u),
-    m_uCurrentVAO(0u),
-    LoadableObject::LoadableObject()
+    m_uCurrentVAO(0u)
   {
     memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
 
@@ -616,7 +615,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       // Constant buffers
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::CONSTANT_BUFFERS)
       {
-        const GpuBuffer** ppConstantBuffersToBind = m_pCachedConstantBuffers[uStageIdx];
+        GpuBuffer** ppConstantBuffersToBind = m_pCachedConstantBuffers[uStageIdx];
         const uint32 uConstantBufferBindMask = m_uConstantBufferBindMask[uStageIdx];
         m_uConstantBufferBindMask[uStageIdx] = 0u;
 
@@ -1226,4 +1225,4 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   }
 //---------------------------------------------------------------------------//
 
-} } } }  // end of namespace Fancy::Core::Rendering::GL4
+} } }  // end of namespace Fancy::Rendering::GL4

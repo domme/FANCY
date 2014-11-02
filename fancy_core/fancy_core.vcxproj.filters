@@ -36,23 +36,11 @@
     <ClInclude Include="src\StdAfx.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\QuaternionService.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ShaderLoader.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ShaderSemantics.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\Camera.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\ComputeOperation.h">
       <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DirectionalLight.h">
-      <Filter>src\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Events.h">
       <Filter>src\Common</Filter>
@@ -63,35 +51,14 @@
     <ClInclude Include="src\FileReader.h">
       <Filter>src\IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\GLResourcePathManager.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Light.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\LoadableObject.h">
       <Filter>src\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\lodepng.h">
       <Filter>src\IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\ModelLoader_LogStream.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ModelLoader.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NameRegistry.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
     <ClInclude Include="src\PathService.h">
       <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PerformanceCheck.h">
-      <Filter>src\Debug</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PointLight.h">
-      <Filter>src\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\RenderOperation.h">
       <Filter>src\Rendering</Filter>
@@ -99,55 +66,13 @@
     <ClInclude Include="src\Renderer.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\SpotLight.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\StatsManager.h">
-      <Filter>src\Debug</Filter>
-    </ClInclude>
     <ClInclude Include="src\Texture.h">
       <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureLoader.h">
-      <Filter>src\IO</Filter>
     </ClInclude>
     <ClInclude Include="src\SceneNode.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\SceneManager.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\BaseRenderableObject.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Entity.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DeferredRenderAlgorithm.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SceneLoader.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureSemantics.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureManager.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TransformSQT.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GPUResourceManager.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\RendererGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GLBufferUploader.h">
       <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
     <ClInclude Include="src\GLDebug.h">
@@ -192,9 +117,6 @@
     <ClInclude Include="src\AdapterGL4.h">
       <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
-    <ClInclude Include="src\GLutil.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
     <ClInclude Include="src\GeometryData.h">
       <Filter>src\Geometry</Filter>
     </ClInclude>
@@ -214,9 +136,6 @@
       <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
     <ClInclude Include="src\GpuProgramCompiler.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramInterfaces.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\GeometryVertexLayout.h">
@@ -240,19 +159,18 @@
     <ClInclude Include="src\TextureSamplerGL4.h">
       <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuProgramResourceGL4.h" />
     <ClInclude Include="src\Material.h">
       <Filter>src\Rendering\Materials</Filter>
     </ClInclude>
     <ClInclude Include="src\MaterialPass.h">
       <Filter>src\Rendering\Materials</Filter>
     </ClInclude>
+    <ClInclude Include="src\GpuProgramResourceGL4.h">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ShaderLoader.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Camera.cpp">
@@ -261,17 +179,8 @@
     <ClCompile Include="src\ComputeOperation.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\DirectionalLight.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\FileReader.cpp">
       <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GLResourcePathManager.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Light.cpp">
-      <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\LoadableObject.cpp">
       <Filter>src\Common</Filter>
@@ -279,20 +188,8 @@
     <ClCompile Include="src\lodepng.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
-    <ClCompile Include="src\ModelLoader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NameRegistry.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
     <ClCompile Include="src\PathService.cpp">
       <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PerformanceCheck.cpp">
-      <Filter>src\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PointLight.cpp">
-      <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer.cpp">
       <Filter>src\Rendering</Filter>
@@ -300,50 +197,8 @@
     <ClCompile Include="src\RenderOperation.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\SpotLight.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\StatsManager.cpp">
-      <Filter>src\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Texture.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TextureLoader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SceneManager.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\SceneNode.cpp">
       <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\BaseRenderableObject.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Entity.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DeferredRenderAlgorithm.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SceneLoader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TextureManager.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TransformSQT.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GPUResourceManager.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GLBufferUploader.cpp">
-      <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
     <ClCompile Include="src\RendererGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
@@ -369,9 +224,6 @@
     <ClCompile Include="src\GpuBufferGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
-    <ClCompile Include="src\GLutil.cpp">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
     <ClCompile Include="src\RendererPrerequisites.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
@@ -388,9 +240,6 @@
       <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
     <ClCompile Include="src\GeometryVertexLayout.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GpuProgramPipeline.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\GpuProgramPipelineGL4.cpp">

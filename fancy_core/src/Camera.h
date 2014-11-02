@@ -1,3 +1,7 @@
+
+
+#pragma region Old camera code
+/*
 #ifndef CAMERA_H
 #define CAMERA_H
 
@@ -78,3 +82,5 @@ private:
 };
 
 #endif
+*/
+#pragma endregion Old camera code

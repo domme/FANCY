@@ -1,7 +1,7 @@
 #include "TextureSamplerGL4.h"
 #include "AdapterGL4.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   namespace internal {
     GLuint getGLfilteringType(SamplerFilterMode eFilterMode, bool bUseMipmaps);
@@ -12,12 +12,12 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   {
     switch (eFilterMode)
     {
-      case Fancy::Core::Rendering::SamplerFilterMode::NEAREST:
+      case Fancy::Rendering::SamplerFilterMode::NEAREST:
         return bUseMipmaps ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
-      case Fancy::Core::Rendering::SamplerFilterMode::BILINEAR:
+      case Fancy::Rendering::SamplerFilterMode::BILINEAR:
         return bUseMipmaps ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR;
-      case Fancy::Core::Rendering::SamplerFilterMode::TRILINEAR:
-      case Fancy::Core::Rendering::SamplerFilterMode::ANISOTROPIC:
+      case Fancy::Rendering::SamplerFilterMode::TRILINEAR:
+      case Fancy::Rendering::SamplerFilterMode::ANISOTROPIC:
         return GL_LINEAR_MIPMAP_LINEAR;
       default:
         ASSERT_M(false, "Invalid filtering mode");
@@ -31,17 +31,17 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
   {
     switch (eAddressMode)
     {
-      case Fancy::Core::Rendering::SamplerAddressMode::WRAP:
+      case Fancy::Rendering::SamplerAddressMode::WRAP:
         return GL_WRAP_BORDER;
-      case Fancy::Core::Rendering::SamplerAddressMode::CLAMP_EDGE:
+      case Fancy::Rendering::SamplerAddressMode::CLAMP_EDGE:
         return GL_CLAMP_TO_EDGE;
-      case Fancy::Core::Rendering::SamplerAddressMode::MIRROR_CLAMP_EDGE:
+      case Fancy::Rendering::SamplerAddressMode::MIRROR_CLAMP_EDGE:
         return GL_MIRROR_CLAMP_TO_EDGE;
-      case Fancy::Core::Rendering::SamplerAddressMode::CLAMP_BORDER:
+      case Fancy::Rendering::SamplerAddressMode::CLAMP_BORDER:
         return GL_CLAMP_TO_BORDER;
-      case Fancy::Core::Rendering::SamplerAddressMode::REPEAT:
+      case Fancy::Rendering::SamplerAddressMode::REPEAT:
         return GL_REPEAT;
-      case Fancy::Core::Rendering::SamplerAddressMode::MIRROR_REPEAT:
+      case Fancy::Rendering::SamplerAddressMode::MIRROR_REPEAT:
         return GL_MIRRORED_REPEAT;
       default:
         ASSERT_M(false, "Invalid address mode");
@@ -129,4 +129,4 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
       m_properties = TextureSamplerProperties();
     }
   }
-} } } }  // end of namespace Fancy::Core::Rendering::GL4
+} } }  // end of namespace Fancy::Rendering::GL4

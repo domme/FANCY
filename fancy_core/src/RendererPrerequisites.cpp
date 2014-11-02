@@ -1,6 +1,6 @@
 #include "RendererPrerequisites.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   namespace MultiBuffering 
   {
@@ -30,7 +30,7 @@ namespace Fancy { namespace Core { namespace Rendering {
     bStencilEnabled(true),
     bTwoSidedStencil(false),
     iStencilRef(1),
-    uStencilReadMask((Fancy::Core::uint32)-1)
+    uStencilReadMask((Fancy::uint32)-1)
   {
     static uint32 numDepthStencilStates = 0;
     u32Hash = ++numDepthStencilStates;
@@ -82,4 +82,4 @@ namespace Fancy { namespace Core { namespace Rendering {
   }
 //---------------------------------------------------------------------------//
   
- } } }  // end of namespace Fancy::Core::Rendering
+ } }  // end of namespace Fancy::Rendering

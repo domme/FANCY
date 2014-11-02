@@ -5,14 +5,14 @@
 #include "RendererPrerequisites.h"
 #include PLATFORM_DEPENDENT_INCLUDE_GPUBUFFER
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 
   class GpuBuffer : public PLATFORM_DEPENDENT_NAME(GpuBuffer)
   {
 
   };
 
-} } } // end of namespace Fancy::Core::Rendering
+} } // end of namespace Fancy::Rendering
 
 
 #endif  // INCLUDE_GPUBUFFER_H

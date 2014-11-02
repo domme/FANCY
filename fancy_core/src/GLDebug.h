@@ -4,7 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "OpenGLprerequisites.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 
 class GLDebug
 {
@@ -88,6 +88,6 @@ public:
 //---------------------------------------------------------------------------//
 };
 
-} } } // end of namespace Fancy::Core::Rendering
+} } // end of namespace Fancy::Rendering
 
 #endif  // INCLUDE_GLDEBUG_H

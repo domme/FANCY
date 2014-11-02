@@ -5,7 +5,7 @@
 #include "ObjectName.h"
 #include "FixedArray.h"
 
-namespace Fancy { namespace Core { namespace Geometry { 
+namespace Fancy { namespace Geometry { 
 //---------------------------------------------------------------------------//
   class GeometryData;
 //---------------------------------------------------------------------------//
@@ -36,6 +36,6 @@ namespace Fancy { namespace Core { namespace Geometry {
     ObjectName m_Name;
   };
   //---------------------------------------------------------------------------//
-} } }  // end of namespace Fancy::Core::Geometry
+} }  // end of namespace Fancy::Geometry
 
 #endif  // INCLUDE_MESH_H

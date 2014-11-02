@@ -26,7 +26,7 @@ namespace Fancy { enum {
   kMaxNumConstantBufferElements = 128u
 }; }
 //---------------------------------------------------------------------------//
-namespace Fancy { namespace Core {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class MemoryCategory {
     TEXTURES,
@@ -80,7 +80,7 @@ namespace Fancy { namespace Core {
         class GpuProgramResourceGL4;
       }
 
-      #define PLATFORM_DEPENDENT_NAME(name) Fancy::Core::Rendering::GL4::name##GL4
+      #define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::GL4::name##GL4
       #define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_TEXTURESAMPLER "TextureSamplerGL4.h"
@@ -92,7 +92,7 @@ namespace Fancy { namespace Core {
 
     #elif defined (RENDERER_DX11)
       namespace DX11 {}
-      #define PLATFORM_DEPENDENT_NAME(name) Fancy::Core::Rendering::GL4::name##DX11
+      #define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX11::name##DX11
     #endif // RENDERER
   //---------------------------------------------------------------------------//
 
@@ -464,7 +464,7 @@ namespace Fancy { namespace Core {
     };
 //---------------------------------------------------------------------------//
   } // end of namespace Rendering 
-} }  // end of namespace Fancy::Core
+  }  // end of namespace Fancy
 //---------------------------------------------------------------------------//
 
 #endif  // INCLUDE_RENDERERPREREQUISITES

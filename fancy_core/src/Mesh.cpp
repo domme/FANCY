@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-namespace Fancy { namespace Core { namespace Geometry {
+namespace Fancy { namespace Geometry {
 
   Mesh::Mesh()
   {
@@ -12,4 +12,4 @@ namespace Fancy { namespace Core { namespace Geometry {
 
   }
 
-} } }  // end of namespace Fancy::Core::Geometry
+} }  // end of namespace Fancy::Geometry

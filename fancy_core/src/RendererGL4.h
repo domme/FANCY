@@ -5,17 +5,19 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "LoadableObject.h"
+#include "GeometryVertexLayout.h"
+#include "VertexInputLayout.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
 
 //---------------------------------------------------------------------------//
 class RendererGL4 : public LoadableObject
 {
 public:
-	virtual ~RendererGL4();
+  virtual ~RendererGL4();
 
-	virtual bool _init() override;
-	virtual bool _destroy() override;
+  virtual bool _init() override;
+  virtual bool _destroy() override;
 
   /// Sets the render-system to a valid state. Should be called just before the first frame
   void postInit();
@@ -24,7 +26,7 @@ public:
   void endFrame();
 
   /// Sets the blendState that should be active upon in next draw call
-	void setBlendState(const BlendState& clBlendState);
+  void setBlendState(const BlendState& clBlendState);
   /// Retrieves the cached blendState configured for the next draw call
   const BlendState& getBlendState() const {return m_clBlendState;}
 
@@ -33,29 +35,29 @@ public:
   /// Retrieves the depthstencil-state cached for the next draw call
   const DepthStencilState& getDepthStencilState() const {return m_clDepthStencilState;}
 
-	void setFillMode(const FillMode eFillMode);
-	FillMode getFillMode() const { return m_eFillMode; }
+  void setFillMode(const FillMode eFillMode);
+  FillMode getFillMode() const { return m_eFillMode; }
 
-	void setCullMode(const CullMode eCullMode);
-	CullMode getCullMode() const { return m_eCullMode; }
+  void setCullMode(const CullMode eCullMode);
+  CullMode getCullMode() const { return m_eCullMode; }
 
-	void setWindingOrder(const WindingOrder eWindingOrder);
-	WindingOrder getWindingOrder() const { return m_eWindingOrder; }
+  void setWindingOrder(const WindingOrder eWindingOrder);
+  WindingOrder getWindingOrder() const { return m_eWindingOrder; }
 
   void setDepthStencilRenderTarget(Texture* pDStexture);
-	void setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
+  void setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
   void removeAllRenderTargets();
   
   Texture* getCachedDepthStencilRenderTarget() { return m_pCachedDepthStencilTarget; }
-	Texture* getCachedRenderTarget(const uint8 u8RenderTargetIndex) const 
-	{ ASSERT(u8RenderTargetIndex < kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
+  Texture* getCachedRenderTarget(const uint8 u8RenderTargetIndex) const 
+  { ASSERT(u8RenderTargetIndex < kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
 
-	void setReadTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setReadTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setWriteTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-	void setReadBuffer(GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-	void setConstantBuffer(GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-	void setTextureSampler(TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-	void setGpuProgram(GpuProgram* pProgram, const ShaderStage eShaderStage);
+  void setReadBuffer(GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setConstantBuffer(GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setTextureSampler(TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setGpuProgram(GpuProgram* pProgram, const ShaderStage eShaderStage);
 
   void renderGeometry(Geometry::GeometryData* pGeometry);
 protected:
@@ -79,7 +81,7 @@ protected:
     uint32 uStreamMask;
   };
 //-----------------------------------------------------------------------//
-	RendererGL4();
+  RendererGL4();
 
   /// Applies all dirty states and resources to the hardware
   void bindStatesToPipeline();
@@ -102,33 +104,33 @@ protected:
   const VaoCacheEntry& createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, const VertexInputLayout* pVertexInputLayout);
   
   /// Mask indicating which pipeline states have to be re-bound to the pipeline
-	uint          m_uPipelineRebindMask;  // Needed?
-	/// Mask indicating which resources have to be re-bound to each shaderStage
-	uint32        m_uResourceRebindMask[ShaderStage::NUM];  // Needed?
-	
-	/// Cached textures per shaderStage bound/to bind to the pipeline
-	Texture*	    m_pCachedReadTextures [ShaderStage::NUM][kMaxNumReadTextures];
-	/// Mask identifying which textures need to be bind in the next draw call
-	uint32		    m_uReadTextureBindMask [ShaderStage::NUM];
+  uint          m_uPipelineRebindMask;  // Needed?
+  /// Mask indicating which resources have to be re-bound to each shaderStage
+  uint32        m_uResourceRebindMask[ShaderStage::NUM];  // Needed?
+  
+  /// Cached textures per shaderStage bound/to bind to the pipeline
+  Texture*	    m_pCachedReadTextures [ShaderStage::NUM][kMaxNumReadTextures];
+  /// Mask identifying which textures need to be bind in the next draw call
+  uint32		    m_uReadTextureBindMask [ShaderStage::NUM];
   uint32        m_uNumReadTexturesToBind[ShaderStage::NUM];
 
   Texture*      m_pCachedWriteTextures [ShaderStage::NUM][kMaxNumWriteTextures];
   uint32        m_uWriteTextureBindMask [ShaderStage::NUM];
   uint32        m_uNumWriteTexturesToBind[ShaderStage::NUM];
 
-	GpuBuffer*		m_pCachedReadBuffers [ShaderStage::NUM][kMaxNumReadBuffers];
-	uint32		    m_uReadBufferBindMask [ShaderStage::NUM];
+  GpuBuffer*		m_pCachedReadBuffers [ShaderStage::NUM][kMaxNumReadBuffers];
+  uint32		    m_uReadBufferBindMask [ShaderStage::NUM];
   uint32        m_uNumReadBuffersToBind[ShaderStage::NUM];
 
-	GpuBuffer*		m_pCachedConstantBuffers [ShaderStage::NUM][(uint) ConstantBufferType::NUM];
-	uint32				m_uConstantBufferBindMask[ShaderStage::NUM];
+  GpuBuffer*		m_pCachedConstantBuffers [ShaderStage::NUM][(uint) ConstantBufferType::NUM];
+  uint32				m_uConstantBufferBindMask[ShaderStage::NUM];
   uint32        m_uNumConstantBuffersToBind[ShaderStage::NUM];
 
-	TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][kMaxNumBoundSamplers];
+  TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][kMaxNumBoundSamplers];
   uint32				    m_uTextureSamplerBindMask[ShaderStage::NUM];
   uint32            m_uNumTextureSamplersToBind[ShaderStage::NUM];
 
-	Texture*			    m_pCachedRenderTargets [kMaxNumRenderTargets];
+  Texture*			    m_pCachedRenderTargets [kMaxNumRenderTargets];
   Texture*          m_pCachedDepthStencilTarget;
 
   /// The currently bound FBO
@@ -149,25 +151,24 @@ protected:
   GLuint            m_uCurrentVBO;
   GLuint            m_uCurrentIBO;
 
-	GpuProgram*			    m_pBoundGPUPrograms [ShaderStage::NUM];
-	uint32				      m_uGPUprogramBindMask;
+  GpuProgram*			    m_pBoundGPUPrograms [ShaderStage::NUM];
+  uint32				      m_uGPUprogramBindMask;
 
-	DepthStencilState   m_clDepthStencilState;
+  DepthStencilState   m_clDepthStencilState;
   uint32              m_uDepthStencilRebindMask;
 
-	BlendState			    m_clBlendState;
+  BlendState			    m_clBlendState;
   uint32              m_uBlendStateRebindMask;
   uint8               m_u8BlendStateRebindRTmask;
   uint8               m_u8BlendStateRebindRTcount;
 
-	FillMode			      m_eFillMode;
-	CullMode			      m_eCullMode;
-	WindingOrder		    m_eWindingOrder;
+  FillMode			      m_eFillMode;
+  CullMode			      m_eCullMode;
+  WindingOrder		    m_eWindingOrder;
 };
 
 } // end of namespace GL4
 } // end of namespace Rendering
-} // end of namespace Core
 } // end of namespace Fancy
 
 

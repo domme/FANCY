@@ -7,7 +7,7 @@
 #include "FixedArray.h"
 #include "ObjectName.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class ConstantSemantics
   {
@@ -118,6 +118,6 @@ namespace Fancy { namespace Core { namespace Rendering {
       ConstantBufferElement m_vConstantBufferElements[(uint32)ConstantSemantics::NUM];
   };
 //---------------------------------------------------------------------------//
-} } }  // end of namespace Fancy::Core::Rendering
+} }  // end of namespace Fancy::Rendering
 
 #endif  // INCLUDE_SHADERCONSTANTSUPDATER_H

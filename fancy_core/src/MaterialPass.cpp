@@ -1,7 +1,25 @@
-#include "GpuProgramGL4.h"
+#include "MaterialPass.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  
+  MaterialPass::MaterialPass() : 
+    m_pBlendState(nullptr),
+    m_pDepthStencilState(nullptr),
+    m_eFillMode(FillMode::SOLID),
+    m_eCullMode(CullMode::BACK),
+    m_eWindingOrder(WindingOrder::CCW)
+  {
+
+  }
 //---------------------------------------------------------------------------//
-} } } // end of namespace Fancy::Core::Rendering
+  MaterialPass::~MaterialPass()
+  {
+
+  }
+//---------------------------------------------------------------------------//
+  void MaterialPass::setMaterialPassData( const MaterialPassData* pData )
+  {
+    m_pData = pData;
+  }
+//---------------------------------------------------------------------------//
+} } // end of namespace Fancy::Rendering

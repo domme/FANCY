@@ -5,7 +5,7 @@
 #include "RendererPrerequisites.h"
 #include "GpuProgramResource.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
   
   namespace Adapter {
     //---------------------------------------------------------------------------//
@@ -266,7 +266,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   }  // end of namespace Adapter
 
-} } } } // end of namespace Fancy::Core::Rendering::GL4
+} } } // end of namespace Fancy::Rendering::GL4
 
 
 

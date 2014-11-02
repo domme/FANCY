@@ -1,6 +1,6 @@
 #include "GeometryVertexLayout.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   GeometryVertexElement::GeometryVertexElement() :
     eSemantics(VertexSemantics::NONE),
@@ -38,4 +38,4 @@ namespace Fancy { namespace Core { namespace Rendering {
     m_u32StrideBytes += clVertexElement.u32SizeBytes;
   }
 //---------------------------------------------------------------------------//
-} } }  // end of namespace Fancy::Core::Rendering
+} }  // end of namespace Fancy::Rendering

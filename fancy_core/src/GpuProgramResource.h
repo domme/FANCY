@@ -8,7 +8,7 @@
 #include "ObjectName.h"
 #include "FixedArray.h"
 
-namespace Fancy { namespace Core { namespace Rendering {
+namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class GpuResourceAccessType {
     READ_ONLY = 0,
@@ -48,6 +48,6 @@ namespace Fancy { namespace Core { namespace Rendering {
  typedef FixedArray<Texture*, kMaxNumGpuProgramResources> GpuTextureResourceList;
  typedef FixedArray<GpuBuffer*, kMaxNumGpuProgramResources> GpuBufferResourceList;
 //---------------------------------------------------------------------------//
-} } } // end of namespace Fancy::Core::Rendering
+} } // end of namespace Fancy::Rendering
 
 #endif  // INCLUDE_GPUPROGRAMRESOURCE_H

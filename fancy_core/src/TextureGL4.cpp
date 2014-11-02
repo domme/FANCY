@@ -1,11 +1,10 @@
 #include "TextureGL4.h"
 #include "AdapterGL4.h"
 
-namespace Fancy { namespace Core { namespace Rendering {  namespace GL4 {
+namespace Fancy { namespace Rendering {  namespace GL4 {
 //---------------------------------------------------------------------------//
   TextureGL4::TextureGL4() :
-    m_uGLhandle(GLUINT_HANDLE_INVALID),
-    LoadableObject::LoadableObject()
+    m_uGLhandle(GLUINT_HANDLE_INVALID)
   {
     
   }
@@ -31,6 +30,8 @@ namespace Fancy { namespace Core { namespace Rendering {  namespace GL4 {
   {
     create(m_clParameters, m_clStateInfo.cachesTextureData ? 
       CreationMethod::UPLOADED_OFTEN : CreationMethod::UPLOADED_ONCE);
+
+    return isValid();
   }
 //---------------------------------------------------------------------------//
   bool TextureGL4::_destroy()
@@ -40,6 +41,8 @@ namespace Fancy { namespace Core { namespace Rendering {  namespace GL4 {
       glDeleteTextures(1, &m_uGLhandle);
       m_uGLhandle = GLUINT_HANDLE_INVALID;
     }
+
+    return !isValid();
   }
 //---------------------------------------------------------------------------//
   void TextureGL4::create(const TextureParameters& clDeclaration, CreationMethod eCreationMethod /*= CreationMethod::UPLOADED_ONCE*/)
@@ -219,6 +222,7 @@ namespace Fancy { namespace Core { namespace Rendering {  namespace GL4 {
   void* TextureGL4::lock( GpuResoruceLockOption option /*= GpuResoruceMapOption::WRITE_DISCARD*/ )
   {
     ASSERT_M(false, "lock/unlock not supported on OpenGL textures");
+    return nullptr;
   }
 //---------------------------------------------------------------------------//
   void TextureGL4::unlock()
@@ -226,6 +230,6 @@ namespace Fancy { namespace Core { namespace Rendering {  namespace GL4 {
     ASSERT_M(false, "lock/unlock not supported on OpenGL textures");
   }
 //---------------------------------------------------------------------------//
-} } } } // end of namespace Fancy::Core::Rendering::GL4
+} } } // end of namespace Fancy::Rendering::GL4
 
 

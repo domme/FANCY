@@ -7,7 +7,7 @@
 
 #include "ObjectName.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
   //---------------------------------------------------------------------------//
   class TextureSamplerGL4
   {
@@ -33,7 +33,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     TextureSamplerProperties m_properties;
   };
   //---------------------------------------------------------------------------//
-} } } }  // end of namespace Fancy::Core::Rendering::GL4
+} } }  // end of namespace Fancy::Rendering::GL4
 
 
 #endif  // INCLUDE_GPUPROGRAMGL4_H

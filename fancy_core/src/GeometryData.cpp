@@ -1,7 +1,7 @@
 
 #include "GeometryData.h"
 
-namespace Fancy { namespace Core { namespace Geometry {
+namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   GeometryData::GeometryData() :
     m_pIndexBuffer(nullptr),
@@ -18,5 +18,5 @@ namespace Fancy { namespace Core { namespace Geometry {
 
   }
 //---------------------------------------------------------------------------//
-} } }  // end of namespace Fancy::Core::Rendering
+} }  // end of namespace Fancy::Rendering
 

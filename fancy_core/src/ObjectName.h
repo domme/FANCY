@@ -3,8 +3,8 @@
 
 #include "FancyCorePrerequisites.h"
 
-namespace Fancy { namespace Core {
-//---------------------------------------------------------------------------//
+namespace Fancy { 
+ //---------------------------------------------------------------------------//
   class ObjectName {
     //---------------------------------------------------------------------------//
     public:
@@ -42,13 +42,13 @@ namespace Fancy { namespace Core {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Core
+} // end of namespace Fancy
 
 //---------------------------------------------------------------------------//
 #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
-  #define _N(name) Fancy::Core::ObjectName("#name")
+  #define _N(name) Fancy::ObjectName("#name")
 #else // !FANCY_COMMON_USE_OBJECTNAME_STRINGS
-  #define _N(name) Fancy::Core::ObjectName(ObjectNameValues::name)
+  #define _N(name) Fancy::ObjectName(ObjectNameValues::name)
 #endif // FANCY_COMMON_USE_OBJECTNAME_STRINGS
 //---------------------------------------------------------------------------//
 #endif  // INCLUDE_OBJECTNAME_H

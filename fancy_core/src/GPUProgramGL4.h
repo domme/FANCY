@@ -6,7 +6,7 @@
 #include "GpuProgramResource.h"
 #include "VertexInputLayout.h"
 
-namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   struct ShaderStageInterfaceElement
   {
@@ -87,7 +87,7 @@ namespace Fancy { namespace Core { namespace Rendering { namespace GL4 {
     //---------------------------------------------------------------------------//
   };
 //---------------------------------------------------------------------------//
-} } } }  // end of namespace Fancy::Core::Rendering::GL4
+} } }  // end of namespace Fancy::Rendering::GL4
 
 
 #endif  // INCLUDE_GPUPROGRAMGL4_H

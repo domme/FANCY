@@ -1,6 +1,6 @@
 #include "SubModel.h"
 
-namespace Fancy { namespace Core { namespace Geometry { 
+namespace Fancy { namespace Geometry { 
 //---------------------------------------------------------------------------//
   SubModel::SubModel() :
     m_pMesh(nullptr),
@@ -14,4 +14,4 @@ namespace Fancy { namespace Core { namespace Geometry {
 
   }
 //---------------------------------------------------------------------------//
-} } }  // end of namespace Fancy::Core::Geometry
+} }   // end of namespace Fancy::Geometry

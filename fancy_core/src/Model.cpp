@@ -1,6 +1,6 @@
 #include "Model.h"
 
-namespace Fancy { namespace Core { namespace Geometry {
+namespace Fancy { namespace Geometry {
 
   Model::Model()
   {
@@ -12,5 +12,5 @@ namespace Fancy { namespace Core { namespace Geometry {
 
   }
 
-} } }  // end of namespace Fancy::Core::Geometry
+} }  // end of namespace Fancy::Geometry
 
