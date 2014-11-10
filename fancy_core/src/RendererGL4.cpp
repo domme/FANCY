@@ -199,12 +199,12 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   bool RendererGL4::_init()
   {
-    
+    return true;    
   }
 //-----------------------------------------------------------------------//
   bool RendererGL4::_destroy()
   {
-
+    return true;
   }
 //-----------------------------------------------------------------------//
   void RendererGL4::postInit()
@@ -568,7 +568,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       return;
     }
 
-    if (m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::WINDINGORDER) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::WINDINGORDER)) > 0) {
       glFrontFace(Adapter::toGLType(m_eWindingOrder));
     }
 
@@ -580,11 +580,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
     }
 
-    if (m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::FILLMODE) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::FILLMODE)) > 0) {
       glPolygonMode(GL_FRONT_AND_BACK, Adapter::toGLType(m_eWindingOrder));
     }
 
-    if (m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL)) > 0) {
       bindDepthStencilState();
     }
 
@@ -592,7 +592,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       bindBlendState();
     }
 
-    if (m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::RENDERTARGETS) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::RENDERTARGETS)) > 0) {
       bindRenderTargets();
     }
 
@@ -637,7 +637,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Read textures
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::READ_TEXTURES)
       {
-        const Texture** ppTexturesToBind = m_pCachedReadTextures[uStageIdx];
+        Texture** ppTexturesToBind = m_pCachedReadTextures[uStageIdx];
         const uint32 uReadTextureBindMask = m_uReadTextureBindMask[uStageIdx];
         m_uReadTextureBindMask[uStageIdx] = 0u;
 
@@ -659,7 +659,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Sampler objects
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::TEXTURE_SAMPLERS)
       {
-        const TextureSampler** ppSamplersToBind = m_pCachedTextureSamplers[uStageIdx];
+        TextureSampler** ppSamplersToBind = m_pCachedTextureSamplers[uStageIdx];
         const uint32 uSamplerBindMask = m_uTextureSamplerBindMask[uStageIdx];
         m_uTextureSamplerBindMask[uStageIdx] = 0u;
 
@@ -680,7 +680,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Write textures
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::WRITE_TEXTURES)
       {
-        const Texture** ppTexturesToBind = m_pCachedWriteTextures[uStageIdx];
+        Texture** ppTexturesToBind = m_pCachedWriteTextures[uStageIdx];
         const uint32 uWriteTextureBindMask = m_uWriteTextureBindMask[uStageIdx];
         m_uWriteTextureBindMask[uStageIdx] = 0u;
 
@@ -750,16 +750,16 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     const bool bSeperateBlend = m_clBlendState.bAlphaSeparateBlend[0];
 
     const bool bApplyBlendFunc = 
-      uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND) > 0 ||
-      uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::DEST_BLEND) > 0 ||
+      (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND)) > 0 ||
+      (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::DEST_BLEND)) > 0 ||
       (bSeperateBlend &&
-        (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND_ALPHA) > 0 ||
-         uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::DEST_BLEND_ALPHA)> 0));
+        ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND_ALPHA)) > 0 ||
+         (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::DEST_BLEND_ALPHA)) > 0));
 
     const bool bApplyBlendOp =
-      uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_OP) > 0 ||
+      (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_OP)) > 0 ||
       (bSeperateBlend &&
-        (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_OP_ALPHA) > 0));
+        ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_OP_ALPHA)) > 0));
 
     if(bApplyBlendFunc) 
     {
@@ -805,16 +805,16 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       const bool bSeperateBlend = m_clBlendState.bAlphaSeparateBlend[iRT];
 
       const bool bApplyBlendFunc = 
-        uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND) > 0 ||
-        uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::DEST_BLEND) > 0 ||
+        (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND)) > 0 ||
+        (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::DEST_BLEND)) > 0 ||
         (bSeperateBlend &&
-        (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND_ALPHA) > 0 ||
-        uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::DEST_BLEND_ALPHA)> 0));
+        ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND_ALPHA)) > 0 ||
+        (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::DEST_BLEND_ALPHA)) > 0));
 
       const bool bApplyBlendOp =
-        uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_OP) > 0 ||
+        (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_OP)) > 0 ||
         (bSeperateBlend &&
-        (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_OP_ALPHA) > 0));
+        ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_OP_ALPHA)) > 0));
 
       if(bApplyBlendFunc) 
       {
@@ -995,7 +995,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     GLDebug::validateFBOcompleteness();
   #endif // FANCY_RENDERSYSTEM_USE_VALIDATION
     glBindFramebuffer(GL_FRAMEBUFFER, m_uCurrentFBO);  // Is this necessary?
-  
+    
+    return pFBOentry->glHandle;
     // TODO: Add support for 1D, 3D, cubemap RenderTargets
   }
 //---------------------------------------------------------------------------//
@@ -1048,8 +1049,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     // The fast path: Calc the hash of both layouts and look for an existing VAO to return
     uint32 uHash = 0;
-    MathUtil::hash_combine(uHash, reinterpret_cast<uint32>(pGeoVertexLayout));
-    MathUtil::hash_combine(uHash, reinterpret_cast<uint32>(pVertexInputLayout));
+    MathUtil::hash_combine(uHash, reinterpret_cast<uint>(pGeoVertexLayout));
+    MathUtil::hash_combine(uHash, reinterpret_cast<uint>(pVertexInputLayout));
 
     VaoCacheEntry* pCacheEntry = nullptr;
     for (uint32 i = 0u; i < _countof(m_VAOpool); ++i)

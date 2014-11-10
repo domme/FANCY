@@ -6,11 +6,12 @@
 #include "OpenGLprerequisites.h"
 
 namespace Fancy {namespace Rendering { namespace GL4 {
-  struct GpuProgramResourceGL4 {
-    /// e.g. GL_TEXTURE_1D/2D/3D for textures
-    GLenum bindingTargetGL;
-    /// e.g. GL_RGB32F 
-    GLenum dataFormatGL;
+  class GpuProgramResourceGL4 {
+    public:
+      /// e.g. GL_TEXTURE_1D/2D/3D for textures
+      GLenum bindingTargetGL;
+      /// e.g. GL_RGB32F 
+      GLenum dataFormatGL;
   };
 
 } } } // end of namespace Fancy::Rendering::GL4

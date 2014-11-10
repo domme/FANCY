@@ -24,11 +24,14 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
       bool operator<(const ObjectName& clOther) const;
     //---------------------------------------------------------------------------//
+      // Implicit conversion operator:
+      operator size_t() const {return getHash();}
+    //---------------------------------------------------------------------------//
     private:
-  #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
-      String m_szName;
-  #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
       uint   m_uNameHash;
+#if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
+      String m_szName;
+#endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   };
 //---------------------------------------------------------------------------//
   String operator+(const String& szString, const ObjectName& name);

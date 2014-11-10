@@ -23,6 +23,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
           case GpuResourceType::BUFFER: return GL_SHADER_STORAGE_BUFFER;
           default:
             ASSERT_M(false, "Resource type has no binding target");
+            return GL_TEXTURE_2D;
           break;
         }
       }

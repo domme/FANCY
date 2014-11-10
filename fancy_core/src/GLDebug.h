@@ -83,7 +83,7 @@ public:
       break;
     }
 
-    assert( error == GL_FRAMEBUFFER_COMPLETE, "FBO incomplete" );
+    assert( error == GL_FRAMEBUFFER_COMPLETE);
   }
 //---------------------------------------------------------------------------//
 };

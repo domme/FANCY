@@ -9,7 +9,7 @@ class MathUtil {
 public:
 //---------------------------------------------------------------------------//
   /// Computes a hash for a given value-type and combines it into a seed.
-  static void hash_combine(uint& uCombinedSeed, const uint& value) 
+  static void hash_combine(uint uCombinedSeed, const uint value) 
   {
     std::hash<uint> hash_computer;
     uCombinedSeed ^= hash_computer(value * 2654435761) + 0x9e3779b9 + 

@@ -74,7 +74,7 @@ namespace Fancy { namespace IO {
 
   #else
       char szModulePath[2048];
-      uint uCount = sizeof( szModulePath );
+      uint32 uCount = sizeof( szModulePath );
       _NSGetExecutablePath( szModulePath, &uCount );
     
       String szTempPath ( szModulePath );

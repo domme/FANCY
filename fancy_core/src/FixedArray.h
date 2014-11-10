@@ -43,7 +43,7 @@ namespace Fancy {
   template<class T, uint32 capacity>
   FixedArrayDatastore_Heap<T, capacity>::FixedArrayDatastore_Heap()
   {
-    m_Array = reinterpret_cast<T*>(FANCY_ALLOCATE(sizeof(T) * capacity));
+    m_Array = reinterpret_cast<T*>(FANCY_ALLOCATE(sizeof(T) * capacity, MemoryCategory::GENERAL));
     ASSERT(m_Array != nullptr);
   }
 //---------------------------------------------------------------------------//
@@ -51,7 +51,7 @@ namespace Fancy {
   FixedArrayDatastore_Heap<T, capacity>::~FixedArrayDatastore_Heap()
   {
     ASSERT(m_Array != nullptr);
-    FANCY_FREE(m_Array);
+    FANCY_FREE(m_Array, MemoryCategory::GENERAL);
   }
 //---------------------------------------------------------------------------//
 

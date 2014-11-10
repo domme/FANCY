@@ -81,13 +81,13 @@
     <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)</OutDir>
+    <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)/</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
+    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetExt>.dll</TargetExt>

@@ -29,6 +29,7 @@ namespace Fancy { enum {
 namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class MemoryCategory {
+    GENERAL,
     TEXTURES,
     BUFFERS,
     MESHES

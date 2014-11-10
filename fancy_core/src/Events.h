@@ -87,7 +87,7 @@ class Delegate1Param
 
 		void RaiseEvent( const Param1T& param )
 		{
-			for( uint i = 0; i < m_vListeners.size(); ++i )
+			for( uint32 i = 0; i < m_vListeners.size(); ++i )
 			{
 				m_vListeners[ i ]->Notify( param );
 			}

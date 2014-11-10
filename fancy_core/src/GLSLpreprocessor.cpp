@@ -28,7 +28,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     do
     {
       iterIncludeLine = vLines.end();
-      uint uIdx = 0;
+      uint32 uIdx = 0;
       for( std::vector<std::string>::iterator iter = vLines.begin(); iter != vLines.end(); ++iter )
       {
         iFoundPos = iter->find( "#include" );
@@ -71,7 +71,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
       rFinalShaderString.clear();
   
-      for( uint uIdx = 0; uIdx < vLines.size(); ++uIdx )
+      for( uint32 uIdx = 0; uIdx < vLines.size(); ++uIdx )
       {
         rFinalShaderString += vLines[ uIdx ] + "\n";
       }
