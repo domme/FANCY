@@ -94,7 +94,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     const GLuint uglAddressModeY = internal::getGLaddressMode(rProperties.addressModeY);
     const GLuint uglAddressModeZ = internal::getGLaddressMode(rProperties.addressModeZ);
     const GLenum eglComparisonFunc = Adapter::toGLType(rProperties.comparisonFunc);
-    const GLenum eglComparisonMode = (eglComparisonMode == GL_ALWAYS || eglComparisonMode == GL_NEVER) ?
+    const GLenum eglComparisonMode = (eglComparisonFunc == GL_ALWAYS || eglComparisonFunc == GL_NEVER) ?
                                        GL_NONE : GL_COMPARE_R_TO_TEXTURE;
     
 

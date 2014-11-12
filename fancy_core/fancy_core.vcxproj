@@ -147,6 +147,8 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;__WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -205,6 +207,7 @@
   <ItemGroup>
     <ClInclude Include="src\AdapterGL4.h" />
     <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\CameraComponent.h" />
     <ClInclude Include="src\ComputeOperation.h" />
     <ClInclude Include="src\Events.h" />
     <ClInclude Include="src\FancyCorePrerequisites.h" />
@@ -229,6 +232,7 @@
     <ClInclude Include="src\MathUtil.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\ModelComponent.h" />
     <ClInclude Include="src\ObjectName.h" />
     <ClInclude Include="src\OpenGLprerequisites.h" />
     <ClInclude Include="src\PathService.h" />
@@ -237,6 +241,7 @@
     <ClInclude Include="src\RendererPrerequisites.h" />
     <ClInclude Include="src\RenderOperation.h" />
     <ClInclude Include="src\SceneNode.h" />
+    <ClInclude Include="src\SceneNodeComponent.h" />
     <ClInclude Include="src\ShaderConstantsManager.h" />
     <ClInclude Include="src\StdAfx.h" />
     <ClInclude Include="src\GeometryData.h" />
@@ -246,11 +251,13 @@
     <ClInclude Include="src\TextureSampler.h" />
     <ClInclude Include="src\TextureSamplerGL4.h" />
     <ClInclude Include="src\TimeManager.h" />
+    <ClInclude Include="src\TransformComponent.h" />
     <ClInclude Include="src\VertexInputLayout.h" />
     <ClInclude Include="src\GeometryVertexLayout.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\ComputeOperation.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\GpuBufferGL4.cpp" />
@@ -264,6 +271,7 @@
     <ClCompile Include="src\MaterialPass.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
+    <ClCompile Include="src\ModelComponent.cpp" />
     <ClCompile Include="src\ObjectName.cpp" />
     <ClCompile Include="src\PathService.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
@@ -271,16 +279,19 @@
     <ClCompile Include="src\RendererPrerequisites.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
     <ClCompile Include="src\SceneNode.cpp" />
+    <ClCompile Include="src\SceneNodeComponent.cpp" />
     <ClCompile Include="src\ShaderConstantsManager.cpp" />
     <ClCompile Include="src\StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\GeometryData.cpp" />
     <ClCompile Include="src\SubModel.cpp" />
     <ClCompile Include="src\TextureGL4.cpp" />
     <ClCompile Include="src\TextureSamplerGL4.cpp" />
     <ClCompile Include="src\TimeManager.cpp" />
+    <ClCompile Include="src\TransformComponent.cpp" />
     <ClCompile Include="src\VertexInputLayout.cpp" />
     <ClCompile Include="src\GeometryVertexLayout.cpp" />
   </ItemGroup>

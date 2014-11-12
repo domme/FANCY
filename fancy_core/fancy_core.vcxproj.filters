@@ -31,6 +31,9 @@
     <Filter Include="src\Rendering\Materials">
       <UniqueIdentifier>{93e6f866-a173-4b27-973f-a4c43f442dbe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Scene\Components">
+      <UniqueIdentifier>{131c4f4c-8958-405c-927c-0411df5432bb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\StdAfx.h">
@@ -168,6 +171,18 @@
     <ClInclude Include="src\GpuProgramResourceGL4.h">
       <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
+    <ClInclude Include="src\SceneNodeComponent.h">
+      <Filter>src\Scene\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TransformComponent.h">
+      <Filter>src\Scene\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModelComponent.h">
+      <Filter>src\Scene\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CameraComponent.h">
+      <Filter>src\Scene\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -259,6 +274,18 @@
     </ClCompile>
     <ClCompile Include="src\MaterialPass.cpp">
       <Filter>src\Rendering\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneNodeComponent.cpp">
+      <Filter>src\Scene\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TransformComponent.cpp">
+      <Filter>src\Scene\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModelComponent.cpp">
+      <Filter>src\Scene\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CameraComponent.cpp">
+      <Filter>src\Scene\Components</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
