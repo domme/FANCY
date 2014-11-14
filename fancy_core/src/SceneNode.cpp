@@ -1,3 +1,115 @@
+#include "SceneNode.h"
+#include "SceneNodeComponentFactory.h"
+
+namespace Fancy { namespace Scene {
+//---------------------------------------------------------------------------//
+  void Startup::initComponentSubsystem()
+  {
+    SceneNodeComponentFactory::registerFactory(_N(Transform), TransformComponent::create);
+    SceneNodeComponentFactory::registerFactory(_N(Model), ModelComponent::create);
+    SceneNodeComponentFactory::registerFactory(_N(Camera), CameraComponent::create);
+  }
+//---------------------------------------------------------------------------//
+  SceneNode::SceneNode() :
+    m_pModelComponent(nullptr),
+    m_pTransformComponent(nullptr),
+    m_pCameraComponent(nullptr)
+  {
+    createComponent(_N(Transform));
+  }
+//---------------------------------------------------------------------------//
+  SceneNode::~SceneNode()
+  {
+    
+  }
+//---------------------------------------------------------------------------//
+  void SceneNode::update()
+  {
+
+  }  
+//---------------------------------------------------------------------------//
+  SceneNodeComponent* SceneNode::getComponent( const ObjectName& typeName )
+  {
+    for (uint i = 0; i < m_vpComponents.size(); ++i)
+    {
+      if (m_vpComponents[i]->getTypeName() == typeName)
+      {
+        return m_vpComponents[i].get();
+      }
+    }
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  SceneNodeComponent* SceneNode::createComponent( const ObjectName& typeName )
+  {
+    if (getComponent(typeName))
+    {
+      return nullptr;
+    }
+
+    SceneNodeComponentPtr componentPtr = 
+      SceneNodeComponentFactory::getFactoryMethod(typeName)(const_cast<SceneNode*>(this));
+
+    m_vpComponents.push_back(componentPtr);
+    onComponentAdded(componentPtr);
+
+    return componentPtr.get();
+  }
+//---------------------------------------------------------------------------//
+  void SceneNode::removeComponent(const ObjectName& typeName)
+  {
+   std::vector<SceneNodeComponentPtr>::iterator itFound = m_vpComponents.end();
+    for (std::vector<SceneNodeComponentPtr>::iterator it = m_vpComponents.begin();
+      it != m_vpComponents.end(); ++it)
+    {
+      if ((*it)->getTypeName() == typeName)
+      {
+        itFound = it;
+        break;
+      }
+    }
+
+    if (itFound == m_vpComponents.end())
+    {
+      return;
+    }
+    
+    onComponentRemoved(*itFound);
+
+    m_vpComponents.erase(itFound);
+  }
+//---------------------------------------------------------------------------//
+  void SceneNode::onComponentAdded(SceneNodeComponentPtr pComponent )
+  {
+    ObjectName typeName = pComponent->getTypeName();
+
+    if (typeName == _N(Transform)) {
+      m_pTransformComponent = std::static_pointer_cast<TransformComponent>(pComponent);
+    } else if (typeName == _N(Model)) {
+      m_pModelComponent = std::static_pointer_cast<ModelComponent>(pComponent);
+    } else if (typeName == _N(Camera)) {
+      m_pCameraComponent = std::static_pointer_cast<CameraComponent>(pComponent);
+    }
+  }
+//---------------------------------------------------------------------------//
+  void SceneNode::onComponentRemoved(SceneNodeComponentPtr pComponent )
+  {
+    ObjectName typeName = pComponent->getTypeName();
+
+    if (typeName == _N(Transform)) {
+      ASSERT_M(false, "The transform component should never be removed");
+    } else if (typeName == _N(Model)) {
+      m_pModelComponent = nullptr;
+    } else if (typeName == _N(Camera)) {
+      m_pCameraComponent = nullptr;
+    }
+  }
+//---------------------------------------------------------------------------//
+  
+//---------------------------------------------------------------------------//
+} }  // end of namespace Fancy::Scene
+
 #pragma region Old SceneNode code
 
 /*
@@ -15,368 +127,368 @@ m_pParentNode( NULL ),
 m_pParentScene( NULL ), 
 m_szName( "" )
 {
-	m_szName = szName;
-	generalInit();
+  m_szName = szName;
+  generalInit();
 }
 
 SceneNode::SceneNode()
 {
-	generalInit();
+  generalInit();
 }
 
 SceneNode::~SceneNode()
 {
-	 
+   
 }
 
 void SceneNode::generalInit()
 {
-	static glm::mat4 identity = glm::mat4( 1.0f, 0.0f, 0.0f, 0.0f,
-										   0.0f, 1.0f, 0.0f, 0.0f,
-										   0.0f, 0.0f, 1.0f, 0.0f,
-										   0.0f, 0.0f, 0.0f, 1.0f );
+  static glm::mat4 identity = glm::mat4( 1.0f, 0.0f, 0.0f, 0.0f,
+                       0.0f, 1.0f, 0.0f, 0.0f,
+                       0.0f, 0.0f, 1.0f, 0.0f,
+                       0.0f, 0.0f, 0.0f, 1.0f );
 
-	m_clMatGlobalTransform = identity;
+  m_clMatGlobalTransform = identity;
 }
 
 void SceneNode::render( ) const
 {
-	//render entities attatched to this node
-	for( uint uIdx = 0; uIdx < m_vEntities.size(); ++uIdx )
-	{
-		m_vEntities[ uIdx ]->render();
-	}
+  //render entities attatched to this node
+  for( uint uIdx = 0; uIdx < m_vEntities.size(); ++uIdx )
+  {
+    m_vEntities[ uIdx ]->render();
+  }
 
-	//render all child-nodes recursively
-	for(  uint uIdx = 0; uIdx < m_vChildNodes.size(); ++uIdx )
-	{
-		m_vChildNodes[ uIdx ]->render(); 
-	}
+  //render all child-nodes recursively
+  for(  uint uIdx = 0; uIdx < m_vChildNodes.size(); ++uIdx )
+  {
+    m_vChildNodes[ uIdx ]->render(); 
+  }
 }
 
 void SceneNode::prepareRender()
 {
-	for( uint uIdx = 0; uIdx < m_vLights.size(); ++uIdx )
-	{
-		m_pParentScene->AddLightToRenderCache( m_vLights[ uIdx ], this );
-	}
+  for( uint uIdx = 0; uIdx < m_vLights.size(); ++uIdx )
+  {
+    m_pParentScene->AddLightToRenderCache( m_vLights[ uIdx ], this );
+  }
 
-	for( uint uIdx = 0; uIdx < m_vEntities.size(); ++uIdx )
-	{
-		m_vEntities[ uIdx ]->prepareRender();
-	}
+  for( uint uIdx = 0; uIdx < m_vEntities.size(); ++uIdx )
+  {
+    m_vEntities[ uIdx ]->prepareRender();
+  }
 
-	for(  uint uIdx = 0; uIdx < m_vChildNodes.size(); ++uIdx )
-	{
-		m_vChildNodes[ uIdx ]->prepareRender(); 
-	}
+  for(  uint uIdx = 0; uIdx < m_vChildNodes.size(); ++uIdx )
+  {
+    m_vChildNodes[ uIdx ]->prepareRender(); 
+  }
 }
 
 const TransformSQT& SceneNode::getLocalTransform() const 
 {
-	return m_clLocalTransform;
+  return m_clLocalTransform;
 }
 
 const glm::mat4& SceneNode::getGlobalTransformMAT() const
 {
-	return m_clMatGlobalTransform;
+  return m_clMatGlobalTransform;
 }
 
 void SceneNode::translate( const glm::vec3& rV3translation )
 {
-	m_clLocalTransform.m_v3Translation += rV3translation;
-	updateTransformsFromParent();
+  m_clLocalTransform.m_v3Translation += rV3translation;
+  updateTransformsFromParent();
 }
 
 void SceneNode::scale( const glm::vec3& rV3Scale )
 {
-	m_clLocalTransform.m_v3Scale *= rV3Scale;
-	updateTransformsFromParent();
+  m_clLocalTransform.m_v3Scale *= rV3Scale;
+  updateTransformsFromParent();
 }
 
 void SceneNode::rotate( const glm::quat& rQuatRotation )
 {
-	glm::quat normQuat = glm::normalize( rQuatRotation );
-	glm::quat resultQuad = glm::cross( normQuat, m_clLocalTransform.m_quatRotation );
-	m_clLocalTransform.m_quatRotation = resultQuad;
-	updateTransformsFromParent();
+  glm::quat normQuat = glm::normalize( rQuatRotation );
+  glm::quat resultQuad = glm::cross( normQuat, m_clLocalTransform.m_quatRotation );
+  m_clLocalTransform.m_quatRotation = resultQuad;
+  updateTransformsFromParent();
 }
 
 void SceneNode::rotate( const float fAngle, const glm::vec3& rAxis )
 {
-	glm::quat quatRotation;
-	quatRotation = QuaternionService::CreateRotationQuaternion( fAngle, rAxis );
-	rotate( quatRotation );
+  glm::quat quatRotation;
+  quatRotation = QuaternionService::CreateRotationQuaternion( fAngle, rAxis );
+  rotate( quatRotation );
 }
 
 void SceneNode::setTranslation( const glm::vec3& rV3translation )
 {
-	m_clLocalTransform.m_v3Translation = rV3translation;
-	updateTransformsFromParent();
+  m_clLocalTransform.m_v3Translation = rV3translation;
+  updateTransformsFromParent();
 }
 
 void SceneNode::setScale( const glm::vec3& rV3Scale )
 {
-	m_clLocalTransform.m_v3Scale = rV3Scale;
-	updateTransformsFromParent();
+  m_clLocalTransform.m_v3Scale = rV3Scale;
+  updateTransformsFromParent();
 }
 
 void SceneNode::setRotation( const glm::quat& rQuatRotation )
 {
-	glm::quat normQuat;
-	normQuat = glm::normalize( rQuatRotation ); 
-	m_clLocalTransform.m_quatRotation = normQuat;
-	updateTransformsFromParent();
+  glm::quat normQuat;
+  normQuat = glm::normalize( rQuatRotation ); 
+  m_clLocalTransform.m_quatRotation = normQuat;
+  updateTransformsFromParent();
 }
 
 void SceneNode::setRotation( const float fAngle, const glm::vec3& rAxis )
 {
-	glm::quat quatRotation = QuaternionService::CreateRotationQuaternion( fAngle, rAxis );
-	setRotation( quatRotation ); 
+  glm::quat quatRotation = QuaternionService::CreateRotationQuaternion( fAngle, rAxis );
+  setRotation( quatRotation ); 
 }
 
 void SceneNode::updateTransform( const glm::mat4& rParentGlobalMat )
 {
-	m_clMatGlobalTransform = rParentGlobalMat * m_clLocalTransform.getAsMat4(); //apply parent transformation first and then add local transform
-	m_clGlobalTransformChanged.RaiseEvent( m_clMatGlobalTransform );
+  m_clMatGlobalTransform = rParentGlobalMat * m_clLocalTransform.getAsMat4(); //apply parent transformation first and then add local transform
+  m_clGlobalTransformChanged.RaiseEvent( m_clMatGlobalTransform );
 
-	updateChildrenTransforms();
+  updateChildrenTransforms();
 }
 
 void SceneNode::setTransform( const TransformSQT& rClTransform )
 {
-	m_clLocalTransform = rClTransform;
-	updateTransformsFromParent();		
+  m_clLocalTransform = rClTransform;
+  updateTransformsFromParent();		
 }
 
 void SceneNode::updateTransformsFromParent()
 {
-	if( m_pParentNode )
-	{
-		m_clMatGlobalTransform = m_pParentNode->m_clMatGlobalTransform * m_clLocalTransform.getAsMat4();
-	}
+  if( m_pParentNode )
+  {
+    m_clMatGlobalTransform = m_pParentNode->m_clMatGlobalTransform * m_clLocalTransform.getAsMat4();
+  }
 
-	else
-	{
-		m_clMatGlobalTransform = m_clLocalTransform.getAsMat4();
-	}
+  else
+  {
+    m_clMatGlobalTransform = m_clLocalTransform.getAsMat4();
+  }
 
-	//Since matrices do not have a compare-functionality and since storing yet another matrix is a waste of memory, just raise the event all the time for now...
-	m_clGlobalTransformChanged.RaiseEvent( m_clMatGlobalTransform );
+  //Since matrices do not have a compare-functionality and since storing yet another matrix is a waste of memory, just raise the event all the time for now...
+  m_clGlobalTransformChanged.RaiseEvent( m_clMatGlobalTransform );
 
-	updateChildrenTransforms();
+  updateChildrenTransforms();
 }
 
 void SceneNode::updateChildrenTransforms()
 {
-	for( uint uIdx = 0; uIdx < m_vChildNodes.size(); ++uIdx )
-	{
-		m_vChildNodes[ uIdx ]->updateTransform( m_clMatGlobalTransform ); 
-	}
+  for( uint uIdx = 0; uIdx < m_vChildNodes.size(); ++uIdx )
+  {
+    m_vChildNodes[ uIdx ]->updateTransform( m_clMatGlobalTransform ); 
+  }
 }
 
 SceneNode* SceneNode::createChildSceneNode( const std::string& szName )
 {
-	NodeRegistry& registry = NodeRegistry::getInstance();
+  NodeRegistry& registry = NodeRegistry::getInstance();
 
-	if( registry.isObjectRegistered( szName ) )
-	{
-		SceneNode* pNode = registry.getObject( szName );
-		return pNode; //Node already exists. (May not be a child of this node though!)
-	}
+  if( registry.isObjectRegistered( szName ) )
+  {
+    SceneNode* pNode = registry.getObject( szName );
+    return pNode; //Node already exists. (May not be a child of this node though!)
+  }
 
-	else //node non-existent yet
-	{
-		SceneNode* pChildNode = new SceneNode( szName );
-		AppendChildSceneNode( pChildNode );
-		return pChildNode;
-	}
+  else //node non-existent yet
+  {
+    SceneNode* pChildNode = new SceneNode( szName );
+    AppendChildSceneNode( pChildNode );
+    return pChildNode;
+  }
 }
 
 bool SceneNode::AppendChildSceneNode( SceneNode* pNode )
 {
-	if( !pNode )
-		return false;
+  if( !pNode )
+    return false;
 
-	if( pNode->m_pParentNode && pNode->m_pParentNode == this )
-		return false;
+  if( pNode->m_pParentNode && pNode->m_pParentNode == this )
+    return false;
 
-	if( pNode->m_pParentNode )
-		pNode->m_pParentNode->removeChildSceneNode( pNode );
+  if( pNode->m_pParentNode )
+    pNode->m_pParentNode->removeChildSceneNode( pNode );
 
-	NodeRegistry& registry = NodeRegistry::getInstance();
+  NodeRegistry& registry = NodeRegistry::getInstance();
 
-	if( !registry.isObjectRegistered( pNode->getName() ) )
-		registry.registerObject( pNode->getName(), pNode );
+  if( !registry.isObjectRegistered( pNode->getName() ) )
+    registry.registerObject( pNode->getName(), pNode );
 
-	pNode->m_pParentNode = this;
-	pNode->SetScene( m_pParentScene );
-	m_vChildNodes.push_back( pNode );
-	updateChildrenTransforms();
+  pNode->m_pParentNode = this;
+  pNode->SetScene( m_pParentScene );
+  m_vChildNodes.push_back( pNode );
+  updateChildrenTransforms();
 
-	return true;
+  return true;
 }
 
 bool SceneNode::removeChildSceneNode( const std::string& szName )
 {
-	NodeRegistry& registry = NodeRegistry::getInstance();
+  NodeRegistry& registry = NodeRegistry::getInstance();
 
-	if( registry.isObjectRegistered( szName ) )
-	{
-		SceneNode* pNode = registry.getObject( szName );
-		return removeChildSceneNode( pNode );
-	}
+  if( registry.isObjectRegistered( szName ) )
+  {
+    SceneNode* pNode = registry.getObject( szName );
+    return removeChildSceneNode( pNode );
+  }
 
-	return false;
+  return false;
 }
 
 bool SceneNode::removeChildSceneNode( SceneNode* pNode )
 {
-	if( !pNode )
-	{
-		return false;
-	}
+  if( !pNode )
+  {
+    return false;
+  }
 
-	if( pNode->getParent() == this )
-	{
-		std::vector<SceneNode*>::iterator iter = std::find( m_vChildNodes.begin(), m_vChildNodes.end(), pNode );
-		if( iter != m_vChildNodes.end() )
-		{
-			m_vChildNodes.erase( iter );
-			pNode->m_pParentNode = NULL;
-			return true;
-		}
-	}
+  if( pNode->getParent() == this )
+  {
+    std::vector<SceneNode*>::iterator iter = std::find( m_vChildNodes.begin(), m_vChildNodes.end(), pNode );
+    if( iter != m_vChildNodes.end() )
+    {
+      m_vChildNodes.erase( iter );
+      pNode->m_pParentNode = NULL;
+      return true;
+    }
+  }
 
-	return false;
+  return false;
 }
 
 bool SceneNode::destroyChildSceneNode( const std::string& szName )
 {
-	NodeRegistry& registry = NodeRegistry::getInstance();
+  NodeRegistry& registry = NodeRegistry::getInstance();
 
-	if( registry.isObjectRegistered( szName ) )
-	{
-		SceneNode* pNode = registry.getObject( szName );
-		return destroyChildSceneNode( pNode );
-	}
+  if( registry.isObjectRegistered( szName ) )
+  {
+    SceneNode* pNode = registry.getObject( szName );
+    return destroyChildSceneNode( pNode );
+  }
 
-	return false;
+  return false;
 }
 
 bool SceneNode::destroyChildSceneNode( SceneNode* pNode )
 {
-	if( !pNode )
-	{
-		return false;
-	}
+  if( !pNode )
+  {
+    return false;
+  }
 
-	if( pNode->getParent() == this )
-	{
-		std::vector<SceneNode*>::iterator iter = std::find( m_vChildNodes.begin(), m_vChildNodes.end(), pNode );
-		if( iter != m_vChildNodes.end() )
-		{
-			m_vChildNodes.erase( iter );
-			//recursively destroy node and its child-nodes
-			pNode->destroyNode();
-			SAFE_DELETE( pNode );
-			return true;
-		}
-	}
+  if( pNode->getParent() == this )
+  {
+    std::vector<SceneNode*>::iterator iter = std::find( m_vChildNodes.begin(), m_vChildNodes.end(), pNode );
+    if( iter != m_vChildNodes.end() )
+    {
+      m_vChildNodes.erase( iter );
+      //recursively destroy node and its child-nodes
+      pNode->destroyNode();
+      SAFE_DELETE( pNode );
+      return true;
+    }
+  }
 
-	return false;
+  return false;
 }
 
 void SceneNode::destroyNode()
 {
-	//destroy attatched entities
-	for( uint uIdx = 0; uIdx < m_vEntities.size(); ++uIdx )
-	{
-		BaseRenderableObject* pEntity = m_vEntities[ uIdx ];
-		removeEntity( pEntity, true );
-	}
+  //destroy attatched entities
+  for( uint uIdx = 0; uIdx < m_vEntities.size(); ++uIdx )
+  {
+    BaseRenderableObject* pEntity = m_vEntities[ uIdx ];
+    removeEntity( pEntity, true );
+  }
 
-	m_vEntities.clear();
+  m_vEntities.clear();
 
-	//destroy child-nodes
-	for( uint uIdx = 0; uIdx < m_vChildNodes.size(); ++uIdx )
-	{
-		SceneNode* pNode = m_vChildNodes[ uIdx ];
-		removeChildSceneNode( pNode );
-	}
+  //destroy child-nodes
+  for( uint uIdx = 0; uIdx < m_vChildNodes.size(); ++uIdx )
+  {
+    SceneNode* pNode = m_vChildNodes[ uIdx ];
+    removeChildSceneNode( pNode );
+  }
 
-	m_vChildNodes.clear();
+  m_vChildNodes.clear();
 }
 
 SceneNode* SceneNode::getParent()
 {
-	return m_pParentNode;
+  return m_pParentNode;
 }
 
 bool SceneNode::attatchEntity( BaseRenderableObject* const _pNewEntity )
 {
-	if( std::find( m_vEntities.begin(), m_vEntities.end(), _pNewEntity ) != m_vEntities.end() )
-	{
-		return false;
-	}
-	
-	m_vEntities.push_back( _pNewEntity );
-	_pNewEntity->attatchToNode( this , 0 );
-	updateTransformsFromParent();
-	return true;
+  if( std::find( m_vEntities.begin(), m_vEntities.end(), _pNewEntity ) != m_vEntities.end() )
+  {
+    return false;
+  }
+  
+  m_vEntities.push_back( _pNewEntity );
+  _pNewEntity->attatchToNode( this , 0 );
+  updateTransformsFromParent();
+  return true;
 }
 
 bool SceneNode::AttatchLight( Light* pLight )
 {
-	if( std::find( m_vLights.begin(), m_vLights.end(), pLight ) != m_vLights.end() )
-	{
-		return false;
-	}
+  if( std::find( m_vLights.begin(), m_vLights.end(), pLight ) != m_vLights.end() )
+  {
+    return false;
+  }
 
-	m_vLights.push_back( pLight );
-	return true;
+  m_vLights.push_back( pLight );
+  return true;
 }
 
 
 bool SceneNode::removeEntity( const BaseRenderableObject* _pRemoveEntity, bool bDeleteFromProgram )
 {
-	if( !_pRemoveEntity )
-	{
-		return false;
-	}
-	
-	std::vector<BaseRenderableObject*>::iterator eraseIter = std::find( m_vEntities.begin(), m_vEntities.end(), _pRemoveEntity );
-	if( eraseIter == m_vEntities.end() )
-	{
-		return false;
-	}
-	
-	//let the entity destroy and detatch itself
-	(*eraseIter)->destroyEntity();
+  if( !_pRemoveEntity )
+  {
+    return false;
+  }
+  
+  std::vector<BaseRenderableObject*>::iterator eraseIter = std::find( m_vEntities.begin(), m_vEntities.end(), _pRemoveEntity );
+  if( eraseIter == m_vEntities.end() )
+  {
+    return false;
+  }
+  
+  //let the entity destroy and detatch itself
+  (*eraseIter)->destroyEntity();
 
-	if( bDeleteFromProgram )
-	{
-		SAFE_DELETE( _pRemoveEntity );
-	}
+  if( bDeleteFromProgram )
+  {
+    SAFE_DELETE( _pRemoveEntity );
+  }
 
-	m_vEntities.erase( eraseIter );
-	
-	return true;
+  m_vEntities.erase( eraseIter );
+  
+  return true;
 }
 
 bool SceneNode::removeEntity( const String& name, bool bDeleteFromProgram )
 {
-	return true;
+  return true;
 }
 
 BaseRenderableObject* SceneNode::getEntity( const String& name )
 {
-	return NULL;
+  return NULL;
 }
 
 const String SceneNode::getName() const
 {
-	return m_szName;
+  return m_szName;
 }
 */
 

@@ -183,6 +183,12 @@
     <ClInclude Include="src\CameraComponent.h">
       <Filter>src\Scene\Components</Filter>
     </ClInclude>
+    <ClInclude Include="src\SceneNodeComponentFactory.h">
+      <Filter>src\Scene\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SceneManager.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -286,6 +292,12 @@
     </ClCompile>
     <ClCompile Include="src\CameraComponent.cpp">
       <Filter>src\Scene\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneNodeComponentFactory.cpp">
+      <Filter>src\Scene\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneManager.cpp">
+      <Filter>src\Scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

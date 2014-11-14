@@ -5,15 +5,19 @@
 
 namespace Fancy { namespace Scene {
   //---------------------------------------------------------------------------//
-  class DLLEXPORT CameraComponent : public SceneNodeComponent
+  class DLLEXPORT CameraComponent : 
+    public SceneNodeComponent, public BaseCreator<CameraComponent, SceneNode*>
   {
   public:
-    CameraComponent();
+    CameraComponent(SceneNode* pOwner);
     virtual ~CameraComponent();
 
-    virtual void update(float fDt) = 0;
+    virtual void update() override;
+    virtual ObjectName getTypeName() override { return _N(Camera); }
   };
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  DECLARE_SMART_PTRS(CameraComponent)
+//---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Scene
 
 #endif  // INCLUDE_CAMERACOMPONENT_H

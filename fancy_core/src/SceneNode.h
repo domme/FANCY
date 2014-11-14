@@ -2,20 +2,49 @@
 #define INCLUDE_SCENENODE_H
 
 #include "FancyCorePrerequisites.h"
+#include "TransformComponent.h"
+#include "CameraComponent.h"
+#include "ModelComponent.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
-  class SceneNodeComponent;
-  
+  namespace Startup {
+    /// This method needs to be called before using the component system
+    void initComponentSubsystem();
+  }
+//---------------------------------------------------------------------------//
   class DLLEXPORT SceneNode
   {
     public: 
       SceneNode();
       ~SceneNode();
 
+      void update();
+      SceneNodeComponent* createComponent(const ObjectName& typeName);
+      void removeComponent(const ObjectName& typeName);
+      SceneNodeComponent* getComponent(const ObjectName& typeName);
+
+      TransformComponent* getTransformComponent() {return m_pTransformComponent.get();}
+      CameraComponent* getCameraComponent() {return m_pCameraComponent.get();}
+      ModelComponent* getModelComponent() {return m_pModelComponent.get();}
+
     private:
-      std::vector<SceneNodeComponent*> m_vComponents;
+      void onComponentAdded(SceneNodeComponentPtr pComponent);
+      void onComponentRemoved(SceneNodeComponentPtr pComponent);
+
+      std::vector<SceneNodeComponentPtr> m_vpComponents;
+      std::vector<std::shared_ptr<SceneNode>> m_vpChildren;
+      SceneNode* m_pParent;
+
+      // Cached components:
+      TransformComponentPtr m_pTransformComponent;
+      CameraComponentPtr m_pCameraComponent;
+      ModelComponentPtr m_pModelComponent;
   };
+//---------------------------------------------------------------------------//
+  DECLARE_SMART_PTRS(SceneNode)
+//---------------------------------------------------------------------------//
+  
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Scene
 

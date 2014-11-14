@@ -240,8 +240,10 @@
     <ClInclude Include="src\RendererGL4.h" />
     <ClInclude Include="src\RendererPrerequisites.h" />
     <ClInclude Include="src\RenderOperation.h" />
+    <ClInclude Include="src\SceneManager.h" />
     <ClInclude Include="src\SceneNode.h" />
     <ClInclude Include="src\SceneNodeComponent.h" />
+    <ClInclude Include="src\SceneNodeComponentFactory.h" />
     <ClInclude Include="src\ShaderConstantsManager.h" />
     <ClInclude Include="src\StdAfx.h" />
     <ClInclude Include="src\GeometryData.h" />
@@ -278,8 +280,10 @@
     <ClCompile Include="src\RendererGL4.cpp" />
     <ClCompile Include="src\RendererPrerequisites.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
+    <ClCompile Include="src\SceneManager.cpp" />
     <ClCompile Include="src\SceneNode.cpp" />
     <ClCompile Include="src\SceneNodeComponent.cpp" />
+    <ClCompile Include="src\SceneNodeComponentFactory.cpp" />
     <ClCompile Include="src\ShaderConstantsManager.cpp" />
     <ClCompile Include="src\StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

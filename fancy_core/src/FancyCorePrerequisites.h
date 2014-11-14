@@ -12,6 +12,8 @@
 #include <iostream>
 #include <algorithm>
 #include <Windows.h>
+#include <memory>
+#include <functional>
 
 //Math includes
 #include <glm/glm.hpp>
@@ -62,6 +64,10 @@ void log_Info( glm::vec3 vec )
   log_Info( ss.str() );
 } */
 
+//---------------------------------------------------------------------------//
+#define DECLARE_SMART_PTRS(class) \
+  typedef std::shared_ptr<##class> ##class##Ptr; \
+  typedef std::weak_ptr<##class> ##class##WeakPtr;
 //---------------------------------------------------------------------------//
   #define STATIC_ASSERT( condition, message ) \
   {								\

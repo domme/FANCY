@@ -2,7 +2,8 @@
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
-  CameraComponent::CameraComponent()
+  CameraComponent::CameraComponent(SceneNode* pOwner)
+    : SceneNodeComponent(pOwner)
   {
 
   }
@@ -12,7 +13,7 @@ namespace Fancy { namespace Scene {
 
   }
 //---------------------------------------------------------------------------//
-  void CameraComponent::update( float fDt )
+  void CameraComponent::update()
   {
 
   }

@@ -2,9 +2,10 @@
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
-  SceneNodeComponent::SceneNodeComponent()
+  SceneNodeComponent::SceneNodeComponent(SceneNode* pOwner) 
+    : m_Owner(pOwner)
   {
-
+   
   }
 //---------------------------------------------------------------------------//
   SceneNodeComponent::~SceneNodeComponent()
