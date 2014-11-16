@@ -2,18 +2,25 @@
 #define INCLUDE_MODELCOMPONENT_H
 
 #include "SceneNodeComponent.h"
+#include "Model.h"
 
 namespace Fancy { namespace Scene {
   //---------------------------------------------------------------------------//
   class DLLEXPORT ModelComponent : 
     public SceneNodeComponent, public BaseCreator<ModelComponent, SceneNode*>
   {
-  public:
-    ModelComponent(SceneNode* pOwner);
-    virtual ~ModelComponent();
+    public:
+      ModelComponent(SceneNode* pOwner);
+      virtual ~ModelComponent();
 
-    virtual ObjectName getTypeName() override { return _N(Model); }
-    virtual void update();
+      void setModel(Geometry::Model* pModel) {m_pModel = pModel;}
+      Geometry::Model* getModel() {return m_pModel;}
+      
+      virtual ObjectName getTypeName() override { return _N(Model); }
+      virtual void update() override;
+
+    private:
+      Geometry::Model* m_pModel;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(ModelComponent)

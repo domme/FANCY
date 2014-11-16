@@ -3,7 +3,7 @@
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   SceneNodeComponent::SceneNodeComponent(SceneNode* pOwner) 
-    : m_Owner(pOwner)
+    : m_pOwner(pOwner)
   {
    
   }

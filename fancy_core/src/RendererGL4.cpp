@@ -167,7 +167,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_pCachedDepthStencilTarget(nullptr),
     m_uCurrentFBO(0u),
     m_uCurrentGpuProgramPipeline(0u),
-    m_uCurrentVAO(0u)
+    m_uCurrentVAO(0u),
+    m_uViewportParams(0u, 0u, 1u, 1u),
+    m_bViewportDirty(true)
   {
     memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
 
@@ -212,6 +214,15 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     // TODO: Set the render-system to the OpenGL-default values
 
 
+  }
+//---------------------------------------------------------------------------//
+  void RendererGL4::setViewport( const glm::uvec4& uViewportParams )
+  {
+    if (m_uViewportParams != uViewportParams)
+    {
+      m_bViewportDirty = true;
+      m_uViewportParams = uViewportParams;
+    }
   }
 //-----------------------------------------------------------------------//
   void RendererGL4::setDepthStencilState(const DepthStencilState& clDepthStencilState)
@@ -713,6 +724,15 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
+  void RendererGL4::applyViewport()
+  {
+    if (m_bViewportDirty)
+    {
+      glViewport(m_uViewportParams.x, m_uViewportParams.y,
+        m_uViewportParams.z, m_uViewportParams.w);
+    }
+  }
+//---------------------------------------------------------------------------//
   void RendererGL4::bindBlendState()
   {
     ASSERT_M(m_uBlendStateRebindMask > 0, 
@@ -1187,6 +1207,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       m_uCurrentGpuProgramPipeline = uProgPipeline;
     }
             
+    applyViewport();
+
     // Bind resources to the pipeline
     bindStatesToPipeline();
     bindResourcesToPipeline();

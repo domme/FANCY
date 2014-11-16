@@ -13,13 +13,13 @@ namespace Fancy { namespace Scene {
       SceneNodeComponent(SceneNode* pOwner);
       virtual ~SceneNodeComponent();
 
-      SceneNode* getSceneNode() { return m_Owner; }
+      SceneNode* getSceneNode() { return m_pOwner; }
       
       virtual void update() = 0;
       virtual ObjectName getTypeName() = 0;
 
-    private:
-      SceneNode* m_Owner;
+    protected:
+      SceneNode* m_pOwner;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(SceneNodeComponent)

@@ -2,6 +2,7 @@
 #define INCLUDE_CAMERACOMPONENT_H
 
 #include "SceneNodeComponent.h"
+#include "Camera.h"
 
 namespace Fancy { namespace Scene {
   //---------------------------------------------------------------------------//
@@ -12,8 +13,14 @@ namespace Fancy { namespace Scene {
     CameraComponent(SceneNode* pOwner);
     virtual ~CameraComponent();
 
+    void setCamera(Camera* pCamera) {m_pCamera;}
+
     virtual void update() override;
     virtual ObjectName getTypeName() override { return _N(Camera); }
+
+  private:
+    void updateCameraInternal();
+    Camera* m_pCamera;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(CameraComponent)

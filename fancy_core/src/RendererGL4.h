@@ -25,6 +25,9 @@ public:
   void beginFrame();
   void endFrame();
 
+  void setViewport(const glm::uvec4& uViewportParams);
+  const glm::uvec4 getViewport() const {return m_uViewportParams;}
+
   /// Sets the blendState that should be active upon in next draw call
   void setBlendState(const BlendState& clBlendState);
   /// Retrieves the cached blendState configured for the next draw call
@@ -90,6 +93,7 @@ protected:
   /// Sets all gpuProgram resources to a 'dirty' state so that they are re-bound during the next draw
   void invalidateResourceCache(const uint32 uShaderStageIdx);
 
+  void applyViewport();
   void bindBlendState();
   void _bindBlendValuesMultiRT(const uint32 uBlendStateRebindMask, 
     const uint8 u8BlendStateRebindRTcount, const uint8 u8BlendStateRebindRTmask);
@@ -103,6 +107,9 @@ protected:
   GLuint createOrRetrieveProgramPipeline();
   const VaoCacheEntry& createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, const VertexInputLayout* pVertexInputLayout);
   
+  glm::uvec4 m_uViewportParams;
+  bool m_bViewportDirty;
+
   /// Mask indicating which pipeline states have to be re-bound to the pipeline
   uint          m_uPipelineRebindMask;  // Needed?
   /// Mask indicating which resources have to be re-bound to each shaderStage

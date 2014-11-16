@@ -2,7 +2,6 @@
 #define INCLUDE_SCENENODE_H
 
 #include "FancyCorePrerequisites.h"
-#include "TransformComponent.h"
 #include "CameraComponent.h"
 #include "ModelComponent.h"
 
@@ -13,31 +12,55 @@ namespace Fancy { namespace Scene {
     void initComponentSubsystem();
   }
 //---------------------------------------------------------------------------//
+  class Transform
+  {
+    friend class SceneNode;
+
+    public:
+      Transform();
+      ~Transform();
+
+      const glm::mat4& getLocal() const {return m_local;}
+      const glm::mat4& getCachedWorld() const {return m_cachedWorld;}
+
+    private:
+      glm::mat4 m_local;
+      glm::mat4 m_cachedWorld;
+  };
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   class DLLEXPORT SceneNode
   {
     public: 
       SceneNode();
       ~SceneNode();
 
+      static void parentNodeToNode(SceneNodePtr pChild, SceneNodePtr pParent);
+      static void unparentNode(SceneNodePtr pChild);
+
       void update();
-      SceneNodeComponent* createComponent(const ObjectName& typeName);
+      SceneNodeComponentWeakPtr createComponent(const ObjectName& typeName);
       void removeComponent(const ObjectName& typeName);
+      SceneNodeComponentWeakPtr getComponentPtr(const ObjectName& typeName);
       SceneNodeComponent* getComponent(const ObjectName& typeName);
 
-      TransformComponent* getTransformComponent() {return m_pTransformComponent.get();}
+      CameraComponentWeakPtr getCameraComponentPtr() {return m_pCameraComponent;}
       CameraComponent* getCameraComponent() {return m_pCameraComponent.get();}
+      ModelComponentWeakPtr getModelComponentPtr() {return m_pModelComponent;}
       ModelComponent* getModelComponent() {return m_pModelComponent.get();}
 
-    private:
-      void onComponentAdded(SceneNodeComponentPtr pComponent);
-      void onComponentRemoved(SceneNodeComponentPtr pComponent);
+      Transform& getTransform() {return m_transform;}
+      bool hasParent() {return m_pParent != nullptr;}
+
+  private:
+      void onComponentAdded(const SceneNodeComponentPtr& pComponent);
+      void onComponentRemoved(const SceneNodeComponentPtr& pComponent);
 
       std::vector<SceneNodeComponentPtr> m_vpComponents;
       std::vector<std::shared_ptr<SceneNode>> m_vpChildren;
       SceneNode* m_pParent;
-
+      Transform m_transform;
       // Cached components:
-      TransformComponentPtr m_pTransformComponent;
       CameraComponentPtr m_pCameraComponent;
       ModelComponentPtr m_pModelComponent;
   };

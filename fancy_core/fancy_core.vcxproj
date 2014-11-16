@@ -253,7 +253,6 @@
     <ClInclude Include="src\TextureSampler.h" />
     <ClInclude Include="src\TextureSamplerGL4.h" />
     <ClInclude Include="src\TimeManager.h" />
-    <ClInclude Include="src\TransformComponent.h" />
     <ClInclude Include="src\VertexInputLayout.h" />
     <ClInclude Include="src\GeometryVertexLayout.h" />
   </ItemGroup>
@@ -295,7 +294,6 @@
     <ClCompile Include="src\TextureGL4.cpp" />
     <ClCompile Include="src\TextureSamplerGL4.cpp" />
     <ClCompile Include="src\TimeManager.cpp" />
-    <ClCompile Include="src\TransformComponent.cpp" />
     <ClCompile Include="src\VertexInputLayout.cpp" />
     <ClCompile Include="src\GeometryVertexLayout.cpp" />
   </ItemGroup>

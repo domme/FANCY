@@ -5,17 +5,29 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   void Startup::initComponentSubsystem()
   {
-    SceneNodeComponentFactory::registerFactory(_N(Transform), TransformComponent::create);
     SceneNodeComponentFactory::registerFactory(_N(Model), ModelComponent::create);
     SceneNodeComponentFactory::registerFactory(_N(Camera), CameraComponent::create);
   }
 //---------------------------------------------------------------------------//
-  SceneNode::SceneNode() :
-    m_pModelComponent(nullptr),
-    m_pTransformComponent(nullptr),
-    m_pCameraComponent(nullptr)
+//---------------------------------------------------------------------------//
+  Transform::Transform() :
+    m_local(1.0f),
+    m_cachedWorld(1.0f)
   {
-    createComponent(_N(Transform));
+
+  }
+//---------------------------------------------------------------------------//
+  Transform::~Transform()
+  {
+
+  }
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  SceneNode::SceneNode() :
+    m_pParent(nullptr)
+  {
+
   }
 //---------------------------------------------------------------------------//
   SceneNode::~SceneNode()
@@ -23,10 +35,63 @@ namespace Fancy { namespace Scene {
     
   }
 //---------------------------------------------------------------------------//
+  void SceneNode::parentNodeToNode(SceneNodePtr pChild, SceneNodePtr pParent)
+  {
+    if (pChild->hasParent())
+    {
+      SceneNode::unparentNode(pChild);
+    }
+
+    pParent->m_vpChildren.push_back(pChild);
+    pChild->m_pParent = pParent.get();
+  }
+//---------------------------------------------------------------------------//
+  void SceneNode::unparentNode(SceneNodePtr pChild)
+  {
+    if (!pChild->hasParent())
+    {
+      return;
+    }
+
+    SceneNode* pParent = pChild->m_pParent;
+
+    std::vector<SceneNodePtr>::iterator it =
+      std::find(pParent->m_vpChildren.begin(), pParent->m_vpChildren.end(), pChild);
+
+    ASSERT_M(it != pParent->m_vpChildren.end(), "Invalid parent-child relationship");
+
+    pChild->m_pParent = nullptr;
+    pParent->m_vpChildren.erase(it);
+  }
+//---------------------------------------------------------------------------//
   void SceneNode::update()
   {
+    for (uint i = 0u; i < m_vpChildren.size(); ++i)
+    {
+      Transform& childTransform = m_vpChildren[i]->getTransform();
+      childTransform.m_cachedWorld = childTransform.m_local * getTransform().m_cachedWorld;
 
-  }  
+      m_vpChildren[i]->update();
+    }
+
+    for (uint i = 0u; i < m_vpComponents.size(); ++i)
+    {
+      m_vpComponents[i]->update();
+    }
+  } 
+//---------------------------------------------------------------------------//
+  SceneNodeComponentWeakPtr SceneNode::getComponentPtr( const ObjectName& typeName )
+  {
+    for (uint i = 0; i < m_vpComponents.size(); ++i)
+    {
+      if (m_vpComponents[i]->getTypeName() == typeName)
+      {
+        return m_vpComponents[i];
+      }
+    }
+
+    return SceneNodeComponentWeakPtr();  // nullptr
+  }
 //---------------------------------------------------------------------------//
   SceneNodeComponent* SceneNode::getComponent( const ObjectName& typeName )
   {
@@ -41,11 +106,11 @@ namespace Fancy { namespace Scene {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SceneNodeComponent* SceneNode::createComponent( const ObjectName& typeName )
+  SceneNodeComponentWeakPtr SceneNode::createComponent( const ObjectName& typeName )
   {
     if (getComponent(typeName))
     {
-      return nullptr;
+      return SceneNodeComponentWeakPtr();
     }
 
     SceneNodeComponentPtr componentPtr = 
@@ -54,7 +119,7 @@ namespace Fancy { namespace Scene {
     m_vpComponents.push_back(componentPtr);
     onComponentAdded(componentPtr);
 
-    return componentPtr.get();
+    return componentPtr;
   }
 //---------------------------------------------------------------------------//
   void SceneNode::removeComponent(const ObjectName& typeName)
@@ -80,26 +145,22 @@ namespace Fancy { namespace Scene {
     m_vpComponents.erase(itFound);
   }
 //---------------------------------------------------------------------------//
-  void SceneNode::onComponentAdded(SceneNodeComponentPtr pComponent )
+  void SceneNode::onComponentAdded(const SceneNodeComponentPtr& pComponent )
   {
     ObjectName typeName = pComponent->getTypeName();
 
-    if (typeName == _N(Transform)) {
-      m_pTransformComponent = std::static_pointer_cast<TransformComponent>(pComponent);
-    } else if (typeName == _N(Model)) {
+    if (typeName == _N(Model)) {
       m_pModelComponent = std::static_pointer_cast<ModelComponent>(pComponent);
     } else if (typeName == _N(Camera)) {
       m_pCameraComponent = std::static_pointer_cast<CameraComponent>(pComponent);
     }
   }
 //---------------------------------------------------------------------------//
-  void SceneNode::onComponentRemoved(SceneNodeComponentPtr pComponent )
+  void SceneNode::onComponentRemoved(const SceneNodeComponentPtr& pComponent )
   {
     ObjectName typeName = pComponent->getTypeName();
 
-    if (typeName == _N(Transform)) {
-      ASSERT_M(false, "The transform component should never be removed");
-    } else if (typeName == _N(Model)) {
+    if (typeName == _N(Model)) {
       m_pModelComponent = nullptr;
     } else if (typeName == _N(Camera)) {
       m_pCameraComponent = nullptr;

@@ -38,6 +38,8 @@ namespace Fancy { namespace Geometry {
       ObjectName m_Name;
   };
 //---------------------------------------------------------------------------//
+  DECLARE_SMART_PTRS(Model)
+//---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry
 
 #endif  // INCLUDE_MODEL_H

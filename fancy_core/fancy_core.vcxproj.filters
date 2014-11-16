@@ -150,9 +150,6 @@
     <ClInclude Include="src\GpuProgramPipeline.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuProgramPipelineGL4.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\TimeManager.h">
       <Filter>src\Common</Filter>
     </ClInclude>
@@ -174,9 +171,6 @@
     <ClInclude Include="src\SceneNodeComponent.h">
       <Filter>src\Scene\Components</Filter>
     </ClInclude>
-    <ClInclude Include="src\TransformComponent.h">
-      <Filter>src\Scene\Components</Filter>
-    </ClInclude>
     <ClInclude Include="src\ModelComponent.h">
       <Filter>src\Scene\Components</Filter>
     </ClInclude>
@@ -188,6 +182,9 @@
     </ClInclude>
     <ClInclude Include="src\SceneManager.h">
       <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuProgramPipelineGL4.h">
+      <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -263,9 +260,6 @@
     <ClCompile Include="src\GeometryVertexLayout.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgramPipelineGL4.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\ShaderConstantsManager.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
@@ -284,9 +278,6 @@
     <ClCompile Include="src\SceneNodeComponent.cpp">
       <Filter>src\Scene\Components</Filter>
     </ClCompile>
-    <ClCompile Include="src\TransformComponent.cpp">
-      <Filter>src\Scene\Components</Filter>
-    </ClCompile>
     <ClCompile Include="src\ModelComponent.cpp">
       <Filter>src\Scene\Components</Filter>
     </ClCompile>
@@ -298,6 +289,9 @@
     </ClCompile>
     <ClCompile Include="src\SceneManager.cpp">
       <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgramPipelineGL4.cpp">
+      <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
