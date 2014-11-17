@@ -180,11 +180,14 @@
     <ClInclude Include="src\SceneNodeComponentFactory.h">
       <Filter>src\Scene\Components</Filter>
     </ClInclude>
-    <ClInclude Include="src\SceneManager.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\GpuProgramPipelineGL4.h">
       <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene.h">
+      <Filter>src\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SceneRenderDescription.h">
+      <Filter>src\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -287,11 +290,11 @@
     <ClCompile Include="src\SceneNodeComponentFactory.cpp">
       <Filter>src\Scene\Components</Filter>
     </ClCompile>
-    <ClCompile Include="src\SceneManager.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\GpuProgramPipelineGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene.cpp">
+      <Filter>src\Scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

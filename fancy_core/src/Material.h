@@ -9,17 +9,6 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  enum class EMaterialPass
-  {
-    SOLID_GBUFFER = 0,
-    SOLID_FORWARD,
-    TRANSPARENT_FORWARD,
-    // More to come...
-    NUM
-  };
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
   class Material
   {
     class MaterialPass;

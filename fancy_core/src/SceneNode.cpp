@@ -35,7 +35,7 @@ namespace Fancy { namespace Scene {
     
   }
 //---------------------------------------------------------------------------//
-  void SceneNode::parentNodeToNode(SceneNodePtr pChild, SceneNodePtr pParent)
+  void SceneNode::parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent)
   {
     if (pChild->hasParent())
     {
@@ -46,7 +46,7 @@ namespace Fancy { namespace Scene {
     pChild->m_pParent = pParent.get();
   }
 //---------------------------------------------------------------------------//
-  void SceneNode::unparentNode(SceneNodePtr pChild)
+  void SceneNode::unparentNode(std::shared_ptr<SceneNode> pChild)
   {
     if (!pChild->hasParent())
     {
@@ -55,7 +55,7 @@ namespace Fancy { namespace Scene {
 
     SceneNode* pParent = pChild->m_pParent;
 
-    std::vector<SceneNodePtr>::iterator it =
+    std::vector<std::shared_ptr<SceneNode>>::iterator it =
       std::find(pParent->m_vpChildren.begin(), pParent->m_vpChildren.end(), pChild);
 
     ASSERT_M(it != pParent->m_vpChildren.end(), "Invalid parent-child relationship");
@@ -91,6 +91,16 @@ namespace Fancy { namespace Scene {
     }
 
     return SceneNodeComponentWeakPtr();  // nullptr
+  }
+//---------------------------------------------------------------------------//
+  ModelComponentWeakPtr SceneNode::getModelComponentPtr()
+  {
+    return std::static_pointer_cast<ModelComponent>(getComponentPtr(_N(Model)).lock());
+  }
+//---------------------------------------------------------------------------//
+  CameraComponentWeakPtr SceneNode::getCameraComponentPtr()
+  {
+    return std::static_pointer_cast<CameraComponent>(getComponentPtr(_N(Camera)).lock());
   }
 //---------------------------------------------------------------------------//
   SceneNodeComponent* SceneNode::getComponent( const ObjectName& typeName )
@@ -150,9 +160,9 @@ namespace Fancy { namespace Scene {
     ObjectName typeName = pComponent->getTypeName();
 
     if (typeName == _N(Model)) {
-      m_pModelComponent = std::static_pointer_cast<ModelComponent>(pComponent);
+      m_pModelComponent = static_cast<ModelComponent*>(pComponent.get());
     } else if (typeName == _N(Camera)) {
-      m_pCameraComponent = std::static_pointer_cast<CameraComponent>(pComponent);
+      m_pCameraComponent = static_cast<CameraComponent*>(pComponent.get());
     }
   }
 //---------------------------------------------------------------------------//

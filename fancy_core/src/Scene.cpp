@@ -1,34 +1,25 @@
-#include "CameraComponent.h"
-#include "SceneNode.h"
+#include "Scene.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
-  CameraComponent::CameraComponent(SceneNode* pOwner)
-    : SceneNodeComponent(pOwner),
-    m_pCamera(nullptr)
+  Scene::Scene()
+  {
+    
+  }
+//---------------------------------------------------------------------------//
+  Scene::~Scene()
   {
 
   }
 //---------------------------------------------------------------------------//
-  CameraComponent::~CameraComponent()
+  void Scene::update()
   {
 
   }
 //---------------------------------------------------------------------------//
-  void CameraComponent::update()
+  void Scene::collectSceneRenderData( SceneRenderDescription* pRenderDesc )
   {
-    updateCameraInternal();
-  }
-//---------------------------------------------------------------------------//
-  void CameraComponent::updateCameraInternal()
-  {
-    if (m_pCamera)
-    {
-      const glm::mat4& viewInverse = 
-        m_pOwner->getTransform().getCachedWorld();
 
-      m_pCamera->setViewInv(viewInverse);
-    }
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Scene

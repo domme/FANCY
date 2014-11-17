@@ -30,6 +30,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class MemoryCategory {
     GENERAL,
+    MATERIALS,
     TEXTURES,
     BUFFERS,
     MESHES
@@ -462,6 +463,14 @@ namespace Fancy {
       float              fMaxLod;
       float              fLodBias;
       float              fMaxAnisotropy;
+    };
+//---------------------------------------------------------------------------//
+    enum class EMaterialPass {
+      SOLID_GBUFFER = 0,
+      SOLID_FORWARD,
+      TRANSPARENT_FORWARD,
+      // More to come...
+      NUM
     };
 //---------------------------------------------------------------------------//
   } // end of namespace Rendering 
