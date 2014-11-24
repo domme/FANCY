@@ -9,21 +9,28 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  class MaterialPassInstance;
+//---------------------------------------------------------------------------//
   class Material
   {
-    class MaterialPass;
-
     public:
       Material();
       ~Material();
 
       const ObjectName& getName() const { return m_Name; }
-      const MaterialPass* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint) ePassType]; }
+      const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint) ePassType]; }
 
     private:
       ObjectName m_Name;
-      MaterialPass* m_vPasses[ (uint) EMaterialPass::NUM ];
+      MaterialPassInstance* m_vPasses[ (uint) EMaterialPass::NUM ];
   };
+//---------------------------------------------------------------------------//
+  // TODO: Do we need this?
+  /*class MaterialInstance 
+  {
+
+
+  }; */
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
 

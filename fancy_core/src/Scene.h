@@ -18,9 +18,8 @@ namespace Fancy { namespace Scene {
       ~Scene();
 
       void update();
-      void collectSceneRenderData(SceneRenderDescription* pRenderDesc);
-
-      
+      void gatherRenderItems(SceneRenderDescription* pRenderDesc);
+            
     private:
       std::shared_ptr<SceneNode> m_pRootNode;
   };

@@ -16,6 +16,7 @@ namespace Fancy { namespace Scene {
     void setCamera(Camera* pCamera) {m_pCamera;}
 
     virtual void update() override;
+    virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
     virtual ObjectName getTypeName() override { return _N(Camera); }
 
   private:

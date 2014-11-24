@@ -29,7 +29,7 @@ namespace Fancy { namespace Geometry {
     const GeometryData* getGeometryData(uint32 u32Index) const {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}
   //---------------------------------------------------------------------------//
     //SubMeshList& getGeometryDataList() {return m_vGeometries;}
-    const GeometryDataList& getGeometryDataList() const {return m_vGeometries;} 
+    const GeometryDataList& getGeometryDataList() const {return m_vGeometries;}
   //---------------------------------------------------------------------------//
   private:
     GeometryDataList m_vGeometries;

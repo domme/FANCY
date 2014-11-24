@@ -5,10 +5,13 @@
 #include "ObjectName.h"
 #include "FixedArray.h"
 
+namespace Fancy { namespace Rendering {
+  class Material;
+} }  // end of namespace Fancy::Rendering
+//---------------------------------------------------------------------------//
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class Mesh;
-  class Material;
 //---------------------------------------------------------------------------//
   class SubModel 
   {
@@ -19,12 +22,12 @@ namespace Fancy { namespace Geometry {
     const ObjectName& getName() const {return m_Name;}
     void setName(const ObjectName& clNewName) {m_Name = clNewName;}
 
-    Material* getMaterial() const {return m_pMaterial;}
+    Rendering::Material* getMaterial() const {return m_pMaterial;}
     Mesh* getMesh() const {return m_pMesh;}
     
    //---------------------------------------------------------------------------//
   private:
-    Material* m_pMaterial;
+    Rendering::Material* m_pMaterial;
     Mesh* m_pMesh;
     ObjectName m_Name;
   };

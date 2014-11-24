@@ -17,13 +17,9 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
       void operator=(const ObjectName& clOther);
       void operator=(const String& szOther);
-    //---------------------------------------------------------------------------//
       bool operator==(const ObjectName& clOther) const;
-    //---------------------------------------------------------------------------//
       bool operator!=(const ObjectName& clOther) const;
-    //---------------------------------------------------------------------------//
       bool operator<(const ObjectName& clOther) const;
-    //---------------------------------------------------------------------------//
       // Implicit conversion operator:
       operator size_t() const {return getHash();}
     //---------------------------------------------------------------------------//

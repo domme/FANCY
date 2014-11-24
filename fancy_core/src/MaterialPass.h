@@ -21,6 +21,7 @@ namespace Fancy { namespace Rendering {
       const ObjectName& getName() const { return m_Name; }
       const GpuProgram* getGpuProgram(const ShaderStage eShaderStage) const 
         {return m_pGpuProgram[(uint32) eShaderStage];}
+
       FillMode getFillMode() const {return m_eFillMode;}
       CullMode getCullMode() const {return m_eCullMode;}
       WindingOrder getWindingOrder() const {return m_eWindingOrder;}

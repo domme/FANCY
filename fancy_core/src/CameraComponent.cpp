@@ -20,6 +20,11 @@ namespace Fancy { namespace Scene {
     updateCameraInternal();
   }
 //---------------------------------------------------------------------------//
+  void CameraComponent::gatherRenderItems( SceneRenderDescription* pRenderDesc )
+  {
+
+  }
+//---------------------------------------------------------------------------//
   void CameraComponent::updateCameraInternal()
   {
     if (m_pCamera)

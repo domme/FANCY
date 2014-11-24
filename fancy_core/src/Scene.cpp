@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include "SceneNode.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
@@ -17,9 +18,9 @@ namespace Fancy { namespace Scene {
 
   }
 //---------------------------------------------------------------------------//
-  void Scene::collectSceneRenderData( SceneRenderDescription* pRenderDesc )
+  void Scene::gatherRenderItems( SceneRenderDescription* pRenderDesc )
   {
-
+    m_pRootNode->gatherRenderItems(pRenderDesc);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Scene

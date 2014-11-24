@@ -6,6 +6,7 @@
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   class SceneNode;
+  class SceneRenderDescription;
 //---------------------------------------------------------------------------//
   class DLLEXPORT SceneNodeComponent
   {
@@ -16,6 +17,7 @@ namespace Fancy { namespace Scene {
       SceneNode* getSceneNode() { return m_pOwner; }
       
       virtual void update() = 0;
+      virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) = 0;
       virtual ObjectName getTypeName() = 0;
 
     protected:

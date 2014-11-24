@@ -17,6 +17,10 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct RenderingItem
   {
+    RenderingItem(const Geometry::GeometryData* _pGeometry, 
+      const MaterialPassInstance* _pMaterialPassInstance) :
+      pGeometry(_pGeometry), pMaterialPassInstance(_pMaterialPassInstance) {}
+
     const Geometry::GeometryData* pGeometry;
     const MaterialPassInstance* pMaterialPassInstance;
   };

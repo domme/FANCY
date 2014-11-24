@@ -28,6 +28,7 @@ namespace Fancy { namespace Scene {
       glm::mat4 m_cachedWorld;
   };
 //---------------------------------------------------------------------------//
+  class SceneRenderDescription;
 //---------------------------------------------------------------------------//
   class DLLEXPORT SceneNode
   {
@@ -39,6 +40,8 @@ namespace Fancy { namespace Scene {
       static void unparentNode(std::shared_ptr<SceneNode> pChild);
 
       void update();
+      void gatherRenderItems(SceneRenderDescription* pRenderDesc);
+
       SceneNodeComponentWeakPtr createComponent(const ObjectName& typeName);
       void removeComponent(const ObjectName& typeName);
       SceneNodeComponentWeakPtr getComponentPtr(const ObjectName& typeName);

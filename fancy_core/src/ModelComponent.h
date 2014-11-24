@@ -17,6 +17,7 @@ namespace Fancy { namespace Scene {
       Geometry::Model* getModel() {return m_pModel;}
       
       virtual ObjectName getTypeName() override { return _N(Model); }
+      virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
       virtual void update() override;
 
     private:
