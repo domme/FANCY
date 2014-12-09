@@ -38,8 +38,9 @@ namespace Fancy { namespace Scene {
   typedef FixedArray<RenderingItemList, (uint) Rendering::EMaterialPass::NUM> 
     TechniqueRenderingItemList;
 //---------------------------------------------------------------------------//
-    struct SceneRenderDescription
+    class SceneRenderDescription
     {
+    public:
       TechniqueRenderingItemList techniqueItemList;
     };
   //---------------------------------------------------------------------------//

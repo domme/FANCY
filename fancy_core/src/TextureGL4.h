@@ -4,6 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "LoadableObject.h"
+#include "AdapterGL4.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 

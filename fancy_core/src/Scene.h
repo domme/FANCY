@@ -24,6 +24,8 @@ namespace Fancy { namespace Scene {
       std::shared_ptr<SceneNode> m_pRootNode;
   };
 //---------------------------------------------------------------------------//
+  DECLARE_SMART_PTRS(Scene)
+//---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Scene
 
 #endif  // INCLUDE_SCENE_H

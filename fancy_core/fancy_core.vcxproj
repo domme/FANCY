@@ -30,7 +30,7 @@
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v110</PlatformToolset>
@@ -57,24 +57,28 @@
     <Import Project="..\property_sheets\glm.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\Assimp_debug_Win32.props" />
+    <Import Project="..\property_sheets\GLEW_32_static.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\property_sheets\glm.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\Assimp_debug_x64.props" />
+    <Import Project="..\property_sheets\GLEW_64_static.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\property_sheets\glm.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\Assimp_release_Win32.props" />
+    <Import Project="..\property_sheets\GLEW_32_static.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\property_sheets\glm.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\Assimp_release_x64.props" />
+    <Import Project="..\property_sheets\GLEW_64_static.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -94,7 +98,7 @@
     <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetExt>.lib</TargetExt>
+    <TargetExt>.dll</TargetExt>
     <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -209,6 +213,7 @@
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\CameraComponent.h" />
     <ClInclude Include="src\ComputeOperation.h" />
+    <ClInclude Include="src\EngineCommon.h" />
     <ClInclude Include="src\Events.h" />
     <ClInclude Include="src\FancyCorePrerequisites.h" />
     <ClInclude Include="src\FileReader.h" />
@@ -258,9 +263,11 @@
     <ClInclude Include="src\GeometryVertexLayout.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AdapterGL4.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\ComputeOperation.cpp" />
+    <ClCompile Include="src\EngineCommon.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\GpuBufferGL4.cpp" />
     <ClCompile Include="src\GpuProgramCompilerGL4.cpp" />

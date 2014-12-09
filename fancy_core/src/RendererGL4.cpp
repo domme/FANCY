@@ -2,10 +2,10 @@
 #include "MathUtil.h"
 #include "Texture.h"
 #include "GLDebug.h"
-#include "AdapterGL4.h"
 #include "GeometryData.h"
 #include "GPUProgram.h"
 #include "TextureSampler.h"
+#include "AdapterGL4.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
@@ -171,6 +171,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_uViewportParams(0u, 0u, 1u, 1u),
     m_bViewportDirty(true)
   {
+    glewInit();
+
     memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
 
     memset(m_pCachedReadTextures, 0, sizeof(m_pCachedReadTextures));

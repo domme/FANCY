@@ -54,7 +54,7 @@ namespace Fancy { namespace Scene {
         const Geometry::Mesh* pMesh = pSubmodel->getMesh();
         const Geometry::GeometryDataList& vGeometryDatas = pMesh->getGeometryDataList();
 
-        for (uint32 iGeometryData; ++iGeometryData < vGeometryDatas.size(); ++iGeometryData)
+        for (uint32 iGeometryData = 0u; ++iGeometryData < vGeometryDatas.size(); ++iGeometryData)
         {
           vRenderItems.push_back(
             Rendering::RenderingItem(vGeometryDatas[iGeometryData], pMaterialPassInstance));

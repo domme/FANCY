@@ -1,5 +1,5 @@
 #ifndef INCLUDE_GPUPROGRAMPIPELINEGL4_H
-#define INCLUDE_GPUPROGRAMPUPELINEGL4_H
+#define INCLUDE_GPUPROGRAMPIPELINEGL4_H
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"

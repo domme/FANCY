@@ -1,5 +1,4 @@
 #include "Camera.h"
-#include "Renderer.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//

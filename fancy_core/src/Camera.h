@@ -2,6 +2,7 @@
 #define INCLUDE_CAMERA_H
 
 #include "FancyCorePrerequisites.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//

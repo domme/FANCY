@@ -189,6 +189,9 @@
     <ClInclude Include="src\SceneRenderDescription.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\EngineCommon.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -295,6 +298,12 @@
     </ClCompile>
     <ClCompile Include="src\Scene.cpp">
       <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EngineCommon.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AdapterGL4.cpp">
+      <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

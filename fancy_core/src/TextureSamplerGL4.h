@@ -4,7 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "OpenGLprerequisites.h"
-
+#include "AdapterGL4.h"
 #include "ObjectName.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {

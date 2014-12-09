@@ -1,5 +1,4 @@
 #include "TextureSamplerGL4.h"
-#include "AdapterGL4.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//

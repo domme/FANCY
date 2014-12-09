@@ -168,7 +168,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     GLenum eUsageTarget;
     GLenum eBindingQuery;
-    internal::mapBufferUsage(clParameters.ePrimaryUsageType, eBindingQuery);
+    eUsageTarget = internal::mapBufferUsage(clParameters.ePrimaryUsageType, eBindingQuery);
     m_clParameters.eInitialBufferTargetGL = eUsageTarget;
     m_clParameters.eBindingQueryType = eBindingQuery;
 

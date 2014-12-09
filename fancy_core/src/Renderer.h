@@ -1,9 +1,8 @@
 #ifndef INCLUDE_RENDERER_H
 #define INCLUDE_RENDERER_H
 
-#include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include PLATFORM_DEPENDENT_INCLUDE_RENDERER;
+#include PLATFORM_DEPENDENT_INCLUDE_RENDERER
 
 namespace Fancy { namespace Rendering {
 

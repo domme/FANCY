@@ -1,6 +1,5 @@
 ﻿#include "GpuProgramCompilerGL4.h"
 #include "GpuProgram.h"
-#include "AdapterGL4.h"
 #include "ShaderConstantsManager.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {

@@ -1,8 +1,6 @@
 #ifndef INCLUDE_GPUPROGRAMRESOURCEGL4_H
 #define INCLUDE_GPUPROGRAMRESOURCEGL4_H
 
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
 #include "OpenGLprerequisites.h"
 
 namespace Fancy {namespace Rendering { namespace GL4 {
@@ -16,4 +14,4 @@ namespace Fancy {namespace Rendering { namespace GL4 {
 
 } } } // end of namespace Fancy::Rendering::GL4
 
-#endif INCLUDE_GPUPROGRAMRESOURCEGL4_H
+#endif // INCLUDE_GPUPROGRAMRESOURCEGL4_H

@@ -1,7 +1,6 @@
 #ifndef INCLUDE_RENDERERGL4_H
 #define INCLUDE_RENDERERGL4_H
 
-
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "LoadableObject.h"
