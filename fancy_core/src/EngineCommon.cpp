@@ -3,8 +3,18 @@
 #include "SceneNode.h"
 #include "SceneNodeComponent.h"
 #include "Renderer.h"
+#include "SceneNodeComponentFactory.h"
+
+#include "ModelComponent.h"
+#include "CameraComponent.h"
+#include "Texture.h"
 
 namespace Fancy {
+//---------------------------------------------------------------------------//
+  EngineCommon::EngineCommon()
+  {
+
+  }
 //---------------------------------------------------------------------------//
   EngineCommon::~EngineCommon()
   {
@@ -13,17 +23,18 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool EngineCommon::initEngine()
   {
-    Scene::Startup::initComponentSubsystem();
+    initComponentSubsystem();
 
-    Rendering::Renderer::getInstance();
-
+    Rendering::Renderer& rnd = Rendering::Renderer::getInstance();
 
     return true;
   }
-//---------------------------------------------------------------------------//
-  EngineCommon::EngineCommon()
-  {
 
+//---------------------------------------------------------------------------//
+  void EngineCommon::initComponentSubsystem()
+  {
+    Scene::SceneNodeComponentFactory::registerFactory(_N(Model), Scene::ModelComponent::create);
+    Scene::SceneNodeComponentFactory::registerFactory(_N(Camera), Scene::CameraComponent::create);
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

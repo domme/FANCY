@@ -4,12 +4,6 @@
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
-  void Startup::initComponentSubsystem()
-  {
-    SceneNodeComponentFactory::registerFactory(_N(Model), ModelComponent::create);
-    SceneNodeComponentFactory::registerFactory(_N(Camera), CameraComponent::create);
-  }
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
   Transform::Transform() :
     m_local(1.0f),

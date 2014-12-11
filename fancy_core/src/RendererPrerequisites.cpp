@@ -65,15 +65,15 @@ namespace Fancy { namespace Rendering {
     static uint32 numBlendStatesCreated = 0;
     u32Hash = ++numBlendStatesCreated;
 
-    memset(bAlphaSeparateBlend, sizeof(bAlphaSeparateBlend), false);
-    memset(bBlendEnabled, sizeof(bBlendEnabled), false);
-    memset(eSrcBlend, sizeof(eSrcBlend), (uint) BlendInput::ONE);
-    memset(eDestBlend, sizeof(eDestBlend), (uint) BlendInput::ONE);
-    memset(eBlendOp, sizeof(eBlendOp), (uint) BlendOp::ADD);
-    memset(eSrcBlendAlpha, sizeof(eSrcBlendAlpha), (uint) BlendInput::ONE);
-    memset(eDestBlendAlpha, sizeof(eDestBlendAlpha), (uint) BlendInput::ONE);
-    memset(eBlendOpAlpha, sizeof(eBlendOpAlpha), (uint) BlendOp::ADD);
-    memset(uRTwriteMask, sizeof(uRTwriteMask), (uint32)-1);
+    memset(bAlphaSeparateBlend, false, sizeof(bAlphaSeparateBlend));
+    memset(bBlendEnabled, false, sizeof(bBlendEnabled));
+    memset(eSrcBlend, (uint32) BlendInput::ONE, sizeof(eSrcBlend));
+    memset(eDestBlend, (uint32) BlendInput::ONE, sizeof(eDestBlend));
+    memset(eBlendOp, (uint32) BlendOp::ADD, sizeof(eBlendOp));
+    memset(eSrcBlendAlpha, (uint32) BlendInput::ONE, sizeof(eSrcBlendAlpha));
+    memset(eDestBlendAlpha, (uint32) BlendInput::ONE, sizeof(eDestBlendAlpha));
+    memset(eBlendOpAlpha, (uint32) BlendOp::ADD, sizeof(eBlendOpAlpha));
+    memset(uRTwriteMask, (uint32) -1, sizeof(uRTwriteMask));
   }
 //---------------------------------------------------------------------------//
   bool BlendState::operator==( const BlendState& clOther ) const

@@ -45,7 +45,7 @@ namespace Fancy {
 
 //---------------------------------------------------------------------------//
 #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
-  #define _N(name) Fancy::ObjectName("#name")
+  #define _N(name) Fancy::ObjectName(#name)
 #else // !FANCY_COMMON_USE_OBJECTNAME_STRINGS
   #define _N(name) Fancy::ObjectName(ObjectNameValues::name)
 #endif // FANCY_COMMON_USE_OBJECTNAME_STRINGS

@@ -12,7 +12,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   #define GL_SET_CAP(eCap, bEnabled) { if(bEnabled) glEnable(eCap); else glDisable(eCap); }
   #define GL_SET_CAPi(eCap, index, bEnabled) { if(bEnabled) glEnablei(eCap, index); else glDisablei(eCap, index); }
 //-----------------------------------------------------------------------//
-  static enum class DepthStencilRebindFlags {
+  enum class DepthStencilRebindFlags {
     DEPTH_TEST              = 0x00000001,
     DEPTH_WRITE             = 0x00000002,
     DEPTH_COMP_FUNC         = 0x00000004,
@@ -27,7 +27,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     STENCIL_PASS_OP         = 0x00000800
   };
 //-----------------------------------------------------------------------//
-  static enum class BlendStateRebindFlags {
+  enum class BlendStateRebindFlags {
     ALPHA_TO_COVERAGE     = 0x00000001,
     BLENDSTATE_PER_RT     = 0x00000002,
     ALPHA_SEPARATE_BLEND  = 0x00000004,
@@ -41,7 +41,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     RT_WRITE_MASK         = 0x00000400
   };
 //-----------------------------------------------------------------------//
-  static enum class PipelineRebindFlags {
+  enum class PipelineRebindFlags {
     NONE                        = 0x0000,
     DEPTHSTENCIL                = 0x0001,
     BLENDING                    = 0x0002,
@@ -52,7 +52,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     ALL                         = 0xFFFF
   };
 //-----------------------------------------------------------------------//
-  static enum class ResourceRebindFlags {
+  enum class ResourceRebindFlags {
     NONE              = 0x0000,
     READ_TEXTURES     = 0x0001,
     WRITE_TEXTURES    = 0x0002,
@@ -64,7 +64,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     ALL               = 0xFFFF
   };
 //---------------------------------------------------------------------------//
-  static enum class VertexBufferBindingFlags {
+  enum class VertexBufferBindingFlags {
     GEOMETRY_STREAM        = 0x001,
     INSTANCE_STREAM_1      = 0x002,
     INSTANCE_STREAM_2      = 0x004,
@@ -72,7 +72,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     PATCHING_STREAM_VEC4   = 0x010
   };
 //---------------------------------------------------------------------------//
-  static enum class VertexBufferBindingPoints {
+  enum class VertexBufferBindingPoints {
     GEOMETRY_STREAM        = 0,
     INSTANCE_STREAM_1      = 1,
     INSTANCE_STREAM_2      = 2,
@@ -169,10 +169,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_uCurrentGpuProgramPipeline(0u),
     m_uCurrentVAO(0u),
     m_uViewportParams(0u, 0u, 1u, 1u),
-    m_bViewportDirty(true)
+    m_bViewportDirty(true) 
   {
     glewInit();
-
+    
     memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
 
     memset(m_pCachedReadTextures, 0, sizeof(m_pCachedReadTextures));
@@ -210,6 +210,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     return true;
   }
+
 //-----------------------------------------------------------------------//
   void RendererGL4::postInit()
   {
@@ -565,14 +566,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     // Reset this stuff during material change?
     // Determine the needed rebind-counts
-    /*m_uNumReadTexturesToBind[uShaderStageIdx] = kMaxNumReadTextures;
-    for(uint32 i = kMaxNumReadTextures - 1u; i >= 0u; --i)
-    {
-      if (m_pCachedReadTextures[uShaderStageIdx][i] != nullptr)
-      {
-        m_uNumReadTexturesToBind[]
-      }
-    } */
+    // m_uNumReadTexturesToBind[uShaderStageIdx] = kMaxNumReadTextures;
+    // for(uint32 i = kMaxNumReadTextures - 1u; i >= 0u; --i)
+    // {
+    //   if (m_pCachedReadTextures[uShaderStageIdx][i] != nullptr)
+    //   {
+    //     m_uNumReadTexturesToBind[]
+    //   }
+    // }
   }
 //---------------------------------------------------------------------------//
   void RendererGL4::bindStatesToPipeline()
@@ -1238,10 +1239,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
     }
     // TODO: Add support for per-instance attributes here...
-    /*if (uVaoEntry.uStreamMask & (uint32)VertexBufferBindingFlags::INSTANCE_STREAM_1)
-    {
-      
-    } */
+    // if (uVaoEntry.uStreamMask & (uint32)VertexBufferBindingFlags::INSTANCE_STREAM_1)
+    // {
+    //   
+    // }
 
     bindIBO(uIBOtoUse);
     
@@ -1249,5 +1250,4 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     glDrawArrays(GL_TRIANGLES, 0, pGeometry->getNumIndices());
   }
 //---------------------------------------------------------------------------//
-
 } } }  // end of namespace Fancy::Rendering::GL4

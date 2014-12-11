@@ -41,4 +41,9 @@ namespace Fancy { namespace Rendering {
 
   }
  //---------------------------------------------------------------------------//
+  MaterialPassInstance::~MaterialPassInstance()
+  {
+    
+  }
+//---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

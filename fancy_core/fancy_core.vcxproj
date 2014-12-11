@@ -64,7 +64,7 @@
     <Import Project="..\property_sheets\glm.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\Assimp_debug_x64.props" />
-    <Import Project="..\property_sheets\GLEW_64_static.props" />
+    <Import Project="..\property_sheets\GLEW_64.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -78,7 +78,7 @@
     <Import Project="..\property_sheets\glm.props" />
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\Assimp_release_x64.props" />
-    <Import Project="..\property_sheets\GLEW_64_static.props" />
+    <Import Project="..\property_sheets\GLEW_64.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -139,8 +139,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy $(SolutionDir)\lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)\bin\$(Platform)\$(Configuration)\fancy_core.dll /I /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -160,8 +159,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy $(SolutionDir)\lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)\bin\$(Platform)\$(Configuration)\fancy_core.dll /I /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -182,8 +180,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy $(SolutionDir)\lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)\bin\$(Platform)\$(Configuration)\fancy_core.dll /I /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -204,8 +201,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy $(SolutionDir)\lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)\bin\$(Platform)\$(Configuration)\fancy_core.dll /I /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

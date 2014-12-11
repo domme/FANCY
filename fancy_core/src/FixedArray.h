@@ -62,7 +62,7 @@ namespace Fancy {
   {
     public:
       FixedArray();
-      virtual ~FixedArray();
+      virtual ~FixedArray() {};
     //---------------------------------------------------------------------------//  
       uint32 capacity() const {return u32Capacity;}
       uint32 size() const {return m_u32Size;}

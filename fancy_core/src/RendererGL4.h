@@ -36,7 +36,7 @@ public:
   void setDepthStencilState(const DepthStencilState& clDepthStencilState);
   /// Retrieves the depthstencil-state cached for the next draw call
   const DepthStencilState& getDepthStencilState() const {return m_clDepthStencilState;}
-
+  
   void setFillMode(const FillMode eFillMode);
   FillMode getFillMode() const { return m_eFillMode; }
 

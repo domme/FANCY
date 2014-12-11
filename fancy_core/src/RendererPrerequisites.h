@@ -217,12 +217,10 @@ namespace Fancy {
   //-----------------------------------------------------------------------//
     class DepthStencilState {
       friend class DepthStencilStateManager;
-      friend class PLATFORM_DEPENDENT_NAME(Renderer);
+      // friend class PLATFORM_DEPENDENT_NAME(Renderer);
 
     public:
       bool operator==(const DepthStencilState& clOther) const;
-
-    private:
       DepthStencilState();
       ~DepthStencilState() {}
 
@@ -244,12 +242,11 @@ namespace Fancy {
   //-----------------------------------------------------------------------//
     class BlendState {
       friend class DepthStencilStateManager;
-      friend class PLATFORM_DEPENDENT_NAME(Renderer);
+      // friend class PLATFORM_DEPENDENT_NAME(Renderer);
 
     public:
       bool operator==(const BlendState& clOther) const;
 
-    private:
       BlendState();
       ~BlendState() {}
 

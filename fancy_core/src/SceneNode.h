@@ -5,12 +5,7 @@
 #include "CameraComponent.h"
 #include "ModelComponent.h"
 
-namespace Fancy { namespace Scene {
-//---------------------------------------------------------------------------//
-  namespace Startup {
-    /// This method needs to be called before using the component system
-    void initComponentSubsystem();
-  }
+namespace Fancy { namespace Scene { 
 //---------------------------------------------------------------------------//
   class Transform
   {

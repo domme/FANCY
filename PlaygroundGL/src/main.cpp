@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "Scene.h"
-#include "EngineCommon.h"
+#include <Scene.h>
+#include <EngineCommon.h>
 
 static void error_callback(int error, const char* description)
 {
@@ -40,7 +40,7 @@ int main(void)
 
   // Init the engine
   Fancy::EngineCommon::initEngine();
-  //Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
+  Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
 
   glfwSetKeyCallback(window, key_callback);
   while (!glfwWindowShouldClose(window))

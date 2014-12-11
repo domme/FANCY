@@ -1,23 +1,24 @@
-#ifndef INCLUDE_TIMEMANAGER_H
-#define INCLUDE_TIMEMANAGER_H
+#ifndef INCLUDE_ENGINECOMMON_H
+#define INCLUDE_ENGINECOMMON_H
 
 #include "FancyCorePrerequisites.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class EngineCommon 
+  class DLLEXPORT EngineCommon
   {
   //---------------------------------------------------------------------------//
   public:
     ~EngineCommon();
 
     static bool initEngine();
-    
+        
   private:
     EngineCommon();
+
+    static void initComponentSubsystem();
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
 
-
-#endif  // INCLUDE_TIMEMANAGER_H
+#endif  // INCLUDE_ENGINECOMMON_H
