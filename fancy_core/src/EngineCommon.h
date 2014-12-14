@@ -17,6 +17,7 @@ namespace Fancy {
     EngineCommon();
 
     static void initComponentSubsystem();
+    static void initRenderingSubsystem();
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy

@@ -192,6 +192,15 @@
     <ClInclude Include="src\EngineCommon.h">
       <Filter>src\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\DepthStencilState.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BlendState.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StaticManagedObject.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -304,6 +313,12 @@
     </ClCompile>
     <ClCompile Include="src\AdapterGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DepthStencilState.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BlendState.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

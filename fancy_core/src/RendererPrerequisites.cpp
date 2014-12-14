@@ -20,66 +20,6 @@ namespace Fancy { namespace Rendering {
     {
       MultiBuffering::uCurrentBufferIndex = 0;
     }
-  }
+  }  
 //---------------------------------------------------------------------------//
-  DepthStencilState::DepthStencilState() :
-    u32Hash(0),
-    bDepthTestEnabled(true),
-    bDepthWriteEnabled(true),
-    eDepthCompFunc(CompFunc::LESS),
-    bStencilEnabled(true),
-    bTwoSidedStencil(false),
-    iStencilRef(1),
-    uStencilReadMask((Fancy::uint32)-1)
-  {
-    static uint32 numDepthStencilStates = 0;
-    u32Hash = ++numDepthStencilStates;
-
-    eStencilCompFunc[(uint) FaceType::FRONT] = CompFunc::EQUAL;
-    eStencilCompFunc[(uint) FaceType::BACK] = CompFunc::EQUAL;
-
-    uStencilWriteMask[(uint) FaceType::FRONT] = (uint32)-1;
-    uStencilWriteMask[(uint) FaceType::BACK] = (uint32)-1;
-
-    eStencilFailOp[(uint) FaceType::FRONT]  = StencilOp::KEEP;
-    eStencilFailOp[(uint) FaceType::BACK]   = StencilOp::KEEP;
-
-    eStencilDepthFailOp[(uint) FaceType::FRONT]  = StencilOp::KEEP;
-    eStencilDepthFailOp[(uint) FaceType::BACK]   = StencilOp::KEEP;
-
-    eStencilPassOp[(uint) FaceType::FRONT]  = StencilOp::KEEP;
-    eStencilPassOp[(uint) FaceType::BACK]   = StencilOp::KEEP;
-  }
-//---------------------------------------------------------------------------//
-  bool DepthStencilState::operator==( const DepthStencilState& clOther ) const
-  {
-    return u32Hash == clOther.u32Hash;
-  }
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-  BlendState::BlendState() :
-    u32Hash(0),
-    bAlphaToCoverageEnabled(false),
-    bBlendStatePerRT(false)
-  {
-    static uint32 numBlendStatesCreated = 0;
-    u32Hash = ++numBlendStatesCreated;
-
-    memset(bAlphaSeparateBlend, false, sizeof(bAlphaSeparateBlend));
-    memset(bBlendEnabled, false, sizeof(bBlendEnabled));
-    memset(eSrcBlend, (uint32) BlendInput::ONE, sizeof(eSrcBlend));
-    memset(eDestBlend, (uint32) BlendInput::ONE, sizeof(eDestBlend));
-    memset(eBlendOp, (uint32) BlendOp::ADD, sizeof(eBlendOp));
-    memset(eSrcBlendAlpha, (uint32) BlendInput::ONE, sizeof(eSrcBlendAlpha));
-    memset(eDestBlendAlpha, (uint32) BlendInput::ONE, sizeof(eDestBlendAlpha));
-    memset(eBlendOpAlpha, (uint32) BlendOp::ADD, sizeof(eBlendOpAlpha));
-    memset(uRTwriteMask, (uint32) -1, sizeof(uRTwriteMask));
-  }
-//---------------------------------------------------------------------------//
-  bool BlendState::operator==( const BlendState& clOther ) const
-  {
-    return u32Hash == clOther.u32Hash;
-  }
-//---------------------------------------------------------------------------//
-  
  } }  // end of namespace Fancy::Rendering

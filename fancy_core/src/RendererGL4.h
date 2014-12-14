@@ -6,6 +6,8 @@
 #include "LoadableObject.h"
 #include "GeometryVertexLayout.h"
 #include "VertexInputLayout.h"
+#include "DepthStencilState.h"
+#include "BlendState.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 

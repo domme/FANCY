@@ -169,7 +169,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_uCurrentGpuProgramPipeline(0u),
     m_uCurrentVAO(0u),
     m_uViewportParams(0u, 0u, 1u, 1u),
-    m_bViewportDirty(true) 
+    m_bViewportDirty(true) ,
+    m_clBlendState(ObjectName()),
+    m_clDepthStencilState(ObjectName())
   {
     glewInit();
     
@@ -236,70 +238,70 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   
     uint32 uDepthStencilRebindMask = m_uDepthStencilRebindMask;
 
-    if(m_clDepthStencilState.bDepthTestEnabled != clDepthStencilState.bDepthTestEnabled) {
-      m_clDepthStencilState.bDepthTestEnabled = clDepthStencilState.bDepthTestEnabled;
+    if(m_clDepthStencilState.m_bDepthTestEnabled != clDepthStencilState.m_bDepthTestEnabled) {
+      m_clDepthStencilState.m_bDepthTestEnabled = clDepthStencilState.m_bDepthTestEnabled;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::DEPTH_TEST;
     }
 
-    if(m_clDepthStencilState.bDepthWriteEnabled != clDepthStencilState.bDepthWriteEnabled) {
-      m_clDepthStencilState.bDepthWriteEnabled = clDepthStencilState.bDepthWriteEnabled;
+    if(m_clDepthStencilState.m_bDepthWriteEnabled != clDepthStencilState.m_bDepthWriteEnabled) {
+      m_clDepthStencilState.m_bDepthWriteEnabled = clDepthStencilState.m_bDepthWriteEnabled;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::DEPTH_WRITE;
     }
 
-    if(m_clDepthStencilState.eDepthCompFunc != clDepthStencilState.eDepthCompFunc) {
-      m_clDepthStencilState.eDepthCompFunc = clDepthStencilState.eDepthCompFunc;
+    if(m_clDepthStencilState.m_eDepthCompFunc != clDepthStencilState.m_eDepthCompFunc) {
+      m_clDepthStencilState.m_eDepthCompFunc = clDepthStencilState.m_eDepthCompFunc;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::DEPTH_COMP_FUNC;
     }
 
-    if(m_clDepthStencilState.bStencilEnabled != clDepthStencilState.bStencilEnabled) {
-      m_clDepthStencilState.bStencilEnabled = clDepthStencilState.bStencilEnabled;
+    if(m_clDepthStencilState.m_bStencilEnabled != clDepthStencilState.m_bStencilEnabled) {
+      m_clDepthStencilState.m_bStencilEnabled = clDepthStencilState.m_bStencilEnabled;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_ENABLED;
     }
 
-    if(m_clDepthStencilState.bTwoSidedStencil != clDepthStencilState.bTwoSidedStencil) {
-      m_clDepthStencilState.bTwoSidedStencil = clDepthStencilState.bTwoSidedStencil;
+    if(m_clDepthStencilState.m_bTwoSidedStencil != clDepthStencilState.m_bTwoSidedStencil) {
+      m_clDepthStencilState.m_bTwoSidedStencil = clDepthStencilState.m_bTwoSidedStencil;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_TWO_SIDED;
     }
 
-    if(m_clDepthStencilState.iStencilRef != clDepthStencilState.iStencilRef) {
-      m_clDepthStencilState.iStencilRef = clDepthStencilState.iStencilRef;
+    if(m_clDepthStencilState.m_iStencilRef != clDepthStencilState.m_iStencilRef) {
+      m_clDepthStencilState.m_iStencilRef = clDepthStencilState.m_iStencilRef;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_REF;
     }
 
-    if(m_clDepthStencilState.uStencilReadMask != clDepthStencilState.uStencilReadMask) {
-      m_clDepthStencilState.uStencilReadMask = clDepthStencilState.uStencilReadMask;
+    if(m_clDepthStencilState.m_uStencilReadMask != clDepthStencilState.m_uStencilReadMask) {
+      m_clDepthStencilState.m_uStencilReadMask = clDepthStencilState.m_uStencilReadMask;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_READ_MASK;
     }
 
     for(uint8 iFaceType = 0; iFaceType < (uint) FaceType::NUM; ++iFaceType)
     {
-      if(m_clDepthStencilState.uStencilWriteMask[iFaceType] != clDepthStencilState.uStencilWriteMask[iFaceType]) {
-        m_clDepthStencilState.uStencilWriteMask[iFaceType] = clDepthStencilState.uStencilWriteMask[iFaceType];
+      if(m_clDepthStencilState.m_uStencilWriteMask[iFaceType] != clDepthStencilState.m_uStencilWriteMask[iFaceType]) {
+        m_clDepthStencilState.m_uStencilWriteMask[iFaceType] = clDepthStencilState.m_uStencilWriteMask[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_WRITE_MASK;
       }
 
-      if(m_clDepthStencilState.eStencilFailOp[iFaceType] != clDepthStencilState.eStencilFailOp[iFaceType]) {
-        m_clDepthStencilState.eStencilFailOp[iFaceType] = clDepthStencilState.eStencilFailOp[iFaceType];
+      if(m_clDepthStencilState.m_eStencilFailOp[iFaceType] != clDepthStencilState.m_eStencilFailOp[iFaceType]) {
+        m_clDepthStencilState.m_eStencilFailOp[iFaceType] = clDepthStencilState.m_eStencilFailOp[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_FAIL_OP;
       }
 
-      if (m_clDepthStencilState.eStencilDepthFailOp[iFaceType] != clDepthStencilState.eStencilDepthFailOp[iFaceType]) {
-        m_clDepthStencilState.eStencilDepthFailOp[iFaceType] = clDepthStencilState.eStencilDepthFailOp[iFaceType];
+      if (m_clDepthStencilState.m_eStencilDepthFailOp[iFaceType] != clDepthStencilState.m_eStencilDepthFailOp[iFaceType]) {
+        m_clDepthStencilState.m_eStencilDepthFailOp[iFaceType] = clDepthStencilState.m_eStencilDepthFailOp[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_DEPTH_FAIL_OP;
       }
 
-      if (m_clDepthStencilState.eStencilPassOp[iFaceType] != clDepthStencilState.eStencilPassOp[iFaceType]) {
-        m_clDepthStencilState.eStencilPassOp[iFaceType] = clDepthStencilState.eStencilPassOp[iFaceType];
+      if (m_clDepthStencilState.m_eStencilPassOp[iFaceType] != clDepthStencilState.m_eStencilPassOp[iFaceType]) {
+        m_clDepthStencilState.m_eStencilPassOp[iFaceType] = clDepthStencilState.m_eStencilPassOp[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_PASS_OP;
       }
 
-      if (m_clDepthStencilState.eStencilCompFunc[iFaceType] != clDepthStencilState.eStencilCompFunc[iFaceType]) {
-        m_clDepthStencilState.eStencilCompFunc[iFaceType] = clDepthStencilState.eStencilCompFunc[iFaceType];
+      if (m_clDepthStencilState.m_eStencilCompFunc[iFaceType] != clDepthStencilState.m_eStencilCompFunc[iFaceType]) {
+        m_clDepthStencilState.m_eStencilCompFunc[iFaceType] = clDepthStencilState.m_eStencilCompFunc[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_COMP_FUNC;
       }
     }
   
-    m_clDepthStencilState.u32Hash = clDepthStencilState.u32Hash;
+    m_clDepthStencilState.updateHash();
 
     m_uDepthStencilRebindMask = uDepthStencilRebindMask;
     m_uPipelineRebindMask |= (uint) PipelineRebindFlags::DEPTHSTENCIL;  
@@ -315,84 +317,84 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     uint8 u8BlendStateRebindRTmask = m_u8BlendStateRebindRTmask;
     uint8 u8BlendStateRebindRTcount = m_u8BlendStateRebindRTcount;
 
-    if (m_clBlendState.bAlphaToCoverageEnabled != clBlendState.bAlphaToCoverageEnabled) {
-      m_clBlendState.bAlphaToCoverageEnabled = clBlendState.bAlphaToCoverageEnabled;
+    if (m_clBlendState.m_bAlphaToCoverageEnabled != clBlendState.m_bAlphaToCoverageEnabled) {
+      m_clBlendState.m_bAlphaToCoverageEnabled = clBlendState.m_bAlphaToCoverageEnabled;
       uBlendStateRebindMask |= (uint) BlendStateRebindFlags::ALPHA_TO_COVERAGE;
     }
 
-    if (m_clBlendState.bBlendStatePerRT != clBlendState.bBlendStatePerRT) {
-      m_clBlendState.bBlendStatePerRT = clBlendState.bBlendStatePerRT;
+    if (m_clBlendState.m_bBlendStatePerRT != clBlendState.m_bBlendStatePerRT) {
+      m_clBlendState.m_bBlendStatePerRT = clBlendState.m_bBlendStatePerRT;
       uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLENDSTATE_PER_RT;
     }
 
-    const uint8 rtUpperBound = m_clBlendState.bBlendStatePerRT ? kMaxNumRenderTargets : 1;
+    const uint8 rtUpperBound = m_clBlendState.m_bBlendStatePerRT ? kMaxNumRenderTargets : 1;
     for (uint8 iRT = 0; iRT < rtUpperBound; ++iRT)
     {
-      if (m_clBlendState.bAlphaSeparateBlend[iRT] != clBlendState.bAlphaSeparateBlend[iRT]) {
-        m_clBlendState.bAlphaSeparateBlend[iRT] = clBlendState.bAlphaSeparateBlend[iRT];
+      if (m_clBlendState.m_bAlphaSeparateBlend[iRT] != clBlendState.m_bAlphaSeparateBlend[iRT]) {
+        m_clBlendState.m_bAlphaSeparateBlend[iRT] = clBlendState.m_bAlphaSeparateBlend[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::ALPHA_SEPARATE_BLEND;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.bBlendEnabled[iRT] != clBlendState.bBlendEnabled[iRT]) {
-        m_clBlendState.bBlendEnabled[iRT] = clBlendState.bBlendEnabled[iRT];
+      if (m_clBlendState.m_bBlendEnabled[iRT] != clBlendState.m_bBlendEnabled[iRT]) {
+        m_clBlendState.m_bBlendEnabled[iRT] = clBlendState.m_bBlendEnabled[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLEND_ENABLED;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.eSrcBlend[iRT] != clBlendState.eSrcBlend[iRT]) {
-        m_clBlendState.eSrcBlend[iRT] = clBlendState.eSrcBlend[iRT];
+      if (m_clBlendState.m_eSrcBlend[iRT] != clBlendState.m_eSrcBlend[iRT]) {
+        m_clBlendState.m_eSrcBlend[iRT] = clBlendState.m_eSrcBlend[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::SRC_BLEND;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.eDestBlend[iRT] != clBlendState.eDestBlend[iRT]) {
-        m_clBlendState.eDestBlend[iRT] = clBlendState.eDestBlend[iRT];
+      if (m_clBlendState.m_eDestBlend[iRT] != clBlendState.m_eDestBlend[iRT]) {
+        m_clBlendState.m_eDestBlend[iRT] = clBlendState.m_eDestBlend[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::DEST_BLEND;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.eBlendOp[iRT] != clBlendState.eBlendOp[iRT]) {
-        m_clBlendState.eBlendOp[iRT] = clBlendState.eBlendOp[iRT];
+      if (m_clBlendState.m_eBlendOp[iRT] != clBlendState.m_eBlendOp[iRT]) {
+        m_clBlendState.m_eBlendOp[iRT] = clBlendState.m_eBlendOp[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLEND_OP;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.eSrcBlendAlpha[iRT] != clBlendState.eSrcBlendAlpha[iRT]) {
-        m_clBlendState.eSrcBlendAlpha[iRT] = clBlendState.eSrcBlendAlpha[iRT];
+      if (m_clBlendState.m_eSrcBlendAlpha[iRT] != clBlendState.m_eSrcBlendAlpha[iRT]) {
+        m_clBlendState.m_eSrcBlendAlpha[iRT] = clBlendState.m_eSrcBlendAlpha[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::SRC_BLEND_ALPHA;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.eDestBlendAlpha[iRT] != clBlendState.eDestBlendAlpha[iRT]) {
-        m_clBlendState.eDestBlendAlpha[iRT] = clBlendState.eDestBlendAlpha[iRT];
+      if (m_clBlendState.m_eDestBlendAlpha[iRT] != clBlendState.m_eDestBlendAlpha[iRT]) {
+        m_clBlendState.m_eDestBlendAlpha[iRT] = clBlendState.m_eDestBlendAlpha[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::DEST_BLEND_ALPHA;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.eBlendOpAlpha[iRT] != clBlendState.eBlendOpAlpha[iRT]) {
-        m_clBlendState.eBlendOpAlpha[iRT] = clBlendState.eBlendOpAlpha[iRT];
+      if (m_clBlendState.m_eBlendOpAlpha[iRT] != clBlendState.m_eBlendOpAlpha[iRT]) {
+        m_clBlendState.m_eBlendOpAlpha[iRT] = clBlendState.m_eBlendOpAlpha[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLEND_OP_ALPHA;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.uRTwriteMask[iRT] != clBlendState.uRTwriteMask[iRT]) {
-        m_clBlendState.uRTwriteMask[iRT] = clBlendState.uRTwriteMask[iRT];
+      if (m_clBlendState.m_uRTwriteMask[iRT] != clBlendState.m_uRTwriteMask[iRT]) {
+        m_clBlendState.m_uRTwriteMask[iRT] = clBlendState.m_uRTwriteMask[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::RT_WRITE_MASK;
         u8BlendStateRebindRTmask |= (1u << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
     }
   
-    m_clBlendState.u32Hash = clBlendState.u32Hash;
+    m_clBlendState.updateHash();
 
     m_uBlendStateRebindMask = uBlendStateRebindMask;
     m_u8BlendStateRebindRTcount = u8BlendStateRebindRTcount;
@@ -742,17 +744,17 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       "pipelineRebindMask not in sync with blendStateRebindMask");
 
     uint32 uBlendStateRebindMask = m_uBlendStateRebindMask;
-    bool bBlendingPerRTenabled = m_clBlendState.bBlendStatePerRT;
+    bool bBlendingPerRTenabled = m_clBlendState.m_bBlendStatePerRT;
 
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::ALPHA_TO_COVERAGE)) > 0)   {
-       GL_SET_CAP(GL_SAMPLE_ALPHA_TO_COVERAGE, m_clBlendState.bAlphaToCoverageEnabled);
+       GL_SET_CAP(GL_SAMPLE_ALPHA_TO_COVERAGE, m_clBlendState.m_bAlphaToCoverageEnabled);
     }
 
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLENDSTATE_PER_RT)) > 0)  {
       // Noting to do. Just use glBlendFuncSeperatei() and related functions if enabled
     }
 
-    if (m_clBlendState.bBlendStatePerRT) {
+    if (m_clBlendState.m_bBlendStatePerRT) {
       _bindBlendValuesMultiRT(uBlendStateRebindMask, m_u8BlendStateRebindRTcount, m_u8BlendStateRebindRTmask);
     }
     else {
@@ -767,10 +769,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   void RendererGL4::_bindBlendValuesSingleRT(const uint32 uBlendStateRebindMask)
   {
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_ENABLED)) > 0) {
-      GL_SET_CAP(GL_BLEND, m_clBlendState.bBlendEnabled[0]);
+      GL_SET_CAP(GL_BLEND, m_clBlendState.m_bBlendEnabled[0]);
     }
 
-    const bool bSeperateBlend = m_clBlendState.bAlphaSeparateBlend[0];
+    const bool bSeperateBlend = m_clBlendState.m_bAlphaSeparateBlend[0];
 
     const bool bApplyBlendFunc = 
       (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND)) > 0 ||
@@ -787,28 +789,28 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     if(bApplyBlendFunc) 
     {
       if (!bSeperateBlend) {
-        glBlendFunc(Adapter::toGLType(m_clBlendState.eSrcBlend[0]), Adapter::toGLType(m_clBlendState.eDestBlend[0]));
+        glBlendFunc(Adapter::toGLType(m_clBlendState.m_eSrcBlend[0]), Adapter::toGLType(m_clBlendState.m_eDestBlend[0]));
       } else {
-        glBlendFuncSeparate(Adapter::toGLType(m_clBlendState.eSrcBlend[0]), Adapter::toGLType(m_clBlendState.eDestBlend[0]),
-                            Adapter::toGLType(m_clBlendState.eSrcBlendAlpha[0]), Adapter::toGLType(m_clBlendState.eDestBlendAlpha[0]));
+        glBlendFuncSeparate(Adapter::toGLType(m_clBlendState.m_eSrcBlend[0]), Adapter::toGLType(m_clBlendState.m_eDestBlend[0]),
+                            Adapter::toGLType(m_clBlendState.m_eSrcBlendAlpha[0]), Adapter::toGLType(m_clBlendState.m_eDestBlendAlpha[0]));
       }
     }
 
     if (bApplyBlendOp)
     {
       if (!bSeperateBlend) {
-        glBlendEquation(Adapter::toGLType(m_clBlendState.eBlendOp[0]));
+        glBlendEquation(Adapter::toGLType(m_clBlendState.m_eBlendOp[0]));
       } else {
-        glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.eBlendOp[0]), Adapter::toGLType(m_clBlendState.eBlendOpAlpha[0]));
+        glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.m_eBlendOp[0]), Adapter::toGLType(m_clBlendState.m_eBlendOpAlpha[0]));
       }
     }
   
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::RT_WRITE_MASK)) > 0) {
       glColorMask(
-        (m_clBlendState.uRTwriteMask[0] & 0xFF00000000) > 0,
-        (m_clBlendState.uRTwriteMask[0] & 0x00FF000000) > 0,
-        (m_clBlendState.uRTwriteMask[0] & 0x0000FF0000) > 0,
-        (m_clBlendState.uRTwriteMask[0] & 0x000000FF00) > 0);
+        (m_clBlendState.m_uRTwriteMask[0] & 0xFF00000000) > 0,
+        (m_clBlendState.m_uRTwriteMask[0] & 0x00FF000000) > 0,
+        (m_clBlendState.m_uRTwriteMask[0] & 0x0000FF0000) > 0,
+        (m_clBlendState.m_uRTwriteMask[0] & 0x000000FF00) > 0);
     }
   }
 //-----------------------------------------------------------------------//
@@ -822,10 +824,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
 
       if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_ENABLED)) > 0) {
-        GL_SET_CAPi(GL_BEVEL_NV, iRT, m_clBlendState.bBlendEnabled[iRT]);
+        GL_SET_CAPi(GL_BEVEL_NV, iRT, m_clBlendState.m_bBlendEnabled[iRT]);
       }
 
-      const bool bSeperateBlend = m_clBlendState.bAlphaSeparateBlend[iRT];
+      const bool bSeperateBlend = m_clBlendState.m_bAlphaSeparateBlend[iRT];
 
       const bool bApplyBlendFunc = 
         (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND)) > 0 ||
@@ -842,28 +844,28 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       if(bApplyBlendFunc) 
       {
         if (!bSeperateBlend) {
-          glBlendFunci(iRT, Adapter::toGLType(m_clBlendState.eSrcBlend[iRT]), Adapter::toGLType(m_clBlendState.eDestBlend[iRT]));
+          glBlendFunci(iRT, Adapter::toGLType(m_clBlendState.m_eSrcBlend[iRT]), Adapter::toGLType(m_clBlendState.m_eDestBlend[iRT]));
         } else {
-          glBlendFuncSeparatei(iRT, Adapter::toGLType(m_clBlendState.eSrcBlend[iRT]), Adapter::toGLType(m_clBlendState.eDestBlend[iRT]),
-            Adapter::toGLType(m_clBlendState.eSrcBlendAlpha[iRT]), Adapter::toGLType(m_clBlendState.eDestBlendAlpha[iRT]));
+          glBlendFuncSeparatei(iRT, Adapter::toGLType(m_clBlendState.m_eSrcBlend[iRT]), Adapter::toGLType(m_clBlendState.m_eDestBlend[iRT]),
+            Adapter::toGLType(m_clBlendState.m_eSrcBlendAlpha[iRT]), Adapter::toGLType(m_clBlendState.m_eDestBlendAlpha[iRT]));
         }
       }
 
       if (bApplyBlendOp)
       {
         if (!bSeperateBlend) {
-          glBlendEquation(Adapter::toGLType(m_clBlendState.eBlendOp[iRT]));
+          glBlendEquation(Adapter::toGLType(m_clBlendState.m_eBlendOp[iRT]));
         } else {
-          glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.eBlendOp[iRT]), Adapter::toGLType(m_clBlendState.eBlendOpAlpha[iRT]));
+          glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.m_eBlendOp[iRT]), Adapter::toGLType(m_clBlendState.m_eBlendOpAlpha[iRT]));
         }
       }
 
       if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::RT_WRITE_MASK)) > 0) {
         glColorMaski( iRT,
-          (m_clBlendState.uRTwriteMask[iRT] & 0xFF00000000) > 0,
-          (m_clBlendState.uRTwriteMask[iRT] & 0x00FF000000) > 0,
-          (m_clBlendState.uRTwriteMask[iRT] & 0x0000FF0000) > 0,
-          (m_clBlendState.uRTwriteMask[iRT] & 0x000000FF00) > 0);
+          (m_clBlendState.m_uRTwriteMask[iRT] & 0xFF00000000) > 0,
+          (m_clBlendState.m_uRTwriteMask[iRT] & 0x00FF000000) > 0,
+          (m_clBlendState.m_uRTwriteMask[iRT] & 0x0000FF0000) > 0,
+          (m_clBlendState.m_uRTwriteMask[iRT] & 0x000000FF00) > 0);
       }
     }
   }
@@ -876,28 +878,28 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       "pipelineRebindMask not in sync with depthStencilRebindMask");
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::DEPTH_TEST) > 0 ) {
-      GL_SET_CAP(GL_DEPTH_TEST, m_clDepthStencilState.bDepthTestEnabled);
+      GL_SET_CAP(GL_DEPTH_TEST, m_clDepthStencilState.m_bDepthTestEnabled);
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::DEPTH_WRITE) > 0 ) {
-      glDepthMask(m_clDepthStencilState.bDepthWriteEnabled);
+      glDepthMask(m_clDepthStencilState.m_bDepthWriteEnabled);
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::DEPTH_COMP_FUNC) > 0) {
-      glDepthFunc(Adapter::toGLType(m_clDepthStencilState.eDepthCompFunc));
+      glDepthFunc(Adapter::toGLType(m_clDepthStencilState.m_eDepthCompFunc));
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_ENABLED) > 0) {
-      GL_SET_CAP(GL_STENCIL_TEST, m_clDepthStencilState.bStencilEnabled);
+      GL_SET_CAP(GL_STENCIL_TEST, m_clDepthStencilState.m_bStencilEnabled);
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_TWO_SIDED) > 0) {
       // Nothing special to set here - just use the "separate" calls for stencil-ops and funcs
     }
-    const bool bUseTwoSidedStencil = m_clDepthStencilState.bTwoSidedStencil;
+    const bool bUseTwoSidedStencil = m_clDepthStencilState.m_bTwoSidedStencil;
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_REF) > 0) {
-      GL_SET_CAP(GL_STENCIL_TEST, m_clDepthStencilState.bStencilEnabled);
+      GL_SET_CAP(GL_STENCIL_TEST, m_clDepthStencilState.m_bStencilEnabled);
     }
 
     const bool bNeedStencilFunc =
@@ -907,24 +909,24 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     if (bNeedStencilFunc && !bUseTwoSidedStencil) 
     {
-      glStencilFunc(Adapter::toGLType(m_clDepthStencilState.eStencilCompFunc[0]),
-                    m_clDepthStencilState.iStencilRef,
-                    m_clDepthStencilState.uStencilReadMask);
+      glStencilFunc(Adapter::toGLType(m_clDepthStencilState.m_eStencilCompFunc[0]),
+                    m_clDepthStencilState.m_iStencilRef,
+                    m_clDepthStencilState.m_uStencilReadMask);
     }
     else if (bNeedStencilFunc)
     {
-      glStencilFuncSeparate(Adapter::toGLType(m_clDepthStencilState.eStencilCompFunc[(uint)FaceType::FRONT]),
-                            Adapter::toGLType(m_clDepthStencilState.eStencilCompFunc[(uint)FaceType::BACK]),
-                            m_clDepthStencilState.iStencilRef,
-                            m_clDepthStencilState.uStencilReadMask);
+      glStencilFuncSeparate(Adapter::toGLType(m_clDepthStencilState.m_eStencilCompFunc[(uint)FaceType::FRONT]),
+                            Adapter::toGLType(m_clDepthStencilState.m_eStencilCompFunc[(uint)FaceType::BACK]),
+                            m_clDepthStencilState.m_iStencilRef,
+                            m_clDepthStencilState.m_uStencilReadMask);
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_WRITE_MASK ) > 0 ) {
       if(!bUseTwoSidedStencil) {
-        glStencilMask(m_clDepthStencilState.uStencilWriteMask[0]);
+        glStencilMask(m_clDepthStencilState.m_uStencilWriteMask[0]);
       } else {
-        glStencilMaskSeparate(GL_FRONT, m_clDepthStencilState.uStencilWriteMask[(uint) FaceType::FRONT]);
-        glStencilMaskSeparate(GL_BACK, m_clDepthStencilState.uStencilWriteMask[(uint) FaceType::BACK]);
+        glStencilMaskSeparate(GL_FRONT, m_clDepthStencilState.m_uStencilWriteMask[(uint) FaceType::FRONT]);
+        glStencilMaskSeparate(GL_BACK, m_clDepthStencilState.m_uStencilWriteMask[(uint) FaceType::BACK]);
       }
     }
   
@@ -1025,7 +1027,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   GLuint RendererGL4::createOrRetrieveProgramPipeline()
   {
-    uint32 hash = 0;
+    uint hash = 0;
     for (uint32 i = 0u; i < _countof(m_pBoundGPUPrograms); ++i)
     {
       MathUtil::hash_combine(hash, reinterpret_cast<uint>(m_pBoundGPUPrograms[i]));
@@ -1071,7 +1073,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
                                      const VertexInputLayout* pVertexInputLayout)
   {
     // The fast path: Calc the hash of both layouts and look for an existing VAO to return
-    uint32 uHash = 0;
+    uint uHash = 0;
     MathUtil::hash_combine(uHash, reinterpret_cast<uint>(pGeoVertexLayout));
     MathUtil::hash_combine(uHash, reinterpret_cast<uint>(pVertexInputLayout));
 

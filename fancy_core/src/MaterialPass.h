@@ -7,6 +7,8 @@
 #include "FixedArray.h"
 #include "ObjectName.h"
 #include "GpuProgram.h"
+#include "DepthStencilState.h"
+#include "BlendState.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//

@@ -214,56 +214,6 @@ namespace Fancy {
 
       NUM
     };
-  //-----------------------------------------------------------------------//
-    class DepthStencilState {
-      friend class DepthStencilStateManager;
-      // friend class PLATFORM_DEPENDENT_NAME(Renderer);
-
-    public:
-      bool operator==(const DepthStencilState& clOther) const;
-      DepthStencilState();
-      ~DepthStencilState() {}
-
-      uint32            u32Hash;
-      bool              bDepthTestEnabled;
-      bool              bDepthWriteEnabled;
-      CompFunc          eDepthCompFunc;
-
-      bool              bStencilEnabled;
-      bool              bTwoSidedStencil;
-      int               iStencilRef;
-      uint32            uStencilReadMask;
-      CompFunc          eStencilCompFunc[FaceType::NUM];
-      uint32            uStencilWriteMask[FaceType::NUM];
-      StencilOp         eStencilFailOp[FaceType::NUM];
-      StencilOp         eStencilDepthFailOp[FaceType::NUM];
-      StencilOp         eStencilPassOp[FaceType::NUM];
-    };
-  //-----------------------------------------------------------------------//
-    class BlendState {
-      friend class DepthStencilStateManager;
-      // friend class PLATFORM_DEPENDENT_NAME(Renderer);
-
-    public:
-      bool operator==(const BlendState& clOther) const;
-
-      BlendState();
-      ~BlendState() {}
-
-      uint32            u32Hash;
-      bool              bAlphaToCoverageEnabled;
-      bool              bBlendStatePerRT;
-
-      bool              bAlphaSeparateBlend [kMaxNumRenderTargets];
-      bool              bBlendEnabled       [kMaxNumRenderTargets];
-      BlendInput        eSrcBlend           [kMaxNumRenderTargets];
-      BlendInput        eDestBlend          [kMaxNumRenderTargets];
-      BlendOp           eBlendOp            [kMaxNumRenderTargets];
-      BlendInput        eSrcBlendAlpha      [kMaxNumRenderTargets];
-      BlendInput        eDestBlendAlpha     [kMaxNumRenderTargets];
-      BlendOp           eBlendOpAlpha       [kMaxNumRenderTargets];
-      uint32            uRTwriteMask        [kMaxNumRenderTargets];
-    };
   //---------------------------------------------------------------------------//
     enum class DataFormat {
       NONE = 0,
