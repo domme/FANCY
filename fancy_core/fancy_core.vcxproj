@@ -244,6 +244,7 @@
     <ClInclude Include="src\RendererPrerequisites.h" />
     <ClInclude Include="src\RenderOperation.h" />
     <ClInclude Include="src\Scene.h" />
+    <ClInclude Include="src\SceneImporter.h" />
     <ClInclude Include="src\SceneNode.h" />
     <ClInclude Include="src\SceneNodeComponent.h" />
     <ClInclude Include="src\SceneNodeComponentFactory.h" />
@@ -289,6 +290,7 @@
     <ClCompile Include="src\RendererPrerequisites.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
     <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\SceneImporter.cpp" />
     <ClCompile Include="src\SceneNode.cpp" />
     <ClCompile Include="src\SceneNodeComponent.cpp" />
     <ClCompile Include="src\SceneNodeComponentFactory.cpp" />

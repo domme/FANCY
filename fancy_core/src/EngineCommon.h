@@ -12,12 +12,14 @@ namespace Fancy {
     ~EngineCommon();
 
     static bool initEngine();
+    static void shutdownEngine();
         
   private:
     EngineCommon();
 
     static void initComponentSubsystem();
     static void initRenderingSubsystem();
+    static void initIOsubsystem();
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy

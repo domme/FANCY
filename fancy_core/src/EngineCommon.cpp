@@ -8,9 +8,10 @@
 #include "ModelComponent.h"
 #include "CameraComponent.h"
 #include "Texture.h"
-
 #include "DepthStencilState.h"
 #include "BlendState.h"
+#include "PathService.h"
+#include "SceneImporter.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -28,8 +29,14 @@ namespace Fancy {
   {
     initComponentSubsystem();
     initRenderingSubsystem();
+    initIOsubsystem();
 
     return true;
+  }
+//---------------------------------------------------------------------------//
+  void EngineCommon::shutdownEngine()
+  {
+    IO::SceneImporter::destroyLogger();
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::initComponentSubsystem()
@@ -55,6 +62,12 @@ namespace Fancy {
     Rendering::DepthStencilState::registerWithName(depthStencilState.getName(), depthStencilState);
 
     Rendering::Renderer& rnd = Rendering::Renderer::getInstance();
+  }
+//---------------------------------------------------------------------------//
+  void EngineCommon::initIOsubsystem()
+  {
+    IO::PathService::SetResourceLocation("../../../resources/");
+    IO::SceneImporter::initLogger();
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

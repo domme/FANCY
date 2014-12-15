@@ -7,6 +7,7 @@
 
 #include <Scene.h>
 #include <EngineCommon.h>
+#include <SceneImporter.h>
 
 static void error_callback(int error, const char* description)
 {
@@ -42,6 +43,8 @@ int main(void)
   Fancy::EngineCommon::initEngine();
   Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
 
+  Fancy::IO::SceneImporter::importToSceneGraph("Models/cube.obj", pScene->getRootNode());
+
   glfwSetKeyCallback(window, key_callback);
   while (!glfwWindowShouldClose(window))
   {
@@ -54,6 +57,7 @@ int main(void)
     glfwPollEvents();
   }
 
+  Fancy::EngineCommon::shutdownEngine();
   glfwDestroyWindow(window);
   glfwTerminate();
   exit(EXIT_SUCCESS);

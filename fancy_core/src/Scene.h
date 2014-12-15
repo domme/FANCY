@@ -17,6 +17,8 @@ namespace Fancy { namespace Scene {
       Scene();
       ~Scene();
 
+      SceneNode* getRootNode() {return m_pRootNode.get();}
+
       void update();
       void gatherRenderItems(SceneRenderDescription* pRenderDesc);
             

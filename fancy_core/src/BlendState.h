@@ -30,25 +30,25 @@ public:
   void setBlendEnabled(uint32 _u32rtIndex, bool val) {m_bBlendEnabled[_u32rtIndex] = val; }
 
   Fancy::Rendering::BlendInput getSrcBlend(uint32 _u32rtIndex) const { return m_eSrcBlend[_u32rtIndex]; }
-  void setSrcBlend(Fancy::Rendering::BlendInput val, uint32 _u32rtIndex) { m_eSrcBlend[_u32rtIndex] = val; updateHash();}
+  void setSrcBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { m_eSrcBlend[_u32rtIndex] = val; updateHash();}
 
   Fancy::Rendering::BlendInput getDestBlend(uint32 _u32rtIndex) const { return m_eDestBlend[_u32rtIndex]; }
-  void setDestBlend(Fancy::Rendering::BlendInput val, uint32 _u32rtIndex) { m_eDestBlend[_u32rtIndex] = val; updateHash();}
+  void setDestBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { m_eDestBlend[_u32rtIndex] = val; updateHash();}
 
   Fancy::Rendering::BlendOp getBlendOp(uint32 _u32rtIndex) const { return m_eBlendOp[_u32rtIndex]; }
-  void setBlendOp(Fancy::Rendering::BlendOp val, uint32 _u32rtIndex) { m_eBlendOp[_u32rtIndex] = val; updateHash();}
+  void setBlendOp(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { m_eBlendOp[_u32rtIndex] = val; updateHash();}
 
   Fancy::Rendering::BlendInput getSrcBlendAlpha(uint32 _u32rtIndex) const { return m_eSrcBlendAlpha[_u32rtIndex]; }
-  void setSrcBlendAlpha(Fancy::Rendering::BlendInput val, uint32 _u32rtIndex) { m_eSrcBlendAlpha[_u32rtIndex] = val; updateHash();}
+  void setSrcBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { m_eSrcBlendAlpha[_u32rtIndex] = val; updateHash();}
 
   Fancy::Rendering::BlendInput getDestBlendAlpha(uint32 _u32rtIndex) const { return m_eDestBlendAlpha[_u32rtIndex]; }
-  void setDestBlendAlpha(Fancy::Rendering::BlendInput val, uint32 _u32rtIndex) { m_eDestBlendAlpha[_u32rtIndex] = val; updateHash();}
+  void setDestBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { m_eDestBlendAlpha[_u32rtIndex] = val; updateHash();}
 
   Fancy::Rendering::BlendOp getBlendOpAlpha(uint32 _u32rtIndex) const { return m_eBlendOpAlpha[_u32rtIndex]; }
-  void setBlendOpAlpha(Fancy::Rendering::BlendOp val, uint32 _u32rtIndex) { m_eBlendOpAlpha[_u32rtIndex] = val; updateHash();}
+  void setBlendOpAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { m_eBlendOpAlpha[_u32rtIndex] = val; updateHash();}
 
   Fancy::uint32 getRTwriteMask(uint32 _u32rtIndex) const { return m_uRTwriteMask[_u32rtIndex]; }
-  void setRTwriteMask(Fancy::uint32 val, uint32 _u32rtIndex) { m_uRTwriteMask[_u32rtIndex] = val; updateHash();}
+  void setRTwriteMask(uint32 _u32rtIndex, Fancy::uint32 val) { m_uRTwriteMask[_u32rtIndex] = val; updateHash();}
 
 private:
   void updateHash();

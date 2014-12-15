@@ -10,16 +10,11 @@ namespace Fancy { namespace IO {
   {
     String pathOut = "";
 
-  #ifdef __WINDOWS
     TCHAR outString[FILENAME_MAX];
     int bytes = GetModuleFileName( NULL, outString, FILENAME_MAX );
 
     pathOut = outString;
     removeAppName( pathOut );
-  #endif
-
-  #ifdef __OSX
-  #endif
 
     return pathOut;
   }
@@ -63,7 +58,6 @@ namespace Fancy { namespace IO {
       return szPath;
     }
 
-  #ifdef __WINDOWS
     szPath = getExePath();
 
     if( m_szRelativeResourcePath.size() < 1 )
@@ -71,25 +65,6 @@ namespace Fancy { namespace IO {
 
     else
       szPath += m_szRelativeResourcePath;
-
-  #else
-      char szModulePath[2048];
-      uint32 uCount = sizeof( szModulePath );
-      _NSGetExecutablePath( szModulePath, &uCount );
-    
-      String szTempPath ( szModulePath );
-    
-      for( int i = 0; i < 2; ++i )
-    {
-      int iPos = szTempPath.find_last_of( "/" );
-      szTempPath = szTempPath.substr( 0, iPos );
-    }
-    
-      szPath.append( szTempPath );
-      szPath += "/Resources/";
-      fprintf( stdout, "%s", szPath.c_str() );
-   
-  #endif
 
     return szPath;
   }
@@ -102,8 +77,6 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   void PathService::removeAppName( String& szPath )
   {
-    #ifdef __WINDOWS
-
     int iPos =	szPath.find_last_of( "\\" );
     if( iPos > 0 )
     {
@@ -121,8 +94,6 @@ namespace Fancy { namespace IO {
       else
         log_Info( String( "App-name could not be removed for path " ) + szPath );
     }
-   
-    #endif
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

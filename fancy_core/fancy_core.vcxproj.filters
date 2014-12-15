@@ -201,6 +201,9 @@
     <ClInclude Include="src\StaticManagedObject.h">
       <Filter>src\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\SceneImporter.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -319,6 +322,9 @@
     </ClCompile>
     <ClCompile Include="src\BlendState.cpp">
       <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneImporter.cpp">
+      <Filter>src\IO</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

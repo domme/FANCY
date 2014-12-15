@@ -41,19 +41,19 @@ namespace Fancy { namespace Rendering {
     void setStencilReadMask(Fancy::uint32 val) { m_uStencilReadMask = val; updateHash(); }
 
     Fancy::Rendering::CompFunc getStencilCompFunc(uint32 _u32FaceType) const { return m_eStencilCompFunc[_u32FaceType]; }
-    void setStencilCompFunc(Fancy::Rendering::CompFunc val, uint32 _u32FaceType) { m_eStencilCompFunc[_u32FaceType] = val; updateHash(); }
+    void setStencilCompFunc( uint32 _u32FaceType, Fancy::Rendering::CompFunc val) { m_eStencilCompFunc[_u32FaceType] = val; updateHash(); }
 
     Fancy::uint32 getStencilWriteMask(uint32 _u32FaceType) const { return m_uStencilWriteMask[_u32FaceType]; }
-    void setStencilWriteMask(Fancy::uint32 val, uint32 _u32FaceType) { m_uStencilWriteMask[_u32FaceType] = val; updateHash(); }
+    void setStencilWriteMask(uint32 _u32FaceType, Fancy::uint32 val) { m_uStencilWriteMask[_u32FaceType] = val; updateHash(); }
 
     Fancy::Rendering::StencilOp getStencilFailOp(uint32 _u32FaceType) const { return m_eStencilFailOp[_u32FaceType]; }
-    void setStencilFailOp(Fancy::Rendering::StencilOp val, uint32 _u32FaceType) { m_eStencilFailOp[_u32FaceType] = val; updateHash(); }
+    void setStencilFailOp(uint32 _u32FaceType, Fancy::Rendering::StencilOp val) { m_eStencilFailOp[_u32FaceType] = val; updateHash(); }
 
     Fancy::Rendering::StencilOp getStencilDepthFailOp(uint32 _u32FaceType) const { return m_eStencilDepthFailOp[_u32FaceType]; }
-    void setStencilDepthFailOp(Fancy::Rendering::StencilOp val, uint32 _u32FaceType) { m_eStencilDepthFailOp[_u32FaceType] = val; updateHash(); }
+    void setStencilDepthFailOp(uint32 _u32FaceType, Fancy::Rendering::StencilOp val) { m_eStencilDepthFailOp[_u32FaceType] = val; updateHash(); }
 
     Fancy::Rendering::StencilOp getStencilPassOp(uint32 _u32FaceType) const { return m_eStencilPassOp[_u32FaceType]; }
-    void setStencilPassOp(Fancy::Rendering::StencilOp val, uint32 _u32FaceType) { m_eStencilPassOp[_u32FaceType] = val; updateHash(); }
+    void setStencilPassOp(uint32 _u32FaceType, Fancy::Rendering::StencilOp val) { m_eStencilPassOp[_u32FaceType] = val; updateHash(); }
 
   private:
     void              updateHash();
