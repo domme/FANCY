@@ -36,6 +36,21 @@ namespace Fancy { namespace IO {
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
+  namespace Processing
+  {
+    struct WorkingData
+    {
+      const aiScene* pCurrScene;
+      Fancy::Scene::SceneNode* pFancyRootNode;
+    };
+
+    WorkingData currWorkingData;
+
+    bool processAiScene(const aiScene* _pAscene);
+    bool processAiNode(const aiNode* _pAnode);
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void SceneImporter::initLogger()
   {
     const unsigned int severity = 
@@ -72,7 +87,29 @@ namespace Fancy { namespace IO {
       return false;
     }
 
-    return success;
+    Processing::WorkingData workingData = {0};
+    Processing::currWorkingData = workingData;
+    Processing::currWorkingData.pFancyRootNode = _pParentNode;
+    return Processing::processAiScene(aScene);
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  bool Processing::processAiScene(const aiScene* _pAscene)
+  {
+    const aiNode* pArootNode = _pAscene->mRootNode;
+
+    if (!pArootNode)
+    {
+      return false;
+    }
+
+    currWorkingData.pCurrScene = _pAscene;
+    return processAiNode(pArootNode);
+  }
+//---------------------------------------------------------------------------//
+  bool Processing::processAiNode(const aiNode* _pAnode)
+  {
+    
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO
