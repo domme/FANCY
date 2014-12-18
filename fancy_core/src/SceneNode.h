@@ -4,6 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "CameraComponent.h"
 #include "ModelComponent.h"
+#include "ObjectName.h"
 
 namespace Fancy { namespace Scene { 
 //---------------------------------------------------------------------------//
@@ -18,7 +19,10 @@ namespace Fancy { namespace Scene {
       const glm::mat4& getLocal() const {return m_local;}
       const glm::mat4& getCachedWorld() const {return m_cachedWorld;}
 
+      void setLocal(const glm::mat4& _val) {m_local = _val; m_dirty = true;}
+      
     private:
+      bool m_dirty;
       glm::mat4 m_local;
       glm::mat4 m_cachedWorld;
   };
@@ -32,12 +36,14 @@ namespace Fancy { namespace Scene {
       ~SceneNode();
 
       static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent);
+      static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, SceneNode* pParent);
       static void unparentNode(std::shared_ptr<SceneNode> pChild);
+      static void unparentNode(SceneNode* pChild);
 
       void update();
       void gatherRenderItems(SceneRenderDescription* pRenderDesc);
 
-      SceneNodeComponentWeakPtr createComponent(const ObjectName& typeName);
+      SceneNodeComponent* createComponent(const ObjectName& typeName);
       void removeComponent(const ObjectName& typeName);
       SceneNodeComponentWeakPtr getComponentPtr(const ObjectName& typeName);
       SceneNodeComponent* getComponent(const ObjectName& typeName);
@@ -50,6 +56,9 @@ namespace Fancy { namespace Scene {
       Transform& getTransform() {return m_transform;}
       bool hasParent() {return m_pParent != nullptr;}
 
+      const ObjectName& getName() const {return m_name;}
+      void setName(const ObjectName& _name) {m_name = _name;}
+
   private:
       void onComponentAdded(const SceneNodeComponentPtr& pComponent);
       void onComponentRemoved(const SceneNodeComponentPtr& pComponent);
@@ -58,6 +67,7 @@ namespace Fancy { namespace Scene {
       std::vector<std::shared_ptr<SceneNode>> m_vpChildren;
       SceneNode* m_pParent;
       Transform m_transform;
+      ObjectName m_name;
 
       // Cached components:
       CameraComponent* m_pCameraComponent;

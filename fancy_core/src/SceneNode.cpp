@@ -32,16 +32,26 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   void SceneNode::parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent)
   {
+    SceneNode::parentNodeToNode(pChild, pParent.get());
+  }
+//---------------------------------------------------------------------------//
+  void SceneNode::unparentNode(std::shared_ptr<SceneNode> pChild)
+  {
+    SceneNode::unparentNode(pChild.get());
+  }
+//---------------------------------------------------------------------------//
+  void SceneNode::parentNodeToNode(std::shared_ptr<SceneNode> pChild, SceneNode* pParent)
+  {
     if (pChild->hasParent())
     {
       SceneNode::unparentNode(pChild);
     }
 
     pParent->m_vpChildren.push_back(pChild);
-    pChild->m_pParent = pParent.get();
+    pChild->m_pParent = pParent;
   }
-//---------------------------------------------------------------------------//
-  void SceneNode::unparentNode(std::shared_ptr<SceneNode> pChild)
+  //---------------------------------------------------------------------------//
+  void SceneNode::unparentNode(SceneNode* pChild)
   {
     if (!pChild->hasParent())
     {
@@ -124,11 +134,11 @@ namespace Fancy { namespace Scene {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SceneNodeComponentWeakPtr SceneNode::createComponent( const ObjectName& typeName )
+  SceneNodeComponent* SceneNode::createComponent( const ObjectName& typeName )
   {
     if (getComponent(typeName))
     {
-      return SceneNodeComponentWeakPtr();
+      return getComponent(typeName);
     }
 
     SceneNodeComponentPtr componentPtr = 
@@ -137,7 +147,7 @@ namespace Fancy { namespace Scene {
     m_vpComponents.push_back(componentPtr);
     onComponentAdded(componentPtr);
 
-    return componentPtr;
+    return componentPtr.get();
   }
 //---------------------------------------------------------------------------//
   void SceneNode::removeComponent(const ObjectName& typeName)

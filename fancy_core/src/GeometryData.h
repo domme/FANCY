@@ -7,9 +7,16 @@
 #include "GeometryVertexLayout.h"
 #include "GpuBuffer.h"
 
+namespace Fancy { namespace IO {
+  // IO has to be known to use a later-defined class as friend class -.-
+} }
+
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class GeometryData {
+
+    friend class Fancy::IO::SceneImporter;
+
     public:
       GeometryData();
       ~GeometryData();
