@@ -6,6 +6,7 @@
 #include "OpenGLprerequisites.h"
 #include "GeometryVertexLayout.h"
 #include "GpuBuffer.h"
+#include "StaticManagedObject.h"
 
 namespace Fancy { namespace IO {
   // IO has to be known to use a later-defined class as friend class -.-
@@ -13,7 +14,7 @@ namespace Fancy { namespace IO {
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  class GeometryData {
+  class GeometryData : public StaticManagedObject<GeometryData> {
 
     friend class Fancy::IO::SceneImporter;
 

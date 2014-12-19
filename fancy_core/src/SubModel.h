@@ -4,6 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "ObjectName.h"
 #include "FixedArray.h"
+#include "StaticManagedObject.h"
 
 namespace Fancy { namespace Rendering {
   class Material;
@@ -13,7 +14,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class Mesh;
 //---------------------------------------------------------------------------//
-  class SubModel 
+  class SubModel : public StaticManagedObject<SubModel>
   {
   public:
     SubModel();
@@ -24,14 +25,13 @@ namespace Fancy { namespace Geometry {
 
     Rendering::Material* getMaterial() const {return m_pMaterial;}
     Mesh* getMesh() const {return m_pMesh;}
-    
-   //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   private:
     Rendering::Material* m_pMaterial;
     Mesh* m_pMesh;
     ObjectName m_Name;
   };
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry
 
 #endif  // INCLUDE_SUBMODEL_H

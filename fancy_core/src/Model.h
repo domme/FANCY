@@ -5,6 +5,7 @@
 #include "RendererPrerequisites.h"
 #include "ObjectName.h"
 #include "FixedArray.h"
+#include "StaticManagedObject.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -16,7 +17,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   /*@brief: A Model is a collection of several SubModels. Each SubModel is potentially rendered with a different material
   and a different mesh */ 
-  class Model 
+  class Model : public StaticManagedObject<Model> 
   {
     public:
       Model();

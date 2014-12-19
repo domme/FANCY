@@ -4,6 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "ObjectName.h"
 #include "FixedArray.h"
+#include "StaticManagedObject.h"
 
 namespace Fancy { namespace Geometry { 
 //---------------------------------------------------------------------------//
@@ -15,7 +16,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   /// Represents a collection of raw geometric pieces that can be rendered with a single material
   /// Two GeometryDatas always have different vertex-attributes or primitive types which makes their distinction necessary.
-  class Mesh 
+  class Mesh : public StaticManagedObject<Mesh>
   {
   public:
     Mesh();
