@@ -33,7 +33,7 @@ namespace Fancy {
     MATERIALS,
     TEXTURES,
     BUFFERS,
-    MESHES
+    GEOMETRY
   };
 //---------------------------------------------------------------------------//
   // Allocation defines (will be replaced by custom allocators in the future)
@@ -338,6 +338,7 @@ namespace Fancy {
       NORMAL,
       TANGENT,
       BITANGENT,
+      COLOR,
       TEXCOORD0,
       TEXCOORD1,
       TEXCOORD2,

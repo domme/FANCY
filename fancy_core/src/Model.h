@@ -17,7 +17,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   /*@brief: A Model is a collection of several SubModels. Each SubModel is potentially rendered with a different material
   and a different mesh */ 
-  class Model : public StaticManagedObject<Model> 
+  class Model : public StaticManagedHeapObject<Model> 
   {
     public:
       Model();

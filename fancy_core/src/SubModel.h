@@ -14,7 +14,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class Mesh;
 //---------------------------------------------------------------------------//
-  class SubModel : public StaticManagedObject<SubModel>
+  class SubModel : public StaticManagedHeapObject<SubModel>
   {
   public:
     SubModel();

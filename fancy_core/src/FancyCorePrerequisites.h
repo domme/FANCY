@@ -63,7 +63,14 @@ void log_Info( glm::vec3 vec )
 
   log_Info( ss.str() );
 } */
-
+//---------------------------------------------------------------------------//
+  template<class T, size_t N>
+  struct ArrayLength
+  {
+      enum {
+        value = N;
+      };
+  }
 //---------------------------------------------------------------------------//
 #define DECLARE_SMART_PTRS(class) \
   typedef std::shared_ptr<##class> ##class##Ptr; \
@@ -113,8 +120,6 @@ void log_Info( glm::vec3 vec )
 //---------------------------------------------------------------------------//
 //DLL-Export MACROS
 #define DLLEXPORT __declspec(dllexport)
-
-
 
 //-----------------------------------------------------------------------//
 // Functional defines

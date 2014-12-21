@@ -16,7 +16,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   /// Represents a collection of raw geometric pieces that can be rendered with a single material
   /// Two GeometryDatas always have different vertex-attributes or primitive types which makes their distinction necessary.
-  class Mesh : public StaticManagedObject<Mesh>
+  class Mesh : public StaticManagedHeapObject<Mesh>
   {
   public:
     Mesh();

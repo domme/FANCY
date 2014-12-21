@@ -10,11 +10,12 @@
 
 namespace Fancy { namespace IO {
   // IO has to be known to use a later-defined class as friend class -.-
+  class SceneImporter;
 } }
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  class GeometryData : public StaticManagedObject<GeometryData> {
+  class GeometryData : public StaticManagedHeapObject<GeometryData> {
 
     friend class Fancy::IO::SceneImporter;
 
@@ -22,7 +23,7 @@ namespace Fancy { namespace Geometry {
       GeometryData();
       ~GeometryData();
 
-      const Rendering::GeometryVertexLayout* getGeometryVertexLayout() const {return m_pVertexLayout;}
+      const Rendering::GeometryVertexLayout& getGeometryVertexLayout() const {return m_vertexLayout;}
       Rendering::GpuBuffer* getVertexBuffer() {return m_pVertexBuffer;}
       Rendering::GpuBuffer* getIndexBuffer() {return m_pIndexBuffer;}
       uint32 getNumVertices() const {return m_uNumVertices; }
@@ -30,7 +31,7 @@ namespace Fancy { namespace Geometry {
       uint32 getVertexStrideBytes() const {return m_uVertexStrideBytes;}
       
     protected:
-      Rendering::GeometryVertexLayout* m_pVertexLayout;
+      Rendering::GeometryVertexLayout m_vertexLayout;
       Rendering::GpuBuffer* m_pVertexBuffer;  // TODO: put into array for multiple vertex-streams?
       Rendering::GpuBuffer* m_pIndexBuffer;
       uint32 m_uVertexStrideBytes;
