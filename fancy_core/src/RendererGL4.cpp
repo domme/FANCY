@@ -1221,7 +1221,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     const GLuint uVBOtoUse = pGeometry->getVertexBuffer()->getGLhandle();
     const GLuint uIBOtoUse = pGeometry->getIndexBuffer()->getGLhandle();
 
-    const GeometryVertexLayout* vertLayoutGeo = pGeometry->getGeometryVertexLayout();
+    const GeometryVertexLayout* vertLayoutGeo = &pGeometry->getGeometryVertexLayout();
     const VertexInputLayout* vertLayoutShader = 
       m_pBoundGPUPrograms[(uint32)ShaderStage::VERTEX]->getVertexInputLayout();
 

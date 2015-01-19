@@ -35,11 +35,11 @@ namespace Fancy {
       }
 //---------------------------------------------------------------------------//
     protected:
-      static  MapType m_objectMap;
+      static MapType m_objectMap;
   };
 //---------------------------------------------------------------------------//
     template<class T>
-    StaticManagedObject<T>::MapType StaticManagedObject<T>::m_objectMap;
+    std::map<ObjectName, T> StaticManagedObject<T>::m_objectMap;
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
     template <class T>
@@ -48,7 +48,7 @@ namespace Fancy {
     public:
       typedef std::map<ObjectName, T*> MapType;
 
-      static bool registerWithName(const ObjectName& _name, const T* _object)
+      static bool registerWithName(const ObjectName& _name, T* _object)
       {
         MapType::const_iterator it = m_objectMap.find(_name);
         if (it != m_objectMap.end())
@@ -68,7 +68,7 @@ namespace Fancy {
           return nullptr;
         }
 
-        return (*m_objectMap).second;
+        return (*it).second;
       }
       //---------------------------------------------------------------------------//
     protected:
@@ -76,7 +76,7 @@ namespace Fancy {
     };
     //---------------------------------------------------------------------------//
     template<class T>
-    StaticManagedHeapObject<T>::MapType StaticManagedHeapObject<T>::m_objectMap;
+    std::map<ObjectName, T*> StaticManagedHeapObject<T>::m_objectMap;
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy
 

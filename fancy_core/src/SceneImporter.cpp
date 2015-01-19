@@ -20,6 +20,8 @@
 #include "GeometryData.h"
 #include "GeometryVertexLayout.h"
 
+#define FANCY_IMPORTER_USE_VALIDATION
+
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   namespace Internal
@@ -67,7 +69,9 @@ namespace Fancy { namespace IO {
     bool processAiNode(const aiNode* _pAnode, Scene::SceneNode* _pParentNode);
     bool processMeshes(const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
     Geometry::Mesh* constructOrRetrieveMesh(const aiNode* _pAnode, const aiMesh* _pAmesh);
+    bool constructInternalMeshData(Geometry::Mesh* _pMesh, const aiMesh* _pAmesh);
     std::string getUniqueMeshName(const aiNode* _pANode, const aiMesh* _pMesh);
+
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -125,7 +129,7 @@ namespace Fancy { namespace IO {
     }
 
     currWorkingData.pCurrScene = _pAscene;
-    return processAiNode(pArootNode);
+    return processAiNode(pArootNode, nullptr);
   }
 //---------------------------------------------------------------------------//
   bool Processing::processAiNode(const aiNode* _pAnode, Scene::SceneNode* _pParentNode)
@@ -138,8 +142,11 @@ namespace Fancy { namespace IO {
       pNode->setName(ObjectName(_pAnode->mName.C_Str()));
     }
     
-    Scene::SceneNode::
-      parentNodeToNode(pNode, _pParentNode);
+    if (_pParentNode)
+    {
+      Scene::SceneNode::
+        parentNodeToNode(pNode, _pParentNode);
+    }
 
     pNode->getTransform().setLocal(Internal::matFromAiMat(_pAnode->mTransformation));
 
@@ -177,6 +184,7 @@ namespace Fancy { namespace IO {
       Geometry::Mesh* pMesh = constructOrRetrieveMesh(_pAnode, pAmesh);
     }
     
+    return true;
   }
 //---------------------------------------------------------------------------//
   Geometry::Mesh* Processing::constructOrRetrieveMesh(const aiNode* _pANode, const aiMesh* _pAmesh)
@@ -205,15 +213,24 @@ namespace Fancy { namespace IO {
     Geometry::Mesh::registerWithName(szUniqueMeshName, pMesh);
     Processing::currWorkingData.mapAiMeshToMesh[_pAmesh] = pMesh;
 
+    Processing::constructInternalMeshData(pMesh, _pAmesh);
+
+  }
+//---------------------------------------------------------------------------//
+  bool Processing::constructInternalMeshData(Geometry::Mesh* _pMesh, const aiMesh* _pAmesh)
+  {
     // TODO: Currently, there is a 1 to 1 mapping between mesh and geometry data... 
     // lets see if we even ever need the geometry data (non-assimp importers?)
     Geometry::GeometryData* pGeoData = new Geometry::GeometryData();
-    pMesh->addGeometryData(pGeoData);
+    _pMesh->addGeometryData(pGeoData);
 
     // Construct the vertex layout description
     Rendering::GeometryVertexLayout vertexLayout;
     ASSERT(_pAmesh->HasPositions());
-    
+
+    FixedArray<void*, Rendering::kMaxNumGeometryVertexAttributes>
+      vVertexDataPointers;
+
     uint32 u32OffsetBytes = 0u;
     if (_pAmesh->HasPositions())
     {
@@ -225,6 +242,8 @@ namespace Fancy { namespace IO {
       vertexElement.u32SizeBytes = sizeof(float) * 3u;
       u32OffsetBytes += vertexElement.u32SizeBytes;
       vertexLayout.addVertexElement(vertexElement);
+      vVertexDataPointers.push_back(_pAmesh->mVertices);
+      ASSERT(sizeof(_pAmesh->mVertices[0]) == vertexElement.u32SizeBytes);
     }
 
     if (_pAmesh->HasNormals())
@@ -237,6 +256,8 @@ namespace Fancy { namespace IO {
       vertexElement.u32SizeBytes = sizeof(float) * 3u;
       u32OffsetBytes += vertexElement.u32SizeBytes;
       vertexLayout.addVertexElement(vertexElement);
+      vVertexDataPointers.push_back(_pAmesh->mNormals);
+      ASSERT(sizeof(_pAmesh->mNormals[0]) == vertexElement.u32SizeBytes);
     }
 
     if (_pAmesh->HasTangentsAndBitangents())
@@ -249,8 +270,10 @@ namespace Fancy { namespace IO {
       vertexElement.u32SizeBytes = sizeof(float) * 3u;
       u32OffsetBytes += vertexElement.u32SizeBytes;
       vertexLayout.addVertexElement(vertexElement);
+      vVertexDataPointers.push_back(_pAmesh->mTangents);
+      ASSERT(sizeof(_pAmesh->mTangents[0]) == vertexElement.u32SizeBytes);
 
-      Rendering::GeometryVertexElement vertexElement;
+      vertexElement = Rendering::GeometryVertexElement();
       vertexElement.name = _N(Bitangents);
       vertexElement.eSemantics = Rendering::VertexSemantics::BITANGENT;
       vertexElement.eFormat = Rendering::DataFormat::RGB_32F;
@@ -258,25 +281,26 @@ namespace Fancy { namespace IO {
       vertexElement.u32SizeBytes = sizeof(float) * 3u;
       u32OffsetBytes += vertexElement.u32SizeBytes;
       vertexLayout.addVertexElement(vertexElement);
+      vVertexDataPointers.push_back(_pAmesh->mBitangents);
+      ASSERT(sizeof(_pAmesh->mBitangents[0]) == vertexElement.u32SizeBytes);
     }
 
     const Rendering::VertexSemantics uvSemanticsTable[] =
     { Rendering::VertexSemantics::TEXCOORD0, 
-      Rendering::VertexSemantics::TEXCOORD1,
-      Rendering::VertexSemantics::TEXCOORD2,
-      Rendering::VertexSemantics::TEXCOORD3,
-      Rendering::VertexSemantics::TEXCOORD4,
-      Rendering::VertexSemantics::TEXCOORD5,
-      Rendering::VertexSemantics::TEXCOORD6,
-      Rendering::VertexSemantics::TEXCOORD7 };
+    Rendering::VertexSemantics::TEXCOORD1,
+    Rendering::VertexSemantics::TEXCOORD2,
+    Rendering::VertexSemantics::TEXCOORD3,
+    Rendering::VertexSemantics::TEXCOORD4,
+    Rendering::VertexSemantics::TEXCOORD5,
+    Rendering::VertexSemantics::TEXCOORD6,
+    Rendering::VertexSemantics::TEXCOORD7 };
 
-    if (_pAmesh->GetNumUVChannels() > ArrayLength(uvSemanticsTable)::value)
+    if (_pAmesh->GetNumUVChannels() > ARRAY_LENGTH(uvSemanticsTable))
     {
-      log_Warning("Mesh " + szUniqueMeshName + " contains too many UV-channels" );
+      log_Warning("Mesh " + _pMesh->getName().toString() + " contains too many UV-channels" );
     }
 
-    for (uint32 iUVchannel = 0u; 
-      iUVchannel < std:min(_pAmesh->GetNumUVChannels(), ArrayLength(uvSemanticsTable)::value); 
+    for (uint32 iUVchannel = 0u; iUVchannel < std::min(_pAmesh->GetNumUVChannels(), (uint32) ARRAY_LENGTH(uvSemanticsTable)); 
       ++iUVchannel)
     {
       if (_pAmesh->HasTextureCoords(iUVchannel))
@@ -285,15 +309,15 @@ namespace Fancy { namespace IO {
         vertexElement.name = _N(TexCoords);
         vertexElement.eSemantics = uvSemanticsTable[iUVchannel];
 
-        if (_pAmesh->mNumUVComponents == 1u)
+        if (_pAmesh->mNumUVComponents[iUVchannel] == 1u)
         {
           vertexElement.eFormat = Rendering::DataFormat::R_32F;
         }
-        else if(_pAmesh->mNumUVComponents == 2u)
+        else if(_pAmesh->mNumUVComponents[iUVchannel] == 2u)
         {
           vertexElement.eFormat = Rendering::DataFormat::RG_32F;
         }
-        else if(_pAmesh->mNumUVComponents == 3u)
+        else if(_pAmesh->mNumUVComponents[iUVchannel] == 3u)
         {
           vertexElement.eFormat = Rendering::DataFormat::RGB_32F;
         }
@@ -304,24 +328,40 @@ namespace Fancy { namespace IO {
         }
 
         vertexElement.u32OffsetBytes = u32OffsetBytes;
-        vertexElement.u32SizeBytes = sizeof(float) * _pAmesh->mNumUVComponents;
+        vertexElement.u32SizeBytes = sizeof(float) * _pAmesh->mNumUVComponents[iUVchannel];
         u32OffsetBytes += vertexElement.u32SizeBytes;
         vertexLayout.addVertexElement(vertexElement);
+        ASSERT(sizeof(_pAmesh->mTextureCoords[iUVchannel][0]) == vertexElement.u32SizeBytes);
+        vVertexDataPointers.push_back(_pAmesh->mTextureCoords[iUVchannel]);
       }
     }
 
-    for (uint32 iColorChannel = 0u; iColorChannel < _pAmesh->GetNumColorChannels(); ++iColorChannel)
+    const Rendering::VertexSemantics colorSemanticsTable[] =
+    { Rendering::VertexSemantics::COLOR0, 
+    Rendering::VertexSemantics::COLOR1,
+    Rendering::VertexSemantics::COLOR2,
+    Rendering::VertexSemantics::COLOR3,
+    Rendering::VertexSemantics::COLOR4,
+    Rendering::VertexSemantics::COLOR5,
+    Rendering::VertexSemantics::COLOR6,
+    Rendering::VertexSemantics::COLOR7 };
+
+    for (uint32 iColorChannel = 0u; 
+      iColorChannel < std::min(_pAmesh->GetNumColorChannels(), (uint32) ARRAY_LENGTH(colorSemanticsTable));
+      ++iColorChannel)
     {
       if (_pAmesh->HasVertexColors(iColorChannel))
       {
         Rendering::GeometryVertexElement vertexElement;
         vertexElement.name = _N(Colors);
-        vertexElement.eSemantics = VertexSemantics::COLOR;
+        vertexElement.eSemantics = colorSemanticsTable[iColorChannel];
         vertexElement.eFormat = Rendering::DataFormat::RGBA_32F;
         vertexElement.u32OffsetBytes = u32OffsetBytes;
         vertexElement.u32SizeBytes = sizeof(float) * 4u;
         u32OffsetBytes += vertexElement.u32SizeBytes;
         vertexLayout.addVertexElement(vertexElement);
+        ASSERT(sizeof(_pAmesh->mColors[iColorChannel][0]) == vertexElement.u32SizeBytes);
+        vVertexDataPointers.push_back(_pAmesh->mColors[iColorChannel]);
       }
     }
 
@@ -330,21 +370,82 @@ namespace Fancy { namespace IO {
       log_Warning("Bone data is currently not supported in FANCY");
     }
 
-    // Construct the actual vertex data
+    const uint uSizeVertexBufferBytes = vertexLayout.getStrideBytes() * _pAmesh->mNumVertices;
+    void* pData = FANCY_ALLOCATE(uSizeVertexBufferBytes, MemoryCategory::GEOMETRY);
+
+    if (!pData)
+    {
+      log_Error("Failed to allocate vertex buffer");
+      return false;
+    }
+
+    // Construct an interleaved vertex array
+    ASSERT(vVertexDataPointers.size() == vertexLayout.getNumVertexElements());
+    for(uint iVertex = 0u; iVertex < _pAmesh->mNumVertices; ++iVertex)
+    {
+      for (uint iVertexElement = 0u; iVertexElement < vertexLayout.getNumVertexElements(); ++iVertexElement)
+      {
+        const Rendering::GeometryVertexElement& rVertexElement = vertexLayout.getVertexElement(iVertexElement);
+        uint uInterleavedOffset = iVertex * vertexLayout.getStrideBytes() + rVertexElement.u32OffsetBytes;
+        uint uContinousOffset = iVertex * rVertexElement.u32SizeBytes;
+        void* pDataPointer = vVertexDataPointers[iVertexElement];
+        memcpy(static_cast<uint8*>(pData) + uInterleavedOffset, 
+          static_cast<uint8*>(pDataPointer) + uContinousOffset, 
+          rVertexElement.u32SizeBytes);
+      }
+    }
+
+    // Construct the actual vertex buffer object
     Rendering::GpuBuffer* vertexBuffer = 
       FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::GEOMETRY);
 
-    GpuBufferParameters bufferParams;
+    Rendering::GpuBufferParameters bufferParams;
     bufferParams.bIsMultiBuffered = false;
-    bufferParams.ePrimaryUsageType = GpuBufferUsage::VERTEX_BUFFER;
-    bufferParams.uAccessFlags = GpuResourceAccessFlags::NONE;
+    bufferParams.ePrimaryUsageType = Rendering::GpuBufferUsage::VERTEX_BUFFER;
+    bufferParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
+    bufferParams.uNumElements = _pAmesh->mNumVertices;
+    bufferParams.uElementSizeBytes = vertexLayout.getStrideBytes();
+
+    vertexBuffer->create(bufferParams, pData);
+    pGeoData->setVertexLayout(vertexLayout);
+    pGeoData->setVertexBuffer(vertexBuffer);
+
+    FANCY_FREE(pData, MemoryCategory::GEOMETRY);
+
+    /// Construct the index buffer
+#if defined (FANCY_IMPORTER_USE_VALIDATION)
+    // Ensure that we have only triangles
+    for (uint i = 0u; i < _pAmesh->mNumFaces; ++i)
+    {
+      ASSERT_M(_pAmesh->mFaces[i].mNumIndices == 3u, "Unsupported face type");
+    }
+#endif  // FANCY_IMPORTER_USE_VALIDATION
+
+    uint* indices = FANCY_NEW(uint[_pAmesh->mNumFaces * 3u], MemoryCategory::GEOMETRY);
+
+    for (uint i = 0u; i < _pAmesh->mNumFaces; ++i)
+    {
+      const aiFace& aFace = _pAmesh->mFaces[i];
+
+      ASSERT(sizeof(indices[0]) == sizeof(aFace.mIndices[0]));
+      memcpy(&indices[i * 3u], aFace.mIndices, sizeof(uint));
+    }
+
+    Rendering::GpuBuffer* indexBuffer = 
+      FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::GEOMETRY);
+
+    Rendering::GpuBufferParameters indexBufParams;
+    indexBufParams.bIsMultiBuffered = false;
+    indexBufParams.ePrimaryUsageType = Rendering::GpuBufferUsage::INDEX_BUFFER;
+    indexBufParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
+    indexBufParams.uNumElements = _pAmesh->mNumFaces * 3u;
+    indexBufParams.uElementSizeBytes = sizeof(uint);
     
+    indexBuffer->create(indexBufParams, pData);
+    pGeoData->setIndexBuffer(indexBuffer);
+    FANCY_DELETE_ARR(indices, MemoryCategory::GEOMETRY);
 
-
-
-
-
-
+    return true;
   }
 //---------------------------------------------------------------------------//
   std::string Processing::getUniqueMeshName(const aiNode* _pANode, const aiMesh* _pMesh)

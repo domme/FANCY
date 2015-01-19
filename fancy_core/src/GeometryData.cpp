@@ -5,9 +5,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   GeometryData::GeometryData() :
     m_pIndexBuffer(nullptr),
-    m_pVertexBuffer(nullptr),
-    m_uNumVertices(0u),
-    m_uVertexStrideBytes(0u)
+    m_pVertexBuffer(nullptr)
   {
 
   }

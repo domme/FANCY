@@ -64,13 +64,7 @@ void log_Info( glm::vec3 vec )
   log_Info( ss.str() );
 } */
 //---------------------------------------------------------------------------//
-  template<class T, size_t N>
-  struct ArrayLength
-  {
-      enum {
-        value = N;
-      };
-  }
+#define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 //---------------------------------------------------------------------------//
 #define DECLARE_SMART_PTRS(class) \
   typedef std::shared_ptr<##class> ##class##Ptr; \

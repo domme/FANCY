@@ -61,7 +61,8 @@ namespace Fancy { namespace Scene {
     SceneNode* pParent = pChild->m_pParent;
 
     std::vector<std::shared_ptr<SceneNode>>::iterator it =
-      std::find(pParent->m_vpChildren.begin(), pParent->m_vpChildren.end(), pChild);
+      std::find_if(pParent->m_vpChildren.begin(), pParent->m_vpChildren.end(), 
+      [pChild] (const std::shared_ptr<SceneNode>& it) { return it.get() == pChild; } );
 
     ASSERT_M(it != pParent->m_vpChildren.end(), "Invalid parent-child relationship");
 

@@ -39,6 +39,7 @@ namespace Fancy {
   // Allocation defines (will be replaced by custom allocators in the future)
   #define FANCY_NEW(type, memoryCategory) new type
   #define FANCY_DELETE(type, memoryCategory) delete type
+  #define FANCY_DELETE_ARR(type, memoryCategory) delete[] type
   #define FANCY_ALLOCATE(sizeBytes, memoryCategory) malloc(sizeBytes)
   #define FANCY_FREE(pData, memoryCategory) free(pData)
 //---------------------------------------------------------------------------//
@@ -338,7 +339,14 @@ namespace Fancy {
       NORMAL,
       TANGENT,
       BITANGENT,
-      COLOR,
+      COLOR0,
+      COLOR1,
+      COLOR2,
+      COLOR3,
+      COLOR4,
+      COLOR5,
+      COLOR6,
+      COLOR7,
       TEXCOORD0,
       TEXCOORD1,
       TEXCOORD2,
