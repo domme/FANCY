@@ -71,6 +71,15 @@ namespace Fancy {
       void resize(uint32 uNewSize) {ASSERT_M(uNewSize <= u32Capacity, "Array too small"); m_u32Size = uNewSize; }
       void push_back(const T& clElement) {ASSERT_M(m_u32Size < u32Capacity, "Array is full"); m_Array[m_u32Size++] = clElement;}
     //---------------------------------------------------------------------------//
+      bool contains(const T& _item) {
+        for (uint32 i = 0; i < m_u32Size; ++i) {
+          if (m_Array[i] == _item){
+            return true;
+          }
+        }
+        return false;
+      }
+    //---------------------------------------------------------------------------//
       T& back() { ASSERT(m_u32Size > 0); return m_Array[m_u32Size - 1u]; }
       const T& back() const { ASSERT(m_u32Size > 0); return m_Array[m_u32Size - 1u]; }
     //---------------------------------------------------------------------------//

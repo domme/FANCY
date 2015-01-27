@@ -7,6 +7,7 @@
 #include "GeometryVertexLayout.h"
 #include "GpuBuffer.h"
 #include "StaticManagedObject.h"
+#include "ObjectName.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -27,7 +28,11 @@ namespace Fancy { namespace Geometry {
       void setIndexBuffer(Rendering::GpuBuffer* _pIndexBuffer) {m_pIndexBuffer = _pIndexBuffer;}
       void setVertexLayout(const Rendering::GeometryVertexLayout& _rVertexLayout) {m_vertexLayout = _rVertexLayout;}
 
+      const ObjectName& getName();
+      void setName(const ObjectName& _name) {m_name = _name;}
+
     protected:
+      ObjectName m_name;
       Rendering::GeometryVertexLayout m_vertexLayout;
       Rendering::GpuBuffer* m_pVertexBuffer;  // TODO: put into array for multiple vertex-streams?
       Rendering::GpuBuffer* m_pIndexBuffer;

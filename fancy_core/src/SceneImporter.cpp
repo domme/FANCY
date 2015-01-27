@@ -16,13 +16,19 @@
 #include "MaterialPass.h"
 #include "PathService.h"
 #include "ModelComponent.h"
+#include "Model.h"
+#include "SubModel.h"
 #include "Mesh.h"
 #include "GeometryData.h"
 #include "GeometryVertexLayout.h"
+#include "StringUtil.h"
 
 #define FANCY_IMPORTER_USE_VALIDATION
 
 namespace Fancy { namespace IO {
+//---------------------------------------------------------------------------//
+  using namespace Fancy::Geometry;
+  using namespace Fancy::Rendering;
 //---------------------------------------------------------------------------//
   namespace Internal
   {
@@ -53,14 +59,19 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   namespace Processing
   {
-    typedef std::map<const aiMesh*, Geometry::Mesh*> MeshCacheMap;
+    typedef std::map<const aiMesh*, Geometry::GeometryData*> MeshCacheMap;
 
     struct WorkingData
     {
       std::string szCurrScenePath;
       const aiScene* pCurrScene;
       Fancy::Scene::SceneNode* pFancyParentNode;
-      MeshCacheMap mapAiMeshToMesh;
+      MeshCacheMap mapAiMeshToGeometryData;
+
+      uint32 u32NumCreatedMeshes;
+      uint32 u32NumCreatedModels;
+      uint32 u32NumCreatedGeometryDatas;
+      uint32 u32NumCreatedSubModels;
     };
 
     WorkingData currWorkingData;
@@ -68,10 +79,13 @@ namespace Fancy { namespace IO {
     bool processAiScene(const aiScene* _pAscene);
     bool processAiNode(const aiNode* _pAnode, Scene::SceneNode* _pParentNode);
     bool processMeshes(const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
-    Geometry::Mesh* constructOrRetrieveMesh(const aiNode* _pAnode, const aiMesh* _pAmesh);
-    bool constructInternalMeshData(Geometry::Mesh* _pMesh, const aiMesh* _pAmesh);
-    std::string getUniqueMeshName(const aiNode* _pANode, const aiMesh* _pMesh);
+    Geometry::GeometryData* constructOrRetrieveGeometryData(const aiNode* _pAnode, const aiMesh* _pAmesh);
+    Rendering::Material* constructOrRetrieveMaterial(const aiMaterial* _pAmaterial);
 
+    std::string getUniqueMeshName();
+    std::string getUniqueModelName();
+    std::string getUniqueSubModelName();
+    std::string getUniqueGeometryDataName(const aiMesh* _pMesh);
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -168,61 +182,152 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   bool Processing::processMeshes(const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent)
   {
-    uint32 uNumMeshes = _pAnode->mNumMeshes;
-    const uint32* puMeshIndices = _pAnode->mMeshes;
+    // Sort all meshes by their material. Each entry will become a submodel of the model
+    const uint32 kMaxNumAssimpMeshesPerNode = 128u;
+    typedef FixedArray<aiMesh*, kMaxNumAssimpMeshesPerNode> AssimpMeshList;
 
-    // Note: As a first approach, each mesh becomes a submesh of the model
-    Geometry::Model* pModel = new Geometry::Model();
-    _pModelComponent->setModel(pModel);
+    typedef std::map<uint32, AssimpMeshList> MaterialMeshMap;
+     MaterialMeshMap mapMaterialIndexMesh;
 
+    const uint32 uNumMeshes = _pAnode->mNumMeshes;
     for (uint32 i = 0u; i < uNumMeshes; ++i)
     {
       const uint32 uMeshIndex = _pAnode->mMeshes[i];
-      const aiMesh* pAmesh = 
+      aiMesh* pAmesh = 
         Processing::currWorkingData.pCurrScene->mMeshes[uMeshIndex];
 
-      Geometry::Mesh* pMesh = constructOrRetrieveMesh(_pAnode, pAmesh);
+      const uint32 uMaterialIndex = pAmesh->mMaterialIndex;
+      AssimpMeshList& vMeshesWithMaterial = mapMaterialIndexMesh[uMaterialIndex];
+      
+      if (!vMeshesWithMaterial.contains(pAmesh))
+      {
+        vMeshesWithMaterial.push_back(pAmesh);
+      }
     }
-    
+
+    // Construct or retrieve Fancy Meshes and Submodels
+    // Each mesh-list with the same material becomes a submodel
+    SubModelList vSubModels;
+    for (MaterialMeshMap::iterator it = mapMaterialIndexMesh.begin(); it != mapMaterialIndexMesh.end(); ++it)
+    {
+      const uint32 uMaterialIndex = it->first;
+      AssimpMeshList& vAssimpMeshes = it->second;
+      
+      GeometryDataList vGeometryDatas;
+      for (uint32 i = 0u; i < vAssimpMeshes.size(); ++i)
+      {
+        aiMesh* pAmesh = vAssimpMeshes[i];
+
+        GeometryData* pGeometryData = constructOrRetrieveGeometryData(_pAnode, pAmesh);
+
+        if (!vGeometryDatas.contains(pGeometryData))
+        {
+          vGeometryDatas.push_back(pGeometryData);
+        }
+      }
+
+      // Do we already have a mesh containing these geometry-datas?
+      Geometry::Mesh* pMesh = Geometry::Mesh::find([vGeometryDatas] (Geometry::Mesh* itMesh) -> bool {
+        const Geometry::GeometryDataList& meshGeoDataList = itMesh->getGeometryDataList();
+        bool bSameGeometryDatas = vGeometryDatas.size() == meshGeoDataList.size();
+
+        if (bSameGeometryDatas)
+        {
+          for (uint32 i = 0u; i < vGeometryDatas.size(); ++i)
+          {
+            bSameGeometryDatas &= vGeometryDatas[i] == meshGeoDataList[i];
+          }
+        }
+
+        return bSameGeometryDatas;
+      } );
+
+      // We have to construct a new mesh from the geometry datas
+      if (!pMesh)
+      {
+        pMesh = FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY);
+        pMesh->setName(Processing::getUniqueMeshName());
+        Geometry::Mesh::registerWithName(pMesh);
+        pMesh->setGeometryDataList(vGeometryDatas);
+      }
+
+      // Create or retrieve the material
+      aiMaterial* pAmaterial = 
+        Processing::currWorkingData.pCurrScene->mMaterials[uMaterialIndex];
+      Rendering::Material* pMaterial = Processing::constructOrRetrieveMaterial(pAmaterial);
+
+      // Do we already have a Submodel with this mesh and material?
+      Geometry::SubModel* pSubModel = Geometry::SubModel::find([pMesh, pMaterial] (Geometry::SubModel* itSubmodel) -> bool {
+        return itSubmodel->getMaterial() == pMaterial && itSubmodel->getMesh() == pMesh;
+      });
+
+      if (!pSubModel)
+      {
+        pSubModel = FANCY_NEW(Geometry::SubModel, MemoryCategory::GEOMETRY);
+        pSubModel->setName(Processing::getUniqueSubModelName());
+        SubModel::registerWithName(pSubModel);
+        pSubModel->setMaterial(pMaterial);
+        pSubModel->setMesh(pMesh);
+      }
+
+      if (!vSubModels.contains(pSubModel))
+      {
+        vSubModels.push_back(pSubModel);
+      }
+    }  // end iteration of materialMeshList-map
+
+    // At this point, we constructed a bunch of submodels. Now construct them to 
+    // a Model (or retrieve a equivalent one...)
+    Geometry::Model* pModel = Geometry::Model::find([vSubModels](Model* itModel) -> bool {
+      const SubModelList& vSubModelsOther = itModel->getSubModelList();
+
+      bool sameSubmodels = vSubModels.size() == vSubModelsOther.size();
+      for (uint32 i = 0; i < vSubModels.size() && sameSubmodels; ++i)
+      {
+        sameSubmodels &= vSubModels[i] == vSubModelsOther[i];
+      }
+
+      return sameSubmodels;
+    });
+
+    if (!pModel)
+    {
+      pModel = FANCY_NEW(Geometry::Model, MemoryCategory::GEOMETRY);
+      pModel->setName(Processing::getUniqueModelName());
+      Model::registerWithName(pModel);
+
+      pModel->setSubModelList(vSubModels);
+    }
+
+    _pModelComponent->setModel(pModel);
+
     return true;
   }
 //---------------------------------------------------------------------------//
-  Geometry::Mesh* Processing::constructOrRetrieveMesh(const aiNode* _pANode, const aiMesh* _pAmesh)
+  Geometry::GeometryData* Processing::constructOrRetrieveGeometryData(const aiNode* _pANode, const aiMesh* _pAmesh)
   {
     Processing::MeshCacheMap::iterator it = 
-      Processing::currWorkingData.mapAiMeshToMesh.find(_pAmesh);
+      Processing::currWorkingData.mapAiMeshToGeometryData.find(_pAmesh);
 
     // We already processed this aiMesh
-    if (it != Processing::currWorkingData.mapAiMeshToMesh.end() )
+    if (it != Processing::currWorkingData.mapAiMeshToGeometryData.end() )
     {
       return it->second;
     }
 
-    // Generate a unique name and check if we already have this mesh in the current scene (imported earlier)
-    std::string szUniqueMeshName = Processing::getUniqueMeshName(_pANode, _pAmesh);
-    Geometry::Mesh* pMesh = Geometry::Mesh::getByName(szUniqueMeshName);
+    ObjectName uniqueGeodataName = Processing::getUniqueGeometryDataName(_pAmesh);
+    Geometry::GeometryData* pGeometryData = Geometry::GeometryData::getByName(uniqueGeodataName);
 
-    if (pMesh)
+    if (pGeometryData != nullptr)
     {
-      return pMesh;
+      return pGeometryData;
     }
 
-    // We have to construct a new mesh
-    pMesh = new Geometry::Mesh();
-    pMesh->setName(szUniqueMeshName);
-    Geometry::Mesh::registerWithName(szUniqueMeshName, pMesh);
-    Processing::currWorkingData.mapAiMeshToMesh[_pAmesh] = pMesh;
-
-    Processing::constructInternalMeshData(pMesh, _pAmesh);
-
-  }
-//---------------------------------------------------------------------------//
-  bool Processing::constructInternalMeshData(Geometry::Mesh* _pMesh, const aiMesh* _pAmesh)
-  {
-    // TODO: Currently, there is a 1 to 1 mapping between mesh and geometry data... 
-    // lets see if we even ever need the geometry data (non-assimp importers?)
-    Geometry::GeometryData* pGeoData = new Geometry::GeometryData();
-    _pMesh->addGeometryData(pGeoData);
+    // We have to construct a new GeometryData instance
+    pGeometryData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::GEOMETRY);
+    Processing::currWorkingData.mapAiMeshToGeometryData[_pAmesh] = pGeometryData;
+    pGeometryData->setName(uniqueGeodataName);
+    Geometry::GeometryData::registerWithName(pGeometryData);
 
     // Construct the vertex layout description
     Rendering::GeometryVertexLayout vertexLayout;
@@ -297,7 +402,7 @@ namespace Fancy { namespace IO {
 
     if (_pAmesh->GetNumUVChannels() > ARRAY_LENGTH(uvSemanticsTable))
     {
-      log_Warning("Mesh " + _pMesh->getName().toString() + " contains too many UV-channels" );
+      log_Warning("Mesh " + std::string(_pAmesh->mName.C_Str()) + " contains too many UV-channels" );
     }
 
     for (uint32 iUVchannel = 0u; iUVchannel < std::min(_pAmesh->GetNumUVChannels(), (uint32) ARRAY_LENGTH(uvSemanticsTable)); 
@@ -407,8 +512,8 @@ namespace Fancy { namespace IO {
     bufferParams.uElementSizeBytes = vertexLayout.getStrideBytes();
 
     vertexBuffer->create(bufferParams, pData);
-    pGeoData->setVertexLayout(vertexLayout);
-    pGeoData->setVertexBuffer(vertexBuffer);
+    pGeometryData->setVertexLayout(vertexLayout);
+    pGeometryData->setVertexBuffer(vertexBuffer);
 
     FANCY_FREE(pData, MemoryCategory::GEOMETRY);
 
@@ -440,19 +545,47 @@ namespace Fancy { namespace IO {
     indexBufParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
     indexBufParams.uNumElements = _pAmesh->mNumFaces * 3u;
     indexBufParams.uElementSizeBytes = sizeof(uint);
-    
+
     indexBuffer->create(indexBufParams, pData);
-    pGeoData->setIndexBuffer(indexBuffer);
+    pGeometryData->setIndexBuffer(indexBuffer);
     FANCY_DELETE_ARR(indices, MemoryCategory::GEOMETRY);
 
-    return true;
+    return pGeometryData;
   }
 //---------------------------------------------------------------------------//
-  std::string Processing::getUniqueMeshName(const aiNode* _pANode, const aiMesh* _pMesh)
+  Rendering::Material* Processing::constructOrRetrieveMaterial(const aiMaterial* _pAmaterial)
+  {
+    // TODO Next: 
+    // Out materials are composite objects containing different materialPasses 
+    // for each rendering step. 
+    // However, Assimp-materials only contain a bunch of texture-references and properties.
+    // Our approach is to create some standard Fancy-Materials and try to derive a mapping 
+    // between Assimp's texture- and property list and one of the prepared Fancy-materials.
+  }
+//---------------------------------------------------------------------------//
+  std::string Processing::getUniqueModelName()
+  {
+    return "Model_" + Processing::currWorkingData.szCurrScenePath + "_" 
+      + StringUtil::toString(Processing::currWorkingData.u32NumCreatedModels++);
+  }
+//---------------------------------------------------------------------------//
+  std::string Processing::getUniqueMeshName()
   {
     return "Mesh_" + Processing::currWorkingData.szCurrScenePath + "_" 
-      + std::string(_pANode->mName.C_Str()) + "_" 
-      + std::string(_pMesh->mName.C_Str());
+      + StringUtil::toString(Processing::currWorkingData.u32NumCreatedMeshes++);
+  }
+//---------------------------------------------------------------------------//
+  std::string Processing::getUniqueGeometryDataName(const aiMesh* _pMesh)
+  {
+    return "GeometryData_" + Processing::currWorkingData.szCurrScenePath + "_" 
+      + std::string(_pMesh->mName.C_Str()) + "_"
+      + StringUtil::toString(Processing::currWorkingData.u32NumCreatedGeometryDatas++);
+  }
+//---------------------------------------------------------------------------//
+  std::string Processing::getUniqueSubModelName()
+  {
+    return "SubModel_" + Processing::currWorkingData.szCurrScenePath + "_" 
+      + StringUtil::toString(Processing::currWorkingData.u32NumCreatedSubModels++);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

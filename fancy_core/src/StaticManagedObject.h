@@ -10,7 +10,7 @@ namespace Fancy {
   {
     public:
       typedef std::map<ObjectName, T> MapType;
-
+//---------------------------------------------------------------------------//
       static bool registerWithName(const ObjectName& _name, const T& _object)
       {
         MapType::const_iterator it = m_objectMap.find(_name);
@@ -23,6 +23,11 @@ namespace Fancy {
         return true;
       }
 //---------------------------------------------------------------------------//
+      static bool registerWithName(const T& _object)
+      {
+        return registerWithName(_object.getName(), _object);
+      }
+//---------------------------------------------------------------------------//
       static T* getByName(const ObjectName& _name)
       {
         MapType::const_iterator it = m_objectMap.find(_name);
@@ -32,6 +37,24 @@ namespace Fancy {
         }
 
         return &(*m_objectMap).second;
+      }
+//---------------------------------------------------------------------------//
+      static const MapType& getRegisterMap()
+      {
+        return m_objectMap;
+      }
+//---------------------------------------------------------------------------//
+      static T* find(std::function<bool, const T&> _predicateFunc)
+      {
+        for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
+        {
+          if (_predicateFunc(it->second))
+          {
+            return &(it->second);
+          }
+        }
+
+        return nullptr;
       }
 //---------------------------------------------------------------------------//
     protected:
@@ -47,7 +70,7 @@ namespace Fancy {
     {
     public:
       typedef std::map<ObjectName, T*> MapType;
-
+//---------------------------------------------------------------------------//
       static bool registerWithName(const ObjectName& _name, T* _object)
       {
         MapType::const_iterator it = m_objectMap.find(_name);
@@ -59,7 +82,12 @@ namespace Fancy {
         m_objectMap.insert(std::pair<ObjectName, T*>(_name, _object));
         return true;
       }
-      //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+      static bool registerWithName(const T* _object)
+      {
+        return registerWithName(_object->getName(), _object);
+      }
+//---------------------------------------------------------------------------//
       static T* getByName(const ObjectName& _name)
       {
         MapType::const_iterator it = m_objectMap.find(_name);
@@ -70,7 +98,25 @@ namespace Fancy {
 
         return (*it).second;
       }
-      //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+      static const MapType& getRegisterMap()
+      {
+        return m_objectMap;
+      }
+//---------------------------------------------------------------------------//
+      static T* find(std::function<bool, T*> _predicateFunc)
+      {
+        for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
+        {
+          if (_predicateFunc(it->second))
+          {
+            return it->second;
+          }
+        }
+
+        return nullptr;
+      }
+//---------------------------------------------------------------------------//
     protected:
       static  MapType m_objectMap;
     };

@@ -28,11 +28,16 @@ namespace Fancy { namespace Geometry {
 
       uint32 getNumSubModels() const {return m_vSubModels.size();}
     //---------------------------------------------------------------------------//
+      void addSubModel(SubModel* _pSubModel);
+    //---------------------------------------------------------------------------//
       SubModel* getSubModel(uint32 u32Index) {return m_vSubModels[u32Index];}
       const SubModel* getSubModel(uint32 u32Index) const {return m_vSubModels[u32Index];}
     //---------------------------------------------------------------------------//
       SubModelList& getSubModelList() {return m_vSubModels;}
       const SubModelList& getSubModelList() const {return m_vSubModels;}
+    //---------------------------------------------------------------------------//
+      void setSubModelList(const SubModelList& _vSubModels) 
+      {ASSERT(m_vSubModels.empty()); m_vSubModels = _vSubModels; }
     //---------------------------------------------------------------------------//
     private:
       SubModelList m_vSubModels;

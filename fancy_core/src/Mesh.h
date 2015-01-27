@@ -33,6 +33,7 @@ namespace Fancy { namespace Geometry {
   //---------------------------------------------------------------------------//
     //SubMeshList& getGeometryDataList() {return m_vGeometries;}
     const GeometryDataList& getGeometryDataList() const {return m_vGeometries;}
+    void setGeometryDataList(const GeometryDataList& _vGeometries) {m_vGeometries = _vGeometries;}
   //---------------------------------------------------------------------------//
   private:
     GeometryDataList m_vGeometries;

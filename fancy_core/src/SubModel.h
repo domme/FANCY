@@ -25,6 +25,9 @@ namespace Fancy { namespace Geometry {
 
     Rendering::Material* getMaterial() const {return m_pMaterial;}
     Mesh* getMesh() const {return m_pMesh;}
+
+    void setMesh(Mesh* _pMesh) {m_pMesh = _pMesh;}
+    void setMaterial(Rendering::Material* _pMaterial) {m_pMaterial = _pMaterial;}
 //---------------------------------------------------------------------------//
   private:
     Rendering::Material* m_pMaterial;

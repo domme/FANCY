@@ -204,6 +204,9 @@
     <ClInclude Include="src\SceneImporter.h">
       <Filter>src\IO</Filter>
     </ClInclude>
+    <ClInclude Include="src\StringUtil.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">

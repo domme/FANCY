@@ -20,8 +20,10 @@ namespace Fancy {
       bool operator==(const ObjectName& clOther) const;
       bool operator!=(const ObjectName& clOther) const;
       bool operator<(const ObjectName& clOther) const;
-      // Implicit conversion operator:
+      /// Implicit conversion operator to size_t:
       operator size_t() const {return getHash();}
+      /// Implicit conversion operator to string:
+      operator String() const {return toString();}
     //---------------------------------------------------------------------------//
     private:
       uint   m_uNameHash;

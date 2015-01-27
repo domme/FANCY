@@ -253,6 +253,7 @@
     <ClInclude Include="src\StaticManagedObject.h" />
     <ClInclude Include="src\StdAfx.h" />
     <ClInclude Include="src\GeometryData.h" />
+    <ClInclude Include="src\StringUtil.h" />
     <ClInclude Include="src\SubModel.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\TextureGL4.h" />
