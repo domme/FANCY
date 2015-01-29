@@ -257,6 +257,7 @@
     <ClInclude Include="src\SubModel.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\TextureGL4.h" />
+    <ClInclude Include="src\TextureLoader.h" />
     <ClInclude Include="src\TextureSampler.h" />
     <ClInclude Include="src\TextureSamplerGL4.h" />
     <ClInclude Include="src\TimeManager.h" />
@@ -304,6 +305,7 @@
     <ClCompile Include="src\GeometryData.cpp" />
     <ClCompile Include="src\SubModel.cpp" />
     <ClCompile Include="src\TextureGL4.cpp" />
+    <ClCompile Include="src\TextureLoader.cpp" />
     <ClCompile Include="src\TextureSamplerGL4.cpp" />
     <ClCompile Include="src\TimeManager.cpp" />
     <ClCompile Include="src\VertexInputLayout.cpp" />

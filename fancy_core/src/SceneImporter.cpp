@@ -7,6 +7,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <assimp/mesh.h>
+#include <assimp/material.h>
 
 #include "Scene.h"
 #include "SceneNode.h"
@@ -60,6 +61,7 @@ namespace Fancy { namespace IO {
   namespace Processing
   {
     typedef std::map<const aiMesh*, Geometry::GeometryData*> MeshCacheMap;
+    typedef std::map<const aiMaterial*, Rendering::Material*> MaterialCacheMap;
 
     struct WorkingData
     {
@@ -67,6 +69,7 @@ namespace Fancy { namespace IO {
       const aiScene* pCurrScene;
       Fancy::Scene::SceneNode* pFancyParentNode;
       MeshCacheMap mapAiMeshToGeometryData;
+      MaterialCacheMap mapAiMatToMat;
 
       uint32 u32NumCreatedMeshes;
       uint32 u32NumCreatedModels;
@@ -74,18 +77,16 @@ namespace Fancy { namespace IO {
       uint32 u32NumCreatedSubModels;
     };
 
-    WorkingData currWorkingData;
+    bool processAiScene(WorkingData& _workingData, const aiScene* _pAscene);
+    bool processAiNode(WorkingData& _workingData, const aiNode* _pAnode, Scene::SceneNode* _pParentNode);
+    bool processMeshes(WorkingData& _workingData, const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
+    Geometry::GeometryData* constructOrRetrieveGeometryData(WorkingData& _workingData, const aiNode* _pAnode, const aiMesh* _pAmesh);
+    Rendering::Material* constructOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial);
 
-    bool processAiScene(const aiScene* _pAscene);
-    bool processAiNode(const aiNode* _pAnode, Scene::SceneNode* _pParentNode);
-    bool processMeshes(const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
-    Geometry::GeometryData* constructOrRetrieveGeometryData(const aiNode* _pAnode, const aiMesh* _pAmesh);
-    Rendering::Material* constructOrRetrieveMaterial(const aiMaterial* _pAmaterial);
-
-    std::string getUniqueMeshName();
-    std::string getUniqueModelName();
-    std::string getUniqueSubModelName();
-    std::string getUniqueGeometryDataName(const aiMesh* _pMesh);
+    std::string getUniqueMeshName(WorkingData& _workingData);
+    std::string getUniqueModelName(WorkingData& _workingData);
+    std::string getUniqueSubModelName(WorkingData& _workingData);
+    std::string getUniqueGeometryDataName(WorkingData& _workingData, const aiMesh* _pMesh);
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -126,14 +127,13 @@ namespace Fancy { namespace IO {
     }
 
     Processing::WorkingData workingData = {0};
-    Processing::currWorkingData = workingData;
-    Processing::currWorkingData.pFancyParentNode = _pParentNode;
-    Processing::currWorkingData.szCurrScenePath = _szImportPathRel;
-    return Processing::processAiScene(aScene);
+    workingData.pFancyParentNode = _pParentNode;
+    workingData.szCurrScenePath = _szImportPathRel;
+    return Processing::processAiScene(workingData, aScene);
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  bool Processing::processAiScene(const aiScene* _pAscene)
+  bool Processing::processAiScene(WorkingData& _workingData, const aiScene* _pAscene)
   {
     const aiNode* pArootNode = _pAscene->mRootNode;
 
@@ -142,11 +142,11 @@ namespace Fancy { namespace IO {
       return false;
     }
 
-    currWorkingData.pCurrScene = _pAscene;
-    return processAiNode(pArootNode, nullptr);
+    _workingData.pCurrScene = _pAscene;
+    return processAiNode(_workingData, pArootNode, nullptr);
   }
 //---------------------------------------------------------------------------//
-  bool Processing::processAiNode(const aiNode* _pAnode, Scene::SceneNode* _pParentNode)
+  bool Processing::processAiNode(WorkingData& _workingData, const aiNode* _pAnode, Scene::SceneNode* _pParentNode)
   {
     bool success = true;
 
@@ -169,18 +169,18 @@ namespace Fancy { namespace IO {
       Scene::ModelComponent* pModelComponent =
         static_cast<Scene::ModelComponent*>(pNode->createComponent(_N(ModelComponent)));
 
-      Processing::processMeshes(_pAnode, pModelComponent);
+      Processing::processMeshes(_workingData, _pAnode, pModelComponent);
     }
     
     for (uint32 i = 0u; i < _pAnode->mNumChildren; ++i)
     {
-      success &= Processing::processAiNode(_pAnode->mChildren[i], pNode.get());
+      success &= Processing::processAiNode(_workingData, _pAnode->mChildren[i], pNode.get());
     }
 
     return success;
   }
 //---------------------------------------------------------------------------//
-  bool Processing::processMeshes(const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent)
+  bool Processing::processMeshes(WorkingData& _workingData, const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent)
   {
     // Sort all meshes by their material. Each entry will become a submodel of the model
     const uint32 kMaxNumAssimpMeshesPerNode = 128u;
@@ -194,7 +194,7 @@ namespace Fancy { namespace IO {
     {
       const uint32 uMeshIndex = _pAnode->mMeshes[i];
       aiMesh* pAmesh = 
-        Processing::currWorkingData.pCurrScene->mMeshes[uMeshIndex];
+        _workingData.pCurrScene->mMeshes[uMeshIndex];
 
       const uint32 uMaterialIndex = pAmesh->mMaterialIndex;
       AssimpMeshList& vMeshesWithMaterial = mapMaterialIndexMesh[uMaterialIndex];
@@ -218,7 +218,7 @@ namespace Fancy { namespace IO {
       {
         aiMesh* pAmesh = vAssimpMeshes[i];
 
-        GeometryData* pGeometryData = constructOrRetrieveGeometryData(_pAnode, pAmesh);
+        GeometryData* pGeometryData = constructOrRetrieveGeometryData(_workingData, _pAnode, pAmesh);
 
         if (!vGeometryDatas.contains(pGeometryData))
         {
@@ -253,8 +253,8 @@ namespace Fancy { namespace IO {
 
       // Create or retrieve the material
       aiMaterial* pAmaterial = 
-        Processing::currWorkingData.pCurrScene->mMaterials[uMaterialIndex];
-      Rendering::Material* pMaterial = Processing::constructOrRetrieveMaterial(pAmaterial);
+        _workingData.pCurrScene->mMaterials[uMaterialIndex];
+      Rendering::Material* pMaterial = Processing::constructOrRetrieveMaterial(_workingData, pAmaterial);
 
       // Do we already have a Submodel with this mesh and material?
       Geometry::SubModel* pSubModel = Geometry::SubModel::find([pMesh, pMaterial] (Geometry::SubModel* itSubmodel) -> bool {
@@ -304,18 +304,18 @@ namespace Fancy { namespace IO {
     return true;
   }
 //---------------------------------------------------------------------------//
-  Geometry::GeometryData* Processing::constructOrRetrieveGeometryData(const aiNode* _pANode, const aiMesh* _pAmesh)
+  Geometry::GeometryData* Processing::constructOrRetrieveGeometryData(WorkingData& _workingData, const aiNode* _pANode, const aiMesh* _pAmesh)
   {
     Processing::MeshCacheMap::iterator it = 
-      Processing::currWorkingData.mapAiMeshToGeometryData.find(_pAmesh);
+      _workingData.mapAiMeshToGeometryData.find(_pAmesh);
 
     // We already processed this aiMesh
-    if (it != Processing::currWorkingData.mapAiMeshToGeometryData.end() )
+    if (it != _workingData.mapAiMeshToGeometryData.end() )
     {
       return it->second;
     }
 
-    ObjectName uniqueGeodataName = Processing::getUniqueGeometryDataName(_pAmesh);
+    ObjectName uniqueGeodataName = Processing::getUniqueGeometryDataName(_workingData, _pAmesh);
     Geometry::GeometryData* pGeometryData = Geometry::GeometryData::getByName(uniqueGeodataName);
 
     if (pGeometryData != nullptr)
@@ -325,7 +325,7 @@ namespace Fancy { namespace IO {
 
     // We have to construct a new GeometryData instance
     pGeometryData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::GEOMETRY);
-    Processing::currWorkingData.mapAiMeshToGeometryData[_pAmesh] = pGeometryData;
+    _workingData.mapAiMeshToGeometryData[_pAmesh] = pGeometryData;
     pGeometryData->setName(uniqueGeodataName);
     Geometry::GeometryData::registerWithName(pGeometryData);
 
@@ -553,7 +553,7 @@ namespace Fancy { namespace IO {
     return pGeometryData;
   }
 //---------------------------------------------------------------------------//
-  Rendering::Material* Processing::constructOrRetrieveMaterial(const aiMaterial* _pAmaterial)
+  Rendering::Material* Processing::constructOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial)
   {
     // TODO Next: 
     // Out materials are composite objects containing different materialPasses 
@@ -561,31 +561,76 @@ namespace Fancy { namespace IO {
     // However, Assimp-materials only contain a bunch of texture-references and properties.
     // Our approach is to create some standard Fancy-Materials and try to derive a mapping 
     // between Assimp's texture- and property list and one of the prepared Fancy-materials.
+
+    // Did we already import this material?
+    Processing::MaterialCacheMap::iterator cacheIt = _workingData.mapAiMatToMat.find(_pAmaterial);
+    if (cacheIt != _workingData.mapAiMatToMat.end())
+    {
+      return cacheIt->second;
+    }
+
+    // Retrieve the material properties most relevant for us
+    aiString szAname;
+    _pAmaterial->Get(AI_MATKEY_NAME, szAname);
+
+    aiColor3D color_diffuse;
+    _pAmaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color_diffuse);
+
+    aiColor3D color_specular;
+    _pAmaterial->Get(AI_MATKEY_COLOR_SPECULAR, color_specular);
+
+    aiColor3D color_ambient;
+    _pAmaterial->Get(AI_MATKEY_COLOR_AMBIENT, color_ambient);
+
+    aiColor3D color_emissive;
+    _pAmaterial->Get(AI_MATKEY_COLOR_EMISSIVE, color_emissive);
+
+    aiColor3D color_transparent;
+    _pAmaterial->Get(AI_MATKEY_COLOR_TRANSPARENT, color_transparent);
+
+    aiBlendMode blend_func;
+    _pAmaterial->Get(AI_MATKEY_BLEND_FUNC, blend_func);
+
+    float opacity;
+    _pAmaterial->Get(AI_MATKEY_OPACITY, opacity);
+
+    float shininess;
+    _pAmaterial->Get(AI_MATKEY_SHININESS, shininess);
+
+    float shininess_strenght;
+    _pAmaterial->Get(AI_MATKEY_SHININESS_STRENGTH, shininess_strenght);
+
+
+
+
+
+
+    
   }
 //---------------------------------------------------------------------------//
-  std::string Processing::getUniqueModelName()
+  std::string Processing::getUniqueModelName(WorkingData& _workingData)
   {
-    return "Model_" + Processing::currWorkingData.szCurrScenePath + "_" 
-      + StringUtil::toString(Processing::currWorkingData.u32NumCreatedModels++);
+    return "Model_" + _workingData.szCurrScenePath + "_" 
+      + StringUtil::toString(_workingData.u32NumCreatedModels++);
   }
 //---------------------------------------------------------------------------//
-  std::string Processing::getUniqueMeshName()
+  std::string Processing::getUniqueMeshName(WorkingData& _workingData)
   {
-    return "Mesh_" + Processing::currWorkingData.szCurrScenePath + "_" 
-      + StringUtil::toString(Processing::currWorkingData.u32NumCreatedMeshes++);
+    return "Mesh_" + _workingData.szCurrScenePath + "_" 
+      + StringUtil::toString(_workingData.u32NumCreatedMeshes++);
   }
 //---------------------------------------------------------------------------//
-  std::string Processing::getUniqueGeometryDataName(const aiMesh* _pMesh)
+  std::string Processing::getUniqueGeometryDataName(WorkingData& _workingData, const aiMesh* _pMesh)
   {
-    return "GeometryData_" + Processing::currWorkingData.szCurrScenePath + "_" 
+    return "GeometryData_" + _workingData.szCurrScenePath + "_" 
       + std::string(_pMesh->mName.C_Str()) + "_"
-      + StringUtil::toString(Processing::currWorkingData.u32NumCreatedGeometryDatas++);
+      + StringUtil::toString(_workingData.u32NumCreatedGeometryDatas++);
   }
 //---------------------------------------------------------------------------//
-  std::string Processing::getUniqueSubModelName()
+  std::string Processing::getUniqueSubModelName(WorkingData& _workingData)
   {
-    return "SubModel_" + Processing::currWorkingData.szCurrScenePath + "_" 
-      + StringUtil::toString(Processing::currWorkingData.u32NumCreatedSubModels++);
+    return "SubModel_" + _workingData.szCurrScenePath + "_" 
+      + StringUtil::toString(_workingData.u32NumCreatedSubModels++);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO
