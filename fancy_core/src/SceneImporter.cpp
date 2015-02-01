@@ -23,6 +23,8 @@
 #include "GeometryData.h"
 #include "GeometryVertexLayout.h"
 #include "StringUtil.h"
+#include "Texture.h"
+#include "TextureLoader.h"
 
 #define FANCY_IMPORTER_USE_VALIDATION
 
@@ -82,6 +84,7 @@ namespace Fancy { namespace IO {
     bool processMeshes(WorkingData& _workingData, const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
     Geometry::GeometryData* constructOrRetrieveGeometryData(WorkingData& _workingData, const aiNode* _pAnode, const aiMesh* _pAmesh);
     Rendering::Material* constructOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial);
+    Rendering::Texture* constructOrRetrieveTexture(WorkingData& _workingData, const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex);
 
     std::string getUniqueMeshName(WorkingData& _workingData);
     std::string getUniqueModelName(WorkingData& _workingData);
@@ -600,12 +603,62 @@ namespace Fancy { namespace IO {
     float shininess_strenght;
     _pAmaterial->Get(AI_MATKEY_SHININESS_STRENGTH, shininess_strenght);
 
-
-
-
-
+    Texture* pDiffuseTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_DIFFUSE, 0u);
 
     
+
+  }
+//---------------------------------------------------------------------------//
+  Rendering::Texture* Processing::constructOrRetrieveTexture(WorkingData& _workingData, 
+    const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex)
+  {
+    uint32 numTextures = _pAmaterial->GetTextureCount(_aiTextureType);
+    ASSERT(numTextures > _texIndex);
+
+    aiString szATexPath;
+    _pAmaterial->Get(AI_MATKEY_TEXTURE(_aiTextureType, _texIndex), szATexPath);
+
+    // TODO: Is this an absolute path?
+    String szTexPath = String(szATexPath.C_Str());
+
+    // Did we already load this texture before?
+    Texture* pTexture = Texture::getByName(szTexPath);
+    if (pTexture)
+    {
+      return pTexture;
+    }
+
+    // Load and decode the texture to memory
+    std::vector<uint8> vTextureBytes;
+    TextureLoadInfo texLoadInfo;
+    if (!TextureLoader::loadTexture(szTexPath, vTextureBytes, texLoadInfo))
+    {
+      log_Error("Failed to load texture at path " + szTexPath);
+      return nullptr;
+    }
+
+    if (texLoadInfo.bitsPerPixel != 8u || (texLoadInfo.numChannels != 3u && texLoadInfo.numChannels != 4u))
+    {
+      log_Error("Unsupported texture format: " + szTexPath);
+      return nullptr;
+    }
+
+    pTexture = FANCY_NEW(Texture, MemoryCategory::TEXTURES);
+    Texture::registerWithName(szTexPath, pTexture);
+
+    TextureParameters texParams;
+    texParams.bIsDepthStencil = false;
+    texParams.eFormat = texLoadInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
+    texParams.u16Width = texLoadInfo.width;
+    texParams.u16Height = texLoadInfo.height;
+    texParams.u16Depth = 0u;
+    texParams.uAccessFlags = (uint32) GpuResourceAccessFlags::NONE;
+    texParams.uPixelDataSizeBytes = texLoadInfo.width * texLoadInfo.height;
+    texParams.pPixelData = &vTextureBytes[0];
+
+    pTexture->create(texParams);
+
+    return pTexture;
   }
 //---------------------------------------------------------------------------//
   std::string Processing::getUniqueModelName(WorkingData& _workingData)

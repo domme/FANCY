@@ -139,7 +139,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       default: ASSERT_M(false, "Missing GL values"); return GL_ALL_SHADER_BITS;
       }
     }
-    //---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
     /// Returns the internal format (prior to any modifications)
     GLenum Adapter::toGLType(const DataFormat& generalType) 
     {

@@ -5,9 +5,11 @@
 #include "RendererPrerequisites.h"
 #include PLATFORM_DEPENDENT_INCLUDE_TEXTURE
 
+#include "StaticManagedObject.h"
+
 namespace Fancy { namespace Rendering {
 
-class Texture : public PLATFORM_DEPENDENT_NAME(Texture) 
+class Texture : public PLATFORM_DEPENDENT_NAME(Texture), public StaticManagedHeapObject<Texture>
 {
 
 };
