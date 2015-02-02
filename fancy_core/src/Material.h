@@ -3,6 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "StaticManagedObject.h"
 
 #include "FixedArray.h"
 #include "ObjectName.h"
@@ -11,7 +12,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
-  class Material
+  class Material : StaticManagedHeapObject<Material>
   {
     public:
       Material();
@@ -24,13 +25,6 @@ namespace Fancy { namespace Rendering {
       ObjectName m_Name;
       MaterialPassInstance* m_vPasses[ (uint) EMaterialPass::NUM ];
   };
-//---------------------------------------------------------------------------//
-  // TODO: Do we need this?
-  /*class MaterialInstance 
-  {
-
-
-  }; */
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
 

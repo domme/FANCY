@@ -20,4 +20,7 @@ _build_temp/*
 _build_temp/*/*
 _build_temp/*/*/*.*
 
+*.sublime-project
+*.sublime-workspace
+
 

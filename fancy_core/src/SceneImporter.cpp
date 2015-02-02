@@ -571,41 +571,64 @@ namespace Fancy { namespace IO {
     {
       return cacheIt->second;
     }
-
+        
     // Retrieve the material properties most relevant for us
     aiString szAname;
-    _pAmaterial->Get(AI_MATKEY_NAME, szAname);
+    bool hasName = _pAmaterial->Get(AI_MATKEY_NAME, szAname) == AI_SUCCESS;
 
     aiColor3D color_diffuse;
-    _pAmaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color_diffuse);
+    bool hasColor = _pAmaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color_diffuse) == AI_SUCCESS;
 
     aiColor3D color_specular;
-    _pAmaterial->Get(AI_MATKEY_COLOR_SPECULAR, color_specular);
+    bool hasSpecular = _pAmaterial->Get(AI_MATKEY_COLOR_SPECULAR, color_specular) == AI_SUCCESS;
 
     aiColor3D color_ambient;
-    _pAmaterial->Get(AI_MATKEY_COLOR_AMBIENT, color_ambient);
+    bool hasAmbientColor = _pAmaterial->Get(AI_MATKEY_COLOR_AMBIENT, color_ambient) == AI_SUCCESS;
 
     aiColor3D color_emissive;
-    _pAmaterial->Get(AI_MATKEY_COLOR_EMISSIVE, color_emissive);
+    bool hasEmissiveColor = _pAmaterial->Get(AI_MATKEY_COLOR_EMISSIVE, color_emissive) == AI_SUCCESS;
 
     aiColor3D color_transparent;
-    _pAmaterial->Get(AI_MATKEY_COLOR_TRANSPARENT, color_transparent);
+    bool hasTransparentColor = _pAmaterial->Get(AI_MATKEY_COLOR_TRANSPARENT, color_transparent) == AI_SUCCESS;
 
     aiBlendMode blend_func;
-    _pAmaterial->Get(AI_MATKEY_BLEND_FUNC, blend_func);
+    bool hasBlendFunc = _pAmaterial->Get(AI_MATKEY_BLEND_FUNC, blend_func) == AI_SUCCESS;
 
     float opacity;
-    _pAmaterial->Get(AI_MATKEY_OPACITY, opacity);
+    bool hasOpacity = _pAmaterial->Get(AI_MATKEY_OPACITY, opacity) == AI_SUCCESS;
 
-    float shininess;
-    _pAmaterial->Get(AI_MATKEY_SHININESS, shininess);
+    float specularPower;
+    bool hasSpecularPower = _pAmaterial->Get(AI_MATKEY_SHININESS, specularPower) == AI_SUCCESS;
 
-    float shininess_strenght;
-    _pAmaterial->Get(AI_MATKEY_SHININESS_STRENGTH, shininess_strenght);
+    float specular;
+    bool hasSpecular = _pAmaterial->Get(AI_MATKEY_SHININESS_STRENGTH, specular) == AI_SUCCESS;
 
     Texture* pDiffuseTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_DIFFUSE, 0u);
+    Texture* pNormalTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_NORMALS, 0u);
+    Texture* pSpecularTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SPECULAR, 0u);
+    Texture* pSpecPowerTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SHININESS, 0u);
+    Texture* pOpacityTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_OPACITY, 0u);
 
-    
+    bool hasDiffuseTex = pDiffuseTex != nullptr;
+    bool hasNormalTex = pDiffuseTex != nullptr;
+    bool hasSpecTex = pSpecularTex != nullptr;
+    bool hasSpecPowerTex = pSpecPowerTex != nullptr;
+    bool hasOpacityTex = pOpacityTex != nullptr;
+
+    // Fancy only supports textures where opacity is combined with diffuse and specPower is combined with specular
+    if (hasSpecTex && hasSpecPowerTex && pSpecPowerTex != pSpecularTex)
+    {
+      log_Warning("Fancy doesn't support storing specular power in a separate texture. Consider putting it in spec.a");
+    }
+
+    if (hasDiffuseTex && hasOpacityTex && pOpacityTex != pDiffuseTex)
+    {
+      log_Warning("Fancy doesn't support storing opacity in a separate texture. Consider putting it in diff.a");
+    }
+
+    Material* pMaterial = FANCY_NEW(Material, MemoryCategory::MATERIALS);
+
+    // TODO: Continue here... (select GpuProgram and #defines based on available properties/textures above)
 
   }
 //---------------------------------------------------------------------------//
@@ -644,8 +667,7 @@ namespace Fancy { namespace IO {
     }
 
     pTexture = FANCY_NEW(Texture, MemoryCategory::TEXTURES);
-    Texture::registerWithName(szTexPath, pTexture);
-
+    
     TextureParameters texParams;
     texParams.bIsDepthStencil = false;
     texParams.eFormat = texLoadInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
@@ -655,8 +677,18 @@ namespace Fancy { namespace IO {
     texParams.uAccessFlags = (uint32) GpuResourceAccessFlags::NONE;
     texParams.uPixelDataSizeBytes = texLoadInfo.width * texLoadInfo.height;
     texParams.pPixelData = &vTextureBytes[0];
-
     pTexture->create(texParams);
+
+    if (!pTexture->isValid())
+    {
+      log_Error("Failed to upload pixel data of texture " + szTexPath);
+      FANCY_DELETE(pTexture, MemoryCategory::TEXTURES);
+      pTexture = nullptr;
+    }
+    else
+    {
+      Texture::registerWithName(szTexPath, pTexture);  
+    }
 
     return pTexture;
   }
