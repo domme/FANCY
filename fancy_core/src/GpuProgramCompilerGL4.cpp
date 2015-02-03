@@ -10,6 +10,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     VertexSemantics getVertexSemanticsFromName(const ObjectName& name);
     void getResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, 
                                                 GpuResourceAccessType& rAccessType);
+    String getDefineFromShaderStage(ShaderStage _eStage);
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -260,6 +261,27 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return VertexSemantics::POSITION;
   }
 //---------------------------------------------------------------------------//
+  String internal::getDefineFromShaderStage(ShaderStage _eStage)
+  {
+    switch (_eStage)
+    {
+    case Fancy::Rendering::ShaderStage::VERTEX:
+      return "PROGRAM_TYPE_VERTEX";
+    case Fancy::Rendering::ShaderStage::FRAGMENT:
+      return "PROGRAM_TYPE_FRAGMENT";
+    case Fancy::Rendering::ShaderStage::GEOMETRY:
+      return "PROGRAM_TYPE_GEOMETRY";
+    case Fancy::Rendering::ShaderStage::TESS_HULL:
+      return "PROGRAM_TYPE_TESS_HULL";
+    case Fancy::Rendering::ShaderStage::TESS_DOMAIN:
+      return "PROGRAM_TYPE_TESS_DOMAIN";
+    case Fancy::Rendering::ShaderStage::COMPUTE:
+      return "PROGRAM_TYPE_COMPUTE";
+    default:
+      return "";
+    }
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   GpuProgramCompilerGL4::GpuProgramCompilerGL4()
@@ -272,27 +294,36 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramCompilerGL4::compileFromSource( const String& szSource, 
-    const ShaderStage& eShaderStage, const ObjectName& name, GpuProgramGL4& rGpuProgram )
+  bool GpuProgramCompilerGL4::compileFromSource( const String& szSource, const ShaderStage& eShaderStage, GpuProgramGL4& rGpuProgram )
   {
     ASSERT_M(!szSource.empty(), "Invalid shader source");
 
+    const uint32 kMaxNumShaderDefines = 64;
+    FixedArray<String, kMaxNumShaderDefines> vShaderKeywords;
+    vShaderKeywords.push_back(internal::getDefineFromShaderStage(eShaderStage));
+    // TODO: More keywords to come...
+
+    String szDefines = "";
+    for (uint32 i = 0u; i < vShaderKeywords.size(); ++i)
+    {
+      szDefines += "#define " + vShaderKeywords[i] + "\n";
+    }
+
     GLenum eShaderStageGL = Adapter::toGLType(eShaderStage);
-    
-    const char* szShaderSource_cstr = szSource.c_str();
+
+    const char* szShaderSource_cstr = (szDefines + szSource).c_str();
     GLuint uProgramHandle = glCreateShaderProgramv(eShaderStageGL, 1, &szShaderSource_cstr);
 
     int iLogLengthChars = 0;
     glGetProgramiv(uProgramHandle, GL_INFO_LOG_LENGTH, &iLogLengthChars);
     ASSERT(iLogLengthChars < kMaxNumLogChars);
 
+    char logBuffer[kMaxNumLogChars];
     if (iLogLengthChars > 0)
     {
-      glGetProgramInfoLog(uProgramHandle, kMaxNumLogChars, &iLogLengthChars, m_LogBuffer);
-      log_Info(m_LogBuffer);
+      glGetProgramInfoLog(uProgramHandle, kMaxNumLogChars, &iLogLengthChars, logBuffer);
+      log_Info(logBuffer);
     }
-    // clear the log again
-    memset(m_LogBuffer, 0x0, sizeof(m_LogBuffer));
 
     int iProgramLinkStatus = GL_FALSE;
     glGetProgramiv(uProgramHandle, GL_LINK_STATUS, &iProgramLinkStatus);
@@ -302,14 +333,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     {
       rGpuProgram.m_eShaderStage = eShaderStage;
       rGpuProgram.m_uProgramHandleGL = uProgramHandle;
-      rGpuProgram.m_Name = name;
 
       success = reflectProgram(rGpuProgram);
     }
 
     if (!success) 
     {
-      log_Error(String("GpuProgram ") + name + " failed to compile" );
+      log_Error(String("GpuProgram ") + rGpuProgram.m_Name.toString() + " failed to compile" );
       glDeleteProgram(uProgramHandle);
     }
     
@@ -341,7 +371,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   void GpuProgramCompilerGL4::reflectResources( GLuint uProgram, 
     GpuResourceInfoList& rReadTextureInfos, GpuResourceInfoList& rReadBufferInfos, 
-    GpuResourceInfoList& rWriteTextureInfos, GpuResourceInfoList& rWriteBufferInfos) const
+    GpuResourceInfoList& rWriteTextureInfos, GpuResourceInfoList& rWriteBufferInfos)
   {
     // We assume that all uniforms which don't  belong to a block are resources (i.e. buffers, samplers, textures)
 
@@ -407,7 +437,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramCompilerGL4::reflectVertexInputs(GLuint uProgram, VertexInputLayout& rVertexLayout) const
+  void GpuProgramCompilerGL4::reflectVertexInputs(GLuint uProgram, VertexInputLayout& rVertexLayout)
   {
     rVertexLayout.clear();
 
@@ -449,7 +479,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramCompilerGL4::reflectFragmentOutputs(GLuint uProgram, ShaderStageFragmentOutputList& vFragmentOutputs) const
+  void GpuProgramCompilerGL4::reflectFragmentOutputs(GLuint uProgram, ShaderStageFragmentOutputList& vFragmentOutputs)
   {
     vFragmentOutputs.clear();
 
@@ -511,7 +541,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       const uint32 uNumUniformsInBlock = vPropertyValues[1];
       
       // Sanity-check of the binding point. We require it to match the eCbufferType
-      ASSERT_M(uUniformBlockBinding < (uint) ConstantBufferType::NUM &&
+      ASSERT_M(uUniformBlockBinding < (uint)ConstantBufferType::NUM &&
                (ConstantBufferType) uUniformBlockBinding == eCbufferType, 
                "CBuffer-name does not match its expected binding point");
 
@@ -557,12 +587,12 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramCompilerGL4::reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList) const
+  void GpuProgramCompilerGL4::reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList)
   {
     // TODO: Implement
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramCompilerGL4::reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList) const
+  void GpuProgramCompilerGL4::reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList)
   {
     // TODO: Implement
   } 

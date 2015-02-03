@@ -1,6 +1,60 @@
 #if !defined (INCLUDE_CONSTANTBUFFER_INCLUDE_)
 #define INCLUDE_CONSTANTBUFFER_INCLUDE_
+//---------------------------------------------------------------------------//
+  uniform PER_LAUNCH
+  {
 
+  } cbPerLaunch;
+//---------------------------------------------------------------------------//
+  uniform PER_FRAME
+  {
 
+  } cbPerFrame;
+//---------------------------------------------------------------------------//
+  uniform PER_VIEWPORT
+  {
+    vec4 c_RenderTargetSize;
+  } cbPerViewport;
+//---------------------------------------------------------------------------//
+  uniform PER_STAGE
+  {
+
+  } cbPerStage;
+//---------------------------------------------------------------------------//
+  uniform PER_CAMERA
+  {
+    mat4 c_ViewMatrix;
+    mat4 c_ProjectionMatrix;
+    mat4 c_ViewProjectionMatrix;
+    vec4 c_NearFarParameters;
+    vec4 c_CameraPosWS;
+  } cbPerCamera;
+//---------------------------------------------------------------------------//
+  uniform PER_LIGHT
+  {
+    vec4 c_DirLightParameters;
+    vec4 c_PointLightParameters;
+    vec4 c_SpotLightParameters;
+    vec4 c_LightColorIntensity;
+    vec4 c_LightPosWS;
+    vec4 c_LightPosVS;
+  } cbPerLight;
+//---------------------------------------------------------------------------//  
+  uniform PER_MATERIAL
+  {
+    vec4 c_MatDiffIntensity;
+    vec4 c_MatSpecIntensity;
+  } cbPerMaterial;
+//---------------------------------------------------------------------------//  
+  uniform PER_OBJECT
+  {
+    mat4 c_WorldMatrix;
+    mat4 c_WorldInverseMatrix;
+    mat4 c_WorldViewMatrix;
+    mat4 c_WorldViewInverseMatrix;
+    mat4 c_WorldViewProjectionMatrix;
+    mat4 c_WorldViewProjectionInverseMatrix;
+  } cbPerObject;
+//---------------------------------------------------------------------------//  
 
 #endif // INCLUDE_CONSTANTBUFFER_INCLUDE_

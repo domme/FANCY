@@ -30,7 +30,7 @@ namespace Fancy { namespace Rendering {
     mapConstantBufferTypes[_N(PER_CAMERA)] = ConstantBufferType::PER_CAMERA;
     mapConstantBufferTypes[_N(PER_LIGHT)] = ConstantBufferType::PER_LIGHT;
     mapConstantBufferTypes[_N(PER_MATERIAL)] = ConstantBufferType::PER_MATERIAL;
-    mapConstantBufferTypes[_N(PER_DRAW)] = ConstantBufferType::PER_DRAW;
+    mapConstantBufferTypes[_N(PER_OBJECT)] = ConstantBufferType::PER_OBJECT;
     
     mapConstantSemantics[_N(c_RenderTargetSize)] = ConstantSemantics::RENDERTARGET_SIZE;
     mapConstantSemantics[_N(c_ViewMatrix)] = ConstantSemantics::VIEW_MATRIX;
@@ -93,7 +93,7 @@ namespace Fancy { namespace Rendering {
     else if (eSemantic > ConstantSemantics::PER_DRAW_BEGIN &&
       eSemantic < ConstantSemantics::PER_DRAW_END) 
     {
-      eBufferType = ConstantBufferType::PER_DRAW;
+      eBufferType = ConstantBufferType::PER_OBJECT;
     }
 
     return eBufferType;
