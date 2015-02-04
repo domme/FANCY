@@ -13,6 +13,8 @@ namespace Fancy { namespace IO {
   class DLLEXPORT SceneImporter 
   {
     public: 
+      static void _shaderTest();
+
       static void initLogger();
       static void destroyLogger();
       static bool importToSceneGraph(const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode);

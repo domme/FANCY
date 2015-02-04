@@ -28,7 +28,7 @@ namespace Fancy { namespace Geometry {
       void setIndexBuffer(Rendering::GpuBuffer* _pIndexBuffer) {m_pIndexBuffer = _pIndexBuffer;}
       void setVertexLayout(const Rendering::GeometryVertexLayout& _rVertexLayout) {m_vertexLayout = _rVertexLayout;}
 
-      const ObjectName& getName();
+      const ObjectName& getName() {return m_name;}
       void setName(const ObjectName& _name) {m_name = _name;}
 
     protected:

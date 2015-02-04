@@ -44,7 +44,7 @@ namespace Fancy {
         return m_objectMap;
       }
 //---------------------------------------------------------------------------//
-      static T* find(std::function<bool, const T&> _predicateFunc)
+      static T* find(std::function<bool(const T&)> _predicateFunc)
       {
         for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
         {
@@ -83,7 +83,7 @@ namespace Fancy {
         return true;
       }
 //---------------------------------------------------------------------------//
-      static bool registerWithName(const T* _object)
+      static bool registerWithName(T* _object)
       {
         return registerWithName(_object->getName(), _object);
       }
@@ -104,7 +104,7 @@ namespace Fancy {
         return m_objectMap;
       }
 //---------------------------------------------------------------------------//
-      static T* find(std::function<bool, T*> _predicateFunc)
+      static T* find(std::function<bool(T*)> _predicateFunc)
       {
         for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
         {

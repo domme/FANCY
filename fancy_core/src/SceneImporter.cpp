@@ -252,7 +252,7 @@ namespace Fancy { namespace IO {
       if (!pMesh)
       {
         pMesh = FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY);
-        pMesh->setName(Processing::getUniqueMeshName());
+        pMesh->setName(Processing::getUniqueMeshName(_workingData));
         Geometry::Mesh::registerWithName(pMesh);
         pMesh->setGeometryDataList(vGeometryDatas);
       }
@@ -270,7 +270,7 @@ namespace Fancy { namespace IO {
       if (!pSubModel)
       {
         pSubModel = FANCY_NEW(Geometry::SubModel, MemoryCategory::GEOMETRY);
-        pSubModel->setName(Processing::getUniqueSubModelName());
+        pSubModel->setName(Processing::getUniqueSubModelName(_workingData));
         SubModel::registerWithName(pSubModel);
         pSubModel->setMaterial(pMaterial);
         pSubModel->setMesh(pMesh);
@@ -299,7 +299,7 @@ namespace Fancy { namespace IO {
     if (!pModel)
     {
       pModel = FANCY_NEW(Geometry::Model, MemoryCategory::GEOMETRY);
-      pModel->setName(Processing::getUniqueModelName());
+      pModel->setName(Processing::getUniqueModelName(_workingData));
       Model::registerWithName(pModel);
 
       pModel->setSubModelList(vSubModels);
@@ -583,7 +583,7 @@ namespace Fancy { namespace IO {
     bool hasColor = _pAmaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color_diffuse) == AI_SUCCESS;
 
     aiColor3D color_specular;
-    bool hasSpecular = _pAmaterial->Get(AI_MATKEY_COLOR_SPECULAR, color_specular) == AI_SUCCESS;
+    bool hasSpecularColor = _pAmaterial->Get(AI_MATKEY_COLOR_SPECULAR, color_specular) == AI_SUCCESS;
 
     aiColor3D color_ambient;
     bool hasAmbientColor = _pAmaterial->Get(AI_MATKEY_COLOR_AMBIENT, color_ambient) == AI_SUCCESS;
@@ -646,6 +646,18 @@ namespace Fancy { namespace IO {
     pMaterialPass->2 */
 
   }
+
+  // DEBUG:
+  void SceneImporter::_shaderTest()
+  {
+    String shaderSource = IO::FileReader::ReadTextFile("Shader/MaterialDefault.shader");
+
+    GpuProgram* pVertexProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
+    GpuProgram* pFragmentProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
+    GpuProgramCompiler::compileFromSource(shaderSource, ShaderStage::VERTEX, *pVertexProgram);
+    GpuProgramCompiler::compileFromSource(shaderSource, ShaderStage::FRAGMENT, *pFragmentProgram);
+  }
+
 //---------------------------------------------------------------------------//
   Rendering::Texture* Processing::constructOrRetrieveTexture(WorkingData& _workingData, 
     const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex)

@@ -31,6 +31,8 @@ namespace Fancy {
     initRenderingSubsystem();
     initIOsubsystem();
 
+    IO::SceneImporter::_shaderTest();
+
     return true;
   }
 //---------------------------------------------------------------------------//
@@ -61,7 +63,7 @@ namespace Fancy {
     depthStencilState.setDepthCompFunc(Rendering::CompFunc::LESS);
     Rendering::DepthStencilState::registerWithName(depthStencilState.getName(), depthStencilState);
 
-    Rendering::Renderer& rnd = Rendering::Renderer::getInstance();
+    Rendering::Renderer& rend = Rendering::Renderer::getInstance();
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::initIOsubsystem()

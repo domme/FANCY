@@ -173,8 +173,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_clBlendState(ObjectName()),
     m_clDepthStencilState(ObjectName())
   {
-    glewInit();
-    
+    // TODO: Remove glew-dependencies from engine completely... this should be done in the app
+    uint32 glewStatus = glewInit();
+    ASSERT( glewStatus == GLEW_OK);
+
     memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
 
     memset(m_pCachedReadTextures, 0, sizeof(m_pCachedReadTextures));

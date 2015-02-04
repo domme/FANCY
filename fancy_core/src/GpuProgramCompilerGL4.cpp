@@ -311,8 +311,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     GLenum eShaderStageGL = Adapter::toGLType(eShaderStage);
 
-    const char* szShaderSource_cstr = (szDefines + szSource).c_str();
-    GLuint uProgramHandle = glCreateShaderProgramv(eShaderStageGL, 1, &szShaderSource_cstr);
+    String shaderSourceWithDefines = szDefines + szSource;
+    const char* szShaderSource_cstr = shaderSourceWithDefines.c_str();
+    GLuint pipeline = 0;
+    glIsProgramPipeline(pipeline);
+    GLuint uProgramHandle = glCreateShaderProgramv(GL_VERTEX_SHADER, 1, &szShaderSource_cstr);
 
     int iLogLengthChars = 0;
     glGetProgramiv(uProgramHandle, GL_INFO_LOG_LENGTH, &iLogLengthChars);

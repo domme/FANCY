@@ -369,7 +369,7 @@ namespace Fancy {
       PER_CAMERA,
       PER_LIGHT,
       PER_MATERIAL,
-      PER_DRAW,
+      PER_OBJECT,
 
       NUM
     };
