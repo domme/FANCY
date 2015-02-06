@@ -31,8 +31,6 @@ namespace Fancy {
     initRenderingSubsystem();
     initIOsubsystem();
 
-    IO::SceneImporter::_shaderTest();
-
     return true;
   }
 //---------------------------------------------------------------------------//

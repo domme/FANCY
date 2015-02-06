@@ -1,6 +1,7 @@
 ﻿#include "GpuProgramCompilerGL4.h"
 #include "GpuProgram.h"
 #include "ShaderConstantsManager.h"
+#include "FileReader.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
@@ -294,28 +295,90 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
   }
 //---------------------------------------------------------------------------//
+  bool GpuProgramCompilerGL4::compile(const String& _shaderPath, ShaderStage _eShaderStage, GpuProgramGL4& _rGpuProgram)
+  {
+    // TODO: This method needs some serious rework... we really shouldn't juggle around with strings and vectors this much
+
+    log_Info("Compiling shader " + _shaderPath);
+    std::vector<String> vShaderSourceLines;
+    IO::FileReader::ReadTextFileLines(_shaderPath, vShaderSourceLines);
+
+    if (vShaderSourceLines.empty())
+    {
+      log_Error("Error reading shader file " + _shaderPath);
+      return false;
+    }
+
+    // Handle #includes
+    const String kIncludeSearchKey = "#include \"";
+    bool bIncludeStatementFound = false;
+    do 
+    {
+      bIncludeStatementFound = false;
+      for (uint32 i = 0u; i < vShaderSourceLines.size(); ++i)
+      {
+        const String& line = vShaderSourceLines[i];
+        size_t pos = line.find(kIncludeSearchKey);
+        size_t posComment = line.find("//");
+        bool isCommentedOut = posComment != std::string::npos && posComment < pos;
+        // TODO: Handle multi-line comments (/*...*/)
+        if (pos != std::string::npos && !isCommentedOut)
+        {
+          bIncludeStatementFound = true;
+          size_t posEnd = line.find_last_of("\"");
+          size_t posAfterInclude = + kIncludeSearchKey.size() + 1;
+          String includePath = line.substr(posAfterInclude, posEnd - posAfterInclude);
+          vShaderSourceLines[i] = "";
+
+          std::vector<String> vIncludeFileLines;
+          IO::FileReader::ReadTextFileLines(includePath, vIncludeFileLines);
+          if (!vIncludeFileLines.empty())
+          {
+            vShaderSourceLines.insert(vShaderSourceLines.begin() + i, vIncludeFileLines.begin(), vIncludeFileLines.end());
+          }
+        }
+      }
+    } while (bIncludeStatementFound);
+
+    // Handle #defines. These will be added at the top of the file but after the #version-statement
+    const uint32 kMaxNumShaderDefines = 64;
+    FixedArray<String, kMaxNumShaderDefines> vShaderKeywords;
+    vShaderKeywords.push_back(internal::getDefineFromShaderStage(_eShaderStage));
+    // TODO: More keywords to come...
+
+    uint32 insertDefineLine = 0u;
+    for (uint32 i = 0u; i < vShaderSourceLines.size(); ++i)
+    {
+      const String& line = vShaderSourceLines[i];
+      if (line.find("#version") != std::string::npos)
+      {
+        insertDefineLine = i;
+        break;
+      }
+    }
+    
+    for (uint32 i = 0u; i < vShaderKeywords.size(); ++i)
+    {
+      vShaderSourceLines.insert(vShaderSourceLines.begin() + insertDefineLine + i + 1, "#define " + vShaderKeywords[i]);
+    }
+
+    String szCombinedSource = "";
+    for (uint32 i = 0u; i < vShaderSourceLines.size(); ++i)
+    {
+      szCombinedSource += vShaderSourceLines[i] + "\n";
+    }
+
+    return compileFromSource(szCombinedSource, _eShaderStage, _rGpuProgram);
+  }
+//---------------------------------------------------------------------------//
   bool GpuProgramCompilerGL4::compileFromSource( const String& szSource, const ShaderStage& eShaderStage, GpuProgramGL4& rGpuProgram )
   {
     ASSERT_M(!szSource.empty(), "Invalid shader source");
 
-    const uint32 kMaxNumShaderDefines = 64;
-    FixedArray<String, kMaxNumShaderDefines> vShaderKeywords;
-    vShaderKeywords.push_back(internal::getDefineFromShaderStage(eShaderStage));
-    // TODO: More keywords to come...
-
-    String szDefines = "";
-    for (uint32 i = 0u; i < vShaderKeywords.size(); ++i)
-    {
-      szDefines += "#define " + vShaderKeywords[i] + "\n";
-    }
-
     GLenum eShaderStageGL = Adapter::toGLType(eShaderStage);
 
-    String shaderSourceWithDefines = szDefines + szSource;
-    const char* szShaderSource_cstr = shaderSourceWithDefines.c_str();
-    GLuint pipeline = 0;
-    glIsProgramPipeline(pipeline);
-    GLuint uProgramHandle = glCreateShaderProgramv(GL_VERTEX_SHADER, 1, &szShaderSource_cstr);
+    const char* szShaderSource_cstr = szSource.c_str();
+    GLuint uProgramHandle = glCreateShaderProgramv(eShaderStageGL, 1, &szShaderSource_cstr);
 
     int iLogLengthChars = 0;
     glGetProgramiv(uProgramHandle, GL_INFO_LOG_LENGTH, &iLogLengthChars);

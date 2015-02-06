@@ -634,28 +634,27 @@ namespace Fancy { namespace IO {
     // TODO: Continue here... (select GpuProgram and #defines based on available properties/textures above)
 
     // First test: just use a dummy material
-    String shaderPath = IO::PathService::convertToAbsPath("Shader/MaterialDefault.shader");
+/*    String shaderPath = IO::PathService::convertToAbsPath("Shader/MaterialDefault.shader");
     String shaderSource = IO::FileReader::ReadTextFile(shaderPath);
 
     GpuProgram* pVertexProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
     GpuProgram* pFragmentProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
     GpuProgramCompiler::compileFromSource(shaderSource, ShaderStage::VERTEX, *pVertexProgram);
-    GpuProgramCompiler::compileFromSource(shaderSource, ShaderStage::FRAGMENT, *pFragmentProgram);
+    GpuProgramCompiler::compileFromSource(shaderSource, ShaderStage::FRAGMENT, *pFragmentProgram); */
 
     /*MaterialPass* pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
     pMaterialPass->2 */
-
+  
+    return pMaterial;
   }
 
   // DEBUG:
   void SceneImporter::_shaderTest()
   {
-    String shaderSource = IO::FileReader::ReadTextFile("Shader/MaterialDefault.shader");
-
     GpuProgram* pVertexProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
     GpuProgram* pFragmentProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
-    GpuProgramCompiler::compileFromSource(shaderSource, ShaderStage::VERTEX, *pVertexProgram);
-    GpuProgramCompiler::compileFromSource(shaderSource, ShaderStage::FRAGMENT, *pFragmentProgram);
+    GpuProgramCompiler::compile("Shader/MaterialDefault.shader", ShaderStage::VERTEX, *pVertexProgram);
+    GpuProgramCompiler::compile("Shader/MaterialDefault.shader", ShaderStage::FRAGMENT, *pFragmentProgram);
   }
 
 //---------------------------------------------------------------------------//

@@ -49,7 +49,7 @@ int main(void)
   if (glewInitStatus == GLEW_OK)
   {
     std::stringstream ss;
-    ss << "Succesfully initialized OpenGL subsystem:" << std::endl;
+    ss << "Successfully initialized OpenGL subsystem:" << std::endl;
     ss << "   Vendor: " << (const char*) glGetString(GL_VENDOR) << std::endl;
     ss << "   Renderer: " << (const char*) glGetString(GL_RENDERER) << std::endl;
     ss << "   Version: " << (const char*) glGetString(GL_VERSION) << std::endl;

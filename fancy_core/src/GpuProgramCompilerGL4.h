@@ -15,7 +15,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   class GpuProgramCompilerGL4
   {
   public:
-    static bool compileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramGL4& rGpuProgram); 
+    static bool compile(const String& _shaderPath, ShaderStage _eShaderStage, GpuProgramGL4& _rGpuProgram);
 
   protected:
     static bool reflectProgram(GpuProgramGL4& rGpuProgram);
@@ -27,6 +27,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     static void reflectFragmentOutputs(GLuint uProgram, ShaderStageFragmentOutputList& vFragmentOutputs);
     static void reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList);
     static void reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList);
+    static bool compileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramGL4& rGpuProgram);
 
   private:
     GpuProgramCompilerGL4();
