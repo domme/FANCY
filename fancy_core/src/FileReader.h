@@ -3,6 +3,8 @@
 
 #include "FancyCorePrerequisites.h"
 
+#include <list>
+
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   class FileReader
@@ -11,6 +13,7 @@ namespace Fancy { namespace IO {
 	    //basic Text-Reading from file with no error-handling at all up till now
 	    static std::string ReadTextFile( const std::string& szFileName );
 	    static void ReadTextFileLines( const std::string& szFileName, std::vector<std::string>& rvLines, bool bInResources = true );
+      static void ReadTextFileLines( const std::string& szFileName, std::list<std::string>& rvLines, bool bInResources = true );
 	    static void OpenFileStream( const std::string& szRelativeFileName, std::ifstream& rStream, bool bInResources = true );
   };
 //---------------------------------------------------------------------------//

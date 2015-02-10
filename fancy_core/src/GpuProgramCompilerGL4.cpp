@@ -2,6 +2,9 @@
 #include "GpuProgram.h"
 #include "ShaderConstantsManager.h"
 #include "FileReader.h"
+#include "StringUtil.h"
+
+#include <deque>
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
@@ -295,77 +298,120 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
   }
 //---------------------------------------------------------------------------//
+  void GpuProgramCompilerGL4::preprocessShaderSource(std::list<String>& sourceLines, const ShaderStage& eShaderStage)
+  {
+    const uint32 kMaxNumDefines = 64u;
+    FixedArray<String, kMaxNumDefines> vDefines;
+    vDefines.push_back("#define " + internal::getDefineFromShaderStage(eShaderStage));
+    // ... more to come?
+
+    const String kIncludeSearchKey = "#include \"";
+    const uint32 kIncludeSearchKeyLen = kIncludeSearchKey.length();
+
+    const String kCommentStartBlock = "/*";
+    const uint32 kCommentStartBlockLen = kCommentStartBlock.length();
+    const String kCommentEndBlock = "*/";
+    const uint32 kCommentEndBlockLen = kCommentEndBlock.length();
+    const String kLineComment = "//";
+    const uint32 kLineCommentLen = kLineComment.length();
+
+    const String kVersion ="#version";
+
+    bool definesInserted = false;
+    bool inCommentBlock = false;
+    for (std::list<String>::iterator itToken = sourceLines.begin(); itToken != sourceLines.end(); ++itToken)
+    {
+      const String& token = *itToken;
+      size_t currPosInToken = 0u;
+
+      const size_t posCommentStartBlock = token.find(kCommentStartBlock);
+      const bool hasCommentStartBlock = posCommentStartBlock != std::string::npos;
+      const size_t posCommentEndBlock = token.find(kCommentEndBlock);
+      const bool hasCommentEndBlock = posCommentEndBlock != std::string::npos;
+      const size_t posLineComment = token.find(kLineComment);
+      const bool hasLineComment = posLineComment != std::string::npos;
+
+      if (!inCommentBlock && hasCommentStartBlock && (!hasLineComment || posLineComment > posCommentStartBlock))
+      {
+        inCommentBlock = true;
+        currPosInToken = posCommentStartBlock + kCommentStartBlockLen;
+      }
+
+      if (inCommentBlock && hasCommentEndBlock && (!hasCommentStartBlock || posCommentStartBlock < posCommentEndBlock))
+      {
+        inCommentBlock = false;
+      }
+
+      if (inCommentBlock || (hasLineComment && posLineComment == 0u))
+      {
+        continue;
+      }
+
+      if (!definesInserted)
+      {
+        size_t posVersion = token.find(kVersion);
+        if (posVersion != std::string::npos)
+        {
+          ++itToken;
+          for (uint32 i = 0u; i < vDefines.size(); ++i)
+          {
+            sourceLines.insert(itToken, vDefines[i]);
+          }
+          definesInserted = true;
+        }
+      }
+
+      size_t posInclude = token.find(kIncludeSearchKey);
+      bool hasInclude = posInclude != std::string::npos;
+     
+      if (hasInclude)
+      {
+        size_t posAfterInclude = posInclude + kIncludeSearchKeyLen;
+        size_t posIncludeEnd = token.find("\"", posAfterInclude);
+        String includeFileName = token.substr(posAfterInclude, posIncludeEnd - posAfterInclude);
+        std::list<String> includeFileLines;
+        IO::FileReader::ReadTextFileLines(includeFileName, includeFileLines);
+
+        if (!includeFileLines.empty())
+        {
+          itToken = sourceLines.erase(itToken);
+
+          std::list<String>::iterator itBeforeInsert = itToken;
+          sourceLines.insert(++itToken, includeFileLines.begin(), includeFileLines.end());
+          itToken = itBeforeInsert;
+          continue;
+        }
+      }
+    }
+  }
+//---------------------------------------------------------------------------//
   bool GpuProgramCompilerGL4::compile(const String& _shaderPath, ShaderStage _eShaderStage, GpuProgramGL4& _rGpuProgram)
   {
-    // TODO: This method needs some serious rework... we really shouldn't juggle around with strings and vectors this much
-
     log_Info("Compiling shader " + _shaderPath);
-    std::vector<String> vShaderSourceLines;
-    IO::FileReader::ReadTextFileLines(_shaderPath, vShaderSourceLines);
 
-    if (vShaderSourceLines.empty())
+    std::list<String> sourceLines;
+    IO::FileReader::ReadTextFileLines(_shaderPath, sourceLines);
+    
+    if (sourceLines.empty())
     {
       log_Error("Error reading shader file " + _shaderPath);
       return false;
     }
 
-    // Handle #includes
-    const String kIncludeSearchKey = "#include \"";
-    bool bIncludeStatementFound = false;
-    do 
+    preprocessShaderSource(sourceLines, _eShaderStage);
+
+    // construct the final source string
+    uint32 uRequiredLength = 0u;
+    for (std::list<String>::const_iterator itLine = sourceLines.begin(); itLine != sourceLines.end(); ++itLine)
     {
-      bIncludeStatementFound = false;
-      for (uint32 i = 0u; i < vShaderSourceLines.size(); ++i)
-      {
-        const String& line = vShaderSourceLines[i];
-        size_t pos = line.find(kIncludeSearchKey);
-        size_t posComment = line.find("//");
-        bool isCommentedOut = posComment != std::string::npos && posComment < pos;
-        // TODO: Handle multi-line comments (/*...*/)
-        if (pos != std::string::npos && !isCommentedOut)
-        {
-          bIncludeStatementFound = true;
-          size_t posEnd = line.find_last_of("\"");
-          size_t posAfterInclude = + kIncludeSearchKey.size() + 1;
-          String includePath = line.substr(posAfterInclude, posEnd - posAfterInclude);
-          vShaderSourceLines[i] = "";
-
-          std::vector<String> vIncludeFileLines;
-          IO::FileReader::ReadTextFileLines(includePath, vIncludeFileLines);
-          if (!vIncludeFileLines.empty())
-          {
-            vShaderSourceLines.insert(vShaderSourceLines.begin() + i, vIncludeFileLines.begin(), vIncludeFileLines.end());
-          }
-        }
-      }
-    } while (bIncludeStatementFound);
-
-    // Handle #defines. These will be added at the top of the file but after the #version-statement
-    const uint32 kMaxNumShaderDefines = 64;
-    FixedArray<String, kMaxNumShaderDefines> vShaderKeywords;
-    vShaderKeywords.push_back(internal::getDefineFromShaderStage(_eShaderStage));
-    // TODO: More keywords to come...
-
-    uint32 insertDefineLine = 0u;
-    for (uint32 i = 0u; i < vShaderSourceLines.size(); ++i)
-    {
-      const String& line = vShaderSourceLines[i];
-      if (line.find("#version") != std::string::npos)
-      {
-        insertDefineLine = i;
-        break;
-      }
+      uRequiredLength += itLine->length();
     }
     
-    for (uint32 i = 0u; i < vShaderKeywords.size(); ++i)
+    String szCombinedSource("");
+    szCombinedSource.reserve(uRequiredLength);
+    for (std::list<String>::const_iterator itLine = sourceLines.begin(); itLine != sourceLines.end(); ++itLine)
     {
-      vShaderSourceLines.insert(vShaderSourceLines.begin() + insertDefineLine + i + 1, "#define " + vShaderKeywords[i]);
-    }
-
-    String szCombinedSource = "";
-    for (uint32 i = 0u; i < vShaderSourceLines.size(); ++i)
-    {
-      szCombinedSource += vShaderSourceLines[i] + "\n";
+      szCombinedSource += *itLine;
     }
 
     return compileFromSource(szCombinedSource, _eShaderStage, _rGpuProgram);

@@ -1,6 +1,8 @@
 #ifndef INCLUDE_GPUPROGRAMCOMPILERGL4_H
 #define INCLUDE_GPUPROGRAMCOMPILERGL4_H
 
+#include <list>
+
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "FixedArray.h"
@@ -28,6 +30,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     static void reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList);
     static void reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList);
     static bool compileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramGL4& rGpuProgram);
+    static void preprocessShaderSource(std::list<String>& sourceLines, const ShaderStage& eShaderStage);
 
   private:
     GpuProgramCompilerGL4();

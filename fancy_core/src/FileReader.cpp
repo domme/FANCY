@@ -1,6 +1,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <list>
 
 #include "FileReader.h"
 #include "PathService.h"
@@ -25,10 +26,25 @@ namespace Fancy { namespace IO {
     {
       while( !fileStream.eof() )
       {
-        std::string newLine;
-        std::getline( fileStream, newLine );
-        rvLines.push_back( newLine );		
+        rvLines.push_back(std::string());
+        std::getline( fileStream, rvLines[rvLines.size() - 1]);
       }		
+    }
+  }
+//---------------------------------------------------------------------------//
+  void FileReader::ReadTextFileLines( const std::string& szFileName, std::list<std::string>& rvLines, bool bInResources /* = true */ )
+  {
+    std::ifstream fileStream;
+    OpenFileStream( szFileName, fileStream, bInResources );
+
+    if( fileStream.good() )
+    {
+      while( !fileStream.eof() )
+      {
+        std::string line;
+        std::getline( fileStream, line);
+        rvLines.push_back(line);
+      }
     }
   }
 //---------------------------------------------------------------------------//
