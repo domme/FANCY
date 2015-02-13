@@ -30,13 +30,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     static void reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList);
     static void reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList);
     static bool compileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramGL4& rGpuProgram);
-    static void preprocessShaderSource(std::list<String>& sourceLines, const ShaderStage& eShaderStage);
-
+    
   private:
     GpuProgramCompilerGL4();
     ~GpuProgramCompilerGL4();
-    
-    static const uint32 kMaxNumLogChars = 10000u;
   };
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Rendering:GL4

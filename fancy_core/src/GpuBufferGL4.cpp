@@ -5,13 +5,13 @@
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
-  namespace internal 
+  namespace Internal 
   {
     GLenum mapBufferUsage(GpuBufferUsage eGeneralUsage, GLenum& eBindingQueryGL);
     GLuint mapLockOption(Rendering::GpuResoruceLockOption eLockOption);
   }
 //---------------------------------------------------------------------------//
-  GLenum internal::mapBufferUsage(GpuBufferUsage eGeneralUsage, GLenum& eBindingQueryGL) 
+  GLenum Internal::mapBufferUsage(GpuBufferUsage eGeneralUsage, GLenum& eBindingQueryGL) 
   {
     GLenum eUsageGL;
 
@@ -63,7 +63,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return eUsageGL;
   }
 //---------------------------------------------------------------------------//
-  GLuint internal::mapLockOption(Rendering::GpuResoruceLockOption eLockOption)
+  GLuint Internal::mapLockOption(Rendering::GpuResoruceLockOption eLockOption)
   {
     switch (eLockOption)
     {
@@ -168,7 +168,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     GLenum eUsageTarget;
     GLenum eBindingQuery;
-    eUsageTarget = internal::mapBufferUsage(clParameters.ePrimaryUsageType, eBindingQuery);
+    eUsageTarget = Internal::mapBufferUsage(clParameters.ePrimaryUsageType, eBindingQuery);
     m_clParameters.eInitialBufferTargetGL = eUsageTarget;
     m_clParameters.eBindingQueryType = eBindingQuery;
 
@@ -321,7 +321,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   void* GpuBufferGL4::lock( GpuResoruceLockOption eLockOption, 
     uint uOffsetElements /* = 0 */, uint uNumElements /* = 0 */ )
   {
-    const GLuint uLockOptionsGL = internal::mapLockOption(eLockOption);
+    const GLuint uLockOptionsGL = Internal::mapLockOption(eLockOption);
 
     // We always keep persistently locked buffers locked for its entrie lifetime, so just return the
     // cached and appropriately offset pointer here

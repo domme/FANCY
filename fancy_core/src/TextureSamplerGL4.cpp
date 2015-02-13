@@ -2,12 +2,12 @@
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
-  namespace internal {
+  namespace Internal {
     GLuint getGLfilteringType(SamplerFilterMode eFilterMode, bool bUseMipmaps);
     GLuint getGLaddressMode(SamplerAddressMode eAddressMode);
   }
 //---------------------------------------------------------------------------//
-  GLuint internal::getGLfilteringType(SamplerFilterMode eFilterMode, bool bUseMipmaps)
+  GLuint Internal::getGLfilteringType(SamplerFilterMode eFilterMode, bool bUseMipmaps)
   {
     switch (eFilterMode)
     {
@@ -26,7 +26,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return GL_NEAREST;
   }
 //---------------------------------------------------------------------------//
-  GLuint internal::getGLaddressMode(SamplerAddressMode eAddressMode)
+  GLuint Internal::getGLaddressMode(SamplerAddressMode eAddressMode)
   {
     switch (eAddressMode)
     {
@@ -87,11 +87,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
 #endif  // FANCY_RENDERSYSTEM_USE_VALIDATION
 
-    const GLuint uglMinFiltering = internal::getGLfilteringType(rProperties.minFiltering, useMipmaps);
-    const GLuint uglMagFiltering = internal::getGLfilteringType(rProperties.magFiltering, useMipmaps);
-    const GLuint uglAddressModeX = internal::getGLaddressMode(rProperties.addressModeX);
-    const GLuint uglAddressModeY = internal::getGLaddressMode(rProperties.addressModeY);
-    const GLuint uglAddressModeZ = internal::getGLaddressMode(rProperties.addressModeZ);
+    const GLuint uglMinFiltering = Internal::getGLfilteringType(rProperties.minFiltering, useMipmaps);
+    const GLuint uglMagFiltering = Internal::getGLfilteringType(rProperties.magFiltering, useMipmaps);
+    const GLuint uglAddressModeX = Internal::getGLaddressMode(rProperties.addressModeX);
+    const GLuint uglAddressModeY = Internal::getGLaddressMode(rProperties.addressModeY);
+    const GLuint uglAddressModeZ = Internal::getGLaddressMode(rProperties.addressModeZ);
     const GLenum eglComparisonFunc = Adapter::toGLType(rProperties.comparisonFunc);
     const GLenum eglComparisonMode = (eglComparisonFunc == GL_ALWAYS || eglComparisonFunc == GL_NEVER) ?
                                        GL_NONE : GL_COMPARE_R_TO_TEXTURE;

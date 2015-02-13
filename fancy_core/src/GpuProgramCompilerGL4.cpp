@@ -3,22 +3,53 @@
 #include "ShaderConstantsManager.h"
 #include "FileReader.h"
 #include "StringUtil.h"
+#include "MathUtil.h"
 
 #include <deque>
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
-  namespace internal 
+  namespace Internal 
   {
+    static const uint32 kMaxNumLogChars = 10000u;
+
     void getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat);
     VertexSemantics getVertexSemanticsFromName(const ObjectName& name);
-    void getResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, 
-                                                GpuResourceAccessType& rAccessType);
+    void getResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, GpuResourceAccessType& rAccessType);
     String getDefineFromShaderStage(ShaderStage _eStage);
   }
 //---------------------------------------------------------------------------//
+  namespace Preprocess
+  {
+    struct FileBlock {
+      uint32 startLine;
+      uint32 endLine;
+      uint nameHash;
+      String fileName;
+    };
+
+    struct ShaderSourceInfo {
+      uint32 numLines;
+      FixedArray<FileBlock, 16u> vFileBlocks;
+    };
+
+    struct WorkingData {
+      ShaderSourceInfo shaderSourceInfo;
+    };
+
+    /// Info about the currently processed shader
+    WorkingData currentWorkingData;
+
+    uint32 getIteratorPosition(std::list<String>::const_iterator& _it, std::list<String>& _lineList);
+    void preprocessShaderSource(const String& shaderFilename, std::list<String>& sourceLines, const ShaderStage& eShaderStage, ShaderSourceInfo& info);
+    FileBlock* getFileBlockForLine(uint32 _lineNumber, ShaderSourceInfo& _info);
+    void outputCompilerLogMsg(const char* _shaderCompilerLogMsg, ShaderSourceInfo& _sourceInfo);
+    uint32 getLocalLine(uint32 _globalLine, ShaderSourceInfo& _info);
+    void insertNewFileBlock(FileBlock* _pCurrBlock, uint32 _currLine, uint32 _numLinesNewBlock, const String& _newBlockName, ShaderSourceInfo& _info);
+  }
 //---------------------------------------------------------------------------//
-  void internal::getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat)
+//---------------------------------------------------------------------------//
+  void Internal::getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat)
   {
     rFormat = DataFormat::NONE;
     switch(typeGL)
@@ -140,7 +171,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     ASSERT_M(rFormat != DataFormat::NONE, "Missing GL implementation");
   }
 //---------------------------------------------------------------------------//
-  void internal::getResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, 
+  void Internal::getResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, 
                                                         GpuResourceAccessType& rAccessType)
   {
     rType = GpuResourceType::NONE;
@@ -233,7 +264,19 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     ASSERT_M(rType != GpuResourceType::NONE, "Missing GL implementation");
   }
 //---------------------------------------------------------------------------//
-  VertexSemantics internal::getVertexSemanticsFromName(const ObjectName& name)
+  uint32 Preprocess::getIteratorPosition(std::list<String>::const_iterator& _it, std::list<String>& _lineList)
+  {
+    uint32 pos = 1u;
+    std::list<String>::iterator it = _lineList.begin();
+    while (it != _it && it != _lineList.end())
+    {
+      ++it; ++pos;
+    }
+
+    return pos;
+  }
+//---------------------------------------------------------------------------//
+  VertexSemantics Internal::getVertexSemanticsFromName(const ObjectName& name)
   {
     if (name == _N(v_position)) {
       return VertexSemantics::POSITION;
@@ -265,7 +308,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return VertexSemantics::POSITION;
   }
 //---------------------------------------------------------------------------//
-  String internal::getDefineFromShaderStage(ShaderStage _eStage)
+  String Internal::getDefineFromShaderStage(ShaderStage _eStage)
   {
     switch (_eStage)
     {
@@ -286,55 +329,152 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
-  GpuProgramCompilerGL4::GpuProgramCompilerGL4()
+  Preprocess::FileBlock* Preprocess::getFileBlockForLine(uint32 _lineNumber, ShaderSourceInfo& _info)
   {
+    for (uint32 i = 0u; i < _info.vFileBlocks.size(); ++i)
+    {
+      FileBlock* block = &_info.vFileBlocks[i];
+      if (_lineNumber >= block->startLine && _lineNumber <= block->endLine)
+      {
+        return block;
+      }
+    }
 
+    return nullptr;
   }
 //---------------------------------------------------------------------------//
-  GpuProgramCompilerGL4::~GpuProgramCompilerGL4()
+  uint32 Preprocess::getLocalLine(uint32 _globalLine, ShaderSourceInfo& _info)
   {
+    FileBlock* pBlock = getFileBlockForLine(_globalLine, _info);
+    if (!pBlock)
+    {
+      return _globalLine;
+    }
 
+    uint32 numLinesFromOtherFiles = 0u;
+    for (uint32 i = 0u; i < _info.vFileBlocks.size(); ++i)
+    {
+      const FileBlock& block = _info.vFileBlocks[i];
+      if (block.nameHash != pBlock->nameHash && block.endLine < _globalLine)
+      {
+        numLinesFromOtherFiles += (block.endLine - block.startLine) + 1u;
+      }
+    }
+
+    return _globalLine - numLinesFromOtherFiles;
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramCompilerGL4::preprocessShaderSource(std::list<String>& sourceLines, const ShaderStage& eShaderStage)
+  void Preprocess::outputCompilerLogMsg(const char* _shaderCompilerLogMsg, ShaderSourceInfo& _sourceInfo)
+  {
+    // The following code assumes the output format: ([LineNumber]) : error 0XXX: Message
+
+    String logMsg(_shaderCompilerLogMsg);
+    const String kLineSearchKey = ") : ";
+    size_t pos = logMsg.find(kLineSearchKey);
+
+    while (pos != std::string::npos && pos > 0u)
+    {
+      size_t posAfterStartBracket = pos - 1u;
+      while (logMsg[posAfterStartBracket] >= '0' && logMsg[posAfterStartBracket] <= '9' )
+      {
+        --posAfterStartBracket;
+      }
+      ++posAfterStartBracket;
+
+      String lineNumberStr = logMsg.substr(posAfterStartBracket, pos - posAfterStartBracket);
+      int lineNumber = std::atoi(lineNumberStr.c_str());
+
+      FileBlock* sourceBlock = getFileBlockForLine(lineNumber, _sourceInfo);
+      if (sourceBlock != nullptr)
+      {
+        uint32 localLineNumber = getLocalLine(lineNumber, _sourceInfo);
+        String replaceString = sourceBlock->fileName + " - line " + StringUtil::toString(localLineNumber);
+        logMsg.replace(posAfterStartBracket, pos - posAfterStartBracket, replaceString);
+        pos += replaceString.length();
+      }
+
+      pos = logMsg.find(kLineSearchKey, pos);
+    }
+
+    log_Info(logMsg);
+  }
+//---------------------------------------------------------------------------//
+  void Preprocess::insertNewFileBlock(FileBlock* _pCurrBlock, uint32 _currLine, uint32 _numLinesNewBlock, const String& _newBlockName, ShaderSourceInfo& _info)
+  {
+    // Construct a block after the include from the current block
+    _info.vFileBlocks.push_back(*_pCurrBlock);
+    FileBlock* pBlockAfterNewBlock = &_info.vFileBlocks.back();
+    pBlockAfterNewBlock->startLine = _currLine + 1u;
+    pBlockAfterNewBlock->endLine = _pCurrBlock->endLine;
+    
+    // close the current block
+    _pCurrBlock->endLine = _currLine;
+
+    // Advance all following blocks by the number of new lines
+    for (uint32 i = 0u; i < _info.vFileBlocks.size(); ++i)
+    {
+      FileBlock& rBlock = _info.vFileBlocks[i];
+      if (rBlock.startLine < _currLine && rBlock.endLine > _currLine)
+      {
+        rBlock.endLine += _numLinesNewBlock;
+      }
+
+      else if (rBlock.startLine > _currLine)
+      {
+        rBlock.startLine += _numLinesNewBlock;
+        rBlock.endLine += _numLinesNewBlock;
+      }
+    }
+
+    // Construct the new block
+    _info.vFileBlocks.push_back(FileBlock());
+    FileBlock* pNewBlock = &_info.vFileBlocks.back();
+    pNewBlock->startLine = _currLine + 1u;
+    pNewBlock->endLine = _currLine + _numLinesNewBlock;
+    pNewBlock->fileName = _newBlockName;
+    pNewBlock->nameHash = MathUtil::hashFromString(pNewBlock->fileName);
+  }
+//---------------------------------------------------------------------------//
+  void Preprocess::preprocessShaderSource(const String& shaderFilename, std::list<String>& sourceLines, const ShaderStage& eShaderStage, ShaderSourceInfo& info)
   {
     const uint32 kMaxNumDefines = 64u;
     FixedArray<String, kMaxNumDefines> vDefines;
-    vDefines.push_back("#define " + internal::getDefineFromShaderStage(eShaderStage));
+    vDefines.push_back("#define " + Internal::getDefineFromShaderStage(eShaderStage));
     // ... more to come?
 
     const String kIncludeSearchKey = "#include \"";
-    const uint32 kIncludeSearchKeyLen = kIncludeSearchKey.length();
-
     const String kCommentStartBlock = "/*";
-    const uint32 kCommentStartBlockLen = kCommentStartBlock.length();
     const String kCommentEndBlock = "*/";
-    const uint32 kCommentEndBlockLen = kCommentEndBlock.length();
     const String kLineComment = "//";
-    const uint32 kLineCommentLen = kLineComment.length();
-
     const String kVersion ="#version";
 
     bool definesInserted = false;
     bool inCommentBlock = false;
-    for (std::list<String>::iterator itToken = sourceLines.begin(); itToken != sourceLines.end(); ++itToken)
+    uint32 lineNumber = 1u;
+    info.vFileBlocks.push_back(FileBlock());
+    FileBlock* pCurrentSourceBlock = &info.vFileBlocks[0];
+    pCurrentSourceBlock->startLine = lineNumber;
+    pCurrentSourceBlock->endLine = sourceLines.size();
+    pCurrentSourceBlock->fileName = shaderFilename;
+    pCurrentSourceBlock->nameHash = MathUtil::hashFromString(pCurrentSourceBlock->fileName);
+    for (std::list<String>::iterator itLine = sourceLines.begin(); itLine != sourceLines.end(); ++itLine, ++lineNumber)
     {
-      const String& token = *itToken;
-      size_t currPosInToken = 0u;
+      const String& line = *itLine;
+      if (line.empty()) continue;
 
-      const size_t posCommentStartBlock = token.find(kCommentStartBlock);
+      pCurrentSourceBlock = getFileBlockForLine(lineNumber, info);
+      
+      const size_t posCommentStartBlock = line.find(kCommentStartBlock);
       const bool hasCommentStartBlock = posCommentStartBlock != std::string::npos;
-      const size_t posCommentEndBlock = token.find(kCommentEndBlock);
+      const size_t posCommentEndBlock = line.find(kCommentEndBlock);
       const bool hasCommentEndBlock = posCommentEndBlock != std::string::npos;
-      const size_t posLineComment = token.find(kLineComment);
+      const size_t posLineComment = line.find(kLineComment);
       const bool hasLineComment = posLineComment != std::string::npos;
 
       if (!inCommentBlock && hasCommentStartBlock && (!hasLineComment || posLineComment > posCommentStartBlock))
       {
         inCommentBlock = true;
-        currPosInToken = posCommentStartBlock + kCommentStartBlockLen;
       }
 
       if (inCommentBlock && hasCommentEndBlock && (!hasCommentStartBlock || posCommentStartBlock < posCommentEndBlock))
@@ -349,40 +489,61 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
       if (!definesInserted)
       {
-        size_t posVersion = token.find(kVersion);
+        size_t posVersion = line.find(kVersion);
         if (posVersion != std::string::npos)
         {
-          ++itToken;
+          insertNewFileBlock(pCurrentSourceBlock, lineNumber, vDefines.size(), 
+            pCurrentSourceBlock->fileName + " - defines", info);
+
+          ++itLine;
           for (uint32 i = 0u; i < vDefines.size(); ++i)
           {
-            sourceLines.insert(itToken, vDefines[i]);
+            sourceLines.insert(itLine, vDefines[i]);
           }
+
           definesInserted = true;
+          lineNumber = getIteratorPosition(itLine, sourceLines);
         }
       }
 
-      size_t posInclude = token.find(kIncludeSearchKey);
+      size_t posInclude = line.find(kIncludeSearchKey);
       bool hasInclude = posInclude != std::string::npos;
      
       if (hasInclude)
       {
-        size_t posAfterInclude = posInclude + kIncludeSearchKeyLen;
-        size_t posIncludeEnd = token.find("\"", posAfterInclude);
-        String includeFileName = token.substr(posAfterInclude, posIncludeEnd - posAfterInclude);
+        size_t posAfterInclude = posInclude + kIncludeSearchKey.length();
+        size_t posIncludeEnd = line.find("\"", posAfterInclude);
+        String includeFileName = line.substr(posAfterInclude, posIncludeEnd - posAfterInclude);
         std::list<String> includeFileLines;
         IO::FileReader::ReadTextFileLines(includeFileName, includeFileLines);
 
         if (!includeFileLines.empty())
         {
-          itToken = sourceLines.erase(itToken);
+          insertNewFileBlock(pCurrentSourceBlock, lineNumber,
+            includeFileLines.size(), includeFileName, info);
+          
+          // Comment out the include line
+          itLine->insert(0u, "// "); 
 
-          std::list<String>::iterator itBeforeInsert = itToken;
-          sourceLines.insert(++itToken, includeFileLines.begin(), includeFileLines.end());
-          itToken = itBeforeInsert;
+          std::list<String>::iterator itBeforeInsert = itLine;
+          sourceLines.insert(++itLine, includeFileLines.begin(), includeFileLines.end());
+          itLine = itBeforeInsert;
+          lineNumber = getIteratorPosition(itLine, sourceLines);
           continue;
         }
       }
     }
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  GpuProgramCompilerGL4::GpuProgramCompilerGL4()
+  {
+
+  }
+//---------------------------------------------------------------------------//
+  GpuProgramCompilerGL4::~GpuProgramCompilerGL4()
+  {
+
   }
 //---------------------------------------------------------------------------//
   bool GpuProgramCompilerGL4::compile(const String& _shaderPath, ShaderStage _eShaderStage, GpuProgramGL4& _rGpuProgram)
@@ -398,7 +559,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       return false;
     }
 
-    preprocessShaderSource(sourceLines, _eShaderStage);
+    Preprocess::currentWorkingData = Preprocess::WorkingData();
+    Preprocess::preprocessShaderSource(_shaderPath, sourceLines, _eShaderStage, Preprocess::currentWorkingData.shaderSourceInfo);
 
     // construct the final source string
     uint32 uRequiredLength = 0u;
@@ -411,7 +573,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     szCombinedSource.reserve(uRequiredLength);
     for (std::list<String>::const_iterator itLine = sourceLines.begin(); itLine != sourceLines.end(); ++itLine)
     {
-      szCombinedSource += *itLine;
+      szCombinedSource += *itLine + '\n';
     }
 
     return compileFromSource(szCombinedSource, _eShaderStage, _rGpuProgram);
@@ -428,13 +590,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     int iLogLengthChars = 0;
     glGetProgramiv(uProgramHandle, GL_INFO_LOG_LENGTH, &iLogLengthChars);
-    ASSERT(iLogLengthChars < kMaxNumLogChars);
+    ASSERT(iLogLengthChars < Internal::kMaxNumLogChars);
 
-    char logBuffer[kMaxNumLogChars];
+    char logBuffer[Internal::kMaxNumLogChars];
     if (iLogLengthChars > 0)
     {
-      glGetProgramInfoLog(uProgramHandle, kMaxNumLogChars, &iLogLengthChars, logBuffer);
-      log_Info(logBuffer);
+      glGetProgramInfoLog(uProgramHandle, Internal::kMaxNumLogChars, &iLogLengthChars, logBuffer);
+      Preprocess::outputCompilerLogMsg(logBuffer, Preprocess::currentWorkingData.shaderSourceInfo);
     }
 
     int iProgramLinkStatus = GL_FALSE;
@@ -510,7 +672,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       GpuProgramResourceInfo resourceInfo;
       resourceInfo.name = szName;
       resourceInfo.u32RegisterIndex = vPropertyValues[3];
-      internal::getResourceTypeAndAccessTypeFromGLtype(vPropertyValues[1], 
+      Internal::getResourceTypeAndAccessTypeFromGLtype(vPropertyValues[1], 
         resourceInfo.eResourceType, resourceInfo.eAccessType);
             
       resourceInfo.bindingTargetGL = 
@@ -575,10 +737,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Convert to engine-types
       DataFormat format(DataFormat::NONE);
       uint32 u32SizeBytes = 0u;
-      internal::getSizeFormatFromGLtype(_type, u32SizeBytes, format);
+      Internal::getSizeFormatFromGLtype(_type, u32SizeBytes, format);
 
       ObjectName name = _name;
-      VertexSemantics semantics = internal::getVertexSemanticsFromName(name);
+      VertexSemantics semantics = Internal::getVertexSemanticsFromName(name);
       
       VertexInputElement vertexElement;
       vertexElement.name = name;
@@ -616,7 +778,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
       DataFormat format(DataFormat::NONE);
       uint32 _u32Size = 0;
-      internal::getSizeFormatFromGLtype(_type, _u32Size, format);
+      Internal::getSizeFormatFromGLtype(_type, _u32Size, format);
 
       ShaderStageFragmentOutput output;
       output.name = _name;
@@ -683,7 +845,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
         uint32 uSizeBytes;
         DataFormat eFormat;
-        internal::getSizeFormatFromGLtype(vPropertyValues[1], uSizeBytes, eFormat);
+        Internal::getSizeFormatFromGLtype(vPropertyValues[1], uSizeBytes, eFormat);
         
         ConstantBufferElement cBufferElement;
         cBufferElement.name = _name;

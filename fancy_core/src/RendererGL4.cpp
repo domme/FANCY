@@ -82,14 +82,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
  
 //---------------------------------------------------------------------------//
-  namespace internal {
+  namespace Internal {
     GLuint getGLShaderStageBit(ShaderStage eShaderStage);
     GLenum getColorAttachmentFromIndex(uint32 uIndex);
     GLenum getTextureUnitFromIndex(uint32 uIndex);
     GLuint getGLTextureTypeFromGLSLresourceType(GpuResourceType eResourceType);
   }
 //---------------------------------------------------------------------------//
-  GLuint internal::getGLShaderStageBit(ShaderStage eShaderStage)
+  GLuint Internal::getGLShaderStageBit(ShaderStage eShaderStage)
   {
     switch (eShaderStage)
     {
@@ -103,7 +103,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  GLenum internal::getColorAttachmentFromIndex(uint32 uIndex) 
+  GLenum Internal::getColorAttachmentFromIndex(uint32 uIndex) 
   {
     switch (uIndex)
     {
@@ -122,13 +122,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  GLenum internal::getTextureUnitFromIndex(uint32 uIndex)
+  GLenum Internal::getTextureUnitFromIndex(uint32 uIndex)
   {
     ASSERT(uIndex < kMaxNumReadTextures);
     return GL_TEXTURE0 + uIndex;
   }
 //---------------------------------------------------------------------------//
-  GLenum internal::getGLTextureTypeFromGLSLresourceType(GpuResourceType eResourceType)
+  GLenum Internal::getGLTextureTypeFromGLSLresourceType(GpuResourceType eResourceType)
   {
     switch (eResourceType)
     {
@@ -1006,7 +1006,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     glBindFramebuffer(GL_FRAMEBUFFER, pFBOentry->glHandle);
     for (uint8 i = 0; i < u8RenderTextureCount; ++i )
     {
-      glFramebufferTexture2D(GL_FRAMEBUFFER, internal::getColorAttachmentFromIndex(i), 
+      glFramebufferTexture2D(GL_FRAMEBUFFER, Internal::getColorAttachmentFromIndex(i), 
         GL_TEXTURE_2D, pRenderTextures[i]->getGLhandle(), 0);
     }
     if (pDStexture)
@@ -1056,7 +1056,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     for (uint32 i = 0u; i < _countof(m_pBoundGPUPrograms); ++i)
     {
       GpuProgram* pProgram = m_pBoundGPUPrograms[i];
-      GLuint shaderStageBit = internal::getGLShaderStageBit(pProgram->getShaderStage());
+      GLuint shaderStageBit = Internal::getGLShaderStageBit(pProgram->getShaderStage());
       glUseProgramStages(uPipeline, shaderStageBit, pProgram->getProgramHandle());
     }
 

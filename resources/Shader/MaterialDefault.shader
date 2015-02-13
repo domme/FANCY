@@ -7,8 +7,8 @@
 #version 440
 
  #include "Shader/ConstantBuffer.shader_include"
- 
-//---------------------------------------------------------------------------//
+
+ //---------------------------------------------------------------------------//
   #if defined (PROGRAM_TYPE_VERTEX)
     out VS_OUT
   #elif defined (PROGRAM_TYPE_FRAGMENT)  
