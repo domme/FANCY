@@ -81,12 +81,13 @@ namespace Fancy { namespace Rendering {
   struct ConstantBufferElement
   {
     ConstantBufferElement() : 
-      uOffsetBytes(0u), uSizeBytes(0u), eFormat(DataFormat::NONE) {}
+      uOffsetBytes(0u), uSizeBytes(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
 
     ObjectName name;
-    uint32 uOffsetBytes;
-    uint32 uSizeBytes;
+    uint32 uOffsetBytes;  // Byte-offset from the start of the buffer
+    uint32 uSizeBytes;  // Overall size of the element (==sizeof(eFormat) * uFormatComponentCount)
     DataFormat eFormat;
+    uint8 uFormatComponentCount;  // Multiplier for eFormat. Used for multi-component elements (e.g. Matrices)
   };
 //---------------------------------------------------------------------------//
   

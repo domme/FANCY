@@ -27,7 +27,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   struct ShaderStageFragmentOutput
   {
     ShaderStageFragmentOutput() :
-      uRtIndex(0u), eFormat(DataFormat::NONE) {}
+      uRtIndex(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
 
     /// Name in glsl
     ObjectName name;
@@ -35,6 +35,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     GLuint uRtIndex;
     /// expected format of the output
     DataFormat eFormat;
+     // Multiplier for eFormat. Used for multi-component elements (e.g. Matrices)
+    uint8 uFormatComponentCount; 
   };
 //---------------------------------------------------------------------------//
   const uint32 kMaxNumShaderStageInterfaceElements = 16;

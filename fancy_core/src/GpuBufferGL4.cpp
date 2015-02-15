@@ -164,7 +164,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     ASSERT_M(clParameters.uElementSizeBytes > 0 && clParameters.uNumElements > 0,
        "Invalid buffer size specified");
 
-    static_cast<GpuBufferParameters>(m_clParameters) = clParameters;
+    GpuBufferParameters* pBaseParams = &m_clParameters;
+    *pBaseParams = clParameters;
 
     GLenum eUsageTarget;
     GLenum eBindingQuery;
@@ -200,9 +201,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
 
     // Sanity-checks on the access flags (following the OpenGL 4.4 standard)
-    if((uAccessFlagsGL & GL_MAP_PERSISTENT_BIT) > 0 &&
-         ((uAccessFlagsGL & GL_MAP_WRITE_BIT) == 0 &&
-          uAccessFlagsGL & GL_MAP_READ_BIT) == 0) 
+    if((uAccessFlagsGL & GL_MAP_PERSISTENT_BIT) > 0 
+      && ((uAccessFlagsGL & GL_MAP_WRITE_BIT) == 0 && (uAccessFlagsGL & GL_MAP_READ_BIT) == 0))
     {
       ASSERT_M(false, "A persistent buffer without CPU-access doesn't make sense");
     }

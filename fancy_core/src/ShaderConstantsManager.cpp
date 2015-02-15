@@ -22,38 +22,66 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void internal::initialize()
   {
+#define BEGIN_COUNTED_REGISTRY_INIT { enum {startCount = __COUNTER__};
+#define REGISTER(map, key, value) ASSERT_M(map.find(key) == map.end(), "Key already registered!"); map[key] = value; __COUNTER__;
+#define END_COUNTED_REGISTRY_INIT(expectedNum) static_assert(__COUNTER__ - startCount == expectedNum, "Forgot to register some values"); }
+
     // Init all possible constants
-    mapConstantBufferTypes[_N(PER_LAUNCH)] = ConstantBufferType::PER_LAUNCH;
-    mapConstantBufferTypes[_N(PER_FRAME)] = ConstantBufferType::PER_FRAME;
-    mapConstantBufferTypes[_N(PER_VIEWPORT)] = ConstantBufferType::PER_VIEWPORT;
-    mapConstantBufferTypes[_N(PER_STAGE)] = ConstantBufferType::PER_STAGE;
-    mapConstantBufferTypes[_N(PER_CAMERA)] = ConstantBufferType::PER_CAMERA;
-    mapConstantBufferTypes[_N(PER_LIGHT)] = ConstantBufferType::PER_LIGHT;
-    mapConstantBufferTypes[_N(PER_MATERIAL)] = ConstantBufferType::PER_MATERIAL;
-    mapConstantBufferTypes[_N(PER_OBJECT)] = ConstantBufferType::PER_OBJECT;
+    BEGIN_COUNTED_REGISTRY_INIT
+      REGISTER(mapConstantBufferTypes, _N(PER_LAUNCH), ConstantBufferType::PER_LAUNCH)
+      REGISTER(mapConstantBufferTypes, _N(PER_FRAME), ConstantBufferType::PER_FRAME)
+      REGISTER(mapConstantBufferTypes, _N(PER_VIEWPORT), ConstantBufferType::PER_VIEWPORT)
+      REGISTER(mapConstantBufferTypes, _N(PER_STAGE), ConstantBufferType::PER_STAGE)
+      REGISTER(mapConstantBufferTypes, _N(PER_CAMERA), ConstantBufferType::PER_CAMERA) 
+      REGISTER(mapConstantBufferTypes, _N(PER_LIGHT), ConstantBufferType::PER_LIGHT)
+      REGISTER(mapConstantBufferTypes, _N(PER_MATERIAL), ConstantBufferType::PER_MATERIAL)
+      REGISTER(mapConstantBufferTypes, _N(PER_OBJECT), ConstantBufferType::PER_OBJECT)
+    END_COUNTED_REGISTRY_INIT((uint32) ConstantBufferType::NUM)
     
-    mapConstantSemantics[_N(c_RenderTargetSize)] = ConstantSemantics::RENDERTARGET_SIZE;
-    mapConstantSemantics[_N(c_ViewMatrix)] = ConstantSemantics::VIEW_MATRIX;
-    mapConstantSemantics[_N(c_ViewInverseMatrix)] = ConstantSemantics::VIEW_INVERSE_MATRIX;
-    mapConstantSemantics[_N(c_ProjectionMatrix)] = ConstantSemantics::PROJECTION_MATRIX;
-    mapConstantSemantics[_N(c_ViewProjectionMatrix)] = ConstantSemantics::VIEWPROJECTION_INVERSE_MATRIX;
-    mapConstantSemantics[_N(c_NearFarParameters)] = ConstantSemantics::NEARFAR_PARAMETERS; 
-    mapConstantSemantics[_N(c_CameraPosWS)] = ConstantSemantics::CAMERA_POSITION_WORLDSPACE;
-    mapConstantSemantics[_N(c_DirLightParameters)] = ConstantSemantics::DIRLIGHT_PARAMETERS;
-    mapConstantSemantics[_N(c_PointLightParameters)] = ConstantSemantics::POINTLIGHT_PARAMETERS;
-    mapConstantSemantics[_N(c_SpotLightParameters)] = ConstantSemantics::SPOTLIGHT_PARAMETERS;
-    mapConstantSemantics[_N(c_LightColorIntensity)] = ConstantSemantics::LIGHT_COLORINTENSITY;
-    mapConstantSemantics[_N(c_LightPosWS)] = ConstantSemantics::LIGHT_POSITION_WORLDSPACE;
-    mapConstantSemantics[_N(c_LightPosVS)] = ConstantSemantics::LIGHT_POSITION_VIEWSPACE;
-    mapConstantSemantics[_N(c_MatDiffIntensity)] = ConstantSemantics::DIFFUSE_MATERIAL_COLORINTENSITY;
-    mapConstantSemantics[_N(c_MatSpecIntensity)] = ConstantSemantics::SPECULAR_MATERIAL_COLORINTENSITY;
-    mapConstantSemantics[_N(c_WorldMatrix)] = ConstantSemantics::WORLD_MATRIX;
-    mapConstantSemantics[_N(c_WorldInverseMatrix)] = ConstantSemantics::WORLD_INVERSE_MATRIX;
-    mapConstantSemantics[_N(c_WorldViewMatrix)] = ConstantSemantics::WORLDVIEW_MATRIX;
-    mapConstantSemantics[_N(c_WorldViewInverseMatrix)] = ConstantSemantics::WORLDVIEW_INVERSE_MATRIX;
-    mapConstantSemantics[_N(c_WorldViewProjectionMatrix)] = ConstantSemantics::WORLDVIEWPROJECTION_MATRIX;
-    mapConstantSemantics[_N(c_WorldViewProjectionInverseMatrix)] = ConstantSemantics::WORLDVIEWPROJECTION_INVERSE_MATRIX;
-    ASSERT(mapConstantSemantics.size() == (uint32)ConstantSemantics::NUM);
+    BEGIN_COUNTED_REGISTRY_INIT
+      // PER_LAUNCH
+
+      // PER_FRAME
+
+      // PER_VIEWPORT
+      REGISTER(mapConstantSemantics, _N(PER_VIEWPORT.c_RenderTargetSize), ConstantSemantics::RENDERTARGET_SIZE)
+
+      // PER_STAGE
+      
+      // PER_CAMERA
+      REGISTER(mapConstantSemantics, _N(PER_CAMERA.c_ViewMatrix), ConstantSemantics::VIEW_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_CAMERA.c_ViewInverseMatrix), ConstantSemantics::VIEW_INVERSE_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_CAMERA.c_ProjectionMatrix), ConstantSemantics::PROJECTION_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_CAMERA.c_ProjectionInverseMatrix), ConstantSemantics::PROJECTION_INVERSE_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_CAMERA.c_ViewProjectionMatrix), ConstantSemantics::VIEWPROJECTION_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_CAMERA.c_ViewProjectionInverseMatrix), ConstantSemantics::VIEWPROJECTION_INVERSE_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_CAMERA.c_NearFarParameters), ConstantSemantics::NEARFAR_PARAMETERS) 
+      REGISTER(mapConstantSemantics, _N(PER_CAMERA.c_CameraPosWS), ConstantSemantics::CAMERA_POSITION_WORLDSPACE)
+
+      // PER_LIGHT
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_DirLightParameters), ConstantSemantics::DIRLIGHT_PARAMETERS)
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_PointLightParameters), ConstantSemantics::POINTLIGHT_PARAMETERS)
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_SpotLightParameters), ConstantSemantics::SPOTLIGHT_PARAMETERS)
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_LightColorIntensity), ConstantSemantics::LIGHT_COLORINTENSITY)
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_LightPosWS), ConstantSemantics::LIGHT_POSITION_WORLDSPACE)
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_LightPosVS), ConstantSemantics::LIGHT_POSITION_VIEWSPACE)
+
+      // PER_MATERIAL
+      REGISTER(mapConstantSemantics, _N(PER_MATERIAL.c_MatDiffIntensity), ConstantSemantics::DIFFUSE_MATERIAL_COLORINTENSITY)
+      REGISTER(mapConstantSemantics, _N(PER_MATERIAL.c_MatSpecIntensity), ConstantSemantics::SPECULAR_MATERIAL_COLORINTENSITY)
+
+      // PER_DRAW
+      REGISTER(mapConstantSemantics, _N(PER_OBJECT.c_WorldMatrix), ConstantSemantics::WORLD_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_OBJECT.c_WorldInverseMatrix), ConstantSemantics::WORLD_INVERSE_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_OBJECT.c_WorldViewMatrix), ConstantSemantics::WORLDVIEW_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_OBJECT.c_WorldViewInverseMatrix), ConstantSemantics::WORLDVIEW_INVERSE_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_OBJECT.c_WorldViewProjectionMatrix), ConstantSemantics::WORLDVIEWPROJECTION_MATRIX)
+      REGISTER(mapConstantSemantics, _N(PER_OBJECT.c_WorldViewProjectionInverseMatrix), ConstantSemantics::WORLDVIEWPROJECTION_INVERSE_MATRIX)
+    END_COUNTED_REGISTRY_INIT((uint32) ConstantSemantics::NUM)
+
+#undef BEGIN_COUNTED_REGISTRY_INIT
+#undef REGISTER
+#undef END_COUNTED_REGISTRY_INIT
   }
 //---------------------------------------------------------------------------//
   ConstantBufferType internal::getConstantBufferTypeFromSemantics(ConstantSemantics eSemantic)
@@ -104,6 +132,8 @@ namespace Fancy { namespace Rendering {
   ShaderConstantsManager::ShaderConstantsManager()
   {
     memset(m_vConstantBuffers, 0x0, sizeof(m_vConstantBuffers));
+    memset(m_vConstantBufferElements, 0x0, sizeof(m_vConstantBufferElements));
+
     internal::initialize();
   }
 //---------------------------------------------------------------------------//

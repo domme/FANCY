@@ -11,7 +11,7 @@ namespace Fancy { namespace Rendering {
   {
     VertexInputElement() : 
       eSemantics(VertexSemantics::NONE), u32RegisterIndex(0u), 
-      u32SizeBytes(0u), eFormat(DataFormat::NONE) {}
+      u32SizeBytes(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
 
     /// Name of the vertex attribute as reported by shader-reflection
     ObjectName name;
@@ -23,6 +23,8 @@ namespace Fancy { namespace Rendering {
     uint32 u32SizeBytes;
     /// The format of the element
     DataFormat eFormat;
+    /// Multiplier for eFormat. Used for multi-component elements (e.g. Matrices)
+    uint8 uFormatComponentCount;
   };
 //---------------------------------------------------------------------------//
   const uint32 kMaxNumInputVertexAttributes = 32;

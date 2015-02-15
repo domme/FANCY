@@ -13,7 +13,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     static const uint32 kMaxNumLogChars = 10000u;
 
-    void getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat);
+    void getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat, uint32& rNumComponents);
     VertexSemantics getVertexSemanticsFromName(const ObjectName& name);
     void getResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, GpuResourceAccessType& rAccessType);
     String getDefineFromShaderStage(ShaderStage _eStage);
@@ -49,9 +49,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  void Internal::getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat)
+  void Internal::getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat, uint32& rNumComponents)
   {
     rFormat = DataFormat::NONE;
+    rNumComponents = 1u;
     switch(typeGL)
     {
       case GL_FLOAT:       rSize = sizeof(float); rFormat = DataFormat::R_32F; break;     
@@ -74,9 +75,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case GL_BOOL_VEC2: break;
       case GL_BOOL_VEC3: break;
       case GL_BOOL_VEC4: break;
-      case GL_FLOAT_MAT2:   break;
-      case GL_FLOAT_MAT3:   break;
-      case GL_FLOAT_MAT4:   break;
+      case GL_FLOAT_MAT2:   rSize = sizeof(glm::mat2); rFormat = DataFormat::RG_32F; rNumComponents = 2u; break;
+      case GL_FLOAT_MAT3:   rSize = sizeof(glm::mat3); rFormat = DataFormat::RGB_32F; rNumComponents = 3u; break;
+      case GL_FLOAT_MAT4:   rSize = sizeof(glm::mat4); rFormat = DataFormat::RGBA_32F; rNumComponents = 4u; break;
       case GL_FLOAT_MAT2x3: break;
       case GL_FLOAT_MAT2x4: break;
       case GL_FLOAT_MAT3x2: break;
@@ -370,6 +371,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     // The following code assumes the output format: ([LineNumber]) : error 0XXX: Message
 
     String logMsg(_shaderCompilerLogMsg);
+    if (logMsg.empty())
+    {
+      return;
+    }
+
     const String kLineSearchKey = ") : ";
     size_t pos = logMsg.find(kLineSearchKey);
 
@@ -548,7 +554,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   bool GpuProgramCompilerGL4::compile(const String& _shaderPath, ShaderStage _eShaderStage, GpuProgramGL4& _rGpuProgram)
   {
-    log_Info("Compiling shader " + _shaderPath);
+    log_Info("Compiling shader " + _shaderPath + " ...");
 
     std::list<String> sourceLines;
     IO::FileReader::ReadTextFileLines(_shaderPath, sourceLines);
@@ -722,7 +728,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     const GLenum vProperties[] = {GL_TYPE, GL_LOCATION};
     for (uint32 i = 0u; i < iNumResources; ++i)
     {
-      GLchar _name[256] = {0u};
+      GLchar _name[512] = {0u};
       glGetProgramResourceName(uProgram, eInterface, i, _countof(_name), nullptr, _name);
 
       GLint vPropertyValues[_countof(vProperties)] = {0x0};
@@ -737,7 +743,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Convert to engine-types
       DataFormat format(DataFormat::NONE);
       uint32 u32SizeBytes = 0u;
-      Internal::getSizeFormatFromGLtype(_type, u32SizeBytes, format);
+      uint32 u32ComponentCount = 1u;
+      Internal::getSizeFormatFromGLtype(_type, u32SizeBytes, format, u32ComponentCount);
 
       ObjectName name = _name;
       VertexSemantics semantics = Internal::getVertexSemanticsFromName(name);
@@ -748,6 +755,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       vertexElement.u32RegisterIndex = _location;
       vertexElement.u32SizeBytes = u32SizeBytes;
       vertexElement.eFormat = format;
+      vertexElement.uFormatComponentCount = u32ComponentCount;
       
       rVertexLayout.addVertexInputElement(vertexElement);
     }
@@ -777,13 +785,15 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       GLuint _location    = vPropertyValues[1];
 
       DataFormat format(DataFormat::NONE);
-      uint32 _u32Size = 0;
-      Internal::getSizeFormatFromGLtype(_type, _u32Size, format);
+      uint32 _u32Size = 0u;
+      uint32 componentCount = 1u;
+      Internal::getSizeFormatFromGLtype(_type, _u32Size, format, componentCount);
 
       ShaderStageFragmentOutput output;
       output.name = _name;
       output.uRtIndex = _location;
       output.eFormat = format;
+      output.uFormatComponentCount = componentCount;
 
       vFragmentOutputs.push_back(output);
     }
@@ -797,7 +807,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     
     for (uint32 iBlock = 0u; iBlock < iNumUniformBlocks; ++iBlock)
     {
-      GLchar _name[128] = {0u};
+      GLchar _name[256] = {0u};
       glGetProgramResourceName(uProgram, eInterface, iBlock, _countof(_name), nullptr, _name);
       ObjectName blockName = _name;
       ConstantBufferType eCbufferType = 
@@ -838,20 +848,22 @@ namespace Fancy { namespace Rendering { namespace GL4 {
         glGetProgramResourceiv(uProgram, GL_UNIFORM, uUniformIndex, _countof(vProperties), 
           vProperties, _countof(vProperties), nullptr, vPropertyValues);
 
-        GLchar _name[128] = {0u};
+        GLchar _name[256] = {0u};
         ASSERT(vPropertyValues[0] <= _countof(_name));
         glGetProgramResourceName(uProgram, GL_UNIFORM, uUniformIndex, 
           _countof(_name), nullptr, _name);
 
         uint32 uSizeBytes;
         DataFormat eFormat;
-        Internal::getSizeFormatFromGLtype(vPropertyValues[1], uSizeBytes, eFormat);
+        uint32 uComponentCount;
+        Internal::getSizeFormatFromGLtype(vPropertyValues[1], uSizeBytes, eFormat, uComponentCount);
         
         ConstantBufferElement cBufferElement;
         cBufferElement.name = _name;
         cBufferElement.uOffsetBytes = vPropertyValues[2];
         cBufferElement.eFormat = eFormat;
         cBufferElement.uSizeBytes = uSizeBytes;
+        cBufferElement.uFormatComponentCount = uComponentCount;
         
         ConstantSemantics eSemantics = 
           ShaderConstantsManager::getInstance().getSemanticFromName(cBufferElement.name);

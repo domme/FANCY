@@ -23,7 +23,13 @@
     fs_in;
   #endif  // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   #if defined(PROGRAM_TYPE_VERTEX)
+    out gl_PerVertex
+    {
+      vec4 gl_Position;
+    };
+
     layout(location = 0) in vec3 v_position;
     layout(location = 1) in vec3 v_normal;
     layout(location = 2) in vec3 v_tangent;
@@ -33,7 +39,7 @@
     void main()
     {
       gl_Position = cbPerObject.c_WorldViewProjectionMatrix * vec4(v_position, 1.0);
-      vs_out.color = v_normal;
+      vs_out.color.xyz = v_normal;
     }
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
