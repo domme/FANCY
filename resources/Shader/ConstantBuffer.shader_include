@@ -1,25 +1,25 @@
 #if !defined (INCLUDE_CONSTANTBUFFER_INCLUDE_)
 #define INCLUDE_CONSTANTBUFFER_INCLUDE_
 //---------------------------------------------------------------------------//
-  layout(binding = 1) uniform PER_LAUNCH
+  /*layout(binding = 1) uniform PER_LAUNCH
   {
-    vec4 dummy;
+    
   } cbPerLaunch;
 //---------------------------------------------------------------------------//
   layout(binding = 2) uniform PER_FRAME
   {
-    vec4 dummy;
-  } cbPerFrame;
+    
+  } cbPerFrame; */
 //---------------------------------------------------------------------------//
   layout(binding = 3) uniform PER_VIEWPORT
   {
     vec4 c_RenderTargetSize;
   } cbPerViewport;
 //---------------------------------------------------------------------------//
-  layout(binding = 4) uniform PER_STAGE
+  /* layout(binding = 4) uniform PER_STAGE
   {
-    vec4 dummy;
-  } cbPerStage;
+
+  } cbPerStage; */
 //---------------------------------------------------------------------------//
   layout(binding = 5) uniform PER_CAMERA
   {

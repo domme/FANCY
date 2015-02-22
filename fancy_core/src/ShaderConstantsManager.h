@@ -97,26 +97,22 @@ namespace Fancy { namespace Rendering {
     public:
       static ShaderConstantsManager& getInstance() {static ShaderConstantsManager instance; return instance;}
       /// Updates all constants in the provided constantbuffer-type
-      void updateConstants(ConstantBufferType eType);
+      static void update(ConstantBufferType eType);
       /// Returns false if no constant buffer exists for this type
-      bool hasConstantBuffer(ConstantBufferType eType) {return m_vConstantBuffers[(uint32)eType] != nullptr;}
+      static bool hasBackingBuffer(ConstantBufferType eType);
       /// Registers an element obtained from shader-reflection
-      void registerElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, ConstantBufferType eConstantBufferType);
-      /// Binds all constant buffers to the pipeline
-      void bindConstantBuffers();
+      static void registerElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, ConstantBufferType eConstantBufferType);
+      static void registerBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes);
 
-      ConstantSemantics getSemanticFromName(const ObjectName& clName);
-      ConstantBufferType getConstantBufferTypeFromName(const ObjectName& clName);
+      /// Binds all constant buffers to the pipeline
+      static void bindBuffers();
+
+      static ConstantSemantics getSemanticFromName(const ObjectName& clName);
+      static ConstantBufferType getConstantBufferTypeFromName(const ObjectName& clName);
 
     private:
       ShaderConstantsManager();
       ~ShaderConstantsManager();
-      void updateElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, void* const pBufferData);
-      
-      /// Gpu-resident buffers representing the datastores of the constant buffers
-      GpuBuffer* m_vConstantBuffers[(uint32)ConstantBufferType::NUM];
-      /// Elements of the constant buffers which map each semantic to a registered element
-      ConstantBufferElement m_vConstantBufferElements[(uint32)ConstantSemantics::NUM];
   };
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

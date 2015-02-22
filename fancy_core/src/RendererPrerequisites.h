@@ -22,7 +22,6 @@ namespace Fancy { enum {
   kMaxNumWriteTextures = 8u,
   kMaxNumBoundConstantBuffers = 12u,
   kMaxNumGpuProgramResources = 32u,
-  kNumConstantBufferFloats = 256u,
   kMaxNumConstantBufferElements = 128u
 }; }
 //---------------------------------------------------------------------------//

@@ -43,6 +43,24 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   typedef FixedArray<ShaderStageInterfaceElement, kMaxNumShaderStageInterfaceElements> ShaderStageInterfaceList;
   typedef FixedArray<ShaderStageFragmentOutput, kMaxNumShaderStageInterfaceElements> ShaderStageFragmentOutputList;
 //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  struct GpuProgramDescriptionGL4
+  {
+    GpuProgramDescriptionGL4();
+    ObjectName name;
+    GLuint uProgramHandleGL;
+    ShaderStage eShaderStage;
+    VertexInputLayout clVertexInputLayout;
+    ShaderStageInterfaceList vInputInterfaces;
+    ShaderStageInterfaceList vOutputInterfaces;
+    ShaderStageFragmentOutputList vFragmentOutputs;
+    GpuResourceInfoList vReadTextureInfos;
+    GpuResourceInfoList vReadBufferInfos;
+    GpuResourceInfoList vWriteTextureInfos;
+    GpuResourceInfoList vWriteBufferInfos;
+  };
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   class GpuProgramGL4
   {
   //---------------------------------------------------------------------------//
@@ -52,6 +70,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     public:
       GpuProgramGL4();
       ~GpuProgramGL4();
+    //---------------------------------------------------------------------------//
+      void init(const GpuProgramDescriptionGL4& _desc);
     //---------------------------------------------------------------------------//
       const ObjectName& getName() const {return m_Name;}
       GLuint getProgramHandle() const {return m_uProgramHandleGL;}

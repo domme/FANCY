@@ -7,7 +7,7 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  namespace internal
+  namespace Internal
   {
     typedef std::hash_map<ObjectName, ConstantBufferType> ConstantBufferTypeMap;
     typedef std::hash_map<ObjectName, ConstantSemantics> ConstantSemanticsMap;
@@ -16,11 +16,22 @@ namespace Fancy { namespace Rendering {
     ConstantSemanticsMap mapConstantSemantics;
     
     void initialize();
-    ConstantBufferType getConstantBufferTypeFromSemantics(ConstantSemantics eSemantic);
   }
 //---------------------------------------------------------------------------//
+  namespace Storage
+  {
+    void updateElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, void* const pBufferData);
+
+    /// Gpu-resident buffers representing the datastores of the constant buffers
+    GpuBuffer* m_vConstantBuffers[(uint32)ConstantBufferType::NUM];
+    /// Elements of the constant buffers which map each semantic to a registered element
+    ConstantBufferElement m_vConstantBufferElements[(uint32)ConstantSemantics::NUM];
+  }
 //---------------------------------------------------------------------------//
-  void internal::initialize()
+
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void Internal::initialize()
   {
 #define BEGIN_COUNTED_REGISTRY_INIT { enum {startCount = __COUNTER__};
 #define REGISTER(map, key, value) ASSERT_M(map.find(key) == map.end(), "Key already registered!"); map[key] = value; __COUNTER__;
@@ -84,76 +95,36 @@ namespace Fancy { namespace Rendering {
 #undef END_COUNTED_REGISTRY_INIT
   }
 //---------------------------------------------------------------------------//
-  ConstantBufferType internal::getConstantBufferTypeFromSemantics(ConstantSemantics eSemantic)
-  {
-    ConstantBufferType eBufferType = ConstantBufferType::NONE;
-
-    if (eSemantic > ConstantSemantics::PER_LAUNCH_BEGIN &&
-      eSemantic < ConstantSemantics::PER_LAUNCH_END) 
-    {
-      eBufferType = ConstantBufferType::PER_LAUNCH;
-    }
-    else if (eSemantic > ConstantSemantics::PER_FRAME_BEGIN &&
-      eSemantic < ConstantSemantics::PER_FRAME_END) 
-    {
-      eBufferType = ConstantBufferType::PER_FRAME;
-    }
-    else if (eSemantic > ConstantSemantics::PER_VIEWPORT_BEGIN &&
-      eSemantic < ConstantSemantics::PER_VIEWPORT_END) 
-    {
-      eBufferType = ConstantBufferType::PER_VIEWPORT;
-    }
-    else if (eSemantic > ConstantSemantics::PER_STAGE_BEGIN &&
-      eSemantic < ConstantSemantics::PER_STAGE_END) 
-    {
-      eBufferType = ConstantBufferType::PER_STAGE;
-    }
-    else if (eSemantic > ConstantSemantics::PER_CAMERA_BEGIN &&
-      eSemantic < ConstantSemantics::PER_CAMERA_END) 
-    {
-      eBufferType = ConstantBufferType::PER_CAMERA;
-    }
-    else if (eSemantic > ConstantSemantics::PER_MATERIAL_BEGIN &&
-      eSemantic < ConstantSemantics::PER_MATERIAL_END) 
-    {
-      eBufferType = ConstantBufferType::PER_MATERIAL;
-    }
-    else if (eSemantic > ConstantSemantics::PER_DRAW_BEGIN &&
-      eSemantic < ConstantSemantics::PER_DRAW_END) 
-    {
-      eBufferType = ConstantBufferType::PER_OBJECT;
-    }
-
-    return eBufferType;
-  }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
   ShaderConstantsManager::ShaderConstantsManager()
   {
-    memset(m_vConstantBuffers, 0x0, sizeof(m_vConstantBuffers));
-    memset(m_vConstantBufferElements, 0x0, sizeof(m_vConstantBufferElements));
+    memset(Storage::m_vConstantBuffers, 0x0, sizeof(Storage::m_vConstantBuffers));
+    memset(Storage::m_vConstantBufferElements, 0x0, sizeof(Storage::m_vConstantBufferElements));
 
-    internal::initialize();
+    Internal::initialize();
   }
 //---------------------------------------------------------------------------//
   ShaderConstantsManager::~ShaderConstantsManager()
   {
-    for (uint32 i = 0; i < _countof(m_vConstantBuffers); ++i)
+    for (uint32 i = 0; i < _countof(Storage::m_vConstantBuffers); ++i)
     {
-      if (m_vConstantBuffers[i] != nullptr) 
+      if (Storage::m_vConstantBuffers[i] != nullptr) 
       {
-        FANCY_DELETE(m_vConstantBuffers[i], MemoryCategory::BUFFERS);
-        m_vConstantBuffers[i] = nullptr;
+        FANCY_DELETE(Storage::m_vConstantBuffers[i], MemoryCategory::BUFFERS);
+        Storage::m_vConstantBuffers[i] = nullptr;
       }
     }
   }  
 //---------------------------------------------------------------------------//
+  bool ShaderConstantsManager::hasBackingBuffer(ConstantBufferType eType)
+  {
+    return Storage::m_vConstantBuffers[(uint32)eType] != nullptr;
+  }
+//---------------------------------------------------------------------------//
   ConstantSemantics ShaderConstantsManager::getSemanticFromName( const ObjectName& clName )
   {
-    internal::ConstantSemanticsMap::const_iterator it = internal::mapConstantSemantics.find(clName);
-    ASSERT(it != internal::mapConstantSemantics.end());
-    if(it != internal::mapConstantSemantics.end())
+    Internal::ConstantSemanticsMap::const_iterator it = Internal::mapConstantSemantics.find(clName);
+    ASSERT(it != Internal::mapConstantSemantics.end());
+    if(it != Internal::mapConstantSemantics.end())
     {
       return (*it).second;
     }
@@ -163,9 +134,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   Fancy::Rendering::ConstantBufferType ShaderConstantsManager::getConstantBufferTypeFromName( const ObjectName& clName )
   {
-    internal::ConstantBufferTypeMap::const_iterator it = internal::mapConstantBufferTypes.find(clName);
-    ASSERT(it != internal::mapConstantBufferTypes.end());
-    if (it != internal::mapConstantBufferTypes.end())
+    Internal::ConstantBufferTypeMap::const_iterator it = Internal::mapConstantBufferTypes.find(clName);
+    ASSERT(it != Internal::mapConstantBufferTypes.end());
+    if (it != Internal::mapConstantBufferTypes.end())
     {
       return (*it).second;
     }
@@ -173,9 +144,9 @@ namespace Fancy { namespace Rendering {
     return ConstantBufferType::NONE;
   }
 //---------------------------------------------------------------------------//
-  void ShaderConstantsManager::updateConstants( ConstantBufferType eType )
+  void ShaderConstantsManager::update( ConstantBufferType eType )
   {
-    ASSERT(m_vConstantBuffers[(uint32)eType]);
+    ASSERT(Storage::m_vConstantBuffers[(uint32)eType]);
     
     static const ConstantSemantics semanticsBegin[] = 
       { ConstantSemantics::PER_LAUNCH_BEGIN, ConstantSemantics::PER_FRAME_BEGIN, 
@@ -193,19 +164,18 @@ namespace Fancy { namespace Rendering {
     const uint32 semanticTo = (uint32) semanticsEnd[(uint32)eType];
     
     void* const pConstantData = 
-      m_vConstantBuffers[(uint32)eType]->lock(GpuResoruceLockOption::WRITE_PERSISTENT);
+      Storage::m_vConstantBuffers[(uint32)eType]->lock(GpuResoruceLockOption::WRITE_PERSISTENT);
     ASSERT(pConstantData);
 
     for (uint32 i = semanticFrom; i < semanticTo; ++i)
     {
-      const ConstantBufferElement& element = m_vConstantBufferElements[i];
-      updateElement(element, static_cast<ConstantSemantics>(i), pConstantData);
+      const ConstantBufferElement& element = Storage::m_vConstantBufferElements[i];
+      Storage::updateElement(element, static_cast<ConstantSemantics>(i), pConstantData);
     }
-    m_vConstantBuffers[(uint32)eType]->unlock();
+    Storage::m_vConstantBuffers[(uint32)eType]->unlock();
   }
 //---------------------------------------------------------------------------//
-  void ShaderConstantsManager::
-    updateElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, void* const pBufferData)
+  void Storage::updateElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, void* const pBufferData)
   {
     const float* pElementData = nullptr;
     
@@ -319,24 +289,11 @@ namespace Fancy { namespace Rendering {
            element.uSizeBytes);
   }
 //---------------------------------------------------------------------------//
-  void ShaderConstantsManager::
-    registerElement( const ConstantBufferElement& element, ConstantSemantics eElementSemantic, ConstantBufferType eConstantBufferType )
+  void ShaderConstantsManager::registerBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes)
   {
-    // Sanity-check on the detected update rate vs passed buffertype
-    ASSERT_M(internal::getConstantBufferTypeFromSemantics(eElementSemantic) == eConstantBufferType,
-      "Mismatch between the constant-semantic and the requested buffer type");
-
-    const uint32 uSemanticIdx = static_cast<uint32>(eElementSemantic);
-    if (m_vConstantBufferElements[uSemanticIdx].uSizeBytes > 0u) 
-    {
-      // Element is already registered 
-      return;
-    }
-    m_vConstantBufferElements[uSemanticIdx] = element;
-
     // Allocate the constant buffer storage if needed
-    const uint32 uBufferTypeIdx = static_cast<uint32>(eConstantBufferType);
-    if (m_vConstantBuffers[uBufferTypeIdx] == nullptr)
+    const uint32 uBufferTypeIdx = static_cast<uint32>(_eConstantBufferType);
+    if (Storage::m_vConstantBuffers[uBufferTypeIdx] == nullptr)
     {
       GpuBuffer* const pBuffer = FANCY_NEW(GpuBuffer, MemoryCategory::BUFFERS);
 
@@ -346,13 +303,28 @@ namespace Fancy { namespace Rendering {
                                 | (uint32)GpuResourceAccessFlags::DYNAMIC 
                                 | (uint32)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
       bufferParams.bIsMultiBuffered = true;
-      bufferParams.uNumElements = kNumConstantBufferFloats;
+      // TODO: Currently, we assume that all elements of the constant buffer are floats.
+      bufferParams.uNumElements = _requiredSizeBytes / sizeof(float);
       bufferParams.uElementSizeBytes = sizeof(float);
 
       pBuffer->create(bufferParams);
 
-      m_vConstantBuffers[uBufferTypeIdx] = pBuffer;
+      Storage::m_vConstantBuffers[uBufferTypeIdx] = pBuffer;
     }
+    
+    ASSERT_M(Storage::m_vConstantBuffers[uBufferTypeIdx]->getTotalSizeBytes() == _requiredSizeBytes, "Requested the same constant buffer with two different sizes");
+  }
+//---------------------------------------------------------------------------//
+  void ShaderConstantsManager::
+    registerElement( const ConstantBufferElement& element, ConstantSemantics eElementSemantic, ConstantBufferType eConstantBufferType )
+  {
+    const uint32 uSemanticIdx = static_cast<uint32>(eElementSemantic);
+    if (Storage::m_vConstantBufferElements[uSemanticIdx].uSizeBytes > 0u) 
+    {
+      // Element is already registered 
+      return;
+    }
+    Storage::m_vConstantBufferElements[uSemanticIdx] = element;
   }
 //---------------------------------------------------------------------------//
 } } 
