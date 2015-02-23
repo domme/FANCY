@@ -634,28 +634,28 @@ namespace Fancy { namespace IO {
     // TODO: Continue here... (select GpuProgram and #defines based on available properties/textures above)
 
     // First test: just use a dummy material
-/*    String shaderPath = IO::PathService::convertToAbsPath("Shader/MaterialDefault.shader");
-    String shaderSource = IO::FileReader::ReadTextFile(shaderPath);
+    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", ShaderStage::VERTEX);
+    GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", ShaderStage::FRAGMENT);
 
-    GpuProgram* pVertexProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
-    GpuProgram* pFragmentProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
-    GpuProgramCompiler::compileFromSource(shaderSource, ShaderStage::VERTEX, *pVertexProgram);
-    GpuProgramCompiler::compileFromSource(shaderSource, ShaderStage::FRAGMENT, *pFragmentProgram); */
+    MaterialPassDescription matPassDesc;
+    matPassDesc.gpuProgram[(uint32)ShaderStage::VERTEX] = pVertexProgram->getName();
+    matPassDesc.gpuProgram[(uint32)ShaderStage::FRAGMENT] = pFragmentProgram->getName();
 
-    /*MaterialPass* pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
-    pMaterialPass->2 */
+    MaterialPass* pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
+    pMaterialPass->init(matPassDesc);
   
     return pMaterial;
   }
 
-  // DEBUG:
-  void SceneImporter::_shaderTest()
-  {
-    GpuProgram* pVertexProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
-    GpuProgram* pFragmentProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
-    GpuProgramCompiler::compile("Shader/MaterialDefault.shader", ShaderStage::VERTEX, *pVertexProgram);
-    GpuProgramCompiler::compile("Shader/MaterialDefault.shader", ShaderStage::FRAGMENT, *pFragmentProgram);
-  }
+//   // DEBUG:
+//   void SceneImporter::_shaderTest()
+//   {
+//     GpuProgram* pVertexProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
+//     GpuProgram* pFragmentProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
+//     
+//     GpuProgramCompiler::compile("Shader/MaterialDefault.shader", ShaderStage::FRAGMENT, *pFragmentProgram);
+//     GpuProgramCompiler::compile("Shader/MaterialDefault.shader", ShaderStage::VERTEX, *pVertexProgram);
+//   }
 
 //---------------------------------------------------------------------------//
   Rendering::Texture* Processing::constructOrRetrieveTexture(WorkingData& _workingData, 

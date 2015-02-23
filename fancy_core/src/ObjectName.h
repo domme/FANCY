@@ -26,10 +26,10 @@ namespace Fancy {
       operator String() const {return toString();}
     //---------------------------------------------------------------------------//
     private:
-      uint   m_uNameHash;
 #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
       String m_szName;
 #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
+      uint   m_uNameHash;
   };
 //---------------------------------------------------------------------------//
   String operator+(const String& szString, const ObjectName& name);

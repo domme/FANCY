@@ -10,6 +10,8 @@ namespace Fancy { namespace Rendering {
 class BlendState : public StaticManagedObject<BlendState> {
 
 public:
+  static void init();
+
  BlendState(const ObjectName& _name);
  ~BlendState() {}
  friend class PLATFORM_DEPENDENT_NAME(Renderer);
@@ -66,7 +68,6 @@ private:
   BlendInput                   m_eDestBlendAlpha     [kMaxNumRenderTargets];
   Rendering::BlendOp           m_eBlendOpAlpha       [kMaxNumRenderTargets];
   uint32                       m_uRTwriteMask        [kMaxNumRenderTargets];
-  
 //---------------------------------------------------------------------------//
 };
 

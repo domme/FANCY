@@ -15,6 +15,7 @@ namespace Fancy { namespace Rendering {
   public:
     DepthStencilState(const ObjectName& _name);
     ~DepthStencilState() {}
+    static void init();
     bool operator==(const DepthStencilState& clOther) const;
 
     const ObjectName& getName() const {return m_Name;}

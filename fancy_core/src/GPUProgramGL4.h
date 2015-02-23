@@ -5,6 +5,7 @@
 #include "RendererPrerequisites.h"
 #include "GpuProgramResource.h"
 #include "VertexInputLayout.h"
+#include "StaticManagedObject.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
@@ -27,12 +28,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   struct ShaderStageFragmentOutput
   {
     ShaderStageFragmentOutput() :
-      uRtIndex(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
+      uRtIndex(0u), uLocation(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
 
     /// Name in glsl
     ObjectName name;
     /// Rendertarget index
     GLuint uRtIndex;
+    /// Register index
+    GLuint uLocation;
     /// expected format of the output
     DataFormat eFormat;
      // Multiplier for eFormat. Used for multi-component elements (e.g. Matrices)

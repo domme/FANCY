@@ -7,7 +7,7 @@
 
 namespace Fancy { namespace Rendering {
 
-  class GpuProgram : public PLATFORM_DEPENDENT_NAME(GpuProgram)
+  class GpuProgram : public PLATFORM_DEPENDENT_NAME(GpuProgram), public StaticManagedHeapObject<GpuProgram>
   {
 
   };

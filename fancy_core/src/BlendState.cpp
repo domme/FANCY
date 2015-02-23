@@ -3,6 +3,25 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  void BlendState::init()
+  {
+    // Initialize common blendstates
+    // TODO: Do this from a file in the future?
+
+    m_objectMap.clear();
+    
+    {
+      BlendState blendState(_N(BlendState_Solid));
+      blendState.setBlendStatePerRT(false);
+      blendState.setBlendEnabled(0u, false);
+      blendState.setRTwriteMask(0u, UINT_MAX);
+      BlendState::registerWithName(blendState);
+    }
+
+    // ... more to come
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   BlendState::BlendState(const ObjectName& _name) :
     m_uHash(0u),
     m_name(_name),

@@ -3,6 +3,24 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  void DepthStencilState::init()
+  {
+    // Initialize common depthstencilstates
+    // TODO: Do this from a file in the future?
+
+    m_objectMap.clear();
+
+    {
+      DepthStencilState depthStencilState(_N(DepthStencilState_DefaultDepthState));
+      depthStencilState.setStencilEnabled(false);
+      depthStencilState.setDepthTestEnabled(true);
+      depthStencilState.setDepthWriteEnabled(true);
+      depthStencilState.setDepthCompFunc(Rendering::CompFunc::LESS);
+      DepthStencilState::registerWithName(depthStencilState);
+    }
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   DepthStencilState::DepthStencilState(const ObjectName& _name) :
     m_uHash(0u),
     m_Name(_name),

@@ -30,13 +30,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
       static T* getByName(const ObjectName& _name)
       {
-        MapType::const_iterator it = m_objectMap.find(_name);
+        MapType::iterator it = m_objectMap.find(_name);
         if (it == m_objectMap.end())
         {
           return nullptr;
         }
 
-        return &(*m_objectMap).second;
+        return &(*it).second;
       }
 //---------------------------------------------------------------------------//
       static const MapType& getRegisterMap()

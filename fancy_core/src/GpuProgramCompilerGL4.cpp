@@ -16,7 +16,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     void getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat, uint32& rNumComponents);
     VertexSemantics getVertexSemanticsFromName(const ObjectName& name);
     void getResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, GpuResourceAccessType& rAccessType);
-    String getDefineFromShaderStage(ShaderStage _eStage);
+    String shaderStageToDefineString(ShaderStage _eStage);
   }
 //---------------------------------------------------------------------------//
   namespace Preprocess
@@ -315,7 +315,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return VertexSemantics::POSITION;
   }
 //---------------------------------------------------------------------------//
-  String Internal::getDefineFromShaderStage(ShaderStage _eStage)
+  String Internal::shaderStageToDefineString(ShaderStage _eStage)
   {
     switch (_eStage)
     {
@@ -427,7 +427,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     const uint32 kMaxNumDefines = 64u;
     FixedArray<String, kMaxNumDefines> vDefines;
-    vDefines.push_back("#define " + Internal::getDefineFromShaderStage(eShaderStage));
+    vDefines.push_back("#define " + Internal::shaderStageToDefineString(eShaderStage));
     // ... more to come?
 
     const String kIncludeSearchKey = "#include \"";
@@ -743,7 +743,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     const GLenum eInterface = GL_PROGRAM_OUTPUT;
     glGetProgramInterfaceiv(uProgram, eInterface, GL_ACTIVE_RESOURCES, &iNumResources);
 
-    const GLenum vProperties[] = {GL_TYPE, GL_LOCATION};
+    const GLenum vProperties[] = {GL_TYPE, GL_LOCATION, GL_LOCATION_INDEX};
     for (uint32 i = 0u; i < iNumResources; ++i)
     {
       GLchar _name[128] = {0u};
@@ -755,8 +755,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
         _countof(vProperties), vProperties, _countof(vPropertyValues), 
         nullptr, vPropertyValues );
 
-      GLuint _type        = vPropertyValues[0];
-      GLuint _location    = vPropertyValues[1];
+      const GLuint _type        = vPropertyValues[0];
+      const GLuint _location    = vPropertyValues[1];
+      const GLuint _locationIndex = vPropertyValues[2];
 
       DataFormat format(DataFormat::NONE);
       uint32 _u32Size = 0u;
@@ -765,7 +766,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
       ShaderStageFragmentOutput output;
       output.name = _name;
-      output.uRtIndex = _location;
+      output.uRtIndex = _locationIndex;
+      output.uLocation = _location;
       output.eFormat = format;
       output.uFormatComponentCount = componentCount;
 
@@ -869,8 +871,15 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
   }
   //---------------------------------------------------------------------------//
-  bool GpuProgramCompilerGL4::compile(const String& _shaderPath, ShaderStage _eShaderStage, GpuProgramGL4& _rGpuProgram)
+  GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const String& _shaderPath, ShaderStage _eShaderStage)
   {
+    String uniqueProgramName = _shaderPath + "_" + Internal::shaderStageToDefineString(_eShaderStage);
+    GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
+    if (pGpuProgram != nullptr)
+    {
+      return pGpuProgram;
+    }
+
     log_Info("Compiling shader " + _shaderPath + " ...");
 
     std::list<String> sourceLines;
@@ -900,12 +909,15 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
 
     GpuProgramDescriptionGL4 programDesc;
+    programDesc.name = uniqueProgramName;
     const bool bSuccess = Compile::compileFromSource(szCombinedSource, sourceInfo, _eShaderStage, programDesc);
     if (bSuccess)
     {
-      _rGpuProgram.init(programDesc);
+      pGpuProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
+      pGpuProgram->init(programDesc);
+      GpuProgram::registerWithName(pGpuProgram);
     }
-    return bSuccess;
+    return pGpuProgram;
   }
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Rendering:GL4

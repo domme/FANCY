@@ -48,18 +48,8 @@ namespace Fancy {
   void EngineCommon::initRenderingSubsystem()
   {
     // Init common blend- and depthstencil states
-    Rendering::BlendState blendState(_N(BlendState_Solid));
-    blendState.setBlendStatePerRT(false);
-    blendState.setBlendEnabled(0u, false);
-    blendState.setRTwriteMask(0u, UINT_MAX);
-    Rendering::BlendState::registerWithName(blendState.getName(), blendState);
-
-    Rendering::DepthStencilState depthStencilState(_N(DepthStencilState_DefaultDepthState));
-    depthStencilState.setStencilEnabled(false);
-    depthStencilState.setDepthTestEnabled(true);
-    depthStencilState.setDepthWriteEnabled(true);
-    depthStencilState.setDepthCompFunc(Rendering::CompFunc::LESS);
-    Rendering::DepthStencilState::registerWithName(depthStencilState.getName(), depthStencilState);
+    Rendering::BlendState::init();
+    Rendering::DepthStencilState::init();
 
     Rendering::Renderer& rend = Rendering::Renderer::getInstance();
   }

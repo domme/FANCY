@@ -16,12 +16,12 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   class GpuProgramCompilerGL4
   {
-  public:
-    static bool compile(const String& _shaderPath, ShaderStage _eShaderStage, GpuProgramGL4& _rGpuProgram);
+    public:
+      static GpuProgram* createOrRetrieve(const String& _shaderPath, ShaderStage _eShaderStage);
 
-  private:
-    GpuProgramCompilerGL4();
-    ~GpuProgramCompilerGL4();
+    private:
+      GpuProgramCompilerGL4();
+      ~GpuProgramCompilerGL4();
   };
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Rendering:GL4

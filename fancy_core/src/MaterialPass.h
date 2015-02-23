@@ -14,11 +14,25 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
+  struct MaterialPassDescription
+  {
+    MaterialPassDescription();
+    // TODO: Change these values to ObjectNames and grab them from the managers after a global init
+    ObjectName name;
+    ObjectName gpuProgram[(uint32)ShaderStage::NUM];
+    FillMode eFillMode;
+    CullMode eCullMode;
+    WindingOrder eWindingOrder;
+    ObjectName blendState;
+    ObjectName depthStencilState;
+  };
+//---------------------------------------------------------------------------//
   class MaterialPass
   {
     public:
       MaterialPass();
       ~MaterialPass();
+      void init (const MaterialPassDescription& _desc);
 
       const ObjectName& getName() const { return m_Name; }
       const GpuProgram* getGpuProgram(const ShaderStage eShaderStage) const 
@@ -28,21 +42,19 @@ namespace Fancy { namespace Rendering {
       CullMode getCullMode() const {return m_eCullMode;}
       WindingOrder getWindingOrder() const {return m_eWindingOrder;}
       const BlendState* getBlendState() const {return m_pBlendState;}
-      const DepthStencilState* getDepthStencilState() const 
-        {return m_pDepthStencilState;}
-
+      const DepthStencilState* getDepthStencilState() const {return m_pDepthStencilState;}
       MaterialPassInstance* createMaterialPassInstance(const ObjectName& name);
 
     private:
       ObjectName m_Name;
-      GpuProgram* m_pGpuProgram[(uint32)ShaderStage::NUM];
+      const GpuProgram* m_pGpuProgram[(uint32)ShaderStage::NUM];
       std::vector<MaterialPassInstance*> m_vpMaterialPassInstances;
 
       FillMode m_eFillMode;
       CullMode m_eCullMode;
       WindingOrder m_eWindingOrder;
-      BlendState* m_pBlendState;
-      DepthStencilState* m_pDepthStencilState;
+      const BlendState* m_pBlendState;
+      const DepthStencilState* m_pDepthStencilState;
   };
 //---------------------------------------------------------------------------//
   typedef FixedArray<Texture*, kMaxNumReadTextures> ReadTextureList;
@@ -58,16 +70,11 @@ namespace Fancy { namespace Rendering {
     public:
       ~MaterialPassInstance();
 
-      const ReadTextureList& getReadTextures(ShaderStage eShaderStage) const 
-        {return m_vpReadTextures[(uint32) eShaderStage];}
-      const WriteTextureList& getWriteTextures(ShaderStage eShaderStage) const
-        {return m_vpWriteTextures[(uint32) eShaderStage];}
-      const ReadBufferList& getReadBuffers(ShaderStage eShaderStage) const
-        {return m_vpReadBuffers[(uint32) eShaderStage];}
-      const WriteBufferList& getWriteBuffers(ShaderStage eShaderStage) const
-        {return m_vpWriteBuffers[(uint32) eShaderStage];}
-      const TextureSamplerList& getTextureSamplers(ShaderStage eShaderStage) const
-        {return m_vpTextureSamplers[(uint32) eShaderStage];}
+      const ReadTextureList& getReadTextures(ShaderStage eShaderStage) const {return m_vpReadTextures[(uint32) eShaderStage];}
+      const WriteTextureList& getWriteTextures(ShaderStage eShaderStage) const {return m_vpWriteTextures[(uint32) eShaderStage];}
+      const ReadBufferList& getReadBuffers(ShaderStage eShaderStage) const {return m_vpReadBuffers[(uint32) eShaderStage];}
+      const WriteBufferList& getWriteBuffers(ShaderStage eShaderStage) const {return m_vpWriteBuffers[(uint32) eShaderStage];}
+      const TextureSamplerList& getTextureSamplers(ShaderStage eShaderStage) const {return m_vpTextureSamplers[(uint32) eShaderStage];}
 
       const MaterialPass* getMaterialPass() {return m_pMaterialPass;}
       const ObjectName& getName() {return m_Name;}
