@@ -70,6 +70,9 @@ namespace Fancy { namespace IO {
 
     struct WorkingData
     {
+      WorkingData() : szCurrScenePath(""), pCurrScene(nullptr), pFancyParentNode(nullptr), 
+        u32NumCreatedMeshes(0u), u32NumCreatedModels(0u), u32NumCreatedGeometryDatas(0u), u32NumCreatedSubModels(0u) {}
+
       std::string szCurrScenePath;
       const aiScene* pCurrScene;
       Fancy::Scene::SceneNode* pFancyParentNode;
@@ -132,7 +135,7 @@ namespace Fancy { namespace IO {
       return false;
     }
 
-    Processing::WorkingData workingData = {0};
+    Processing::WorkingData workingData;
     workingData.pFancyParentNode = _pParentNode;
     workingData.szCurrScenePath = _szImportPathRel;
     return Processing::processAiScene(workingData, aScene);
@@ -283,7 +286,7 @@ namespace Fancy { namespace IO {
     }  // end iteration of materialMeshList-map
 
     // At this point, we constructed a bunch of submodels. Now construct them to 
-    // a Model (or retrieve a equivalent one...)
+    // a Model (or retrieve an equivalent one...)
     Geometry::Model* pModel = Geometry::Model::find([vSubModels](Model* itModel) -> bool {
       const SubModelList& vSubModelsOther = itModel->getSubModelList();
 
@@ -339,8 +342,8 @@ namespace Fancy { namespace IO {
     Rendering::GeometryVertexLayout vertexLayout;
     ASSERT(_pAmesh->HasPositions());
 
-    FixedArray<void*, Rendering::kMaxNumGeometryVertexAttributes>
-      vVertexDataPointers;
+    FixedArray<void*, Rendering::kMaxNumGeometryVertexAttributes> vVertexDataPointers;
+    FixedArray<uint32, Rendering::kMaxNumInputVertexAttributes> vSourceDataStrides;
 
     uint32 u32OffsetBytes = 0u;
     if (_pAmesh->HasPositions())
@@ -354,6 +357,7 @@ namespace Fancy { namespace IO {
       u32OffsetBytes += vertexElement.u32SizeBytes;
       vertexLayout.addVertexElement(vertexElement);
       vVertexDataPointers.push_back(_pAmesh->mVertices);
+      vSourceDataStrides.push_back(sizeof(_pAmesh->mVertices[0]));
       ASSERT(sizeof(_pAmesh->mVertices[0]) == vertexElement.u32SizeBytes);
     }
 
@@ -368,6 +372,7 @@ namespace Fancy { namespace IO {
       u32OffsetBytes += vertexElement.u32SizeBytes;
       vertexLayout.addVertexElement(vertexElement);
       vVertexDataPointers.push_back(_pAmesh->mNormals);
+      vSourceDataStrides.push_back(sizeof(_pAmesh->mNormals[0]));
       ASSERT(sizeof(_pAmesh->mNormals[0]) == vertexElement.u32SizeBytes);
     }
 
@@ -382,6 +387,7 @@ namespace Fancy { namespace IO {
       u32OffsetBytes += vertexElement.u32SizeBytes;
       vertexLayout.addVertexElement(vertexElement);
       vVertexDataPointers.push_back(_pAmesh->mTangents);
+      vSourceDataStrides.push_back(sizeof(_pAmesh->mTangents[0]));
       ASSERT(sizeof(_pAmesh->mTangents[0]) == vertexElement.u32SizeBytes);
 
       vertexElement = Rendering::GeometryVertexElement();
@@ -393,6 +399,7 @@ namespace Fancy { namespace IO {
       u32OffsetBytes += vertexElement.u32SizeBytes;
       vertexLayout.addVertexElement(vertexElement);
       vVertexDataPointers.push_back(_pAmesh->mBitangents);
+      vSourceDataStrides.push_back(sizeof(_pAmesh->mBitangents[0]));
       ASSERT(sizeof(_pAmesh->mBitangents[0]) == vertexElement.u32SizeBytes);
     }
 
@@ -442,7 +449,11 @@ namespace Fancy { namespace IO {
         vertexElement.u32SizeBytes = sizeof(float) * _pAmesh->mNumUVComponents[iUVchannel];
         u32OffsetBytes += vertexElement.u32SizeBytes;
         vertexLayout.addVertexElement(vertexElement);
-        ASSERT(sizeof(_pAmesh->mTextureCoords[iUVchannel][0]) == vertexElement.u32SizeBytes);
+
+        // These sizes might differ since assimp stores 2-component UVs in Vec3s
+        // ASSERT(sizeof(_pAmesh->mTextureCoords[iUVchannel][0]) == vertexElement.u32SizeBytes);
+        
+        vSourceDataStrides.push_back(sizeof(_pAmesh->mTextureCoords[iUVchannel][0]));
         vVertexDataPointers.push_back(_pAmesh->mTextureCoords[iUVchannel]);
       }
     }
@@ -472,6 +483,7 @@ namespace Fancy { namespace IO {
         u32OffsetBytes += vertexElement.u32SizeBytes;
         vertexLayout.addVertexElement(vertexElement);
         ASSERT(sizeof(_pAmesh->mColors[iColorChannel][0]) == vertexElement.u32SizeBytes);
+        vSourceDataStrides.push_back(sizeof(_pAmesh->mColors[iColorChannel][0]));
         vVertexDataPointers.push_back(_pAmesh->mColors[iColorChannel]);
       }
     }
@@ -498,11 +510,9 @@ namespace Fancy { namespace IO {
       {
         const Rendering::GeometryVertexElement& rVertexElement = vertexLayout.getVertexElement(iVertexElement);
         uint uInterleavedOffset = iVertex * vertexLayout.getStrideBytes() + rVertexElement.u32OffsetBytes;
-        uint uContinousOffset = iVertex * rVertexElement.u32SizeBytes;
+        uint uContinousOffset = iVertex * vSourceDataStrides[iVertexElement];
         void* pDataPointer = vVertexDataPointers[iVertexElement];
-        memcpy(static_cast<uint8*>(pData) + uInterleavedOffset, 
-          static_cast<uint8*>(pDataPointer) + uContinousOffset, 
-          rVertexElement.u32SizeBytes);
+        memcpy(static_cast<uint8*>(pData) + uInterleavedOffset, static_cast<uint8*>(pDataPointer) + uContinousOffset, rVertexElement.u32SizeBytes);
       }
     }
 
@@ -532,14 +542,14 @@ namespace Fancy { namespace IO {
     }
 #endif  // FANCY_IMPORTER_USE_VALIDATION
 
-    uint* indices = FANCY_NEW(uint[_pAmesh->mNumFaces * 3u], MemoryCategory::GEOMETRY);
+    uint32* indices = FANCY_NEW(uint32[_pAmesh->mNumFaces * 3u], MemoryCategory::GEOMETRY);
 
     for (uint i = 0u; i < _pAmesh->mNumFaces; ++i)
     {
       const aiFace& aFace = _pAmesh->mFaces[i];
 
       ASSERT(sizeof(indices[0]) == sizeof(aFace.mIndices[0]));
-      memcpy(&indices[i * 3u], aFace.mIndices, sizeof(uint));
+      memcpy(&indices[i * 3u], aFace.mIndices, sizeof(uint32) * 3u);
     }
 
     Rendering::GpuBuffer* indexBuffer = 
@@ -548,9 +558,9 @@ namespace Fancy { namespace IO {
     Rendering::GpuBufferParameters indexBufParams;
     indexBufParams.bIsMultiBuffered = false;
     indexBufParams.ePrimaryUsageType = Rendering::GpuBufferUsage::INDEX_BUFFER;
-    indexBufParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
+    indexBufParams.uAccessFlags = static_cast<uint32>(Rendering::GpuResourceAccessFlags::NONE);
     indexBufParams.uNumElements = _pAmesh->mNumFaces * 3u;
-    indexBufParams.uElementSizeBytes = sizeof(uint);
+    indexBufParams.uElementSizeBytes = sizeof(uint32);
 
     indexBuffer->create(indexBufParams, pData);
     pGeometryData->setIndexBuffer(indexBuffer);
@@ -561,13 +571,6 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   Rendering::Material* Processing::constructOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial)
   {
-    // TODO Next: 
-    // Out materials are composite objects containing different materialPasses 
-    // for each rendering step. 
-    // However, Assimp-materials only contain a bunch of texture-references and properties.
-    // Our approach is to create some standard Fancy-Materials and try to derive a mapping 
-    // between Assimp's texture- and property list and one of the prepared Fancy-materials.
-
     // Did we already import this material?
     Processing::MaterialCacheMap::iterator cacheIt = _workingData.mapAiMatToMat.find(_pAmaterial);
     if (cacheIt != _workingData.mapAiMatToMat.end())
@@ -629,10 +632,7 @@ namespace Fancy { namespace IO {
       log_Warning("Fancy doesn't support storing opacity in a separate texture. Consider putting it in diff.a");
     }
 
-    Material* pMaterial = FANCY_NEW(Material, MemoryCategory::MATERIALS);
-
-    // TODO: Continue here... (select GpuProgram and #defines based on available properties/textures above)
-
+    // TODO: Make this less stupid...
     // First test: just use a dummy material
     GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", ShaderStage::VERTEX);
     GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", ShaderStage::FRAGMENT);
@@ -644,24 +644,20 @@ namespace Fancy { namespace IO {
     MaterialPass* pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
     pMaterialPass->init(matPassDesc);
   
+    Material* pMaterial = FANCY_NEW(Material, MemoryCategory::MATERIALS);
+    pMaterial->setPass(pMaterialPass->createMaterialPassInstance(_N(DefaultMPI)), EMaterialPass::SOLID_FORWARD);
     return pMaterial;
   }
-
-//   // DEBUG:
-//   void SceneImporter::_shaderTest()
-//   {
-//     GpuProgram* pVertexProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
-//     GpuProgram* pFragmentProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
-//     
-//     GpuProgramCompiler::compile("Shader/MaterialDefault.shader", ShaderStage::FRAGMENT, *pFragmentProgram);
-//     GpuProgramCompiler::compile("Shader/MaterialDefault.shader", ShaderStage::VERTEX, *pVertexProgram);
-//   }
-
 //---------------------------------------------------------------------------//
   Rendering::Texture* Processing::constructOrRetrieveTexture(WorkingData& _workingData, 
     const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex)
   {
     uint32 numTextures = _pAmaterial->GetTextureCount(_aiTextureType);
+    if (numTextures == 0u)
+    {
+      return nullptr;
+    }
+
     ASSERT(numTextures > _texIndex);
 
     aiString szATexPath;

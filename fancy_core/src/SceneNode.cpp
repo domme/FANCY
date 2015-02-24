@@ -142,8 +142,10 @@ namespace Fancy { namespace Scene {
       return getComponent(typeName);
     }
 
-    SceneNodeComponentPtr componentPtr = 
-      SceneNodeComponentFactory::getFactoryMethod(typeName)(const_cast<SceneNode*>(this));
+    SceneNodeComponentFactory::CreateFunction createFunc = SceneNodeComponentFactory::getFactoryMethod(typeName);
+    ASSERT_M(createFunc != nullptr, String("No factory registered for typename ") + typeName.toString());
+
+    SceneNodeComponentPtr componentPtr = createFunc(const_cast<SceneNode*>(this));
 
     m_vpComponents.push_back(componentPtr);
     onComponentAdded(componentPtr);

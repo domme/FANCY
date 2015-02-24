@@ -19,11 +19,14 @@ namespace Fancy { namespace Rendering {
       ~Material();
 
       const ObjectName& getName() const { return m_Name; }
-      const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint) ePassType]; }
+      void setName(const ObjectName& _name) {m_Name = _name;}
+
+      const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint32) ePassType]; }
+      void setPass(const MaterialPassInstance* _pPass, EMaterialPass _ePassType) {m_vPasses[(uint32) _ePassType] = _pPass; }
 
     private:
       ObjectName m_Name;
-      MaterialPassInstance* m_vPasses[ (uint) EMaterialPass::NUM ];
+      const MaterialPassInstance* m_vPasses[ (uint) EMaterialPass::NUM ];
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

@@ -141,13 +141,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     // Persistent buffers stay locked and have to be unlocked here
     if (isLockedPersistent())
     {
-      for (uint32 i = 0; i < MultiBuffering::kGpuMultiBufferingCount; ++i)
+      for (uint32 i = 0; i < m_vGLhandles.size(); ++i)
       {
         _unlock(i);
       }
     }
 
-    for (uint32 i = 0; i < MultiBuffering::kGpuMultiBufferingCount; ++i)
+    for (uint32 i = 0; i < m_vGLhandles.size(); ++i)
     {
       glDeleteBuffers(1, &m_vGLhandles[i]);
     }

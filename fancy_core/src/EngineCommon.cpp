@@ -41,8 +41,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void EngineCommon::initComponentSubsystem()
   {
-    Scene::SceneNodeComponentFactory::registerFactory(_N(Model), Scene::ModelComponent::create);
-    Scene::SceneNodeComponentFactory::registerFactory(_N(Camera), Scene::CameraComponent::create);
+    Scene::SceneNodeComponentFactory::registerFactory(_N(ModelComponent), Scene::ModelComponent::create);
+    Scene::SceneNodeComponentFactory::registerFactory(_N(CameraComponent), Scene::CameraComponent::create);
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::initRenderingSubsystem()
