@@ -6,7 +6,7 @@
 #include PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER
 
 namespace Fancy { namespace Rendering {
-  
+
   class GpuProgramCompiler : public PLATFORM_DEPENDENT_NAME(GpuProgramCompiler)
   {
 

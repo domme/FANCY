@@ -86,6 +86,9 @@ namespace Fancy {
       T& operator[](const uint32 u32Index) {ASSERT(u32Index < m_u32Size); return m_Array[u32Index];}
       const T& operator[](const uint32 u32Index) const {ASSERT(u32Index < m_u32Size); return m_Array[u32Index];}
     //---------------------------------------------------------------------------//
+      T* begin() {return &m_Array[0];}
+      T* end() {return &m_Array[m_u32Size];}
+    //---------------------------------------------------------------------------//
     private:
       uint32 m_u32Size;
   };

@@ -222,6 +222,7 @@
     <ClInclude Include="src\GpuProgram.h" />
     <ClInclude Include="src\GpuProgramCompiler.h" />
     <ClInclude Include="src\GpuProgramCompilerGL4.h" />
+    <ClInclude Include="src\GpuProgramFeatures.h" />
     <ClInclude Include="src\GpuProgramGL4.h" />
     <ClInclude Include="src\GpuProgramPipeline.h" />
     <ClInclude Include="src\GpuProgramPipelineGL4.h" />
@@ -275,6 +276,7 @@
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\GpuBufferGL4.cpp" />
     <ClCompile Include="src\GpuProgramCompilerGL4.cpp" />
+    <ClCompile Include="src\GpuProgramFeatures.cpp" />
     <ClCompile Include="src\GpuProgramGL4.cpp" />
     <ClCompile Include="src\GpuProgramPipelineGL4.cpp" />
     <ClCompile Include="src\GLSLpreprocessor.cpp" />

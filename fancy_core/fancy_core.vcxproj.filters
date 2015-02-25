@@ -210,6 +210,9 @@
     <ClInclude Include="src\TextureLoader.h">
       <Filter>src\IO</Filter>
     </ClInclude>
+    <ClInclude Include="src\GpuProgramFeatures.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -334,6 +337,9 @@
     </ClCompile>
     <ClCompile Include="src\TextureLoader.cpp">
       <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgramFeatures.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

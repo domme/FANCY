@@ -634,8 +634,9 @@ namespace Fancy { namespace IO {
 
     // TODO: Make this less stupid...
     // First test: just use a dummy material
-    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", ShaderStage::VERTEX);
-    GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", ShaderStage::FRAGMENT);
+    GpuProgramPermutation permutation;
+    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", permutation, ShaderStage::VERTEX);
+    GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", permutation, ShaderStage::FRAGMENT);
 
     MaterialPassDescription matPassDesc;
     matPassDesc.gpuProgram[(uint32)ShaderStage::VERTEX] = pVertexProgram->getName();

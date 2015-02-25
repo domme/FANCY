@@ -1,8 +1,6 @@
 #ifndef INCLUDE_GPUPROGRAMCOMPILERGL4_H
 #define INCLUDE_GPUPROGRAMCOMPILERGL4_H
 
-#include <list>
-
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "FixedArray.h"
@@ -11,13 +9,14 @@
 #include "VertexInputLayout.h"
 #include "GPUProgramGL4.h"
 #include "AdapterGL4.h"
+#include "GpuProgramFeatures.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   class GpuProgramCompilerGL4
   {
     public:
-      static GpuProgram* createOrRetrieve(const String& _shaderPath, ShaderStage _eShaderStage);
+      static GpuProgram* createOrRetrieve(const String& _shaderPath, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage);
 
     private:
       GpuProgramCompilerGL4();

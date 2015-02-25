@@ -34,7 +34,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     };
 
     uint32 getIteratorPosition(std::list<String>::const_iterator& _it, std::list<String>& _lineList);
-    void preprocessShaderSource(const String& shaderFilename, std::list<String>& sourceLines, const ShaderStage& eShaderStage, ShaderSourceInfo& info);
+    void preprocessShaderSource(const String& shaderFilename, std::list<String>& sourceLines, const GpuProgramPermutation& _permutation, const ShaderStage& eShaderStage, ShaderSourceInfo& info);
     FileBlock* getFileBlockForLine(uint32 _lineNumber, ShaderSourceInfo& _info);
     const FileBlock* getFileBlockForLine(uint32 _lineNumber, const ShaderSourceInfo& _info);
     uint32 getLocalLine(uint32 _globalLine, const ShaderSourceInfo& _info);
@@ -423,11 +423,16 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     pNewBlock->nameHash = MathUtil::hashFromString(pNewBlock->fileName);
   }
 //---------------------------------------------------------------------------//
-  void Preprocess::preprocessShaderSource(const String& shaderFilename, std::list<String>& sourceLines, const ShaderStage& eShaderStage, ShaderSourceInfo& info)
+  void Preprocess::preprocessShaderSource(const String& shaderFilename, std::list<String>& sourceLines, const GpuProgramPermutation& _permutation, const ShaderStage& eShaderStage, ShaderSourceInfo& info)
   {
     const uint32 kMaxNumDefines = 64u;
     FixedArray<String, kMaxNumDefines> vDefines;
     vDefines.push_back("#define " + Internal::shaderStageToDefineString(eShaderStage));
+    const GpuProgramFeatureList& vFeatures = _permutation.getFeatureList();
+    for (uint32 i = 0u; i < vFeatures.size(); ++i)
+    {
+      vDefines.push_back("#define " + GpuProgramPermutation::featureToDefineString(vFeatures[i]));
+    }
     // ... more to come?
 
     const String kIncludeSearchKey = "#include \"";
@@ -871,9 +876,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
   }
   //---------------------------------------------------------------------------//
-  GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const String& _shaderPath, ShaderStage _eShaderStage)
+  GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const String& _shaderPath, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage)
   {
-    String uniqueProgramName = _shaderPath + "_" + Internal::shaderStageToDefineString(_eShaderStage);
+    String uniqueProgramName = _shaderPath + "_" + Internal::shaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
     GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
     if (pGpuProgram != nullptr)
     {
@@ -892,7 +897,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
 
     Preprocess::ShaderSourceInfo sourceInfo;
-    Preprocess::preprocessShaderSource(_shaderPath, sourceLines, _eShaderStage, sourceInfo);
+    Preprocess::preprocessShaderSource(_shaderPath, sourceLines, _permutation, _eShaderStage, sourceInfo);
 
     // construct the final source string
     uint32 uRequiredLength = 0u;
