@@ -11,17 +11,44 @@ namespace Fancy { namespace Rendering {
   {
     typedef std::hash_map<ObjectName, ConstantBufferType> ConstantBufferTypeMap;
     typedef std::hash_map<ObjectName, ConstantSemantics> ConstantSemanticsMap;
+    typedef std::function<void(void*)> ConstantUpdateFunction;
+    typedef FixedArray<ConstantUpdateFunction, (uint32) ConstantSemantics::NUM> ConstantUpdateFuncList;
+    typedef FixedArray<uint32, (uint32) ConstantSemantics::NUM> ConstantElementOffsetList;
 
     ConstantBufferTypeMap mapConstantBufferTypes;
     ConstantSemanticsMap mapConstantSemantics;
-    
+    ConstantUpdateFuncList vConstantUpdateFunctions;
+    ConstantElementOffsetList vConstantElementOffsets;
+
     void initialize();
+
+    void updateRenderTargetSize(void* _pData);
+    void updateViewMatrix(void* _pData);
+    void updateViewInverseMatrix(void* _pData);
+    void updateProjectionMatrix(void* _pData);
+    void updateProjectionInverseMatrix(void* _pData);
+    void updateViewProjectionMatrix(void* _pData);
+    void updateViewProjectionInverseMatrix(void* _pData);
+    void updateNearFarParameters(void* _pData);
+    void updateCameraPosWS(void* _pData);
+    void updateDirLightParameters(void* _pData);
+    void updatePointLightParameters(void* _pData);
+    void updateSpotLightParameters(void* _pData);
+    void updateLightColorIntensity(void* _pData);
+    void updateLightPosWS(void* _pData);
+    void updateLightPosVS(void* _pData);
+    void updateDiffuseMatColorIntensity(void* _pData);
+    void updateSpecularMatColorIntensity(void* _pData);
+    void updateWorldMatrix(void* _pData);
+    void updateWorldInverseMatrix(void* _pData);
+    void updateWorldViewMatrix(void* _pData);
+    void updateWorldViewInverseMatrix(void* _pData);
+    void updateWorldViewProjectionMatrix(void* _pData);
+    void updateWorldViewProjectionInverseMatrix(void* _pData);
   }
 //---------------------------------------------------------------------------//
   namespace Storage
   {
-    void updateElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, void* const pBufferData);
-
     /// Gpu-resident buffers representing the datastores of the constant buffers
     GpuBuffer* m_vConstantBuffers[(uint32)ConstantBufferType::NUM];
     /// Elements of the constant buffers which map each semantic to a registered element
@@ -30,6 +57,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
 //---------------------------------------------------------------------------//
   void Internal::initialize()
   {
@@ -90,9 +119,208 @@ namespace Fancy { namespace Rendering {
       REGISTER(mapConstantSemantics, _N(PER_OBJECT.c_WorldViewProjectionInverseMatrix), ConstantSemantics::WORLDVIEWPROJECTION_INVERSE_MATRIX)
     END_COUNTED_REGISTRY_INIT((uint32) ConstantSemantics::NUM)
 
-#undef BEGIN_COUNTED_REGISTRY_INIT
 #undef REGISTER
+#define REGISTER(list, _index, value) list[_index] = value; __COUNTER__;
+    
+  BEGIN_COUNTED_REGISTRY_INIT
+    vConstantUpdateFunctions.resize((uint32) ConstantSemantics::NUM);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::RENDERTARGET_SIZE, updateRenderTargetSize);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEW_MATRIX, updateViewMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEW_INVERSE_MATRIX, updateViewInverseMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::PROJECTION_MATRIX, updateProjectionMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::PROJECTION_INVERSE_MATRIX, updateProjectionInverseMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEWPROJECTION_MATRIX, updateViewProjectionMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEWPROJECTION_INVERSE_MATRIX, updateViewProjectionInverseMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::NEARFAR_PARAMETERS, updateNearFarParameters);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::CAMERA_POSITION_WORLDSPACE, updateCameraPosWS);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::DIRLIGHT_PARAMETERS, updateDirLightParameters);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::POINTLIGHT_PARAMETERS, updatePointLightParameters);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::SPOTLIGHT_PARAMETERS, updateSpotLightParameters);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::LIGHT_COLORINTENSITY, updateLightColorIntensity);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::LIGHT_POSITION_WORLDSPACE, updateLightPosWS);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::LIGHT_POSITION_VIEWSPACE, updateLightPosVS);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::DIFFUSE_MATERIAL_COLORINTENSITY, updateDiffuseMatColorIntensity);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::SPECULAR_MATERIAL_COLORINTENSITY, updateSpecularMatColorIntensity);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLD_MATRIX, updateWorldMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLD_INVERSE_MATRIX, updateWorldInverseMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLDVIEW_MATRIX, updateWorldViewMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLDVIEW_INVERSE_MATRIX, updateWorldViewInverseMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLDVIEWPROJECTION_MATRIX, updateWorldViewProjectionMatrix);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLDVIEWPROJECTION_INVERSE_MATRIX, updateWorldViewProjectionInverseMatrix);
+  END_COUNTED_REGISTRY_INIT((uint32) ConstantSemantics::NUM);
+
+#undef REGISTER
+#define REGISTER(list, _index, value) list[_index] = value; __COUNTER__;
+
+  BEGIN_COUNTED_REGISTRY_INIT
+    vConstantElementOffsets.resize((uint32) ConstantSemantics::NUM);
+    uint32 offset = 0u;
+    // PER_LAUNCH
+    offset = 0u;
+    
+    // PER_FRAME
+    offset = 0u;
+
+    // PER_VIEWPORT
+    offset = 0u;
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::RENDERTARGET_SIZE, offset);                   offset += sizeof(glm::vec4);
+    
+    // PER_STAGE
+    offset = 0u;
+
+    // PER_CAMERA
+    offset = 0u;
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::VIEW_MATRIX, offset);                         offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::VIEW_INVERSE_MATRIX, offset);                 offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::PROJECTION_MATRIX, offset);                   offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::PROJECTION_INVERSE_MATRIX, offset);           offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::VIEWPROJECTION_MATRIX, offset);               offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::VIEWPROJECTION_INVERSE_MATRIX, offset);       offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::NEARFAR_PARAMETERS, offset);                  offset += sizeof(glm::vec4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::CAMERA_POSITION_WORLDSPACE, offset);          offset += sizeof(glm::vec4);
+
+    // PER_LIGHT
+    offset = 0u;
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::DIRLIGHT_PARAMETERS, offset);                 offset += sizeof(glm::vec4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::POINTLIGHT_PARAMETERS, offset);               offset += sizeof(glm::vec4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::SPOTLIGHT_PARAMETERS, offset);                offset += sizeof(glm::vec4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::LIGHT_COLORINTENSITY, offset);                offset += sizeof(glm::vec4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::LIGHT_POSITION_WORLDSPACE, offset);           offset += sizeof(glm::vec4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::LIGHT_POSITION_VIEWSPACE, offset);            offset += sizeof(glm::vec4);
+
+    // PER_MATERIAL
+    offset = 0u;
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::DIFFUSE_MATERIAL_COLORINTENSITY, offset);     offset += sizeof(glm::vec4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::SPECULAR_MATERIAL_COLORINTENSITY, offset);    offset += sizeof(glm::vec4);
+
+    // PER_DRAW
+    offset = 0u;
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::WORLD_MATRIX, offset);                        offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::WORLD_INVERSE_MATRIX, offset);                offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::WORLDVIEW_MATRIX, offset);                    offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::WORLDVIEW_INVERSE_MATRIX, offset);            offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::WORLDVIEWPROJECTION_MATRIX, offset);          offset += sizeof(glm::mat4);
+    REGISTER(vConstantElementOffsets, (uint32) ConstantSemantics::WORLDVIEWPROJECTION_INVERSE_MATRIX, offset);  offset += sizeof(glm::mat4);
+  END_COUNTED_REGISTRY_INIT((uint32) ConstantSemantics::NUM);
+
+#undef BEGIN_COUNTED_REGISTRY_INIT
 #undef END_COUNTED_REGISTRY_INIT
+  }
+//---------------------------------------------------------------------------//
+  void Internal::updateRenderTargetSize(void* _pData)
+  {
+
+  }
+
+  void Internal::updateViewMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateViewInverseMatrix(void* _pData)
+  {
+
+
+  }
+
+  void Internal::updateProjectionMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateProjectionInverseMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateViewProjectionMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateViewProjectionInverseMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateNearFarParameters(void* _pData)
+  {
+
+  }
+
+  void Internal::updateCameraPosWS(void* _pData)
+  {
+
+  }
+
+  void Internal::updateDirLightParameters(void* _pData)
+  {
+
+  }
+
+  void Internal::updatePointLightParameters(void* _pData)
+  {
+
+  }
+
+  void Internal::updateSpotLightParameters(void* _pData)
+  {
+
+  }
+
+  void Internal::updateLightColorIntensity(void* _pData)
+  {
+
+  }
+
+  void Internal::updateLightPosWS(void* _pData)
+  {
+
+  }
+
+  void Internal::updateLightPosVS(void* _pData)
+  {
+
+  }
+
+  void Internal::updateDiffuseMatColorIntensity(void* _pData)
+  {
+
+  }
+
+  void Internal::updateSpecularMatColorIntensity(void* _pData)
+  {
+
+  }
+
+  void Internal::updateWorldMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateWorldInverseMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateWorldViewMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateWorldViewInverseMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateWorldViewProjectionMatrix(void* _pData)
+  {
+
+  }
+
+  void Internal::updateWorldViewProjectionInverseMatrix(void* _pData)
+  {
+
   }
 //---------------------------------------------------------------------------//
   ShaderConstantsManager::ShaderConstantsManager()
@@ -163,130 +391,19 @@ namespace Fancy { namespace Rendering {
     const uint32 semanticFrom = (uint32) semanticsBegin[(uint32)eType];
     const uint32 semanticTo = (uint32) semanticsEnd[(uint32)eType];
     
-    void* const pConstantData = 
-      Storage::m_vConstantBuffers[(uint32)eType]->lock(GpuResoruceLockOption::WRITE_PERSISTENT);
+    uint8* const pConstantData = static_cast<uint8*>(Storage::m_vConstantBuffers[(uint32)eType]->lock(GpuResoruceLockOption::WRITE_PERSISTENT));
     ASSERT(pConstantData);
 
     for (uint32 i = semanticFrom; i < semanticTo; ++i)
     {
-      const ConstantBufferElement& element = Storage::m_vConstantBufferElements[i];
-      Storage::updateElement(element, static_cast<ConstantSemantics>(i), pConstantData);
+      // TODO: Should we deprecate the elements and only work with the full layout as defined in the shader?
+      // const ConstantBufferElement& element = Storage::m_vConstantBufferElements[i];
+      
+      const uint32 offset = Internal::vConstantElementOffsets[i];
+      const Internal::ConstantUpdateFunction& updateFunction = Internal::vConstantUpdateFunctions[i];
+      updateFunction(pConstantData + offset);
     }
     Storage::m_vConstantBuffers[(uint32)eType]->unlock();
-  }
-//---------------------------------------------------------------------------//
-  void Storage::updateElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, void* const pBufferData)
-  {
-    const float* pElementData = nullptr;
-    
-    switch(eElementSemantic)
-    {
-      case ConstantSemantics::NONE: 
-        {
-
-        } break;
-      case ConstantSemantics::RENDERTARGET_SIZE:
-        {
-
-        } break;
-      case ConstantSemantics::VIEW_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::VIEW_INVERSE_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::PROJECTION_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::PROJECTION_INVERSE_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::VIEWPROJECTION_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::VIEWPROJECTION_INVERSE_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::NEARFAR_PARAMETERS:
-        {
-
-        } break;
-      case ConstantSemantics::CAMERA_POSITION_WORLDSPACE:
-        {
-
-        } break;
-      case ConstantSemantics::DIRLIGHT_PARAMETERS:
-        {
-
-        } break;
-      case ConstantSemantics::POINTLIGHT_PARAMETERS:
-        {
-
-        } break;
-      case ConstantSemantics::SPOTLIGHT_PARAMETERS:
-        {
-
-        } break;
-      case ConstantSemantics::LIGHT_COLORINTENSITY:
-        {
-
-        } break;
-      case ConstantSemantics::LIGHT_POSITION_WORLDSPACE:
-        {
-
-        } break;
-      case ConstantSemantics::LIGHT_POSITION_VIEWSPACE:
-        {
-
-        } break;
-      case ConstantSemantics::DIFFUSE_MATERIAL_COLORINTENSITY:
-        {
-
-        } break;
-      case ConstantSemantics::SPECULAR_MATERIAL_COLORINTENSITY:
-        {
-
-        } break;
-      case ConstantSemantics::WORLD_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::WORLD_INVERSE_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::WORLDVIEW_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::WORLDVIEW_INVERSE_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::WORLDVIEWPROJECTION_MATRIX:
-        {
-
-        } break;
-      case ConstantSemantics::WORLDVIEWPROJECTION_INVERSE_MATRIX:
-        {
-
-        } break;
-      default:
-        {
-          ASSERT_M(false, "Shader semantic not implemented");
-        } break;
-    }  // end switch semantics
-
-    // Copy the value into the buffer
-    memcpy(static_cast<uint8* const>(pBufferData) + element.uOffsetBytes,
-           pElementData, 
-           element.uSizeBytes);
   }
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::registerBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes)
@@ -327,4 +444,4 @@ namespace Fancy { namespace Rendering {
     Storage::m_vConstantBufferElements[uSemanticIdx] = element;
   }
 //---------------------------------------------------------------------------//
-} } 
+} }
