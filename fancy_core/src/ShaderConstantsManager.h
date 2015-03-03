@@ -7,6 +7,18 @@
 #include "FixedArray.h"
 #include "ObjectName.h"
 
+// forward decls
+namespace Fancy { namespace Rendering {
+  class Renderer;
+  class MaterialPassInstance;
+} }
+
+namespace Fancy { namespace Scene {
+  class SceneNode;
+  class Camera;
+} }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class ConstantSemantics
@@ -90,7 +102,13 @@ namespace Fancy { namespace Rendering {
     uint8 uFormatComponentCount;  // Multiplier for eFormat. Used for multi-component elements (e.g. Matrices)
   };
 //---------------------------------------------------------------------------//
-  
+  struct ShaderConstantsUpdateStage
+  {
+    const Renderer* pRenderer;
+    const Scene::SceneNode* pModelNode;
+    const Scene::Camera* pCamera;
+    const MaterialPassInstance* pMaterial;
+  };
 //---------------------------------------------------------------------------//
   class ShaderConstantsManager
   {
@@ -110,6 +128,7 @@ namespace Fancy { namespace Rendering {
       static ConstantSemantics getSemanticFromName(const ObjectName& clName);
       static ConstantBufferType getConstantBufferTypeFromName(const ObjectName& clName);
 
+      static ShaderConstantsUpdateStage updateStage;
     private:
       ShaderConstantsManager();
       ~ShaderConstantsManager();

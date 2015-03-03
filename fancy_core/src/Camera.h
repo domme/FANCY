@@ -13,6 +13,7 @@ namespace Fancy { namespace Scene {
       virtual ~Camera();
 
       const glm::mat4& getView() const { return m_matView; }
+      const glm::mat4& getViewInv() const {return m_matViewInv; }
       const glm::mat4& getProjection() const { return m_matProjection; }
       const glm::mat4& getViewProjection() const { return m_matViewProj; }
       void setFarPlane( float fFar ) { m_fFar = fFar; }
