@@ -54,7 +54,8 @@ namespace Fancy { namespace Scene {
       ModelComponent* getModelComponent() {return m_pModelComponent;}
 
       Transform& getTransform() {return m_transform;}
-      bool hasParent() {return m_pParent != nullptr;}
+      const Transform& getTransform() const {return m_transform;}
+      bool hasParent() const {return m_pParent != nullptr;}
 
       const ObjectName& getName() const {return m_name;}
       void setName(const ObjectName& _name) {m_name = _name;}

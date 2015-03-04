@@ -2,6 +2,8 @@
 #include "ShaderConstantsManager.h"
 #include "Renderer.h"
 #include "Camera.h"
+#include "SceneNode.h"
+
 #include <hash_map>
 
 #include "GpuBuffer.h"
@@ -211,82 +213,117 @@ namespace Fancy { namespace Rendering {
   void Internal::updateNearFarParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
      ASSERT(_updateStage.pCamera);
+     const float fNear = _updateStage.pCamera->getNearPlane();
+     const float fFar = _updateStage.pCamera->getFarPlane();
+     _pData[0] = fNear;
+     _pData[1] = fFar;
+     _pData[2] = fNear / fFar;
+     _pData[3] = 1.0f / fFar;
   }
 //---------------------------------------------------------------------------//
   void Internal::updateCameraPosWS(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
      ASSERT(_updateStage.pCamera);
+     const glm::mat4& viewInvMat = _updateStage.pCamera->getViewInv();
+     const glm::vec4 camPosWS = glm::column(viewInvMat, 3);
+     memcpy(_pData, glm::value_ptr(camPosWS), sizeof(glm::vec4));
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateDirLightParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    // TODO: Implement lights
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updatePointLightParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    // TODO: Implement lights
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateSpotLightParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    // TODO: Implement lights
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateLightColorIntensity(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    // TODO: Implement lights
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateLightPosWS(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    // TODO: Implement lights
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateLightPosVS(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    // TODO: Implement lights
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateDiffuseMatColorIntensity(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    // TODO: Implement Material params
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateSpecularMatColorIntensity(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    // TODO: Implement Material params
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateWorldMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    ASSERT(_updateStage.pModelNode);
+    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    memcpy(_pData, glm::value_ptr(worldMat), sizeof(glm::mat4));
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateWorldInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    ASSERT(_updateStage.pModelNode);
+    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    const glm::mat4 worldInvMat(glm::affineInverse(worldMat));
+    memcpy(_pData, glm::value_ptr(worldInvMat), sizeof(glm::mat4));
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateWorldViewMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    ASSERT(_updateStage.pModelNode);
+    ASSERT(_updateStage.pCamera);
+    const glm::mat4& viewMat = _updateStage.pCamera->getView();
+    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    const glm::mat4 worldView(viewMat * worldMat);
+    memcpy(_pData, glm::value_ptr(worldView), sizeof(glm::mat4));
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateWorldViewInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    ASSERT(_updateStage.pModelNode);
+    ASSERT(_updateStage.pCamera);
+    const glm::mat4& viewMat = _updateStage.pCamera->getView();
+    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    const glm::mat4 worldViewInv(glm::affineInverse(viewMat * worldMat));
+    memcpy(_pData, glm::value_ptr(worldViewInv), sizeof(glm::mat4));
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateWorldViewProjectionMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    ASSERT(_updateStage.pModelNode);
+    ASSERT(_updateStage.pCamera);
+    const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
+    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    const glm::mat4 worldViewProj(viewProjMat * worldMat);
+    memcpy(_pData, glm::value_ptr(worldViewProj), sizeof(glm::mat4));
   }
-
+//---------------------------------------------------------------------------//
   void Internal::updateWorldViewProjectionInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-
+    ASSERT(_updateStage.pModelNode);
+    ASSERT(_updateStage.pCamera);
+    const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
+    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    const glm::mat4 worldViewProjInv(glm::inverse(viewProjMat * worldMat));
+    memcpy(_pData, glm::value_ptr(worldViewProjInv), sizeof(glm::mat4));
   }
+//---------------------------------------------------------------------------//
 #pragma endregion
 //---------------------------------------------------------------------------//
   ShaderConstantsManager::ShaderConstantsManager()
