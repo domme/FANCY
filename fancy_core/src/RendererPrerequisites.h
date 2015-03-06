@@ -52,7 +52,6 @@ namespace Fancy {
       enum { kGpuMultiBufferingCount = 2u };
       
       uint32 getCurrentBufferIndex();
-      void beginFrame();
     }
 //---------------------------------------------------------------------------//
   // Forward-declarations of common rendering classes
@@ -354,21 +353,6 @@ namespace Fancy {
       TEXCOORD5,
       TEXCOORD6,
       TEXCOORD7,
-
-      NUM
-    };
-//---------------------------------------------------------------------------//
-    enum class ConstantBufferType {
-      NONE = 0,
-
-      PER_LAUNCH,
-      PER_FRAME,
-      PER_VIEWPORT,
-      PER_STAGE,
-      PER_CAMERA,
-      PER_LIGHT,
-      PER_MATERIAL,
-      PER_OBJECT,
 
       NUM
     };

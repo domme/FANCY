@@ -319,11 +319,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   }
 //---------------------------------------------------------------------------//
   void* GpuBufferGL4::lock( GpuResoruceLockOption eLockOption, 
-    uint uOffsetElements /* = 0 */, uint uNumElements /* = 0 */ )
+    uint uOffsetElements /* = 0u */, uint uNumElements /* = 0u */ )
   {
     const GLuint uLockOptionsGL = Internal::mapLockOption(eLockOption);
 
-    // We always keep persistently locked buffers locked for its entrie lifetime, so just return the
+    // We always keep persistently locked buffers locked for its entire lifetime, so just return the
     // cached and appropriately offset pointer here
     if ((uLockOptionsGL & GL_MAP_PERSISTENT_BIT) > 0 && isLocked())
     {
@@ -334,7 +334,19 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
       else  // MultiBufferingStrategy::OFFSETS
       {
-        return static_cast<uint8*>(m_pCachedLockPtr) + (getBufferIndex() * m_clParameters.uTotalSizeBytes); 
+        return static_cast<uint8*>(m_pCachedLockPtr) + (MultiBuffering::getCurrentBufferIndex() * m_clParameters.uTotalSizeBytes);
+      }
+    }
+
+    if (uNumElements == 0u )
+    {
+      if (m_eMultiBufferStrategy == MultiBufferingStrategy::NONE || m_eMultiBufferStrategy == MultiBufferingStrategy::BUFFERS)
+      {
+        uNumElements = m_clParameters.uNumElements;
+      }
+      else
+      {
+        uNumElements = m_clParameters.uNumElements * MultiBuffering::kGpuMultiBufferingCount;
       }
     }
     

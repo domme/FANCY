@@ -21,14 +21,26 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  enum class ConstantBufferType {
+    // PER_LAUNCH,
+    PER_FRAME,
+    PER_VIEWPORT,
+    // PER_STAGE,
+    PER_CAMERA,
+    PER_LIGHT,
+    PER_MATERIAL,
+    PER_OBJECT,
+
+    NUM,
+    NONE
+  };
+//---------------------------------------------------------------------------//
   enum class ConstantSemantics
   {
-      NONE = 0,  // set manually
-
     // -------- PER_LAUNCH -------- //
-    
+      
     // -------- PER_FRAME -------- //
-
+      TIME_PARAMETERS, // (t, dt, unused, unused)
     // -------- PER_VIEWPORT -------- //
       RENDERTARGET_SIZE,  // (w, h, 1/w, 1/h)
     
@@ -65,18 +77,19 @@ namespace Fancy { namespace Rendering {
       WORLDVIEWPROJECTION_INVERSE_MATRIX,
 
       NUM,
+      NONE = 0,  // set manually
 
-      PER_LAUNCH_BEGIN = 0,
-      PER_LAUNCH_END = 0,
+      //PER_LAUNCH_BEGIN = 0,
+      // PER_LAUNCH_END = 0,
       
-      PER_FRAME_BEGIN = 0,
-      PER_FRAME_END = 0,
+      PER_FRAME_BEGIN = TIME_PARAMETERS,
+      PER_FRAME_END = RENDERTARGET_SIZE,
 
       PER_VIEWPORT_BEGIN = RENDERTARGET_SIZE,
       PER_VIEWPORT_END = VIEW_MATRIX,
 
-      PER_STAGE_BEGIN = 0,
-      PER_STAGE_END = 0,
+      // PER_STAGE_BEGIN = 0,
+      // PER_STAGE_END = 0,
 
       PER_CAMERA_BEGIN = VIEW_MATRIX,
       PER_CAMERA_END = DIRLIGHT_PARAMETERS,

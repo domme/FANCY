@@ -13,6 +13,7 @@
 #include <Scene.h>
 #include <EngineCommon.h>
 #include <SceneImporter.h>
+#include <RenderingProcessForward.h>
 
 static void error_callback(int error, const char* description)
 {
@@ -57,21 +58,33 @@ int main(void)
     log_Info(ss.str());
   }
 
+  Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
+  Fancy::Rendering::RenderingProcessForwardPtr pRenderingProcess = std::make_shared<Fancy::Rendering::RenderingProcessForward>();
+
   // Init the engine
   Fancy::EngineCommon::initEngine();
-  Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
-
+  Fancy::EngineCommon::setCurrentScene(pScene);
+  Fancy::EngineCommon::setRenderingProcess(pRenderingProcess.get());
   Fancy::IO::SceneImporter::importToSceneGraph("Models/cube.obj", pScene->getRootNode());
 
+  Fancy::EngineCommon::startup();
+
   glfwSetKeyCallback(window, key_callback);
+  double lastTime = glfwGetTime();
   while (!glfwWindowShouldClose(window))
   {
     float ratio;
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
+    Fancy::EngineCommon::setWindowSize(width, height);
+    
+    double currTime = glfwGetTime();
+    Fancy::EngineCommon::update(currTime - lastTime);
   
     glfwSwapBuffers(window);
     glfwPollEvents();
+
+    lastTime = currTime;
   }
 
   Fancy::EngineCommon::shutdownEngine();

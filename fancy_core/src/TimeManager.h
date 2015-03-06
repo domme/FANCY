@@ -5,19 +5,26 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class TimeManager 
+  class Time 
   {
     public:
-      static TimeManager& getInstance() {static TimeManager instance; return instance;}
+      static void update(float fDt);
+      static uint32 getCurrentFrameIndex() { return m_uCurrentFrameIndex; }
+      static float getDeltaTime() {return m_fCurrDerivedDt; }
 
-      void update(float fDt);
-      uint32 getCurrentFrameIndex() const { return m_uCurrentFrameIndex; }
+      static float getTimeScale() {return m_fTimeScale;}
+      static void setTimeScale(float _timeScale) {m_fTimeScale = _timeScale;}
+
+      static float getElapsedTime() {return m_fElapsedTime;}
 
     private:
-      TimeManager();
-      ~TimeManager();
+      Time();
+      ~Time();
 
-      uint32 m_uCurrentFrameIndex;
+      static uint32 m_uCurrentFrameIndex;
+      static float m_fElapsedTime;
+      static float m_fTimeScale;
+      static float m_fCurrDerivedDt;
   };
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

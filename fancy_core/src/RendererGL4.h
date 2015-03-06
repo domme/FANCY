@@ -8,6 +8,7 @@
 #include "VertexInputLayout.h"
 #include "DepthStencilState.h"
 #include "BlendState.h"
+#include "ShaderConstantsManager.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 
@@ -26,7 +27,9 @@ public:
   void beginFrame();
   void endFrame();
 
+  /// x, y, width, height
   void setViewport(const glm::uvec4& uViewportParams);
+  /// x, y, width, height
   const glm::uvec4 getViewport() const {return m_uViewportParams;}
 
   /// Sets the blendState that should be active upon in next draw call

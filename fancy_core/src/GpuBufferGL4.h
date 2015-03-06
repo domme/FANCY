@@ -24,7 +24,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       void setBufferData(void* pData, uint uOffsetElements = 0, uint uNumElements = 0);
       void create(const GpuBufferParameters& clParameters, void* pInitialData = nullptr);
       void destroy();
-      void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0, uint uNumElements = 0);
+      void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
       void unlock();
       
     private:

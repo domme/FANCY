@@ -213,6 +213,12 @@
     <ClInclude Include="src\GpuProgramFeatures.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="src\RenderingProcess.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderingProcessForward.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -339,6 +345,12 @@
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\GpuProgramFeatures.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderingProcess.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderingProcessForward.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>

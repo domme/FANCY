@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Camera.h"
 #include "SceneNode.h"
+#include "TimeManager.h"
 
 #include <hash_map>
 
@@ -25,6 +26,7 @@ namespace Fancy { namespace Rendering {
 
     void initialize();
 
+    void updateTimeParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
     void updateRenderTargetSize(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
     void updateViewMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
     void updateViewInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
@@ -67,14 +69,14 @@ namespace Fancy { namespace Rendering {
   {
 #define BEGIN_COUNTED_REGISTRY_INIT { enum {startCount = __COUNTER__};
 #define REGISTER(map, key, value) ASSERT_M(map.find(key) == map.end(), "Key already registered!"); map[key] = value; __COUNTER__;
-#define END_COUNTED_REGISTRY_INIT(expectedNum) static_assert(__COUNTER__ - startCount == expectedNum, "Forgot to register some values"); }
+#define END_COUNTED_REGISTRY_INIT(expectedNum) static_assert((__COUNTER__ - startCount) - 1 == expectedNum, "Forgot to register some values"); }
 
     // Init all possible constants
     BEGIN_COUNTED_REGISTRY_INIT
-      REGISTER(mapConstantBufferTypes, _N(PER_LAUNCH), ConstantBufferType::PER_LAUNCH)
+      // REGISTER(mapConstantBufferTypes, _N(PER_LAUNCH), ConstantBufferType::PER_LAUNCH)
       REGISTER(mapConstantBufferTypes, _N(PER_FRAME), ConstantBufferType::PER_FRAME)
       REGISTER(mapConstantBufferTypes, _N(PER_VIEWPORT), ConstantBufferType::PER_VIEWPORT)
-      REGISTER(mapConstantBufferTypes, _N(PER_STAGE), ConstantBufferType::PER_STAGE)
+      // REGISTER(mapConstantBufferTypes, _N(PER_STAGE), ConstantBufferType::PER_STAGE)
       REGISTER(mapConstantBufferTypes, _N(PER_CAMERA), ConstantBufferType::PER_CAMERA) 
       REGISTER(mapConstantBufferTypes, _N(PER_LIGHT), ConstantBufferType::PER_LIGHT)
       REGISTER(mapConstantBufferTypes, _N(PER_MATERIAL), ConstantBufferType::PER_MATERIAL)
@@ -85,7 +87,7 @@ namespace Fancy { namespace Rendering {
       // PER_LAUNCH
 
       // PER_FRAME
-
+      REGISTER(mapConstantSemantics, _N(PER_FRAME.c_TimeParameters), ConstantSemantics::TIME_PARAMETERS)
       // PER_VIEWPORT
       REGISTER(mapConstantSemantics, _N(PER_VIEWPORT.c_RenderTargetSize), ConstantSemantics::RENDERTARGET_SIZE)
 
@@ -126,6 +128,7 @@ namespace Fancy { namespace Rendering {
 #define REGISTER(list, _index, value) list[_index] = value; __COUNTER__;
     
   BEGIN_COUNTED_REGISTRY_INIT
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::TIME_PARAMETERS, updateTimeParameters);
     REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::RENDERTARGET_SIZE, updateRenderTargetSize);
     REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEW_MATRIX, updateViewMatrix);
     REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEW_INVERSE_MATRIX, updateViewInverseMatrix);
@@ -157,6 +160,14 @@ namespace Fancy { namespace Rendering {
   }
 //---------------------------------------------------------------------------//
 #pragma region Update Functions
+  void Internal::updateTimeParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
+  {
+    _pData[0] = Time::getDeltaTime();
+    _pData[1] = Time::getElapsedTime();
+    _pData[2] = 0.0f;  // unused
+    _pData[3] = 0.0f;  // unused
+  }
+//---------------------------------------------------------------------------//
   void Internal::updateRenderTargetSize(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
     ASSERT(_updateStage.pRenderer);
@@ -383,15 +394,17 @@ namespace Fancy { namespace Rendering {
     ASSERT(Storage::m_vConstantBuffers[(uint32)eType]);
     
     static const ConstantSemantics semanticsBegin[] = 
-      { ConstantSemantics::PER_LAUNCH_BEGIN, ConstantSemantics::PER_FRAME_BEGIN, 
-       ConstantSemantics::PER_VIEWPORT_BEGIN, ConstantSemantics::PER_STAGE_BEGIN, 
-       ConstantSemantics::PER_CAMERA_BEGIN, ConstantSemantics::PER_MATERIAL_BEGIN, 
+      { ConstantSemantics::PER_FRAME_BEGIN, 
+       ConstantSemantics::PER_VIEWPORT_BEGIN, 
+       ConstantSemantics::PER_CAMERA_BEGIN, 
+       ConstantSemantics::PER_MATERIAL_BEGIN, 
        ConstantSemantics::PER_DRAW_BEGIN };
 
     static const ConstantSemantics semanticsEnd[] = 
-      { ConstantSemantics::PER_LAUNCH_END, ConstantSemantics::PER_FRAME_END, 
-      ConstantSemantics::PER_VIEWPORT_END, ConstantSemantics::PER_STAGE_END, 
-      ConstantSemantics::PER_CAMERA_END, ConstantSemantics::PER_MATERIAL_END, 
+      { ConstantSemantics::PER_FRAME_END, 
+      ConstantSemantics::PER_VIEWPORT_END,
+      ConstantSemantics::PER_CAMERA_END, 
+      ConstantSemantics::PER_MATERIAL_END,
       ConstantSemantics::PER_DRAW_END };
 
     const uint32 semanticFrom = (uint32) semanticsBegin[(uint32)eType];
@@ -452,4 +465,9 @@ namespace Fancy { namespace Rendering {
     Internal::vConstantElementOffsets[uSemanticIdx] = element.uOffsetBytes;
   }
 //---------------------------------------------------------------------------//
-} }
+  void ShaderConstantsManager::bindBuffers()
+  {
+    // TODO: Implement for platforms that don't support persistantly mapped buffers
+  }
+//---------------------------------------------------------------------------//
+} }  // end of namespace Fancy::Rendering

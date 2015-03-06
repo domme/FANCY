@@ -243,6 +243,8 @@
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\RendererGL4.h" />
     <ClInclude Include="src\RendererPrerequisites.h" />
+    <ClInclude Include="src\RenderingProcess.h" />
+    <ClInclude Include="src\RenderingProcessForward.h" />
     <ClInclude Include="src\RenderOperation.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneImporter.h" />
@@ -292,6 +294,8 @@
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\RendererGL4.cpp" />
     <ClCompile Include="src\RendererPrerequisites.cpp" />
+    <ClCompile Include="src\RenderingProcess.cpp" />
+    <ClCompile Include="src\RenderingProcessForward.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\SceneImporter.cpp" />

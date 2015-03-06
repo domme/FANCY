@@ -1192,7 +1192,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   void RendererGL4::beginFrame()
   {
-    MultiBuffering::beginFrame();
+
   }
 //---------------------------------------------------------------------------//
   void RendererGL4::endFrame()
