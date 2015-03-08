@@ -175,8 +175,7 @@ namespace Fancy { namespace IO {
 
     if (_pAnode->mNumMeshes > 0u)
     {
-      Scene::ModelComponent* pModelComponent =
-        static_cast<Scene::ModelComponent*>(pNode->createComponent(_N(ModelComponent)));
+      Scene::ModelComponent* pModelComponent = static_cast<Scene::ModelComponent*>(pNode->addOrRetrieveComponent(_N(ModelComponent)));
 
       Processing::processMeshes(_workingData, _pAnode, pModelComponent);
     }

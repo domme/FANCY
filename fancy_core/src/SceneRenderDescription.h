@@ -17,10 +17,11 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct RenderingItem
   {
-    RenderingItem(const Geometry::GeometryData* _pGeometry, 
-      const MaterialPassInstance* _pMaterialPassInstance) :
-      pGeometry(_pGeometry), pMaterialPassInstance(_pMaterialPassInstance) {}
+    RenderingItem() : pGeometry(nullptr), pMaterialPassInstance(nullptr), pWorldMat(nullptr) {}
+    RenderingItem(const Geometry::GeometryData* _pGeometry, const MaterialPassInstance* _pMaterialPassInstance, const glm::mat4* _pWorldMat) :
+      pGeometry(_pGeometry), pMaterialPassInstance(_pMaterialPassInstance), pWorldMat(_pWorldMat) {}
 
+    const glm::mat4* pWorldMat;
     const Geometry::GeometryData* pGeometry;
     const MaterialPassInstance* pMaterialPassInstance;
   };
@@ -33,10 +34,8 @@ namespace Fancy { namespace Scene {
     kMaxNumRenderingItems = 1024u,
   };
 //---------------------------------------------------------------------------//
-  typedef FixedArray<Rendering::RenderingItem, kMaxNumRenderingItems> 
-    RenderingItemList;
-  typedef FixedArray<RenderingItemList, (uint) Rendering::EMaterialPass::NUM> 
-    TechniqueRenderingItemList;
+  typedef FixedArray<Rendering::RenderingItem, kMaxNumRenderingItems> RenderingItemList;
+  typedef FixedArray<RenderingItemList, (uint) Rendering::EMaterialPass::NUM> TechniqueRenderingItemList;
 //---------------------------------------------------------------------------//
     class SceneRenderDescription
     {

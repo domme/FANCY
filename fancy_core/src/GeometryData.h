@@ -18,8 +18,8 @@ namespace Fancy { namespace Geometry {
       ~GeometryData();
 
       const Rendering::GeometryVertexLayout& getGeometryVertexLayout() const {return m_vertexLayout;}
-      Rendering::GpuBuffer* getVertexBuffer() {return m_pVertexBuffer;}
-      Rendering::GpuBuffer* getIndexBuffer() {return m_pIndexBuffer;}
+      const Rendering::GpuBuffer* getVertexBuffer() const {return m_pVertexBuffer;}
+      const Rendering::GpuBuffer* getIndexBuffer() const {return m_pIndexBuffer;}
       uint32 getNumVertices() const {return m_pVertexBuffer ? m_pVertexBuffer->getNumElements() : 0u; }
       uint32 getNumIndices() const {return m_pIndexBuffer ? m_pIndexBuffer->getNumElements() : 0u; }
       uint32 getVertexStrideBytes() const {return m_vertexLayout.getStrideBytes();}

@@ -118,7 +118,7 @@ namespace Fancy { namespace Rendering {
   struct ShaderConstantsUpdateStage
   {
     const Renderer* pRenderer;
-    const Scene::SceneNode* pModelNode;
+    const glm::mat4* pWorldMat;
     const Scene::Camera* pCamera;
     const MaterialPassInstance* pMaterial;
   };
@@ -136,7 +136,7 @@ namespace Fancy { namespace Rendering {
       static void registerBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes);
 
       /// Binds all constant buffers to the pipeline
-      static void bindBuffers();
+      static void bindBuffers(Rendering::Renderer* _pRenderer);
 
       static ConstantSemantics getSemanticFromName(const ObjectName& clName);
       static ConstantBufferType getConstantBufferTypeFromName(const ObjectName& clName);

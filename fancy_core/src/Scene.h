@@ -7,6 +7,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   // Forward declarations:
   class SceneNode;
+  class CameraComponent;
   class SceneRenderDescription;
 //---------------------------------------------------------------------------//
 
@@ -21,9 +22,12 @@ namespace Fancy { namespace Scene {
 
       void update();
       void gatherRenderItems(SceneRenderDescription* pRenderDesc);
-            
+      void setActiveCamera(const std::shared_ptr<CameraComponent>& _pCamera) {m_pActiveCamera = _pCamera;}
+      CameraComponent* getActiveCamera() {return m_pActiveCamera.lock().get();}
+      
     private:
       std::shared_ptr<SceneNode> m_pRootNode;
+      std::weak_ptr<CameraComponent> m_pActiveCamera;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(Scene)

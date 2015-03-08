@@ -282,55 +282,55 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void Internal::updateWorldMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-    ASSERT(_updateStage.pModelNode);
-    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    ASSERT(_updateStage.pWorldMat);
+    const glm::mat4& worldMat = *_updateStage.pWorldMat;
     memcpy(_pData, glm::value_ptr(worldMat), sizeof(glm::mat4));
   }
 //---------------------------------------------------------------------------//
   void Internal::updateWorldInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-    ASSERT(_updateStage.pModelNode);
-    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    ASSERT(_updateStage.pWorldMat);
+    const glm::mat4& worldMat = *_updateStage.pWorldMat;
     const glm::mat4 worldInvMat(glm::affineInverse(worldMat));
     memcpy(_pData, glm::value_ptr(worldInvMat), sizeof(glm::mat4));
   }
 //---------------------------------------------------------------------------//
   void Internal::updateWorldViewMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-    ASSERT(_updateStage.pModelNode);
+    ASSERT(_updateStage.pWorldMat);
     ASSERT(_updateStage.pCamera);
     const glm::mat4& viewMat = _updateStage.pCamera->getView();
-    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    const glm::mat4& worldMat = *_updateStage.pWorldMat;
     const glm::mat4 worldView(viewMat * worldMat);
     memcpy(_pData, glm::value_ptr(worldView), sizeof(glm::mat4));
   }
 //---------------------------------------------------------------------------//
   void Internal::updateWorldViewInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-    ASSERT(_updateStage.pModelNode);
+    ASSERT(_updateStage.pWorldMat);
     ASSERT(_updateStage.pCamera);
     const glm::mat4& viewMat = _updateStage.pCamera->getView();
-    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    const glm::mat4& worldMat = *_updateStage.pWorldMat;
     const glm::mat4 worldViewInv(glm::affineInverse(viewMat * worldMat));
     memcpy(_pData, glm::value_ptr(worldViewInv), sizeof(glm::mat4));
   }
 //---------------------------------------------------------------------------//
   void Internal::updateWorldViewProjectionMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-    ASSERT(_updateStage.pModelNode);
+    ASSERT(_updateStage.pWorldMat);
     ASSERT(_updateStage.pCamera);
     const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
-    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    const glm::mat4& worldMat = *_updateStage.pWorldMat;
     const glm::mat4 worldViewProj(viewProjMat * worldMat);
     memcpy(_pData, glm::value_ptr(worldViewProj), sizeof(glm::mat4));
   }
 //---------------------------------------------------------------------------//
   void Internal::updateWorldViewProjectionInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
   {
-    ASSERT(_updateStage.pModelNode);
+    ASSERT(_updateStage.pWorldMat);
     ASSERT(_updateStage.pCamera);
     const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
-    const glm::mat4& worldMat = _updateStage.pModelNode->getTransform().getCachedWorld();
+    const glm::mat4& worldMat = *_updateStage.pWorldMat;
     const glm::mat4 worldViewProjInv(glm::inverse(viewProjMat * worldMat));
     memcpy(_pData, glm::value_ptr(worldViewProjInv), sizeof(glm::mat4));
   }
@@ -465,9 +465,18 @@ namespace Fancy { namespace Rendering {
     Internal::vConstantElementOffsets[uSemanticIdx] = element.uOffsetBytes;
   }
 //---------------------------------------------------------------------------//
-  void ShaderConstantsManager::bindBuffers()
+  void ShaderConstantsManager::bindBuffers(Rendering::Renderer* _pRenderer)
   {
-    // TODO: Implement for platforms that don't support persistantly mapped buffers
+    for (uint32 iShaderStage = 0u; iShaderStage < (uint32) ShaderStage::NUM; ++iShaderStage)
+    {
+      const ShaderStage eShaderStage = (ShaderStage) iShaderStage;
+
+      for (uint32 iConstantBuffer = 0u; iConstantBuffer < (uint32) ConstantBufferType::NUM; ++iConstantBuffer)
+      {
+        const GpuBuffer* pConstantBuffer = Storage::m_vConstantBuffers[iConstantBuffer];
+        _pRenderer->setConstantBuffer(pConstantBuffer, eShaderStage, iConstantBuffer);
+      }
+    }
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

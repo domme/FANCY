@@ -5,12 +5,13 @@
 
 namespace Fancy { 
  //---------------------------------------------------------------------------//
-  class ObjectName {
+  class DLLEXPORT ObjectName {
     //---------------------------------------------------------------------------//
     public:
       ObjectName();
       ObjectName(const String& szString);
       ~ObjectName();
+      static const ObjectName blank;
     //---------------------------------------------------------------------------//
       String toString() const;
       uint getHash() const {return m_uNameHash;}

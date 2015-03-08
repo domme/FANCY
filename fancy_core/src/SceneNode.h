@@ -8,7 +8,7 @@
 
 namespace Fancy { namespace Scene { 
 //---------------------------------------------------------------------------//
-  class Transform
+  class DLLEXPORT Transform
   {
     friend class SceneNode;
 
@@ -43,10 +43,12 @@ namespace Fancy { namespace Scene {
       void update();
       void gatherRenderItems(SceneRenderDescription* pRenderDesc);
 
-      SceneNodeComponent* createComponent(const ObjectName& typeName);
+      SceneNodeComponent* addOrRetrieveComponent(const ObjectName& typeName);
       void removeComponent(const ObjectName& typeName);
       SceneNodeComponentWeakPtr getComponentPtr(const ObjectName& typeName);
       SceneNodeComponent* getComponent(const ObjectName& typeName);
+
+      SceneNode* createChildNode(const ObjectName& _name = ObjectName::blank);
 
       CameraComponentWeakPtr getCameraComponentPtr();
       CameraComponent* getCameraComponent() {return m_pCameraComponent;}

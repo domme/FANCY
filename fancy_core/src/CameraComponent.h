@@ -13,15 +13,16 @@ namespace Fancy { namespace Scene {
     CameraComponent(SceneNode* pOwner);
     virtual ~CameraComponent();
 
-    void setCamera(Camera* pCamera) {m_pCamera;}
-
     virtual void update() override;
     virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
     virtual ObjectName getTypeName() override { return _N(Camera); }
+    Camera* getCamera() {return &m_camera;}
 
   private:
     void updateCameraInternal();
-    Camera* m_pCamera;
+
+    // TODO: Integrate the camera-functionality right in the component
+    Camera m_camera;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(CameraComponent)

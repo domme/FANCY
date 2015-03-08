@@ -62,11 +62,11 @@ public:
   void setReadTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setWriteTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setReadBuffer(GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setConstantBuffer(GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setConstantBuffer(const GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setTextureSampler(TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setGpuProgram(GpuProgram* pProgram, const ShaderStage eShaderStage);
+  void setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage);
 
-  void renderGeometry(Geometry::GeometryData* pGeometry);
+  void renderGeometry(const Geometry::GeometryData* pGeometry);
 protected:
 //-----------------------------------------------------------------------//
   enum Constants {
@@ -133,9 +133,9 @@ protected:
   uint32		    m_uReadBufferBindMask [ShaderStage::NUM];
   uint32        m_uNumReadBuffersToBind[ShaderStage::NUM];
 
-  GpuBuffer*		m_pCachedConstantBuffers [ShaderStage::NUM][(uint) ConstantBufferType::NUM];
-  uint32				m_uConstantBufferBindMask[ShaderStage::NUM];
-  uint32        m_uNumConstantBuffersToBind[ShaderStage::NUM];
+  const GpuBuffer*		m_pCachedConstantBuffers [ShaderStage::NUM][(uint) ConstantBufferType::NUM];
+  uint32				      m_uConstantBufferBindMask[ShaderStage::NUM];
+  uint32              m_uNumConstantBuffersToBind[ShaderStage::NUM];
 
   TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][kMaxNumBoundSamplers];
   uint32				    m_uTextureSamplerBindMask[ShaderStage::NUM];
@@ -162,7 +162,7 @@ protected:
   GLuint            m_uCurrentVBO;
   GLuint            m_uCurrentIBO;
 
-  GpuProgram*			    m_pBoundGPUPrograms [ShaderStage::NUM];
+  const GpuProgram*		m_pBoundGPUPrograms [ShaderStage::NUM];
   uint32				      m_uGPUprogramBindMask;
 
   DepthStencilState   m_clDepthStencilState;

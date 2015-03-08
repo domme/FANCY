@@ -509,7 +509,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_uReadBufferBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setConstantBuffer(GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8Index)
+  void RendererGL4::setConstantBuffer(const GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8Index)
   {
     ASSERT_M(u8Index < (uint32) ConstantBufferType::NUM, "Referenced an undefined constant buffer register");
   
@@ -541,7 +541,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_uTextureSamplerBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setGpuProgram( GpuProgram* pProgram, const ShaderStage eShaderStage )
+  void RendererGL4::setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage )
   {
     if(m_pBoundGPUPrograms[static_cast<uint>(eShaderStage)] == pProgram) {
       return;
@@ -562,7 +562,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   void RendererGL4::invalidateResourceCache(const uint32 uShaderStageIdx)
   {
-    m_uResourceRebindMask[uShaderStageIdx] |= static_cast<uint>(ResourceRebindFlags::ALL);
+    m_uResourceRebindMask[uShaderStageIdx] = static_cast<uint>(ResourceRebindFlags::ALL);
 
     // Reset this stuff during material change?
     // Determine the needed rebind-counts
@@ -629,7 +629,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Constant buffers
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::CONSTANT_BUFFERS)
       {
-        GpuBuffer** ppConstantBuffersToBind = m_pCachedConstantBuffers[uStageIdx];
+        const GpuBuffer** ppConstantBuffersToBind = m_pCachedConstantBuffers[uStageIdx];
         const uint32 uConstantBufferBindMask = m_uConstantBufferBindMask[uStageIdx];
         m_uConstantBufferBindMask[uStageIdx] = 0u;
 
@@ -1055,7 +1055,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     glGenProgramPipelines(1, &uPipeline);
     for (uint32 i = 0u; i < _countof(m_pBoundGPUPrograms); ++i)
     {
-      GpuProgram* pProgram = m_pBoundGPUPrograms[i];
+      const GpuProgram* pProgram = m_pBoundGPUPrograms[i];
       GLuint shaderStageBit = Internal::getGLShaderStageBit(pProgram->getShaderStage());
       glUseProgramStages(uPipeline, shaderStageBit, pProgram->getProgramHandle());
     }
@@ -1200,7 +1200,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
   }
 //---------------------------------------------------------------------------//
-  void RendererGL4::renderGeometry(Geometry::GeometryData* pGeometry)
+  void RendererGL4::renderGeometry(const Geometry::GeometryData* pGeometry)
   {
     // First create or retrieve a programPipeline object and bind it. 
     const GLuint uProgPipeline = createOrRetrieveProgramPipeline();

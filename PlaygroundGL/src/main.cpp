@@ -11,9 +11,56 @@
 #include <sstream>
 
 #include <Scene.h>
+#include <SceneNode.h>
+#include <Camera.h>
+#include <CameraComponent.h>
 #include <EngineCommon.h>
 #include <SceneImporter.h>
 #include <RenderingProcessForward.h>
+#include <ObjectName.h>
+
+using namespace Fancy;
+
+Rendering::RenderingProcessForward* pRenderProcessFwd = nullptr;
+Scene::CameraComponent* pCameraComponent;
+
+void startupEngine()
+{
+  Fancy::EngineCommon::initEngine();
+
+  Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
+  EngineCommon::setCurrentScene(pScene);
+
+  pRenderProcessFwd = new Rendering::RenderingProcessForward;
+  EngineCommon::setRenderingProcess(pRenderProcessFwd);
+
+  Scene::SceneNode* pCameraNode = pScene->getRootNode()->createChildNode(_N(CameraNode));
+  pCameraComponent = static_cast<Scene::CameraComponent*>(pCameraNode->addOrRetrieveComponent(_N(CameraComponent)));
+  pScene->setActiveCamera(std::static_pointer_cast<Scene::CameraComponent>(pCameraNode->getComponentPtr(_N(CameraComponent)).lock()));
+    
+  Scene::SceneNode* pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));
+  IO::SceneImporter::importToSceneGraph("Models/cube.obj", pModelNode);
+  pModelNode->getTransform().setLocal(glm::translate(glm::vec3(0.0f, 0.0f, -10.0f)));
+
+  EngineCommon::startup();
+}
+
+void updateWindowSize(int width, int height)
+{
+  Fancy::EngineCommon::setWindowSize(width, height);
+  pCameraComponent->getCamera()->setProjectionPersp(45.0f, width, height, 1.0f, 1000.0f);
+}
+
+void shutdownEngine()
+{
+  Fancy::EngineCommon::shutdownEngine();
+
+  if (pRenderProcessFwd)
+  {
+    delete pRenderProcessFwd;
+    pRenderProcessFwd = nullptr;
+  }
+}
 
 static void error_callback(int error, const char* description)
 {
@@ -58,16 +105,7 @@ int main(void)
     log_Info(ss.str());
   }
 
-  Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
-  Fancy::Rendering::RenderingProcessForwardPtr pRenderingProcess = std::make_shared<Fancy::Rendering::RenderingProcessForward>();
-
-  // Init the engine
-  Fancy::EngineCommon::initEngine();
-  Fancy::EngineCommon::setCurrentScene(pScene);
-  Fancy::EngineCommon::setRenderingProcess(pRenderingProcess.get());
-  Fancy::IO::SceneImporter::importToSceneGraph("Models/cube.obj", pScene->getRootNode());
-
-  Fancy::EngineCommon::startup();
+  startupEngine();
 
   glfwSetKeyCallback(window, key_callback);
   double lastTime = glfwGetTime();
@@ -76,7 +114,7 @@ int main(void)
     float ratio;
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
-    Fancy::EngineCommon::setWindowSize(width, height);
+    updateWindowSize(width, height);
     
     double currTime = glfwGetTime();
     Fancy::EngineCommon::update(currTime - lastTime);
@@ -87,7 +125,7 @@ int main(void)
     lastTime = currTime;
   }
 
-  Fancy::EngineCommon::shutdownEngine();
+  shutdownEngine();
   glfwDestroyWindow(window);
   glfwTerminate();
   exit(EXIT_SUCCESS);

@@ -76,7 +76,7 @@ namespace Fancy { namespace Rendering {
       const WriteBufferList& getWriteBuffers(ShaderStage eShaderStage) const {return m_vpWriteBuffers[(uint32) eShaderStage];}
       const TextureSamplerList& getTextureSamplers(ShaderStage eShaderStage) const {return m_vpTextureSamplers[(uint32) eShaderStage];}
 
-      const MaterialPass* getMaterialPass() {return m_pMaterialPass;}
+      const MaterialPass* getMaterialPass() const {return m_pMaterialPass;}
       const ObjectName& getName() {return m_Name;}
 
     private:

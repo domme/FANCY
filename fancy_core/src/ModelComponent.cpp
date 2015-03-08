@@ -6,6 +6,7 @@
 #include "MaterialPass.h"
 #include "Mesh.h"
 #include "GeometryData.h"
+#include "SceneNode.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
@@ -33,6 +34,8 @@ namespace Fancy { namespace Scene {
       return;
     }
 
+    const glm::mat4* pWorldMat = &m_pOwner->getTransform().getCachedWorld();
+
     for (uint32 iPass = 0u; iPass < (uint32) Rendering::EMaterialPass::NUM; ++iPass)
     {
       RenderingItemList& vRenderItems = pRenderDesc->techniqueItemList[iPass];
@@ -43,8 +46,7 @@ namespace Fancy { namespace Scene {
         const Geometry::SubModel* pSubmodel = vSubmodels[iSubmodel];
         Rendering::Material* pMaterial = pSubmodel->getMaterial();
 
-        const Rendering::MaterialPassInstance* pMaterialPassInstance =
-          pMaterial->getPass((Rendering::EMaterialPass)iPass);
+        const Rendering::MaterialPassInstance* pMaterialPassInstance = pMaterial->getPass((Rendering::EMaterialPass)iPass);
 
         if (!pMaterialPassInstance)
         {
@@ -56,8 +58,7 @@ namespace Fancy { namespace Scene {
 
         for (uint32 iGeometryData = 0u; ++iGeometryData < vGeometryDatas.size(); ++iGeometryData)
         {
-          vRenderItems.push_back(
-            Rendering::RenderingItem(vGeometryDatas[iGeometryData], pMaterialPassInstance));
+          vRenderItems.push_back(Rendering::RenderingItem(vGeometryDatas[iGeometryData], pMaterialPassInstance, pWorldMat));
         }
       }  // end for submodels
     }  // end for passes

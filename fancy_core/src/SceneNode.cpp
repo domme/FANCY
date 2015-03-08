@@ -70,6 +70,8 @@ namespace Fancy { namespace Scene {
     pParent->m_vpChildren.erase(it);
   }
 //---------------------------------------------------------------------------//
+  
+//---------------------------------------------------------------------------//
   void SceneNode::update()
   {
     for (uint i = 0u; i < m_vpChildren.size(); ++i)
@@ -135,7 +137,16 @@ namespace Fancy { namespace Scene {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SceneNodeComponent* SceneNode::createComponent( const ObjectName& typeName )
+  SceneNode* SceneNode::createChildNode( const ObjectName& _name /*= ObjectName::blank*/ )
+  {
+    SceneNodePtr childNode = std::make_shared<SceneNode>();
+    childNode->m_name = _name;
+
+    SceneNode::parentNodeToNode(childNode, this);
+    return childNode.get();
+  }
+//---------------------------------------------------------------------------//
+  SceneNodeComponent* SceneNode::addOrRetrieveComponent( const ObjectName& typeName )
   {
     if (getComponent(typeName))
     {
