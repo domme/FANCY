@@ -163,7 +163,6 @@ protected:
   GLuint            m_uCurrentIBO;
 
   const GpuProgram*		m_pBoundGPUPrograms [ShaderStage::NUM];
-  uint32				      m_uGPUprogramBindMask;
 
   DepthStencilState   m_clDepthStencilState;
   uint32              m_uDepthStencilRebindMask;

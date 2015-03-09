@@ -19,8 +19,11 @@
   layout(binding = 2) uniform PER_CAMERA
   {
     mat4 c_ViewMatrix;
+    mat4 c_ViewInverseMatrix;
     mat4 c_ProjectionMatrix;
+    mat4 c_ProjectionInverseMatrix;
     mat4 c_ViewProjectionMatrix;
+    mat4 c_ViewProjectionInverseMatrix;
     vec4 c_NearFarParameters;
     vec4 c_CameraPosWS;
   } cbPerCamera;

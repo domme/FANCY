@@ -93,6 +93,8 @@ namespace Fancy {
     Time::update(_dt);
     const float deltaTime = Time::getDeltaTime();
 
+    m_pCurrScene->update(deltaTime);
+
     Rendering::Renderer::getInstance().beginFrame();
     m_pRenderingProcess->tick(deltaTime);
     Rendering::Renderer::getInstance().endFrame();

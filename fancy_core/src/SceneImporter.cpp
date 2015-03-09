@@ -70,12 +70,11 @@ namespace Fancy { namespace IO {
 
     struct WorkingData
     {
-      WorkingData() : szCurrScenePath(""), pCurrScene(nullptr), pFancyParentNode(nullptr), 
+      WorkingData() : szCurrScenePath(""), pCurrScene(nullptr),
         u32NumCreatedMeshes(0u), u32NumCreatedModels(0u), u32NumCreatedGeometryDatas(0u), u32NumCreatedSubModels(0u) {}
 
       std::string szCurrScenePath;
       const aiScene* pCurrScene;
-      Fancy::Scene::SceneNode* pFancyParentNode;
       MeshCacheMap mapAiMeshToGeometryData;
       MaterialCacheMap mapAiMatToMat;
 
@@ -85,7 +84,7 @@ namespace Fancy { namespace IO {
       uint32 u32NumCreatedSubModels;
     };
 
-    bool processAiScene(WorkingData& _workingData, const aiScene* _pAscene);
+    bool processAiScene(WorkingData& _workingData, const aiScene* _pAscene, Scene::SceneNode* _pParentNode);
     bool processAiNode(WorkingData& _workingData, const aiNode* _pAnode, Scene::SceneNode* _pParentNode);
     bool processMeshes(WorkingData& _workingData, const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
     Geometry::GeometryData* constructOrRetrieveGeometryData(WorkingData& _workingData, const aiNode* _pAnode, const aiMesh* _pAmesh);
@@ -136,13 +135,12 @@ namespace Fancy { namespace IO {
     }
 
     Processing::WorkingData workingData;
-    workingData.pFancyParentNode = _pParentNode;
     workingData.szCurrScenePath = _szImportPathRel;
-    return Processing::processAiScene(workingData, aScene);
+    return Processing::processAiScene(workingData, aScene, _pParentNode);
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  bool Processing::processAiScene(WorkingData& _workingData, const aiScene* _pAscene)
+  bool Processing::processAiScene(WorkingData& _workingData, const aiScene* _pAscene, Scene::SceneNode* _pParentNode)
   {
     const aiNode* pArootNode = _pAscene->mRootNode;
 
@@ -152,23 +150,17 @@ namespace Fancy { namespace IO {
     }
 
     _workingData.pCurrScene = _pAscene;
-    return processAiNode(_workingData, pArootNode, nullptr);
+    return processAiNode(_workingData, pArootNode, _pParentNode);
   }
 //---------------------------------------------------------------------------//
   bool Processing::processAiNode(WorkingData& _workingData, const aiNode* _pAnode, Scene::SceneNode* _pParentNode)
   {
     bool success = true;
 
-    Scene::SceneNodePtr pNode = std::make_shared<Scene::SceneNode>();
+    Scene::SceneNode* pNode = _pParentNode->createChildNode();
     if (_pAnode->mName.length > 0u)
     {
       pNode->setName(ObjectName(_pAnode->mName.C_Str()));
-    }
-    
-    if (_pParentNode)
-    {
-      Scene::SceneNode::
-        parentNodeToNode(pNode, _pParentNode);
     }
 
     pNode->getTransform().setLocal(Internal::matFromAiMat(_pAnode->mTransformation));
@@ -176,13 +168,12 @@ namespace Fancy { namespace IO {
     if (_pAnode->mNumMeshes > 0u)
     {
       Scene::ModelComponent* pModelComponent = static_cast<Scene::ModelComponent*>(pNode->addOrRetrieveComponent(_N(ModelComponent)));
-
       Processing::processMeshes(_workingData, _pAnode, pModelComponent);
     }
     
     for (uint32 i = 0u; i < _pAnode->mNumChildren; ++i)
     {
-      success &= Processing::processAiNode(_workingData, _pAnode->mChildren[i], pNode.get());
+      success &= Processing::processAiNode(_workingData, _pAnode->mChildren[i], pNode);
     }
 
     return success;

@@ -158,12 +158,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   
 //---------------------------------------------------------------------------//
   RendererGL4::RendererGL4() :
-    m_uPipelineRebindMask(0u),
-    m_uGPUprogramBindMask(0u),
-    m_uDepthStencilRebindMask(0u),
-    m_uBlendStateRebindMask(0u),
-    m_u8BlendStateRebindRTmask(0u),
-    m_u8BlendStateRebindRTcount(0u),
+    m_uPipelineRebindMask(UINT_MAX),
+    m_uDepthStencilRebindMask(UINT_MAX),
+    m_uBlendStateRebindMask(UINT_MAX),
+    m_u8BlendStateRebindRTmask(UINT_MAX),
+    m_u8BlendStateRebindRTcount(1u),
     m_pCachedDepthStencilTarget(nullptr),
     m_uCurrentFBO(0u),
     m_uCurrentGpuProgramPipeline(0u),
@@ -173,25 +172,27 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_clBlendState(ObjectName()),
     m_clDepthStencilState(ObjectName())
   {
-    memset(m_uResourceRebindMask, 0, sizeof(m_uResourceRebindMask));
+    memset(m_uResourceRebindMask, UINT_MAX, sizeof(m_uResourceRebindMask));
 
     memset(m_pCachedReadTextures, 0, sizeof(m_pCachedReadTextures));
-    memset(m_uReadTextureBindMask, 0, sizeof(m_uReadTextureBindMask));
+    memset(m_uReadTextureBindMask, UINT_MAX, sizeof(m_uReadTextureBindMask));
     memset(m_uNumReadTexturesToBind, 0u, sizeof(m_uNumReadTexturesToBind));
 
     memset(m_pCachedReadBuffers, 0, sizeof(m_pCachedReadBuffers));
-    memset(m_uReadBufferBindMask, 0, sizeof(m_uReadBufferBindMask));
+    memset(m_uReadBufferBindMask, UINT_MAX, sizeof(m_uReadBufferBindMask));
     memset(m_uNumReadBuffersToBind, 0u, sizeof(m_uNumReadBuffersToBind));
 
     memset(m_pCachedConstantBuffers, 0, sizeof(m_pCachedConstantBuffers));
-    memset(m_uConstantBufferBindMask, 0, sizeof(m_uConstantBufferBindMask));
+    memset(m_uConstantBufferBindMask, UINT_MAX, sizeof(m_uConstantBufferBindMask));
     memset(m_uNumConstantBuffersToBind, 0u, sizeof(m_uNumConstantBuffersToBind));
 
     memset(m_pCachedTextureSamplers, 0, sizeof(m_pCachedTextureSamplers));
-    memset(m_uTextureSamplerBindMask, 0, sizeof(m_uTextureSamplerBindMask));
+    memset(m_uTextureSamplerBindMask, UINT_MAX, sizeof(m_uTextureSamplerBindMask));
     memset(m_uNumTextureSamplersToBind, 0u, sizeof(m_uNumTextureSamplersToBind));
 
     memset(m_pCachedRenderTargets, 0, sizeof(m_pCachedRenderTargets));
+    // Don't try to set non-existent rendertargets
+    m_uPipelineRebindMask &= ~(uint32) PipelineRebindFlags::RENDERTARGETS;
 
     memset(m_pBoundGPUPrograms, 0, sizeof(m_pBoundGPUPrograms));
   }
@@ -733,6 +734,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     {
       glViewport(m_uViewportParams.x, m_uViewportParams.y,
         m_uViewportParams.z, m_uViewportParams.w);
+
+      m_bViewportDirty = false;
     }
   }
 //---------------------------------------------------------------------------//
@@ -1056,8 +1059,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     for (uint32 i = 0u; i < _countof(m_pBoundGPUPrograms); ++i)
     {
       const GpuProgram* pProgram = m_pBoundGPUPrograms[i];
-      GLuint shaderStageBit = Internal::getGLShaderStageBit(pProgram->getShaderStage());
-      glUseProgramStages(uPipeline, shaderStageBit, pProgram->getProgramHandle());
+      if (pProgram)
+      {
+        GLuint shaderStageBit = Internal::getGLShaderStageBit(pProgram->getShaderStage());
+        glUseProgramStages(uPipeline, shaderStageBit, pProgram->getProgramHandle());  
+      }
     }
 
     pCacheEntry->hash = hash;

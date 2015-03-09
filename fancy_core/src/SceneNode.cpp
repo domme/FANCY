@@ -6,8 +6,8 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
   Transform::Transform() :
-    m_local(1.0f),
-    m_cachedWorld(1.0f)
+    m_local(),
+    m_cachedWorld()
   {
 
   }
@@ -72,14 +72,14 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
-  void SceneNode::update()
+  void SceneNode::update(float _dt)
   {
     for (uint i = 0u; i < m_vpChildren.size(); ++i)
     {
       Transform& childTransform = m_vpChildren[i]->getTransform();
       childTransform.m_cachedWorld = childTransform.m_local * getTransform().m_cachedWorld;
 
-      m_vpChildren[i]->update();
+      m_vpChildren[i]->update(_dt);
     }
 
     for (uint i = 0u; i < m_vpComponents.size(); ++i)

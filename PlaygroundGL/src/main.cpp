@@ -36,8 +36,8 @@ void startupEngine()
 
   Scene::SceneNode* pCameraNode = pScene->getRootNode()->createChildNode(_N(CameraNode));
   pCameraComponent = static_cast<Scene::CameraComponent*>(pCameraNode->addOrRetrieveComponent(_N(CameraComponent)));
-  pScene->setActiveCamera(std::static_pointer_cast<Scene::CameraComponent>(pCameraNode->getComponentPtr(_N(CameraComponent)).lock()));
-    
+  pScene->setActiveCamera(pCameraComponent);
+  
   Scene::SceneNode* pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));
   IO::SceneImporter::importToSceneGraph("Models/cube.obj", pModelNode);
   pModelNode->getTransform().setLocal(glm::translate(glm::vec3(0.0f, 0.0f, -10.0f)));

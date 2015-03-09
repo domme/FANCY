@@ -40,7 +40,7 @@ namespace Fancy { namespace Scene {
       static void unparentNode(std::shared_ptr<SceneNode> pChild);
       static void unparentNode(SceneNode* pChild);
 
-      void update();
+      void update(float _dt);
       void gatherRenderItems(SceneRenderDescription* pRenderDesc);
 
       SceneNodeComponent* addOrRetrieveComponent(const ObjectName& typeName);

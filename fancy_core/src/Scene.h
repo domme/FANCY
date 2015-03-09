@@ -18,16 +18,16 @@ namespace Fancy { namespace Scene {
       Scene();
       ~Scene();
 
-      SceneNode* getRootNode() {return m_pRootNode.get();}
+      SceneNode* getRootNode() {return m_pRootNode;}
 
-      void update();
+      void update(float _dt);
       void gatherRenderItems(SceneRenderDescription* pRenderDesc);
-      void setActiveCamera(const std::shared_ptr<CameraComponent>& _pCamera) {m_pActiveCamera = _pCamera;}
-      CameraComponent* getActiveCamera() {return m_pActiveCamera.lock().get();}
+      void setActiveCamera(CameraComponent* _pCamera) {m_pActiveCamera = _pCamera;}
+      CameraComponent* getActiveCamera() {return m_pActiveCamera;}
       
     private:
-      std::shared_ptr<SceneNode> m_pRootNode;
-      std::weak_ptr<CameraComponent> m_pActiveCamera;
+      SceneNode* m_pRootNode;
+      CameraComponent* m_pActiveCamera;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(Scene)

@@ -35,12 +35,11 @@ namespace Fancy { namespace Scene {
   };
 //---------------------------------------------------------------------------//
   typedef FixedArray<Rendering::RenderingItem, kMaxNumRenderingItems> RenderingItemList;
-  typedef FixedArray<RenderingItemList, (uint) Rendering::EMaterialPass::NUM> TechniqueRenderingItemList;
 //---------------------------------------------------------------------------//
     class SceneRenderDescription
     {
     public:
-      TechniqueRenderingItemList techniqueItemList;
+      RenderingItemList techniqueItemList[(uint32)Rendering::EMaterialPass::NUM];
     };
   //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Scene

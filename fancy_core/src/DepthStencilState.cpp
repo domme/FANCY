@@ -72,6 +72,8 @@ namespace Fancy { namespace Rendering {
       MathUtil::hash_combine(hash, (uint32) m_eStencilDepthFailOp[i]);
       MathUtil::hash_combine(hash, (uint32) m_eStencilPassOp[i]);
     }
+
+    m_uHash = hash;
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

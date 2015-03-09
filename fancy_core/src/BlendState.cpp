@@ -30,13 +30,17 @@ namespace Fancy { namespace Rendering {
   {
     memset(m_bAlphaSeparateBlend, false, sizeof(m_bAlphaSeparateBlend));
     memset(m_bBlendEnabled, false, sizeof(m_bBlendEnabled));
-    memset(m_eSrcBlend, (uint32) BlendInput::ONE, sizeof(m_eSrcBlend));
-    memset(m_eDestBlend, (uint32) BlendInput::ONE, sizeof(m_eDestBlend));
-    memset(m_eBlendOp, (uint32) BlendOp::ADD, sizeof(m_eBlendOp));
-    memset(m_eSrcBlendAlpha, (uint32) BlendInput::ONE, sizeof(m_eSrcBlendAlpha));
-    memset(m_eDestBlendAlpha, (uint32) BlendInput::ONE, sizeof(m_eDestBlendAlpha));
-    memset(m_eBlendOpAlpha, (uint32) BlendOp::ADD, sizeof(m_eBlendOpAlpha));
-    memset(m_uRTwriteMask, (uint32) -1, sizeof(m_uRTwriteMask));
+
+    for (uint32 i = 0u; i < kMaxNumRenderTargets; ++i)
+    {
+      m_eSrcBlend[i] = BlendInput::ONE;
+      m_eDestBlend[i] = BlendInput::ONE;
+      m_eBlendOp[i] = BlendOp::ADD;
+      m_eSrcBlendAlpha[i] = BlendInput::ONE;
+      m_eDestBlendAlpha[i] = BlendInput::ONE;
+      m_eBlendOpAlpha[i] = BlendOp::ADD;
+      m_uRTwriteMask[i] = UINT_MAX;
+    }
 
     updateHash();
   }
@@ -64,6 +68,8 @@ namespace Fancy { namespace Rendering {
         MathUtil::hash_combine(hash, (uint32) m_eBlendOpAlpha[i]);
         MathUtil::hash_combine(hash, m_uRTwriteMask[i]);
       }
+
+      m_uHash = hash;
   }
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

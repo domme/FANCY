@@ -63,10 +63,10 @@ private:
   bool                         m_bBlendEnabled       [kMaxNumRenderTargets];
   BlendInput                   m_eSrcBlend           [kMaxNumRenderTargets];
   BlendInput                   m_eDestBlend          [kMaxNumRenderTargets];
-  Rendering::BlendOp           m_eBlendOp            [kMaxNumRenderTargets];
+  BlendOp                      m_eBlendOp            [kMaxNumRenderTargets];
   BlendInput                   m_eSrcBlendAlpha      [kMaxNumRenderTargets];
   BlendInput                   m_eDestBlendAlpha     [kMaxNumRenderTargets];
-  Rendering::BlendOp           m_eBlendOpAlpha       [kMaxNumRenderTargets];
+  BlendOp                      m_eBlendOpAlpha       [kMaxNumRenderTargets];
   uint32                       m_uRTwriteMask        [kMaxNumRenderTargets];
 //---------------------------------------------------------------------------//
 };
