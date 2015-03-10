@@ -6,6 +6,8 @@
 #include "GPUProgram.h"
 #include "TextureSampler.h"
 #include "AdapterGL4.h"
+#include "vsDebugLib.h"
+#include "DebugOutStream.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
@@ -195,6 +197,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_uPipelineRebindMask &= ~(uint32) PipelineRebindFlags::RENDERTARGETS;
 
     memset(m_pBoundGPUPrograms, 0, sizeof(m_pBoundGPUPrograms));
+
+#if defined (_DEBUG)
+    VSDebugLib::init(&DebugOutStream::out);
+#endif  // _DEBUG
   }
 //-----------------------------------------------------------------------//
   RendererGL4::~RendererGL4()
@@ -202,15 +208,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     // TODO: Release all pooled GL-Objects
   }
 //-----------------------------------------------------------------------//
-  bool RendererGL4::_init()
-  {
-    return true;    
-  }
-//-----------------------------------------------------------------------//
-  bool RendererGL4::_destroy()
-  {
-    return true;
-  }
 
 //-----------------------------------------------------------------------//
   void RendererGL4::postInit()
@@ -596,7 +593,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
 
     if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::FILLMODE)) > 0) {
-      glPolygonMode(GL_FRONT_AND_BACK, Adapter::toGLType(m_eWindingOrder));
+      glPolygonMode(GL_FRONT_AND_BACK, Adapter::toGLType(m_eFillMode));
     }
 
     if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL)) > 0) {
@@ -807,11 +804,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::RT_WRITE_MASK)) > 0) {
-      glColorMask(
-        (m_clBlendState.m_uRTwriteMask[0] & 0xFF00000000) > 0,
-        (m_clBlendState.m_uRTwriteMask[0] & 0x00FF000000) > 0,
-        (m_clBlendState.m_uRTwriteMask[0] & 0x0000FF0000) > 0,
-        (m_clBlendState.m_uRTwriteMask[0] & 0x000000FF00) > 0);
+       
+      const bool red =    (m_clBlendState.m_uRTwriteMask[0] & 0xFF000000) > 0u;
+      const bool green =  (m_clBlendState.m_uRTwriteMask[0] & 0x00FF0000) > 0u;
+      const bool blue =   (m_clBlendState.m_uRTwriteMask[0] & 0x0000FF00) > 0u;
+      const bool alpha =  (m_clBlendState.m_uRTwriteMask[0] & 0x000000FF) > 0u;
+
+      glColorMask(red, green, blue, alpha);
     }
   }
 //-----------------------------------------------------------------------//
@@ -1198,7 +1197,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   void RendererGL4::beginFrame()
   {
-
+    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 //---------------------------------------------------------------------------//
   void RendererGL4::endFrame()
@@ -1239,8 +1239,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     {
       if (m_uCurrentVBO != uVBOtoUse)
       {
-        glBindVertexBuffer((uint32) VertexBufferBindingPoints::GEOMETRY_STREAM, uVBOtoUse, 
-          0, vertLayoutGeo->getStrideBytes());
+        glBindVertexBuffer((uint32) VertexBufferBindingPoints::GEOMETRY_STREAM, uVBOtoUse, 0, vertLayoutGeo->getStrideBytes());
         m_uCurrentVBO = uVBOtoUse;
       }
     }
@@ -1253,7 +1252,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     bindIBO(uIBOtoUse);
     
     // TODO: Set up instanced, indirect rendering etc.
-    glDrawArrays(GL_TRIANGLES, 0, pGeometry->getNumIndices());
+    glDrawElements(GL_TRIANGLES, pGeometry->getNumIndices(), GL_UNSIGNED_INT, nullptr);
   }
 //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::GL4

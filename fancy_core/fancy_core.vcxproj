@@ -210,6 +210,7 @@
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\CameraComponent.h" />
     <ClInclude Include="src\ComputeOperation.h" />
+    <ClInclude Include="src\DebugOutStream.h" />
     <ClInclude Include="src\DepthStencilState.h" />
     <ClInclude Include="src\EngineCommon.h" />
     <ClInclude Include="src\Events.h" />
@@ -266,6 +267,7 @@
     <ClInclude Include="src\TimeManager.h" />
     <ClInclude Include="src\VertexInputLayout.h" />
     <ClInclude Include="src\GeometryVertexLayout.h" />
+    <ClInclude Include="src\vsDebugLib.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AdapterGL4.cpp" />
@@ -273,6 +275,7 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\ComputeOperation.cpp" />
+    <ClCompile Include="src\DebugOutStream.cpp" />
     <ClCompile Include="src\DepthStencilState.cpp" />
     <ClCompile Include="src\EngineCommon.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
@@ -316,6 +319,7 @@
     <ClCompile Include="src\TimeManager.cpp" />
     <ClCompile Include="src\VertexInputLayout.cpp" />
     <ClCompile Include="src\GeometryVertexLayout.cpp" />
+    <ClCompile Include="src\vsDebugLib.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

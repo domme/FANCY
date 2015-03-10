@@ -27,7 +27,7 @@ namespace Fancy { namespace Rendering {
     uint8 uFormatComponentCount;
   };
 //---------------------------------------------------------------------------//
-  const uint32 kMaxNumInputVertexAttributes = 32;
+  const uint32 kMaxNumInputVertexAttributes = 16;
   typedef FixedArray<VertexInputElement, kMaxNumInputVertexAttributes> VertexInputElementList;
 //---------------------------------------------------------------------------//
   class VertexInputLayout

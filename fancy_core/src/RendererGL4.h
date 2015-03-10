@@ -13,13 +13,10 @@
 namespace Fancy { namespace Rendering { namespace GL4 {
 
 //---------------------------------------------------------------------------//
-class RendererGL4 : public LoadableObject
+class RendererGL4
 {
 public:
   virtual ~RendererGL4();
-
-  virtual bool _init() override;
-  virtual bool _destroy() override;
 
   /// Sets the render-system to a valid state. Should be called just before the first frame
   void postInit();

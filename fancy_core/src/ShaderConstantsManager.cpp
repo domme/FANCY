@@ -410,7 +410,7 @@ namespace Fancy { namespace Rendering {
     const uint32 semanticFrom = (uint32) semanticsBegin[(uint32)eType];
     const uint32 semanticTo = (uint32) semanticsEnd[(uint32)eType];
     
-    uint8* const pConstantData = static_cast<uint8*>(Storage::m_vConstantBuffers[(uint32)eType]->lock(GpuResoruceLockOption::WRITE_PERSISTENT));
+    uint8* const pConstantData = static_cast<uint8*>(Storage::m_vConstantBuffers[(uint32)eType]->lock(GpuResoruceLockOption::WRITE_PERSISTENT_COHERENT));
     ASSERT(pConstantData);
 
     for (uint32 i = semanticFrom; i < semanticTo; ++i)
@@ -437,9 +437,9 @@ namespace Fancy { namespace Rendering {
       GpuBufferParameters bufferParams;
       bufferParams.ePrimaryUsageType = GpuBufferUsage::CONSTANT_BUFFER;
       bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::WRITE 
-                                | (uint32)GpuResourceAccessFlags::DYNAMIC 
+                                | (uint32)GpuResourceAccessFlags::COHERENT
                                 | (uint32)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
-      bufferParams.bIsMultiBuffered = true;
+      // bufferParams.bIsMultiBuffered = true;
       // TODO: Currently, we assume that all elements of the constant buffer are floats.
       bufferParams.uNumElements = _requiredSizeBytes / sizeof(float);
       bufferParams.uElementSizeBytes = sizeof(float);

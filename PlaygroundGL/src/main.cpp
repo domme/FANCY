@@ -79,9 +79,12 @@ int main(void)
   if (!glfwInit())
     exit(EXIT_FAILURE);
   glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+#if defined (_DEBUG)
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+#endif  // _DEBUG
   /*glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  // 
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); */
 
   window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);

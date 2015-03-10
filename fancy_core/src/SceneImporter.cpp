@@ -552,7 +552,7 @@ namespace Fancy { namespace IO {
     indexBufParams.uNumElements = _pAmesh->mNumFaces * 3u;
     indexBufParams.uElementSizeBytes = sizeof(uint32);
 
-    indexBuffer->create(indexBufParams, pData);
+    indexBuffer->create(indexBufParams, indices);
     pGeometryData->setIndexBuffer(indexBuffer);
     FANCY_DELETE_ARR(indices, MemoryCategory::GEOMETRY);
 

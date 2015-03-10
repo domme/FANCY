@@ -39,7 +39,6 @@ namespace Fancy {
 
     static Scene::ScenePtr m_pCurrScene;
     static Rendering::RenderingProcess* m_pRenderingProcess;
-
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy

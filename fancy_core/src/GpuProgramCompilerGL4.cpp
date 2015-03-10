@@ -591,7 +591,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     int iProgramLinkStatus = GL_FALSE;
     glGetProgramiv(uProgramHandle, GL_LINK_STATUS, &iProgramLinkStatus);
 
-    bool success = iProgramLinkStatus;
+    bool success = iProgramLinkStatus != GL_FALSE;
     if (success)
     {
       _rDesc.eShaderStage = eShaderStage;
