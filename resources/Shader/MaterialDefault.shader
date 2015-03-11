@@ -38,7 +38,6 @@
 
     void main()
     {
-      // mat4 worldViewProj = mat4(vec4(1.8106, 0, 0, 0), vec4(0, 2.4142, 0, 0), vec4(0, 0, -1.002, -1), vec4(0, 0, 8.01801, 10));
       mat4 worldViewProj = cbPerObject.c_WorldViewProjectionMatrix;
 
       gl_Position = worldViewProj * vec4(v_position, 1.0);

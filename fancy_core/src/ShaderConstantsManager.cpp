@@ -391,39 +391,42 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::update( ConstantBufferType eType )
   {
-    ASSERT(Storage::m_vConstantBuffers[(uint32)eType]);
-    
-    static const ConstantSemantics semanticsBegin[] = 
-      { ConstantSemantics::PER_FRAME_BEGIN, 
-       ConstantSemantics::PER_VIEWPORT_BEGIN, 
-       ConstantSemantics::PER_CAMERA_BEGIN, 
-       ConstantSemantics::PER_MATERIAL_BEGIN, 
-       ConstantSemantics::PER_DRAW_BEGIN };
+      ASSERT(Storage::m_vConstantBuffers[(uint32)eType]);
 
-    static const ConstantSemantics semanticsEnd[] = 
-      { ConstantSemantics::PER_FRAME_END, 
-      ConstantSemantics::PER_VIEWPORT_END,
-      ConstantSemantics::PER_CAMERA_END, 
-      ConstantSemantics::PER_MATERIAL_END,
-      ConstantSemantics::PER_DRAW_END };
-
-    const uint32 semanticFrom = (uint32) semanticsBegin[(uint32)eType];
-    const uint32 semanticTo = (uint32) semanticsEnd[(uint32)eType];
-    
-    uint8* const pConstantData = static_cast<uint8*>(Storage::m_vConstantBuffers[(uint32)eType]->lock(GpuResoruceLockOption::WRITE_PERSISTENT_COHERENT));
-    ASSERT(pConstantData);
-
-    for (uint32 i = semanticFrom; i < semanticTo; ++i)
-    {
-      // TODO: Should we deprecate the elements and only work with the full layout as defined in the shader?
-      // const ConstantBufferElement& element = Storage::m_vConstantBufferElements[i];
+      static const ConstantSemantics semanticsBegin[] = 
+        { ConstantSemantics::PER_FRAME_BEGIN, 
+         ConstantSemantics::PER_VIEWPORT_BEGIN, 
+         ConstantSemantics::PER_CAMERA_BEGIN, 
+         ConstantSemantics::PER_LIGHT_BEGIN, 
+         ConstantSemantics::PER_MATERIAL_BEGIN, 
+         ConstantSemantics::PER_DRAW_BEGIN };
+  
+      static const ConstantSemantics semanticsEnd[] = 
+        { ConstantSemantics::PER_FRAME_END, 
+        ConstantSemantics::PER_VIEWPORT_END,
+        ConstantSemantics::PER_CAMERA_END, 
+        ConstantSemantics::PER_LIGHT_END, 
+        ConstantSemantics::PER_MATERIAL_END,
+        ConstantSemantics::PER_DRAW_END };
+  
+      const uint32 semanticFrom = (uint32) semanticsBegin[(uint32)eType];
+      const uint32 semanticTo = (uint32) semanticsEnd[(uint32)eType];
       
-      const uint32 offset = Internal::vConstantElementOffsets[i];
-      ASSERT_M(offset != -1u, "Trying to update an element that was not registered before (i.e. not encountered in any shader). Is it really needed?");
-      const Internal::ConstantUpdateFunction& updateFunction = Internal::vConstantUpdateFunctions[i];
-      updateFunction((float*) (pConstantData + offset), updateStage);
-    }
-    Storage::m_vConstantBuffers[(uint32)eType]->unlock();
+      GpuBuffer* pConstantBuffer = Storage::m_vConstantBuffers[(uint32) eType];
+      uint8* pConstantData = static_cast<uint8*>(pConstantBuffer->lock(GpuResoruceLockOption::WRITE_PERSISTENT_COHERENT));
+      ASSERT(pConstantData);
+  
+      for (uint32 i = semanticFrom; i < semanticTo; ++i)
+      {
+        // TODO: Should we deprecate the elements and only work with the full layout as defined in the shader?
+        // const ConstantBufferElement& element = Storage::m_vConstantBufferElements[i];
+        
+        const uint32 offset = Internal::vConstantElementOffsets[i];
+        ASSERT_M(offset != -1u, "Trying to update an element that was not registered before (i.e. not encountered in any shader). Is it really needed?");
+        const Internal::ConstantUpdateFunction& updateFunction = Internal::vConstantUpdateFunctions[i];
+        updateFunction((float*) (pConstantData + offset), updateStage);
+      } 
+      pConstantBuffer->unlock();
   }
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::registerBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes)
@@ -438,7 +441,9 @@ namespace Fancy { namespace Rendering {
       bufferParams.ePrimaryUsageType = GpuBufferUsage::CONSTANT_BUFFER;
       bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::WRITE 
                                 | (uint32)GpuResourceAccessFlags::COHERENT
-                                | (uint32)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+                                | (uint32)GpuResourceAccessFlags::DYNAMIC
+                                | (uint32)GpuResourceAccessFlags::PERSISTENT_LOCKABLE
+                                ;
       // bufferParams.bIsMultiBuffered = true;
       // TODO: Currently, we assume that all elements of the constant buffer are floats.
       bufferParams.uNumElements = _requiredSizeBytes / sizeof(float);

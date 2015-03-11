@@ -207,11 +207,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       ASSERT_M(false, "A persistent buffer without CPU-access doesn't make sense");
     }
 
-    if ((uAccessFlagsGL & GL_MAP_COHERENT_BIT) > 0 &&
+    /*if ((uAccessFlagsGL & GL_MAP_COHERENT_BIT) > 0 &&
         (uAccessFlagsGL & GL_MAP_PERSISTENT_BIT) == 0) 
     {
       ASSERT_M(false, "Coherent buffers also need to be persistent");
-    }
+    } */
 
     // Derive the appropriate multibuffering settings
     if (!m_clParameters.bIsMultiBuffered)

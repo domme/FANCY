@@ -6,17 +6,17 @@
     
   } cbPerLaunch; */
 //---------------------------------------------------------------------------//
-  layout(binding = 0) uniform PER_FRAME
+  layout(std140, binding = 0) uniform PER_FRAME
   {
     vec4 c_TimeParameters;
   } cbPerFrame;
 //---------------------------------------------------------------------------//
-  layout(binding = 1) uniform PER_VIEWPORT
+  layout(std140, binding = 1) uniform PER_VIEWPORT
   {
     vec4 c_RenderTargetSize;
   } cbPerViewport;
 //---------------------------------------------------------------------------//
-  layout(binding = 2) uniform PER_CAMERA
+  layout(std140, binding = 2) uniform PER_CAMERA
   {
     mat4 c_ViewMatrix;
     mat4 c_ViewInverseMatrix;
@@ -28,7 +28,7 @@
     vec4 c_CameraPosWS;
   } cbPerCamera;
 //---------------------------------------------------------------------------//
-  layout(binding = 3) uniform PER_LIGHT
+  layout(std140, binding = 3) uniform PER_LIGHT
   {
     vec4 c_DirLightParameters;
     vec4 c_PointLightParameters;
@@ -38,13 +38,13 @@
     vec4 c_LightPosVS;
   } cbPerLight;
 //---------------------------------------------------------------------------//  
-  layout(binding = 4) uniform PER_MATERIAL
+  layout(std140, binding = 4) uniform PER_MATERIAL
   {
     vec4 c_MatDiffIntensity;
     vec4 c_MatSpecIntensity;
   } cbPerMaterial;
 //---------------------------------------------------------------------------//  
-  layout(binding = 5) uniform PER_OBJECT
+  layout(std140, binding = 5) uniform PER_OBJECT
   {
     mat4 c_WorldMatrix;
     mat4 c_WorldInverseMatrix;
