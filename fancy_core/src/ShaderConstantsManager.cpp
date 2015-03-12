@@ -17,7 +17,7 @@ namespace Fancy { namespace Rendering {
   {
     typedef std::hash_map<ObjectName, ConstantBufferType> ConstantBufferTypeMap;
     typedef std::hash_map<ObjectName, ConstantSemantics> ConstantSemanticsMap;
-    typedef std::function<void(float*, const ShaderConstantsUpdateStage&)> ConstantUpdateFunction;
+    typedef std::function<void(uint8*, const ShaderConstantsUpdateStage&)> ConstantUpdateFunction;
 
     ConstantBufferTypeMap mapConstantBufferTypes;
     ConstantSemanticsMap mapConstantSemantics;
@@ -26,30 +26,14 @@ namespace Fancy { namespace Rendering {
 
     void initialize();
 
-    void updateTimeParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateRenderTargetSize(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateViewMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateViewInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateProjectionMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateProjectionInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateViewProjectionMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateViewProjectionInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateNearFarParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateCameraPosWS(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateDirLightParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updatePointLightParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateSpotLightParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateLightColorIntensity(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateLightPosWS(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateLightPosVS(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateDiffuseMatColorIntensity(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateSpecularMatColorIntensity(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateWorldMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateWorldInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateWorldViewMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateWorldViewInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateWorldViewProjectionMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
-    void updateWorldViewProjectionInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage);
+    void updatePerLaunchData(uint8* _pData, const ShaderConstantsUpdateStage& _updateStage);
+    void updatePerViewportData(uint8* _pData, const ShaderConstantsUpdateStage& _updateStage);
+    void updatePerFrameData(uint8* _pData, const ShaderConstantsUpdateStage& _updateStage);
+    void updatePerStageData(uint8* _pData, const ShaderConstantsUpdateStage& _updateStage);
+    void updatePerCameraData(uint8* _pData, const ShaderConstantsUpdateStage& _updateStage);
+    void updatePerLightData(uint8* _pData, const ShaderConstantsUpdateStage& _updateStage);
+    void updatePerMaterialData(uint8* _pData, const ShaderConstantsUpdateStage& _updateStage);
+    void updatePerObjectData(uint8* _pData, const ShaderConstantsUpdateStage& _updateStage);
   }
 //---------------------------------------------------------------------------//
   namespace Storage
@@ -128,31 +112,13 @@ namespace Fancy { namespace Rendering {
 #define REGISTER(list, _index, value) list[_index] = value; __COUNTER__;
     
   BEGIN_COUNTED_REGISTRY_INIT
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::TIME_PARAMETERS, updateTimeParameters);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::RENDERTARGET_SIZE, updateRenderTargetSize);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEW_MATRIX, updateViewMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEW_INVERSE_MATRIX, updateViewInverseMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::PROJECTION_MATRIX, updateProjectionMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::PROJECTION_INVERSE_MATRIX, updateProjectionInverseMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEWPROJECTION_MATRIX, updateViewProjectionMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::VIEWPROJECTION_INVERSE_MATRIX, updateViewProjectionInverseMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::NEARFAR_PARAMETERS, updateNearFarParameters);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::CAMERA_POSITION_WORLDSPACE, updateCameraPosWS);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::DIRLIGHT_PARAMETERS, updateDirLightParameters);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::POINTLIGHT_PARAMETERS, updatePointLightParameters);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::SPOTLIGHT_PARAMETERS, updateSpotLightParameters);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::LIGHT_COLORINTENSITY, updateLightColorIntensity);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::LIGHT_POSITION_WORLDSPACE, updateLightPosWS);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::LIGHT_POSITION_VIEWSPACE, updateLightPosVS);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::DIFFUSE_MATERIAL_COLORINTENSITY, updateDiffuseMatColorIntensity);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::SPECULAR_MATERIAL_COLORINTENSITY, updateSpecularMatColorIntensity);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLD_MATRIX, updateWorldMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLD_INVERSE_MATRIX, updateWorldInverseMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLDVIEW_MATRIX, updateWorldViewMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLDVIEW_INVERSE_MATRIX, updateWorldViewInverseMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLDVIEWPROJECTION_MATRIX, updateWorldViewProjectionMatrix);
-    REGISTER(vConstantUpdateFunctions, (uint32) ConstantSemantics::WORLDVIEWPROJECTION_INVERSE_MATRIX, updateWorldViewProjectionInverseMatrix);
-  END_COUNTED_REGISTRY_INIT((uint32) ConstantSemantics::NUM);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantBufferType::PER_FRAME, updatePerFrameData);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantBufferType::PER_VIEWPORT, updatePerViewportData);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantBufferType::PER_CAMERA, updatePerCameraData);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantBufferType::PER_LIGHT, updatePerLightData);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantBufferType::PER_MATERIAL, updatePerMaterialData);
+    REGISTER(vConstantUpdateFunctions, (uint32) ConstantBufferType::PER_OBJECT, updatePerObjectData);
+  END_COUNTED_REGISTRY_INIT((uint32) ConstantBufferType::NUM);
 
 #undef REGISTER
 #undef BEGIN_COUNTED_REGISTRY_INIT
@@ -160,188 +126,133 @@ namespace Fancy { namespace Rendering {
   }
 //---------------------------------------------------------------------------//
 #pragma region Update Functions
-  void Internal::updateTimeParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    _pData[0] = Time::getDeltaTime();
-    _pData[1] = Time::getElapsedTime();
-    _pData[2] = 0.0f;  // unused
-    _pData[3] = 0.0f;  // unused
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateRenderTargetSize(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
+
+#define BEGIN_CBUFFER_UPDATE { enum {startCount = __COUNTER__};
+#define GET_ELEMENT_PTR(type) (float*) (_pData + vConstantElementOffsets[(uint32) type]); \
+  ASSERT_M(vConstantElementOffsets[(uint32) type] != -1, "Trying to update an element that was not registered before (i.e. not encountered in any shader). Is it really needed?"); __COUNTER__;
+#define END_CBUFFER_UPDATE(expectedNum) static_assert((__COUNTER__ - startCount) - 1 == expectedNum, "Forgot to update some elements"); }
+
+  void Internal::updatePerViewportData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
   {
     ASSERT(_updateStage.pRenderer);
+    float* pData = GET_ELEMENT_PTR(ConstantSemantics::RENDERTARGET_SIZE);
     const glm::uvec4& uvViewportParams = _updateStage.pRenderer->getViewport();
-    _pData[0] = uvViewportParams.z;  // width
-    _pData[1] = uvViewportParams.w;  // height
-    _pData[2] = 1.0f / _pData[0]; // 1 / width
-    _pData[3] = 1.0f / _pData[1];  // 1 / height
+    pData[0] = uvViewportParams.z;  // width
+    pData[1] = uvViewportParams.w;  // height
+    pData[2] = 1.0f / pData[0]; // 1 / width
+    pData[3] = 1.0f / pData[1];  // 1 / height
   }
 //---------------------------------------------------------------------------//
-  void Internal::updateViewMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
+  void Internal::updatePerFrameData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
+  {
+    float* pData = GET_ELEMENT_PTR(ConstantSemantics::TIME_PARAMETERS);
+    pData[0] = Time::getDeltaTime();
+    pData[1] = Time::getElapsedTime();
+    pData[2] = 0.0f;  // unused
+    pData[3] = 0.0f;  // unused
+  }
+//---------------------------------------------------------------------------//
+  void Internal::updatePerStageData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
+  {
+
+  }
+//---------------------------------------------------------------------------//
+  void Internal::updatePerCameraData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
   {
     ASSERT(_updateStage.pCamera);
+
     const glm::mat4& viewMat = _updateStage.pCamera->getView();
-    memcpy(_pData, glm::value_ptr(viewMat), sizeof(glm::mat4));
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateViewInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    ASSERT(_updateStage.pCamera);
     const glm::mat4& viewInvMat = _updateStage.pCamera->getViewInv();
-    memcpy(_pData, glm::value_ptr(viewInvMat), sizeof(glm::mat4));
+    const glm::mat4& projMat = _updateStage.pCamera->getProjection();
+    const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
+    glm::mat4 projInvMat(glm::inverse(projMat));
+    glm::mat4 viewProjInv(glm::inverse(viewProjMat));
+    const float fNear = _updateStage.pCamera->getNearPlane();
+    const float fFar = _updateStage.pCamera->getFarPlane();
+
+    float* pData = GET_ELEMENT_PTR(ConstantSemantics::VIEW_MATRIX);
+    memcpy(pData, glm::value_ptr(viewMat), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::VIEW_INVERSE_MATRIX);
+    memcpy(pData, glm::value_ptr(viewInvMat), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::PROJECTION_MATRIX);
+    memcpy(pData, glm::value_ptr(projMat), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::PROJECTION_INVERSE_MATRIX);
+    memcpy(pData, glm::value_ptr(projInvMat), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::VIEWPROJECTION_MATRIX);
+    memcpy(pData, glm::value_ptr(viewProjMat), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::VIEWPROJECTION_INVERSE_MATRIX);
+    memcpy(_pData, glm::value_ptr(viewProjInv), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::NEARFAR_PARAMETERS);
+    pData[0] = fNear;
+    pData[1] = fFar;
+    pData[2] = fNear / fFar;
+    pData[3] = 1.0f / fFar;
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::NEARFAR_PARAMETERS);
+    const glm::vec4 camPosWS = glm::column(viewInvMat, 3);
+    memcpy(pData, glm::value_ptr(camPosWS), sizeof(glm::vec4));
   }
 //---------------------------------------------------------------------------//
-  void Internal::updateProjectionMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
+  void Internal::updatePerLightData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
   {
-     ASSERT(_updateStage.pCamera);
-     const glm::mat4& projMat = _updateStage.pCamera->getProjection();
-     memcpy(_pData, glm::value_ptr(projMat), sizeof(glm::mat4));
+
   }
 //---------------------------------------------------------------------------//
-  void Internal::updateProjectionInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
+  void Internal::updatePerMaterialData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
   {
-     ASSERT(_updateStage.pCamera);
-     glm::mat4 projInvMat(glm::inverse(_updateStage.pCamera->getProjection()));
-     memcpy(_pData, glm::value_ptr(projInvMat), sizeof(glm::mat4));
+
   }
 //---------------------------------------------------------------------------//
-  void Internal::updateViewProjectionMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-     ASSERT(_updateStage.pCamera);
-     const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
-     memcpy(_pData, glm::value_ptr(viewProjMat), sizeof(glm::mat4));
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateViewProjectionInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-     ASSERT(_updateStage.pCamera);
-     const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
-     glm::mat4 viewProjInv(glm::inverse(viewProjMat));
-     memcpy(_pData, glm::value_ptr(viewProjInv), sizeof(glm::mat4));
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateNearFarParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-     ASSERT(_updateStage.pCamera);
-     const float fNear = _updateStage.pCamera->getNearPlane();
-     const float fFar = _updateStage.pCamera->getFarPlane();
-     _pData[0] = fNear;
-     _pData[1] = fFar;
-     _pData[2] = fNear / fFar;
-     _pData[3] = 1.0f / fFar;
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateCameraPosWS(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-     ASSERT(_updateStage.pCamera);
-     const glm::mat4& viewInvMat = _updateStage.pCamera->getViewInv();
-     const glm::vec4 camPosWS = glm::column(viewInvMat, 3);
-     memcpy(_pData, glm::value_ptr(camPosWS), sizeof(glm::vec4));
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateDirLightParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    // TODO: Implement lights
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updatePointLightParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    // TODO: Implement lights
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateSpotLightParameters(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    // TODO: Implement lights
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateLightColorIntensity(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    // TODO: Implement lights
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateLightPosWS(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    // TODO: Implement lights
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateLightPosVS(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    // TODO: Implement lights
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateDiffuseMatColorIntensity(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    // TODO: Implement Material params
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateSpecularMatColorIntensity(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    // TODO: Implement Material params
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateWorldMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
+  void Internal::updatePerObjectData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
   {
     ASSERT(_updateStage.pWorldMat);
-    const glm::mat4& worldMat = *_updateStage.pWorldMat;
-    memcpy(_pData, glm::value_ptr(worldMat), sizeof(glm::mat4));
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateWorldInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    ASSERT(_updateStage.pWorldMat);
+    ASSERT(_updateStage.pCamera);
+
+    const glm::mat4& viewMat = _updateStage.pCamera->getView();
+    const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
     const glm::mat4& worldMat = *_updateStage.pWorldMat;
     const glm::mat4 worldInvMat(glm::affineInverse(worldMat));
-    memcpy(_pData, glm::value_ptr(worldInvMat), sizeof(glm::mat4));
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateWorldViewMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    ASSERT(_updateStage.pWorldMat);
-    ASSERT(_updateStage.pCamera);
-    const glm::mat4& viewMat = _updateStage.pCamera->getView();
-    const glm::mat4& worldMat = *_updateStage.pWorldMat;
     const glm::mat4 worldView(viewMat * worldMat);
-    memcpy(_pData, glm::value_ptr(worldView), sizeof(glm::mat4));
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateWorldViewInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    ASSERT(_updateStage.pWorldMat);
-    ASSERT(_updateStage.pCamera);
-    const glm::mat4& viewMat = _updateStage.pCamera->getView();
-    const glm::mat4& worldMat = *_updateStage.pWorldMat;
-    const glm::mat4 worldViewInv(glm::affineInverse(viewMat * worldMat));
-    memcpy(_pData, glm::value_ptr(worldViewInv), sizeof(glm::mat4));
-  }
-//---------------------------------------------------------------------------//
-  void Internal::updateWorldViewProjectionMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    ASSERT(_updateStage.pWorldMat);
-    ASSERT(_updateStage.pCamera);
-    const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
-    const glm::mat4& worldMat = *_updateStage.pWorldMat;
+    const glm::mat4 worldViewInv(glm::affineInverse(worldView));
     const glm::mat4 worldViewProj(viewProjMat * worldMat);
-    memcpy(_pData, glm::value_ptr(worldViewProj), sizeof(glm::mat4));
+    const glm::mat4 worldViewProjInv(glm::inverse(worldViewProj));
+
+    float* pData = GET_ELEMENT_PTR(ConstantSemantics::WORLD_MATRIX);
+    memcpy(pData, glm::value_ptr(worldMat), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::WORLD_INVERSE_MATRIX);
+    memcpy(pData, glm::value_ptr(worldInvMat), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::WORLDVIEW_MATRIX);
+    memcpy(pData, glm::value_ptr(worldView), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::WORLDVIEW_INVERSE_MATRIX);
+    memcpy(pData, glm::value_ptr(worldViewInv), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::WORLDVIEWPROJECTION_MATRIX);
+    memcpy(pData, glm::value_ptr(worldViewProj), sizeof(glm::mat4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::WORLDVIEWPROJECTION_INVERSE_MATRIX);
+    memcpy(pData, glm::value_ptr(worldViewProjInv), sizeof(glm::mat4));
   }
 //---------------------------------------------------------------------------//
-  void Internal::updateWorldViewProjectionInverseMatrix(float* _pData, const ShaderConstantsUpdateStage& _updateStage)
-  {
-    ASSERT(_updateStage.pWorldMat);
-    ASSERT(_updateStage.pCamera);
-    const glm::mat4& viewProjMat = _updateStage.pCamera->getViewProjection();
-    const glm::mat4& worldMat = *_updateStage.pWorldMat;
-    const glm::mat4 worldViewProjInv(glm::inverse(viewProjMat * worldMat));
-    memcpy(_pData, glm::value_ptr(worldViewProjInv), sizeof(glm::mat4));
-  }
-//---------------------------------------------------------------------------//
+#undef BEGIN_CBUFFER_UPDATE
+#undef GET_ELEMENT_PTR
+#undef END_CBUFFER_UPDATE
+
 #pragma endregion
 //---------------------------------------------------------------------------//
   ShaderConstantsManager::ShaderConstantsManager()
   {
     memset(Storage::m_vConstantBuffers, 0x0, sizeof(Storage::m_vConstantBuffers));
     memset(Storage::m_vConstantBufferElements, 0x0, sizeof(Storage::m_vConstantBufferElements));
-    memset(Internal::vConstantElementOffsets, -1u, sizeof(Internal::vConstantElementOffsets));
+    memset(Internal::vConstantElementOffsets, -1, sizeof(Internal::vConstantElementOffsets));
 
     Internal::initialize();
 
@@ -392,40 +303,14 @@ namespace Fancy { namespace Rendering {
   void ShaderConstantsManager::update( ConstantBufferType eType )
   {
       ASSERT(Storage::m_vConstantBuffers[(uint32)eType]);
-
-      static const ConstantSemantics semanticsBegin[] = 
-        { ConstantSemantics::PER_FRAME_BEGIN, 
-         ConstantSemantics::PER_VIEWPORT_BEGIN, 
-         ConstantSemantics::PER_CAMERA_BEGIN, 
-         ConstantSemantics::PER_LIGHT_BEGIN, 
-         ConstantSemantics::PER_MATERIAL_BEGIN, 
-         ConstantSemantics::PER_DRAW_BEGIN };
-  
-      static const ConstantSemantics semanticsEnd[] = 
-        { ConstantSemantics::PER_FRAME_END, 
-        ConstantSemantics::PER_VIEWPORT_END,
-        ConstantSemantics::PER_CAMERA_END, 
-        ConstantSemantics::PER_LIGHT_END, 
-        ConstantSemantics::PER_MATERIAL_END,
-        ConstantSemantics::PER_DRAW_END };
-  
-      const uint32 semanticFrom = (uint32) semanticsBegin[(uint32)eType];
-      const uint32 semanticTo = (uint32) semanticsEnd[(uint32)eType];
       
       GpuBuffer* pConstantBuffer = Storage::m_vConstantBuffers[(uint32) eType];
       uint8* pConstantData = static_cast<uint8*>(pConstantBuffer->lock(GpuResoruceLockOption::WRITE_PERSISTENT_COHERENT));
       ASSERT(pConstantData);
-  
-      for (uint32 i = semanticFrom; i < semanticTo; ++i)
-      {
-        // TODO: Should we deprecate the elements and only work with the full layout as defined in the shader?
-        // const ConstantBufferElement& element = Storage::m_vConstantBufferElements[i];
         
-        const uint32 offset = Internal::vConstantElementOffsets[i];
-        ASSERT_M(offset != -1u, "Trying to update an element that was not registered before (i.e. not encountered in any shader). Is it really needed?");
-        const Internal::ConstantUpdateFunction& updateFunction = Internal::vConstantUpdateFunctions[i];
-        updateFunction((float*) (pConstantData + offset), updateStage);
-      } 
+      const Internal::ConstantUpdateFunction& updateFunction = Internal::vConstantUpdateFunctions[(uint32) eType];
+      updateFunction(pConstantData, updateStage);
+
       pConstantBuffer->unlock();
   }
 //---------------------------------------------------------------------------//
