@@ -48,8 +48,9 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
   {
     // TODO: Implement Cubemap- and array textures 
     destroy();
-    
-    static_cast<TextureParameters>(m_clParameters) = clDeclaration;
+
+    TextureParameters* pBaseParams = &m_clParameters;
+    *pBaseParams = clDeclaration;
 
     GLenum eGLformat, eGLinternalFormat, eGLpixelType;
     Adapter::mapGLpixelFormats(clDeclaration.eFormat, clDeclaration.bIsDepthStencil, 
@@ -96,9 +97,9 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
     // Determine the max number of miplevels
     if (m_clParameters.u8NumMipLevels > 0u)
     {
-      uint8 u8MipLevelsWidth  = glm::log2(clDeclaration.u16Width);
-      uint8 u8MipLevelsHeight = glm::log2(clDeclaration.u16Height);
-      uint8 u8MipLevelsDepth  = glm::log2(clDeclaration.u16Depth);
+      uint8 u8MipLevelsWidth  = clDeclaration.u16Width == 0u ? 0u : glm::log2(clDeclaration.u16Width);
+      uint8 u8MipLevelsHeight = clDeclaration.u16Height == 0u ? 0u : glm::log2(clDeclaration.u16Height);
+      uint8 u8MipLevelsDepth  = clDeclaration.u16Depth == 0u ? 0u : glm::log2(clDeclaration.u16Depth);
 
       uint8 u8MaxMipLevels = u8MipLevelsWidth;
       if (uNumDimensions > 1u) {
@@ -158,7 +159,7 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
 
     const uint32 uNumDimensions = m_clStateInfo.numDimensions;
     const bool bUsesTextureCache = m_clStateInfo.cachesTextureData;
-    const bool bSetSubregion = rectDimensions.x > 0 || rectDimensions.y > 0 || rectDimensions.z == 0;
+    const bool bSetSubregion = rectDimensions.x > 0 || rectDimensions.y > 0 || rectDimensions.z > 0;
 
     // Free and recreate the texture cache
     if (bUsesTextureCache && pData != m_clParameters.pPixelData) {

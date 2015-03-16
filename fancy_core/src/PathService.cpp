@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <Windows.h>
 
+#include "FixedArray.h"
+
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   std::string PathService::m_szRelativeResourcePath;
@@ -14,7 +16,7 @@ namespace Fancy { namespace IO {
     int bytes = GetModuleFileName( NULL, outString, FILENAME_MAX );
 
     pathOut = outString;
-    removeAppName( pathOut );
+    removeFilenameFromPath( pathOut );
 
     return pathOut;
   }
@@ -22,7 +24,7 @@ namespace Fancy { namespace IO {
   String PathService::GetContainingFolder( const String& szFileName )
   {
     String szFolderPath = szFileName;
-    removeAppName( szFolderPath );
+    removeFilenameFromPath( szFolderPath );
     return szFolderPath;
   }
 //---------------------------------------------------------------------------//
@@ -44,6 +46,11 @@ namespace Fancy { namespace IO {
       szRelPath = getExePath() + szRelPath;
   }
 //---------------------------------------------------------------------------//
+  bool PathService::isAbsolutePath(const String& _szPath)
+  {
+    return _szPath.size() > 2u && _szPath[1] == ':';
+  }
+//---------------------------------------------------------------------------//
   void PathService::SetResourceLocation( const String& szResource )
   {
     m_szRelativeResourcePath = szResource;
@@ -60,39 +67,72 @@ namespace Fancy { namespace IO {
 
     szPath = getExePath();
 
-    if( m_szRelativeResourcePath.size() < 1 )
-      szPath += "\\Resources\\";
-
+    if( m_szRelativeResourcePath.empty() )
+    {
+      szPath += "/Resources/";
+    }
     else
+    {
       szPath += m_szRelativeResourcePath;
+    }
 
     return szPath;
   }
 //---------------------------------------------------------------------------//
-  String PathService::getFileType( const String& szFileName )
+  String PathService::getFileExtension( const String& szFileName )
   {
     int iPos = szFileName.find_last_of( "." );
     return szFileName.substr( iPos + 1, szFileName.size() - iPos );
   }
 //---------------------------------------------------------------------------//
-  void PathService::removeAppName( String& szPath )
+  void PathService::unifySlashes(String& _szPath)
   {
-    int iPos =	szPath.find_last_of( "\\" );
-    if( iPos > 0 )
+    for (uint32 i = 0; i < _szPath.size(); ++i)
     {
-      szPath = szPath.substr( 0, iPos + 1 );
+      if (_szPath[i] == '\\')
+      {
+        _szPath[i] = '/';
+      }
+    }
+  }
+//---------------------------------------------------------------------------//
+  void PathService::removeFilenameFromPath( String& szPath )
+  {
+    unifySlashes(szPath);
+    size_t posDot = szPath.find_last_of('.');
+    if (posDot == String::npos)
+    {
+      return;
     }
 
-    else
+    size_t posLastSlash =	szPath.find_last_of( "/" );
+    if( posLastSlash != String::npos && posDot > posLastSlash )
     {
-      int iPos = szPath.find_last_of( "/" );
-      if( iPos > 0 )
+      szPath = szPath.substr( 0u, posLastSlash + 1u );
+    }
+  }
+//---------------------------------------------------------------------------//
+  void PathService::removeFolderUpMarkers( String& _szPath )
+  {
+    unifySlashes(_szPath);
+
+    const String kSearchKey = "/../";
+    const uint32 kSearchKeyLen = kSearchKey.length();
+
+    size_t posDots = _szPath.find(kSearchKey);
+    while(posDots != String::npos)
+    {
+      size_t posSlashBefore = _szPath.rfind('/', posDots - 1u);
+      if (posSlashBefore == String::npos)
       {
-        szPath = szPath.substr( 0, iPos + 1 );
+        break;
       }
 
-      else
-        log_Info( String( "App-name could not be removed for path " ) + szPath );
+      String firstPart = _szPath.substr(0u, posSlashBefore + 1u);
+      String secondPart = _szPath.substr(posDots + kSearchKeyLen);
+      _szPath = firstPart + secondPart;
+
+      posDots = _szPath.find(kSearchKey);
     }
   }
 //---------------------------------------------------------------------------//

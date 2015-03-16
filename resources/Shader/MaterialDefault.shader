@@ -15,7 +15,7 @@
     in VS_OUT
   #endif // PROGRAM_TYPE_VERTEX  
     {
-        vec4 color;
+        vec2 uv;
     }
   #if defined (PROGRAM_TYPE_VERTEX)      
     vs_out;
@@ -38,19 +38,19 @@
 
     void main()
     {
-      mat4 worldViewProj = cbPerObject.c_WorldViewProjectionMatrix;
-
-      gl_Position = worldViewProj * vec4(v_position, 1.0);
-      vs_out.color = abs(cbPerObject.c_WorldMatrix[3]);
+      gl_Position = cbPerObject.c_WorldViewProjectionMatrix * vec4(v_position, 1.0);
+      vs_out.uv = v_texcoord0;
     }
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
   #if defined(PROGRAM_TYPE_FRAGMENT)
+    layout(binding = 0) uniform sampler2D tex_diffuse;
+
     out vec4 color;
 
     void main()
     {
-      color = vec4(fs_in.color.xyz, 1.0);
+      color = texture(tex_diffuse, fs_in.uv);
     }
   #endif // PROGRAM_TYPE_FRAGMENT
 //---------------------------------------------------------------------------//  

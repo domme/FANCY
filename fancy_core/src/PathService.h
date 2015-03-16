@@ -12,12 +12,15 @@ namespace Fancy { namespace IO {
     static void convertToAbsPath( String& szRelPath, bool bInResources = true );
     static String getExePath();
     static String getResourcesPath();
-    static String getFileType( const String& szFileName );
+    static bool isAbsolutePath(const String& _szPath);
+    static String getFileExtension( const String& szFileName );
     static String GetContainingFolder( const String& szFileName );
     static void SetResourceLocation( const String& szResource );
-  
+    static void removeFolderUpMarkers(String& _szPath);
+    static void unifySlashes(String& _szPath);
+    static void removeFilenameFromPath( String& szPath );
+
   private:
-    static void removeAppName( String& szPath );
     static std::string m_szRelativeResourcePath;
   };
 //---------------------------------------------------------------------------//

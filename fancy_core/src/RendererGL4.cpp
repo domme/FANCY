@@ -459,7 +459,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setReadTexture( Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
+  void RendererGL4::setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
   {
     ASSERT_M(u8Index < kMaxNumReadTextures, "Referenced an undefined texture unit");
   
@@ -649,7 +649,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Read textures
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::READ_TEXTURES)
       {
-        Texture** ppTexturesToBind = m_pCachedReadTextures[uStageIdx];
+        const Texture** ppTexturesToBind = m_pCachedReadTextures[uStageIdx];
         const uint32 uReadTextureBindMask = m_uReadTextureBindMask[uStageIdx];
         m_uReadTextureBindMask[uStageIdx] = 0u;
 

@@ -20,7 +20,7 @@ namespace Fancy { namespace IO {
     lodepng::load_file(vEncodedFileBytes, _szPathAbs);
     ASSERT_M(vEncodedFileBytes.size() > 0u, "Error loading image file " + _szPathAbs);
 
-    uint32 uErrorCode = lodepng::decode(vEncodedFileBytes, uWidth, uHeight, state, _vOutBytes);
+    uint32 uErrorCode = lodepng::decode(_vOutBytes, uWidth, uHeight, state, vEncodedFileBytes);
     
     if (uErrorCode != 0u)
     {
@@ -40,7 +40,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   bool TextureLoader::loadTexture(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
   {
-    std::string szFileType = PathService::getFileType(_szPathAbs);
+    std::string szFileType = PathService::getFileExtension(_szPathAbs);
 
     if (szFileType == "PNG" || szFileType == "png")
     {

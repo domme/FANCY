@@ -32,13 +32,17 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderingProcess::applyMaterialPassInstance( const MaterialPassInstance* _pMaterialPassInstance, Renderer* _pRenderer )
   {
-    /*for (uint32 i = 0u; i < (uint32) ShaderStage::NUM; ++i)
+    for (uint32 i = 0u; i < (uint32) ShaderStage::NUM; ++i)
     {
       ShaderStage eStage = static_cast<ShaderStage>(i);
 
-      // Set read textures
-
-    } */
+      const Texture* const* ppReadTextures = _pMaterialPassInstance->getReadTextures(eStage);
+      for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumReadTextures; ++iRegIndex)
+      {
+        // TODO: Implement a method for setting multiple textures at once
+        _pRenderer->setReadTexture(ppReadTextures[iRegIndex], eStage, iRegIndex);
+      }
+    }
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

@@ -70,10 +70,10 @@ namespace Fancy { namespace IO {
 
     struct WorkingData
     {
-      WorkingData() : szCurrScenePath(""), pCurrScene(nullptr),
+      WorkingData() : szCurrScenePathInResources(""), pCurrScene(nullptr),
         u32NumCreatedMeshes(0u), u32NumCreatedModels(0u), u32NumCreatedGeometryDatas(0u), u32NumCreatedSubModels(0u) {}
 
-      std::string szCurrScenePath;
+      std::string szCurrScenePathInResources;
       const aiScene* pCurrScene;
       MeshCacheMap mapAiMeshToGeometryData;
       MaterialCacheMap mapAiMatToMat;
@@ -135,7 +135,7 @@ namespace Fancy { namespace IO {
     }
 
     Processing::WorkingData workingData;
-    workingData.szCurrScenePath = _szImportPathRel;
+    workingData.szCurrScenePathInResources = _szImportPathRel;
     return Processing::processAiScene(workingData, aScene, _pParentNode);
   }
 //---------------------------------------------------------------------------//
@@ -636,7 +636,10 @@ namespace Fancy { namespace IO {
     pMaterialPass->init(matPassDesc);
   
     Material* pMaterial = FANCY_NEW(Material, MemoryCategory::MATERIALS);
-    pMaterial->setPass(pMaterialPass->createMaterialPassInstance(_N(DefaultMPI)), EMaterialPass::SOLID_FORWARD);
+    MaterialPassInstance* mpi = pMaterialPass->createMaterialPassInstance(_N(DefaultMPI));
+    mpi->setReadTexture(ShaderStage::FRAGMENT, 0u, pDiffuseTex);
+
+    pMaterial->setPass(mpi, EMaterialPass::SOLID_FORWARD);
     return pMaterial;
   }
 //---------------------------------------------------------------------------//
@@ -654,8 +657,17 @@ namespace Fancy { namespace IO {
     aiString szATexPath;
     _pAmaterial->Get(AI_MATKEY_TEXTURE(_aiTextureType, _texIndex), szATexPath);
 
-    // TODO: Is this an absolute path?
     String szTexPath = String(szATexPath.C_Str());
+    
+    if (!PathService::isAbsolutePath(szTexPath))
+    {
+      String absSceneFolderPath = _workingData.szCurrScenePathInResources;
+      PathService::convertToAbsPath(absSceneFolderPath);
+      PathService::removeFilenameFromPath(absSceneFolderPath);
+      szTexPath = absSceneFolderPath + szTexPath;
+    }
+
+    PathService::removeFolderUpMarkers(szTexPath);
 
     // Did we already load this texture before?
     Texture* pTexture = Texture::getByName(szTexPath);
@@ -673,7 +685,7 @@ namespace Fancy { namespace IO {
       return nullptr;
     }
 
-    if (texLoadInfo.bitsPerPixel != 8u || (texLoadInfo.numChannels != 3u && texLoadInfo.numChannels != 4u))
+    if (texLoadInfo.bitsPerPixel / texLoadInfo.numChannels != 8u)
     {
       log_Error("Unsupported texture format: " + szTexPath);
       return nullptr;
@@ -688,7 +700,7 @@ namespace Fancy { namespace IO {
     texParams.u16Height = texLoadInfo.height;
     texParams.u16Depth = 0u;
     texParams.uAccessFlags = (uint32) GpuResourceAccessFlags::NONE;
-    texParams.uPixelDataSizeBytes = texLoadInfo.width * texLoadInfo.height;
+    texParams.uPixelDataSizeBytes = (texLoadInfo.width * texLoadInfo.height * texLoadInfo.bitsPerPixel) / 8u;
     texParams.pPixelData = &vTextureBytes[0];
     pTexture->create(texParams);
 
@@ -708,26 +720,26 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   std::string Processing::getUniqueModelName(WorkingData& _workingData)
   {
-    return "Model_" + _workingData.szCurrScenePath + "_" 
+    return "Model_" + _workingData.szCurrScenePathInResources + "_" 
       + StringUtil::toString(_workingData.u32NumCreatedModels++);
   }
 //---------------------------------------------------------------------------//
   std::string Processing::getUniqueMeshName(WorkingData& _workingData)
   {
-    return "Mesh_" + _workingData.szCurrScenePath + "_" 
+    return "Mesh_" + _workingData.szCurrScenePathInResources + "_" 
       + StringUtil::toString(_workingData.u32NumCreatedMeshes++);
   }
 //---------------------------------------------------------------------------//
   std::string Processing::getUniqueGeometryDataName(WorkingData& _workingData, const aiMesh* _pMesh)
   {
-    return "GeometryData_" + _workingData.szCurrScenePath + "_" 
+    return "GeometryData_" + _workingData.szCurrScenePathInResources + "_" 
       + std::string(_pMesh->mName.C_Str()) + "_"
       + StringUtil::toString(_workingData.u32NumCreatedGeometryDatas++);
   }
 //---------------------------------------------------------------------------//
   std::string Processing::getUniqueSubModelName(WorkingData& _workingData)
   {
-    return "SubModel_" + _workingData.szCurrScenePath + "_" 
+    return "SubModel_" + _workingData.szCurrScenePathInResources + "_" 
       + StringUtil::toString(_workingData.u32NumCreatedSubModels++);
   }
 //---------------------------------------------------------------------------//

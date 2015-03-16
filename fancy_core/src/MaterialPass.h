@@ -44,6 +44,7 @@ namespace Fancy { namespace Rendering {
       const BlendState* getBlendState() const {return m_pBlendState;}
       const DepthStencilState* getDepthStencilState() const {return m_pDepthStencilState;}
       MaterialPassInstance* createMaterialPassInstance(const ObjectName& name);
+      bool hasStage(ShaderStage _eStage) const {return getGpuProgram(_eStage) != nullptr;}
 
     private:
       ObjectName m_Name;
@@ -57,11 +58,6 @@ namespace Fancy { namespace Rendering {
       const DepthStencilState* m_pDepthStencilState;
   };
 //---------------------------------------------------------------------------//
-  typedef FixedArray<Texture*, kMaxNumReadTextures> ReadTextureList;
-  typedef FixedArray<Texture*, kMaxNumWriteTextures> WriteTextureList;
-  typedef FixedArray<GpuBuffer*, kMaxNumReadBuffers> ReadBufferList;
-  typedef FixedArray<GpuBuffer*, kMaxNumWriteBuffers> WriteBufferList;
-  typedef FixedArray<TextureSampler*, kMaxNumReadTextures> TextureSamplerList;
 //---------------------------------------------------------------------------//
   class MaterialPassInstance
   {
@@ -70,11 +66,17 @@ namespace Fancy { namespace Rendering {
     public:
       ~MaterialPassInstance();
 
-      const ReadTextureList& getReadTextures(ShaderStage eShaderStage) const {return m_vpReadTextures[(uint32) eShaderStage];}
-      const WriteTextureList& getWriteTextures(ShaderStage eShaderStage) const {return m_vpWriteTextures[(uint32) eShaderStage];}
-      const ReadBufferList& getReadBuffers(ShaderStage eShaderStage) const {return m_vpReadBuffers[(uint32) eShaderStage];}
-      const WriteBufferList& getWriteBuffers(ShaderStage eShaderStage) const {return m_vpWriteBuffers[(uint32) eShaderStage];}
-      const TextureSamplerList& getTextureSamplers(ShaderStage eShaderStage) const {return m_vpTextureSamplers[(uint32) eShaderStage];}
+      const Texture* const* getReadTextures(ShaderStage eShaderStage) const {return m_vpReadTextures[(uint32) eShaderStage];}
+      const Texture* const* getWriteTextures(ShaderStage eShaderStage) const {return m_vpWriteTextures[(uint32) eShaderStage];}
+      const GpuBuffer* const* getReadBuffers(ShaderStage eShaderStage) const {return m_vpReadBuffers[(uint32) eShaderStage];}
+      const GpuBuffer* const* getWriteBuffers(ShaderStage eShaderStage) const {return m_vpWriteBuffers[(uint32) eShaderStage];}
+      const TextureSampler* const* getTextureSamplers(ShaderStage eShaderStage) const {return m_vpTextureSamplers[(uint32) eShaderStage];}
+
+      void setReadTexture(ShaderStage _eStage, uint32 _registerIndex, const Texture* _pTexture) {ASSERT(_registerIndex < kMaxNumReadTextures); m_vpReadTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
+      void setWriteTexture(ShaderStage _eStage, uint32 _registerIndex, const Texture* _pTexture) {ASSERT(_registerIndex < kMaxNumWriteTextures); m_vpWriteTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
+      void setReadBuffer(ShaderStage _eStage, uint32 _registerIndex, const GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumReadBuffers); m_vpReadBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
+      void setWriteBuffer(ShaderStage _eStage, uint32 _registerIndex, const GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumWriteBuffers); m_vpWriteBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
+      void setTextureSampler(ShaderStage _eStage, uint32 _registerIndex, const TextureSampler* _pTextureSampler) {ASSERT(_registerIndex < kMaxNumReadTextures); m_vpTextureSamplers[(uint32) _eStage][_registerIndex] = _pTextureSampler; }
 
       const MaterialPass* getMaterialPass() const {return m_pMaterialPass;}
       const ObjectName& getName() {return m_Name;}
@@ -82,13 +84,13 @@ namespace Fancy { namespace Rendering {
     private:
       MaterialPassInstance();
 
-      ReadTextureList m_vpReadTextures[(uint32) ShaderStage::NUM];
-      WriteTextureList m_vpWriteTextures[(uint32) ShaderStage::NUM];
-      ReadBufferList m_vpReadBuffers[(uint32) ShaderStage::NUM];
-      WriteBufferList m_vpWriteBuffers[(uint32) ShaderStage::NUM];
-      TextureSamplerList m_vpTextureSamplers[(uint32) ShaderStage::NUM];
+      const Texture* m_vpReadTextures[(uint32) ShaderStage::NUM][kMaxNumReadTextures];
+      const Texture* m_vpWriteTextures[(uint32) ShaderStage::NUM][kMaxNumWriteTextures];
+      const GpuBuffer* m_vpReadBuffers[(uint32) ShaderStage::NUM][kMaxNumReadBuffers];
+      const GpuBuffer* m_vpWriteBuffers[(uint32) ShaderStage::NUM][kMaxNumWriteBuffers];
+      const TextureSampler* m_vpTextureSamplers[(uint32) ShaderStage::NUM][kMaxNumReadTextures];
 
-      MaterialPass* m_pMaterialPass;
+      const MaterialPass* m_pMaterialPass;
       ObjectName m_Name;
   };
 //---------------------------------------------------------------------------//

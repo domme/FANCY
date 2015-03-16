@@ -56,7 +56,7 @@ public:
   Texture* getCachedRenderTarget(const uint8 u8RenderTargetIndex) const 
   { ASSERT(u8RenderTargetIndex < kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
 
-  void setReadTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setWriteTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setReadBuffer(GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setConstantBuffer(const GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
@@ -117,7 +117,7 @@ protected:
   uint32        m_uResourceRebindMask[ShaderStage::NUM];  // Needed?
   
   /// Cached textures per shaderStage bound/to bind to the pipeline
-  Texture*	    m_pCachedReadTextures [ShaderStage::NUM][kMaxNumReadTextures];
+  const Texture*	    m_pCachedReadTextures [ShaderStage::NUM][kMaxNumReadTextures];
   /// Mask identifying which textures need to be bind in the next draw call
   uint32		    m_uReadTextureBindMask [ShaderStage::NUM];
   uint32        m_uNumReadTexturesToBind[ShaderStage::NUM];

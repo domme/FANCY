@@ -61,7 +61,11 @@ namespace Fancy { namespace Rendering {
   MaterialPassInstance::MaterialPassInstance() :
     m_pMaterialPass(nullptr)
   {
-
+    memset(m_vpReadTextures, 0x0, sizeof(m_vpReadTextures));
+    memset(m_vpWriteTextures, 0x0, sizeof(m_vpWriteTextures));
+    memset(m_vpReadBuffers, 0x0, sizeof(m_vpReadBuffers));
+    memset(m_vpWriteBuffers, 0x0, sizeof(m_vpWriteBuffers));
+    memset(m_vpTextureSamplers, 0x0, sizeof(m_vpTextureSamplers));
   }
  //---------------------------------------------------------------------------//
   MaterialPassInstance::~MaterialPassInstance()
