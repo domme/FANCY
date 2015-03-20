@@ -57,10 +57,10 @@ public:
   { ASSERT(u8RenderTargetIndex < kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
 
   void setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setWriteTexture(Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setReadBuffer(GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setReadBuffer(const GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setConstantBuffer(const GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setTextureSampler(TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+  void setTextureSampler(const TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage);
 
   void renderGeometry(const Geometry::GeometryData* pGeometry);
@@ -122,21 +122,21 @@ protected:
   uint32		    m_uReadTextureBindMask [ShaderStage::NUM];
   uint32        m_uNumReadTexturesToBind[ShaderStage::NUM];
 
-  Texture*      m_pCachedWriteTextures [ShaderStage::NUM][kMaxNumWriteTextures];
-  uint32        m_uWriteTextureBindMask [ShaderStage::NUM];
-  uint32        m_uNumWriteTexturesToBind[ShaderStage::NUM];
+  const Texture*      m_pCachedWriteTextures [ShaderStage::NUM][kMaxNumWriteTextures];
+  uint32              m_uWriteTextureBindMask [ShaderStage::NUM];
+  uint32              m_uNumWriteTexturesToBind[ShaderStage::NUM];
 
-  GpuBuffer*		m_pCachedReadBuffers [ShaderStage::NUM][kMaxNumReadBuffers];
-  uint32		    m_uReadBufferBindMask [ShaderStage::NUM];
-  uint32        m_uNumReadBuffersToBind[ShaderStage::NUM];
+  const GpuBuffer*		m_pCachedReadBuffers [ShaderStage::NUM][kMaxNumReadBuffers];
+  uint32	      	    m_uReadBufferBindMask [ShaderStage::NUM];
+  uint32              m_uNumReadBuffersToBind[ShaderStage::NUM];
 
   const GpuBuffer*		m_pCachedConstantBuffers [ShaderStage::NUM][(uint) ConstantBufferType::NUM];
   uint32				      m_uConstantBufferBindMask[ShaderStage::NUM];
   uint32              m_uNumConstantBuffersToBind[ShaderStage::NUM];
 
-  TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][kMaxNumBoundSamplers];
-  uint32				    m_uTextureSamplerBindMask[ShaderStage::NUM];
-  uint32            m_uNumTextureSamplersToBind[ShaderStage::NUM];
+  const TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][kMaxNumTextureSamplers];
+  uint32	      			    m_uTextureSamplerBindMask[ShaderStage::NUM];
+  uint32                  m_uNumTextureSamplersToBind[ShaderStage::NUM];
 
   Texture*			    m_pCachedRenderTargets [kMaxNumRenderTargets];
   Texture*          m_pCachedDepthStencilTarget;

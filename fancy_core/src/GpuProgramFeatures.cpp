@@ -30,7 +30,6 @@ namespace Fancy { namespace Rendering {
       case GpuProgramFeature::FEAT_SPECULAR_TEXTURE: return "FEAT_SPECULAR_TEXTURE";
       case GpuProgramFeature::FEAT_SPECULAR_POWER_TEXTURE: return "FEAT_SPECULAR_POWER_TEXTURE";
       case GpuProgramFeature::FEAT_TRANSPARENT: return "FEAT_TRANSPARENT";
-      case GpuProgramFeature::FEAT_OPACITY_TEXTURE: return "FEAT_OPACITY_TEXTURE";
       case GpuProgramFeature::FEAT_CUTOUT: return "FEAT_CUTOUT";
     default:
       ASSERT(false);

@@ -625,21 +625,59 @@ namespace Fancy { namespace IO {
     // TODO: Make this less stupid...
     // First test: just use a dummy material
     GpuProgramPermutation permutation;
+    if (hasDiffuseTex) permutation.addFeature(GpuProgramFeature::FEAT_ALBEDO_TEXTURE);
+    if (hasNormalTex) permutation.addFeature(GpuProgramFeature::FEAT_NORMAL_MAPPED);
+    if (hasSpecTex) permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR); permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR_TEXTURE);
+
     GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", permutation, ShaderStage::VERTEX);
     GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", permutation, ShaderStage::FRAGMENT);
 
     MaterialPassDescription matPassDesc;
+    matPassDesc.blendState = _N(BlendState_Solid);
+    matPassDesc.depthStencilState = _N(DepthStencilState_DefaultDepthState);
+    matPassDesc.eCullMode = CullMode::BACK;
+    matPassDesc.eFillMode = FillMode::SOLID;
+    matPassDesc.eWindingOrder = WindingOrder::CCW;
     matPassDesc.gpuProgram[(uint32)ShaderStage::VERTEX] = pVertexProgram->getName();
     matPassDesc.gpuProgram[(uint32)ShaderStage::FRAGMENT] = pFragmentProgram->getName();
 
-    MaterialPass* pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
-    pMaterialPass->init(matPassDesc);
-  
-    Material* pMaterial = FANCY_NEW(Material, MemoryCategory::MATERIALS);
-    MaterialPassInstance* mpi = pMaterialPass->createMaterialPassInstance(_N(DefaultMPI));
-    mpi->setReadTexture(ShaderStage::FRAGMENT, 0u, pDiffuseTex);
+    // Try to find an existing MaterialPass with this description
+    MaterialPass* pMaterialPass = MaterialPass::find([matPassDesc] (MaterialPass* pCurrPass) -> bool{ return pCurrPass->getDescription() == matPassDesc; } );
+    if (pMaterialPass == nullptr)
+    {
+      pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
+      pMaterialPass->init(matPassDesc);
+      MaterialPass::registerWithName(pMaterialPass);
+    }
 
-    pMaterial->setPass(mpi, EMaterialPass::SOLID_FORWARD);
+    MaterialPassInstance forwardTempMpi;
+    forwardTempMpi.setReadTexture(ShaderStage::FRAGMENT, 0u, pDiffuseTex);
+    forwardTempMpi.setReadTexture(ShaderStage::FRAGMENT, 1u, pNormalTex);
+    forwardTempMpi.setReadTexture(ShaderStage::FRAGMENT, 2u, pSpecularTex);    
+
+    // Try to find a fitting MaterialPassInstance managed by MaterialPass
+    const MaterialPassInstance* pForwardMpi = pMaterialPass->getMaterialPassInstance(forwardTempMpi.computeHash());
+    if (pForwardMpi == nullptr)
+    {
+      MaterialPassInstance* pNewMpi = pMaterialPass->createMaterialPassInstance(_N(DefaultMPI));
+      pNewMpi->copyFrom(forwardTempMpi);
+      pForwardMpi = pNewMpi;
+    }
+
+    // Try to find a similar material
+    Material* pMaterial = Material::find([pForwardMpi] (Material* pCurrMat) -> bool { 
+      bool sameMaterial = true;
+      sameMaterial &= pCurrMat->getPass(EMaterialPass::SOLID_FORWARD) == pForwardMpi;
+
+      return sameMaterial;
+    });
+
+    if (pMaterial == nullptr)
+    {
+      pMaterial = FANCY_NEW(Material, MemoryCategory::MATERIALS);
+      pMaterial->setPass(pForwardMpi, EMaterialPass::SOLID_FORWARD);
+    }
+
     return pMaterial;
   }
 //---------------------------------------------------------------------------//

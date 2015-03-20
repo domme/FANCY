@@ -1,13 +1,13 @@
 //---------------------------------------------------------------------------//
 /* Possible Feature-Defines:
-
+  FEAT_ALBEDO_TEXTURE
 */
 //---------------------------------------------------------------------------//
 
 #version 440
 
+ // #include "Shader/TextureSemantics.shader_include"
  #include "Shader/ConstantBuffer.shader_include"
-
  //---------------------------------------------------------------------------//
   #if defined (PROGRAM_TYPE_VERTEX)
     out VS_OUT
@@ -44,7 +44,16 @@
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
   #if defined(PROGRAM_TYPE_FRAGMENT)
-    layout(binding = 0) uniform sampler2D tex_diffuse;
+  
+  #if defined(FEAT_ALBEDO_TEXTURE)
+    layout(binding = 0) uniform sampler2D tex_diffuse;  
+  #endif  // FEAT_ALBEDO_TEXTURE
+  #if defined (FEAT_NORMAL_MAPPED)
+    layout(binding = 1) uniform sampler2D tex_normal;
+  #endif  // FEAT_NORMAL_MAPPED
+  #if defined (FEAT_SPECULAR) && defined (FEAT_SPECULAR_TEXTURE) 
+    layout(binding = 2) uniform sampler2D tex_specular;
+  #endif  // (FEAT_SPECULAR) && (FEAT_SPECULAR_TEXTURE)
 
     out vec4 color;
 

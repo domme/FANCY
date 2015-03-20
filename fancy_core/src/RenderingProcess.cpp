@@ -39,8 +39,32 @@ namespace Fancy { namespace Rendering {
       const Texture* const* ppReadTextures = _pMaterialPassInstance->getReadTextures(eStage);
       for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumReadTextures; ++iRegIndex)
       {
-        // TODO: Implement a method for setting multiple textures at once
         _pRenderer->setReadTexture(ppReadTextures[iRegIndex], eStage, iRegIndex);
+      }
+
+      const Texture* const* ppWriteTextures = _pMaterialPassInstance->getWriteTextures(eStage);
+      for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumWriteTextures; ++iRegIndex)
+      {
+        _pRenderer->setWriteTexture(ppWriteTextures[iRegIndex], eStage, iRegIndex);
+      }
+
+      const GpuBuffer* const* ppReadBuffers = _pMaterialPassInstance->getReadBuffers(eStage);
+      for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumReadBuffers; ++iRegIndex)
+      {
+        _pRenderer->setReadBuffer(ppReadBuffers[iRegIndex], eStage, iRegIndex);
+      }
+
+      // No support in the renderer yet...
+//    const GpuBuffer* const* ppWriteBuffers = _pMaterialPassInstance->getWriteBuffers(eStage);
+//    for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumWriteBuffers; ++iRegIndex)
+//    {
+//      _pRenderer->setWriteBuffer(ppWriteBuffers[iRegIndex], eStage, iRegIndex);
+//    }
+
+      const TextureSampler* const* ppTextureSamplers = _pMaterialPassInstance->getTextureSamplers(eStage);
+      for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumTextureSamplers; ++iRegIndex)
+      {
+        _pRenderer->setTextureSampler(ppTextureSamplers[iRegIndex], eStage, iRegIndex);
       }
     }
   }

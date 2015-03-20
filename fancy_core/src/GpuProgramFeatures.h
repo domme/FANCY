@@ -16,7 +16,6 @@ namespace Fancy { namespace Rendering {
     FEAT_SPECULAR_TEXTURE,
     FEAT_SPECULAR_POWER_TEXTURE,
     FEAT_TRANSPARENT,
-    FEAT_OPACITY_TEXTURE,
     FEAT_CUTOUT,
 
     NUM

@@ -475,7 +475,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_uReadTextureBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setWriteTexture( Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
+  void RendererGL4::setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
   {
     ASSERT_M(u8Index < kMaxNumWriteTextures, "Referenced an undefined image unit");
 
@@ -491,7 +491,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_uWriteTextureBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setReadBuffer( GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8Index )
+  void RendererGL4::setReadBuffer(const GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8Index )
   {
     ASSERT_M(u8Index < kMaxNumReadBuffers, "Referenced an undefined buffer register");
   
@@ -523,9 +523,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_uConstantBufferBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setTextureSampler( TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8Index )
+  void RendererGL4::setTextureSampler(const TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < kMaxNumBoundSamplers, "Referenced an undefined sampler register");
+    ASSERT_M(u8Index < kMaxNumTextureSamplers, "Referenced an undefined sampler register");
   
     if(m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8Index] == pSampler) {
       return;
@@ -580,11 +580,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       return;
     }
 
-    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::WINDINGORDER)) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::WINDINGORDER)) > 0u) {
       glFrontFace(Adapter::toGLType(m_eWindingOrder));
     }
 
-    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::CULLMODE)) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::CULLMODE)) > 0u) {
       if (m_eCullMode == CullMode::NONE) {
         GL_SET_CAP(GL_CULL_FACE, false);  // Disables culling in general
       } else {
@@ -592,19 +592,19 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
     }
 
-    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::FILLMODE)) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::FILLMODE)) > 0u) {
       glPolygonMode(GL_FRONT_AND_BACK, Adapter::toGLType(m_eFillMode));
     }
 
-    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL)) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::DEPTHSTENCIL)) > 0u) {
       bindDepthStencilState();
     }
 
-    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::BLENDING)) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::BLENDING)) > 0u) {
       bindBlendState();
     }
 
-    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::RENDERTARGETS)) > 0) {
+    if ((m_uPipelineRebindMask & static_cast<uint>(PipelineRebindFlags::RENDERTARGETS)) > 0u) {
       bindRenderTargets();
     }
 
@@ -671,7 +671,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Sampler objects
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::TEXTURE_SAMPLERS)
       {
-        TextureSampler** ppSamplersToBind = m_pCachedTextureSamplers[uStageIdx];
+        const TextureSampler** ppSamplersToBind = m_pCachedTextureSamplers[uStageIdx];
         const uint32 uSamplerBindMask = m_uTextureSamplerBindMask[uStageIdx];
         m_uTextureSamplerBindMask[uStageIdx] = 0u;
 
@@ -692,7 +692,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Write textures
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::WRITE_TEXTURES)
       {
-        Texture** ppTexturesToBind = m_pCachedWriteTextures[uStageIdx];
+        const Texture** ppTexturesToBind = m_pCachedWriteTextures[uStageIdx];
         const uint32 uWriteTextureBindMask = m_uWriteTextureBindMask[uStageIdx];
         m_uWriteTextureBindMask[uStageIdx] = 0u;
 
