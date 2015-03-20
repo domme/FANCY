@@ -12,7 +12,6 @@
 
 #include <Scene.h>
 #include <SceneNode.h>
-#include <Camera.h>
 #include <CameraComponent.h>
 #include <EngineCommon.h>
 #include <SceneImporter.h>
@@ -48,7 +47,7 @@ void startupEngine()
 void updateWindowSize(int width, int height)
 {
   Fancy::EngineCommon::setWindowSize(width, height);
-  pCameraComponent->getCamera()->setProjectionPersp(45.0f, width, height, 1.0f, 1000.0f);
+  pCameraComponent->setProjectionPersp(45.0f, width, height, 1.0f, 1000.0f);
 }
 
 void shutdownEngine()
@@ -66,6 +65,7 @@ static void error_callback(int error, const char* description)
 {
   fputs(description, stderr);
 }
+
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)

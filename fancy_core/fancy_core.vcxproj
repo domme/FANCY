@@ -207,7 +207,6 @@
   <ItemGroup>
     <ClInclude Include="src\AdapterGL4.h" />
     <ClInclude Include="src\BlendState.h" />
-    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\CameraComponent.h" />
     <ClInclude Include="src\ComputeOperation.h" />
     <ClInclude Include="src\DebugOutStream.h" />
@@ -272,7 +271,6 @@
   <ItemGroup>
     <ClCompile Include="src\AdapterGL4.cpp" />
     <ClCompile Include="src\BlendState.cpp" />
-    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\ComputeOperation.cpp" />
     <ClCompile Include="src\DebugOutStream.cpp" />

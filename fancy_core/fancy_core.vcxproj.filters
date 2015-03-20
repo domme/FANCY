@@ -39,9 +39,6 @@
     <ClInclude Include="src\StdAfx.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Camera.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\ComputeOperation.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -229,9 +226,6 @@
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Camera.cpp">
-      <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\ComputeOperation.cpp">
       <Filter>src\Rendering</Filter>

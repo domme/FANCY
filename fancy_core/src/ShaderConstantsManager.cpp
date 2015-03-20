@@ -1,7 +1,6 @@
 
 #include "ShaderConstantsManager.h"
 #include "Renderer.h"
-#include "Camera.h"
 #include "SceneNode.h"
 #include "TimeManager.h"
 

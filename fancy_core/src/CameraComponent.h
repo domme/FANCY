@@ -2,7 +2,7 @@
 #define INCLUDE_CAMERACOMPONENT_H
 
 #include "SceneNodeComponent.h"
-#include "Camera.h"
+#include "FixedArray.h"
 
 namespace Fancy { namespace Scene {
   //---------------------------------------------------------------------------//
@@ -16,13 +16,51 @@ namespace Fancy { namespace Scene {
     virtual void update() override;
     virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
     virtual ObjectName getTypeName() override { return _N(Camera); }
-    Camera* getCamera() {return &m_camera;}
+
+    const glm::mat4& getView() const { return m_matView; }
+    const glm::mat4& getViewInv() const {return m_matViewInv; }
+    const glm::mat4& getProjection() const { return m_matProjection; }
+    const glm::mat4& getViewProjection() const { return m_matViewProj; }
+    void setFarPlane( float fFar ) { m_fFar = fFar; }
+    float getFarPlane() const { return m_fFar; }
+    float	getNearPlane() const { return m_fNear; }
+    float	getFovRad() const	{ return glm::radians( m_fFovDeg ); }
+    float	getFovDeg() const { return m_fFovDeg; }
+    float	getAspectRatio() const { return m_fWidth / m_fHeight; }
+    void setProjectionPersp( float yFov_deg, float fWidth, float fHeight, float fNear, float fFar );
+    void setProjectionOrtho( float fLeft, float fRight, float fBottom, float fTop, float fNear, float fFar ); 
+    FixedArray<glm::vec3, 8u> getWSfrustumCorners();
 
   private:
     void updateCameraInternal();
 
-    // TODO: Integrate the camera-functionality right in the component
-    Camera m_camera;
+    enum class EFrustumPlane
+    {
+      PLANE_LEFT = 0,
+      PLANE_RIGHT,
+      PLANE_BOTTOM,
+      PLANE_TOP,
+      PLANE_NEAR,
+      PLANE_FAR
+    };
+
+    glm::mat4 m_matViewInv;
+    glm::mat4	m_matView;
+    glm::mat4	m_matProjection;
+    glm::mat4	m_matViewProj;
+    glm::vec4	m_v4FrustumPlanesVS[ 6 ];
+
+    float		m_fFovDeg;
+    float		m_fFar;
+    float		m_fNear;
+    float		m_fFocalLength;
+    bool		m_bIsOrtho;
+    float		m_fWidth;
+    float		m_fHeight;
+
+    void recalculateFrustumPlanes();
+    void onViewInvChanged();
+    void onProjectionChanged();
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(CameraComponent)

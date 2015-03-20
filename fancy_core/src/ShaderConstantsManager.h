@@ -15,7 +15,7 @@ namespace Fancy { namespace Rendering {
 
 namespace Fancy { namespace Scene {
   class SceneNode;
-  class Camera;
+  class CameraComponent;
 } }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -122,7 +122,7 @@ namespace Fancy { namespace Rendering {
   {
     const Renderer* pRenderer;
     const glm::mat4* pWorldMat;
-    const Scene::Camera* pCamera;
+    const Scene::CameraComponent* pCamera;
     const MaterialPassInstance* pMaterial;
   };
 //---------------------------------------------------------------------------//

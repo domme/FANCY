@@ -37,7 +37,7 @@ namespace Fancy { namespace Rendering {
     ShaderConstantsManager::updateStage.pRenderer = &renderer;
     ShaderConstantsManager::update(ConstantBufferType::PER_FRAME);
 
-    ShaderConstantsManager::updateStage.pCamera = pScene->getActiveCamera()->getCamera();
+    ShaderConstantsManager::updateStage.pCamera = pScene->getActiveCamera();
     ShaderConstantsManager::update(ConstantBufferType::PER_CAMERA);
 
     const Scene::RenderingItemList& forwardRenderList = renderDesc.techniqueItemList[(uint32) Rendering::EMaterialPass::SOLID_FORWARD];
