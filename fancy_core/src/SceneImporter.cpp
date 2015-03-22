@@ -163,7 +163,15 @@ namespace Fancy { namespace IO {
       pNode->setName(ObjectName(_pAnode->mName.C_Str()));
     }
 
-    pNode->getTransform().setLocal(Internal::matFromAiMat(_pAnode->mTransformation));
+    glm::mat4 transformMat = Internal::matFromAiMat(_pAnode->mTransformation);
+    glm::mat3 rotationScale(transformMat);
+    glm::quat rotation = glm::toQuat(rotationScale);
+    glm::vec3 scale(glm::length(rotationScale[0]), glm::length(rotationScale[1]), glm::length(rotationScale[2]));
+    glm::vec3 pos(transformMat[3]);
+
+    pNode->getTransform().setRotationLocal(rotation);
+    pNode->getTransform().setScaleLocal(scale);
+    pNode->getTransform().setPositionLocal(pos);
 
     if (_pAnode->mNumMeshes > 0u)
     {

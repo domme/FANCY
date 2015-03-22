@@ -16,15 +16,41 @@ namespace Fancy { namespace Scene {
       Transform();
       ~Transform();
 
-      const glm::mat4& getLocal() const {return m_local;}
       const glm::mat4& getCachedWorld() const {return m_cachedWorld;}
+      glm::mat4 getLocalAsMat() const;
 
-      void setLocal(const glm::mat4& _val) {m_local = _val; m_dirty = true;}
-      
+      //void rotate(const glm::quat& _quat);
+      //void rotateLocal(const glm::quat& _quat);
+      void rotate(const glm::vec3& _axis, float _degree);
+      void rotateLocal(const glm::vec3& _axis, float _degree);
+      void translate(const glm::vec3& _translation);
+      void translateLocal(const glm::vec3& _translation);
+      void scale(const glm::vec3& _scale);
+      void scaleLocal(const glm::vec3& _scale);
+
+      glm::quat getRotation() const;
+      glm::vec3 getPosition() const;
+
+      const glm::quat& getRotationLocal() const {return m_localRotation;}
+      const glm::vec3& getPositionLocal() const {return m_localPosition;}
+      const glm::vec3& getScaleLocal() const {return m_localScale;}
+      void setRotationLocal(const glm::quat& _rot) {m_localRotation = _rot; m_dirty = true; }
+      void setPositionLocal(const glm::vec3& _pos) {m_localPosition = _pos; m_dirty = true; }
+      void setScaleLocal(const glm::vec3& _scale) {m_localScale = _scale; m_dirty = true; }
+
+      glm::vec3 right() const {return glm::normalize(static_cast<glm::vec3>(m_cachedWorld[0]));}
+      glm::vec3 up() const {return glm::normalize(static_cast<glm::vec3>(m_cachedWorld[1]));}
+      glm::vec3 forward() const {return glm::normalize(static_cast<glm::vec3>(m_cachedWorld[2]));}
+
     private:
       bool m_dirty;
-      glm::mat4 m_local;
+
+      glm::quat m_localRotation;
+      glm::vec3 m_localPosition;
+      glm::vec3 m_localScale;
+
       glm::mat4 m_cachedWorld;
+      glm::mat4 m_parentWorld;
   };
 //---------------------------------------------------------------------------//
   class SceneRenderDescription;

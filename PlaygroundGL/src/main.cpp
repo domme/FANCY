@@ -23,6 +23,12 @@ using namespace Fancy;
 Rendering::RenderingProcessForward* pRenderProcessFwd = nullptr;
 Scene::CameraComponent* pCameraComponent;
 
+bool bRightMouseButtonDown = false;
+double lastMouseX = 0.0;
+double lastMouseY = 0.0;
+
+glm::vec3 cameraMovement(0.0f, 0.0f, 0.0f);
+
 void startupEngine()
 {
   Fancy::EngineCommon::initEngine();
@@ -39,7 +45,7 @@ void startupEngine()
   
   Scene::SceneNode* pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));
   IO::SceneImporter::importToSceneGraph("Models/cube.obj", pModelNode);
-  pModelNode->getTransform().setLocal(glm::translate(glm::vec3(0.0f, 0.0f, -10.0f)));
+  pModelNode->getTransform().setPositionLocal(glm::vec3(0.0f, 0.0f, -10.0f));
 
   EngineCommon::startup();
 }
@@ -48,6 +54,126 @@ void updateWindowSize(int width, int height)
 {
   Fancy::EngineCommon::setWindowSize(width, height);
   pCameraComponent->setProjectionPersp(45.0f, width, height, 1.0f, 1000.0f);
+}
+
+void onMouseMove(GLFWwindow* _window, double _posX, double _posY)
+{
+  double dx = (_posX - lastMouseX) * 10.0f;
+  double dy = (_posY - lastMouseY) * 10.0f;
+
+  if (bRightMouseButtonDown)
+  {
+    Scene::Transform& camTransform = pCameraComponent->getSceneNode()->getTransform();
+    camTransform.rotate(glm::vec3(0.0f, 1.0f, 0.0f), -dx);
+    camTransform.rotate(camTransform.right(), -dy);
+  }
+
+  lastMouseX = _posX;
+  lastMouseY = _posY;
+}
+
+void onMouseButton(GLFWwindow* _window, int _button, int _action, int _mods)
+{
+  if (_button == GLFW_MOUSE_BUTTON_RIGHT)
+  {
+    if (_action == GLFW_PRESS || _action == GLFW_REPEAT)
+    {
+      glfwGetCursorPos(_window, &lastMouseX, &lastMouseY);
+      bRightMouseButtonDown = true;
+    }
+    else
+    {
+      bRightMouseButtonDown = false;
+    }
+  }
+}
+
+static void onKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+  {
+    glfwSetWindowShouldClose(window, GL_TRUE);
+  }
+
+  if (key == GLFW_KEY_W)
+  {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT)
+    {
+      cameraMovement.z = -1.0f;
+    }
+    else
+    {
+      cameraMovement.z = 0.0f;
+    }
+  }
+
+  if (key == GLFW_KEY_A)
+  {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT)
+    {
+      cameraMovement.x = -1.0f;
+    }
+    else
+    {
+      cameraMovement.x = 0.0f;
+    }
+  }
+
+  if (key == GLFW_KEY_S)
+  {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT)
+    {
+      cameraMovement.z = 1.0f;
+    }
+    else
+    {
+      cameraMovement.z = 0.0f;
+    }
+  }
+
+  if (key == GLFW_KEY_D)
+  {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT)
+    {
+      cameraMovement.x = 1.0f; 
+    }
+    else
+    {
+      cameraMovement.x = 0.0f; 
+    }
+  }
+
+  if (key == GLFW_KEY_E)
+  {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT)
+    {
+      cameraMovement.y = 1.0f;
+    }
+    else
+    {
+      cameraMovement.y = 0.0f;
+    }
+  }
+
+  if (key == GLFW_KEY_Q)
+  {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT)
+    {
+      cameraMovement.y = -1.0f; 
+    }
+    else
+    {
+      cameraMovement.y = 0.0f; 
+    }
+  }
+}
+
+static void moveCamera()
+{
+  if (bRightMouseButtonDown)
+  {
+    pCameraComponent->getSceneNode()->getTransform().translateLocal(cameraMovement * 0.2f);
+  }
 }
 
 void shutdownEngine()
@@ -64,12 +190,6 @@ void shutdownEngine()
 static void error_callback(int error, const char* description)
 {
   fputs(description, stderr);
-}
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
 int main(void)
@@ -94,6 +214,10 @@ int main(void)
     exit(EXIT_FAILURE);
   }
   
+  glfwSetCursorPosCallback(window, onMouseMove);
+  glfwSetMouseButtonCallback(window, onMouseButton);
+  glfwSetKeyCallback(window, onKeyboard);
+
   glfwMakeContextCurrent(window);
 
   unsigned int glewInitStatus = glewInit();
@@ -110,7 +234,6 @@ int main(void)
 
   startupEngine();
 
-  glfwSetKeyCallback(window, key_callback);
   double lastTime = glfwGetTime();
   while (!glfwWindowShouldClose(window))
   {
@@ -119,6 +242,8 @@ int main(void)
     glfwGetFramebufferSize(window, &width, &height);
     updateWindowSize(width, height);
     
+    moveCamera();
+
     double currTime = glfwGetTime();
     Fancy::EngineCommon::update(currTime - lastTime);
   

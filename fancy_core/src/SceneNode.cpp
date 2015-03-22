@@ -6,8 +6,11 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
   Transform::Transform() :
-    m_local(),
-    m_cachedWorld()
+    m_localScale(1.0f, 1.0f, 1.0f),
+    m_localPosition(0.0f, 0.0f, 0.0f),
+    m_localRotation(1.0f, 0.0f, 0.0f, 0.0f),
+    m_cachedWorld(),
+    m_parentWorld()
   {
 
   }
@@ -15,6 +18,66 @@ namespace Fancy { namespace Scene {
   Transform::~Transform()
   {
 
+  }
+//---------------------------------------------------------------------------//
+  glm::mat4 Transform::getLocalAsMat() const
+  {
+    glm::mat4 localMat = glm::toMat4(m_localRotation) * glm::scale(m_localScale);
+    localMat[3].x = m_localPosition.x;
+    localMat[3].y = m_localPosition.y;
+    localMat[3].z = m_localPosition.z;
+    localMat[3].w = 1.0f;
+
+    return localMat;
+  }
+//---------------------------------------------------------------------------//
+//   void Transform::rotate(const glm::quat& _quat)
+//   {
+//     glm::quat worldInvQuat = glm::inverse(glm::toQuat(static_cast<glm::mat3>(m_cachedWorld)));
+//     rotateLocal(worldInvQuat * _quat);
+//   }
+// //---------------------------------------------------------------------------//
+//   void Transform::rotateLocal(const glm::quat& _quat)
+//   {
+//     m_local *= _quat;
+//     m_dirty = true;
+//   }
+//---------------------------------------------------------------------------//
+  void Transform::rotate(const glm::vec3& _axis, float _degree)
+  {
+    glm::vec3 axisLocal = glm::affineInverse(glm::mat3(m_parentWorld)) * _axis;
+    rotateLocal(glm::normalize(axisLocal), _degree);
+  }
+//---------------------------------------------------------------------------//
+  void Transform::rotateLocal(const glm::vec3& _axis, float _degree)
+  {
+    m_localRotation = glm::angleAxis(glm::radians(_degree), _axis) * m_localRotation;
+    m_dirty = true;
+  }
+//---------------------------------------------------------------------------//
+  void Transform::translate(const glm::vec3& _translation)
+  {
+    glm::vec3 translationLocal = glm::affineInverse(glm::mat3(m_parentWorld)) * _translation;
+    m_localPosition += _translation;
+    m_dirty = true;
+  }
+//---------------------------------------------------------------------------//
+  void Transform::translateLocal(const glm::vec3& _translation)
+  {
+    m_localPosition += glm::rotate(m_localRotation, _translation);
+    m_dirty = true;
+  }
+//---------------------------------------------------------------------------//
+  void Transform::scale(const glm::vec3& _scale)
+  {
+    glm::vec3 localScale = glm::affineInverse(glm::mat3(m_parentWorld)) * _scale;
+    scaleLocal(localScale);
+  }
+//---------------------------------------------------------------------------//
+  void Transform::scaleLocal(const glm::vec3& _scale)
+  {
+    m_localScale *= _scale;
+    m_dirty = true;
   }
 //---------------------------------------------------------------------------//
 
@@ -77,7 +140,8 @@ namespace Fancy { namespace Scene {
     for (uint i = 0u; i < m_vpChildren.size(); ++i)
     {
       Transform& childTransform = m_vpChildren[i]->getTransform();
-      childTransform.m_cachedWorld = childTransform.m_local * getTransform().m_cachedWorld;
+      childTransform.m_parentWorld = getTransform().m_cachedWorld;
+      childTransform.m_cachedWorld = childTransform.getLocalAsMat() * getTransform().m_cachedWorld;
 
       m_vpChildren[i]->update(_dt);
     }

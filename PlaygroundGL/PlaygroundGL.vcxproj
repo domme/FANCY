@@ -19,12 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\CameraController.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\fancy_core\fancy_core.vcxproj">
       <Project>{0562febf-6fa8-4abd-8ff9-d7b3b8a889fd}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\CameraController.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{268DF2AA-2CD8-4AFD-8489-B1D8EFAF5B83}</ProjectGuid>
