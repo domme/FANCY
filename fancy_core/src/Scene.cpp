@@ -19,6 +19,11 @@ namespace Fancy { namespace Scene {
     m_pRootNode->update(_dt);
   }
 //---------------------------------------------------------------------------//
+  void Scene::startup()
+  {
+    m_pRootNode->startup();
+  }
+//---------------------------------------------------------------------------//
   void Scene::gatherRenderItems( SceneRenderDescription* pRenderDesc )
   {
     m_pRootNode->gatherRenderItems(pRenderDesc);

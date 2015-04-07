@@ -66,19 +66,20 @@ namespace Fancy { namespace Scene {
       static void unparentNode(std::shared_ptr<SceneNode> pChild);
       static void unparentNode(SceneNode* pChild);
 
+      void startup();
       void update(float _dt);
       void gatherRenderItems(SceneRenderDescription* pRenderDesc);
 
       SceneNodeComponent* addOrRetrieveComponent(const ObjectName& typeName);
       void removeComponent(const ObjectName& typeName);
-      SceneNodeComponentWeakPtr getComponentPtr(const ObjectName& typeName);
+      SceneNodeComponentPtr getComponentPtr(const ObjectName& typeName);
       SceneNodeComponent* getComponent(const ObjectName& typeName);
 
       SceneNode* createChildNode(const ObjectName& _name = ObjectName::blank);
 
-      CameraComponentWeakPtr getCameraComponentPtr();
+      CameraComponentPtr getCameraComponentPtr();
       CameraComponent* getCameraComponent() {return m_pCameraComponent;}
-      ModelComponentWeakPtr getModelComponentPtr();
+      ModelComponentPtr getModelComponentPtr();
       ModelComponent* getModelComponent() {return m_pModelComponent;}
 
       Transform& getTransform() {return m_transform;}

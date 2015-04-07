@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -27,27 +27,27 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -208,6 +208,7 @@
     <ClInclude Include="src\AdapterGL4.h" />
     <ClInclude Include="src\BlendState.h" />
     <ClInclude Include="src\CameraComponent.h" />
+    <ClInclude Include="src\CameraControllerComponent.h" />
     <ClInclude Include="src\ComputeOperation.h" />
     <ClInclude Include="src\DebugOutStream.h" />
     <ClInclude Include="src\DepthStencilState.h" />
@@ -229,6 +230,7 @@
     <ClInclude Include="src\GpuProgramResource.h" />
     <ClInclude Include="src\GLSLpreprocessor.h" />
     <ClInclude Include="src\GpuProgramResourceGL4.h" />
+    <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\LoadableObject.h" />
     <ClInclude Include="src\lodepng.h" />
     <ClInclude Include="src\Material.h" />
@@ -272,6 +274,7 @@
     <ClCompile Include="src\AdapterGL4.cpp" />
     <ClCompile Include="src\BlendState.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
+    <ClCompile Include="src\CameraControllerComponent.cpp" />
     <ClCompile Include="src\ComputeOperation.cpp" />
     <ClCompile Include="src\DebugOutStream.cpp" />
     <ClCompile Include="src\DepthStencilState.cpp" />
@@ -283,6 +286,7 @@
     <ClCompile Include="src\GpuProgramGL4.cpp" />
     <ClCompile Include="src\GpuProgramPipelineGL4.cpp" />
     <ClCompile Include="src\GLSLpreprocessor.cpp" />
+    <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\LoadableObject.cpp" />
     <ClCompile Include="src\lodepng.cpp" />
     <ClCompile Include="src\Material.cpp" />

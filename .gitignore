@@ -3,6 +3,7 @@
 *.dll
 
 *.lib
+*.exp
 
 *.opensdf
 *.ilk

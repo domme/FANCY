@@ -8,6 +8,7 @@
 
 #include "ModelComponent.h"
 #include "CameraComponent.h"
+#include "CameraControllerComponent.h"
 #include "Texture.h"
 #include "DepthStencilState.h"
 #include "BlendState.h"
@@ -49,6 +50,7 @@ namespace Fancy {
   {
     Scene::SceneNodeComponentFactory::registerFactory(_N(ModelComponent), Scene::ModelComponent::create);
     Scene::SceneNodeComponentFactory::registerFactory(_N(CameraComponent), Scene::CameraComponent::create);
+    Scene::SceneNodeComponentFactory::registerFactory(_N(CameraControllerComponent), Scene::CameraControllerComponent::create);
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::initRenderingSubsystem()
@@ -83,6 +85,7 @@ namespace Fancy {
     ASSERT_M(m_pRenderingProcess, "No rendering process set");
 
     m_pRenderingProcess->startup();
+    m_pCurrScene->startup();
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::update(double _dt)

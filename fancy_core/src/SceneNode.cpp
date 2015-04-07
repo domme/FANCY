@@ -135,6 +135,19 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
+  void SceneNode::startup()
+  {
+    for (uint i = 0u; i < m_vpChildren.size(); ++i)
+    {
+      m_vpChildren[i]->startup();
+    }
+
+    for (uint i = 0u; i < m_vpComponents.size(); ++i)
+    {
+      m_vpComponents[i]->init();
+    }
+  }
+//---------------------------------------------------------------------------//
   void SceneNode::update(float _dt)
   {
     for (uint i = 0u; i < m_vpChildren.size(); ++i)
@@ -165,7 +178,7 @@ namespace Fancy { namespace Scene {
     }
   }
 //---------------------------------------------------------------------------//
-  SceneNodeComponentWeakPtr SceneNode::getComponentPtr( const ObjectName& typeName )
+  SceneNodeComponentPtr SceneNode::getComponentPtr( const ObjectName& typeName )
   {
     for (uint i = 0; i < m_vpComponents.size(); ++i)
     {
@@ -175,17 +188,17 @@ namespace Fancy { namespace Scene {
       }
     }
 
-    return SceneNodeComponentWeakPtr();  // nullptr
+    return SceneNodeComponentPtr();  // nullptr
   }
 //---------------------------------------------------------------------------//
-  ModelComponentWeakPtr SceneNode::getModelComponentPtr()
+  ModelComponentPtr SceneNode::getModelComponentPtr()
   {
-    return std::static_pointer_cast<ModelComponent>(getComponentPtr(_N(Model)).lock());
+    return std::static_pointer_cast<ModelComponent>(getComponentPtr(_N(Model)));
   }
 //---------------------------------------------------------------------------//
-  CameraComponentWeakPtr SceneNode::getCameraComponentPtr()
+  CameraComponentPtr SceneNode::getCameraComponentPtr()
   {
-    return std::static_pointer_cast<CameraComponent>(getComponentPtr(_N(Camera)).lock());
+    return std::static_pointer_cast<CameraComponent>(getComponentPtr(_N(Camera)));
   }
 //---------------------------------------------------------------------------//
   SceneNodeComponent* SceneNode::getComponent( const ObjectName& typeName )

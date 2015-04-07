@@ -222,6 +222,12 @@
     <ClInclude Include="src\DebugOutStream.h">
       <Filter>src\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\InputManager.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CameraControllerComponent.h">
+      <Filter>src\Scene\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -358,6 +364,12 @@
     </ClCompile>
     <ClCompile Include="src\DebugOutStream.cpp">
       <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\InputManager.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CameraControllerComponent.cpp">
+      <Filter>src\Scene\Components</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
