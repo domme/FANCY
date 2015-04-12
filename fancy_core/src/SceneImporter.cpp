@@ -88,8 +88,8 @@ namespace Fancy { namespace IO {
     bool processAiNode(WorkingData& _workingData, const aiNode* _pAnode, Scene::SceneNode* _pParentNode);
     bool processMeshes(WorkingData& _workingData, const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
     Geometry::GeometryData* constructOrRetrieveGeometryData(WorkingData& _workingData, const aiNode* _pAnode, const aiMesh* _pAmesh);
-    Rendering::Material* constructOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial);
-    Rendering::Texture* constructOrRetrieveTexture(WorkingData& _workingData, const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex);
+    Rendering::Material* createOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial);
+    Rendering::Texture* createOrRetrieveTexture(WorkingData& _workingData, const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex);
 
     std::string getUniqueMeshName(WorkingData& _workingData);
     std::string getUniqueModelName(WorkingData& _workingData);
@@ -261,7 +261,7 @@ namespace Fancy { namespace IO {
       // Create or retrieve the material
       aiMaterial* pAmaterial = 
         _workingData.pCurrScene->mMaterials[uMaterialIndex];
-      Rendering::Material* pMaterial = Processing::constructOrRetrieveMaterial(_workingData, pAmaterial);
+      Rendering::Material* pMaterial = Processing::createOrRetrieveMaterial(_workingData, pAmaterial);
 
       // Do we already have a Submodel with this mesh and material?
       Geometry::SubModel* pSubModel = Geometry::SubModel::find([pMesh, pMaterial] (Geometry::SubModel* itSubmodel) -> bool {
@@ -567,7 +567,7 @@ namespace Fancy { namespace IO {
     return pGeometryData;
   }
 //---------------------------------------------------------------------------//
-  Rendering::Material* Processing::constructOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial)
+  Rendering::Material* Processing::createOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial)
   {
     // Did we already import this material?
     Processing::MaterialCacheMap::iterator cacheIt = _workingData.mapAiMatToMat.find(_pAmaterial);
@@ -607,11 +607,11 @@ namespace Fancy { namespace IO {
     float specular;
     bool hasSpecular = _pAmaterial->Get(AI_MATKEY_SHININESS_STRENGTH, specular) == AI_SUCCESS;
 
-    Texture* pDiffuseTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_DIFFUSE, 0u);
-    Texture* pNormalTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_NORMALS, 0u);
-    Texture* pSpecularTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SPECULAR, 0u);
-    Texture* pSpecPowerTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SHININESS, 0u);
-    Texture* pOpacityTex = constructOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_OPACITY, 0u);
+    Texture* pDiffuseTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_DIFFUSE, 0u);
+    Texture* pNormalTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_NORMALS, 0u);
+    Texture* pSpecularTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SPECULAR, 0u);
+    Texture* pSpecPowerTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SHININESS, 0u);
+    Texture* pOpacityTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_OPACITY, 0u);
 
     bool hasDiffuseTex = pDiffuseTex != nullptr;
     bool hasNormalTex = pDiffuseTex != nullptr;
@@ -631,14 +631,14 @@ namespace Fancy { namespace IO {
     }
 
     // TODO: Make this less stupid...
-    // First test: just use a dummy material
+
     GpuProgramPermutation permutation;
     if (hasDiffuseTex) permutation.addFeature(GpuProgramFeature::FEAT_ALBEDO_TEXTURE);
     if (hasNormalTex) permutation.addFeature(GpuProgramFeature::FEAT_NORMAL_MAPPED);
     if (hasSpecTex) permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR); permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR_TEXTURE);
 
-    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", permutation, ShaderStage::VERTEX);
-    GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialDefault.shader", permutation, ShaderStage::FRAGMENT);
+    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialForward.shader", permutation, ShaderStage::VERTEX);
+    GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialForward.shader", permutation, ShaderStage::FRAGMENT);
 
     MaterialPassDescription matPassDesc;
     matPassDesc.blendState = _N(BlendState_Solid);
@@ -650,10 +650,11 @@ namespace Fancy { namespace IO {
     matPassDesc.gpuProgram[(uint32)ShaderStage::FRAGMENT] = pFragmentProgram->getName();
 
     // Try to find an existing MaterialPass with this description
-    MaterialPass* pMaterialPass = MaterialPass::find([matPassDesc] (MaterialPass* pCurrPass) -> bool{ return pCurrPass->getDescription() == matPassDesc; } );
+    MaterialPass* pMaterialPass = MaterialPass::find([matPassDesc] (MaterialPass* pCurrPass) -> bool{ return pCurrPass->getDescription().getHash() == matPassDesc.getHash(); } );
     if (pMaterialPass == nullptr)
     {
       pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
+      matPassDesc.name = "MaterialPass_" + StringUtil::toString(matPassDesc.getHash()); // Need a "unique" name here
       pMaterialPass->init(matPassDesc);
       MaterialPass::registerWithName(pMaterialPass);
     }
@@ -677,6 +678,8 @@ namespace Fancy { namespace IO {
       bool sameMaterial = true;
       sameMaterial &= pCurrMat->getPass(EMaterialPass::SOLID_FORWARD) == pForwardMpi;
 
+
+
       return sameMaterial;
     });
 
@@ -689,7 +692,7 @@ namespace Fancy { namespace IO {
     return pMaterial;
   }
 //---------------------------------------------------------------------------//
-  Rendering::Texture* Processing::constructOrRetrieveTexture(WorkingData& _workingData, 
+  Rendering::Texture* Processing::createOrRetrieveTexture(WorkingData& _workingData, 
     const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex)
   {
     uint32 numTextures = _pAmaterial->GetTextureCount(_aiTextureType);

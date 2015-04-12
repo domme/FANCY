@@ -18,7 +18,7 @@ namespace Fancy { namespace Rendering {
   struct MaterialPassDescription
   {
     MaterialPassDescription();
-    bool operator==(const MaterialPassDescription& _other) const;
+    uint getHash() const;
     // TODO: Change these values to ObjectNames and grab them from the managers after a global init
     ObjectName name;
     ObjectName gpuProgram[(uint32)ShaderStage::NUM];
@@ -62,6 +62,22 @@ namespace Fancy { namespace Rendering {
       const DepthStencilState* m_pDepthStencilState;
   };
 //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+  //TODO: Implement these two... basically, texture- and bufferDescs will contain the actual data. That way, we don't need to load the original file from disk again
+  class TextureDesc{};
+  class GpuBufferDesc {};
+
+  struct MaterialPassInstanceDesc
+  {
+    ObjectName name;
+    MaterialPassDescription materialPassDesc;
+    TextureDesc readTextureDescs[(uint32)ShaderStage::NUM][kMaxNumReadTextures];
+    TextureDesc writeTextureDescs[(uint32)ShaderStage::NUM][kMaxNumWriteTextures];
+    GpuBufferDesc readBufferDescs[(uint32)ShaderStage::NUM][kMaxNumReadBuffers];
+    GpuBufferDesc writeBufferDescs[(uint32)ShaderStage::NUM][kMaxNumWriteBuffers];
+    ObjectName textureSamplers[(uint32)ShaderStage::NUM][kMaxNumTextureSamplers];
+  };
 //---------------------------------------------------------------------------//
   class MaterialPassInstance
   {

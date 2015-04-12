@@ -30,12 +30,14 @@
 //---------------------------------------------------------------------------//
   layout(std140, binding = 3) uniform PER_LIGHT
   {
-    vec4 c_DirLightParameters;
-    vec4 c_PointLightParameters;
-    vec4 c_SpotLightParameters;
-    vec4 c_LightColorIntensity;
-    vec4 c_LightPosWS;
-    vec4 c_LightPosVS;
+    // xyz: ColorIntensity
+    // w: LightType (Dir, Point, Spot, Area)
+    vec4 c_LightParams;
+    vec4 c_PointSpotParameters;
+    vec3 c_LightPosWS;
+    vec3 c_LightPosVS;
+    vec3 c_LightDirWS;
+    vec3 c_LightDirVS;
   } cbPerLight;
 //---------------------------------------------------------------------------//  
   layout(std140, binding = 4) uniform PER_MATERIAL

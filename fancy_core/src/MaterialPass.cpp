@@ -10,21 +10,26 @@ namespace Fancy { namespace Rendering {
     blendState(_N(BlendState_Solid)),
     depthStencilState(_N(DepthStencilState_DefaultDepthState))
   {
+    
   }
 //---------------------------------------------------------------------------//
-  bool MaterialPassDescription::operator==( const MaterialPassDescription& _other ) const
+  uint MaterialPassDescription::getHash() const
   {
-    // Compare everything but names
+    // The name is irrelevant for the hash
+    uint hash = 0x0;
 
-    bool same = true;
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    {
+      MathUtil::hash_combine(hash, gpuProgram[i].getHash());
+    }
 
-    same &= eFillMode == _other.eFillMode;
-    same &= eCullMode == _other.eCullMode;
-    same &= eWindingOrder == _other.eWindingOrder;
-    same &= blendState == _other.blendState;
-    same &= depthStencilState == _other.depthStencilState;
+    MathUtil::hash_combine(hash, (uint32)eFillMode);
+    MathUtil::hash_combine(hash, (uint32)eCullMode);
+    MathUtil::hash_combine(hash, (uint32)eWindingOrder);
+    MathUtil::hash_combine(hash, (uint32)blendState);
+    MathUtil::hash_combine(hash, (uint32)depthStencilState);
 
-    return same;
+    return hash;
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//

@@ -28,9 +28,6 @@ namespace Fancy { namespace Scene {
       void scale(const glm::vec3& _scale);
       void scaleLocal(const glm::vec3& _scale);
 
-      glm::quat getRotation() const;
-      glm::vec3 getPosition() const;
-
       const glm::quat& getRotationLocal() const {return m_localRotation;}
       const glm::vec3& getPositionLocal() const {return m_localPosition;}
       const glm::vec3& getScaleLocal() const {return m_localScale;}
@@ -38,6 +35,7 @@ namespace Fancy { namespace Scene {
       void setPositionLocal(const glm::vec3& _pos) {m_localPosition = _pos; m_dirty = true; }
       void setScaleLocal(const glm::vec3& _scale) {m_localScale = _scale; m_dirty = true; }
 
+      glm::vec3 getPosition() const { return static_cast<glm::vec3>(m_cachedWorld[3]); }
       glm::vec3 right() const {return glm::normalize(static_cast<glm::vec3>(m_cachedWorld[0]));}
       glm::vec3 up() const {return glm::normalize(static_cast<glm::vec3>(m_cachedWorld[1]));}
       glm::vec3 forward() const {return glm::normalize(static_cast<glm::vec3>(m_cachedWorld[2]));}

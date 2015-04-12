@@ -26,3 +26,6 @@ _build_temp/*/*/*.*
 
 
 *.exp
+*.exp
+lib/x64/Debug/fancy_core.exp
+dependencies/lib/x64/release/assimp.exp

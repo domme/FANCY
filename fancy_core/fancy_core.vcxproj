@@ -231,6 +231,7 @@
     <ClInclude Include="src\GLSLpreprocessor.h" />
     <ClInclude Include="src\GpuProgramResourceGL4.h" />
     <ClInclude Include="src\InputManager.h" />
+    <ClInclude Include="src\LightComponent.h" />
     <ClInclude Include="src\LoadableObject.h" />
     <ClInclude Include="src\lodepng.h" />
     <ClInclude Include="src\Material.h" />
@@ -287,6 +288,7 @@
     <ClCompile Include="src\GpuProgramPipelineGL4.cpp" />
     <ClCompile Include="src\GLSLpreprocessor.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
+    <ClCompile Include="src\LightComponent.cpp" />
     <ClCompile Include="src\LoadableObject.cpp" />
     <ClCompile Include="src\lodepng.cpp" />
     <ClCompile Include="src\Material.cpp" />

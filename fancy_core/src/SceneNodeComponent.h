@@ -15,6 +15,7 @@ namespace Fancy { namespace Scene {
       virtual ~SceneNodeComponent();
 
       SceneNode* getSceneNode() { return m_pOwner; }
+      const SceneNode* getSceneNode() const { return m_pOwner; }
       
       virtual void init() { };
       virtual void update() = 0;

@@ -4,13 +4,27 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "StaticManagedObject.h"
-
-#include "FixedArray.h"
 #include "ObjectName.h"
+#include "MaterialPass.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class MaterialPassInstance;
+  enum class EMaterialParameterSemantic
+  {
+    DIFFUSE_REFLECTIVITY = 0,
+    SPECULAR_REFLECTIVITY,
+    SPECULAR_POWER,
+    OPACITY,
+
+    NUM
+  };
+//---------------------------------------------------------------------------//  
+  struct MaterialDescription
+  {
+    ObjectName name;
+    MaterialPassInstanceDesc mpiDescs[(uint32)EMaterialPass::NUM];
+    float parameters[(uint32)EMaterialParameterSemantic::NUM];
+  };
 //---------------------------------------------------------------------------//
   class Material : public StaticManagedHeapObject<Material>
   {
@@ -24,9 +38,13 @@ namespace Fancy { namespace Rendering {
       const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint32) ePassType]; }
       void setPass(const MaterialPassInstance* _pPass, EMaterialPass _ePassType) {m_vPasses[(uint32) _ePassType] = _pPass; }
 
+      float getParameter(EMaterialParameterSemantic _semantic) const { return m_vParameters[(uint32)_semantic]; }
+      void setParameter(EMaterialParameterSemantic _semantic, float _value) { m_vParameters[(uint32)_semantic] = _value; }
+
     private:
       ObjectName m_Name;
-      const MaterialPassInstance* m_vPasses[ (uint) EMaterialPass::NUM ];
+      const MaterialPassInstance* m_vPasses[ (uint32) EMaterialPass::NUM ];
+      float m_vParameters[(uint32)EMaterialParameterSemantic::NUM];
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

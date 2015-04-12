@@ -14,6 +14,10 @@ namespace Fancy { namespace Rendering {
 } }
 
 namespace Fancy { namespace Scene {
+  namespace Components{
+    class LightComponent;
+  }
+
   class SceneNode;
   class CameraComponent;
 } }
@@ -57,12 +61,12 @@ namespace Fancy { namespace Rendering {
       CAMERA_POSITION_WORLDSPACE,
 
     // -------- PER_LIGHT -------- //
-      DIRLIGHT_PARAMETERS,
-      POINTLIGHT_PARAMETERS,
-      SPOTLIGHT_PARAMETERS,
-      LIGHT_COLORINTENSITY,
+      LIGHT_PARAMETERS,
+      LIGHT_POINTSPOT_PARAMETERS,
       LIGHT_POSITION_WORLDSPACE,
       LIGHT_POSITION_VIEWSPACE,
+      LIGHT_DIRECTION_WORLDSPACE,
+      LIGHT_DIRECTION_VIEWSPACE,
 
    // -------- PER_MATERIAL -------- //
       DIFFUSE_MATERIAL_COLORINTENSITY,
@@ -92,9 +96,9 @@ namespace Fancy { namespace Rendering {
       // PER_STAGE_END = 0,
 
       PER_CAMERA_BEGIN = VIEW_MATRIX,
-      PER_CAMERA_END = DIRLIGHT_PARAMETERS,
+      PER_CAMERA_END = LIGHT_PARAMETERS,
 
-      PER_LIGHT_BEGIN = DIRLIGHT_PARAMETERS,
+      PER_LIGHT_BEGIN = LIGHT_PARAMETERS,
       PER_LIGHT_END = DIFFUSE_MATERIAL_COLORINTENSITY,
 
       PER_MATERIAL_BEGIN = DIFFUSE_MATERIAL_COLORINTENSITY,
@@ -124,6 +128,7 @@ namespace Fancy { namespace Rendering {
     const glm::mat4* pWorldMat;
     const Scene::CameraComponent* pCamera;
     const MaterialPassInstance* pMaterial;
+    const Scene::Components::LightComponent* pLight;
   };
 //---------------------------------------------------------------------------//
   class ShaderConstantsManager

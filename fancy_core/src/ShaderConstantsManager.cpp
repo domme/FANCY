@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "SceneNode.h"
 #include "TimeManager.h"
+#include "LightComponent.h"
 
 #include <hash_map>
 
@@ -87,12 +88,12 @@ namespace Fancy { namespace Rendering {
       REGISTER(mapConstantSemantics, _N(PER_CAMERA.c_CameraPosWS), ConstantSemantics::CAMERA_POSITION_WORLDSPACE)
 
       // PER_LIGHT
-      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_DirLightParameters), ConstantSemantics::DIRLIGHT_PARAMETERS)
-      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_PointLightParameters), ConstantSemantics::POINTLIGHT_PARAMETERS)
-      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_SpotLightParameters), ConstantSemantics::SPOTLIGHT_PARAMETERS)
-      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_LightColorIntensity), ConstantSemantics::LIGHT_COLORINTENSITY)
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_LightParameters), ConstantSemantics::LIGHT_PARAMETERS)
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_PointSpotParameters), ConstantSemantics::LIGHT_POINTSPOT_PARAMETERS)
       REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_LightPosWS), ConstantSemantics::LIGHT_POSITION_WORLDSPACE)
       REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_LightPosVS), ConstantSemantics::LIGHT_POSITION_VIEWSPACE)
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_LightDirWS), ConstantSemantics::LIGHT_DIRECTION_WORLDSPACE)
+      REGISTER(mapConstantSemantics, _N(PER_LIGHT.c_LightDirVS), ConstantSemantics::LIGHT_DIRECTION_VIEWSPACE)
 
       // PER_MATERIAL
       REGISTER(mapConstantSemantics, _N(PER_MATERIAL.c_MatDiffIntensity), ConstantSemantics::DIFFUSE_MATERIAL_COLORINTENSITY)
@@ -200,7 +201,35 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void Internal::updatePerLightData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
   {
+    ASSERT(_updateStage.pLight);
+    ASSERT(_updateStage.pCamera);
 
+    const Scene::Components::LightComponent* pLight = _updateStage.pLight;
+    const Scene::CameraComponent* pCamera = _updateStage.pCamera;
+    const Scene::Transform& lightTransform = pLight->getSceneNode()->getTransform();
+
+    glm::vec4 lightParams(pLight->getColorIntensity(), static_cast<float>(pLight->getType()));
+    glm::vec4 pointSpotParams(pLight->getFalloffStart(), pLight->getFalloffEnd(), pLight->getConeAngle(), 0.0f);
+    glm::vec3 lightPosVS = static_cast<glm::vec3>(pCamera->getView() * glm::vec4(lightTransform.getPosition(), 1.0f));
+    glm::vec3 lightDirVS = glm::normalize(static_cast<glm::mat3>(pCamera->getView()) * lightTransform.forward());
+    
+    const float* pData = GET_ELEMENT_PTR(ConstantSemantics::LIGHT_PARAMETERS);
+    memcpy(_pData, glm::value_ptr(lightParams), sizeof(glm::vec4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::LIGHT_POINTSPOT_PARAMETERS);
+    memcpy(_pData, glm::value_ptr(pointSpotParams), sizeof(glm::vec4));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::LIGHT_POSITION_WORLDSPACE);
+    memcpy(_pData, glm::value_ptr(lightTransform.getPosition()), sizeof(glm::vec3));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::LIGHT_POSITION_VIEWSPACE);
+    memcpy(_pData, glm::value_ptr(lightPosVS), sizeof(glm::vec3));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::LIGHT_DIRECTION_WORLDSPACE);
+    memcpy(_pData, glm::value_ptr(lightTransform.forward()), sizeof(glm::vec3));
+
+    pData = GET_ELEMENT_PTR(ConstantSemantics::LIGHT_DIRECTION_VIEWSPACE);
+    memcpy(_pData, glm::value_ptr(lightDirVS), sizeof(glm::vec3));
   }
 //---------------------------------------------------------------------------//
   void Internal::updatePerMaterialData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )

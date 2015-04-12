@@ -90,6 +90,8 @@ void onMouseButton(GLFWwindow* _window, int _button, int _action, int _mods)
 
 static void onKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+  using namespace Fancy::IO;
+
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
   {
     glfwSetWindowShouldClose(window, GL_TRUE);

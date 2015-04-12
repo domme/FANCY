@@ -8,6 +8,7 @@
 
  // #include "Shader/TextureSemantics.shader_include"
  #include "Shader/ConstantBuffer.shader_include"
+ #include "Shader/Lighting.inc"
  //---------------------------------------------------------------------------//
   #if defined (PROGRAM_TYPE_VERTEX)
     out VS_OUT
@@ -59,6 +60,9 @@
 
     void main()
     {
+      
+
+
       color = texture(tex_diffuse, fs_in.uv);
     }
   #endif // PROGRAM_TYPE_FRAGMENT

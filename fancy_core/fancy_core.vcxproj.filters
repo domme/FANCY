@@ -228,6 +228,9 @@
     <ClInclude Include="src\CameraControllerComponent.h">
       <Filter>src\Scene\Components</Filter>
     </ClInclude>
+    <ClInclude Include="src\LightComponent.h">
+      <Filter>src\Scene\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -369,6 +372,9 @@
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\CameraControllerComponent.cpp">
+      <Filter>src\Scene\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LightComponent.cpp">
       <Filter>src\Scene\Components</Filter>
     </ClCompile>
   </ItemGroup>
