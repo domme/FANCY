@@ -3,36 +3,6 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  MaterialPassDescription::MaterialPassDescription() :
-    eFillMode(FillMode::SOLID),
-    eCullMode(CullMode::BACK),
-    eWindingOrder(WindingOrder::CCW),
-    blendState(_N(BlendState_Solid)),
-    depthStencilState(_N(DepthStencilState_DefaultDepthState))
-  {
-    
-  }
-//---------------------------------------------------------------------------//
-  uint MaterialPassDescription::getHash() const
-  {
-    // The name is irrelevant for the hash
-    uint hash = 0x0;
-
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-    {
-      MathUtil::hash_combine(hash, gpuProgram[i].getHash());
-    }
-
-    MathUtil::hash_combine(hash, (uint32)eFillMode);
-    MathUtil::hash_combine(hash, (uint32)eCullMode);
-    MathUtil::hash_combine(hash, (uint32)eWindingOrder);
-    MathUtil::hash_combine(hash, (uint32)blendState);
-    MathUtil::hash_combine(hash, (uint32)depthStencilState);
-
-    return hash;
-  }
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
   MaterialPass::MaterialPass() : 
     m_pBlendState(nullptr),
     m_pDepthStencilState(nullptr),
@@ -52,57 +22,36 @@ namespace Fancy { namespace Rendering {
     m_vpMaterialPassInstances.clear();
   }
 //---------------------------------------------------------------------------//
-  void MaterialPass::init(const MaterialPassDescription& _desc)
+  bool MaterialPass::operator==(const MaterialPass& _other) const
   {
-    m_Name = _desc.name;
-    for (uint32 i = 0u; i < (uint32) ShaderStage::NUM; ++i)
+    bool same = true;
+    for (uint32 i = 0u; same && i < (uint32)ShaderStage::NUM; ++i)
     {
-      m_pGpuProgram[i] = GpuProgram::getByName(_desc.gpuProgram[i]);
+      same &= m_pGpuProgram[i] == _other.m_pGpuProgram[i];
     }
-    m_eFillMode = _desc.eFillMode;
-    m_eCullMode = _desc.eCullMode;
-    m_eWindingOrder = _desc.eWindingOrder;
-    m_pBlendState = BlendState::getByName(_desc.blendState);
-    m_pDepthStencilState = DepthStencilState::getByName(_desc.depthStencilState);
-  }
-//---------------------------------------------------------------------------//
-  MaterialPassDescription MaterialPass::getDescription() const
-  {
-    MaterialPassDescription desc;
-    desc.name = m_Name;
-    for (uint32 i = 0u; i < (uint32) ShaderStage::NUM; ++i)
-    {
-      desc.gpuProgram[i] = m_pGpuProgram[i] == nullptr ? ObjectName::blank : m_pGpuProgram[i]->getName();
-    }
-    desc.eFillMode = m_eFillMode;
-    desc.blendState = m_pBlendState->getName();
-    desc.depthStencilState = m_pDepthStencilState->getName();
-    desc.eWindingOrder = m_eWindingOrder;
-    desc.eCullMode = m_eCullMode;
 
-    return desc;
-  }
-//---------------------------------------------------------------------------//
-  void MaterialPassInstance::copyFrom( const MaterialPassInstance& _other )
-  {
-    memcpy(m_vpReadTextures, _other.m_vpReadTextures, sizeof(m_vpReadTextures));
-    memcpy(m_vpWriteTextures, _other.m_vpWriteTextures, sizeof(m_vpWriteTextures));
-    memcpy(m_vpReadBuffers, _other.m_vpReadBuffers, sizeof(m_vpReadBuffers));
-    memcpy(m_vpWriteBuffers, _other.m_vpWriteBuffers, sizeof(m_vpWriteBuffers));
-    memcpy(m_vpTextureSamplers, _other.m_vpTextureSamplers, sizeof(m_vpTextureSamplers));
-  }
-//---------------------------------------------------------------------------//
+    same &= m_eFillMode == _other.m_eFillMode;
+    same &= m_eCullMode == _other.m_eCullMode;
+    same &= m_eWindingOrder == _other.m_eWindingOrder;
+    same &= m_pBlendState == _other.m_pBlendState;
+    same &= m_pDepthStencilState == _other.m_pDepthStencilState;
 
-
+    return same;
+  }
 //---------------------------------------------------------------------------//
   MaterialPassInstance* MaterialPass::createMaterialPassInstance( const ObjectName& name )
   {
-    MaterialPassInstance* mpi = FANCY_NEW(MaterialPassInstance, MemoryCategory::MATERIALS);
+    return createMaterialPassInstance(name, MaterialPassInstance());
+  }
+//---------------------------------------------------------------------------//
+  MaterialPassInstance* MaterialPass::createMaterialPassInstance(const ObjectName& name, const MaterialPassInstance& _template)
+  {
+    MaterialPassInstance* mpi = FANCY_NEW(MaterialPassInstance(_template), MemoryCategory::MATERIALS);
 
     mpi->m_Name = name;
     mpi->m_pMaterialPass = this;
     m_vpMaterialPassInstances.push_back(mpi);
-    
+
     return mpi;
   }
 //---------------------------------------------------------------------------//
@@ -120,26 +69,11 @@ namespace Fancy { namespace Rendering {
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  MaterialPassInstance::MaterialPassInstance() :
-    m_pMaterialPass(nullptr)
-  {
-    memset(m_vpReadTextures, 0x0, sizeof(m_vpReadTextures));
-    memset(m_vpWriteTextures, 0x0, sizeof(m_vpWriteTextures));
-    memset(m_vpReadBuffers, 0x0, sizeof(m_vpReadBuffers));
-    memset(m_vpWriteBuffers, 0x0, sizeof(m_vpWriteBuffers));
-    memset(m_vpTextureSamplers, 0x0, sizeof(m_vpTextureSamplers));
-  }
- //---------------------------------------------------------------------------//
-  MaterialPassInstance::~MaterialPassInstance()
-  {
-    
-  }
-//---------------------------------------------------------------------------//
   uint MaterialPassInstance::computeHash() const
   {
     uint hash = 0x0;
 
-    for (uint32 iStage = 0u; iStage < (uint32) ShaderStage::NUM; ++iStage)
+    for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
     {
       const Texture* const* ppReadTextures = m_vpReadTextures[iStage];
       for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
@@ -172,7 +106,25 @@ namespace Fancy { namespace Rendering {
       }
     }
 
+    MathUtil::hash_combine(hash, reinterpret_cast<uint>(m_pMaterialPass));
+
     return hash;
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  MaterialPassInstance::MaterialPassInstance() :
+    m_pMaterialPass(nullptr)
+  {
+    memset(m_vpReadTextures, 0x0, sizeof(m_vpReadTextures));
+    memset(m_vpWriteTextures, 0x0, sizeof(m_vpWriteTextures));
+    memset(m_vpReadBuffers, 0x0, sizeof(m_vpReadBuffers));
+    memset(m_vpWriteBuffers, 0x0, sizeof(m_vpWriteBuffers));
+    memset(m_vpTextureSamplers, 0x0, sizeof(m_vpTextureSamplers));
+  }
+ //---------------------------------------------------------------------------//
+  MaterialPassInstance::~MaterialPassInstance()
+  {
+    
   }
 //---------------------------------------------------------------------------//
   // Note: Unfortunately, we can't reflect binding points from OpenGL-shaders and we don't want to modify binding in app code...

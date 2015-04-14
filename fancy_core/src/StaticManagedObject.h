@@ -57,6 +57,19 @@ namespace Fancy {
         return nullptr;
       }
 //---------------------------------------------------------------------------//
+      static T* findEqual(const T& _other)
+      {
+        for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
+        {
+          if ((*it).second == _other)
+          {
+            return;
+          }
+        }
+
+        return nullptr;
+      }
+//---------------------------------------------------------------------------//
     protected:
       static MapType m_objectMap;
   };
@@ -109,6 +122,19 @@ namespace Fancy {
         for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
         {
           if (_predicateFunc(it->second))
+          {
+            return it->second;
+          }
+        }
+
+        return nullptr;
+      }
+//---------------------------------------------------------------------------//
+      static T* findEqual(const T& _other)
+      {
+        for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
+        {
+          if (*(it->second) == _other)
           {
             return it->second;
           }

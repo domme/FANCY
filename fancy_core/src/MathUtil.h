@@ -26,7 +26,33 @@ public:
     return hasher(szString);
   }
 //---------------------------------------------------------------------------//
+  /// Compute a hash value based on the object's memory
+  template<class T>
+  static uint hashFromGeneric(const T& _val)
+  {
+    const uint32 sizeBytes = sizeof(T);
+    const T* pMem = &_val;
 
+    uint hash = 0x0;
+    for (uint32 i = 0u; i < sizeBytes; ++i)
+    {
+      hash_combine(hash, reinterpret_cast<const uint8*>(pMem)[i]);
+    }
+
+    return hash;
+  }
+//---------------------------------------------------------------------------//
+  static uint32 floatToUintBits(float _fVal)
+  {
+    STATIC_ASSERT(sizeof(uint32) == sizeof(float), "Sizes don't match (unsupported platform?)");
+
+    uint32 floatBits = 0x0;
+    uint8* const pFloatBits = reinterpret_cast<uint8*>(&floatBits);
+    std::copy(pFloatBits, pFloatBits + sizeof(float), reinterpret_cast<uint8*>(&_fVal));
+
+    return floatBits;
+  }
+//---------------------------------------------------------------------------//
 private:
   MathUtil();
   ~MathUtil();

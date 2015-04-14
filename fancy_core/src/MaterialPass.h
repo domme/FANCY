@@ -15,27 +15,13 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
-  struct MaterialPassDescription
-  {
-    MaterialPassDescription();
-    uint getHash() const;
-    // TODO: Change these values to ObjectNames and grab them from the managers after a global init
-    ObjectName name;
-    ObjectName gpuProgram[(uint32)ShaderStage::NUM];
-    FillMode eFillMode;
-    CullMode eCullMode;
-    WindingOrder eWindingOrder;
-    ObjectName blendState;
-    ObjectName depthStencilState;
-  };
 //---------------------------------------------------------------------------//
   class MaterialPass : public StaticManagedHeapObject<MaterialPass>
   {
     public:
       MaterialPass();
       ~MaterialPass();
-      void init (const MaterialPassDescription& _desc);
-      MaterialPassDescription getDescription() const;
+      bool operator==(const MaterialPass& _other) const;
 
       const ObjectName& getName() const { return m_Name; }
       const GpuProgram* getGpuProgram(const ShaderStage eShaderStage) const 
@@ -47,37 +33,22 @@ namespace Fancy { namespace Rendering {
       const BlendState* getBlendState() const {return m_pBlendState;}
       const DepthStencilState* getDepthStencilState() const {return m_pDepthStencilState;}
       MaterialPassInstance* createMaterialPassInstance(const ObjectName& name);
+      MaterialPassInstance* createMaterialPassInstance(const ObjectName& name, const MaterialPassInstance& _template);
       const MaterialPassInstance* getMaterialPassInstance(uint _resourceHash) const;
       bool hasStage(ShaderStage _eStage) const {return getGpuProgram(_eStage) != nullptr;}
-      
-    private:
+
       ObjectName m_Name;
       const GpuProgram* m_pGpuProgram[(uint32)ShaderStage::NUM];
-      std::vector<MaterialPassInstance*> m_vpMaterialPassInstances;
-
       FillMode m_eFillMode;
       CullMode m_eCullMode;
       WindingOrder m_eWindingOrder;
       const BlendState* m_pBlendState;
       const DepthStencilState* m_pDepthStencilState;
+      
+    private:
+      std::vector<MaterialPassInstance*> m_vpMaterialPassInstances;
   };
 //---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-
-  //TODO: Implement these two... basically, texture- and bufferDescs will contain the actual data. That way, we don't need to load the original file from disk again
-  class TextureDesc{};
-  class GpuBufferDesc {};
-
-  struct MaterialPassInstanceDesc
-  {
-    ObjectName name;
-    MaterialPassDescription materialPassDesc;
-    TextureDesc readTextureDescs[(uint32)ShaderStage::NUM][kMaxNumReadTextures];
-    TextureDesc writeTextureDescs[(uint32)ShaderStage::NUM][kMaxNumWriteTextures];
-    GpuBufferDesc readBufferDescs[(uint32)ShaderStage::NUM][kMaxNumReadBuffers];
-    GpuBufferDesc writeBufferDescs[(uint32)ShaderStage::NUM][kMaxNumWriteBuffers];
-    ObjectName textureSamplers[(uint32)ShaderStage::NUM][kMaxNumTextureSamplers];
-  };
 //---------------------------------------------------------------------------//
   class MaterialPassInstance
   {
@@ -86,8 +57,6 @@ namespace Fancy { namespace Rendering {
     public:
       MaterialPassInstance();
       ~MaterialPassInstance();
-
-      void copyFrom(const MaterialPassInstance& _other);
 
       const Texture* const* getReadTextures(ShaderStage eShaderStage) const {return m_vpReadTextures[(uint32) eShaderStage];}
       const Texture* const* getWriteTextures(ShaderStage eShaderStage) const {return m_vpWriteTextures[(uint32) eShaderStage];}
@@ -110,7 +79,7 @@ namespace Fancy { namespace Rendering {
 
       const MaterialPass* getMaterialPass() const {return m_pMaterialPass;}
       const ObjectName& getName() {return m_Name;}
-      
+
       uint computeHash() const;
 
     private:

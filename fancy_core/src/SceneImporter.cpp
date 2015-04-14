@@ -30,6 +30,7 @@
 #include "GpuProgramCompiler.h"
 
 #define FANCY_IMPORTER_USE_VALIDATION
+#include "MathUtil.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -640,53 +641,58 @@ namespace Fancy { namespace IO {
     GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialForward.shader", permutation, ShaderStage::VERTEX);
     GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialForward.shader", permutation, ShaderStage::FRAGMENT);
 
-    MaterialPassDescription matPassDesc;
-    matPassDesc.blendState = _N(BlendState_Solid);
-    matPassDesc.depthStencilState = _N(DepthStencilState_DefaultDepthState);
-    matPassDesc.eCullMode = CullMode::BACK;
-    matPassDesc.eFillMode = FillMode::SOLID;
-    matPassDesc.eWindingOrder = WindingOrder::CCW;
-    matPassDesc.gpuProgram[(uint32)ShaderStage::VERTEX] = pVertexProgram->getName();
-    matPassDesc.gpuProgram[(uint32)ShaderStage::FRAGMENT] = pFragmentProgram->getName();
+    MaterialPass matPassTemplate;
+    matPassTemplate.m_pBlendState = BlendState::getByName(_N(BlendState_Solid));
+    matPassTemplate.m_pDepthStencilState = DepthStencilState::getByName(_N(DepthStencilState_DefaultDepthState));
+    matPassTemplate.m_eCullMode = CullMode::BACK;
+    matPassTemplate.m_eFillMode = FillMode::SOLID;
+    matPassTemplate.m_eWindingOrder = WindingOrder::CCW;
+    matPassTemplate.m_pGpuProgram[(uint32)ShaderStage::VERTEX] = pVertexProgram;
+    matPassTemplate.m_pGpuProgram[(uint32)ShaderStage::FRAGMENT] = pFragmentProgram;
+    matPassTemplate.m_Name = "MaterialPass_" + StringUtil::toString(MathUtil::hashFromGeneric(matPassTemplate));
 
     // Try to find an existing MaterialPass with this description
-    MaterialPass* pMaterialPass = MaterialPass::find([matPassDesc] (MaterialPass* pCurrPass) -> bool{ return pCurrPass->getDescription().getHash() == matPassDesc.getHash(); } );
+    MaterialPass* pMaterialPass = MaterialPass::findEqual(matPassTemplate);
     if (pMaterialPass == nullptr)
     {
-      pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
-      matPassDesc.name = "MaterialPass_" + StringUtil::toString(matPassDesc.getHash()); // Need a "unique" name here
-      pMaterialPass->init(matPassDesc);
+      pMaterialPass = FANCY_NEW(MaterialPass(matPassTemplate), MemoryCategory::MATERIALS);
       MaterialPass::registerWithName(pMaterialPass);
     }
 
-    MaterialPassInstance forwardTempMpi;
-    forwardTempMpi.setReadTexture(ShaderStage::FRAGMENT, 0u, pDiffuseTex);
-    forwardTempMpi.setReadTexture(ShaderStage::FRAGMENT, 1u, pNormalTex);
-    forwardTempMpi.setReadTexture(ShaderStage::FRAGMENT, 2u, pSpecularTex);    
+    MaterialPassInstance solidForwardMpiTemplate;
+    solidForwardMpiTemplate.setReadTexture(ShaderStage::FRAGMENT, 0u, pDiffuseTex);
+    solidForwardMpiTemplate.setReadTexture(ShaderStage::FRAGMENT, 1u, pNormalTex);
+    solidForwardMpiTemplate.setReadTexture(ShaderStage::FRAGMENT, 2u, pSpecularTex);    
 
     // Try to find a fitting MaterialPassInstance managed by MaterialPass
-    const MaterialPassInstance* pForwardMpi = pMaterialPass->getMaterialPassInstance(forwardTempMpi.computeHash());
-    if (pForwardMpi == nullptr)
+    const MaterialPassInstance* pSolidForwardMpi = pMaterialPass->getMaterialPassInstance(solidForwardMpiTemplate.computeHash());
+    if (pSolidForwardMpi == nullptr)
     {
-      MaterialPassInstance* pNewMpi = pMaterialPass->createMaterialPassInstance(_N(DefaultMPI));
-      pNewMpi->copyFrom(forwardTempMpi);
-      pForwardMpi = pNewMpi;
+      MaterialPassInstance* pNewMpi = pMaterialPass->createMaterialPassInstance(_N(DefaultMPI), solidForwardMpiTemplate);
+      pSolidForwardMpi = pNewMpi;
     }
 
+    Material materialTemplate;
+    materialTemplate.setPass(pSolidForwardMpi, EMaterialPass::SOLID_FORWARD);
+    
+    if (hasColor) 
+      materialTemplate.setParameter(EMaterialParameterSemantic::DIFFUSE_REFLECTIVITY, (color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f));
+    if (hasSpecular)
+      materialTemplate.setParameter(EMaterialParameterSemantic::SPECULAR_REFLECTIVITY, specular);
+    if (hasOpacity)
+      materialTemplate.setParameter(EMaterialParameterSemantic::OPACITY, opacity);
+    if (hasSpecularPower)
+      materialTemplate.setParameter(EMaterialParameterSemantic::SPECULAR_POWER, specularPower);
+
+    String baseName = hasName ? String(szAname.C_Str()) : "Material";
+    materialTemplate.setName(baseName + "_" + StringUtil::toString(MathUtil::hashFromGeneric(materialTemplate)));
+
     // Try to find a similar material
-    Material* pMaterial = Material::find([pForwardMpi] (Material* pCurrMat) -> bool { 
-      bool sameMaterial = true;
-      sameMaterial &= pCurrMat->getPass(EMaterialPass::SOLID_FORWARD) == pForwardMpi;
-
-
-
-      return sameMaterial;
-    });
-
+    Material* pMaterial = Material::findEqual(materialTemplate);
     if (pMaterial == nullptr)
     {
-      pMaterial = FANCY_NEW(Material, MemoryCategory::MATERIALS);
-      pMaterial->setPass(pForwardMpi, EMaterialPass::SOLID_FORWARD);
+      pMaterial = FANCY_NEW(Material(materialTemplate), MemoryCategory::MATERIALS);
+      Material::registerWithName(pMaterial);
     }
 
     return pMaterial;
