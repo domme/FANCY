@@ -203,7 +203,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   SceneNodeComponent* SceneNode::getComponent( const ObjectName& typeName )
   {
-    for (uint i = 0; i < m_vpComponents.size(); ++i)
+    for (uint32 i = 0u; i < m_vpComponents.size(); ++i)
     {
       if (m_vpComponents[i]->getTypeName() == typeName)
       {

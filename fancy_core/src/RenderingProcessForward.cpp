@@ -6,6 +6,8 @@
 #include "CameraComponent.h"
 #include "SceneRenderDescription.h"
 #include "MaterialPass.h"
+#include "SceneNode.h"
+#include "LightComponent.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -42,6 +44,9 @@ namespace Fancy { namespace Rendering {
 
     const Scene::RenderingItemList& forwardRenderList = renderDesc.techniqueItemList[(uint32) Rendering::EMaterialPass::SOLID_FORWARD];
     // TODO: Sort based on material-pass
+
+    FixedArray<Scene::Components::LightComponent*, 256u> vLights;
+    pScene->getRootNode()->getComponentsOfType(_N(LightComponent), vLights);
 
     const MaterialPass* pCachedMaterialPass = nullptr;
     for (uint32 i = 0u; i < forwardRenderList.size(); ++i)
