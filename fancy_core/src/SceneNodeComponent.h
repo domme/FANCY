@@ -20,7 +20,7 @@ namespace Fancy { namespace Scene {
       virtual void init() { };
       virtual void update() = 0;
       virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) = 0;
-      virtual ObjectName getTypeName() = 0;
+      virtual ObjectName getTypeName() const = 0;
 
     protected:
       SceneNode* m_pOwner;

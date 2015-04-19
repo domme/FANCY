@@ -1,6 +1,8 @@
+#include "Scene.h"
 #include "SceneNode.h"
 #include "SceneNodeComponentFactory.h"
 #include "SceneRenderDescription.h"
+#include "EngineCommon.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
@@ -273,6 +275,8 @@ namespace Fancy { namespace Scene {
     } else if (typeName == _N(Camera)) {
       m_pCameraComponent = static_cast<CameraComponent*>(pComponent.get());
     }
+
+    EngineCommon::getCurrentScene()->onComponentAdded(pComponent.get());
   }
 //---------------------------------------------------------------------------//
   void SceneNode::onComponentRemoved(const SceneNodeComponentPtr& pComponent )
@@ -284,6 +288,8 @@ namespace Fancy { namespace Scene {
     } else if (typeName == _N(Camera)) {
       m_pCameraComponent = nullptr;
     }
+
+    EngineCommon::getCurrentScene()->onComponentRemoved(pComponent.get());
   }
 //---------------------------------------------------------------------------//
   

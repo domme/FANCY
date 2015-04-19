@@ -70,6 +70,7 @@ namespace Fancy {
       void clear() {m_u32Size = 0u;}
       void resize(uint32 uNewSize) {ASSERT_M(uNewSize <= u32Capacity, "Array too small"); m_u32Size = uNewSize; }
       void push_back(const T& clElement) {ASSERT_M(m_u32Size < u32Capacity, "Array is full"); m_Array[m_u32Size++] = clElement;}
+      void erase(const T& _anElement);
     //---------------------------------------------------------------------------//
       bool contains(const T& _item) {
         for (uint32 i = 0; i < m_u32Size; ++i) {
@@ -106,6 +107,35 @@ namespace Fancy {
     FixedArrayDatastore_Stack<T, u32Capacity>()
   {
 
+  }
+//---------------------------------------------------------------------------//
+  template <class T, uint32 u32Capacity>
+  void FixedArray<T, u32Capacity>::erase(const T& _anElement)
+  {
+    uint32 theDeleteIndex = m_u32Size;
+    for (uint32 i = 0; i < size(); ++i)
+    {
+      if (m_Array[i] == _anElement)
+      {
+        theDeleteIndex = i;
+        break;
+      }
+    }
+
+    if (theDeleteIndex == m_u32Size)
+    {
+      return;
+    }
+
+    --m_u32Size;
+
+    if (theDeleteIndex > m_u32Size - 1u)
+    {
+      for (uint32 i = theDeleteIndex + 1u; i < m_u32Size; ++i)
+      {
+        m_Array[i - 1u] = m_Array[i];
+      }
+    }
   }
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy

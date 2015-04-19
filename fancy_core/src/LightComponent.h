@@ -4,7 +4,7 @@
 #include "SceneNodeComponent.h"
 #include "CameraComponent.h"
 
-namespace Fancy { namespace Scene { namespace Components {
+namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   enum class ELightType
   {
@@ -14,7 +14,7 @@ namespace Fancy { namespace Scene { namespace Components {
     AREA
   };
 //---------------------------------------------------------------------------//
-  class LightComponent : 
+  DLLEXPORT class LightComponent :
     public SceneNodeComponent, public BaseCreator<LightComponent, SceneNode*>
   {
     public:
@@ -24,7 +24,7 @@ namespace Fancy { namespace Scene { namespace Components {
       virtual void init() override;
       virtual void update() override;
 	    virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
-      virtual ObjectName getTypeName() override { return _N(Light); }
+      virtual ObjectName getTypeName() const override { return _N(Light); }
 
       ELightType getType() const { return m_eType; }
       void setType(ELightType _type) { m_eType = _type; }
@@ -55,6 +55,6 @@ namespace Fancy { namespace Scene { namespace Components {
   //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(LightComponent)
   //---------------------------------------------------------------------------//
-} } } // end of namespace Fancy::Scene
+} } // end of namespace Fancy::Scene
 
 #endif  // INCLUDE_LIGHTCOMPONENT_H

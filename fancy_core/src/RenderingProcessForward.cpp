@@ -45,30 +45,36 @@ namespace Fancy { namespace Rendering {
     const Scene::RenderingItemList& forwardRenderList = renderDesc.techniqueItemList[(uint32) Rendering::EMaterialPass::SOLID_FORWARD];
     // TODO: Sort based on material-pass
 
-    FixedArray<Scene::Components::LightComponent*, 256u> vLights;
-    pScene->getRootNode()->getComponentsOfType(_N(LightComponent), vLights);
+    const Scene::LightList& aLightList = pScene->getCachedLights();
 
     const MaterialPass* pCachedMaterialPass = nullptr;
-    for (uint32 i = 0u; i < forwardRenderList.size(); ++i)
+    for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
     {
-      const RenderingItem& renderItem = forwardRenderList[i];
-      
-      ShaderConstantsManager::updateStage.pWorldMat = renderItem.pWorldMat;
+      const Scene::LightComponent* aLight = aLightList[iLight];
+      ShaderConstantsManager::updateStage.pLight = aLight;
+      ShaderConstantsManager::update(ConstantBufferType::PER_LIGHT);
 
-      ShaderConstantsManager::updateStage.pMaterial = renderItem.pMaterialPassInstance;
-      ShaderConstantsManager::update(ConstantBufferType::PER_MATERIAL);
-      ShaderConstantsManager::update(ConstantBufferType::PER_OBJECT);
-
-      const MaterialPass* pMaterialPass = renderItem.pMaterialPassInstance->getMaterialPass();
-      if (pCachedMaterialPass != pMaterialPass)
+      for (uint32 iRenderItem = 0u; iRenderItem < forwardRenderList.size(); ++iRenderItem)
       {
-        pCachedMaterialPass = pMaterialPass;
-        applyMaterialPass(pMaterialPass, &renderer);
+        const RenderingItem& renderItem = forwardRenderList[iRenderItem];
+
+        ShaderConstantsManager::updateStage.pWorldMat = renderItem.pWorldMat;
+
+        ShaderConstantsManager::updateStage.pMaterial = renderItem.pMaterialPassInstance;
+        ShaderConstantsManager::update(ConstantBufferType::PER_MATERIAL);
+        ShaderConstantsManager::update(ConstantBufferType::PER_OBJECT);
+
+        const MaterialPass* pMaterialPass = renderItem.pMaterialPassInstance->getMaterialPass();
+        if (pCachedMaterialPass != pMaterialPass)
+        {
+          pCachedMaterialPass = pMaterialPass;
+          applyMaterialPass(pMaterialPass, &renderer);
+        }
+
+        applyMaterialPassInstance(renderItem.pMaterialPassInstance, &renderer);
+
+        renderer.renderGeometry(renderItem.pGeometry);
       }
-
-      applyMaterialPassInstance(renderItem.pMaterialPassInstance, &renderer);
-
-      renderer.renderGeometry(renderItem.pGeometry);
     }
   }
 //---------------------------------------------------------------------------//

@@ -45,7 +45,11 @@ void startupEngine()
   
   Scene::SceneNode* pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));
   IO::SceneImporter::importToSceneGraph("Models/cube.obj", pModelNode);
+  // IO::SceneImporter::importToSceneGraph("Models/Sibenik/Sibenik_omme.dae", pModelNode);
   pModelNode->getTransform().setPositionLocal(glm::vec3(0.0f, 0.0f, -10.0f));
+
+  Scene::SceneNode* pLightNode = pScene->getRootNode()->createChildNode(_N(LightNode));
+  Scene::LightComponent* pLight = static_cast<Scene::LightComponent*>(pLightNode->addOrRetrieveComponent(_N(LightComponent)));
 
   EngineCommon::startup();
 }
@@ -209,7 +213,7 @@ int main(void)
   // 
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); */
 
-  window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
+  window = glfwCreateWindow(1280, 720, "Simple example", NULL, NULL);
   if (!window)
   {
     glfwTerminate();

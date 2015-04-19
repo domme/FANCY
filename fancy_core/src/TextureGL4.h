@@ -22,7 +22,7 @@ public:
   virtual bool _init() override;
   virtual bool _destroy() override;
 
-  void create(const TextureParameters& clDeclaration, CreationMethod eCreationMethod = CreationMethod::UPLOADED_ONCE);
+  void create(const TextureDesc& clDeclaration, CreationMethod eCreationMethod = CreationMethod::UPLOADED_ONCE);
   void setPixelData(void* pData, uint uDataSizeBytes, 
    glm::u32vec3 rectPosOffset = glm::u32vec3(0,0,0), glm::u32vec3 rectDimensions = glm::u32vec3(0,0,0));
   void* lock(GpuResoruceLockOption option = GpuResoruceLockOption::WRITE_DISCARD); 
@@ -39,11 +39,13 @@ public:
   uint getNumDimensions() const {return m_clStateInfo.numDimensions; }
   GLenum getInternalFormatGL() const {return m_clParameters.eInternalFormatGL;}
   GLenum getTextureTypeGL() const {return m_clParameters.eTextureTypeGL;}
-  const TextureParameters& getParameters() const {return m_clParameters;}
+  const TextureDesc& getParameters() const {return m_clParameters;}
+  const String& getPath() const { return m_clParameters.path; }
+  void setPath(const String& _aPath) { m_clParameters.path = _aPath; }
 
-protected:
+  protected:
   //---------------------------------------------------------------------------//
-  struct TextureParametersGL : public TextureParameters {
+  struct TextureParametersGL : public TextureDesc {
     TextureParametersGL() : eFormatGL(0), eInternalFormatGL(0), 
       ePixelTypeGL(0), eTextureTypeGL(0), eTexBindQueryGL(0) {}
 

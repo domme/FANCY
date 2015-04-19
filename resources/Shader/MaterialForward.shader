@@ -7,6 +7,7 @@
 #version 440
 
  // #include "Shader/TextureSemantics.shader_include"
+ #include "Shader/Common.inc"
  #include "Shader/ConstantBuffer.shader_include"
  #include "Shader/Lighting.inc"
  //---------------------------------------------------------------------------//
@@ -17,6 +18,8 @@
   #endif // PROGRAM_TYPE_VERTEX  
     {
         vec2 uv;
+        vec3 normalWS;
+        vec3 posWS;
     }
   #if defined (PROGRAM_TYPE_VERTEX)      
     vs_out;
@@ -40,6 +43,9 @@
     void main()
     {
       gl_Position = cbPerObject.c_WorldViewProjectionMatrix * vec4(v_position, 1.0);
+
+      vs_out.posWS = (cbPerObject.c_WorldMatrix * vec4(v_position, 1.0)).xyz;
+      vs_out.normalWS = normalize((cbPerObject.c_WorldMatrix * vec4(v_normal, 0.0)).xyz);
       vs_out.uv = v_texcoord0;
     }
   #endif // PROGRAM_TYPE_VERTEX
@@ -60,10 +66,14 @@
 
     void main()
     {
+      vec3 albedo = vec3(1.0, 1.0, 1.0);
+      #if defined (FEAT_ALBEDO_TEXTURE)
+        albedo = texture(tex_diffuse, fs_in.uv).xyz;
+      #endif // FEAT_ALBEDO_TEXTURE        
+
+      vec3 lightIntensity = ShadeLight(cbPerLight.c_LightParameters, cbPerLight.c_LightDirWS, fs_in.posWS, normalize(fs_in.normalWS));
       
-
-
-      color = texture(tex_diffuse, fs_in.uv);
+      color = vec4(albedo, 1.0);
     }
   #endif // PROGRAM_TYPE_FRAGMENT
 //---------------------------------------------------------------------------//  

@@ -206,6 +206,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\AdapterGL4.h" />
+    <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
     <ClInclude Include="src\CameraComponent.h" />
     <ClInclude Include="src\CameraControllerComponent.h" />
@@ -255,6 +256,7 @@
     <ClInclude Include="src\SceneNodeComponent.h" />
     <ClInclude Include="src\SceneNodeComponentFactory.h" />
     <ClInclude Include="src\SceneRenderDescription.h" />
+    <ClInclude Include="src\Serializer.h" />
     <ClInclude Include="src\ShaderConstantsManager.h" />
     <ClInclude Include="src\StaticManagedObject.h" />
     <ClInclude Include="src\StdAfx.h" />
@@ -273,6 +275,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AdapterGL4.cpp" />
+    <ClCompile Include="src\BinaryCache.cpp" />
     <ClCompile Include="src\BlendState.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\CameraControllerComponent.cpp" />
@@ -309,6 +312,7 @@
     <ClCompile Include="src\SceneNode.cpp" />
     <ClCompile Include="src\SceneNodeComponent.cpp" />
     <ClCompile Include="src\SceneNodeComponentFactory.cpp" />
+    <ClCompile Include="src\Serializer.cpp" />
     <ClCompile Include="src\ShaderConstantsManager.cpp" />
     <ClCompile Include="src\StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

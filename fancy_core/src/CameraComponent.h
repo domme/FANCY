@@ -15,7 +15,7 @@ namespace Fancy { namespace Scene {
 
     virtual void update() override;
     virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
-    virtual ObjectName getTypeName() override { return _N(Camera); }
+    virtual ObjectName getTypeName() const override { return _N(Camera); }
 
     const glm::mat4& getView() const { return m_matView; }
     const glm::mat4& getViewInv() const {return m_matViewInv; }

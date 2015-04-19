@@ -10,6 +10,7 @@ namespace Fancy { namespace IO {
   public:
     static String convertToAbsPath( const String& szRelPath, bool bInResources = true );
     static void convertToAbsPath( String& szRelPath, bool bInResources = true );
+    static String toRelPath(const String& _anAbsPath, bool _isInResources = true );
     static String getExePath();
     static String getResourcesPath();
     static bool isAbsolutePath(const String& _szPath);
@@ -19,6 +20,7 @@ namespace Fancy { namespace IO {
     static void removeFolderUpMarkers(String& _szPath);
     static void unifySlashes(String& _szPath);
     static void removeFilenameFromPath( String& szPath );
+    static void createDirectoryTreeForPath(const String& _somePath);
 
   private:
     static std::string m_szRelativeResourcePath;

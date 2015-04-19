@@ -14,13 +14,11 @@ namespace Fancy { namespace Rendering {
 } }
 
 namespace Fancy { namespace Scene {
-  namespace Components{
-    class LightComponent;
-  }
-
+  class LightComponent;
   class SceneNode;
   class CameraComponent;
 } }
+
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
@@ -128,7 +126,7 @@ namespace Fancy { namespace Rendering {
     const glm::mat4* pWorldMat;
     const Scene::CameraComponent* pCamera;
     const MaterialPassInstance* pMaterial;
-    const Scene::Components::LightComponent* pLight;
+    const Scene::LightComponent* pLight;
   };
 //---------------------------------------------------------------------------//
   class ShaderConstantsManager

@@ -46,6 +46,20 @@ namespace Fancy { namespace IO {
       szRelPath = getExePath() + szRelPath;
   }
 //---------------------------------------------------------------------------//
+  String PathService::toRelPath(const String& _anAbsPath, bool _isInResources)
+  {
+    const String theAbsPart = _isInResources ? getResourcesPath() : getExePath();
+
+    std::size_t thePosOfAbsPart = _anAbsPath.find(theAbsPart);
+
+    if (thePosOfAbsPart != String::npos)
+    {
+      return _anAbsPath.substr(thePosOfAbsPart + theAbsPart.length());
+    }
+
+    return _anAbsPath;
+  }
+//---------------------------------------------------------------------------//
   bool PathService::isAbsolutePath(const String& _szPath)
   {
     return _szPath.size() > 2u && _szPath[1] == ':';
@@ -75,6 +89,8 @@ namespace Fancy { namespace IO {
     {
       szPath += m_szRelativeResourcePath;
     }
+
+    removeFolderUpMarkers(szPath);
 
     return szPath;
   }
@@ -109,6 +125,26 @@ namespace Fancy { namespace IO {
     if( posLastSlash != String::npos && posDot > posLastSlash )
     {
       szPath = szPath.substr( 0u, posLastSlash + 1u );
+    }
+  }
+//---------------------------------------------------------------------------//
+  void PathService::createDirectoryTreeForPath(const String& _somePath)
+  {
+    String aDirectoryTree = GetContainingFolder(_somePath);
+
+    size_t posSlash = aDirectoryTree.find('/');
+    if (posSlash != String::npos && isAbsolutePath(aDirectoryTree))
+    {
+      // Skip the first slash
+      posSlash = aDirectoryTree.find('/', posSlash + 1u);
+    }
+    
+    while (posSlash != String::npos)
+    {
+      String currDirPath = aDirectoryTree.substr(0u, posSlash);
+      CreateDirectory(currDirPath.c_str(), nullptr);
+      
+      posSlash = aDirectoryTree.find('/', posSlash + 1u);
     }
   }
 //---------------------------------------------------------------------------//

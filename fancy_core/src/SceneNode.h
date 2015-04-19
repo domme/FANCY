@@ -5,6 +5,7 @@
 #include "CameraComponent.h"
 #include "ModelComponent.h"
 #include "ObjectName.h"
+#include "LightComponent.h"
 
 namespace Fancy { namespace Scene { 
 //---------------------------------------------------------------------------//
@@ -87,29 +88,13 @@ namespace Fancy { namespace Scene {
       const ObjectName& getName() const {return m_name;}
       void setName(const ObjectName& _name) {m_name = _name;}
 
-      template<class T, uint maxNumComponents>
-      void getComponentsOfType(const ObjectName& _typeName, FixedArray<T, maxNumComponents>& _resultList)
-      {
-        for (uint32 i = 0u; i < m_vpComponents.size(); ++i)
-        {
-          if (m_vpComponents[i]->getTypeName() == _typeName)
-          {
-            _resultList.push_back((T)(m_vpComponents[i].get()));
-          }
-        }
-
-        for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
-        {
-          getComponentsOfType(_typeName, _resultList);
-        }
-      }
-
   private:
       void onComponentAdded(const SceneNodeComponentPtr& pComponent);
       void onComponentRemoved(const SceneNodeComponentPtr& pComponent);
 
       std::vector<SceneNodeComponentPtr> m_vpComponents;
       std::vector<std::shared_ptr<SceneNode>> m_vpChildren;
+
       SceneNode* m_pParent;
       Transform m_transform;
       ObjectName m_name;

@@ -603,6 +603,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     if (!success) 
     {
       log_Error(String("GpuProgram ") + _rDesc.name.toString() + " failed to compile" );
+      ASSERT(false);
       glDeleteProgram(uProgramHandle);
     }
     

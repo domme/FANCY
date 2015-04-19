@@ -1,0 +1,9 @@
+#if !defined (COMMON_INCLUDE_)
+#define COMMON_INCLUDE_
+
+#define LIGHTTYPE_DIR 0
+#define LIGHTTYPE_POINT 1
+#define LIGHTTYPE_SPOT 2
+#define LIGHTTYPE_AREA 3
+
+#endif  // COMMON_INCLUDE_

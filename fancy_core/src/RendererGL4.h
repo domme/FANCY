@@ -69,7 +69,7 @@ protected:
   enum Constants {
     kPoolSizeFBO = 20u,
     kPoolSizeGpuProgramPipelines = 50u,
-    kPoolSizeVAO = 20u
+    kPoolSizeVAO = 128u
   };
 //-----------------------------------------------------------------------//
   struct GpuCacheEntry {

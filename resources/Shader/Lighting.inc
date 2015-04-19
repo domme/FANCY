@@ -1,9 +1,10 @@
 #if !defined (LIGHTING_INCLUDE_)
 #define LIGHTING_INCLUDE_
 
-vec3 ShadeDirectionalLight(vec4 _dirlightParams, vec4 _materialLightingParams, vec3 _lightDirWS, vec3 _lightColorIntensity, vec3 _posWS, vec3 _normalWS)
+vec3 ShadeLight(vec4 _lightParams, vec3 _lightDirWS, vec3 _posWS, vec3 _normalWS)
 {
-  return _lightColorIntensity * _materialLightingParams.x * max(0, dot(-_lightDirWS, _normalWS));
+  float nl = max(0, dot(_lightDirWS, _normalWS));
+  return _lightParams.xyz * nl;
 }
 
 #endif  // LIGHTING_INCLUDE_

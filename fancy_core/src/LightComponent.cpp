@@ -2,7 +2,7 @@
 #include "SceneNode.h"
 #include "InputManager.h"
 
-namespace Fancy { namespace Scene { namespace Components {
+namespace Fancy { namespace Scene {
   //---------------------------------------------------------------------------//
   namespace Internal
   {
@@ -12,7 +12,13 @@ namespace Fancy { namespace Scene { namespace Components {
 
 //---------------------------------------------------------------------------//
   LightComponent::LightComponent(SceneNode* _pOwner) :
-    SceneNodeComponent(_pOwner)
+    SceneNodeComponent(_pOwner),
+    m_eType(ELightType::DIRECTIONAL),
+    m_colorIntensity(1.0f, 1.0f, 1.0f),
+    m_castsShadows(false),
+    m_falloffStart(0.0f),
+    m_falloffEnd(10.0f),
+    m_coneAngle(45.0f)
   {
 
   }
@@ -37,4 +43,4 @@ namespace Fancy { namespace Scene { namespace Components {
     // TODO: Render debug geometry
   }
 //---------------------------------------------------------------------------//
-} } } // end of namespace Fancy::Scene::Components
+} } // end of namespace Fancy::Scene::Components

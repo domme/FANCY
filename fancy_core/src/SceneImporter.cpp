@@ -31,6 +31,7 @@
 
 #define FANCY_IMPORTER_USE_VALIDATION
 #include "MathUtil.h"
+#include "BinaryCache.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -122,8 +123,10 @@ namespace Fancy { namespace IO {
     bool success = false;
     std::string szImportPathAbs = PathService::convertToAbsPath(_szImportPathRel);
 
+    // TODO: Look for cached binary data and don't re-import if possible
+
     Assimp::Importer aImporter;
-    
+
     const aiScene* aScene = aImporter.ReadFile(szImportPathAbs,
         aiProcess_CalcTangentSpace |
         aiProcess_Triangulate |
@@ -731,6 +734,12 @@ namespace Fancy { namespace IO {
       return pTexture;
     }
 
+    // Try to load the texture from cache
+    if (BinaryCache::get(&pTexture, szTexPath))
+    {
+      return pTexture;
+    }
+
     // Load and decode the texture to memory
     std::vector<uint8> vTextureBytes;
     TextureLoadInfo texLoadInfo;
@@ -748,7 +757,7 @@ namespace Fancy { namespace IO {
 
     pTexture = FANCY_NEW(Texture, MemoryCategory::TEXTURES);
     
-    TextureParameters texParams;
+    TextureDesc texParams;
     texParams.bIsDepthStencil = false;
     texParams.eFormat = texLoadInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
     texParams.u16Width = texLoadInfo.width;
@@ -758,6 +767,7 @@ namespace Fancy { namespace IO {
     texParams.uPixelDataSizeBytes = (texLoadInfo.width * texLoadInfo.height * texLoadInfo.bitsPerPixel) / 8u;
     texParams.pPixelData = &vTextureBytes[0];
     pTexture->create(texParams);
+    pTexture->setPath(szTexPath);
 
     if (!pTexture->isValid())
     {
@@ -767,6 +777,7 @@ namespace Fancy { namespace IO {
     }
     else
     {
+      BinaryCache::update(&pTexture, texParams.pPixelData, texParams.uPixelDataSizeBytes, szTexPath);
       Texture::registerWithName(szTexPath, pTexture);  
     }
 

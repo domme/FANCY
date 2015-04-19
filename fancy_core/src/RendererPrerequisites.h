@@ -287,11 +287,12 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    struct TextureParameters {
-      TextureParameters() : u16Width(0u), u16Height(0u), u16Depth(0u),
+    struct TextureDesc {
+      TextureDesc() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
         eFormat(DataFormat::NONE), uAccessFlags(0u), pPixelData(nullptr),
         uPixelDataSizeBytes(0), bIsDepthStencil(false) {}
 
+      String path;
       uint16 u16Width;
       uint16 u16Height;
       uint16 u16Depth;

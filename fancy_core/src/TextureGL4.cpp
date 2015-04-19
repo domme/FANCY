@@ -44,12 +44,12 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
     return !isValid();
   }
 //---------------------------------------------------------------------------//
-  void TextureGL4::create(const TextureParameters& clDeclaration, CreationMethod eCreationMethod /*= CreationMethod::UPLOADED_ONCE*/)
+  void TextureGL4::create(const TextureDesc& clDeclaration, CreationMethod eCreationMethod /*= CreationMethod::UPLOADED_ONCE*/)
   {
     // TODO: Implement Cubemap- and array textures 
     destroy();
 
-    TextureParameters* pBaseParams = &m_clParameters;
+    TextureDesc* pBaseParams = &m_clParameters;
     *pBaseParams = clDeclaration;
 
     GLenum eGLformat, eGLinternalFormat, eGLpixelType;
