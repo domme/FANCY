@@ -23,7 +23,7 @@ namespace Fancy { namespace IO {
     class Serializer
     {
       public:
-        virtual bool serialize(Scene::SceneNode* _aSceneNode) = 0;
+        virtual bool serialize(Scene::SceneNode** someSceneNode, const String& someSerializePath) = 0;
     };
 //---------------------------------------------------------------------------//
     class SerializerBinary : public Serializer
@@ -31,12 +31,13 @@ namespace Fancy { namespace IO {
     public:
       SerializerBinary(ESerializationMode _aMode) { myMode = _aMode; }
       
-      virtual bool serialize(Scene::SceneNode* _aSceneNode) override { return true; }
+      virtual bool serialize(Scene::SceneNode** someSceneNode, const String& someSerializePath) override;
       bool serialize(Rendering::Texture** _aTexture, const void* _aData, uint32 _aDataSize, const String& _aSerializePath);
       
     private:
       bool store(Rendering::Texture** _aTexture, const void* _aData, uint32 _aDataSize, const String& _aSerializePath);
       bool load(Rendering::Texture** _aTexture, const String& _aSerializePath);
+      bool store(Scene::SceneNode** someSceneNode, const String& someSerializePath);
 
     private:
       ESerializationMode myMode;

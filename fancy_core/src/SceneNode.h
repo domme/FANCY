@@ -9,6 +9,13 @@
 
 namespace Fancy { namespace Scene { 
 //---------------------------------------------------------------------------//
+  struct TransformDesc
+  {
+    glm::quat myLocalRotation;
+    glm::vec3 myLocalPosition;
+    glm::vec3 myLocalScale;
+  };
+//---------------------------------------------------------------------------//
   class DLLEXPORT Transform
   {
     friend class SceneNode;
@@ -19,6 +26,9 @@ namespace Fancy { namespace Scene {
 
       const glm::mat4& getCachedWorld() const {return m_cachedWorld;}
       glm::mat4 getLocalAsMat() const;
+
+      TransformDesc getDescription() const;
+      void initFromDescription(const TransformDesc& someDesc);
 
       //void rotate(const glm::quat& _quat);
       //void rotateLocal(const glm::quat& _quat);
@@ -53,6 +63,12 @@ namespace Fancy { namespace Scene {
   };
 //---------------------------------------------------------------------------//
   class SceneRenderDescription;
+//---------------------------------------------------------------------------//
+  struct SceneNodeDesc
+  {
+    ObjectNameDesc myName;
+    TransformDesc myTransform;
+  };
 //---------------------------------------------------------------------------//
   class DLLEXPORT SceneNode
   {

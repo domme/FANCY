@@ -3,15 +3,36 @@
 
 #include "FancyCorePrerequisites.h"
 
-namespace Fancy { 
+namespace Fancy {
  //---------------------------------------------------------------------------//
-  class DLLEXPORT ObjectName {
-    //---------------------------------------------------------------------------//
+  class ShortStringDesc
+  {
+  public:
+    static const uint32 kLength = 256u;
+
+    void operator=(const String& _someString);
+    String toString() const { return String(&myChars[0]); }
+
+  private:
+    char myChars[kLength];
+  };
+//---------------------------------------------------------------------------//
+  struct ObjectNameDesc
+  {
+    ShortStringDesc myName;
+    uint myHash;
+  };
+//---------------------------------------------------------------------------//
+  class DLLEXPORT ObjectName 
+  {
+  //---------------------------------------------------------------------------//
     public:
       ObjectName();
       ObjectName(const String& szString);
       ~ObjectName();
       static const ObjectName blank;
+      ObjectNameDesc getDescription() const;
+      void initFromDescription(const ObjectNameDesc someDesc);
     //---------------------------------------------------------------------------//
       String toString() const;
       uint getHash() const {return m_uNameHash;}

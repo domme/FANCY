@@ -4,6 +4,14 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  void ShortStringDesc::operator=(const String& _someString)
+  {
+    ASSERT(kLength > _someString.length());
+    std::copy(_someString.begin(), _someString.end(), &myChars[0]);
+    myChars[_someString.length()] = 0u;  // Null-terminator
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   namespace internal 
   {
     uint hashFromName(const String& szName) 
@@ -42,6 +50,22 @@ namespace Fancy {
   ObjectName::~ObjectName()
   {
 
+  }
+//---------------------------------------------------------------------------//
+  ObjectNameDesc ObjectName::getDescription() const
+  {
+    ObjectNameDesc aDesc;
+    aDesc.myName = toString();
+    aDesc.myHash = getHash();
+    return aDesc;
+  }
+//---------------------------------------------------------------------------//
+  void ObjectName::initFromDescription(const ObjectNameDesc someDesc)
+  {
+    m_uNameHash = someDesc.myHash;
+#if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
+    m_szName = someDesc.myName.toString();
+#endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   }
 //---------------------------------------------------------------------------//
   String ObjectName::toString() const

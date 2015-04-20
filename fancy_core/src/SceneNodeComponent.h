@@ -8,6 +8,11 @@ namespace Fancy { namespace Scene {
   class SceneNode;
   class SceneRenderDescription;
 //---------------------------------------------------------------------------//
+  struct SceneNodeComponentDesc
+  {
+    ObjectNameDesc myTypeName;
+  };
+//---------------------------------------------------------------------------//
   class DLLEXPORT SceneNodeComponent
   {
     public:
@@ -16,6 +21,7 @@ namespace Fancy { namespace Scene {
 
       SceneNode* getSceneNode() { return m_pOwner; }
       const SceneNode* getSceneNode() const { return m_pOwner; }
+      
       
       virtual void init() { };
       virtual void update() = 0;

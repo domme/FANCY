@@ -4,17 +4,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   namespace Internal
   {
-    class ShortStringDesc
-    {
-      public:
-        static const uint32 kLength = 256u;
-
-        void operator=(const String& _someString);
-        String toString() { return String(&myChars[0]); };
-
-      private:
-        char myChars[kLength];
-    };
+    
 
     struct TextureHeader
     {
@@ -27,16 +17,36 @@ namespace Fancy { namespace IO {
       uint32 myPixelDataSizeBytes;
       uint32 myNumMipmapLevels;
     };
+
+
+    struct TransformDesc
+    {
+      glm::quat m_localRotation;
+      glm::vec3 m_localPosition;
+      glm::vec3 m_localScale;
+    };
+
+    struct SceneNodeDesc
+    {
+      ShortStringDesc myName;
+
+    };
+
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  void Internal::ShortStringDesc::operator=(const String& _someString)
+  bool SerializerBinary::serialize(Scene::SceneNode** someSceneNode, const String& someSerializePath)
   {
-    ASSERT(kLength > _someString.length());
-    std::copy(_someString.begin(), _someString.end(), &myChars[0]);
-    myChars[_someString.length()] = 0u;  // Null-terminator
+    if (myMode == ESerializationMode::STORE)
+    {
+      return store(someSceneNode, someSerializePath);
+    }
+    else
+    {
+      return false;
+     // return load(_aTexture, _aSerializePath);
+    }
   }
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
   bool SerializerBinary::serialize(Rendering::Texture** _aTexture, const void* _aData, uint32 _aDataSize, const String& _aSerializePath)
   {
@@ -48,6 +58,11 @@ namespace Fancy { namespace IO {
     {
       return load(_aTexture, _aSerializePath);
     }
+  }
+//---------------------------------------------------------------------------//
+  bool SerializerBinary::store(Scene::SceneNode** someSceneNode, const String& someSerializePath)
+  {
+
   }
 //---------------------------------------------------------------------------//
   bool SerializerBinary::store(Rendering::Texture** _aTexture, const void* _aData, uint32 _aDataSize, const String& _aSerializePath)
