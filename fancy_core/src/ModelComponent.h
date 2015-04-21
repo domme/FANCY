@@ -5,7 +5,14 @@
 #include "Model.h"
 
 namespace Fancy { namespace Scene {
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+	struct ModelComponentDesc : public SceneNodeComponentDesc
+	{
+		
+	};
+//---------------------------------------------------------------------------//
+	DECLARE_SMART_PTRS(ModelComponentDesc);
+//---------------------------------------------------------------------------//
   class DLLEXPORT ModelComponent : 
     public SceneNodeComponent, public BaseCreator<ModelComponent, SceneNode*>
   {

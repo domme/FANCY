@@ -14,6 +14,12 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   typedef FixedArray<GeometryData*, kMaxNumGeometriesPerSubModel> GeometryDataList;
 //---------------------------------------------------------------------------//
+  struct MeshDesc
+  {
+	  ObjectNameDesc myName;
+
+  };
+//---------------------------------------------------------------------------//
   /// Represents a collection of raw geometric pieces that can be rendered with a single material
   /// Two GeometryDatas always have different vertex-attributes or primitive types which makes their distinction necessary.
   class Mesh : public StaticManagedHeapObject<Mesh>

@@ -15,6 +15,12 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   typedef FixedArray<SubModel*, kMaxNumSubModelsPerModel> SubModelList;
 //---------------------------------------------------------------------------//
+  struct ModelDesc
+  {
+	  ObjectNameDesc myName;
+
+  };
+//---------------------------------------------------------------------------//
   /*@brief: A Model is a collection of several SubModels. Each SubModel is potentially rendered with a different material
   and a different mesh */ 
   class Model : public StaticManagedHeapObject<Model> 

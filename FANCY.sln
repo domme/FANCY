@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{DE2875D5-4600-4F06-8AC5-39EDE76171EA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{E4A047CC-B6C9-4B5F-B0E2-DF778F701191}"
@@ -117,8 +119,8 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Debug|Mixed Platforms.Build.0 = Debug|x64
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Debug|Win32.ActiveCfg = Debug|Win32
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Debug|Win32.Build.0 = Debug|Win32
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Debug|x64.ActiveCfg = Debug|x64
@@ -129,8 +131,8 @@ Global
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Release|Win32.Build.0 = Release|Win32
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Release|x64.ActiveCfg = Release|x64
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}.Release|x64.Build.0 = Release|x64
-		{268DF2AA-2CD8-4AFD-8489-B1D8EFAF5B83}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{268DF2AA-2CD8-4AFD-8489-B1D8EFAF5B83}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{268DF2AA-2CD8-4AFD-8489-B1D8EFAF5B83}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{268DF2AA-2CD8-4AFD-8489-B1D8EFAF5B83}.Debug|Mixed Platforms.Build.0 = Debug|x64
 		{268DF2AA-2CD8-4AFD-8489-B1D8EFAF5B83}.Debug|Win32.ActiveCfg = Debug|Win32
 		{268DF2AA-2CD8-4AFD-8489-B1D8EFAF5B83}.Debug|Win32.Build.0 = Debug|Win32
 		{268DF2AA-2CD8-4AFD-8489-B1D8EFAF5B83}.Debug|x64.ActiveCfg = Debug|x64

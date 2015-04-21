@@ -68,6 +68,7 @@ namespace Fancy { namespace Scene {
   {
     ObjectNameDesc myName;
     TransformDesc myTransform;
+	std::vector<SceneNodeComponentDescPtr> myComponents;
   };
 //---------------------------------------------------------------------------//
   class DLLEXPORT SceneNode

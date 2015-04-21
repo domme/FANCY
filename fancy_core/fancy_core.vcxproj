@@ -159,7 +159,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(SolutionDir)\lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)\bin\$(Platform)\$(Configuration)\fancy_core.dll /I /Y</Command>
+      <Command>xcopy "$(SolutionDir)\lib\$(Platform)\$(Configuration)\fancy_core.dll" "$(SolutionDir)\bin\$(Platform)\$(Configuration)\fancy_core.dll" /I /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

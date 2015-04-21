@@ -14,6 +14,13 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class Mesh;
 //---------------------------------------------------------------------------//
+  struct SubModelDesc
+  {
+	  MaterialDesc myMaterial;
+	  MeshDesc myMesh;
+	  ObjectNameDesc myName;
+  };
+//---------------------------------------------------------------------------//
   class SubModel : public StaticManagedHeapObject<SubModel>
   {
   public:
