@@ -13,8 +13,29 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class MaterialPassInstance;
+  struct MaterialPassInstanceDesc
+  {
+    ObjectName myName;
+    ObjectName myReadTextures[(uint32)ShaderStage::NUM][kMaxNumReadTextures];
+    ObjectName myWriteTextures[(uint32)ShaderStage::NUM][kMaxNumWriteTextures];
+    ObjectName myReadBuffers[(uint32)ShaderStage::NUM][kMaxNumReadBuffers];
+    ObjectName myWriteBuffers[(uint32)ShaderStage::NUM][kMaxNumWriteBuffers];
+    ObjectName myTextureSamplers[(uint32)ShaderStage::NUM][kMaxNumTextureSamplers];
+  };
 //---------------------------------------------------------------------------//
+  struct MaterialPassDesc
+  {
+    ObjectName myName;
+    ObjectName myGpuPrograms[(uint32)ShaderStage::NUM];
+    FillMode myFillmode;
+    CullMode myCullmode;
+    WindingOrder myWindingOrder;
+    ObjectName myBlendState;
+    ObjectName myDepthStencilState;
+    std::vector<MaterialPassInstanceDesc> myInstances;
+  };
+//---------------------------------------------------------------------------//
+  class MaterialPassInstance;
 //---------------------------------------------------------------------------//
   class MaterialPass : public StaticManagedHeapObject<MaterialPass>
   {
@@ -22,6 +43,9 @@ namespace Fancy { namespace Rendering {
       MaterialPass();
       ~MaterialPass();
       bool operator==(const MaterialPass& _other) const;
+
+      MaterialPassDesc getDescription() const;
+      void initFromDescription(const MaterialPassDesc& _aDesc);
 
       const ObjectName& getName() const { return m_Name; }
       const GpuProgram* getGpuProgram(const ShaderStage eShaderStage) const 
@@ -57,6 +81,9 @@ namespace Fancy { namespace Rendering {
     public:
       MaterialPassInstance();
       ~MaterialPassInstance();
+
+      void initFromDescription(const MaterialPassInstanceDesc _aDesc);
+      MaterialPassInstanceDesc getDescription() const;
 
       const Texture* const* getReadTextures(ShaderStage eShaderStage) const {return m_vpReadTextures[(uint32) eShaderStage];}
       const Texture* const* getWriteTextures(ShaderStage eShaderStage) const {return m_vpWriteTextures[(uint32) eShaderStage];}

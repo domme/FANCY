@@ -2,6 +2,7 @@
 #define INCLUDE_STATICMANAGEDOBJECT_H
 
 #include "ObjectName.h"
+#include "BinaryCache.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -28,15 +29,20 @@ namespace Fancy {
         return registerWithName(_object.getName(), _object);
       }
 //---------------------------------------------------------------------------//
-      static T* getByName(const ObjectName& _name)
+      static T* getByName(const ObjectName& _name, bool _shouldTryLoad = false)
       {
         MapType::iterator it = m_objectMap.find(_name);
-        if (it == m_objectMap.end())
+        if (it != m_objectMap.end())
         {
-          return nullptr;
+          return &(*it).second;
         }
 
-        return &(*it).second;
+        if (_shouldTryLoad)
+        {
+          return IO::BinaryCache::loadOrRetrieve<T>(_name);
+        }
+        
+        return nullptr;
       }
 //---------------------------------------------------------------------------//
       static const MapType& getRegisterMap()
@@ -101,15 +107,20 @@ namespace Fancy {
         return registerWithName(_object->getName(), _object);
       }
 //---------------------------------------------------------------------------//
-      static T* getByName(const ObjectName& _name)
+      static T* getByName(const ObjectName& _name, bool _shouldTryLoad = false)
       {
         MapType::const_iterator it = m_objectMap.find(_name);
-        if (it == m_objectMap.end())
+        if (it != m_objectMap.end())
         {
-          return nullptr;
+          return (*it).second;
         }
 
-        return (*it).second;
+        if (_shouldTryLoad)
+        {
+          return IO::BinaryCache::loadOrRetrieve<T>(_name);
+        }
+
+        return nullptr;
       }
 //---------------------------------------------------------------------------//
       static const MapType& getRegisterMap()

@@ -19,12 +19,22 @@ namespace Fancy { namespace Rendering {
     NUM
   };
 //---------------------------------------------------------------------------//  
+  struct MaterialDesc
+  {
+    ObjectName myName;
+    MaterialPassInstanceDesc myPasses[(uint32)EMaterialPass::NUM];
+    float myParameters[(uint32)EMaterialParameterSemantic::NUM];
+  };
+//---------------------------------------------------------------------------//  
   class Material : public StaticManagedHeapObject<Material>
   {
     public:
       Material();
       ~Material();
       bool operator==(const Material& _other) const;
+
+      MaterialDesc getDescription() const;
+      void initFromDescription(const MaterialDesc& _aDesc);
 
       const ObjectName& getName() const { return m_Name; }
       void setName(const ObjectName& _name) {m_Name = _name;}

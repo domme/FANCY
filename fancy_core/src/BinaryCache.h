@@ -14,6 +14,15 @@ namespace Fancy { namespace IO {
     class BinaryCache
     {
     public:
+
+      template<class T>
+      static T* loadOrRetrieve(const ObjectName _aName)
+      {
+        // TODO: Implement...
+        ASSERT(false);
+        return nullptr;
+      }
+
       static String getCacheFilePathAbs(const String& _aResourcePath)
       {
         return PathService::convertToAbsPath(kBinaryCacheRoot) + PathService::toRelPath(_aResourcePath) + kBinaryCacheExtension;

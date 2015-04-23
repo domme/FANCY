@@ -29,4 +29,35 @@ namespace Fancy { namespace Rendering {
     return same;
   }
 //---------------------------------------------------------------------------//
+  MaterialDesc Material::getDescription() const
+  {
+    MaterialDesc aDesc;
+    aDesc.myName = m_Name;
+    memcpy(aDesc.myParameters, m_vParameters, sizeof(m_vParameters));
+
+    for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
+    {
+      if (m_vPasses[i])
+      {
+        aDesc.myPasses[i] = m_vPasses[i]->getDescription();
+      }
+    }
+
+    return aDesc;
+  }
+//---------------------------------------------------------------------------//
+  void Material::initFromDescription(const MaterialDesc& _aDesc)
+  {
+    m_Name = _aDesc.myName;
+    memcpy(m_vParameters, _aDesc.myParameters, sizeof(m_vParameters));
+
+    for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
+    {
+      if (_aDesc.myPasses[i].myName != ObjectName::blank)
+      {
+        aDesc.myPasses[i] = m_vPasses[i]->getDescription();
+      }
+    }
+  }
+//---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

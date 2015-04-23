@@ -7,7 +7,7 @@
 
 namespace Fancy { namespace Rendering {
 
-  class TextureSampler : public PLATFORM_DEPENDENT_NAME(TextureSampler)
+  class TextureSampler : public PLATFORM_DEPENDENT_NAME(TextureSampler), public StaticManagedObject<TextureSampler>
   {
 
   };
