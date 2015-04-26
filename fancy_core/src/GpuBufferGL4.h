@@ -21,6 +21,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       GLuint getGLhandle() const { return m_vGLhandles[getBufferIndex()]; }
       uint getTotalSizeBytes() const { return m_clParameters.uTotalSizeBytes; }
       uint32 getNumElements() const { return m_clParameters.uNumElements; }
+      GpuBufferParameters getParameters() const { return static_cast<GpuBufferParameters>(m_clParameters); }
 
       void setBufferData(void* pData, uint uOffsetElements = 0, uint uNumElements = 0);
       void create(const GpuBufferParameters& clParameters, void* pInitialData = nullptr);

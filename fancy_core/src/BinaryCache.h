@@ -7,10 +7,15 @@
 #include "Serializer.h"
 #include "StringUtil.h"
 
+namespace Fancy { namespace Geometry {
+  class GeometryData;
+} }
+
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
     const String kBinaryCacheRoot = "Cache/";
     const String kBinaryCacheExtension = ".bin";
+
 //---------------------------------------------------------------------------//
     class BinaryCache
     {
@@ -37,23 +42,15 @@ namespace Fancy { namespace IO {
 
         return obj;
       }
-      //---------------------------------------------------------------------------//
+    //---------------------------------------------------------------------------//
       template <class T>
       static T* loadFromCache(const ObjectName& aName)
       {
         ASSERT_M(false, "Missing template specialization");
         return nullptr;
       }
-      //---------------------------------------------------------------------------//
-      template <class T>
-      static bool writeToCache(T* anObject, void* someData, uint32 aDataSize)
-      {
-        ASSERT_M(false, "Missing template specialization");
-        return false;
-      }
-      //---------------------------------------------------------------------------//
-      template<>
-      static Rendering::Texture* loadFromCache(const ObjectName& _aName)
+    //---------------------------------------------------------------------------//
+      template<> static Rendering::Texture* loadFromCache(const ObjectName& _aName)
       {
         const String cacheFilePath = getCacheFilePathAbs(_aName);
         std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
@@ -63,10 +60,10 @@ namespace Fancy { namespace IO {
           return nullptr;
         }
 
-        SerializerBinary binarySerializer(ESerializationMode::LOAD);
+        SerializerBinary binarySerializer(ESerializationMode::LOAD, &archive);
 
         Rendering::TextureDesc textureDesc;
-        if (!binarySerializer.serialize(&textureDesc, archive))
+        if (!binarySerializer.serialize(&textureDesc))
         {
           return nullptr;
         }
@@ -78,35 +75,11 @@ namespace Fancy { namespace IO {
 
         return texture;
       }
-      //---------------------------------------------------------------------------//
-      template<>
-      static bool writeToCache(Rendering::Texture* aTexture, void* someData, uint32 aDataSize)
-      {
-        ASSERT(someData);
-        ASSERT(aDataSize > 0u);
-
-        Rendering::TextureDesc textureDesc = aTexture->getParameters();
-        textureDesc.pPixelData = someData;
-        textureDesc.uPixelDataSizeBytes = aDataSize;
-
-        const String cacheFilePath = getCacheFilePathAbs(aTexture->getPath());
-        PathService::createDirectoryTreeForPath(cacheFilePath);
-        std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
-
-        if (!archive.good())
-        {
-          return false;
-        }
-
-        SerializerBinary binarySerializer(ESerializationMode::STORE);
-        if (!binarySerializer.serialize(&textureDesc, archive))
-        {
-          return false;
-        }
-
-        return true;
-      }
-      //---------------------------------------------------------------------------//    
+    //---------------------------------------------------------------------------//
+      static bool writeToCache(Rendering::Texture* aTexture, void* someData, uint32 aDataSize);
+    //---------------------------------------------------------------------------//    
+      static bool writeToCache(Geometry::GeometryData* aGeometryData, void* someVertexData, uint32 aVertexDataSize, void* someIndexData, uint32 anIndexDataSize);
+    //---------------------------------------------------------------------------//          
     };
 } }  // end of namespace Fancy::IO 
 

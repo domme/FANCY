@@ -4,6 +4,7 @@
 #include "RendererPrerequisites.h"
 #include "ObjectName.h"
 #include "FixedArray.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//

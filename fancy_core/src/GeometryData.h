@@ -11,11 +11,24 @@
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
+  struct GeometryDataDesc
+  {
+    ObjectName myName;
+    Rendering::GeometryVertexLayout myVertexLayout;
+    Rendering::GpuBufferParameters myVertexBufferParams;
+    Rendering::GpuBufferParameters myIndexBufferParams;
+    void* myVertexData;
+    void* myIndexData;
+  };
+//---------------------------------------------------------------------------//
   class GeometryData : public StaticManagedHeapObject<GeometryData> {
 
     public:
       GeometryData();
       ~GeometryData();
+
+      GeometryDataDesc getDescription() const;
+      void initFromDescription(const GeometryDataDesc& aDesc);
 
       const Rendering::GeometryVertexLayout& getGeometryVertexLayout() const {return m_vertexLayout;}
       const Rendering::GpuBuffer* getVertexBuffer() const {return m_pVertexBuffer;}

@@ -41,43 +41,70 @@ namespace Fancy { namespace IO {
     class SerializerBinary // : public Serializer
     {
     public:
-      SerializerBinary(ESerializationMode _aMode) { myMode = _aMode; }
+      SerializerBinary(ESerializationMode _aMode, std::fstream* anArchive) { myMode = _aMode; myStream = anArchive; }
+      template<class T>
+      bool operator&(T* anObject)
+      {
+        return serialize(anObject);
+      }
     //---------------------------------------------------------------------------//      
       template<class T>
-      bool serialize(T* anObject, std::fstream& aStream)
+      bool serialize(T* anObject)
       {
-        ASSERT(aStream.good());
+        ASSERT(myStream != nullptr && myStream->good());
         ASSERT(anObject);
 
         if (myMode == ESerializationMode::STORE)
         {
-          return store(anObject, aStream);
+          return store(anObject);
         }
         else
         {
-          return load(anObject, aStream);
+          return load(anObject);
         }
       }
     //---------------------------------------------------------------------------//
     private:
 
       template<class T>
-      bool load(T* anObject, std::fstream& aStream)
+      bool load(T* anObject)
       {
+        /*if (std::is_enum<T>::value || std::is_fundamental<T>::value)
+        {
+          (*myStream) >> (*anObject);
+          return true;
+        }
+        else
+        {
+          return anObject->serialize(this);
+        }*/
+
         ASSERT_M(false, "Missing template specialization");
+        return false;
       }
     //---------------------------------------------------------------------------//
       template<class T>
-      bool store(T* anObject, std::fstream& aStream)
+      bool store(T* anObject)
       {
+       /* if (std::is_enum<T>::value || std::is_fundamental<T>::value)
+        {
+          (*myStream) << (*anObject);
+          return true;
+        }
+        else
+        {
+          return anObject->serialize(this);
+        }*/
+
         ASSERT_M(false, "Missing template specialization");
+        return false;
       }
     //---------------------------------------------------------------------------//
       template<>
-      bool load(Rendering::TextureDesc* aTextureDesc, std::fstream& aStream)
+      bool load(Rendering::TextureDesc* aTextureDesc)
       {
         TextureHeader header;
-        aStream.read((char*)&header, sizeof(TextureHeader));
+        myStream->read((char*)&header, sizeof(TextureHeader));
 
         aTextureDesc->path = header.myPath.toString();
         aTextureDesc->u16Width = header.myWidth;
@@ -91,13 +118,13 @@ namespace Fancy { namespace IO {
         aTextureDesc->pPixelData = FANCY_ALLOCATE(header.myPixelDataSizeBytes, MemoryCategory::TEXTURES);
         ASSERT(aTextureDesc->pPixelData);
 
-        aStream.read((char*)aTextureDesc->pPixelData, header.myPixelDataSizeBytes);
+        myStream->read((char*)aTextureDesc->pPixelData, header.myPixelDataSizeBytes);
 
         return true;
       }
     //---------------------------------------------------------------------------//
       template<>
-      bool store(Rendering::TextureDesc* aTextureDesc, std::fstream& aStream)
+      bool store(Rendering::TextureDesc* aTextureDesc)
       {
         TextureHeader header;
         header.myPath = aTextureDesc->path;
@@ -108,14 +135,16 @@ namespace Fancy { namespace IO {
         header.myFormat = static_cast<uint32>(aTextureDesc->eFormat);
         header.myNumMipmapLevels = aTextureDesc->u8NumMipLevels;
         header.myPixelDataSizeBytes = aTextureDesc->uPixelDataSizeBytes;
-        aStream.write(reinterpret_cast<const char*>(&header), sizeof(TextureHeader));
-        aStream.write(static_cast<const char*>(aTextureDesc->pPixelData), aTextureDesc->uPixelDataSizeBytes);
+        myStream->write(reinterpret_cast<const char*>(&header), sizeof(TextureHeader));
+        myStream->write(static_cast<const char*>(aTextureDesc->pPixelData), aTextureDesc->uPixelDataSizeBytes);
 
-        return aStream.good();
+        return myStream->good();
       }
     //---------------------------------------------------------------------------//
+
     private:
       ESerializationMode myMode;
+      std::fstream* myStream;
     };
 
   } } // end of namespace Fancy::IO 

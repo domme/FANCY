@@ -9,6 +9,7 @@
 namespace Fancy { namespace Geometry { 
 //---------------------------------------------------------------------------//
   class GeometryData;
+  class GeometryDataDesc;
 //---------------------------------------------------------------------------//
   const uint32 kMaxNumGeometriesPerSubModel = 128;
 //---------------------------------------------------------------------------//
@@ -17,7 +18,7 @@ namespace Fancy { namespace Geometry {
   struct MeshDesc
   {
 	  ObjectName myName;
-
+    std::vector<GeometryDataDesc> myGeometryDatas;
   };
 //---------------------------------------------------------------------------//
   /// Represents a collection of raw geometric pieces that can be rendered with a single material
@@ -27,6 +28,9 @@ namespace Fancy { namespace Geometry {
   public:
     Mesh();
     ~Mesh();
+
+    MeshDesc getDescription() const;
+    void initFromDescription(const MeshDesc& aDesc);
   //---------------------------------------------------------------------------//
     const ObjectName& getName() {return m_Name;}
     void setName(const ObjectName& clNewName) {m_Name = clNewName;}
