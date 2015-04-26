@@ -5,6 +5,7 @@
 #include "PathService.h"
 #include "Texture.h"
 #include "Serializer.h"
+#include "StringUtil.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -14,41 +15,99 @@ namespace Fancy { namespace IO {
     class BinaryCache
     {
     public:
-
-      template<class T>
-      static T* loadOrRetrieve(const ObjectName _aName)
+      //---------------------------------------------------------------------------//
+      static String getCacheFilePathAbs(const ObjectName& aName)
       {
-        // TODO: Implement...
-        ASSERT(false);
+        return PathService::convertToAbsPath(kBinaryCacheRoot) + StringUtil::toString(aName.getHash()) + kBinaryCacheExtension;
+      }
+      //---------------------------------------------------------------------------//
+      template<class T>
+      static T* get(const ObjectName& _aName)
+      {
+        T* obj = T::getByName(_aName);
+
+        if (obj == nullptr)
+        {
+          obj = loadFromCache<T>(_aName);
+          if (obj)
+          {
+            T::registerWithName(_aName, obj);
+          }
+        }
+
+        return obj;
+      }
+      //---------------------------------------------------------------------------//
+      template <class T>
+      static T* loadFromCache(const ObjectName& aName)
+      {
+        ASSERT_M(false, "Missing template specialization");
         return nullptr;
       }
-
-      static String getCacheFilePathAbs(const String& _aResourcePath)
+      //---------------------------------------------------------------------------//
+      template <class T>
+      static bool writeToCache(T* anObject, void* someData, uint32 aDataSize)
       {
-        return PathService::convertToAbsPath(kBinaryCacheRoot) + PathService::toRelPath(_aResourcePath) + kBinaryCacheExtension;
+        ASSERT_M(false, "Missing template specialization");
+        return false;
       }
-
-      static bool get(Rendering::Texture** _aTexture, const String& _aTexturePath)
+      //---------------------------------------------------------------------------//
+      template<>
+      static Rendering::Texture* loadFromCache(const ObjectName& _aName)
       {
-        const String aCachePathAbs = getCacheFilePathAbs(_aTexturePath);
+        const String cacheFilePath = getCacheFilePathAbs(_aName);
+        std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
-        // TODO: Check file-existance, compare write-times of original and cache file
+        if (!archive.good())
+        {
+          return nullptr;
+        }
 
         SerializerBinary binarySerializer(ESerializationMode::LOAD);
-        return binarySerializer.serialize(_aTexture, nullptr, 0u, aCachePathAbs);
-      }
 
-      static bool update(Rendering::Texture** _aTexture, const void* _aData, uint32 _aDataSize, const String& _aTexturePath)
+        Rendering::TextureDesc textureDesc;
+        if (!binarySerializer.serialize(&textureDesc, archive))
+        {
+          return nullptr;
+        }
+
+        Rendering::Texture* texture = FANCY_NEW(Rendering::Texture, MemoryCategory::TEXTURES);
+        texture->create(textureDesc);
+
+        FANCY_FREE(textureDesc.pPixelData, MemoryCategory::TEXTURES);
+
+        return texture;
+      }
+      //---------------------------------------------------------------------------//
+      template<>
+      static bool writeToCache(Rendering::Texture* aTexture, void* someData, uint32 aDataSize)
       {
-        const String aCachePathAbs = getCacheFilePathAbs(_aTexturePath);
+        ASSERT(someData);
+        ASSERT(aDataSize > 0u);
 
-        PathService::createDirectoryTreeForPath(aCachePathAbs);
+        Rendering::TextureDesc textureDesc = aTexture->getParameters();
+        textureDesc.pPixelData = someData;
+        textureDesc.uPixelDataSizeBytes = aDataSize;
 
-        SerializerBinary binarySerializer (ESerializationMode::STORE);
-        return binarySerializer.serialize(_aTexture, _aData, _aDataSize, aCachePathAbs);
+        const String cacheFilePath = getCacheFilePathAbs(aTexture->getPath());
+        PathService::createDirectoryTreeForPath(cacheFilePath);
+        std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
+
+        if (!archive.good())
+        {
+          return false;
+        }
+
+        SerializerBinary binarySerializer(ESerializationMode::STORE);
+        if (!binarySerializer.serialize(&textureDesc, archive))
+        {
+          return false;
+        }
+
+        return true;
       }
+      //---------------------------------------------------------------------------//    
     };
-//---------------------------------------------------------------------------//    
 } }  // end of namespace Fancy::IO 
 
 

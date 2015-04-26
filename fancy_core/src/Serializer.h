@@ -19,26 +19,101 @@ namespace Fancy { namespace IO {
       LOAD
     };
 
+    struct TextureHeader
+    {
+      ShortStringDesc myPath;
+      uint32 myWidth;
+      uint32 myHeight;
+      uint32 myDepth;
+      uint32 myFormat;
+      uint32 myAccessFlags;
+      uint32 myPixelDataSizeBytes;
+      uint32 myNumMipmapLevels;
+    };
+
 //---------------------------------------------------------------------------//
-    class Serializer
+    /*class Serializer
     {
       public:
         virtual bool serialize(Scene::SceneNode** someSceneNode, const String& someSerializePath) = 0;
-    };
+    }; */
 //---------------------------------------------------------------------------//
-    class SerializerBinary : public Serializer
+    class SerializerBinary // : public Serializer
     {
     public:
       SerializerBinary(ESerializationMode _aMode) { myMode = _aMode; }
-      
-      virtual bool serialize(Scene::SceneNode** someSceneNode, const String& someSerializePath) override;
-      bool serialize(Rendering::Texture** _aTexture, const void* _aData, uint32 _aDataSize, const String& _aSerializePath);
-      
-    private:
-      bool store(Rendering::Texture** _aTexture, const void* _aData, uint32 _aDataSize, const String& _aSerializePath);
-      bool load(Rendering::Texture** _aTexture, const String& _aSerializePath);
-      bool store(Scene::SceneNode** someSceneNode, const String& someSerializePath);
+    //---------------------------------------------------------------------------//      
+      template<class T>
+      bool serialize(T* anObject, std::fstream& aStream)
+      {
+        ASSERT(aStream.good());
+        ASSERT(anObject);
 
+        if (myMode == ESerializationMode::STORE)
+        {
+          return store(anObject, aStream);
+        }
+        else
+        {
+          return load(anObject, aStream);
+        }
+      }
+    //---------------------------------------------------------------------------//
+    private:
+
+      template<class T>
+      bool load(T* anObject, std::fstream& aStream)
+      {
+        ASSERT_M(false, "Missing template specialization");
+      }
+    //---------------------------------------------------------------------------//
+      template<class T>
+      bool store(T* anObject, std::fstream& aStream)
+      {
+        ASSERT_M(false, "Missing template specialization");
+      }
+    //---------------------------------------------------------------------------//
+      template<>
+      bool load(Rendering::TextureDesc* aTextureDesc, std::fstream& aStream)
+      {
+        TextureHeader header;
+        aStream.read((char*)&header, sizeof(TextureHeader));
+
+        aTextureDesc->path = header.myPath.toString();
+        aTextureDesc->u16Width = header.myWidth;
+        aTextureDesc->u16Height = header.myHeight;
+        aTextureDesc->u16Depth = header.myDepth;
+        aTextureDesc->eFormat = static_cast<Rendering::DataFormat>(header.myFormat);
+        aTextureDesc->u8NumMipLevels = header.myNumMipmapLevels;
+        aTextureDesc->uAccessFlags = header.myAccessFlags;
+        aTextureDesc->uPixelDataSizeBytes = header.myPixelDataSizeBytes;
+
+        aTextureDesc->pPixelData = FANCY_ALLOCATE(header.myPixelDataSizeBytes, MemoryCategory::TEXTURES);
+        ASSERT(aTextureDesc->pPixelData);
+
+        aStream.read((char*)aTextureDesc->pPixelData, header.myPixelDataSizeBytes);
+
+        return true;
+      }
+    //---------------------------------------------------------------------------//
+      template<>
+      bool store(Rendering::TextureDesc* aTextureDesc, std::fstream& aStream)
+      {
+        TextureHeader header;
+        header.myPath = aTextureDesc->path;
+        header.myWidth = aTextureDesc->u16Width;
+        header.myHeight = aTextureDesc->u16Height;
+        header.myDepth = aTextureDesc->u16Depth;
+        header.myAccessFlags = aTextureDesc->uAccessFlags;
+        header.myFormat = static_cast<uint32>(aTextureDesc->eFormat);
+        header.myNumMipmapLevels = aTextureDesc->u8NumMipLevels;
+        header.myPixelDataSizeBytes = aTextureDesc->uPixelDataSizeBytes;
+        aStream.write(reinterpret_cast<const char*>(&header), sizeof(TextureHeader));
+        aStream.write(static_cast<const char*>(aTextureDesc->pPixelData), aTextureDesc->uPixelDataSizeBytes);
+
+        return aStream.good();
+      }
+    //---------------------------------------------------------------------------//
     private:
       ESerializationMode myMode;
     };

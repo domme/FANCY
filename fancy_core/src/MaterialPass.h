@@ -13,18 +13,9 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct MaterialPassInstanceDesc
-  {
-    ObjectName myName;
-    ObjectName myReadTextures[(uint32)ShaderStage::NUM][kMaxNumReadTextures];
-    ObjectName myWriteTextures[(uint32)ShaderStage::NUM][kMaxNumWriteTextures];
-    ObjectName myReadBuffers[(uint32)ShaderStage::NUM][kMaxNumReadBuffers];
-    ObjectName myWriteBuffers[(uint32)ShaderStage::NUM][kMaxNumWriteBuffers];
-    ObjectName myTextureSamplers[(uint32)ShaderStage::NUM][kMaxNumTextureSamplers];
-  };
-//---------------------------------------------------------------------------//
   struct MaterialPassDesc
   {
+    bool operator==(const MaterialPassDesc& anOther) const;
     ObjectName myName;
     ObjectName myGpuPrograms[(uint32)ShaderStage::NUM];
     FillMode myFillmode;
@@ -32,13 +23,14 @@ namespace Fancy { namespace Rendering {
     WindingOrder myWindingOrder;
     ObjectName myBlendState;
     ObjectName myDepthStencilState;
-    std::vector<MaterialPassInstanceDesc> myInstances;
   };
 //---------------------------------------------------------------------------//
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
   class MaterialPass : public StaticManagedHeapObject<MaterialPass>
   {
+    friend class MaterialPassInstance;
+
     public:
       MaterialPass();
       ~MaterialPass();
@@ -58,7 +50,8 @@ namespace Fancy { namespace Rendering {
       const DepthStencilState* getDepthStencilState() const {return m_pDepthStencilState;}
       MaterialPassInstance* createMaterialPassInstance(const ObjectName& name);
       MaterialPassInstance* createMaterialPassInstance(const ObjectName& name, const MaterialPassInstance& _template);
-      const MaterialPassInstance* getMaterialPassInstance(uint _resourceHash) const;
+      MaterialPassInstance* getMaterialPassInstance(const ObjectName& aName);
+      MaterialPassInstance* getMaterialPassInstance(const uint& anMpiHash);
       bool hasStage(ShaderStage _eStage) const {return getGpuProgram(_eStage) != nullptr;}
 
       ObjectName m_Name;
@@ -73,6 +66,16 @@ namespace Fancy { namespace Rendering {
       std::vector<MaterialPassInstance*> m_vpMaterialPassInstances;
   };
 //---------------------------------------------------------------------------//
+  struct MaterialPassInstanceDesc
+  {
+    ObjectName myName;
+    ObjectName myReadTextures[(uint32)ShaderStage::NUM][kMaxNumReadTextures];
+    ObjectName myWriteTextures[(uint32)ShaderStage::NUM][kMaxNumWriteTextures];
+    ObjectName myReadBuffers[(uint32)ShaderStage::NUM][kMaxNumReadBuffers];
+    ObjectName myWriteBuffers[(uint32)ShaderStage::NUM][kMaxNumWriteBuffers];
+    ObjectName myTextureSamplers[(uint32)ShaderStage::NUM][kMaxNumTextureSamplers];
+    MaterialPassDesc myMaterialPass;
+  };
 //---------------------------------------------------------------------------//
   class MaterialPassInstance
   {
@@ -116,7 +119,7 @@ namespace Fancy { namespace Rendering {
       const GpuBuffer* m_vpWriteBuffers[(uint32) ShaderStage::NUM][kMaxNumWriteBuffers];
       const TextureSampler* m_vpTextureSamplers[(uint32) ShaderStage::NUM][kMaxNumTextureSamplers];
 
-      const MaterialPass* m_pMaterialPass;
+      MaterialPass* m_pMaterialPass;
       ObjectName m_Name;
   };
 //---------------------------------------------------------------------------//

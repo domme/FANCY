@@ -2,7 +2,6 @@
 #define INCLUDE_STATICMANAGEDOBJECT_H
 
 #include "ObjectName.h"
-#include "BinaryCache.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -39,7 +38,7 @@ namespace Fancy {
 
         if (_shouldTryLoad)
         {
-          return IO::BinaryCache::loadOrRetrieve<T>(_name);
+          ASSERT(false); // implement
         }
         
         return nullptr;
@@ -117,7 +116,8 @@ namespace Fancy {
 
         if (_shouldTryLoad)
         {
-          return IO::BinaryCache::loadOrRetrieve<T>(_name);
+          // return IO::BinaryCache::loadOrRetrieve<T>(_name);
+          ASSERT(false); // Implement!
         }
 
         return nullptr;

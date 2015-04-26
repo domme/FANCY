@@ -24,11 +24,10 @@ namespace Fancy { namespace Scene {
       SceneNode* getSceneNode() { return m_pOwner; }
       const SceneNode* getSceneNode() const { return m_pOwner; }
       
-      
       virtual void init() { };
       virtual void update() = 0;
-	  virtual SceneNodeComponentDescPtr getDescription() const = 0;
-	  virtual void initFromDescription(const SceneNodeComponentDescPtr& someDesc) = 0;
+      virtual SceneNodeComponentDescPtr getDescription() const { return nullptr; }
+	    virtual void initFromDescription(const SceneNodeComponentDescPtr& someDesc) {};
 
       virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) = 0;
       virtual ObjectName getTypeName() const = 0;

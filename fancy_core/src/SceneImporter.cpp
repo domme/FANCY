@@ -727,15 +727,18 @@ namespace Fancy { namespace IO {
 
     PathService::removeFolderUpMarkers(szTexPath);
 
+    ObjectName textureName = szTexPath;
+
     // Did we already load this texture before?
-    Texture* pTexture = Texture::getByName(szTexPath);
+    Texture* pTexture = Texture::getByName(textureName);
     if (pTexture)
     {
       return pTexture;
     }
 
     // Try to load the texture from cache
-    if (BinaryCache::get(&pTexture, szTexPath))
+    pTexture = BinaryCache::get<Texture>(textureName);
+    if (pTexture)
     {
       return pTexture;
     }
@@ -767,7 +770,7 @@ namespace Fancy { namespace IO {
     texParams.uPixelDataSizeBytes = (texLoadInfo.width * texLoadInfo.height * texLoadInfo.bitsPerPixel) / 8u;
     texParams.pPixelData = &vTextureBytes[0];
     pTexture->create(texParams);
-    pTexture->setPath(szTexPath);
+    pTexture->setPath(textureName);
 
     if (!pTexture->isValid())
     {
@@ -777,8 +780,8 @@ namespace Fancy { namespace IO {
     }
     else
     {
-      BinaryCache::update(&pTexture, texParams.pPixelData, texParams.uPixelDataSizeBytes, szTexPath);
-      Texture::registerWithName(szTexPath, pTexture);  
+      BinaryCache::writeToCache(pTexture, texParams.pPixelData, texParams.uPixelDataSizeBytes);
+      Texture::registerWithName(textureName, pTexture);  
     }
 
     return pTexture;

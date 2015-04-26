@@ -6,6 +6,24 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  bool MaterialPassDesc::operator==(const MaterialPassDesc& anOther) const
+  {
+    bool equal = true;
+    equal &= myName == anOther.myName;
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    {
+      equal &= myGpuPrograms[i] == anOther.myGpuPrograms[i];
+    }
+    equal &= myFillmode == anOther.myFillmode;
+    equal &= myCullmode == anOther.myCullmode;
+    equal &= myWindingOrder == anOther.myWindingOrder;
+    equal &= myBlendState == anOther.myBlendState;
+    equal &= myDepthStencilState == anOther.myDepthStencilState;
+    
+    return equal;
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   MaterialPass::MaterialPass() : 
     m_pBlendState(nullptr),
     m_pDepthStencilState(nullptr),
@@ -56,12 +74,6 @@ namespace Fancy { namespace Rendering {
       aDesc.myGpuPrograms[i] = m_pGpuProgram[i] ? m_pGpuProgram[i]->getName() : ObjectName::blank;
     }
 
-    aDesc.myInstances.resize(m_vpMaterialPassInstances.size());
-    for (uint32 i = 0u; i < m_vpMaterialPassInstances.size(); ++i)
-    {
-      aDesc.myInstances[i] = m_vpMaterialPassInstances[i]->getDescription();
-    }
-
     return aDesc;
   }
 //---------------------------------------------------------------------------//
@@ -79,29 +91,17 @@ namespace Fancy { namespace Rendering {
     {
       m_pGpuProgram[i] = GpuProgram::getByName(_aDesc.myGpuPrograms[i], true);
     }
-
-    for (uint32 i = 0; i < m_vpMaterialPassInstances.size(); ++i)
-    {
-      FANCY_DELETE(m_vpMaterialPassInstances[i], MemoryCategory::MATERIALS);
-    }
-    
-    m_vpMaterialPassInstances.clear();
-    m_vpMaterialPassInstances.reserve(_aDesc.myInstances.size());
-
-    for (MaterialPassInstanceDesc anInstanceDesc : _aDesc.myInstances)
-    {
-      MaterialPassInstance* anMpi = createMaterialPassInstance(anInstanceDesc.myName);
-      anMpi->initFromDescription(anInstanceDesc);
-    }
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance* MaterialPass::createMaterialPassInstance( const ObjectName& name )
   {
+    ASSERT(getMaterialPassInstance(name) == nullptr);
     return createMaterialPassInstance(name, MaterialPassInstance());
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance* MaterialPass::createMaterialPassInstance(const ObjectName& name, const MaterialPassInstance& _template)
   {
+    ASSERT(getMaterialPassInstance(name) == nullptr);
     MaterialPassInstance* mpi = FANCY_NEW(MaterialPassInstance(_template), MemoryCategory::MATERIALS);
 
     mpi->m_Name = name;
@@ -111,13 +111,26 @@ namespace Fancy { namespace Rendering {
     return mpi;
   }
 //---------------------------------------------------------------------------//
-  const MaterialPassInstance* MaterialPass::getMaterialPassInstance( uint _resourceHash ) const
+  MaterialPassInstance* MaterialPass::getMaterialPassInstance(const ObjectName& aName)
   {
-    for (uint32 i = 0u; i < m_vpMaterialPassInstances.size(); ++i)
+    for (MaterialPassInstance* mpi : m_vpMaterialPassInstances)
     {
-      if (m_vpMaterialPassInstances[i]->computeHash() == _resourceHash)
+      if (mpi->m_Name == aName)
       {
-        return m_vpMaterialPassInstances[i];
+        return mpi;
+      }
+    }
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  MaterialPassInstance* MaterialPass::getMaterialPassInstance(const uint& anMpiHash)
+  {
+    for (MaterialPassInstance* mpi : m_vpMaterialPassInstances)
+    {
+      if (mpi->computeHash() == anMpiHash)
+      {
+        return mpi;
       }
     }
 
@@ -246,6 +259,8 @@ namespace Fancy { namespace Rendering {
         aDesc.myTextureSamplers[iStage][i] = m_vpTextureSamplers[iStage][i] ? m_vpTextureSamplers[iStage][i]->getName() : ObjectName::blank;
       }
     }
+
+    return aDesc;
   }
 //---------------------------------------------------------------------------//
   // Note: Unfortunately, we can't reflect binding points from OpenGL-shaders and we don't want to modify binding in app code...

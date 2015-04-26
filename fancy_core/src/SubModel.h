@@ -5,6 +5,7 @@
 #include "ObjectName.h"
 #include "FixedArray.h"
 #include "StaticManagedObject.h"
+#include "Material.h"
 
 namespace Fancy { namespace Rendering {
   class Material;
@@ -16,8 +17,8 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   struct SubModelDesc
   {
-	  MaterialDesc myMaterial;
-	  MeshDesc myMesh;
+    Rendering::MaterialDesc myMaterial;
+	  //MeshDesc myMesh;
 	  ObjectNameDesc myName;
   };
 //---------------------------------------------------------------------------//

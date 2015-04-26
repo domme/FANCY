@@ -17,7 +17,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   struct ModelDesc
   {
-	  ObjectNameDesc myName;
+	  ObjectName myName;
 
   };
 //---------------------------------------------------------------------------//

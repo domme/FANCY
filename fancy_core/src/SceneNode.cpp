@@ -39,6 +39,7 @@ namespace Fancy { namespace Scene {
     aDesc.myLocalPosition = m_localPosition;
     aDesc.myLocalRotation = m_localRotation;
     aDesc.myLocalScale = m_localScale;
+    return aDesc;
   }
 //---------------------------------------------------------------------------//
   void Transform::initFromDescription(const TransformDesc& someDesc)

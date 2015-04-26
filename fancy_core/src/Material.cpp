@@ -53,10 +53,35 @@ namespace Fancy { namespace Rendering {
 
     for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
     {
-      if (_aDesc.myPasses[i].myName != ObjectName::blank)
+      const MaterialPassInstanceDesc& mpiDesc = _aDesc.myPasses[i];
+      if (mpiDesc.myName == ObjectName::blank)
       {
-        aDesc.myPasses[i] = m_vPasses[i]->getDescription();
+        continue;
       }
+
+      // Is the referenced MaterialPass already initialized?
+      MaterialPass* matPass = MaterialPass::find([mpiDesc](const MaterialPass* currMatPass) -> bool {
+        return currMatPass->getDescription() == mpiDesc.myMaterialPass;
+      });
+
+      if (matPass == nullptr)
+      {
+        // There isn't a fitting material pass yet, so we'll create one in-place
+
+        // TODO: Make StaticManagedHeapObject act as factory for their managed classes...
+        matPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
+        matPass->initFromDescription(mpiDesc.myMaterialPass);
+        MaterialPass::registerWithName(matPass);
+      }
+
+      MaterialPassInstance* mpi = matPass->getMaterialPassInstance(mpiDesc.myName);
+      if (mpi == nullptr)
+      {
+        mpi = matPass->createMaterialPassInstance(mpiDesc.myName);
+        mpi->initFromDescription(mpiDesc);
+      }
+
+      m_vPasses[i] = mpi;
     }
   }
 //---------------------------------------------------------------------------//
