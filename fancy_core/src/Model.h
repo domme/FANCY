@@ -23,11 +23,14 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   /*@brief: A Model is a collection of several SubModels. Each SubModel is potentially rendered with a different material
   and a different mesh */ 
-  class Model : public StaticManagedHeapObject<Model> 
+  class Model : public StaticManagedHeapObject<Model>, public Serializable
   {
     public:
       Model();
       ~Model();
+
+      virtual ObjectName getTypeName() override { return _N(Model); }
+      virtual bool serialize(IO::SerializerBinary* aSerializer) override;
 
       const ObjectName& getName() const {return m_Name;}
       void setName(const ObjectName& clNewName) {m_Name = clNewName;}

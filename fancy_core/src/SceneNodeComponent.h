@@ -2,6 +2,7 @@
 #define INCLUDE_SCENENODECOMPONENT_H
 
 #include "ObjectName.h"
+#include "Serializeable.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
@@ -15,7 +16,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(SceneNodeComponentDesc)
 //---------------------------------------------------------------------------//
-  class DLLEXPORT SceneNodeComponent
+  class DLLEXPORT SceneNodeComponent : public Serializable
   {
     public:
       SceneNodeComponent(SceneNode* pOwner);

@@ -237,6 +237,9 @@
     <ClInclude Include="src\BinaryCache.h">
       <Filter>src\IO</Filter>
     </ClInclude>
+    <ClInclude Include="src\Serializeable.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">

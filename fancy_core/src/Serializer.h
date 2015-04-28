@@ -12,6 +12,12 @@ namespace Fancy{namespace Scene{
   class SceneNode;
 }}
 
+namespace Fancy {
+  namespace IO {
+    class SerializerBinary;
+  }
+}
+
 namespace Fancy { namespace IO {
     enum class ESerializationMode
     {
@@ -30,7 +36,6 @@ namespace Fancy { namespace IO {
       uint32 myPixelDataSizeBytes;
       uint32 myNumMipmapLevels;
     };
-
 //---------------------------------------------------------------------------//
     /*class Serializer
     {
@@ -56,52 +61,66 @@ namespace Fancy { namespace IO {
 
         if (myMode == ESerializationMode::STORE)
         {
-          return store(anObject);
+          return store(anObject, std::integral_constant<bool, std::is_fundamental<T>::value || std::is_enum<T>::value>());
         }
         else
         {
-          return load(anObject);
+          return load(anObject, std::integral_constant<bool, std::is_fundamental<T>::value || std::is_enum<T>::value>());
         }
       }
     //---------------------------------------------------------------------------//
     private:
 
+#pragma region Store
       template<class T>
-      bool load(T* anObject)
+      bool store(T* anObject, std::false_type isFundamental)
       {
-        /*if (std::is_enum<T>::value || std::is_fundamental<T>::value)
-        {
-          (*myStream) >> (*anObject);
-          return true;
-        }
-        else
-        {
-          return anObject->serialize(this);
-        }*/
-
-        ASSERT_M(false, "Missing template specialization");
-        return false;
+        return anObject->serialize(this);
       }
     //---------------------------------------------------------------------------//
       template<class T>
-      bool store(T* anObject)
+      bool store(T* anObject, std::true_type isFundamental)
       {
-       /* if (std::is_enum<T>::value || std::is_fundamental<T>::value)
-        {
-          (*myStream) << (*anObject);
-          return true;
-        }
-        else
-        {
-          return anObject->serialize(this);
-        }*/
-
-        ASSERT_M(false, "Missing template specialization");
-        return false;
+        (*myStream) << (*anObject);
+        return true;
       }
     //---------------------------------------------------------------------------//
       template<>
-      bool load(Rendering::TextureDesc* aTextureDesc)
+      bool store(Rendering::TextureDesc* aTextureDesc, std::false_type isFundamental)
+      {
+        TextureHeader header;
+        header.myPath = aTextureDesc->path;
+        header.myWidth = aTextureDesc->u16Width;
+        header.myHeight = aTextureDesc->u16Height;
+        header.myDepth = aTextureDesc->u16Depth;
+        header.myAccessFlags = aTextureDesc->uAccessFlags;
+        header.myFormat = static_cast<uint32>(aTextureDesc->eFormat);
+        header.myNumMipmapLevels = aTextureDesc->u8NumMipLevels;
+        header.myPixelDataSizeBytes = aTextureDesc->uPixelDataSizeBytes;
+        myStream->write(reinterpret_cast<const char*>(&header), sizeof(TextureHeader));
+        myStream->write(static_cast<const char*>(aTextureDesc->pPixelData), aTextureDesc->uPixelDataSizeBytes);
+
+        return myStream->good();
+      }
+    //---------------------------------------------------------------------------//
+#pragma endregion Store
+
+#pragma region Load
+      template<class T>
+      bool load(T* anObject, std::false_type isFundamental)
+      {
+        return anObject->serialize(this);
+      }
+      //---------------------------------------------------------------------------//
+      template<class T>
+      bool load(T* anObject, std::true_type isFundamental)
+      {
+        (*myStream) >> (*anObject);
+        return true;
+      }
+      //---------------------------------------------------------------------------//
+      template<>
+      bool load(Rendering::TextureDesc* aTextureDesc, std::false_type isFundamental)
       {
         TextureHeader header;
         myStream->read((char*)&header, sizeof(TextureHeader));
@@ -122,25 +141,11 @@ namespace Fancy { namespace IO {
 
         return true;
       }
-    //---------------------------------------------------------------------------//
-      template<>
-      bool store(Rendering::TextureDesc* aTextureDesc)
-      {
-        TextureHeader header;
-        header.myPath = aTextureDesc->path;
-        header.myWidth = aTextureDesc->u16Width;
-        header.myHeight = aTextureDesc->u16Height;
-        header.myDepth = aTextureDesc->u16Depth;
-        header.myAccessFlags = aTextureDesc->uAccessFlags;
-        header.myFormat = static_cast<uint32>(aTextureDesc->eFormat);
-        header.myNumMipmapLevels = aTextureDesc->u8NumMipLevels;
-        header.myPixelDataSizeBytes = aTextureDesc->uPixelDataSizeBytes;
-        myStream->write(reinterpret_cast<const char*>(&header), sizeof(TextureHeader));
-        myStream->write(static_cast<const char*>(aTextureDesc->pPixelData), aTextureDesc->uPixelDataSizeBytes);
+      //---------------------------------------------------------------------------//
+#pragma endregion Load
 
-        return myStream->good();
-      }
-    //---------------------------------------------------------------------------//
+      
+    
 
     private:
       ESerializationMode myMode;

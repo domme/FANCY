@@ -21,6 +21,9 @@ namespace Fancy { namespace Scene {
       LightComponent(SceneNode* _pOwner);
       virtual ~LightComponent();
 
+      virtual ObjectName getTypeName() override { return _N(LightComponent); }
+      virtual bool serialize(IO::SerializerBinary* aSerializer) override;
+
       virtual void init() override;
       virtual void update() override;
 	    virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;

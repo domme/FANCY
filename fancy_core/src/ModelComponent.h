@@ -20,6 +20,9 @@ namespace Fancy { namespace Scene {
       ModelComponent(SceneNode* pOwner);
       virtual ~ModelComponent();
 
+      virtual ObjectName getTypeName() override { return _N(ModelComponent); }
+      virtual bool serialize(IO::SerializerBinary* aSerializer) override;
+
       void setModel(Geometry::Model* pModel) {m_pModel = pModel;}
       Geometry::Model* getModel() {return m_pModel;}
       

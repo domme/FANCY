@@ -6,6 +6,7 @@
 #include "ModelComponent.h"
 #include "ObjectName.h"
 #include "LightComponent.h"
+#include "Serializeable.h"
 
 namespace Fancy { namespace Scene { 
 //---------------------------------------------------------------------------//
@@ -16,13 +17,17 @@ namespace Fancy { namespace Scene {
     glm::vec3 myLocalScale;
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT Transform
+  class DLLEXPORT Transform : public Serializable
   {
+  private:
     friend class SceneNode;
 
     public:
       Transform();
       ~Transform();
+
+      virtual ObjectName getTypeName() override { return _N(Transform); }
+      virtual bool serialize(IO::SerializerBinary* aSerializer) override;
 
       const glm::mat4& getCachedWorld() const {return m_cachedWorld;}
       glm::mat4 getLocalAsMat() const;
@@ -68,14 +73,17 @@ namespace Fancy { namespace Scene {
   {
     ObjectNameDesc myName;
     TransformDesc myTransform;
-	std::vector<SceneNodeComponentDescPtr> myComponents;
+	  std::vector<SceneNodeComponentDescPtr> myComponents;
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT SceneNode
+  class DLLEXPORT SceneNode : public Serializable
   {
     public: 
       SceneNode();
       ~SceneNode();
+
+      virtual ObjectName getTypeName() override { return _N(SceneNode); }
+      virtual bool serialize(IO::SerializerBinary* aSerializer) override;
 
       static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent);
       static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, SceneNode* pParent);
