@@ -29,6 +29,7 @@ namespace Fancy {
     public:
       ObjectName();
       ObjectName(const String& szString);
+      ObjectName(uint32 aHash);
       ~ObjectName();
       static const ObjectName blank;
       ObjectNameDesc getDescription() const;

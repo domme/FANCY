@@ -668,7 +668,7 @@ namespace Fancy { namespace IO {
     solidForwardMpiTemplate.setReadTexture(ShaderStage::FRAGMENT, 2u, pSpecularTex);    
 
     // Try to find a fitting MaterialPassInstance managed by MaterialPass
-    const MaterialPassInstance* pSolidForwardMpi = pMaterialPass->getMaterialPassInstance(solidForwardMpiTemplate.computeHash());
+    MaterialPassInstance* pSolidForwardMpi = pMaterialPass->getMaterialPassInstance(solidForwardMpiTemplate.computeHash());
     if (pSolidForwardMpi == nullptr)
     {
       MaterialPassInstance* pNewMpi = pMaterialPass->createMaterialPassInstance(_N(DefaultMPI), solidForwardMpiTemplate);

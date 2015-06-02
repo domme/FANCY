@@ -3,6 +3,7 @@
 #include "SceneNodeComponentFactory.h"
 #include "SceneRenderDescription.h"
 #include "EngineCommon.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
@@ -109,6 +110,23 @@ namespace Fancy { namespace Scene {
   SceneNode::~SceneNode()
   {
     
+  }
+//---------------------------------------------------------------------------//
+  void SceneNode::serialize(IO::Serializer& aSerializer)
+  {
+    aSerializer.beginType(getTypeName(), getName());
+
+    aSerializer & m_name;
+    aSerializer & m_transform.m_localRotation;
+    aSerializer & m_transform.m_localPosition;
+    aSerializer & m_transform.m_localScale;
+    aSerializer & m_vpComponents;
+    aSerializer & m_vpChildren;
+
+    for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
+    {
+      m_vpChildren[i]->m_pParent = this;
+    }
   }
 //---------------------------------------------------------------------------//
   void SceneNode::parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent)
@@ -241,11 +259,11 @@ namespace Fancy { namespace Scene {
     return childNode.get();
   }
 //---------------------------------------------------------------------------//
-  SceneNodeComponent* SceneNode::addOrRetrieveComponent( const ObjectName& typeName )
+  SceneNodeComponentPtr SceneNode::addOrRetrieveComponentPtr(const ObjectName& typeName)
   {
     if (getComponent(typeName))
     {
-      return getComponent(typeName);
+      return getComponentPtr(typeName);
     }
 
     SceneNodeComponentFactory::CreateFunction createFunc = SceneNodeComponentFactory::getFactoryMethod(typeName);
@@ -256,7 +274,12 @@ namespace Fancy { namespace Scene {
     m_vpComponents.push_back(componentPtr);
     onComponentAdded(componentPtr);
 
-    return componentPtr.get();
+    return componentPtr;
+  }
+//---------------------------------------------------------------------------//
+  SceneNodeComponent* SceneNode::addOrRetrieveComponent( const ObjectName& typeName )
+  {
+    return addOrRetrieveComponentPtr(typeName).get();
   }
 //---------------------------------------------------------------------------//
   void SceneNode::removeComponent(const ObjectName& typeName)

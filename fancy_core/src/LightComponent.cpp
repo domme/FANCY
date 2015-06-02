@@ -1,6 +1,7 @@
 #include "LightComponent.h"
 #include "SceneNode.h"
 #include "InputManager.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Scene {
   //---------------------------------------------------------------------------//
@@ -26,6 +27,18 @@ namespace Fancy { namespace Scene {
   LightComponent::~LightComponent()
   {
 
+  }
+//---------------------------------------------------------------------------//
+  void LightComponent::serialize(IO::Serializer& aSerializer)
+  {
+    aSerializer.beginType(getTypeName(), 0u);
+
+    aSerializer & m_eType;
+    aSerializer & m_colorIntensity;
+    aSerializer & m_castsShadows;
+    aSerializer & m_falloffStart;
+    aSerializer & m_falloffEnd;
+    aSerializer & m_coneAngle;
   }
 //---------------------------------------------------------------------------//
   void LightComponent::init()

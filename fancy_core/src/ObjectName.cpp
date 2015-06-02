@@ -1,6 +1,7 @@
 #include "ObjectName.h"
 
 #include "MathUtil.h"
+#include "StringUtil.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -44,6 +45,14 @@ namespace Fancy {
 
 #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
     m_szName = szString;
+#endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
+  }
+//---------------------------------------------------------------------------//
+  ObjectName::ObjectName(uint32 aHash)
+  {
+    m_uNameHash = aHash;
+#if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
+    m_szName = StringUtil::toString(aHash);
 #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   }
 //---------------------------------------------------------------------------//

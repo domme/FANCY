@@ -14,7 +14,7 @@ namespace Fancy { namespace Scene {
     virtual ~CameraComponent();
 
     virtual ObjectName getTypeName() override { return _N(CameraComponent); }
-    virtual bool serialize(IO::SerializerBinary* aSerializer) override;
+    virtual void serialize(IO::Serializer& aSerializer) override;
 
     virtual void update() override;
     virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;

@@ -1,4 +1,5 @@
 #include "Model.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -10,6 +11,14 @@ namespace Fancy { namespace Geometry {
   Model::~Model()
   {
 
+  }
+//---------------------------------------------------------------------------//
+  void Model::serialize(IO::Serializer& aSerializer)
+  {
+    aSerializer.beginType(getTypeName(), getName());
+
+    aSerializer & m_Name;
+    aSerializer & m_vSubModels;
   }
 //---------------------------------------------------------------------------//
   void Model::addSubModel(SubModel* _pSubModel)

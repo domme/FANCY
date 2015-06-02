@@ -7,6 +7,12 @@
 #include "ObjectName.h"
 #include "MaterialPass.h"
 
+namespace Fancy {
+  namespace IO {
+    class Serializer;
+  }
+}
+
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class EMaterialParameterSemantic
@@ -28,10 +34,13 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
   class Material : public StaticManagedHeapObject<Material>
   {
-    public:
+  public:
       Material();
       ~Material();
       bool operator==(const Material& _other) const;
+
+      static ObjectName getTypeName() { return _N(Material); }
+      void serialize(IO::Serializer& aSerializer);
 
       MaterialDesc getDescription() const;
       void initFromDescription(const MaterialDesc& _aDesc);
@@ -40,15 +49,16 @@ namespace Fancy { namespace Rendering {
       void setName(const ObjectName& _name) {m_Name = _name;}
 
       const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint32) ePassType]; }
-      void setPass(const MaterialPassInstance* _pPass, EMaterialPass _ePassType) {m_vPasses[(uint32) _ePassType] = _pPass; }
+      void setPass(MaterialPassInstance* _pPass, EMaterialPass _ePassType) {m_vPasses[(uint32) _ePassType] = _pPass; }
 
       float getParameter(EMaterialParameterSemantic _semantic) const { return m_vParameters[(uint32)_semantic]; }
       void setParameter(EMaterialParameterSemantic _semantic, float _value) { m_vParameters[(uint32)_semantic] = _value; }
 
     private:
       ObjectName m_Name;
-      const MaterialPassInstance* m_vPasses[ (uint32) EMaterialPass::NUM ];
       float m_vParameters[(uint32)EMaterialParameterSemantic::NUM];
+      MaterialPassInstance* m_vPasses[ (uint32) EMaterialPass::NUM ];
+      
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

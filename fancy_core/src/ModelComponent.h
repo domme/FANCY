@@ -21,7 +21,7 @@ namespace Fancy { namespace Scene {
       virtual ~ModelComponent();
 
       virtual ObjectName getTypeName() override { return _N(ModelComponent); }
-      virtual bool serialize(IO::SerializerBinary* aSerializer) override;
+      virtual void serialize(IO::Serializer& aSerializer) override;
 
       void setModel(Geometry::Model* pModel) {m_pModel = pModel;}
       Geometry::Model* getModel() {return m_pModel;}

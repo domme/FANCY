@@ -2,7 +2,12 @@
 #define INCLUDE_SCENENODECOMPONENT_H
 
 #include "ObjectName.h"
-#include "Serializeable.h"
+
+namespace Fancy {
+  namespace IO {
+    class Serializer;
+  }
+}
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
@@ -16,12 +21,15 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(SceneNodeComponentDesc)
 //---------------------------------------------------------------------------//
-  class DLLEXPORT SceneNodeComponent : public Serializable
+  class DLLEXPORT SceneNodeComponent
   {
     public:
       SceneNodeComponent(SceneNode* pOwner);
       virtual ~SceneNodeComponent();
 
+      virtual ObjectName getTypeName() = 0;
+      virtual void serialize(IO::Serializer& aSerializer) = 0;
+      
       SceneNode* getSceneNode() { return m_pOwner; }
       const SceneNode* getSceneNode() const { return m_pOwner; }
       

@@ -7,6 +7,12 @@
 #include "StaticManagedObject.h"
 #include "Material.h"
 
+namespace Fancy {
+  namespace IO {
+    class Serializer;
+  }
+}
+
 namespace Fancy { namespace Rendering {
   class Material;
 } }  // end of namespace Fancy::Rendering
@@ -28,6 +34,9 @@ namespace Fancy { namespace Geometry {
     SubModel();
     ~SubModel();
 
+    static ObjectName getTypeName() { return _N(SubModel); }
+    void serialize(IO::Serializer& aSerializer);
+
     const ObjectName& getName() const {return m_Name;}
     void setName(const ObjectName& clNewName) {m_Name = clNewName;}
 
@@ -38,10 +47,10 @@ namespace Fancy { namespace Geometry {
     void setMaterial(Rendering::Material* _pMaterial) {m_pMaterial = _pMaterial;}
 //---------------------------------------------------------------------------//
   private:
+    ObjectName m_Name;
     Rendering::Material* m_pMaterial;
     Mesh* m_pMesh;
-    ObjectName m_Name;
-  };
+  }; 
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry
 

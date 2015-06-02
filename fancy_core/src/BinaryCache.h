@@ -15,49 +15,24 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
     const String kBinaryCacheRoot = "Cache/";
     const String kBinaryCacheExtension = ".bin";
-
 //---------------------------------------------------------------------------//
     class BinaryCache
     {
     public:
-      //---------------------------------------------------------------------------//
+    //---------------------------------------------------------------------------//
       static String getCacheFilePathAbs(const ObjectName& aName)
       {
         return PathService::convertToAbsPath(kBinaryCacheRoot) + StringUtil::toString(aName.getHash()) + kBinaryCacheExtension;
       }
-      //---------------------------------------------------------------------------//
-      template<class T>
-      static T* get(const ObjectName& _aName)
-      {
-        T* obj = T::getByName(_aName);
-
-        if (obj == nullptr)
-        {
-          obj = loadFromCache<T>(_aName);
-          if (obj)
-          {
-            T::registerWithName(_aName, obj);
-          }
-        }
-
-        return obj;
-      }
     //---------------------------------------------------------------------------//
-      template <class T>
-      static T* loadFromCache(const ObjectName& aName)
+      void loadFromCache(Rendering::Texture** aTexture, const ObjectName& aName)
       {
-        ASSERT_M(false, "Missing template specialization");
-        return nullptr;
-      }
-    //---------------------------------------------------------------------------//
-      template<> static Rendering::Texture* loadFromCache(const ObjectName& _aName)
-      {
-        const String cacheFilePath = getCacheFilePathAbs(_aName);
+        const String cacheFilePath = getCacheFilePathAbs(aName);
         std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
         if (!archive.good())
         {
-          return nullptr;
+          return;
         }
 
         SerializerBinary binarySerializer(ESerializationMode::LOAD, &archive);
@@ -79,7 +54,36 @@ namespace Fancy { namespace IO {
       static bool writeToCache(Rendering::Texture* aTexture, void* someData, uint32 aDataSize);
     //---------------------------------------------------------------------------//    
       static bool writeToCache(Geometry::GeometryData* aGeometryData, void* someVertexData, uint32 aVertexDataSize, void* someIndexData, uint32 anIndexDataSize);
-    //---------------------------------------------------------------------------//          
+    //---------------------------------------------------------------------------//      
+
+      template<> void store(Rendering::TextureDesc* aTextureDesc, std::false_type isFundamental)
+      {
+        
+      }
+
+
+      template<> void load(Rendering::TextureDesc* aTextureDesc, std::false_type isFundamental)
+      {
+        TextureHeader header;
+        mySceneGraphStr->read((char*)&header, sizeof(TextureHeader));
+
+        aTextureDesc->path = header.myPath.toString();
+        aTextureDesc->u16Width = header.myWidth;
+        aTextureDesc->u16Height = header.myHeight;
+        aTextureDesc->u16Depth = header.myDepth;
+        aTextureDesc->eFormat = static_cast<Rendering::DataFormat>(header.myFormat);
+        aTextureDesc->u8NumMipLevels = header.myNumMipmapLevels;
+        aTextureDesc->uAccessFlags = header.myAccessFlags;
+        aTextureDesc->uPixelDataSizeBytes = header.myPixelDataSizeBytes;
+
+        aTextureDesc->pPixelData = FANCY_ALLOCATE(header.myPixelDataSizeBytes, MemoryCategory::TEXTURES);
+        ASSERT(aTextureDesc->pPixelData);
+
+        mySceneGraphStr->read((char*)aTextureDesc->pPixelData, header.myPixelDataSizeBytes);
+      }
+
+
+
     };
 } }  // end of namespace Fancy::IO 
 

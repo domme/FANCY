@@ -2,16 +2,17 @@
 #define INCLUDE_MODEL_H
 
 #include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
 #include "ObjectName.h"
 #include "FixedArray.h"
 #include "StaticManagedObject.h"
 
+namespace Fancy { namespace IO {
+  class Serializer;
+} }
+
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class SubModel;
-//---------------------------------------------------------------------------//
-  const uint32 kMaxNumSubModelsPerModel = 256;
 //---------------------------------------------------------------------------//
   typedef FixedArray<SubModel*, kMaxNumSubModelsPerModel> SubModelList;
 //---------------------------------------------------------------------------//
@@ -23,15 +24,15 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   /*@brief: A Model is a collection of several SubModels. Each SubModel is potentially rendered with a different material
   and a different mesh */ 
-  class Model : public StaticManagedHeapObject<Model>, public Serializable
+  class Model : public StaticManagedHeapObject<Model>
   {
     public:
       Model();
       ~Model();
 
-      virtual ObjectName getTypeName() override { return _N(Model); }
-      virtual bool serialize(IO::SerializerBinary* aSerializer) override;
-
+      static ObjectName getTypeName() { return _N(Model); }
+      void serialize(IO::Serializer& aSerializer);
+      
       const ObjectName& getName() const {return m_Name;}
       void setName(const ObjectName& clNewName) {m_Name = clNewName;}
 
@@ -49,8 +50,8 @@ namespace Fancy { namespace Geometry {
       {ASSERT(m_vSubModels.empty()); m_vSubModels = _vSubModels; }
     //---------------------------------------------------------------------------//
     private:
-      SubModelList m_vSubModels;
       ObjectName m_Name;
+      SubModelList m_vSubModels;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(Model)

@@ -1,5 +1,5 @@
 #include "Material.h"
-#include "MathUtil.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -27,6 +27,23 @@ namespace Fancy { namespace Rendering {
     }
 
     return same;
+  }
+//---------------------------------------------------------------------------//
+  void Material::serialize(IO::Serializer& aSerializer)
+  {
+    aSerializer.beginType(getTypeName(), getName());
+    
+    aSerializer & m_Name;
+
+    for (uint32 i = 0u; i < (uint32)EMaterialParameterSemantic::NUM; ++i)
+    {
+      aSerializer & m_vParameters[i];
+    }
+
+    for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
+    {
+      aSerializer & m_vPasses[i];
+    }
   }
 //---------------------------------------------------------------------------//
   MaterialDesc Material::getDescription() const

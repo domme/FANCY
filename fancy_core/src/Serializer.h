@@ -3,219 +3,462 @@
 
 #include "FancyCorePrerequisites.h"
 #include <fstream>
-#include "PathService.h"
-#include "Texture.h"
+#include "FixedArray.h"
 
+#include "Json/json.h"
 
-namespace Fancy{namespace Scene{
+namespace Fancy { namespace Rendering {
+  class MaterialPassInstance;
+}}
+ 
+namespace Fancy { namespace Scene {
   class Scene;
   class SceneNode;
+  class SceneNodeComponent;
+
+  using SceneNodeComponentPtr = std::shared_ptr<SceneNodeComponent>;
+  using SceneNodePtr = std::shared_ptr < SceneNode > ;
 }}
 
-namespace Fancy {
-  namespace IO {
-    class SerializerBinary;
-  }
-}
+namespace Fancy { namespace Geometry {
+  class Model;
+  class SubModel;
+
+  using SubModelList = FixedArray< SubModel*, kMaxNumSubModelsPerModel > ;
+} }
 
 namespace Fancy { namespace IO {
+    class SerializerBinary;
+} }
+
+namespace Fancy { namespace IO {
+  //---------------------------------------------------------------------------//
     enum class ESerializationMode
     {
       STORE,
       LOAD
     };
-
-    struct TextureHeader
+  //---------------------------------------------------------------------------//
+    struct TypeInfo
     {
-      ShortStringDesc myPath;
-      uint32 myWidth;
-      uint32 myHeight;
-      uint32 myDepth;
-      uint32 myFormat;
-      uint32 myAccessFlags;
-      uint32 myPixelDataSizeBytes;
-      uint32 myNumMipmapLevels;
+      String myTypeName;
+      uint   myInstanceHash;
     };
-//---------------------------------------------------------------------------//
-    /*class Serializer
+  //---------------------------------------------------------------------------//
+    struct TocEntry
+    {
+      TypeInfo myTypeInfo;
+      uint32 myArchivePosition;
+    };
+  //---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
+    class Serializer
     {
       public:
-        virtual bool serialize(Scene::SceneNode** someSceneNode, const String& someSerializePath) = 0;
-    }; */
-//---------------------------------------------------------------------------//
+        Serializer(ESerializationMode aMode);
+        virtual ~Serializer();
+      //---------------------------------------------------------------------------//
+      //---------------------------------------------------------------------------//
+        template<class T> void serialize(const String& aName, T& anObject)
+        {
+          serialize(aName, &anObject);
+        }
+      //---------------------------------------------------------------------------//
+        template<class T> void serialize(const String& aName, T* anObject)
+        {
+          if (myMode == ESerializationMode::STORE)
+          {
+            store(aName, anObject);
+          }
+          else
+          {
+            load(aName, anObject);
+          }
+        }
+      //---------------------------------------------------------------------------//
+        virtual void store(const String& aName, uint* aValue) = 0;
+        virtual void store(const String& aName, float* aValue) = 0;
+        virtual void store(const String& aName, String* aValue) = 0;
+        virtual void store(const String& aName, std::vector<Scene::SceneNodeComponentPtr>* someValues) = 0;
+        virtual void store(const String& aName, std::vector<Scene::SceneNodePtr>* someValues) = 0;
+        virtual void store(const String& aName, Geometry::Model** aValue) = 0;
+        virtual void store(const String& aName, Geometry::SubModel** aValue) = 0;
+        virtual void store(const String& aName, Geometry::SubModelList* someValues) = 0;
+        virtual void store(const String& aName, Rendering::Material** aValue) = 0;
+                
+    protected:
+      ESerializationMode myMode;
+      std::fstream myArchive;
+    };
+  //---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
+    class SerializerJSON : public Serializer
+    {
+    public:
+      SerializerJSON(ESerializationMode aMode, const String& anArchivePath);
+      virtual ~SerializerJSON() override { }
+            
+      virtual void store(const String& aName, uint* aValue) override;
+      virtual void store(const String& aName, float* aValue) override;
+      virtual void store(const String& aName, String* aValue) override;
+      virtual void store(const String& aName, std::vector<Scene::SceneNodeComponentPtr>* someValues) override;
+      virtual void store(const String& aName, std::vector<Scene::SceneNodePtr>* someValues) override;
+      virtual void store(const String& aName, Geometry::Model** aValue) override;
+      virtual void store(const String& aName, Geometry::SubModel** aValue) override;
+      virtual void store(const String& aName, Geometry::SubModelList* someValues) override;
+      virtual void store(const String& aName, Rendering::Material** aValue) override;
+
+    protected:
+      virtual Json::Value& beginType(const String& aTypeName, uint anInstanceHash);
+      virtual Json::Value& beginType(const String& aTypeName);
+      virtual void endType();
+
+      std::stack<Json::Value> myTypeStack;
+      Json::StyledStreamWriter myJsonWriter;
+    };
+
+  //---------------------------------------------------------------------------//
+    // TODO: Move to somewhere else and let clases register their own create-functions
+    //class Factory 
+    //{
+    //public:
+    //  static Scene::SceneNodeComponentPtr construct(const ObjectName& aTypeName)
+    //  {
+    //    // yeeeey -.-
+    //    if (aTypeName == _N(ModelComponent))
+    //      return std::make_shared<ModelComponent>()
+
+    //  }
+    //};
+    
+// #define SERIALIZER_BINARY_SUPPORT
+#if defined SERIALIZER_BINARY_SUPPORT
+  //---------------------------------------------------------------------------//
     class SerializerBinary // : public Serializer
     {
     public:
-      SerializerBinary(ESerializationMode _aMode, std::fstream* anArchive) { myMode = _aMode; myStream = anArchive; }
-      template<class T>
-      bool operator&(T* anObject)
+      SerializerBinary(ESerializationMode _aMode, std::fstream* anArchive, const String& anArchivePath)
       {
-        return serialize(anObject);
+        myMode = _aMode; 
+        mySceneGraphStr = anArchive;
+        myToc.clear();
+        myCurrentlyProcessedNode = nullptr;
+      }
+    //---------------------------------------------------------------------------//
+      ~SerializerBinary()
+      {
+        if (mySceneGraphStr != nullptr && mySceneGraphStr->good())
+        {
+          mySceneGraphStr->close();
+        }
+      }
+    //---------------------------------------------------------------------------//
+      static void writeToArchive(Rendering::Texture* aTexture, void* someData, uint32 aDataCount, std::fstream* anArchive);
+    //---------------------------------------------------------------------------//
+      static void writeToArchive(Geometry::GeometryData* aGeometry, std::fstream* anArchive);
+    //---------------------------------------------------------------------------//
+      static void loadFromArchive(Rendering::Texture** aTexture, std::fstream* anArchive);
+    //---------------------------------------------------------------------------//
+      static void loadFromArchive(Geometry::GeometryData** aTexture, std::fstream* anArchive);
+    //---------------------------------------------------------------------------//
+      ESerializationMode getMode() { return myMode; }
+    //---------------------------------------------------------------------------//
+      void beginType(uint aTypeHash, uint anInstanceHash)
+      {
+        if (myMode == ESerializationMode::STORE)
+        {
+          (*mySceneGraphStr) << aTypeHash;
+          (*mySceneGraphStr) << anInstanceHash;
+          
+          TocEntry entry;
+          entry.myTypeInfo.myTypeHash = aTypeHash;
+          entry.myTypeInfo.myInstanceHash = anInstanceHash;
+          entry.myArchivePosition = myMode == ESerializationMode::LOAD ? mySceneGraphStr->tellg() : mySceneGraphStr->tellp();
+          myToc.push_back(entry);
+        }
+        else  // LOAD
+        {
+          uint typeHash;
+          uint instanceHash;
+          (*mySceneGraphStr) >> typeHash;  // Keep the get-pointer in sync
+          (*mySceneGraphStr) >> instanceHash;
+        }
+      }
+    //---------------------------------------------------------------------------//
+      template<class T> void operator&(T& anObject)
+      {
+        serialize(&anObject);
+      }
+    //---------------------------------------------------------------------------//
+      template<class T> void operator&(T* anObject)
+      {
+        serialize(anObject);
       }
     //---------------------------------------------------------------------------//      
-      template<class T>
-      bool serialize(T* anObject)
+      template<class T> void serialize(T* anObject)
       {
-        ASSERT(myStream != nullptr && myStream->good());
+        ASSERT(mySceneGraphStr != nullptr && mySceneGraphStr->good());
         ASSERT(anObject);
 
         if (myMode == ESerializationMode::STORE)
         {
-          return store(anObject, std::integral_constant<bool, std::is_fundamental<T>::value || std::is_enum<T>::value>());
+          store(anObject, std::integral_constant<bool, std::is_fundamental<T>::value || std::is_enum<T>::value>());
         }
         else
         {
-          return load(anObject, std::integral_constant<bool, std::is_fundamental<T>::value || std::is_enum<T>::value>());
+          load(anObject, std::integral_constant<bool, std::is_fundamental<T>::value || std::is_enum<T>::value>());
         }
       }
     //---------------------------------------------------------------------------//
-    private:
+    protected:
 
 #pragma region Store
-      template<class T>
-      bool store(T* anObject, std::false_type isFundamental)
+      template<class T> void store(T* anObject, std::false_type isFundamental)
       {
-        return anObject->serialize(this);
+        anObject->serialize(this);
       }
     //---------------------------------------------------------------------------//
-      template<class T>
-      bool store(T* anObject, std::true_type isFundamental)
+      template<class T> void store(T* anObject, std::true_type isFundamental)
       {
-        (*myStream) << (*anObject);
-        return true;
+        (*mySceneGraphStr) << (*anObject);
       }
     //---------------------------------------------------------------------------//
-      template<>
-      bool store(Rendering::TextureDesc* aTextureDesc, std::false_type isFundamental)
+      template<class T> void storeManaged(T** anObject)
       {
-        TextureHeader header;
-        header.myPath = aTextureDesc->path;
-        header.myWidth = aTextureDesc->u16Width;
-        header.myHeight = aTextureDesc->u16Height;
-        header.myDepth = aTextureDesc->u16Depth;
-        header.myAccessFlags = aTextureDesc->uAccessFlags;
-        header.myFormat = static_cast<uint32>(aTextureDesc->eFormat);
-        header.myNumMipmapLevels = aTextureDesc->u8NumMipLevels;
-        header.myPixelDataSizeBytes = aTextureDesc->uPixelDataSizeBytes;
-        myStream->write(reinterpret_cast<const char*>(&header), sizeof(TextureHeader));
-        myStream->write(static_cast<const char*>(aTextureDesc->pPixelData), aTextureDesc->uPixelDataSizeBytes);
+        TypeInfo info = { 0u };
+        if ((*anObject) != nullptr)
+        {
+          info.myTypeHash = (*anObject)->getTypeName();
+          info.myInstanceHash = (*anObject)->getName();
+        }
 
-        return myStream->good();
+        if (!isInstanceStored(info))
+        {
+          // Instance hasn't been stored yet. Store it here!
+          (*anObject)->serialize(*this);
+        }
+        else
+        {
+          // Instance was already stored earlier... just store the typeinfo here.
+          mySceneGraphStr->write((char*)&info, sizeof(TypeInfo));
+        }
+      }
+    //---------------------------------------------------------------------------//
+      template<> void store(std::vector<Scene::SceneNodeComponentPtr>* someComponents, std::false_type isFundamental)
+      {
+        uint32 numComponents = someComponents->size();
+        (*mySceneGraphStr) << numComponents;
+
+        for (uint32 i = 0u; i < numComponents; ++i)
+        {
+          (*this) & (*someComponents)[i].get();
+        }
+      }
+    //---------------------------------------------------------------------------//
+      template<> void store(std::vector<Scene::SceneNodePtr>* someNodes, std::false_type isFundamental)
+      {
+        uint32 numNodes = someNodes->size();
+        (*mySceneGraphStr) << numNodes;
+
+        for (uint32 i = 0u; i < numNodes; ++i)
+        {
+          (*this) & (*someNodes)[i].get();
+        }
+      }
+    //---------------------------------------------------------------------------//
+      template<> void store(Geometry::Model** aModel, std::false_type isFundamental)
+      {
+        storeManaged<Geometry::Model>(aModel);
+      }
+    //---------------------------------------------------------------------------//
+      template<> void store(Geometry::SubModel** aModel, std::false_type isFundamental)
+      {
+        storeManaged<Geometry::SubModel>(aModel);
+      }
+    //---------------------------------------------------------------------------//
+      template<> void store(Geometry::SubModelList* someSubmodels, std::false_type isFundamental)
+      {
+        uint32 numSubmodels = someSubmodels->size();
+        (*mySceneGraphStr) << numSubmodels;
+
+        for (uint32 i = 0u; i < numSubmodels; ++i)
+        {
+          (*this) & (*someSubmodels)[i];
+        }
+      }
+    //---------------------------------------------------------------------------//
+      template<> void store(Rendering::Material** aMaterial, std::false_type isFundamental)
+      {
+        storeManaged<Rendering::Material>(aMaterial);
       }
     //---------------------------------------------------------------------------//
 #pragma endregion Store
 
 #pragma region Load
-      template<class T>
-      bool load(T* anObject, std::false_type isFundamental)
+      template<class T> void load(T* anObject, std::false_type isFundamental)
       {
-        return anObject->serialize(this);
+        anObject->serialize(*this);
       }
-      //---------------------------------------------------------------------------//
-      template<class T>
-      bool load(T* anObject, std::true_type isFundamental)
+    //---------------------------------------------------------------------------//
+      template<class T> void load(T* anObject, std::true_type isFundamental)
       {
-        (*myStream) >> (*anObject);
-        return true;
+        (*mySceneGraphStr) >> (*anObject);
       }
-      //---------------------------------------------------------------------------//
-      template<>
-      bool load(Rendering::TextureDesc* aTextureDesc, std::false_type isFundamental)
+    //---------------------------------------------------------------------------//
+      template<class T> void loadManaged(T** anObject)
       {
-        TextureHeader header;
-        myStream->read((char*)&header, sizeof(TextureHeader));
-
-        aTextureDesc->path = header.myPath.toString();
-        aTextureDesc->u16Width = header.myWidth;
-        aTextureDesc->u16Height = header.myHeight;
-        aTextureDesc->u16Depth = header.myDepth;
-        aTextureDesc->eFormat = static_cast<Rendering::DataFormat>(header.myFormat);
-        aTextureDesc->u8NumMipLevels = header.myNumMipmapLevels;
-        aTextureDesc->uAccessFlags = header.myAccessFlags;
-        aTextureDesc->uPixelDataSizeBytes = header.myPixelDataSizeBytes;
-
-        aTextureDesc->pPixelData = FANCY_ALLOCATE(header.myPixelDataSizeBytes, MemoryCategory::TEXTURES);
-        ASSERT(aTextureDesc->pPixelData);
-
-        myStream->read((char*)aTextureDesc->pPixelData, header.myPixelDataSizeBytes);
-
-        return true;
+        TypeInfo typeInfo = pushTypePeek();
+        (*anObject) = T::getByName(typeInfo.myInstanceHash);
+        if ((*anObject) == nullptr)
+        {
+          popTypePeek();
+          (*anObject) = FANCY_NEW(T, MemoryCategory::GEOMETRY);
+          (*anObject)->serialize(*this);
+          T::registerWithName((*anObject));
+        }
       }
-      //---------------------------------------------------------------------------//
+    //---------------------------------------------------------------------------//
+      template<> void load(Scene::SceneNodePtr* anObject, std::false_type isFundamental)
+      {
+        (*anObject) = std::make_shared<Scene::SceneNode>();
+        myCurrentlyProcessedNode = anObject->get();
+        (*anObject)->serialize(*this);
+      }
+    //---------------------------------------------------------------------------//
+      void loadNextSceneNodeComponent()
+      {
+        ASSERT(myCurrentlyProcessedNode);
+        TypeInfo typeInfo = pushTypePeek();
+        popTypePeek();
+        Scene::SceneNodeComponent* component = myCurrentlyProcessedNode->addOrRetrieveComponent(typeInfo.myTypeHash);
+        component->serialize(*this);
+      }
+    //---------------------------------------------------------------------------//
+      template<> void load(std::vector<Scene::SceneNodeComponentPtr>* someComponents, std::false_type isFundamental)
+      {
+        uint32 numComponents;
+        (*mySceneGraphStr) >> numComponents;
+
+        for (uint32 i = 0u; i < numComponents; ++i)
+        {
+          loadNextSceneNodeComponent();
+        }
+      }
+    //---------------------------------------------------------------------------//
+      template<> void load(std::vector<Scene::SceneNodePtr>* someNodes, std::false_type isFundamental)
+      {
+        uint32 numNodes;
+        (*mySceneGraphStr) >> numNodes;
+
+        (*someNodes).resize(numNodes);
+        for (uint32 i = 0u; i < numNodes; ++i)
+        {
+          (*this) & (*someNodes)[i];
+        }
+      }
+    //---------------------------------------------------------------------------//
+      template<> void load(Geometry::Model** aModel, std::false_type isFundamental)
+      {
+        loadManaged<Geometry::Model>(aModel);
+      }
+    //---------------------------------------------------------------------------//
+      template<> void load(Geometry::SubModel** aSubModel, std::false_type isFundamental)
+      {
+        loadManaged<Geometry::SubModel>(aSubModel);
+      }
+    //---------------------------------------------------------------------------//
+      template<> void load(Rendering::Material** aMaterial, std::false_type isFundamental)
+      {
+        loadManaged<Rendering::Material>(aMaterial);
+      }
+    //---------------------------------------------------------------------------//
+      template<> void load(Rendering::MaterialPassInstance** anMpi, std::false_type isFundamental)
+      {
+        // TODO: This is EXTREMELY ugly: load the MaterialPassInstance completely, including textures and the matpass,
+        // then add the mpi to the matpass if neccessary
+        Rendering::MaterialPassInstance mpiTemplate;
+        mpiTemplate.serialize(*this);
+
+        Rendering::MaterialPass* matPass = mpiTemplate.getMaterialPass();
+       
+        // Does this materialPass already contain an MPI with the same hash?
+        (*anMpi) = matPass->getMaterialPassInstance(mpiTemplate.computeHash());
+        if ((*anMpi) == nullptr)
+        {
+          (*anMpi) = matPass->createMaterialPassInstance(mpiTemplate.getName(), mpiTemplate);
+        }
+      }
+    //---------------------------------------------------------------------------//
+      template<> void load(Rendering::MaterialPass** aMatPass, std::false_type isFundamental)
+      {
+        loadManaged<Rendering::MaterialPass>(aMatPass);
+      }
+    //---------------------------------------------------------------------------//
+      template<> void load(Geometry::SubModelList* someSubmodels, std::false_type isFundamental)
+      {
+        uint32 numSubmodels;
+        (*mySceneGraphStr) >> numSubmodels;
+
+        someSubmodels->resize(numSubmodels);
+        for (uint32 i = 0u; i < numSubmodels; ++i)
+        {
+          (*this) & (*someSubmodels)[i];
+        }
+      }
+    //---------------------------------------------------------------------------//
+      bool isInstanceStored(const TypeInfo& aTypeInfo, uint32* anArchivePosition = nullptr)
+      {
+        if (aTypeInfo.myTypeHash == 0u && aTypeInfo.myInstanceHash == 0u)
+        {
+          return true;  // The empty instance is always "stored"
+        }
+
+        for (uint32 i = 0u; i < myToc.size(); ++i)
+        {
+          if (myToc[i].myTypeInfo.myTypeHash == aTypeInfo.myTypeHash && 
+              myToc[i].myTypeInfo.myTypeHash == aTypeInfo.myInstanceHash)
+          {
+            if (anArchivePosition != nullptr)
+            {
+              (*anArchivePosition) = myToc[i].myArchivePosition;
+            }
+            return true;
+          }
+        }
+
+        return false;
+      }
+    //---------------------------------------------------------------------------//
+      TypeInfo pushTypePeek()
+      {
+        TypeInfo info = { 0u };
+        if (myMode != ESerializationMode::LOAD)
+        {
+          return info;
+        }
+        mySceneGraphStr->read((char*)&info, sizeof(TypeInfo));
+        return info;
+      }
+    //---------------------------------------------------------------------------//
+      void popTypePeek()
+      {
+        uint32 currStreamPos = mySceneGraphStr->tellg();
+        mySceneGraphStr->seekg(currStreamPos - sizeof(TypeInfo));
+      }
+    //---------------------------------------------------------------------------//
 #pragma endregion Load
-
-      
-    
 
     private:
       ESerializationMode myMode;
-      std::fstream* myStream;
+      std::fstream* mySceneGraphStr;
+      std::vector<TocEntry> myToc;
+      Scene::SceneNode* myCurrentlyProcessedNode;
     };
+  //---------------------------------------------------------------------------//
 
+#endif  // SERIALIZER_BINARY_SUPPORT
+
+  //---------------------------------------------------------------------------//
   } } // end of namespace Fancy::IO 
-
-//BLOB-Serialization
-  /*inline bool SerializerBinary::seek(uint32 _aHash, TocEntry& _anEntry)
-  {
-    for (uint32 i = 0u; i < myToc.size(); ++i)
-    {
-      if (myToc[i].myHash == _aHash)
-      {
-        _anEntry = myToc[i];
-        return true;
-      }
-    }
-
-    return false;
-  }*/
-
-//inline bool SerializerBinary::beginSerialization(const String& _aBlobPath, ESerializationMode _aMode)
-//{
-//  ASSERT_M(!myStream.good(), "Called beginSerialization() before endSerialization()");
-//
-//  myToc.clear();
-//  myMode = _aMode;
-//  String aPathAbs = PathService::convertToAbsPath(_aBlobPath);
-//  myStream.open(aPathAbs, std::ios::in | std::ios::out | std::ios::binary);
-//  ASSERT(myStream.good());
-//
-//  if (_aMode == ESerializationMode::STORE)
-//  {
-//    // reserve room for the header
-//    Header header;
-//    myStream.write(reinterpret_cast<const char*>(&header), sizeof(Header));
-//  }
-//  else
-//  {
-//    Header header;
-//    myStream.read((char*)&header, sizeof(Header));
-//
-//    uint32 currReadPointer = myStream.tellg();
-//    myStream.seekg(header.myTocOffset);
-//    myStream.read((char*)&myToc, header.myTocSize);
-//  }
-//
-//  return myStream.good();
-//}
-//
-////---------------------------------------------------------------------------//
-//inline bool SerializerBinary::endSerialization()
-//{
-//  ASSERT_M(myStream.good(), "Called endSerializtation() without beginSerialization()");
-//
-//  if (myMode == ESerializationMode::STORE)
-//  {
-//    // Construct the final header and override the reserved space in the beginning
-//    Header header;
-//    header.myTocOffset = myStream.tellp();
-//    header.myTocSize = sizeof(myToc);
-//    myStream.write((const char*)&myToc, sizeof(myToc));
-//    myStream.seekp(0);
-//    myStream.write((const char*)&header, sizeof(Header));
-//  }
-//
-//  myStream.close();
-//  return !myStream.good();
-//}
-//---------------------------------------------------------------------------//
+  
 #endif  // INCLUDE_FILEREADER_H

@@ -11,6 +11,10 @@
 #include "DepthStencilState.h"
 #include "BlendState.h"
 
+namespace Fancy { namespace IO {
+  class Serializer;
+} }
+
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct MaterialPassDesc
@@ -36,6 +40,9 @@ namespace Fancy { namespace Rendering {
       ~MaterialPass();
       bool operator==(const MaterialPass& _other) const;
 
+      void serialize(IO::Serializer& aSerializer);
+      ObjectName getTypeName() const { return _N(MaterialPass); }
+
       MaterialPassDesc getDescription() const;
       void initFromDescription(const MaterialPassDesc& _aDesc);
 
@@ -55,15 +62,16 @@ namespace Fancy { namespace Rendering {
       bool hasStage(ShaderStage _eStage) const {return getGpuProgram(_eStage) != nullptr;}
 
       ObjectName m_Name;
-      const GpuProgram* m_pGpuProgram[(uint32)ShaderStage::NUM];
       FillMode m_eFillMode;
       CullMode m_eCullMode;
       WindingOrder m_eWindingOrder;
       const BlendState* m_pBlendState;
       const DepthStencilState* m_pDepthStencilState;
-      
+      const GpuProgram* m_pGpuProgram[(uint32)ShaderStage::NUM];
+
     private:
       std::vector<MaterialPassInstance*> m_vpMaterialPassInstances;
+
   };
 //---------------------------------------------------------------------------//
   struct MaterialPassInstanceDesc
@@ -84,6 +92,9 @@ namespace Fancy { namespace Rendering {
     public:
       MaterialPassInstance();
       ~MaterialPassInstance();
+
+      void serialize(IO::Serializer& aSerializer);
+      ObjectName getTypeName() const { return _N(MaterialPassInstance); }
 
       void initFromDescription(const MaterialPassInstanceDesc _aDesc);
       MaterialPassInstanceDesc getDescription() const;
@@ -107,20 +118,20 @@ namespace Fancy { namespace Rendering {
       void setWriteBuffer(ShaderStage _eStage, uint32 _registerIndex, const GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumWriteBuffers); m_vpWriteBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
       void setTextureSampler(ShaderStage _eStage, uint32 _registerIndex, const TextureSampler* _pTextureSampler) {ASSERT(_registerIndex < kMaxNumTextureSamplers); m_vpTextureSamplers[(uint32) _eStage][_registerIndex] = _pTextureSampler; }
 
-      const MaterialPass* getMaterialPass() const {return m_pMaterialPass;}
+      MaterialPass* getMaterialPass() const {return m_pMaterialPass;}
       const ObjectName& getName() {return m_Name;}
 
       uint computeHash() const;
 
     private:
+      ObjectName m_Name;
+      MaterialPass* m_pMaterialPass;
+      
       const Texture* m_vpReadTextures[(uint32) ShaderStage::NUM][kMaxNumReadTextures];
       const Texture* m_vpWriteTextures[(uint32) ShaderStage::NUM][kMaxNumWriteTextures];
       const GpuBuffer* m_vpReadBuffers[(uint32) ShaderStage::NUM][kMaxNumReadBuffers];
       const GpuBuffer* m_vpWriteBuffers[(uint32) ShaderStage::NUM][kMaxNumWriteBuffers];
       const TextureSampler* m_vpTextureSamplers[(uint32) ShaderStage::NUM][kMaxNumTextureSamplers];
-
-      MaterialPass* m_pMaterialPass;
-      ObjectName m_Name;
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

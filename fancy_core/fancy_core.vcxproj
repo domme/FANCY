@@ -232,6 +232,8 @@
     <ClInclude Include="src\GLSLpreprocessor.h" />
     <ClInclude Include="src\GpuProgramResourceGL4.h" />
     <ClInclude Include="src\InputManager.h" />
+    <ClInclude Include="src\json\json-forwards.h" />
+    <ClInclude Include="src\json\json.h" />
     <ClInclude Include="src\LightComponent.h" />
     <ClInclude Include="src\LoadableObject.h" />
     <ClInclude Include="src\lodepng.h" />
@@ -256,7 +258,6 @@
     <ClInclude Include="src\SceneNodeComponent.h" />
     <ClInclude Include="src\SceneNodeComponentFactory.h" />
     <ClInclude Include="src\SceneRenderDescription.h" />
-    <ClInclude Include="src\Serializeable.h" />
     <ClInclude Include="src\Serializer.h" />
     <ClInclude Include="src\ShaderConstantsManager.h" />
     <ClInclude Include="src\StaticManagedObject.h" />
@@ -292,6 +293,7 @@
     <ClCompile Include="src\GpuProgramPipelineGL4.cpp" />
     <ClCompile Include="src\GLSLpreprocessor.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
+    <ClCompile Include="src\jsoncpp.cpp" />
     <ClCompile Include="src\LightComponent.cpp" />
     <ClCompile Include="src\LoadableObject.cpp" />
     <ClCompile Include="src\lodepng.cpp" />

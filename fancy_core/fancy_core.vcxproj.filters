@@ -34,6 +34,9 @@
     <Filter Include="src\Scene\Components">
       <UniqueIdentifier>{131c4f4c-8958-405c-927c-0411df5432bb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\IO\JSON">
+      <UniqueIdentifier>{11798b84-0a9c-403c-a1fc-12a43cdd91af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\StdAfx.h">
@@ -237,8 +240,11 @@
     <ClInclude Include="src\BinaryCache.h">
       <Filter>src\IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\Serializeable.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="src\json\json.h">
+      <Filter>src\IO\JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="src\json\json-forwards.h">
+      <Filter>src\IO\JSON</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -391,6 +397,9 @@
     </ClCompile>
     <ClCompile Include="src\BinaryCache.cpp">
       <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\jsoncpp.cpp">
+      <Filter>src\IO\JSON</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

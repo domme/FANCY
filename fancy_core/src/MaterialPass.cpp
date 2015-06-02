@@ -3,6 +3,7 @@
 #include "Texture.h"
 #include "TextureSampler.h"
 #include "GpuBuffer.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -60,6 +61,23 @@ namespace Fancy { namespace Rendering {
     return same;
   }
 //---------------------------------------------------------------------------//
+  void MaterialPass::serialize(IO::Serializer& aSerializer)
+  {
+    aSerializer.beginType(getTypeName(), getName());
+
+    aSerializer & m_Name;
+    aSerializer & m_eFillMode;
+    aSerializer & m_eCullMode;
+    aSerializer & m_eWindingOrder;
+    aSerializer & m_pBlendState;
+    aSerializer & m_pDepthStencilState;
+
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    {
+      aSerializer & m_pGpuProgram[i];
+    }
+  }
+//---------------------------------------------------------------------------//
   MaterialPassDesc MaterialPass::getDescription() const
   {
     MaterialPassDesc aDesc;
@@ -106,6 +124,7 @@ namespace Fancy { namespace Rendering {
 
     mpi->m_Name = name;
     mpi->m_pMaterialPass = this;
+
     m_vpMaterialPassInstances.push_back(mpi);
 
     return mpi;
@@ -189,6 +208,43 @@ namespace Fancy { namespace Rendering {
   MaterialPassInstance::~MaterialPassInstance()
   {
     
+  }
+//---------------------------------------------------------------------------//
+  void MaterialPassInstance::serialize(IO::Serializer& aSerializer)
+  {
+    aSerializer.beginType(getTypeName(), getName());
+
+    aSerializer & m_Name;
+    aSerializer & m_pMaterialPass;
+    
+    for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
+    {
+      for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
+      {
+        aSerializer & m_vpReadTextures[iStage][i];
+      }
+
+      for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
+      {
+        aSerializer & m_vpWriteTextures[iStage][i];
+      }
+
+      // TODO: Should buffers be loadable?
+      /*for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
+      {
+        m_vpReadBuffers[iStage][i] = nullptr;
+      }
+
+      for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
+      {
+        m_vpWriteBuffers[iStage][i] = nullptr;
+      }*/
+
+      for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
+      {
+        aSerializer & m_vpTextureSamplers[iStage][i];
+      }
+    }
   }
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::initFromDescription(const MaterialPassInstanceDesc _aDesc)

@@ -5,8 +5,12 @@
 #include "CameraComponent.h"
 #include "ModelComponent.h"
 #include "ObjectName.h"
-#include "LightComponent.h"
-#include "Serializeable.h"
+
+namespace Fancy {
+  namespace IO {
+    class Serializer;
+  }
+}
 
 namespace Fancy { namespace Scene { 
 //---------------------------------------------------------------------------//
@@ -17,7 +21,7 @@ namespace Fancy { namespace Scene {
     glm::vec3 myLocalScale;
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT Transform : public Serializable
+  class DLLEXPORT Transform
   {
   private:
     friend class SceneNode;
@@ -25,9 +29,6 @@ namespace Fancy { namespace Scene {
     public:
       Transform();
       ~Transform();
-
-      virtual ObjectName getTypeName() override { return _N(Transform); }
-      virtual bool serialize(IO::SerializerBinary* aSerializer) override;
 
       const glm::mat4& getCachedWorld() const {return m_cachedWorld;}
       glm::mat4 getLocalAsMat() const;
@@ -76,14 +77,14 @@ namespace Fancy { namespace Scene {
 	  std::vector<SceneNodeComponentDescPtr> myComponents;
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT SceneNode : public Serializable
+  class DLLEXPORT SceneNode
   {
     public: 
       SceneNode();
       ~SceneNode();
 
-      virtual ObjectName getTypeName() override { return _N(SceneNode); }
-      virtual bool serialize(IO::SerializerBinary* aSerializer) override;
+      static ObjectName getTypeName() { return _N(SceneNode); }
+      void serialize(IO::Serializer& aSerializer);
 
       static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent);
       static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, SceneNode* pParent);
@@ -95,6 +96,7 @@ namespace Fancy { namespace Scene {
       void gatherRenderItems(SceneRenderDescription* pRenderDesc);
 
       SceneNodeComponent* addOrRetrieveComponent(const ObjectName& typeName);
+      SceneNodeComponentPtr addOrRetrieveComponentPtr(const ObjectName& typeName);
       void removeComponent(const ObjectName& typeName);
       SceneNodeComponentPtr getComponentPtr(const ObjectName& typeName);
       SceneNodeComponent* getComponent(const ObjectName& typeName);
