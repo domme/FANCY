@@ -7,6 +7,8 @@
 
 #include "Json/json.h"
 
+#define _VAL(X) X, #X
+
 namespace Fancy { namespace Rendering {
   class MaterialPassInstance;
 }}
@@ -59,12 +61,12 @@ namespace Fancy { namespace IO {
         virtual ~Serializer();
       //---------------------------------------------------------------------------//
       //---------------------------------------------------------------------------//
-        template<class T> void serialize(const String& aName, T& anObject)
+        template<class T> void serialize(T& anObject, const char* aName = nullptr)
         {
-          serialize(aName, &anObject);
+          serialize(&anObject, aName);
         }
       //---------------------------------------------------------------------------//
-        template<class T> void serialize(const String& aName, T* anObject)
+        template<class T> void serialize(T* anObject, const char* aName = nullptr)
         {
           if (myMode == ESerializationMode::STORE)
           {
@@ -76,17 +78,27 @@ namespace Fancy { namespace IO {
           }
         }
       //---------------------------------------------------------------------------//
-        virtual void store(const String& aName, uint* aValue) = 0;
-        virtual void store(const String& aName, float* aValue) = 0;
-        virtual void store(const String& aName, String* aValue) = 0;
-        virtual void store(const String& aName, std::vector<Scene::SceneNodeComponentPtr>* someValues) = 0;
-        virtual void store(const String& aName, std::vector<Scene::SceneNodePtr>* someValues) = 0;
-        virtual void store(const String& aName, Geometry::Model** aValue) = 0;
-        virtual void store(const String& aName, Geometry::SubModel** aValue) = 0;
-        virtual void store(const String& aName, Geometry::SubModelList* someValues) = 0;
-        virtual void store(const String& aName, Rendering::Material** aValue) = 0;
-                
+        virtual void* beginType(const String& aTypeName, uint anInstanceHash) = 0;
+        virtual void endType() = 0;
+
+        virtual void beginArray(const char* aName, void* aCarray) = 0;
+        virtual void endArray() = 0;
+        
     protected:
+      virtual void store(const char* aName, uint* aValue) = 0;
+      virtual void store(const char* aName, float* aValue) = 0;
+      virtual void store(const char* aName, String* aValue) = 0;
+      virtual void store(const char* aName, std::vector<Scene::SceneNodeComponentPtr>* someValues) = 0;
+      virtual void store(const char* aName, std::vector<Scene::SceneNodePtr>* someValues) = 0;
+      virtual void store(const char* aName, Geometry::Model** aValue) = 0;
+      virtual void store(const char* aName, Geometry::SubModel** aValue) = 0;
+      virtual void store(const char* aName, Geometry::SubModelList* someValues) = 0;
+      virtual void store(const char* aName, Rendering::Material** aValue) = 0;
+      virtual void store(const char* aName, glm::mat3* aValue) = 0;
+      virtual void store(const char* aName, glm::mat4* aValue) = 0;
+      virtual void store(const char* aName, glm::vec3* aValue) = 0;
+      virtual void store(const char* aName, glm::vec4* aValue) = 0;
+
       ESerializationMode myMode;
       std::fstream myArchive;
     };
@@ -97,21 +109,28 @@ namespace Fancy { namespace IO {
     public:
       SerializerJSON(ESerializationMode aMode, const String& anArchivePath);
       virtual ~SerializerJSON() override { }
-            
-      virtual void store(const String& aName, uint* aValue) override;
-      virtual void store(const String& aName, float* aValue) override;
-      virtual void store(const String& aName, String* aValue) override;
-      virtual void store(const String& aName, std::vector<Scene::SceneNodeComponentPtr>* someValues) override;
-      virtual void store(const String& aName, std::vector<Scene::SceneNodePtr>* someValues) override;
-      virtual void store(const String& aName, Geometry::Model** aValue) override;
-      virtual void store(const String& aName, Geometry::SubModel** aValue) override;
-      virtual void store(const String& aName, Geometry::SubModelList* someValues) override;
-      virtual void store(const String& aName, Rendering::Material** aValue) override;
+
+      virtual void* beginType(const String& aTypeName, uint anInstanceHash) override;
+      virtual void endType() override;
+
+      virtual void beginArray(const char* aName, void* aCarray) override;
+      virtual void endArray() override;
 
     protected:
-      virtual Json::Value& beginType(const String& aTypeName, uint anInstanceHash);
-      virtual Json::Value& beginType(const String& aTypeName);
-      virtual void endType();
+      virtual void store(const char* aName, uint* aValue) override;
+      virtual void store(const char* aName, float* aValue) override;
+      virtual void store(const char* aName, String* aValue) override;
+      virtual void store(const char* aName, std::vector<Scene::SceneNodeComponentPtr>* someValues) override;
+      virtual void store(const char* aName, std::vector<Scene::SceneNodePtr>* someValues) override;
+      virtual void store(const char* aName, Geometry::Model** aValue) override;
+      virtual void store(const char* aName, Geometry::SubModel** aValue) override;
+      virtual void store(const char* aName, Geometry::SubModelList* someValues) override;
+      virtual void store(const char* aName, Rendering::Material** aValue) override;
+      virtual void store(const char* aName, glm::mat3* aValue) override;
+      virtual void store(const char* aName, glm::mat4* aValue) override;
+      virtual void store(const char* aName, glm::vec3* aValue) override;
+      virtual void store(const char* aName, glm::vec4* aValue) override;
+      void _store(const char* aName, const Json::Value& aValue);
 
       std::stack<Json::Value> myTypeStack;
       Json::StyledStreamWriter myJsonWriter;

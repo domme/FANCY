@@ -3,6 +3,36 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  namespace Internal
+  {
+    String getParameterSemanticName(uint32 aSemantic)
+    {
+      static String names[] = {
+        "DIFFUSE_REFLECTIVITY",
+        "SPECULAR_REFLECTIVITY",
+        "SPECULAR_POWER",
+        "OPACITY"
+      };
+
+      static_assert(_countof(names) == (uint32)EMaterialParameterSemantic::NUM, "Missing names");
+
+      return names[(uint32)aSemantic];
+    }
+  //---------------------------------------------------------------------------//
+    String getMaterialPassName(uint32 aPass)
+    {
+      static String names[] = {
+        "SOLID_GBUFFER",
+        "SOLID_FORWARD",
+        "TRANSPARENT_FORWARD"
+      };
+
+      static_assert(_countof(names) == (uint32)EMaterialPass::NUM, "Missing names");
+      return names[(uint32)aPass];
+    }
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   Material::Material()
   {
     memset(m_vPasses, 0u, sizeof(m_vPasses));
@@ -32,18 +62,19 @@ namespace Fancy { namespace Rendering {
   void Material::serialize(IO::Serializer& aSerializer)
   {
     aSerializer.beginType(getTypeName(), getName());
-    
-    aSerializer & m_Name;
+    aSerializer.serialize(_VAL(m_Name));
 
+    aSerializer.beginArray("m_vParameters", &m_vParameters[0]);
     for (uint32 i = 0u; i < (uint32)EMaterialParameterSemantic::NUM; ++i)
-    {
-      aSerializer & m_vParameters[i];
-    }
+      aSerializer.serialize(m_vParameters[i]);
+    aSerializer.endArray();
 
+    aSerializer.beginArray("m_vPasses", &m_vPasses[0]);
     for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
-    {
-      aSerializer & m_vPasses[i];
-    }
+      aSerializer.serialize(m_vPasses);
+    aSerializer.endArray();
+
+    aSerializer.endType();
   }
 //---------------------------------------------------------------------------//
   MaterialDesc Material::getDescription() const

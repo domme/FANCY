@@ -16,9 +16,9 @@ namespace Fancy { namespace Geometry {
   void Model::serialize(IO::Serializer& aSerializer)
   {
     aSerializer.beginType(getTypeName(), getName());
-
-    aSerializer & m_Name;
-    aSerializer & m_vSubModels;
+    aSerializer.serialize(_VAL(m_Name));
+    aSerializer.serialize(_VAL(m_vSubModels));
+    aSerializer.endType();
   }
 //---------------------------------------------------------------------------//
   void Model::addSubModel(SubModel* _pSubModel)

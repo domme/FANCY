@@ -4,8 +4,27 @@
 #include "TextureSampler.h"
 #include "GpuBuffer.h"
 #include "Serializer.h"
+#include "StringUtil.h"
 
 namespace Fancy { namespace Rendering {
+  namespace Internal
+  {
+    String getShaderStageName(uint32 aShaderStage)
+    {
+      static String names[] = {
+        "VERTEX",
+        "FRAGMENT",
+        "GEOMETRY",
+        "TESS_HULL",
+        "TESS_DOMAIN",
+        "COMPUTE"
+      };
+
+      static_assert(_countof(names) == (uint32)ShaderStage::NUM, "Missing names");
+      return names[aShaderStage];
+    }
+  }
+
 //---------------------------------------------------------------------------//
   bool MaterialPassDesc::operator==(const MaterialPassDesc& anOther) const
   {
@@ -65,17 +84,20 @@ namespace Fancy { namespace Rendering {
   {
     aSerializer.beginType(getTypeName(), getName());
 
-    aSerializer & m_Name;
-    aSerializer & m_eFillMode;
-    aSerializer & m_eCullMode;
-    aSerializer & m_eWindingOrder;
-    aSerializer & m_pBlendState;
-    aSerializer & m_pDepthStencilState;
+    aSerializer.serialize(_VAL(m_Name));
+    aSerializer.serialize(_VAL(m_eFillMode));
+    aSerializer.serialize(_VAL(m_eCullMode));
+    aSerializer.serialize(_VAL(m_eWindingOrder));
+    aSerializer.serialize(_VAL(m_pBlendState));
+    aSerializer.serialize(_VAL(m_pDepthStencilState));
 
+    aSerializer.beginArray("m_pGpuProgram", &m_pGpuProgram[0]);
     for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
     {
-      aSerializer & m_pGpuProgram[i];
+      aSerializer.serialize(m_pGpuProgram[i]);
     }
+    aSerializer.endArray();
+    aSerializer.endType();
   }
 //---------------------------------------------------------------------------//
   MaterialPassDesc MaterialPass::getDescription() const
@@ -213,38 +235,47 @@ namespace Fancy { namespace Rendering {
   void MaterialPassInstance::serialize(IO::Serializer& aSerializer)
   {
     aSerializer.beginType(getTypeName(), getName());
-
-    aSerializer & m_Name;
-    aSerializer & m_pMaterialPass;
+    aSerializer.serialize(_VAL(m_Name));
+    aSerializer.serialize(_VAL(m_pMaterialPass));
     
+    String arrayName(_N(m_vpReadTextures));
+    aSerializer.beginArray(arrayName.c_str(), &m_vpReadTextures[0]);
     for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
     {
+      arrayName += "[" + StringUtil::toString(iStage) + "]";
+
+      aSerializer.beginArray(arrayName.c_str(), &m_vpReadTextures[iStage][0]);
       for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
       {
-        aSerializer & m_vpReadTextures[iStage][i];
+        aSerializer.serialize(m_vpReadTextures[iStage][i]);
       }
-
-      for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
-      {
-        aSerializer & m_vpWriteTextures[iStage][i];
-      }
-
-      // TODO: Should buffers be loadable?
-      /*for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
-      {
-        m_vpReadBuffers[iStage][i] = nullptr;
-      }
-
-      for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
-      {
-        m_vpWriteBuffers[iStage][i] = nullptr;
-      }*/
-
-      for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
-      {
-        aSerializer & m_vpTextureSamplers[iStage][i];
-      }
+      aSerializer.endArray();
     }
+    aSerializer.endArray();
+
+      // for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
+      // {
+      //   aSerializer & m_vpWriteTextures[iStage][i];
+      // }
+      // 
+      // // TODO: Should buffers be loadable?
+      // /*for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
+      // {
+      //   m_vpReadBuffers[iStage][i] = nullptr;
+      // }
+      // 
+      // for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
+      // {
+      //   m_vpWriteBuffers[iStage][i] = nullptr;
+      // }*/
+      // 
+      // for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
+      // {
+      //   aSerializer & m_vpTextureSamplers[iStage][i];
+      // }
+    
+
+    aSerializer.endType();
   }
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::initFromDescription(const MaterialPassInstanceDesc _aDesc)

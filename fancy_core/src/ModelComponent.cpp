@@ -25,8 +25,8 @@ namespace Fancy { namespace Scene {
   void ModelComponent::serialize(IO::Serializer& aSerializer)
   {
     aSerializer.beginType(getTypeName(), 0u);
-
-    aSerializer & m_pModel;
+    aSerializer.serialize(_VAL(m_pModel));
+    aSerializer.endType();
   }
 //---------------------------------------------------------------------------//
   void ModelComponent::update()

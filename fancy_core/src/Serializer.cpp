@@ -76,21 +76,17 @@ namespace Fancy { namespace IO {
     myArchive.open(archivePath, archiveFlags);
   }
 //---------------------------------------------------------------------------//
-  Json::Value& SerializerJSON::beginType(const String& aTypeName, uint anInstanceHash)
-  {
-    Json::Value& typeValue = beginType(aTypeName);
-    typeValue["myInstanceHash"] = anInstanceHash;
-
-    return typeValue;
-  }
-//---------------------------------------------------------------------------//
-  Json::Value& SerializerJSON::beginType(const String& aTypeName)
+  void* SerializerJSON::beginType(const String& aTypeName, uint anInstanceHash)
   {
     Json::Value typeValue(Json::objectValue);
-    typeValue = aTypeName;
+
+    typeValue["TypeName"] = aTypeName;
+
+    if (anInstanceHash != 0x0)
+      typeValue["InstanceHash"] = anInstanceHash;
 
     myTypeStack.push(typeValue);
-    return myTypeStack.top();
+    return &myTypeStack.top();
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::endType()
@@ -99,25 +95,42 @@ namespace Fancy { namespace IO {
     myTypeStack.pop();
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const String& aName, uint* aValue)
+  void SerializerJSON::beginArray(const char* aName, void* aCarray)
   {
-    Json::Value& currType = myTypeStack.top();
-    currType[aName] = *aValue;
+    ASSERT_M(!myTypeStack.empty(), "An array needs to be embedded in a type but there is none left");
+
+    Json::Value& parentVal = myTypeStack.top();
+    
+    myTypeStack.push(Json::Value(Json::arrayValue));
+    Json::Value& arrayVal = myTypeStack.top();
+
+    parentVal[aName] = arrayVal;
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const String& aName, float* aValue)
+  void SerializerJSON::endArray()
   {
-    Json::Value& currType = myTypeStack.top();
-    currType[aName] = *aValue;
+    endType();
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const String& aName, String* aValue)
+  void SerializerJSON::store(const char* aName, uint* aValue)
   {
-    Json::Value& currType = myTypeStack.top();
-    currType[aName] = aValue->c_str();
+    Json::Value val(*aValue);
+    _store(aName, val);
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const String& aName, std::vector<Scene::SceneNodeComponentPtr>* someValues)
+  void SerializerJSON::store(const char* aName, float* aValue)
+  {
+    Json::Value val(*aValue);
+    _store(aName, val);
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, String* aValue)
+  {
+    Json::Value val(*aValue);
+    _store(aName, val);
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, std::vector<Scene::SceneNodeComponentPtr>* someValues)
   {
     Json::Value& currType = myTypeStack.top();
     Json::Value array;
@@ -134,29 +147,92 @@ namespace Fancy { namespace IO {
     currType[aName] = array;
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const String& aName, std::vector<Scene::SceneNodePtr>* someValues)
+  void SerializerJSON::store(const char* aName, std::vector<Scene::SceneNodePtr>* someValues)
   {
 
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const String& aName, Geometry::Model** aValue)
+  void SerializerJSON::store(const char* aName, Geometry::Model** aValue)
   {
 
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const String& aName, Geometry::SubModel** aValue)
+  void SerializerJSON::store(const char* aName, Geometry::SubModel** aValue)
   {
 
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const String& aName, Geometry::SubModelList* someValues)
+  void SerializerJSON::store(const char* aName, Geometry::SubModelList* someValues)
   {
   }
-
-  //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const String& aName, Rendering::Material** aValue)
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, Rendering::Material** aValue)
   {
 
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, glm::mat3* aValue)
+  {
+    Json::Value matVal(Json::arrayValue);
+    for (uint32 y = 0; y < (*aValue).length(); ++y)
+    {
+      for (uint32 x = 0; x < (*aValue)[y].length(); ++x)
+      {
+        matVal.append((*aValue)[x][y]);
+      }
+    }
+
+    _store(aName, matVal);
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, glm::mat4* aValue)
+  {
+    Json::Value matVal(Json::arrayValue);
+    for (uint32 y = 0; y < (*aValue).length(); ++y)
+    {
+      for (uint32 x = 0; x < (*aValue)[y].length(); ++x)
+      {
+        matVal.append((*aValue)[x][y]);
+      }
+    }
+
+    _store(aName, matVal);
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, glm::vec3* aValue)
+  {
+    Json::Value matVal(Json::arrayValue);
+    for (uint32 y = 0; y < (*aValue).length(); ++y)
+    {
+      matVal.append((*aValue)[y]);
+    }
+
+    _store(aName, matVal);
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, glm::vec4* aValue)
+  {
+    Json::Value matVal(Json::arrayValue);
+    for (uint32 y = 0; y < (*aValue).length(); ++y)
+    {
+      matVal.append((*aValue)[y]);
+    }
+
+    _store(aName, matVal);
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::_store(const char* aName, const Json::Value& aValue)
+  {
+    Json::Value& currType = myTypeStack.top();
+    if (currType.type() == Json::objectValue)
+    {
+      ASSERT(aName != nullptr);
+      currType[aName] = aValue;
+    }
+    else
+    {
+      currType.append(aValue);
+    }
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO
