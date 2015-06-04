@@ -31,14 +31,12 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   void LightComponent::serialize(IO::Serializer& aSerializer)
   {
-    aSerializer.beginType(getTypeName(), 0u);
     aSerializer.serialize(_VAL(m_eType));
     aSerializer.serialize(_VAL(m_colorIntensity));
     aSerializer.serialize(_VAL(m_castsShadows));
     aSerializer.serialize(_VAL(m_falloffStart));
     aSerializer.serialize(_VAL(m_falloffEnd));
     aSerializer.serialize(_VAL(m_coneAngle));
-    aSerializer.endType();
   }
 //---------------------------------------------------------------------------//
   void LightComponent::init()

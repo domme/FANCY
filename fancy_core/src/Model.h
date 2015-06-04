@@ -14,6 +14,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class SubModel;
 //---------------------------------------------------------------------------//
+  const uint32 kMaxNumSubModelsPerModel = 256u;
   typedef FixedArray<SubModel*, kMaxNumSubModelsPerModel> SubModelList;
 //---------------------------------------------------------------------------//
   struct ModelDesc

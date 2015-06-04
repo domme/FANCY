@@ -16,6 +16,7 @@
 #include "SceneImporter.h"
 #include "TimeManager.h"
 #include "RenderingProcess.h"
+#include "LightComponent.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

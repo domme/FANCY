@@ -737,11 +737,11 @@ namespace Fancy { namespace IO {
     }
 
     // Try to load the texture from cache
-    pTexture = BinaryCache::get<Texture>(textureName);
+    /*pTexture = BinaryCache::get<Texture>(textureName);
     if (pTexture)
     {
       return pTexture;
-    }
+    }*/
 
     // Load and decode the texture to memory
     std::vector<uint8> vTextureBytes;

@@ -82,8 +82,6 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPass::serialize(IO::Serializer& aSerializer)
   {
-    aSerializer.beginType(getTypeName(), getName());
-
     aSerializer.serialize(_VAL(m_Name));
     aSerializer.serialize(_VAL(m_eFillMode));
     aSerializer.serialize(_VAL(m_eCullMode));
@@ -91,13 +89,12 @@ namespace Fancy { namespace Rendering {
     aSerializer.serialize(_VAL(m_pBlendState));
     aSerializer.serialize(_VAL(m_pDepthStencilState));
 
-    aSerializer.beginArray("m_pGpuProgram", &m_pGpuProgram[0]);
+    aSerializer.beginArray("m_pGpuProgram",(uint32) ShaderStage::NUM);
     for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
     {
       aSerializer.serialize(m_pGpuProgram[i]);
     }
     aSerializer.endArray();
-    aSerializer.endType();
   }
 //---------------------------------------------------------------------------//
   MaterialPassDesc MaterialPass::getDescription() const
@@ -234,17 +231,13 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::serialize(IO::Serializer& aSerializer)
   {
-    aSerializer.beginType(getTypeName(), getName());
     aSerializer.serialize(_VAL(m_Name));
     aSerializer.serialize(_VAL(m_pMaterialPass));
     
-    String arrayName(_N(m_vpReadTextures));
-    aSerializer.beginArray(arrayName.c_str(), &m_vpReadTextures[0]);
+    aSerializer.beginArray("m_vpReadTextures", (uint32)ShaderStage::NUM);
     for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
     {
-      arrayName += "[" + StringUtil::toString(iStage) + "]";
-
-      aSerializer.beginArray(arrayName.c_str(), &m_vpReadTextures[iStage][0]);
+      aSerializer.beginArray("m_vpReadTextures[]", kMaxNumReadTextures);
       for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
       {
         aSerializer.serialize(m_vpReadTextures[iStage][i]);
@@ -273,9 +266,6 @@ namespace Fancy { namespace Rendering {
       // {
       //   aSerializer & m_vpTextureSamplers[iStage][i];
       // }
-    
-
-    aSerializer.endType();
   }
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::initFromDescription(const MaterialPassInstanceDesc _aDesc)

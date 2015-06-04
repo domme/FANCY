@@ -35,7 +35,7 @@ namespace Fancy { namespace IO {
           return;
         }
 
-        SerializerBinary binarySerializer(ESerializationMode::LOAD, &archive);
+        /*SerializerBinary binarySerializer(ESerializationMode::LOAD, &archive);
 
         Rendering::TextureDesc textureDesc;
         if (!binarySerializer.serialize(&textureDesc))
@@ -48,7 +48,7 @@ namespace Fancy { namespace IO {
 
         FANCY_FREE(textureDesc.pPixelData, MemoryCategory::TEXTURES);
 
-        return texture;
+        return texture;*/
       }
     //---------------------------------------------------------------------------//
       static bool writeToCache(Rendering::Texture* aTexture, void* someData, uint32 aDataSize);
@@ -56,7 +56,7 @@ namespace Fancy { namespace IO {
       static bool writeToCache(Geometry::GeometryData* aGeometryData, void* someVertexData, uint32 aVertexDataSize, void* someIndexData, uint32 anIndexDataSize);
     //---------------------------------------------------------------------------//      
 
-      template<> void store(Rendering::TextureDesc* aTextureDesc, std::false_type isFundamental)
+     /* template<> void store(Rendering::TextureDesc* aTextureDesc, std::false_type isFundamental)
       {
         
       }
@@ -80,7 +80,7 @@ namespace Fancy { namespace IO {
         ASSERT(aTextureDesc->pPixelData);
 
         mySceneGraphStr->read((char*)aTextureDesc->pPixelData, header.myPixelDataSizeBytes);
-      }
+      }*/
 
 
 
