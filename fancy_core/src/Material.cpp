@@ -70,7 +70,7 @@ namespace Fancy { namespace Rendering {
 
     count = aSerializer.beginArray("m_vPasses", (uint32)EMaterialPass::NUM);
     for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
-      aSerializer.serialize(m_vPasses);
+      aSerializer.serialize(m_vPasses[i]);
     aSerializer.endArray();
   }
 //---------------------------------------------------------------------------//

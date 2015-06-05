@@ -70,8 +70,7 @@ namespace Fancy { namespace IO {
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  SerializerJSON::SerializerJSON(ESerializationMode aMode, const String& anArchivePath)
-    : Serializer::Serializer(aMode)
+  SerializerJSON::SerializerJSON(ESerializationMode aMode, const String& anArchivePath) : Serializer(aMode)
   {
     uint32 archiveFlags = 0u;
 
@@ -186,6 +185,12 @@ namespace Fancy { namespace IO {
     beginType(node->getTypeName(), node->getName());
     node->serialize(*this);
     _store(aName, endType());
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, std::shared_ptr<Scene::SceneNode>* aValue)
+  {
+    Scene::SceneNode* node = aValue->get();
+    store(aName, &node);
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, Scene::SceneNodeComponentPtr* aValue)

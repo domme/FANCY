@@ -65,9 +65,9 @@ namespace Fancy { namespace Rendering {
       FillMode m_eFillMode;
       CullMode m_eCullMode;
       WindingOrder m_eWindingOrder;
-      const BlendState* m_pBlendState;
-      const DepthStencilState* m_pDepthStencilState;
-      const GpuProgram* m_pGpuProgram[(uint32)ShaderStage::NUM];
+      BlendState* m_pBlendState;
+      DepthStencilState* m_pDepthStencilState;
+      GpuProgram* m_pGpuProgram[(uint32)ShaderStage::NUM];
 
     private:
       std::vector<MaterialPassInstance*> m_vpMaterialPassInstances;
@@ -112,11 +112,11 @@ namespace Fancy { namespace Rendering {
       // void setWriteBuffer(ShaderStage _eStage, const ObjectName& _name, const GpuBuffer* _pBuffer);
       // void setTextureSampler(ShaderStage _eStage, const ObjectName& _name, const TextureSampler* _pTextureSampler);
 
-      void setReadTexture(ShaderStage _eStage, uint32 _registerIndex, const Texture* _pTexture) {ASSERT(_registerIndex < kMaxNumReadTextures); m_vpReadTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
-      void setWriteTexture(ShaderStage _eStage, uint32 _registerIndex, const Texture* _pTexture) {ASSERT(_registerIndex < kMaxNumWriteTextures); m_vpWriteTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
-      void setReadBuffer(ShaderStage _eStage, uint32 _registerIndex, const GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumReadBuffers); m_vpReadBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
-      void setWriteBuffer(ShaderStage _eStage, uint32 _registerIndex, const GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumWriteBuffers); m_vpWriteBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
-      void setTextureSampler(ShaderStage _eStage, uint32 _registerIndex, const TextureSampler* _pTextureSampler) {ASSERT(_registerIndex < kMaxNumTextureSamplers); m_vpTextureSamplers[(uint32) _eStage][_registerIndex] = _pTextureSampler; }
+      void setReadTexture(ShaderStage _eStage, uint32 _registerIndex, Texture* _pTexture) {ASSERT(_registerIndex < kMaxNumReadTextures); m_vpReadTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
+      void setWriteTexture(ShaderStage _eStage, uint32 _registerIndex, Texture* _pTexture) {ASSERT(_registerIndex < kMaxNumWriteTextures); m_vpWriteTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
+      void setReadBuffer(ShaderStage _eStage, uint32 _registerIndex, GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumReadBuffers); m_vpReadBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
+      void setWriteBuffer(ShaderStage _eStage, uint32 _registerIndex, GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumWriteBuffers); m_vpWriteBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
+      void setTextureSampler(ShaderStage _eStage, uint32 _registerIndex, TextureSampler* _pTextureSampler) {ASSERT(_registerIndex < kMaxNumTextureSamplers); m_vpTextureSamplers[(uint32) _eStage][_registerIndex] = _pTextureSampler; }
 
       MaterialPass* getMaterialPass() const {return m_pMaterialPass;}
       const ObjectName& getName() {return m_Name;}
@@ -127,11 +127,11 @@ namespace Fancy { namespace Rendering {
       ObjectName m_Name;
       MaterialPass* m_pMaterialPass;
       
-      const Texture* m_vpReadTextures[(uint32) ShaderStage::NUM][kMaxNumReadTextures];
-      const Texture* m_vpWriteTextures[(uint32) ShaderStage::NUM][kMaxNumWriteTextures];
-      const GpuBuffer* m_vpReadBuffers[(uint32) ShaderStage::NUM][kMaxNumReadBuffers];
-      const GpuBuffer* m_vpWriteBuffers[(uint32) ShaderStage::NUM][kMaxNumWriteBuffers];
-      const TextureSampler* m_vpTextureSamplers[(uint32) ShaderStage::NUM][kMaxNumTextureSamplers];
+      Texture* m_vpReadTextures[(uint32) ShaderStage::NUM][kMaxNumReadTextures];
+      Texture* m_vpWriteTextures[(uint32) ShaderStage::NUM][kMaxNumWriteTextures];
+      GpuBuffer* m_vpReadBuffers[(uint32) ShaderStage::NUM][kMaxNumReadBuffers];
+      GpuBuffer* m_vpWriteBuffers[(uint32) ShaderStage::NUM][kMaxNumWriteBuffers];
+      TextureSampler* m_vpTextureSamplers[(uint32) ShaderStage::NUM][kMaxNumTextureSamplers];
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

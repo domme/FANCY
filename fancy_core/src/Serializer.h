@@ -22,9 +22,6 @@ namespace Fancy { namespace Scene {
   class Scene;
   class SceneNode;
   class SceneNodeComponent;
-
-  using SceneNodeComponentPtr = std::shared_ptr<SceneNodeComponent>;
-  using SceneNodePtr = std::shared_ptr < SceneNode > ;
 }}
 
 namespace Fancy { namespace Geometry {
@@ -76,17 +73,17 @@ namespace Fancy { namespace IO {
           }
         }
       //---------------------------------------------------------------------------//
-        template<class T> void serialize(T* anObject, const char* aName = nullptr)
-        {
-          if (myMode == ESerializationMode::STORE)
-          {
-            store(aName, &anObject);
-          }
-          else
-          {
-           // load(aName, anObject);
-          }
-        }
+        //template<class T> void serialize(T* anObject, const char* aName = nullptr)
+        //{
+        //  if (myMode == ESerializationMode::STORE)
+        //  {
+        //    store(aName, &anObject);
+        //  }
+        //  else
+        //  {
+        //   // load(aName, anObject);
+        //  }
+        //}
       //---------------------------------------------------------------------------//
         virtual uint32 beginArray(const char* aName, uint32 aNumElements) = 0;
         virtual void endArray() = 0;
@@ -98,8 +95,9 @@ namespace Fancy { namespace IO {
       virtual void store(const char* aName, ObjectName* aValue) = 0;
       virtual void store(const char* aName, bool* aValue) = 0;
       virtual void store(const char* aName, Scene::ELightType* aValue) = 0;
-      virtual void store(const char* aName, Scene::SceneNodeComponentPtr* aValue) = 0;
       virtual void store(const char* aName, Scene::SceneNode** aValue) = 0;
+      virtual void store(const char* aName, std::shared_ptr<Scene::SceneNode>* aValue) = 0;
+      virtual void store(const char* aName, std::shared_ptr<Scene::SceneNodeComponent>* aValue) = 0;
       virtual void store(const char* aName, Geometry::Mesh** aValue) = 0;
       virtual void store(const char* aName, Geometry::Model** aValue) = 0;
       virtual void store(const char* aName, Geometry::SubModel** aValue) = 0;
@@ -154,7 +152,8 @@ namespace Fancy { namespace IO {
       virtual void store(const char* aName, bool* aValue) override;
       virtual void store(const char* aName, Scene::ELightType* aValue) override;
       virtual void store(const char* aName, Scene::SceneNode** aValue) override;
-      virtual void store(const char* aName, Scene::SceneNodeComponentPtr* aValue) override;
+      virtual void store(const char* aName, std::shared_ptr<Scene::SceneNode>* aValue);
+      virtual void store(const char* aName, std::shared_ptr<Scene::SceneNodeComponent>* aValue) override;
       virtual void store(const char* aName, Geometry::Model** aValue) override;
       virtual void store(const char* aName, Geometry::SubModel** aValue) override;
       virtual void store(const char* aName, Geometry::Mesh** aValue) override;
