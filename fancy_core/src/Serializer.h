@@ -130,16 +130,23 @@ namespace Fancy { namespace IO {
     {
     public:
       SerializerJSON(ESerializationMode aMode, const String& anArchivePath);
-      virtual ~SerializerJSON() override { }
+      virtual ~SerializerJSON() override;
 
       virtual uint32 beginArray(const char* aName, uint32 aNumElements) override;
       virtual void endArray() override;
+
+      const uint32 myVersion = 0;
 
     protected:
       struct ArrayDesc
       {
         String myName;
         uint32 myElementCount;
+      };
+
+      struct RootHeader
+      {
+        uint32 myVersion;
       };
 
       virtual void beginType(const String& aTypeName, uint anInstanceHash);
@@ -152,7 +159,7 @@ namespace Fancy { namespace IO {
       virtual void store(const char* aName, bool* aValue) override;
       virtual void store(const char* aName, Scene::ELightType* aValue) override;
       virtual void store(const char* aName, Scene::SceneNode** aValue) override;
-      virtual void store(const char* aName, std::shared_ptr<Scene::SceneNode>* aValue);
+      virtual void store(const char* aName, std::shared_ptr<Scene::SceneNode>* aValue) override;
       virtual void store(const char* aName, std::shared_ptr<Scene::SceneNodeComponent>* aValue) override;
       virtual void store(const char* aName, Geometry::Model** aValue) override;
       virtual void store(const char* aName, Geometry::SubModel** aValue) override;
@@ -172,12 +179,15 @@ namespace Fancy { namespace IO {
       virtual void store(const char* aName, glm::mat4* aValue) override;
       virtual void store(const char* aName, glm::vec3* aValue) override;
       virtual void store(const char* aName, glm::vec4* aValue) override;
+      
       void _store(const char* aName, const Json::Value& aValue);
+      void store(RootHeader* aValue);
 
       // virtual void store(const char* aName, Geometry::SubModelList* someValues) override;
       // virtual void store(const char* aName, std::vector<Scene::SceneNodeComponentPtr>* someValues) override;
       // virtual void store(const char* aName, std::vector<Scene::SceneNodePtr>* someValues) override;
 
+      RootHeader myHeader;
       std::stack<Json::Value> myTypeStack;
       std::stack<ArrayDesc> myArrayStack;
       Json::StyledStreamWriter myJsonWriter;

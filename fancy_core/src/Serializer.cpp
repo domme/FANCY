@@ -69,6 +69,15 @@ namespace Fancy { namespace IO {
     
   }
 //---------------------------------------------------------------------------//
+  Serializer::~Serializer()
+  {
+    if (myArchive.good())
+    {
+      myArchive.close();
+    }
+  }
+//---------------------------------------------------------------------------//
+
 //---------------------------------------------------------------------------//
   SerializerJSON::SerializerJSON(ESerializationMode aMode, const String& anArchivePath) : Serializer(aMode)
   {
@@ -81,6 +90,22 @@ namespace Fancy { namespace IO {
 
     String archivePath = anArchivePath + Internal::kArchiveExtensionJson;
     myArchive.open(archivePath, archiveFlags);
+
+    myHeader = { 0u };
+    if (aMode == ESerializationMode::STORE)
+    {
+      myHeader.myVersion = myVersion;
+      store(&myHeader);
+    }
+  }
+//---------------------------------------------------------------------------//
+  SerializerJSON::~SerializerJSON()
+  {
+    if (myMode == ESerializationMode::STORE)
+    {
+      Json::Value wholeDocumentVal = endType();
+      myJsonWriter.write(myArchive, wholeDocumentVal);
+    }
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::beginType(const String& aTypeName, uint anInstanceHash)
@@ -130,7 +155,7 @@ namespace Fancy { namespace IO {
       ArrayDesc desc = myArrayStack.top();
       myArrayStack.pop();
       
-      Json::Value& arrayVal = myTypeStack.top();
+      Json::Value arrayVal = myTypeStack.top();
       myTypeStack.pop();
       ASSERT_M(!myTypeStack.empty(), "An array needs to be embedded in a type but there is none left");
       Json::Value& parentVal = myTypeStack.top();
@@ -144,6 +169,13 @@ namespace Fancy { namespace IO {
     {
       // TODO: Implement
     }
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(RootHeader* aValue)
+  {
+    beginType("Root", 0u);
+    Json::Value& rootVal = myTypeStack.top();
+    rootVal["myVersion"] = aValue->myVersion;
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, uint* aValue)
@@ -182,6 +214,11 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Scene::SceneNode** aValue)
   {
     Scene::SceneNode* node = (*aValue);
+    if (!node) {
+      _store(aName, NULL);
+      return;
+    }
+
     beginType(node->getTypeName(), node->getName());
     node->serialize(*this);
     _store(aName, endType());
@@ -238,6 +275,11 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Geometry::SubModel** aValue)
   {
     Geometry::SubModel* val = (*aValue);
+    if (!val) {
+      _store(aName, NULL);
+      return;
+    }
+
     beginType(val->getTypeName(), val->getName());
     val->serialize(*this);
     _store(aName, endType());
@@ -246,6 +288,11 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Geometry::Mesh** aValue)
   {
      Geometry::Mesh* val = (*aValue);
+     if (!val) {
+       _store(aName, NULL);
+       return;
+     }
+
      _store(aName, val->getName().toString());
 
     // beginType(val->getTypeName(), val->getName());
@@ -256,6 +303,12 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Rendering::Material** aValue)
   {
     Rendering::Material* val = (*aValue);
+
+    if (!val) {
+      _store(aName, NULL);
+      return;
+    }
+
     beginType(val->getTypeName(), val->getName());
     val->serialize(*this);
     _store(aName, endType());
@@ -264,6 +317,12 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Rendering::MaterialPass** aValue)
   {
     Rendering::MaterialPass* val = *aValue;
+
+    if (!val) {
+      _store(aName, NULL);
+      return;
+    }
+
     beginType(val->getTypeName(), val->getName());
     val->serialize(*this);
     _store(aName, endType());
@@ -272,6 +331,12 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Rendering::MaterialPassInstance** aValue)
   {
     Rendering::MaterialPassInstance* val = *aValue;
+
+    if (!val) {
+      _store(aName, NULL);
+      return;
+    }
+
     beginType(val->getTypeName(), val->getName());
     val->serialize(*this);
     _store(aName, endType());
@@ -301,18 +366,36 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Rendering::DepthStencilState** aValue)
   {
     Rendering::DepthStencilState* dsstate = *aValue;
+
+    if (!dsstate) {
+      _store(aName, NULL);
+      return;
+    }
+
     _store(aName, dsstate->getName().toString());
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, Rendering::GpuProgram** aValue)
   {
     Rendering::GpuProgram* gpuProgram = *aValue;
+
+    if (!gpuProgram) {
+      _store(aName, NULL);
+      return;
+    }
+
     _store(aName, gpuProgram->getName().toString());
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, Rendering::Texture** aValue)
   {
     Rendering::Texture* texture = *aValue;
+
+    if (!texture) {
+      _store(aName, NULL);
+      return;
+    }
+
     _store(aName, texture->getPath());
   }
 //---------------------------------------------------------------------------//

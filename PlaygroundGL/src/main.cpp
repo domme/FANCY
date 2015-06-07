@@ -17,6 +17,7 @@
 #include <SceneImporter.h>
 #include <RenderingProcessForward.h>
 #include <ObjectName.h>
+#include <LightComponent.h>
 
 using namespace Fancy;
 
@@ -49,7 +50,7 @@ void startupEngine()
   pModelNode->getTransform().setPositionLocal(glm::vec3(0.0f, 0.0f, -10.0f));
 
   Scene::SceneNode* pLightNode = pScene->getRootNode()->createChildNode(_N(LightNode));
-//  Scene::LightComponent* pLight = static_cast<Scene::LightComponent*>(pLightNode->addOrRetrieveComponent(_N(LightComponent)));
+  Scene::LightComponent* pLight = static_cast<Scene::LightComponent*>(pLightNode->addOrRetrieveComponent(_N(LightComponent)));
 
   EngineCommon::startup();
 }

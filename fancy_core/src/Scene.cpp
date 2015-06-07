@@ -1,5 +1,7 @@
 #include "Scene.h"
 #include "SceneNode.h"
+#include "SceneNodeComponent.h"
+#include "LightComponent.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
