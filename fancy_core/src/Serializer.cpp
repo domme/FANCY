@@ -108,13 +108,13 @@ namespace Fancy { namespace IO {
     }
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::beginType(const String& aTypeName, uint anInstanceHash)
+  void SerializerJSON::beginType(const String& aTypeName, const String& aName)
   {
     Json::Value typeValue(Json::objectValue);
-    typeValue["TypeName"] = aTypeName;
+    typeValue["Type"] = aTypeName;
 
-    if (anInstanceHash != 0x0)
-      typeValue["InstanceHash"] = anInstanceHash;
+    if (!aName.empty())
+      typeValue["Name"] = aName;
 
     myTypeStack.push(typeValue);
   }
@@ -173,9 +173,15 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(RootHeader* aValue)
   {
-    beginType("Root", 0u);
+    beginType("Root", "");
     Json::Value& rootVal = myTypeStack.top();
     rootVal["myVersion"] = aValue->myVersion;
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, uint32* aValue)
+  {
+    Json::Value val(*aValue);
+    _store(aName, val);
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, uint* aValue)
@@ -233,7 +239,7 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Scene::SceneNodeComponentPtr* aValue)
   {
     Scene::SceneNodeComponentPtr& component = (*aValue);
-    beginType(component->getTypeName(), 0);
+    beginType(component->getTypeName(), "");
     component->serialize(*this);
     _store(aName, endType());
   }
@@ -397,6 +403,13 @@ namespace Fancy { namespace IO {
     }
 
     _store(aName, texture->getPath());
+  }
+//---------------------------------------------------------------------------//
+  void SerializerJSON::store(const char* aName, Rendering::TextureStorageEntry* aValue)
+  {
+    beginType("TextureEntry", "");
+    aValue->serialize(*this);
+    _store(aName, endType());
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, glm::quat* aValue)

@@ -213,6 +213,12 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
+  void TextureStorageEntry::serialize(IO::Serializer& aSerializer)
+  {
+    aSerializer.serialize(_VAL(myShaderStage));
+    aSerializer.serialize(_VAL(myIndex));
+    aSerializer.serialize(_VAL(myName));
+  }
 //---------------------------------------------------------------------------//
   MaterialPassInstance::MaterialPassInstance() :
     m_pMaterialPass(nullptr)
@@ -234,15 +240,29 @@ namespace Fancy { namespace Rendering {
     aSerializer.serialize(_VAL(m_Name));
     aSerializer.serialize(_VAL(m_pMaterialPass));
     
-    aSerializer.beginArray("m_vpReadTextures", (uint32)ShaderStage::NUM);
-    for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
+    std::vector<TextureStorageEntry> textureEntries;
+    if (aSerializer.getMode() == IO::ESerializationMode::STORE)
     {
-      aSerializer.beginArray("m_vpReadTextures[]", kMaxNumReadTextures);
-      for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
+      for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
       {
-        aSerializer.serialize(m_vpReadTextures[iStage][i]);
+        for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
+        {
+          if (m_vpReadTextures[iStage][i])
+          {
+            TextureStorageEntry entry;
+            entry.myShaderStage = iStage;
+            entry.myIndex = i;
+            entry.myName = m_vpReadTextures[iStage][i]->getPath();
+            textureEntries.push_back(entry);
+          }
+        }
       }
-      aSerializer.endArray();
+    }
+    
+    uint32 numTextures = aSerializer.beginArray("m_vpReadTextures", (uint32)ShaderStage::NUM);
+    for (uint32 i = 0u; i < textureEntries.size(); ++i)
+    {
+      aSerializer.serialize(textureEntries[i]);
     }
     aSerializer.endArray();
 

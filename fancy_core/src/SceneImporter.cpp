@@ -142,7 +142,7 @@ namespace Fancy { namespace IO {
     workingData.szCurrScenePathInResources = _szImportPathRel;
     success = Processing::processAiScene(workingData, aScene, _pParentNode);
 
-    SerializerJSON serializer(ESerializationMode::STORE, szImportPathAbs + ".json");
+    SerializerJSON serializer(ESerializationMode::STORE, szImportPathAbs);
     serializer.serialize(_pParentNode, "rootNode");
 
     return success;
@@ -732,7 +732,7 @@ namespace Fancy { namespace IO {
 
     PathService::removeFolderUpMarkers(szTexPath);
 
-    ObjectName textureName = szTexPath;
+    ObjectName textureName = PathService::toRelPath(szTexPath);
 
     // Did we already load this texture before?
     Texture* pTexture = Texture::getByName(textureName);
@@ -785,7 +785,7 @@ namespace Fancy { namespace IO {
     }
     else
     {
-      BinaryCache::writeToCache(pTexture, texParams.pPixelData, texParams.uPixelDataSizeBytes);
+      BinaryCache::write(pTexture, texParams.pPixelData, texParams.uPixelDataSizeBytes);
       Texture::registerWithName(textureName, pTexture);  
     }
 

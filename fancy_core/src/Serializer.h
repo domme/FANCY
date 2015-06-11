@@ -15,6 +15,7 @@ namespace Fancy { namespace Rendering {
   class DepthStencilState;
   class BlendState;
   class MaterialPassInstance;
+  struct TextureStorageEntry;
 }}
  
 namespace Fancy { namespace Scene {
@@ -30,7 +31,7 @@ namespace Fancy { namespace Geometry {
 } }
 
 namespace Fancy { namespace IO {
-    class SerializerBinary;
+  class SerializerBinary;
 } }
 
 namespace Fancy { namespace IO {
@@ -59,6 +60,8 @@ namespace Fancy { namespace IO {
       public:
         Serializer(ESerializationMode aMode);
         virtual ~Serializer();
+
+        ESerializationMode getMode() { return myMode; }
       //---------------------------------------------------------------------------//
       //---------------------------------------------------------------------------//
         template<class T> void serialize(T& anObject, const char* aName = nullptr)
@@ -89,6 +92,7 @@ namespace Fancy { namespace IO {
         virtual void endArray() = 0;
         
     protected:
+      virtual void store(const char* aName, uint32* aValue) = 0;
       virtual void store(const char* aName, uint* aValue) = 0;
       virtual void store(const char* aName, float* aValue) = 0;
       virtual void store(const char* aName, String* aValue) = 0;
@@ -111,6 +115,7 @@ namespace Fancy { namespace IO {
       virtual void store(const char* aName, Rendering::DepthStencilState** aValue) = 0;
       virtual void store(const char* aName, Rendering::GpuProgram** aValue) = 0;
       virtual void store(const char* aName, Rendering::Texture** aValue) = 0;
+      virtual void store(const char* aName, Rendering::TextureStorageEntry* aValue) = 0;
       virtual void store(const char* aName, glm::quat* aValue) = 0;
       virtual void store(const char* aName, glm::mat3* aValue) = 0;
       virtual void store(const char* aName, glm::mat4* aValue) = 0;
@@ -149,9 +154,10 @@ namespace Fancy { namespace IO {
         uint32 myVersion;
       };
 
-      virtual void beginType(const String& aTypeName, uint anInstanceHash);
+      virtual void beginType(const String& aTypeName, const String& aName);
       virtual Json::Value endType();
 
+      virtual void store(const char* aName, uint32* aValue) override;
       virtual void store(const char* aName, uint* aValue) override;
       virtual void store(const char* aName, float* aValue) override;
       virtual void store(const char* aName, String* aValue) override;
@@ -174,6 +180,7 @@ namespace Fancy { namespace IO {
       virtual void store(const char* aName, Rendering::DepthStencilState** aValue) override;
       virtual void store(const char* aName, Rendering::GpuProgram** aValue) override;
       virtual void store(const char* aName, Rendering::Texture** aValue) override;
+      virtual void store(const char* aName, Rendering::TextureStorageEntry* aValue) override;
       virtual void store(const char* aName, glm::quat* aValue) override;
       virtual void store(const char* aName, glm::mat3* aValue) override;
       virtual void store(const char* aName, glm::mat4* aValue) override;

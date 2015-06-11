@@ -85,6 +85,14 @@ namespace Fancy { namespace Rendering {
     MaterialPassDesc myMaterialPass;
   };
 //---------------------------------------------------------------------------//
+  struct TextureStorageEntry
+  {
+    uint32 myShaderStage;
+    uint32 myIndex;
+    String myName;
+    void serialize(IO::Serializer& aSerializer);
+  };
+//---------------------------------------------------------------------------//
   class MaterialPassInstance
   {
     friend class MaterialPass;
