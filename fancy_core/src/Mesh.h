@@ -15,12 +15,6 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   typedef FixedArray<GeometryData*, kMaxNumGeometriesPerSubModel> GeometryDataList;
 //---------------------------------------------------------------------------//
-  struct MeshDesc
-  {
-	  ObjectName myName;
-    std::vector<GeometryDataDesc> myGeometryDatas;
-  };
-//---------------------------------------------------------------------------//
   /// Represents a collection of raw geometric pieces that can be rendered with a single material
   /// Two GeometryDatas always have different vertex-attributes or primitive types which makes their distinction necessary.
   class Mesh : public StaticManagedHeapObject<Mesh>
@@ -29,8 +23,6 @@ namespace Fancy { namespace Geometry {
     Mesh();
     ~Mesh();
 
-    MeshDesc getDescription() const;
-    void initFromDescription(const MeshDesc& aDesc);
   //---------------------------------------------------------------------------//
     const ObjectName& getName() {return m_Name;}
     void setName(const ObjectName& clNewName) {m_Name = clNewName;}

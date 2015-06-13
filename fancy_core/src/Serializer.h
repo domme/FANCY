@@ -152,7 +152,6 @@ namespace Fancy { namespace IO {
       struct RootHeader
       {
         RootHeader() : myVersion(0u),
-          myMeshes(Json::objectValue),
           myModels(Json::objectValue),
           mySubModels(Json::objectValue),
           myMaterials(Json::objectValue),
@@ -160,7 +159,6 @@ namespace Fancy { namespace IO {
 
         uint32 myVersion;
 
-        Json::Value myMeshes;
         Json::Value myModels;
         Json::Value mySubModels;
         Json::Value myMaterials;

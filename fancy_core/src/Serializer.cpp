@@ -172,7 +172,6 @@ namespace Fancy { namespace IO {
   void SerializerJSON::storeHeader(Json::Value& aValue)
   {
     aValue["myVersion"] = myHeader.myVersion;
-    aValue["myMeshes"] = myHeader.myMeshes;
     aValue["myModels"] = myHeader.myModels;
     aValue["mySubModels"] = myHeader.mySubModels;
     aValue["myMaterials"] = myHeader.myMaterials;
@@ -316,10 +315,6 @@ namespace Fancy { namespace IO {
      }
 
      _store(aName, val->getName().toString());
-
-    // beginType(val->getTypeName(), val->getName());
-    // val->serialize(*this);
-    // _store(aName, endType());
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, Rendering::Material** aValue)

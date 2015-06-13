@@ -11,24 +11,12 @@
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  struct GeometryDataDesc
-  {
-    ObjectName myName;
-    Rendering::GeometryVertexLayout myVertexLayout;
-    Rendering::GpuBufferParameters myVertexBufferParams;
-    Rendering::GpuBufferParameters myIndexBufferParams;
-    void* myVertexData;
-    void* myIndexData;
-  };
+  
 //---------------------------------------------------------------------------//
-  class GeometryData : public StaticManagedHeapObject<GeometryData> {
-
+  class GeometryData {
     public:
       GeometryData();
       ~GeometryData();
-
-      GeometryDataDesc getDescription() const;
-      void initFromDescription(const GeometryDataDesc& aDesc);
 
       const Rendering::GeometryVertexLayout& getGeometryVertexLayout() const {return m_vertexLayout;}
       const Rendering::GpuBuffer* getVertexBuffer() const {return m_pVertexBuffer;}
@@ -41,11 +29,7 @@ namespace Fancy { namespace Geometry {
       void setIndexBuffer(Rendering::GpuBuffer* _pIndexBuffer) {m_pIndexBuffer = _pIndexBuffer;}
       void setVertexLayout(const Rendering::GeometryVertexLayout& _rVertexLayout) {m_vertexLayout = _rVertexLayout;}
 
-      const ObjectName& getName() {return m_name;}
-      void setName(const ObjectName& _name) {m_name = _name;}
-
     protected:
-      ObjectName m_name;
       Rendering::GeometryVertexLayout m_vertexLayout;
       Rendering::GpuBuffer* m_pVertexBuffer;  // TODO: put into array for multiple vertex-streams?
       Rendering::GpuBuffer* m_pIndexBuffer;

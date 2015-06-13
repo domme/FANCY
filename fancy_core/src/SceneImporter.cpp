@@ -96,7 +96,6 @@ namespace Fancy { namespace IO {
     std::string getUniqueMeshName(WorkingData& _workingData);
     std::string getUniqueModelName(WorkingData& _workingData);
     std::string getUniqueSubModelName(WorkingData& _workingData);
-    std::string getUniqueGeometryDataName(WorkingData& _workingData, const aiMesh* _pMesh);
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -331,19 +330,8 @@ namespace Fancy { namespace IO {
       return it->second;
     }
 
-    ObjectName uniqueGeodataName = Processing::getUniqueGeometryDataName(_workingData, _pAmesh);
-    Geometry::GeometryData* pGeometryData = Geometry::GeometryData::getByName(uniqueGeodataName);
-
-    if (pGeometryData != nullptr)
-    {
-      return pGeometryData;
-    }
-
-    // We have to construct a new GeometryData instance
-    pGeometryData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::GEOMETRY);
+    Geometry::GeometryData* pGeometryData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::GEOMETRY);
     _workingData.mapAiMeshToGeometryData[_pAmesh] = pGeometryData;
-    pGeometryData->setName(uniqueGeodataName);
-    Geometry::GeometryData::registerWithName(pGeometryData);
 
     // Construct the vertex layout description
     Rendering::GeometryVertexLayout vertexLayout;
@@ -802,13 +790,6 @@ namespace Fancy { namespace IO {
   {
     return "Mesh_" + _workingData.szCurrScenePathInResources + "_" 
       + StringUtil::toString(_workingData.u32NumCreatedMeshes++);
-  }
-//---------------------------------------------------------------------------//
-  std::string Processing::getUniqueGeometryDataName(WorkingData& _workingData, const aiMesh* _pMesh)
-  {
-    return "GeometryData_" + _workingData.szCurrScenePathInResources + "_" 
-      + std::string(_pMesh->mName.C_Str()) + "_"
-      + StringUtil::toString(_workingData.u32NumCreatedGeometryDatas++);
   }
 //---------------------------------------------------------------------------//
   std::string Processing::getUniqueSubModelName(WorkingData& _workingData)
