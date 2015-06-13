@@ -91,19 +91,17 @@ namespace Fancy { namespace IO {
     String archivePath = anArchivePath + Internal::kArchiveExtensionJson;
     myArchive.open(archivePath, archiveFlags);
 
-    myHeader = { 0u };
-    if (aMode == ESerializationMode::STORE)
-    {
-      myHeader.myVersion = myVersion;
-      store(&myHeader);
-    }
+    myHeader = RootHeader();
+    SerializerJSON::beginType("Root", "");
   }
 //---------------------------------------------------------------------------//
   SerializerJSON::~SerializerJSON()
   {
+    Json::Value wholeDocumentVal = SerializerJSON::endType();
+    
     if (myMode == ESerializationMode::STORE)
     {
-      Json::Value wholeDocumentVal = endType();
+      storeHeader(wholeDocumentVal);
       myJsonWriter.write(myArchive, wholeDocumentVal);
     }
   }
@@ -171,11 +169,14 @@ namespace Fancy { namespace IO {
     }
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(RootHeader* aValue)
+  void SerializerJSON::storeHeader(Json::Value& aValue)
   {
-    beginType("Root", "");
-    Json::Value& rootVal = myTypeStack.top();
-    rootVal["myVersion"] = aValue->myVersion;
+    aValue["myVersion"] = myHeader.myVersion;
+    aValue["myMeshes"] = myHeader.myMeshes;
+    aValue["myModels"] = myHeader.myModels;
+    aValue["mySubModels"] = myHeader.mySubModels;
+    aValue["myMaterials"] = myHeader.myMaterials;
+    aValue["myMaterialPasses"] = myHeader.myMaterialPasses;
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, uint32* aValue)
@@ -273,9 +274,19 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Geometry::Model** aValue)
   {
     Geometry::Model* val = (*aValue);
-    beginType(val->getTypeName(), val->getName());
-    val->serialize(*this);
-    _store(aName, endType());
+    if (!val) {
+      _store(aName, NULL);
+      return;
+    }
+
+    if (!isStoredManaged(val->getName(), myHeader.myModels))
+    {
+      beginType(val->getTypeName(), val->getName());
+      val->serialize(*this);
+      myHeader.myModels[val->getName().toString()] = endType();
+    }
+
+    _store(aName, val->getName().toString());
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, Geometry::SubModel** aValue)
@@ -286,9 +297,14 @@ namespace Fancy { namespace IO {
       return;
     }
 
-    beginType(val->getTypeName(), val->getName());
-    val->serialize(*this);
-    _store(aName, endType());
+    if (!isStoredManaged(val->getName(), myHeader.mySubModels))
+    {
+      beginType(val->getTypeName(), val->getName());
+      val->serialize(*this);
+      myHeader.mySubModels[val->getName().toString()] = endType();
+    }
+
+    _store(aName, val->getName().toString());
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, Geometry::Mesh** aValue)
@@ -309,29 +325,37 @@ namespace Fancy { namespace IO {
   void SerializerJSON::store(const char* aName, Rendering::Material** aValue)
   {
     Rendering::Material* val = (*aValue);
-
     if (!val) {
       _store(aName, NULL);
       return;
     }
 
-    beginType(val->getTypeName(), val->getName());
-    val->serialize(*this);
-    _store(aName, endType());
+    if (!isStoredManaged(val->getName(), myHeader.myMaterials))
+    {
+      beginType(val->getTypeName(), val->getName());
+      val->serialize(*this);
+      myHeader.myMaterials[val->getName().toString()] = endType();
+    }
+
+    _store(aName, val->getName().toString());
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, Rendering::MaterialPass** aValue)
   {
     Rendering::MaterialPass* val = *aValue;
-
     if (!val) {
       _store(aName, NULL);
       return;
     }
 
-    beginType(val->getTypeName(), val->getName());
-    val->serialize(*this);
-    _store(aName, endType());
+    if (!isStoredManaged(val->getName(), myHeader.myMaterialPasses))
+    {
+      beginType(val->getTypeName(), val->getName());
+      val->serialize(*this);
+      myHeader.myMaterialPasses[val->getName().toString()] = endType();
+    }
+
+    _store(aName, val->getName().toString());
   }
 //---------------------------------------------------------------------------//
   void SerializerJSON::store(const char* aName, Rendering::MaterialPassInstance** aValue)
@@ -485,6 +509,20 @@ namespace Fancy { namespace IO {
     {
       currType.append(aValue);
     }
+  }
+//---------------------------------------------------------------------------//
+  bool SerializerJSON::isStoredManaged(const ObjectName& aName, const Json::Value& aVal)
+  {
+    ASSERT(aVal.type() == Json::objectValue);
+    for (Json::ValueConstIterator it = aVal.begin(); it != aVal.end(); ++it)
+    {
+      if (it.name() == aName.toString())
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

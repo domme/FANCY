@@ -151,7 +151,20 @@ namespace Fancy { namespace IO {
 
       struct RootHeader
       {
+        RootHeader() : myVersion(0u),
+          myMeshes(Json::objectValue),
+          myModels(Json::objectValue),
+          mySubModels(Json::objectValue),
+          myMaterials(Json::objectValue),
+          myMaterialPasses(Json::objectValue) {}
+
         uint32 myVersion;
+
+        Json::Value myMeshes;
+        Json::Value myModels;
+        Json::Value mySubModels;
+        Json::Value myMaterials;
+        Json::Value myMaterialPasses;
       };
 
       virtual void beginType(const String& aTypeName, const String& aName);
@@ -188,13 +201,15 @@ namespace Fancy { namespace IO {
       virtual void store(const char* aName, glm::vec4* aValue) override;
       
       void _store(const char* aName, const Json::Value& aValue);
-      void store(RootHeader* aValue);
+      bool isStoredManaged(const ObjectName& aName, const Json::Value& aValue);
+      void storeHeader(Json::Value& aValue);
 
       // virtual void store(const char* aName, Geometry::SubModelList* someValues) override;
       // virtual void store(const char* aName, std::vector<Scene::SceneNodeComponentPtr>* someValues) override;
       // virtual void store(const char* aName, std::vector<Scene::SceneNodePtr>* someValues) override;
 
       RootHeader myHeader;
+      
       std::stack<Json::Value> myTypeStack;
       std::stack<ArrayDesc> myArrayStack;
       Json::StyledStreamWriter myJsonWriter;
