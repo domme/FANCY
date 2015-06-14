@@ -14,10 +14,6 @@ namespace Fancy {
       static bool registerWithName(const ObjectName& _name, const T& _object)
       {
         MapType::const_iterator it = m_objectMap.find(_name);
-        if (it != m_objectMap.end())
-        {
-          return false;
-        }
 
         m_objectMap.insert(std::pair<ObjectName, T>(_name, _object));
         return true;
@@ -91,12 +87,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
       static bool registerWithName(const ObjectName& _name, T* _object)
       {
-        MapType::const_iterator it = m_objectMap.find(_name);
-        if (it != m_objectMap.end())
-        {
-          return false;
-        }
-
         m_objectMap.insert(std::pair<ObjectName, T*>(_name, _object));
         return true;
       }

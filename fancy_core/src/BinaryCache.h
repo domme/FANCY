@@ -8,7 +8,7 @@
 #include "StringUtil.h"
 
 namespace Fancy { namespace Geometry {
-  class GeometryData;
+  class Mesh;
 } }
 
 namespace Fancy { namespace IO {
@@ -19,9 +19,9 @@ namespace Fancy { namespace IO {
   //---------------------------------------------------------------------------//
     static String getCacheFilePathAbs(const ObjectName& aName);
     static bool write(Rendering::Texture* aTexture, void* someData, uint32 aDataSize);
-    static bool write(Geometry::GeometryData* aGeometryData, void* someVertexData, 
-      uint32 aVertexDataSize, void* someIndexData, uint32 anIndexDataSize);
-    static bool load(Rendering::Texture** aTexture, const ObjectName& aName);
+    static bool write(Geometry::Mesh* aMesh, void** someVertexDatas, void** someIndexDatas);
+    static bool read(Rendering::Texture** aTexture, const ObjectName& aName, uint32 aTimeStamp);
+    static bool read(Geometry::Mesh** aMesh, const ObjectName& aName, uint32 aTimeStamp);
   //---------------------------------------------------------------------------//      
 };
 } }  // end of namespace Fancy::IO 

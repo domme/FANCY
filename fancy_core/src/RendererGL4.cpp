@@ -200,6 +200,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
 #if defined (_DEBUG)
     VSDebugLib::init(&DebugOutStream::out);
+    VSDebugLib::enableLowSeverityMessages(true);
 #endif  // _DEBUG
   }
 //-----------------------------------------------------------------------//
