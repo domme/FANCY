@@ -16,53 +16,6 @@ namespace Fancy { namespace IO {
     const String kArchiveExtensionBinary = ".bin";
   }
 //---------------------------------------------------------------------------//
-
-#if SERIALIZER_BINARY_SUPPORT
-  struct TextureHeader
-  {
-    uint32 myWidth;
-    uint32 myHeight;
-    uint32 myDepth;
-    uint32 myFormat;
-    uint32 myAccessFlags;
-    uint32 myPixelDataSizeBytes;
-    uint32 myNumMipmapLevels;
-  };
-//---------------------------------------------------------------------------//
-  void SerializerBinary::writeToArchive(Rendering::Texture* aTexture, void* someData, uint32 aDataSize, std::fstream* anArchive)
-  {
-    const Rendering::TextureDesc& desc = aTexture->getParameters();
-
-    TextureHeader header;
-    header.myPath = desc.path;
-    header.myWidth = desc.u16Width;
-    header.myHeight = desc.u16Height;
-    header.myDepth = desc.u16Depth;
-    header.myAccessFlags = desc.uAccessFlags;
-    header.myFormat = static_cast<uint32>(desc.eFormat);
-    header.myNumMipmapLevels = desc.u8NumMipLevels;
-    header.myPixelDataSizeBytes = aDataSize;
-    anArchive->write(reinterpret_cast<const char*>(&header), sizeof(TextureHeader));
-    anArchive->write(static_cast<const char*>(someData), aDataSize);
-  }
-//---------------------------------------------------------------------------//
-  void SerializerBinary::writeToArchive(Geometry::GeometryData* aGeometry, std::fstream* anArchive)
-  {
-  }
-//---------------------------------------------------------------------------//
-  void SerializerBinary::loadFromArchive(Rendering::Texture** aTexture, std::fstream* anArchive)
-  {
-
-  }
-//---------------------------------------------------------------------------//
-  void SerializerBinary::loadFromArchive(Geometry::GeometryData** aTexture, std::fstream* anArchive)
-  {
-  }
-//---------------------------------------------------------------------------//
-#endif
-
-
-//---------------------------------------------------------------------------//
   Serializer::Serializer(ESerializationMode aMode) :
     myMode(aMode) 
   {

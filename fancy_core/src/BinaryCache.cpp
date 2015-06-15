@@ -7,17 +7,6 @@ namespace Fancy {  namespace IO {
   const uint32 kMeshVersion = 0;
   const uint32 kTextureVersion = 0;
 //---------------------------------------------------------------------------//
-  struct TextureHeader
-  {
-    uint32 myWidth;
-    uint32 myHeight;
-    uint32 myDepth;
-    uint32 myFormat;
-    uint32 myAccessFlags;
-    uint32 myPixelDataSizeBytes;
-    uint32 myNumMipmapLevels;
-  };
-//---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
   const String kBinaryCacheRoot = "Cache/";
@@ -74,17 +63,18 @@ namespace Fancy {  namespace IO {
 
     ASSERT_M(archive.good(), "Failed to open cache file");
 
-    Rendering::TextureDesc desc = aTexture->getParameters();
+    archive.write(reinterpret_cast<const char*>(&kTextureVersion), sizeof(uint32));
 
-    TextureHeader header;
-    header.myWidth = desc.u16Width;
-    header.myHeight = desc.u16Height;
-    header.myDepth = desc.u16Depth;
-    header.myAccessFlags = desc.uAccessFlags;
-    header.myFormat = static_cast<uint32>(desc.eFormat);
-    header.myNumMipmapLevels = desc.u8NumMipLevels;
-    header.myPixelDataSizeBytes = aDataSize;
-    archive.write(reinterpret_cast<const char*>(&header), sizeof(TextureHeader));
+    Rendering::TextureDesc desc = aTexture->getParameters();
+    writeName(archive, desc.path);
+    archive.write(reinterpret_cast<const char*>(&desc.u16Width), sizeof(uint16));
+    archive.write(reinterpret_cast<const char*>(&desc.u16Height), sizeof(uint16));
+    archive.write(reinterpret_cast<const char*>(&desc.u16Depth), sizeof(uint16));
+    archive.write(reinterpret_cast<const char*>(&desc.uAccessFlags), sizeof(uint32));
+    const uint32 format = static_cast<uint32>(desc.eFormat);
+    archive.write(reinterpret_cast<const char*>(&format), sizeof(uint32));
+    archive.write(reinterpret_cast<const char*>(&desc.u8NumMipLevels), sizeof(uint8));
+    archive.write(reinterpret_cast<const char*>(&aDataSize), sizeof(uint32));
     archive.write(static_cast<const char*>(someData), aDataSize);
 
     return archive.good();
@@ -92,22 +82,51 @@ namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//  
   bool BinaryCache::read(Rendering::Texture** aTexture, const ObjectName& aName, uint32 aTimeStamp)
   {
-    /*TextureHeader header;
-    mySceneGraphStr->read((char*)&header, sizeof(TextureHeader));
+    const String cacheFilePath = getCacheFilePathAbs(aName);
+    std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
-    aTextureDesc->path = header.myPath.toString();
-    aTextureDesc->u16Width = header.myWidth;
-    aTextureDesc->u16Height = header.myHeight;
-    aTextureDesc->u16Depth = header.myDepth;
-    aTextureDesc->eFormat = static_cast<Rendering::DataFormat>(header.myFormat);
-    aTextureDesc->u8NumMipLevels = header.myNumMipmapLevels;
-    aTextureDesc->uAccessFlags = header.myAccessFlags;
-    aTextureDesc->uPixelDataSizeBytes = header.myPixelDataSizeBytes;
+    if (!archive.good())
+      return false;
 
-    aTextureDesc->pPixelData = FANCY_ALLOCATE(header.myPixelDataSizeBytes, MemoryCategory::TEXTURES);
-    ASSERT(aTextureDesc->pPixelData);
+    uint32 textureVersion;
+    archive.read((char*)&textureVersion, sizeof(uint32));
 
-    mySceneGraphStr->read((char*)aTextureDesc->pPixelData, header.myPixelDataSizeBytes);*/
+    if (textureVersion != kTextureVersion)
+      return false;
+
+    ObjectName textureName = readName(archive);
+    if ((*aTexture) != nullptr && (*aTexture)->getPath() == textureName)
+      return true;
+
+    if ((*aTexture) != nullptr)
+    {
+      FANCY_DELETE(*aTexture, MemoryCategory::TEXTURES);
+      (*aTexture) = nullptr;
+    }
+
+    (*aTexture) = Rendering::Texture::getByName(textureName);
+    if ((*aTexture) != nullptr)
+      return true;
+
+    Rendering::Texture* texture = FANCY_NEW(Rendering::Texture, MemoryCategory::TEXTURES);
+    texture->setPath(textureName);
+    Rendering::Texture::registerWithName(textureName, texture);
+    (*aTexture) = texture;
+
+    Rendering::TextureDesc desc;
+    archive.read((char*)&desc.u16Width, sizeof(uint16));
+    archive.read((char*)&desc.u16Height, sizeof(uint16));
+    archive.read((char*)&desc.u16Depth, sizeof(uint16));
+    archive.read((char*)&desc.uAccessFlags, sizeof(uint32));
+    uint32 format = 0;
+    archive.read((char*)&format, sizeof(uint32));
+    desc.eFormat = static_cast<Rendering::DataFormat>(format);
+    archive.read((char*)&desc.u8NumMipLevels, sizeof(uint8));
+    archive.read((char*)&desc.uPixelDataSizeBytes, sizeof(uint32));
+    desc.pPixelData = FANCY_ALLOCATE(desc.uPixelDataSizeBytes, MemoryCategory::TEXTURES);
+    archive.read((char*)&desc.pPixelData, desc.uPixelDataSizeBytes);
+    texture->create(desc);
+    FANCY_FREE(desc.pPixelData, MemoryCategory::TEXTURES);
 
     return false;
   }
@@ -193,12 +212,15 @@ namespace Fancy {  namespace IO {
       return false;
     
     if ((*aMesh) != nullptr)
+    {
       FANCY_DELETE((*aMesh), MemoryCategory::GEOMETRY);
+      (*aMesh) = nullptr;
+    }
 
     ObjectName meshName = readName(archive);
-    /*(*aMesh) = Geometry::Mesh::getByName(meshName);
+    (*aMesh) = Geometry::Mesh::getByName(meshName);
     if ((*aMesh) != nullptr)
-      return true;*/
+      return true;
 
     (*aMesh) = FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY);
     Geometry::Mesh* mesh = (*aMesh);
@@ -266,7 +288,7 @@ namespace Fancy {  namespace IO {
         archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint32));
 
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
-        archive.read((char*)(bufferData), totalBufferBytes);
+        archive.read(static_cast<char*>(bufferData), totalBufferBytes);
         buffer->create(bufferParams, bufferData);
         FANCY_FREE(bufferData, MemoryCategory::Geometry);
         
