@@ -210,6 +210,10 @@ namespace Fancy {  namespace IO {
 
     if (meshVersion != kMeshVersion)
       return false;
+
+    ObjectName meshName = readName(archive);
+    if ((*aMesh) != nullptr && (*aMesh)->getName() == meshName)
+      return true;
     
     if ((*aMesh) != nullptr)
     {
@@ -217,7 +221,6 @@ namespace Fancy {  namespace IO {
       (*aMesh) = nullptr;
     }
 
-    ObjectName meshName = readName(archive);
     (*aMesh) = Geometry::Mesh::getByName(meshName);
     if ((*aMesh) != nullptr)
       return true;

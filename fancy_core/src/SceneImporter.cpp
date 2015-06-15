@@ -586,8 +586,7 @@ namespace Fancy { namespace IO {
       FANCY_DELETE_ARR(indexDatas[i], MemoryCategory::GEOMETRY);
     }
     indexDatas.clear();
-
-     
+ 
     BinaryCache::read(&mesh, meshName, 0u);
     
     return mesh;
