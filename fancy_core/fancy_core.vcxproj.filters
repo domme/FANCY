@@ -246,6 +246,9 @@
     <ClInclude Include="src\json\json-forwards.h">
       <Filter>src\IO\JSON</Filter>
     </ClInclude>
+    <ClInclude Include="src\Serializable.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">

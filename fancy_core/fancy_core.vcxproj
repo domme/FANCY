@@ -258,6 +258,7 @@
     <ClInclude Include="src\SceneNodeComponent.h" />
     <ClInclude Include="src\SceneNodeComponentFactory.h" />
     <ClInclude Include="src\SceneRenderDescription.h" />
+    <ClInclude Include="src\Serializable.h" />
     <ClInclude Include="src\Serializer.h" />
     <ClInclude Include="src\ShaderConstantsManager.h" />
     <ClInclude Include="src\StaticManagedObject.h" />

@@ -7,6 +7,8 @@
 
 #include "Json/json.h"
 
+#include "Serializable.h"
+
 #define _VAL(X) X, #X
 #define _STR(X) #X
 
@@ -62,8 +64,13 @@ namespace Fancy { namespace IO {
         virtual ~Serializer();
 
         ESerializationMode getMode() { return myMode; }
-      //---------------------------------------------------------------------------//
-      //---------------------------------------------------------------------------//
+
+        template<class T>
+        void serializeImpl(const char* aName, T& anItem, ClassType)
+        {
+          
+        }
+        
         template<class T> void serialize(T& anObject, const char* aName = nullptr)
         {
           if (myMode == ESerializationMode::STORE)
@@ -75,19 +82,8 @@ namespace Fancy { namespace IO {
             // load(aName, anObject);
           }
         }
-      //---------------------------------------------------------------------------//
-        //template<class T> void serialize(T* anObject, const char* aName = nullptr)
-        //{
-        //  if (myMode == ESerializationMode::STORE)
-        //  {
-        //    store(aName, &anObject);
-        //  }
-        //  else
-        //  {
-        //   // load(aName, anObject);
-        //  }
-        //}
-      //---------------------------------------------------------------------------//
+      
+
         virtual uint32 beginArray(const char* aName, uint32 aNumElements) = 0;
         virtual void endArray() = 0;
         
