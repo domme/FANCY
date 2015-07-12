@@ -5,6 +5,7 @@
 #include "CameraComponent.h"
 #include "ModelComponent.h"
 #include "ObjectName.h"
+#include "Serializable.h"
 
 namespace Fancy {
   namespace IO {
@@ -84,7 +85,7 @@ namespace Fancy { namespace Scene {
       ~SceneNode();
 
       static ObjectName getTypeName() { return _N(SceneNode); }
-      void serialize(IO::Serializer& aSerializer);
+      void serialize(IO::Serializer* aSerializer);
 
       static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent);
       static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, SceneNode* pParent);
@@ -133,9 +134,11 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(SceneNode)
 //---------------------------------------------------------------------------//
-  
+} // End of namespace Scene
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Scene
+  SERIALIZABLE(Scene::SceneNode)
+//---------------------------------------------------------------------------//
+} // end of namespace Fancy
 
 #pragma region Old SceneNode code
 

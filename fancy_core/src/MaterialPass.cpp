@@ -82,7 +82,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPass::serialize(IO::Serializer& aSerializer)
   {
-    aSerializer.serialize(_VAL(m_Name));
+    /*aSerializer.serialize(_VAL(m_Name));
     aSerializer.serialize(_VAL(m_eFillMode));
     aSerializer.serialize(_VAL(m_eCullMode));
     aSerializer.serialize(_VAL(m_eWindingOrder));
@@ -94,7 +94,7 @@ namespace Fancy { namespace Rendering {
     {
       aSerializer.serialize(m_pGpuProgram[i]);
     }
-    aSerializer.endArray();
+    aSerializer.endArray();*/
   }
 //---------------------------------------------------------------------------//
   MaterialPassDesc MaterialPass::getDescription() const
@@ -215,9 +215,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void TextureStorageEntry::serialize(IO::Serializer& aSerializer)
   {
-    aSerializer.serialize(_VAL(myShaderStage));
+    /*aSerializer.serialize(_VAL(myShaderStage));
     aSerializer.serialize(_VAL(myIndex));
-    aSerializer.serialize(_VAL(myName));
+    aSerializer.serialize(_VAL(myName));*/
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance::MaterialPassInstance() :
@@ -237,55 +237,55 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::serialize(IO::Serializer& aSerializer)
   {
-    aSerializer.serialize(_VAL(m_Name));
-    aSerializer.serialize(_VAL(m_pMaterialPass));
-    
-    std::vector<TextureStorageEntry> textureEntries;
-    if (aSerializer.getMode() == IO::ESerializationMode::STORE)
-    {
-      for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
-      {
-        for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
-        {
-          if (m_vpReadTextures[iStage][i])
-          {
-            TextureStorageEntry entry;
-            entry.myShaderStage = iStage;
-            entry.myIndex = i;
-            entry.myName = m_vpReadTextures[iStage][i]->getPath();
-            textureEntries.push_back(entry);
-          }
-        }
-      }
-    }
-    
-    uint32 numTextures = aSerializer.beginArray("m_vpReadTextures", (uint32)ShaderStage::NUM);
-    for (uint32 i = 0u; i < textureEntries.size(); ++i)
-    {
-      aSerializer.serialize(textureEntries[i]);
-    }
-    aSerializer.endArray();
+    //aSerializer.serialize(_VAL(m_Name));
+    //aSerializer.serialize(_VAL(m_pMaterialPass));
+    //
+    //std::vector<TextureStorageEntry> textureEntries;
+    //if (aSerializer.getMode() == IO::ESerializationMode::STORE)
+    //{
+    //  for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
+    //  {
+    //    for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
+    //    {
+    //      if (m_vpReadTextures[iStage][i])
+    //      {
+    //        TextureStorageEntry entry;
+    //        entry.myShaderStage = iStage;
+    //        entry.myIndex = i;
+    //        entry.myName = m_vpReadTextures[iStage][i]->getPath();
+    //        textureEntries.push_back(entry);
+    //      }
+    //    }
+    //  }
+    //}
+    //
+    //uint32 numTextures = aSerializer.beginArray("m_vpReadTextures", (uint32)ShaderStage::NUM);
+    //for (uint32 i = 0u; i < textureEntries.size(); ++i)
+    //{
+    //  aSerializer.serialize(textureEntries[i]);
+    //}
+    //aSerializer.endArray();
 
-      // for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
-      // {
-      //   aSerializer & m_vpWriteTextures[iStage][i];
-      // }
-      // 
-      // // TODO: Should buffers be loadable?
-      // /*for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
-      // {
-      //   m_vpReadBuffers[iStage][i] = nullptr;
-      // }
-      // 
-      // for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
-      // {
-      //   m_vpWriteBuffers[iStage][i] = nullptr;
-      // }*/
-      // 
-      // for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
-      // {
-      //   aSerializer & m_vpTextureSamplers[iStage][i];
-      // }
+    //  // for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
+    //  // {
+    //  //   aSerializer & m_vpWriteTextures[iStage][i];
+    //  // }
+    //  // 
+    //  // // TODO: Should buffers be loadable?
+    //  // /*for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
+    //  // {
+    //  //   m_vpReadBuffers[iStage][i] = nullptr;
+    //  // }
+    //  // 
+    //  // for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
+    //  // {
+    //  //   m_vpWriteBuffers[iStage][i] = nullptr;
+    //  // }*/
+    //  // 
+    //  // for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
+    //  // {
+    //  //   aSerializer & m_vpTextureSamplers[iStage][i];
+    //  // }
   }
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::initFromDescription(const MaterialPassInstanceDesc _aDesc)

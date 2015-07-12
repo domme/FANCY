@@ -30,36 +30,164 @@ namespace Fancy { namespace IO {
     }
   }
 //---------------------------------------------------------------------------//
+  bool Serializer::serializeImpl(void* anObject, DataType aDataType, const char* aName)
+  {
+    switch (aDataType.myBaseType)
+    {
+      case EBaseDataType::Serializable:
+        MetaTable* metaTable = static_cast<MetaTable*>(aDataType.myUserData);
+        beginType(metaTable->getTypeName(anObject), metaTable->getInstanceName(anObject));
+        metaTable->serialize(this, anObject);
+        endType();
+        return true;
+      default:
+        return false;
+    }
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  SerializerJSON::SerializerJSON(ESerializationMode aMode, const String& anArchivePath) : Serializer(aMode)
+  JSONwriter::JSONwriter(const String& anArchivePath) : Serializer(ESerializationMode::STORE)
   {
     uint32 archiveFlags = 0u;
 
-    if (aMode == ESerializationMode::LOAD)
-      archiveFlags |= std::ios::in;
-    else
-      archiveFlags |= std::ios::out;
+    archiveFlags |= std::ios::out;
 
     String archivePath = anArchivePath + Internal::kArchiveExtensionJson;
     myArchive.open(archivePath, archiveFlags);
 
     myHeader = RootHeader();
-    SerializerJSON::beginType("Root", "");
+    JSONwriter::beginType("Root", "");
   }
 //---------------------------------------------------------------------------//
-  SerializerJSON::~SerializerJSON()
+  JSONwriter::~JSONwriter()
   {
-    Json::Value wholeDocumentVal = SerializerJSON::endType();
+    JSONwriter::endType();
     
-    if (myMode == ESerializationMode::STORE)
+    storeHeader(myCurrentEndType);
+    myJsonWriter.write(myArchive, myCurrentEndType);
+  }
+//---------------------------------------------------------------------------//
+  bool JSONwriter::serializeImpl(void* anObject, DataType aDataType, const char* aName)
+  {
+    if (Serializer::serializeImpl(anObject, aDataType, aName))
+      return true;
+
+    bool handled = true;
+    switch (aDataType.myBaseType)
     {
-      storeHeader(wholeDocumentVal);
-      myJsonWriter.write(myArchive, wholeDocumentVal);
+      case EBaseDataType::None: break;
+
+      case EBaseDataType::Int:
+      {
+        Json::Value jsonVal(*static_cast<int*>(anObject));
+        _store(aName, jsonVal);
+      } break;
+        
+      case EBaseDataType::Uint: 
+      {
+        Json::Value jsonVal(*static_cast<uint*>(anObject));
+        _store(aName, jsonVal);
+      } break;
+
+      case EBaseDataType::Float:
+      {
+        Json::Value jsonVal(*static_cast<uint*>(anObject));
+        _store(aName, jsonVal);
+      } break;
+
+      case EBaseDataType::Char:
+      {
+        Json::Value jsonVal(*static_cast<char*>(anObject));
+        _store(aName, jsonVal);
+      } break;
+
+      case EBaseDataType::String:
+      {
+        Json::Value jsonVal(*static_cast<String*>(anObject));
+        _store(aName, jsonVal);
+      } break;
+        
+      case EBaseDataType::CString:
+      {
+        Json::Value jsonVal(*static_cast<const char*>(anObject));
+        _store(aName, jsonVal);
+      } break;
+
+      case EBaseDataType::Array: break;
+      case EBaseDataType::Vector: break;
+      case EBaseDataType::Map: break;
+
+      case EBaseDataType::Vector3:
+      {
+        const glm::vec3& val = *static_cast<const glm::vec3*>(anObject);
+        Json::Value jsonVal(Json::arrayValue);
+        for (uint i = 0u; i < val.length(); ++i)
+          jsonVal.append(val[i]);
+
+        _store(aName, jsonVal);
+      } break;
+
+      case EBaseDataType::Vector4:
+      {
+        const glm::vec4& val = *static_cast<const glm::vec4*>(anObject);
+        Json::Value jsonVal(Json::arrayValue);
+        for (uint i = 0u; i < val.length(); ++i)
+          jsonVal.append(val[i]);
+
+        _store(aName, jsonVal);
+      } break;
+
+      case EBaseDataType::Matrix3x3: 
+      {
+        const glm::mat3& val = *static_cast<const glm::mat3*>(anObject);
+        Json::Value jsonVal(Json::arrayValue);
+        for (uint y = 0u; y < val.length(); ++y)
+          for (uint x = 0u; x < val[y].length(); ++x)
+          jsonVal.append(val[x][y]);
+
+        _store(aName, jsonVal);
+      } break;
+
+      case EBaseDataType::Matrix4x4:
+      {
+        const glm::mat4& val = *static_cast<const glm::mat4*>(anObject);
+        Json::Value jsonVal(Json::arrayValue);
+        for (uint y = 0u; y < val.length(); ++y)
+          for (uint x = 0u; x < val[y].length(); ++x)
+            jsonVal.append(val[x][y]);
+
+        _store(aName, jsonVal);
+      } break;
+
+      default: 
+        handled = false;
+        break;
+    }
+
+    return handled;
+  }
+//---------------------------------------------------------------------------//
+  void JSONwriter::_store(const char* aName, const Json::Value& aValue)
+  {
+    Json::Value& currType = myTypeStack.top();
+    if (currType.type() == Json::objectValue)
+    {
+      if (currType.type() == Json::objectValue)
+      {
+        ASSERT(aName != nullptr);
+        currType[aName] = aValue;
+      }
+      else
+      {
+        currType.append(aValue);
+      }
+      ASSERT(aName != nullptr);
+      currType[aName] = aValue;
     }
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::beginType(const String& aTypeName, const String& aName)
+  void JSONwriter::beginType(const String& aTypeName, const String& aName)
   {
     Json::Value typeValue(Json::objectValue);
     typeValue["Type"] = aTypeName;
@@ -70,59 +198,43 @@ namespace Fancy { namespace IO {
     myTypeStack.push(typeValue);
   }
 //---------------------------------------------------------------------------//
-  Json::Value SerializerJSON::endType()
+  void JSONwriter::endType()
   {
     ASSERT_M(!myTypeStack.empty(), "Mismatching number of beginType() / endType() calls");
-    Json::Value val = myTypeStack.top();
+    myCurrentEndType = myTypeStack.top();
     myTypeStack.pop();
-    return val;
   }
 //---------------------------------------------------------------------------//
-  uint32 SerializerJSON::beginArray(const char* aName, uint32 aNumElements)
+  uint32 JSONwriter::beginArray(const char* aName, uint32 aNumElements)
   {
-    if (myMode == ESerializationMode::STORE)
-    {
-      ArrayDesc desc;
-      desc.myName = aName;
-      desc.myElementCount = aNumElements;
-      myArrayStack.push(desc);
+    ArrayDesc desc;
+    desc.myName = aName;
+    desc.myElementCount = aNumElements;
+    myArrayStack.push(desc);
 
-      myTypeStack.push(Json::Value(Json::arrayValue));
+    myTypeStack.push(Json::Value(Json::arrayValue));
 
-      return aNumElements;
-    }
-    else
-    {
-      // count stored elements and return count
-      return 0;
-    }
+    return aNumElements;
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::endArray()
+  void JSONwriter::endArray()
   {
-    if (myMode == ESerializationMode::STORE)
-    {
-      ASSERT_M(!myArrayStack.empty(), "Mismatching number of beginArray() / endArray() calls");
-      ArrayDesc desc = myArrayStack.top();
-      myArrayStack.pop();
+    ASSERT_M(!myArrayStack.empty(), "Mismatching number of beginArray() / endArray() calls");
+    ArrayDesc desc = myArrayStack.top();
+    myArrayStack.pop();
       
-      Json::Value arrayVal = myTypeStack.top();
-      myTypeStack.pop();
-      ASSERT_M(!myTypeStack.empty(), "An array needs to be embedded in a type but there is none left");
-      Json::Value& parentVal = myTypeStack.top();
+    Json::Value arrayVal = myTypeStack.top();
+    myTypeStack.pop();
+    ASSERT_M(!myTypeStack.empty(), "An array needs to be embedded in a type but there is none left");
+    Json::Value& parentVal = myTypeStack.top();
 
-      if (parentVal.type() == Json::arrayValue)  // multi-dimensional array
-        parentVal.append(arrayVal);
-      else
-        parentVal[desc.myName] = arrayVal;
-    }
+    if (parentVal.type() == Json::arrayValue)  // multi-dimensional array
+      parentVal.append(arrayVal);
     else
-    {
-      // TODO: Implement
-    }
+      parentVal[desc.myName] = arrayVal;
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::storeHeader(Json::Value& aValue)
+  void JSONwriter::storeHeader(Json::Value& aValue)
   {
     aValue["myVersion"] = myHeader.myVersion;
     aValue["myModels"] = myHeader.myModels;
@@ -131,71 +243,93 @@ namespace Fancy { namespace IO {
     aValue["myMaterialPasses"] = myHeader.myMaterialPasses;
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, uint32* aValue)
-  {
-    Json::Value val(*aValue);
-    _store(aName, val);
-  }
+  
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, uint* aValue)
+  bool JSONwriter::isStoredManaged(const ObjectName& aName, const Json::Value& aVal)
   {
-    Json::Value val(*aValue);
-    _store(aName, val);
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, float* aValue)
-  {
-    Json::Value val(*aValue);
-    _store(aName, val);
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, String* aValue)
-  {
-    Json::Value val(*aValue);
-    _store(aName, val);
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, ObjectName* aValue)
-  {
-    _store(aName, (*aValue).toString());
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, bool* aValue)
-  {
-    _store(aName, *aValue);
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Scene::ELightType* aValue)
-  {
-    _store(aName, (uint32)(*aValue));
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Scene::SceneNode** aValue)
-  {
-    Scene::SceneNode* node = (*aValue);
-    if (!node) {
-      _store(aName, NULL);
-      return;
+    ASSERT(aVal.type() == Json::objectValue);
+    for (Json::ValueConstIterator it = aVal.begin(); it != aVal.end(); ++it)
+    {
+      if (it.name() == aName.toString())
+      {
+        return true;
+      }
     }
 
-    beginType(node->getTypeName(), node->getName());
-    node->serialize(*this);
-    _store(aName, endType());
+    return false;
   }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, std::shared_ptr<Scene::SceneNode>* aValue)
-  {
-    Scene::SceneNode* node = aValue->get();
-    store(aName, &node);
-  }
+} }  // end of namespace Fancy::IO
+
+
+
+#if defined USE_OLD_STORE_FUNCTIONS
+
+void SerializerJSON::store(const char* aName, uint32* aValue)
+{
+  Json::Value val(*aValue);
+  _store(aName, val);
+}
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Scene::SceneNodeComponentPtr* aValue)
-  {
-    Scene::SceneNodeComponentPtr& component = (*aValue);
-    beginType(component->getTypeName(), "");
-    component->serialize(*this);
-    _store(aName, endType());
+void SerializerJSON::store(const char* aName, uint* aValue)
+{
+  Json::Value val(*aValue);
+  _store(aName, val);
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, float* aValue)
+{
+  Json::Value val(*aValue);
+  _store(aName, val);
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, String* aValue)
+{
+  Json::Value val(*aValue);
+  _store(aName, val);
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, ObjectName* aValue)
+{
+  _store(aName, (*aValue).toString());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, bool* aValue)
+{
+  _store(aName, *aValue);
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Scene::ELightType* aValue)
+{
+  _store(aName, (uint32)(*aValue));
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Scene::SceneNode** aValue)
+{
+  Scene::SceneNode* node = (*aValue);
+  if (!node) {
+    _store(aName, NULL);
+    return;
   }
+
+  beginType(node->getTypeName(), node->getName());
+  node->serialize(*this);
+  _store(aName, endType());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, std::shared_ptr<Scene::SceneNode>* aValue)
+{
+  Scene::SceneNode* node = aValue->get();
+  store(aName, &node);
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Scene::SceneNodeComponentPtr* aValue)
+{
+  Scene::SceneNodeComponentPtr& component = (*aValue);
+  beginType(component->getTypeName(), "");
+  component->serialize(*this);
+  _store(aName, endType());
+}
 //---------------------------------------------------------------------------//
 //  void SerializerJSON::store(const char* aName, std::vector<Scene::SceneNodeComponentPtr>* someValues)
 //  {
@@ -223,255 +357,240 @@ namespace Fancy { namespace IO {
 //  {
 //  }
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Geometry::Model** aValue)
-  {
-    Geometry::Model* val = (*aValue);
-    if (!val) {
-      _store(aName, NULL);
-      return;
-    }
-
-    if (!isStoredManaged(val->getName(), myHeader.myModels))
-    {
-      beginType(val->getTypeName(), val->getName());
-      val->serialize(*this);
-      myHeader.myModels[val->getName().toString()] = endType();
-    }
-
-    _store(aName, val->getName().toString());
+void SerializerJSON::store(const char* aName, Geometry::Model** aValue)
+{
+  Geometry::Model* val = (*aValue);
+  if (!val) {
+    _store(aName, NULL);
+    return;
   }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Geometry::SubModel** aValue)
+
+  if (!isStoredManaged(val->getName(), myHeader.myModels))
   {
-    Geometry::SubModel* val = (*aValue);
-    if (!val) {
-      _store(aName, NULL);
-      return;
-    }
-
-    if (!isStoredManaged(val->getName(), myHeader.mySubModels))
-    {
-      beginType(val->getTypeName(), val->getName());
-      val->serialize(*this);
-      myHeader.mySubModels[val->getName().toString()] = endType();
-    }
-
-    _store(aName, val->getName().toString());
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Geometry::Mesh** aValue)
-  {
-     Geometry::Mesh* val = (*aValue);
-     if (!val) {
-       _store(aName, NULL);
-       return;
-     }
-
-     _store(aName, val->getName().toString());
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::Material** aValue)
-  {
-    Rendering::Material* val = (*aValue);
-    if (!val) {
-      _store(aName, NULL);
-      return;
-    }
-
-    if (!isStoredManaged(val->getName(), myHeader.myMaterials))
-    {
-      beginType(val->getTypeName(), val->getName());
-      val->serialize(*this);
-      myHeader.myMaterials[val->getName().toString()] = endType();
-    }
-
-    _store(aName, val->getName().toString());
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::MaterialPass** aValue)
-  {
-    Rendering::MaterialPass* val = *aValue;
-    if (!val) {
-      _store(aName, NULL);
-      return;
-    }
-
-    if (!isStoredManaged(val->getName(), myHeader.myMaterialPasses))
-    {
-      beginType(val->getTypeName(), val->getName());
-      val->serialize(*this);
-      myHeader.myMaterialPasses[val->getName().toString()] = endType();
-    }
-
-    _store(aName, val->getName().toString());
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::MaterialPassInstance** aValue)
-  {
-    Rendering::MaterialPassInstance* val = *aValue;
-
-    if (!val) {
-      _store(aName, NULL);
-      return;
-    }
-
     beginType(val->getTypeName(), val->getName());
     val->serialize(*this);
-    _store(aName, endType());
+    myHeader.myModels[val->getName().toString()] = endType();
   }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::FillMode* aValue)
-  {
-    _store(aName, (uint32)*aValue);
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::CullMode* aValue)
-  {
-    _store(aName, (uint32)* aValue);
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::WindingOrder* aValue)
-  {
-    _store(aName, (uint32)* aValue);
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::BlendState** aValue)
-  {
-    Rendering::BlendState* blendState = *aValue;
-    _store(aName, blendState->getName().toString());
-  }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::DepthStencilState** aValue)
-  {
-    Rendering::DepthStencilState* dsstate = *aValue;
 
-    if (!dsstate) {
-      _store(aName, NULL);
-      return;
-    }
-
-    _store(aName, dsstate->getName().toString());
-  }
+  _store(aName, val->getName().toString());
+}
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::GpuProgram** aValue)
-  {
-    Rendering::GpuProgram* gpuProgram = *aValue;
-
-    if (!gpuProgram) {
-      _store(aName, NULL);
-      return;
-    }
-
-    _store(aName, gpuProgram->getName().toString());
+void SerializerJSON::store(const char* aName, Geometry::SubModel** aValue)
+{
+  Geometry::SubModel* val = (*aValue);
+  if (!val) {
+    _store(aName, NULL);
+    return;
   }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::Texture** aValue)
-  {
-    Rendering::Texture* texture = *aValue;
 
-    if (!texture) {
-      _store(aName, NULL);
-      return;
-    }
+  if (!isStoredManaged(val->getName(), myHeader.mySubModels))
+  {
+    beginType(val->getTypeName(), val->getName());
+    val->serialize(*this);
+    myHeader.mySubModels[val->getName().toString()] = endType();
+  }
 
-    _store(aName, texture->getPath());
-  }
+  _store(aName, val->getName().toString());
+}
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, Rendering::TextureStorageEntry* aValue)
-  {
-    beginType("TextureEntry", "");
-    aValue->serialize(*this);
-    _store(aName, endType());
+void SerializerJSON::store(const char* aName, Geometry::Mesh** aValue)
+{
+  Geometry::Mesh* val = (*aValue);
+  if (!val) {
+    _store(aName, NULL);
+    return;
   }
+
+  _store(aName, val->getName().toString());
+}
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, glm::quat* aValue)
+void SerializerJSON::store(const char* aName, Rendering::Material** aValue)
+{
+  Rendering::Material* val = (*aValue);
+  if (!val) {
+    _store(aName, NULL);
+    return;
+  }
+
+  if (!isStoredManaged(val->getName(), myHeader.myMaterials))
   {
-    Json::Value matVal(Json::arrayValue);
-    for (uint32 y = 0; y < (*aValue).length(); ++y)
+    beginType(val->getTypeName(), val->getName());
+    val->serialize(*this);
+    myHeader.myMaterials[val->getName().toString()] = endType();
+  }
+
+  _store(aName, val->getName().toString());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::MaterialPass** aValue)
+{
+  Rendering::MaterialPass* val = *aValue;
+  if (!val) {
+    _store(aName, NULL);
+    return;
+  }
+
+  if (!isStoredManaged(val->getName(), myHeader.myMaterialPasses))
+  {
+    beginType(val->getTypeName(), val->getName());
+    val->serialize(*this);
+    myHeader.myMaterialPasses[val->getName().toString()] = endType();
+  }
+
+  _store(aName, val->getName().toString());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::MaterialPassInstance** aValue)
+{
+  Rendering::MaterialPassInstance* val = *aValue;
+
+  if (!val) {
+    _store(aName, NULL);
+    return;
+  }
+
+  beginType(val->getTypeName(), val->getName());
+  val->serialize(*this);
+  _store(aName, endType());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::FillMode* aValue)
+{
+  _store(aName, (uint32)*aValue);
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::CullMode* aValue)
+{
+  _store(aName, (uint32)* aValue);
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::WindingOrder* aValue)
+{
+  _store(aName, (uint32)* aValue);
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::BlendState** aValue)
+{
+  Rendering::BlendState* blendState = *aValue;
+  _store(aName, blendState->getName().toString());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::DepthStencilState** aValue)
+{
+  Rendering::DepthStencilState* dsstate = *aValue;
+
+  if (!dsstate) {
+    _store(aName, NULL);
+    return;
+  }
+
+  _store(aName, dsstate->getName().toString());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::GpuProgram** aValue)
+{
+  Rendering::GpuProgram* gpuProgram = *aValue;
+
+  if (!gpuProgram) {
+    _store(aName, NULL);
+    return;
+  }
+
+  _store(aName, gpuProgram->getName().toString());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::Texture** aValue)
+{
+  Rendering::Texture* texture = *aValue;
+
+  if (!texture) {
+    _store(aName, NULL);
+    return;
+  }
+
+  _store(aName, texture->getPath());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, Rendering::TextureStorageEntry* aValue)
+{
+  beginType("TextureEntry", "");
+  aValue->serialize(*this);
+  _store(aName, endType());
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, glm::quat* aValue)
+{
+  Json::Value matVal(Json::arrayValue);
+  for (uint32 y = 0; y < (*aValue).length(); ++y)
+  {
+    matVal.append((*aValue)[y]);
+  }
+
+  _store(aName, matVal);
+}
+//---------------------------------------------------------------------------//
+void SerializerJSON::store(const char* aName, glm::mat3* aValue)
+{
+  Json::Value matVal(Json::arrayValue);
+  for (uint32 y = 0; y < (*aValue).length(); ++y)
+  {
+    for (uint32 x = 0; x < (*aValue)[y].length(); ++x)
     {
-      matVal.append((*aValue)[y]);
+      matVal.append((*aValue)[x][y]);
     }
-
-    _store(aName, matVal);
   }
+
+  _store(aName, matVal);
+}
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, glm::mat3* aValue)
+void SerializerJSON::store(const char* aName, glm::mat4* aValue)
+{
+  Json::Value matVal(Json::arrayValue);
+  for (uint32 y = 0; y < (*aValue).length(); ++y)
   {
-    Json::Value matVal(Json::arrayValue);
-    for (uint32 y = 0; y < (*aValue).length(); ++y)
+    for (uint32 x = 0; x < (*aValue)[y].length(); ++x)
     {
-      for (uint32 x = 0; x < (*aValue)[y].length(); ++x)
-      {
-        matVal.append((*aValue)[x][y]);
-      }
+      matVal.append((*aValue)[x][y]);
     }
-
-    _store(aName, matVal);
   }
+
+  _store(aName, matVal);
+}
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, glm::mat4* aValue)
+void SerializerJSON::store(const char* aName, glm::vec3* aValue)
+{
+  Json::Value matVal(Json::arrayValue);
+  for (uint32 y = 0; y < (*aValue).length(); ++y)
   {
-    Json::Value matVal(Json::arrayValue);
-    for (uint32 y = 0; y < (*aValue).length(); ++y)
-    {
-      for (uint32 x = 0; x < (*aValue)[y].length(); ++x)
-      {
-        matVal.append((*aValue)[x][y]);
-      }
-    }
-
-    _store(aName, matVal);
+    matVal.append((*aValue)[y]);
   }
+
+  _store(aName, matVal);
+}
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, glm::vec3* aValue)
+void SerializerJSON::store(const char* aName, glm::vec4* aValue)
+{
+  Json::Value matVal(Json::arrayValue);
+  for (uint32 y = 0; y < (*aValue).length(); ++y)
   {
-    Json::Value matVal(Json::arrayValue);
-    for (uint32 y = 0; y < (*aValue).length(); ++y)
-    {
-      matVal.append((*aValue)[y]);
-    }
-
-    _store(aName, matVal);
+    matVal.append((*aValue)[y]);
   }
+
+  _store(aName, matVal);
+}
 //---------------------------------------------------------------------------//
-  void SerializerJSON::store(const char* aName, glm::vec4* aValue)
+void SerializerJSON::_store(const char* aName, const Json::Value& aValue)
+{
+  Json::Value& currType = myTypeStack.top();
+  if (currType.type() == Json::objectValue)
   {
-    Json::Value matVal(Json::arrayValue);
-    for (uint32 y = 0; y < (*aValue).length(); ++y)
-    {
-      matVal.append((*aValue)[y]);
-    }
-
-    _store(aName, matVal);
+    ASSERT(aName != nullptr);
+    currType[aName] = aValue;
   }
-//---------------------------------------------------------------------------//
-  void SerializerJSON::_store(const char* aName, const Json::Value& aValue)
+  else
   {
-    Json::Value& currType = myTypeStack.top();
-    if (currType.type() == Json::objectValue)
-    {
-      ASSERT(aName != nullptr);
-      currType[aName] = aValue;
-    }
-    else
-    {
-      currType.append(aValue);
-    }
+    currType.append(aValue);
   }
-//---------------------------------------------------------------------------//
-  bool SerializerJSON::isStoredManaged(const ObjectName& aName, const Json::Value& aVal)
-  {
-    ASSERT(aVal.type() == Json::objectValue);
-    for (Json::ValueConstIterator it = aVal.begin(); it != aVal.end(); ++it)
-    {
-      if (it.name() == aName.toString())
-      {
-        return true;
-      }
-    }
+}
 
-    return false;
-  }
-//---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::IO
-
+#endif  // USE_OLD_STORE_FUNCTIONS

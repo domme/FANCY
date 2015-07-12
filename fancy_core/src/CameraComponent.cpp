@@ -28,7 +28,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   void CameraComponent::serialize(IO::Serializer& aSerializer)
   {
-    aSerializer.serialize(_VAL(m_matViewInv));
+    /*aSerializer.serialize(_VAL(m_matViewInv));
     aSerializer.serialize(_VAL(m_matView));
     aSerializer.serialize(_VAL(m_matProjection));
     aSerializer.serialize(_VAL(m_matViewProj));
@@ -38,7 +38,7 @@ namespace Fancy { namespace Scene {
     aSerializer.serialize(_VAL(m_fFocalLength));
     aSerializer.serialize(_VAL(m_bIsOrtho));
     aSerializer.serialize(_VAL(m_fWidth));
-    aSerializer.serialize(_VAL(m_fHeight));
+    aSerializer.serialize(_VAL(m_fHeight));*/
   }
 //---------------------------------------------------------------------------//
   void CameraComponent::update()

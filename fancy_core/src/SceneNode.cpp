@@ -112,14 +112,14 @@ namespace Fancy { namespace Scene {
     
   }
 //---------------------------------------------------------------------------//
-  void SceneNode::serialize(IO::Serializer& aSerializer)
+  void SceneNode::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer.serialize(_VAL(m_name));
-    aSerializer.serialize(_VAL(m_transform.m_localRotation));
-    aSerializer.serialize(_VAL(m_transform.m_localPosition));
-    aSerializer.serialize(_VAL(m_transform.m_localScale));
+    aSerializer->serialize(_VAL(m_name));
+    aSerializer->serialize(_VAL(m_transform.m_localRotation));
+    aSerializer->serialize(_VAL(m_transform.m_localPosition));
+    aSerializer->serialize(_VAL(m_transform.m_localScale));
 
-    uint32 numComponents = aSerializer.beginArray(_STR(m_vpComponents), m_vpComponents.size());
+    /*uint32 numComponents = aSerializer.beginArray(_STR(m_vpComponents), m_vpComponents.size());
     m_vpComponents.resize(numComponents);
     for (uint32 i = 0u; i < numComponents; ++i)
     {
@@ -138,7 +138,7 @@ namespace Fancy { namespace Scene {
     for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
     {
       m_vpChildren[i]->m_pParent = this;
-    }
+    }*/
   }
 //---------------------------------------------------------------------------//
   void SceneNode::parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent)

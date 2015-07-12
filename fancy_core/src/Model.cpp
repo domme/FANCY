@@ -15,6 +15,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   void Model::serialize(IO::Serializer& aSerializer)
   {
+    /*
     aSerializer.serialize(_VAL(m_Name));
     
     uint32 num = aSerializer.beginArray("m_vSubModels", m_vSubModels.size());
@@ -24,6 +25,7 @@ namespace Fancy { namespace Geometry {
       aSerializer.serialize(m_vSubModels[i]);
     }
     aSerializer.endArray();
+    */
   }
 //---------------------------------------------------------------------------//
   void Model::addSubModel(SubModel* _pSubModel)
