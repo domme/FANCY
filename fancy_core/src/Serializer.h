@@ -53,7 +53,7 @@ namespace Fancy { namespace IO {
         
     protected:
 
-      virtual bool serializeImpl(void* anObject, DataType aDataType, const char* aName);
+      virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName);
 
       ESerializationMode myMode;
       std::fstream myArchive;
@@ -97,7 +97,7 @@ namespace Fancy { namespace IO {
         Json::Value myMaterialPasses;
       };
 
-      virtual bool serializeImpl(void* anObject, DataType aDataType, const char* aName) override;
+      virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
 
       void _store(const char* aName, const Json::Value& aValue);
       bool isStoredManaged(const ObjectName& aName, const Json::Value& aValue);

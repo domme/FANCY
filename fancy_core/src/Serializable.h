@@ -1,5 +1,8 @@
 #pragma once
 
+#include "ObjectName.h"
+#include "SceneNode.h"
+
 namespace Fancy { namespace IO {
 
   class Serializer;
@@ -9,8 +12,8 @@ namespace Fancy { namespace IO {
   {
     virtual ~MetaTable() {}
     virtual void* create() = 0;
-    virtual const String& getTypeName(void* anObject) = 0;
-    virtual const String& getInstanceName(void* anObject) = 0;
+    virtual String getTypeName(void* anObject) = 0;
+    virtual String getInstanceName(void* anObject) = 0;
     virtual void serialize(Serializer* aSerializer, void* anObject) = 0;
     virtual void destroy() = 0;
   };
@@ -19,15 +22,15 @@ namespace Fancy { namespace IO {
   struct MetaTableImpl : public MetaTable
   {
     virtual ~MetaTableImpl<T>() {}
-    virtual void* create() override { return T(); }
+    virtual void* create() override { return nullptr; }
 
-    virtual const String& getTypeName(void* anObject) override
+    virtual String getTypeName(void* anObject) override
     { 
       T* serializable = static_cast<T*>(anObject);
       return serializable->getTypeName();
     }
 
-    virtual const String& getInstanceName(void* anObject) override
+    virtual String getInstanceName(void* anObject) override
     { 
       T* serializable = static_cast<T*>(anObject);
       return serializable->getName();
@@ -41,7 +44,36 @@ namespace Fancy { namespace IO {
     
     virtual void destroy() override { }
 
-    static MetaTableImpl<T> ourMetaTable { MetaTableImpl<T>() };
+    static MetaTableImpl<T> ourMetaTable;
+  };
+//---------------------------------------------------------------------------//
+  template<class T>
+  struct MetaTableImpl<T*> : public MetaTable
+  {
+    virtual ~MetaTableImpl<T*>() {}
+    virtual void* create() override { return nullptr; }
+
+    virtual String getTypeName(void* anObject) override
+    {
+      T** serializable = static_cast<T**>(anObject);
+      return (*serializable)->getTypeName();
+    }
+
+    virtual String getInstanceName(void* anObject) override
+    {
+      T** serializable = static_cast<T**>(anObject);
+      return (*serializable)->getName();
+    }
+
+    virtual void serialize(Serializer* aSerializer, void* anObject) override
+    {
+      T** serializable = static_cast<T**>(anObject);
+      (*serializable)->serialize(aSerializer);
+    }
+
+    virtual void destroy() override { }
+
+    static MetaTableImpl<T*> ourMetaTable;
   };
   
   // TODO: Special version of MetaTableImpl for dynamic and managed objects
@@ -58,11 +90,13 @@ namespace Fancy { namespace IO {
     Char,
     String,
     CString,
+    ObjectName,
     Array,
     Vector,
     Map,
     Vector3,
     Vector4,
+    Quaternion,
     Matrix3x3,
     Matrix4x4,
     Serializable,
@@ -108,10 +142,12 @@ namespace Fancy { namespace IO {
   DECLARE_DATATYPE(char, Char);
   DECLARE_DATATYPE(const char*, CString);
   DECLARE_DATATYPE(std::string, String);
+  DECLARE_DATATYPE(ObjectName, ObjectName);
   DECLARE_DATATYPE(glm::mat4, Matrix4x4);
   DECLARE_DATATYPE(glm::mat3, Matrix3x3);
   DECLARE_DATATYPE(glm::vec3, Vector3);
   DECLARE_DATATYPE(glm::vec4, Vector4);
+  DECLARE_DATATYPE(glm::quat, Quaternion);
 #undef DECLARE_DATATYPE
 //---------------------------------------------------------------------------//
 #define DECLARE_DATATYPE_SERIALIZABLE(T, ET) \
@@ -124,8 +160,11 @@ namespace Fancy { namespace IO {
     } \
   };
 
-#define SERIALIZABLE(classT) DECLARE_DATATYPE_SERIALIZABLE(classT, Serializable)
+#define SERIALIZABLE(classT) \
+ DECLARE_DATATYPE_SERIALIZABLE(classT, Serializable) \
+ DECLARE_DATATYPE_SERIALIZABLE(classT*, Serializable)
 
+SERIALIZABLE(Scene::SceneNode);
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy
 

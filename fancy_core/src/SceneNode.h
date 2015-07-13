@@ -5,7 +5,7 @@
 #include "CameraComponent.h"
 #include "ModelComponent.h"
 #include "ObjectName.h"
-#include "Serializable.h"
+// #include "Serializable.h"
 
 namespace Fancy {
   namespace IO {
@@ -136,7 +136,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
 } // End of namespace Scene
 //---------------------------------------------------------------------------//
-  SERIALIZABLE(Scene::SceneNode)
+// SERIALIZABLE(Scene::SceneNode)
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
 

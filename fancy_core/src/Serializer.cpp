@@ -30,16 +30,18 @@ namespace Fancy { namespace IO {
     }
   }
 //---------------------------------------------------------------------------//
-  bool Serializer::serializeImpl(void* anObject, DataType aDataType, const char* aName)
+  bool Serializer::serializeImpl(DataType aDataType, void* anObject, const char* aName)
   {
     switch (aDataType.myBaseType)
     {
       case EBaseDataType::Serializable:
+      {
         MetaTable* metaTable = static_cast<MetaTable*>(aDataType.myUserData);
         beginType(metaTable->getTypeName(anObject), metaTable->getInstanceName(anObject));
         metaTable->serialize(this, anObject);
         endType();
         return true;
+      }
       default:
         return false;
     }
@@ -68,10 +70,13 @@ namespace Fancy { namespace IO {
     myJsonWriter.write(myArchive, myCurrentEndType);
   }
 //---------------------------------------------------------------------------//
-  bool JSONwriter::serializeImpl(void* anObject, DataType aDataType, const char* aName)
+  bool JSONwriter::serializeImpl(DataType aDataType, void* anObject, const char* aName)
   {
-    if (Serializer::serializeImpl(anObject, aDataType, aName))
+    if (Serializer::serializeImpl(aDataType, anObject, aName))
+    {
+      _store(aName, myCurrentEndType);
       return true;
+    }
 
     bool handled = true;
     switch (aDataType.myBaseType)
@@ -114,6 +119,13 @@ namespace Fancy { namespace IO {
         _store(aName, jsonVal);
       } break;
 
+      case EBaseDataType::ObjectName:
+      {
+        const String& str = static_cast<ObjectName*>(anObject)->toString();
+        Json::Value jsonVal(str);
+        _store(aName, jsonVal);
+      } break;
+
       case EBaseDataType::Array: break;
       case EBaseDataType::Vector: break;
       case EBaseDataType::Map: break;
@@ -131,6 +143,16 @@ namespace Fancy { namespace IO {
       case EBaseDataType::Vector4:
       {
         const glm::vec4& val = *static_cast<const glm::vec4*>(anObject);
+        Json::Value jsonVal(Json::arrayValue);
+        for (uint i = 0u; i < val.length(); ++i)
+          jsonVal.append(val[i]);
+
+        _store(aName, jsonVal);
+      } break;
+
+      case EBaseDataType::Quaternion:
+      {
+        const glm::quat& val = *static_cast<const glm::quat*>(anObject);
         Json::Value jsonVal(Json::arrayValue);
         for (uint i = 0u; i < val.length(); ++i)
           jsonVal.append(val[i]);
@@ -173,17 +195,12 @@ namespace Fancy { namespace IO {
     Json::Value& currType = myTypeStack.top();
     if (currType.type() == Json::objectValue)
     {
-      if (currType.type() == Json::objectValue)
-      {
-        ASSERT(aName != nullptr);
-        currType[aName] = aValue;
-      }
-      else
-      {
-        currType.append(aValue);
-      }
       ASSERT(aName != nullptr);
       currType[aName] = aValue;
+    }
+    else
+    {
+      currType.append(aValue);
     }
   }
 //---------------------------------------------------------------------------//

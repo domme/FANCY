@@ -404,5 +404,8 @@
     <ClCompile Include="src\jsoncpp.cpp">
       <Filter>src\IO\JSON</Filter>
     </ClCompile>
+    <ClCompile Include="src\Serializable.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -316,6 +316,7 @@
     <ClCompile Include="src\SceneNode.cpp" />
     <ClCompile Include="src\SceneNodeComponent.cpp" />
     <ClCompile Include="src\SceneNodeComponentFactory.cpp" />
+    <ClCompile Include="src\Serializable.cpp" />
     <ClCompile Include="src\Serializer.cpp" />
     <ClCompile Include="src\ShaderConstantsManager.cpp" />
     <ClCompile Include="src\StdAfx.cpp">

@@ -145,7 +145,7 @@ namespace Fancy { namespace IO {
     workingData.szCurrScenePathInResources = _szImportPathRel;
     success = Processing::processAiScene(workingData, aScene, _pParentNode);
 
-    JSONwriter serializer(ESerializationMode::STORE, szImportPathAbs);
+    JSONwriter serializer(szImportPathAbs);
     serializer.serialize(_pParentNode, "rootNode");
 
     return success;
