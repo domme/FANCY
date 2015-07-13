@@ -100,6 +100,7 @@ namespace Fancy { namespace Scene {
   }
 //---------------------------------------------------------------------------//
 
+  SERIALIZABLE_IMPL(SceneNode)
 //---------------------------------------------------------------------------//
   SceneNode::SceneNode() :
     m_pParent(nullptr)

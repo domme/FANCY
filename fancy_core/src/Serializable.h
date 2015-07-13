@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ObjectName.h"
-#include "SceneNode.h"
 
 namespace Fancy { namespace IO {
 
@@ -41,40 +40,11 @@ namespace Fancy { namespace IO {
       T* serializable = static_cast<T*>(anObject);
       serializable->serialize(aSerializer);
     }
-    
-    virtual void destroy() override { }
 
-    static MetaTableImpl<T> ourMetaTable;
+    virtual void destroy() override { }
   };
 //---------------------------------------------------------------------------//
-  template<class T>
-  struct MetaTableImpl<T*> : public MetaTable
-  {
-    virtual ~MetaTableImpl<T*>() {}
-    virtual void* create() override { return nullptr; }
-
-    virtual String getTypeName(void* anObject) override
-    {
-      T** serializable = static_cast<T**>(anObject);
-      return (*serializable)->getTypeName();
-    }
-
-    virtual String getInstanceName(void* anObject) override
-    {
-      T** serializable = static_cast<T**>(anObject);
-      return (*serializable)->getName();
-    }
-
-    virtual void serialize(Serializer* aSerializer, void* anObject) override
-    {
-      T** serializable = static_cast<T**>(anObject);
-      (*serializable)->serialize(aSerializer);
-    }
-
-    virtual void destroy() override { }
-
-    static MetaTableImpl<T*> ourMetaTable;
-  };
+  
   
   // TODO: Special version of MetaTableImpl for dynamic and managed objects
 
@@ -118,10 +88,9 @@ namespace Fancy { namespace IO {
   template<class T>
   struct Get_DataType
   {
-    static IO::DataType get()  // If this template is matched, we forgot some spezialization or the type is really not serializable...
+    static IO::DataType get()
     {
-      ASSERT(false, "Datatype is not serializable");
-      return IO::DataType(IO::EBaseDataType::None, nullptr);
+      return std::remove_pointer<T>::type::getDataType();
     }
   };
 //---------------------------------------------------------------------------//
@@ -149,22 +118,30 @@ namespace Fancy { namespace IO {
   DECLARE_DATATYPE(glm::vec4, Vector4);
   DECLARE_DATATYPE(glm::quat, Quaternion);
 #undef DECLARE_DATATYPE
-//---------------------------------------------------------------------------//
-#define DECLARE_DATATYPE_SERIALIZABLE(T, ET) \
+  //---------------------------------------------------------------------------//
+  /*
+  #define DECLARE_DATATYPE_SERIALIZABLE(T, ET) \
   template<> \
   struct Get_DataType<T> \
   { \
-    static IO::DataType get() \
-    { \
-      return IO::DataType(IO::EBaseDataType::ET, &IO::MetaTableImpl<T>::ourMetaTable); \
-    } \
+  static IO::DataType get() \
+  { \
+  return IO::DataType(IO::EBaseDataType::ET, &IO::MetaTableImpl<T>::ourMetaTable); \
+  } \
   };
 
-#define SERIALIZABLE(classT) \
- DECLARE_DATATYPE_SERIALIZABLE(classT, Serializable) \
- DECLARE_DATATYPE_SERIALIZABLE(classT*, Serializable)
+  #define SERIALIZABLE(classT) \
+  DECLARE_DATATYPE_SERIALIZABLE(classT, Serializable) \
+  DECLARE_DATATYPE_SERIALIZABLE(classT*, Serializable) */
 
-SERIALIZABLE(Scene::SceneNode);
+#define SERIALIZABLE(classT) \
+  static IO::MetaTableImpl<classT> ourMetaTable; \
+  static IO::DataType getDataType();
+
+#define SERIALIZABLE_IMPL(classT) \
+  IO::MetaTableImpl<classT> classT::ourMetaTable; \
+  IO::DataType classT::getDataType() { return IO::DataType(IO::EBaseDataType::Serializable, &ourMetaTable); }
+
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy
 

@@ -44,6 +44,11 @@ namespace Fancy { namespace IO {
         {
           serializeImpl(Get_DataType<T>::get(), &anObject, aName);
         }
+
+        template<class T> void serialize(T* anObject, const char* aName = nullptr)
+        {
+          serializeImpl(Get_DataType<T>::get(), anObject, aName);
+        }
         
         virtual void beginType(const String& aTypeName, const String& aName) = 0;
         virtual void endType() = 0;

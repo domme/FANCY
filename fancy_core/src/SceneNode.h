@@ -5,7 +5,7 @@
 #include "CameraComponent.h"
 #include "ModelComponent.h"
 #include "ObjectName.h"
-// #include "Serializable.h"
+#include "Serializable.h"
 
 namespace Fancy {
   namespace IO {
@@ -81,6 +81,8 @@ namespace Fancy { namespace Scene {
   class DLLEXPORT SceneNode
   {
     public: 
+      SERIALIZABLE(SceneNode)
+
       SceneNode();
       ~SceneNode();
 
@@ -135,8 +137,6 @@ namespace Fancy { namespace Scene {
   DECLARE_SMART_PTRS(SceneNode)
 //---------------------------------------------------------------------------//
 } // End of namespace Scene
-//---------------------------------------------------------------------------//
-// SERIALIZABLE(Scene::SceneNode)
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
 

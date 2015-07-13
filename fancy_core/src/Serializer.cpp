@@ -81,8 +81,6 @@ namespace Fancy { namespace IO {
     bool handled = true;
     switch (aDataType.myBaseType)
     {
-      case EBaseDataType::None: break;
-
       case EBaseDataType::Int:
       {
         Json::Value jsonVal(*static_cast<int*>(anObject));
@@ -182,6 +180,7 @@ namespace Fancy { namespace IO {
         _store(aName, jsonVal);
       } break;
 
+      case EBaseDataType::None:
       default: 
         handled = false;
         break;

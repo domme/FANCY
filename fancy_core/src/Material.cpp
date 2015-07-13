@@ -61,6 +61,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void Material::serialize(IO::Serializer& aSerializer)
   {
+    /*
     aSerializer.serialize(_VAL(m_Name));
 
     uint32 count = aSerializer.beginArray("m_vParameters", (uint32)EMaterialParameterSemantic::NUM);
@@ -72,6 +73,7 @@ namespace Fancy { namespace Rendering {
     for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
       aSerializer.serialize(m_vPasses[i]);
     aSerializer.endArray();
+    */
   }
 //---------------------------------------------------------------------------//
   MaterialDesc Material::getDescription() const
