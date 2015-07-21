@@ -11,9 +11,9 @@ namespace Fancy { namespace IO {
   {
     virtual ~MetaTable() {}
     virtual void* create() = 0;
-    virtual String getTypeName(void* anObject) = 0;
-    virtual String getInstanceName(void* anObject) = 0;
-    virtual void serialize(Serializer* aSerializer, void* anObject) = 0;
+    virtual String getTypeName(void* anObject) { return ""; }
+    virtual String getInstanceName(void* anObject) { return ""; }
+    virtual void serialize(Serializer* aSerializer, void* anObject, uint32 aCount = 0) = 0;
     virtual void destroy() = 0;
   };
 //---------------------------------------------------------------------------//
@@ -35,7 +35,7 @@ namespace Fancy { namespace IO {
       return serializable->getName();
     }
     
-    virtual void serialize(Serializer* aSerializer, void* anObject) override
+    virtual void serialize(Serializer* aSerializer, void* anObject, uint32 aCount = 0) override
     { 
       T* serializable = static_cast<T*>(anObject);
       serializable->serialize(aSerializer);
@@ -44,8 +44,33 @@ namespace Fancy { namespace IO {
     virtual void destroy() override { }
   };
 //---------------------------------------------------------------------------//
-  
-  
+  template<class T>
+  struct MetaTableImpl_Ptr : public MetaTable
+  {
+    virtual ~MetaTableImpl_Ptr<T>() {}
+    virtual void* create() override { return nullptr; }
+
+    virtual String getTypeName(void* anObject) override
+    {
+      std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+      return (*serializable)->getTypeName();
+    }
+
+    virtual String getInstanceName(void* anObject) override
+    {
+      std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+      return (*serializable)->getName();
+    }
+
+    virtual void serialize(Serializer* aSerializer, void* anObject, uint32 aCount = 0) override
+    {
+      std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+      (*serializable)->serialize(aSerializer);
+    }
+
+    virtual void destroy() override { }
+  };
+
   // TODO: Special version of MetaTableImpl for dynamic and managed objects
 
 //---------------------------------------------------------------------------//
@@ -94,6 +119,15 @@ namespace Fancy { namespace IO {
     }
   };
 //---------------------------------------------------------------------------//
+  template<class T>
+  struct Get_DataType<std::shared_ptr<T>>
+  {
+    static IO::DataType get()
+    {
+      return std::remove_pointer<T>::type::getDataType_Ptr();
+    }
+  };
+//---------------------------------------------------------------------------//
 #define DECLARE_DATATYPE(T, ET) \
   template<> \
   struct Get_DataType<T> \
@@ -118,29 +152,19 @@ namespace Fancy { namespace IO {
   DECLARE_DATATYPE(glm::vec4, Vector4);
   DECLARE_DATATYPE(glm::quat, Quaternion);
 #undef DECLARE_DATATYPE
+
   //---------------------------------------------------------------------------//
-  /*
-  #define DECLARE_DATATYPE_SERIALIZABLE(T, ET) \
-  template<> \
-  struct Get_DataType<T> \
-  { \
-  static IO::DataType get() \
-  { \
-  return IO::DataType(IO::EBaseDataType::ET, &IO::MetaTableImpl<T>::ourMetaTable); \
-  } \
-  };
-
-  #define SERIALIZABLE(classT) \
-  DECLARE_DATATYPE_SERIALIZABLE(classT, Serializable) \
-  DECLARE_DATATYPE_SERIALIZABLE(classT*, Serializable) */
-
 #define SERIALIZABLE(classT) \
   static IO::MetaTableImpl<classT> ourMetaTable; \
-  static IO::DataType getDataType();
+  static IO::MetaTableImpl_Ptr<classT> ourMetaTablePtr; \
+  static IO::DataType getDataType(); \
+  static IO::DataType getDataType_Ptr();
 
 #define SERIALIZABLE_IMPL(classT) \
   IO::MetaTableImpl<classT> classT::ourMetaTable; \
-  IO::DataType classT::getDataType() { return IO::DataType(IO::EBaseDataType::Serializable, &ourMetaTable); }
+  IO::MetaTableImpl_Ptr<classT> classT::ourMetaTablePtr; \
+  IO::DataType classT::getDataType() { return IO::DataType(IO::EBaseDataType::Serializable, &ourMetaTable); } \
+  IO::DataType classT::getDataType_Ptr() { return IO::DataType(IO::EBaseDataType::SerializablePtr, &ourMetaTablePtr); }
 
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

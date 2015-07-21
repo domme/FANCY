@@ -80,7 +80,7 @@ namespace Fancy { namespace Rendering {
     return same;
   }
 //---------------------------------------------------------------------------//
-  void MaterialPass::serialize(IO::Serializer& aSerializer)
+  void MaterialPass::serialize(IO::Serializer* aSerializer)
   {
     /*aSerializer.serialize(_VAL(m_Name));
     aSerializer.serialize(_VAL(m_eFillMode));
@@ -213,7 +213,7 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-  void TextureStorageEntry::serialize(IO::Serializer& aSerializer)
+  void TextureStorageEntry::serialize(IO::Serializer* aSerializer)
   {
     /*aSerializer.serialize(_VAL(myShaderStage));
     aSerializer.serialize(_VAL(myIndex));
@@ -235,7 +235,7 @@ namespace Fancy { namespace Rendering {
     
   }
 //---------------------------------------------------------------------------//
-  void MaterialPassInstance::serialize(IO::Serializer& aSerializer)
+  void MaterialPassInstance::serialize(IO::Serializer* aSerializer)
   {
     //aSerializer.serialize(_VAL(m_Name));
     //aSerializer.serialize(_VAL(m_pMaterialPass));

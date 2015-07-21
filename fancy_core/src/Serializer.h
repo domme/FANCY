@@ -49,8 +49,8 @@ namespace Fancy { namespace IO {
         {
           serializeImpl(Get_DataType<T>::get(), anObject, aName);
         }
-        
-        virtual void beginType(const String& aTypeName, const String& aName) = 0;
+
+        virtual void beginType(const String& aTypeName, const String& anInstanceName) = 0;
         virtual void endType() = 0;
 
         virtual uint32 beginArray(const char* aName, uint32 aNumElements) = 0;
@@ -70,8 +70,8 @@ namespace Fancy { namespace IO {
     public:
       JSONwriter(const String& anArchivePath);
       virtual ~JSONwriter() override;
-
-      virtual void beginType(const String& aTypeName, const String& aName) override;
+      
+      virtual void beginType(const String& aTypeName, const String& anInstanceName) override;
       virtual void endType() override;
 
       virtual uint32 beginArray(const char* aName, uint32 aNumElements) override;

@@ -40,7 +40,7 @@ namespace Fancy { namespace Rendering {
       ~MaterialPass();
       bool operator==(const MaterialPass& _other) const;
 
-      void serialize(IO::Serializer& aSerializer);
+      void serialize(IO::Serializer* aSerializer);
       ObjectName getTypeName() const { return _N(MaterialPass); }
 
       MaterialPassDesc getDescription() const;
@@ -90,7 +90,7 @@ namespace Fancy { namespace Rendering {
     uint32 myShaderStage;
     uint32 myIndex;
     String myName;
-    void serialize(IO::Serializer& aSerializer);
+    void serialize(IO::Serializer* aSerializer);
   };
 //---------------------------------------------------------------------------//
   class MaterialPassInstance
@@ -101,7 +101,7 @@ namespace Fancy { namespace Rendering {
       MaterialPassInstance();
       ~MaterialPassInstance();
 
-      void serialize(IO::Serializer& aSerializer);
+      void serialize(IO::Serializer* aSerializer);
       ObjectName getTypeName() const { return _N(MaterialPassInstance); }
 
       void initFromDescription(const MaterialPassInstanceDesc _aDesc);

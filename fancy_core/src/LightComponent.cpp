@@ -29,7 +29,7 @@ namespace Fancy { namespace Scene {
 
   }
 //---------------------------------------------------------------------------//
-  void LightComponent::serialize(IO::Serializer& aSerializer)
+  void LightComponent::serialize(IO::Serializer* aSerializer)
   {
     /*aSerializer.serialize(_VAL(m_eType));
     aSerializer.serialize(_VAL(m_colorIntensity));

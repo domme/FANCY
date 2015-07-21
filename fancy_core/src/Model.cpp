@@ -13,7 +13,7 @@ namespace Fancy { namespace Geometry {
 
   }
 //---------------------------------------------------------------------------//
-  void Model::serialize(IO::Serializer& aSerializer)
+  void Model::serialize(IO::Serializer* aSerializer)
   {
     /*
     aSerializer.serialize(_VAL(m_Name));

@@ -40,7 +40,7 @@ namespace Fancy { namespace Rendering {
       bool operator==(const Material& _other) const;
 
       static ObjectName getTypeName() { return _N(Material); }
-      void serialize(IO::Serializer& aSerializer);
+      void serialize(IO::Serializer* aSerializer);
 
       MaterialDesc getDescription() const;
       void initFromDescription(const MaterialDesc& _aDesc);

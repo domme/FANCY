@@ -2,6 +2,7 @@
 #define INCLUDE_SCENENODECOMPONENT_H
 
 #include "ObjectName.h"
+#include "Serializable.h"
 
 namespace Fancy {
   namespace IO {
@@ -24,11 +25,14 @@ namespace Fancy { namespace Scene {
   class DLLEXPORT SceneNodeComponent
   {
     public:
+      SERIALIZABLE(SceneNodeComponent)
+
       SceneNodeComponent(SceneNode* pOwner);
       virtual ~SceneNodeComponent();
 
+      const ObjectName& getName() const;
       virtual ObjectName getTypeName() = 0;
-      virtual void serialize(IO::Serializer& aSerializer) = 0;
+      virtual void serialize(IO::Serializer* aSerializer) = 0;
       
       SceneNode* getSceneNode() { return m_pOwner; }
       const SceneNode* getSceneNode() const { return m_pOwner; }

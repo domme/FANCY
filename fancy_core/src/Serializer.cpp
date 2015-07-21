@@ -42,6 +42,15 @@ namespace Fancy { namespace IO {
         endType();
         return true;
       }
+      case EBaseDataType::SerializablePtr:
+      {
+        MetaTable* metaTable = static_cast<MetaTable*>(aDataType.myUserData);
+        beginType(metaTable->getTypeName(anObject), metaTable->getInstanceName(anObject));
+        metaTable->serialize(this, anObject);
+        endType();
+        return true;
+      }
+
       default:
         return false;
     }
@@ -203,13 +212,13 @@ namespace Fancy { namespace IO {
     }
   }
 //---------------------------------------------------------------------------//
-  void JSONwriter::beginType(const String& aTypeName, const String& aName)
+  void JSONwriter::beginType(const String& aTypeName, const String& anInstanceName)
   {
     Json::Value typeValue(Json::objectValue);
     typeValue["Type"] = aTypeName;
 
-    if (!aName.empty())
-      typeValue["Name"] = aName;
+    if (!anInstanceName.empty())
+      typeValue["Name"] = anInstanceName;
 
     myTypeStack.push(typeValue);
   }

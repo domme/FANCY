@@ -32,7 +32,7 @@ namespace Fancy { namespace Geometry {
       ~Model();
 
       static ObjectName getTypeName() { return _N(Model); }
-      void serialize(IO::Serializer& aSerializer);
+      void serialize(IO::Serializer* aSerializer);
       
       const ObjectName& getName() const {return m_Name;}
       void setName(const ObjectName& clNewName) {m_Name = clNewName;}

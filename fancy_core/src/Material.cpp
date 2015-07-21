@@ -59,7 +59,7 @@ namespace Fancy { namespace Rendering {
     return same;
   }
 //---------------------------------------------------------------------------//
-  void Material::serialize(IO::Serializer& aSerializer)
+  void Material::serialize(IO::Serializer* aSerializer)
   {
     /*
     aSerializer.serialize(_VAL(m_Name));

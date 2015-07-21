@@ -22,7 +22,7 @@ namespace Fancy { namespace Scene {
       virtual ~LightComponent();
 
       virtual ObjectName getTypeName() override { return _N(LightComponent); }
-      virtual void serialize(IO::Serializer& aSerializer) override;
+      virtual void serialize(IO::Serializer* aSerializer) override;
 
       virtual void init() override;
       virtual void update() override;

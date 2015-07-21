@@ -26,7 +26,7 @@ namespace Fancy { namespace Scene {
 
   }
 //---------------------------------------------------------------------------//
-  void CameraComponent::serialize(IO::Serializer& aSerializer)
+  void CameraComponent::serialize(IO::Serializer* aSerializer)
   {
     /*aSerializer.serialize(_VAL(m_matViewInv));
     aSerializer.serialize(_VAL(m_matView));
