@@ -100,7 +100,6 @@ namespace Fancy { namespace Scene {
   }
 //---------------------------------------------------------------------------//
 
-  SERIALIZABLE_IMPL(SceneNode)
 //---------------------------------------------------------------------------//
   SceneNode::SceneNode() :
     m_pParent(nullptr)
@@ -120,21 +119,24 @@ namespace Fancy { namespace Scene {
     aSerializer->serialize(_VAL(m_transform.m_localPosition));
     aSerializer->serialize(_VAL(m_transform.m_localScale));
 
-    uint32 numComponents = aSerializer->beginArray(_STR(m_vpComponents), m_vpComponents.size());
+    aSerializer->serialize(_VAL(m_vpComponents));
+    aSerializer->serialize(_VAL(m_vpChildren));
+
+    /*uint32 numComponents = aSerializer->beginArray(_STR(m_vpComponents), m_vpComponents.size());
     m_vpComponents.resize(numComponents);
     for (uint32 i = 0u; i < numComponents; ++i)
     {
       aSerializer->serialize(m_vpComponents[i]);
     }
-    aSerializer->endArray();
+    aSerializer->endArray(); */
 
-    uint32 numChildren = aSerializer->beginArray(_STR(m_vpChildren), m_vpChildren.size());
+    /*uint32 numChildren = aSerializer->beginArray(_STR(m_vpChildren), m_vpChildren.size());
     m_vpChildren.resize(numChildren);
     for (uint32 i = 0u; i < numChildren; ++i)
     {
       aSerializer->serialize(m_vpChildren[i]);
     }
-    aSerializer->endArray();
+    aSerializer->endArray(); */
     
     for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
     {

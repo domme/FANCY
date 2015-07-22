@@ -133,8 +133,16 @@ namespace Fancy { namespace IO {
         _store(aName, jsonVal);
       } break;
 
-      case EBaseDataType::Array: break;
-      case EBaseDataType::Vector: break;
+      case EBaseDataType::Array:
+      {
+        MetaTableArray* arrayVtable = reinterpret_cast<MetaTableArray*>(aDataType.myUserData);
+        uint numElements = arrayVtable->getSize(anObject);
+        beginArray(aName, numElements);
+        for (uint i = 0u; i < numElements; ++i)
+          this->serializeImpl(arrayVtable->getElementDataType(), arrayVtable->getElement(anObject, i), nullptr);
+        endArray();
+      } break;
+
       case EBaseDataType::Map: break;
 
       case EBaseDataType::Vector3:
