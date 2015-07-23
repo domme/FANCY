@@ -3,9 +3,9 @@
 
 #include "FancyCorePrerequisites.h"
 #include "ObjectName.h"
-#include "FixedArray.h"
 #include "StaticManagedObject.h"
 #include "Material.h"
+#include "Serializable.h"
 
 namespace Fancy {
   namespace IO {
@@ -31,6 +31,8 @@ namespace Fancy { namespace Geometry {
   class SubModel : public StaticManagedHeapObject<SubModel>
   {
   public:
+    SERIALIZABLE(SubModel)
+
     SubModel();
     ~SubModel();
 

@@ -47,7 +47,7 @@ namespace Fancy { namespace IO {
   {
     static IO::DataType get()
     {
-      return T::getDataType();
+      return T::template getDataType<void>();
     }
   };
 //---------------------------------------------------------------------------//
@@ -56,7 +56,16 @@ namespace Fancy { namespace IO {
   {
     static IO::DataType get()
     {
-      return T::getDataTypePtr();
+      return T::template getDataTypePtr<void>();
+    }
+  };
+//---------------------------------------------------------------------------//
+  template<class T>
+  struct Get_DataType<T*>
+  {
+    static IO::DataType get()
+    {
+      return T::template getDataTypeRawPtr<void>();
     }
   };
 //---------------------------------------------------------------------------//
@@ -112,7 +121,6 @@ namespace Fancy { namespace IO {
     template<class T>
     struct MetaTableImpl : public MetaTable
     {
-      virtual ~MetaTableImpl<T>() {}
       virtual void* create() override { return nullptr; }
 
       virtual String getTypeName(void* anObject) override
@@ -139,11 +147,41 @@ namespace Fancy { namespace IO {
     };
     template<class T>
     MetaTableImpl<T> MetaTableImpl<T>::ourVTable;
-    //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
     template<class T>
-    struct MetaTableImplPtr : public MetaTable
+    struct MetaTableImpl<T*> : public MetaTable
     {
-      virtual ~MetaTableImplPtr<T>() {}
+      virtual void* create() override { return nullptr; }
+
+      virtual String getTypeName(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        return (*serializable)->getTypeName();
+      }
+
+      virtual String getInstanceName(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        return (*serializable)->getName();
+      }
+
+      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        (*serializable)->serialize(aSerializer);
+      }
+
+      virtual void destroy() override { }
+
+      static MetaTableImpl<T*> ourVTable;
+    };
+    template<class T>
+    MetaTableImpl<T*> MetaTableImpl<T*>::ourVTable;
+//---------------------------------------------------------------------------//
+    template<class T>
+    struct MetaTableImpl<std::shared_ptr<T>> : public MetaTable
+    {
+      virtual ~MetaTableImpl<std::shared_ptr<T>>() {}
       virtual void* create() override { return nullptr; }
 
       virtual String getTypeName(void* anObject) override
@@ -166,10 +204,10 @@ namespace Fancy { namespace IO {
 
       virtual void destroy() override { }
 
-      static MetaTableImplPtr<T> ourVTable;
+      static MetaTableImpl<std::shared_ptr<T>> ourVTable;
     };
     template<class T>
-    MetaTableImplPtr<T> MetaTableImplPtr<T>::ourVTable;
+    MetaTableImpl<std::shared_ptr<T>> MetaTableImpl<std::shared_ptr<T>>::ourVTable;
     //---------------------------------------------------------------------------//
     // Dummy general template:
     template<class T>
@@ -291,13 +329,20 @@ namespace Fancy { namespace IO {
   };
 //---------------------------------------------------------------------------//
 #define SERIALIZABLE(T) \
+  template<class dummy> \
   static IO::DataType getDataType() \
   { \
     return IO::DataType(IO::EBaseDataType::Serializable, &Internal::MetaTableImpl<T>::ourVTable); \
   } \
+  template<class dummy> \
   static IO::DataType getDataTypePtr() \
   { \
-    return IO::DataType(IO::EBaseDataType::SerializablePtr, &Internal::MetaTableImplPtr<T>::ourVTable); \
+    return IO::DataType(IO::EBaseDataType::SerializablePtr, &Internal::MetaTableImpl<std::shared_ptr<T>>::ourVTable); \
+  } \
+  template<class dummy> \
+  static IO::DataType getDataTypeRawPtr() \
+  { \
+    return IO::DataType(IO::EBaseDataType::SerializablePtr, &Internal::MetaTableImpl<T*>::ourVTable); \
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

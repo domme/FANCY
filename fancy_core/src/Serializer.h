@@ -50,15 +50,12 @@ namespace Fancy { namespace IO {
           serializeImpl(Get_DataType<T>::get(), anObject, aName);
         }
 
-        virtual void beginType(const String& aTypeName, const String& anInstanceName) = 0;
-        virtual void endType() = 0;
-
-        virtual uint32 beginArray(const char* aName, uint32 aNumElements) = 0;
-        virtual void endArray() = 0;
-        
     protected:
 
-      virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName);
+      virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName) = 0;
+
+      virtual void beginName(const char* aName, bool anIsArray) = 0;
+      virtual void endName() = 0;
 
       ESerializationMode myMode;
       std::fstream myArchive;
@@ -71,12 +68,6 @@ namespace Fancy { namespace IO {
       JSONwriter(const String& anArchivePath);
       virtual ~JSONwriter() override;
       
-      virtual void beginType(const String& aTypeName, const String& anInstanceName) override;
-      virtual void endType() override;
-
-      virtual uint32 beginArray(const char* aName, uint32 aNumElements) override;
-      virtual void endArray() override;
-
       const uint32 myVersion = 0;
 
     protected:
@@ -104,15 +95,17 @@ namespace Fancy { namespace IO {
 
       virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
 
-      void _store(const char* aName, const Json::Value& aValue);
+      virtual void beginName(const char* aName, bool anIsArray) override;
+      virtual void endName() override;
+
       bool isStoredManaged(const ObjectName& aName, const Json::Value& aValue);
       void storeHeader(Json::Value& aValue);
 
       RootHeader myHeader;
       Json::Value myCurrentEndType;
       
+      std::stack<const char*> myNameStack;
       std::stack<Json::Value> myTypeStack;
-      std::stack<ArrayDesc> myArrayStack;
       Json::StyledStreamWriter myJsonWriter;
     };
 

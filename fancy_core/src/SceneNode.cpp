@@ -122,22 +122,6 @@ namespace Fancy { namespace Scene {
     aSerializer->serialize(_VAL(m_vpComponents));
     aSerializer->serialize(_VAL(m_vpChildren));
 
-    /*uint32 numComponents = aSerializer->beginArray(_STR(m_vpComponents), m_vpComponents.size());
-    m_vpComponents.resize(numComponents);
-    for (uint32 i = 0u; i < numComponents; ++i)
-    {
-      aSerializer->serialize(m_vpComponents[i]);
-    }
-    aSerializer->endArray(); */
-
-    /*uint32 numChildren = aSerializer->beginArray(_STR(m_vpChildren), m_vpChildren.size());
-    m_vpChildren.resize(numChildren);
-    for (uint32 i = 0u; i < numChildren; ++i)
-    {
-      aSerializer->serialize(m_vpChildren[i]);
-    }
-    aSerializer->endArray(); */
-    
     for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
     {
       m_vpChildren[i]->m_pParent = this;

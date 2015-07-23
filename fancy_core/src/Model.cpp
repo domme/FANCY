@@ -1,5 +1,6 @@
 #include "Model.h"
 #include "Serializer.h"
+#include "SubModel.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -15,17 +16,8 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   void Model::serialize(IO::Serializer* aSerializer)
   {
-    /*
-    aSerializer.serialize(_VAL(m_Name));
-    
-    uint32 num = aSerializer.beginArray("m_vSubModels", m_vSubModels.size());
-    m_vSubModels.resize(num);
-    for (uint32 i = 0u; i < num; ++i)
-    {
-      aSerializer.serialize(m_vSubModels[i]);
-    }
-    aSerializer.endArray();
-    */
+    aSerializer->serialize(_VAL(m_Name));
+    aSerializer->serialize(_VAL(m_vSubModels));
   }
 //---------------------------------------------------------------------------//
   void Model::addSubModel(SubModel* _pSubModel)

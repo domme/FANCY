@@ -1,10 +1,10 @@
-#ifndef INCLUDE_MODEL_H
-#define INCLUDE_MODEL_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 #include "ObjectName.h"
 #include "FixedArray.h"
 #include "StaticManagedObject.h"
+#include "Serializable.h"
 
 namespace Fancy { namespace IO {
   class Serializer;
@@ -17,17 +17,13 @@ namespace Fancy { namespace Geometry {
   const uint32 kMaxNumSubModelsPerModel = 256u;
   typedef FixedArray<SubModel*, kMaxNumSubModelsPerModel> SubModelList;
 //---------------------------------------------------------------------------//
-  struct ModelDesc
-  {
-	  ObjectName myName;
-
-  };
-//---------------------------------------------------------------------------//
   /*@brief: A Model is a collection of several SubModels. Each SubModel is potentially rendered with a different material
   and a different mesh */ 
   class Model : public StaticManagedHeapObject<Model>
   {
     public:
+      SERIALIZABLE(Model)
+
       Model();
       ~Model();
 
@@ -59,4 +55,3 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry
 
-#endif  // INCLUDE_MODEL_H

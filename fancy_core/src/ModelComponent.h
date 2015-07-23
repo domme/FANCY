@@ -2,16 +2,13 @@
 #define INCLUDE_MODELCOMPONENT_H
 
 #include "SceneNodeComponent.h"
-#include "Model.h"
+#include "Serializable.h"
+
+namespace Fancy { namespace Geometry {
+  class Model;
+} }
 
 namespace Fancy { namespace Scene {
-//---------------------------------------------------------------------------//
-	struct ModelComponentDesc : public SceneNodeComponentDesc
-	{
-		
-	};
-//---------------------------------------------------------------------------//
-	DECLARE_SMART_PTRS(ModelComponentDesc);
 //---------------------------------------------------------------------------//
   class DLLEXPORT ModelComponent : 
     public SceneNodeComponent, public BaseCreator<ModelComponent, SceneNode*>
