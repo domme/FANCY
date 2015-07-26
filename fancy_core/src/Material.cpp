@@ -1,5 +1,6 @@
 #include "Material.h"
 #include "Serializer.h"
+#include "MaterialPass.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -35,8 +36,11 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   Material::Material()
   {
-    memset(m_vPasses, 0u, sizeof(m_vPasses));
-    memset(m_vParameters, 0x0, sizeof(m_vParameters));
+    m_vPasses.resize(m_vPasses.capacity());
+    memset(&m_vPasses[0], 0u, sizeof(MaterialPassInstance*) * m_vPasses.capacity());
+
+    m_vParameters.resize(m_vParameters.capacity());
+    memset(&m_vParameters[0], 0x0, sizeof(float) * m_vParameters.capacity());
   }
 //---------------------------------------------------------------------------//
   Material::~Material()
@@ -46,7 +50,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   bool Material::operator==(const Material& _other) const
   {
-    bool same = memcmp(m_vPasses, _other.m_vPasses, sizeof(m_vPasses)) == 0;
+    bool same = memcmp(&m_vPasses[0], &_other.m_vPasses[0], 
+      sizeof(MaterialPassInstance*) * m_vPasses.capacity()) == 0;
 
     if (same)
     {
@@ -61,75 +66,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void Material::serialize(IO::Serializer* aSerializer)
   {
-    /*
-    aSerializer.serialize(_VAL(m_Name));
-
-    uint32 count = aSerializer.beginArray("m_vParameters", (uint32)EMaterialParameterSemantic::NUM);
-    for (uint32 i = 0u; i < (uint32)EMaterialParameterSemantic::NUM; ++i)
-      aSerializer.serialize(m_vParameters[i]);
-    aSerializer.endArray();
-
-    count = aSerializer.beginArray("m_vPasses", (uint32)EMaterialPass::NUM);
-    for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
-      aSerializer.serialize(m_vPasses[i]);
-    aSerializer.endArray();
-    */
-  }
-//---------------------------------------------------------------------------//
-  MaterialDesc Material::getDescription() const
-  {
-    MaterialDesc aDesc;
-    aDesc.myName = m_Name;
-    memcpy(aDesc.myParameters, m_vParameters, sizeof(m_vParameters));
-
-    for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
-    {
-      if (m_vPasses[i])
-      {
-        aDesc.myPasses[i] = m_vPasses[i]->getDescription();
-      }
-    }
-
-    return aDesc;
-  }
-//---------------------------------------------------------------------------//
-  void Material::initFromDescription(const MaterialDesc& _aDesc)
-  {
-    m_Name = _aDesc.myName;
-    memcpy(m_vParameters, _aDesc.myParameters, sizeof(m_vParameters));
-
-    for (uint32 i = 0u; i < (uint32)EMaterialPass::NUM; ++i)
-    {
-      const MaterialPassInstanceDesc& mpiDesc = _aDesc.myPasses[i];
-      if (mpiDesc.myName == ObjectName::blank)
-      {
-        continue;
-      }
-
-      // Is the referenced MaterialPass already initialized?
-      MaterialPass* matPass = MaterialPass::find([mpiDesc](const MaterialPass* currMatPass) -> bool {
-        return currMatPass->getDescription() == mpiDesc.myMaterialPass;
-      });
-
-      if (matPass == nullptr)
-      {
-        // There isn't a fitting material pass yet, so we'll create one in-place
-
-        // TODO: Make StaticManagedHeapObject act as factory for their managed classes...
-        matPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
-        matPass->initFromDescription(mpiDesc.myMaterialPass);
-        MaterialPass::registerWithName(matPass);
-      }
-
-      MaterialPassInstance* mpi = matPass->getMaterialPassInstance(mpiDesc.myName);
-      if (mpi == nullptr)
-      {
-        mpi = matPass->createMaterialPassInstance(mpiDesc.myName);
-        mpi->initFromDescription(mpiDesc);
-      }
-
-      m_vPasses[i] = mpi;
-    }
+    aSerializer->serialize(_VAL(m_Name));
+    aSerializer->serialize(_VAL(m_vParameters));
+    aSerializer->serialize(_VAL(m_vPasses));
   }
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

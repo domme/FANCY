@@ -6,6 +6,7 @@
 #include "StaticManagedObject.h"
 #include "ObjectName.h"
 #include "MaterialPass.h"
+#include "Serializable.h"
 
 namespace Fancy {
   namespace IO {
@@ -25,25 +26,17 @@ namespace Fancy { namespace Rendering {
     NUM
   };
 //---------------------------------------------------------------------------//  
-  struct MaterialDesc
-  {
-    ObjectName myName;
-    MaterialPassInstanceDesc myPasses[(uint32)EMaterialPass::NUM];
-    float myParameters[(uint32)EMaterialParameterSemantic::NUM];
-  };
-//---------------------------------------------------------------------------//  
   class Material : public StaticManagedHeapObject<Material>
   {
   public:
+      SERIALIZABLE(Material)
+
       Material();
       ~Material();
       bool operator==(const Material& _other) const;
 
       static ObjectName getTypeName() { return _N(Material); }
       void serialize(IO::Serializer* aSerializer);
-
-      MaterialDesc getDescription() const;
-      void initFromDescription(const MaterialDesc& _aDesc);
 
       const ObjectName& getName() const { return m_Name; }
       void setName(const ObjectName& _name) {m_Name = _name;}
@@ -56,8 +49,8 @@ namespace Fancy { namespace Rendering {
 
     private:
       ObjectName m_Name;
-      float m_vParameters[(uint32)EMaterialParameterSemantic::NUM];
-      MaterialPassInstance* m_vPasses[ (uint32) EMaterialPass::NUM ];
+      FixedArray<float, (uint32)EMaterialParameterSemantic::NUM> m_vParameters;
+      FixedArray<MaterialPassInstance*, (uint32)EMaterialPass::NUM> m_vPasses;
       
   };
 //---------------------------------------------------------------------------//

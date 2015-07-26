@@ -10,24 +10,13 @@
 #include "GpuProgram.h"
 #include "DepthStencilState.h"
 #include "BlendState.h"
+#include "Serializable.h"
 
 namespace Fancy { namespace IO {
   class Serializer;
 } }
 
 namespace Fancy { namespace Rendering {
-//---------------------------------------------------------------------------//
-  struct MaterialPassDesc
-  {
-    bool operator==(const MaterialPassDesc& anOther) const;
-    ObjectName myName;
-    ObjectName myGpuPrograms[(uint32)ShaderStage::NUM];
-    FillMode myFillmode;
-    CullMode myCullmode;
-    WindingOrder myWindingOrder;
-    ObjectName myBlendState;
-    ObjectName myDepthStencilState;
-  };
 //---------------------------------------------------------------------------//
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
@@ -42,9 +31,6 @@ namespace Fancy { namespace Rendering {
 
       void serialize(IO::Serializer* aSerializer);
       ObjectName getTypeName() const { return _N(MaterialPass); }
-
-      MaterialPassDesc getDescription() const;
-      void initFromDescription(const MaterialPassDesc& _aDesc);
 
       const ObjectName& getName() const { return m_Name; }
       const GpuProgram* getGpuProgram(const ShaderStage eShaderStage) const 
@@ -74,38 +60,40 @@ namespace Fancy { namespace Rendering {
 
   };
 //---------------------------------------------------------------------------//
-  struct MaterialPassInstanceDesc
+  enum class MpiResourceType
   {
-    ObjectName myName;
-    ObjectName myReadTextures[(uint32)ShaderStage::NUM][kMaxNumReadTextures];
-    ObjectName myWriteTextures[(uint32)ShaderStage::NUM][kMaxNumWriteTextures];
-    ObjectName myReadBuffers[(uint32)ShaderStage::NUM][kMaxNumReadBuffers];
-    ObjectName myWriteBuffers[(uint32)ShaderStage::NUM][kMaxNumWriteBuffers];
-    ObjectName myTextureSamplers[(uint32)ShaderStage::NUM][kMaxNumTextureSamplers];
-    MaterialPassDesc myMaterialPass;
+    ReadTexture,
+    WriteTexture,
+    ReadBuffer,
+    WriteBuffer,
+    TextureSampler
   };
 //---------------------------------------------------------------------------//
-  struct TextureStorageEntry
+  struct ResourceStorageEntry
   {
+    SERIALIZABLE(ResourceStorageEntry)
+
     uint32 myShaderStage;
     uint32 myIndex;
-    String myName;
+    ObjectName myName;
+
     void serialize(IO::Serializer* aSerializer);
-  };
+    const ObjectName& getTypeName() const { return _N(ResourceStorageEntry); }
+    const ObjectName& getName() const { return ObjectName::blank; }
+  }; 
 //---------------------------------------------------------------------------//
   class MaterialPassInstance
   {
     friend class MaterialPass;
 
     public:
+      SERIALIZABLE(MaterialPassInstance)
+
       MaterialPassInstance();
       ~MaterialPassInstance();
 
       void serialize(IO::Serializer* aSerializer);
       ObjectName getTypeName() const { return _N(MaterialPassInstance); }
-
-      void initFromDescription(const MaterialPassInstanceDesc _aDesc);
-      MaterialPassInstanceDesc getDescription() const;
 
       const Texture* const* getReadTextures(ShaderStage eShaderStage) const {return m_vpReadTextures[(uint32) eShaderStage];}
       const Texture* const* getWriteTextures(ShaderStage eShaderStage) const {return m_vpWriteTextures[(uint32) eShaderStage];}
@@ -125,6 +113,9 @@ namespace Fancy { namespace Rendering {
       void setReadBuffer(ShaderStage _eStage, uint32 _registerIndex, GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumReadBuffers); m_vpReadBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
       void setWriteBuffer(ShaderStage _eStage, uint32 _registerIndex, GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumWriteBuffers); m_vpWriteBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
       void setTextureSampler(ShaderStage _eStage, uint32 _registerIndex, TextureSampler* _pTextureSampler) {ASSERT(_registerIndex < kMaxNumTextureSamplers); m_vpTextureSamplers[(uint32) _eStage][_registerIndex] = _pTextureSampler; }
+
+      const std::vector<ResourceStorageEntry>& getResourceDesc(MpiResourceType aType) const;
+      void setFromResourceDesc(const std::vector<ResourceStorageEntry>& someResources, MpiResourceType aType);
 
       MaterialPass* getMaterialPass() const {return m_pMaterialPass;}
       const ObjectName& getName() {return m_Name;}

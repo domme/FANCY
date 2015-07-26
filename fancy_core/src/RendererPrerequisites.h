@@ -10,6 +10,7 @@
 #endif // RENDERER_OPENGL4
 
 #include "FancyCorePrerequisites.h"
+#include "ObjectName.h"
 
 // Common defines for the RenderSystem
 // TODO: Check these values again...
@@ -292,7 +293,7 @@ namespace Fancy {
         eFormat(DataFormat::NONE), uAccessFlags(0u), pPixelData(nullptr),
         uPixelDataSizeBytes(0), bIsDepthStencil(false) {}
 
-      String path;
+      ObjectName path;
       uint16 u16Width;
       uint16 u16Height;
       uint16 u16Depth;

@@ -86,7 +86,7 @@ namespace Fancy { namespace IO {
 
       case EBaseDataType::Float:
       {
-        currJsonVal = *static_cast<uint*>(anObject);
+        currJsonVal = *static_cast<float*>(anObject);
       } break;
 
       case EBaseDataType::Char:

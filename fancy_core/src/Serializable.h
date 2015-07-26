@@ -82,6 +82,7 @@ namespace Fancy { namespace IO {
   // Base types (without meta-table)
   DECLARE_DATATYPE(int, Int);
   DECLARE_DATATYPE(uint, Uint);
+  DECLARE_DATATYPE(uint32, Uint);
   DECLARE_DATATYPE(float, Float);
   DECLARE_DATATYPE(char, Char);
   DECLARE_DATATYPE(const char*, CString);
@@ -271,7 +272,7 @@ namespace Fancy { namespace IO {
     };
     template<class T>
     MetaTableArrayImpl<std::vector<T>> MetaTableArrayImpl<std::vector<T>>::ourVTable;
-    //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
     template<class T, uint32 Capacity>
     struct MetaTableArrayImpl<FixedArray<T, Capacity>> : public MetaTableArray
     {
@@ -305,9 +306,41 @@ namespace Fancy { namespace IO {
 
     template<class T, uint32 Capacity>
     MetaTableArrayImpl<FixedArray<T, Capacity>> MetaTableArrayImpl<FixedArray<T, Capacity>>::ourVTable;
-    //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+    template<class T, uint32 Capacity>
+    struct MetaTableArrayImpl<T[Capacity]> : public MetaTableArray
+    {
+      using BuitinArrayT = T[Capacity];
+
+      virtual void* getElement(void* anObject, uint anIndex) override
+      {
+        BuitinArrayT* array = reinterpret_cast<BuitinArrayT*>(anObject);
+        return &((*array)[anIndex]);
+      }
+
+      virtual uint getSize(void* anObject) override
+      {
+        return Capacity;
+      }
+
+      virtual void resize(void* anObject, uint aNewSize) override
+      {
+        // Nothing to do here
+      }
+
+      virtual IO::DataType getElementDataType() override
+      {
+        return Get_DataType<T>::get();
+      }
+
+      static MetaTableArrayImpl<T[Capacity]> ourVTable;
+    };
+
+    template<class T, uint32 Capacity>
+    MetaTableArrayImpl<T[Capacity]> MetaTableArrayImpl<T[Capacity]>::ourVTable;
+//---------------------------------------------------------------------------//
   }  // end of namespace Internal
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   template<class T>
@@ -315,7 +348,7 @@ namespace Fancy { namespace IO {
   {
     static IO::DataType get()
     {
-      return IO::DataType(IO::EBaseDataType::Array, &Internal::MetaTableArrayImpl<std::vector<T>>::ourVTable);
+      return IO::DataType(IO::EBaseDataType::Array, &Fancy::Internal::MetaTableArrayImpl<std::vector<T>>::ourVTable);
     }
   };
 //---------------------------------------------------------------------------//
@@ -324,7 +357,16 @@ namespace Fancy { namespace IO {
   {
     static IO::DataType get()
     {
-      return IO::DataType(IO::EBaseDataType::Array, &Internal::MetaTableArrayImpl<FixedArray<T, Capacity>>::ourVTable);
+      return IO::DataType(IO::EBaseDataType::Array, &Fancy::Internal::MetaTableArrayImpl<FixedArray<T, Capacity>>::ourVTable);
+    }
+  };
+//---------------------------------------------------------------------------//
+  template<class T, uint32 Capacity>
+  struct Get_DataType<T[Capacity]>
+  {
+    static IO::DataType get()
+    {
+      return IO::DataType(IO::EBaseDataType::Array, &Fancy::Internal::MetaTableArrayImpl<T[Capacity]>::ourVTable);
     }
   };
 //---------------------------------------------------------------------------//
@@ -332,17 +374,17 @@ namespace Fancy { namespace IO {
   template<class dummy> \
   static IO::DataType getDataType() \
   { \
-    return IO::DataType(IO::EBaseDataType::Serializable, &Internal::MetaTableImpl<T>::ourVTable); \
+    return IO::DataType(IO::EBaseDataType::Serializable, &Fancy::Internal::MetaTableImpl<T>::ourVTable); \
   } \
   template<class dummy> \
   static IO::DataType getDataTypePtr() \
   { \
-    return IO::DataType(IO::EBaseDataType::SerializablePtr, &Internal::MetaTableImpl<std::shared_ptr<T>>::ourVTable); \
+    return IO::DataType(IO::EBaseDataType::SerializablePtr, &Fancy::Internal::MetaTableImpl<std::shared_ptr<T>>::ourVTable); \
   } \
   template<class dummy> \
   static IO::DataType getDataTypeRawPtr() \
   { \
-    return IO::DataType(IO::EBaseDataType::SerializablePtr, &Internal::MetaTableImpl<T*>::ourVTable); \
+    return IO::DataType(IO::EBaseDataType::SerializablePtr, &Fancy::Internal::MetaTableImpl<T*>::ourVTable); \
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

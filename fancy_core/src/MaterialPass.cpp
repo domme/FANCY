@@ -24,24 +24,7 @@ namespace Fancy { namespace Rendering {
       return names[aShaderStage];
     }
   }
-
-//---------------------------------------------------------------------------//
-  bool MaterialPassDesc::operator==(const MaterialPassDesc& anOther) const
-  {
-    bool equal = true;
-    equal &= myName == anOther.myName;
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-    {
-      equal &= myGpuPrograms[i] == anOther.myGpuPrograms[i];
-    }
-    equal &= myFillmode == anOther.myFillmode;
-    equal &= myCullmode == anOther.myCullmode;
-    equal &= myWindingOrder == anOther.myWindingOrder;
-    equal &= myBlendState == anOther.myBlendState;
-    equal &= myDepthStencilState == anOther.myDepthStencilState;
-    
-    return equal;
-  }
+  
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
   MaterialPass::MaterialPass() : 
@@ -97,39 +80,6 @@ namespace Fancy { namespace Rendering {
     aSerializer.endArray();*/
   }
 //---------------------------------------------------------------------------//
-  MaterialPassDesc MaterialPass::getDescription() const
-  {
-    MaterialPassDesc aDesc;
-    aDesc.myName = m_Name;
-    aDesc.myBlendState = m_pBlendState ? m_pBlendState->getName() : ObjectName::blank;
-    aDesc.myDepthStencilState = m_pDepthStencilState ? m_pDepthStencilState->getName() : ObjectName::blank;
-    aDesc.myCullmode = m_eCullMode;
-    aDesc.myFillmode = m_eFillMode;
-    aDesc.myWindingOrder = m_eWindingOrder;
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-    {
-      aDesc.myGpuPrograms[i] = m_pGpuProgram[i] ? m_pGpuProgram[i]->getName() : ObjectName::blank;
-    }
-
-    return aDesc;
-  }
-//---------------------------------------------------------------------------//
-  void MaterialPass::initFromDescription(const MaterialPassDesc& _aDesc)
-  {
-    ASSERT(m_Name == ObjectName::blank); // Already initialized
-
-    m_Name = _aDesc.myName;
-    m_pBlendState = BlendState::getByName(_aDesc.myBlendState);
-    m_pDepthStencilState = DepthStencilState::getByName(_aDesc.myDepthStencilState);
-    m_eCullMode = _aDesc.myCullmode;
-    m_eFillMode = _aDesc.myFillmode;
-    m_eWindingOrder = _aDesc.myWindingOrder;
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-    {
-      m_pGpuProgram[i] = GpuProgram::getByName(_aDesc.myGpuPrograms[i], true);
-    }
-  }
-//---------------------------------------------------------------------------//
   MaterialPassInstance* MaterialPass::createMaterialPassInstance( const ObjectName& name )
   {
     ASSERT(getMaterialPassInstance(name) == nullptr);
@@ -178,46 +128,191 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   uint MaterialPassInstance::computeHash() const
   {
-    MaterialPassInstanceDesc aDesc = getDescription();
-
     uint hash = 0x0;
 
     for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
     {
       for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
       {
-        MathUtil::hash_combine(hash, aDesc.myReadTextures[iStage][i].getHash());
+        Texture* tex = m_vpReadTextures[iStage][i];
+        MathUtil::hash_combine(hash, tex ? tex->getPath().getHash() : 0u);
       }
 
       for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
       {
-        MathUtil::hash_combine(hash, aDesc.myWriteTextures[iStage][i].getHash());
+        Texture* tex = m_vpWriteTextures[iStage][i];
+        MathUtil::hash_combine(hash, tex ? tex->getPath().getHash() : 0u);
       }
 
       for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
       {
-        MathUtil::hash_combine(hash, aDesc.myReadBuffers[iStage][i].getHash());
+        GpuBuffer* buf = m_vpReadBuffers[iStage][i];
+        MathUtil::hash_combine(hash, buf ? buf->getName().getHash() : 0u);
       }
 
       for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
       {
-        MathUtil::hash_combine(hash, aDesc.myWriteBuffers[iStage][i].getHash());
+        GpuBuffer* buf = m_vpWriteBuffers[iStage][i];
+        MathUtil::hash_combine(hash, buf ? buf->getName().getHash() : 0u);
       }
 
       for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
       {
-        MathUtil::hash_combine(hash, aDesc.myTextureSamplers[iStage][i].getHash());
+        TextureSampler* sampler = m_vpTextureSamplers[iStage][i];
+        MathUtil::hash_combine(hash, sampler ? sampler->getName().getHash() : 0u);
       }
     }
 
     return hash;
   }
 //---------------------------------------------------------------------------//
-  void TextureStorageEntry::serialize(IO::Serializer* aSerializer)
+  const std::vector<ResourceStorageEntry>& 
+    MaterialPassInstance::getResourceDesc(MpiResourceType aType) const
   {
-    /*aSerializer.serialize(_VAL(myShaderStage));
-    aSerializer.serialize(_VAL(myIndex));
-    aSerializer.serialize(_VAL(myName));*/
+    std::vector<ResourceStorageEntry> resources;
+
+    if (aType == MpiResourceType::ReadTexture)
+    {
+      for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
+      {
+        for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
+        {
+          if (!m_vpReadTextures[iStage][i])
+            continue;
+
+          ResourceStorageEntry entry;
+          entry.myShaderStage = iStage;
+          entry.myIndex = i;
+          entry.myName = m_vpReadTextures[iStage][i]->getPath();
+          resources.push_back(entry);
+        }
+      }
+    }
+
+    else if (aType == MpiResourceType::WriteTexture)
+    {
+      for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
+      {
+        for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
+        {
+          if (!m_vpWriteTextures[iStage][i])
+            continue;
+
+          ResourceStorageEntry entry;
+          entry.myShaderStage = iStage;
+          entry.myIndex = i;
+          entry.myName = m_vpWriteTextures[iStage][i]->getPath();
+          resources.push_back(entry);
+        }
+      }
+    }
+
+    else if (aType == MpiResourceType::ReadBuffer)
+    {
+      for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
+      {
+        for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
+        {
+          if (!m_vpReadBuffers[iStage][i])
+            continue;
+
+          ResourceStorageEntry entry;
+          entry.myShaderStage = iStage;
+          entry.myIndex = i;
+          entry.myName = m_vpReadBuffers[iStage][i]->getName();
+          resources.push_back(entry);
+        }
+      }
+    }
+
+    else if (aType == MpiResourceType::WriteBuffer)
+    {
+      for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
+      {
+        for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
+        {
+          if (!m_vpWriteBuffers[iStage][i])
+            continue;
+
+          ResourceStorageEntry entry;
+          entry.myShaderStage = iStage;
+          entry.myIndex = i;
+          entry.myName = m_vpWriteBuffers[iStage][i]->getName();
+          resources.push_back(entry);
+        }
+      }
+    }
+
+    else if (aType == MpiResourceType::TextureSampler)
+    {
+      for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
+      {
+        for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
+        {
+          if (!m_vpTextureSamplers[iStage][i])
+            continue;
+
+          ResourceStorageEntry entry;
+          entry.myShaderStage = iStage;
+          entry.myIndex = i;
+          entry.myName = m_vpTextureSamplers[iStage][i]->getName();
+          resources.push_back(entry);
+        }
+      }
+    }
+    
+    return resources;
+  }
+//---------------------------------------------------------------------------//
+  void MaterialPassInstance::setFromResourceDesc
+    (const std::vector<ResourceStorageEntry>& someResources, MpiResourceType aType)
+  {
+    if (aType == MpiResourceType::ReadTexture)
+    {
+      for (const ResourceStorageEntry& entry : someResources)
+      {
+        m_vpReadTextures[entry.myShaderStage][entry.myIndex] = Texture::getByName(entry.myName);
+      }
+    }
+
+    else if (aType == MpiResourceType::WriteTexture)
+    {
+      for (const ResourceStorageEntry& entry : someResources)
+      {
+        m_vpWriteTextures[entry.myShaderStage][entry.myIndex] = Texture::getByName(entry.myName);
+      }
+    }
+
+    //else if (aType == MpiResourceType::ReadBuffer)
+    //{
+    //  for (const ResourceStorageEntry entry : someResources)
+    //  {
+    //    m_vpReadBuffers[entry.myShaderStage][entry.myIndex] = GpuBuffer::getByName(entry.myName);
+    //  }
+    //}
+    //
+    //else if (aType == MpiResourceType::WriteBuffer)
+    //{
+    //  for (const ResourceStorageEntry entry : someResources)
+    //  {
+    //    m_vpWriteBuffers[entry.myShaderStage][entry.myIndex] = GpuBuffer::getByName(entry.myName);
+    //  }
+    //}
+
+    else if (aType == MpiResourceType::TextureSampler)
+    {
+      for (const ResourceStorageEntry& entry : someResources)
+      {
+        m_vpTextureSamplers[entry.myShaderStage][entry.myIndex] = TextureSampler::getByName(entry.myName);
+      }
+    }
+  }
+//---------------------------------------------------------------------------//
+  void ResourceStorageEntry::serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->serialize(_VAL(myShaderStage));
+    aSerializer->serialize(_VAL(myIndex));
+    aSerializer->serialize(_VAL(myName));
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance::MaterialPassInstance() :
@@ -237,128 +332,24 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::serialize(IO::Serializer* aSerializer)
   {
-    //aSerializer.serialize(_VAL(m_Name));
+    aSerializer->serialize(_VAL(m_Name));
     //aSerializer.serialize(_VAL(m_pMaterialPass));
     //
-    //std::vector<TextureStorageEntry> textureEntries;
-    //if (aSerializer.getMode() == IO::ESerializationMode::STORE)
-    //{
-    //  for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
-    //  {
-    //    for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
-    //    {
-    //      if (m_vpReadTextures[iStage][i])
-    //      {
-    //        TextureStorageEntry entry;
-    //        entry.myShaderStage = iStage;
-    //        entry.myIndex = i;
-    //        entry.myName = m_vpReadTextures[iStage][i]->getPath();
-    //        textureEntries.push_back(entry);
-    //      }
-    //    }
-    //  }
-    //}
-    //
-    //uint32 numTextures = aSerializer.beginArray("m_vpReadTextures", (uint32)ShaderStage::NUM);
-    //for (uint32 i = 0u; i < textureEntries.size(); ++i)
-    //{
-    //  aSerializer.serialize(textureEntries[i]);
-    //}
-    //aSerializer.endArray();
-
-    //  // for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
-    //  // {
-    //  //   aSerializer & m_vpWriteTextures[iStage][i];
-    //  // }
-    //  // 
-    //  // // TODO: Should buffers be loadable?
-    //  // /*for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
-    //  // {
-    //  //   m_vpReadBuffers[iStage][i] = nullptr;
-    //  // }
-    //  // 
-    //  // for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
-    //  // {
-    //  //   m_vpWriteBuffers[iStage][i] = nullptr;
-    //  // }*/
-    //  // 
-    //  // for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
-    //  // {
-    //  //   aSerializer & m_vpTextureSamplers[iStage][i];
-    //  // }
+    std::vector<ResourceStorageEntry> readTextures = getResourceDesc(MpiResourceType::ReadTexture);
+    aSerializer->serialize(readTextures);
+    
+    std::vector<ResourceStorageEntry> writeTextures = getResourceDesc(MpiResourceType::WriteTexture);
+    aSerializer->serialize(writeTextures);
+    
+    std::vector<ResourceStorageEntry> textureSamplers = getResourceDesc(MpiResourceType::TextureSampler);
+    aSerializer->serialize(textureSamplers);
+    
+    setFromResourceDesc(readTextures, MpiResourceType::ReadTexture);
+    setFromResourceDesc(writeTextures, MpiResourceType::WriteTexture);
+    setFromResourceDesc(textureSamplers, MpiResourceType::TextureSampler);
   }
 //---------------------------------------------------------------------------//
-  void MaterialPassInstance::initFromDescription(const MaterialPassInstanceDesc _aDesc)
-  {
-    m_Name = _aDesc.myName;
-
-    for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
-    {
-      for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
-      {
-        m_vpReadTextures[iStage][i] = Texture::getByName(_aDesc.myReadTextures[iStage][i], true);
-      }
-
-      for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
-      {
-        m_vpWriteTextures[iStage][i] = Texture::getByName(_aDesc.myWriteTextures[iStage][i], true);
-      }
-
-      for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
-      {
-        // TODO: Should buffers be loadable?
-        m_vpReadBuffers[iStage][i] = nullptr;
-      }
-
-      for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
-      {
-        // TODO: Should buffers be loadable?
-        m_vpWriteBuffers[iStage][i] = nullptr;
-      }
-
-      for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
-      {
-        m_vpTextureSamplers[iStage][i] = TextureSampler::getByName(_aDesc.myTextureSamplers[iStage][i], true);
-      }
-    }
-  }
-//---------------------------------------------------------------------------//
-  MaterialPassInstanceDesc MaterialPassInstance::getDescription() const
-  {
-    MaterialPassInstanceDesc aDesc;
-
-    aDesc.myName = m_Name;
-
-    for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
-    {
-      for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
-      {
-        aDesc.myReadTextures[iStage][i] = m_vpReadTextures[iStage][i] ? m_vpReadTextures[iStage][i]->getPath() : ObjectName::blank;
-      }
-
-      for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
-      {
-        aDesc.myWriteTextures[iStage][i] = m_vpWriteTextures[iStage][i] ? m_vpWriteTextures[iStage][i]->getPath() : ObjectName::blank;
-      }
-
-      for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
-      {
-        aDesc.myReadBuffers[iStage][i] = m_vpReadBuffers[iStage][i] ? m_vpReadBuffers[iStage][i]->getName() : ObjectName::blank;
-      }
-
-      for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
-      {
-        aDesc.myWriteBuffers[iStage][i] = m_vpWriteBuffers[iStage][i] ? m_vpWriteBuffers[iStage][i]->getName() : ObjectName::blank;
-      }
-
-      for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
-      {
-        aDesc.myTextureSamplers[iStage][i] = m_vpTextureSamplers[iStage][i] ? m_vpTextureSamplers[iStage][i]->getName() : ObjectName::blank;
-      }
-    }
-
-    return aDesc;
-  }
+  
 //---------------------------------------------------------------------------//
   // Note: Unfortunately, we can't reflect binding points from OpenGL-shaders and we don't want to modify binding in app code...
 
