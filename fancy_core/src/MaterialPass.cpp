@@ -166,11 +166,8 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-  const std::vector<ResourceStorageEntry>& 
-    MaterialPassInstance::getResourceDesc(MpiResourceType aType) const
+  void MaterialPassInstance::getResourceDesc(MpiResourceType aType, std::vector<ResourceStorageEntry>& someEntries) const
   {
-    std::vector<ResourceStorageEntry> resources;
-
     if (aType == MpiResourceType::ReadTexture)
     {
       for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
@@ -184,7 +181,7 @@ namespace Fancy { namespace Rendering {
           entry.myShaderStage = iStage;
           entry.myIndex = i;
           entry.myName = m_vpReadTextures[iStage][i]->getPath();
-          resources.push_back(entry);
+          someEntries.push_back(entry);
         }
       }
     }
@@ -202,7 +199,7 @@ namespace Fancy { namespace Rendering {
           entry.myShaderStage = iStage;
           entry.myIndex = i;
           entry.myName = m_vpWriteTextures[iStage][i]->getPath();
-          resources.push_back(entry);
+          someEntries.push_back(entry);
         }
       }
     }
@@ -220,7 +217,7 @@ namespace Fancy { namespace Rendering {
           entry.myShaderStage = iStage;
           entry.myIndex = i;
           entry.myName = m_vpReadBuffers[iStage][i]->getName();
-          resources.push_back(entry);
+          someEntries.push_back(entry);
         }
       }
     }
@@ -238,7 +235,7 @@ namespace Fancy { namespace Rendering {
           entry.myShaderStage = iStage;
           entry.myIndex = i;
           entry.myName = m_vpWriteBuffers[iStage][i]->getName();
-          resources.push_back(entry);
+          someEntries.push_back(entry);
         }
       }
     }
@@ -256,12 +253,10 @@ namespace Fancy { namespace Rendering {
           entry.myShaderStage = iStage;
           entry.myIndex = i;
           entry.myName = m_vpTextureSamplers[iStage][i]->getName();
-          resources.push_back(entry);
+          someEntries.push_back(entry);
         }
       }
     }
-    
-    return resources;
   }
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::setFromResourceDesc
@@ -335,14 +330,17 @@ namespace Fancy { namespace Rendering {
     aSerializer->serialize(_VAL(m_Name));
     //aSerializer.serialize(_VAL(m_pMaterialPass));
     //
-    std::vector<ResourceStorageEntry> readTextures = getResourceDesc(MpiResourceType::ReadTexture);
-    aSerializer->serialize(readTextures);
+    std::vector<ResourceStorageEntry> readTextures;
+    getResourceDesc(MpiResourceType::ReadTexture, readTextures);
+    aSerializer->serialize(_VAL(readTextures));
     
-    std::vector<ResourceStorageEntry> writeTextures = getResourceDesc(MpiResourceType::WriteTexture);
-    aSerializer->serialize(writeTextures);
+    std::vector<ResourceStorageEntry> writeTextures;
+    getResourceDesc(MpiResourceType::WriteTexture, writeTextures);
+    aSerializer->serialize(_VAL(writeTextures));
     
-    std::vector<ResourceStorageEntry> textureSamplers = getResourceDesc(MpiResourceType::TextureSampler);
-    aSerializer->serialize(textureSamplers);
+    std::vector<ResourceStorageEntry> textureSamplers;
+    getResourceDesc(MpiResourceType::TextureSampler, textureSamplers);
+    aSerializer->serialize(_VAL(textureSamplers));
     
     setFromResourceDesc(readTextures, MpiResourceType::ReadTexture);
     setFromResourceDesc(writeTextures, MpiResourceType::WriteTexture);

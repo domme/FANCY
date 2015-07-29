@@ -104,6 +104,7 @@ namespace Fancy { namespace IO {
     virtual String getTypeName(void* anObject) { return ""; }
     virtual String getInstanceName(void* anObject) { return ""; }
     virtual void serialize(IO::Serializer* aSerializer, void* anObject) = 0;
+    virtual bool isValid(void* anObject) { return true; }
     virtual void destroy() = 0;
   };
   //---------------------------------------------------------------------------//
@@ -154,6 +155,12 @@ namespace Fancy { namespace IO {
     {
       virtual void* create() override { return nullptr; }
 
+      virtual bool isValid(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        return (*serializable) != nullptr;
+      }
+
       virtual String getTypeName(void* anObject) override
       {
         T** serializable = static_cast<T**>(anObject);
@@ -184,6 +191,12 @@ namespace Fancy { namespace IO {
     {
       virtual ~MetaTableImpl<std::shared_ptr<T>>() {}
       virtual void* create() override { return nullptr; }
+
+      virtual bool isValid(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        return (*serializable) != nullptr;
+      }
 
       virtual String getTypeName(void* anObject) override
       {

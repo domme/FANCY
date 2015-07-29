@@ -114,7 +114,7 @@ namespace Fancy { namespace Rendering {
       void setWriteBuffer(ShaderStage _eStage, uint32 _registerIndex, GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumWriteBuffers); m_vpWriteBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
       void setTextureSampler(ShaderStage _eStage, uint32 _registerIndex, TextureSampler* _pTextureSampler) {ASSERT(_registerIndex < kMaxNumTextureSamplers); m_vpTextureSamplers[(uint32) _eStage][_registerIndex] = _pTextureSampler; }
 
-      const std::vector<ResourceStorageEntry>& getResourceDesc(MpiResourceType aType) const;
+      void getResourceDesc(MpiResourceType aType, std::vector<ResourceStorageEntry>& someEntries) const;
       void setFromResourceDesc(const std::vector<ResourceStorageEntry>& someResources, MpiResourceType aType);
 
       MaterialPass* getMaterialPass() const {return m_pMaterialPass;}

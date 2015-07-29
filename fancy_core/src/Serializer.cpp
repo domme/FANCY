@@ -66,6 +66,12 @@ namespace Fancy { namespace IO {
       case EBaseDataType::SerializablePtr:
       {
         MetaTable* metaTable = static_cast<MetaTable*>(aDataType.myUserData);
+        if (!metaTable->isValid(anObject))
+        {
+          currJsonVal = NULL;
+          break;
+        }
+
         currJsonVal["Type"] = metaTable->getTypeName(anObject);
 
         if (!metaTable->getInstanceName(anObject).empty())
@@ -202,7 +208,7 @@ namespace Fancy { namespace IO {
     if (!myTypeStack.empty())
     {
       Json::Value& parentVal = myTypeStack.top();
-      const bool isArray = parentVal.type() == Json::arrayValue || name == nullptr;
+      const bool isArray = parentVal.type() == Json::arrayValue;
 
       if (isArray)
         parentVal.append(myCurrentEndType);
