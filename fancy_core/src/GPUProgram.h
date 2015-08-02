@@ -3,13 +3,15 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "Serializable.h"
 #include PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM
 
 namespace Fancy { namespace Rendering {
 
   class GpuProgram : public PLATFORM_DEPENDENT_NAME(GpuProgram), public StaticManagedHeapObject<GpuProgram>
   {
-
+  public:
+    SERIALIZABLE(GpuProgram)
   };
 
 } } // end of namespace Fancy::Rendering

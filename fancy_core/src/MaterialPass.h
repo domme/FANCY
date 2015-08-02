@@ -25,6 +25,8 @@ namespace Fancy { namespace Rendering {
     friend class MaterialPassInstance;
 
     public:
+      SERIALIZABLE(MaterialPass)
+
       MaterialPass();
       ~MaterialPass();
       bool operator==(const MaterialPass& _other) const;
@@ -78,7 +80,7 @@ namespace Fancy { namespace Rendering {
     ObjectName myName;
 
     void serialize(IO::Serializer* aSerializer);
-    const ObjectName& getTypeName() const { return _N(ResourceStorageEntry); }
+    ObjectName getTypeName() const { return _N(ResourceStorageEntry); }
     const ObjectName& getName() const { return ObjectName::blank; }
   }; 
 //---------------------------------------------------------------------------//

@@ -1,4 +1,5 @@
 #include "GpuProgramGL4.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
@@ -36,6 +37,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_vReadBufferInfos = _desc.vReadBufferInfos;
     m_vWriteTextureInfos = _desc.vWriteTextureInfos;
     m_vWriteBufferInfos = _desc.vWriteBufferInfos;
+  }
+//---------------------------------------------------------------------------//
+  void GpuProgramGL4::serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->serialize(m_Name, "m_Name");
   }
 //---------------------------------------------------------------------------//
   void GpuProgramGL4::destroy()

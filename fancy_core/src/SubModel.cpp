@@ -17,8 +17,8 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   void SubModel::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(_VAL(m_Name));
-    aSerializer->serialize(_VAL(m_pMaterial));
+    aSerializer->serialize(m_Name, "m_Name");
+    aSerializer->serialize(m_pMaterial, "m_pMaterial");
     // aSerializer.serialize(_VAL(m_pMesh));
   }
 //---------------------------------------------------------------------------//

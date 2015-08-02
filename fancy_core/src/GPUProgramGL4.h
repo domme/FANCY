@@ -7,6 +7,10 @@
 #include "VertexInputLayout.h"
 #include "StaticManagedObject.h"
 
+namespace Fancy{namespace IO{
+  class Serializer;
+}}
+
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   struct ShaderStageInterfaceElement
@@ -77,6 +81,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       void init(const GpuProgramDescriptionGL4& _desc);
     //---------------------------------------------------------------------------//
       const ObjectName& getName() const {return m_Name;}
+      const ObjectName getTypeName() const { return _N(GpuProgram); }
+      void serialize(IO::Serializer* aSerializer);
+
       GLuint getProgramHandle() const {return m_uProgramHandleGL;}
       ShaderStage getShaderStage() const {return m_eShaderStage;}
       const GpuResourceInfoList& getReadTextureInfoList() const {return m_vReadTextureInfos;}

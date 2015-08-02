@@ -14,6 +14,7 @@ namespace Fancy { namespace IO {
 
     Int,
     Uint,
+    Uint32,
     Float,
     Char,
     String,
@@ -82,7 +83,7 @@ namespace Fancy { namespace IO {
   // Base types (without meta-table)
   DECLARE_DATATYPE(int, Int);
   DECLARE_DATATYPE(uint, Uint);
-  DECLARE_DATATYPE(uint32, Uint);
+  DECLARE_DATATYPE(uint32, Uint32);
   DECLARE_DATATYPE(float, Float);
   DECLARE_DATATYPE(char, Char);
   DECLARE_DATATYPE(const char*, CString);
@@ -374,8 +375,8 @@ namespace Fancy { namespace IO {
     }
   };
 //---------------------------------------------------------------------------//
-  template<class T, uint32 Capacity>
-  struct Get_DataType<T[Capacity]>
+  template<class T, uint Capacity>
+  struct Get_DataTypeBuiltinArray
   {
     static IO::DataType get()
     {

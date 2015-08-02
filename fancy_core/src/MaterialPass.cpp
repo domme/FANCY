@@ -65,19 +65,21 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPass::serialize(IO::Serializer* aSerializer)
   {
-    /*aSerializer.serialize(_VAL(m_Name));
-    aSerializer.serialize(_VAL(m_eFillMode));
-    aSerializer.serialize(_VAL(m_eCullMode));
-    aSerializer.serialize(_VAL(m_eWindingOrder));
-    aSerializer.serialize(_VAL(m_pBlendState));
-    aSerializer.serialize(_VAL(m_pDepthStencilState));
+    aSerializer->serialize(m_Name, "m_Name");
+    aSerializer->serializeArray(m_pGpuProgram, "m_pGpuProgram");
 
-    aSerializer.beginArray("m_pGpuProgram",(uint32) ShaderStage::NUM);
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-    {
-      aSerializer.serialize(m_pGpuProgram[i]);
-    }
-    aSerializer.endArray();*/
+    aSerializer->serialize(m_eFillMode, "m_eFillMode");
+    // aSerializer->serialize(_VAL(m_eCullMode));
+    // aSerializer->serialize(_VAL(m_eWindingOrder));
+    // aSerializer->serialize(_VAL(m_pBlendState));
+    // aSerializer->serialize(_VAL(m_pDepthStencilState));
+
+    // aSerializer.beginArray("m_pGpuProgram",(uint32) ShaderStage::NUM);
+    // for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    // {
+    //   aSerializer.serialize(m_pGpuProgram[i]);
+    // }
+    // aSerializer.endArray();*/
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance* MaterialPass::createMaterialPassInstance( const ObjectName& name )
@@ -305,9 +307,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void ResourceStorageEntry::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(_VAL(myShaderStage));
-    aSerializer->serialize(_VAL(myIndex));
-    aSerializer->serialize(_VAL(myName));
+    aSerializer->serialize(myShaderStage, "myShaderStage");
+    aSerializer->serialize(myIndex, "myIndex");
+    aSerializer->serialize(myName, "myName");
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance::MaterialPassInstance() :
@@ -327,24 +329,27 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(_VAL(m_Name));
-    //aSerializer.serialize(_VAL(m_pMaterialPass));
-    //
+    aSerializer->serialize(m_Name, "m_Name");
+    aSerializer->serialize(m_pMaterialPass, "m_pMaterialPass");
+    
     std::vector<ResourceStorageEntry> readTextures;
     getResourceDesc(MpiResourceType::ReadTexture, readTextures);
-    aSerializer->serialize(_VAL(readTextures));
+    aSerializer->serialize(readTextures, "readTextures");
     
     std::vector<ResourceStorageEntry> writeTextures;
     getResourceDesc(MpiResourceType::WriteTexture, writeTextures);
-    aSerializer->serialize(_VAL(writeTextures));
+    aSerializer->serialize(writeTextures, "writeTextures");
     
     std::vector<ResourceStorageEntry> textureSamplers;
     getResourceDesc(MpiResourceType::TextureSampler, textureSamplers);
-    aSerializer->serialize(_VAL(textureSamplers));
+    aSerializer->serialize(textureSamplers, "textureSamplers");
     
-    setFromResourceDesc(readTextures, MpiResourceType::ReadTexture);
-    setFromResourceDesc(writeTextures, MpiResourceType::WriteTexture);
-    setFromResourceDesc(textureSamplers, MpiResourceType::TextureSampler);
+    if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
+    {
+      setFromResourceDesc(readTextures, MpiResourceType::ReadTexture);
+      setFromResourceDesc(writeTextures, MpiResourceType::WriteTexture);
+      setFromResourceDesc(textureSamplers, MpiResourceType::TextureSampler);
+    }
   }
 //---------------------------------------------------------------------------//
   
