@@ -81,7 +81,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       void init(const GpuProgramDescriptionGL4& _desc);
     //---------------------------------------------------------------------------//
       const ObjectName& getName() const {return m_Name;}
-      const ObjectName getTypeName() const { return _N(GpuProgram); }
+      static ObjectName getTypeName() { return _N(GpuProgram); }
       void serialize(IO::Serializer* aSerializer);
 
       GLuint getProgramHandle() const {return m_uProgramHandleGL;}

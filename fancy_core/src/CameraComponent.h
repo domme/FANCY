@@ -3,6 +3,7 @@
 
 #include "SceneNodeComponent.h"
 #include "FixedArray.h"
+#include "Serializable.h"
 
 namespace Fancy { namespace Scene {
   //---------------------------------------------------------------------------//
@@ -10,15 +11,16 @@ namespace Fancy { namespace Scene {
     public SceneNodeComponent, public BaseCreator<CameraComponent, SceneNode*>
   {
   public:
-    CameraComponent(SceneNode* pOwner);
+    SERIALIZABLE(CameraComponent)
+
+    explicit CameraComponent(SceneNode* pOwner);
     virtual ~CameraComponent();
 
-    virtual ObjectName getTypeName() override { return _N(CameraComponent); }
+    virtual ObjectName getTypeName() const override { return _N(CameraComponent); }
     virtual void serialize(IO::Serializer* aSerializer) override;
 
     virtual void update() override;
     virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
-    virtual ObjectName getTypeName() const override { return _N(Camera); }
 
     const glm::mat4& getView() const { return m_matView; }
     const glm::mat4& getViewInv() const {return m_matViewInv; }

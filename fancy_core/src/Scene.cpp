@@ -34,11 +34,11 @@ namespace Fancy { namespace Scene {
   void Scene::onComponentAdded(const SceneNodeComponent* _pComponent)
   {
     const ObjectName& typeName = _pComponent->getTypeName();
-    if (typeName == _N(Light))
+    if (typeName == _N(LightComponent))
     {
       myLights.push_back(static_cast<const LightComponent*>(_pComponent));
     }
-    else if (typeName == _N(Model))
+    else if (typeName == _N(ModelComponent))
     {
       myModels.push_back(static_cast<const ModelComponent*>(_pComponent));
     }
@@ -47,11 +47,11 @@ namespace Fancy { namespace Scene {
   void Scene::onComponentRemoved(const SceneNodeComponent* _pComponent)
   {
     const ObjectName& typeName = _pComponent->getTypeName();
-    if (typeName == _N(Light))
+    if (typeName == _N(LightComponent))
     {
       myLights.erase(static_cast<const LightComponent*>(_pComponent));
     }
-    else if (typeName == _N(Model))
+    else if (typeName == _N(ModelComponent))
     {
       myModels.erase(static_cast<const ModelComponent*>(_pComponent));
     }

@@ -1,5 +1,6 @@
 #include "SubModel.h"
 #include "Serializer.h"
+#include "Mesh.h"
 
 namespace Fancy { namespace Geometry { 
 //---------------------------------------------------------------------------//
@@ -19,7 +20,7 @@ namespace Fancy { namespace Geometry {
   {
     aSerializer->serialize(m_Name, "m_Name");
     aSerializer->serialize(m_pMaterial, "m_pMaterial");
-    // aSerializer.serialize(_VAL(m_pMesh));
+    aSerializer->serialize(m_pMesh, "m_pMesh");
   }
 //---------------------------------------------------------------------------//
 } }   // end of namespace Fancy::Geometry

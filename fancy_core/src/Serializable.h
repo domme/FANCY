@@ -17,6 +17,7 @@ namespace Fancy { namespace IO {
     Uint32,
     Float,
     Char,
+    Bool,
     String,
     CString,
     ObjectName,
@@ -94,6 +95,7 @@ namespace Fancy { namespace IO {
   DECLARE_DATATYPE(glm::vec3, Vector3);
   DECLARE_DATATYPE(glm::vec4, Vector4);
   DECLARE_DATATYPE(glm::quat, Quaternion);
+  DECLARE_DATATYPE(bool, Bool);
 #undef DECLARE_DATATYPE
 
 

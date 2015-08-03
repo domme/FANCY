@@ -16,4 +16,9 @@ namespace Fancy { namespace Geometry {
     }
   }
 //---------------------------------------------------------------------------//
+  void Mesh::serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->serialize(m_Name, "m_Name");
+  }
+//---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry

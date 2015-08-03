@@ -69,17 +69,10 @@ namespace Fancy { namespace Rendering {
     aSerializer->serializeArray(m_pGpuProgram, "m_pGpuProgram");
 
     aSerializer->serialize(m_eFillMode, "m_eFillMode");
-    // aSerializer->serialize(_VAL(m_eCullMode));
-    // aSerializer->serialize(_VAL(m_eWindingOrder));
-    // aSerializer->serialize(_VAL(m_pBlendState));
-    // aSerializer->serialize(_VAL(m_pDepthStencilState));
-
-    // aSerializer.beginArray("m_pGpuProgram",(uint32) ShaderStage::NUM);
-    // for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-    // {
-    //   aSerializer.serialize(m_pGpuProgram[i]);
-    // }
-    // aSerializer.endArray();*/
+    aSerializer->serialize(m_eCullMode, "m_eCullMode");
+    aSerializer->serialize(m_eWindingOrder, "m_eWindingOrder");
+    aSerializer->serialize(m_pBlendState, "m_pBlendState");
+    aSerializer->serialize(m_pDepthStencilState, "m_pDepthStencilState");
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance* MaterialPass::createMaterialPassInstance( const ObjectName& name )

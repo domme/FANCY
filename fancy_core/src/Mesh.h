@@ -5,6 +5,7 @@
 #include "ObjectName.h"
 #include "FixedArray.h"
 #include "StaticManagedObject.h"
+#include "Serializable.h"
 
 namespace Fancy { namespace Geometry { 
 //---------------------------------------------------------------------------//
@@ -20,6 +21,8 @@ namespace Fancy { namespace Geometry {
   class Mesh : public StaticManagedHeapObject<Mesh>
   {
   public:
+    SERIALIZABLE(Mesh)
+
     Mesh();
     ~Mesh();
 
@@ -27,6 +30,9 @@ namespace Fancy { namespace Geometry {
     const ObjectName& getName() {return m_Name;}
     void setName(const ObjectName& clNewName) {m_Name = clNewName;}
   //---------------------------------------------------------------------------//
+    static ObjectName getTypeName() { return _N(Mesh); }
+    void serialize(IO::Serializer* aSerializer);
+
     uint32 getNumGeometryDatas() const {return m_vGeometries.size();}
     GeometryData* getGeometryData(uint32 u32Index) {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}
     const GeometryData* getGeometryData(uint32 u32Index) const {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}

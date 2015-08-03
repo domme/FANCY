@@ -5,6 +5,7 @@
 #include "RendererPrerequisites.h"
 #include "ObjectName.h"
 #include "StaticManagedObject.h"
+#include "Serializable.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -13,12 +14,16 @@ namespace Fancy { namespace Rendering {
     friend class PLATFORM_DEPENDENT_NAME(Renderer);
 
   public:
-    DepthStencilState(const ObjectName& _name);
+    SERIALIZABLE(DepthStencilState)
+
+    explicit DepthStencilState(const ObjectName& _name);
     ~DepthStencilState() {}
     static void init();
     bool operator==(const DepthStencilState& clOther) const;
 
     const ObjectName& getName() const {return m_Name;}
+    static ObjectName getTypeName() { return _N(DepthStencilState); }
+    void serialize(IO::Serializer* aSerializer);
 
     bool getDepthTestEnabled() const { return m_bDepthTestEnabled; }
     void setDepthTestEnabled(bool val) { m_bDepthTestEnabled = val; updateHash();}

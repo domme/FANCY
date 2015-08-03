@@ -4,20 +4,30 @@
 #include "ObjectName.h"
 #include "RendererPrerequisites.h"
 #include "StaticManagedObject.h"
+#include "Serializable.h"
+
+namespace Fancy{namespace IO{
+  class Serializer;
+}}
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 class BlendState : public StaticManagedObject<BlendState> {
 
 public:
+  SERIALIZABLE(BlendState)
+
   static void init();
 
- BlendState(const ObjectName& _name);
- ~BlendState() {}
- friend class PLATFORM_DEPENDENT_NAME(Renderer);
- bool operator==(const BlendState& clOther) const;
+  explicit BlendState(const ObjectName& _name);
+  ~BlendState() {}
+  friend class PLATFORM_DEPENDENT_NAME(Renderer);
+  bool operator==(const BlendState& clOther) const;
   
-  Fancy::ObjectName getName() const { return m_name; }
+  const Fancy::ObjectName& getName() const { return m_name; }
+  static ObjectName getTypeName() { return _N(BlendState); }
+  void serialize(IO::Serializer* aSerializer);
+  
 
   bool getAlphaToCoverageEnabled() const { return m_bAlphaToCoverageEnabled; }
   void setAlphaToCoverageEnabled(bool val) { m_bAlphaToCoverageEnabled = val; updateHash();}

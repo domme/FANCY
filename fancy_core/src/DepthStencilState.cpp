@@ -1,5 +1,6 @@
 #include "DepthStencilState.h"
 #include "MathUtil.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -51,6 +52,11 @@ namespace Fancy { namespace Rendering {
   bool DepthStencilState::operator==( const DepthStencilState& clOther ) const
   {
     return m_uHash == clOther.m_uHash;
+  }
+//---------------------------------------------------------------------------//
+  void DepthStencilState::serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->serialize(m_Name, "m_Name");
   }
 //---------------------------------------------------------------------------//
   void DepthStencilState::updateHash()

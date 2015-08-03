@@ -1,5 +1,6 @@
 #include "BlendState.h"
 #include "MathUtil.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -50,6 +51,11 @@ namespace Fancy { namespace Rendering {
     return m_uHash == clOther.m_uHash;
   }
 //---------------------------------------------------------------------------//
+  void BlendState::serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->serialize(m_name, "m_name");
+  }
+//---------------------------------------------------------------------------//
   void BlendState::updateHash()
   {
       uint hash = 0x0;
@@ -60,12 +66,12 @@ namespace Fancy { namespace Rendering {
       {
         MathUtil::hash_combine(hash, m_bAlphaSeparateBlend[i] ? 1u : 0u);
         MathUtil::hash_combine(hash, m_bBlendEnabled[i] ? 1u : 0u);
-        MathUtil::hash_combine(hash, (uint32) m_eSrcBlend[i]);
-        MathUtil::hash_combine(hash, (uint32) m_eDestBlend[i]);
-        MathUtil::hash_combine(hash, (uint32) m_eBlendOp[i]);
-        MathUtil::hash_combine(hash, (uint32) m_eSrcBlendAlpha[i]);
-        MathUtil::hash_combine(hash, (uint32) m_eDestBlendAlpha[i]);
-        MathUtil::hash_combine(hash, (uint32) m_eBlendOpAlpha[i]);
+        MathUtil::hash_combine(hash, static_cast<uint32>(m_eSrcBlend[i]));
+        MathUtil::hash_combine(hash, static_cast<uint32>(m_eDestBlend[i]));
+        MathUtil::hash_combine(hash, static_cast<uint32>(m_eBlendOp[i]));
+        MathUtil::hash_combine(hash, static_cast<uint32>(m_eSrcBlendAlpha[i]));
+        MathUtil::hash_combine(hash, static_cast<uint32>(m_eDestBlendAlpha[i]));
+        MathUtil::hash_combine(hash, static_cast<uint32>(m_eBlendOpAlpha[i]));
         MathUtil::hash_combine(hash, m_uRTwriteMask[i]);
       }
 

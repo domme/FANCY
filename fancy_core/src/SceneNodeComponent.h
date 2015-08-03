@@ -31,7 +31,7 @@ namespace Fancy { namespace Scene {
       virtual ~SceneNodeComponent();
 
       const ObjectName& getName() const;
-      virtual ObjectName getTypeName() = 0;
+      virtual ObjectName getTypeName() const = 0;
       virtual void serialize(IO::Serializer* aSerializer) = 0;
       
       SceneNode* getSceneNode() { return m_pOwner; }
@@ -43,7 +43,6 @@ namespace Fancy { namespace Scene {
 	    virtual void initFromDescription(const SceneNodeComponentDescPtr& someDesc) {};
 
       virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) = 0;
-      virtual ObjectName getTypeName() const = 0;
 
     protected:
       SceneNode* m_pOwner;

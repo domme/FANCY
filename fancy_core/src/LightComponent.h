@@ -2,7 +2,7 @@
 #define INCLUDE_LIGHTCOMPONENT_H
 
 #include "SceneNodeComponent.h"
-#include "CameraComponent.h"
+#include "Serializable.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
@@ -18,16 +18,17 @@ namespace Fancy { namespace Scene {
     public SceneNodeComponent, public BaseCreator<LightComponent, SceneNode*>
   {
     public:
-      LightComponent(SceneNode* _pOwner);
+      SERIALIZABLE(LightComponent)
+
+      explicit LightComponent(SceneNode* _pOwner);
       virtual ~LightComponent();
 
-      virtual ObjectName getTypeName() override { return _N(LightComponent); }
+      virtual ObjectName getTypeName() const override { return _N(LightComponent); }
       virtual void serialize(IO::Serializer* aSerializer) override;
 
       virtual void init() override;
       virtual void update() override;
 	    virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
-      virtual ObjectName getTypeName() const override { return _N(Light); }
 
       ELightType getType() const { return m_eType; }
       void setType(ELightType _type) { m_eType = _type; }
