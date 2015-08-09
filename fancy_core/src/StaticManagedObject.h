@@ -5,8 +5,13 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  class BaseManagedObject
+  {
+    // Currently just a dummy base class as a helper for is_base_of on T
+  };
+//---------------------------------------------------------------------------//
   template <class T>
-  class StaticManagedObject
+  class StaticManagedObject : public BaseManagedObject
   {
     public:
       typedef std::map<ObjectName, T> MapType;
@@ -80,7 +85,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
     template <class T>
-    class StaticManagedHeapObject
+    class StaticManagedHeapObject : public BaseManagedObject
     {
     public:
       typedef std::map<ObjectName, T*> MapType;

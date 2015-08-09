@@ -42,6 +42,8 @@ namespace Fancy { namespace IO {
     myArchive.open(archivePath, archiveFlags);
 
     myHeader = RootHeader();
+    myHeader.myManagedObjects = Json::Value(Json::arrayValue);
+
     JSONwriter::beginName("Root", false);
   }
 //---------------------------------------------------------------------------//
@@ -72,12 +74,36 @@ namespace Fancy { namespace IO {
           break;
         }
 
-        currJsonVal["Type"] = metaTable->getTypeName(anObject);
+        String typeName = metaTable->getTypeName(anObject);
+        String instanceName = metaTable->getInstanceName(anObject);
 
-        if (!metaTable->getInstanceName(anObject).empty())
-          currJsonVal["Name"] = metaTable->getInstanceName(anObject);
-        
-        metaTable->serialize(this, anObject);
+        currJsonVal["Type"] = typeName;
+
+        if (!instanceName.empty())
+          currJsonVal["Name"] = instanceName;
+
+        const bool isManaged = metaTable->isManaged(anObject);
+        if (isManaged)
+        {
+          String key = typeName + "_" + instanceName;
+          if (!isManagedObjectStored(key))
+          {
+            metaTable->serialize(this, anObject);
+            myHeader.myManagedObjects.append(currJsonVal);
+            currJsonVal.clear();
+
+            currJsonVal["Type"] = typeName;
+
+            if (!instanceName.empty())
+              currJsonVal["Name"] = instanceName;
+
+            myHeader.myStoredManagedObjects.push_back(key);
+          }
+        }
+        else 
+        {
+          metaTable->serialize(this, anObject);
+        }
       } break;
       
       case EBaseDataType::Int:
@@ -230,23 +256,17 @@ namespace Fancy { namespace IO {
   void JSONwriter::storeHeader(Json::Value& aValue)
   {
     aValue["myVersion"] = myHeader.myVersion;
-    aValue["myModels"] = myHeader.myModels;
-    aValue["mySubModels"] = myHeader.mySubModels;
-    aValue["myMaterials"] = myHeader.myMaterials;
-    aValue["myMaterialPasses"] = myHeader.myMaterialPasses;
+    aValue["myManagedResources"] = myHeader.myManagedObjects;
   }
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
-  bool JSONwriter::isStoredManaged(const ObjectName& aName, const Json::Value& aVal)
+  bool JSONwriter::isManagedObjectStored(const ObjectName& aName)
   {
-    ASSERT(aVal.type() == Json::objectValue);
-    for (Json::ValueConstIterator it = aVal.begin(); it != aVal.end(); ++it)
+    for (const ObjectName& storedName : myHeader.myStoredManagedObjects)
     {
-      if (it.name() == aName.toString())
-      {
+      if (storedName == aName)
         return true;
-      }
     }
 
     return false;

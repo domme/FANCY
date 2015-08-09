@@ -93,18 +93,9 @@ namespace Fancy { namespace IO {
 
       struct RootHeader
       {
-        RootHeader() : myVersion(0u),
-          myModels(Json::objectValue),
-          mySubModels(Json::objectValue),
-          myMaterials(Json::objectValue),
-          myMaterialPasses(Json::objectValue) {}
-
         uint32 myVersion;
-
-        Json::Value myModels;
-        Json::Value mySubModels;
-        Json::Value myMaterials;
-        Json::Value myMaterialPasses;
+        Json::Value myManagedObjects;
+        std::vector<ObjectName> myStoredManagedObjects;
       };
 
       virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
@@ -112,7 +103,7 @@ namespace Fancy { namespace IO {
       virtual void beginName(const char* aName, bool anIsArray) override;
       virtual void endName() override;
 
-      bool isStoredManaged(const ObjectName& aName, const Json::Value& aValue);
+      bool isManagedObjectStored(const ObjectName& aName);
       void storeHeader(Json::Value& aValue);
 
       RootHeader myHeader;

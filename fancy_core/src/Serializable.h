@@ -2,6 +2,7 @@
 
 #include "ObjectName.h"
 #include "FixedArray.h"
+#include "StaticManagedObject.h"
 
 namespace Fancy { namespace IO {
 
@@ -29,7 +30,9 @@ namespace Fancy { namespace IO {
     Matrix3x3,
     Matrix4x4,
     Serializable,
-    SerializablePtr
+    SerializablePtr,
+    SerializableManaged,
+    SerializableManagedPtr,
   };
 //---------------------------------------------------------------------------//
   struct DataType
@@ -106,6 +109,7 @@ namespace Fancy { namespace IO {
     virtual void* create() = 0;
     virtual String getTypeName(void* anObject) { return ""; }
     virtual String getInstanceName(void* anObject) { return ""; }
+    virtual bool isManaged(void* anObject) { return false; }
     virtual void serialize(IO::Serializer* aSerializer, void* anObject) = 0;
     virtual bool isValid(void* anObject) { return true; }
     virtual void destroy() = 0;
@@ -132,6 +136,11 @@ namespace Fancy { namespace IO {
       {
         T* serializable = static_cast<T*>(anObject);
         return serializable->getTypeName();
+      }
+
+      virtual bool isManaged(void* anObject) override
+      {
+        return std::is_base_of<BaseManagedObject, T>::value;
       }
 
       virtual String getInstanceName(void* anObject) override
@@ -170,6 +179,11 @@ namespace Fancy { namespace IO {
         return (*serializable)->getTypeName();
       }
 
+      virtual bool isManaged(void* anObject) override
+      {
+        return std::is_base_of<BaseManagedObject, T>::value;
+      }
+
       virtual String getInstanceName(void* anObject) override
       {
         T** serializable = static_cast<T**>(anObject);
@@ -201,6 +215,11 @@ namespace Fancy { namespace IO {
         return (*serializable) != nullptr;
       }
 
+      virtual bool isManaged(void* anObject) override
+      {
+        return std::is_base_of<BaseManagedObject, T>::value;
+      }
+
       virtual String getTypeName(void* anObject) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
@@ -225,7 +244,113 @@ namespace Fancy { namespace IO {
     };
     template<class T>
     MetaTableImpl<std::shared_ptr<T>> MetaTableImpl<std::shared_ptr<T>>::ourVTable;
+  //---------------------------------------------------------------------------//
+
+  //---------------------------------------------------------------------------//
+    /* template<class T>
+    struct MetaTableManagedImpl : public MetaTable
+    {
+      virtual void* create() override { return nullptr; }
+
+      virtual String getTypeName(void* anObject) override
+      {
+        T* serializable = static_cast<T*>(anObject);
+        return serializable->getTypeName();
+      }
+
+      virtual String getInstanceName(void* anObject) override
+      {
+        T* serializable = static_cast<T*>(anObject);
+        return serializable->getName();
+      }
+
+      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      {
+        T* serializable = static_cast<T*>(anObject);
+        serializable->serialize(aSerializer);
+      }
+
+      virtual void destroy() override { }
+
+      static MetaTableManagedImpl<T> ourVTable;
+    };
+    template<class T>
+    MetaTableManagedImpl<T> MetaTableManagedImpl<T>::ourVTable;
+  //---------------------------------------------------------------------------//
+    template<class T>
+    struct MetaTableManagedImpl<T*> : public MetaTable
+    {
+      virtual void* create() override { return nullptr; }
+
+      virtual bool isValid(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        return (*serializable) != nullptr;
+      }
+
+      virtual String getTypeName(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        return (*serializable)->getTypeName();
+      }
+
+      virtual String getInstanceName(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        return (*serializable)->getName();
+      }
+
+      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        (*serializable)->serialize(aSerializer);
+      }
+
+      virtual void destroy() override { }
+
+      static MetaTableManagedImpl<T*> ourVTable;
+    };
+    template<class T>
+    MetaTableManagedImpl<T*> MetaTableManagedImpl<T*>::ourVTable;
     //---------------------------------------------------------------------------//
+    template<class T>
+    struct MetaTableManagedImpl<std::shared_ptr<T>> : public MetaTable
+    {
+      virtual ~MetaTableManagedImpl<std::shared_ptr<T>>() {}
+      virtual void* create() override { return nullptr; }
+
+      virtual bool isValid(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        return (*serializable) != nullptr;
+      }
+
+      virtual String getTypeName(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        return (*serializable)->getTypeName();
+      }
+
+      virtual String getInstanceName(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        return (*serializable)->getName();
+      }
+
+      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        (*serializable)->serialize(aSerializer);
+      }
+
+      virtual void destroy() override { }
+
+      static MetaTableManagedImpl<std::shared_ptr<T>> ourVTable;
+    };
+    template<class T>
+    MetaTableManagedImpl<std::shared_ptr<T>> MetaTableManagedImpl<std::shared_ptr<T>>::ourVTable;
+    */
+  //---------------------------------------------------------------------------//
     // Dummy general template:
     template<class T>
     struct MetaTableArrayImpl : public MetaTableArray
@@ -403,5 +528,21 @@ namespace Fancy { namespace IO {
     return IO::DataType(IO::EBaseDataType::SerializablePtr, &Fancy::Internal::MetaTableImpl<T*>::ourVTable); \
   }
 //---------------------------------------------------------------------------//
+#define SERIALIZABLE_MANAGED(T) \
+  template<class dummy> \
+  static IO::DataType getDataType() \
+    { \
+    return IO::DataType(IO::EBaseDataType::SerializableManaged, &Fancy::Internal::MetaTableImpl<T>::ourVTable); \
+    } \
+  template<class dummy> \
+  static IO::DataType getDataTypePtr() \
+    { \
+    return IO::DataType(IO::EBaseDataType::SerializableManagedPtr, &Fancy::Internal::MetaTableImpl<std::shared_ptr<T>>::ourVTable); \
+    } \
+  template<class dummy> \
+  static IO::DataType getDataTypeRawPtr() \
+    { \
+    return IO::DataType(IO::EBaseDataType::SerializableManagedPtr, &Fancy::Internal::MetaTableImpl<T*>::ourVTable); \
+    }
 }  // end of namespace Fancy
 
