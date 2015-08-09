@@ -32,6 +32,7 @@
 #define FANCY_IMPORTER_USE_VALIDATION
 #include "MathUtil.h"
 #include "BinaryCache.h"
+#include "JSONwriter.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//

@@ -249,6 +249,12 @@
     <ClInclude Include="src\Serializable.h">
       <Filter>src\IO</Filter>
     </ClInclude>
+    <ClInclude Include="src\JSONwriter.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JSONreader.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -405,6 +411,12 @@
       <Filter>src\IO\JSON</Filter>
     </ClCompile>
     <ClCompile Include="src\Serializable.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JSONwriter.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JSONreader.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
   </ItemGroup>

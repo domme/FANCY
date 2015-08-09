@@ -232,6 +232,8 @@
     <ClInclude Include="src\GLSLpreprocessor.h" />
     <ClInclude Include="src\GpuProgramResourceGL4.h" />
     <ClInclude Include="src\InputManager.h" />
+    <ClInclude Include="src\JSONreader.h" />
+    <ClInclude Include="src\JSONwriter.h" />
     <ClInclude Include="src\json\json-forwards.h" />
     <ClInclude Include="src\json\json.h" />
     <ClInclude Include="src\LightComponent.h" />
@@ -295,6 +297,8 @@
     <ClCompile Include="src\GLSLpreprocessor.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
+    <ClCompile Include="src\JSONreader.cpp" />
+    <ClCompile Include="src\JSONwriter.cpp" />
     <ClCompile Include="src\LightComponent.cpp" />
     <ClCompile Include="src\LoadableObject.cpp" />
     <ClCompile Include="src\lodepng.cpp" />
