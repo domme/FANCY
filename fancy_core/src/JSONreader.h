@@ -19,7 +19,7 @@ namespace Fancy { namespace IO {
     {
       uint32 myVersion;
       Json::Value myManagedObjects;
-      std::vector<ObjectName> myStoredManagedObjects;
+      std::vector<ObjectName> myLoadedManagedObjects;
     };
 
     virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
@@ -27,7 +27,7 @@ namespace Fancy { namespace IO {
     virtual void beginName(const char* aName, bool anIsArray) override;
     virtual void endName() override;
 
-    bool isManagedObjectStored(const ObjectName& aName);
+    bool wasManagedObjectLoaded(const ObjectName& aName);
     void loadHeader();
 
     RootHeader myHeader;

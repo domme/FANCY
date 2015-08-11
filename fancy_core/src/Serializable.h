@@ -3,6 +3,7 @@
 #include "ObjectName.h"
 #include "FixedArray.h"
 #include "StaticManagedObject.h"
+#include "ObjectFactory.h"
 
 namespace Fancy { namespace IO {
 
@@ -106,13 +107,13 @@ namespace Fancy { namespace IO {
   struct MetaTable
   {
     virtual ~MetaTable() {}
-    virtual void* create() = 0;
+    virtual void create(void* anObject, const ObjectName& aTypeName, const ObjectName& anInstanceName = ObjectName::blank) = 0;
     virtual String getTypeName(void* anObject) { return ""; }
     virtual String getInstanceName(void* anObject) { return ""; }
     virtual bool isManaged(void* anObject) { return false; }
     virtual void serialize(IO::Serializer* aSerializer, void* anObject) = 0;
     virtual bool isValid(void* anObject) { return true; }
-    virtual void destroy() = 0;
+    virtual void invalidate(void* anObject) {}
   };
   //---------------------------------------------------------------------------//
   struct MetaTableArray
@@ -130,7 +131,8 @@ namespace Fancy { namespace IO {
     template<class T>
     struct MetaTableImpl : public MetaTable
     {
-      virtual void* create() override { return nullptr; }
+      virtual void create(void* anObject, const ObjectName& aTypeName, 
+        const ObjectName& anInstanceName = ObjectName::blank) override { }
 
       virtual String getTypeName(void* anObject) override
       {
@@ -155,8 +157,6 @@ namespace Fancy { namespace IO {
         serializable->serialize(aSerializer);
       }
 
-      virtual void destroy() override { }
-
       static MetaTableImpl<T> ourVTable;
     };
     template<class T>
@@ -165,12 +165,23 @@ namespace Fancy { namespace IO {
     template<class T>
     struct MetaTableImpl<T*> : public MetaTable
     {
-      virtual void* create() override { return nullptr; }
+      virtual void create(void* anObject, const ObjectName& aTypeName,
+        const ObjectName& anInstanceName = ObjectName::blank) override 
+      {
+        T** serializable = static_cast<T**>(anObject);
+        (*serializable) = IO::ObjectFactory::create(aTypeName, anInstanceName);
+      }
 
       virtual bool isValid(void* anObject) override
       {
         T** serializable = static_cast<T**>(anObject);
         return (*serializable) != nullptr;
+      }
+
+      virtual void invalidate(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        (*serializable) = nullptr;
       }
 
       virtual String getTypeName(void* anObject) override
@@ -195,8 +206,6 @@ namespace Fancy { namespace IO {
         T** serializable = static_cast<T**>(anObject);
         (*serializable)->serialize(aSerializer);
       }
-
-      virtual void destroy() override { }
 
       static MetaTableImpl<T*> ourVTable;
     };
@@ -207,12 +216,24 @@ namespace Fancy { namespace IO {
     struct MetaTableImpl<std::shared_ptr<T>> : public MetaTable
     {
       virtual ~MetaTableImpl<std::shared_ptr<T>>() {}
-      virtual void* create() override { return nullptr; }
+      
+      virtual void create(void* anObject, const ObjectName& aTypeName,
+        const ObjectName& anInstanceName = ObjectName::blank) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        (*serializable) = IO::ObjectFactory::create(aTypeName, anInstanceName);
+      }
 
       virtual bool isValid(void* anObject) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
         return (*serializable) != nullptr;
+      }
+
+      virtual void invalidate(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        (*serializable) = nullptr;
       }
 
       virtual bool isManaged(void* anObject) override
@@ -238,118 +259,12 @@ namespace Fancy { namespace IO {
         (*serializable)->serialize(aSerializer);
       }
 
-      virtual void destroy() override { }
-
       static MetaTableImpl<std::shared_ptr<T>> ourVTable;
     };
     template<class T>
     MetaTableImpl<std::shared_ptr<T>> MetaTableImpl<std::shared_ptr<T>>::ourVTable;
   //---------------------------------------------------------------------------//
-
-  //---------------------------------------------------------------------------//
-    /* template<class T>
-    struct MetaTableManagedImpl : public MetaTable
-    {
-      virtual void* create() override { return nullptr; }
-
-      virtual String getTypeName(void* anObject) override
-      {
-        T* serializable = static_cast<T*>(anObject);
-        return serializable->getTypeName();
-      }
-
-      virtual String getInstanceName(void* anObject) override
-      {
-        T* serializable = static_cast<T*>(anObject);
-        return serializable->getName();
-      }
-
-      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
-      {
-        T* serializable = static_cast<T*>(anObject);
-        serializable->serialize(aSerializer);
-      }
-
-      virtual void destroy() override { }
-
-      static MetaTableManagedImpl<T> ourVTable;
-    };
-    template<class T>
-    MetaTableManagedImpl<T> MetaTableManagedImpl<T>::ourVTable;
-  //---------------------------------------------------------------------------//
-    template<class T>
-    struct MetaTableManagedImpl<T*> : public MetaTable
-    {
-      virtual void* create() override { return nullptr; }
-
-      virtual bool isValid(void* anObject) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        return (*serializable) != nullptr;
-      }
-
-      virtual String getTypeName(void* anObject) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        return (*serializable)->getTypeName();
-      }
-
-      virtual String getInstanceName(void* anObject) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        return (*serializable)->getName();
-      }
-
-      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        (*serializable)->serialize(aSerializer);
-      }
-
-      virtual void destroy() override { }
-
-      static MetaTableManagedImpl<T*> ourVTable;
-    };
-    template<class T>
-    MetaTableManagedImpl<T*> MetaTableManagedImpl<T*>::ourVTable;
-    //---------------------------------------------------------------------------//
-    template<class T>
-    struct MetaTableManagedImpl<std::shared_ptr<T>> : public MetaTable
-    {
-      virtual ~MetaTableManagedImpl<std::shared_ptr<T>>() {}
-      virtual void* create() override { return nullptr; }
-
-      virtual bool isValid(void* anObject) override
-      {
-        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        return (*serializable) != nullptr;
-      }
-
-      virtual String getTypeName(void* anObject) override
-      {
-        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        return (*serializable)->getTypeName();
-      }
-
-      virtual String getInstanceName(void* anObject) override
-      {
-        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        return (*serializable)->getName();
-      }
-
-      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
-      {
-        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable)->serialize(aSerializer);
-      }
-
-      virtual void destroy() override { }
-
-      static MetaTableManagedImpl<std::shared_ptr<T>> ourVTable;
-    };
-    template<class T>
-    MetaTableManagedImpl<std::shared_ptr<T>> MetaTableManagedImpl<std::shared_ptr<T>>::ourVTable;
-    */
+  
   //---------------------------------------------------------------------------//
     // Dummy general template:
     template<class T>
@@ -466,7 +381,7 @@ namespace Fancy { namespace IO {
 
       virtual void resize(void* anObject, uint aNewSize) override
       {
-        // Nothing to do here
+        ASSERT(aNewSize == Capacity);
       }
 
       virtual IO::DataType getElementDataType() override

@@ -41,36 +41,26 @@ namespace Fancy { namespace IO {
     case EBaseDataType::SerializablePtr:
     {
       MetaTable* metaTable = static_cast<MetaTable*>(aDataType.myUserData);
-      if (!metaTable->isValid(anObject))
+
+      if (currJsonVal == NULL)
       {
-        currJsonVal = NULL;
+        metaTable->invalidate(anObject);
         break;
       }
 
-      String typeName = metaTable->getTypeName(anObject);
-      String instanceName = metaTable->getInstanceName(anObject);
+      ObjectName typeName = currJsonVal["Type"].asString();
+      ObjectName instanceName = currJsonVal["Name"].asString();
 
-      currJsonVal["Type"] = typeName;
-
-      if (!instanceName.empty())
-        currJsonVal["Name"] = instanceName;
+      metaTable->create(anObject, typeName, instanceName);
 
       const bool isManaged = metaTable->isManaged(anObject);
       if (isManaged)
       {
-        String key = typeName + "_" + instanceName;
-        if (!isManagedObjectStored(key))
+        String key = String(typeName) + "_" + String(instanceName);
+        if (!wasManagedObjectLoaded(key))
         {
           metaTable->serialize(this, anObject);
-          myHeader.myManagedObjects.append(currJsonVal);
-          currJsonVal.clear();
-
-          currJsonVal["Type"] = typeName;
-
-          if (!instanceName.empty())
-            currJsonVal["Name"] = instanceName;
-
-          myHeader.myStoredManagedObjects.push_back(key);
+          myHeader.myLoadedManagedObjects.push_back(key);
         }
       }
       else
@@ -137,54 +127,39 @@ namespace Fancy { namespace IO {
 
     case EBaseDataType::Vector3:
     {
-      const glm::vec3& val = *static_cast<const glm::vec3*>(anObject);
-      Json::Value jsonVal(Json::arrayValue);
-      for (uint i = 0u; i < val.length(); ++i)
-        jsonVal.append(val[i]);
-
-      currJsonVal = jsonVal;
+      glm::vec3& val = *static_cast<glm::vec3*>(anObject);
+      for (Json::ArrayIndex i = 0u; i < val.length(); ++i)
+        val[i] = currJsonVal[i].asFloat();
     } break;
 
     case EBaseDataType::Vector4:
     {
-      const glm::vec4& val = *static_cast<const glm::vec4*>(anObject);
-      Json::Value jsonVal(Json::arrayValue);
-      for (uint i = 0u; i < val.length(); ++i)
-        jsonVal.append(val[i]);
-
-      currJsonVal = jsonVal;
+      glm::vec4& val = *static_cast<glm::vec4*>(anObject);
+      for (Json::ArrayIndex i = 0u; i < val.length(); ++i)
+        val[i] = currJsonVal[i].asFloat();
     } break;
 
     case EBaseDataType::Quaternion:
     {
-      const glm::quat& val = *static_cast<const glm::quat*>(anObject);
-      Json::Value jsonVal(Json::arrayValue);
-      for (uint i = 0u; i < val.length(); ++i)
-        jsonVal.append(val[i]);
-
-      currJsonVal = jsonVal;
+      glm::quat& val = *static_cast<glm::quat*>(anObject);
+      for (Json::ArrayIndex i = 0u; i < val.length(); ++i)
+        val[i] = currJsonVal[i].asFloat();
     } break;
 
     case EBaseDataType::Matrix3x3:
     {
-      const glm::mat3& val = *static_cast<const glm::mat3*>(anObject);
-      Json::Value jsonVal(Json::arrayValue);
-      for (uint y = 0u; y < val.length(); ++y)
-        for (uint x = 0u; x < val[y].length(); ++x)
-          jsonVal.append(val[x][y]);
-
-      currJsonVal = jsonVal;
+      glm::mat3& val = *static_cast<glm::mat3*>(anObject);
+      for (Json::ArrayIndex y = 0u; y < val.length(); ++y)
+        for (Json::ArrayIndex x = 0u; x < val[y].length(); ++x)
+          val[x][y] = currJsonVal[y * val[y].length() + x].asFloat();
     } break;
 
     case EBaseDataType::Matrix4x4:
     {
-      const glm::mat4& val = *static_cast<const glm::mat4*>(anObject);
-      Json::Value jsonVal(Json::arrayValue);
-      for (uint y = 0u; y < val.length(); ++y)
-        for (uint x = 0u; x < val[y].length(); ++x)
-          jsonVal.append(val[x][y]);
-
-      currJsonVal = jsonVal;
+      glm::mat4& val = *static_cast<glm::mat4*>(anObject);
+      for (Json::ArrayIndex y = 0u; y < val.length(); ++y)
+        for (Json::ArrayIndex x = 0u; x < val[y].length(); ++x)
+          val[x][y] = currJsonVal[y * val[y].length() + x].asFloat();
     } break;
 
     case EBaseDataType::None:
@@ -255,11 +230,11 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  bool JSONreader::isManagedObjectStored(const ObjectName& aName)
+  bool JSONreader::wasManagedObjectLoaded(const ObjectName& aName)
   {
-    for (const ObjectName& storedName : myHeader.myStoredManagedObjects)
+    for (const ObjectName& loadedName : myHeader.myLoadedManagedObjects)
     {
-      if (storedName == aName)
+      if (loadedName == aName)
         return true;
     }
 

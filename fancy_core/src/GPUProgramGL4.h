@@ -8,6 +8,7 @@
 #include "StaticManagedObject.h"
 
 namespace Fancy{namespace IO{
+  class ObjectFactory;
   class Serializer;
 }}
 
@@ -73,6 +74,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   //---------------------------------------------------------------------------//
     friend class GpuProgramCompilerGL4;
     friend class RendererGL4;
+    friend class IO::ObjectFactory;
   //---------------------------------------------------------------------------//
     public:
       GpuProgramGL4();

@@ -255,6 +255,9 @@
     <ClInclude Include="src\JSONreader.h">
       <Filter>src\IO</Filter>
     </ClInclude>
+    <ClInclude Include="src\ObjectFactory.h">
+      <Filter>src\IO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -417,6 +420,9 @@
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\JSONreader.cpp">
+      <Filter>src\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ObjectFactory.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
   </ItemGroup>
