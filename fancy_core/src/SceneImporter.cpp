@@ -33,6 +33,7 @@
 #include "MathUtil.h"
 #include "BinaryCache.h"
 #include "JSONwriter.h"
+#include "JSONreader.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -146,8 +147,17 @@ namespace Fancy { namespace IO {
     workingData.szCurrScenePathInResources = _szImportPathRel;
     success = Processing::processAiScene(workingData, aScene, _pParentNode);
 
-    JSONwriter serializer(szImportPathAbs);
-    serializer.serialize(_pParentNode, "rootNode");
+    // Serialization-tests....
+    {
+      JSONwriter serializer(szImportPathAbs);
+      serializer.serialize(&_pParentNode, "rootNode");
+    }
+
+    {
+      JSONreader serializer(szImportPathAbs);
+      serializer.serialize(&_pParentNode, "rootNode");
+    }
+    
 
     return success;
   }

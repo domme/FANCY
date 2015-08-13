@@ -53,7 +53,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void BlendState::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(m_name, "m_name");
+    aSerializer->serialize(&m_name, "m_name");
   }
 //---------------------------------------------------------------------------//
   void BlendState::updateHash()

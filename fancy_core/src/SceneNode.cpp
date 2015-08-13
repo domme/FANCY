@@ -114,13 +114,13 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   void SceneNode::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(m_name, "m_name");
-    aSerializer->serialize(m_transform.m_localRotation, "Local Rotation");
-    aSerializer->serialize(m_transform.m_localPosition, "Local Position");
-    aSerializer->serialize(m_transform.m_localScale, "Local Scale");
+    aSerializer->serialize(&m_name, "m_name");
+    aSerializer->serialize(&m_transform.m_localRotation, "Local Rotation");
+    aSerializer->serialize(&m_transform.m_localPosition, "Local Position");
+    aSerializer->serialize(&m_transform.m_localScale, "Local Scale");
 
-    aSerializer->serialize(m_vpComponents, "m_vpComponents");
-    aSerializer->serialize(m_vpChildren, "m_vpChildren");
+    aSerializer->serialize(&m_vpComponents, "m_vpComponents");
+    aSerializer->serialize(&m_vpChildren, "m_vpChildren");
 
     for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
     {

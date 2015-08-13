@@ -18,7 +18,7 @@ namespace Fancy { namespace IO {
       myArchive >> myDocumentVal;
     }
 
-    myTypeStack.push(myDocumentVal);
+    myTypeStack.push(&myDocumentVal);
     JSONreader::beginName("Root", false);
     loadHeader();
   }
@@ -32,7 +32,7 @@ namespace Fancy { namespace IO {
   {
     beginName(aName, aDataType.myBaseType == EBaseDataType::Array);
 
-    Json::Value& currJsonVal = myTypeStack.top();
+    Json::Value& currJsonVal = *myTypeStack.top();
 
     bool handled = true;
     switch (aDataType.myBaseType)
@@ -42,7 +42,7 @@ namespace Fancy { namespace IO {
     {
       MetaTable* metaTable = static_cast<MetaTable*>(aDataType.myUserData);
 
-      if (currJsonVal == NULL)
+      if (currJsonVal.type() == Json::nullValue)
       {
         metaTable->invalidate(anObject);
         break;
@@ -175,7 +175,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   void JSONreader::beginName(const char* aName, bool anIsArray)
   {
-    Json::Value& parentVal = myTypeStack.top();
+    Json::Value& parentVal = *myTypeStack.top();
 
     Json::Value* newVal = nullptr;
     if (parentVal.isArray())
@@ -191,6 +191,9 @@ namespace Fancy { namespace IO {
       newVal = &val;
     }
 
+    if ((*newVal).type() == Json::nullValue)
+      return;
+
     if (newVal->isArray())
       myArrayIndexStack.push(0);
   }
@@ -199,7 +202,7 @@ namespace Fancy { namespace IO {
   {
     ASSERT_M(!myTypeStack.empty(), "Mismatching number of beginType() / endType() calls");
 
-    Json::Value& val = myTypeStack.top();
+    Json::Value& val = *myTypeStack.top();
     if (val.isArray())
       myArrayIndexStack.pop();
 
@@ -208,14 +211,14 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   void JSONreader::loadHeader()
   {
-    Json::Value& rootVal = myTypeStack.top();
+    Json::Value& rootVal = *myTypeStack.top();
     myHeader.myVersion = rootVal["myVersion"].asUInt();
     myHeader.myManagedObjects = rootVal["myManagedResources"];
 
     for (Json::ValueIterator it = myHeader.myManagedObjects.begin(); it != myHeader.myManagedObjects.end(); ++it)
     {
       Json::Value& currVal = *it;
-      myTypeStack.push(currVal);
+      myTypeStack.push(&currVal);
       ObjectName typeName = currVal["Type"].asString();
 
       if (typeName == _N(GpuProgram))

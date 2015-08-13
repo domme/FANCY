@@ -65,14 +65,14 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPass::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(m_Name, "m_Name");
+    aSerializer->serialize(&m_Name, "m_Name");
     aSerializer->serializeArray(m_pGpuProgram, "m_pGpuProgram");
 
-    aSerializer->serialize(m_eFillMode, "m_eFillMode");
-    aSerializer->serialize(m_eCullMode, "m_eCullMode");
-    aSerializer->serialize(m_eWindingOrder, "m_eWindingOrder");
-    aSerializer->serialize(m_pBlendState, "m_pBlendState");
-    aSerializer->serialize(m_pDepthStencilState, "m_pDepthStencilState");
+    aSerializer->serialize(&m_eFillMode, "m_eFillMode");
+    aSerializer->serialize(&m_eCullMode, "m_eCullMode");
+    aSerializer->serialize(&m_eWindingOrder, "m_eWindingOrder");
+    aSerializer->serialize(&m_pBlendState, "m_pBlendState");
+    aSerializer->serialize(&m_pDepthStencilState, "m_pDepthStencilState");
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance* MaterialPass::createMaterialPassInstance( const ObjectName& name )
@@ -300,9 +300,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void ResourceStorageEntry::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(myShaderStage, "myShaderStage");
-    aSerializer->serialize(myIndex, "myIndex");
-    aSerializer->serialize(myName, "myName");
+    aSerializer->serialize(&myShaderStage, "myShaderStage");
+    aSerializer->serialize(&myIndex, "myIndex");
+    aSerializer->serialize(&myName, "myName");
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance::MaterialPassInstance() :
@@ -322,20 +322,20 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(m_Name, "m_Name");
-    aSerializer->serialize(m_pMaterialPass, "m_pMaterialPass");
+    aSerializer->serialize(&m_Name, "m_Name");
+    aSerializer->serialize(&m_pMaterialPass, "m_pMaterialPass");
     
     std::vector<ResourceStorageEntry> readTextures;
     getResourceDesc(MpiResourceType::ReadTexture, readTextures);
-    aSerializer->serialize(readTextures, "readTextures");
+    aSerializer->serialize(&readTextures, "readTextures");
     
     std::vector<ResourceStorageEntry> writeTextures;
     getResourceDesc(MpiResourceType::WriteTexture, writeTextures);
-    aSerializer->serialize(writeTextures, "writeTextures");
+    aSerializer->serialize(&writeTextures, "writeTextures");
     
     std::vector<ResourceStorageEntry> textureSamplers;
     getResourceDesc(MpiResourceType::TextureSampler, textureSamplers);
-    aSerializer->serialize(textureSamplers, "textureSamplers");
+    aSerializer->serialize(&textureSamplers, "textureSamplers");
     
     if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
     {

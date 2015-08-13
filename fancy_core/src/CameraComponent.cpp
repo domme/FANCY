@@ -28,17 +28,17 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   void CameraComponent::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(m_matViewInv, "m_matViewInv");
-    aSerializer->serialize(m_matView, "m_matView");
-    aSerializer->serialize(m_matProjection, "m_matProjection");
-    aSerializer->serialize(m_matViewProj, "m_matViewProj");
-    aSerializer->serialize(m_fFovDeg, "m_fFovDeg");
-    aSerializer->serialize(m_fFar, "m_fFar");
-    aSerializer->serialize(m_fNear, "m_fNear");
-    aSerializer->serialize(m_fFocalLength, "m_fFocalLength");
-    aSerializer->serialize(m_bIsOrtho, "m_bIsOrtho");
-    aSerializer->serialize(m_fWidth, "m_fWidth");
-    aSerializer->serialize(m_fHeight, "m_fHeight");
+    aSerializer->serialize(&m_matViewInv, "m_matViewInv");
+    aSerializer->serialize(&m_matView, "m_matView");
+    aSerializer->serialize(&m_matProjection, "m_matProjection");
+    aSerializer->serialize(&m_matViewProj, "m_matViewProj");
+    aSerializer->serialize(&m_fFovDeg, "m_fFovDeg");
+    aSerializer->serialize(&m_fFar, "m_fFar");
+    aSerializer->serialize(&m_fNear, "m_fNear");
+    aSerializer->serialize(&m_fFocalLength, "m_fFocalLength");
+    aSerializer->serialize(&m_bIsOrtho, "m_bIsOrtho");
+    aSerializer->serialize(&m_fWidth, "m_fWidth");
+    aSerializer->serialize(&m_fHeight, "m_fHeight");
   }
 //---------------------------------------------------------------------------//
   void CameraComponent::update()

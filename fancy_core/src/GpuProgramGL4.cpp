@@ -41,7 +41,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   void GpuProgramGL4::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(m_Name, "m_Name");
+    aSerializer->serialize(&m_Name, "m_Name");
   }
 //---------------------------------------------------------------------------//
   void GpuProgramGL4::destroy()

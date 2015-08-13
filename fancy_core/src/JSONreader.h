@@ -34,7 +34,7 @@ namespace Fancy { namespace IO {
     Json::Value myDocumentVal;
 
     std::stack<Json::ArrayIndex> myArrayIndexStack;
-    std::stack<Json::Value&> myTypeStack;
+    std::stack<Json::Value*> myTypeStack;
   };
 //---------------------------------------------------------------------------//  
 } }

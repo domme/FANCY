@@ -56,7 +56,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void DepthStencilState::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(m_Name, "m_Name");
+    aSerializer->serialize(&m_Name, "m_Name");
   }
 //---------------------------------------------------------------------------//
   void DepthStencilState::updateHash()

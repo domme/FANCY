@@ -65,6 +65,15 @@ namespace Fancy { namespace IO {
       return T::template getDataTypePtr<void>();
     }
   };
+
+  template<class T>
+  struct Get_DataType<std::shared_ptr<T>*>
+  {
+    static IO::DataType get()
+    {
+      return T::template getDataTypePtr<void>();
+    }
+  };
 //---------------------------------------------------------------------------//
   template<class T>
   struct Get_DataType<T*>
@@ -169,7 +178,7 @@ namespace Fancy { namespace IO {
         const ObjectName& anInstanceName = ObjectName::blank) override 
       {
         T** serializable = static_cast<T**>(anObject);
-        (*serializable) = IO::ObjectFactory::create(aTypeName, anInstanceName);
+        (*serializable) = static_cast<T*>(IO::ObjectFactory::create(aTypeName, anInstanceName));
       }
 
       virtual bool isValid(void* anObject) override
@@ -221,7 +230,7 @@ namespace Fancy { namespace IO {
         const ObjectName& anInstanceName = ObjectName::blank) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable) = IO::ObjectFactory::create(aTypeName, anInstanceName);
+        (*serializable) = std::shared_ptr<T>(static_cast<T*>(IO::ObjectFactory::create(aTypeName, anInstanceName)));
       }
 
       virtual bool isValid(void* anObject) override
@@ -443,21 +452,5 @@ namespace Fancy { namespace IO {
     return IO::DataType(IO::EBaseDataType::SerializablePtr, &Fancy::Internal::MetaTableImpl<T*>::ourVTable); \
   }
 //---------------------------------------------------------------------------//
-#define SERIALIZABLE_MANAGED(T) \
-  template<class dummy> \
-  static IO::DataType getDataType() \
-    { \
-    return IO::DataType(IO::EBaseDataType::SerializableManaged, &Fancy::Internal::MetaTableImpl<T>::ourVTable); \
-    } \
-  template<class dummy> \
-  static IO::DataType getDataTypePtr() \
-    { \
-    return IO::DataType(IO::EBaseDataType::SerializableManagedPtr, &Fancy::Internal::MetaTableImpl<std::shared_ptr<T>>::ourVTable); \
-    } \
-  template<class dummy> \
-  static IO::DataType getDataTypeRawPtr() \
-    { \
-    return IO::DataType(IO::EBaseDataType::SerializableManagedPtr, &Fancy::Internal::MetaTableImpl<T*>::ourVTable); \
-    }
 }  // end of namespace Fancy
 
