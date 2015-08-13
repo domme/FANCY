@@ -3,6 +3,12 @@
 #include "Serializer.h"
 #include "Json/json.h"
 
+namespace Fancy { namespace Rendering {
+  class MaterialPassInstance;
+  class MaterialPass;
+  class GpuProgram;
+} }
+
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   class JSONreader : public Serializer
@@ -18,7 +24,13 @@ namespace Fancy { namespace IO {
     struct RootHeader
     {
       uint32 myVersion;
-      Json::Value myManagedObjects;
+      std::vector<Rendering::GpuProgram*> myGpuPrograms;
+      std::vector<Rendering::MaterialPass*> myMaterialPasses;
+      std::vector<Rendering::Material*> myMaterials;
+      std::vector<Geometry::Mesh*> myMeshes;
+      std::vector<Geometry::SubModel*> mySubModels;
+      std::vector<Geometry::Model*> myModels;
+
       std::vector<ObjectName> myLoadedManagedObjects;
     };
 

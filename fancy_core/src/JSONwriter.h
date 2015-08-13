@@ -18,7 +18,13 @@ namespace Fancy { namespace IO {
     struct RootHeader
     {
       uint32 myVersion;
-      Json::Value myManagedObjects;
+      Json::Value myGpuPrograms;
+      Json::Value myMaterialPasses;
+      Json::Value myMaterials;
+      Json::Value myMeshes;
+      Json::Value mySubModels;
+      Json::Value myModels;
+
       std::vector<ObjectName> myStoredManagedObjects;
     };
 
@@ -27,6 +33,7 @@ namespace Fancy { namespace IO {
     virtual void beginName(const char* aName, bool anIsArray) override;
     virtual void endName() override;
 
+    void appendResource(const ObjectName& aTypeName, const Json::Value& aResourceValue);
     bool isManagedObjectStored(const ObjectName& aName);
     void storeHeader(Json::Value& aValue);
 

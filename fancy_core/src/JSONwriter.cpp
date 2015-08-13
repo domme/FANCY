@@ -12,7 +12,11 @@ namespace Fancy { namespace IO {
     myArchive.open(archivePath, archiveFlags);
 
     myHeader = RootHeader();
-    myHeader.myManagedObjects = Json::Value(Json::arrayValue);
+    myHeader.myGpuPrograms = Json::Value(Json::arrayValue);
+    myHeader.myMaterialPasses = Json::Value(Json::arrayValue);
+    myHeader.myMeshes = Json::Value(Json::arrayValue);
+    myHeader.mySubModels = Json::Value(Json::arrayValue);
+    myHeader.myModels = Json::Value(Json::arrayValue);
 
     JSONwriter::beginName("Root", false);
   }
@@ -59,7 +63,7 @@ namespace Fancy { namespace IO {
         if (!isManagedObjectStored(key))
         {
           metaTable->serialize(this, anObject);
-          myHeader.myManagedObjects.append(currJsonVal);
+          appendResource(typeName, currJsonVal);
           currJsonVal.clear();
 
           currJsonVal["Type"] = typeName;
@@ -223,10 +227,33 @@ namespace Fancy { namespace IO {
     }
   }
 //---------------------------------------------------------------------------//
+  void JSONwriter::appendResource(const ObjectName& aTypeName, const Json::Value& aResourceValue)
+  {
+    std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
+      { _N(GpuProgram), &myHeader.myGpuPrograms },
+      { _N(MaterialPass), &myHeader.myMaterialPasses },
+      { _N(Material), &myHeader.myMaterials },
+      { _N(Mesh), &myHeader.myMeshes },
+      { _N(SubModel), &myHeader.mySubModels },
+      { _N(Model), &myHeader.myModels },
+    };
+
+    for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
+    {
+      if (aTypeName == typeNameToVal[i].first)
+        typeNameToVal[i].second->append(aResourceValue);
+    }
+  }
+//---------------------------------------------------------------------------//
   void JSONwriter::storeHeader(Json::Value& aValue)
   {
     aValue["myVersion"] = myHeader.myVersion;
-    aValue["myManagedResources"] = myHeader.myManagedObjects;
+    aValue["myGpuPrograms"] = myHeader.myGpuPrograms;
+    aValue["myMaterialPasses"] = myHeader.myMaterialPasses;
+    aValue["myMaterials"] = myHeader.myMaterials;
+    aValue["myMeshes"] = myHeader.myMeshes;
+    aValue["mySubModels"] = myHeader.mySubModels;
+    aValue["myModels"] = myHeader.myModels;
   }
 //---------------------------------------------------------------------------//
 

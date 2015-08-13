@@ -1,6 +1,13 @@
 #include "JSONreader.h"
 #include "GpuProgram.h"
 
+#include "MaterialPass.h"
+#include "Material.h"
+#include "GpuProgram.h"
+#include "Model.h"
+#include "Mesh.h"
+#include "SubModel.h"
+
 namespace Fancy { namespace IO {
   Json::Value nullVal = Json::Value(NULL);
 //---------------------------------------------------------------------------//
@@ -19,7 +26,7 @@ namespace Fancy { namespace IO {
     }
 
     myTypeStack.push(&myDocumentVal);
-    JSONreader::beginName("Root", false);
+    //JSONreader::beginName("Root", false);
     loadHeader();
   }
 //---------------------------------------------------------------------------//
@@ -194,6 +201,8 @@ namespace Fancy { namespace IO {
     if ((*newVal).type() == Json::nullValue)
       return;
 
+    myTypeStack.push(newVal);
+
     if (newVal->isArray())
       myArrayIndexStack.push(0);
   }
@@ -213,22 +222,30 @@ namespace Fancy { namespace IO {
   {
     Json::Value& rootVal = *myTypeStack.top();
     myHeader.myVersion = rootVal["myVersion"].asUInt();
-    myHeader.myManagedObjects = rootVal["myManagedResources"];
 
-    for (Json::ValueIterator it = myHeader.myManagedObjects.begin(); it != myHeader.myManagedObjects.end(); ++it)
-    {
-      Json::Value& currVal = *it;
-      myTypeStack.push(&currVal);
-      ObjectName typeName = currVal["Type"].asString();
+    serialize(&myHeader.myGpuPrograms, "myGpuPrograms");
+    serialize(&myHeader.myMaterialPasses, "myMaterialPasses");
+    serialize(&myHeader.myMaterials, "myMaterials");
+    serialize(&myHeader.myMeshes, "myMeshes");
+    serialize(&myHeader.mySubModels, "mySubModels");
+    serialize(&myHeader.myModels, "myModels");
 
-      if (typeName == _N(GpuProgram))
-      {
-        Rendering::GpuProgram* program = nullptr;
-        serialize(program);
-      }
+    // myHeader.myManagedObjects = rootVal["myManagedResources"];
+    // beginName("myManagedResources", true);
+    // 
+    // for (Json::ValueIterator it = myHeader.myManagedObjects.begin(); it != myHeader.myManagedObjects.end(); ++it)
+    // {
+    //   Json::Value& currVal = *it;
+    //   ObjectName typeName = currVal["Type"].asString();
+    // 
+    //   if (typeName == _N(GpuProgram))
+    //   {
+    //     Rendering::GpuProgram* program = nullptr;
+    //     serialize(&program);
+    //   }
+    // }
 
-      myTypeStack.pop();
-    }
+    endName();
   }
 //---------------------------------------------------------------------------//
 
