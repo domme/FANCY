@@ -56,7 +56,6 @@ namespace Fancy {
     }
 //---------------------------------------------------------------------------//
   // Forward-declarations of common rendering classes
-    class Mesh;
     class VolumeMesh;
     class Material;
     class RenderOperation;
