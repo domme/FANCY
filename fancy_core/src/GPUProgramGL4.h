@@ -5,7 +5,7 @@
 #include "RendererPrerequisites.h"
 #include "GpuProgramResource.h"
 #include "VertexInputLayout.h"
-#include "StaticManagedObject.h"
+#include "Serializable.h"
 
 namespace Fancy{namespace IO{
   class ObjectFactory;
@@ -16,6 +16,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   struct ShaderStageInterfaceElement
   {
+    SERIALIZABLE(ShaderStageInterfaceElement)
+    static ObjectName getTypeName() { return _N(ShaderStageInterfaceElement); }
+    const ObjectName& getName() { return ObjectName::blank; }
+    void serialize(IO::Serializer* aSerializer);
+
     ShaderStageInterfaceElement() : 
       uLocation(0u), uArraySize(0u), uOffset(0u), 
       uBlockIndex(0u), eTypeGL(0u), uAtomicCountBufIndex(0u) {}
@@ -32,6 +37,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   struct ShaderStageFragmentOutput
   {
+    SERIALIZABLE(ShaderStageFragmentOutput)
+      static ObjectName getTypeName() { return _N(ShaderStageFragmentOutput); }
+    const ObjectName& getName() { return ObjectName::blank; }
+    void serialize(IO::Serializer* aSerializer);
+
     ShaderStageFragmentOutput() :
       uRtIndex(0u), uLocation(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
 
@@ -66,6 +76,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     GpuResourceInfoList vReadBufferInfos;
     GpuResourceInfoList vWriteTextureInfos;
     GpuResourceInfoList vWriteBufferInfos;
+    ConstantBufferElementList myConstantBufferElements;
+    String myShaderCode;
   };
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -112,11 +124,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       /// List of output-elements in the fragment shader stage
       ShaderStageFragmentOutputList m_vFragmentOutputs;
 
+      String myShaderCode;  // TODO: Only temporary until shader binaries have been implemented
+
       /// Lists of resources defined in the shader (buffers, textures, ...)
       GpuResourceInfoList m_vReadTextureInfos;
       GpuResourceInfoList m_vReadBufferInfos;
       GpuResourceInfoList m_vWriteTextureInfos;
       GpuResourceInfoList m_vWriteBufferInfos;
+      ConstantBufferElementList myConstantBufferElements;
       // TODO: Add lists for other opaque types (e.g. atomics)
     //---------------------------------------------------------------------------//
   };

@@ -425,5 +425,11 @@
     <ClCompile Include="src\ObjectFactory.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
+    <ClCompile Include="src\GpuProgramResource.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgramResourceGL4.cpp">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

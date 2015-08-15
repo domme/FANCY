@@ -17,6 +17,8 @@ namespace Fancy { namespace IO {
     Int,
     Uint,
     Uint32,
+    Uint8,
+    Uint16,
     Float,
     Char,
     Bool,
@@ -32,8 +34,6 @@ namespace Fancy { namespace IO {
     Matrix4x4,
     Serializable,
     SerializablePtr,
-    SerializableManaged,
-    SerializableManagedPtr,
   };
 //---------------------------------------------------------------------------//
   struct DataType
@@ -98,6 +98,8 @@ namespace Fancy { namespace IO {
   DECLARE_DATATYPE(int, Int);
   DECLARE_DATATYPE(uint, Uint);
   DECLARE_DATATYPE(uint32, Uint32);
+  DECLARE_DATATYPE(uint8, Uint8);
+  DECLARE_DATATYPE(uint16, Uint16);
   DECLARE_DATATYPE(float, Float);
   DECLARE_DATATYPE(char, Char);
   DECLARE_DATATYPE(const char*, CString);

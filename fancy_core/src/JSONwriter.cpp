@@ -95,6 +95,18 @@ namespace Fancy { namespace IO {
       currJsonVal = *static_cast<uint32*>(anObject);
     } break;
 
+    case EBaseDataType::Uint8:
+    {
+      uint8 val8 = *static_cast<uint8*>(anObject);
+      currJsonVal = static_cast<uint32>(val8);
+    } break;
+
+    case EBaseDataType::Uint16:
+    {
+      uint16 val16 = *static_cast<uint16*>(anObject);
+      currJsonVal = static_cast<uint32>(val16);
+    } break;
+
     case EBaseDataType::Float:
     {
       currJsonVal = *static_cast<float*>(anObject);
@@ -122,7 +134,8 @@ namespace Fancy { namespace IO {
 
     case EBaseDataType::ObjectName:
     {
-      currJsonVal = static_cast<ObjectName*>(anObject)->toString();
+      ObjectName& name = *static_cast<ObjectName*>(anObject);
+      currJsonVal = name.toString();
     } break;
 
     case EBaseDataType::Array:

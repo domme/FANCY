@@ -4,11 +4,21 @@
 #include "RendererPrerequisites.h"
 #include "ObjectName.h"
 #include "FixedArray.h"
+#include "Serializable.h"
+
+namespace Fancy { namespace IO {
+  class Serializer;
+} }
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct VertexInputElement 
   {
+    SERIALIZABLE(VertexInputElement)
+    static ObjectName getTypeName() { return _N(VertexInputElement); }
+    const ObjectName& getName() const { return ObjectName::blank; }
+    void serialize(IO::Serializer* aSerializer);
+
     VertexInputElement() : 
       eSemantics(VertexSemantics::NONE), u32RegisterIndex(0u), 
       u32SizeBytes(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
@@ -33,6 +43,11 @@ namespace Fancy { namespace Rendering {
   class VertexInputLayout
   {
   public:
+    SERIALIZABLE(VertexInputLayout)
+    static ObjectName getTypeName() { return _N(VertexInputLayout); }
+    const ObjectName& getName() const { return ObjectName::blank; }
+    void serialize(IO::Serializer* aSerializer);
+
     VertexInputLayout();
     ~VertexInputLayout();
 

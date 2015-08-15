@@ -9,6 +9,7 @@
 
 // forward decls
 namespace Fancy { namespace Rendering {
+  struct ConstantBufferElement;
   class Renderer;
   class MaterialPassInstance;
 } }
@@ -106,19 +107,7 @@ namespace Fancy { namespace Rendering {
       PER_DRAW_END = NUM
   };
 //---------------------------------------------------------------------------//
- 
-//---------------------------------------------------------------------------//
-  struct ConstantBufferElement
-  {
-    ConstantBufferElement() : 
-      uOffsetBytes(0u), uSizeBytes(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
-
-    ObjectName name;
-    uint32 uOffsetBytes;  // Byte-offset from the start of the buffer
-    uint32 uSizeBytes;  // Overall size of the element (==sizeof(eFormat) * uFormatComponentCount)
-    DataFormat eFormat;
-    uint8 uFormatComponentCount;  // Multiplier for eFormat. Used for multi-component elements (e.g. Matrices)
-  };
+  
 //---------------------------------------------------------------------------//
   struct ShaderConstantsUpdateStage
   {

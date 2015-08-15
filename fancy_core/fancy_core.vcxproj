@@ -296,6 +296,8 @@
     <ClCompile Include="src\GpuProgramGL4.cpp" />
     <ClCompile Include="src\GpuProgramPipelineGL4.cpp" />
     <ClCompile Include="src\GLSLpreprocessor.cpp" />
+    <ClCompile Include="src\GpuProgramResource.cpp" />
+    <ClCompile Include="src\GpuProgramResourceGL4.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
     <ClCompile Include="src\JSONreader.cpp" />

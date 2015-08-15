@@ -17,6 +17,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     public:
       static GpuProgram* createOrRetrieve(const String& _shaderPath, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage);
+      static bool compileFromSource(const String& someShaderSource, const ShaderStage& eShaderStage, GLuint& aProgramHandleGL);
 
     private:
       GpuProgramCompilerGL4();

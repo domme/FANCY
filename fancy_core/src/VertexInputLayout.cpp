@@ -1,4 +1,5 @@
 #include "VertexInputLayout.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -26,8 +27,11 @@ namespace Fancy { namespace Rendering {
 #endif  // FANCY_RENDERSYSTEM_USE_VALIDATION
   }
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
+  void VertexInputLayout::serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->serialize(&m_vVertexInputElements, "VertexInputElements");
+  }
+  //---------------------------------------------------------------------------//
   VertexInputLayout::VertexInputLayout()
   {
 
@@ -44,5 +48,14 @@ namespace Fancy { namespace Rendering {
     Validation::validateLayout(m_vVertexInputElements);
   }
 //---------------------------------------------------------------------------//
-
+  void VertexInputElement::serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->serialize(&name, "name");
+    aSerializer->serialize(&eSemantics, "eSemantics");
+    aSerializer->serialize(&u32RegisterIndex, "registerIndex");
+    aSerializer->serialize(&u32SizeBytes, "sizeBytes");
+    aSerializer->serialize(&eFormat, "dataFormat");
+    aSerializer->serialize(&uFormatComponentCount, "formatComponentCount");
+  }
+//---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

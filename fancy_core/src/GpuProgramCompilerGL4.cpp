@@ -43,10 +43,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   namespace Compile
   {
-    bool compileFromSource(const String& szSource, const Preprocess::ShaderSourceInfo& sourceInfo, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc);
+    bool compileAndReflect(const String& szSource, const Preprocess::ShaderSourceInfo& sourceInfo, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc);
+    bool compileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc, const Preprocess::ShaderSourceInfo* sourceInfo);
     void outputCompilerLogMsg(const char* _shaderCompilerLogMsg, const Preprocess::ShaderSourceInfo& _sourceInfo);
     bool reflectProgram(GpuProgramDescriptionGL4& _rDesc);
-    void reflectConstants(GLuint uProgram);
+    void reflectConstants(GLuint uProgram, ConstantBufferElementList& someConstantsOut);
     void reflectResources( GLuint uProgram, GpuResourceInfoList& rReadTextureInfos, GpuResourceInfoList& rReadBufferInfos, GpuResourceInfoList& rWriteTextureInfos, GpuResourceInfoList& rWriteBufferInfos);
     void reflectVertexInputs(GLuint uProgram, VertexInputLayout& rVertexLayout);
     void reflectFragmentOutputs(GLuint uProgram, ShaderStageFragmentOutputList& vFragmentOutputs);
@@ -568,7 +569,28 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     log_Info(logMsg);
   }
 //---------------------------------------------------------------------------//
-  bool Compile::compileFromSource( const String& szSource, const Preprocess::ShaderSourceInfo& sourceInfo, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc )
+  bool Compile::compileAndReflect( const String& szSource, const Preprocess::ShaderSourceInfo& sourceInfo, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc )
+  {
+    bool success = compileFromSource(szSource, eShaderStage, _rDesc, &sourceInfo);
+    
+    if (success)
+    {
+      success = reflectProgram(_rDesc);
+    }
+
+    if (!success) 
+    {
+      log_Error(String("GpuProgram ") + _rDesc.name.toString() + " failed to compile" );
+      ASSERT(false);
+      glDeleteProgram(_rDesc.uProgramHandleGL);
+    }
+
+    _rDesc.myShaderCode = szSource;
+    
+    return success;
+  }
+//---------------------------------------------------------------------------//
+  bool Compile::compileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc, const Preprocess::ShaderSourceInfo* sourceInfo)
   {
     ASSERT_M(!szSource.empty(), "Invalid shader source");
 
@@ -585,28 +607,34 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     if (iLogLengthChars > 0)
     {
       glGetProgramInfoLog(uProgramHandle, Internal::kMaxNumLogChars, &iLogLengthChars, logBuffer);
-      outputCompilerLogMsg(logBuffer, sourceInfo);
+      if (sourceInfo)
+        Compile::outputCompilerLogMsg(logBuffer, *sourceInfo);
+      else
+        log_Info(logBuffer);
     }
 
     int iProgramLinkStatus = GL_FALSE;
     glGetProgramiv(uProgramHandle, GL_LINK_STATUS, &iProgramLinkStatus);
 
     bool success = iProgramLinkStatus != GL_FALSE;
+
     if (success)
     {
       _rDesc.eShaderStage = eShaderStage;
       _rDesc.uProgramHandleGL = uProgramHandle;
-
-      success = reflectProgram(_rDesc);
     }
 
-    if (!success) 
-    {
-      log_Error(String("GpuProgram ") + _rDesc.name.toString() + " failed to compile" );
-      ASSERT(false);
-      glDeleteProgram(uProgramHandle);
-    }
-    
+    return success;
+  }
+//---------------------------------------------------------------------------//
+  bool GpuProgramCompilerGL4::compileFromSource(const String& someShaderSource, const ShaderStage& eShaderStage, GLuint& aProgramHandleGL)
+  {
+    GpuProgramDescriptionGL4 tempDesc;
+    bool success = Compile::compileFromSource(someShaderSource, eShaderStage, tempDesc, nullptr);
+
+    if (success)
+      aProgramHandleGL = tempDesc.uProgramHandleGL;
+
     return success;
   }
 //---------------------------------------------------------------------------//
@@ -624,7 +652,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       reflectFragmentOutputs(uProgramHandle, _rDesc.vFragmentOutputs);
     }
 
-    reflectConstants(uProgramHandle);
+    reflectConstants(uProgramHandle, _rDesc.myConstantBufferElements);
     reflectResources(uProgramHandle, _rDesc.vReadTextureInfos, _rDesc.vReadBufferInfos, _rDesc.vWriteTextureInfos, _rDesc.vWriteBufferInfos);
     return true;
   }
@@ -781,7 +809,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  void Compile::reflectConstants( GLuint uProgram )
+  void Compile::reflectConstants( GLuint uProgram, ConstantBufferElementList& someConstantsOut )
   {
     ShaderConstantsManager& constantsMgr = ShaderConstantsManager::getInstance();
 
@@ -822,6 +850,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       const GLenum propActiveUniformIndices = GL_ACTIVE_VARIABLES;
       glGetProgramResourceiv(uProgram, eInterface, iBlock, 1, &propActiveUniformIndices, vUniformIndices.size(), nullptr, &vUniformIndices[0]);
 
+      someConstantsOut.reserve(someConstantsOut.size() + uNumUniformsInBlock);
       for (uint32 iUniform = 0u; iUniform < uNumUniformsInBlock; ++iUniform )
       {
         const uint32 uUniformIndex = vUniformIndices[iUniform];
@@ -852,6 +881,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
           ShaderConstantsManager::getInstance().getSemanticFromName(cBufferElement.name);
 
         ShaderConstantsManager::getInstance().registerElement(cBufferElement, eSemantics, eCbufferType);
+
+        someConstantsOut.push_back(cBufferElement);
       }
     }
   }
@@ -916,7 +947,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     GpuProgramDescriptionGL4 programDesc;
     programDesc.name = uniqueProgramName;
-    const bool bSuccess = Compile::compileFromSource(szCombinedSource, sourceInfo, _eShaderStage, programDesc);
+    const bool bSuccess = Compile::compileAndReflect(szCombinedSource, sourceInfo, _eShaderStage, programDesc);
     if (bSuccess)
     {
       pGpuProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);

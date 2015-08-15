@@ -4,6 +4,7 @@
 #include "SceneNode.h"
 #include "TimeManager.h"
 #include "LightComponent.h"
+#include "GpuProgramResource.h"
 
 #include <hash_map>
 
