@@ -55,7 +55,7 @@ namespace Fancy { namespace Scene {
   class BaseCreator
   {
   public: 
-    static std::shared_ptr<T> create(ArgT arg) { return std::make_shared<T>(arg); }
+    static T* create(ArgT arg) { return FANCY_NEW(T(arg), MemoryCategory::GENERAL); }
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Scene

@@ -8,6 +8,8 @@
 #include "SubModel.h"
 
 #include "BinaryCache.h"
+#include "SceneNode.h"
+#include "SceneNodeComponentFactory.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -72,7 +74,7 @@ namespace Fancy { namespace IO {
   }
 //---------------------------------------------------------------------------//
   typedef void* (*CreateFunc)(const ObjectName&, bool&);
-  std::pair<ObjectName, CreateFunc> locCreateFuncRegistry[] =
+  std::pair<ObjectName, CreateFunc> locResourceCreateFunctions[] =
   {
     // Managed:
     { _N(GpuProgram), &locCreateManaged<Rendering::GpuProgram, MemoryCategory::MATERIALS> },
@@ -84,14 +86,22 @@ namespace Fancy { namespace IO {
     { _N(Model), &locCreateManaged<Geometry::Model, MemoryCategory::GEOMETRY> },
 
     // Non-managed
-    { _N(MaterialPassInstance), &locCreate<Rendering::MaterialPassInstance, MemoryCategory::MATERIALS> }
-
-
+    { _N(MaterialPassInstance), &locCreate<Rendering::MaterialPassInstance, MemoryCategory::MATERIALS> },
+    { _N(SceneNode), &locCreate<Scene::SceneNode, MemoryCategory::GENERAL> },
   };
 //---------------------------------------------------------------------------//
   void* ObjectFactory::create(const ObjectName& aTypeName, bool& aWasCreated, const ObjectName& anInstanceName)
   {
-    for (std::pair<ObjectName, CreateFunc>& createFuncEntry : locCreateFuncRegistry)
+    Scene::SceneNodeComponentFactory::CreateFunction createFunc = 
+      Scene::SceneNodeComponentFactory::getFactoryMethod(aTypeName);
+
+    if (createFunc != nullptr)
+    {
+      aWasCreated = true;
+      return createFunc(nullptr);
+    }
+    
+    for (std::pair<ObjectName, CreateFunc>& createFuncEntry : locResourceCreateFunctions)
       if (createFuncEntry.first == aTypeName)
         return createFuncEntry.second(anInstanceName, aWasCreated);
 

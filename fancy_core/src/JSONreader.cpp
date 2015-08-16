@@ -26,7 +26,6 @@ namespace Fancy { namespace IO {
     }
 
     myTypeStack.push(&myDocumentVal);
-    //JSONreader::beginName("Root", false);
     loadHeader();
   }
 //---------------------------------------------------------------------------//
@@ -232,23 +231,6 @@ namespace Fancy { namespace IO {
     serialize(&myHeader.myMeshes, "myMeshes");
     serialize(&myHeader.mySubModels, "mySubModels");
     serialize(&myHeader.myModels, "myModels");
-
-    // myHeader.myManagedObjects = rootVal["myManagedResources"];
-    // beginName("myManagedResources", true);
-    // 
-    // for (Json::ValueIterator it = myHeader.myManagedObjects.begin(); it != myHeader.myManagedObjects.end(); ++it)
-    // {
-    //   Json::Value& currVal = *it;
-    //   ObjectName typeName = currVal["Type"].asString();
-    // 
-    //   if (typeName == _N(GpuProgram))
-    //   {
-    //     Rendering::GpuProgram* program = nullptr;
-    //     serialize(&program);
-    //   }
-    // }
-
-    endName();
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//

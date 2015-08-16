@@ -24,6 +24,21 @@
 #define SAFE_DELETE_ARR(p) if( p[ 0 ] ) delete[] p;
 #define BUFFER_OFFSET(i) ( (char*) NULL + (i) )
 //---------------------------------------------------------------------------//  
+  enum class MemoryCategory {
+    GENERAL,
+    MATERIALS,
+    TEXTURES,
+    BUFFERS,
+    GEOMETRY
+  };
+//---------------------------------------------------------------------------//
+  // Allocation defines (will be replaced by custom allocators in the future)
+  #define FANCY_NEW(type, memoryCategory) new type
+  #define FANCY_DELETE(type, memoryCategory) delete type
+  #define FANCY_DELETE_ARR(type, memoryCategory) delete[] type
+  #define FANCY_ALLOCATE(sizeBytes, memoryCategory) malloc(sizeBytes)
+  #define FANCY_FREE(pData, memoryCategory) free(pData)
+//---------------------------------------------------------------------------//
   template<typename T>
   void _log_impl(T s, const std::string& szPrefix)
   {

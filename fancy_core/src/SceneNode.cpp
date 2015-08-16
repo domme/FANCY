@@ -122,10 +122,9 @@ namespace Fancy { namespace Scene {
     aSerializer->serialize(&m_vpComponents, "m_vpComponents");
     aSerializer->serialize(&m_vpChildren, "m_vpChildren");
 
-    for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
-    {
-      m_vpChildren[i]->m_pParent = this;
-    }
+    if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
+      for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
+        m_vpChildren[i]->m_pParent = this;
   }
 //---------------------------------------------------------------------------//
   void SceneNode::parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent)
@@ -268,7 +267,7 @@ namespace Fancy { namespace Scene {
     SceneNodeComponentFactory::CreateFunction createFunc = SceneNodeComponentFactory::getFactoryMethod(typeName);
     ASSERT_M(createFunc != nullptr, String("No factory registered for typename ") + typeName.toString());
 
-    SceneNodeComponentPtr componentPtr = createFunc(const_cast<SceneNode*>(this));
+    SceneNodeComponentPtr componentPtr(createFunc(const_cast<SceneNode*>(this)));
 
     m_vpComponents.push_back(componentPtr);
     onComponentAdded(componentPtr);

@@ -10,7 +10,7 @@ namespace Fancy { namespace Scene {
   class SceneNodeComponentFactory
   {
     public:
-      typedef std::function<SceneNodeComponentPtr(SceneNode*)> CreateFunction;
+      typedef std::function<SceneNodeComponent*(SceneNode*)> CreateFunction;
       static void registerFactory(const ObjectName& typeName, CreateFunction creator);
       static CreateFunction getFactoryMethod(const ObjectName& typeName);
   };
