@@ -118,7 +118,7 @@ namespace Fancy { namespace IO {
   struct MetaTable
   {
     virtual ~MetaTable() {}
-    virtual void create(void* anObject, const ObjectName& aTypeName, const ObjectName& anInstanceName = ObjectName::blank) = 0;
+    virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated, const ObjectName& anInstanceName = ObjectName::blank) = 0;
     virtual String getTypeName(void* anObject) { return ""; }
     virtual String getInstanceName(void* anObject) { return ""; }
     virtual bool isManaged(void* anObject) { return false; }
@@ -142,7 +142,7 @@ namespace Fancy { namespace IO {
     template<class T>
     struct MetaTableImpl : public MetaTable
     {
-      virtual void create(void* anObject, const ObjectName& aTypeName, 
+      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated, 
         const ObjectName& anInstanceName = ObjectName::blank) override { }
 
       virtual String getTypeName(void* anObject) override
@@ -176,11 +176,11 @@ namespace Fancy { namespace IO {
     template<class T>
     struct MetaTableImpl<T*> : public MetaTable
     {
-      virtual void create(void* anObject, const ObjectName& aTypeName,
+      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
         const ObjectName& anInstanceName = ObjectName::blank) override 
       {
         T** serializable = static_cast<T**>(anObject);
-        (*serializable) = static_cast<T*>(IO::ObjectFactory::create(aTypeName, anInstanceName));
+        (*serializable) = static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, anInstanceName));
       }
 
       virtual bool isValid(void* anObject) override
@@ -228,11 +228,11 @@ namespace Fancy { namespace IO {
     {
       virtual ~MetaTableImpl<std::shared_ptr<T>>() {}
       
-      virtual void create(void* anObject, const ObjectName& aTypeName,
+      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
         const ObjectName& anInstanceName = ObjectName::blank) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable) = std::shared_ptr<T>(static_cast<T*>(IO::ObjectFactory::create(aTypeName, anInstanceName)));
+        (*serializable) = std::shared_ptr<T>(static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, anInstanceName)));
       }
 
       virtual bool isValid(void* anObject) override

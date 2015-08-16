@@ -58,22 +58,12 @@ namespace Fancy { namespace IO {
       ObjectName typeName = currJsonVal["Type"].asString();
       ObjectName instanceName = currJsonVal["Name"].asString();
 
-      metaTable->create(anObject, typeName, instanceName);
+      bool wasCreated = false;
+      metaTable->create(anObject, typeName, wasCreated, instanceName);
 
-      const bool isManaged = metaTable->isManaged(anObject);
-      if (isManaged)
-      {
-        String key = String(typeName) + "_" + String(instanceName);
-        if (!wasManagedObjectLoaded(key))
-        {
-          metaTable->serialize(this, anObject);
-          myHeader.myLoadedManagedObjects.push_back(key);
-        }
-      }
-      else
-      {
+      if (wasCreated)
         metaTable->serialize(this, anObject);
-      }
+
     } break;
 
     case EBaseDataType::Int:
@@ -261,17 +251,5 @@ namespace Fancy { namespace IO {
     endName();
   }
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  bool JSONreader::wasManagedObjectLoaded(const ObjectName& aName)
-  {
-    for (const ObjectName& loadedName : myHeader.myLoadedManagedObjects)
-    {
-      if (loadedName == aName)
-        return true;
-    }
-
-    return false;
-  }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

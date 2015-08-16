@@ -30,8 +30,6 @@ namespace Fancy { namespace IO {
       std::vector<Geometry::Mesh*> myMeshes;
       std::vector<Geometry::SubModel*> mySubModels;
       std::vector<Geometry::Model*> myModels;
-
-      std::vector<ObjectName> myLoadedManagedObjects;
     };
 
     virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
@@ -39,7 +37,6 @@ namespace Fancy { namespace IO {
     virtual void beginName(const char* aName, bool anIsArray) override;
     virtual void endName() override;
 
-    bool wasManagedObjectLoaded(const ObjectName& aName);
     void loadHeader();
 
     RootHeader myHeader;
