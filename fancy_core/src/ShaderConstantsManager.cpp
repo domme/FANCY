@@ -6,9 +6,11 @@
 #include "LightComponent.h"
 #include "GpuProgramResource.h"
 
-#include <hash_map>
+#include <unordered_map>
 
 #include "GpuBuffer.h"
+#include <corecrt_memcpy_s.h>
+#include <stdlib.h>
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -16,8 +18,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   namespace Internal
   {
-    typedef std::hash_map<ObjectName, ConstantBufferType> ConstantBufferTypeMap;
-    typedef std::hash_map<ObjectName, ConstantSemantics> ConstantSemanticsMap;
+    typedef std::unordered_map<uint32, ConstantBufferType> ConstantBufferTypeMap;
+    typedef std::unordered_map<uint32, ConstantSemantics> ConstantSemanticsMap;
     typedef std::function<void(uint8*, const ShaderConstantsUpdateStage&)> ConstantUpdateFunction;
 
     ConstantBufferTypeMap mapConstantBufferTypes;
