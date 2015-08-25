@@ -31,3 +31,4 @@ lib/x64/Debug/fancy_core.exp
 dependencies/lib/x64/release/assimp.exp
 lib/x64/Debug/fancy_core.exp
 *.exp
+*.cache
