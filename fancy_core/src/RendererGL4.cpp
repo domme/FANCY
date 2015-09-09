@@ -9,6 +9,8 @@
 #include "vsDebugLib.h"
 #include "DebugOutStream.h"
 
+#if defined (RENDERER_OPENGL4)
+
 namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   #define GL_SET_CAP(eCap, bEnabled) { if(bEnabled) glEnable(eCap); else glDisable(eCap); }
@@ -1257,3 +1259,5 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   }
 //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::GL4
+
+#endif

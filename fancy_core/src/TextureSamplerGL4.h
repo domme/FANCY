@@ -3,6 +3,9 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+
+#if defined (RENDERER_OPENGL4)
+
 #include "OpenGLprerequisites.h"
 #include "AdapterGL4.h"
 #include "ObjectName.h"
@@ -35,5 +38,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::GL4
 
+#endif
 
 #endif  // INCLUDE_GPUPROGRAMGL4_H

@@ -33,10 +33,10 @@ namespace Fancy {
 
   }
 //---------------------------------------------------------------------------//
-  bool EngineCommon::initEngine()
+  bool EngineCommon::initEngine(void* aNativeWindowHandle)
   {
     initComponentSubsystem();
-    initRenderingSubsystem();
+    initRenderingSubsystem(aNativeWindowHandle);
     initIOsubsystem();
 
     return true;
@@ -55,13 +55,15 @@ namespace Fancy {
     // Scene::SceneNodeComponentFactory::registerFactory(_N(CameraControllerComponent), Scene::CameraControllerComponent::create);
   }
 //---------------------------------------------------------------------------//
-  void EngineCommon::initRenderingSubsystem()
+  void EngineCommon::initRenderingSubsystem(void* aNativeWindowHandle)
   {
     // Init common blend- and depthstencil states
     Rendering::BlendState::init();
     Rendering::DepthStencilState::init();
 
     Rendering::Renderer& rend = Rendering::Renderer::getInstance();
+    rend.init(aNativeWindowHandle);
+    rend.postInit();
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::initIOsubsystem()

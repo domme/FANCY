@@ -333,7 +333,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::update( ConstantBufferType eType )
   {
-      ASSERT(Storage::m_vConstantBuffers[(uint32)eType]);
+      if (!Storage::m_vConstantBuffers[(uint32)eType])
+        return;
       
       GpuBuffer* pConstantBuffer = Storage::m_vConstantBuffers[(uint32) eType];
       uint8* pConstantData = static_cast<uint8*>(pConstantBuffer->lock(GpuResoruceLockOption::WRITE_PERSISTENT_COHERENT));

@@ -1,4 +1,7 @@
 ﻿#include "GpuProgramCompilerGL4.h"
+
+#if defined (RENDERER_OPENGL4)
+
 #include "GpuProgram.h"
 #include "ShaderConstantsManager.h"
 #include "FileReader.h"
@@ -957,4 +960,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return pGpuProgram;
   }
 //---------------------------------------------------------------------------//
+
 } } } // end of namespace Fancy::Rendering:GL4
+
+#endif

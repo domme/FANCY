@@ -1,6 +1,7 @@
 #include "CameraComponent.h"
 #include "SceneNode.h"
 #include "Renderer.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//

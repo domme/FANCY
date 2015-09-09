@@ -34,6 +34,8 @@
 #include "BinaryCache.h"
 #include "JSONwriter.h"
 #include "JSONreader.h"
+#include "GpuProgramFeatures.h"
+#include "VertexInputLayout.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//

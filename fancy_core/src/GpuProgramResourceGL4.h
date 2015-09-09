@@ -3,6 +3,8 @@
 
 #include "OpenGLprerequisites.h"
 
+#if defined (RENDERER_OPENGL4)
+
 namespace Fancy { namespace IO {
   class Serializer;
 } }
@@ -18,5 +20,7 @@ namespace Fancy {namespace Rendering { namespace GL4 {
       void serialize(IO::Serializer* aSerializer);
   };
 } } } // end of namespace Fancy::Rendering::GL4
+
+#endif
 
 #endif // INCLUDE_GPUPROGRAMRESOURCEGL4_H

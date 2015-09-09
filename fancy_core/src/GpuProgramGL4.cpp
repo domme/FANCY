@@ -1,6 +1,7 @@
 #include "GpuProgramGL4.h"
 #include "Serializer.h"
-#include "GpuProgramCompilerGL4.h"
+
+#if defined (RENDERER_OPENGL4)
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
@@ -98,3 +99,5 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   }
 //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::GL4
+
+#endif

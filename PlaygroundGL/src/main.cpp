@@ -32,7 +32,7 @@ glm::vec3 cameraMovement(0.0f, 0.0f, 0.0f);
 
 void startupEngine()
 {
-  Fancy::EngineCommon::initEngine();
+  Fancy::EngineCommon::initEngine(nullptr);
 
   Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
   EngineCommon::setCurrentScene(pScene);

@@ -2,6 +2,9 @@
 #define INCLUDE_GLDEBUG_H
 
 #include "FancyCorePrerequisites.h"
+
+#if defined (RENDERER_OPENGL4)
+
 #include "OpenGLprerequisites.h"
 
 namespace Fancy { namespace Rendering {
@@ -89,5 +92,7 @@ public:
 };
 
 } } // end of namespace Fancy::Rendering
+
+#endif
 
 #endif  // INCLUDE_GLDEBUG_H

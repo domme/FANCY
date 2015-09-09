@@ -3,6 +3,8 @@
 
 #include "FancyCorePrerequisites.h"
 
+#if defined (RENDERER_OPENGL4)
+
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   class GLSLpreprocessor
@@ -18,4 +20,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   };
 //---------------------------------------------------------------------------//
 } } } // end of namespcae Fancy::Rendering::GL4
+
+#endif
 #endif  // INCLUDE_GLSLPREPROCESSOR_H

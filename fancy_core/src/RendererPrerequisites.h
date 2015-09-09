@@ -2,11 +2,13 @@
 #define INCLUDE_RENDERERPREREQUISITES_H
 
 // This define selects the render-system
-#define RENDERER_OPENGL4
-//#define RENDERER_DX11
+//#define RENDERER_OPENGL4
+#define RENDERER_DX12
 
 #if defined (RENDERER_OPENGL4)
-#include "OpenGLprerequisites.h"
+	#include "OpenGLprerequisites.h"
+#elif defined (RENDERER_DX12)
+	#include "DX12Prerequisites.h"
 #endif // RENDERER_OPENGL4
 
 #include "FancyCorePrerequisites.h"
@@ -79,6 +81,28 @@ namespace Fancy {
     #elif defined (RENDERER_DX11)
       namespace DX11 {}
       #define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX11::name##DX11
+	#elif defined (RENDERER_DX12)
+		namespace DX12
+		{
+			class RendererDX12;
+			class TextureDX12;
+			class GpuProgramDX12;
+			class GpuBufferDX12;
+			class GpuProgramPipelineDX12;
+			class GpuProgramCompilerDX12;
+			class TextureSamplerDX12;
+			class GpuProgramResourceDX12;
+		}
+
+		#define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX12::name##DX12
+		#define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererDX12.h"
+		#define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureDX12.h"
+		#define PLATFORM_DEPENDENT_INCLUDE_TEXTURESAMPLER "TextureSamplerDX12.h"
+		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GpuProgramDX12.h"
+		#define PLATFORM_DEPENDENT_INCLUDE_GPUBUFFER "GpuBufferDX12.h"
+		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineDX12.h"
+		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerDX12.h"
+		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceDX12.h"
     #endif // RENDERER
   //---------------------------------------------------------------------------//
 

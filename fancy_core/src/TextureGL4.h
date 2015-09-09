@@ -3,6 +3,9 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+
+#if defined (RENDERER_OPENGL4)
+
 #include "LoadableObject.h"
 #include "AdapterGL4.h"
 
@@ -76,5 +79,6 @@ public:
 
 } } } // end of namespace Fancy::Rendering::GL4
 
+#endif
 
 #endif  // INCLUDE_TEXTUREGL4_H

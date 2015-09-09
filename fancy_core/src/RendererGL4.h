@@ -3,7 +3,9 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "LoadableObject.h"
+
+#if defined (RENDERER_OPENGL4)
+
 #include "GeometryVertexLayout.h"
 #include "VertexInputLayout.h"
 #include "DepthStencilState.h"
@@ -18,6 +20,7 @@ class RendererGL4
 public:
   virtual ~RendererGL4();
 
+  void init(void* aNativeWindowHandle) {}
   /// Sets the render-system to a valid state. Should be called just before the first frame
   void postInit();
 
@@ -178,5 +181,6 @@ protected:
 } // end of namespace Rendering
 } // end of namespace Fancy
 
+#endif
 
 #endif  // INCLUDE_RENDERERGL4_H

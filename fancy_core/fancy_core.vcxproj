@@ -66,6 +66,7 @@
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\Assimp_debug_x64.props" />
     <Import Project="..\property_sheets\GLEW_64.props" />
+    <Import Project="..\property_sheets\DX12.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -80,6 +81,7 @@
     <Import Project="..\property_sheets\General_target.props" />
     <Import Project="..\property_sheets\Assimp_release_x64.props" />
     <Import Project="..\property_sheets\GLEW_64.props" />
+    <Import Project="..\property_sheets\DX12.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -211,14 +213,17 @@
     <ClInclude Include="src\AdapterGL4.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
+    <ClInclude Include="src\GpuBufferDX12.h" />
     <ClInclude Include="src\CameraComponent.h" />
     <ClInclude Include="src\CameraControllerComponent.h" />
     <ClInclude Include="src\ComputeOperation.h" />
     <ClInclude Include="src\DebugOutStream.h" />
     <ClInclude Include="src\DepthStencilState.h" />
+    <ClInclude Include="src\DX12Prerequisites.h" />
     <ClInclude Include="src\EngineCommon.h" />
     <ClInclude Include="src\Events.h" />
     <ClInclude Include="src\FancyCorePrerequisites.h" />
+    <ClInclude Include="src\FenceDX12.h" />
     <ClInclude Include="src\FileReader.h" />
     <ClInclude Include="src\FixedArray.h" />
     <ClInclude Include="src\GLDebug.h" />
@@ -226,13 +231,16 @@
     <ClInclude Include="src\GpuBufferGL4.h" />
     <ClInclude Include="src\GpuProgram.h" />
     <ClInclude Include="src\GpuProgramCompiler.h" />
+    <ClInclude Include="src\GpuProgramCompilerDX12.h" />
     <ClInclude Include="src\GpuProgramCompilerGL4.h" />
+    <ClInclude Include="src\GpuProgramDX12.h" />
     <ClInclude Include="src\GpuProgramFeatures.h" />
     <ClInclude Include="src\GpuProgramGL4.h" />
     <ClInclude Include="src\GpuProgramPipeline.h" />
     <ClInclude Include="src\GpuProgramPipelineGL4.h" />
     <ClInclude Include="src\GpuProgramResource.h" />
     <ClInclude Include="src\GLSLpreprocessor.h" />
+    <ClInclude Include="src\GpuProgramResourceDX12.h" />
     <ClInclude Include="src\GpuProgramResourceGL4.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\JSONreader.h" />
@@ -253,6 +261,7 @@
     <ClInclude Include="src\OpenGLprerequisites.h" />
     <ClInclude Include="src\PathService.h" />
     <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\RendererDX12.h" />
     <ClInclude Include="src\RendererGL4.h" />
     <ClInclude Include="src\RendererPrerequisites.h" />
     <ClInclude Include="src\RenderingProcess.h" />
@@ -273,9 +282,11 @@
     <ClInclude Include="src\StringUtil.h" />
     <ClInclude Include="src\SubModel.h" />
     <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\TextureDX12.h" />
     <ClInclude Include="src\TextureGL4.h" />
     <ClInclude Include="src\TextureLoader.h" />
     <ClInclude Include="src\TextureSampler.h" />
+    <ClInclude Include="src\TextureSamplerDX12.h" />
     <ClInclude Include="src\TextureSamplerGL4.h" />
     <ClInclude Include="src\TimeManager.h" />
     <ClInclude Include="src\VertexInputLayout.h" />
@@ -286,20 +297,25 @@
     <ClCompile Include="src\AdapterGL4.cpp" />
     <ClCompile Include="src\BinaryCache.cpp" />
     <ClCompile Include="src\BlendState.cpp" />
+    <ClCompile Include="src\GpuBufferDX12.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\CameraControllerComponent.cpp" />
     <ClCompile Include="src\ComputeOperation.cpp" />
     <ClCompile Include="src\DebugOutStream.cpp" />
     <ClCompile Include="src\DepthStencilState.cpp" />
     <ClCompile Include="src\EngineCommon.cpp" />
+    <ClCompile Include="src\FenceDX12.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\GpuBufferGL4.cpp" />
+    <ClCompile Include="src\GpuProgramCompilerDX12.cpp" />
     <ClCompile Include="src\GpuProgramCompilerGL4.cpp" />
+    <ClCompile Include="src\GpuProgramDX12.cpp" />
     <ClCompile Include="src\GpuProgramFeatures.cpp" />
     <ClCompile Include="src\GpuProgramGL4.cpp" />
     <ClCompile Include="src\GpuProgramPipelineGL4.cpp" />
     <ClCompile Include="src\GLSLpreprocessor.cpp" />
     <ClCompile Include="src\GpuProgramResource.cpp" />
+    <ClCompile Include="src\GpuProgramResourceDX12.cpp" />
     <ClCompile Include="src\GpuProgramResourceGL4.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
@@ -317,6 +333,7 @@
     <ClCompile Include="src\ObjectName.cpp" />
     <ClCompile Include="src\PathService.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\RendererDX12.cpp" />
     <ClCompile Include="src\RendererGL4.cpp" />
     <ClCompile Include="src\RendererPrerequisites.cpp" />
     <ClCompile Include="src\RenderingProcess.cpp" />
@@ -337,8 +354,10 @@
     </ClCompile>
     <ClCompile Include="src\GeometryData.cpp" />
     <ClCompile Include="src\SubModel.cpp" />
+    <ClCompile Include="src\TextureDX12.cpp" />
     <ClCompile Include="src\TextureGL4.cpp" />
     <ClCompile Include="src\TextureLoader.cpp" />
+    <ClCompile Include="src\TextureSamplerDX12.cpp" />
     <ClCompile Include="src\TextureSamplerGL4.cpp" />
     <ClCompile Include="src\TimeManager.cpp" />
     <ClCompile Include="src\VertexInputLayout.cpp" />

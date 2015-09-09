@@ -20,7 +20,7 @@ namespace Fancy {
   public:
     ~EngineCommon();
 
-    static bool initEngine();
+    static bool initEngine(void* aNativeWindowHandle);
     static void shutdownEngine();
 
     static void setCurrentScene(const Scene::ScenePtr& _pScene);
@@ -34,7 +34,7 @@ namespace Fancy {
     EngineCommon();
 
     static void initComponentSubsystem();
-    static void initRenderingSubsystem();
+    static void initRenderingSubsystem(void* aNativeWindowHandle);
     static void initIOsubsystem();
 
     static Scene::ScenePtr m_pCurrScene;

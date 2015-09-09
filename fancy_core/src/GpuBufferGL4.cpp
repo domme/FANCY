@@ -1,6 +1,8 @@
-#include "GpuBufferGL4.h"
 #include "RendererPrerequisites.h"
 
+#if defined (RENDERER_OPENGL4)
+
+#include "GpuBufferGL4.h"
 #include "TimeManager.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
@@ -411,3 +413,5 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Rendering::GL4
+
+#endif

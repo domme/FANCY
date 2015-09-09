@@ -3,6 +3,7 @@
   <ItemGroup>
     <Filter Include="src">
       <UniqueIdentifier>{119cc715-1dea-4811-898b-fe3023e1235c}</UniqueIdentifier>
+      <Extensions>cpp;h;hpp</Extensions>
     </Filter>
     <Filter Include="src\IO">
       <UniqueIdentifier>{cf808716-0597-492b-83ce-d3521a9641d7}</UniqueIdentifier>
@@ -28,14 +29,14 @@
     <Filter Include="src\Math">
       <UniqueIdentifier>{df3b2819-40ab-4734-9789-c9d138468e7c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Rendering\Materials">
-      <UniqueIdentifier>{93e6f866-a173-4b27-973f-a4c43f442dbe}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Scene\Components">
       <UniqueIdentifier>{131c4f4c-8958-405c-927c-0411df5432bb}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\IO\JSON">
       <UniqueIdentifier>{11798b84-0a9c-403c-a1fc-12a43cdd91af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Rendering\DX12">
+      <UniqueIdentifier>{c3bd7ac1-c48d-47ba-b876-50bee9d32391}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -159,12 +160,6 @@
     <ClInclude Include="src\TextureSamplerGL4.h">
       <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
-    <ClInclude Include="src\Material.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MaterialPass.h">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClInclude>
     <ClInclude Include="src\GpuProgramResourceGL4.h">
       <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
@@ -258,6 +253,39 @@
     <ClInclude Include="src\ObjectFactory.h">
       <Filter>src\IO</Filter>
     </ClInclude>
+    <ClInclude Include="src\Material.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MaterialPass.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RendererDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DX12Prerequisites.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuProgramResourceDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextureDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextureSamplerDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuProgramCompilerDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuProgramDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FenceDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuBufferDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -337,12 +365,6 @@
     </ClCompile>
     <ClCompile Include="src\TextureSamplerGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Material.cpp">
-      <Filter>src\Rendering\Materials</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MaterialPass.cpp">
-      <Filter>src\Rendering\Materials</Filter>
     </ClCompile>
     <ClCompile Include="src\SceneNodeComponent.cpp">
       <Filter>src\Scene\Components</Filter>
@@ -430,6 +452,36 @@
     </ClCompile>
     <ClCompile Include="src\GpuProgramResourceGL4.cpp">
       <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Material.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MaterialPass.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RendererDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureSamplerDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgramCompilerDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgramDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgramResourceDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FenceDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuBufferDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

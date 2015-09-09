@@ -4,6 +4,8 @@
 #include "RendererPrerequisites.h"
 #include "GpuProgramResource.h"
 
+#if defined (RENDERER_OPENGL4)
+
 namespace Fancy { namespace Rendering { namespace GL4 {
   
   class Adapter {
@@ -29,6 +31,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
 } } } // end of namespace Fancy::Rendering::GL4
 
+#endif // RENDERER_GL4
 
 
 #endif  // INCLUDE_ADAPTERGL4_H

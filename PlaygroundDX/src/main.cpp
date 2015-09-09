@@ -5,9 +5,11 @@
 #include "Prerequisites.h"
 #include "WindowDX12.h"
 #include "RendererDX12.h"
+#include <RenderingProcessForward.h>
+#include <Scene.h>
 
 WindowDX12 ourWindow;
-RendererDX12 ourRenderer;
+// RendererDX12 ourRenderer;
 constexpr uint kWidth = 1280u;
 constexpr uint kHeight = 720u;
 
@@ -29,8 +31,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
 	ourWindow.myResizeCallback = onWindowResize;
 
-	ourRenderer.init(kWidth, kHeight, &ourWindow.myWindowHandle);
-	ourRenderer.postInit();
+  Fancy::EngineCommon::initEngine(&ourWindow.myWindowHandle);
+  Fancy::EngineCommon::setCurrentScene(std::make_shared<Fancy::Scene::Scene>());
+  Fancy::EngineCommon::setRenderingProcess(new Fancy::Rendering::RenderingProcessForward);
+  Fancy::EngineCommon::startup();
 
 	MSG msg = { 0 };
 	while (true)
@@ -43,12 +47,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
 			if (msg.message == WM_QUIT)
 				break;
-
 		}
 
-		ourRenderer.beginFrame();
-		ourRenderer.render();
-		ourRenderer.endFrame();
+    Fancy::EngineCommon::update(0.0);
 	}
 
 	return 0;
