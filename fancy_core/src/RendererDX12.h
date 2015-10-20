@@ -8,8 +8,31 @@
 #include "DepthStencilState.h"
 #include "BlendState.h"
 #include "FenceDX12.h"
+#include <unordered_map>
 
 namespace Fancy { namespace Rendering { namespace DX12 {
+
+  struct PipelineState
+  {
+    PipelineState();
+
+    FillMode myFillMode;
+    CullMode myCullMode;
+    WindingOrder myWindingOrder;
+    DepthStencilState myDepthStencilState;
+    BlendState myBlendState;
+    GpuProgram* myShaderStages[static_cast<uint>(ShaderStage::NUM)];
+
+
+    bool myIsDirty : 1;
+  };
+
+  struct ResourceState
+  {
+    Texture* myDSV;
+  
+    bool myIsDirty : 1;
+  };
 
 	class RendererDX12
 	{
@@ -28,24 +51,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		/// x, y, width, height
 		const glm::uvec4 getViewport() const { return myViewportParams; }
 
-		/// Sets the blendState that should be active upon in next draw call
 		void setBlendState(const BlendState& clBlendState);
-		/// Retrieves the cached blendState configured for the next draw call
-		const BlendState& getBlendState() const { return myBlendState; }
-
-		/// Sets the depthstencil-state that should be active in the next draw call
 		void setDepthStencilState(const DepthStencilState& clDepthStencilState);
-		/// Retrieves the depthstencil-state cached for the next draw call
-		const DepthStencilState& getDepthStencilState() const { return myDepthStencilState; }
-
 		void setFillMode(const FillMode eFillMode);
-		FillMode getFillMode() const { return myFillMode; }
-
 		void setCullMode(const CullMode eCullMode);
-		CullMode getCullMode() const { return myCullMode; }
-
 		void setWindingOrder(const WindingOrder eWindingOrder);
-		WindingOrder getWindingOrder() const { return myWindingOrder; }
 
 		void setDepthStencilRenderTarget(Texture* pDStexture);
 		void setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
@@ -59,16 +69,23 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		void setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage);
 
 		void renderGeometry(const Geometry::GeometryData* pGeometry);
+    PipelineState& getState();
 
 	protected:
-		RendererDX12();
+    void applyViewport();
+	  void applyPipelineState();
+    void computeRequestedPipelineHash(uint& someHashOut) const;
 
-		FillMode			myFillMode;
-		CullMode			myCullMode;
-		WindingOrder		myWindingOrder;
-		DepthStencilState   myDepthStencilState;
-		glm::uvec4			myViewportParams;
-		BlendState			myBlendState;
+	  RendererDX12();
+
+    PipelineState myState;  // There will be one pipeline state per thread later on...
+
+    uint myPSOhash;
+    ID3D12PipelineState* myPSO;
+    std::unordered_map<uint, ID3D12PipelineState*> myPSOcache;
+
+    glm::uvec4 myViewportParams;
+    bool myViewportDirty;
 
     // Synchronization objects.
     uint myFrameIndex;

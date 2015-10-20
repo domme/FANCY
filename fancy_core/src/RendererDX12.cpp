@@ -1,12 +1,18 @@
 #include "RendererDX12.h"
 
 #if defined (RENDERER_DX12)
+#include "MathUtil.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
 
-	RendererDX12::RendererDX12() :
-		myBlendState(ObjectName::blank),
-		myDepthStencilState(ObjectName::blank)
+  PipelineState::PipelineState()
+    : myDepthStencilState(ObjectName::blank)
+    , myBlendState(ObjectName::blank)
+  {
+      
+  }
+
+	RendererDX12::RendererDX12()
 	{
 
 	}
@@ -19,6 +25,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RendererDX12::init(void* aNativeWindowHandle)
   {
     using namespace Microsoft::WRL;
+
+    ComPtr<ID3D12Debug> debugInterface;
+    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
+      debugInterface->EnableDebugLayer();
 
     HRESULT success = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&myDevice));
 
@@ -89,14 +99,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myFrameDone.init(myDevice.Get(), "RendererDX12::FrameDone");
 	}
 	
-	void RendererDX12::beginFrame()
+  PipelineState& RendererDX12::getState()
+  {
+    // TODO: Retrieve the state-object of the current thread here...
+    return myState;
+  }
+  
+  void RendererDX12::beginFrame()
 	{
     myFrameDone.wait();
 
     myCommandAllocator->Reset();
     myCommandList->Reset(myCommandAllocator.Get(), nullptr);
     myFrameIndex = mySwapChain->GetCurrentBackBufferIndex();
-
 	}
 	
 	void RendererDX12::endFrame()
@@ -134,34 +149,64 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	
 	void RendererDX12::setViewport(const glm::uvec4& uViewportParams)
 	{
+    if (myViewportParams == uViewportParams)
+      return;
+
+    myViewportParams = uViewportParams;
+    myViewportDirty = true;
 	}
 	
 	void RendererDX12::setBlendState(const BlendState& clBlendState)
 	{
+    PipelineState& state = getState();
+
+    if (state.myBlendState.m_uHash == clBlendState.m_uHash)
+      return;
+
+    state.myBlendState = clBlendState;
+    state.myIsDirty = true;
 	}
 	
 	void RendererDX12::setDepthStencilState(const DepthStencilState& clDepthStencilState)
 	{
+    PipelineState& state = getState();
+
+    if (state.myDepthStencilState.m_uHash = clDepthStencilState.m_uHash)
+      return;
+
+    state.myDepthStencilState = clDepthStencilState;
+    state.myIsDirty = true;
 	}
 	
 	void RendererDX12::setFillMode(const FillMode eFillMode)
 	{
+    PipelineState& state = getState();
+    state.myIsDirty |= eFillMode != state.myFillMode;
+    state.myFillMode = eFillMode;
 	}
 	
 	void RendererDX12::setCullMode(const CullMode eCullMode)
 	{
+    PipelineState& state = getState();
+    state.myIsDirty |= eCullMode != state.myCullMode;
+    state.myCullMode = eCullMode;
 	}
 	
 	void RendererDX12::setWindingOrder(const WindingOrder eWindingOrder)
 	{
+    PipelineState& state = getState();
+    state.myIsDirty |= eWindingOrder != state.myWindingOrder;
+    state.myWindingOrder = eWindingOrder;
 	}
 	
 	void RendererDX12::setDepthStencilRenderTarget(Texture* pDStexture)
 	{
+    
 	}
 	
 	void RendererDX12::setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex)
 	{
+
 	}
 	
 	void RendererDX12::removeAllRenderTargets()
@@ -194,7 +239,39 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	
 	void RendererDX12::renderGeometry(const Geometry::GeometryData* pGeometry)
 	{
+
 	}
+
+#pragma region Pipeline Apply
+
+  void RendererDX12::applyViewport()
+  {
+
+  }
+
+  void RendererDX12::applyPipelineState()
+	{
+    PipelineState& requestedState = getState();
+
+    if (!requestedState.myIsDirty)
+      return;
+
+
+	}
+
+  void RendererDX12::computeRequestedPipelineHash(uint& someHashOut) const
+  {
+    someHashOut = 0u;
+    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myFillMode));
+    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myCullMode));
+    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myWindingOrder));
+    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myDepthStencilState.m_uHash));
+    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myBlendState.m_uHash));
+
+
+  }
+
+#pragma endregion 
 	
 } } }  // end of namespace Fancy::Rendering::DX12
 

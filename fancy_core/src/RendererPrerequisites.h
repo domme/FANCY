@@ -198,7 +198,7 @@ namespace Fancy {
       FRAGMENT,      
       GEOMETRY,      
       TESS_HULL,     
-      TESS_DOMAIN,   
+      TESS_DOMAIN,
       COMPUTE,                  
 
       NUM,

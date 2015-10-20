@@ -881,6 +881,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       "pipelineRebindMask not in sync with depthStencilRebindMask");
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::DEPTH_TEST) > 0 ) {
+
       GL_SET_CAP(GL_DEPTH_TEST, m_clDepthStencilState.m_bDepthTestEnabled);
     }
 
@@ -900,6 +901,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Nothing special to set here - just use the "separate" calls for stencil-ops and funcs
     }
     const bool bUseTwoSidedStencil = m_clDepthStencilState.m_bTwoSidedStencil;
+
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_REF) > 0) {
       GL_SET_CAP(GL_STENCIL_TEST, m_clDepthStencilState.m_bStencilEnabled);

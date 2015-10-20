@@ -64,9 +64,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\property_sheets\glm.props" />
     <Import Project="..\property_sheets\General_target.props" />
-    <Import Project="..\property_sheets\Assimp_debug_x64.props" />
     <Import Project="..\property_sheets\GLEW_64.props" />
     <Import Project="..\property_sheets\DX12.props" />
+    <Import Project="..\property_sheets\Assimp_debug_x64.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
