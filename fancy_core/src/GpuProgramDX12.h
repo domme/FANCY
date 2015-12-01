@@ -32,6 +32,8 @@ namespace Fancy {
         const GpuResourceInfoList& getWriteTextureInfoList() const { return myWriteTextureInfos; }
         const GpuResourceInfoList& getWriteBufferInfoList() const { return myWriteBufferInfos; }
         const VertexInputLayout* getVertexInputLayout() const { return &myInputLayout; }
+        ComPtr<ID3DBlob>& getNativeData() { return myNativeData; }
+        const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
       private:
         ObjectName myName;
@@ -42,6 +44,9 @@ namespace Fancy {
         GpuResourceInfoList myWriteTextureInfos;
         GpuResourceInfoList myWriteBufferInfos;
         VertexInputLayout myInputLayout;
+
+        ComPtr<ID3DBlob> myNativeData;
+        D3D12_SHADER_BYTECODE myNativeByteCode;
       };
 
     }

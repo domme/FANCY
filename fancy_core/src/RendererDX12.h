@@ -10,20 +10,28 @@
 #include "FenceDX12.h"
 #include <unordered_map>
 
+namespace Fancy { namespace Rendering {
+  class GeometryVertexLayout;
+} }
+
 namespace Fancy { namespace Rendering { namespace DX12 {
 
   struct PipelineState
   {
     PipelineState();
-
+    uint getHash();
+    void fillNativePSOdesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& aDesc);
+    
     FillMode myFillMode;
     CullMode myCullMode;
     WindingOrder myWindingOrder;
     DepthStencilState myDepthStencilState;
     BlendState myBlendState;
-    GpuProgram* myShaderStages[static_cast<uint>(ShaderStage::NUM)];
-
-
+    const GpuProgram* myShaderStages[static_cast<uint>(ShaderStage::NUM)];
+    uint8 myNumRenderTargets;
+    DataFormat myRTVformats[kMaxNumRenderTargets];
+    DataFormat myDSVformat;
+    
     bool myIsDirty : 1;
   };
 
@@ -74,7 +82,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	protected:
     void applyViewport();
 	  void applyPipelineState();
-    void computeRequestedPipelineHash(uint& someHashOut) const;
 
 	  RendererDX12();
 

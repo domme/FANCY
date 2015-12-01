@@ -2,6 +2,7 @@
 
 #if defined (RENDERER_DX12)
 #include "MathUtil.h"
+#include "GpuProgram.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
 
@@ -12,7 +13,62 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       
   }
 
-	RendererDX12::RendererDX12()
+  uint PipelineState::getHash()
+  {
+    uint hash = 0u;
+    MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
+    MathUtil::hash_combine(hash, static_cast<uint>(myCullMode));
+    MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
+    MathUtil::hash_combine(hash, myDepthStencilState.getHash());
+    MathUtil::hash_combine(hash, myBlendState.getHash());
+
+    for (uint i = 0u; i < static_cast<uint>(ShaderStage::NUM); ++i)
+      MathUtil::hash_combine(hash, reinterpret_cast<uint>(myShaderStages[i]));
+
+    MathUtil::hash_combine(hash, myNumRenderTargets);
+
+    for (uint i = 0u; i < kMaxNumRenderTargets; ++i)
+      MathUtil::hash_combine(hash, reinterpret_cast<uint>(myRTVformats));
+
+    MathUtil::hash_combine(hash, static_cast<uint>(myDSVformat));
+
+    return hash;
+  }
+
+  void PipelineState::fillNativePSOdesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& aDesc)
+  {
+    memset(&aDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+
+    aDesc.pRootSignature = nullptr;  // TODO
+
+    D3D12_SHADER_BYTECODE* shaderDescs[]{ &aDesc.VS, &aDesc.PS, &aDesc.DS, &aDesc.HS, &aDesc.GS };
+    ASSERT(ARRAY_LENGTH(shaderDescs) == (uint)ShaderStage::NUM_NO_COMPUTE);
+
+    for (uint i = 0u; i < (uint)ShaderStage::NUM_NO_COMPUTE; ++i)
+    {
+      if (nullptr == myShaderStages[i])
+        continue;
+
+      (*shaderDescs[i]) = myShaderStages[i]->getNativeByteCode();
+    }
+    
+    D3D12_BLEND_DESC blendDesc;
+    memset(&blendDesc, 0u, sizeof(D3D12_BLEND_DESC));
+    blendDesc.AlphaToCoverageEnable = myBlendState.getAlphaToCoverageEnabled();
+    blendDesc.IndependentBlendEnable = myBlendState.getBlendStatePerRT();
+    uint rtCount = blendDesc.IndependentBlendEnable ? 8u : 1u;
+    for (uint rt = 0u; rt < rtCount; ++rt)
+    {
+      D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc;
+      memset(&rtBlendDesc, 0u, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
+
+      //rtBlendDesc.BlendEnable = 
+
+    }
+
+  }
+
+RendererDX12::RendererDX12()
 	{
 
 	}
@@ -235,6 +291,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	
 	void RendererDX12::setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage)
 	{
+    PipelineState& state = getState();
+
+    if (state.myShaderStages[(uint)eShaderStage] == pProgram)
+      return;
+
+    state.myShaderStages[(uint)eShaderStage] = pProgram;
+    state.myIsDirty = true;
 	}
 	
 	void RendererDX12::renderGeometry(const Geometry::GeometryData* pGeometry)
@@ -256,20 +319,29 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (!requestedState.myIsDirty)
       return;
 
+    uint requestedHash = requestedState.getHash();
+
+    ID3D12PipelineState* pso = nullptr;
+
+    auto cachedPSOIter = myPSOcache.find(requestedHash);
+    if (cachedPSOIter != myPSOcache.end())
+    {
+      pso = cachedPSOIter->second;
+    }
+    else
+    {
+      
+    }
+
+    myCommandList->SetPipelineState(cachedPSOIter->second);
+
+
+
+
+
 
 	}
 
-  void RendererDX12::computeRequestedPipelineHash(uint& someHashOut) const
-  {
-    someHashOut = 0u;
-    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myFillMode));
-    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myCullMode));
-    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myWindingOrder));
-    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myDepthStencilState.m_uHash));
-    MathUtil::hash_combine(someHashOut, static_cast<uint>(myState.myBlendState.m_uHash));
-
-
-  }
 
 #pragma endregion 
 	

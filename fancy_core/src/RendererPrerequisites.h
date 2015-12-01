@@ -200,8 +200,9 @@ namespace Fancy {
       TESS_HULL,     
       TESS_DOMAIN,
       COMPUTE,                  
-
+      
       NUM,
+      NUM_NO_COMPUTE = NUM - 1,
       NONE
     };
   //---------------------------------------------------------------------------//

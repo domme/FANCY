@@ -28,6 +28,7 @@ public:
   static ObjectName getTypeName() { return _N(BlendState); }
   void serialize(IO::Serializer* aSerializer);
   
+  uint getHash() const { return m_uHash; }
 
   bool getAlphaToCoverageEnabled() const { return m_bAlphaToCoverageEnabled; }
   void setAlphaToCoverageEnabled(bool val) { m_bAlphaToCoverageEnabled = val; updateHash();}
