@@ -286,6 +286,9 @@
     <ClInclude Include="src\GpuBufferDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="src\AdapterDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -481,6 +484,9 @@
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="src\GpuBufferDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AdapterDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>

@@ -316,77 +316,77 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     uint8 u8BlendStateRebindRTmask = m_u8BlendStateRebindRTmask;
     uint8 u8BlendStateRebindRTcount = m_u8BlendStateRebindRTcount;
 
-    if (m_clBlendState.m_bAlphaToCoverageEnabled != clBlendState.m_bAlphaToCoverageEnabled) {
-      m_clBlendState.m_bAlphaToCoverageEnabled = clBlendState.m_bAlphaToCoverageEnabled;
+    if (m_clBlendState.myAlphaToCoverageEnabled != clBlendState.myAlphaToCoverageEnabled) {
+      m_clBlendState.myAlphaToCoverageEnabled = clBlendState.myAlphaToCoverageEnabled;
       uBlendStateRebindMask |= (uint) BlendStateRebindFlags::ALPHA_TO_COVERAGE;
     }
 
-    if (m_clBlendState.m_bBlendStatePerRT != clBlendState.m_bBlendStatePerRT) {
-      m_clBlendState.m_bBlendStatePerRT = clBlendState.m_bBlendStatePerRT;
+    if (m_clBlendState.myBlendStatePerRT != clBlendState.myBlendStatePerRT) {
+      m_clBlendState.myBlendStatePerRT = clBlendState.myBlendStatePerRT;
       uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLENDSTATE_PER_RT;
     }
 
-    const uint8 rtUpperBound = m_clBlendState.m_bBlendStatePerRT ? kMaxNumRenderTargets : 1;
+    const uint8 rtUpperBound = m_clBlendState.myBlendStatePerRT ? kMaxNumRenderTargets : 1;
     for (uint8 iRT = 0; iRT < rtUpperBound; ++iRT)
     {
-      if (m_clBlendState.m_bAlphaSeparateBlend[iRT] != clBlendState.m_bAlphaSeparateBlend[iRT]) {
-        m_clBlendState.m_bAlphaSeparateBlend[iRT] = clBlendState.m_bAlphaSeparateBlend[iRT];
+      if (m_clBlendState.myAlphaSeparateBlend[iRT] != clBlendState.myAlphaSeparateBlend[iRT]) {
+        m_clBlendState.myAlphaSeparateBlend[iRT] = clBlendState.myAlphaSeparateBlend[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::ALPHA_SEPARATE_BLEND;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.m_bBlendEnabled[iRT] != clBlendState.m_bBlendEnabled[iRT]) {
-        m_clBlendState.m_bBlendEnabled[iRT] = clBlendState.m_bBlendEnabled[iRT];
+      if (m_clBlendState.myBlendEnabled[iRT] != clBlendState.myBlendEnabled[iRT]) {
+        m_clBlendState.myBlendEnabled[iRT] = clBlendState.myBlendEnabled[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLEND_ENABLED;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.m_eSrcBlend[iRT] != clBlendState.m_eSrcBlend[iRT]) {
-        m_clBlendState.m_eSrcBlend[iRT] = clBlendState.m_eSrcBlend[iRT];
+      if (m_clBlendState.mySrcBlend[iRT] != clBlendState.mySrcBlend[iRT]) {
+        m_clBlendState.mySrcBlend[iRT] = clBlendState.mySrcBlend[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::SRC_BLEND;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.m_eDestBlend[iRT] != clBlendState.m_eDestBlend[iRT]) {
-        m_clBlendState.m_eDestBlend[iRT] = clBlendState.m_eDestBlend[iRT];
+      if (m_clBlendState.myDestBlend[iRT] != clBlendState.myDestBlend[iRT]) {
+        m_clBlendState.myDestBlend[iRT] = clBlendState.myDestBlend[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::DEST_BLEND;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.m_eBlendOp[iRT] != clBlendState.m_eBlendOp[iRT]) {
-        m_clBlendState.m_eBlendOp[iRT] = clBlendState.m_eBlendOp[iRT];
+      if (m_clBlendState.myBlendOp[iRT] != clBlendState.myBlendOp[iRT]) {
+        m_clBlendState.myBlendOp[iRT] = clBlendState.myBlendOp[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLEND_OP;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.m_eSrcBlendAlpha[iRT] != clBlendState.m_eSrcBlendAlpha[iRT]) {
-        m_clBlendState.m_eSrcBlendAlpha[iRT] = clBlendState.m_eSrcBlendAlpha[iRT];
+      if (m_clBlendState.mySrcBlendAlpha[iRT] != clBlendState.mySrcBlendAlpha[iRT]) {
+        m_clBlendState.mySrcBlendAlpha[iRT] = clBlendState.mySrcBlendAlpha[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::SRC_BLEND_ALPHA;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.m_eDestBlendAlpha[iRT] != clBlendState.m_eDestBlendAlpha[iRT]) {
-        m_clBlendState.m_eDestBlendAlpha[iRT] = clBlendState.m_eDestBlendAlpha[iRT];
+      if (m_clBlendState.myDestBlendAlpha[iRT] != clBlendState.myDestBlendAlpha[iRT]) {
+        m_clBlendState.myDestBlendAlpha[iRT] = clBlendState.myDestBlendAlpha[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::DEST_BLEND_ALPHA;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.m_eBlendOpAlpha[iRT] != clBlendState.m_eBlendOpAlpha[iRT]) {
-        m_clBlendState.m_eBlendOpAlpha[iRT] = clBlendState.m_eBlendOpAlpha[iRT];
+      if (m_clBlendState.myBlendOpAlpha[iRT] != clBlendState.myBlendOpAlpha[iRT]) {
+        m_clBlendState.myBlendOpAlpha[iRT] = clBlendState.myBlendOpAlpha[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLEND_OP_ALPHA;
         u8BlendStateRebindRTmask |= (1 << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
       }
 
-      if (m_clBlendState.m_uRTwriteMask[iRT] != clBlendState.m_uRTwriteMask[iRT]) {
-        m_clBlendState.m_uRTwriteMask[iRT] = clBlendState.m_uRTwriteMask[iRT];
+      if (m_clBlendState.myRTwriteMask[iRT] != clBlendState.myRTwriteMask[iRT]) {
+        m_clBlendState.myRTwriteMask[iRT] = clBlendState.myRTwriteMask[iRT];
         uBlendStateRebindMask |= (uint) BlendStateRebindFlags::RT_WRITE_MASK;
         u8BlendStateRebindRTmask |= (1u << iRT);
         u8BlendStateRebindRTcount = std::max(u8BlendStateRebindRTcount, (uint8) (iRT+1u));
@@ -745,17 +745,17 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       "pipelineRebindMask not in sync with blendStateRebindMask");
 
     uint32 uBlendStateRebindMask = m_uBlendStateRebindMask;
-    bool bBlendingPerRTenabled = m_clBlendState.m_bBlendStatePerRT;
+    bool bBlendingPerRTenabled = m_clBlendState.myBlendStatePerRT;
 
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::ALPHA_TO_COVERAGE)) > 0)   {
-       GL_SET_CAP(GL_SAMPLE_ALPHA_TO_COVERAGE, m_clBlendState.m_bAlphaToCoverageEnabled);
+       GL_SET_CAP(GL_SAMPLE_ALPHA_TO_COVERAGE, m_clBlendState.myAlphaToCoverageEnabled);
     }
 
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLENDSTATE_PER_RT)) > 0)  {
       // Noting to do. Just use glBlendFuncSeperatei() and related functions if enabled
     }
 
-    if (m_clBlendState.m_bBlendStatePerRT) {
+    if (m_clBlendState.myBlendStatePerRT) {
       _bindBlendValuesMultiRT(uBlendStateRebindMask, m_u8BlendStateRebindRTcount, m_u8BlendStateRebindRTmask);
     }
     else {
@@ -770,10 +770,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   void RendererGL4::_bindBlendValuesSingleRT(const uint32 uBlendStateRebindMask)
   {
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_ENABLED)) > 0) {
-      GL_SET_CAP(GL_BLEND, m_clBlendState.m_bBlendEnabled[0]);
+      GL_SET_CAP(GL_BLEND, m_clBlendState.myBlendEnabled[0]);
     }
 
-    const bool bSeperateBlend = m_clBlendState.m_bAlphaSeparateBlend[0];
+    const bool bSeperateBlend = m_clBlendState.myAlphaSeparateBlend[0];
 
     const bool bApplyBlendFunc = 
       (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND)) > 0 ||
@@ -790,28 +790,28 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     if(bApplyBlendFunc) 
     {
       if (!bSeperateBlend) {
-        glBlendFunc(Adapter::toGLType(m_clBlendState.m_eSrcBlend[0]), Adapter::toGLType(m_clBlendState.m_eDestBlend[0]));
+        glBlendFunc(Adapter::toGLType(m_clBlendState.mySrcBlend[0]), Adapter::toGLType(m_clBlendState.myDestBlend[0]));
       } else {
-        glBlendFuncSeparate(Adapter::toGLType(m_clBlendState.m_eSrcBlend[0]), Adapter::toGLType(m_clBlendState.m_eDestBlend[0]),
-                            Adapter::toGLType(m_clBlendState.m_eSrcBlendAlpha[0]), Adapter::toGLType(m_clBlendState.m_eDestBlendAlpha[0]));
+        glBlendFuncSeparate(Adapter::toGLType(m_clBlendState.mySrcBlend[0]), Adapter::toGLType(m_clBlendState.myDestBlend[0]),
+                            Adapter::toGLType(m_clBlendState.mySrcBlendAlpha[0]), Adapter::toGLType(m_clBlendState.myDestBlendAlpha[0]));
       }
     }
 
     if (bApplyBlendOp)
     {
       if (!bSeperateBlend) {
-        glBlendEquation(Adapter::toGLType(m_clBlendState.m_eBlendOp[0]));
+        glBlendEquation(Adapter::toGLType(m_clBlendState.myBlendOp[0]));
       } else {
-        glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.m_eBlendOp[0]), Adapter::toGLType(m_clBlendState.m_eBlendOpAlpha[0]));
+        glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.myBlendOp[0]), Adapter::toGLType(m_clBlendState.myBlendOpAlpha[0]));
       }
     }
   
     if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::RT_WRITE_MASK)) > 0) {
        
-      const bool red =    (m_clBlendState.m_uRTwriteMask[0] & 0xFF000000) > 0u;
-      const bool green =  (m_clBlendState.m_uRTwriteMask[0] & 0x00FF0000) > 0u;
-      const bool blue =   (m_clBlendState.m_uRTwriteMask[0] & 0x0000FF00) > 0u;
-      const bool alpha =  (m_clBlendState.m_uRTwriteMask[0] & 0x000000FF) > 0u;
+      const bool red =    (m_clBlendState.myRTwriteMask[0] & 0xFF000000) > 0u;
+      const bool green =  (m_clBlendState.myRTwriteMask[0] & 0x00FF0000) > 0u;
+      const bool blue =   (m_clBlendState.myRTwriteMask[0] & 0x0000FF00) > 0u;
+      const bool alpha =  (m_clBlendState.myRTwriteMask[0] & 0x000000FF) > 0u;
 
       glColorMask(red, green, blue, alpha);
     }
@@ -827,10 +827,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
 
       if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::BLEND_ENABLED)) > 0) {
-        GL_SET_CAPi(GL_BEVEL_NV, iRT, m_clBlendState.m_bBlendEnabled[iRT]);
+        GL_SET_CAPi(GL_BEVEL_NV, iRT, m_clBlendState.myBlendEnabled[iRT]);
       }
 
-      const bool bSeperateBlend = m_clBlendState.m_bAlphaSeparateBlend[iRT];
+      const bool bSeperateBlend = m_clBlendState.myAlphaSeparateBlend[iRT];
 
       const bool bApplyBlendFunc = 
         (uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::SRC_BLEND)) > 0 ||
@@ -847,28 +847,28 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       if(bApplyBlendFunc) 
       {
         if (!bSeperateBlend) {
-          glBlendFunci(iRT, Adapter::toGLType(m_clBlendState.m_eSrcBlend[iRT]), Adapter::toGLType(m_clBlendState.m_eDestBlend[iRT]));
+          glBlendFunci(iRT, Adapter::toGLType(m_clBlendState.mySrcBlend[iRT]), Adapter::toGLType(m_clBlendState.myDestBlend[iRT]));
         } else {
-          glBlendFuncSeparatei(iRT, Adapter::toGLType(m_clBlendState.m_eSrcBlend[iRT]), Adapter::toGLType(m_clBlendState.m_eDestBlend[iRT]),
-            Adapter::toGLType(m_clBlendState.m_eSrcBlendAlpha[iRT]), Adapter::toGLType(m_clBlendState.m_eDestBlendAlpha[iRT]));
+          glBlendFuncSeparatei(iRT, Adapter::toGLType(m_clBlendState.mySrcBlend[iRT]), Adapter::toGLType(m_clBlendState.myDestBlend[iRT]),
+            Adapter::toGLType(m_clBlendState.mySrcBlendAlpha[iRT]), Adapter::toGLType(m_clBlendState.myDestBlendAlpha[iRT]));
         }
       }
 
       if (bApplyBlendOp)
       {
         if (!bSeperateBlend) {
-          glBlendEquation(Adapter::toGLType(m_clBlendState.m_eBlendOp[iRT]));
+          glBlendEquation(Adapter::toGLType(m_clBlendState.myBlendOp[iRT]));
         } else {
-          glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.m_eBlendOp[iRT]), Adapter::toGLType(m_clBlendState.m_eBlendOpAlpha[iRT]));
+          glBlendEquationSeparate(Adapter::toGLType(m_clBlendState.myBlendOp[iRT]), Adapter::toGLType(m_clBlendState.myBlendOpAlpha[iRT]));
         }
       }
 
       if ((uBlendStateRebindMask & static_cast<uint>(BlendStateRebindFlags::RT_WRITE_MASK)) > 0) {
         glColorMaski( iRT,
-          (m_clBlendState.m_uRTwriteMask[iRT] & 0xFF00000000) > 0,
-          (m_clBlendState.m_uRTwriteMask[iRT] & 0x00FF000000) > 0,
-          (m_clBlendState.m_uRTwriteMask[iRT] & 0x0000FF0000) > 0,
-          (m_clBlendState.m_uRTwriteMask[iRT] & 0x000000FF00) > 0);
+          (m_clBlendState.myRTwriteMask[iRT] & 0xFF00000000) > 0,
+          (m_clBlendState.myRTwriteMask[iRT] & 0x00FF000000) > 0,
+          (m_clBlendState.myRTwriteMask[iRT] & 0x0000FF0000) > 0,
+          (m_clBlendState.myRTwriteMask[iRT] & 0x000000FF00) > 0);
       }
     }
   }

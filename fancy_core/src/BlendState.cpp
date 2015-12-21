@@ -24,58 +24,55 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
   BlendState::BlendState(const ObjectName& _name) :
-    m_uHash(0u),
-    m_name(_name),
-    m_bAlphaToCoverageEnabled(false),
-    m_bBlendStatePerRT(false)
+    myName(_name),
+    myAlphaToCoverageEnabled(false),
+    myBlendStatePerRT(false)
   {
-    memset(m_bAlphaSeparateBlend, false, sizeof(m_bAlphaSeparateBlend));
-    memset(m_bBlendEnabled, false, sizeof(m_bBlendEnabled));
+    memset(myAlphaSeparateBlend, false, sizeof(myAlphaSeparateBlend));
+    memset(myBlendEnabled, false, sizeof(myBlendEnabled));
 
     for (uint32 i = 0u; i < kMaxNumRenderTargets; ++i)
     {
-      m_eSrcBlend[i] = BlendInput::ONE;
-      m_eDestBlend[i] = BlendInput::ONE;
-      m_eBlendOp[i] = BlendOp::ADD;
-      m_eSrcBlendAlpha[i] = BlendInput::ONE;
-      m_eDestBlendAlpha[i] = BlendInput::ONE;
-      m_eBlendOpAlpha[i] = BlendOp::ADD;
-      m_uRTwriteMask[i] = UINT_MAX;
+      mySrcBlend[i] = BlendInput::ONE;
+      myDestBlend[i] = BlendInput::ONE;
+      myBlendOp[i] = BlendOp::ADD;
+      mySrcBlendAlpha[i] = BlendInput::ONE;
+      myDestBlendAlpha[i] = BlendInput::ONE;
+      myBlendOpAlpha[i] = BlendOp::ADD;
+      myRTwriteMask[i] = UINT_MAX;
     }
-
-    updateHash();
   }
 //---------------------------------------------------------------------------//
   bool BlendState::operator==( const BlendState& clOther ) const
   {
-    return m_uHash == clOther.m_uHash;
+    return getHash() == clOther.getHash();
   }
 //---------------------------------------------------------------------------//
   void BlendState::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_name, "m_name");
+    aSerializer->serialize(&myName, "myName");
   }
 //---------------------------------------------------------------------------//
-  void BlendState::updateHash()
-  {
-      uint hash = 0x0;
-      MathUtil::hash_combine(hash, m_bAlphaToCoverageEnabled ? 1u : 0u);
-      MathUtil::hash_combine(hash, m_bBlendStatePerRT ? 1u : 0u);
+	uint BlendState::getHash() const
+	{
+		uint hash = 0x0;
+		MathUtil::hash_combine(hash, myAlphaToCoverageEnabled ? 1u : 0u);
+		MathUtil::hash_combine(hash, myBlendStatePerRT ? 1u : 0u);
 
-      for (uint32 i = 0; i < kMaxNumRenderTargets; ++i)
-      {
-        MathUtil::hash_combine(hash, m_bAlphaSeparateBlend[i] ? 1u : 0u);
-        MathUtil::hash_combine(hash, m_bBlendEnabled[i] ? 1u : 0u);
-        MathUtil::hash_combine(hash, static_cast<uint32>(m_eSrcBlend[i]));
-        MathUtil::hash_combine(hash, static_cast<uint32>(m_eDestBlend[i]));
-        MathUtil::hash_combine(hash, static_cast<uint32>(m_eBlendOp[i]));
-        MathUtil::hash_combine(hash, static_cast<uint32>(m_eSrcBlendAlpha[i]));
-        MathUtil::hash_combine(hash, static_cast<uint32>(m_eDestBlendAlpha[i]));
-        MathUtil::hash_combine(hash, static_cast<uint32>(m_eBlendOpAlpha[i]));
-        MathUtil::hash_combine(hash, m_uRTwriteMask[i]);
-      }
-
-      m_uHash = hash;
-  }
+		for (uint32 i = 0; i < kMaxNumRenderTargets; ++i)
+		{
+			MathUtil::hash_combine(hash, myAlphaSeparateBlend[i] ? 1u : 0u);
+			MathUtil::hash_combine(hash, myBlendEnabled[i] ? 1u : 0u);
+			MathUtil::hash_combine(hash, static_cast<uint32>(mySrcBlend[i]));
+			MathUtil::hash_combine(hash, static_cast<uint32>(myDestBlend[i]));
+			MathUtil::hash_combine(hash, static_cast<uint32>(myBlendOp[i]));
+			MathUtil::hash_combine(hash, static_cast<uint32>(mySrcBlendAlpha[i]));
+			MathUtil::hash_combine(hash, static_cast<uint32>(myDestBlendAlpha[i]));
+			MathUtil::hash_combine(hash, static_cast<uint32>(myBlendOpAlpha[i]));
+			MathUtil::hash_combine(hash, myRTwriteMask[i]);
+		}
+	}
+//---------------------------------------------------------------------------//
+  
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

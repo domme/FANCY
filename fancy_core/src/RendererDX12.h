@@ -81,9 +81,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
 	protected:
     void applyViewport();
-	  void applyPipelineState();
+	void applyPipelineState();
 
-	  RendererDX12();
+	RendererDX12();
 
     PipelineState myState;  // There will be one pipeline state per thread later on...
 

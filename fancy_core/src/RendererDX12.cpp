@@ -56,13 +56,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memset(&blendDesc, 0u, sizeof(D3D12_BLEND_DESC));
     blendDesc.AlphaToCoverageEnable = myBlendState.getAlphaToCoverageEnabled();
     blendDesc.IndependentBlendEnable = myBlendState.getBlendStatePerRT();
-    uint rtCount = blendDesc.IndependentBlendEnable ? 8u : 1u;
+    uint rtCount = blendDesc.IndependentBlendEnable ? kMaxNumRenderTargets : 1u;
     for (uint rt = 0u; rt < rtCount; ++rt)
     {
-      D3D12_RENDER_TARGET_BLEND_DESC rtBlendDesc;
+      D3D12_RENDER_TARGET_BLEND_DESC& rtBlendDesc = blendDesc.RenderTarget[rt];
       memset(&rtBlendDesc, 0u, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
 
-      //rtBlendDesc.BlendEnable = 
+	  rtBlendDesc.BlendEnable = myBlendState.myBlendEnabled[rt];
+	  //rtBlendDesc.BlendOp 
+	  
+
 
     }
 

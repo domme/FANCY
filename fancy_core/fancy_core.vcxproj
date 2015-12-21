@@ -210,6 +210,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\AdapterDX12.h" />
     <ClInclude Include="src\AdapterGL4.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
@@ -294,6 +295,7 @@
     <ClInclude Include="src\vsDebugLib.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AdapterDX12.cpp" />
     <ClCompile Include="src\AdapterGL4.cpp" />
     <ClCompile Include="src\BinaryCache.cpp" />
     <ClCompile Include="src\BlendState.cpp" />

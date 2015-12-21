@@ -24,61 +24,57 @@ public:
   friend class PLATFORM_DEPENDENT_NAME(Renderer);
   bool operator==(const BlendState& clOther) const;
   
-  const Fancy::ObjectName& getName() const { return m_name; }
+  const Fancy::ObjectName& getName() const { return myName; }
   static ObjectName getTypeName() { return _N(BlendState); }
   void serialize(IO::Serializer* aSerializer);
   
-  uint getHash() const { return m_uHash; }
+  uint getHash() const;
 
-  bool getAlphaToCoverageEnabled() const { return m_bAlphaToCoverageEnabled; }
-  void setAlphaToCoverageEnabled(bool val) { m_bAlphaToCoverageEnabled = val; updateHash();}
+  bool getAlphaToCoverageEnabled() const { return myAlphaToCoverageEnabled; }
+  void setAlphaToCoverageEnabled(bool val) { myAlphaToCoverageEnabled = val; }
 
-  bool getBlendStatePerRT() const { return m_bBlendStatePerRT; }
-  void setBlendStatePerRT(bool val) { m_bBlendStatePerRT = val; updateHash();}
+  bool getBlendStatePerRT() const { return myBlendStatePerRT; }
+  void setBlendStatePerRT(bool val) { myBlendStatePerRT = val;}
   
-  bool getAlphaSeparateBlendEnabled(uint32 _u32rtIndex) const {return m_bAlphaSeparateBlend[_u32rtIndex]; }
-  void setAlphaSeparateBlendEnabled(uint32 _u32rtIndex, bool val) {m_bAlphaSeparateBlend[_u32rtIndex] = val; }
+  bool getAlphaSeparateBlendEnabled(uint32 _u32rtIndex) const {return myAlphaSeparateBlend[_u32rtIndex]; }
+  void setAlphaSeparateBlendEnabled(uint32 _u32rtIndex, bool val) {myAlphaSeparateBlend[_u32rtIndex] = val; }
 
-  bool getBlendEnabled(uint32 _u32rtIndex) const {return m_bBlendEnabled[_u32rtIndex]; }
-  void setBlendEnabled(uint32 _u32rtIndex, bool val) {m_bBlendEnabled[_u32rtIndex] = val; }
+  bool getBlendEnabled(uint32 _u32rtIndex) const {return myBlendEnabled[_u32rtIndex]; }
+  void setBlendEnabled(uint32 _u32rtIndex, bool val) {myBlendEnabled[_u32rtIndex] = val; }
 
-  Fancy::Rendering::BlendInput getSrcBlend(uint32 _u32rtIndex) const { return m_eSrcBlend[_u32rtIndex]; }
-  void setSrcBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { m_eSrcBlend[_u32rtIndex] = val; updateHash();}
+  Fancy::Rendering::BlendInput getSrcBlend(uint32 _u32rtIndex) const { return mySrcBlend[_u32rtIndex]; }
+  void setSrcBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { mySrcBlend[_u32rtIndex] = val;}
 
-  Fancy::Rendering::BlendInput getDestBlend(uint32 _u32rtIndex) const { return m_eDestBlend[_u32rtIndex]; }
-  void setDestBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { m_eDestBlend[_u32rtIndex] = val; updateHash();}
+  Fancy::Rendering::BlendInput getDestBlend(uint32 _u32rtIndex) const { return myDestBlend[_u32rtIndex]; }
+  void setDestBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { myDestBlend[_u32rtIndex] = val;}
 
-  Fancy::Rendering::BlendOp getBlendOp(uint32 _u32rtIndex) const { return m_eBlendOp[_u32rtIndex]; }
-  void setBlendOp(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { m_eBlendOp[_u32rtIndex] = val; updateHash();}
+  Fancy::Rendering::BlendOp getBlendOp(uint32 _u32rtIndex) const { return myBlendOp[_u32rtIndex]; }
+  void setBlendOp(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { myBlendOp[_u32rtIndex] = val;}
 
-  Fancy::Rendering::BlendInput getSrcBlendAlpha(uint32 _u32rtIndex) const { return m_eSrcBlendAlpha[_u32rtIndex]; }
-  void setSrcBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { m_eSrcBlendAlpha[_u32rtIndex] = val; updateHash();}
+  Fancy::Rendering::BlendInput getSrcBlendAlpha(uint32 _u32rtIndex) const { return mySrcBlendAlpha[_u32rtIndex]; }
+  void setSrcBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { mySrcBlendAlpha[_u32rtIndex] = val;}
 
-  Fancy::Rendering::BlendInput getDestBlendAlpha(uint32 _u32rtIndex) const { return m_eDestBlendAlpha[_u32rtIndex]; }
-  void setDestBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { m_eDestBlendAlpha[_u32rtIndex] = val; updateHash();}
+  Fancy::Rendering::BlendInput getDestBlendAlpha(uint32 _u32rtIndex) const { return myDestBlendAlpha[_u32rtIndex]; }
+  void setDestBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { myDestBlendAlpha[_u32rtIndex] = val;}
 
-  Fancy::Rendering::BlendOp getBlendOpAlpha(uint32 _u32rtIndex) const { return m_eBlendOpAlpha[_u32rtIndex]; }
-  void setBlendOpAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { m_eBlendOpAlpha[_u32rtIndex] = val; updateHash();}
+  Fancy::Rendering::BlendOp getBlendOpAlpha(uint32 _u32rtIndex) const { return myBlendOpAlpha[_u32rtIndex]; }
+  void setBlendOpAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { myBlendOpAlpha[_u32rtIndex] = val;}
 
-  Fancy::uint32 getRTwriteMask(uint32 _u32rtIndex) const { return m_uRTwriteMask[_u32rtIndex]; }
-  void setRTwriteMask(uint32 _u32rtIndex, Fancy::uint32 val) { m_uRTwriteMask[_u32rtIndex] = val; updateHash();}
+  Fancy::uint32 getRTwriteMask(uint32 _u32rtIndex) const { return myRTwriteMask[_u32rtIndex]; }
+  void setRTwriteMask(uint32 _u32rtIndex, Fancy::uint32 val) { myRTwriteMask[_u32rtIndex] = val;}
 
-private:
-  void updateHash();
-  
-  uint                         m_uHash;
-  ObjectName                   m_name;
-  bool                         m_bAlphaToCoverageEnabled;
-  bool                         m_bBlendStatePerRT;
-  bool                         m_bAlphaSeparateBlend [kMaxNumRenderTargets];
-  bool                         m_bBlendEnabled       [kMaxNumRenderTargets];
-  BlendInput                   m_eSrcBlend           [kMaxNumRenderTargets];
-  BlendInput                   m_eDestBlend          [kMaxNumRenderTargets];
-  BlendOp                      m_eBlendOp            [kMaxNumRenderTargets];
-  BlendInput                   m_eSrcBlendAlpha      [kMaxNumRenderTargets];
-  BlendInput                   m_eDestBlendAlpha     [kMaxNumRenderTargets];
-  BlendOp                      m_eBlendOpAlpha       [kMaxNumRenderTargets];
-  uint32                       m_uRTwriteMask        [kMaxNumRenderTargets];
+  ObjectName                   myName;
+  bool                         myAlphaToCoverageEnabled;
+  bool                         myBlendStatePerRT;
+  bool                         myAlphaSeparateBlend[kMaxNumRenderTargets];
+  bool                         myBlendEnabled[kMaxNumRenderTargets];
+  BlendInput                   mySrcBlend[kMaxNumRenderTargets];
+  BlendInput                   myDestBlend[kMaxNumRenderTargets];
+  BlendOp                      myBlendOp[kMaxNumRenderTargets];
+  BlendInput                   mySrcBlendAlpha[kMaxNumRenderTargets];
+  BlendInput                   myDestBlendAlpha[kMaxNumRenderTargets];
+  BlendOp                      myBlendOpAlpha[kMaxNumRenderTargets];
+  uint32                       myRTwriteMask[kMaxNumRenderTargets];
 //---------------------------------------------------------------------------//
 };
 
