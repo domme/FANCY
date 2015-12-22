@@ -8,50 +8,46 @@ namespace Fancy{ namespace IO{
 class ObjectFactory;
 }}
 
-namespace Fancy {
-  namespace Rendering {
-    namespace DX12 {
+namespace Fancy { namespace Rendering { namespace DX12 {
+//---------------------------------------------------------------------------//
+  class GpuProgramDX12
+  {
+    friend class GpuProgramCompilerDX12;
+    friend class RendererDX12;
+    friend class IO::ObjectFactory;
 
-      class GpuProgramDX12
-      {
-        friend class GpuProgramCompilerDX12;
-        friend class RendererDX12;
-        friend class IO::ObjectFactory;
-
-      public:
-        GpuProgramDX12();
-        ~GpuProgramDX12();
-        //---------------------------------------------------------------------------//
-        const ObjectName& getName() const { return myName; }
-        static ObjectName getTypeName() { return _N(GpuProgram); }
-        void serialize(IO::Serializer* aSerializer);
+  public:
+    GpuProgramDX12();
+    ~GpuProgramDX12();
+  //---------------------------------------------------------------------------//
+    const ObjectName& getName() const { return myName; }
+    static ObjectName getTypeName() { return _N(GpuProgram); }
+    void serialize(IO::Serializer* aSerializer);
         
-        ShaderStage getShaderStage() const { return myStage; }
-        const GpuResourceInfoList& getReadTextureInfoList() const { return myReadTextureInfos; }
-        const GpuResourceInfoList& getReadBufferInfoList() const { return myReadBufferInfos; }
-        const GpuResourceInfoList& getWriteTextureInfoList() const { return myWriteTextureInfos; }
-        const GpuResourceInfoList& getWriteBufferInfoList() const { return myWriteBufferInfos; }
-        const VertexInputLayout* getVertexInputLayout() const { return &myInputLayout; }
-        ComPtr<ID3DBlob>& getNativeData() { return myNativeData; }
-        const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
+    ShaderStage getShaderStage() const { return myStage; }
+    const GpuResourceInfoList& getReadTextureInfoList() const { return myReadTextureInfos; }
+    const GpuResourceInfoList& getReadBufferInfoList() const { return myReadBufferInfos; }
+    const GpuResourceInfoList& getWriteTextureInfoList() const { return myWriteTextureInfos; }
+    const GpuResourceInfoList& getWriteBufferInfoList() const { return myWriteBufferInfos; }
+    const VertexInputLayout* getVertexInputLayout() const { return &myInputLayout; }
+    ComPtr<ID3DBlob>& getNativeData() { return myNativeData; }
+    const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
-      private:
-        ObjectName myName;
-        ShaderStage myStage;
+  private:
+    ObjectName myName;
+    ShaderStage myStage;
 
-        GpuResourceInfoList myReadTextureInfos;
-        GpuResourceInfoList myReadBufferInfos;
-        GpuResourceInfoList myWriteTextureInfos;
-        GpuResourceInfoList myWriteBufferInfos;
-        VertexInputLayout myInputLayout;
+    GpuResourceInfoList myReadTextureInfos;
+    GpuResourceInfoList myReadBufferInfos;
+    GpuResourceInfoList myWriteTextureInfos;
+    GpuResourceInfoList myWriteBufferInfos;
+    VertexInputLayout myInputLayout;
 
-        ComPtr<ID3DBlob> myNativeData;
-        D3D12_SHADER_BYTECODE myNativeByteCode;
-      };
-
-    }
-  }
-}
+    ComPtr<ID3DBlob> myNativeData;
+    D3D12_SHADER_BYTECODE myNativeByteCode;
+  };
+//---------------------------------------------------------------------------//
+}}}
 
 #endif
 

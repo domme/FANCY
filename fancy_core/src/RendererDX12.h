@@ -15,7 +15,7 @@ namespace Fancy { namespace Rendering {
 } }
 
 namespace Fancy { namespace Rendering { namespace DX12 {
-
+//---------------------------------------------------------------------------//
   struct PipelineState
   {
     PipelineState();
@@ -34,14 +34,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
     bool myIsDirty : 1;
   };
-
+//---------------------------------------------------------------------------//
   struct ResourceState
   {
     Texture* myDSV;
   
     bool myIsDirty : 1;
   };
-
+//---------------------------------------------------------------------------//
 	class RendererDX12
 	{
 	public:
@@ -81,9 +81,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
 	protected:
     void applyViewport();
-	void applyPipelineState();
+	  void applyPipelineState();
 
-	RendererDX12();
+	  RendererDX12();
 
     PipelineState myState;  // There will be one pipeline state per thread later on...
 
@@ -110,7 +110,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myRtvHeap;
     uint myRtvDescriptorSize;
 	};
-
-} } } 
+//---------------------------------------------------------------------------//
+} } } // end of namespace Fancy::Renderer::DX12
 
 #endif

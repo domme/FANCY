@@ -1,18 +1,19 @@
 #include "RendererDX12.h"
+#include "AdapterDX12.h"
 
 #if defined (RENDERER_DX12)
 #include "MathUtil.h"
 #include "GpuProgram.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
-
+//---------------------------------------------------------------------------//
   PipelineState::PipelineState()
     : myDepthStencilState(ObjectName::blank)
     , myBlendState(ObjectName::blank)
   {
       
   }
-
+//---------------------------------------------------------------------------//
   uint PipelineState::getHash()
   {
     uint hash = 0u;
@@ -34,7 +35,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     return hash;
   }
-
+//---------------------------------------------------------------------------//
   void PipelineState::fillNativePSOdesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& aDesc)
   {
     memset(&aDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
@@ -62,25 +63,34 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       D3D12_RENDER_TARGET_BLEND_DESC& rtBlendDesc = blendDesc.RenderTarget[rt];
       memset(&rtBlendDesc, 0u, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
 
-	  rtBlendDesc.BlendEnable = myBlendState.myBlendEnabled[rt];
-	  //rtBlendDesc.BlendOp 
-	  
+	    rtBlendDesc.BlendEnable = myBlendState.myBlendEnabled[rt];
+      rtBlendDesc.BlendOp = Adapter::toNativeType(myBlendState.myBlendOp[rt]);
+      rtBlendDesc.BlendOpAlpha = Adapter::toNativeType(myBlendState.myBlendOpAlpha[rt]);
+      rtBlendDesc.DestBlend = Adapter::toNativeType(myBlendState.myDestBlend[rt]);
+      rtBlendDesc.DestBlendAlpha = Adapter::toNativeType(myBlendState.myDestBlendAlpha[rt]);
+      // Todo: What is the logic op?
+      // rtBlendDesc.LogicOp = ?
+      // rtBlendDesc.LogicOpEnable = ?
+      rtBlendDesc.RenderTargetWriteMask = myBlendState.myRTwriteMask[rt];  // Todo: UINT8 = UINT32??
+	    
 
-
+      // Todo: Further work on this
     }
 
   }
+//---------------------------------------------------------------------------//
 
-RendererDX12::RendererDX12()
+//---------------------------------------------------------------------------//
+  RendererDX12::RendererDX12()
 	{
 
 	}
-
+//---------------------------------------------------------------------------//
 	RendererDX12::~RendererDX12()
 	{
 	
 	}
-
+//---------------------------------------------------------------------------//
   void RendererDX12::init(void* aNativeWindowHandle)
   {
     using namespace Microsoft::WRL;
@@ -148,7 +158,7 @@ RendererDX12::RendererDX12()
 
     myDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&myCommandAllocator));
   }
-
+//---------------------------------------------------------------------------//
   void RendererDX12::postInit()
 	{
     myDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, myCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&myCommandList));
@@ -157,13 +167,13 @@ RendererDX12::RendererDX12()
     // Create synchronization objects.
     myFrameDone.init(myDevice.Get(), "RendererDX12::FrameDone");
 	}
-	
+//---------------------------------------------------------------------------//
   PipelineState& RendererDX12::getState()
   {
     // TODO: Retrieve the state-object of the current thread here...
     return myState;
   }
-  
+//---------------------------------------------------------------------------//
   void RendererDX12::beginFrame()
 	{
     myFrameDone.wait();
@@ -172,7 +182,7 @@ RendererDX12::RendererDX12()
     myCommandList->Reset(myCommandAllocator.Get(), nullptr);
     myFrameIndex = mySwapChain->GetCurrentBackBufferIndex();
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::endFrame()
 	{
     // Move this part to rendering
@@ -205,7 +215,7 @@ RendererDX12::RendererDX12()
 
     myFrameDone.signal(myCommandQueue.Get());
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setViewport(const glm::uvec4& uViewportParams)
 	{
     if (myViewportParams == uViewportParams)
@@ -214,7 +224,7 @@ RendererDX12::RendererDX12()
     myViewportParams = uViewportParams;
     myViewportDirty = true;
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setBlendState(const BlendState& clBlendState)
 	{
     PipelineState& state = getState();
@@ -225,7 +235,7 @@ RendererDX12::RendererDX12()
     state.myBlendState = clBlendState;
     state.myIsDirty = true;
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setDepthStencilState(const DepthStencilState& clDepthStencilState)
 	{
     PipelineState& state = getState();
@@ -236,62 +246,62 @@ RendererDX12::RendererDX12()
     state.myDepthStencilState = clDepthStencilState;
     state.myIsDirty = true;
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setFillMode(const FillMode eFillMode)
 	{
     PipelineState& state = getState();
     state.myIsDirty |= eFillMode != state.myFillMode;
     state.myFillMode = eFillMode;
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setCullMode(const CullMode eCullMode)
 	{
     PipelineState& state = getState();
     state.myIsDirty |= eCullMode != state.myCullMode;
     state.myCullMode = eCullMode;
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setWindingOrder(const WindingOrder eWindingOrder)
 	{
     PipelineState& state = getState();
     state.myIsDirty |= eWindingOrder != state.myWindingOrder;
     state.myWindingOrder = eWindingOrder;
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setDepthStencilRenderTarget(Texture* pDStexture)
 	{
     
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex)
 	{
 
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::removeAllRenderTargets()
 	{
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
 	{
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
 	{
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setReadBuffer(const GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
 	{
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setConstantBuffer(const GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
 	{
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setTextureSampler(const TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
 	{
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage)
 	{
     PipelineState& state = getState();
@@ -302,19 +312,19 @@ RendererDX12::RendererDX12()
     state.myShaderStages[(uint)eShaderStage] = pProgram;
     state.myIsDirty = true;
 	}
-	
+//---------------------------------------------------------------------------//
 	void RendererDX12::renderGeometry(const Geometry::GeometryData* pGeometry)
 	{
 
 	}
-
+//---------------------------------------------------------------------------//
 #pragma region Pipeline Apply
-
+//---------------------------------------------------------------------------//
   void RendererDX12::applyViewport()
   {
 
   }
-
+//---------------------------------------------------------------------------//
   void RendererDX12::applyPipelineState()
 	{
     PipelineState& requestedState = getState();
@@ -333,21 +343,17 @@ RendererDX12::RendererDX12()
     }
     else
     {
-      
+      //Todo: Implement  
     }
 
     myCommandList->SetPipelineState(cachedPSOIter->second);
 
-
-
-
-
+    
 
 	}
-
-
+//---------------------------------------------------------------------------//
 #pragma endregion 
-	
+//---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::DX12
 
 #endif
