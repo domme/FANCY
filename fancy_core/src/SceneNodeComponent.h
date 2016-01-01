@@ -15,13 +15,6 @@ namespace Fancy { namespace Scene {
   class SceneNode;
   class SceneRenderDescription;
 //---------------------------------------------------------------------------//
-  struct SceneNodeComponentDesc
-  {
-    ObjectNameDesc myTypeName;
-  };
-//---------------------------------------------------------------------------//
-  DECLARE_SMART_PTRS(SceneNodeComponentDesc)
-//---------------------------------------------------------------------------//
   class DLLEXPORT SceneNodeComponent
   {
     public:
@@ -39,8 +32,6 @@ namespace Fancy { namespace Scene {
       
       virtual void init() { };
       virtual void update() = 0;
-      virtual SceneNodeComponentDescPtr getDescription() const { return nullptr; }
-	    virtual void initFromDescription(const SceneNodeComponentDescPtr& someDesc) {};
 
       virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) = 0;
 

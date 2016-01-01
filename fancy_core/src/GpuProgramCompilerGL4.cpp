@@ -9,6 +9,7 @@
 #include "MathUtil.h"
 
 #include <deque>
+#include "AdapterGL4.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//

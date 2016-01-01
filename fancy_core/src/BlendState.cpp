@@ -71,6 +71,8 @@ namespace Fancy { namespace Rendering {
 			MathUtil::hash_combine(hash, static_cast<uint32>(myBlendOpAlpha[i]));
 			MathUtil::hash_combine(hash, myRTwriteMask[i]);
 		}
+
+    return hash;
 	}
 //---------------------------------------------------------------------------//
   

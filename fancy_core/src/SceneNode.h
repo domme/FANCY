@@ -71,13 +71,6 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   class SceneRenderDescription;
 //---------------------------------------------------------------------------//
-  struct SceneNodeDesc
-  {
-    ObjectNameDesc myName;
-    TransformDesc myTransform;
-	  std::vector<SceneNodeComponentDescPtr> myComponents;
-  };
-//---------------------------------------------------------------------------//
   class DLLEXPORT SceneNode
   {
     public: 

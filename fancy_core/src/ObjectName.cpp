@@ -5,14 +5,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  void ShortStringDesc::operator=(const String& _someString)
-  {
-    ASSERT(kLength > _someString.length());
-    std::copy(_someString.begin(), _someString.end(), &myChars[0]);
-    myChars[_someString.length()] = 0u;  // Null-terminator
-  }
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
   namespace internal 
   {
     uint hashFromName(const String& szName) 
@@ -21,7 +13,9 @@ namespace Fancy {
         return MathUtil::hashFromString(szName);
       }
       else {
+        
         return 0;
+
       }
     }
   }
@@ -48,6 +42,15 @@ namespace Fancy {
 #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   }
 //---------------------------------------------------------------------------//
+  ObjectName::ObjectName(const char* aString)
+  {
+    m_uNameHash = internal::hashFromName(aString);
+
+#if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
+    m_szName = aString;
+#endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
+  }
+//---------------------------------------------------------------------------//
   ObjectName::ObjectName(uint32 aHash)
   {
     m_uNameHash = aHash;
@@ -59,22 +62,6 @@ namespace Fancy {
   ObjectName::~ObjectName()
   {
 
-  }
-//---------------------------------------------------------------------------//
-  ObjectNameDesc ObjectName::getDescription() const
-  {
-    ObjectNameDesc aDesc;
-    aDesc.myName = toString();
-    aDesc.myHash = getHash();
-    return aDesc;
-  }
-//---------------------------------------------------------------------------//
-  void ObjectName::initFromDescription(const ObjectNameDesc someDesc)
-  {
-    m_uNameHash = someDesc.myHash;
-#if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
-    m_szName = someDesc.myName.toString();
-#endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   }
 //---------------------------------------------------------------------------//
   String ObjectName::toString() const
@@ -104,6 +91,15 @@ namespace Fancy {
 
 #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
     m_szName = szOther;
+#endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
+  }
+//---------------------------------------------------------------------------//
+  void ObjectName::operator=(const char* aString)
+  {
+    m_uNameHash = internal::hashFromName(aString);
+
+#if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
+    m_szName = aString;
 #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   }
 //---------------------------------------------------------------------------//

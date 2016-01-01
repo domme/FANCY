@@ -4,24 +4,6 @@
 #include "FancyCorePrerequisites.h"
 
 namespace Fancy {
- //---------------------------------------------------------------------------//
-  class ShortStringDesc
-  {
-  public:
-    static const uint32 kLength = 256u;
-
-    void operator=(const String& _someString);
-    String toString() const { return String(&myChars[0]); }
-
-  private:
-    char myChars[kLength];
-  };
-//---------------------------------------------------------------------------//
-  struct ObjectNameDesc
-  {
-    ShortStringDesc myName;
-    uint myHash;
-  };
 //---------------------------------------------------------------------------//
   class DLLEXPORT ObjectName 
   {
@@ -29,17 +11,17 @@ namespace Fancy {
     public:
       ObjectName();
       ObjectName(const String& szString);
+      ObjectName(const char* aString);
       ObjectName(uint32 aHash);
       ~ObjectName();
       static const ObjectName blank;
-      ObjectNameDesc getDescription() const;
-      void initFromDescription(const ObjectNameDesc someDesc);
     //---------------------------------------------------------------------------//
       String toString() const;
       uint getHash() const {return m_uNameHash;}
     //---------------------------------------------------------------------------//
       void operator=(const ObjectName& clOther);
       void operator=(const String& szOther);
+      void operator=(const char* aString);
       bool operator==(const ObjectName& clOther) const;
       bool operator!=(const ObjectName& clOther) const;
       bool operator<(const ObjectName& clOther) const;

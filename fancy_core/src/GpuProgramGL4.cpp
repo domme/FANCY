@@ -2,6 +2,7 @@
 #include "Serializer.h"
 
 #if defined (RENDERER_OPENGL4)
+#include "GpuProgramCompilerGL4.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//

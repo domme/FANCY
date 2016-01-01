@@ -393,8 +393,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
     }
   
-    m_clBlendState.updateHash();
-
     m_uBlendStateRebindMask = uBlendStateRebindMask;
     m_u8BlendStateRebindRTcount = u8BlendStateRebindRTcount;
     m_u8BlendStateRebindRTmask = u8BlendStateRebindRTmask;

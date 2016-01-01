@@ -117,29 +117,29 @@ protected:
   /// Mask indicating which pipeline states have to be re-bound to the pipeline
   uint          m_uPipelineRebindMask;  // Needed?
   /// Mask indicating which resources have to be re-bound to each shaderStage
-  uint32        m_uResourceRebindMask[ShaderStage::NUM];  // Needed?
+  uint32        m_uResourceRebindMask[(uint) ShaderStage::NUM];  // Needed?
   
   /// Cached textures per shaderStage bound/to bind to the pipeline
-  const Texture*	    m_pCachedReadTextures [ShaderStage::NUM][kMaxNumReadTextures];
+  const Texture*	    m_pCachedReadTextures [(uint) ShaderStage::NUM][kMaxNumReadTextures];
   /// Mask identifying which textures need to be bind in the next draw call
-  uint32		    m_uReadTextureBindMask [ShaderStage::NUM];
-  uint32        m_uNumReadTexturesToBind[ShaderStage::NUM];
+  uint32		    m_uReadTextureBindMask [(uint) ShaderStage::NUM];
+  uint32        m_uNumReadTexturesToBind[(uint) ShaderStage::NUM];
 
-  const Texture*      m_pCachedWriteTextures [ShaderStage::NUM][kMaxNumWriteTextures];
-  uint32              m_uWriteTextureBindMask [ShaderStage::NUM];
-  uint32              m_uNumWriteTexturesToBind[ShaderStage::NUM];
+  const Texture*      m_pCachedWriteTextures [(uint) ShaderStage::NUM][kMaxNumWriteTextures];
+  uint32              m_uWriteTextureBindMask [(uint) ShaderStage::NUM];
+  uint32              m_uNumWriteTexturesToBind[(uint) ShaderStage::NUM];
 
-  const GpuBuffer*		m_pCachedReadBuffers [ShaderStage::NUM][kMaxNumReadBuffers];
-  uint32	      	    m_uReadBufferBindMask [ShaderStage::NUM];
-  uint32              m_uNumReadBuffersToBind[ShaderStage::NUM];
+  const GpuBuffer*		m_pCachedReadBuffers [(uint) ShaderStage::NUM][kMaxNumReadBuffers];
+  uint32	      	    m_uReadBufferBindMask [(uint) ShaderStage::NUM];
+  uint32              m_uNumReadBuffersToBind[(uint) ShaderStage::NUM];
 
-  const GpuBuffer*		m_pCachedConstantBuffers [ShaderStage::NUM][(uint) ConstantBufferType::NUM];
-  uint32				      m_uConstantBufferBindMask[ShaderStage::NUM];
-  uint32              m_uNumConstantBuffersToBind[ShaderStage::NUM];
+  const GpuBuffer*		m_pCachedConstantBuffers [(uint) ShaderStage::NUM][(uint) ConstantBufferType::NUM];
+  uint32				      m_uConstantBufferBindMask[(uint) ShaderStage::NUM];
+  uint32              m_uNumConstantBuffersToBind[(uint) ShaderStage::NUM];
 
-  const TextureSampler*		m_pCachedTextureSamplers [ShaderStage::NUM][kMaxNumTextureSamplers];
-  uint32	      			    m_uTextureSamplerBindMask[ShaderStage::NUM];
-  uint32                  m_uNumTextureSamplersToBind[ShaderStage::NUM];
+  const TextureSampler*		m_pCachedTextureSamplers [(uint) ShaderStage::NUM][kMaxNumTextureSamplers];
+  uint32	      			    m_uTextureSamplerBindMask[(uint) ShaderStage::NUM];
+  uint32                  m_uNumTextureSamplersToBind[(uint) ShaderStage::NUM];
 
   Texture*			    m_pCachedRenderTargets [kMaxNumRenderTargets];
   Texture*          m_pCachedDepthStencilTarget;
@@ -162,7 +162,7 @@ protected:
   GLuint            m_uCurrentVBO;
   GLuint            m_uCurrentIBO;
 
-  const GpuProgram*		m_pBoundGPUPrograms [ShaderStage::NUM];
+  const GpuProgram*		m_pBoundGPUPrograms [(uint) ShaderStage::NUM];
 
   DepthStencilState   m_clDepthStencilState;
   uint32              m_uDepthStencilRebindMask;
