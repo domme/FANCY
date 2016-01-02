@@ -2,8 +2,8 @@
 #define INCLUDE_RENDERERPREREQUISITES_H
 
 // This define selects the render-system
-#define RENDERER_OPENGL4
-//#define RENDERER_DX12
+// #define RENDERER_OPENGL4
+#define RENDERER_DX12
 
 #if defined (RENDERER_OPENGL4)
 	#include "OpenGLprerequisites.h"

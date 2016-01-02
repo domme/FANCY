@@ -40,8 +40,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     memset(&aDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
+    // ROOT SIGNATURE
     aDesc.pRootSignature = nullptr;  // TODO
 
+    // SHADER BYTECODES
     D3D12_SHADER_BYTECODE* shaderDescs[]{ &aDesc.VS, &aDesc.PS, &aDesc.DS, &aDesc.HS, &aDesc.GS };
     ASSERT(ARRAY_LENGTH(shaderDescs) == (uint)ShaderStage::NUM_NO_COMPUTE);
 
@@ -53,7 +55,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       (*shaderDescs[i]) = myShaderStages[i]->getNativeByteCode();
     }
     
-    D3D12_BLEND_DESC blendDesc;
+    // BLEND DESC
+    D3D12_BLEND_DESC& blendDesc = aDesc.BlendState;
     memset(&blendDesc, 0u, sizeof(D3D12_BLEND_DESC));
     blendDesc.AlphaToCoverageEnable = myBlendState.getAlphaToCoverageEnabled();
     blendDesc.IndependentBlendEnable = myBlendState.getBlendStatePerRT();
@@ -68,14 +71,81 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       rtBlendDesc.BlendOpAlpha = Adapter::toNativeType(myBlendState.myBlendOpAlpha[rt]);
       rtBlendDesc.DestBlend = Adapter::toNativeType(myBlendState.myDestBlend[rt]);
       rtBlendDesc.DestBlendAlpha = Adapter::toNativeType(myBlendState.myDestBlendAlpha[rt]);
-      // Todo: What is the logic op?
-      // rtBlendDesc.LogicOp = ?
-      // rtBlendDesc.LogicOpEnable = ?
-      rtBlendDesc.RenderTargetWriteMask = myBlendState.myRTwriteMask[rt];  // Todo: UINT8 = UINT32??
-	    
 
-      // Todo: Further work on this
+      // FEATURE: Add support for LogicOps?
+      rtBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+      rtBlendDesc.LogicOpEnable = false;
+
+      if (myBlendState.myRTwriteMask[rt] & 0xFFFFFF > 0u)
+      {
+        rtBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+      }
+      else
+      {
+        const bool red = (myBlendState.myRTwriteMask[rt] & 0xFF000000) > 0u;
+        const bool green = (myBlendState.myRTwriteMask[rt] & 0x00FF0000) > 0u;
+        const bool blue = (myBlendState.myRTwriteMask[rt] & 0x0000FF00) > 0u;
+        const bool alpha = (myBlendState.myRTwriteMask[rt] & 0x000000FF) > 0u;
+        rtBlendDesc.RenderTargetWriteMask |= red ? D3D12_COLOR_WRITE_ENABLE_RED : 0u;
+        rtBlendDesc.RenderTargetWriteMask |= green ? D3D12_COLOR_WRITE_ENABLE_GREEN : 0u;
+        rtBlendDesc.RenderTargetWriteMask |= blue ? D3D12_COLOR_WRITE_ENABLE_BLUE : 0u;
+        rtBlendDesc.RenderTargetWriteMask |= alpha ? D3D12_COLOR_WRITE_ENABLE_ALPHA : 0u;
+      }
     }
+
+    // STREAM OUTPUT
+    // FEATURE: Add support for StreamOutput
+    D3D12_STREAM_OUTPUT_DESC& streamOutDesc = aDesc.StreamOutput;
+    memset(&streamOutDesc, 0u, sizeof(D3D12_STREAM_OUTPUT_DESC));
+
+    // SAMPLE MASK
+    aDesc.SampleMask = ~0u;
+
+    // RASTERIZER STATE
+    D3D12_RASTERIZER_DESC& rasterizerDesc = aDesc.RasterizerState;
+    memset(&rasterizerDesc, 0u, sizeof(D3D12_RASTERIZER_DESC));
+    rasterizerDesc.AntialiasedLineEnable = false;
+    rasterizerDesc.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+    rasterizerDesc.FillMode = Adapter::toNativeType(myFillMode);
+    rasterizerDesc.CullMode = Adapter::toNativeType(myCullMode);
+    rasterizerDesc.MultisampleEnable = false;
+    rasterizerDesc.FrontCounterClockwise = myWindingOrder == WindingOrder::CCW;
+    rasterizerDesc.DepthBias = 0;
+    rasterizerDesc.DepthBiasClamp = 0;
+    rasterizerDesc.SlopeScaledDepthBias = 0;
+    rasterizerDesc.DepthClipEnable = false;
+
+    // DEPTH STENCIL STATE
+    D3D12_DEPTH_STENCIL_DESC& dsState = aDesc.DepthStencilState;
+    dsState.DepthEnable = myDepthStencilState.myDepthTestEnabled;
+    dsState.DepthWriteMask = myDepthStencilState.myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+    dsState.DepthFunc = Adapter::toNativeType(myDepthStencilState.myDepthCompFunc);
+    dsState.StencilEnable = myDepthStencilState.myStencilEnabled;
+    dsState.StencilReadMask = static_cast<uint8>(myDepthStencilState.myStencilReadMask);
+    dsState.StencilWriteMask = static_cast<uint8>(myDepthStencilState.myStencilWriteMask[0u]);
+    // FrontFace
+    {
+      D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.FrontFace;
+      uint faceIdx = static_cast<uint>(FaceType::FRONT);
+      faceDesc.StencilFunc = Adapter::toNativeType(myDepthStencilState.myStencilCompFunc[faceIdx]);
+      faceDesc.StencilDepthFailOp = Adapter::toNativeType(myDepthStencilState.myStencilDepthFailOp[faceIdx]);
+      faceDesc.StencilFailOp = Adapter::toNativeType(myDepthStencilState.myStencilFailOp[faceIdx]);
+      faceDesc.StencilPassOp = Adapter::toNativeType(myDepthStencilState.myStencilPassOp[faceIdx]);
+    }
+    // BackFace
+    {
+      D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.BackFace;
+      uint faceIdx = static_cast<uint>(FaceType::BACK);
+      faceDesc.StencilFunc = Adapter::toNativeType(myDepthStencilState.myStencilCompFunc[faceIdx]);
+      faceDesc.StencilDepthFailOp = Adapter::toNativeType(myDepthStencilState.myStencilDepthFailOp[faceIdx]);
+      faceDesc.StencilFailOp = Adapter::toNativeType(myDepthStencilState.myStencilFailOp[faceIdx]);
+      faceDesc.StencilPassOp = Adapter::toNativeType(myDepthStencilState.myStencilPassOp[faceIdx]);
+    }
+
+    
+    
+    
+
 
   }
 //---------------------------------------------------------------------------//

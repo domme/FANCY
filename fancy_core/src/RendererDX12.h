@@ -31,7 +31,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[kMaxNumRenderTargets];
     DataFormat myDSVformat;
-    
+
+
+
+
+
+
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//

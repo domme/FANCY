@@ -10,6 +10,11 @@ class ObjectFactory;
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
+  struct ShaderInputLayoutDX12
+  {
+    std::vector<D3D12_INPUT_ELEMENT_DESC> myInputElementDescs;
+  };
+//---------------------------------------------------------------------------//
   class GpuProgramDX12
   {
     friend class GpuProgramCompilerDX12;
