@@ -1074,7 +1074,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   const RendererGL4::VaoCacheEntry& 
     RendererGL4::createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, 
-                                     const VertexInputLayout* pVertexInputLayout)
+                                     const ShaderVertexInputLayout* pVertexInputLayout)
   {
     // The fast path: Calc the hash of both layouts and look for an existing VAO to return
     uint uHash = 0;
@@ -1102,13 +1102,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     // Create a mapping between the geometric vertices and the shader attributes
     struct MappingEntry 
     {
-      const VertexInputElement* pInputElement;
+      const ShaderVertexInputElement* pInputElement;
       const GeometryVertexElement* pGeomElement;
     };
 
     struct PatchingEntry
     {
-      const VertexInputElement* pInputElement;
+      const ShaderVertexInputElement* pInputElement;
     };
 
     FixedArray<MappingEntry, kMaxNumInputVertexAttributes> vMappingEntries;
@@ -1116,14 +1116,15 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     for (uint32 iInputElem = 0u; iInputElem < pVertexInputLayout->getNumVertexInputElements(); ++iInputElem)
     {
-      const VertexInputElement& rInputElement = pVertexInputLayout->getVertexInputElement(iInputElem);
+      const ShaderVertexInputElement& rInputElement = pVertexInputLayout->getVertexInputElement(iInputElem);
       MappingEntry mappingEntry = {nullptr};
 
       // Look for the corresponding semantic in the geometry vertices
       for (uint32 iGeomElem = 0u; iGeomElem < pGeoVertexLayout->getNumVertexElements(); ++iGeomElem)
       {
         const GeometryVertexElement& rGeomElement = pGeoVertexLayout->getVertexElement(iGeomElem);
-        if (rInputElement.eSemantics == rGeomElement.eSemantics) 
+        if (rInputElement.mySemantics == rGeomElement.eSemantics && 
+            rInputElement.mySemanticIndex == rGeomElement.mySemanticIndex) 
         {
           mappingEntry.pInputElement = &rInputElement;
           mappingEntry.pGeomElement = &rGeomElement;
@@ -1173,20 +1174,20 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     // Set up the vertex format for each mapped attribute
     for (uint32 i = 0u; i < vMappingEntries.size(); ++i)
     {
-      const VertexInputElement* pInputElement = vMappingEntries[i].pInputElement;
+      const ShaderVertexInputElement* pInputElement = vMappingEntries[i].pInputElement;
       const GeometryVertexElement* pGeomElement = vMappingEntries[i].pGeomElement;
 
       uint32 uNumComponentsGeo = 0u;
       GLenum eDataTypeGeoGL = GL_FLOAT;
       Adapter::getGLtypeAndNumComponentsFromFormat(pGeomElement->eFormat, uNumComponentsGeo, eDataTypeGeoGL);
 
-      glEnableVertexAttribArray(pInputElement->u32RegisterIndex);
+      glEnableVertexAttribArray(pInputElement->myRegisterIndex);
       
-      glVertexAttribFormat(pInputElement->u32RegisterIndex, uNumComponentsGeo, 
+      glVertexAttribFormat(pInputElement->myRegisterIndex, uNumComponentsGeo, 
         eDataTypeGeoGL, GL_FALSE, pGeomElement->u32OffsetBytes);
 
       // TODO: Support mutliple streams (e.g. instancing) at this point...
-      glVertexAttribBinding(pInputElement->u32RegisterIndex, (uint32)VertexBufferBindingPoints::GEOMETRY_STREAM);
+      glVertexAttribBinding(pInputElement->myRegisterIndex, (uint32)VertexBufferBindingPoints::GEOMETRY_STREAM);
     }
     
     pCacheEntry->glHandle = uVAO;
@@ -1227,7 +1228,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     const GLuint uIBOtoUse = pGeometry->getIndexBuffer()->getGLhandle();
 
     const GeometryVertexLayout* vertLayoutGeo = &pGeometry->getGeometryVertexLayout();
-    const VertexInputLayout* vertLayoutShader = 
+    const ShaderVertexInputLayout* vertLayoutShader = 
       m_pBoundGPUPrograms[(uint32)ShaderStage::VERTEX]->getVertexInputLayout();
 
     const VaoCacheEntry uVaoEntry = 

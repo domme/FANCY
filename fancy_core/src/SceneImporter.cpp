@@ -411,29 +411,14 @@ namespace Fancy { namespace IO {
         ASSERT(sizeof(aiMesh->mBitangents[0]) == vertexElement.u32SizeBytes);
       }
 
-      const Rendering::VertexSemantics uvSemanticsTable[] =
-      { Rendering::VertexSemantics::TEXCOORD0,
-      Rendering::VertexSemantics::TEXCOORD1,
-      Rendering::VertexSemantics::TEXCOORD2,
-      Rendering::VertexSemantics::TEXCOORD3,
-      Rendering::VertexSemantics::TEXCOORD4,
-      Rendering::VertexSemantics::TEXCOORD5,
-      Rendering::VertexSemantics::TEXCOORD6,
-      Rendering::VertexSemantics::TEXCOORD7 };
-
-      if (aiMesh->GetNumUVChannels() > ARRAY_LENGTH(uvSemanticsTable))
-      {
-        log_Warning("Mesh " + std::string(aiMesh->mName.C_Str()) + " contains too many UV-channels");
-      }
-
-      for (uint32 iUVchannel = 0u; iUVchannel < std::min(aiMesh->GetNumUVChannels(), (uint32)ARRAY_LENGTH(uvSemanticsTable));
-        ++iUVchannel)
+      for (uint32 iUVchannel = 0u; iUVchannel < aiMesh->GetNumUVChannels(); ++iUVchannel)
       {
         if (aiMesh->HasTextureCoords(iUVchannel))
         {
           Rendering::GeometryVertexElement vertexElement;
           vertexElement.name = _N(TexCoords);
-          vertexElement.eSemantics = uvSemanticsTable[iUVchannel];
+          vertexElement.eSemantics = VertexSemantics::TEXCOORD;
+          vertexElement.mySemanticIndex = iUVchannel;
 
           if (aiMesh->mNumUVComponents[iUVchannel] == 1u)
           {
@@ -466,25 +451,14 @@ namespace Fancy { namespace IO {
         }
       }
 
-      const Rendering::VertexSemantics colorSemanticsTable[] =
-      { Rendering::VertexSemantics::COLOR0,
-      Rendering::VertexSemantics::COLOR1,
-      Rendering::VertexSemantics::COLOR2,
-      Rendering::VertexSemantics::COLOR3,
-      Rendering::VertexSemantics::COLOR4,
-      Rendering::VertexSemantics::COLOR5,
-      Rendering::VertexSemantics::COLOR6,
-      Rendering::VertexSemantics::COLOR7 };
-
-      for (uint32 iColorChannel = 0u;
-        iColorChannel < std::min(aiMesh->GetNumColorChannels(), (uint32)ARRAY_LENGTH(colorSemanticsTable));
-        ++iColorChannel)
+      for (uint32 iColorChannel = 0u; iColorChannel < aiMesh->GetNumColorChannels(); ++iColorChannel)
       {
         if (aiMesh->HasVertexColors(iColorChannel))
         {
           Rendering::GeometryVertexElement vertexElement;
           vertexElement.name = _N(Colors);
-          vertexElement.eSemantics = colorSemanticsTable[iColorChannel];
+          vertexElement.eSemantics = VertexSemantics::COLOR;
+          vertexElement.mySemanticIndex = iColorChannel;
           vertexElement.eFormat = Rendering::DataFormat::RGBA_32F;
           vertexElement.u32OffsetBytes = u32OffsetBytes;
           vertexElement.u32SizeBytes = sizeof(float) * 4u;

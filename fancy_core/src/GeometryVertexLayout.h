@@ -16,6 +16,8 @@ namespace Fancy { namespace Rendering {
     ObjectName name;
     /// Semantic of the attribute as imported from the mesh
     VertexSemantics eSemantics;
+    /// Index of the semantic for multi-semantic types
+    uint32 mySemanticIndex;
     /// Offset in bytes to the first occurance in the vertexBuffer
     uint32 u32OffsetBytes;
     /// Size of the attribute in bytes

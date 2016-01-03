@@ -5,57 +5,57 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   namespace Validation 
   {
-    void validateLayout(VertexInputElementList& vInputElements);
+    void validateLayout(ShaderVertexInputElementList& vInputElements);
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  void Validation::validateLayout(VertexInputElementList& vInputElements)
+  void Validation::validateLayout(ShaderVertexInputElementList& vInputElements)
   {
 #if defined (FANCY_RENDERSYSTEM_USE_VALIDATION)
     for (uint32 i = 0u; i < vInputElements.size(); ++i)
     {
-      const VertexInputElement& element = vInputElements[i];
+      const ShaderVertexInputElement& element = vInputElements[i];
       for (uint32 k = 0u; k < vInputElements.size(); ++k)
       {
         if (i == k) continue;
 
-        const VertexInputElement& otherElement = vInputElements[k];
-        ASSERT_M(element.u32RegisterIndex != otherElement.u32RegisterIndex,
+        const ShaderVertexInputElement& otherElement = vInputElements[k];
+        ASSERT_M(element.myRegisterIndex != otherElement.myRegisterIndex,
           "Invalid vertex layout");
       }
     }
 #endif  // FANCY_RENDERSYSTEM_USE_VALIDATION
   }
 //---------------------------------------------------------------------------//
-  void VertexInputLayout::serialize(IO::Serializer* aSerializer)
+  void ShaderVertexInputLayout::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_vVertexInputElements, "VertexInputElements");
+    aSerializer->serialize(&myVertexInputElements, "VertexInputElements");
   }
   //---------------------------------------------------------------------------//
-  VertexInputLayout::VertexInputLayout()
+  ShaderVertexInputLayout::ShaderVertexInputLayout()
   {
 
   }
 //---------------------------------------------------------------------------//
-  VertexInputLayout::~VertexInputLayout()
+  ShaderVertexInputLayout::~ShaderVertexInputLayout()
   {
 
   }
 //---------------------------------------------------------------------------//
-  void VertexInputLayout::addVertexInputElement( const VertexInputElement& clVertexElement )
+  void ShaderVertexInputLayout::addVertexInputElement( const ShaderVertexInputElement& clVertexElement )
   {
-    m_vVertexInputElements.push_back(clVertexElement);
-    Validation::validateLayout(m_vVertexInputElements);
+    myVertexInputElements.push_back(clVertexElement);
+    Validation::validateLayout(myVertexInputElements);
   }
 //---------------------------------------------------------------------------//
-  void VertexInputElement::serialize(IO::Serializer* aSerializer)
+  void ShaderVertexInputElement::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&name, "name");
-    aSerializer->serialize(&eSemantics, "eSemantics");
-    aSerializer->serialize(&u32RegisterIndex, "registerIndex");
-    aSerializer->serialize(&u32SizeBytes, "sizeBytes");
-    aSerializer->serialize(&eFormat, "dataFormat");
-    aSerializer->serialize(&uFormatComponentCount, "formatComponentCount");
+    aSerializer->serialize(&myName, "myName");
+    aSerializer->serialize(&mySemantics, "eSemantics");
+    aSerializer->serialize(&myRegisterIndex, "registerIndex");
+    aSerializer->serialize(&mySizeBytes, "sizeBytes");
+    aSerializer->serialize(&myFormat, "dataFormat");
+    aSerializer->serialize(&myFormatComponentCount, "formatComponentCount");
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

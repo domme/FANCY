@@ -13,54 +13,21 @@
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
-  namespace Internal 
-  {
-    static const uint32 kMaxNumLogChars = 10000u;
-
-    void getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat, uint32& rNumComponents);
-    VertexSemantics getVertexSemanticsFromName(const ObjectName& name);
-    void getResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, GpuResourceAccessType& rAccessType);
-    String shaderStageToDefineString(ShaderStage _eStage);
-  }
+  const uint kMaxNumLogChars = 1000u;
 //---------------------------------------------------------------------------//
-  namespace Preprocess
-  {
     struct FileBlock {
       uint32 startLine;
       uint32 endLine;
       uint nameHash;
       String fileName;
     };
-
+//---------------------------------------------------------------------------//
     struct ShaderSourceInfo {
       uint32 numLines;
       FixedArray<FileBlock, 16u> vFileBlocks;
     };
-
-    uint32 getIteratorPosition(std::list<String>::const_iterator& _it, std::list<String>& _lineList);
-    void preprocessShaderSource(const String& shaderFilename, std::list<String>& sourceLines, const GpuProgramPermutation& _permutation, const ShaderStage& eShaderStage, ShaderSourceInfo& info);
-    FileBlock* getFileBlockForLine(uint32 _lineNumber, ShaderSourceInfo& _info);
-    const FileBlock* getFileBlockForLine(uint32 _lineNumber, const ShaderSourceInfo& _info);
-    uint32 getLocalLine(uint32 _globalLine, const ShaderSourceInfo& _info);
-    void insertNewFileBlock(FileBlock* _pCurrBlock, uint32 _currLine, uint32 _numLinesNewBlock, const String& _newBlockName, ShaderSourceInfo& _info);
-  }
 //---------------------------------------------------------------------------//
-  namespace Compile
-  {
-    bool compileAndReflect(const String& szSource, const Preprocess::ShaderSourceInfo& sourceInfo, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc);
-    bool compileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc, const Preprocess::ShaderSourceInfo* sourceInfo);
-    void outputCompilerLogMsg(const char* _shaderCompilerLogMsg, const Preprocess::ShaderSourceInfo& _sourceInfo);
-    bool reflectProgram(GpuProgramDescriptionGL4& _rDesc);
-    void reflectConstants(GLuint uProgram, ConstantBufferElementList& someConstantsOut);
-    void reflectResources( GLuint uProgram, GpuResourceInfoList& rReadTextureInfos, GpuResourceInfoList& rReadBufferInfos, GpuResourceInfoList& rWriteTextureInfos, GpuResourceInfoList& rWriteBufferInfos);
-    void reflectVertexInputs(GLuint uProgram, VertexInputLayout& rVertexLayout);
-    void reflectFragmentOutputs(GLuint uProgram, ShaderStageFragmentOutputList& vFragmentOutputs);
-    void reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList);
-    void reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList);
-  }
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-  void Internal::getSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat, uint32& rNumComponents)
+  void locGetSizeFormatFromGLtype(GLenum typeGL, uint32& rSize, DataFormat& rFormat, uint32& rNumComponents)
   {
     rFormat = DataFormat::NONE;
     rNumComponents = 1u;
@@ -183,7 +150,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     ASSERT_M(rFormat != DataFormat::NONE, "Missing GL implementation");
   }
 //---------------------------------------------------------------------------//
-  void Internal::getResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, 
+  void locGetResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, 
                                                         GpuResourceAccessType& rAccessType)
   {
     rType = GpuResourceType::NONE;
@@ -276,7 +243,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     ASSERT_M(rType != GpuResourceType::NONE, "Missing GL implementation");
   }
 //---------------------------------------------------------------------------//
-  uint32 Preprocess::getIteratorPosition(std::list<String>::const_iterator& _it, std::list<String>& _lineList)
+  uint32 locGetIteratorPosition(std::list<String>::const_iterator& _it, std::list<String>& _lineList)
   {
     uint32 pos = 1u;
     std::list<String>::iterator it = _lineList.begin();
@@ -288,39 +255,48 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return pos;
   }
 //---------------------------------------------------------------------------//
-  VertexSemantics Internal::getVertexSemanticsFromName(const ObjectName& name)
+  void locResolveVertexSemanticAndIndex(const ObjectName& name, VertexSemantics& aSemantic, uint32& aSemanticIndex)
   {
     if (name == _N(v_position)) {
-      return VertexSemantics::POSITION;
+      aSemantic = VertexSemantics::POSITION;
+      aSemanticIndex = 0u;
     } else if (name == _N(v_normal)) {
-      return VertexSemantics::NORMAL;
+      aSemantic = VertexSemantics::NORMAL;
+      aSemanticIndex = 0u;
     } else if (name == _N(v_tangent)) {
-      return VertexSemantics::TANGENT;
+      aSemantic = VertexSemantics::TANGENT;
+      aSemanticIndex = 0u;
     } else if (name == _N(v_bitangent)) {
-      return VertexSemantics::BITANGENT;
+      aSemantic = VertexSemantics::BITANGENT;
+      aSemanticIndex = 0u;
     } else if (name == _N(v_texcoord) || (name == _N(v_texcoord0))) {
-      return VertexSemantics::TEXCOORD0;
+      aSemantic = VertexSemantics::TEXCOORD;
+      aSemanticIndex = 0u;
     } else if (name == _N(v_texcoord1)) {
-      return VertexSemantics::TEXCOORD1;
+      aSemantic = VertexSemantics::TEXCOORD;
+      aSemanticIndex = 1u;
     } else if (name == _N(v_texcoord2)) {
-      return VertexSemantics::TEXCOORD2;
+      aSemantic = VertexSemantics::TEXCOORD;
+      aSemanticIndex = 2u;
     } else if (name == _N(v_texcoord3)) {
-      return VertexSemantics::TEXCOORD3;
+      aSemantic = VertexSemantics::TEXCOORD;
+      aSemanticIndex = 3u;
     } else if (name == _N(v_texcoord4)) {
-      return VertexSemantics::TEXCOORD4;
+      aSemantic = VertexSemantics::TEXCOORD;
+      aSemanticIndex = 4u;
     } else if (name == _N(v_texcoord5)) {
-      return VertexSemantics::TEXCOORD5;
+      aSemantic = VertexSemantics::TEXCOORD;
+      aSemanticIndex = 5u;
     } else if (name == _N(v_texcoord6)) {
-      return VertexSemantics::TEXCOORD6;
+      aSemantic = VertexSemantics::TEXCOORD;
+      aSemanticIndex = 6u;
     } else if (name == _N(v_texcoord7)) {
-      return VertexSemantics::TEXCOORD7;
+      aSemantic = VertexSemantics::TEXCOORD;
+      aSemanticIndex = 7u;
     }
-
-    ASSERT_M(false, "Unknown vertex input detected");
-    return VertexSemantics::POSITION;
   }
 //---------------------------------------------------------------------------//
-  String Internal::shaderStageToDefineString(ShaderStage _eStage)
+  String locShaderStageToDefineString(ShaderStage _eStage)
   {
     switch (_eStage)
     {
@@ -341,8 +317,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-  Preprocess::FileBlock* Preprocess::getFileBlockForLine(uint32 _lineNumber, ShaderSourceInfo& _info)
+  FileBlock* locGetFileBlockForLine(uint32 _lineNumber, ShaderSourceInfo& _info)
   {
     for (uint32 i = 0u; i < _info.vFileBlocks.size(); ++i)
     {
@@ -356,7 +331,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  const Preprocess::FileBlock* Preprocess::getFileBlockForLine(uint32 _lineNumber, const ShaderSourceInfo& _info)
+  const FileBlock* locGetFileBlockForLine(uint32 _lineNumber, const ShaderSourceInfo& _info)
   {
     for (uint32 i = 0u; i < _info.vFileBlocks.size(); ++i)
     {
@@ -370,9 +345,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  uint32 Preprocess::getLocalLine(uint32 _globalLine, const ShaderSourceInfo& _info)
+  uint32 locGetLocalLine(uint32 _globalLine, const ShaderSourceInfo& _info)
   {
-    const FileBlock* pBlock = getFileBlockForLine(_globalLine, _info);
+    const FileBlock* pBlock = locGetFileBlockForLine(_globalLine, _info);
     if (!pBlock)
     {
       return _globalLine;
@@ -391,8 +366,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return _globalLine - numLinesFromOtherFiles;
   }
 //---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-  void Preprocess::insertNewFileBlock(FileBlock* _pCurrBlock, uint32 _currLine, uint32 _numLinesNewBlock, const String& _newBlockName, ShaderSourceInfo& _info)
+  void locInsertNewFileBlock(FileBlock* _pCurrBlock, uint32 _currLine, uint32 _numLinesNewBlock, const String& _newBlockName, ShaderSourceInfo& _info)
   {
     // Construct a block after the include from the current block
     _info.vFileBlocks.push_back(*_pCurrBlock);
@@ -428,11 +402,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     pNewBlock->nameHash = MathUtil::hashFromString(pNewBlock->fileName);
   }
 //---------------------------------------------------------------------------//
-  void Preprocess::preprocessShaderSource(const String& shaderFilename, std::list<String>& sourceLines, const GpuProgramPermutation& _permutation, const ShaderStage& eShaderStage, ShaderSourceInfo& info)
+  void locPreprocessShaderSource(const String& shaderFilename, std::list<String>& sourceLines, const GpuProgramPermutation& _permutation, const ShaderStage& eShaderStage, ShaderSourceInfo& info)
   {
     const uint32 kMaxNumDefines = 64u;
     FixedArray<String, kMaxNumDefines> vDefines;
-    vDefines.push_back("#define " + Internal::shaderStageToDefineString(eShaderStage));
+    vDefines.push_back("#define " + locShaderStageToDefineString(eShaderStage));
     const GpuProgramFeatureList& vFeatures = _permutation.getFeatureList();
     for (uint32 i = 0u; i < vFeatures.size(); ++i)
     {
@@ -460,7 +434,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       const String& line = *itLine;
       if (line.empty()) continue;
 
-      pCurrentSourceBlock = getFileBlockForLine(lineNumber, info);
+      pCurrentSourceBlock = locGetFileBlockForLine(lineNumber, info);
       
       const size_t posCommentStartBlock = line.find(kCommentStartBlock);
       const bool hasCommentStartBlock = posCommentStartBlock != std::string::npos;
@@ -489,7 +463,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
         size_t posVersion = line.find(kVersion);
         if (posVersion != std::string::npos)
         {
-          insertNewFileBlock(pCurrentSourceBlock, lineNumber, vDefines.size(), 
+          locInsertNewFileBlock(pCurrentSourceBlock, lineNumber, vDefines.size(), 
             pCurrentSourceBlock->fileName + " - defines", info);
 
           ++itLine;
@@ -499,7 +473,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
           }
 
           definesInserted = true;
-          lineNumber = getIteratorPosition(itLine, sourceLines);
+          lineNumber = locGetIteratorPosition(itLine, sourceLines);
         }
       }
 
@@ -516,7 +490,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
         if (!includeFileLines.empty())
         {
-          insertNewFileBlock(pCurrentSourceBlock, lineNumber,
+          locInsertNewFileBlock(pCurrentSourceBlock, lineNumber,
             includeFileLines.size(), includeFileName, info);
           
           // Comment out the include line
@@ -525,15 +499,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
           std::list<String>::iterator itBeforeInsert = itLine;
           sourceLines.insert(++itLine, includeFileLines.begin(), includeFileLines.end());
           itLine = itBeforeInsert;
-          lineNumber = getIteratorPosition(itLine, sourceLines);
+          lineNumber = locGetIteratorPosition(itLine, sourceLines);
           continue;
         }
       }
     }
   }
 //---------------------------------------------------------------------------//  
-//---------------------------------------------------------------------------//
-  void Compile::outputCompilerLogMsg(const char* _shaderCompilerLogMsg, const Preprocess::ShaderSourceInfo& _sourceInfo)
+  void locOutputCompilerLogMsg(const char* _shaderCompilerLogMsg, const ShaderSourceInfo& _sourceInfo)
   {
     // The following code assumes the output format: ([LineNumber]) : error 0XXX: Message
 
@@ -558,10 +531,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       String lineNumberStr = logMsg.substr(posAfterStartBracket, pos - posAfterStartBracket);
       int lineNumber = std::atoi(lineNumberStr.c_str());
 
-      const Preprocess::FileBlock* sourceBlock = getFileBlockForLine(lineNumber, _sourceInfo);
+      const FileBlock* sourceBlock = locGetFileBlockForLine(lineNumber, _sourceInfo);
       if (sourceBlock != nullptr)
       {
-        uint32 localLineNumber = getLocalLine(lineNumber, _sourceInfo);
+        uint32 localLineNumber = locGetLocalLine(lineNumber, _sourceInfo);
         String replaceString = sourceBlock->fileName + " - line " + StringUtil::toString(localLineNumber);
         logMsg.replace(posAfterStartBracket, pos - posAfterStartBracket, replaceString);
         pos += replaceString.length();
@@ -573,28 +546,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     log_Info(logMsg);
   }
 //---------------------------------------------------------------------------//
-  bool Compile::compileAndReflect( const String& szSource, const Preprocess::ShaderSourceInfo& sourceInfo, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc )
-  {
-    bool success = compileFromSource(szSource, eShaderStage, _rDesc, &sourceInfo);
-    
-    if (success)
-    {
-      success = reflectProgram(_rDesc);
-    }
-
-    if (!success) 
-    {
-      log_Error(String("GpuProgram ") + _rDesc.name.toString() + " failed to compile" );
-      ASSERT(false);
-      glDeleteProgram(_rDesc.uProgramHandleGL);
-    }
-
-    _rDesc.myShaderCode = szSource;
-    
-    return success;
-  }
-//---------------------------------------------------------------------------//
-  bool Compile::compileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc, const Preprocess::ShaderSourceInfo* sourceInfo)
+  bool locCompileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc, const ShaderSourceInfo* sourceInfo)
   {
     ASSERT_M(!szSource.empty(), "Invalid shader source");
 
@@ -605,14 +557,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     int iLogLengthChars = 0;
     glGetProgramiv(uProgramHandle, GL_INFO_LOG_LENGTH, &iLogLengthChars);
-    ASSERT(iLogLengthChars < Internal::kMaxNumLogChars);
+    ASSERT(iLogLengthChars < kMaxNumLogChars);
 
-    char logBuffer[Internal::kMaxNumLogChars];
+    char logBuffer[kMaxNumLogChars];
     if (iLogLengthChars > 0)
     {
-      glGetProgramInfoLog(uProgramHandle, Internal::kMaxNumLogChars, &iLogLengthChars, logBuffer);
+      glGetProgramInfoLog(uProgramHandle, kMaxNumLogChars, &iLogLengthChars, logBuffer);
       if (sourceInfo)
-        Compile::outputCompilerLogMsg(logBuffer, *sourceInfo);
+        locOutputCompilerLogMsg(logBuffer, *sourceInfo);
       else
         log_Info(logBuffer);
     }
@@ -634,7 +586,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   bool GpuProgramCompilerGL4::compileFromSource(const String& someShaderSource, const ShaderStage& eShaderStage, GLuint& aProgramHandleGL)
   {
     GpuProgramDescriptionGL4 tempDesc;
-    bool success = Compile::compileFromSource(someShaderSource, eShaderStage, tempDesc, nullptr);
+    bool success = locCompileFromSource(someShaderSource, eShaderStage, tempDesc, nullptr);
 
     if (success)
       aProgramHandleGL = tempDesc.uProgramHandleGL;
@@ -642,26 +594,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return success;
   }
 //---------------------------------------------------------------------------//
-  bool Compile::reflectProgram( GpuProgramDescriptionGL4& _rDesc )
-  {
-    GLuint uProgramHandle = _rDesc.uProgramHandleGL;
-    ASSERT(uProgramHandle != GLUINT_HANDLE_INVALID);
-
-    if (_rDesc.eShaderStage == ShaderStage::VERTEX)
-    {
-      reflectVertexInputs(uProgramHandle, _rDesc.clVertexInputLayout);
-    }
-    else if(_rDesc.eShaderStage == ShaderStage::FRAGMENT)
-    {
-      reflectFragmentOutputs(uProgramHandle, _rDesc.vFragmentOutputs);
-    }
-
-    reflectConstants(uProgramHandle, _rDesc.myConstantBufferElements);
-    reflectResources(uProgramHandle, _rDesc.vReadTextureInfos, _rDesc.vReadBufferInfos, _rDesc.vWriteTextureInfos, _rDesc.vWriteBufferInfos);
-    return true;
-  }
-//---------------------------------------------------------------------------//
-  void Compile::reflectResources( GLuint uProgram, 
+  void locReflectResources( GLuint uProgram, 
     GpuResourceInfoList& rReadTextureInfos, GpuResourceInfoList& rReadBufferInfos, 
     GpuResourceInfoList& rWriteTextureInfos, GpuResourceInfoList& rWriteBufferInfos)
   {
@@ -690,7 +623,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       GpuProgramResourceInfo resourceInfo;
       resourceInfo.name = szName;
       resourceInfo.u32RegisterIndex = vPropertyValues[3];
-      Internal::getResourceTypeAndAccessTypeFromGLtype(vPropertyValues[1], 
+      locGetResourceTypeAndAccessTypeFromGLtype(vPropertyValues[1], 
         resourceInfo.eResourceType, resourceInfo.eAccessType);
             
       resourceInfo.bindingTargetGL = 
@@ -729,7 +662,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  void Compile::reflectVertexInputs(GLuint uProgram, VertexInputLayout& rVertexLayout)
+  void locReflectVertexInputs(GLuint uProgram, ShaderVertexInputLayout& rVertexLayout)
   {
     rVertexLayout.clear();
 
@@ -756,24 +689,28 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       DataFormat format(DataFormat::NONE);
       uint32 u32SizeBytes = 0u;
       uint32 u32ComponentCount = 1u;
-      Internal::getSizeFormatFromGLtype(_type, u32SizeBytes, format, u32ComponentCount);
+      locGetSizeFormatFromGLtype(_type, u32SizeBytes, format, u32ComponentCount);
 
       ObjectName name = _name;
-      VertexSemantics semantics = Internal::getVertexSemanticsFromName(name);
       
-      VertexInputElement vertexElement;
-      vertexElement.name = name;
-      vertexElement.eSemantics = semantics;
-      vertexElement.u32RegisterIndex = _location;
-      vertexElement.u32SizeBytes = u32SizeBytes;
-      vertexElement.eFormat = format;
-      vertexElement.uFormatComponentCount = u32ComponentCount;
+      VertexSemantics semantics;
+      uint32 semanticIndex;
+      locResolveVertexSemanticAndIndex(name, semantics, semanticIndex);
+      
+      ShaderVertexInputElement vertexElement;
+      vertexElement.myName = name;
+      vertexElement.mySemantics = semantics;
+      vertexElement.mySemanticIndex = semanticIndex;
+      vertexElement.myRegisterIndex = _location;
+      vertexElement.mySizeBytes = u32SizeBytes;
+      vertexElement.myFormat = format;
+      vertexElement.myFormatComponentCount = u32ComponentCount;
       
       rVertexLayout.addVertexInputElement(vertexElement);
     }
   }
 //---------------------------------------------------------------------------//
-  void Compile::reflectFragmentOutputs(GLuint uProgram, ShaderStageFragmentOutputList& vFragmentOutputs)
+  void locReflectFragmentOutputs(GLuint uProgram, ShaderStageFragmentOutputList& vFragmentOutputs)
   {
     vFragmentOutputs.clear();
 
@@ -800,7 +737,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       DataFormat format(DataFormat::NONE);
       uint32 _u32Size = 0u;
       uint32 componentCount = 1u;
-      Internal::getSizeFormatFromGLtype(_type, _u32Size, format, componentCount);
+      locGetSizeFormatFromGLtype(_type, _u32Size, format, componentCount);
 
       ShaderStageFragmentOutput output;
       output.name = _name;
@@ -813,7 +750,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  void Compile::reflectConstants( GLuint uProgram, ConstantBufferElementList& someConstantsOut )
+  void locReflectConstants( GLuint uProgram, ConstantBufferElementList& someConstantsOut )
   {
     ShaderConstantsManager& constantsMgr = ShaderConstantsManager::getInstance();
 
@@ -872,7 +809,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
         uint32 uSizeBytes;
         DataFormat eFormat;
         uint32 uComponentCount;
-        Internal::getSizeFormatFromGLtype(vPropertyValues[1], uSizeBytes, eFormat, uComponentCount);
+        locGetSizeFormatFromGLtype(vPropertyValues[1], uSizeBytes, eFormat, uComponentCount);
         
         ConstantBufferElement cBufferElement;
         cBufferElement.name = _name;
@@ -891,16 +828,55 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  void Compile::reflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList)
+  void locReflectStageInputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList)
   {
     // TODO: Implement
   }
 //---------------------------------------------------------------------------//
-  void Compile::reflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList)
+  void locReflectStageOutputs(GLuint uProgram, ShaderStageInterfaceList& rInterfaceList)
   {
     // TODO: Implement
   } 
 //---------------------------------------------------------------------------//
+  bool locReflectProgram(GpuProgramDescriptionGL4& _rDesc)
+  {
+    GLuint uProgramHandle = _rDesc.uProgramHandleGL;
+    ASSERT(uProgramHandle != GLUINT_HANDLE_INVALID);
+
+    if (_rDesc.eShaderStage == ShaderStage::VERTEX)
+    {
+      locReflectVertexInputs(uProgramHandle, _rDesc.clVertexInputLayout);
+    }
+    else if (_rDesc.eShaderStage == ShaderStage::FRAGMENT)
+    {
+      locReflectFragmentOutputs(uProgramHandle, _rDesc.vFragmentOutputs);
+    }
+
+    locReflectConstants(uProgramHandle, _rDesc.myConstantBufferElements);
+    locReflectResources(uProgramHandle, _rDesc.vReadTextureInfos, _rDesc.vReadBufferInfos, _rDesc.vWriteTextureInfos, _rDesc.vWriteBufferInfos);
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  bool locCompileAndReflect(const String& szSource, const ShaderSourceInfo& sourceInfo, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc)
+  {
+    bool success = locCompileFromSource(szSource, eShaderStage, _rDesc, &sourceInfo);
+
+    if (success)
+    {
+      success = locReflectProgram(_rDesc);
+    }
+
+    if (!success)
+    {
+      log_Error(String("GpuProgram ") + _rDesc.name.toString() + " failed to compile");
+      ASSERT(false);
+      glDeleteProgram(_rDesc.uProgramHandleGL);
+    }
+
+    _rDesc.myShaderCode = szSource;
+
+    return success;
+  }
 //---------------------------------------------------------------------------//
   GpuProgramCompilerGL4::GpuProgramCompilerGL4()
   {
@@ -914,7 +890,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   //---------------------------------------------------------------------------//
   GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const String& _shaderPath, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage)
   {
-    String uniqueProgramName = _shaderPath + "_" + Internal::shaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
+    String uniqueProgramName = _shaderPath + "_" + locShaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
     GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
     if (pGpuProgram != nullptr)
     {
@@ -932,8 +908,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       return false;
     }
 
-    Preprocess::ShaderSourceInfo sourceInfo;
-    Preprocess::preprocessShaderSource(_shaderPath, sourceLines, _permutation, _eShaderStage, sourceInfo);
+    ShaderSourceInfo sourceInfo;
+    locPreprocessShaderSource(_shaderPath, sourceLines, _permutation, _eShaderStage, sourceInfo);
 
     // construct the final source string
     uint32 uRequiredLength = 0u;
@@ -951,7 +927,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     GpuProgramDescriptionGL4 programDesc;
     programDesc.name = uniqueProgramName;
-    const bool bSuccess = Compile::compileAndReflect(szCombinedSource, sourceInfo, _eShaderStage, programDesc);
+    const bool bSuccess = locCompileAndReflect(szCombinedSource, sourceInfo, _eShaderStage, programDesc);
     if (bSuccess)
     {
       pGpuProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);

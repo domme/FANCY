@@ -3,6 +3,7 @@
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   GeometryVertexElement::GeometryVertexElement() :
+    mySemanticIndex(0u),
     eSemantics(VertexSemantics::NONE),
     u32OffsetBytes(0u), u32SizeBytes(0u),
     eFormat(DataFormat::RGB_32F)

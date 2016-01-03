@@ -71,7 +71,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     ObjectName name;
     GLuint uProgramHandleGL;
     ShaderStage eShaderStage;
-    VertexInputLayout clVertexInputLayout;
+    ShaderVertexInputLayout clVertexInputLayout;
     ShaderStageInterfaceList vInputInterfaces;
     ShaderStageInterfaceList vOutputInterfaces;
     ShaderStageFragmentOutputList vFragmentOutputs;
@@ -107,7 +107,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       const GpuResourceInfoList& getReadBufferInfoList() const {return m_vReadBufferInfos;}
       const GpuResourceInfoList& getWriteTextureInfoList() const {return m_vWriteTextureInfos;}
       const GpuResourceInfoList& getWriteBufferInfoList() const {return m_vWriteBufferInfos;}
-      const VertexInputLayout* getVertexInputLayout() const {return &m_clVertexInputLayout;}
+      const ShaderVertexInputLayout* getVertexInputLayout() const {return &m_clVertexInputLayout;}
     //---------------------------------------------------------------------------//
     protected:
       void destroy();
@@ -119,7 +119,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       /// ShaderStage this program defines
       ShaderStage m_eShaderStage;
       /// Expected layout of incoming vertices. Only valid for vertex-programs
-      VertexInputLayout m_clVertexInputLayout;
+      ShaderVertexInputLayout m_clVertexInputLayout;
       /// List of incoming inter-stage varyings. Not valid for vertex-programs
       ShaderStageInterfaceList m_vInputInterfaces;
       /// List of outgoing inter-stage varyings.

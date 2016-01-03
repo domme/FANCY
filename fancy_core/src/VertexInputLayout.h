@@ -12,53 +12,55 @@ namespace Fancy { namespace IO {
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct VertexInputElement 
+  struct ShaderVertexInputElement 
   {
-    SERIALIZABLE(VertexInputElement)
-    static ObjectName getTypeName() { return _N(VertexInputElement); }
+    SERIALIZABLE(ShaderVertexInputElement)
+    static ObjectName getTypeName() { return _N(ShaderVertexInputElement); }
     const ObjectName& getName() const { return ObjectName::blank; }
     void serialize(IO::Serializer* aSerializer);
 
-    VertexInputElement() : 
-      eSemantics(VertexSemantics::NONE), u32RegisterIndex(0u), 
-      u32SizeBytes(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
+    ShaderVertexInputElement() : 
+      mySemantics(VertexSemantics::NONE), myRegisterIndex(0u), mySemanticIndex(0u),
+      mySizeBytes(0u), myFormat(DataFormat::NONE), myFormatComponentCount(1u) {}
 
     /// Name of the vertex attribute as reported by shader-reflection
-    ObjectName name;
+    ObjectName myName;
     /// Semantic of the attribute as reported by shader-reflection
-    VertexSemantics eSemantics;
+    VertexSemantics mySemantics;
+    /// Index of the sementic for multi-semantic types
+    uint32 mySemanticIndex;
     /// Register-index in the shader
-    uint32 u32RegisterIndex;
+    uint32 myRegisterIndex;
     /// Size of the attribute in bytes
-    uint32 u32SizeBytes;
+    uint32 mySizeBytes;
     /// The format of the element
-    DataFormat eFormat;
+    DataFormat myFormat;
     /// Multiplier for eFormat. Used for multi-component elements (e.g. Matrices)
-    uint8 uFormatComponentCount;
+    uint8 myFormatComponentCount;
   };
 //---------------------------------------------------------------------------//
   const uint32 kMaxNumInputVertexAttributes = 16;
-  typedef FixedArray<VertexInputElement, kMaxNumInputVertexAttributes> VertexInputElementList;
+  typedef FixedArray<ShaderVertexInputElement, kMaxNumInputVertexAttributes> ShaderVertexInputElementList;
 //---------------------------------------------------------------------------//
-  class VertexInputLayout
+  class ShaderVertexInputLayout
   {
   public:
-    SERIALIZABLE(VertexInputLayout)
-    static ObjectName getTypeName() { return _N(VertexInputLayout); }
+    SERIALIZABLE(ShaderVertexInputLayout)
+    static ObjectName getTypeName() { return _N(ShaderVertexInputLayout); }
     const ObjectName& getName() const { return ObjectName::blank; }
     void serialize(IO::Serializer* aSerializer);
 
-    VertexInputLayout();
-    ~VertexInputLayout();
+    ShaderVertexInputLayout();
+    ~ShaderVertexInputLayout();
 
-    void clear() {m_vVertexInputElements.clear();}
-    void addVertexInputElement(const VertexInputElement& clVertexElement);
-    const VertexInputElement& getVertexInputElement(uint32 u32Index) const { ASSERT(u32Index < m_vVertexInputElements.size()); return m_vVertexInputElements[u32Index]; }
-    uint32 getNumVertexInputElements() const { return m_vVertexInputElements.size(); }
-    const VertexInputElementList& getVertexElementList() const { return m_vVertexInputElements; }
+    void clear() {myVertexInputElements.clear();}
+    void addVertexInputElement(const ShaderVertexInputElement& clVertexElement);
+    const ShaderVertexInputElement& getVertexInputElement(uint32 u32Index) const { ASSERT(u32Index < myVertexInputElements.size()); return myVertexInputElements[u32Index]; }
+    uint32 getNumVertexInputElements() const { return myVertexInputElements.size(); }
+    const ShaderVertexInputElementList& getVertexElementList() const { return myVertexInputElements; }
 
   private:
-    VertexInputElementList m_vVertexInputElements;
+    ShaderVertexInputElementList myVertexInputElements;
   };
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

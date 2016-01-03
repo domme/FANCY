@@ -109,7 +109,7 @@ protected:
 
   GLuint createOrRetrieveFBO(Texture** ppRenderTextures, uint8 u8RenderTextureCount, Texture* pDStexture);
   GLuint createOrRetrieveProgramPipeline();
-  const VaoCacheEntry& createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, const VertexInputLayout* pVertexInputLayout);
+  const VaoCacheEntry& createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, const ShaderVertexInputLayout* pVertexInputLayout);
   
   glm::uvec4 m_uViewportParams;
   bool m_bViewportDirty;
