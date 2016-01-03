@@ -127,31 +127,31 @@ namespace Fancy { namespace Rendering {
 
     for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
     {
-      for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
+      for (uint32 i = 0u; i < Constants::kMaxNumReadTextures; ++i)
       {
         Texture* tex = m_vpReadTextures[iStage][i];
         MathUtil::hash_combine(hash, tex ? tex->getPath().getHash() : 0u);
       }
 
-      for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
+      for (uint32 i = 0u; i < Constants::kMaxNumWriteTextures; ++i)
       {
         Texture* tex = m_vpWriteTextures[iStage][i];
         MathUtil::hash_combine(hash, tex ? tex->getPath().getHash() : 0u);
       }
 
-      for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
+      for (uint32 i = 0u; i < Constants::kMaxNumReadBuffers; ++i)
       {
         GpuBuffer* buf = m_vpReadBuffers[iStage][i];
         MathUtil::hash_combine(hash, buf ? buf->getName().getHash() : 0u);
       }
 
-      for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
+      for (uint32 i = 0u; i < Constants::kMaxNumWriteBuffers; ++i)
       {
         GpuBuffer* buf = m_vpWriteBuffers[iStage][i];
         MathUtil::hash_combine(hash, buf ? buf->getName().getHash() : 0u);
       }
 
-      for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
+      for (uint32 i = 0u; i < Constants::kMaxNumTextureSamplers; ++i)
       {
         TextureSampler* sampler = m_vpTextureSamplers[iStage][i];
         MathUtil::hash_combine(hash, sampler ? sampler->getName().getHash() : 0u);
@@ -167,7 +167,7 @@ namespace Fancy { namespace Rendering {
     {
       for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
       {
-        for (uint32 i = 0u; i < kMaxNumReadTextures; ++i)
+        for (uint32 i = 0u; i < Constants::kMaxNumReadTextures; ++i)
         {
           if (!m_vpReadTextures[iStage][i])
             continue;
@@ -185,7 +185,7 @@ namespace Fancy { namespace Rendering {
     {
       for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
       {
-        for (uint32 i = 0u; i < kMaxNumWriteTextures; ++i)
+        for (uint32 i = 0u; i < Constants::kMaxNumWriteTextures; ++i)
         {
           if (!m_vpWriteTextures[iStage][i])
             continue;
@@ -203,7 +203,7 @@ namespace Fancy { namespace Rendering {
     {
       for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
       {
-        for (uint32 i = 0u; i < kMaxNumReadBuffers; ++i)
+        for (uint32 i = 0u; i < Constants::kMaxNumReadBuffers; ++i)
         {
           if (!m_vpReadBuffers[iStage][i])
             continue;
@@ -221,7 +221,7 @@ namespace Fancy { namespace Rendering {
     {
       for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
       {
-        for (uint32 i = 0u; i < kMaxNumWriteBuffers; ++i)
+        for (uint32 i = 0u; i < Constants::kMaxNumWriteBuffers; ++i)
         {
           if (!m_vpWriteBuffers[iStage][i])
             continue;
@@ -239,7 +239,7 @@ namespace Fancy { namespace Rendering {
     {
       for (uint32 iStage = 0u; iStage < (uint32)ShaderStage::NUM; ++iStage)
       {
-        for (uint32 i = 0u; i < kMaxNumTextureSamplers; ++i)
+        for (uint32 i = 0u; i < Constants::kMaxNumTextureSamplers; ++i)
         {
           if (!m_vpTextureSamplers[iStage][i])
             continue;

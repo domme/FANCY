@@ -2,8 +2,8 @@
 #define INCLUDE_RENDERERPREREQUISITES_H
 
 // This define selects the render-system
-// #define RENDERER_OPENGL4
-#define RENDERER_DX12
+#define RENDERER_OPENGL4
+// #define RENDERER_DX12
 
 #if defined (RENDERER_OPENGL4)
 	#include "OpenGLprerequisites.h"
@@ -14,19 +14,6 @@
 #include "FancyCorePrerequisites.h"
 #include "ObjectName.h"
 
-// Common defines for the RenderSystem
-// TODO: Check these values again...
-namespace Fancy { enum {
-  kMaxNumRenderTargets = 7u, // (-1 for depth-stencil target)
-  kMaxNumTextureSamplers = 32u,
-  kMaxNumReadBuffers = 32u,
-  kMaxNumWriteBuffers = 8u,
-  kMaxNumReadTextures = 32u,
-  kMaxNumWriteTextures = 8u,
-  kMaxNumBoundConstantBuffers = 12u,
-  kMaxNumGpuProgramResources = 32u,
-  kMaxNumConstantBufferElements = 128u
-}; }
 //---------------------------------------------------------------------------//
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -40,6 +27,20 @@ namespace Fancy {
       enum { kGpuMultiBufferingCount = 2u };
       
       uint32 getCurrentBufferIndex();
+    }
+//---------------------------------------------------------------------------//
+    namespace Constants {
+      enum {
+        kMaxNumRenderTargets = 7u, // (-1 for depth-stencil target)
+        kMaxNumTextureSamplers = 32u,
+        kMaxNumReadBuffers = 32u,
+        kMaxNumWriteBuffers = 8u,
+        kMaxNumReadTextures = 32u,
+        kMaxNumWriteTextures = 8u,
+        kMaxNumBoundConstantBuffers = 12u,
+        kMaxNumGpuProgramResources = 32u,
+        kMaxNumConstantBufferElements = 128u
+      };
     }
 //---------------------------------------------------------------------------//
   // Forward-declarations of common rendering classes

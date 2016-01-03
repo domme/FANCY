@@ -848,7 +848,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       constantsMgr.registerBufferWithSize(eCbufferType, uRequiredBlockSizeBytes);
 
       // Acquire the indices of all active uniforms in the block
-      FixedArray<GLint, kMaxNumConstantBufferElements> vUniformIndices;
+      FixedArray<GLint, Constants::kMaxNumConstantBufferElements> vUniformIndices;
       vUniformIndices.resize(uNumUniformsInBlock);
 
       const GLenum propActiveUniformIndices = GL_ACTIVE_VARIABLES;

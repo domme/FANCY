@@ -57,7 +57,7 @@ public:
   
   Texture* getCachedDepthStencilRenderTarget() { return m_pCachedDepthStencilTarget; }
   Texture* getCachedRenderTarget(const uint8 u8RenderTargetIndex) const 
-  { ASSERT(u8RenderTargetIndex < kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
+  { ASSERT(u8RenderTargetIndex < Rendering::Constants::kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
 
   void setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
   void setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
@@ -120,16 +120,16 @@ protected:
   uint32        m_uResourceRebindMask[(uint) ShaderStage::NUM];  // Needed?
   
   /// Cached textures per shaderStage bound/to bind to the pipeline
-  const Texture*	    m_pCachedReadTextures [(uint) ShaderStage::NUM][kMaxNumReadTextures];
+  const Texture*	    m_pCachedReadTextures [(uint) ShaderStage::NUM][Rendering::Constants::kMaxNumReadTextures];
   /// Mask identifying which textures need to be bind in the next draw call
   uint32		    m_uReadTextureBindMask [(uint) ShaderStage::NUM];
   uint32        m_uNumReadTexturesToBind[(uint) ShaderStage::NUM];
 
-  const Texture*      m_pCachedWriteTextures [(uint) ShaderStage::NUM][kMaxNumWriteTextures];
+  const Texture*      m_pCachedWriteTextures [(uint) ShaderStage::NUM][Rendering::Constants::kMaxNumWriteTextures];
   uint32              m_uWriteTextureBindMask [(uint) ShaderStage::NUM];
   uint32              m_uNumWriteTexturesToBind[(uint) ShaderStage::NUM];
 
-  const GpuBuffer*		m_pCachedReadBuffers [(uint) ShaderStage::NUM][kMaxNumReadBuffers];
+  const GpuBuffer*		m_pCachedReadBuffers [(uint) ShaderStage::NUM][Rendering::Constants::kMaxNumReadBuffers];
   uint32	      	    m_uReadBufferBindMask [(uint) ShaderStage::NUM];
   uint32              m_uNumReadBuffersToBind[(uint) ShaderStage::NUM];
 
@@ -137,11 +137,11 @@ protected:
   uint32				      m_uConstantBufferBindMask[(uint) ShaderStage::NUM];
   uint32              m_uNumConstantBuffersToBind[(uint) ShaderStage::NUM];
 
-  const TextureSampler*		m_pCachedTextureSamplers [(uint) ShaderStage::NUM][kMaxNumTextureSamplers];
+  const TextureSampler*		m_pCachedTextureSamplers [(uint) ShaderStage::NUM][Rendering::Constants::kMaxNumTextureSamplers];
   uint32	      			    m_uTextureSamplerBindMask[(uint) ShaderStage::NUM];
   uint32                  m_uNumTextureSamplersToBind[(uint) ShaderStage::NUM];
 
-  Texture*			    m_pCachedRenderTargets [kMaxNumRenderTargets];
+  Texture*			    m_pCachedRenderTargets [Rendering::Constants::kMaxNumRenderTargets];
   Texture*          m_pCachedDepthStencilTarget;
 
   /// The currently bound FBO

@@ -66,15 +66,15 @@ public:
   ObjectName                   myName;
   bool                         myAlphaToCoverageEnabled;
   bool                         myBlendStatePerRT;
-  bool                         myAlphaSeparateBlend[kMaxNumRenderTargets];
-  bool                         myBlendEnabled[kMaxNumRenderTargets];
-  BlendInput                   mySrcBlend[kMaxNumRenderTargets];
-  BlendInput                   myDestBlend[kMaxNumRenderTargets];
-  BlendOp                      myBlendOp[kMaxNumRenderTargets];
-  BlendInput                   mySrcBlendAlpha[kMaxNumRenderTargets];
-  BlendInput                   myDestBlendAlpha[kMaxNumRenderTargets];
-  BlendOp                      myBlendOpAlpha[kMaxNumRenderTargets];
-  uint32                       myRTwriteMask[kMaxNumRenderTargets];
+  bool                         myAlphaSeparateBlend[Constants::kMaxNumRenderTargets];
+  bool                         myBlendEnabled[Constants::kMaxNumRenderTargets];
+  BlendInput                   mySrcBlend[Constants::kMaxNumRenderTargets];
+  BlendInput                   myDestBlend[Constants::kMaxNumRenderTargets];
+  BlendOp                      myBlendOp[Constants::kMaxNumRenderTargets];
+  BlendInput                   mySrcBlendAlpha[Constants::kMaxNumRenderTargets];
+  BlendInput                   myDestBlendAlpha[Constants::kMaxNumRenderTargets];
+  BlendOp                      myBlendOpAlpha[Constants::kMaxNumRenderTargets];
+  uint32                       myRTwriteMask[Constants::kMaxNumRenderTargets];
 //---------------------------------------------------------------------------//
 };
 

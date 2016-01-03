@@ -31,7 +31,7 @@ namespace Fancy { namespace Rendering {
     memset(myAlphaSeparateBlend, false, sizeof(myAlphaSeparateBlend));
     memset(myBlendEnabled, false, sizeof(myBlendEnabled));
 
-    for (uint32 i = 0u; i < kMaxNumRenderTargets; ++i)
+    for (uint32 i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
     {
       mySrcBlend[i] = BlendInput::ONE;
       myDestBlend[i] = BlendInput::ONE;
@@ -59,7 +59,7 @@ namespace Fancy { namespace Rendering {
 		MathUtil::hash_combine(hash, myAlphaToCoverageEnabled ? 1u : 0u);
 		MathUtil::hash_combine(hash, myBlendStatePerRT ? 1u : 0u);
 
-		for (uint32 i = 0; i < kMaxNumRenderTargets; ++i)
+		for (uint32 i = 0; i < Constants::kMaxNumRenderTargets; ++i)
 		{
 			MathUtil::hash_combine(hash, myAlphaSeparateBlend[i] ? 1u : 0u);
 			MathUtil::hash_combine(hash, myBlendEnabled[i] ? 1u : 0u);

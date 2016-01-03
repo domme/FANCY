@@ -128,7 +128,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   GLenum Internal::getTextureUnitFromIndex(uint32 uIndex)
   {
-    ASSERT(uIndex < kMaxNumReadTextures);
+    ASSERT(uIndex < Constants::kMaxNumReadTextures);
     return GL_TEXTURE0 + uIndex;
   }
 //---------------------------------------------------------------------------//
@@ -237,70 +237,68 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   
     uint32 uDepthStencilRebindMask = m_uDepthStencilRebindMask;
 
-    if(m_clDepthStencilState.m_bDepthTestEnabled != clDepthStencilState.m_bDepthTestEnabled) {
-      m_clDepthStencilState.m_bDepthTestEnabled = clDepthStencilState.m_bDepthTestEnabled;
+    if(m_clDepthStencilState.myDepthTestEnabled != clDepthStencilState.myDepthTestEnabled) {
+      m_clDepthStencilState.myDepthTestEnabled = clDepthStencilState.myDepthTestEnabled;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::DEPTH_TEST;
     }
 
-    if(m_clDepthStencilState.m_bDepthWriteEnabled != clDepthStencilState.m_bDepthWriteEnabled) {
-      m_clDepthStencilState.m_bDepthWriteEnabled = clDepthStencilState.m_bDepthWriteEnabled;
+    if(m_clDepthStencilState.myDepthWriteEnabled != clDepthStencilState.myDepthWriteEnabled) {
+      m_clDepthStencilState.myDepthWriteEnabled = clDepthStencilState.myDepthWriteEnabled;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::DEPTH_WRITE;
     }
 
-    if(m_clDepthStencilState.m_eDepthCompFunc != clDepthStencilState.m_eDepthCompFunc) {
-      m_clDepthStencilState.m_eDepthCompFunc = clDepthStencilState.m_eDepthCompFunc;
+    if(m_clDepthStencilState.myDepthCompFunc != clDepthStencilState.myDepthCompFunc) {
+      m_clDepthStencilState.myDepthCompFunc = clDepthStencilState.myDepthCompFunc;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::DEPTH_COMP_FUNC;
     }
 
-    if(m_clDepthStencilState.m_bStencilEnabled != clDepthStencilState.m_bStencilEnabled) {
-      m_clDepthStencilState.m_bStencilEnabled = clDepthStencilState.m_bStencilEnabled;
+    if(m_clDepthStencilState.myStencilEnabled != clDepthStencilState.myStencilEnabled) {
+      m_clDepthStencilState.myStencilEnabled = clDepthStencilState.myStencilEnabled;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_ENABLED;
     }
 
-    if(m_clDepthStencilState.m_bTwoSidedStencil != clDepthStencilState.m_bTwoSidedStencil) {
-      m_clDepthStencilState.m_bTwoSidedStencil = clDepthStencilState.m_bTwoSidedStencil;
+    if(m_clDepthStencilState.myTwoSidedStencil != clDepthStencilState.myTwoSidedStencil) {
+      m_clDepthStencilState.myTwoSidedStencil = clDepthStencilState.myTwoSidedStencil;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_TWO_SIDED;
     }
 
-    if(m_clDepthStencilState.m_iStencilRef != clDepthStencilState.m_iStencilRef) {
-      m_clDepthStencilState.m_iStencilRef = clDepthStencilState.m_iStencilRef;
+    if(m_clDepthStencilState.myStencilRef != clDepthStencilState.myStencilRef) {
+      m_clDepthStencilState.myStencilRef = clDepthStencilState.myStencilRef;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_REF;
     }
 
-    if(m_clDepthStencilState.m_uStencilReadMask != clDepthStencilState.m_uStencilReadMask) {
-      m_clDepthStencilState.m_uStencilReadMask = clDepthStencilState.m_uStencilReadMask;
+    if(m_clDepthStencilState.myStencilReadMask != clDepthStencilState.myStencilReadMask) {
+      m_clDepthStencilState.myStencilReadMask = clDepthStencilState.myStencilReadMask;
       uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_READ_MASK;
     }
 
     for(uint8 iFaceType = 0; iFaceType < (uint) FaceType::NUM; ++iFaceType)
     {
-      if(m_clDepthStencilState.m_uStencilWriteMask[iFaceType] != clDepthStencilState.m_uStencilWriteMask[iFaceType]) {
-        m_clDepthStencilState.m_uStencilWriteMask[iFaceType] = clDepthStencilState.m_uStencilWriteMask[iFaceType];
+      if(m_clDepthStencilState.myStencilWriteMask[iFaceType] != clDepthStencilState.myStencilWriteMask[iFaceType]) {
+        m_clDepthStencilState.myStencilWriteMask[iFaceType] = clDepthStencilState.myStencilWriteMask[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_WRITE_MASK;
       }
 
-      if(m_clDepthStencilState.m_eStencilFailOp[iFaceType] != clDepthStencilState.m_eStencilFailOp[iFaceType]) {
-        m_clDepthStencilState.m_eStencilFailOp[iFaceType] = clDepthStencilState.m_eStencilFailOp[iFaceType];
+      if(m_clDepthStencilState.myStencilFailOp[iFaceType] != clDepthStencilState.myStencilFailOp[iFaceType]) {
+        m_clDepthStencilState.myStencilFailOp[iFaceType] = clDepthStencilState.myStencilFailOp[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_FAIL_OP;
       }
 
-      if (m_clDepthStencilState.m_eStencilDepthFailOp[iFaceType] != clDepthStencilState.m_eStencilDepthFailOp[iFaceType]) {
-        m_clDepthStencilState.m_eStencilDepthFailOp[iFaceType] = clDepthStencilState.m_eStencilDepthFailOp[iFaceType];
+      if (m_clDepthStencilState.myStencilDepthFailOp[iFaceType] != clDepthStencilState.myStencilDepthFailOp[iFaceType]) {
+        m_clDepthStencilState.myStencilDepthFailOp[iFaceType] = clDepthStencilState.myStencilDepthFailOp[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_DEPTH_FAIL_OP;
       }
 
-      if (m_clDepthStencilState.m_eStencilPassOp[iFaceType] != clDepthStencilState.m_eStencilPassOp[iFaceType]) {
-        m_clDepthStencilState.m_eStencilPassOp[iFaceType] = clDepthStencilState.m_eStencilPassOp[iFaceType];
+      if (m_clDepthStencilState.myStencilPassOp[iFaceType] != clDepthStencilState.myStencilPassOp[iFaceType]) {
+        m_clDepthStencilState.myStencilPassOp[iFaceType] = clDepthStencilState.myStencilPassOp[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_PASS_OP;
       }
 
-      if (m_clDepthStencilState.m_eStencilCompFunc[iFaceType] != clDepthStencilState.m_eStencilCompFunc[iFaceType]) {
-        m_clDepthStencilState.m_eStencilCompFunc[iFaceType] = clDepthStencilState.m_eStencilCompFunc[iFaceType];
+      if (m_clDepthStencilState.myStencilCompFunc[iFaceType] != clDepthStencilState.myStencilCompFunc[iFaceType]) {
+        m_clDepthStencilState.myStencilCompFunc[iFaceType] = clDepthStencilState.myStencilCompFunc[iFaceType];
         uDepthStencilRebindMask |= (uint) DepthStencilRebindFlags::STENCIL_COMP_FUNC;
       }
     }
-  
-    m_clDepthStencilState.updateHash();
 
     m_uDepthStencilRebindMask = uDepthStencilRebindMask;
     m_uPipelineRebindMask |= (uint) PipelineRebindFlags::DEPTHSTENCIL;  
@@ -326,7 +324,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       uBlendStateRebindMask |= (uint) BlendStateRebindFlags::BLENDSTATE_PER_RT;
     }
 
-    const uint8 rtUpperBound = m_clBlendState.myBlendStatePerRT ? kMaxNumRenderTargets : 1;
+    const uint8 rtUpperBound = m_clBlendState.myBlendStatePerRT ? Rendering::Constants::kMaxNumRenderTargets : 1;
     for (uint8 iRT = 0; iRT < rtUpperBound; ++iRT)
     {
       if (m_clBlendState.myAlphaSeparateBlend[iRT] != clBlendState.myAlphaSeparateBlend[iRT]) {
@@ -432,7 +430,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setRenderTarget( Texture* pRTTexture, const uint8 u8RenderTargetIndex )
   {
-    ASSERT_M(u8RenderTargetIndex < kMaxNumRenderTargets, "RenderTarget-index not supported");
+    ASSERT_M(u8RenderTargetIndex < Rendering::Constants::kMaxNumRenderTargets, "RenderTarget-index not supported");
     //ASSERT_M(pRTTexture->isDepthStencilTexture(), "Tried to set depthStencil-texture as color-rendertexture");
   
     if(getCachedRenderTarget(u8RenderTargetIndex) == pRTTexture) {
@@ -455,14 +453,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::removeAllRenderTargets()
   {
-    for (uint8 i = 0; i < kMaxNumRenderTargets; ++i) {
+    for (uint8 i = 0; i < Rendering::Constants::kMaxNumRenderTargets; ++i) {
       setRenderTarget(nullptr, i);
     }
   }
 //-----------------------------------------------------------------------//
   void RendererGL4::setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < kMaxNumReadTextures, "Referenced an undefined texture unit");
+    ASSERT_M(u8Index < Rendering::Constants::kMaxNumReadTextures, "Referenced an undefined texture unit");
   
     if(m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8Index] == pTexture) {
       return;
@@ -478,7 +476,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < kMaxNumWriteTextures, "Referenced an undefined image unit");
+    ASSERT_M(u8Index < Rendering::Constants::kMaxNumWriteTextures, "Referenced an undefined image unit");
 
     if(m_pCachedWriteTextures[static_cast<uint>(eShaderStage)][u8Index] == pTexture) {
       return;
@@ -494,7 +492,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setReadBuffer(const GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < kMaxNumReadBuffers, "Referenced an undefined buffer register");
+    ASSERT_M(u8Index < Rendering::Constants::kMaxNumReadBuffers, "Referenced an undefined buffer register");
   
     if(m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8Index] == pBuffer) {
       return;
@@ -526,7 +524,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setTextureSampler(const TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < kMaxNumTextureSamplers, "Referenced an undefined sampler register");
+    ASSERT_M(u8Index < Rendering::Constants::kMaxNumTextureSamplers, "Referenced an undefined sampler register");
   
     if(m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8Index] == pSampler) {
       return;
@@ -880,29 +878,29 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::DEPTH_TEST) > 0 ) {
 
-      GL_SET_CAP(GL_DEPTH_TEST, m_clDepthStencilState.m_bDepthTestEnabled);
+      GL_SET_CAP(GL_DEPTH_TEST, m_clDepthStencilState.myDepthTestEnabled);
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::DEPTH_WRITE) > 0 ) {
-      glDepthMask(m_clDepthStencilState.m_bDepthWriteEnabled);
+      glDepthMask(m_clDepthStencilState.myDepthWriteEnabled);
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::DEPTH_COMP_FUNC) > 0) {
-      glDepthFunc(Adapter::toGLType(m_clDepthStencilState.m_eDepthCompFunc));
+      glDepthFunc(Adapter::toGLType(m_clDepthStencilState.myDepthCompFunc));
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_ENABLED) > 0) {
-      GL_SET_CAP(GL_STENCIL_TEST, m_clDepthStencilState.m_bStencilEnabled);
+      GL_SET_CAP(GL_STENCIL_TEST, m_clDepthStencilState.myStencilEnabled);
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_TWO_SIDED) > 0) {
       // Nothing special to set here - just use the "separate" calls for stencil-ops and funcs
     }
-    const bool bUseTwoSidedStencil = m_clDepthStencilState.m_bTwoSidedStencil;
+    const bool bUseTwoSidedStencil = m_clDepthStencilState.myTwoSidedStencil;
 
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_REF) > 0) {
-      GL_SET_CAP(GL_STENCIL_TEST, m_clDepthStencilState.m_bStencilEnabled);
+      GL_SET_CAP(GL_STENCIL_TEST, m_clDepthStencilState.myStencilEnabled);
     }
 
     const bool bNeedStencilFunc =
@@ -912,24 +910,24 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     if (bNeedStencilFunc && !bUseTwoSidedStencil) 
     {
-      glStencilFunc(Adapter::toGLType(m_clDepthStencilState.m_eStencilCompFunc[0]),
-                    m_clDepthStencilState.m_iStencilRef,
-                    m_clDepthStencilState.m_uStencilReadMask);
+      glStencilFunc(Adapter::toGLType(m_clDepthStencilState.myStencilCompFunc[0]),
+                    m_clDepthStencilState.myStencilRef,
+                    m_clDepthStencilState.myStencilReadMask);
     }
     else if (bNeedStencilFunc)
     {
-      glStencilFuncSeparate(Adapter::toGLType(m_clDepthStencilState.m_eStencilCompFunc[(uint)FaceType::FRONT]),
-                            Adapter::toGLType(m_clDepthStencilState.m_eStencilCompFunc[(uint)FaceType::BACK]),
-                            m_clDepthStencilState.m_iStencilRef,
-                            m_clDepthStencilState.m_uStencilReadMask);
+      glStencilFuncSeparate(Adapter::toGLType(m_clDepthStencilState.myStencilCompFunc[(uint)FaceType::FRONT]),
+                            Adapter::toGLType(m_clDepthStencilState.myStencilCompFunc[(uint)FaceType::BACK]),
+                            m_clDepthStencilState.myStencilRef,
+                            m_clDepthStencilState.myStencilReadMask);
     }
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::STENCIL_WRITE_MASK ) > 0 ) {
       if(!bUseTwoSidedStencil) {
-        glStencilMask(m_clDepthStencilState.m_uStencilWriteMask[0]);
+        glStencilMask(m_clDepthStencilState.myStencilWriteMask[0]);
       } else {
-        glStencilMaskSeparate(GL_FRONT, m_clDepthStencilState.m_uStencilWriteMask[(uint) FaceType::FRONT]);
-        glStencilMaskSeparate(GL_BACK, m_clDepthStencilState.m_uStencilWriteMask[(uint) FaceType::BACK]);
+        glStencilMaskSeparate(GL_FRONT, m_clDepthStencilState.myStencilWriteMask[(uint) FaceType::FRONT]);
+        glStencilMaskSeparate(GL_BACK, m_clDepthStencilState.myStencilWriteMask[(uint) FaceType::BACK]);
       }
     }
   
@@ -939,11 +937,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   void RendererGL4::bindRenderTargets()
   {
     // The actual (packed) list of renderTextures to use
-    Texture* rtListPatched[kMaxNumRenderTargets] = {nullptr};
+    Texture* rtListPatched[Rendering::Constants::kMaxNumRenderTargets] = {nullptr};
     uint8 u8RenderTextureCount = 0;
 
     // Detect "holes" in renderTexture-array
-    for(uint8 i = 0; i < kMaxNumRenderTargets; ++i) 
+    for(uint8 i = 0; i < Rendering::Constants::kMaxNumRenderTargets; ++i) 
     {
       if (m_pCachedRenderTargets[i] != nullptr) 
       {
@@ -954,7 +952,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       {
         // There is a hole in the list: skip it
         while(m_pCachedRenderTargets[i] == nullptr 
-          && i < kMaxNumRenderTargets) 
+          && i < Rendering::Constants::kMaxNumRenderTargets) 
         {
           ++i;
         }
@@ -972,7 +970,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     // Default: Enable all drawbuffers. 
     // TODO: Better to determine drawbuffers from blendState::RTwritemask?
-    static GLenum drawBuffers[kMaxNumRenderTargets] = 
+    static GLenum drawBuffers[Rendering::Constants::kMaxNumRenderTargets] = 
     {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, 
     GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6};
     glDrawBuffers(u8RenderTextureCount, drawBuffers);

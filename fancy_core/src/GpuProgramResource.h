@@ -70,9 +70,9 @@ namespace Fancy { namespace Rendering {
   
 //---------------------------------------------------------------------------//
  typedef std::vector<ConstantBufferElement> ConstantBufferElementList;
- typedef FixedArray<GpuProgramResourceInfo, kMaxNumGpuProgramResources> GpuResourceInfoList;
- typedef FixedArray<Texture*, kMaxNumGpuProgramResources> GpuTextureResourceList;
- typedef FixedArray<GpuBuffer*, kMaxNumGpuProgramResources> GpuBufferResourceList;
+ typedef FixedArray<GpuProgramResourceInfo, Constants::kMaxNumGpuProgramResources> GpuResourceInfoList;
+ typedef FixedArray<Texture*, Constants::kMaxNumGpuProgramResources> GpuTextureResourceList;
+ typedef FixedArray<GpuBuffer*, Constants::kMaxNumGpuProgramResources> GpuBufferResourceList;
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
 

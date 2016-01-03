@@ -110,11 +110,11 @@ namespace Fancy { namespace Rendering {
       // void setWriteBuffer(ShaderStage _eStage, const ObjectName& _name, const GpuBuffer* _pBuffer);
       // void setTextureSampler(ShaderStage _eStage, const ObjectName& _name, const TextureSampler* _pTextureSampler);
 
-      void setReadTexture(ShaderStage _eStage, uint32 _registerIndex, Texture* _pTexture) {ASSERT(_registerIndex < kMaxNumReadTextures); m_vpReadTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
-      void setWriteTexture(ShaderStage _eStage, uint32 _registerIndex, Texture* _pTexture) {ASSERT(_registerIndex < kMaxNumWriteTextures); m_vpWriteTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
-      void setReadBuffer(ShaderStage _eStage, uint32 _registerIndex, GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumReadBuffers); m_vpReadBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
-      void setWriteBuffer(ShaderStage _eStage, uint32 _registerIndex, GpuBuffer* _pBuffer) {ASSERT(_registerIndex < kMaxNumWriteBuffers); m_vpWriteBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
-      void setTextureSampler(ShaderStage _eStage, uint32 _registerIndex, TextureSampler* _pTextureSampler) {ASSERT(_registerIndex < kMaxNumTextureSamplers); m_vpTextureSamplers[(uint32) _eStage][_registerIndex] = _pTextureSampler; }
+      void setReadTexture(ShaderStage _eStage, uint32 _registerIndex, Texture* _pTexture) {ASSERT(_registerIndex < Constants::kMaxNumReadTextures); m_vpReadTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
+      void setWriteTexture(ShaderStage _eStage, uint32 _registerIndex, Texture* _pTexture) {ASSERT(_registerIndex < Constants::kMaxNumWriteTextures); m_vpWriteTextures[(uint32) _eStage][_registerIndex] = _pTexture; }
+      void setReadBuffer(ShaderStage _eStage, uint32 _registerIndex, GpuBuffer* _pBuffer) {ASSERT(_registerIndex < Constants::kMaxNumReadBuffers); m_vpReadBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
+      void setWriteBuffer(ShaderStage _eStage, uint32 _registerIndex, GpuBuffer* _pBuffer) {ASSERT(_registerIndex < Constants::kMaxNumWriteBuffers); m_vpWriteBuffers[(uint32) _eStage][_registerIndex] = _pBuffer; }
+      void setTextureSampler(ShaderStage _eStage, uint32 _registerIndex, TextureSampler* _pTextureSampler) {ASSERT(_registerIndex < Constants::kMaxNumTextureSamplers); m_vpTextureSamplers[(uint32) _eStage][_registerIndex] = _pTextureSampler; }
 
       void getResourceDesc(MpiResourceType aType, std::vector<ResourceStorageEntry>& someEntries) const;
       void setFromResourceDesc(const std::vector<ResourceStorageEntry>& someResources, MpiResourceType aType);
@@ -128,11 +128,11 @@ namespace Fancy { namespace Rendering {
       ObjectName m_Name;
       MaterialPass* m_pMaterialPass;
       
-      Texture* m_vpReadTextures[(uint32) ShaderStage::NUM][kMaxNumReadTextures];
-      Texture* m_vpWriteTextures[(uint32) ShaderStage::NUM][kMaxNumWriteTextures];
-      GpuBuffer* m_vpReadBuffers[(uint32) ShaderStage::NUM][kMaxNumReadBuffers];
-      GpuBuffer* m_vpWriteBuffers[(uint32) ShaderStage::NUM][kMaxNumWriteBuffers];
-      TextureSampler* m_vpTextureSamplers[(uint32) ShaderStage::NUM][kMaxNumTextureSamplers];
+      Texture* m_vpReadTextures[(uint32) ShaderStage::NUM][Constants::kMaxNumReadTextures];
+      Texture* m_vpWriteTextures[(uint32) ShaderStage::NUM][Constants::kMaxNumWriteTextures];
+      GpuBuffer* m_vpReadBuffers[(uint32) ShaderStage::NUM][Constants::kMaxNumReadBuffers];
+      GpuBuffer* m_vpWriteBuffers[(uint32) ShaderStage::NUM][Constants::kMaxNumWriteBuffers];
+      TextureSampler* m_vpTextureSamplers[(uint32) ShaderStage::NUM][Constants::kMaxNumTextureSamplers];
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

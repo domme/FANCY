@@ -37,19 +37,19 @@ namespace Fancy { namespace Rendering {
       ShaderStage eStage = static_cast<ShaderStage>(i);
 
       const Texture* const* ppReadTextures = _pMaterialPassInstance->getReadTextures(eStage);
-      for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumReadTextures; ++iRegIndex)
+      for (uint32 iRegIndex = 0u; iRegIndex < Constants::kMaxNumReadTextures; ++iRegIndex)
       {
         _pRenderer->setReadTexture(ppReadTextures[iRegIndex], eStage, iRegIndex);
       }
 
       const Texture* const* ppWriteTextures = _pMaterialPassInstance->getWriteTextures(eStage);
-      for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumWriteTextures; ++iRegIndex)
+      for (uint32 iRegIndex = 0u; iRegIndex < Constants::kMaxNumWriteTextures; ++iRegIndex)
       {
         _pRenderer->setWriteTexture(ppWriteTextures[iRegIndex], eStage, iRegIndex);
       }
 
       const GpuBuffer* const* ppReadBuffers = _pMaterialPassInstance->getReadBuffers(eStage);
-      for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumReadBuffers; ++iRegIndex)
+      for (uint32 iRegIndex = 0u; iRegIndex < Constants::kMaxNumReadBuffers; ++iRegIndex)
       {
         _pRenderer->setReadBuffer(ppReadBuffers[iRegIndex], eStage, iRegIndex);
       }
@@ -62,7 +62,7 @@ namespace Fancy { namespace Rendering {
 //    }
 
       const TextureSampler* const* ppTextureSamplers = _pMaterialPassInstance->getTextureSamplers(eStage);
-      for (uint32 iRegIndex = 0u; iRegIndex < kMaxNumTextureSamplers; ++iRegIndex)
+      for (uint32 iRegIndex = 0u; iRegIndex < Constants::kMaxNumTextureSamplers; ++iRegIndex)
       {
         _pRenderer->setTextureSampler(ppTextureSamplers[iRegIndex], eStage, iRegIndex);
       }
