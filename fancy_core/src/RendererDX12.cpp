@@ -11,7 +11,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     : myDepthStencilState(ObjectName::blank)
     , myBlendState(ObjectName::blank)
   {
-      
+    myDepthStencilStateHash = myDepthStencilState.getHash();
+    myBlendStateHash = myBlendState.getHash();
   }
 //---------------------------------------------------------------------------//
   uint PipelineState::getHash()
@@ -20,31 +21,31 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myCullMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
-    MathUtil::hash_combine(hash, myDepthStencilState.getHash());
-    MathUtil::hash_combine(hash, myBlendState.getHash());
+    MathUtil::hash_combine(hash, myDepthStencilStateHash);
+    MathUtil::hash_combine(hash, myBlendStateHash);
 
     for (uint i = 0u; i < static_cast<uint>(ShaderStage::NUM); ++i)
       MathUtil::hash_combine(hash, reinterpret_cast<uint>(myShaderStages[i]));
 
     MathUtil::hash_combine(hash, myNumRenderTargets);
 
-    for (uint i = 0u; i < kMaxNumRenderTargets; ++i)
+    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
       MathUtil::hash_combine(hash, reinterpret_cast<uint>(myRTVformats));
 
     MathUtil::hash_combine(hash, static_cast<uint>(myDSVformat));
+  
+    MathUtil::hash_combine(hash, myInputLayout.myHash);
 
     return hash;
   }
 //---------------------------------------------------------------------------//
-  void PipelineState::fillNativePSOdesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& aDesc)
+  D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineState::toNativePSOdesc()
   {
-    memset(&aDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-
-    // ROOT SIGNATURE
-    aDesc.pRootSignature = nullptr;  // TODO
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
+    memset(&psoDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
     // SHADER BYTECODES
-    D3D12_SHADER_BYTECODE* shaderDescs[]{ &aDesc.VS, &aDesc.PS, &aDesc.DS, &aDesc.HS, &aDesc.GS };
+    D3D12_SHADER_BYTECODE* shaderDescs[]{ &psoDesc.VS, &psoDesc.PS, &psoDesc.DS, &psoDesc.HS, &psoDesc.GS };
     ASSERT(ARRAY_LENGTH(shaderDescs) == (uint)ShaderStage::NUM_NO_COMPUTE);
 
     for (uint i = 0u; i < (uint)ShaderStage::NUM_NO_COMPUTE; ++i)
@@ -54,13 +55,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
       (*shaderDescs[i]) = myShaderStages[i]->getNativeByteCode();
     }
+
+    // ROOT SIGNATURE
+    psoDesc.pRootSignature = nullptr;  // Don't override the RS - just use the embedded one in the shader stages
     
     // BLEND DESC
-    D3D12_BLEND_DESC& blendDesc = aDesc.BlendState;
+    D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
     memset(&blendDesc, 0u, sizeof(D3D12_BLEND_DESC));
     blendDesc.AlphaToCoverageEnable = myBlendState.getAlphaToCoverageEnabled();
     blendDesc.IndependentBlendEnable = myBlendState.getBlendStatePerRT();
-    uint rtCount = blendDesc.IndependentBlendEnable ? kMaxNumRenderTargets : 1u;
+    uint rtCount = blendDesc.IndependentBlendEnable ? Constants::kMaxNumRenderTargets : 1u;
     for (uint rt = 0u; rt < rtCount; ++rt)
     {
       D3D12_RENDER_TARGET_BLEND_DESC& rtBlendDesc = blendDesc.RenderTarget[rt];
@@ -95,14 +99,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // STREAM OUTPUT
     // FEATURE: Add support for StreamOutput
-    D3D12_STREAM_OUTPUT_DESC& streamOutDesc = aDesc.StreamOutput;
+    D3D12_STREAM_OUTPUT_DESC& streamOutDesc = psoDesc.StreamOutput;
     memset(&streamOutDesc, 0u, sizeof(D3D12_STREAM_OUTPUT_DESC));
 
-    // SAMPLE MASK
-    aDesc.SampleMask = ~0u;
+    // SAMPLE MASK / DESC
+    psoDesc.SampleMask = ~0u;
+    psoDesc.SampleDesc.Count = 1u;
 
     // RASTERIZER STATE
-    D3D12_RASTERIZER_DESC& rasterizerDesc = aDesc.RasterizerState;
+    D3D12_RASTERIZER_DESC& rasterizerDesc = psoDesc.RasterizerState;
     memset(&rasterizerDesc, 0u, sizeof(D3D12_RASTERIZER_DESC));
     rasterizerDesc.AntialiasedLineEnable = false;
     rasterizerDesc.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
@@ -116,7 +121,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     rasterizerDesc.DepthClipEnable = false;
 
     // DEPTH STENCIL STATE
-    D3D12_DEPTH_STENCIL_DESC& dsState = aDesc.DepthStencilState;
+    D3D12_DEPTH_STENCIL_DESC& dsState = psoDesc.DepthStencilState;
     dsState.DepthEnable = myDepthStencilState.myDepthTestEnabled;
     dsState.DepthWriteMask = myDepthStencilState.myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
     dsState.DepthFunc = Adapter::toNativeType(myDepthStencilState.myDepthCompFunc);
@@ -142,11 +147,34 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       faceDesc.StencilPassOp = Adapter::toNativeType(myDepthStencilState.myStencilPassOp[faceIdx]);
     }
 
-    
-    
-    
+    // INPUT LAYOUT
+    ASSERT_M(!myInputLayout.myElements.empty(), "Invalid input layout");
+    D3D12_INPUT_LAYOUT_DESC& inputLayout = psoDesc.InputLayout;
+    inputLayout.NumElements = myInputLayout.myElements.size();
+    inputLayout.pInputElementDescs = &myInputLayout.myElements[0u];
 
+    // IB STRIP CUT VALUE
+    psoDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
 
+    // TOPOLOGY TYPE
+    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+    // NUM RENDER TARGETS
+    psoDesc.NumRenderTargets = myNumRenderTargets;
+
+    // RTV-FORMATS
+    for (uint i = 0u; i < myNumRenderTargets; ++i)
+    {
+      psoDesc.RTVFormats[i] = Adapter::toNativeType(myRTVformats[i]);
+    }
+
+    // DSV FORMAT
+    psoDesc.DSVFormat = Adapter::toNativeType(myDSVformat);
+
+    // NODE MASK
+    psoDesc.NodeMask = 0u;
+
+    return psoDesc;
   }
 //---------------------------------------------------------------------------//
 
@@ -231,8 +259,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RendererDX12::postInit()
 	{
-    myDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, myCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&myCommandList));
-    myCommandList->Close();
+    for (uint i = 0u; i < Constants::kNumRenderThreads; ++i)
+    {
+      myDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, myCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&myCommandList[i]));
+      myCommandList[i]->Close();
+    }
 
     // Create synchronization objects.
     myFrameDone.init(myDevice.Get(), "RendererDX12::FrameDone");
@@ -240,21 +271,31 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   PipelineState& RendererDX12::getState()
   {
-    // TODO: Retrieve the state-object of the current thread here...
-    return myState;
+    return myState[getCurrentRenderThreadIdx()];
+  }
+//---------------------------------------------------------------------------//
+  ComPtr<ID3D12GraphicsCommandList>& RendererDX12::getGraphicsCmdList()
+  {
+    return myCommandList[getCurrentRenderThreadIdx()];
   }
 //---------------------------------------------------------------------------//
   void RendererDX12::beginFrame()
 	{
+    ComPtr<ID3D12GraphicsCommandList>&  cmdList = getGraphicsCmdList();
+
     myFrameDone.wait();
 
     myCommandAllocator->Reset();
-    myCommandList->Reset(myCommandAllocator.Get(), nullptr);
+    cmdList->Reset(myCommandAllocator.Get(), nullptr);
     myFrameIndex = mySwapChain->GetCurrentBackBufferIndex();
 	}
 //---------------------------------------------------------------------------//
 	void RendererDX12::endFrame()
 	{
+    ComPtr<ID3D12GraphicsCommandList>&  cmdList = getGraphicsCmdList();
+
+    // TODO: Adapt this to multithreaded rendering: Wait until all cmd-lists are completed, patch them with transitional resource-barriers and execute them in-order
+
     // Move this part to rendering
     ////////////////////////////////////////////////////////////////////////////////
     D3D12_RESOURCE_BARRIER bbBarrier;
@@ -264,22 +305,22 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bbBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
     bbBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
     bbBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    myCommandList->ResourceBarrier(1, &bbBarrier);
+    cmdList->ResourceBarrier(1, &bbBarrier);
 
     D3D12_CPU_DESCRIPTOR_HANDLE backbufferHandle = myRtvHeap->GetCPUDescriptorHandleForHeapStart();
     backbufferHandle.ptr += myFrameIndex * myRtvDescriptorSize;
 
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-    myCommandList->ClearRenderTargetView(backbufferHandle, clearColor, 0, nullptr);
+    cmdList->ClearRenderTargetView(backbufferHandle, clearColor, 0, nullptr);
 
     bbBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     bbBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-    myCommandList->ResourceBarrier(1, &bbBarrier);
+    cmdList->ResourceBarrier(1, &bbBarrier);
     
-    myCommandList->Close();
+    cmdList->Close();
     ////////////////////////////////////////////////////////////////////////////////
 
-    ID3D12CommandList* commandLists[] = { myCommandList.Get() };
+    ID3D12CommandList* commandLists[] = { cmdList.Get() };
     myCommandQueue->ExecuteCommandLists(1, commandLists);
     mySwapChain->Present(1, 0);
 
@@ -298,22 +339,27 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	void RendererDX12::setBlendState(const BlendState& clBlendState)
 	{
     PipelineState& state = getState();
+    uint requestedHash = clBlendState.getHash();
 
-    if (state.myBlendState.m_uHash == clBlendState.m_uHash)
+    if (state.myBlendStateHash == requestedHash)
       return;
 
     state.myBlendState = clBlendState;
+    state.myBlendStateHash = requestedHash;
     state.myIsDirty = true;
 	}
 //---------------------------------------------------------------------------//
-	void RendererDX12::setDepthStencilState(const DepthStencilState& clDepthStencilState)
+	void RendererDX12::setDepthStencilState(const DepthStencilState& aDepthStencilState)
 	{
     PipelineState& state = getState();
+    uint requestedHash = aDepthStencilState.getHash();
 
-    if (state.myDepthStencilState.m_uHash = clDepthStencilState.m_uHash)
+    if (state.myDepthStencilStateHash == requestedHash)
       return;
 
-    state.myDepthStencilState = clDepthStencilState;
+    state.myDepthStencilStateHash = requestedHash;
+    state.myDepthStencilState = aDepthStencilState;
+    
     state.myIsDirty = true;
 	}
 //---------------------------------------------------------------------------//
@@ -345,7 +391,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 	void RendererDX12::setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex)
 	{
-
+    
 	}
 //---------------------------------------------------------------------------//
 	void RendererDX12::removeAllRenderTargets()
@@ -354,6 +400,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 	void RendererDX12::setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
 	{
+    ComPtr<ID3D12GraphicsCommandList>& cmdList = getGraphicsCmdList();
 	}
 //---------------------------------------------------------------------------//
 	void RendererDX12::setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
@@ -413,13 +460,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
     else
     {
-      //Todo: Implement  
+      const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = requestedState.toNativePSOdesc();
+      HRESULT result = myDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+      ASSERT_M(result == S_OK, "Error creating graphics PSO");
+      
+      myPSOcache[requestedHash] = pso;
     }
 
-    myCommandList->SetPipelineState(cachedPSOIter->second);
-
-    
-
+    requestedState.myIsDirty = false;
+    myCommandList->SetPipelineState(pso);
 	}
 //---------------------------------------------------------------------------//
 #pragma endregion 

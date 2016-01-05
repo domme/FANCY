@@ -129,7 +129,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\RendererDX12.cpp" />
     <ClCompile Include="src\WindowDX12.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -140,7 +139,6 @@
   <ItemGroup>
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\Prerequisites.h" />
-    <ClInclude Include="src\RendererDX12.h" />
     <ClInclude Include="src\WindowDX12.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

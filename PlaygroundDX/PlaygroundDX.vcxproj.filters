@@ -12,18 +12,12 @@
     <ClCompile Include="src\WindowDX12.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\RendererDX12.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Prerequisites.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\WindowDX12.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RendererDX12.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\d3dx12.h">

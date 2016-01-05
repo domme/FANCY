@@ -16,34 +16,47 @@ namespace Fancy { namespace Rendering {
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  struct InputLayout
+  {
+    std::vector<D3D12_INPUT_ELEMENT_DESC> myElements;
+
+    // Combined hash of ShaderVertexLayout, GeometryVertexLayout as well as any instancing data
+    // should be used to quickly determine if an inputlayout can be re-used for changing shader- geometry- or instance data 
+    // TODO: Important: Implement InputLayout in DX12
+    uint myHash;
+  };
+//---------------------------------------------------------------------------//
   struct PipelineState
   {
     PipelineState();
     uint getHash();
-    void fillNativePSOdesc(D3D12_GRAPHICS_PIPELINE_STATE_DESC& aDesc);
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC toNativePSOdesc();
     
     FillMode myFillMode;
     CullMode myCullMode;
     WindingOrder myWindingOrder;
     DepthStencilState myDepthStencilState;
+    uint myDepthStencilStateHash;
     BlendState myBlendState;
+    uint myBlendStateHash;
     const GpuProgram* myShaderStages[static_cast<uint>(ShaderStage::NUM)];
     uint8 myNumRenderTargets;
-    DataFormat myRTVformats[kMaxNumRenderTargets];
+    DataFormat myRTVformats[Constants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
-
-
-
-
-
+    InputLayout myInputLayout;
 
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//
   struct ResourceState
   {
-    Texture* myDSV;
-  
+    Texture* myDSV; 
+    
+
+
+
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//
@@ -58,6 +71,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
 		void beginFrame();
 		void endFrame();
+
+    // TODO: Implement multithreaded rendering...
+    uint32 getCurrentRenderThreadIdx() { return 0u; }
 
 		/// x, y, width, height
 		void setViewport(const glm::uvec4& uViewportParams);
@@ -82,7 +98,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		void setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage);
 
 		void renderGeometry(const Geometry::GeometryData* pGeometry);
+    /// Returns the pipeline state in the current thread
     PipelineState& getState();
+    /// Returns the graphics command list of the current thread
+    ComPtr<ID3D12GraphicsCommandList>& getGraphicsCmdList();
 
 	protected:
     void applyViewport();
@@ -90,7 +109,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
 	  RendererDX12();
 
-    PipelineState myState;  // There will be one pipeline state per thread later on...
+    PipelineState myState[Constants::kNumRenderThreads];
 
     uint myPSOhash;
     ID3D12PipelineState* myPSO;
@@ -104,13 +123,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     FenceDX12 myFrameDone;
 
     static const uint kBackbufferCount = 2u;
-    Microsoft::WRL::ComPtr<ID3D12Device> myDevice;
-    Microsoft::WRL::ComPtr<IDXGISwapChain3> mySwapChain;
-    Microsoft::WRL::ComPtr<ID3D12Resource> myBackbuffers[kBackbufferCount];
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> myCommandAllocator;
-    Microsoft::WRL::ComPtr<ID3D12CommandQueue> myCommandQueue;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> myPipelineState;
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> myCommandList;
+    ComPtr<ID3D12Device> myDevice;
+    ComPtr<IDXGISwapChain3> mySwapChain;
+    ComPtr<ID3D12Resource> myBackbuffers[kBackbufferCount];
+    ComPtr<ID3D12CommandAllocator> myCommandAllocator;
+    ComPtr<ID3D12CommandQueue> myCommandQueue;
+    ComPtr<ID3D12PipelineState> myPipelineState;
+
+    ComPtr<ID3D12GraphicsCommandList> myCommandList[Constants::kNumRenderThreads];
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myRtvHeap;
     uint myRtvDescriptorSize;

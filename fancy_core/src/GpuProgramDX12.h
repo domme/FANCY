@@ -10,9 +10,9 @@ class ObjectFactory;
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  struct ShaderInputLayoutDX12
+  struct ShaderVertexInputLayoutDX12
   {
-    std::vector<D3D12_INPUT_ELEMENT_DESC> myInputElementDescs;
+    std::vector<D3D12_INPUT_ELEMENT_DESC> myElements;
   };
 //---------------------------------------------------------------------------//
   class GpuProgramDX12
@@ -34,9 +34,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const GpuResourceInfoList& getReadBufferInfoList() const { return myReadBufferInfos; }
     const GpuResourceInfoList& getWriteTextureInfoList() const { return myWriteTextureInfos; }
     const GpuResourceInfoList& getWriteBufferInfoList() const { return myWriteBufferInfos; }
-    const VertexInputLayout* getVertexInputLayout() const { return &myInputLayout; }
+    const ShaderVertexInputLayout* getVertexInputLayout() const { return &myInputLayout; }
+
     ComPtr<ID3DBlob>& getNativeData() { return myNativeData; }
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
+
+    /// Returns the pipeline state embedded into the HLSL code
+    const ComPtr<ID3D12PipelineState>& getPipelineState() { return myPipelineState; }
 
   private:
     ObjectName myName;
@@ -46,9 +50,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     GpuResourceInfoList myReadBufferInfos;
     GpuResourceInfoList myWriteTextureInfos;
     GpuResourceInfoList myWriteBufferInfos;
-    VertexInputLayout myInputLayout;
+    ShaderVertexInputLayout myInputLayout;
 
     ComPtr<ID3DBlob> myNativeData;
+    ComPtr<ID3D12PipelineState> myPipelineState;
+    
     D3D12_SHADER_BYTECODE myNativeByteCode;
   };
 //---------------------------------------------------------------------------//

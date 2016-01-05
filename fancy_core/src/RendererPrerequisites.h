@@ -2,8 +2,8 @@
 #define INCLUDE_RENDERERPREREQUISITES_H
 
 // This define selects the render-system
-#define RENDERER_OPENGL4
-// #define RENDERER_DX12
+// #define RENDERER_OPENGL4
+#define RENDERER_DX12
 
 #if defined (RENDERER_OPENGL4)
 	#include "OpenGLprerequisites.h"
@@ -39,7 +39,12 @@ namespace Fancy {
         kMaxNumWriteTextures = 8u,
         kMaxNumBoundConstantBuffers = 12u,
         kMaxNumGpuProgramResources = 32u,
-        kMaxNumConstantBufferElements = 128u
+        kMaxNumConstantBufferElements = 128u,
+#if defined (RENDERER_OPENGL4)
+        kNumRenderThreads = 1u,
+#elif defined (RENDERER_DX12)
+        kNumRenderThreads = 1u
+#endif // RENDERER_OPENGL4
       };
     }
 //---------------------------------------------------------------------------//
