@@ -230,6 +230,8 @@
     <ClInclude Include="src\GLDebug.h" />
     <ClInclude Include="src\GpuBuffer.h" />
     <ClInclude Include="src\GpuBufferGL4.h" />
+    <ClInclude Include="src\GpuDataInterface.h" />
+    <ClInclude Include="src\GpuDataInterfaceDX12.h" />
     <ClInclude Include="src\GpuProgram.h" />
     <ClInclude Include="src\GpuProgramCompiler.h" />
     <ClInclude Include="src\GpuProgramCompilerDX12.h" />
@@ -243,6 +245,7 @@
     <ClInclude Include="src\GLSLpreprocessor.h" />
     <ClInclude Include="src\GpuProgramResourceDX12.h" />
     <ClInclude Include="src\GpuProgramResourceGL4.h" />
+    <ClInclude Include="src\GpuProgramResourceLayout.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\JSONreader.h" />
     <ClInclude Include="src\JSONwriter.h" />
@@ -309,6 +312,7 @@
     <ClCompile Include="src\FenceDX12.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\GpuBufferGL4.cpp" />
+    <ClCompile Include="src\GpuDataInterfaceDX12.cpp" />
     <ClCompile Include="src\GpuProgramCompilerDX12.cpp" />
     <ClCompile Include="src\GpuProgramCompilerGL4.cpp" />
     <ClCompile Include="src\GpuProgramDX12.cpp" />
