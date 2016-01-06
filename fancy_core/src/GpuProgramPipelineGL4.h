@@ -6,10 +6,7 @@
 
 #if defined (RENDERER_OPENGL4)
 
-
 namespace Fancy { namespace Rendering { namespace GL4 {
-//---------------------------------------------------------------------------//
-  
 //---------------------------------------------------------------------------//
   class GpuProgramPipelineGL4
   {
@@ -18,14 +15,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     ~GpuProgramPipelineGL4();
 
     bool hasStage(ShaderStage eStage) const {m_vGpuPrograms[(uint32)eStage] != nullptr;}
-    
 
   protected:
     GpuProgramGL4* m_vGpuPrograms[(uint32)ShaderStage::NUM];
 
-
     GLuint m_uPipelineHandleGL;
-
   };
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Rendering:GL4

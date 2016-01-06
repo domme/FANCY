@@ -72,6 +72,7 @@ namespace Fancy {
         class GpuProgramCompilerGL4;
         class TextureSamplerGL4;
         class GpuProgramResourceGL4;
+        class GpuDataInterfaceGL4;
       }
 
       #define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::GL4::name##GL4
@@ -83,6 +84,7 @@ namespace Fancy {
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceGL4.h"
+      #define PLATFORM_DEPENDENT_INCLUDE_GPUDATAINTERFACE "GpuDataInterfaceGL4.h"
 
     #elif defined (RENDERER_DX11)
       namespace DX11 {}
@@ -98,6 +100,7 @@ namespace Fancy {
 			class GpuProgramCompilerDX12;
 			class TextureSamplerDX12;
 			class GpuProgramResourceDX12;
+      class GpuDataInterfaceDX12;
 		}
 
 		#define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX12::name##DX12
@@ -109,6 +112,7 @@ namespace Fancy {
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceDX12.h"
+    #define PLATFORM_DEPENDENT_INCLUDE_GPUDATAINTERFACE "GpuDataInterfaceDX12.h"
     #endif // RENDERER
   //---------------------------------------------------------------------------//
 

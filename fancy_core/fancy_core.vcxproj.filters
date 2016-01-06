@@ -289,6 +289,18 @@
     <ClInclude Include="src\AdapterDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="src\GpuDataInterfaceGL4.h">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuDataInterface.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuDataInterfaceDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuResourceSignature.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -487,6 +499,12 @@
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="src\AdapterDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuDataInterfaceGL4.cpp">
+      <Filter>src\Rendering\GL4</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuDataInterfaceDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>

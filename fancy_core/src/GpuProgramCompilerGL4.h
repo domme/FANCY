@@ -24,4 +24,4 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
 #endif
 
-#endif  // INCLUDE_GPUPROGRAMPIPELINEGL4_H
+#endif  // INCLUDE_GPUPROGRAMCOMPILERGL4_H

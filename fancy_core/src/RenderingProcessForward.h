@@ -7,6 +7,7 @@
 
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
+class GpuDataInterface;
 
   class DLLEXPORT RenderingProcessForward : public RenderingProcess
   {
@@ -16,6 +17,9 @@ namespace Fancy { namespace Rendering {
 
     virtual void startup() override;
     virtual void tick(float _dt) override;
+
+  private:
+    std::shared_ptr<GpuDataInterface> myGpuDataInterface;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(RenderingProcessForward)

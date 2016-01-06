@@ -3,15 +3,15 @@
 #include "ShaderConstantsManager.h"
 #include "Scene.h"
 #include "EngineCommon.h"
-#include "CameraComponent.h"
 #include "SceneRenderDescription.h"
 #include "MaterialPass.h"
-#include "SceneNode.h"
 #include "LightComponent.h"
+#include "GpuDataInterface.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  RenderingProcessForward::RenderingProcessForward()
+  RenderingProcessForward::RenderingProcessForward() :
+    myGpuDataInterface(new GpuDataInterface)
   {
 
   }
@@ -68,14 +68,14 @@ namespace Fancy { namespace Rendering {
         if (pCachedMaterialPass != pMaterialPass)
         {
           pCachedMaterialPass = pMaterialPass;
-          applyMaterialPass(pMaterialPass, &renderer);
+          myGpuDataInterface->applyMaterialPass(pMaterialPass, &renderer);
         }
 
-        applyMaterialPassInstance(renderItem.pMaterialPassInstance, &renderer);
+        myGpuDataInterface->applyMaterialPassInstance(renderItem.pMaterialPassInstance, &renderer);
 
         renderer.renderGeometry(renderItem.pGeometry);
-      }
-    }
+      }  // end renderItems
+    }  // end lights
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering
