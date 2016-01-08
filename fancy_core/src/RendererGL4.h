@@ -59,19 +59,19 @@ public:
   Texture* getCachedRenderTarget(const uint8 u8RenderTargetIndex) const 
   { ASSERT(u8RenderTargetIndex < Rendering::Constants::kMaxNumRenderTargets); return m_pCachedRenderTargets[u8RenderTargetIndex]; }
 
-  void setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setReadBuffer(const GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setConstantBuffer(const GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setTextureSampler(const TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-  void setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage);
+  void setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex);
+  void setWriteTexture(const Texture* pTexture, const uint8 u8RegisterIndex);
+  void setReadBuffer(const GpuBuffer* pBuffer, const uint8 u8RegisterIndex);
+  void setConstantBuffer(const GpuBuffer* pConstantBuffer, const uint8 u8RegisterIndex);
+  void setTextureSampler(const TextureSampler* pSampler, const uint8 u8RegisterIndex);
+  // void setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage);
+  void SetGpuProgramPipeline(const GpuProgramPipeline* aPipeline);
 
   void renderGeometry(const Geometry::GeometryData* pGeometry);
 protected:
 //-----------------------------------------------------------------------//
   enum Constants {
     kPoolSizeFBO = 20u,
-    kPoolSizeGpuProgramPipelines = 50u,
     kPoolSizeVAO = 128u
   };
 //-----------------------------------------------------------------------//
@@ -95,7 +95,7 @@ protected:
   /// Applies all dirty resources to the current program pipeline
   void bindResourcesToPipeline();
   /// Sets all gpuProgram resources to a 'dirty' state so that they are re-bound during the next draw
-  void invalidateResourceCache(const uint32 uShaderStageIdx);
+  void invalidateResourceCache();
 
   void applyViewport();
   void bindBlendState();
@@ -108,7 +108,6 @@ protected:
   void bindVAO(GLuint uVAO) {if (m_uCurrentVAO == uVAO) return; m_uCurrentVAO = uVAO; glBindVertexArray(uVAO);}
 
   GLuint createOrRetrieveFBO(Texture** ppRenderTextures, uint8 u8RenderTextureCount, Texture* pDStexture);
-  GLuint createOrRetrieveProgramPipeline();
   const VaoCacheEntry& createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, const ShaderVertexInputLayout* pVertexInputLayout);
   
   glm::uvec4 m_uViewportParams;
@@ -116,30 +115,30 @@ protected:
 
   /// Mask indicating which pipeline states have to be re-bound to the pipeline
   uint          m_uPipelineRebindMask;  // Needed?
-  /// Mask indicating which resources have to be re-bound to each shaderStage
-  uint32        m_uResourceRebindMask[(uint) ShaderStage::NUM];  // Needed?
+  /// Mask indicating which resources have to be re-bound
+  uint32        m_uResourceRebindMask;  // Needed?
   
   /// Cached textures per shaderStage bound/to bind to the pipeline
-  const Texture*	    m_pCachedReadTextures [(uint) ShaderStage::NUM][Rendering::Constants::kMaxNumReadTextures];
+  const Texture*	    m_pCachedReadTextures[Rendering::Constants::kMaxNumReadTextures];
   /// Mask identifying which textures need to be bind in the next draw call
-  uint32		    m_uReadTextureBindMask [(uint) ShaderStage::NUM];
-  uint32        m_uNumReadTexturesToBind[(uint) ShaderStage::NUM];
+  uint32		    m_uReadTextureBindMask;
+  uint32        m_uNumReadTexturesToBind;
 
-  const Texture*      m_pCachedWriteTextures [(uint) ShaderStage::NUM][Rendering::Constants::kMaxNumWriteTextures];
-  uint32              m_uWriteTextureBindMask [(uint) ShaderStage::NUM];
-  uint32              m_uNumWriteTexturesToBind[(uint) ShaderStage::NUM];
+  const Texture*      m_pCachedWriteTextures[Rendering::Constants::kMaxNumWriteTextures];
+  uint32              m_uWriteTextureBindMask;
+  uint32              m_uNumWriteTexturesToBind;
 
-  const GpuBuffer*		m_pCachedReadBuffers [(uint) ShaderStage::NUM][Rendering::Constants::kMaxNumReadBuffers];
-  uint32	      	    m_uReadBufferBindMask [(uint) ShaderStage::NUM];
-  uint32              m_uNumReadBuffersToBind[(uint) ShaderStage::NUM];
+  const GpuBuffer*		m_pCachedReadBuffers[Rendering::Constants::kMaxNumReadBuffers];
+  uint32	      	    m_uReadBufferBindMask;
+  uint32              m_uNumReadBuffersToBind;
 
-  const GpuBuffer*		m_pCachedConstantBuffers [(uint) ShaderStage::NUM][(uint) ConstantBufferType::NUM];
-  uint32				      m_uConstantBufferBindMask[(uint) ShaderStage::NUM];
-  uint32              m_uNumConstantBuffersToBind[(uint) ShaderStage::NUM];
+  const GpuBuffer*		m_pCachedConstantBuffers[(uint) ConstantBufferType::NUM];
+  uint32				      m_uConstantBufferBindMask;
+  uint32              m_uNumConstantBuffersToBind;
 
-  const TextureSampler*		m_pCachedTextureSamplers [(uint) ShaderStage::NUM][Rendering::Constants::kMaxNumTextureSamplers];
-  uint32	      			    m_uTextureSamplerBindMask[(uint) ShaderStage::NUM];
-  uint32                  m_uNumTextureSamplersToBind[(uint) ShaderStage::NUM];
+  const TextureSampler*		m_pCachedTextureSamplers[Rendering::Constants::kMaxNumTextureSamplers];
+  uint32	      			    m_uTextureSamplerBindMask;
+  uint32                  m_uNumTextureSamplersToBind;
 
   Texture*			    m_pCachedRenderTargets [Rendering::Constants::kMaxNumRenderTargets];
   Texture*          m_pCachedDepthStencilTarget;
@@ -150,10 +149,9 @@ protected:
   GpuCacheEntry     m_FBOpool[kPoolSizeFBO];
 
   /// The currently bound GPU program pipeline
-  GLuint            m_uCurrentGpuProgramPipeline;
-  /// Pool of available GpuProgramPipeline Objects
-  GpuCacheEntry     m_GpuProgramPipelinePool[kPoolSizeGpuProgramPipelines];
-
+  const GpuProgramPipeline* myCachedProgramPipeline;
+  /// The program pipeline object to bind upon next draw 
+  const GpuProgramPipeline* myGpuProgramPipelineToBind;
   /// The currently bound VAO
   GLuint            m_uCurrentVAO;
   /// Pool of available VAOs
@@ -162,7 +160,7 @@ protected:
   GLuint            m_uCurrentVBO;
   GLuint            m_uCurrentIBO;
 
-  const GpuProgram*		m_pBoundGPUPrograms [(uint) ShaderStage::NUM];
+  const GpuProgram*		m_pBoundGPUPrograms ;
 
   DepthStencilState   m_clDepthStencilState;
   uint32              m_uDepthStencilRebindMask;

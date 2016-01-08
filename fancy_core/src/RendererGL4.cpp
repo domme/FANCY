@@ -8,6 +8,7 @@
 #include "AdapterGL4.h"
 #include "vsDebugLib.h"
 #include "DebugOutStream.h"
+#include "GpuProgramPipeline.h"
 
 #if defined (RENDERER_OPENGL4)
 
@@ -64,7 +65,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     WRITE_BUFFERS     = 0x0008,
     CONSTANT_BUFFERS  = 0x0010,
     TEXTURE_SAMPLERS  = 0x0020,
-    GPU_PROGRAMS      = 0x0040,
     ALL               = 0xFFFF
   };
 //---------------------------------------------------------------------------//
@@ -87,24 +87,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
  
 //---------------------------------------------------------------------------//
   namespace Internal {
-    GLuint getGLShaderStageBit(ShaderStage eShaderStage);
     GLenum getColorAttachmentFromIndex(uint32 uIndex);
     GLenum getTextureUnitFromIndex(uint32 uIndex);
     GLuint getGLTextureTypeFromGLSLresourceType(GpuResourceType eResourceType);
-  }
-//---------------------------------------------------------------------------//
-  GLuint Internal::getGLShaderStageBit(ShaderStage eShaderStage)
-  {
-    switch (eShaderStage)
-    {
-      case Fancy::Rendering::ShaderStage::VERTEX: return GL_VERTEX_SHADER_BIT;
-      case Fancy::Rendering::ShaderStage::FRAGMENT: return GL_FRAGMENT_SHADER_BIT;
-      case Fancy::Rendering::ShaderStage::GEOMETRY: return GL_GEOMETRY_SHADER_BIT;
-      case Fancy::Rendering::ShaderStage::TESS_HULL: return GL_TESS_CONTROL_SHADER_BIT;
-      case Fancy::Rendering::ShaderStage::TESS_DOMAIN: return GL_TESS_EVALUATION_SHADER_BIT;
-      case Fancy::Rendering::ShaderStage::COMPUTE: return GL_COMPUTE_SHADER_BIT;
-      default: ASSERT(false); return GL_VERTEX_SHADER_BIT;
-    }
   }
 //---------------------------------------------------------------------------//
   GLenum Internal::getColorAttachmentFromIndex(uint32 uIndex) 
@@ -169,36 +154,29 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_u8BlendStateRebindRTcount(1u),
     m_pCachedDepthStencilTarget(nullptr),
     m_uCurrentFBO(0u),
-    m_uCurrentGpuProgramPipeline(0u),
+    myCachedProgramPipeline(0u),
     m_uCurrentVAO(0u),
     m_uViewportParams(0u, 0u, 1u, 1u),
     m_bViewportDirty(true) ,
     m_clBlendState(ObjectName()),
     m_clDepthStencilState(ObjectName())
+    , m_uResourceRebindMask(UINT_MAX)
+    , m_uReadTextureBindMask(UINT_MAX)
+    , m_uNumReadTexturesToBind(0u)
+    , m_uReadBufferBindMask(UINT_MAX)
+    , m_uNumReadBuffersToBind(0u)
+    , m_uConstantBufferBindMask(UINT_MAX)
+    , m_uNumConstantBuffersToBind(0u)
+    , m_uTextureSamplerBindMask(UINT_MAX)
+    , m_uNumTextureSamplersToBind(0u)
   {
-    memset(m_uResourceRebindMask, UINT_MAX, sizeof(m_uResourceRebindMask));
-
     memset(m_pCachedReadTextures, 0, sizeof(m_pCachedReadTextures));
-    memset(m_uReadTextureBindMask, UINT_MAX, sizeof(m_uReadTextureBindMask));
-    memset(m_uNumReadTexturesToBind, 0u, sizeof(m_uNumReadTexturesToBind));
-
     memset(m_pCachedReadBuffers, 0, sizeof(m_pCachedReadBuffers));
-    memset(m_uReadBufferBindMask, UINT_MAX, sizeof(m_uReadBufferBindMask));
-    memset(m_uNumReadBuffersToBind, 0u, sizeof(m_uNumReadBuffersToBind));
-
     memset(m_pCachedConstantBuffers, 0, sizeof(m_pCachedConstantBuffers));
-    memset(m_uConstantBufferBindMask, UINT_MAX, sizeof(m_uConstantBufferBindMask));
-    memset(m_uNumConstantBuffersToBind, 0u, sizeof(m_uNumConstantBuffersToBind));
-
     memset(m_pCachedTextureSamplers, 0, sizeof(m_pCachedTextureSamplers));
-    memset(m_uTextureSamplerBindMask, UINT_MAX, sizeof(m_uTextureSamplerBindMask));
-    memset(m_uNumTextureSamplersToBind, 0u, sizeof(m_uNumTextureSamplersToBind));
-
     memset(m_pCachedRenderTargets, 0, sizeof(m_pCachedRenderTargets));
     // Don't try to set non-existent rendertargets
     m_uPipelineRebindMask &= ~(uint32) PipelineRebindFlags::RENDERTARGETS;
-
-    memset(m_pBoundGPUPrograms, 0, sizeof(m_pBoundGPUPrograms));
 
 #if defined (_DEBUG)
     VSDebugLib::init(&DebugOutStream::out);
@@ -458,94 +436,89 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
+  void RendererGL4::setReadTexture(const Texture* pTexture, const uint8 u8Index )
   {
     ASSERT_M(u8Index < Rendering::Constants::kMaxNumReadTextures, "Referenced an undefined texture unit");
   
-    if(m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8Index] == pTexture) {
+    if(m_pCachedReadTextures[u8Index] == pTexture) {
       return;
     }
 
-    m_pCachedReadTextures[static_cast<uint>(eShaderStage)][u8Index] = pTexture;
-    m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_TEXTURES);
+    m_pCachedReadTextures[u8Index] = pTexture;
+    m_uResourceRebindMask |= static_cast<uint>(ResourceRebindFlags::READ_TEXTURES);
 
-    m_uNumReadTexturesToBind[static_cast<uint>(eShaderStage)] = 
-      glm::max(m_uNumReadTexturesToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
-    m_uReadTextureBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
+    m_uNumReadTexturesToBind = glm::max(m_uNumReadTexturesToBind, u8Index + 1u);
+    m_uReadTextureBindMask |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8Index )
+  void RendererGL4::setWriteTexture(const Texture* pTexture, const uint8 u8Index )
   {
     ASSERT_M(u8Index < Rendering::Constants::kMaxNumWriteTextures, "Referenced an undefined image unit");
 
-    if(m_pCachedWriteTextures[static_cast<uint>(eShaderStage)][u8Index] == pTexture) {
+    if(m_pCachedWriteTextures[u8Index] == pTexture) {
       return;
     }
 
-    m_pCachedWriteTextures[static_cast<uint>(eShaderStage)][u8Index] = pTexture;
-    m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::WRITE_TEXTURES);
+    m_pCachedWriteTextures[u8Index] = pTexture;
+    m_uResourceRebindMask |= static_cast<uint>(ResourceRebindFlags::WRITE_TEXTURES);
 
-    m_uNumWriteTexturesToBind[static_cast<uint>(eShaderStage)] = 
-      glm::max(m_uNumWriteTexturesToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
-    m_uWriteTextureBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
+    m_uNumWriteTexturesToBind = glm::max(m_uNumWriteTexturesToBind, u8Index + 1u);
+    m_uWriteTextureBindMask |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setReadBuffer(const GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8Index )
+  void RendererGL4::setReadBuffer(const GpuBuffer* pBuffer, const uint8 u8Index )
   {
     ASSERT_M(u8Index < Rendering::Constants::kMaxNumReadBuffers, "Referenced an undefined buffer register");
   
-    if(m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8Index] == pBuffer) {
+    if(m_pCachedReadBuffers[u8Index] == pBuffer) {
       return;
     }
 
-    m_pCachedReadBuffers[static_cast<uint>(eShaderStage)][u8Index] = pBuffer;
-    m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::READ_BUFFERS);
+    m_pCachedReadBuffers[u8Index] = pBuffer;
+    m_uResourceRebindMask |= static_cast<uint>(ResourceRebindFlags::READ_BUFFERS);
 
-    m_uNumReadBuffersToBind[static_cast<uint>(eShaderStage)] = 
-      glm::max(m_uNumReadBuffersToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
-    m_uReadBufferBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
+    m_uNumReadBuffersToBind = glm::max(m_uNumReadBuffersToBind, u8Index + 1u);
+    m_uReadBufferBindMask |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setConstantBuffer(const GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8Index)
+  void RendererGL4::setConstantBuffer(const GpuBuffer* pConstantBuffer, const uint8 u8Index)
   {
     ASSERT_M(u8Index < (uint32) ConstantBufferType::NUM, "Referenced an undefined constant buffer register");
   
-    if(m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8Index] == pConstantBuffer) {
+    if(m_pCachedConstantBuffers[u8Index] == pConstantBuffer) {
       return;
     }
 
-    m_pCachedConstantBuffers[static_cast<uint>(eShaderStage)][u8Index] = pConstantBuffer;
-    m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::CONSTANT_BUFFERS);
+    m_pCachedConstantBuffers[u8Index] = pConstantBuffer;
+    m_uResourceRebindMask |= static_cast<uint>(ResourceRebindFlags::CONSTANT_BUFFERS);
 
-    m_uNumConstantBuffersToBind[static_cast<uint>(eShaderStage)] = 
-      glm::max(m_uNumConstantBuffersToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
-    m_uConstantBufferBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
+    m_uNumConstantBuffersToBind = glm::max(m_uNumConstantBuffersToBind, u8Index + 1u);
+    m_uConstantBufferBindMask |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setTextureSampler(const TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8Index )
+  void RendererGL4::setTextureSampler(const TextureSampler* pSampler, const uint8 u8Index )
   {
     ASSERT_M(u8Index < Rendering::Constants::kMaxNumTextureSamplers, "Referenced an undefined sampler register");
   
-    if(m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8Index] == pSampler) {
+    if(m_pCachedTextureSamplers[u8Index] == pSampler) {
       return;
     }
 
-    m_pCachedTextureSamplers[static_cast<uint>(eShaderStage)][u8Index] = pSampler;
-    m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::TEXTURE_SAMPLERS);
+    m_pCachedTextureSamplers[u8Index] = pSampler;
+    m_uResourceRebindMask |= static_cast<uint>(ResourceRebindFlags::TEXTURE_SAMPLERS);
 
-    m_uNumTextureSamplersToBind[static_cast<uint>(eShaderStage)] = 
-      glm::max(m_uNumTextureSamplersToBind[static_cast<uint>(eShaderStage)], u8Index + 1u);
-    m_uTextureSamplerBindMask[static_cast<uint>(eShaderStage)] |= (1u<<u8Index);
+    m_uNumTextureSamplersToBind = glm::max(m_uNumTextureSamplersToBind, u8Index + 1u);
+    m_uTextureSamplerBindMask |= (1u<<u8Index);
   }
 //-----------------------------------------------------------------------//
-  void RendererGL4::setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage )
+  /*void RendererGL4::setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage )
   {
-    if(m_pBoundGPUPrograms[static_cast<uint>(eShaderStage)] == pProgram) {
+    if(m_pBoundGPUPrograms == pProgram) {
       return;
     }
 
-    m_pBoundGPUPrograms[static_cast<uint>(eShaderStage)] = pProgram;
-    m_uResourceRebindMask[static_cast<uint>(eShaderStage)] |= static_cast<uint>(ResourceRebindFlags::GPU_PROGRAMS);
+    m_pBoundGPUPrograms = pProgram;
+    m_uResourceRebindMask |= static_cast<uint>(ResourceRebindFlags::GPU_PROGRAMS);
 
     // For now we re-set all resources if a shader has changed.
     // TODO: Avoid this in the future. Try to hide individual setGpuProgram() calls in a 
@@ -556,10 +529,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       invalidateResourceCache((uint32)eShaderStage);
     }
   }
+  */
 //---------------------------------------------------------------------------//
-  void RendererGL4::invalidateResourceCache(const uint32 uShaderStageIdx)
+  void RendererGL4::invalidateResourceCache()
   {
-    m_uResourceRebindMask[uShaderStageIdx] = static_cast<uint>(ResourceRebindFlags::ALL);
+    m_uResourceRebindMask = static_cast<uint>(ResourceRebindFlags::ALL);
 
     // Reset this stuff during material change?
     // Determine the needed rebind-counts
@@ -612,48 +586,44 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::bindResourcesToPipeline()
   {
-    for (uint32 uStageIdx = 0u; uStageIdx < (uint32) ShaderStage::NUM; ++uStageIdx)
-    {
-      const GpuProgram* pGpuProgram = m_pBoundGPUPrograms[uStageIdx];
-      const uint32 uResourceRebindMask = m_uResourceRebindMask[uStageIdx];
-      m_uResourceRebindMask[uStageIdx] = 0u;
+    const uint32 uResourceRebindMask = m_uResourceRebindMask;
+    m_uResourceRebindMask = 0u;
       
-      if (!pGpuProgram || uResourceRebindMask == 0u)
+    if (uResourceRebindMask == 0u)
+    {
+      return;
+    }
+
+    // Constant buffers
+    if (uResourceRebindMask & (uint32) ResourceRebindFlags::CONSTANT_BUFFERS)
+    {
+      const GpuBuffer** ppConstantBuffersToBind = m_pCachedConstantBuffers;
+      const uint32 uConstantBufferBindMask = m_uConstantBufferBindMask;
+      m_uConstantBufferBindMask = 0u;
+
+      const uint32 uNumConstantBuffersToBind = m_uNumConstantBuffersToBind;
+      m_uNumConstantBuffersToBind = 0u;
+
+      for (uint32 i = 0u; i < uNumConstantBuffersToBind; ++i)
       {
-        continue;
-      }
-
-      // Constant buffers
-      if (uResourceRebindMask & (uint32) ResourceRebindFlags::CONSTANT_BUFFERS)
-      {
-        const GpuBuffer** ppConstantBuffersToBind = m_pCachedConstantBuffers[uStageIdx];
-        const uint32 uConstantBufferBindMask = m_uConstantBufferBindMask[uStageIdx];
-        m_uConstantBufferBindMask[uStageIdx] = 0u;
-
-        const uint32 uNumConstantBuffersToBind = m_uNumConstantBuffersToBind[uStageIdx];
-        m_uNumConstantBuffersToBind[uStageIdx] = 0u;
-
-        for (uint32 i = 0u; i < uNumConstantBuffersToBind; ++i)
+        if ((uConstantBufferBindMask & (1 << i)) > 0)
         {
-          if ((uConstantBufferBindMask & (1 << i)) > 0)
-          {
-            const GpuBuffer* pConstantBuffer = ppConstantBuffersToBind[i];
-            const GLuint uGLhandle = pConstantBuffer ? pConstantBuffer->getGLhandle() : 0u;
+          const GpuBuffer* pConstantBuffer = ppConstantBuffersToBind[i];
+          const GLuint uGLhandle = pConstantBuffer ? pConstantBuffer->getGLhandle() : 0u;
 
-            glBindBufferBase(GL_UNIFORM_BUFFER, i, uGLhandle);
-          }
+          glBindBufferBase(GL_UNIFORM_BUFFER, i, uGLhandle);
         }
       }
 
       // Read textures
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::READ_TEXTURES)
       {
-        const Texture** ppTexturesToBind = m_pCachedReadTextures[uStageIdx];
-        const uint32 uReadTextureBindMask = m_uReadTextureBindMask[uStageIdx];
-        m_uReadTextureBindMask[uStageIdx] = 0u;
+        const Texture** ppTexturesToBind = m_pCachedReadTextures;
+        const uint32 uReadTextureBindMask = m_uReadTextureBindMask;
+        m_uReadTextureBindMask = 0u;
 
-        const uint32 uNumReadTexturesToBind = m_uNumReadTexturesToBind[uStageIdx];
-        m_uNumReadTexturesToBind[uStageIdx] = 0u;
+        const uint32 uNumReadTexturesToBind = m_uNumReadTexturesToBind;
+        m_uNumReadTexturesToBind = 0u;
         for (uint32 i = 0u; i < uNumReadTexturesToBind; ++i)
         {
           if ((uReadTextureBindMask & (1 << i)) > 0)
@@ -670,12 +640,12 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Sampler objects
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::TEXTURE_SAMPLERS)
       {
-        const TextureSampler** ppSamplersToBind = m_pCachedTextureSamplers[uStageIdx];
-        const uint32 uSamplerBindMask = m_uTextureSamplerBindMask[uStageIdx];
-        m_uTextureSamplerBindMask[uStageIdx] = 0u;
+        const TextureSampler** ppSamplersToBind = m_pCachedTextureSamplers;
+        const uint32 uSamplerBindMask = m_uTextureSamplerBindMask;
+        m_uTextureSamplerBindMask = 0u;
 
-        const uint32 uNumSamplersToBind = m_uNumTextureSamplersToBind[uStageIdx];
-        m_uNumTextureSamplersToBind[uStageIdx] = 0u;
+        const uint32 uNumSamplersToBind = m_uNumTextureSamplersToBind;
+        m_uNumTextureSamplersToBind = 0u;
         for (uint32 i = 0u; i < uNumSamplersToBind; ++i)
         {
           if ((uSamplerBindMask & (1 << i)) > 0)
@@ -691,12 +661,12 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       // Write textures
       if (uResourceRebindMask & (uint32) ResourceRebindFlags::WRITE_TEXTURES)
       {
-        const Texture** ppTexturesToBind = m_pCachedWriteTextures[uStageIdx];
-        const uint32 uWriteTextureBindMask = m_uWriteTextureBindMask[uStageIdx];
-        m_uWriteTextureBindMask[uStageIdx] = 0u;
+        const Texture** ppTexturesToBind = m_pCachedWriteTextures;
+        const uint32 uWriteTextureBindMask = m_uWriteTextureBindMask;
+        m_uWriteTextureBindMask = 0u;
 
-        const uint uNumWriteTexturesTobind = m_uNumWriteTexturesToBind[uStageIdx];
-        m_uNumWriteTexturesToBind[uStageIdx] = 0u;
+        const uint uNumWriteTexturesTobind = m_uNumWriteTexturesToBind;
+        m_uNumWriteTexturesToBind = 0u;
         for (uint32 i = 0u; i < uNumWriteTexturesTobind; ++i)
         {
           if ((uWriteTextureBindMask & (1 << i)) > 0)
@@ -1026,7 +996,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     // TODO: Add support for 1D, 3D, cubemap RenderTargets
   }
 //---------------------------------------------------------------------------//
-  GLuint RendererGL4::createOrRetrieveProgramPipeline()
+ /* GLuint RendererGL4::createOrRetrieveProgramPipeline()
   {
     uint hash = 0;
     for (uint32 i = 0u; i < _countof(m_pBoundGPUPrograms); ++i)
@@ -1071,6 +1041,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     
     return uPipeline;
   }
+  */
 //---------------------------------------------------------------------------//
   const RendererGL4::VaoCacheEntry& 
     RendererGL4::createOrRetrieveVAO(const GeometryVertexLayout* pGeoVertexLayout, 
@@ -1208,14 +1179,17 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
   }
 //---------------------------------------------------------------------------//
+  void RendererGL4::SetGpuProgramPipeline(const GpuProgramPipeline* aPipeline)
+  {
+    myGpuProgramPipelineToBind = aPipeline;
+  }
+//---------------------------------------------------------------------------//
   void RendererGL4::renderGeometry(const Geometry::GeometryData* pGeometry)
   {
-    // First create or retrieve a programPipeline object and bind it. 
-    const GLuint uProgPipeline = createOrRetrieveProgramPipeline();
-    if (m_uCurrentGpuProgramPipeline != uProgPipeline)
+    if (myCachedProgramPipeline != myGpuProgramPipelineToBind)
     {
-      glBindProgramPipeline(uProgPipeline);
-      m_uCurrentGpuProgramPipeline = uProgPipeline;
+      glBindProgramPipeline(myGpuProgramPipelineToBind->myPipelineHandleGL);
+      myCachedProgramPipeline = myGpuProgramPipelineToBind;
     }
             
     applyViewport();
@@ -1229,7 +1203,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     const GeometryVertexLayout* vertLayoutGeo = &pGeometry->getGeometryVertexLayout();
     const ShaderVertexInputLayout* vertLayoutShader = 
-      m_pBoundGPUPrograms[(uint32)ShaderStage::VERTEX]->getVertexInputLayout();
+      myCachedProgramPipeline->myGpuPrograms[(uint32)ShaderStage::VERTEX]->getVertexInputLayout();
 
     const VaoCacheEntry uVaoEntry = 
       createOrRetrieveVAO(vertLayoutGeo, vertLayoutShader);

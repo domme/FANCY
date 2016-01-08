@@ -6,20 +6,34 @@
 
 #if defined (RENDERER_OPENGL4)
 
+#include "Serializable.h"
+
+namespace Fancy{ namespace IO{
+class Serializer;
+} }
+
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   class GpuProgramPipelineGL4
   {
   public:
+    SERIALIZABLE(GpuProgramPipelineGL4);
+
+    void serialize(IO::Serializer* aSerializer);
+    static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
+    const ObjectName& getName() const { return ObjectName(myShaderHash); }
+
     GpuProgramPipelineGL4();
     ~GpuProgramPipelineGL4();
+    bool operator=(const GpuProgramPipelineGL4& anOther);
+    
+    void Regenerate();
+    void RecomputeHashFromShaders();
 
-    bool hasStage(ShaderStage eStage) const {m_vGpuPrograms[(uint32)eStage] != nullptr;}
+    GpuProgram* myGpuPrograms[(uint32)ShaderStage::NUM];
 
-  protected:
-    GpuProgramGL4* m_vGpuPrograms[(uint32)ShaderStage::NUM];
-
-    GLuint m_uPipelineHandleGL;
+    uint myShaderHash;  /// Used to quickly compare two pipelines
+    GLuint myPipelineHandleGL;
   };
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Rendering:GL4

@@ -36,6 +36,8 @@
 #include "JSONreader.h"
 #include "GpuProgramFeatures.h"
 #include "VertexInputLayout.h"
+#include "GpuProgramPipeline.h"
+#include "MaterialPassInstance.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -650,14 +652,25 @@ namespace Fancy { namespace IO {
     GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialForward.shader", permutation, ShaderStage::VERTEX);
     GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialForward.shader", permutation, ShaderStage::FRAGMENT);
 
+    GpuProgramPipeline pipelineTemplate;
+    pipelineTemplate.myGpuPrograms[(uint32)ShaderStage::VERTEX] = pVertexProgram;
+    pipelineTemplate.myGpuPrograms[(uint32)ShaderStage::FRAGMENT] = pFragmentProgram;
+    pipelineTemplate.RecomputeHashFromShaders();
+    GpuProgramPipeline* pipeline = GpuProgramPipeline::findEqual(pipelineTemplate);
+    if (pipeline == nullptr)
+    {
+      pipeline = FANCY_NEW(GpuProgramPipeline(pipelineTemplate), MemoryCategory::MATERIALS);
+      pipeline->Regenerate();
+      GpuProgramPipeline::registerWithName(pipeline);
+    }
+
     MaterialPass matPassTemplate;
     matPassTemplate.m_pBlendState = BlendState::getByName(_N(BlendState_Solid));
     matPassTemplate.m_pDepthStencilState = DepthStencilState::getByName(_N(DepthStencilState_DefaultDepthState));
     matPassTemplate.m_eCullMode = CullMode::BACK;
     matPassTemplate.m_eFillMode = FillMode::SOLID;
     matPassTemplate.m_eWindingOrder = WindingOrder::CCW;
-    matPassTemplate.m_pGpuProgram[(uint32)ShaderStage::VERTEX] = pVertexProgram;
-    matPassTemplate.m_pGpuProgram[(uint32)ShaderStage::FRAGMENT] = pFragmentProgram;
+    matPassTemplate.myProgramPipeline = pipeline;
     matPassTemplate.m_Name = "MaterialPass_" + StringUtil::toString(MathUtil::hashFromGeneric(matPassTemplate));
 
     // Try to find an existing MaterialPass with this description
@@ -669,9 +682,9 @@ namespace Fancy { namespace IO {
     }
 
     MaterialPassInstance solidForwardMpiTemplate;
-    solidForwardMpiTemplate.setReadTexture(ShaderStage::FRAGMENT, 0u, pDiffuseTex);
-    solidForwardMpiTemplate.setReadTexture(ShaderStage::FRAGMENT, 1u, pNormalTex);
-    solidForwardMpiTemplate.setReadTexture(ShaderStage::FRAGMENT, 2u, pSpecularTex);    
+    solidForwardMpiTemplate.setReadTexture(0u, pDiffuseTex);
+    solidForwardMpiTemplate.setReadTexture(1u, pNormalTex);
+    solidForwardMpiTemplate.setReadTexture(2u, pSpecularTex);    
 
     // Try to find a fitting MaterialPassInstance managed by MaterialPass
     MaterialPassInstance* pSolidForwardMpi = pMaterialPass->getMaterialPassInstance(solidForwardMpiTemplate.computeHash());

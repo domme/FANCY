@@ -4,10 +4,11 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE
+#include "StaticManagedObject.h"
 
 namespace Fancy { namespace Rendering {
 
-  class GpuProgramPipeline : public PLATFORM_DEPENDENT_NAME(GpuProgramPipeline)
+  class GpuProgramPipeline : public PLATFORM_DEPENDENT_NAME(GpuProgramPipeline), public StaticManagedHeapObject<GpuProgramPipeline>
   {
 
   };

@@ -257,6 +257,7 @@
     <ClInclude Include="src\lodepng.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\MaterialPass.h" />
+    <ClInclude Include="src\MaterialPassInstance.h" />
     <ClInclude Include="src\MathUtil.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Model.h" />
@@ -334,6 +335,7 @@
     <ClCompile Include="src\lodepng.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\MaterialPass.cpp" />
+    <ClCompile Include="src\MaterialPassInstance.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\ModelComponent.cpp" />

@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-#if defined(RENDERER_GL4)
+#if defined(RENDERER_OPENGL4)
 //---------------------------------------------------------------------------//
   namespace Fancy { namespace Rendering {
       class MaterialPassInstance;
@@ -24,4 +24,4 @@
   };
 //---------------------------------------------------------------------------//
 } } } // namespace Fancy { namespace Rendering { namespace GL4 {
-#endif // RENDERER_GL4
+#endif // RENDERER_OPENGL4
