@@ -33,3 +33,4 @@ lib/x64/Debug/fancy_core.exp
 *.exp
 *.cache
 *.exp
+*.opendb

@@ -398,6 +398,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	{
 	}
 //---------------------------------------------------------------------------//
+  void RendererDX12::SetGraphicsRootSignature(ID3D12RootSignature* aRootSignature)
+  {
+    ComPtr<ID3D12GraphicsCommandList>& cmdList = getGraphicsCmdList();
+    cmdList->SetGraphicsRootSignature(aRootSignature);
+  }
+//---------------------------------------------------------------------------//
 	void RendererDX12::setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
 	{
     ComPtr<ID3D12GraphicsCommandList>& cmdList = getGraphicsCmdList();

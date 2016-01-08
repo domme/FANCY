@@ -18,16 +18,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class GpuDataInterfaceDX12
   {
     public:
-      explicit GpuDataInterfaceDX12(const std::vector<GpuResourceSignature>& someGpuResourceSignatures);
+      explicit GpuDataInterfaceDX12();
       ~GpuDataInterfaceDX12() {}
 
-      void SetGpuResourceSignature(const GpuResourceSignature& aSignature);
       void applyMaterialPass(const MaterialPass* _pMaterialPass, Renderer* _pRenderer);
       void applyMaterialPassInstance(const MaterialPassInstance* _pMaterialPassInstance, Renderer* _pRenderer);
-
-    protected:
-      std::vector<uint> myGpuResourceSignatureHashes;
-      std::vector<ComPtr<ID3D12RootSignature>> myRootSignatures;
   };
 //---------------------------------------------------------------------------//
 }}} // namespace Fancy { namespace Rendering { namespace DX12 {

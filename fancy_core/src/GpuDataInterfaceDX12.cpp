@@ -7,14 +7,9 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  GpuDataInterfaceDX12::GpuDataInterfaceDX12(const std::vector<GpuResourceSignature>& someGpuResourceSignatures) 
+  GpuDataInterfaceDX12::GpuDataInterfaceDX12()
   {
-    // TODO: Create and store the native RootSignature list from the provided list of GpuResourceSignatures
-  }
-//---------------------------------------------------------------------------//
-  void GpuDataInterfaceDX12::SetGpuResourceSignature(const GpuResourceSignature& aSignature)
-  {
-    // TODO: Look for the corresponding native RootSignature and set it active
+    
   }
 //---------------------------------------------------------------------------//
   void GpuDataInterfaceDX12::applyMaterialPassInstance(const MaterialPassInstance* _pMaterialPassInstance, Renderer* _pRenderer)

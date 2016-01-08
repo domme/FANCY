@@ -90,6 +90,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		void setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
 		void removeAllRenderTargets();
 
+    void SetGraphicsRootSignature(ID3D12RootSignature* aRootSignature);
+
 		void setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
 		void setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
 		void setReadBuffer(const GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
