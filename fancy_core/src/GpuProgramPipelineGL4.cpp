@@ -33,9 +33,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   GpuProgramPipelineGL4::~GpuProgramPipelineGL4()
   {
+    if (myPipelineHandleGL != GLUINT_HANDLE_INVALID)
+      glDeleteProgramPipelines(1, &myPipelineHandleGL);
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramPipelineGL4::operator=(const GpuProgramPipelineGL4& anOther)
+  bool GpuProgramPipelineGL4::operator==(const GpuProgramPipelineGL4& anOther)
   {
     return myShaderHash == anOther.myShaderHash;
   }

@@ -389,15 +389,10 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::bindBuffers(Rendering::Renderer* _pRenderer)
   {
-    for (uint32 iShaderStage = 0u; iShaderStage < (uint32) ShaderStage::NUM; ++iShaderStage)
+    for (uint32 iConstantBuffer = 0u; iConstantBuffer < (uint32) ConstantBufferType::NUM; ++iConstantBuffer)
     {
-      const ShaderStage eShaderStage = (ShaderStage) iShaderStage;
-
-      for (uint32 iConstantBuffer = 0u; iConstantBuffer < (uint32) ConstantBufferType::NUM; ++iConstantBuffer)
-      {
-        const GpuBuffer* pConstantBuffer = Storage::m_vConstantBuffers[iConstantBuffer];
-        _pRenderer->setConstantBuffer(pConstantBuffer, eShaderStage, iConstantBuffer);
-      }
+      const GpuBuffer* pConstantBuffer = Storage::m_vConstantBuffers[iConstantBuffer];
+      _pRenderer->setConstantBuffer(pConstantBuffer, iConstantBuffer);
     }
   }
 //---------------------------------------------------------------------------//

@@ -2,6 +2,7 @@
 #include "GpuProgram.h"
 
 #include "MaterialPass.h"
+#include "MaterialPassInstance.h"
 #include "Material.h"
 #include "GpuProgram.h"
 #include "Model.h"

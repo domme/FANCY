@@ -1,6 +1,7 @@
 #include "Material.h"
 #include "Serializer.h"
 #include "MaterialPass.h"
+#include "MaterialPassInstance.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//

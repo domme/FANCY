@@ -1,4 +1,5 @@
 #include "MaterialPassInstance.h"
+#include "MaterialPass.h"
 #include "MathUtil.h"
 #include "Texture.h"
 #include "GpuBuffer.h"

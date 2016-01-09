@@ -35,7 +35,7 @@ namespace Fancy { namespace Rendering {
   public:
     SERIALIZABLE(MaterialPassInstance)
 
-     MaterialPassInstance();
+    MaterialPassInstance();
     ~MaterialPassInstance();
 
     void serialize(IO::Serializer* aSerializer);

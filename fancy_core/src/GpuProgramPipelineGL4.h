@@ -21,11 +21,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
-    const ObjectName& getName() const { return ObjectName(myShaderHash); }
+    ObjectName getName() const { return ObjectName(myShaderHash); }
 
     GpuProgramPipelineGL4();
     ~GpuProgramPipelineGL4();
-    bool operator=(const GpuProgramPipelineGL4& anOther);
+    bool operator==(const GpuProgramPipelineGL4& anOther);
     
     void Regenerate();
     void RecomputeHashFromShaders();

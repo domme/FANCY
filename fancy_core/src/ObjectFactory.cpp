@@ -1,6 +1,7 @@
 #include "ObjectFactory.h"
 #include "GpuProgram.h"
 #include "MaterialPass.h"
+#include "MaterialPassInstance.h"
 #include "Texture.h"
 #include "Mesh.h"
 #include "Material.h"
@@ -105,7 +106,7 @@ namespace Fancy { namespace IO {
       if (createFuncEntry.first == aTypeName)
         return createFuncEntry.second(anInstanceName, aWasCreated);
 
-    ASSERT(false, "Unknown typename");
+    ASSERT_M(false, "Unknown typename");
     return nullptr;
   }
 //---------------------------------------------------------------------------//

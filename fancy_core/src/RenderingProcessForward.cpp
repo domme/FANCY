@@ -7,6 +7,7 @@
 #include "MaterialPass.h"
 #include "LightComponent.h"
 #include "GpuDataInterface.h"
+#include "MaterialPassInstance.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
