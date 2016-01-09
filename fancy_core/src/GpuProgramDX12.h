@@ -10,6 +10,8 @@ class ObjectFactory;
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
+  class RootSignatureDX12;
+//---------------------------------------------------------------------------//
   struct ShaderVertexInputLayoutDX12
   {
     std::vector<D3D12_INPUT_ELEMENT_DESC> myElements;
@@ -40,7 +42,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
     /// Returns the pipeline state embedded into the HLSL code
-    const ComPtr<ID3D12PipelineState>& getPipelineState() { return myPipelineState; }
+    const RootSignatureDX12* GetRootSignature() { return myRootSignature; }
 
   private:
     ObjectName myName;
@@ -53,7 +55,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ShaderVertexInputLayout myInputLayout;
 
     ComPtr<ID3DBlob> myNativeData;
-    ComPtr<ID3D12PipelineState> myPipelineState;
+    RootSignatureDX12* myRootSignature;
     
     D3D12_SHADER_BYTECODE myNativeByteCode;
   };

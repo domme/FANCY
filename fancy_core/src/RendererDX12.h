@@ -16,8 +16,6 @@ namespace Fancy { namespace Rendering {
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
   struct InputLayout
   {
     std::vector<D3D12_INPUT_ELEMENT_DESC> myElements;
@@ -137,6 +135,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myRtvHeap;
     uint myRtvDescriptorSize;
 	};
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  class RenderingSubsystemDX12
+  {
+  public:
+    static void Init();
+    static void Shutdown();
+  };
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Renderer::DX12
 

@@ -45,6 +45,7 @@ namespace Fancy {
   void EngineCommon::shutdownEngine()
   {
     IO::SceneImporter::destroyLogger();
+    ShutdownRenderingSubsystem();
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::initComponentSubsystem()
@@ -57,6 +58,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void EngineCommon::initRenderingSubsystem(void* aNativeWindowHandle)
   {
+    Rendering::RenderingSubsystem::Init();
+
     // Init common blend- and depthstencil states
     Rendering::BlendState::init();
     Rendering::DepthStencilState::init();
@@ -64,6 +67,11 @@ namespace Fancy {
     Rendering::Renderer& rend = Rendering::Renderer::getInstance();
     rend.init(aNativeWindowHandle);
     rend.postInit();
+  }
+//---------------------------------------------------------------------------//
+  void EngineCommon::ShutdownRenderingSubsystem()
+  {
+    Rendering::RenderingSubsystem::Shutdown();
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::initIOsubsystem()

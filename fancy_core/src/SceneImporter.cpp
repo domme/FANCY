@@ -660,7 +660,6 @@ namespace Fancy { namespace IO {
     if (pipeline == nullptr)
     {
       pipeline = FANCY_NEW(GpuProgramPipeline(pipelineTemplate), MemoryCategory::MATERIALS);
-      pipeline->Regenerate();
       GpuProgramPipeline::registerWithName(pipeline);
     }
 

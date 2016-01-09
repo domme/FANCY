@@ -4,6 +4,7 @@
 #if defined (RENDERER_DX12)
 #include "MathUtil.h"
 #include "GpuProgram.h"
+#include "RootSignatureDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
 //---------------------------------------------------------------------------//
@@ -478,6 +479,18 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	}
 //---------------------------------------------------------------------------//
 #pragma endregion 
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  void RenderingSubsystemDX12::Init()
+  {
+    RootSignaturePoolDX12::Init();
+  }
+//---------------------------------------------------------------------------//
+  void RenderingSubsystemDX12::Shutdown()
+  {
+    RootSignaturePoolDX12::Destroy();
+  }
 //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::DX12
 

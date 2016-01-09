@@ -1,43 +1,39 @@
-#ifndef INCLUDE_GPUPROGRAMPIPELINEGL4_H
-#define INCLUDE_GPUPROGRAMPIPELINEGL4_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-#if defined (RENDERER_OPENGL4)
+#if defined (RENDERER_DX12)
 
 #include "Serializable.h"
 
-namespace Fancy{ namespace IO{
-class Serializer;
+namespace Fancy { namespace IO {
+  class Serializer;
 } }
 
-namespace Fancy { namespace Rendering { namespace GL4 {
+namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  class GpuProgramPipelineGL4
+  class GpuProgramPipelineDX12
   {
   public:
-    SERIALIZABLE(GpuProgramPipelineGL4);
+    SERIALIZABLE(GpuProgramPipelineDX12);
 
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
     ObjectName getName() const { return ObjectName(myShaderHash); }
 
-    GpuProgramPipelineGL4();
-    ~GpuProgramPipelineGL4();
-    bool operator==(const GpuProgramPipelineGL4& anOther);
+    GpuProgramPipelineDX12();
+    ~GpuProgramPipelineDX12();
+    bool operator==(const GpuProgramPipelineDX12& anOther);
     
-    GLuint GeneratePipelineHandleGL();
     void RecomputeHashFromShaders();
 
     GpuProgram* myGpuPrograms[(uint32)ShaderStage::NUM];
 
     uint myShaderHash;  /// Used to quickly compare two pipelines
-    GLuint myPipelineHandleGL;
+    ComPtr<ID3D12RootSignature> myRootSignature;
   };
 //---------------------------------------------------------------------------//
-} } } // end of namespace Fancy::Rendering:GL4
+} } }
 
-#endif
-
-#endif  // INCLUDE_GPUPROGRAMPIPELINEGL4_H
+#endif  // RENDERER_DX12

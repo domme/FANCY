@@ -2,8 +2,8 @@
 #define INCLUDE_RENDERERPREREQUISITES_H
 
 // This define selects the render-system
-#define RENDERER_OPENGL4
-// #define RENDERER_DX12
+// #define RENDERER_OPENGL4
+#define RENDERER_DX12
 
 #if defined (RENDERER_OPENGL4)
 	#include "OpenGLprerequisites.h"
@@ -73,6 +73,7 @@ namespace Fancy {
         class TextureSamplerGL4;
         class GpuProgramResourceGL4;
         class GpuDataInterfaceGL4;
+        class RenderingSubsystemGL4;
       }
 
       #define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::GL4::name##GL4
@@ -101,6 +102,7 @@ namespace Fancy {
 			class TextureSamplerDX12;
 			class GpuProgramResourceDX12;
       class GpuDataInterfaceDX12;
+      class RenderingSubsystemDX12;
 		}
 
 		#define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX12::name##DX12

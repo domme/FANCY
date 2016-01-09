@@ -174,7 +174,16 @@ protected:
   CullMode			      m_eCullMode;
   WindingOrder		    m_eWindingOrder;
 };
+//---------------------------------------------------------------------------//
 
+//---------------------------------------------------------------------------//
+class RenderingSubsystemGL4
+{
+public:
+  static void Init();
+  static void Shutdown();
+};
+//---------------------------------------------------------------------------//
 } // end of namespace GL4
 } // end of namespace Rendering
 } // end of namespace Fancy

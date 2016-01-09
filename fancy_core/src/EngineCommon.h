@@ -35,6 +35,7 @@ namespace Fancy {
 
     static void initComponentSubsystem();
     static void initRenderingSubsystem(void* aNativeWindowHandle);
+    static void ShutdownRenderingSubsystem();
     static void initIOsubsystem();
 
     static Scene::ScenePtr m_pCurrScene;

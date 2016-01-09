@@ -5,6 +5,7 @@
 #include "MaterialPass.h"
 #include "Renderer.h"
 #include "MaterialPassInstance.h"
+#include "GpuProgramPipeline.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
@@ -55,6 +56,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     _pRenderer->setCullMode(_pMaterialPass->getCullMode());
     _pRenderer->setFillMode(_pMaterialPass->getFillMode());
     _pRenderer->setWindingOrder(_pMaterialPass->getWindingOrder());
+    
+    // TODO: Find a nicer place for the PipelineHandle-generation...
+    if (_pMaterialPass->myProgramPipeline->myPipelineHandleGL == GLUINT_HANDLE_INVALID)  // Lazy init...
+      _pMaterialPass->myProgramPipeline->GeneratePipelineHandleGL();
 
     _pRenderer->SetGpuProgramPipeline(_pMaterialPass->myProgramPipeline);
   }

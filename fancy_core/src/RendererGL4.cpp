@@ -1231,6 +1231,17 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     glDrawElements(GL_TRIANGLES, pGeometry->getNumIndices(), GL_UNSIGNED_INT, nullptr);
   }
 //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  void RenderingSubsystemGL4::Init()
+  {
+  }
+  //---------------------------------------------------------------------------//
+  void RenderingSubsystemGL4::Shutdown()
+  {
+  }
+  //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::GL4
 
 #endif

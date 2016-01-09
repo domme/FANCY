@@ -241,6 +241,7 @@
     <ClInclude Include="src\GpuProgramFeatures.h" />
     <ClInclude Include="src\GpuProgramGL4.h" />
     <ClInclude Include="src\GpuProgramPipeline.h" />
+    <ClInclude Include="src\GpuProgramPipelineDX12.h" />
     <ClInclude Include="src\GpuProgramPipelineGL4.h" />
     <ClInclude Include="src\GpuProgramResource.h" />
     <ClInclude Include="src\GLSLpreprocessor.h" />
@@ -273,6 +274,7 @@
     <ClInclude Include="src\RenderingProcess.h" />
     <ClInclude Include="src\RenderingProcessForward.h" />
     <ClInclude Include="src\RenderOperation.h" />
+    <ClInclude Include="src\RootSignatureDX12.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneImporter.h" />
     <ClInclude Include="src\SceneNode.h" />
@@ -321,6 +323,7 @@
     <ClCompile Include="src\GpuProgramDX12.cpp" />
     <ClCompile Include="src\GpuProgramFeatures.cpp" />
     <ClCompile Include="src\GpuProgramGL4.cpp" />
+    <ClCompile Include="src\GpuProgramPipelineDX12.cpp" />
     <ClCompile Include="src\GpuProgramPipelineGL4.cpp" />
     <ClCompile Include="src\GLSLpreprocessor.cpp" />
     <ClCompile Include="src\GpuProgramResource.cpp" />
@@ -349,6 +352,7 @@
     <ClCompile Include="src\RenderingProcess.cpp" />
     <ClCompile Include="src\RenderingProcessForward.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
+    <ClCompile Include="src\RootSignatureDX12.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\SceneImporter.cpp" />
     <ClCompile Include="src\SceneNode.cpp" />

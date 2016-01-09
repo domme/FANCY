@@ -5,17 +5,24 @@
 #include PLATFORM_DEPENDENT_INCLUDE_RENDERER
 
 namespace Fancy { namespace Rendering {
+//---------------------------------------------------------------------------//
+  class Renderer : public PLATFORM_DEPENDENT_NAME(Renderer)
+  {
+    public:
+      static Renderer& getInstance() { static Renderer instance; return instance; }
+      virtual ~Renderer() {}
 
-class Renderer : public PLATFORM_DEPENDENT_NAME(Renderer)
-{
-  public:
-    static Renderer& getInstance() { static Renderer instance; return instance; }
-    virtual ~Renderer() {}
+    protected:
+      Renderer() {}
+  };
+//---------------------------------------------------------------------------//
 
-  protected:
-    Renderer() {}
-};
-
+//---------------------------------------------------------------------------//
+  class RenderingSubsystem : public PLATFORM_DEPENDENT_NAME(RenderingSubsystem)
+  {
+  
+  };
+//---------------------------------------------------------------------------//
 } // end of namespace Rendering
 } // end of namespace Fancy
 

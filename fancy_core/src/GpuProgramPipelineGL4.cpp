@@ -42,7 +42,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return myShaderHash == anOther.myShaderHash;
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipelineGL4::Regenerate()
+  GLuint GpuProgramPipelineGL4::GeneratePipelineHandleGL()
   {
     if (myPipelineHandleGL != GLUINT_HANDLE_INVALID)
       glDeleteProgramPipelines(1, &myPipelineHandleGL);
@@ -60,6 +60,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
 
     myPipelineHandleGL = uPipeline;
+    return uPipeline;
   }
 //---------------------------------------------------------------------------//
   void GpuProgramPipelineGL4::RecomputeHashFromShaders()
