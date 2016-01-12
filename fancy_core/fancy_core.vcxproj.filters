@@ -316,6 +316,9 @@
     <ClInclude Include="src\GpuProgramCompilerUtils.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="src\GUID.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -533,6 +536,9 @@
     </ClCompile>
     <ClCompile Include="src\GpuProgramCompilerUtils.cpp">
       <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUID.cpp">
+      <Filter>src\Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
