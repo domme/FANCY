@@ -296,27 +296,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  String locShaderStageToDefineString(ShaderStage _eStage)
-  {
-    switch (_eStage)
-    {
-    case Fancy::Rendering::ShaderStage::VERTEX:
-      return "PROGRAM_TYPE_VERTEX";
-    case Fancy::Rendering::ShaderStage::FRAGMENT:
-      return "PROGRAM_TYPE_FRAGMENT";
-    case Fancy::Rendering::ShaderStage::GEOMETRY:
-      return "PROGRAM_TYPE_GEOMETRY";
-    case Fancy::Rendering::ShaderStage::TESS_HULL:
-      return "PROGRAM_TYPE_TESS_HULL";
-    case Fancy::Rendering::ShaderStage::TESS_DOMAIN:
-      return "PROGRAM_TYPE_TESS_DOMAIN";
-    case Fancy::Rendering::ShaderStage::COMPUTE:
-      return "PROGRAM_TYPE_COMPUTE";
-    default:
-      return "";
-    }
-  }
-//---------------------------------------------------------------------------//
   FileBlock* locGetFileBlockForLine(uint32 _lineNumber, ShaderSourceInfo& _info)
   {
     for (uint32 i = 0u; i < _info.vFileBlocks.size(); ++i)
@@ -882,34 +861,42 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
 
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   GpuProgramCompilerGL4::~GpuProgramCompilerGL4()
   {
 
   }
-  //---------------------------------------------------------------------------//
-  GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const String& _shaderPath, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage)
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  // TODO: Find a nicer place for platform-dependent infos
+  String locShaderFileExtension = ".shader";
+  String locShaderDirectory = "shaders/GL4/";
+
+  GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const String& aShaderFileName, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage)
   {
-    String uniqueProgramName = _shaderPath + "_" + locShaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
+    String shaderFilePath = locShaderDirectory + aShaderFileName + locShaderFileExtension;
+
+    String uniqueProgramName = aShaderFileName + "_" + locShaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
     GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
     if (pGpuProgram != nullptr)
     {
       return pGpuProgram;
     }
 
-    log_Info("Compiling shader " + _shaderPath + " ...");
+    log_Info("Compiling shader " + aShaderFileName + " ...");
 
     std::list<String> sourceLines;
-    IO::FileReader::ReadTextFileLines(_shaderPath, sourceLines);
+    IO::FileReader::ReadTextFileLines(aShaderFileName, sourceLines);
 
     if (sourceLines.empty())
     {
-      log_Error("Error reading shader file " + _shaderPath);
+      log_Error("Error reading shader file " + aShaderFileName);
       return false;
     }
 
     ShaderSourceInfo sourceInfo;
-    locPreprocessShaderSource(_shaderPath, sourceLines, _permutation, _eShaderStage, sourceInfo);
+    locPreprocessShaderSource(aShaderFileName, sourceLines, _permutation, _eShaderStage, sourceInfo);
 
     // construct the final source string
     uint32 uRequiredLength = 0u;

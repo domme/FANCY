@@ -648,9 +648,9 @@ namespace Fancy { namespace IO {
     if (hasDiffuseTex) permutation.addFeature(GpuProgramFeature::FEAT_ALBEDO_TEXTURE);
     if (hasNormalTex) permutation.addFeature(GpuProgramFeature::FEAT_NORMAL_MAPPED);
     if (hasSpecTex) permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR); permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR_TEXTURE);
-
-    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialForward.shader", permutation, ShaderStage::VERTEX);
-    GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("Shader/MaterialForward.shader", permutation, ShaderStage::FRAGMENT);
+    
+    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("MaterialForward", permutation, ShaderStage::VERTEX);
+    GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("MaterialForward", permutation, ShaderStage::FRAGMENT);
 
     GpuProgramPipeline pipelineTemplate;
     pipelineTemplate.myGpuPrograms[(uint32)ShaderStage::VERTEX] = pVertexProgram;

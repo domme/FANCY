@@ -310,6 +310,12 @@
     <ClInclude Include="src\RootSignatureDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuProgramCompilerUtils.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -524,6 +530,9 @@
     </ClCompile>
     <ClCompile Include="src\RootSignatureDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgramCompilerUtils.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -210,6 +210,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h" />
     <ClInclude Include="src\AdapterDX12.h" />
     <ClInclude Include="src\AdapterGL4.h" />
     <ClInclude Include="src\BinaryCache.h" />
@@ -237,6 +238,7 @@
     <ClInclude Include="src\GpuProgramCompiler.h" />
     <ClInclude Include="src\GpuProgramCompilerDX12.h" />
     <ClInclude Include="src\GpuProgramCompilerGL4.h" />
+    <ClInclude Include="src\GpuProgramCompilerUtils.h" />
     <ClInclude Include="src\GpuProgramDX12.h" />
     <ClInclude Include="src\GpuProgramFeatures.h" />
     <ClInclude Include="src\GpuProgramGL4.h" />
@@ -320,6 +322,7 @@
     <ClCompile Include="src\GpuDataInterfaceGL4.cpp" />
     <ClCompile Include="src\GpuProgramCompilerDX12.cpp" />
     <ClCompile Include="src\GpuProgramCompilerGL4.cpp" />
+    <ClCompile Include="src\GpuProgramCompilerUtils.cpp" />
     <ClCompile Include="src\GpuProgramDX12.cpp" />
     <ClCompile Include="src\GpuProgramFeatures.cpp" />
     <ClCompile Include="src\GpuProgramGL4.cpp" />
