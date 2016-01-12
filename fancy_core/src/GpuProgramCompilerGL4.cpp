@@ -10,6 +10,7 @@
 
 #include <deque>
 #include "AdapterGL4.h"
+#include "GpuProgramCompilerUtils.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
@@ -385,7 +386,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     const uint32 kMaxNumDefines = 64u;
     FixedArray<String, kMaxNumDefines> vDefines;
-    vDefines.push_back("#define " + locShaderStageToDefineString(eShaderStage));
+    vDefines.push_back("#define " + GpuProgramCompilerUtils::ShaderStageToDefineString(eShaderStage));
     const GpuProgramFeatureList& vFeatures = _permutation.getFeatureList();
     for (uint32 i = 0u; i < vFeatures.size(); ++i)
     {
@@ -871,32 +872,32 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   // TODO: Find a nicer place for platform-dependent infos
   String locShaderFileExtension = ".shader";
-  String locShaderDirectory = "shaders/GL4/";
+  String locShaderDirectory = "shader/GL4/";
 
   GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const String& aShaderFileName, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage)
   {
     String shaderFilePath = locShaderDirectory + aShaderFileName + locShaderFileExtension;
 
-    String uniqueProgramName = aShaderFileName + "_" + locShaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
+    String uniqueProgramName = shaderFilePath + "_" + GpuProgramCompilerUtils::ShaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
     GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
     if (pGpuProgram != nullptr)
     {
       return pGpuProgram;
     }
 
-    log_Info("Compiling shader " + aShaderFileName + " ...");
+    log_Info("Compiling shader " + shaderFilePath + " ...");
 
     std::list<String> sourceLines;
-    IO::FileReader::ReadTextFileLines(aShaderFileName, sourceLines);
+    IO::FileReader::ReadTextFileLines(shaderFilePath, sourceLines);
 
     if (sourceLines.empty())
     {
-      log_Error("Error reading shader file " + aShaderFileName);
+      log_Error("Error reading shader file " + shaderFilePath);
       return false;
     }
 
     ShaderSourceInfo sourceInfo;
-    locPreprocessShaderSource(aShaderFileName, sourceLines, _permutation, _eShaderStage, sourceInfo);
+    locPreprocessShaderSource(shaderFilePath, sourceLines, _permutation, _eShaderStage, sourceInfo);
 
     // construct the final source string
     uint32 uRequiredLength = 0u;

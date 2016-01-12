@@ -4,6 +4,7 @@
 #include "GpuDataInterfaceDX12.h"
 #include "MaterialPass.h"
 #include "Renderer.h"
+#include "GpuProgramPipeline.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -30,7 +31,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
     {
       ShaderStage eStage = static_cast<ShaderStage>(i);
-      _pRenderer->setGpuProgram(_pMaterialPass->getGpuProgram(eStage), eStage);
+      _pRenderer->setGpuProgram(_pMaterialPass->myProgramPipeline->myGpuPrograms[(uint32)eStage], eStage);
     }
   }
 //---------------------------------------------------------------------------//

@@ -405,24 +405,24 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     cmdList->SetGraphicsRootSignature(aRootSignature);
   }
 //---------------------------------------------------------------------------//
-	void RendererDX12::setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
+	void RendererDX12::setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex)
 	{
     ComPtr<ID3D12GraphicsCommandList>& cmdList = getGraphicsCmdList();
 	}
 //---------------------------------------------------------------------------//
-	void RendererDX12::setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
+	void RendererDX12::setWriteTexture(const Texture* pTexture, const uint8 u8RegisterIndex)
 	{
 	}
 //---------------------------------------------------------------------------//
-	void RendererDX12::setReadBuffer(const GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
+	void RendererDX12::setReadBuffer(const GpuBuffer* pBuffer, const uint8 u8RegisterIndex)
 	{
 	}
 //---------------------------------------------------------------------------//
-	void RendererDX12::setConstantBuffer(const GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
+	void RendererDX12::setConstantBuffer(const GpuBuffer* pConstantBuffer, const uint8 u8RegisterIndex)
 	{
 	}
 //---------------------------------------------------------------------------//
-	void RendererDX12::setTextureSampler(const TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex)
+	void RendererDX12::setTextureSampler(const TextureSampler* pSampler, const uint8 u8RegisterIndex)
 	{
 	}
 //---------------------------------------------------------------------------//
@@ -473,9 +473,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       
       myPSOcache[requestedHash] = pso;
     }
-
     requestedState.myIsDirty = false;
-    myCommandList->SetPipelineState(pso);
+
+    ComPtr<ID3D12GraphicsCommandList>& cmdList = getGraphicsCmdList();
+    cmdList->SetPipelineState(pso);
 	}
 //---------------------------------------------------------------------------//
 #pragma endregion 

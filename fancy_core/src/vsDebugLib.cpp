@@ -26,6 +26,9 @@
  ---------------------------------------------------------------*/
 
 #include "vsDebugLib.h"
+
+#if defined (RENDERER_OPENGL4)
+
 #include <string.h>
 
 #ifdef _LINUX
@@ -348,3 +351,4 @@ void VSDebugLib::printStack() {
 } } }  // end of namespace Fancy::Rendering::GL4
 
 
+#endif  // RENDERER_OPENGL4

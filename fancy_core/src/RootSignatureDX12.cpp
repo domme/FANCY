@@ -24,9 +24,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return hash;
   }
 //---------------------------------------------------------------------------//
+  std::vector<RootSignatureDX12*> RootSignaturePoolDX12::myRootSignaturePool;
+//---------------------------------------------------------------------------//
   RootSignatureDX12* RootSignaturePoolDX12::CreateOrRetrieve(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, const ComPtr<ID3D12Device>& aDevice, const ComPtr<ID3D12RootSignature>* anRS /* = nullptr*/)
   {
-    const uint& requestedHash = locComputeRSdescHash(anRSdesc);
+   const uint& requestedHash = locComputeRSdescHash(anRSdesc);
 
     for (RootSignatureDX12* rs : myRootSignaturePool)
       if (rs->myHash == requestedHash)
@@ -35,8 +37,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     RootSignatureDX12* rs = FANCY_NEW(RootSignatureDX12, MemoryCategory::MATERIALS);
     myRootSignaturePool.push_back(rs);
     rs->myHash = requestedHash;
-    rs->myRootSignature = anRS;
-
+    
     if (anRS == nullptr)
     {
       ComPtr<ID3DBlob> signature;
@@ -50,8 +51,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
       rs->myRootSignature = rootSignature;
     }
+    else
+    {
+      rs->myRootSignature = *anRS;
+    }
 
     return rs;
+
+    //return nullptr;
   }
 //---------------------------------------------------------------------------//
   void RootSignaturePoolDX12::Init()

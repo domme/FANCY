@@ -90,11 +90,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void SetGraphicsRootSignature(ID3D12RootSignature* aRootSignature);
 
-		void setReadTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-		void setWriteTexture(const Texture* pTexture, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-		void setReadBuffer(const GpuBuffer* pBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-		void setConstantBuffer(const GpuBuffer* pConstantBuffer, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
-		void setTextureSampler(const TextureSampler* pSampler, const ShaderStage eShaderStage, const uint8 u8RegisterIndex);
+		void setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex);
+		void setWriteTexture(const Texture* pTexture, const uint8 u8RegisterIndex);
+		void setReadBuffer(const GpuBuffer* pBuffer, const uint8 u8RegisterIndex);
+		void setConstantBuffer(const GpuBuffer* pConstantBuffer, const uint8 u8RegisterIndex);
+		void setTextureSampler(const TextureSampler* pSampler, const uint8 u8RegisterIndex);
 		void setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage);
 
 		void renderGeometry(const Geometry::GeometryData* pGeometry);
