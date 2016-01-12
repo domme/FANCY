@@ -29,8 +29,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // TODO: Check the cache--folder for a precompiled shader binary
 
-
-
+  
 
 
     return nullptr;
