@@ -180,8 +180,10 @@ protected:
 class RenderingSubsystemGL4
 {
 public:
-  static void Init();
-  static void Shutdown();
+  /// Initializes platform-dependent rendering stuff
+  static void InitPlatform();
+  /// Shutdown of platform-dependent rendering stuff
+  static void ShutdownPlatform();
 };
 //---------------------------------------------------------------------------//
 } // end of namespace GL4

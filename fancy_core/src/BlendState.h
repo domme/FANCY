@@ -32,8 +32,6 @@ class BlendState : public StaticManagedObject<BlendState> {
 public:
   SERIALIZABLE(BlendState)
 
-  static void init();
-
   explicit BlendState(const ObjectName& _name);
   ~BlendState() {}
   friend class PLATFORM_DEPENDENT_NAME(Renderer);

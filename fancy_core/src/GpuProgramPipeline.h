@@ -7,12 +7,13 @@
 #include "StaticManagedObject.h"
 
 namespace Fancy { namespace Rendering {
-
+//---------------------------------------------------------------------------//
   class GpuProgramPipeline : public PLATFORM_DEPENDENT_NAME(GpuProgramPipeline), public StaticManagedHeapObject<GpuProgramPipeline>
   {
-    
-  };
+    SERIALIZABLE(GpuProgramPipeline);
 
+  };
+//---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
 
 #endif  // INCLUDE_GPUPROGRAMPIPELINE_H

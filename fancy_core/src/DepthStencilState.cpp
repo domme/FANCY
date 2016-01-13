@@ -4,24 +4,6 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  void DepthStencilState::init()
-  {
-    // Initialize common depthstencilstates
-    // TODO: Do this from a file in the future?
-
-    m_objectMap.clear();
-
-    {
-      DepthStencilState depthStencilState(_N(DepthStencilState_DefaultDepthState));
-      depthStencilState.myStencilEnabled = false;
-      depthStencilState.myDepthTestEnabled = true;
-      depthStencilState.myDepthWriteEnabled = true;
-      depthStencilState.myDepthCompFunc = Rendering::CompFunc::LESS;
-      DepthStencilState::registerWithName(depthStencilState);
-    }
-  }
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
   DepthStencilState::DepthStencilState(const ObjectName& _name) :
     myName(_name),
     myDepthTestEnabled(true),
@@ -49,8 +31,33 @@ namespace Fancy { namespace Rendering {
     return getHash() == clOther.getHash();
   }
 //---------------------------------------------------------------------------//
+  bool DepthStencilState::operator==(const DepthStencilStateDesc& aDesc) const 
+  {
+    const DepthStencilStateDesc& desc = GetDescription();
+    return MathUtil::hashFromGeneric(desc) == MathUtil::hashFromGeneric(aDesc);
+  }
+//---------------------------------------------------------------------------//
   DepthStencilStateDesc DepthStencilState::GetDescription() const
   {
+    DepthStencilStateDesc desc;
+    desc.myDepthTestEnabled = myDepthTestEnabled;
+    desc.myDepthWriteEnabled = myDepthWriteEnabled;
+    desc.myDepthCompFunc = static_cast<uint32>(myDepthCompFunc);
+    desc.myStencilEnabled = myStencilEnabled;
+    desc.myTwoSidedStencil = myTwoSidedStencil;
+    desc.myStencilRef = myStencilRef;
+    desc.myStencilReadMask = myStencilReadMask;
+
+    for (uint32 i = 0u; i < static_cast<uint32>(FaceType::NUM); ++i)
+    {
+      desc.myStencilCompFunc[i] = static_cast<uint32>(myStencilCompFunc[i]);
+      desc.myStencilWriteMask[i] = myStencilWriteMask[i];
+      desc.myStencilFailOp[i] = static_cast<uint32>(myStencilFailOp[i]);
+      desc.myStencilDepthFailOp[i] = static_cast<uint32>(myStencilDepthFailOp[i]);
+      desc.myStencilPassOp[i] = static_cast<uint32>(myStencilPassOp[i]);
+    }
+
+    return desc;
   }
 //---------------------------------------------------------------------------//
   void DepthStencilState::serialize(IO::Serializer* aSerializer)

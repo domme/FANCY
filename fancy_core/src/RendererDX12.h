@@ -140,8 +140,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class RenderingSubsystemDX12
   {
   public:
-    static void Init();
-    static void Shutdown();
+    /// Initializes platform-dependent rendering stuff
+    static void InitPlatform();
+    /// Shutdown of platform-dependent rendering stuff
+    static void ShutdownPlatform();
   };
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Renderer::DX12

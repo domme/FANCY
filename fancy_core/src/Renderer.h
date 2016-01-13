@@ -20,7 +20,14 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class RenderingSubsystem : public PLATFORM_DEPENDENT_NAME(RenderingSubsystem)
   {
-  
+  public:
+    /// Init platform-independent stuff
+    static void Init();
+    /// Shutdown platform-independent stuff
+    static void Shutdown();
+
+  private:
+    RenderingSubsystem() {}
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Rendering

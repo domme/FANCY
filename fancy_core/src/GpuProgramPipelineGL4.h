@@ -17,8 +17,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   class GpuProgramPipelineGL4
   {
   public:
-    SERIALIZABLE(GpuProgramPipelineGL4);
-
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
     ObjectName getName() const { return ObjectName(myShaderHash); }
