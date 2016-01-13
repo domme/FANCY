@@ -47,6 +47,36 @@ namespace Fancy { namespace Rendering {
   {
     return getHash() == clOther.getHash();
   }
+
+  bool BlendState::operator==(const BlendStateDesc& clOther) const
+  {
+    const BlendStateDesc& desc = GetDescription();
+    const BlendStateDesc& otherDesc = GetDescription();
+    return MathUtil::hashFromGeneric(desc) == MathUtil::hashFromGeneric(otherDesc);
+  }
+  //---------------------------------------------------------------------------//
+  BlendStateDesc BlendState::GetDescription() const
+  {
+    BlendStateDesc desc;
+
+    desc.myAlphaToCoverageEnabled = myAlphaToCoverageEnabled;
+    desc.myBlendStatePerRT = myBlendStatePerRT;
+
+    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    {
+      desc.myAlphaSeparateBlend[i] = myAlphaSeparateBlend[i];
+      desc.myBlendEnabled[i] = myBlendEnabled[i];
+      desc.mySrcBlend[i] = static_cast<uint32>(mySrcBlend[i]);
+      desc.myDestBlend[i] = static_cast<uint32>(myDestBlend[i]);
+      desc.myBlendOp[i] = static_cast<uint32>(myBlendOp[i]);
+      desc.mySrcBlendAlpha[i] = static_cast<uint32>(mySrcBlendAlpha[i]);
+      desc.myDestBlendAlpha[i] = static_cast<uint32>(myDestBlendAlpha[i]);
+      desc.myBlendOpAlpha[i] = static_cast<uint32>(myBlendOpAlpha[i]);
+      desc.myRTwriteMask[i] = static_cast<uint32>(myRTwriteMask[i]);
+    }
+    
+    return desc;
+  }
 //---------------------------------------------------------------------------//
   void BlendState::serialize(IO::Serializer* aSerializer)
   {

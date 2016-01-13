@@ -12,6 +12,21 @@ namespace Fancy{namespace IO{
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  struct BlendStateDesc
+  {
+    bool myAlphaToCoverageEnabled;
+    bool myBlendStatePerRT;
+    bool myAlphaSeparateBlend[Constants::kMaxNumRenderTargets];
+    bool myBlendEnabled[Constants::kMaxNumRenderTargets];
+    uint32 mySrcBlend[Constants::kMaxNumRenderTargets];
+    uint32 myDestBlend[Constants::kMaxNumRenderTargets];
+    uint32 myBlendOp[Constants::kMaxNumRenderTargets];
+    uint32 mySrcBlendAlpha[Constants::kMaxNumRenderTargets];
+    uint32 myDestBlendAlpha[Constants::kMaxNumRenderTargets];
+    uint32 myBlendOpAlpha[Constants::kMaxNumRenderTargets];
+    uint32 myRTwriteMask[Constants::kMaxNumRenderTargets];
+  };
+//---------------------------------------------------------------------------//
 class BlendState : public StaticManagedObject<BlendState> {
 
 public:
@@ -23,7 +38,10 @@ public:
   ~BlendState() {}
   friend class PLATFORM_DEPENDENT_NAME(Renderer);
   bool operator==(const BlendState& clOther) const;
-  
+  bool operator==(const BlendStateDesc& clOther) const;
+
+  BlendStateDesc GetDescription() const;
+
   const Fancy::ObjectName& getName() const { return myName; }
   static ObjectName getTypeName() { return _N(BlendState); }
   void serialize(IO::Serializer* aSerializer);

@@ -9,6 +9,22 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  struct DepthStencilStateDesc
+  {
+    bool myDepthTestEnabled;
+    bool myDepthWriteEnabled;
+    uint32 myDepthCompFunc;
+    bool myStencilEnabled;
+    bool myTwoSidedStencil;
+    int myStencilRef;
+    uint32 myStencilReadMask;
+    uint32 myStencilCompFunc[(uint32)FaceType::NUM];
+    uint32 myStencilWriteMask[(uint32)FaceType::NUM];
+    uint32 myStencilFailOp[(uint32)FaceType::NUM];
+    uint32 myStencilDepthFailOp[(uint32)FaceType::NUM];
+    uint32 myStencilPassOp[(uint32)FaceType::NUM];
+  };
+//---------------------------------------------------------------------------//
   class DepthStencilState : public StaticManagedObject<DepthStencilState>
   {
     public:
@@ -18,6 +34,9 @@ namespace Fancy { namespace Rendering {
       ~DepthStencilState() {}
       static void init();
       bool operator==(const DepthStencilState& clOther) const;
+      bool operator==(const DepthStencilStateDesc& aDesc) const;
+
+      DepthStencilStateDesc GetDescription() const;
 
       const ObjectName& getName() const {return myName;}
       static ObjectName getTypeName() { return _N(DepthStencilState); }

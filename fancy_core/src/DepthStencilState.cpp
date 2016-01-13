@@ -49,6 +49,10 @@ namespace Fancy { namespace Rendering {
     return getHash() == clOther.getHash();
   }
 //---------------------------------------------------------------------------//
+  DepthStencilStateDesc DepthStencilState::GetDescription() const
+  {
+  }
+//---------------------------------------------------------------------------//
   void DepthStencilState::serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serialize(&myName, "myName");

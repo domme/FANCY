@@ -21,12 +21,17 @@ namespace Fancy { namespace Rendering {
     return names[aShaderStage];
   }
 //---------------------------------------------------------------------------//
-  MaterialPass::MaterialPass() : 
-    m_pBlendState(nullptr),
+  MaterialPassProperties::MaterialPassProperties() :
     m_pDepthStencilState(nullptr),
     m_eFillMode(FillMode::SOLID),
     m_eCullMode(CullMode::BACK),
     m_eWindingOrder(WindingOrder::CCW)
+  {
+    
+  }
+
+//---------------------------------------------------------------------------//
+  MaterialPass::MaterialPass()   
   {
     
   }
@@ -43,12 +48,12 @@ namespace Fancy { namespace Rendering {
   bool MaterialPass::operator==(const MaterialPass& _other) const
   {
     bool same = true;
-    same &= myProgramPipeline->myShaderHash == _other.myProgramPipeline->myShaderHash;
-    same &= m_eFillMode == _other.m_eFillMode;
-    same &= m_eCullMode == _other.m_eCullMode;
-    same &= m_eWindingOrder == _other.m_eWindingOrder;
-    same &= m_pBlendState == _other.m_pBlendState;
-    same &= m_pDepthStencilState == _other.m_pDepthStencilState;
+    same &= myProperties.myProgramPipeline->myShaderHash == _other.myProperties.myProgramPipeline->myShaderHash;
+    same &= myProperties.m_eFillMode == _other.myProperties.m_eFillMode;
+    same &= myProperties.m_eCullMode == _other.myProperties.m_eCullMode;
+    same &= myProperties.m_eWindingOrder == _other.myProperties.m_eWindingOrder;
+    same &= myProperties.m_pBlendState == _other.myProperties.m_pBlendState;
+    same &= myProperties.m_pDepthStencilState == _other.myProperties.m_pDepthStencilState;
 
     return same;
   }
@@ -56,12 +61,12 @@ namespace Fancy { namespace Rendering {
   void MaterialPass::serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serialize(&m_Name, "m_Name");
-    aSerializer->serialize(&myProgramPipeline, "myProgramPipeline");
-    aSerializer->serialize(&m_eFillMode, "m_eFillMode");
-    aSerializer->serialize(&m_eCullMode, "m_eCullMode");
-    aSerializer->serialize(&m_eWindingOrder, "m_eWindingOrder");
-    aSerializer->serialize(&m_pBlendState, "m_pBlendState");
-    aSerializer->serialize(&m_pDepthStencilState, "m_pDepthStencilState");
+    aSerializer->serialize(&myProperties.myProgramPipeline, "myProgramPipeline");
+    aSerializer->serialize(&myProperties.m_eFillMode, "m_eFillMode");
+    aSerializer->serialize(&myProperties.m_eCullMode, "m_eCullMode");
+    aSerializer->serialize(&myProperties.m_eWindingOrder, "m_eWindingOrder");
+    aSerializer->serialize(&myProperties.m_pBlendState, "m_pBlendState");
+    aSerializer->serialize(&myProperties.m_pDepthStencilState, "m_pDepthStencilState");
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance* MaterialPass::createMaterialPassInstance( const ObjectName& name )

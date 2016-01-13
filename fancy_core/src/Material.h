@@ -26,6 +26,8 @@ namespace Fancy { namespace Rendering {
     NUM
   };
 //---------------------------------------------------------------------------//  
+
+//---------------------------------------------------------------------------//
   class Material : public StaticManagedHeapObject<Material>
   {
   public:
@@ -51,7 +53,6 @@ namespace Fancy { namespace Rendering {
       ObjectName m_Name;
       FixedArray<float, (uint32)EMaterialParameterSemantic::NUM> m_vParameters;
       FixedArray<MaterialPassInstance*, (uint32)EMaterialPass::NUM> m_vPasses;
-      
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
