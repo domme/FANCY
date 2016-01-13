@@ -319,6 +319,9 @@
     <ClInclude Include="src\GUID.h">
       <Filter>src\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\GpuProgramDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -539,6 +542,9 @@
     </ClCompile>
     <ClCompile Include="src\GUID.cpp">
       <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuProgram.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
