@@ -15,8 +15,6 @@ namespace Fancy { namespace Rendering {
   public:
     SERIALIZABLE(GpuProgram)
 
-    bool operator==(const GpuProgramDesc& anOtherDesc) const;
-    GpuProgramDesc GetDescription() const;
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

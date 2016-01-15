@@ -29,7 +29,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  GpuProgramDescriptionGL4::GpuProgramDescriptionGL4() : 
+  GpuProgramCompilerOutputGL4::GpuProgramCompilerOutputGL4() : 
     name(""),
     uProgramHandleGL(GLUINT_HANDLE_INVALID),
     eShaderStage(ShaderStage::NONE)
@@ -49,7 +49,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramGL4::init( const GpuProgramDescriptionGL4& _desc )
+  void GpuProgramGL4::SetFromCompilerOutput( const GpuProgramCompilerOutputGL4& _desc )
   {
     destroy();
     m_Name = _desc.name;
@@ -65,6 +65,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_vWriteBufferInfos = _desc.vWriteBufferInfos;
     myConstantBufferElements = _desc.myConstantBufferElements;
     myShaderCode = _desc.myShaderCode;
+    myShaderFilename = _desc.myShaderFilename;
+    myPermutation = _desc.myPermutation;
   }
 //---------------------------------------------------------------------------//
   void GpuProgramGL4::serialize(IO::Serializer* aSerializer)
@@ -84,9 +86,28 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     aSerializer->serialize(&m_vWriteBufferInfos, "WriteBufferInfos");
     aSerializer->serialize(&myConstantBufferElements, "ConstantBufferElements");
     aSerializer->serialize(&myShaderCode, "ShaderCode");
+    aSerializer->serialize(&myShaderFilename, "ShaderFilename");
+    aSerializer->serialize(&myPermutation, "Permutation");
 
     if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
       GpuProgramCompilerGL4::compileFromSource(myShaderCode, m_eShaderStage, m_uProgramHandleGL);
+  }
+//---------------------------------------------------------------------------//
+  bool GpuProgramGL4::operator==(const GpuProgramDesc& anOtherDesc) const
+  {
+    const GpuProgramDesc& desc = GetDescription();
+    return desc.myShaderPath == anOtherDesc.myShaderPath &&
+      desc.myPermutation == anOtherDesc.myPermutation &&
+      desc.myShaderStage == anOtherDesc.myShaderStage;
+  }
+//---------------------------------------------------------------------------//
+  GpuProgramDesc GpuProgramGL4::GetDescription() const
+  {
+    GpuProgramDesc desc;
+    desc.myShaderPath = myShaderFilename;
+    desc.myPermutation = myPermutation;
+    desc.myShaderStage = static_cast<uint32>(m_eShaderStage);
+    return desc;
   }
 //---------------------------------------------------------------------------//
   void GpuProgramGL4::destroy()

@@ -11,6 +11,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct DepthStencilStateDesc
   {
+    DepthStencilStateDesc();
+    bool operator==(const DepthStencilStateDesc& anOther) const;
+
     bool myDepthTestEnabled;
     bool myDepthWriteEnabled;
     uint32 myDepthCompFunc;

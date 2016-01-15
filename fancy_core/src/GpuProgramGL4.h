@@ -9,6 +9,7 @@
 #include "GpuProgramResource.h"
 #include "VertexInputLayout.h"
 #include "Serializable.h"
+#include "GpuProgramDesc.h"
 
 namespace Fancy{namespace IO{
   class ObjectFactory;
@@ -25,7 +26,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     void serialize(IO::Serializer* aSerializer);
 
     ShaderStageInterfaceElement() : 
-      uLocation(0u), uArraySize(0u), uOffset(0u), 
+      uLocation(0u), uArraySize(0u), uArrayStride(0u), uOffset(0u), 
       uBlockIndex(0u), eTypeGL(0u), uAtomicCountBufIndex(0u) {}
 
     ObjectName name;
@@ -65,9 +66,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   typedef FixedArray<ShaderStageFragmentOutput, kMaxNumShaderStageInterfaceElements> ShaderStageFragmentOutputList;
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  struct GpuProgramDescriptionGL4
+  /// The information provided by an (extenral) GpuProgramCompiler
+  struct GpuProgramCompilerOutputGL4
   {
-    GpuProgramDescriptionGL4();
+    GpuProgramCompilerOutputGL4();
     ObjectName name;
     GLuint uProgramHandleGL;
     ShaderStage eShaderStage;
@@ -81,6 +83,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     GpuResourceInfoList vWriteBufferInfos;
     ConstantBufferElementList myConstantBufferElements;
     String myShaderCode;
+    String myShaderFilename;  /// Platform-independent shader filename (e.g. "MaterialForward")
+    GpuProgramPermutation myPermutation;
   };
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -95,11 +99,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       GpuProgramGL4();
       ~GpuProgramGL4();
     //---------------------------------------------------------------------------//
-      void init(const GpuProgramDescriptionGL4& _desc);
+      void SetFromCompilerOutput(const GpuProgramCompilerOutputGL4& _desc);
     //---------------------------------------------------------------------------//
       const ObjectName& getName() const {return m_Name;}
       static ObjectName getTypeName() { return _N(GpuProgram); }
       void serialize(IO::Serializer* aSerializer);
+
+      bool operator==(const GpuProgramDesc& anOtherDesc) const;
+      GpuProgramDesc GetDescription() const;
 
       GLuint getProgramHandle() const {return m_uProgramHandleGL;}
       ShaderStage getShaderStage() const {return m_eShaderStage;}
@@ -128,7 +135,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       ShaderStageFragmentOutputList m_vFragmentOutputs;
 
       String myShaderCode;  // TODO: Only temporary until shader binaries have been implemented
-
+      String myShaderFilename;  /// Platform-independent shader filename (e.g. "MaterialForward")
+      GpuProgramPermutation myPermutation;
+      
       /// Lists of resources defined in the shader (buffers, textures, ...)
       GpuResourceInfoList m_vReadTextureInfos;
       GpuResourceInfoList m_vReadBufferInfos;

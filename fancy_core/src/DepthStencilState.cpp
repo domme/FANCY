@@ -4,6 +4,27 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  DepthStencilStateDesc::DepthStencilStateDesc() 
+    : myDepthTestEnabled(false)
+    , myDepthWriteEnabled(false)
+    , myDepthCompFunc(0u)
+    , myStencilEnabled(false)
+    , myTwoSidedStencil(false)
+    , myStencilRef(0)
+    , myStencilReadMask(0u)
+  {
+    memset(myStencilCompFunc, 0u, sizeof(myStencilCompFunc));
+    memset(myStencilWriteMask, 0u, sizeof(myStencilWriteMask));
+    memset(myStencilFailOp, 0u, sizeof(myStencilFailOp));
+    memset(myStencilDepthFailOp, 0u, sizeof(myStencilDepthFailOp));
+    memset(myStencilPassOp, 0u, sizeof(myStencilPassOp));
+  }
+//---------------------------------------------------------------------------//
+  bool DepthStencilStateDesc::operator==(const DepthStencilStateDesc& anOther) const
+  {
+    return memcmp(this, &anOther, sizeof(DepthStencilState)) == 0;
+  }
+//---------------------------------------------------------------------------//
   DepthStencilState::DepthStencilState(const ObjectName& _name) :
     myName(_name),
     myDepthTestEnabled(true),
@@ -34,7 +55,7 @@ namespace Fancy { namespace Rendering {
   bool DepthStencilState::operator==(const DepthStencilStateDesc& aDesc) const 
   {
     const DepthStencilStateDesc& desc = GetDescription();
-    return MathUtil::hashFromGeneric(desc) == MathUtil::hashFromGeneric(aDesc);
+    return desc == aDesc;
   }
 //---------------------------------------------------------------------------//
   DepthStencilStateDesc DepthStencilState::GetDescription() const

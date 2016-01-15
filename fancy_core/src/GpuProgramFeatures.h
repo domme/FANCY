@@ -4,6 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "FixedArray.h"
+#include "Serializable.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -26,6 +27,16 @@ namespace Fancy { namespace Rendering {
   class GpuProgramPermutation
   {
     public:
+      SERIALIZABLE(GpuProgramPermutation)
+        
+      static const ObjectName& getTypeName() { return _N(GpuProgramPermutation); }
+      static const ObjectName& getName() { return ObjectName::blank; }
+      void serialize(IO::Serializer* aSerializer);
+
+      bool operator==(const GpuProgramPermutation& anOtherPermutation) const {
+        return m_uHash == anOtherPermutation.m_uHash;
+      }
+
       GpuProgramPermutation() : m_uHash(0u) {}
       ~GpuProgramPermutation() {}
 

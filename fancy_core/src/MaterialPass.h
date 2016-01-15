@@ -11,6 +11,7 @@
 #include "BlendState.h"
 #include "Serializable.h"
 #include "GUID.h"
+#include "GpuProgramDesc.h"
 
 namespace Fancy { namespace IO {
   class Serializer;
@@ -22,6 +23,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct MaterialPassDesc
   {
+    MaterialPassDesc();
+    bool operator==(const MaterialPassDesc& anOther) const;
+
     uint32 m_eFillMode;
     uint32 m_eCullMode;
     uint32 m_eWindingOrder;
@@ -45,13 +49,13 @@ namespace Fancy { namespace Rendering {
       static ObjectName getTypeName() { return _N(MaterialPass); }
 
       const ObjectName& getName() const { return m_Name; }
-      const GpuProgramPipeline* GetProgramPipeline() const { return myProperties.myProgramPipeline; }
+      const GpuProgramPipeline* GetProgramPipeline() const { return myProgramPipeline; }
       
-      FillMode getFillMode() const {return myProperties.m_eFillMode;}
-      CullMode getCullMode() const {return myProperties.m_eCullMode;}
-      WindingOrder getWindingOrder() const {return myProperties.m_eWindingOrder;}
-      const BlendState* getBlendState() const {return myProperties.m_pBlendState;}
-      const DepthStencilState* getDepthStencilState() const {return myProperties.m_pDepthStencilState;}
+      FillMode getFillMode() const {return m_eFillMode;}
+      CullMode getCullMode() const {return m_eCullMode;}
+      WindingOrder getWindingOrder() const {return m_eWindingOrder;}
+      const BlendState* getBlendState() const {return m_pBlendState;}
+      const DepthStencilState* getDepthStencilState() const {return m_pDepthStencilState;}
       MaterialPassInstance* createMaterialPassInstance(const ObjectName& name);
       MaterialPassInstance* createMaterialPassInstance(const ObjectName& name, const MaterialPassInstance& _template);
       MaterialPassInstance* getMaterialPassInstance(const ObjectName& aName);

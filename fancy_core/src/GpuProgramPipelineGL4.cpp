@@ -37,9 +37,28 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       glDeleteProgramPipelines(1, &myPipelineHandleGL);
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramPipelineGL4::operator==(const GpuProgramPipelineGL4& anOther)
+  bool GpuProgramPipelineGL4::operator==(const GpuProgramPipelineGL4& anOther) const
   {
     return myShaderHash == anOther.myShaderHash;
+  }
+//---------------------------------------------------------------------------//
+  GpuProgramPipelineDesc GpuProgramPipelineGL4::GetDescription() const
+  {
+    GpuProgramPipelineDesc desc;
+    
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    {
+      const GpuProgram* pProgram = myGpuPrograms[i];
+      if (pProgram)
+        desc.myGpuPrograms[i] = pProgram->GetDescription();
+    }
+
+    return desc;
+  }
+//---------------------------------------------------------------------------//
+  bool GpuProgramPipelineGL4::operator==(const GpuProgramPipelineDesc& anOtherDesc) const
+  {
+    return GetDescription() == anOtherDesc;
   }
 //---------------------------------------------------------------------------//
   GLuint GpuProgramPipelineGL4::GeneratePipelineHandleGL()

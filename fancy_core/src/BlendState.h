@@ -14,6 +14,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct BlendStateDesc
   {
+    BlendStateDesc();
+    bool operator==(const BlendStateDesc& anOther) const;
+
     bool myAlphaToCoverageEnabled;
     bool myBlendStatePerRT;
     bool myAlphaSeparateBlend[Constants::kMaxNumRenderTargets];

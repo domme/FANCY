@@ -6,6 +6,25 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  MaterialPassDesc::MaterialPassDesc()
+    : m_eFillMode(0u)
+    , m_eCullMode(0u)
+    , m_eWindingOrder(0u)
+  {
+
+  }
+//---------------------------------------------------------------------------//
+  bool MaterialPassDesc::operator==(const MaterialPassDesc& anOther) const
+  {
+    return m_eFillMode == anOther.m_eFillMode &&
+      m_eCullMode == anOther.m_eCullMode &&
+      m_eWindingOrder == anOther.m_eWindingOrder &&
+      m_BlendStateDesc == anOther.m_BlendStateDesc &&
+      m_DepthStencilStateDesc == anOther.m_DepthStencilStateDesc &&
+      m_GpuProgramPipelineDesc == anOther.m_GpuProgramPipelineDesc;
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   String logGetShaderStageName(uint32 aShaderStage)
   {
     static String names[] = {
@@ -20,16 +39,6 @@ namespace Fancy { namespace Rendering {
     static_assert(_countof(names) == (uint32)ShaderStage::NUM, "Missing names");
     return names[aShaderStage];
   }
-//---------------------------------------------------------------------------//
-  MaterialPassProperties::MaterialPassProperties() :
-    m_pDepthStencilState(nullptr),
-    m_eFillMode(FillMode::SOLID),
-    m_eCullMode(CullMode::BACK),
-    m_eWindingOrder(WindingOrder::CCW)
-  {
-    
-  }
-
 //---------------------------------------------------------------------------//
   MaterialPass::MaterialPass()   
   {

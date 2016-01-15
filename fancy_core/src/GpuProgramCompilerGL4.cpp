@@ -1,4 +1,5 @@
 ﻿#include "GpuProgramCompilerGL4.h"
+#include "GpuProgramCompilerUtils.h"
 
 #if defined (RENDERER_OPENGL4)
 
@@ -385,7 +386,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     const uint32 kMaxNumDefines = 64u;
     FixedArray<String, kMaxNumDefines> vDefines;
-    vDefines.push_back("#define " + locShaderStageToDefineString(eShaderStage));
+    vDefines.push_back("#define " + GpuProgramCompilerUtils::ShaderStageToDefineString(eShaderStage));
     const GpuProgramFeatureList& vFeatures = _permutation.getFeatureList();
     for (uint32 i = 0u; i < vFeatures.size(); ++i)
     {
@@ -525,7 +526,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     log_Info(logMsg);
   }
 //---------------------------------------------------------------------------//
-  bool locCompileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc, const ShaderSourceInfo* sourceInfo)
+  bool locCompileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramCompilerOutputGL4& _rDesc, const ShaderSourceInfo* sourceInfo)
   {
     ASSERT_M(!szSource.empty(), "Invalid shader source");
 
@@ -564,7 +565,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   bool GpuProgramCompilerGL4::compileFromSource(const String& someShaderSource, const ShaderStage& eShaderStage, GLuint& aProgramHandleGL)
   {
-    GpuProgramDescriptionGL4 tempDesc;
+    GpuProgramCompilerOutputGL4 tempDesc;
     bool success = locCompileFromSource(someShaderSource, eShaderStage, tempDesc, nullptr);
 
     if (success)
@@ -817,7 +818,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     // TODO: Implement
   } 
 //---------------------------------------------------------------------------//
-  bool locReflectProgram(GpuProgramDescriptionGL4& _rDesc)
+  bool locReflectProgram(GpuProgramCompilerOutputGL4& _rDesc)
   {
     GLuint uProgramHandle = _rDesc.uProgramHandleGL;
     ASSERT(uProgramHandle != GLUINT_HANDLE_INVALID);
@@ -836,7 +837,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool locCompileAndReflect(const String& szSource, const ShaderSourceInfo& sourceInfo, const ShaderStage& eShaderStage, GpuProgramDescriptionGL4& _rDesc)
+  bool locCompileAndReflect(const String& szSource, const ShaderSourceInfo& sourceInfo, const ShaderStage& eShaderStage, GpuProgramCompilerOutputGL4& _rDesc)
   {
     bool success = locCompileFromSource(szSource, eShaderStage, _rDesc, &sourceInfo);
 
@@ -877,7 +878,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     String shaderFilePath = locShaderDirectory + aShaderFileName + locShaderFileExtension;
 
-    String uniqueProgramName = aShaderFileName + "_" + locShaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
+    String uniqueProgramName = aShaderFileName + "_" + GpuProgramCompilerUtils::ShaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
     GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
     if (pGpuProgram != nullptr)
     {
@@ -912,7 +913,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       szCombinedSource += *itLine + '\n';
     }
 
-    GpuProgramDescriptionGL4 programDesc;
+    GpuProgramCompilerOutputGL4 programDesc;
     programDesc.name = uniqueProgramName;
     const bool bSuccess = locCompileAndReflect(szCombinedSource, sourceInfo, _eShaderStage, programDesc);
     if (bSuccess)

@@ -4,6 +4,21 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  BlendStateDesc::BlendStateDesc() 
+    : myAlphaToCoverageEnabled(false)
+    , myBlendStatePerRT(false)
+  {
+    memset(myAlphaSeparateBlend, 0u, sizeof(myAlphaSeparateBlend));
+  }
+
+//---------------------------------------------------------------------------//
+  bool BlendStateDesc::operator==(const BlendStateDesc& anOther) const
+  {
+    return memcmp(this, &anOther, sizeof(BlendStateDesc)) == 0;
+  }
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
   BlendState::BlendState(const ObjectName& _name) :
     myName(_name),
     myAlphaToCoverageEnabled(false),

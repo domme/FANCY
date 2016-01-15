@@ -23,8 +23,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     GpuProgramPipelineGL4();
     ~GpuProgramPipelineGL4();
-    bool operator==(const GpuProgramPipelineGL4& anOther);
+    bool operator==(const GpuProgramPipelineGL4& anOther) const;
+    bool operator==(const GpuProgramPipelineDesc& anOtherDesc) const;
     
+    GpuProgramPipelineDesc GetDescription() const;
+        
     GLuint GeneratePipelineHandleGL();
     void RecomputeHashFromShaders();
 
