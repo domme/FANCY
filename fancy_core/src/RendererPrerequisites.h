@@ -40,6 +40,7 @@ namespace Fancy {
         kMaxNumBoundConstantBuffers = 12u,
         kMaxNumGpuProgramResources = 32u,
         kMaxNumConstantBufferElements = 128u,
+        kMaxNumGeometriesPerSubModel = 128u,
 #if defined (RENDERER_OPENGL4)
         kNumRenderThreads = 1u,
 #elif defined (RENDERER_DX12)

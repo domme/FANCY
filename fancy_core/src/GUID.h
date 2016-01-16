@@ -3,10 +3,6 @@
 #include "FancyCorePrerequisites.h"
 
 namespace Fancy {
-namespace Rendering{
-struct MaterialPassProperties;
-}
-
 //---------------------------------------------------------------------------//
   struct ShaderGuidParams
   {

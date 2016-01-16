@@ -10,11 +10,20 @@
 namespace Fancy { namespace Geometry { 
 //---------------------------------------------------------------------------//
   class GeometryData;
-  class GeometryDataDesc;
 //---------------------------------------------------------------------------//
-  const uint32 kMaxNumGeometriesPerSubModel = 128;
+  
 //---------------------------------------------------------------------------//
-  typedef FixedArray<GeometryData*, kMaxNumGeometriesPerSubModel> GeometryDataList;
+  typedef FixedArray<GeometryData*, Rendering::Constants::kMaxNumGeometriesPerSubModel> GeometryDataList;
+//---------------------------------------------------------------------------//
+  struct MeshDesc
+  {
+    // At this point, we only store the hash computed from the vertex- and index data
+    // as a description. We can't use it to re-create meshes but it'll suffice as a comparison
+    uint64 myVertexAndIndexMD5;
+
+    MeshDesc() : myVertexAndIndexMD5(0u) {}
+    bool operator==(const MeshDesc& anOther) const { return myVertexAndIndexMD5 == anOther.myVertexAndIndexMD5; }
+  };
 //---------------------------------------------------------------------------//
   /// Represents a collection of raw geometric pieces that can be rendered with a single material
   /// Two GeometryDatas always have different vertex-attributes or primitive types which makes their distinction necessary.
@@ -26,6 +35,9 @@ namespace Fancy { namespace Geometry {
     Mesh();
     ~Mesh();
 
+    MeshDesc GetDescription();
+    bool operator==(const Mesh& anOther) const;
+    bool operator==(const MeshDesc& aDesc) const;
   //---------------------------------------------------------------------------//
     const ObjectName& getName() {return m_Name;}
     void setName(const ObjectName& clNewName) {m_Name = clNewName;}
@@ -45,6 +57,7 @@ namespace Fancy { namespace Geometry {
   //---------------------------------------------------------------------------//
   private:
     GeometryDataList m_vGeometries;
+    uint64 myVertexAndIndexMD5;
     ObjectName m_Name;
   };
   //---------------------------------------------------------------------------//
