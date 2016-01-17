@@ -28,6 +28,10 @@
 #ifndef __VSDL__
 #define __VSDL__
 
+#include "RendererPrerequisites.h"
+
+#if defined (RENDERER_OPENGL4)
+
 #ifdef _WIN32
 #include <windows.h>
 #include <DbgHelp.h>
@@ -160,4 +164,7 @@ private:
 
 } } }  // end of namespace Fancy::Rendering::GL4
 
+#endif  // RENDERER_OPENGL4
+
 #endif
+

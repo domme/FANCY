@@ -872,7 +872,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   // TODO: Find a nicer place for platform-dependent infos
   String locShaderFileExtension = ".shader";
-  String locShaderDirectory = "shaders/GL4/";
+  String locShaderDirectory = "shader/GL4/";
 
   GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const String& aShaderFileName, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage)
   {
@@ -885,19 +885,19 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       return pGpuProgram;
     }
 
-    log_Info("Compiling shader " + aShaderFileName + " ...");
+    log_Info("Compiling shader " + shaderFilePath + " ...");
 
     std::list<String> sourceLines;
-    IO::FileReader::ReadTextFileLines(aShaderFileName, sourceLines);
+    IO::FileReader::ReadTextFileLines(shaderFilePath, sourceLines);
 
     if (sourceLines.empty())
     {
-      log_Error("Error reading shader file " + aShaderFileName);
+      log_Error("Error reading shader file " + shaderFilePath);
       return false;
     }
 
     ShaderSourceInfo sourceInfo;
-    locPreprocessShaderSource(aShaderFileName, sourceLines, _permutation, _eShaderStage, sourceInfo);
+    locPreprocessShaderSource(shaderFilePath, sourceLines, _permutation, _eShaderStage, sourceInfo);
 
     // construct the final source string
     uint32 uRequiredLength = 0u;

@@ -7,9 +7,9 @@
 #version 440
 
  // #include "Shader/TextureSemantics.shader_include"
- #include "Shader/Common.inc"
- #include "Shader/ConstantBuffer.shader_include"
- #include "Shader/Lighting.inc"
+ #include "Shader/GL4/Common.inc"
+ #include "Shader/GL4/ConstantBuffer.shader_include"
+ #include "Shader/GL4/Lighting.inc"
  //---------------------------------------------------------------------------//
   #if defined (PROGRAM_TYPE_VERTEX)
     out VS_OUT

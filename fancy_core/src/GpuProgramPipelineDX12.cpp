@@ -6,6 +6,7 @@
 #if defined (RENDERER_DX12)
 
 #include "GpuProgramPipelineDX12.h"
+#include "GpuProgram.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
