@@ -17,12 +17,36 @@ namespace Fancy { namespace Rendering {
     return memcmp(this, &anOther, sizeof(BlendStateDesc)) == 0;
   }
 //---------------------------------------------------------------------------//
+  uint64 BlendStateDesc::GetHash() const
+  {
+    uint hash = 0x0;
+    MathUtil::hash_combine(hash, myAlphaToCoverageEnabled ? 1u : 0u);
+    MathUtil::hash_combine(hash, myBlendStatePerRT ? 1u : 0u);
+
+    for (uint32 i = 0; i < Constants::kMaxNumRenderTargets; ++i)
+    {
+      MathUtil::hash_combine(hash, myAlphaSeparateBlend[i] ? 1u : 0u);
+      MathUtil::hash_combine(hash, myBlendEnabled[i] ? 1u : 0u);
+      MathUtil::hash_combine(hash, static_cast<uint32>(mySrcBlend[i]));
+      MathUtil::hash_combine(hash, static_cast<uint32>(myDestBlend[i]));
+      MathUtil::hash_combine(hash, static_cast<uint32>(myBlendOp[i]));
+      MathUtil::hash_combine(hash, static_cast<uint32>(mySrcBlendAlpha[i]));
+      MathUtil::hash_combine(hash, static_cast<uint32>(myDestBlendAlpha[i]));
+      MathUtil::hash_combine(hash, static_cast<uint32>(myBlendOpAlpha[i]));
+      MathUtil::hash_combine(hash, myRTwriteMask[i]);
+    }
+
+    return hash;
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  BlendState::BlendState(const ObjectName& _name) :
-    myName(_name),
-    myAlphaToCoverageEnabled(false),
-    myBlendStatePerRT(false)
+  BlendState::BlendState(const ObjectName& _name) 
+    : myName(_name)
+    , myAlphaToCoverageEnabled(false)
+    , myBlendStatePerRT(false)
+    , myCachedHash(0u)
+    , myIsDirty(true)
   {
     memset(myAlphaSeparateBlend, false, sizeof(myAlphaSeparateBlend));
     memset(myBlendEnabled, false, sizeof(myBlendEnabled));
@@ -41,16 +65,14 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   bool BlendState::operator==( const BlendState& clOther ) const
   {
-    return getHash() == clOther.getHash();
+    return GetHash() == clOther.GetHash();
   }
-
+//---------------------------------------------------------------------------//
   bool BlendState::operator==(const BlendStateDesc& clOther) const
   {
-    const BlendStateDesc& desc = GetDescription();
-    const BlendStateDesc& otherDesc = GetDescription();
-    return MathUtil::hashFromGeneric(desc) == MathUtil::hashFromGeneric(otherDesc);
+    return GetHash() != clOther.GetHash();
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   BlendStateDesc BlendState::GetDescription() const
   {
     BlendStateDesc desc;
@@ -79,26 +101,15 @@ namespace Fancy { namespace Rendering {
     aSerializer->serialize(&myName, "myName");
   }
 //---------------------------------------------------------------------------//
-	uint BlendState::getHash() const
+	uint BlendState::GetHash() const
 	{
-		uint hash = 0x0;
-		MathUtil::hash_combine(hash, myAlphaToCoverageEnabled ? 1u : 0u);
-		MathUtil::hash_combine(hash, myBlendStatePerRT ? 1u : 0u);
+    if (!myIsDirty)
+      return myCachedHash;
 
-		for (uint32 i = 0; i < Constants::kMaxNumRenderTargets; ++i)
-		{
-			MathUtil::hash_combine(hash, myAlphaSeparateBlend[i] ? 1u : 0u);
-			MathUtil::hash_combine(hash, myBlendEnabled[i] ? 1u : 0u);
-			MathUtil::hash_combine(hash, static_cast<uint32>(mySrcBlend[i]));
-			MathUtil::hash_combine(hash, static_cast<uint32>(myDestBlend[i]));
-			MathUtil::hash_combine(hash, static_cast<uint32>(myBlendOp[i]));
-			MathUtil::hash_combine(hash, static_cast<uint32>(mySrcBlendAlpha[i]));
-			MathUtil::hash_combine(hash, static_cast<uint32>(myDestBlendAlpha[i]));
-			MathUtil::hash_combine(hash, static_cast<uint32>(myBlendOpAlpha[i]));
-			MathUtil::hash_combine(hash, myRTwriteMask[i]);
-		}
+    myIsDirty = false;
 
-    return hash;
+    myCachedHash = GetDescription().GetHash();
+    return myCachedHash;
 	}
 //---------------------------------------------------------------------------//
   

@@ -354,7 +354,7 @@ namespace Fancy { namespace Rendering {
     {
       GpuBuffer* const pBuffer = FANCY_NEW(GpuBuffer, MemoryCategory::BUFFERS);
 
-      GpuBufferParameters bufferParams;
+      GpuBufferCreationParams bufferParams;
       bufferParams.ePrimaryUsageType = GpuBufferUsage::CONSTANT_BUFFER;
       bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::WRITE 
                                 | (uint32)GpuResourceAccessFlags::COHERENT

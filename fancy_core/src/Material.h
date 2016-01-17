@@ -7,6 +7,7 @@
 #include "ObjectName.h"
 #include "MaterialPass.h"
 #include "Serializable.h"
+#include "MaterialDesc.h"
 
 namespace Fancy {
   namespace IO {
@@ -16,18 +17,6 @@ namespace Fancy {
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  enum class EMaterialParameterSemantic
-  {
-    DIFFUSE_REFLECTIVITY = 0,
-    SPECULAR_REFLECTIVITY,
-    SPECULAR_POWER,
-    OPACITY,
-
-    NUM
-  };
-//---------------------------------------------------------------------------//  
-
-//---------------------------------------------------------------------------//
   class Material : public StaticManagedHeapObject<Material>
   {
   public:
@@ -36,6 +25,9 @@ namespace Fancy { namespace Rendering {
       Material();
       ~Material();
       bool operator==(const Material& _other) const;
+      bool operator==(const MaterialDesc& aDesc) const;
+      
+      MaterialDesc GetDescription() const;
 
       static ObjectName getTypeName() { return _N(Material); }
       void serialize(IO::Serializer* aSerializer);

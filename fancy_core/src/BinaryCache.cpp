@@ -53,7 +53,7 @@ namespace Fancy {  namespace IO {
     ASSERT(someData);
     ASSERT(aDataSize > 0u);
 
-    Rendering::TextureDesc textureDesc = aTexture->getParameters();
+    Rendering::TextureCreationParams textureDesc = aTexture->getParameters();
     textureDesc.pPixelData = someData;
     textureDesc.uPixelDataSizeBytes = aDataSize;
 
@@ -65,7 +65,7 @@ namespace Fancy {  namespace IO {
 
     archive.write(reinterpret_cast<const char*>(&kTextureVersion), sizeof(uint32));
 
-    Rendering::TextureDesc desc = aTexture->getParameters();
+    Rendering::TextureCreationParams desc = aTexture->getParameters();
     writeName(archive, desc.path);
     archive.write(reinterpret_cast<const char*>(&desc.u16Width), sizeof(uint16));
     archive.write(reinterpret_cast<const char*>(&desc.u16Height), sizeof(uint16));
@@ -113,7 +113,7 @@ namespace Fancy {  namespace IO {
     Rendering::Texture::registerWithName(textureName, texture);
     (*aTexture) = texture;
 
-    Rendering::TextureDesc desc;
+    Rendering::TextureCreationParams desc;
     archive.read((char*)&desc.u16Width, sizeof(uint16));
     archive.read((char*)&desc.u16Height, sizeof(uint16));
     archive.read((char*)&desc.u16Depth, sizeof(uint16));

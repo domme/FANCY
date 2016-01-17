@@ -25,15 +25,42 @@ namespace Fancy { namespace Rendering {
     return memcmp(this, &anOther, sizeof(DepthStencilState)) == 0;
   }
 //---------------------------------------------------------------------------//
-  DepthStencilState::DepthStencilState(const ObjectName& _name) :
-    myName(_name),
-    myDepthTestEnabled(true),
-    myDepthWriteEnabled(true),
-    myDepthCompFunc(CompFunc::LESS),
-    myStencilEnabled(true),
-    myTwoSidedStencil(false),
-    myStencilRef(1),
-    myStencilReadMask((Fancy::uint32)-1)
+  uint64 DepthStencilStateDesc::GetHash() const
+  {
+    uint hash = 0x0;
+    MathUtil::hash_combine(hash, myDepthTestEnabled ? 1u : 0u);
+    MathUtil::hash_combine(hash, myDepthWriteEnabled ? 1u : 0u);
+    MathUtil::hash_combine(hash, (uint32)myDepthCompFunc);
+    MathUtil::hash_combine(hash, myStencilEnabled ? 1u : 0u);
+    MathUtil::hash_combine(hash, myTwoSidedStencil ? 1u : 0u);
+    MathUtil::hash_combine(hash, myStencilRef);
+    MathUtil::hash_combine(hash, myStencilReadMask);
+
+    for (uint32 i = 0u; i < (uint32)FaceType::NUM; ++i)
+    {
+      MathUtil::hash_combine(hash, (uint32)myStencilCompFunc[i]);
+      MathUtil::hash_combine(hash, myStencilWriteMask[i]);
+      MathUtil::hash_combine(hash, (uint32)myStencilFailOp[i]);
+      MathUtil::hash_combine(hash, (uint32)myStencilDepthFailOp[i]);
+      MathUtil::hash_combine(hash, (uint32)myStencilPassOp[i]);
+    }
+
+    return hash;
+  }
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  DepthStencilState::DepthStencilState(const ObjectName& _name) 
+    : myName(_name)
+    , myDepthTestEnabled(true)
+    , myDepthWriteEnabled(true)
+    , myDepthCompFunc(CompFunc::LESS)
+    , myStencilEnabled(true)
+    , myTwoSidedStencil(false)
+    , myStencilRef(1)
+    , myStencilReadMask((Fancy::uint32)-1)
+    , myCachedHash(0u)
+    , myIsDirty(true)
   {
     myStencilCompFunc[(uint) FaceType::FRONT] = CompFunc::EQUAL;
     myStencilCompFunc[(uint) FaceType::BACK] = CompFunc::EQUAL;
@@ -49,7 +76,7 @@ namespace Fancy { namespace Rendering {
   //---------------------------------------------------------------------------//
   bool DepthStencilState::operator==( const DepthStencilState& clOther ) const
   {
-    return getHash() == clOther.getHash();
+    return GetHash() == clOther.GetHash();
   }
 //---------------------------------------------------------------------------//
   bool DepthStencilState::operator==(const DepthStencilStateDesc& aDesc) const 
@@ -86,27 +113,15 @@ namespace Fancy { namespace Rendering {
     aSerializer->serialize(&myName, "myName");
   }
 //---------------------------------------------------------------------------//
-  uint DepthStencilState::getHash() const
+  uint DepthStencilState::GetHash() const
   {
-    uint hash = 0x0;
-    MathUtil::hash_combine(hash, myDepthTestEnabled ? 1u : 0u);
-    MathUtil::hash_combine(hash, myDepthWriteEnabled ? 1u : 0u);
-    MathUtil::hash_combine(hash, (uint32) myDepthCompFunc);
-    MathUtil::hash_combine(hash, myStencilEnabled ? 1u : 0u);
-    MathUtil::hash_combine(hash, myTwoSidedStencil ? 1u : 0u);
-    MathUtil::hash_combine(hash, myStencilRef);
-    MathUtil::hash_combine(hash, myStencilReadMask);
+    if (!myIsDirty)
+      return myCachedHash;
 
-    for (uint32 i = 0u; i < (uint32) FaceType::NUM; ++i)
-    {
-      MathUtil::hash_combine(hash, (uint32) myStencilCompFunc[i]);
-      MathUtil::hash_combine(hash, myStencilWriteMask[i]);
-      MathUtil::hash_combine(hash, (uint32) myStencilFailOp[i]);
-      MathUtil::hash_combine(hash, (uint32) myStencilDepthFailOp[i]);
-      MathUtil::hash_combine(hash, (uint32) myStencilPassOp[i]);
-    }
+    myIsDirty = false;
+    myCachedHash = GetDescription().GetHash();
 
-    return hash;
+    return myCachedHash;
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

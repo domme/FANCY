@@ -2,29 +2,20 @@
 
 #include "FancyCorePrerequisites.h"
 
+namespace Fancy { namespace Rendering {
+  struct GpuProgramDesc;
+  struct MaterialPassDesc;
+  struct MeshDesc;
+  struct GpuProgramPipelineDesc;
+
+} }
+
+
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  struct ShaderGuidParams
-  {
-    String myShaderPath;
-    uint64 myPermutationHash;
-    uint myShaderStage;
-  };
-//---------------------------------------------------------------------------//
-  struct GpuProgramPipelineGuidParams
-  {
-    Rendering::GpuProgram* myGpuPrograms;
-    uint myNumGpuPrograms;
-  };
-//---------------------------------------------------------------------------//
-  struct GeometryGuidParams
-  {
-    float* myVertexData;
-    uint myVertexDataCount;
-    int* myIndexData;
-    uint mIndexDataCount;
-  };
-//---------------------------------------------------------------------------//
+
+
+  
+  //---------------------------------------------------------------------------//
   class GUID
   {
     uint64 Create(const ShaderGuidParams& someShaderParams);

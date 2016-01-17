@@ -159,14 +159,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     m_clStateInfos.isLockedPersistent = false;
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferGL4::create( const GpuBufferParameters& clParameters, void* pInitialData /*= nullptr*/ )
+  void GpuBufferGL4::create( const GpuBufferCreationParams& clParameters, void* pInitialData /*= nullptr*/ )
   {
     destroy();
 
     ASSERT_M(clParameters.uElementSizeBytes > 0 && clParameters.uNumElements > 0,
        "Invalid buffer size specified");
 
-    GpuBufferParameters* pBaseParams = &m_clParameters;
+    GpuBufferCreationParams* pBaseParams = &m_clParameters;
     *pBaseParams = clParameters;
 
     GLenum eUsageTarget;

@@ -311,12 +311,11 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    struct TextureDesc {
-      TextureDesc() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
+    struct TextureCreationParams {
+      TextureCreationParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
         eFormat(DataFormat::NONE), uAccessFlags(0u), pPixelData(nullptr),
-        uPixelDataSizeBytes(0), bIsDepthStencil(false) {}
+        uPixelDataSizeBytes(0), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u) {}
 
-      ObjectName path;
       uint16 u16Width;
       uint16 u16Height;
       uint16 u16Depth;
@@ -328,6 +327,9 @@ namespace Fancy {
       void* pPixelData;
       /// (optional) size of the pixelData
       uint uPixelDataSizeBytes;
+      String path;
+      bool myIsExternalTexture;
+      uint32 myInternalRefIndex;
 
       uint8 u8NumMipLevels;
     };
@@ -344,8 +346,8 @@ namespace Fancy {
       RESOURCE_BUFFER_LARGE_RW
     };
  //---------------------------------------------------------------------------//
-    struct GpuBufferParameters {
-      GpuBufferParameters() : uNumElements(0u), bIsMultiBuffered(false), 
+    struct GpuBufferCreationParams {
+      GpuBufferCreationParams() : uNumElements(0u), bIsMultiBuffered(false), 
         uElementSizeBytes(0u), ePrimaryUsageType(GpuBufferUsage::CONSTANT_BUFFER), uAccessFlags(0u) {}
 
       uint uNumElements;

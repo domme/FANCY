@@ -16,6 +16,7 @@ namespace Fancy { namespace Rendering {
   {
     BlendStateDesc();
     bool operator==(const BlendStateDesc& anOther) const;
+    uint64 GetHash() const;
 
     bool myAlphaToCoverageEnabled;
     bool myBlendStatePerRT;
@@ -47,41 +48,43 @@ public:
   static ObjectName getTypeName() { return _N(BlendState); }
   void serialize(IO::Serializer* aSerializer);
   
-  uint getHash() const;
+  uint GetHash() const;
 
   bool getAlphaToCoverageEnabled() const { return myAlphaToCoverageEnabled; }
-  void setAlphaToCoverageEnabled(bool val) { myAlphaToCoverageEnabled = val; }
+  void setAlphaToCoverageEnabled(bool val) { myIsDirty |= myAlphaToCoverageEnabled != val; myAlphaToCoverageEnabled = val; }
 
   bool getBlendStatePerRT() const { return myBlendStatePerRT; }
-  void setBlendStatePerRT(bool val) { myBlendStatePerRT = val;}
+  void setBlendStatePerRT(bool val) { myIsDirty |= myBlendStatePerRT != val; myBlendStatePerRT = val; }
   
   bool getAlphaSeparateBlendEnabled(uint32 _u32rtIndex) const {return myAlphaSeparateBlend[_u32rtIndex]; }
-  void setAlphaSeparateBlendEnabled(uint32 _u32rtIndex, bool val) {myAlphaSeparateBlend[_u32rtIndex] = val; }
+  void setAlphaSeparateBlendEnabled(uint32 _u32rtIndex, bool val) { myIsDirty |= myAlphaSeparateBlend[_u32rtIndex] != val;  myAlphaSeparateBlend[_u32rtIndex] = val; }
 
   bool getBlendEnabled(uint32 _u32rtIndex) const {return myBlendEnabled[_u32rtIndex]; }
-  void setBlendEnabled(uint32 _u32rtIndex, bool val) {myBlendEnabled[_u32rtIndex] = val; }
+  void setBlendEnabled(uint32 _u32rtIndex, bool val) { myIsDirty |= myBlendEnabled[_u32rtIndex] != val;  myBlendEnabled[_u32rtIndex] = val; }
 
   Fancy::Rendering::BlendInput getSrcBlend(uint32 _u32rtIndex) const { return mySrcBlend[_u32rtIndex]; }
-  void setSrcBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { mySrcBlend[_u32rtIndex] = val;}
+  void setSrcBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { myIsDirty |= mySrcBlend[_u32rtIndex] != val;  mySrcBlend[_u32rtIndex] = val; }
 
   Fancy::Rendering::BlendInput getDestBlend(uint32 _u32rtIndex) const { return myDestBlend[_u32rtIndex]; }
-  void setDestBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { myDestBlend[_u32rtIndex] = val;}
+  void setDestBlend(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { myIsDirty |= myDestBlend[_u32rtIndex] != val;  myDestBlend[_u32rtIndex] = val; }
 
   Fancy::Rendering::BlendOp getBlendOp(uint32 _u32rtIndex) const { return myBlendOp[_u32rtIndex]; }
-  void setBlendOp(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { myBlendOp[_u32rtIndex] = val;}
+  void setBlendOp(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { myIsDirty |= myBlendOp[_u32rtIndex] != val;  myBlendOp[_u32rtIndex] = val; }
 
   Fancy::Rendering::BlendInput getSrcBlendAlpha(uint32 _u32rtIndex) const { return mySrcBlendAlpha[_u32rtIndex]; }
-  void setSrcBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { mySrcBlendAlpha[_u32rtIndex] = val;}
+  void setSrcBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { myIsDirty |= mySrcBlendAlpha[_u32rtIndex] != val; mySrcBlendAlpha[_u32rtIndex] = val; }
 
   Fancy::Rendering::BlendInput getDestBlendAlpha(uint32 _u32rtIndex) const { return myDestBlendAlpha[_u32rtIndex]; }
-  void setDestBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { myDestBlendAlpha[_u32rtIndex] = val;}
+  void setDestBlendAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendInput val) { myIsDirty |= myDestBlendAlpha[_u32rtIndex] != val;  myDestBlendAlpha[_u32rtIndex] = val; }
 
   Fancy::Rendering::BlendOp getBlendOpAlpha(uint32 _u32rtIndex) const { return myBlendOpAlpha[_u32rtIndex]; }
-  void setBlendOpAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { myBlendOpAlpha[_u32rtIndex] = val;}
+  void setBlendOpAlpha(uint32 _u32rtIndex, Fancy::Rendering::BlendOp val) { myIsDirty |= myBlendOpAlpha[_u32rtIndex] != val; myBlendOpAlpha[_u32rtIndex] = val; }
 
   Fancy::uint32 getRTwriteMask(uint32 _u32rtIndex) const { return myRTwriteMask[_u32rtIndex]; }
-  void setRTwriteMask(uint32 _u32rtIndex, Fancy::uint32 val) { myRTwriteMask[_u32rtIndex] = val;}
+  void setRTwriteMask(uint32 _u32rtIndex, Fancy::uint32 val) { myIsDirty |= myRTwriteMask[_u32rtIndex] != val; myRTwriteMask[_u32rtIndex] = val; }
 
+  // TODO: Make these protected/private again so myIsDirty and myCachedHash are always up to date
+// protected:
   ObjectName                   myName;
   bool                         myAlphaToCoverageEnabled;
   bool                         myBlendStatePerRT;
@@ -94,6 +97,9 @@ public:
   BlendInput                   myDestBlendAlpha[Constants::kMaxNumRenderTargets];
   BlendOp                      myBlendOpAlpha[Constants::kMaxNumRenderTargets];
   uint32                       myRTwriteMask[Constants::kMaxNumRenderTargets];
+
+  mutable uint64               myCachedHash;  // Needs to be modified from const GetHash()
+  mutable bool                 myIsDirty;     // Needs to be modified from const GetHash()
 //---------------------------------------------------------------------------//
 };
 

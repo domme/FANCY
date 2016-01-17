@@ -310,6 +310,7 @@
     <ClInclude Include="src\AdapterGL4.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
+    <ClInclude Include="src\GpuBufferDesc.h" />
     <ClInclude Include="src\GpuBufferDX12.h" />
     <ClInclude Include="src\CameraComponent.h" />
     <ClInclude Include="src\CameraControllerComponent.h" />
@@ -356,10 +357,14 @@
     <ClInclude Include="src\LoadableObject.h" />
     <ClInclude Include="src\lodepng.h" />
     <ClInclude Include="src\Material.h" />
+    <ClInclude Include="src\MaterialDesc.h" />
     <ClInclude Include="src\MaterialPass.h" />
+    <ClInclude Include="src\MaterialPassDesc.h" />
     <ClInclude Include="src\MaterialPassInstance.h" />
+    <ClInclude Include="src\MaterialPassInstanceDesc.h" />
     <ClInclude Include="src\MathUtil.h" />
     <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\MeshDesc.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\ModelComponent.h" />
     <ClInclude Include="src\ObjectFactory.h" />
@@ -389,6 +394,7 @@
     <ClInclude Include="src\StringUtil.h" />
     <ClInclude Include="src\SubModel.h" />
     <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\TextureDesc.h" />
     <ClInclude Include="src\TextureDX12.h" />
     <ClInclude Include="src\TextureGL4.h" />
     <ClInclude Include="src\TextureLoader.h" />
@@ -399,7 +405,6 @@
     <ClInclude Include="src\VertexInputLayout.h" />
     <ClInclude Include="src\GeometryVertexLayout.h" />
     <ClInclude Include="src\vsDebugLib.h" />
-    <ClInclude Include="src\xxhash.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AdapterDX12.cpp" />
@@ -440,7 +445,9 @@
     <ClCompile Include="src\LoadableObject.cpp" />
     <ClCompile Include="src\lodepng.cpp" />
     <ClCompile Include="src\Material.cpp" />
+    <ClCompile Include="src\MaterialDesc.cpp" />
     <ClCompile Include="src\MaterialPass.cpp" />
+    <ClCompile Include="src\MaterialPassDesc.cpp" />
     <ClCompile Include="src\MaterialPassInstance.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
@@ -482,12 +489,6 @@
     <ClCompile Include="src\VertexInputLayout.cpp" />
     <ClCompile Include="src\GeometryVertexLayout.cpp" />
     <ClCompile Include="src\vsDebugLib.cpp" />
-    <ClCompile Include="src\xxhash.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="src\xxhsum.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

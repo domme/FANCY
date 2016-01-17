@@ -27,6 +27,20 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
     m_uGLhandle = GLUINT_HANDLE_INVALID;
   }
 //---------------------------------------------------------------------------//
+  bool TextureGL4::operator==(const TextureDesc& aDesc) const 
+  {
+
+  }
+//---------------------------------------------------------------------------//
+  TextureDesc TextureGL4::GetDescription() const
+  {
+    TextureDesc desc;
+
+    
+
+    return desc;
+  }
+//---------------------------------------------------------------------------//
   bool TextureGL4::_init()
   {
     create(m_clParameters, m_clStateInfo.cachesTextureData ? 
@@ -46,12 +60,12 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
     return !isValid();
   }
 //---------------------------------------------------------------------------//
-  void TextureGL4::create(const TextureDesc& clDeclaration, CreationMethod eCreationMethod /*= CreationMethod::UPLOADED_ONCE*/)
+  void TextureGL4::create(const TextureCreationParams& clDeclaration, CreationMethod eCreationMethod /*= CreationMethod::UPLOADED_ONCE*/)
   {
     // TODO: Implement Cubemap- and array textures 
     destroy();
 
-    TextureDesc* pBaseParams = &m_clParameters;
+    TextureCreationParams* pBaseParams = &m_clParameters;
     *pBaseParams = clDeclaration;
 
     GLenum eGLformat, eGLinternalFormat, eGLpixelType;

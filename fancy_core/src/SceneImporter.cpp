@@ -778,7 +778,7 @@ namespace Fancy { namespace IO {
 
     pTexture = FANCY_NEW(Texture, MemoryCategory::TEXTURES);
     
-    TextureDesc texParams;
+    TextureCreationParams texParams;
     texParams.bIsDepthStencil = false;
     texParams.eFormat = texLoadInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
     texParams.u16Width = texLoadInfo.width;

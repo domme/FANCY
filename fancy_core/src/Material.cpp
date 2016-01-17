@@ -37,6 +37,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   Material::Material()
   {
+    // TODO: these can be changed to c-arrays again (serialization should support this by now...)
+
     m_vPasses.resize(m_vPasses.capacity());
     memset(&m_vPasses[0], 0u, sizeof(MaterialPassInstance*) * m_vPasses.capacity());
 
@@ -63,6 +65,25 @@ namespace Fancy { namespace Rendering {
     }
 
     return same;
+  }
+//---------------------------------------------------------------------------//
+  bool Material::operator==(const MaterialDesc& aDesc) const 
+  {
+    return GetDescription() == aDesc;
+  }
+//---------------------------------------------------------------------------//
+  MaterialDesc Material::GetDescription() const
+  {
+    MaterialDesc desc;
+
+    for (uint i = 0u; i < m_vPasses.size(); ++i)
+      if (m_vPasses[i] != nullptr)
+        desc.myPasses[i] = m_vPasses[i]->GetDescription();
+
+    for (uint i = 0u; i < m_vParameters.size(); ++i)
+      desc.myParameters[i] = m_vParameters[i];
+
+    return desc;
   }
 //---------------------------------------------------------------------------//
   void Material::serialize(IO::Serializer* aSerializer)

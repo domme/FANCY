@@ -13,6 +13,7 @@ namespace Fancy { namespace Rendering {
   {
     DepthStencilStateDesc();
     bool operator==(const DepthStencilStateDesc& anOther) const;
+    uint64 GetHash() const;
 
     bool myDepthTestEnabled;
     bool myDepthWriteEnabled;
@@ -30,8 +31,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class DepthStencilState : public StaticManagedObject<DepthStencilState>
   {
-    public:
-      SERIALIZABLE(DepthStencilState)
+  public:
+    SERIALIZABLE(DepthStencilState)
 
       explicit DepthStencilState(const ObjectName& _name);
       ~DepthStencilState() {}
@@ -44,8 +45,28 @@ namespace Fancy { namespace Rendering {
       static ObjectName getTypeName() { return _N(DepthStencilState); }
       void serialize(IO::Serializer* aSerializer);
 
-      uint getHash() const;
+      bool GetDepthTestEnabled() const { return myDepthTestEnabled; }
+      void SetDepthTestEnabled(bool aDepthTestEnabled) { myIsDirty |= myDepthTestEnabled != aDepthTestEnabled; myDepthTestEnabled = aDepthTestEnabled; }
+      bool GetDepthWriteEnabled() const { return myDepthWriteEnabled; }
+      void SetDepthWriteEnabled(bool aDepthWriteEnabled) { myIsDirty |= myDepthWriteEnabled != aDepthWriteEnabled;  myDepthWriteEnabled = aDepthWriteEnabled; }
+      CompFunc GetDepthCompFunc() const { return myDepthCompFunc; }
+      void SetDepthCompFunc(CompFunc aDepthCompFunc) { myIsDirty |= myDepthCompFunc != aDepthCompFunc;  myDepthCompFunc = aDepthCompFunc; }
+      bool GetStencilEnabled() const { return myStencilEnabled; }
+      void SetStencilEnabled(bool aStencilEnabled) { myIsDirty |= myStencilEnabled != aStencilEnabled;  myStencilEnabled = aStencilEnabled; }
+      bool GetTwoSidedStencil() const { return myTwoSidedStencil; }
+      void SetTwoSidedStencil(bool aTwoSidedStencil) { myIsDirty |= myTwoSidedStencil != aTwoSidedStencil;  myTwoSidedStencil = aTwoSidedStencil; }
+      int GetStencilRef() const { return myStencilRef; }
+      void SetStencilRef(int aStencilRef) { myIsDirty |= myStencilRef != aStencilRef; myStencilRef = aStencilRef; }
+      uint32 GetStencilReadMask() const { return myStencilReadMask; }
+      void SetStencilReadMask(uint32 aStencilReadMask) { myIsDirty |= myStencilReadMask != aStencilReadMask;  myStencilReadMask = aStencilReadMask; }
+      
+      bool GetIsDirty() const { return myIsDirty; }
+      void SetDirty() { myIsDirty = true; }
 
+      uint GetHash() const;
+
+// TODO: Make these members private/protected to ensure validity of myIsDirty
+  // protected:
       ObjectName        myName;
       bool              myDepthTestEnabled;
       bool              myDepthWriteEnabled;
@@ -59,6 +80,9 @@ namespace Fancy { namespace Rendering {
       StencilOp         myStencilFailOp[(uint32)FaceType::NUM];
       StencilOp         myStencilDepthFailOp[(uint32)FaceType::NUM];
       StencilOp         myStencilPassOp[(uint32)FaceType::NUM];
+
+      mutable bool myIsDirty;
+      mutable uint64 myCachedHash;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(DepthStencilState)

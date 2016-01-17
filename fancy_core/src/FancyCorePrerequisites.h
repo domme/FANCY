@@ -14,6 +14,7 @@
 #include <Windows.h>
 #include <memory>
 #include <functional>
+#include <float.h>
 
 //Math includes
 #include <glm/glm.hpp>

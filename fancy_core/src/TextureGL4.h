@@ -8,6 +8,7 @@
 
 #include "LoadableObject.h"
 #include "AdapterGL4.h"
+#include "TextureDesc.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 
@@ -21,11 +22,14 @@ public:
 //---------------------------------------------------------------------------//
   TextureGL4();
   virtual ~TextureGL4();
+  bool operator==(const TextureDesc& aDesc) const;
+
+  TextureDesc GetDescription() const;
 
   virtual bool _init() override;
   virtual bool _destroy() override;
 
-  void create(const TextureDesc& clDeclaration, CreationMethod eCreationMethod = CreationMethod::UPLOADED_ONCE);
+  void create(const TextureCreationParams& clDeclaration, CreationMethod eCreationMethod = CreationMethod::UPLOADED_ONCE);
   void setPixelData(void* pData, uint uDataSizeBytes, 
    glm::u32vec3 rectPosOffset = glm::u32vec3(0,0,0), glm::u32vec3 rectDimensions = glm::u32vec3(0,0,0));
   void* lock(GpuResoruceLockOption option = GpuResoruceLockOption::WRITE_DISCARD); 
@@ -42,13 +46,13 @@ public:
   uint getNumDimensions() const {return m_clStateInfo.numDimensions; }
   GLenum getInternalFormatGL() const {return m_clParameters.eInternalFormatGL;}
   GLenum getTextureTypeGL() const {return m_clParameters.eTextureTypeGL;}
-  const TextureDesc& getParameters() const {return m_clParameters;}
+  const TextureCreationParams& getParameters() const {return m_clParameters;}
   const ObjectName& getPath() const { return m_clParameters.path; }
-  void setPath(const ObjectName& _aPath) { m_clParameters.path = _aPath; }
+  void setPath(const String& _aPath) { m_clParameters.path = _aPath; }
 
   protected:
   //---------------------------------------------------------------------------//
-  struct TextureParametersGL : public TextureDesc {
+  struct TextureParametersGL : public TextureCreationParams {
     TextureParametersGL() : eFormatGL(0), eInternalFormatGL(0), 
       ePixelTypeGL(0), eTextureTypeGL(0), eTexBindQueryGL(0) {}
 

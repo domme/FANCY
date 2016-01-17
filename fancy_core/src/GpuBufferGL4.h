@@ -23,10 +23,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       GLuint getGLhandle() const { return m_vGLhandles[getBufferIndex()]; }
       uint getTotalSizeBytes() const { return m_clParameters.uTotalSizeBytes; }
       uint32 getNumElements() const { return m_clParameters.uNumElements; }
-      GpuBufferParameters getParameters() const { return static_cast<GpuBufferParameters>(m_clParameters); }
+      GpuBufferCreationParams getParameters() const { return static_cast<GpuBufferCreationParams>(m_clParameters); }
 
       void setBufferData(void* pData, uint uOffsetElements = 0, uint uNumElements = 0);
-      void create(const GpuBufferParameters& clParameters, void* pInitialData = nullptr);
+      void create(const GpuBufferCreationParams& clParameters, void* pInitialData = nullptr);
       void destroy();
       void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
       void unlock();
@@ -37,7 +37,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     private:
   //---------------------------------------------------------------------------//
       struct BufferParametersGL 
-        : public GpuBufferParameters
+        : public GpuBufferCreationParams
       {
         BufferParametersGL() : eInitialBufferTargetGL(0), eBindingQueryType(0),
           uAccessFlagsGL(0), uTotalSizeBytes(0) {}

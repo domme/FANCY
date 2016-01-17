@@ -15,11 +15,19 @@ namespace Fancy {
 
 namespace Fancy { namespace Rendering {
   class Material;
+  struct MaterialDesc;
 } }  // end of namespace Fancy::Rendering
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class Mesh;
+  struct MeshDesc;
+//---------------------------------------------------------------------------//
+  struct SubModelDesc
+  {
+    Rendering::MaterialDesc myMaterial;
+    MeshDesc myMesh;
+  };
 //---------------------------------------------------------------------------//
   class SubModel : public StaticManagedHeapObject<SubModel>
   {

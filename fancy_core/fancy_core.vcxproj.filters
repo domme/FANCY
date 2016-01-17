@@ -38,9 +38,6 @@
     <Filter Include="src\Rendering\DX12">
       <UniqueIdentifier>{c3bd7ac1-c48d-47ba-b876-50bee9d32391}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Common\xxHash">
-      <UniqueIdentifier>{aa9d8209-f94f-46a6-b2ab-e92fb49f19e8}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\StdAfx.h">
@@ -325,8 +322,23 @@
     <ClInclude Include="src\GpuProgramDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\xxhash.h">
-      <Filter>src\Common\xxHash</Filter>
+    <ClInclude Include="src\MeshDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MaterialDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MaterialPassInstanceDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MaterialPassDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextureDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuBufferDesc.h">
+      <Filter>src\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -552,11 +564,11 @@
     <ClCompile Include="src\GpuProgram.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\xxhsum.c">
-      <Filter>src\Common\xxHash</Filter>
+    <ClCompile Include="src\MaterialDesc.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\xxhash.c">
-      <Filter>src\Common\xxHash</Filter>
+    <ClCompile Include="src\MaterialPassDesc.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
