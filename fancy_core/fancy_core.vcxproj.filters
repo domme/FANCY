@@ -38,9 +38,6 @@
     <Filter Include="src\Rendering\DX12">
       <UniqueIdentifier>{c3bd7ac1-c48d-47ba-b876-50bee9d32391}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Common\xxHash">
-      <UniqueIdentifier>{aa9d8209-f94f-46a6-b2ab-e92fb49f19e8}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\StdAfx.h">
@@ -325,9 +322,6 @@
     <ClInclude Include="src\GpuProgramDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\xxhash.h">
-      <Filter>src\Common\xxHash</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -551,12 +545,6 @@
     </ClCompile>
     <ClCompile Include="src\GpuProgram.cpp">
       <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\xxhsum.c">
-      <Filter>src\Common\xxHash</Filter>
-    </ClCompile>
-    <ClCompile Include="src\xxhash.c">
-      <Filter>src\Common\xxHash</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

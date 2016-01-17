@@ -304,7 +304,6 @@
     <ClInclude Include="src\VertexInputLayout.h" />
     <ClInclude Include="src\GeometryVertexLayout.h" />
     <ClInclude Include="src\vsDebugLib.h" />
-    <ClInclude Include="src\xxhash.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AdapterDX12.cpp" />
@@ -385,12 +384,6 @@
     <ClCompile Include="src\VertexInputLayout.cpp" />
     <ClCompile Include="src\GeometryVertexLayout.cpp" />
     <ClCompile Include="src\vsDebugLib.cpp" />
-    <ClCompile Include="src\xxhash.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="src\xxhsum.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
