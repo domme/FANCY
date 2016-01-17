@@ -1,10 +1,5 @@
 *.exe
-
-*.dll
-
-*.lib
 *.exp
-
 *.opensdf
 *.ilk
 *.pdb
@@ -23,15 +18,8 @@ _build_temp/*/*/*.*
 
 *.sublime-project
 *.sublime-workspace
-
-
-*.exp
-*.exp
-lib/x64/Debug/fancy_core.exp
-dependencies/lib/x64/release/assimp.exp
-lib/x64/Debug/fancy_core.exp
-*.exp
+lib/*
 *.cache
-*.exp
 *.opendb
-*.exp
+
+dependencies/lib/*
