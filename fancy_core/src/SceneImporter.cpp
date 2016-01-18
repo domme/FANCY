@@ -339,8 +339,8 @@ namespace Fancy { namespace IO {
 
     // We have to construct a new mesh...
     GeometryDataList vGeometryDatas;
-    FixedArray<void*, kMaxNumGeometriesPerSubModel> vertexDatas;
-    FixedArray<void*, kMaxNumGeometriesPerSubModel> indexDatas;
+    FixedArray<void*, Constants::kMaxNumGeometriesPerSubModel> vertexDatas;
+    FixedArray<void*, Constants::kMaxNumGeometriesPerSubModel> indexDatas;
     for (uint32 iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
     {
       const aiMesh* aiMesh = someMeshes[iAiMesh];
@@ -504,7 +504,7 @@ namespace Fancy { namespace IO {
       Rendering::GpuBuffer* vertexBuffer =
         FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::GEOMETRY);
 
-      Rendering::GpuBufferParameters bufferParams;
+      Rendering::GpuBufferCreationParams bufferParams;
       bufferParams.bIsMultiBuffered = false;
       bufferParams.ePrimaryUsageType = Rendering::GpuBufferUsage::VERTEX_BUFFER;
       bufferParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
@@ -540,7 +540,7 @@ namespace Fancy { namespace IO {
       Rendering::GpuBuffer* indexBuffer =
         FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::GEOMETRY);
 
-      Rendering::GpuBufferParameters indexBufParams;
+      Rendering::GpuBufferCreationParams indexBufParams;
       indexBufParams.bIsMultiBuffered = false;
       indexBufParams.ePrimaryUsageType = Rendering::GpuBufferUsage::INDEX_BUFFER;
       indexBufParams.uAccessFlags = static_cast<uint32>(Rendering::GpuResourceAccessFlags::NONE);

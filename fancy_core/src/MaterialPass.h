@@ -47,11 +47,7 @@ namespace Fancy { namespace Rendering {
       WindingOrder getWindingOrder() const {return m_eWindingOrder;}
       const BlendState* getBlendState() const {return m_pBlendState;}
       const DepthStencilState* getDepthStencilState() const {return m_pDepthStencilState;}
-      MaterialPassInstance* createMaterialPassInstance(const ObjectName& name);
-      MaterialPassInstance* createMaterialPassInstance(const ObjectName& name, const MaterialPassInstance& _template);
-      MaterialPassInstance* getMaterialPassInstance(const ObjectName& aName);
-      MaterialPassInstance* getMaterialPassInstance(const uint& anMpiHash);
-
+      
       FillMode m_eFillMode;
       CullMode m_eCullMode;
       WindingOrder m_eWindingOrder;
@@ -60,11 +56,6 @@ namespace Fancy { namespace Rendering {
       GpuProgramPipeline* myProgramPipeline;
 
       ObjectName m_Name;
-            
-    private:
-      // TODO: Re-work the MaterialPass <-> MaterialPassInstance coupling
-      std::vector<MaterialPassInstance*> m_vpMaterialPassInstances;
-
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

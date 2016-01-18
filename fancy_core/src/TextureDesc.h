@@ -9,7 +9,7 @@ namespace Fancy { namespace Rendering {
   {
     TextureDesc() : myIsExternalTexture(false), myInternalRefIndex(~0u) {}
     
-    const bool operator==(const TextureDesc& anOther) const 
+    bool operator==(const TextureDesc& anOther) const 
     {
       return  myIsExternalTexture == anOther.myIsExternalTexture
         &&    mySourcePath == anOther.mySourcePath

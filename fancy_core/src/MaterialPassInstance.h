@@ -2,6 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "MaterialPassInstanceDesc.h"
 
 #include "Serializable.h"
 
@@ -35,8 +36,11 @@ namespace Fancy { namespace Rendering {
   public:
     SERIALIZABLE(MaterialPassInstance)
 
-    MaterialPassInstance();
+    MaterialPassInstance(MaterialPass* aMaterialPass);
     ~MaterialPassInstance();
+    bool operator==(const MaterialPassInstanceDesc& aDesc) const;
+
+    MaterialPassInstanceDesc GetDescription() const;
 
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(MaterialPassInstance); }

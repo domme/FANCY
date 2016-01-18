@@ -11,7 +11,7 @@ namespace Fancy { namespace Rendering {
 
     GpuBufferDesc() : myInternalRefIndex(~0u) {}
 
-    const bool operator==(const GpuBufferDesc& anOther) const {
+    bool operator==(const GpuBufferDesc& anOther) const {
       return myInternalRefIndex == anOther.myInternalRefIndex;
     }
 

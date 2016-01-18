@@ -12,6 +12,7 @@ namespace Fancy { namespace Geometry {
 
     MeshDesc() : myVertexAndIndexHash(0u) {}
     bool operator==(const MeshDesc& anOther) const { return myVertexAndIndexHash == anOther.myVertexAndIndexHash; }
+    uint64 GetHash() const { return myVertexAndIndexHash; }
   };
 //---------------------------------------------------------------------------//
 } }

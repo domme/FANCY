@@ -161,15 +161,15 @@ namespace Fancy { namespace Rendering {
       }
     }
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void ResourceStorageEntry::serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serialize(&myIndex, "myIndex");
     aSerializer->serialize(&myName, "myName");
   }
-  //---------------------------------------------------------------------------//
-  MaterialPassInstance::MaterialPassInstance() :
-    m_pMaterialPass(nullptr)
+//---------------------------------------------------------------------------//
+  MaterialPassInstance::MaterialPassInstance(MaterialPass* aMaterialPass) :
+    m_pMaterialPass(aMaterialPass)
   {
     memset(m_vpReadTextures, 0x0, sizeof(m_vpReadTextures));
     memset(m_vpWriteTextures, 0x0, sizeof(m_vpWriteTextures));
@@ -177,12 +177,46 @@ namespace Fancy { namespace Rendering {
     memset(m_vpWriteBuffers, 0x0, sizeof(m_vpWriteBuffers));
     memset(m_vpTextureSamplers, 0x0, sizeof(m_vpTextureSamplers));
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   MaterialPassInstance::~MaterialPassInstance()
   {
 
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  bool MaterialPassInstance::operator==(const MaterialPassInstanceDesc& aDesc) const 
+  {
+    return GetDescription() == aDesc;
+  }
+//---------------------------------------------------------------------------//
+  MaterialPassInstanceDesc MaterialPassInstance::GetDescription() const
+  {
+    MaterialPassInstanceDesc desc;
+
+    desc.myMaterialPass = m_pMaterialPass->GetDescription();
+    
+    for (uint i = 0u; i < Constants::kMaxNumReadTextures; ++i)
+      if (nullptr != m_vpReadTextures[i])
+        desc.myReadTextures[i] = m_vpReadTextures[i]->GetDescription();
+
+    for (uint i = 0u; i < Constants::kMaxNumWriteTextures; ++i)
+      if (nullptr != m_vpWriteTextures[i])
+        desc.myWriteTextures[i] = m_vpWriteTextures[i]->GetDescription();
+
+    for (uint i = 0u; i < Constants::kMaxNumReadBuffers; ++i)
+      if (nullptr != m_vpReadBuffers[i])
+        desc.myReadBuffers[i] = m_vpReadBuffers[i]->GetDescription();
+
+    for (uint i = 0u; i < Constants::kMaxNumWriteBuffers; ++i)
+      if (nullptr != m_vpWriteBuffers[i])
+        desc.myWriteBuffers[i] = m_vpWriteBuffers[i]->GetDescription();
+
+    for (uint i = 0u; i < Constants::kMaxNumTextureSamplers; ++i)
+      if (nullptr != m_vpTextureSamplers[i])
+        desc.myTextureSamplers[i] = m_vpTextureSamplers[i]->GetDescription();
+
+    return desc;
+  }
+//---------------------------------------------------------------------------//
   void MaterialPassInstance::serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serialize(&m_Name, "m_Name");
