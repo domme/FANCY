@@ -66,7 +66,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   }
 //---------------------------------------------------------------------------//
   void TextureSamplerGL4::create( const ObjectName& rName, 
-    const TextureSamplerProperties& rProperties )
+    const TextureSamplerDesc& rProperties )
   {
     destroy();
 
@@ -127,7 +127,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       glDeleteSamplers(1u, &m_uHandleGL);
       m_uHandleGL = GLUINT_HANDLE_INVALID;
 
-      m_properties = TextureSamplerProperties();
+      m_properties = TextureSamplerDesc();
     }
   }
 } } }  // end of namespace Fancy::Rendering::GL4

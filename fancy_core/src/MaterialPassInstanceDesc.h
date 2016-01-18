@@ -2,16 +2,23 @@
 
 #include "FancyCorePrerequisites.h"
 #include "Material.h"
+#include "GpuBufferDesc.h"
+#include "TextureDesc.h"
+#include "TextureSamplerDesc.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct MaterialPassInstanceDesc
   {
-    
+    MaterialPassDesc myMaterialPass;
+    TextureDesc myReadTextures[Constants::kMaxNumReadTextures];
+    TextureDesc myWriteTextures[Constants::kMaxNumWriteTextures];
+    GpuBufferDesc myReadBuffers[Constants::kMaxNumReadBuffers];
+    GpuBufferDesc myWriteBuffers[Constants::kMaxNumWriteBuffers];
+    TextureSamplerDesc myTextureSamplers[Constants::kMaxNumTextureSamplers];
 
-    MaterialPassInstanceDesc() : myVertexAndIndexHash(0u) {}
-    uint64 GetHash() const { return myVertexAndIndexHash; }
-    bool operator==(const MaterialPassInstanceDesc& anOther) const { return myVertexAndIndexHash == anOther.myVertexAndIndexHash; }
+    uint64 GetHash() const;
+    bool operator==(const MaterialPassInstanceDesc& anOther) const;
   };
 //---------------------------------------------------------------------------//
 } }

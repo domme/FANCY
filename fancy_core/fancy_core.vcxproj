@@ -399,6 +399,7 @@
     <ClInclude Include="src\TextureGL4.h" />
     <ClInclude Include="src\TextureLoader.h" />
     <ClInclude Include="src\TextureSampler.h" />
+    <ClInclude Include="src\TextureSamplerDesc.h" />
     <ClInclude Include="src\TextureSamplerDX12.h" />
     <ClInclude Include="src\TextureSamplerGL4.h" />
     <ClInclude Include="src\TimeManager.h" />
@@ -449,6 +450,7 @@
     <ClCompile Include="src\MaterialPass.cpp" />
     <ClCompile Include="src\MaterialPassDesc.cpp" />
     <ClCompile Include="src\MaterialPassInstance.cpp" />
+    <ClCompile Include="src\MaterialPassInstanceDesc.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\ModelComponent.cpp" />

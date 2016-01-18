@@ -3,6 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "GpuBufferDesc.h"
 
 #if defined (RENDERER_OPENGL4)
 
@@ -16,7 +17,10 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     public:
       GpuBufferGL4();
       ~GpuBufferGL4();
+      bool operator==(const GpuBufferDesc& aDesc) const;
 
+      GpuBufferDesc GetDescription() const;
+      
       bool isLocked() const { return m_clStateInfos.isLocked; }
       bool isLockedPersistent() const { return m_clStateInfos.isLockedPersistent; }
       bool isValid() const { return !m_vGLhandles.empty(); }

@@ -347,12 +347,13 @@ namespace Fancy {
     };
  //---------------------------------------------------------------------------//
     struct GpuBufferCreationParams {
-      GpuBufferCreationParams() : uNumElements(0u), bIsMultiBuffered(false), 
+      GpuBufferCreationParams() : uNumElements(0u), myInternalRefIndex(~0u), bIsMultiBuffered(false), 
         uElementSizeBytes(0u), ePrimaryUsageType(GpuBufferUsage::CONSTANT_BUFFER), uAccessFlags(0u) {}
 
       uint uNumElements;
       uint32 uElementSizeBytes;
       uint32 uAccessFlags;
+      uint32 myInternalRefIndex;
       GpuBufferUsage ePrimaryUsageType;
       bool bIsMultiBuffered;
     };
@@ -388,33 +389,6 @@ namespace Fancy {
       MIRROR_REPEAT,
 
       NUM
-    };
-//---------------------------------------------------------------------------//
-    struct TextureSamplerProperties {
-      TextureSamplerProperties() :
-        minFiltering(SamplerFilterMode::NEAREST),
-        magFiltering(SamplerFilterMode::NEAREST),
-        addressModeX(SamplerAddressMode::WRAP),
-        addressModeY(SamplerAddressMode::WRAP),
-        addressModeZ(SamplerAddressMode::WRAP),
-        comparisonFunc(CompFunc::ALWAYS),
-        borderColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)),
-        fMinLod(0.0f),
-        fMaxLod(FLT_MAX),
-        fLodBias(0.0f),
-        fMaxAnisotropy(1.0f) {}
-
-      SamplerFilterMode  minFiltering;
-      SamplerFilterMode  magFiltering;
-      SamplerAddressMode addressModeX;
-      SamplerAddressMode addressModeY;
-      SamplerAddressMode addressModeZ;
-      CompFunc           comparisonFunc;
-      glm::vec4          borderColor;
-      float              fMinLod;
-      float              fMaxLod;
-      float              fLodBias;
-      float              fMaxAnisotropy;
     };
 //---------------------------------------------------------------------------//
     enum class EMaterialPass {

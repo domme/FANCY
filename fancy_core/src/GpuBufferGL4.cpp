@@ -131,6 +131,19 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     destroy();
   }
+
+//---------------------------------------------------------------------------//
+  bool GpuBufferGL4::operator==(const GpuBufferDesc& aDesc) const
+  {
+    return GetDescription() == aDesc;
+  }
+//---------------------------------------------------------------------------//
+  GpuBufferDesc GpuBufferGL4::GetDescription() const
+  {
+    GpuBufferDesc desc;
+    desc.myInternalRefIndex = m_clParameters.myInternalRefIndex;
+    return desc;
+  }
 //---------------------------------------------------------------------------//
   void GpuBufferGL4::destroy()
   {

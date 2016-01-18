@@ -340,6 +340,9 @@
     <ClInclude Include="src\GpuBufferDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="src\TextureSamplerDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -568,6 +571,9 @@
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\MaterialPassDesc.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MaterialPassInstanceDesc.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>

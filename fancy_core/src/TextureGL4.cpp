@@ -29,14 +29,16 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
 //---------------------------------------------------------------------------//
   bool TextureGL4::operator==(const TextureDesc& aDesc) const 
   {
-
+    return GetDescription() == aDesc;
   }
 //---------------------------------------------------------------------------//
   TextureDesc TextureGL4::GetDescription() const
   {
     TextureDesc desc;
 
-    
+    desc.myIsExternalTexture = m_clParameters.myIsExternalTexture;
+    desc.myInternalRefIndex = m_clParameters.myInternalRefIndex;
+    desc.mySourcePath = m_clParameters.path;
 
     return desc;
   }

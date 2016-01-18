@@ -3,6 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "TextureSamplerDesc.h"
 
 #if defined (RENDERER_OPENGL4)
 
@@ -18,12 +19,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   public:
     TextureSamplerGL4();
     ~TextureSamplerGL4();
+    bool operator==(const TextureSamplerDesc& aDesc) const { return m_properties == aDesc; }
   //---------------------------------------------------------------------------//
     const ObjectName& getName() const {return m_Name;}
     GLuint getGLhandle() const {return m_uHandleGL;}
 
-    const TextureSamplerProperties& getProperties() const {return m_properties;}
-    void create(const ObjectName& rName, const TextureSamplerProperties& rProperties);
+    const TextureSamplerDesc& GetDescription() const {return m_properties;}
+    void create(const ObjectName& rName, const TextureSamplerDesc& rProperties);
   //---------------------------------------------------------------------------//
   protected:
     void destroy();
@@ -33,7 +35,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     /// GL-internal handle to the OpenGL sampler object
     GLuint m_uHandleGL;
     /// Internal properties of the sampler defined at creation time
-    TextureSamplerProperties m_properties;
+    TextureSamplerDesc m_properties;
   };
   //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::GL4
