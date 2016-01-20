@@ -1,6 +1,7 @@
 #pragma once
 #include "FancyCorePrerequisites.h"
 #include "GpuProgramFeatures.h"
+#include "MathUtil.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//

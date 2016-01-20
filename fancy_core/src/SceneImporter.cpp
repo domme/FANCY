@@ -8,6 +8,7 @@
 #include <assimp/scene.h>
 #include <assimp/mesh.h>
 #include <assimp/material.h>
+#include <xxHash/xxhash.h>
 
 #include "Scene.h"
 #include "SceneNode.h"
@@ -241,7 +242,7 @@ namespace Fancy { namespace IO {
 
     // Construct or retrieve Fancy Meshes and Submodels
     // Each mesh-list with the same material becomes a submodel
-    SubModelList vSubModels;
+    std::vector<SubModel*> vSubModels;
     for (MaterialMeshMap::iterator it = mapMaterialIndexMesh.begin(); it != mapMaterialIndexMesh.end(); ++it)
     {
       const uint32 uMaterialIndex = it->first;
@@ -268,7 +269,7 @@ namespace Fancy { namespace IO {
         SubModel::Register(pSubModel);
       }
 
-      if (!vSubModels.contains(pSubModel))
+      if (vSubModels.end() == std::find(vSubModels.begin(), vSubModels.end(), pSubModel))
       {
         vSubModels.push_back(pSubModel);
       }
@@ -276,32 +277,52 @@ namespace Fancy { namespace IO {
 
     // At this point, we constructed a bunch of submodels. Now construct them to 
     // a Model (or retrieve an equivalent one...)
-    
+    Geometry::ModelDesc modelDesc;
+    modelDesc.mySubmodels.resize(vSubModels.size());
+    for (uint i = 0u; i < vSubModels.size(); ++i)
+      modelDesc.mySubmodels[i] = vSubModels[i]->GetDescription();
 
-    Geometry::Model* pModel = Geometry::Model::find([vSubModels](Model* itModel) -> bool {
-      const SubModelList& vSubModelsOther = itModel->getSubModelList();
-
-      bool sameSubmodels = vSubModels.size() == vSubModelsOther.size();
-      for (uint32 i = 0; i < vSubModels.size() && sameSubmodels; ++i)
-      {
-        sameSubmodels &= vSubModels[i] == vSubModelsOther[i];
-      }
-
-      return sameSubmodels;
-    });
+    Geometry::Model* pModel = Geometry::Model::FindFromDesc(modelDesc);
 
     if (!pModel)
     {
       pModel = FANCY_NEW(Geometry::Model, MemoryCategory::GEOMETRY);
       pModel->setName(Processing::getUniqueModelName(_workingData));
-      Model::registerWithName(pModel);
-
-      pModel->setSubModelList(vSubModels);
+      pModel->SetFromDescription(modelDesc);
+      Model::Register(pModel);
     }
 
     _pModelComponent->setModel(pModel);
 
     return true;
+  }
+//---------------------------------------------------------------------------//
+  uint64 locComputeHashFromVertexData(aiMesh** someMeshes, uint32 aMeshCount)
+  {
+    XXH64_state_t* xxHashState = XXH64_createState();
+    XXH64_reset(xxHashState, 0u);
+
+    for (uint iMesh = 0u; iMesh < aMeshCount; ++iMesh)
+    {
+      aiMesh* mesh = someMeshes[iMesh];
+
+      XXH64_update(xxHashState, mesh->mVertices, mesh->mNumVertices * sizeof(aiVector3D));
+
+      if (mesh->HasNormals())
+        XXH64_update(xxHashState, mesh->mNormals, mesh->mNumVertices * sizeof(aiVector3D));
+
+      if (mesh->HasTangentsAndBitangents())
+      {
+        XXH64_update(xxHashState, mesh->mTangents, mesh->mNumVertices * sizeof(aiVector3D));
+        XXH64_update(xxHashState, mesh->mBitangents, mesh->mNumVertices * sizeof(aiVector3D));
+      }
+
+      
+      
+      
+    }
+
+    XXH64_freeState(xxHashState);
   }
 //---------------------------------------------------------------------------//
   Geometry::Mesh* Processing::constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pANode, aiMesh** someMeshes, uint32 aMeshCount)

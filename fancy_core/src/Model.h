@@ -5,6 +5,7 @@
 #include "FixedArray.h"
 #include "StaticManagedObject.h"
 #include "Serializable.h"
+#include "ModelDesc.h"
 
 namespace Fancy { namespace IO {
   class Serializer;
@@ -13,9 +14,6 @@ namespace Fancy { namespace IO {
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class SubModel;
-//---------------------------------------------------------------------------//
-  const uint32 kMaxNumSubModelsPerModel = 256u;
-  typedef FixedArray<SubModel*, kMaxNumSubModelsPerModel> SubModelList;
 //---------------------------------------------------------------------------//
   /*@brief: A Model is a collection of several SubModels. Each SubModel is potentially rendered with a different material
   and a different mesh */ 
@@ -26,6 +24,11 @@ namespace Fancy { namespace Geometry {
 
       Model();
       ~Model();
+      bool operator==(const Model& anOther) const;
+      bool operator==(const ModelDesc& aDesc) const;
+
+      ModelDesc GetDescription() const;
+      void SetFromDescription(const ModelDesc& aDesc);
 
       static ObjectName getTypeName() { return _N(Model); }
       void serialize(IO::Serializer* aSerializer);
@@ -40,15 +43,15 @@ namespace Fancy { namespace Geometry {
       SubModel* getSubModel(uint32 u32Index) {return m_vSubModels[u32Index];}
       const SubModel* getSubModel(uint32 u32Index) const {return m_vSubModels[u32Index];}
     //---------------------------------------------------------------------------//
-      SubModelList& getSubModelList() {return m_vSubModels;}
-      const SubModelList& getSubModelList() const {return m_vSubModels;}
+      std::vector<SubModel*>& getSubModelList() {return m_vSubModels;}
+      const std::vector<SubModel*>& getSubModelList() const {return m_vSubModels;}
     //---------------------------------------------------------------------------//
-      void setSubModelList(const SubModelList& _vSubModels) 
+      void setSubModelList(const std::vector<SubModel*>& _vSubModels)
       {ASSERT(m_vSubModels.empty()); m_vSubModels = _vSubModels; }
     //---------------------------------------------------------------------------//
     private:
       ObjectName m_Name;
-      SubModelList m_vSubModels;
+      std::vector<SubModel*> m_vSubModels;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(Model)

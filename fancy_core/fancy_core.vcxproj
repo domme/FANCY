@@ -367,6 +367,7 @@
     <ClInclude Include="src\MeshDesc.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\ModelComponent.h" />
+    <ClInclude Include="src\ModelDesc.h" />
     <ClInclude Include="src\ObjectFactory.h" />
     <ClInclude Include="src\ObjectName.h" />
     <ClInclude Include="src\OpenGLprerequisites.h" />
@@ -454,6 +455,7 @@
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\ModelComponent.cpp" />
+    <ClCompile Include="src\ModelDesc.cpp" />
     <ClCompile Include="src\ObjectFactory.cpp" />
     <ClCompile Include="src\ObjectName.cpp" />
     <ClCompile Include="src\PathService.cpp" />

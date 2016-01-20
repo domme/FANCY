@@ -343,6 +343,9 @@
     <ClInclude Include="src\TextureSamplerDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="src\ModelDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -574,6 +577,9 @@
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\MaterialPassInstanceDesc.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModelDesc.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
