@@ -27,6 +27,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     bool operator==(const GpuProgramPipelineDesc& anOtherDesc) const;
     
     GpuProgramPipelineDesc GetDescription() const;
+    void SetFromDescription(const GpuProgramPipelineDesc& aDesc);
         
     GLuint GeneratePipelineHandleGL();
     void RecomputeHashFromShaders();
@@ -35,6 +36,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     uint myShaderHash;  /// Used to quickly compare two pipelines
     GLuint myPipelineHandleGL;
+
+  protected:
+    void Destroy();
   };
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Rendering:GL4

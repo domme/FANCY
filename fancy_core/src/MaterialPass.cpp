@@ -36,11 +36,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   MaterialPass::~MaterialPass()
   {
-    for (uint32 i = 0; i < m_vpMaterialPassInstances.size(); ++i)
-    {
-      FANCY_DELETE(m_vpMaterialPassInstances[i], MemoryCategory::MATERIALS);
-    }
-    m_vpMaterialPassInstances.clear();
+   
   }
 //---------------------------------------------------------------------------//
   bool MaterialPass::operator==(const MaterialPass& _other) const
@@ -67,7 +63,7 @@ namespace Fancy { namespace Rendering {
 
     desc.m_eFillMode = static_cast<uint32>(m_eFillMode);
     desc.m_eCullMode = static_cast<uint32>(m_eCullMode);
-    desc.m_eWindingOrder = static_cast<uint32>(m_eCullMode);
+    desc.m_eWindingOrder = static_cast<uint32>(m_eWindingOrder);
     if (m_pBlendState != nullptr)
       desc.m_BlendStateDesc = m_pBlendState->GetDescription();
     if (m_pDepthStencilState != nullptr)
@@ -76,6 +72,16 @@ namespace Fancy { namespace Rendering {
       desc.m_GpuProgramPipelineDesc = myProgramPipeline->GetDescription();
     
     return desc;
+  }
+//---------------------------------------------------------------------------//
+  void MaterialPass::SetFromDescription(const MaterialPassDesc& aDesc)
+  {
+    m_eFillMode = static_cast<FillMode>(aDesc.m_eFillMode);
+    m_eCullMode = static_cast<CullMode>(aDesc.m_eCullMode);
+    m_eWindingOrder = static_cast<WindingOrder>(aDesc.m_eWindingOrder);
+    m_pBlendState = BlendState::FindFromDesc(aDesc.m_BlendStateDesc);
+    m_pDepthStencilState = DepthStencilState::FindFromDesc(aDesc.m_DepthStencilStateDesc);
+    myProgramPipeline = GpuProgramPipeline::FindFromDesc(aDesc.m_GpuProgramPipelineDesc);
   }
 //---------------------------------------------------------------------------//
   void MaterialPass::serialize(IO::Serializer* aSerializer)
@@ -87,51 +93,6 @@ namespace Fancy { namespace Rendering {
     aSerializer->serialize(&m_eWindingOrder, "m_eWindingOrder");
     aSerializer->serialize(&m_pBlendState, "m_pBlendState");
     aSerializer->serialize(&m_pDepthStencilState, "m_pDepthStencilState");
-  }
-//---------------------------------------------------------------------------//
-  MaterialPassInstance* MaterialPass::createMaterialPassInstance( const ObjectName& name )
-  {
-    ASSERT(getMaterialPassInstance(name) == nullptr);
-    return createMaterialPassInstance(name, MaterialPassInstance());
-  }
-//---------------------------------------------------------------------------//
-  MaterialPassInstance* MaterialPass::createMaterialPassInstance(const ObjectName& name, const MaterialPassInstance& _template)
-  {
-    ASSERT(getMaterialPassInstance(name) == nullptr);
-    MaterialPassInstance* mpi = FANCY_NEW(MaterialPassInstance(_template), MemoryCategory::MATERIALS);
-
-    mpi->m_Name = name;
-    mpi->m_pMaterialPass = this;
-
-    m_vpMaterialPassInstances.push_back(mpi);
-
-    return mpi;
-  }
-//---------------------------------------------------------------------------//
-  MaterialPassInstance* MaterialPass::getMaterialPassInstance(const ObjectName& aName)
-  {
-    for (MaterialPassInstance* mpi : m_vpMaterialPassInstances)
-    {
-      if (mpi->m_Name == aName)
-      {
-        return mpi;
-      }
-    }
-
-    return nullptr;
-  }
-//---------------------------------------------------------------------------//
-  MaterialPassInstance* MaterialPass::getMaterialPassInstance(const uint& anMpiHash)
-  {
-    for (MaterialPassInstance* mpi : m_vpMaterialPassInstances)
-    {
-      if (mpi->computeHash() == anMpiHash)
-      {
-        return mpi;
-      }
-    }
-
-    return nullptr;
   }
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

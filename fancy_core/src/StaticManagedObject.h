@@ -14,33 +14,26 @@ namespace Fancy {
   class StaticManagedObject : public BaseManagedObject
   {
     public:
-      typedef std::map<ObjectName, T> MapType;
+      typedef std::map<uint64, T> MapType;
 //---------------------------------------------------------------------------//
-      static bool registerWithName(const ObjectName& _name, const T& _object)
+      template <class DescT>
+      static T* FindFromDesc(const DescT& aDesc)
       {
-        MapType::const_iterator it = m_objectMap.find(_name);
-
-        m_objectMap.insert(std::pair<ObjectName, T>(_name, _object));
+        return Find(aDesc.GetHash());
+      }
+//---------------------------------------------------------------------------//
+      static bool Register(uint64 aHash, const T& _object)
+      {
+        ASSERT(nullptr == GetByHash(aHash));
+        m_objectMap.insert(std::pair<uint64, T>(aHash, _object));
         return true;
       }
 //---------------------------------------------------------------------------//
-      static bool registerWithName(const T& _object)
+      static T* Find(uint64 aHash)
       {
-        return registerWithName(_object.getName(), _object);
-      }
-//---------------------------------------------------------------------------//
-      static T* getByName(const ObjectName& _name, bool _shouldTryLoad = false)
-      {
-        MapType::iterator it = m_objectMap.find(_name);
+        auto it = m_objectMap.find(aHash);
         if (it != m_objectMap.end())
-        {
           return &(*it).second;
-        }
-
-        if (_shouldTryLoad)
-        {
-          ASSERT(false); // implement
-        }
         
         return nullptr;
       }
@@ -50,7 +43,7 @@ namespace Fancy {
         return m_objectMap;
       }
 //---------------------------------------------------------------------------//
-      static T* find(std::function<bool(const T&)> _predicateFunc)
+      static T* FindWithFunction(std::function<bool(const T&)> _predicateFunc)
       {
         for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
         {
@@ -63,7 +56,7 @@ namespace Fancy {
         return nullptr;
       }
 //---------------------------------------------------------------------------//
-      static T* findEqual(const T& _other)
+      static T* FindEqual(const T& _other)
       {
         for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
         {
@@ -81,39 +74,33 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
     template<class T>
-    std::map<ObjectName, T> StaticManagedObject<T>::m_objectMap;
+    std::map<uint64, T> StaticManagedObject<T>::m_objectMap;
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
     template <class T>
     class StaticManagedHeapObject : public BaseManagedObject
     {
     public:
-      typedef std::map<ObjectName, T*> MapType;
+      typedef std::map<uint64, T*> MapType;
 //---------------------------------------------------------------------------//
-      static bool registerWithName(const ObjectName& _name, T* _object)
+      static bool Register(uint64 aHash, T* anObject)
       {
-        m_objectMap.insert(std::pair<ObjectName, T*>(_name, _object));
+        ASSERT(nullptr == GetByHash(aHash));
+        m_objectMap.insert(std::pair<uint64, T*>(aHash, anObject));
         return true;
       }
 //---------------------------------------------------------------------------//
-      static bool registerWithName(T* _object)
+      template <class DescT>
+      static T* FindFromDesc(const DescT& aDesc)
       {
-        return registerWithName(_object->getName(), _object);
+        return Find(aDesc.GetHash());
       }
 //---------------------------------------------------------------------------//
-      static T* getByName(const ObjectName& _name, bool _shouldTryLoad = false)
+      static T* Find(uint64 aHash)
       {
-        MapType::const_iterator it = m_objectMap.find(_name);
+        auto it = m_objectMap.find(aHash);
         if (it != m_objectMap.end())
-        {
           return (*it).second;
-        }
-
-        if (_shouldTryLoad)
-        {
-          // return IO::BinaryCache::loadOrRetrieve<T>(_name);
-          ASSERT(false); // Implement!
-        }
 
         return nullptr;
       }
@@ -123,7 +110,7 @@ namespace Fancy {
         return m_objectMap;
       }
 //---------------------------------------------------------------------------//
-      static T* find(std::function<bool(T*)> _predicateFunc)
+      static T* FindWithFunction(std::function<bool(T*)> _predicateFunc)
       {
         for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
         {
@@ -136,7 +123,7 @@ namespace Fancy {
         return nullptr;
       }
 //---------------------------------------------------------------------------//
-      static T* findEqual(const T& _other)
+      static T* FindEqual(const T& _other)
       {
         for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
         {
@@ -154,7 +141,7 @@ namespace Fancy {
     };
     //---------------------------------------------------------------------------//
     template<class T>
-    std::map<ObjectName, T*> StaticManagedHeapObject<T>::m_objectMap;
+    std::map<uint64, T*> StaticManagedHeapObject<T>::m_objectMap;
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy
 

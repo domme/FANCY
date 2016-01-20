@@ -28,6 +28,7 @@ namespace Fancy { namespace Rendering {
       bool operator==(const MaterialDesc& aDesc) const;
       
       MaterialDesc GetDescription() const;
+      void SetFromDescription(const MaterialDesc& aDesc);
 
       static ObjectName getTypeName() { return _N(Material); }
       void serialize(IO::Serializer* aSerializer);

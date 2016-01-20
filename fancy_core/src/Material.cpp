@@ -85,6 +85,25 @@ namespace Fancy { namespace Rendering {
 
     return desc;
   }
+
+//---------------------------------------------------------------------------//
+  void Material::SetFromDescription(const MaterialDesc& aDesc)
+  {
+    if (aDesc == GetDescription())
+      return;
+
+    m_vPasses.clear();
+    m_vParameters.clear();
+
+    m_vPasses.resize(aDesc.myPasses.size());
+    m_vParameters.resize(aDesc.myParameters.size());
+
+    for (uint i = 0u; i < aDesc.myPasses.size(); ++i)
+      m_vPasses[i] = MaterialPassInstance::FindFromDesc(aDesc.myPasses[i]);
+      
+    for (uint i = 0u; i < aDesc.myParameters.size(); ++i)
+      m_vParameters[i] = aDesc.myParameters[i];
+  }
 //---------------------------------------------------------------------------//
   void Material::serialize(IO::Serializer* aSerializer)
   {

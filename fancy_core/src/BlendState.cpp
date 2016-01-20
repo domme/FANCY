@@ -96,6 +96,27 @@ namespace Fancy { namespace Rendering {
     return desc;
   }
 //---------------------------------------------------------------------------//
+  void BlendState::SetFromDescription(const BlendStateDesc& aDesc)
+  {
+    myAlphaToCoverageEnabled = aDesc.myAlphaToCoverageEnabled;
+    myBlendStatePerRT = aDesc.myBlendStatePerRT;
+
+    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    {
+      myAlphaSeparateBlend[i] = aDesc.myAlphaSeparateBlend[i];
+      myBlendEnabled[i] = aDesc.myBlendEnabled[i];
+      mySrcBlend[i] = static_cast<BlendInput>(aDesc.mySrcBlend[i]);
+      myDestBlend[i] = static_cast<BlendInput>(aDesc.myDestBlend[i]);
+      myBlendOp[i] = static_cast<BlendOp>(aDesc.myBlendOp[i]);
+      mySrcBlendAlpha[i] = static_cast<BlendInput>(aDesc.mySrcBlendAlpha[i]);
+      myDestBlendAlpha[i] = static_cast<BlendInput>(aDesc.myDestBlendAlpha[i]);
+      myBlendOpAlpha[i] = static_cast<BlendOp>(aDesc.myBlendOpAlpha[i]);
+      myRTwriteMask[i] = aDesc.myRTwriteMask[i];
+    }
+
+    myIsDirty = true;
+  }
+//---------------------------------------------------------------------------//
   void BlendState::serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serialize(&myName, "myName");

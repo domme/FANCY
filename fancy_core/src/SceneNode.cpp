@@ -34,22 +34,6 @@ namespace Fancy { namespace Scene {
     return localMat;
   }
 //---------------------------------------------------------------------------//
-  TransformDesc Transform::getDescription() const
-  {
-    TransformDesc aDesc;
-    aDesc.myLocalPosition = m_localPosition;
-    aDesc.myLocalRotation = m_localRotation;
-    aDesc.myLocalScale = m_localScale;
-    return aDesc;
-  }
-//---------------------------------------------------------------------------//
-  void Transform::initFromDescription(const TransformDesc& someDesc)
-  {
-    setRotationLocal(someDesc.myLocalRotation);
-    setPositionLocal(someDesc.myLocalPosition);
-    setScaleLocal(someDesc.myLocalScale);
-  }
-//---------------------------------------------------------------------------//
 //   void Transform::rotate(const glm::quat& _quat)
 //   {
 //     glm::quat worldInvQuat = glm::inverse(glm::toQuat(static_cast<glm::mat3>(m_cachedWorld)));

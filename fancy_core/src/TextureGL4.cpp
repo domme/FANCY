@@ -43,6 +43,11 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
     return desc;
   }
 //---------------------------------------------------------------------------//
+  void TextureGL4::SetFromDescription(const TextureDesc& aDesc)
+  {
+    // TODO: Read from binary cache
+  }
+//---------------------------------------------------------------------------//
   bool TextureGL4::_init()
   {
     create(m_clParameters, m_clStateInfo.cachesTextureData ? 

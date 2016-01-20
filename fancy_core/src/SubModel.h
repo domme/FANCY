@@ -6,6 +6,8 @@
 #include "StaticManagedObject.h"
 #include "Material.h"
 #include "Serializable.h"
+#include "MeshDesc.h"
+#include "MaterialDesc.h"
 
 namespace Fancy {
   namespace IO {
@@ -15,18 +17,19 @@ namespace Fancy {
 
 namespace Fancy { namespace Rendering {
   class Material;
-  struct MaterialDesc;
 } }  // end of namespace Fancy::Rendering
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class Mesh;
-  struct MeshDesc;
 //---------------------------------------------------------------------------//
   struct SubModelDesc
   {
     Rendering::MaterialDesc myMaterial;
     MeshDesc myMesh;
+
+    bool operator==(const SubModelDesc& anOther) const;
+    uint64 GetHash() const;
   };
 //---------------------------------------------------------------------------//
   class SubModel : public StaticManagedHeapObject<SubModel>
@@ -36,6 +39,11 @@ namespace Fancy { namespace Geometry {
 
     SubModel();
     ~SubModel();
+    bool operator==(const SubModel& anOther) const;
+    bool operator==(const SubModelDesc& aDesc) const;
+
+    SubModelDesc GetDescription() const;
+    void SetFromDescription(const SubModelDesc& aDesc);
 
     static ObjectName getTypeName() { return _N(SubModel); }
     void serialize(IO::Serializer* aSerializer);

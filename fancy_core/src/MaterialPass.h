@@ -35,6 +35,7 @@ namespace Fancy { namespace Rendering {
       bool operator==(const MaterialPassDesc& aDesc) const;
 
       MaterialPassDesc GetDescription() const;
+      void SetFromDescription(const MaterialPassDesc& aDesc);
 
       void serialize(IO::Serializer* aSerializer);
       static ObjectName getTypeName() { return _N(MaterialPass); }

@@ -3,6 +3,7 @@
 #include "Serializer.h"
 #include "MathUtil.h"
 #include "GpuProgram.h"
+#include "GpuProgramCompilerGL4.h"
 
 #if defined (RENDERER_OPENGL4)
 
@@ -33,8 +34,15 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   GpuProgramPipelineGL4::~GpuProgramPipelineGL4()
   {
+    Destroy();
+  }
+//---------------------------------------------------------------------------//
+  void GpuProgramPipelineGL4::Destroy()
+  {
     if (myPipelineHandleGL != GLUINT_HANDLE_INVALID)
       glDeleteProgramPipelines(1, &myPipelineHandleGL);
+
+    myPipelineHandleGL = GLUINT_HANDLE_INVALID;
   }
 //---------------------------------------------------------------------------//
   bool GpuProgramPipelineGL4::operator==(const GpuProgramPipelineGL4& anOther) const
@@ -54,6 +62,18 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
 
     return desc;
+  }
+//---------------------------------------------------------------------------//
+  void GpuProgramPipelineGL4::SetFromDescription(const GpuProgramPipelineDesc& aDesc)
+  {
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    {
+      myGpuPrograms[i] = GpuProgram::FindFromDesc(aDesc.myGpuPrograms[i]);
+    }
+
+    Destroy();
+    myPipelineHandleGL = GeneratePipelineHandleGL();
+    RecomputeHashFromShaders();
   }
 //---------------------------------------------------------------------------//
   bool GpuProgramPipelineGL4::operator==(const GpuProgramPipelineDesc& anOtherDesc) const

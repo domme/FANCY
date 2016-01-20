@@ -110,6 +110,18 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return desc;
   }
 //---------------------------------------------------------------------------//
+  void GpuProgramGL4::SetFromDescription(const GpuProgramDesc& aDesc)
+  {
+    GpuProgramCompilerOutputGL4 compilerOutput;
+    const bool success = GpuProgramCompilerGL4::Compile(aDesc, compilerOutput);
+
+    if (success)
+    {
+      destroy();
+      SetFromCompilerOutput(compilerOutput);
+    }
+  }
+//---------------------------------------------------------------------------//
   void GpuProgramGL4::destroy()
   {
     if (m_uProgramHandleGL != GLUINT_HANDLE_INVALID) {

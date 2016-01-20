@@ -62,7 +62,19 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   TextureSamplerGL4::~TextureSamplerGL4()
   {
+    destroy();
+  }
 
+//---------------------------------------------------------------------------//
+  void TextureSamplerGL4::SetFromDescription(const TextureSamplerDesc& aDesc)
+  {
+    if (aDesc == GetDescription())
+      return;
+
+    destroy();
+
+    m_properties = aDesc;
+    create(m_Name, aDesc);
   }
 //---------------------------------------------------------------------------//
   void TextureSamplerGL4::create( const ObjectName& rName, 

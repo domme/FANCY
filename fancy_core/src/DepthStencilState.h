@@ -40,6 +40,7 @@ namespace Fancy { namespace Rendering {
       bool operator==(const DepthStencilStateDesc& aDesc) const;
 
       DepthStencilStateDesc GetDescription() const;
+      void SetFromDescription(const DepthStencilStateDesc& aDesc);
 
       const ObjectName& getName() const {return myName;}
       static ObjectName getTypeName() { return _N(DepthStencilState); }

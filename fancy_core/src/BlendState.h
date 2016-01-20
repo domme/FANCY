@@ -43,6 +43,7 @@ public:
   bool operator==(const BlendStateDesc& clOther) const;
 
   BlendStateDesc GetDescription() const;
+  void SetFromDescription(const BlendStateDesc& aDesc);
 
   const Fancy::ObjectName& getName() const { return myName; }
   static ObjectName getTypeName() { return _N(BlendState); }

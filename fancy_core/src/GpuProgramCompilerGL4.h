@@ -7,14 +7,25 @@
 #include "RendererPrerequisites.h"
 #include "GpuProgramFeatures.h"
 
+namespace Fancy{ namespace Rendering{
+  struct GpuProgramDesc;
+} }
+
 namespace Fancy { namespace Rendering { namespace GL4 {
+//---------------------------------------------------------------------------//
+  struct GpuProgramCompilerOutputGL4;
 //---------------------------------------------------------------------------//
   class GpuProgramCompilerGL4
   {
     public:
-      static GpuProgram* createOrRetrieve(const String& _shaderPath, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage);
+      static bool Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputGL4& aCompilerOutput);
+      static GpuProgram* createOrRetrieve(const GpuProgramDesc& aDesc);
       static bool compileFromSource(const String& someShaderSource, const ShaderStage& eShaderStage, GLuint& aProgramHandleGL);
-    
+
+      // TODO: Find a nicer place for platform-dependent infos
+      static const String& GetPlatformShaderFileExtension() { return ".shader"; }
+      static const String& GetPlatformShaderFileDirectory() { return "shader/GL4/"; }
+      
     private:
       GpuProgramCompilerGL4();
       ~GpuProgramCompilerGL4();

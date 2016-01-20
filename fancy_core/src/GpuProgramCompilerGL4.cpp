@@ -1,5 +1,6 @@
 ﻿#include "GpuProgramCompilerGL4.h"
 #include "GpuProgramCompilerUtils.h"
+#include "GpuProgramGL4.h"
 
 #if defined (RENDERER_OPENGL4)
 
@@ -563,6 +564,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     return success;
   }
 //---------------------------------------------------------------------------//
+  String locBuildUniqueShaderName(const GpuProgramDesc& aDesc)
+  {
+    return aDesc.myShaderPath + "_" +
+      GpuProgramCompilerUtils::ShaderStageToDefineString((ShaderStage) aDesc.myShaderStage) +
+      "_" + StringUtil::toString(aDesc.myPermutation.getHash());
+  }
+//---------------------------------------------------------------------------//
   bool GpuProgramCompilerGL4::compileFromSource(const String& someShaderSource, const ShaderStage& eShaderStage, GLuint& aProgramHandleGL)
   {
     GpuProgramCompilerOutputGL4 tempDesc;
@@ -870,34 +878,22 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  // TODO: Find a nicer place for platform-dependent infos
-  String locShaderFileExtension = ".shader";
-  String locShaderDirectory = "shader/GL4/";
-
-  GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const String& aShaderFileName, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage)
+  bool GpuProgramCompilerGL4::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputGL4& aCompilerOutput)
   {
-    String shaderFilePath = locShaderDirectory + aShaderFileName + locShaderFileExtension;
-
-    String uniqueProgramName = aShaderFileName + "_" + GpuProgramCompilerUtils::ShaderStageToDefineString(_eShaderStage) + "_" + StringUtil::toString(_permutation.getHash());
-    GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
-    if (pGpuProgram != nullptr)
-    {
-      return pGpuProgram;
-    }
-
-    log_Info("Compiling shader " + shaderFilePath + " ...");
+    log_Info("Compiling shader " + aDesc.myShaderPath + " ...");
 
     std::list<String> sourceLines;
-    IO::FileReader::ReadTextFileLines(shaderFilePath, sourceLines);
+    IO::FileReader::ReadTextFileLines(aDesc.myShaderPath, sourceLines);
 
     if (sourceLines.empty())
     {
-      log_Error("Error reading shader file " + shaderFilePath);
+      log_Error("Error reading shader file " + aDesc.myShaderPath);
       return false;
     }
 
     ShaderSourceInfo sourceInfo;
-    locPreprocessShaderSource(shaderFilePath, sourceLines, _permutation, _eShaderStage, sourceInfo);
+    locPreprocessShaderSource(aDesc.myShaderPath, sourceLines, aDesc.myPermutation,
+      static_cast<ShaderStage>(aDesc.myShaderStage), sourceInfo);
 
     // construct the final source string
     uint32 uRequiredLength = 0u;
@@ -913,19 +909,43 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       szCombinedSource += *itLine + '\n';
     }
 
-    GpuProgramCompilerOutputGL4 programDesc;
-    programDesc.name = uniqueProgramName;
-    const bool bSuccess = locCompileAndReflect(szCombinedSource, sourceInfo, _eShaderStage, programDesc);
+    GpuProgramCompilerOutputGL4 compilerOutput;
+    compilerOutput.name = locBuildUniqueShaderName(aDesc);
+    const bool bSuccess = locCompileAndReflect(szCombinedSource, sourceInfo,
+      static_cast<ShaderStage>(aDesc.myShaderStage), compilerOutput);
+
+    if (bSuccess)
+    {
+      aCompilerOutput = compilerOutput;
+    }
+
+    return bSuccess;
+  }
+//---------------------------------------------------------------------------//
+  GpuProgram* GpuProgramCompilerGL4::createOrRetrieve(const GpuProgramDesc& aDesc)
+  {
+    String shaderFilePath = aDesc.myShaderPath;
+    ShaderStage shaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
+
+    const String& uniqueProgramName = locBuildUniqueShaderName(aDesc);
+    GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
+    if (pGpuProgram != nullptr)
+    {
+      return pGpuProgram;
+    }
+
+    GpuProgramCompilerOutputGL4 compilerOutput;
+    const bool bSuccess = Compile(aDesc, compilerOutput);
     if (bSuccess)
     {
       pGpuProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
-      pGpuProgram->init(programDesc);
+      pGpuProgram->SetFromCompilerOutput(compilerOutput);
       GpuProgram::registerWithName(pGpuProgram);
     }
+
     return pGpuProgram;
   }
 //---------------------------------------------------------------------------//
-
 } } } // end of namespace Fancy::Rendering:GL4
 
 #endif

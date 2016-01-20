@@ -22,14 +22,14 @@ namespace Fancy { namespace Rendering {
     SERIALIZABLE(ResourceStorageEntry)
 
     uint32 myIndex;
-    ObjectName myName;
+    uint64 myHash;
 
     void serialize(IO::Serializer* aSerializer);
     ObjectName getTypeName() const { return _N(ResourceStorageEntry); }
     const ObjectName& getName() const { return ObjectName::blank; }
   };
 //---------------------------------------------------------------------------//
-  class MaterialPassInstance
+  class MaterialPassInstance : public StaticManagedHeapObject<MaterialPassInstance>
   {
     friend class MaterialPass;
 
@@ -41,6 +41,7 @@ namespace Fancy { namespace Rendering {
     bool operator==(const MaterialPassInstanceDesc& aDesc) const;
 
     MaterialPassInstanceDesc GetDescription() const;
+    void SetFromDescription(const MaterialPassInstanceDesc& aDesc);
 
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(MaterialPassInstance); }
@@ -69,8 +70,6 @@ namespace Fancy { namespace Rendering {
 
     MaterialPass* getMaterialPass() const { return m_pMaterialPass; }
     const ObjectName& getName() { return m_Name; }
-
-    uint computeHash() const;
 
   private:
     ObjectName m_Name;

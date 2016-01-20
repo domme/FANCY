@@ -108,6 +108,28 @@ namespace Fancy { namespace Rendering {
     return desc;
   }
 //---------------------------------------------------------------------------//
+  void DepthStencilState::SetFromDescription(const DepthStencilStateDesc& aDesc)
+  {
+    myDepthTestEnabled = aDesc.myDepthTestEnabled;
+    myDepthWriteEnabled = aDesc.myDepthWriteEnabled;
+    myDepthCompFunc = static_cast<CompFunc>(aDesc.myDepthCompFunc);
+    myStencilEnabled = aDesc.myStencilEnabled;
+    myTwoSidedStencil = aDesc.myTwoSidedStencil;
+    myStencilRef = aDesc.myStencilRef;
+    myStencilReadMask = aDesc.myStencilReadMask;
+
+    for (uint32 i = 0u; i < static_cast<uint32>(FaceType::NUM); ++i)
+    {
+      myStencilCompFunc[i] = static_cast<CompFunc>(aDesc.myStencilCompFunc[i]);
+      myStencilWriteMask[i] = aDesc.myStencilWriteMask[i];
+      myStencilFailOp[i] = static_cast<StencilOp>(aDesc.myStencilFailOp[i]);
+      myStencilDepthFailOp[i] = static_cast<StencilOp>(aDesc.myStencilDepthFailOp[i]);
+      myStencilPassOp[i] = static_cast<StencilOp>(aDesc.myStencilPassOp[i]);
+    }
+
+    myIsDirty = true;
+  }
+//---------------------------------------------------------------------------//
   void DepthStencilState::serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serialize(&myName, "myName");

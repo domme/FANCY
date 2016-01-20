@@ -25,6 +25,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     GLuint getGLhandle() const {return m_uHandleGL;}
 
     const TextureSamplerDesc& GetDescription() const {return m_properties;}
+    void SetFromDescription(const TextureSamplerDesc& aDesc);
     void create(const ObjectName& rName, const TextureSamplerDesc& rProperties);
   //---------------------------------------------------------------------------//
   protected:

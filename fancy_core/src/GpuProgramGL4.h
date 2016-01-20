@@ -107,6 +107,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
       bool operator==(const GpuProgramDesc& anOtherDesc) const;
       GpuProgramDesc GetDescription() const;
+      void SetFromDescription(const GpuProgramDesc& aDesc);
 
       GLuint getProgramHandle() const {return m_uProgramHandleGL;}
       ShaderStage getShaderStage() const {return m_eShaderStage;}

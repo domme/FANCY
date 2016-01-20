@@ -25,6 +25,7 @@ public:
   bool operator==(const TextureDesc& aDesc) const;
 
   TextureDesc GetDescription() const;
+  void SetFromDescription(const TextureDesc& aDesc);
 
   virtual bool _init() override;
   virtual bool _destroy() override;

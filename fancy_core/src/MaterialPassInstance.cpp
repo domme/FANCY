@@ -8,43 +8,6 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  uint MaterialPassInstance::computeHash() const
-  {
-    uint hash = 0x0;
-
-    for (uint32 i = 0u; i < Constants::kMaxNumReadTextures; ++i)
-    {
-      Texture* tex = m_vpReadTextures[i];
-      MathUtil::hash_combine(hash, tex ? tex->getPath().getHash() : 0u);
-    }
-
-    for (uint32 i = 0u; i < Constants::kMaxNumWriteTextures; ++i)
-    {
-      Texture* tex = m_vpWriteTextures[i];
-      MathUtil::hash_combine(hash, tex ? tex->getPath().getHash() : 0u);
-    }
-
-    for (uint32 i = 0u; i < Constants::kMaxNumReadBuffers; ++i)
-    {
-      GpuBuffer* buf = m_vpReadBuffers[i];
-      MathUtil::hash_combine(hash, buf ? buf->getName().getHash() : 0u);
-    }
-
-    for (uint32 i = 0u; i < Constants::kMaxNumWriteBuffers; ++i)
-    {
-      GpuBuffer* buf = m_vpWriteBuffers[i];
-      MathUtil::hash_combine(hash, buf ? buf->getName().getHash() : 0u);
-    }
-
-    for (uint32 i = 0u; i < Constants::kMaxNumTextureSamplers; ++i)
-    {
-      TextureSampler* sampler = m_vpTextureSamplers[i];
-      MathUtil::hash_combine(hash, sampler ? sampler->getName().getHash() : 0u);
-    }
-
-    return hash;
-  }
-  //---------------------------------------------------------------------------//
   void MaterialPassInstance::getResourceDesc(MpiResourceType aType, std::vector<ResourceStorageEntry>& someEntries) const
   {
     if (aType == MpiResourceType::ReadTexture)
@@ -56,7 +19,7 @@ namespace Fancy { namespace Rendering {
 
         ResourceStorageEntry entry;
         entry.myIndex = i;
-        entry.myName = m_vpReadTextures[i]->getPath();
+        entry.myHash = m_vpReadTextures[i]->GetDescription().GetHash();
         someEntries.push_back(entry);
       }
     }
@@ -70,7 +33,7 @@ namespace Fancy { namespace Rendering {
 
         ResourceStorageEntry entry;
         entry.myIndex = i;
-        entry.myName = m_vpWriteTextures[i]->getPath();
+        entry.myHash = m_vpWriteTextures[i]->GetDescription().GetHash();
         someEntries.push_back(entry);
       }
     }
@@ -84,7 +47,7 @@ namespace Fancy { namespace Rendering {
 
         ResourceStorageEntry entry;
         entry.myIndex = i;
-        entry.myName = m_vpReadBuffers[i]->getName();
+        entry.myHash = m_vpReadBuffers[i]->GetDescription().GetHash();
         someEntries.push_back(entry);
       }
     }
@@ -98,7 +61,7 @@ namespace Fancy { namespace Rendering {
 
         ResourceStorageEntry entry;
         entry.myIndex = i;
-        entry.myName = m_vpWriteBuffers[i]->getName();
+        entry.myHash = m_vpWriteBuffers[i]->GetDescription().GetHash();
         someEntries.push_back(entry);
       }
     }
@@ -112,7 +75,7 @@ namespace Fancy { namespace Rendering {
 
         ResourceStorageEntry entry;
         entry.myIndex = i;
-        entry.myName = m_vpTextureSamplers[i]->getName();
+        entry.myHash = m_vpTextureSamplers[i]->GetDescription().GetHash();
         someEntries.push_back(entry);
       }
     }
@@ -121,51 +84,37 @@ namespace Fancy { namespace Rendering {
   void MaterialPassInstance::setFromResourceDesc
     (const std::vector<ResourceStorageEntry>& someResources, MpiResourceType aType)
   {
-    if (aType == MpiResourceType::ReadTexture)
+    switch(aType)
     {
+    case MpiResourceType::ReadTexture:
       for (const ResourceStorageEntry& entry : someResources)
-      {
-        m_vpReadTextures[entry.myIndex] = Texture::getByName(entry.myName);
-      }
-    }
-
-    else if (aType == MpiResourceType::WriteTexture)
-    {
+        m_vpReadTextures[entry.myIndex] = Texture::Find(entry.myHash);
+      break;
+    case MpiResourceType::WriteTexture:
       for (const ResourceStorageEntry& entry : someResources)
-      {
-        m_vpWriteTextures[entry.myIndex] = Texture::getByName(entry.myName);
-      }
-    }
-
-    //else if (aType == MpiResourceType::ReadBuffer)
-    //{
-    //  for (const ResourceStorageEntry entry : someResources)
-    //  {
-    //    m_vpReadBuffers[entry.myShaderStage][entry.myIndex] = GpuBuffer::getByName(entry.myName);
-    //  }
-    //}
-    //
-    //else if (aType == MpiResourceType::WriteBuffer)
-    //{
-    //  for (const ResourceStorageEntry entry : someResources)
-    //  {
-    //    m_vpWriteBuffers[entry.myShaderStage][entry.myIndex] = GpuBuffer::getByName(entry.myName);
-    //  }
-    //}
-
-    else if (aType == MpiResourceType::TextureSampler)
-    {
+        m_vpWriteTextures[entry.myIndex] = Texture::Find(entry.myHash);
+      break;
+    case MpiResourceType::ReadBuffer:
+      for (const ResourceStorageEntry entry : someResources)
+        m_vpReadBuffers[entry.myIndex] = GpuBuffer::Find(entry.myHash);
+      break;
+    case MpiResourceType::WriteBuffer:
+      for (const ResourceStorageEntry entry : someResources)
+        m_vpWriteBuffers[entry.myIndex] = GpuBuffer::Find(entry.myHash);
+      break;
+    case MpiResourceType::TextureSampler:
       for (const ResourceStorageEntry& entry : someResources)
-      {
-        m_vpTextureSamplers[entry.myIndex] = TextureSampler::getByName(entry.myName);
-      }
+        m_vpTextureSamplers[entry.myIndex] = TextureSampler::Find(entry.myHash);
+      break;
+    default:
+      ASSERT(false);
     }
   }
 //---------------------------------------------------------------------------//
   void ResourceStorageEntry::serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serialize(&myIndex, "myIndex");
-    aSerializer->serialize(&myName, "myName");
+    aSerializer->serialize(&myHash, "myHash");
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance::MaterialPassInstance(MaterialPass* aMaterialPass) :
@@ -215,6 +164,27 @@ namespace Fancy { namespace Rendering {
         desc.myTextureSamplers[i] = m_vpTextureSamplers[i]->GetDescription();
 
     return desc;
+  }
+//---------------------------------------------------------------------------//
+  void MaterialPassInstance::SetFromDescription(const MaterialPassInstanceDesc& aDesc)
+  {
+    m_pMaterialPass = MaterialPass::FindFromDesc(aDesc.myMaterialPass);
+    ASSERT(nullptr != m_pMaterialPass);
+
+    for (uint i = 0u; i < Constants::kMaxNumReadTextures; ++i)
+      m_vpReadTextures[i] = Texture::FindFromDesc(aDesc.myReadTextures[i]);
+
+    for (uint i = 0u; i < Constants::kMaxNumWriteTextures; ++i)
+      m_vpWriteTextures[i] = Texture::FindFromDesc(aDesc.myWriteTextures[i]);
+
+    for (uint i = 0u; i < Constants::kMaxNumReadBuffers; ++i)
+      m_vpReadBuffers[i] = GpuBuffer::FindFromDesc(aDesc.myReadBuffers[i]);
+
+    for (uint i = 0u; i < Constants::kMaxNumWriteBuffers; ++i)
+      m_vpWriteBuffers[i] = GpuBuffer::FindFromDesc(aDesc.myWriteBuffers[i]);
+
+    for (uint i = 0u; i < Constants::kMaxNumTextureSamplers; ++i)
+      m_vpTextureSamplers[i] = TextureSampler::FindFromDesc(aDesc.myTextureSamplers[i]);
   }
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::serialize(IO::Serializer* aSerializer)
