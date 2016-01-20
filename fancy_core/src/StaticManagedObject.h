@@ -22,10 +22,11 @@ namespace Fancy {
         return Find(aDesc.GetHash());
       }
 //---------------------------------------------------------------------------//
-      static bool Register(uint64 aHash, const T& _object)
+      static bool Register(const T& _object)
       {
-        ASSERT(nullptr == GetByHash(aHash));
-        m_objectMap.insert(std::pair<uint64, T>(aHash, _object));
+        uint64 hash = _object->GetDescription().GetHash();
+        ASSERT(nullptr == Find(hash));
+        m_objectMap.insert(std::pair<uint64, T>(hash, _object));
         return true;
       }
 //---------------------------------------------------------------------------//
@@ -83,10 +84,11 @@ namespace Fancy {
     public:
       typedef std::map<uint64, T*> MapType;
 //---------------------------------------------------------------------------//
-      static bool Register(uint64 aHash, T* anObject)
+      static bool Register(T* anObject)
       {
-        ASSERT(nullptr == GetByHash(aHash));
-        m_objectMap.insert(std::pair<uint64, T*>(aHash, anObject));
+        uint64 hash = anObject->GetDescription()->GetHash();
+        ASSERT(nullptr == Find(hash));
+        m_objectMap.insert(std::pair<uint64, T*>(hash, anObject));
         return true;
       }
 //---------------------------------------------------------------------------//

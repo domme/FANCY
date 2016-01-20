@@ -255,17 +255,17 @@ namespace Fancy { namespace IO {
       Rendering::Material* pMaterial = Processing::createOrRetrieveMaterial(_workingData, pAmaterial);
 
       // Do we already have a Submodel with this mesh and material?
-      Geometry::SubModel* pSubModel = Geometry::SubModel::find([pMesh, pMaterial] (Geometry::SubModel* itSubmodel) -> bool {
-        return itSubmodel->getMaterial() == pMaterial && itSubmodel->getMesh() == pMesh;
-      });
+      Geometry::SubModelDesc submodelDesc;
+      submodelDesc.myMaterial = pMaterial->GetDescription();
+      submodelDesc.myMesh = pMesh->GetDescription();
 
+      Geometry::SubModel* pSubModel = Geometry::SubModel::FindFromDesc(submodelDesc);
+      
       if (!pSubModel)
       {
         pSubModel = FANCY_NEW(Geometry::SubModel, MemoryCategory::GEOMETRY);
-        pSubModel->setName(Processing::getUniqueSubModelName(_workingData));
-        SubModel::registerWithName(pSubModel);
-        pSubModel->setMaterial(pMaterial);
-        pSubModel->setMesh(pMesh);
+        pSubModel->SetFromDescription(submodelDesc);
+        SubModel::Register(pSubModel);
       }
 
       if (!vSubModels.contains(pSubModel))
@@ -276,6 +276,8 @@ namespace Fancy { namespace IO {
 
     // At this point, we constructed a bunch of submodels. Now construct them to 
     // a Model (or retrieve an equivalent one...)
+    
+
     Geometry::Model* pModel = Geometry::Model::find([vSubModels](Model* itModel) -> bool {
       const SubModelList& vSubModelsOther = itModel->getSubModelList();
 
