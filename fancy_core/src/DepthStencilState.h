@@ -11,6 +11,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct DepthStencilStateDesc
   {
+    static DepthStencilStateDesc GetDefaultDepthNoStencil();
+
     DepthStencilStateDesc();
     bool operator==(const DepthStencilStateDesc& anOther) const;
     uint64 GetHash() const;

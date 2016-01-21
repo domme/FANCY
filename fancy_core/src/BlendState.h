@@ -14,6 +14,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct BlendStateDesc
   {
+    static BlendStateDesc GetDefaultSolid();
+
     BlendStateDesc();
     bool operator==(const BlendStateDesc& anOther) const;
     uint64 GetHash() const;

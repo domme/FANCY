@@ -4,6 +4,24 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  DepthStencilStateDesc DepthStencilStateDesc::GetDefaultDepthNoStencil()
+  {
+    DepthStencilStateDesc desc;
+    desc.myDepthTestEnabled = true;
+    desc.myDepthWriteEnabled = true;
+    desc.myDepthCompFunc = static_cast<uint32>(CompFunc::LESS);
+    desc.myStencilEnabled = false;
+    desc.myTwoSidedStencil = false;
+    desc.myStencilRef = 0;
+    desc.myStencilReadMask = 0u;
+    memset(desc.myStencilCompFunc, 0u, sizeof(desc.myStencilCompFunc));
+    memset(desc.myStencilWriteMask, 0u, sizeof(desc.myStencilWriteMask));
+    memset(desc.myStencilFailOp, 0u, sizeof(desc.myStencilFailOp));
+    memset(desc.myStencilDepthFailOp, 0u, sizeof(desc.myStencilDepthFailOp));
+    memset(desc.myStencilPassOp, 0u, sizeof(desc.myStencilPassOp));
+    return desc;
+  }
+//---------------------------------------------------------------------------//
   DepthStencilStateDesc::DepthStencilStateDesc() 
     : myDepthTestEnabled(false)
     , myDepthWriteEnabled(false)

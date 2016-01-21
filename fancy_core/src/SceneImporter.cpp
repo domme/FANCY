@@ -87,7 +87,7 @@ namespace Fancy { namespace IO {
       std::string szCurrScenePathInResources;
       const aiScene* pCurrScene;
       MaterialCacheMap mapAiMatToMat;
-      MeshCacheList meshCache;
+      MeshCacheList localMeshCache;
 
       uint32 u32NumCreatedMeshes;
       uint32 u32NumCreatedModels;
@@ -102,7 +102,7 @@ namespace Fancy { namespace IO {
     Rendering::Material* createOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial);
     Rendering::Texture* createOrRetrieveTexture(WorkingData& _workingData, const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex);
 
-    std::string getUniqueMeshName(WorkingData& _workingData);
+    std::string GetCachePathForMesh(WorkingData& _workingData);
     std::string getUniqueModelName(WorkingData& _workingData);
     std::string getUniqueSubModelName(WorkingData& _workingData);
     std::string getUniqueGeometryDataName(WorkingData& _workingData, const aiMesh* _pMesh);
@@ -317,36 +317,58 @@ namespace Fancy { namespace IO {
         XXH64_update(xxHashState, mesh->mBitangents, mesh->mNumVertices * sizeof(aiVector3D));
       }
 
-      
-      
-      
+      for (uint iChannel = 0u; iChannel < AI_MAX_NUMBER_OF_TEXTURECOORDS; ++iChannel)
+      {
+        if (mesh->HasTextureCoords(iChannel))
+          XXH64_update(xxHashState, mesh->mTextureCoords[iChannel], mesh->mNumVertices * sizeof(aiVector3D));
+      }
+
+      for (uint iChannel = 0u; iChannel < AI_MAX_NUMBER_OF_COLOR_SETS; ++iChannel)
+      {
+        if (mesh->HasVertexColors(iChannel))
+          XXH64_update(xxHashState, mesh->mColors[iChannel], mesh->mNumVertices * sizeof(aiColor4D));
+      }
+
+      if (mesh->HasFaces())
+      {
+        for (uint iFace = 0u; iFace < mesh->mNumFaces; ++iFace)
+        {
+          aiFace& face = mesh->mFaces[iFace];
+          XXH64_update(xxHashState, face.mIndices, face.mNumIndices * sizeof(unsigned int));
+        }
+      }
     }
 
+    uint64 hash = XXH64_digest(xxHashState);
+
     XXH64_freeState(xxHashState);
+
+    return hash;
   }
 //---------------------------------------------------------------------------//
   Geometry::Mesh* Processing::constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pANode, aiMesh** someMeshes, uint32 aMeshCount)
   {
-    ObjectName meshName = Processing::getUniqueMeshName(_workingData);
+    Geometry::Mesh* outputMesh = nullptr;
 
-    // Already loaded this scene before? Then we already have this mesh
-    Geometry::Mesh* outputMesh = Geometry::Mesh::getByName(meshName);
-    if (outputMesh != nullptr)
-      return outputMesh;
+    // TODO: Refactor this caching-mechanism:
+    // We don't save any processing time if we read in the cached mesh, construct its hash and THEN check if we already have this mesh loaded in the engine
+    // Instead, do the following:
+    // 1) Modify the cache-system so we can "peek ahead" and only retrieve its vertexIndexHash
+    // 2) Check if we already have a mesh with this hash, if so --> return this mesh
+    // 3) If there isn't any matching Mesh in the engine yet --> load it from cache if the cache-timestamp is newer than the imported scene-file
+    // 4) If the scene-file is newer: load the mesh from assimp and update cache file
 
-    // Note: This does not make any sense since meshes are stored right in the scene
-    // If the whole scene-cache didn't jump in, we have to create a new mesh
-    // Does the binary cache know this mesh?
+    ObjectName meshName = Processing::GetCachePathForMesh(_workingData);
     // if (BinaryCache::read(&outputMesh, meshName, 0u))
-      // return outputMesh;
+    // return outputMesh;
 
     // Did we construct a similar mesh before from the same ai-Meshes?
     auto findMeshInCache = [_workingData, someMeshes, aMeshCount]() -> Geometry::Mesh* {
-      for (uint32 i = 0u; i < _workingData.meshCache.size(); ++i)
+      for (uint32 i = 0u; i < _workingData.localMeshCache.size(); ++i)
       {
-        std::pair<AiMeshList, Geometry::Mesh*> entry = _workingData.meshCache[i];
-        bool isValid = true;
+        std::pair<AiMeshList, Geometry::Mesh*> entry = _workingData.localMeshCache[i];
 
+        bool isValid = true;
         for (uint32 iAiMesh = 0u; isValid && iAiMesh < aMeshCount; ++iAiMesh)
           isValid &= entry.first.contains(someMeshes[iAiMesh]);
 
@@ -357,6 +379,13 @@ namespace Fancy { namespace IO {
     };
 
     outputMesh = findMeshInCache();
+    if (outputMesh != nullptr)
+      return outputMesh;
+
+    uint64 vertexIndexHash = locComputeHashFromVertexData(someMeshes, aMeshCount);
+
+    // Already loaded this scene before? Then we already have this mesh
+    outputMesh = Geometry::Mesh::Find(vertexIndexHash);
     if (outputMesh != nullptr)
       return outputMesh;
 
@@ -577,15 +606,16 @@ namespace Fancy { namespace IO {
 
     Geometry::Mesh* mesh = FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY);
     mesh->setName(meshName);
-    Geometry::Mesh::registerWithName(mesh);
     mesh->setGeometryDataList(vGeometryDatas);
-
+    mesh->SetVertexIndexHash(vertexIndexHash);
+    Geometry::Mesh::Register(mesh);
+    
     BinaryCache::write(mesh, &vertexDatas[0], &indexDatas[0]);
 
     AiMeshList aiMeshList;
     aiMeshList.resize(aMeshCount);
     memcpy(&aiMeshList[0], &someMeshes[0], sizeof(aiMesh*) * aMeshCount);
-    _workingData.meshCache.push_back(std::pair<AiMeshList, Geometry::Mesh*>(aiMeshList, mesh));
+    _workingData.localMeshCache.push_back(std::pair<AiMeshList, Geometry::Mesh*>(aiMeshList, mesh));
 
     for (uint32 i = 0u; i < vertexDatas.size(); ++i)
     {
@@ -665,79 +695,99 @@ namespace Fancy { namespace IO {
       log_Warning("Fancy doesn't support storing opacity in a separate texture. Consider putting it in diff.a");
     }
 
-    // TODO: Make this less stupid...
-
+    // Find/Create matching Shaders
+    //---------------------------------------------------------------------------//
     GpuProgramPermutation permutation;
     if (hasDiffuseTex) permutation.addFeature(GpuProgramFeature::FEAT_ALBEDO_TEXTURE);
     if (hasNormalTex) permutation.addFeature(GpuProgramFeature::FEAT_NORMAL_MAPPED);
     if (hasSpecTex) permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR); permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR_TEXTURE);
-    
-    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve("MaterialForward", permutation, ShaderStage::VERTEX);
-    GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve("MaterialForward", permutation, ShaderStage::FRAGMENT);
 
-    GpuProgramPipeline pipelineTemplate;
-    pipelineTemplate.myGpuPrograms[(uint32)ShaderStage::VERTEX] = pVertexProgram;
-    pipelineTemplate.myGpuPrograms[(uint32)ShaderStage::FRAGMENT] = pFragmentProgram;
-    pipelineTemplate.RecomputeHashFromShaders();
-    GpuProgramPipeline* pipeline = GpuProgramPipeline::findEqual(pipelineTemplate);
+    GpuProgramDesc vertexProgramDesc;
+    vertexProgramDesc.myPermutation = permutation;
+    vertexProgramDesc.myShaderPath = Rendering::GpuProgramCompiler::GetPlatformShaderFileDirectory() + 
+      "MaterialForward" + Rendering::GpuProgramCompiler::GetPlatformShaderFileExtension();
+    vertexProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
+    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve(vertexProgramDesc);
+
+    GpuProgramDesc fragmentProgramDesc = vertexProgramDesc;
+    fragmentProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
+    GpuProgram* pFragmentProgram = GpuProgramCompiler::createOrRetrieve(fragmentProgramDesc);
+    //---------------------------------------------------------------------------//
+
+
+    // Find/Create a matching GpuProgramPipeline
+    //---------------------------------------------------------------------------//
+    GpuProgramPipelineDesc pipelineDesc;
+    pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX] = vertexProgramDesc;
+    pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT] = fragmentProgramDesc;
+    GpuProgramPipeline* pipeline = GpuProgramPipeline::FindFromDesc(pipelineDesc);
     if (pipeline == nullptr)
     {
-      pipeline = FANCY_NEW(GpuProgramPipeline(pipelineTemplate), MemoryCategory::MATERIALS);
-      GpuProgramPipeline::registerWithName(pipeline);
+      pipeline = FANCY_NEW(GpuProgramPipeline, MemoryCategory::MATERIALS);
+      pipeline->SetFromDescription(pipelineDesc);
+      GpuProgramPipeline::Register(pipeline);
     }
+    //---------------------------------------------------------------------------//
 
-    MaterialPass matPassTemplate;
-    matPassTemplate.m_pBlendState = BlendState::getByName(_N(BlendState_Solid));
-    matPassTemplate.m_pDepthStencilState = DepthStencilState::getByName(_N(DepthStencilState_DefaultDepthState));
-    matPassTemplate.m_eCullMode = CullMode::BACK;
-    matPassTemplate.m_eFillMode = FillMode::SOLID;
-    matPassTemplate.m_eWindingOrder = WindingOrder::CCW;
-    matPassTemplate.myProgramPipeline = pipeline;
-    matPassTemplate.m_Name = "MaterialPass_" + StringUtil::toString(MathUtil::hashFromGeneric(matPassTemplate));
 
-    // Try to find an existing MaterialPass with this description
-    MaterialPass* pMaterialPass = MaterialPass::findEqual(matPassTemplate);
+    // Find/Create a matching MaterialPass
+    //---------------------------------------------------------------------------//
+    MaterialPassDesc matPassDesc;
+    matPassDesc.m_BlendStateDesc = BlendStateDesc::GetDefaultSolid();
+    matPassDesc.m_DepthStencilStateDesc = DepthStencilStateDesc::GetDefaultDepthNoStencil();
+    matPassDesc.m_GpuProgramPipelineDesc = pipelineDesc;
+    matPassDesc.m_eCullMode = static_cast<uint32>(CullMode::BACK);
+    matPassDesc.m_eFillMode = static_cast<uint32>(FillMode::SOLID);
+    matPassDesc.m_eWindingOrder = static_cast<uint32>(WindingOrder::CCW);
+    
+    MaterialPass* pMaterialPass = MaterialPass::FindFromDesc(matPassDesc);
     if (pMaterialPass == nullptr)
     {
-      pMaterialPass = FANCY_NEW(MaterialPass(matPassTemplate), MemoryCategory::MATERIALS);
-      MaterialPass::registerWithName(pMaterialPass);
+      pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
+      pMaterialPass->SetFromDescription(matPassDesc);
+      MaterialPass::Register(pMaterialPass);
     }
+    //---------------------------------------------------------------------------//
 
-    MaterialPassInstance solidForwardMpiTemplate;
-    solidForwardMpiTemplate.setReadTexture(0u, pDiffuseTex);
-    solidForwardMpiTemplate.setReadTexture(1u, pNormalTex);
-    solidForwardMpiTemplate.setReadTexture(2u, pSpecularTex);    
 
-    // Try to find a fitting MaterialPassInstance managed by MaterialPass
-    MaterialPassInstance* pSolidForwardMpi = pMaterialPass->getMaterialPassInstance(solidForwardMpiTemplate.computeHash());
+    // Find/Create a matching MaterialPassInstance
+    //---------------------------------------------------------------------------//
+    MaterialPassInstanceDesc mpiDesc;
+    mpiDesc.myMaterialPass = matPassDesc;
+    mpiDesc.myReadTextures[0u] = pDiffuseTex->GetDescription();
+    mpiDesc.myReadTextures[1u] = pNormalTex->GetDescription();
+    mpiDesc.myReadTextures[2u] = pSpecularTex->GetDescription();
+    MaterialPassInstance* pSolidForwardMpi = MaterialPassInstance::FindFromDesc(mpiDesc);
     if (pSolidForwardMpi == nullptr)
     {
-      MaterialPassInstance* pNewMpi = pMaterialPass->createMaterialPassInstance(_N(DefaultMPI), solidForwardMpiTemplate);
-      pSolidForwardMpi = pNewMpi;
+      pSolidForwardMpi = FANCY_NEW(MaterialPassInstance(pMaterialPass), MemoryCategory::MATERIALS);
+      pSolidForwardMpi->SetFromDescription(mpiDesc);
+      MaterialPassInstance::Register(pSolidForwardMpi);
     }
+    //---------------------------------------------------------------------------//
 
-    Material materialTemplate;
-    materialTemplate.setPass(pSolidForwardMpi, EMaterialPass::SOLID_FORWARD);
+    // Find/Create a matching Material
+    //---------------------------------------------------------------------------//
+    MaterialDesc matDesc;
+    matDesc.myPasses[(uint32)EMaterialPass::SOLID_FORWARD] = mpiDesc;
     
-    if (hasColor) 
-      materialTemplate.setParameter(EMaterialParameterSemantic::DIFFUSE_REFLECTIVITY, (color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f));
+    if (hasColor)
+      matDesc.myParameters[(uint32)EMaterialParameterSemantic::DIFFUSE_REFLECTIVITY] = (color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f);
     if (hasSpecular)
-      materialTemplate.setParameter(EMaterialParameterSemantic::SPECULAR_REFLECTIVITY, specular);
+      matDesc.myParameters[(uint32)EMaterialParameterSemantic::SPECULAR_REFLECTIVITY] = specular;
     if (hasOpacity)
-      materialTemplate.setParameter(EMaterialParameterSemantic::OPACITY, opacity);
+      matDesc.myParameters[(uint32)EMaterialParameterSemantic::OPACITY] = opacity;
     if (hasSpecularPower)
-      materialTemplate.setParameter(EMaterialParameterSemantic::SPECULAR_POWER, specularPower);
-
-    String baseName = hasName ? String(szAname.C_Str()) : "Material";
-    materialTemplate.setName(baseName + "_" + StringUtil::toString(MathUtil::hashFromGeneric(materialTemplate)));
-
-    // Try to find a similar material
-    Material* pMaterial = Material::findEqual(materialTemplate);
+      matDesc.myParameters[(uint32)EMaterialParameterSemantic::SPECULAR_POWER] = specularPower;
+    
+    Material* pMaterial = Material::FindFromDesc(matDesc);
     if (pMaterial == nullptr)
     {
-      pMaterial = FANCY_NEW(Material(materialTemplate), MemoryCategory::MATERIALS);
-      Material::registerWithName(pMaterial);
+      pMaterial = FANCY_NEW(Material, MemoryCategory::MATERIALS);
+      pMaterial->SetFromDescription(matDesc);
+      Material::Register(pMaterial);
     }
+    //---------------------------------------------------------------------------//
 
     return pMaterial;
   }
@@ -834,7 +884,7 @@ namespace Fancy { namespace IO {
       + StringUtil::toString(_workingData.u32NumCreatedModels++);
   }
 //---------------------------------------------------------------------------//
-  std::string Processing::getUniqueMeshName(WorkingData& _workingData)
+  std::string Processing::GetCachePathForMesh(WorkingData& _workingData)
   {
     return "Mesh_" + _workingData.szCurrScenePathInResources + "_" 
       + StringUtil::toString(_workingData.u32NumCreatedMeshes++);

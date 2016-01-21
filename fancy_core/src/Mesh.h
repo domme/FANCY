@@ -44,6 +44,9 @@ namespace Fancy { namespace Geometry {
     const GeometryDataList& getGeometryDataList() const {return m_vGeometries;}
     void setGeometryDataList(const GeometryDataList& _vGeometries) {m_vGeometries = _vGeometries;}
   //---------------------------------------------------------------------------//
+    uint64 GetVertexIndexHash() const { return myVertexAndIndexHash; }
+    void SetVertexIndexHash(uint64 aHash) { myVertexAndIndexHash = aHash; }
+
   private:
     GeometryDataList m_vGeometries;
     uint64 myVertexAndIndexHash;
