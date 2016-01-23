@@ -6,11 +6,11 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   namespace Internal 
   {
-    uint sortAndGetHash(GpuProgramFeatureList& _vFeatures)
+    uint64 sortAndGetHash(GpuProgramFeatureList& _vFeatures)
     {
       std::sort(_vFeatures.begin(), _vFeatures.end());
       
-      uint hash = 0u;
+      uint64 hash = 0u;
       for (uint32 i = 0u; i < _vFeatures.size(); ++i)
       {
         MathUtil::hash_combine(hash, static_cast<uint>(_vFeatures[i]));

@@ -24,12 +24,11 @@ namespace Fancy { namespace Geometry {
     Mesh();
     ~Mesh();
 
-    MeshDesc GetDescription();
+    MeshDesc GetDescription() const;
     bool operator==(const Mesh& anOther) const;
     bool operator==(const MeshDesc& aDesc) const;
   //---------------------------------------------------------------------------//
-    const ObjectName& getName() {return m_Name;}
-    void setName(const ObjectName& clNewName) {m_Name = clNewName;}
+    uint64 GetHash() const { return GetDescription().GetHash(); }
   //---------------------------------------------------------------------------//
     static ObjectName getTypeName() { return _N(Mesh); }
     void serialize(IO::Serializer* aSerializer);
@@ -50,7 +49,6 @@ namespace Fancy { namespace Geometry {
   private:
     GeometryDataList m_vGeometries;
     uint64 myVertexAndIndexHash;
-    ObjectName m_Name;
   };
   //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry

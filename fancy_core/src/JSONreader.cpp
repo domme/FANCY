@@ -56,10 +56,10 @@ namespace Fancy { namespace IO {
       }
 
       ObjectName typeName = currJsonVal["Type"].asString();
-      ObjectName instanceName = currJsonVal["Name"].asString();
+      uint64 instanceHash = currJsonVal["Hash"].asUInt64();
 
       bool wasCreated = false;
-      metaTable->create(anObject, typeName, wasCreated, instanceName);
+      metaTable->create(anObject, typeName, wasCreated, instanceHash);
 
       if (wasCreated)
         metaTable->serialize(this, anObject);

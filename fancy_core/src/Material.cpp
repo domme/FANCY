@@ -107,7 +107,6 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void Material::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_Name, "m_Name");
     aSerializer->serialize(&m_vParameters, "m_vParameters");
     aSerializer->serialize(&m_vPasses, "m_vPasses");
   }

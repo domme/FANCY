@@ -189,7 +189,6 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPassInstance::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_Name, "m_Name");
     aSerializer->serialize(&m_pMaterialPass, "m_pMaterialPass");
 
     std::vector<ResourceStorageEntry> readTextures;

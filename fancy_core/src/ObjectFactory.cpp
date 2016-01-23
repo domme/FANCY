@@ -15,9 +15,9 @@
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   template<class T, MemoryCategory eMemoryCategory>
-  void* locCreateManaged(const ObjectName& anInstanceName, bool& aWasCreated)
+  void* locCreateManaged(uint64 aHash, bool& aWasCreated)
   {
-    T* object = T::getByName(anInstanceName);
+    T* object = T::Find(aHash);
 
     if (object)
     {
@@ -27,15 +27,19 @@ namespace Fancy { namespace IO {
      
     aWasCreated = true;
     object = FANCY_NEW(T, eMemoryCategory);
-    T::registerWithName(anInstanceName, object);
+    
+    // TODO: This is bad design... we should set the whole description here. 
+    // We need to do this during a refactoring of the serialization-system...
+    T::Register(object, aHash);  
+    
     return object;
   }
 //---------------------------------------------------------------------------//
   template<>
   void* locCreateManaged<Rendering::Texture, MemoryCategory::TEXTURES>
-    (const ObjectName& anInstanceName, bool& aWasCreated)
+    (uint64 aHash, bool& aWasCreated)
   {
-    Rendering::Texture* object = Rendering::Texture::getByName(anInstanceName);
+    Rendering::Texture* object = Rendering::Texture::Find(aHash);
 
     if (object)
     {
@@ -44,16 +48,16 @@ namespace Fancy { namespace IO {
     }
 
     aWasCreated = true;
-    BinaryCache::read(&object, anInstanceName, 0u);
+    BinaryCache::read(&object, aHash, 0u);
 
     return object;
   }
 //---------------------------------------------------------------------------//
   template<>
   void* locCreateManaged<Geometry::Mesh, MemoryCategory::GEOMETRY>
-    (const ObjectName& anInstanceName, bool& aWasCreated)
+    (uint64 aHash, bool& aWasCreated)
   {
-    Geometry::Mesh* object = Geometry::Mesh::getByName(anInstanceName);
+    Geometry::Mesh* object = Geometry::Mesh::Find(aHash);
 
     if (object)
     {
@@ -62,19 +66,19 @@ namespace Fancy { namespace IO {
     }
 
     aWasCreated = true;
-    BinaryCache::read(&object, anInstanceName, 0u);
+    BinaryCache::read(&object, aHash, 0u);
 
     return object;
   }
 //---------------------------------------------------------------------------//
   template<class T, MemoryCategory eMemoryCategory>
-  void* locCreate(const ObjectName& anInstanceName, bool& aWasCreated)
+  void* locCreate(uint64, bool& aWasCreated)
   {
     aWasCreated = true;
     return FANCY_NEW(T, eMemoryCategory);
   }
 //---------------------------------------------------------------------------//
-  typedef void* (*CreateFunc)(const ObjectName&, bool&);
+  typedef void* (*CreateFunc)(uint64, bool&);
   std::pair<ObjectName, CreateFunc> locResourceCreateFunctions[] =
   {
     // Managed:
@@ -91,7 +95,7 @@ namespace Fancy { namespace IO {
     { _N(SceneNode), &locCreate<Scene::SceneNode, MemoryCategory::GENERAL> },
   };
 //---------------------------------------------------------------------------//
-  void* ObjectFactory::create(const ObjectName& aTypeName, bool& aWasCreated, const ObjectName& anInstanceName)
+  void* ObjectFactory::create(const ObjectName& aTypeName, bool& aWasCreated, uint64 aHash)
   {
     Scene::SceneNodeComponentFactory::CreateFunction createFunc = 
       Scene::SceneNodeComponentFactory::getFactoryMethod(aTypeName);
@@ -104,7 +108,7 @@ namespace Fancy { namespace IO {
     
     for (std::pair<ObjectName, CreateFunc>& createFuncEntry : locResourceCreateFunctions)
       if (createFuncEntry.first == aTypeName)
-        return createFuncEntry.second(anInstanceName, aWasCreated);
+        return createFuncEntry.second(aHash, aWasCreated);
 
     ASSERT_M(false, "Unknown typename");
     return nullptr;

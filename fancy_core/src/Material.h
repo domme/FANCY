@@ -30,11 +30,9 @@ namespace Fancy { namespace Rendering {
       MaterialDesc GetDescription() const;
       void SetFromDescription(const MaterialDesc& aDesc);
 
+      uint64 GetHash() const { return GetDescription().GetHash(); }
       static ObjectName getTypeName() { return _N(Material); }
       void serialize(IO::Serializer* aSerializer);
-
-      const ObjectName& getName() const { return m_Name; }
-      void setName(const ObjectName& _name) {m_Name = _name;}
 
       const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint32) ePassType]; }
       void setPass(MaterialPassInstance* _pPass, EMaterialPass _ePassType) {m_vPasses[(uint32) _ePassType] = _pPass; }
@@ -43,7 +41,6 @@ namespace Fancy { namespace Rendering {
       void setParameter(EMaterialParameterSemantic _semantic, float _value) { m_vParameters[(uint32)_semantic] = _value; }
 
     private:
-      ObjectName m_Name;
       FixedArray<float, (uint32)EMaterialParameterSemantic::NUM> m_vParameters;
       FixedArray<MaterialPassInstance*, (uint32)EMaterialPass::NUM> m_vPasses;
   };

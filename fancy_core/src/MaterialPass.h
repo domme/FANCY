@@ -39,8 +39,8 @@ namespace Fancy { namespace Rendering {
 
       void serialize(IO::Serializer* aSerializer);
       static ObjectName getTypeName() { return _N(MaterialPass); }
+      uint64 GetHash() const { return GetDescription().GetHash(); }
 
-      const ObjectName& getName() const { return m_Name; }
       const GpuProgramPipeline* GetProgramPipeline() const { return myProgramPipeline; }
       
       FillMode getFillMode() const {return m_eFillMode;}
@@ -55,8 +55,6 @@ namespace Fancy { namespace Rendering {
       BlendState* m_pBlendState;
       DepthStencilState* m_pDepthStencilState;
       GpuProgramPipeline* myProgramPipeline;
-
-      ObjectName m_Name;
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

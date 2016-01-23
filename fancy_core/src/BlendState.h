@@ -47,11 +47,9 @@ public:
   BlendStateDesc GetDescription() const;
   void SetFromDescription(const BlendStateDesc& aDesc);
 
-  const Fancy::ObjectName& getName() const { return myName; }
+  uint64 GetHash() const;
   static ObjectName getTypeName() { return _N(BlendState); }
   void serialize(IO::Serializer* aSerializer);
-  
-  uint GetHash() const;
 
   bool getAlphaToCoverageEnabled() const { return myAlphaToCoverageEnabled; }
   void setAlphaToCoverageEnabled(bool val) { myIsDirty |= myAlphaToCoverageEnabled != val; myAlphaToCoverageEnabled = val; }
@@ -88,7 +86,6 @@ public:
 
   // TODO: Make these protected/private again so myIsDirty and myCachedHash are always up to date
 // protected:
-  ObjectName                   myName;
   bool                         myAlphaToCoverageEnabled;
   bool                         myBlendStatePerRT;
   bool                         myAlphaSeparateBlend[Constants::kMaxNumRenderTargets];

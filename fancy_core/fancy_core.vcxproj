@@ -347,7 +347,6 @@
     <ClInclude Include="src\GpuProgramResourceDX12.h" />
     <ClInclude Include="src\GpuProgramResourceGL4.h" />
     <ClInclude Include="src\GpuResourceSignature.h" />
-    <ClInclude Include="src\GUID.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\JSONreader.h" />
     <ClInclude Include="src\JSONwriter.h" />
@@ -438,7 +437,6 @@
     <ClCompile Include="src\GpuProgramResource.cpp" />
     <ClCompile Include="src\GpuProgramResourceDX12.cpp" />
     <ClCompile Include="src\GpuProgramResourceGL4.cpp" />
-    <ClCompile Include="src\GUID.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
     <ClCompile Include="src\JSONreader.cpp" />

@@ -86,7 +86,6 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void MaterialPass::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_Name, "m_Name");
     aSerializer->serialize(&myProgramPipeline, "myProgramPipeline");
     aSerializer->serialize(&m_eFillMode, "m_eFillMode");
     aSerializer->serialize(&m_eCullMode, "m_eCullMode");

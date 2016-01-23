@@ -3,7 +3,7 @@
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  Mesh::Mesh() : m_Name(ObjectName::blank), myVertexAndIndexHash(0u)
+  Mesh::Mesh() : myVertexAndIndexHash(0u)
   {
 
   }
@@ -16,7 +16,7 @@ namespace Fancy { namespace Geometry {
     }
   }
 //---------------------------------------------------------------------------//
-  MeshDesc Mesh::GetDescription()
+  MeshDesc Mesh::GetDescription() const
   {
     MeshDesc desc;
     desc.myVertexAndIndexHash = myVertexAndIndexHash;
@@ -35,7 +35,6 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   void Mesh::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_Name, "m_Name");
     aSerializer->serialize(&myVertexAndIndexHash, "VertexAndIndexHash");
   }
 //---------------------------------------------------------------------------//

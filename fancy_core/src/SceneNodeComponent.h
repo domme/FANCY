@@ -23,7 +23,7 @@ namespace Fancy { namespace Scene {
       SceneNodeComponent(SceneNode* pOwner);
       virtual ~SceneNodeComponent();
 
-      const ObjectName& getName() const;
+      uint64 GetHash() const { return 0u; }
       virtual ObjectName getTypeName() const = 0;
       virtual void serialize(IO::Serializer* aSerializer) = 0;
       

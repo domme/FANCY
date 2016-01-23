@@ -13,9 +13,4 @@ namespace Fancy { namespace Scene {
 
   }
 //---------------------------------------------------------------------------//
-   const ObjectName& SceneNodeComponent::getName() const
-   {
-     return ObjectName::blank;
-   }
-//---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Scene

@@ -8,7 +8,34 @@ namespace Fancy {  namespace IO {
   const uint32 kMeshVersion = 0;
   const uint32 kTextureVersion = 0;
 //---------------------------------------------------------------------------//
-  
+  void locWriteString(std::fstream& aStream, const String& aString)
+  {
+    const char* name_cstr = aString.c_str();
+    const uint32 name_size = aString.size() + 1u; // size + '/0'
+    aStream.write(reinterpret_cast<const char*>(&name_size), sizeof(uint32));
+    aStream.write(name_cstr, name_size);
+  }
+  //---------------------------------------------------------------------------//
+  String locReadString(std::fstream& aStream)
+  {
+    uint32 name_size;
+    aStream.read(reinterpret_cast<char*>(&name_size), sizeof(uint32));
+
+    const uint32 kExpectedMaxLength = 64u;
+    char buf[kExpectedMaxLength];
+    char* name_cstr = buf;
+
+    if (name_size > kExpectedMaxLength)
+      name_cstr = new char[name_size];
+
+    aStream.read(name_cstr, name_size);
+    String returnStr(name_cstr);
+
+    if (name_size > kExpectedMaxLength)
+      delete[] name_cstr;
+
+    return returnStr;
+  }
 //---------------------------------------------------------------------------//
   const String kBinaryCacheRoot = "Cache/";
   const String kBinaryCacheExtension = ".bin";
@@ -36,7 +63,15 @@ namespace Fancy {  namespace IO {
     Rendering::TextureDesc texDesc = aTexture->GetDescription();
     uint64 texDescHash = texDesc.GetHash();
 
+    // Write the hash first the be able to "peek ahead" without reading in the whole stuff later on
     archive.write(reinterpret_cast<const char*>(texDescHash), sizeof(texDescHash));
+
+    // Write the desc
+    locWriteString(archive, texDesc.mySourcePath);
+    archive.write((const char*)&texDesc.myIsExternalTexture, sizeof(texDesc.myIsExternalTexture));
+    archive.write((const char*)&texDesc.myInternalRefIndex, sizeof(texDesc.myInternalRefIndex));
+    
+    // Write the texture
     archive.write(reinterpret_cast<const char*>(&texParams.u16Width), sizeof(uint16));
     archive.write(reinterpret_cast<const char*>(&texParams.u16Height), sizeof(uint16));
     archive.write(reinterpret_cast<const char*>(&texParams.u16Depth), sizeof(uint16));
@@ -50,9 +85,9 @@ namespace Fancy {  namespace IO {
     return archive.good();
   }  
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::read(Rendering::Texture** aTexture, const Rendering::TextureDesc& aDesc, uint32 aTimeStamp)
+  bool BinaryCache::read(Rendering::Texture** aTexture, uint64 aDescHash, uint32 aTimeStamp)
   {
-    const String cacheFilePath = getCacheFilePathAbs(aDesc.mySourcePath);
+    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
     if (!archive.good())
@@ -66,10 +101,10 @@ namespace Fancy {  namespace IO {
     if (textureVersion != kTextureVersion)
       return false;
 
-    uint64 textureHash;
+    uint64 textureHash = 0u;
     archive.read((char*)textureHash, sizeof(textureHash));
     
-    if (textureHash == aDesc.GetHash())
+    if (textureHash == aDescHash)
     {
       Rendering::Texture* textureFromMemCache = Rendering::Texture::Find(textureHash);
       if (nullptr != textureFromMemCache)
@@ -80,26 +115,35 @@ namespace Fancy {  namespace IO {
 
     if (nullptr == texture)
     {
-      texture = FANCY_NEW(Rendering::Texture, MemoryCategory::TEXTURES);
-      Rendering::TextureCreationParams desc;
-      desc.myIsExternalTexture = aDesc.myIsExternalTexture;
-      desc.path = aDesc.mySourcePath;
-      desc.myInternalRefIndex = aDesc.myInternalRefIndex;
-      archive.read((char*)&desc.u16Width, sizeof(uint16));
-      archive.read((char*)&desc.u16Height, sizeof(uint16));
-      archive.read((char*)&desc.u16Depth, sizeof(uint16));
-      archive.read((char*)&desc.uAccessFlags, sizeof(uint32));
+      Rendering::TextureDesc texDesc;
+
+      // Read the desc
+      texDesc.mySourcePath = locReadString(archive);
+      archive.read((char*)&texDesc.myIsExternalTexture, sizeof(texDesc.myIsExternalTexture));
+      archive.read((char*)&texDesc.myInternalRefIndex, sizeof(texDesc.myInternalRefIndex));
+
+      // Read the texture
+      Rendering::TextureCreationParams texParams;
+      texParams.myIsExternalTexture = texDesc.myIsExternalTexture;
+      texParams.path = texDesc.mySourcePath;
+      texParams.myInternalRefIndex = texDesc.myInternalRefIndex;
+      archive.read((char*)&texParams.u16Width, sizeof(uint16));
+      archive.read((char*)&texParams.u16Height, sizeof(uint16));
+      archive.read((char*)&texParams.u16Depth, sizeof(uint16));
+      archive.read((char*)&texParams.uAccessFlags, sizeof(uint32));
       uint32 format = 0;
       archive.read((char*)&format, sizeof(uint32));
-      desc.eFormat = static_cast<Rendering::DataFormat>(format);
-      archive.read((char*)&desc.u8NumMipLevels, sizeof(uint8));
-      archive.read((char*)&desc.uPixelDataSizeBytes, sizeof(uint32));
-      desc.pPixelData = FANCY_ALLOCATE(desc.uPixelDataSizeBytes, MemoryCategory::TEXTURES);
-      archive.read((char*)&desc.pPixelData, desc.uPixelDataSizeBytes);
-      texture->create(desc);
+      texParams.eFormat = static_cast<Rendering::DataFormat>(format);
+      archive.read((char*)&texParams.u8NumMipLevels, sizeof(uint8));
+      archive.read((char*)&texParams.uPixelDataSizeBytes, sizeof(uint32));
+      texParams.pPixelData = FANCY_ALLOCATE(texParams.uPixelDataSizeBytes, MemoryCategory::TEXTURES);
+      archive.read((char*)&texParams.pPixelData, texParams.uPixelDataSizeBytes);
+
+      texture = FANCY_NEW(Rendering::Texture, MemoryCategory::TEXTURES);
+      texture->create(texParams);
       Rendering::Texture::Register(texture);
 
-      FANCY_FREE(desc.pPixelData, MemoryCategory::TEXTURES);
+      FANCY_FREE(texParams.pPixelData, MemoryCategory::TEXTURES);
     }
 
     if ((*aTexture) != nullptr)
@@ -112,7 +156,7 @@ namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//  
   bool BinaryCache::write(Geometry::Mesh* aMesh, void** someVertexDatas, void** someIndexDatas)
   {
-    const String cacheFilePath = getCacheFilePathAbs(aMesh->getName());
+    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aMesh->GetDescription().GetHash()));
     PathService::createDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
@@ -174,9 +218,9 @@ namespace Fancy {  namespace IO {
     return archive.good();
   }
 //---------------------------------------------------------------------------//
-  bool BinaryCache::read(Geometry::Mesh** aMesh, const Geometry::MeshDesc& aDesc, uint32 aTimeStamp)
+  bool BinaryCache::read(Geometry::Mesh** aMesh, uint64 aDescHash, uint32 aTimeStamp)
   {
-    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDesc.GetHash()));
+    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
     if (!archive.good())
@@ -190,10 +234,10 @@ namespace Fancy {  namespace IO {
 
     Geometry::Mesh* mesh = nullptr;
 
-    uint64 hash;
+    uint64 hash = 0u;
     archive.read((char*)&hash, sizeof(hash));
 
-    if (hash == aDesc.GetHash())
+    if (hash == aDescHash)
     {
       Geometry::Mesh* meshFromMemCache = Geometry::Mesh::Find(hash);
       if (nullptr != meshFromMemCache)
@@ -205,8 +249,8 @@ namespace Fancy {  namespace IO {
     if (nullptr == mesh)
     {
       mesh = FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY);
-      mesh->SetVertexIndexHash()
-      Geometry::Mesh::registerWithName(mesh);
+      mesh->SetVertexIndexHash(aDescHash);
+      Geometry::Mesh::Register(mesh);
 
       uint32 numGeometryDatas;
       archive.read(reinterpret_cast<char*>(&numGeometryDatas), sizeof(uint32));
@@ -226,7 +270,6 @@ namespace Fancy {  namespace IO {
         for (uint32 iVertexElem = 0u; iVertexElem < numVertexElements; ++iVertexElem)
         {
           Rendering::GeometryVertexElement elem;
-          elem.name = readName(archive);
           uint32 semantics;
           archive.read(reinterpret_cast<char*>(&semantics), sizeof(uint32));
           elem.eSemantics = static_cast<Rendering::VertexSemantics>(semantics);
@@ -245,9 +288,8 @@ namespace Fancy {  namespace IO {
         // Vertex data
         {
           Rendering::GpuBuffer* buffer = FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::Geometry);
-          Rendering::GpuBufferParameters bufferParams;
-          buffer->setName(readName(archive));
-          archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferParameters));
+          Rendering::GpuBufferCreationParams bufferParams;
+          archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
           uint32 totalBufferBytes;
           archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint32));
 
@@ -262,9 +304,8 @@ namespace Fancy {  namespace IO {
         // Index data
         {
           Rendering::GpuBuffer* buffer = FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::Geometry);
-          Rendering::GpuBufferParameters bufferParams;
-          buffer->setName(readName(archive));
-          archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferParameters));
+          Rendering::GpuBufferCreationParams bufferParams;
+          archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
           uint32 totalBufferBytes;
           archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint32));
 

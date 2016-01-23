@@ -26,7 +26,7 @@ namespace Fancy { namespace Rendering {
 
     void serialize(IO::Serializer* aSerializer);
     ObjectName getTypeName() const { return _N(ResourceStorageEntry); }
-    const ObjectName& getName() const { return ObjectName::blank; }
+    uint64 GetHash() const { return 0u; }
   };
 //---------------------------------------------------------------------------//
   class MaterialPassInstance : public StaticManagedHeapObject<MaterialPassInstance>
@@ -43,6 +43,7 @@ namespace Fancy { namespace Rendering {
     MaterialPassInstanceDesc GetDescription() const;
     void SetFromDescription(const MaterialPassInstanceDesc& aDesc);
 
+    uint64 GetHash() const { return GetDescription().GetHash(); }
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(MaterialPassInstance); }
 
@@ -69,10 +70,8 @@ namespace Fancy { namespace Rendering {
     void setFromResourceDesc(const std::vector<ResourceStorageEntry>& someResources, MpiResourceType aType);
 
     MaterialPass* getMaterialPass() const { return m_pMaterialPass; }
-    const ObjectName& getName() { return m_Name; }
 
   private:
-    ObjectName m_Name;
     MaterialPass* m_pMaterialPass;
 
     // TODO: Make these FixedArrays

@@ -30,7 +30,7 @@ namespace Fancy { namespace Rendering {
       SERIALIZABLE(GpuProgramPermutation)
         
       static const ObjectName& getTypeName() { return _N(GpuProgramPermutation); }
-      static const ObjectName& getName() { return ObjectName::blank; }
+      uint64 GetHash() const { return m_uHash; }
       void serialize(IO::Serializer* aSerializer);
 
       bool operator==(const GpuProgramPermutation& anOtherPermutation) const {
@@ -41,7 +41,7 @@ namespace Fancy { namespace Rendering {
       ~GpuProgramPermutation() {}
 
       static String featureToDefineString(GpuProgramFeature _eFeature);
-      uint getHash() const { return m_uHash; }
+      
 
       void addFeature(GpuProgramFeature _eFeature);
       bool hasFeature(GpuProgramFeature _eFeature) const;
@@ -50,7 +50,7 @@ namespace Fancy { namespace Rendering {
 
     private:
       GpuProgramFeatureList m_vFeatures;
-      uint m_uHash;
+      uint64 m_uHash;
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

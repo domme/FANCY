@@ -47,9 +47,7 @@ namespace Fancy { namespace Geometry {
 
     static ObjectName getTypeName() { return _N(SubModel); }
     void serialize(IO::Serializer* aSerializer);
-
-    const ObjectName& getName() const {return m_Name;}
-    void setName(const ObjectName& clNewName) {m_Name = clNewName;}
+    uint64 GetHash() const { return GetDescription().GetHash(); }
 
     Rendering::Material* getMaterial() const {return m_pMaterial;}
     Mesh* getMesh() const {return m_pMesh;}
@@ -58,7 +56,6 @@ namespace Fancy { namespace Geometry {
     void setMaterial(Rendering::Material* _pMaterial) {m_pMaterial = _pMaterial;}
 //---------------------------------------------------------------------------//
   private:
-    ObjectName m_Name;
     Rendering::Material* m_pMaterial;
     Mesh* m_pMesh;
   }; 

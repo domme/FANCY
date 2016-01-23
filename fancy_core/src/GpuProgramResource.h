@@ -36,7 +36,7 @@ namespace Fancy { namespace Rendering {
   {
     SERIALIZABLE(ConstantBufferElement)
     void serialize(IO::Serializer* aSerializer);
-    const ObjectName& getName() const { return ObjectName::blank; }
+    uint64 GetHash() const { return 0u; }
     ObjectName getTypeName() const { return _N(ConstantBufferElement); }
 
     ConstantBufferElement() :
@@ -58,7 +58,7 @@ namespace Fancy { namespace Rendering {
 
     SERIALIZABLE(GpuProgramResourceInfo)
     void serialize(IO::Serializer* aSerializer);
-    const ObjectName& getName() const { return ObjectName::blank; }
+    uint64 GetHash() const { return 0u; }
     ObjectName getTypeName() const { return _N(GpuProgramResourceInfo); }
 
     uint32 u32RegisterIndex;

@@ -44,7 +44,7 @@ namespace Fancy { namespace Rendering {
       DepthStencilStateDesc GetDescription() const;
       void SetFromDescription(const DepthStencilStateDesc& aDesc);
 
-      const ObjectName& getName() const {return myName;}
+      uint64 GetHash() const;
       static ObjectName getTypeName() { return _N(DepthStencilState); }
       void serialize(IO::Serializer* aSerializer);
 
@@ -66,11 +66,10 @@ namespace Fancy { namespace Rendering {
       bool GetIsDirty() const { return myIsDirty; }
       void SetDirty() { myIsDirty = true; }
 
-      uint GetHash() const;
+      
 
 // TODO: Make these members private/protected to ensure validity of myIsDirty
   // protected:
-      ObjectName        myName;
       bool              myDepthTestEnabled;
       bool              myDepthWriteEnabled;
       CompFunc          myDepthCompFunc;

@@ -22,12 +22,16 @@ namespace Fancy {
         return Find(aDesc.GetHash());
       }
 //---------------------------------------------------------------------------//
+      static bool Register(const T& _object, uint64 aHash)
+      {
+        ASSERT(nullptr == Find(aHash));
+        m_objectMap.insert(std::pair<uint64, T>(aHash, _object));
+        return true;
+      }
+//---------------------------------------------------------------------------//
       static bool Register(const T& _object)
       {
-        uint64 hash = _object->GetDescription().GetHash();
-        ASSERT(nullptr == Find(hash));
-        m_objectMap.insert(std::pair<uint64, T>(hash, _object));
-        return true;
+        return Register(_object, _object.GetDescription().GetHash());
       }
 //---------------------------------------------------------------------------//
       static T* Find(uint64 aHash)
@@ -84,12 +88,16 @@ namespace Fancy {
     public:
       typedef std::map<uint64, T*> MapType;
 //---------------------------------------------------------------------------//
+      static bool Register(T* anObject, uint64 aHash)
+      {
+        ASSERT(nullptr == Find(aHash));
+        m_objectMap.insert(std::pair<uint64, T*>(aHash, anObject));
+        return true;
+      }
+//---------------------------------------------------------------------------//
       static bool Register(T* anObject)
       {
-        uint64 hash = anObject->GetDescription()->GetHash();
-        ASSERT(nullptr == Find(hash));
-        m_objectMap.insert(std::pair<uint64, T*>(hash, anObject));
-        return true;
+        return Register(anObject, anObject->GetDescription().GetHash());
       }
 //---------------------------------------------------------------------------//
       template <class DescT>
@@ -114,7 +122,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
       static T* FindWithFunction(std::function<bool(T*)> _predicateFunc)
       {
-        for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
+        for (typename MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
         {
           if (_predicateFunc(it->second))
           {
@@ -127,7 +135,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
       static T* FindEqual(const T& _other)
       {
-        for (MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
+        for (typename MapType::iterator it = m_objectMap.begin(); it != m_objectMap.end(); ++it)
         {
           if (*(it->second) == _other)
           {

@@ -65,8 +65,7 @@ namespace Fancy { namespace Rendering {
 
 //---------------------------------------------------------------------------//
   BlendState::BlendState(const ObjectName& _name) 
-    : myName(_name)
-    , myAlphaToCoverageEnabled(false)
+    : myAlphaToCoverageEnabled(false)
     , myBlendStatePerRT(false)
     , myCachedHash(0u)
     , myIsDirty(true)
@@ -142,10 +141,10 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void BlendState::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&myName, "myName");
+    // aSerializer->serialize(&myName, "myName");
   }
 //---------------------------------------------------------------------------//
-	uint BlendState::GetHash() const
+	uint64 BlendState::GetHash() const
 	{
     if (!myIsDirty)
       return myCachedHash;

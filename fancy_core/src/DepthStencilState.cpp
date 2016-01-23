@@ -150,10 +150,10 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void DepthStencilState::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&myName, "myName");
+    // aSerializer->serialize(&myName, "myName");
   }
 //---------------------------------------------------------------------------//
-  uint DepthStencilState::GetHash() const
+  uint64 DepthStencilState::GetHash() const
   {
     if (!myIsDirty)
       return myCachedHash;

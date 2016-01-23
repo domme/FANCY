@@ -1,4 +1,5 @@
 #include "JSONwriter.h"
+#include "StringUtil.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -49,17 +50,17 @@ namespace Fancy { namespace IO {
       }
 
       String typeName = metaTable->getTypeName(anObject);
-      String instanceName = metaTable->getInstanceName(anObject);
+      uint64 instanceHash = metaTable->getHash(anObject);
 
       currJsonVal["Type"] = typeName;
 
-      if (!instanceName.empty())
-        currJsonVal["Name"] = instanceName;
+      if (instanceHash != 0u)
+        currJsonVal["Hash"] = instanceHash;
 
       const bool isManaged = metaTable->isManaged(anObject);
       if (isManaged)
       {
-        String key = typeName + "_" + instanceName;
+        String key = typeName + "_" + StringUtil::toString(instanceHash);
         if (!isManagedObjectStored(key))
         {
           metaTable->serialize(this, anObject);
@@ -68,8 +69,8 @@ namespace Fancy { namespace IO {
 
           currJsonVal["Type"] = typeName;
 
-          if (!instanceName.empty())
-            currJsonVal["Name"] = instanceName;
+          if (instanceHash != 0u)
+            currJsonVal["Hash"] = instanceHash;
 
           myHeader.myStoredManagedObjects.push_back(key);
         }

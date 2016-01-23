@@ -118,9 +118,9 @@ namespace Fancy { namespace IO {
   struct MetaTable
   {
     virtual ~MetaTable() {}
-    virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated, const ObjectName& anInstanceName = ObjectName::blank) = 0;
+    virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated, uint64 aHash = 0u) = 0;
     virtual String getTypeName(void* anObject) { return ""; }
-    virtual String getInstanceName(void* anObject) { return ""; }
+    virtual uint64 getHash(void* anObject) { return 0u; }
     virtual bool isManaged(void* anObject) { return false; }
     virtual void serialize(IO::Serializer* aSerializer, void* anObject) = 0;
     virtual bool isValid(void* anObject) { return true; }
@@ -143,7 +143,7 @@ namespace Fancy { namespace IO {
     struct MetaTableImpl : public MetaTable
     {
       virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated, 
-        const ObjectName& anInstanceName = ObjectName::blank) override { }
+        uint64 aHash = 0u) override { }
 
       virtual String getTypeName(void* anObject) override
       {
@@ -156,10 +156,10 @@ namespace Fancy { namespace IO {
         return std::is_base_of<BaseManagedObject, T>::value;
       }
 
-      virtual String getInstanceName(void* anObject) override
+      virtual uint64 getHash(void* anObject) override
       {
         T* serializable = static_cast<T*>(anObject);
-        return serializable->getName();
+        return serializable->GetHash();
       }
 
       virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
@@ -177,10 +177,10 @@ namespace Fancy { namespace IO {
     struct MetaTableImpl<T*> : public MetaTable
     {
       virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
-        const ObjectName& anInstanceName = ObjectName::blank) override 
+        uint64 aHash = 0u) override 
       {
         T** serializable = static_cast<T**>(anObject);
-        (*serializable) = static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, anInstanceName));
+        (*serializable) = static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, aHash));
       }
 
       virtual bool isValid(void* anObject) override
@@ -206,10 +206,10 @@ namespace Fancy { namespace IO {
         return std::is_base_of<BaseManagedObject, T>::value;
       }
 
-      virtual String getInstanceName(void* anObject) override
+      virtual uint64 getHash(void* anObject) override
       {
         T** serializable = static_cast<T**>(anObject);
-        return (*serializable)->getName();
+        return (*serializable)->GetHash();
       }
 
       virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
@@ -229,10 +229,10 @@ namespace Fancy { namespace IO {
       virtual ~MetaTableImpl<std::shared_ptr<T>>() {}
       
       virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
-        const ObjectName& anInstanceName = ObjectName::blank) override
+        uint64 aHash = 0u) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable) = std::shared_ptr<T>(static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, anInstanceName)));
+        (*serializable) = std::shared_ptr<T>(static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, aHash)));
       }
 
       virtual bool isValid(void* anObject) override
@@ -258,10 +258,10 @@ namespace Fancy { namespace IO {
         return (*serializable)->getTypeName();
       }
 
-      virtual String getInstanceName(void* anObject) override
+      virtual uint64 getHash(void* anObject) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        return (*serializable)->getName();
+        return (*serializable)->GetHash();
       }
 
       virtual void serialize(IO::Serializer* aSerializer, void* anObject) override

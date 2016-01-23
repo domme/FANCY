@@ -31,10 +31,8 @@ namespace Fancy { namespace Geometry {
       void SetFromDescription(const ModelDesc& aDesc);
 
       static ObjectName getTypeName() { return _N(Model); }
+      uint64 GetHash() const { return GetDescription().GetHash(); }
       void serialize(IO::Serializer* aSerializer);
-      
-      const ObjectName& getName() const {return m_Name;}
-      void setName(const ObjectName& clNewName) {m_Name = clNewName;}
 
       uint32 getNumSubModels() const {return m_vSubModels.size();}
     //---------------------------------------------------------------------------//
@@ -50,7 +48,6 @@ namespace Fancy { namespace Geometry {
       {ASSERT(m_vSubModels.empty()); m_vSubModels = _vSubModels; }
     //---------------------------------------------------------------------------//
     private:
-      ObjectName m_Name;
       std::vector<SubModel*> m_vSubModels;
   };
 //---------------------------------------------------------------------------//

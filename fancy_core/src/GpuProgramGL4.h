@@ -22,7 +22,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     SERIALIZABLE(ShaderStageInterfaceElement)
     static ObjectName getTypeName() { return _N(ShaderStageInterfaceElement); }
-    const ObjectName& getName() { return ObjectName::blank; }
+    uint64 GetHash() const { return 0u; }
     void serialize(IO::Serializer* aSerializer);
 
     ShaderStageInterfaceElement() : 
@@ -43,7 +43,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     SERIALIZABLE(ShaderStageFragmentOutput)
       static ObjectName getTypeName() { return _N(ShaderStageFragmentOutput); }
-    const ObjectName& getName() { return ObjectName::blank; }
+    const uint64 GetHash() const { return 0u; }
     void serialize(IO::Serializer* aSerializer);
 
     ShaderStageFragmentOutput() :
@@ -101,7 +101,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     //---------------------------------------------------------------------------//
       void SetFromCompilerOutput(const GpuProgramCompilerOutputGL4& _desc);
     //---------------------------------------------------------------------------//
-      const ObjectName& getName() const {return m_Name;}
+      uint64 GetHash() const { return GetDescription().GetHash(); }
       static ObjectName getTypeName() { return _N(GpuProgram); }
       void serialize(IO::Serializer* aSerializer);
 

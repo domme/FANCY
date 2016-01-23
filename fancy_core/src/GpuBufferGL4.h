@@ -34,9 +34,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       void destroy();
       void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
       void unlock();
-
-      ObjectName getName() const { return myName; }
-      void setName(const ObjectName& _aName) { myName = _aName; }
        
     private:
   //---------------------------------------------------------------------------//
@@ -72,7 +69,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       uint32 getBufferIndex() const {return m_uDerivedInternalBufferCount == 1u ? 0u 
                                         : MultiBuffering::getCurrentBufferIndex();}
 
-      ObjectName myName;
       BufferParametersGL m_clParameters;
       BufferState m_clStateInfos;
       uint32 m_uDerivedInternalBufferCount;
