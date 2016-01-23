@@ -49,8 +49,7 @@ public:
   GLenum getTextureTypeGL() const {return m_clParameters.eTextureTypeGL;}
   const TextureCreationParams& getParameters() const {return m_clParameters;}
   const ObjectName& getPath() const { return m_clParameters.path; }
-  void setPath(const String& _aPath) { m_clParameters.path = _aPath; }
-
+  
   protected:
   //---------------------------------------------------------------------------//
   struct TextureParametersGL : public TextureCreationParams {

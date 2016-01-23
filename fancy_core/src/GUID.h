@@ -5,7 +5,6 @@
 namespace Fancy { namespace Rendering {
   struct GpuProgramDesc;
   struct MaterialPassDesc;
-  struct MeshDesc;
   struct GpuProgramPipelineDesc;
 
 } }

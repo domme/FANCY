@@ -698,9 +698,15 @@ namespace Fancy { namespace IO {
     // Find/Create matching Shaders
     //---------------------------------------------------------------------------//
     GpuProgramPermutation permutation;
-    if (hasDiffuseTex) permutation.addFeature(GpuProgramFeature::FEAT_ALBEDO_TEXTURE);
-    if (hasNormalTex) permutation.addFeature(GpuProgramFeature::FEAT_NORMAL_MAPPED);
-    if (hasSpecTex) permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR); permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR_TEXTURE);
+    if (hasDiffuseTex) 
+      permutation.addFeature(GpuProgramFeature::FEAT_ALBEDO_TEXTURE);
+    if (hasNormalTex) 
+      permutation.addFeature(GpuProgramFeature::FEAT_NORMAL_MAPPED);
+    if (hasSpecTex)
+    {
+      permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR);
+      permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR_TEXTURE);
+    }
 
     GpuProgramDesc vertexProgramDesc;
     vertexProgramDesc.myPermutation = permutation;
@@ -754,9 +760,12 @@ namespace Fancy { namespace IO {
     //---------------------------------------------------------------------------//
     MaterialPassInstanceDesc mpiDesc;
     mpiDesc.myMaterialPass = matPassDesc;
-    mpiDesc.myReadTextures[0u] = pDiffuseTex->GetDescription();
-    mpiDesc.myReadTextures[1u] = pNormalTex->GetDescription();
-    mpiDesc.myReadTextures[2u] = pSpecularTex->GetDescription();
+    if (nullptr != pDiffuseTex)
+      mpiDesc.myReadTextures[0u] = pDiffuseTex->GetDescription();
+    if (nullptr != pNormalTex)
+      mpiDesc.myReadTextures[1u] = pNormalTex->GetDescription();
+    if (nullptr != pSpecularTex)
+      mpiDesc.myReadTextures[2u] = pSpecularTex->GetDescription();
     MaterialPassInstance* pSolidForwardMpi = MaterialPassInstance::FindFromDesc(mpiDesc);
     if (pSolidForwardMpi == nullptr)
     {
@@ -818,10 +827,14 @@ namespace Fancy { namespace IO {
 
     PathService::removeFolderUpMarkers(szTexPath);
 
-    ObjectName textureName = PathService::toRelPath(szTexPath);
+    String texPathInResources = PathService::toRelPath(szTexPath);
+
+    TextureDesc texDesc;
+    texDesc.myIsExternalTexture = true;
+    texDesc.mySourcePath = texPathInResources;
 
     // Did we already load this texture before?
-    Texture* pTexture = Texture::getByName(textureName);
+    Texture* pTexture = Texture::FindFromDesc(texDesc);
     if (pTexture)
     {
       return pTexture;
@@ -850,8 +863,10 @@ namespace Fancy { namespace IO {
     }
 
     pTexture = FANCY_NEW(Texture, MemoryCategory::TEXTURES);
-    
+        
     TextureCreationParams texParams;
+    texParams.myIsExternalTexture = true;
+    texParams.path = texPathInResources;
     texParams.bIsDepthStencil = false;
     texParams.eFormat = texLoadInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
     texParams.u16Width = texLoadInfo.width;
@@ -861,7 +876,6 @@ namespace Fancy { namespace IO {
     texParams.uPixelDataSizeBytes = (texLoadInfo.width * texLoadInfo.height * texLoadInfo.bitsPerPixel) / 8u;
     texParams.pPixelData = &vTextureBytes[0];
     pTexture->create(texParams);
-    pTexture->setPath(textureName);
 
     if (!pTexture->isValid())
     {
@@ -872,7 +886,7 @@ namespace Fancy { namespace IO {
     else
     {
       BinaryCache::write(pTexture, texParams.pPixelData, texParams.uPixelDataSizeBytes);
-      Texture::registerWithName(textureName, pTexture);  
+      Texture::Register(pTexture);
     }
 
     return pTexture;
