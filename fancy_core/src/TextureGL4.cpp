@@ -118,24 +118,21 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
     m_clStateInfo.numDimensions = uNumDimensions;
 
     // Determine the max number of miplevels
-    if (m_clParameters.u8NumMipLevels > 0u)
-    {
-      uint8 u8MipLevelsWidth  = clDeclaration.u16Width == 0u ? 0u : glm::log2(clDeclaration.u16Width);
-      uint8 u8MipLevelsHeight = clDeclaration.u16Height == 0u ? 0u : glm::log2(clDeclaration.u16Height);
-      uint8 u8MipLevelsDepth  = clDeclaration.u16Depth == 0u ? 0u : glm::log2(clDeclaration.u16Depth);
+    uint8 u8MipLevelsWidth  = clDeclaration.u16Width == 0u ? 0u : glm::log2(clDeclaration.u16Width);
+    uint8 u8MipLevelsHeight = clDeclaration.u16Height == 0u ? 0u : glm::log2(clDeclaration.u16Height);
+    uint8 u8MipLevelsDepth  = clDeclaration.u16Depth == 0u ? 0u : glm::log2(clDeclaration.u16Depth);
 
-      uint8 u8MaxMipLevels = u8MipLevelsWidth;
-      if (uNumDimensions > 1u) {
-        u8MaxMipLevels = glm::min(u8MaxMipLevels, u8MipLevelsHeight);
-      }
-      if (uNumDimensions > 2u) {
-        u8MaxMipLevels = glm::min(u8MaxMipLevels, u8MipLevelsDepth);
-      }
-
-      m_clParameters.u8NumMipLevels = 
-        glm::min(m_clParameters.u8NumMipLevels, u8MaxMipLevels);
+    uint8 u8MaxMipLevels = u8MipLevelsWidth;
+    if (uNumDimensions > 1u) {
+      u8MaxMipLevels = glm::min(u8MaxMipLevels, u8MipLevelsHeight);
+    }
+    if (uNumDimensions > 2u) {
+      u8MaxMipLevels = glm::min(u8MaxMipLevels, u8MipLevelsDepth);
     }
 
+    m_clParameters.u8NumMipLevels = 
+      glm::min(glm::max(static_cast<uint8>(1u), m_clParameters.u8NumMipLevels), u8MaxMipLevels);
+    
     // Internally store the raw texture data if required
     m_clStateInfo.cachesTextureData = false;
     if (m_clParameters.pPixelData != nullptr && eCreationMethod == CreationMethod::UPLOADED_OFTEN) {
@@ -152,7 +149,7 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
     // construct the new texture
     glGenTextures(1u, &m_uGLhandle);
     glBindTexture(eTextureType, m_uGLhandle);
-
+    
     if (uNumDimensions == 2u) {
       glTexStorage2D(eTextureType, m_clParameters.u8NumMipLevels, eGLinternalFormat, 
         m_clParameters.u16Width, m_clParameters.u16Height );

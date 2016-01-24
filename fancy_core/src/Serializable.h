@@ -57,6 +57,15 @@ namespace Fancy { namespace IO {
     }
   };
 //---------------------------------------------------------------------------//
+  //template<class T, std::enable_if_t<std::is_enum<T>::value>>
+  //struct Get_DataType
+  //{
+  //  static IO::DataType get()
+  //  {
+  //    return IO::DataType(IO::EBaseDataType::Uint32)
+  //  }
+  //};
+//---------------------------------------------------------------------------//
   template<class T>
   struct Get_DataType<std::shared_ptr<T>>
   {

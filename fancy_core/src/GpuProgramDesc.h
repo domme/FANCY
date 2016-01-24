@@ -28,7 +28,7 @@ namespace Fancy { namespace Rendering {
     uint64 hash;
     MathUtil::hash_combine(hash, MathUtil::hashFromString(myShaderPath));
     MathUtil::hash_combine(hash, myShaderStage);
-    MathUtil::hash_combine(hash, myPermutation.getHash());
+    MathUtil::hash_combine(hash, myPermutation.GetHash());
     return hash;
   }
 //---------------------------------------------------------------------------//

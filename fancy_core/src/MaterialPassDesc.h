@@ -1,4 +1,5 @@
 #pragma once
+
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "GpuProgramDesc.h"

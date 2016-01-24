@@ -64,7 +64,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  BlendState::BlendState(const ObjectName& _name) 
+  BlendState::BlendState() 
     : myAlphaToCoverageEnabled(false)
     , myBlendStatePerRT(false)
     , myCachedHash(0u)

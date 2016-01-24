@@ -568,7 +568,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     return aDesc.myShaderPath + "_" +
       GpuProgramCompilerUtils::ShaderStageToDefineString((ShaderStage) aDesc.myShaderStage) +
-      "_" + StringUtil::toString(aDesc.myPermutation.getHash());
+      "_" + StringUtil::toString(aDesc.myPermutation.GetHash());
   }
 //---------------------------------------------------------------------------//
   bool GpuProgramCompilerGL4::compileFromSource(const String& someShaderSource, const ShaderStage& eShaderStage, GLuint& aProgramHandleGL)
@@ -911,6 +911,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     GpuProgramCompilerOutputGL4 compilerOutput;
     compilerOutput.name = locBuildUniqueShaderName(aDesc);
+    compilerOutput.eShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
+    compilerOutput.myPermutation = aDesc.myPermutation;
+    compilerOutput.myShaderFilename = aDesc.myShaderPath;
     const bool bSuccess = locCompileAndReflect(szCombinedSource, sourceInfo,
       static_cast<ShaderStage>(aDesc.myShaderStage), compilerOutput);
 
@@ -927,8 +930,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     String shaderFilePath = aDesc.myShaderPath;
     ShaderStage shaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
 
-    const String& uniqueProgramName = locBuildUniqueShaderName(aDesc);
-    GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
+    GpuProgram* pGpuProgram = GpuProgram::FindFromDesc(aDesc);
     if (pGpuProgram != nullptr)
     {
       return pGpuProgram;
@@ -940,7 +942,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     {
       pGpuProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
       pGpuProgram->SetFromCompilerOutput(compilerOutput);
-      GpuProgram::registerWithName(pGpuProgram);
+      GpuProgram::Register(pGpuProgram, aDesc.GetHash());
     }
 
     return pGpuProgram;

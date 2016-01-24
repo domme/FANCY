@@ -38,7 +38,7 @@ class BlendState : public StaticManagedObject<BlendState> {
 public:
   SERIALIZABLE(BlendState)
 
-  explicit BlendState(const ObjectName& _name);
+  explicit BlendState();
   ~BlendState() {}
   friend class PLATFORM_DEPENDENT_NAME(Renderer);
   bool operator==(const BlendState& clOther) const;

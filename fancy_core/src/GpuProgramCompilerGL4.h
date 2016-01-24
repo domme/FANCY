@@ -23,8 +23,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       static bool compileFromSource(const String& someShaderSource, const ShaderStage& eShaderStage, GLuint& aProgramHandleGL);
 
       // TODO: Find a nicer place for platform-dependent infos
-      static const String& GetPlatformShaderFileExtension() { return ".shader"; }
-      static const String& GetPlatformShaderFileDirectory() { return "shader/GL4/"; }
+      static String GetPlatformShaderFileExtension() { return ".shader"; }
+      static String GetPlatformShaderFileDirectory() { return "shader/GL4/"; }
       
     private:
       GpuProgramCompilerGL4();

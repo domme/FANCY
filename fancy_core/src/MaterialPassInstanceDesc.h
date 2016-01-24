@@ -1,10 +1,10 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "Material.h"
 #include "GpuBufferDesc.h"
 #include "TextureDesc.h"
 #include "TextureSamplerDesc.h"
+#include "MaterialPassDesc.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -22,5 +22,3 @@ namespace Fancy { namespace Rendering {
   };
 //---------------------------------------------------------------------------//
 } }
-
-#pragma once

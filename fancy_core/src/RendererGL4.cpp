@@ -146,29 +146,27 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
-  RendererGL4::RendererGL4() :
-    m_uPipelineRebindMask(UINT_MAX),
-    m_uDepthStencilRebindMask(UINT_MAX),
-    m_uBlendStateRebindMask(UINT_MAX),
-    m_u8BlendStateRebindRTmask(UINT_MAX),
-    m_u8BlendStateRebindRTcount(1u),
-    m_pCachedDepthStencilTarget(nullptr),
-    m_uCurrentFBO(0u),
-    myCachedProgramPipeline(0u),
-    m_uCurrentVAO(0u),
-    m_uViewportParams(0u, 0u, 1u, 1u),
-    m_bViewportDirty(true) ,
-    m_clBlendState(ObjectName()),
-    m_clDepthStencilState(ObjectName())
-    , m_uResourceRebindMask(UINT_MAX)
-    , m_uReadTextureBindMask(UINT_MAX)
-    , m_uNumReadTexturesToBind(0u)
-    , m_uReadBufferBindMask(UINT_MAX)
-    , m_uNumReadBuffersToBind(0u)
-    , m_uConstantBufferBindMask(UINT_MAX)
-    , m_uNumConstantBuffersToBind(0u)
-    , m_uTextureSamplerBindMask(UINT_MAX)
-    , m_uNumTextureSamplersToBind(0u)
+  RendererGL4::RendererGL4() 
+      : m_uPipelineRebindMask(UINT_MAX)
+      , m_uDepthStencilRebindMask(UINT_MAX)
+      , m_uBlendStateRebindMask(UINT_MAX)
+      , m_u8BlendStateRebindRTmask(UINT_MAX)
+      , m_u8BlendStateRebindRTcount(1u)
+      , m_pCachedDepthStencilTarget(nullptr)
+      , m_uCurrentFBO(0u)
+      , myCachedProgramPipeline(0u)
+      , m_uCurrentVAO(0u)
+      , m_uViewportParams(0u, 0u, 1u, 1u)
+      , m_bViewportDirty(true)
+      , m_uResourceRebindMask(UINT_MAX)
+      , m_uReadTextureBindMask(UINT_MAX)
+      , m_uNumReadTexturesToBind(0u)
+      , m_uReadBufferBindMask(UINT_MAX)
+      , m_uNumReadBuffersToBind(0u)
+      , m_uConstantBufferBindMask(UINT_MAX)
+      , m_uNumConstantBuffersToBind(0u)
+      , m_uTextureSamplerBindMask(UINT_MAX)
+      , m_uNumTextureSamplersToBind(0u)
   {
     memset(m_pCachedReadTextures, 0, sizeof(m_pCachedReadTextures));
     memset(m_pCachedReadBuffers, 0, sizeof(m_pCachedReadBuffers));
@@ -278,6 +276,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
     }
 
+    m_clDepthStencilState.myIsDirty = true;
     m_uDepthStencilRebindMask = uDepthStencilRebindMask;
     m_uPipelineRebindMask |= (uint) PipelineRebindFlags::DEPTHSTENCIL;  
   }
@@ -369,6 +368,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
     }
   
+    m_clBlendState.myIsDirty = true;
     m_uBlendStateRebindMask = uBlendStateRebindMask;
     m_u8BlendStateRebindRTcount = u8BlendStateRebindRTcount;
     m_u8BlendStateRebindRTmask = u8BlendStateRebindRTmask;
@@ -1234,11 +1234,11 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  void RenderingSubsystemGL4::Init()
+  void RenderingSubsystemGL4::InitPlatform()
   {
   }
   //---------------------------------------------------------------------------//
-  void RenderingSubsystemGL4::Shutdown()
+  void RenderingSubsystemGL4::ShutdownPlatform()
   {
   }
   //---------------------------------------------------------------------------//

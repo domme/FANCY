@@ -10,7 +10,6 @@
 #include "DepthStencilState.h"
 #include "BlendState.h"
 #include "Serializable.h"
-#include "GUID.h"
 #include "GpuProgramDesc.h"
 #include "MaterialPassDesc.h"
 

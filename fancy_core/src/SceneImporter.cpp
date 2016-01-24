@@ -287,7 +287,6 @@ namespace Fancy { namespace IO {
     if (!pModel)
     {
       pModel = FANCY_NEW(Geometry::Model, MemoryCategory::GEOMETRY);
-      pModel->setName(Processing::getUniqueModelName(_workingData));
       pModel->SetFromDescription(modelDesc);
       Model::Register(pModel);
     }
@@ -605,7 +604,6 @@ namespace Fancy { namespace IO {
     }
 
     Geometry::Mesh* mesh = FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY);
-    mesh->setName(meshName);
     mesh->setGeometryDataList(vGeometryDatas);
     mesh->SetVertexIndexHash(vertexIndexHash);
     Geometry::Mesh::Register(mesh);
@@ -711,7 +709,7 @@ namespace Fancy { namespace IO {
     GpuProgramDesc vertexProgramDesc;
     vertexProgramDesc.myPermutation = permutation;
     vertexProgramDesc.myShaderPath = Rendering::GpuProgramCompiler::GetPlatformShaderFileDirectory() + 
-      "MaterialForward" + Rendering::GpuProgramCompiler::GetPlatformShaderFileExtension();
+      String("MaterialForward") + Rendering::GpuProgramCompiler::GetPlatformShaderFileExtension();
     vertexProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
     GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve(vertexProgramDesc);
 
@@ -769,7 +767,7 @@ namespace Fancy { namespace IO {
     MaterialPassInstance* pSolidForwardMpi = MaterialPassInstance::FindFromDesc(mpiDesc);
     if (pSolidForwardMpi == nullptr)
     {
-      pSolidForwardMpi = FANCY_NEW(MaterialPassInstance(pMaterialPass), MemoryCategory::MATERIALS);
+      pSolidForwardMpi = FANCY_NEW(MaterialPassInstance, MemoryCategory::MATERIALS);
       pSolidForwardMpi->SetFromDescription(mpiDesc);
       MaterialPassInstance::Register(pSolidForwardMpi);
     }

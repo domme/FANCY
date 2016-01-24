@@ -68,9 +68,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  DepthStencilState::DepthStencilState(const ObjectName& _name) 
-    : myName(_name)
-    , myDepthTestEnabled(true)
+  DepthStencilState::DepthStencilState() 
+    : myDepthTestEnabled(true)
     , myDepthWriteEnabled(true)
     , myDepthCompFunc(CompFunc::LESS)
     , myStencilEnabled(true)

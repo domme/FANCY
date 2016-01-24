@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
+#include "RendererPrerequisites.h"
 #include "MaterialPassInstanceDesc.h"
 #include "FixedArray.h"
 

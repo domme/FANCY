@@ -29,7 +29,7 @@ namespace Fancy { namespace Rendering {
     public:
       SERIALIZABLE(GpuProgramPermutation)
         
-      static const ObjectName& getTypeName() { return _N(GpuProgramPermutation); }
+      static ObjectName getTypeName() { return _N(GpuProgramPermutation); }
       uint64 GetHash() const { return m_uHash; }
       void serialize(IO::Serializer* aSerializer);
 

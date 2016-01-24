@@ -51,6 +51,8 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   void SubModel::SetFromDescription(const SubModelDesc& aDesc)
   {
+    m_pMaterial = Rendering::Material::FindFromDesc(aDesc.myMaterial);
+    m_pMesh = Mesh::FindFromDesc(aDesc.myMesh);
   }
 //---------------------------------------------------------------------------//
   void SubModel::serialize(IO::Serializer* aSerializer)

@@ -36,7 +36,7 @@ namespace Fancy { namespace Rendering {
   public:
     SERIALIZABLE(DepthStencilState)
 
-      explicit DepthStencilState(const ObjectName& _name);
+      DepthStencilState();
       ~DepthStencilState() {}
       bool operator==(const DepthStencilState& clOther) const;
       bool operator==(const DepthStencilStateDesc& aDesc) const;

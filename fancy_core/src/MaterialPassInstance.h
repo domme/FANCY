@@ -36,7 +36,7 @@ namespace Fancy { namespace Rendering {
   public:
     SERIALIZABLE(MaterialPassInstance)
 
-    MaterialPassInstance(MaterialPass* aMaterialPass);
+    MaterialPassInstance();
     ~MaterialPassInstance();
     bool operator==(const MaterialPassInstanceDesc& aDesc) const;
 

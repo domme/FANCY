@@ -64,7 +64,7 @@ namespace Fancy {  namespace IO {
     uint64 texDescHash = texDesc.GetHash();
 
     // Write the hash first the be able to "peek ahead" without reading in the whole stuff later on
-    archive.write(reinterpret_cast<const char*>(texDescHash), sizeof(texDescHash));
+    archive.write(reinterpret_cast<const char*>(&texDescHash), sizeof(texDescHash));
 
     // Write the desc
     locWriteString(archive, texDesc.mySourcePath);
@@ -102,7 +102,7 @@ namespace Fancy {  namespace IO {
       return false;
 
     uint64 textureHash = 0u;
-    archive.read((char*)textureHash, sizeof(textureHash));
+    archive.read((char*)&textureHash, sizeof(textureHash));
     
     if (textureHash == aDescHash)
     {

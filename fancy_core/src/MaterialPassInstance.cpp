@@ -117,8 +117,8 @@ namespace Fancy { namespace Rendering {
     aSerializer->serialize(&myHash, "myHash");
   }
 //---------------------------------------------------------------------------//
-  MaterialPassInstance::MaterialPassInstance(MaterialPass* aMaterialPass) :
-    m_pMaterialPass(aMaterialPass)
+  MaterialPassInstance::MaterialPassInstance() :
+    m_pMaterialPass(nullptr)
   {
     memset(m_vpReadTextures, 0x0, sizeof(m_vpReadTextures));
     memset(m_vpWriteTextures, 0x0, sizeof(m_vpWriteTextures));

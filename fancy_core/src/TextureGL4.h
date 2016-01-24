@@ -48,7 +48,7 @@ public:
   GLenum getInternalFormatGL() const {return m_clParameters.eInternalFormatGL;}
   GLenum getTextureTypeGL() const {return m_clParameters.eTextureTypeGL;}
   const TextureCreationParams& getParameters() const {return m_clParameters;}
-  const ObjectName& getPath() const { return m_clParameters.path; }
+  const String& getPath() const { return m_clParameters.path; }
   
   protected:
   //---------------------------------------------------------------------------//

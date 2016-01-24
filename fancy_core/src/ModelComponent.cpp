@@ -45,7 +45,7 @@ namespace Fancy { namespace Scene {
     {
       RenderingItemList& vRenderItems = pRenderDesc->techniqueItemList[iPass];
 
-      const Geometry::SubModelList& vSubmodels = m_pModel->getSubModelList();
+      const std::vector<Geometry::SubModel*>& vSubmodels = m_pModel->getSubModelList();
       for (uint32 iSubmodel = 0; iSubmodel < m_pModel->getNumSubModels(); ++iSubmodel)
       {
         const Geometry::SubModel* pSubmodel = vSubmodels[iSubmodel];
