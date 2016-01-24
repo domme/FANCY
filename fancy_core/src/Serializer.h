@@ -38,21 +38,10 @@ namespace Fancy { namespace IO {
 
         template<class T> void serialize(T* anObject, const char* aName = nullptr)
         {
-          typename std::is_enum<T>::type isEnum;
-          _serialize(anObject, isEnum, aName);
-        }
-
-        template<class T> void _serialize(T* anObject, std::true_type anEnum, const char* aName = nullptr)
-        {
-          serializeImpl(DataType(EBaseDataType::Uint32), anObject, aName);
-        }
-
-        template<class T> void _serialize(T* anObject, std::false_type anEnum, const char* aName = nullptr)
-        {
           DataType dataType = Get_DataType<T>::get();
           serializeImpl(dataType, anObject, aName);
         }
-
+        
         template<class T, uint N> void serializeArray(T(&anObject)[N], const char* aName = nullptr)
         {
           serializeImpl(Get_DataTypeBuiltinArray<T, N>::get(), anObject, aName);

@@ -34,7 +34,26 @@ namespace Fancy { namespace IO {
     Matrix4x4,
     Serializable,
     SerializablePtr,
+    StructOrClass,
   };
+//---------------------------------------------------------------------------//
+  //struct MetaTableStructOrClass
+  //{
+  //  virtual void serialize(IO::Serializer* aSerializer, void* anObject) = 0;
+  //};
+////---------------------------------------------------------------------------//
+  //template<class T>
+  //struct MetaTableStructOrClassImpl : public MetaTableStructOrClass
+  //{
+  //  virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+  //  {
+  //    ((T*)anObject)->serialize(aSerializer);
+  //  }
+  //
+  //  static MetaTableStructOrClassImpl<T> ourVTable;
+  //};
+  //template<class T>
+  //MetaTableStructOrClassImpl<T> MetaTableStructOrClassImpl<T>::ourVTable;
 //---------------------------------------------------------------------------//
   struct DataType
   {
@@ -48,7 +67,7 @@ namespace Fancy { namespace IO {
 } // end of namespace IO
 
 //---------------------------------------------------------------------------//
-  template<class T>
+  template<class T, typename = void>
   struct Get_DataType
   {
     static IO::DataType get()
@@ -57,12 +76,22 @@ namespace Fancy { namespace IO {
     }
   };
 //---------------------------------------------------------------------------//
-  //template<class T, std::enable_if_t<std::is_enum<T>::value>>
-  //struct Get_DataType
+  // Special case for enum types
+  template<class T>
+  struct Get_DataType<T, typename std::enable_if<std::is_enum<T>::value>::type>
+  {
+    static IO::DataType get()
+    {
+      return IO::DataType(IO::EBaseDataType::Uint32);
+    }
+  };
+//---------------------------------------------------------------------------//
+  //template<class T>
+  //struct Get_DataType<T, typename T::IsSerializable>
   //{
   //  static IO::DataType get()
   //  {
-  //    return IO::DataType(IO::EBaseDataType::Uint32)
+  //    return T::template getDataType<void>();
   //  }
   //};
 //---------------------------------------------------------------------------//
@@ -447,6 +476,7 @@ namespace Fancy { namespace IO {
   };
 //---------------------------------------------------------------------------//
 #define SERIALIZABLE(T) \
+  enum { IsSerializable = 1 }; \
   template<class dummy> \
   static IO::DataType getDataType() \
   { \

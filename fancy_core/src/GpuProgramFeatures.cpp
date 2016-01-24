@@ -22,11 +22,10 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void GpuProgramPermutation::serialize(IO::Serializer* aSerializer)
   {
-    // TODO: Support serialization of arrays with enum classes as elements
-    // aSerializer->serialize(&m_vFeatures, "myFeatures");
-    // 
-    // if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
-    //   m_uHash = Internal::sortAndGetHash(m_vFeatures);
+    aSerializer->serialize(&m_vFeatures, "myFeatures");
+     
+    if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
+      m_uHash = Internal::sortAndGetHash(m_vFeatures);
   }
 //---------------------------------------------------------------------------//
   String GpuProgramPermutation::featureToDefineString(GpuProgramFeature _eFeature)
