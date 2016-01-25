@@ -10,29 +10,30 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-// TODO: Find a nicer place for platform-dependent infos
-  String locShaderFileExtension = ".hlsl";
-  String locShaderDirectory = "shader/DX12/";
-//---------------------------------------------------------------------------//
-  GpuProgram* GpuProgramCompilerDX12::createOrRetrieve(const String& aShaderFileName, const GpuProgramPermutation& aPermutation, ShaderStage aShaderStage)
+  bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputDX12* aProgram)
   {
-    String shaderFilePath = locShaderDirectory + aShaderFileName + locShaderFileExtension;
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  GpuProgram* GpuProgramCompilerDX12::createOrRetrieve(const GpuProgramDesc& aDesc)
+  {
+    String shaderFilePath = aDesc.myShaderPath;
+    ShaderStage shaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
 
-    String uniqueProgramName = aShaderFileName + "_" + GpuProgramCompilerUtils::ShaderStageToDefineString(aShaderStage) + "_" + StringUtil::toString(aPermutation.getHash());
-    GpuProgram* pGpuProgram = GpuProgram::getByName(uniqueProgramName);
+    GpuProgram* pGpuProgram = GpuProgram::FindFromDesc(aDesc);
     if (pGpuProgram != nullptr)
     {
       return pGpuProgram;
     }
 
-    log_Info("Compiling shader " + aShaderFileName + " ...");
-
-    // TODO: Check the cache--folder for a precompiled shader binary
-
-  
-
-
-    return nullptr;
+    pGpuProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
+    if (!pGpuProgram->SetFromDescription(aDesc))
+    {
+      FANCY_DELETE(pGpuProgram, MemoryCategory::MATERIALS);
+      return nullptr;
+    }
+    GpuProgram::Register(pGpuProgram);
+    return pGpuProgram;
   }
 
   GpuProgramCompilerDX12::GpuProgramCompilerDX12()

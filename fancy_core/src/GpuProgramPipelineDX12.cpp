@@ -21,10 +21,42 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDX12& anOther)
+  bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDX12& anOther) const
   {
     return myShaderHash == anOther.myShaderHash;
   }
+  //---------------------------------------------------------------------------//
+  GpuProgramPipelineDesc GpuProgramPipelineDX12::GetDescription() const
+  {
+    GpuProgramPipelineDesc desc;
+
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    {
+      const GpuProgram* pProgram = myGpuPrograms[i];
+      if (pProgram)
+        desc.myGpuPrograms[i] = pProgram->GetDescription();
+    }
+
+    return desc;
+  }
+  //---------------------------------------------------------------------------//
+  void GpuProgramPipelineDX12::SetFromDescription(const GpuProgramPipelineDesc& aDesc)
+  {
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    {
+      myGpuPrograms[i] = GpuProgram::FindFromDesc(aDesc.myGpuPrograms[i]);
+    }
+
+    // TODO: Update the root signature
+
+    RecomputeHashFromShaders();
+  }
+  //---------------------------------------------------------------------------//
+  bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDesc& anOtherDesc) const
+  {
+    return GetDescription() == anOtherDesc;
+  }
+
 //---------------------------------------------------------------------------//
   void GpuProgramPipelineDX12::RecomputeHashFromShaders()
   {

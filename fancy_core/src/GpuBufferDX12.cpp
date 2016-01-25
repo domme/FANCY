@@ -16,7 +16,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   }
 
-  void GpuBufferDX12::create(const GpuBufferParameters& clParameters, void* pInitialData)
+  void GpuBufferDX12::create(const GpuBufferCreationParams& clParameters, void* pInitialData)
   {
   }
 

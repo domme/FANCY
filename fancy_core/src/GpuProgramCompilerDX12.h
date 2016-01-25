@@ -15,7 +15,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class GpuProgramCompilerDX12
   {
     public:
-      static GpuProgram* createOrRetrieve(const String& _shaderPath, const GpuProgramPermutation& _permutation, ShaderStage _eShaderStage);
+      static bool Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputDX12* aProgram);
+      static GpuProgram* createOrRetrieve(const GpuProgramDesc& aDesc);
+      
+      // TODO: Find a nicer place for platform-dependent infos
+      static String GetPlatformShaderFileExtension() { return ".hlsl"; }
+      static String GetPlatformShaderFileDirectory() { return "shader/DX12/"; }
 
     private:
       GpuProgramCompilerDX12();

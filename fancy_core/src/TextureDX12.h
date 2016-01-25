@@ -2,58 +2,56 @@
 
 #if defined (RENDERER_DX12)
 
-namespace Fancy {
-  namespace Rendering {
-    namespace DX12 {
+namespace Fancy { namespace Rendering { namespace DX12 {
+//---------------------------------------------------------------------------//
+  class TextureDX12
+  {
+  public:
+    enum class CreationMethod {
+      UPLOADED_ONCE = 0,
+      UPLOADED_OFTEN
+    };
 
-      class TextureDX12
-      {
-      public:
-        enum class CreationMethod {
-          UPLOADED_ONCE = 0,
-          UPLOADED_OFTEN
-        };
+    TextureDX12();
+    ~TextureDX12();
 
-        TextureDX12();
-        ~TextureDX12();
+    void create(const TextureCreationParams& clDeclaration, CreationMethod eCreationMethod = CreationMethod::UPLOADED_ONCE);
+    void setPixelData(void* pData, uint uDataSizeBytes,
+      glm::u32vec3 rectPosOffset = glm::u32vec3(0, 0, 0), glm::u32vec3 rectDimensions = glm::u32vec3(0, 0, 0));
+    void* lock(GpuResoruceLockOption option = GpuResoruceLockOption::WRITE_DISCARD);
+    void unlock();
 
-        void create(const TextureDesc& clDeclaration, CreationMethod eCreationMethod = CreationMethod::UPLOADED_ONCE);
-        void setPixelData(void* pData, uint uDataSizeBytes,
-          glm::u32vec3 rectPosOffset = glm::u32vec3(0, 0, 0), glm::u32vec3 rectDimensions = glm::u32vec3(0, 0, 0));
-        void* lock(GpuResoruceLockOption option = GpuResoruceLockOption::WRITE_DISCARD);
-        void unlock();
-
-        bool isDepthStencilTexture() const { return myParameters.bIsDepthStencil; }
-        bool isSRGBtexture() const { return myState.isSRGB; }
-        bool isLocked() const { return myState.isLocked; }
-        bool isCubemap() const { return myState.isCubemap; }
-        bool isArrayTexture() const { return myState.isArrayTexture; }
-        bool isValid() const { return false; }  // TODO: Implement
+    bool isDepthStencilTexture() const { return myParameters.bIsDepthStencil; }
+    bool isSRGBtexture() const { return myState.isSRGB; }
+    bool isLocked() const { return myState.isLocked; }
+    bool isCubemap() const { return myState.isCubemap; }
+    bool isArrayTexture() const { return myState.isArrayTexture; }
+    bool isValid() const { return false; }  // TODO: Implement
         
-        uint getNumDimensions() const { return myState.numDimensions; }
-        const TextureDesc& getParameters() const { return myParameters; }
-        const ObjectName& getPath() const { return myParameters.path; }
-        void setPath(const ObjectName& _aPath) { myParameters.path = _aPath; }
+    uint getNumDimensions() const { return myState.numDimensions; }
+    const TextureCreationParams& getParameters() const { return myParameters; }
+    const ObjectName& getPath() const { return myParameters.path; }
+    void setPath(const String& _aPath) { myParameters.path = _aPath; }
 
-      protected:
-        struct TextureInfos {
-          TextureInfos() : isSRGB(0), isLocked(0), isArrayTexture(0), isCubemap(0),
-            cachesTextureData(0), numDimensions(0) {}
+  protected:
+    struct TextureInfos {
+      TextureInfos() : isSRGB(0), isLocked(0), isArrayTexture(0), isCubemap(0),
+        cachesTextureData(0), numDimensions(0) {}
 
-          uint isSRGB : 1;
-          uint isLocked : 1;
-          uint isArrayTexture : 1;
-          uint isCubemap : 1;
-          uint cachesTextureData : 1;
-          uint numDimensions : 4;
-        };
+      uint isSRGB : 1;
+      uint isLocked : 1;
+      uint isArrayTexture : 1;
+      uint isCubemap : 1;
+      uint cachesTextureData : 1;
+      uint numDimensions : 4;
+    };
 
-        TextureDesc myParameters;
-        TextureInfos myState;
-      };
-    }
-  }
-}
+    TextureCreationParams myParameters;
+    TextureInfos myState;
+  };
+
+//---------------------------------------------------------------------------//
+} } }
 
 #endif
 

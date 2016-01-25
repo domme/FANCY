@@ -15,16 +15,13 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     bool isValid() const { return false; }  // TODO: Implement
     uint getTotalSizeBytes() const { return myTotalSizeBytes; }
     uint32 getNumElements() const { return myNumElements; }
-    GpuBufferParameters getParameters() const { return myParameters; }
+    GpuBufferCreationParams getParameters() const { return myParameters; }
 
     void setBufferData(void* pData, uint uOffsetElements = 0, uint uNumElements = 0);
-    void create(const GpuBufferParameters& clParameters, void* pInitialData = nullptr);
+    void create(const GpuBufferCreationParams& clParameters, void* pInitialData = nullptr);
     void destroy();
     void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
     void unlock() {}
-
-    ObjectName getName() const { return myName; }
-    void setName(const ObjectName& _aName) { myName = _aName; }
 
   private:
 
@@ -38,8 +35,7 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     };
 
     BufferState myState;
-    GpuBufferParameters myParameters;
-    ObjectName myName;
+    GpuBufferCreationParams myParameters;
     uint myTotalSizeBytes;
     uint myNumElements;
 	};

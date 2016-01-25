@@ -2,6 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "GpuProgramDesc.h"
 
 #if defined (RENDERER_DX12)
 
@@ -20,11 +21,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
-    ObjectName getName() const { return ObjectName(myShaderHash); }
+    uint64 GetHash() const { return GetDescription().GetHash(); }
 
     GpuProgramPipelineDX12();
     ~GpuProgramPipelineDX12();
-    bool operator==(const GpuProgramPipelineDX12& anOther);
+    bool operator==(const GpuProgramPipelineDX12& anOther) const;
+    bool operator==(const GpuProgramPipelineDesc& anOtherDesc) const;
+
+    GpuProgramPipelineDesc GetDescription() const;
+    void SetFromDescription(const GpuProgramPipelineDesc& aDesc);
     
     void RecomputeHashFromShaders();
 

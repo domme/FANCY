@@ -1,4 +1,5 @@
 #pragma once
+#include "GpuProgramDesc.h"
 
 #if defined (RENDERER_DX12)
 #include "GpuProgramResource.h"
@@ -17,6 +18,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     std::vector<D3D12_INPUT_ELEMENT_DESC> myElements;
   };
 //---------------------------------------------------------------------------//
+  struct GpuProgramCompilerOutputDX12
+  {
+
+  };
+//---------------------------------------------------------------------------//
   class GpuProgramDX12
   {
     friend class GpuProgramCompilerDX12;
@@ -26,10 +32,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
     GpuProgramDX12();
     ~GpuProgramDX12();
+    void Destroy();
+    bool operator==(const GpuProgramDX12& anOther) const;
+    bool operator==(const GpuProgramDesc& aDesc) const;
   //---------------------------------------------------------------------------//
-    const ObjectName& getName() const { return myName; }
     static ObjectName getTypeName() { return _N(GpuProgram); }
     void serialize(IO::Serializer* aSerializer);
+    uint64 GetHash() const { return GetDescription().GetHash(); }
+
+    GpuProgramDesc GetDescription() const;
+    bool SetFromDescription(const GpuProgramDesc& aDesc);
+    void SetFromCompilerOutput(const GpuProgramCompilerOutputDX12& aCompilerOutput);
         
     ShaderStage getShaderStage() const { return myStage; }
     const GpuResourceInfoList& getReadTextureInfoList() const { return myReadTextureInfos; }
@@ -45,8 +58,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const RootSignatureDX12* GetRootSignature() { return myRootSignature; }
 
   private:
-    ObjectName myName;
+    String mySourcePath;
     ShaderStage myStage;
+    GpuProgramPermutation myPermutation;
 
     GpuResourceInfoList myReadTextureInfos;
     GpuResourceInfoList myReadBufferInfos;
