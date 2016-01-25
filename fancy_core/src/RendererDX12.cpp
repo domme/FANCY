@@ -5,6 +5,7 @@
 #include "MathUtil.h"
 #include "GpuProgram.h"
 #include "RootSignatureDX12.h"
+#include "GpuProgramCompiler.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
 //---------------------------------------------------------------------------//
@@ -270,6 +271,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // Create synchronization objects.
     myFrameDone.init(myDevice.Get(), "RendererDX12::FrameDone");
+
+    // DEBUG: Compile a shader
+    GpuProgramPermutation permutation;
+
+    GpuProgramDesc vertexProgramDesc;
+    vertexProgramDesc.myPermutation = permutation;
+    vertexProgramDesc.myShaderPath = Rendering::GpuProgramCompiler::GetPlatformShaderFileDirectory() +
+      String("MaterialForward") + Rendering::GpuProgramCompiler::GetPlatformShaderFileExtension();
+    vertexProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
+    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve(vertexProgramDesc);
 	}
 //---------------------------------------------------------------------------//
   PipelineState& RendererDX12::getState()
