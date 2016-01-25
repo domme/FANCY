@@ -2,6 +2,8 @@
 
 #if defined (RENDERER_DX12)
 
+#include "TextureDesc.h"
+
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class TextureDX12
@@ -14,6 +16,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     TextureDX12();
     ~TextureDX12();
+    bool operator==(const TextureDesc& aDesc) const;
+    TextureDesc GetDescription() const;
+    void SetFromDescription(const TextureDesc& aDesc);
 
     void create(const TextureCreationParams& clDeclaration, CreationMethod eCreationMethod = CreationMethod::UPLOADED_ONCE);
     void setPixelData(void* pData, uint uDataSizeBytes,

@@ -21,10 +21,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   bool GpuProgramDX12::operator==(const GpuProgramDX12& anOther) const
   {
+    return GetDescription() == anOther.GetDescription();
   }
 //---------------------------------------------------------------------------//
   bool GpuProgramDX12::operator==(const GpuProgramDesc& aDesc) const
   {
+    return GetDescription() == aDesc;
   }
 //---------------------------------------------------------------------------//
   void GpuProgramDX12::serialize(IO::Serializer* aSerializer)

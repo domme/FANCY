@@ -9,11 +9,13 @@
 namespace Fancy { namespace Rendering { namespace DX12 { 
 //---------------------------------------------------------------------------//
   PipelineState::PipelineState()
-    : myDepthStencilState(ObjectName::blank)
-    , myBlendState(ObjectName::blank)
+    : myFillMode(FillMode::SOLID)
+    , myCullMode(CullMode::BACK)
+    , myWindingOrder(WindingOrder::CCW)
+    , myNumRenderTargets(0u)
+    , myDSVformat(DataFormat::DS_24_8)
+    , myIsDirty(true)
   {
-    myDepthStencilStateHash = myDepthStencilState.getHash();
-    myBlendStateHash = myBlendState.getHash();
   }
 //---------------------------------------------------------------------------//
   uint PipelineState::getHash()
@@ -22,8 +24,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myCullMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
-    MathUtil::hash_combine(hash, myDepthStencilStateHash);
-    MathUtil::hash_combine(hash, myBlendStateHash);
+    MathUtil::hash_combine(hash, myDepthStencilState.GetHash());
+    MathUtil::hash_combine(hash, myBlendState.GetHash());
 
     for (uint i = 0u; i < static_cast<uint>(ShaderStage::NUM); ++i)
       MathUtil::hash_combine(hash, reinterpret_cast<uint>(myShaderStages[i]));
@@ -340,27 +342,24 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	void RendererDX12::setBlendState(const BlendState& clBlendState)
 	{
     PipelineState& state = getState();
-    uint requestedHash = clBlendState.getHash();
+    uint requestedHash = clBlendState.GetHash();
 
-    if (state.myBlendStateHash == requestedHash)
+    if (state.myBlendState.GetHash() == requestedHash)
       return;
 
     state.myBlendState = clBlendState;
-    state.myBlendStateHash = requestedHash;
     state.myIsDirty = true;
 	}
 //---------------------------------------------------------------------------//
 	void RendererDX12::setDepthStencilState(const DepthStencilState& aDepthStencilState)
 	{
     PipelineState& state = getState();
-    uint requestedHash = aDepthStencilState.getHash();
+    uint requestedHash = aDepthStencilState.GetHash();
 
-    if (state.myDepthStencilStateHash == requestedHash)
+    if (state.myDepthStencilState.GetHash() == requestedHash)
       return;
 
-    state.myDepthStencilStateHash = requestedHash;
     state.myDepthStencilState = aDepthStencilState;
-    
     state.myIsDirty = true;
 	}
 //---------------------------------------------------------------------------//
@@ -483,12 +482,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  void RenderingSubsystemDX12::Init()
+  void RenderingSubsystemDX12::InitPlatform()
   {
     RootSignaturePoolDX12::Init();
   }
 //---------------------------------------------------------------------------//
-  void RenderingSubsystemDX12::Shutdown()
+  void RenderingSubsystemDX12::ShutdownPlatform()
   {
     RootSignaturePoolDX12::Destroy();
   }

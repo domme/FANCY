@@ -51,7 +51,7 @@ namespace Fancy { namespace IO {
   //  }
   //
   //  static MetaTableStructOrClassImpl<T> ourVTable;
-  //};
+  //};+
   //template<class T>
   //MetaTableStructOrClassImpl<T> MetaTableStructOrClassImpl<T>::ourVTable;
 //---------------------------------------------------------------------------//

@@ -36,9 +36,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CullMode myCullMode;
     WindingOrder myWindingOrder;
     DepthStencilState myDepthStencilState;
-    uint myDepthStencilStateHash;
     BlendState myBlendState;
-    uint myBlendStateHash;
     const GpuProgram* myShaderStages[static_cast<uint>(ShaderStage::NUM)];
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[Constants::kMaxNumRenderTargets];

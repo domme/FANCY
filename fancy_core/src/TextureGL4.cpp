@@ -46,6 +46,10 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
   void TextureGL4::SetFromDescription(const TextureDesc& aDesc)
   {
     // TODO: Read from binary cache
+
+    m_clParameters.myIsExternalTexture = desc.myIsExternalTexture;
+    m_clParameters.myInternalRefIndex = desc.myInternalRefIndex;
+    m_clParameters.path = desc.mySourcePath;
   }
 //---------------------------------------------------------------------------//
   bool TextureGL4::_init()

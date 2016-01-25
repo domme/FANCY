@@ -12,24 +12,35 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   }
 //---------------------------------------------------------------------------//
+  bool GpuBufferDX12::operator==(const GpuBufferDesc& aDesc) const
+  {
+    return GetDescription() == aDesc;
+  }
+//---------------------------------------------------------------------------//
+  GpuBufferDesc GpuBufferDX12::GetDescription() const
+  {
+    GpuBufferDesc desc;
+    desc.myInternalRefIndex = myParameters.myInternalRefIndex;
+    return desc;
+  }
+//---------------------------------------------------------------------------//
   void GpuBufferDX12::setBufferData(void* pData, uint uOffsetElements, uint uNumElements)
   {
   }
-
+//---------------------------------------------------------------------------//
   void GpuBufferDX12::create(const GpuBufferCreationParams& clParameters, void* pInitialData)
   {
   }
-
+//---------------------------------------------------------------------------//
   void GpuBufferDX12::destroy()
   {
   }
-
+//---------------------------------------------------------------------------//
   void* GpuBufferDX12::lock(GpuResoruceLockOption eLockOption, uint uOffsetElements, uint uNumElements)
   {
     return nullptr;
   }
-
-
+//---------------------------------------------------------------------------//
 } } }
 
 #endif

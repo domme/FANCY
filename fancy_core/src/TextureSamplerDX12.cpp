@@ -4,25 +4,30 @@
 
 #include "TextureSamplerDX12.h"
 
-namespace Fancy {
-  namespace Rendering {
-    namespace DX12 {
-
-      TextureSamplerDX12::TextureSamplerDX12()
-      {
-      }
-
-
-      TextureSamplerDX12::~TextureSamplerDX12()
-      {
-      }
-
-      void TextureSamplerDX12::create(const ObjectName& rName, const TextureSamplerProperties& rProperties)
-      {
-      }
-    }
+namespace Fancy { namespace Rendering { namespace DX12 {
+//---------------------------------------------------------------------------//
+  TextureSamplerDX12::TextureSamplerDX12()
+  {
   }
-}
+//---------------------------------------------------------------------------//
+  TextureSamplerDX12::~TextureSamplerDX12()
+  {
+  }
+//---------------------------------------------------------------------------//
+  void TextureSamplerDX12::SetFromDescription(const TextureSamplerDesc& aDesc)
+  {
+    if (aDesc == GetDescription())
+      return;
+
+    myProperties = aDesc;
+    create(myName, aDesc);
+  }
+//---------------------------------------------------------------------------//
+  void TextureSamplerDX12::create(const ObjectName& rName, const TextureSamplerDesc& rProperties)
+  {
+  }
+//---------------------------------------------------------------------------//
+} } }
 
 #endif
 

@@ -2,12 +2,12 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "GpuProgram.h"
 
 #if defined (RENDERER_DX12)
 
 namespace Fancy { namespace Rendering {
   class GpuProgramPermutation;
-  class GpuProgram;
 }}
 
 namespace Fancy { namespace Rendering { namespace DX12 {

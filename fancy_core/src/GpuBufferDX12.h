@@ -2,6 +2,8 @@
 
 #if defined (RENDERER_DX12)
 
+#include "GpuBufferDesc.h"
+
 namespace Fancy { namespace Rendering {	namespace DX12 {
 //---------------------------------------------------------------------------//
 	class GpuBufferDX12
@@ -9,6 +11,8 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
 	public:
     GpuBufferDX12();
     ~GpuBufferDX12();
+    bool operator==(const GpuBufferDesc& aDesc) const;
+    GpuBufferDesc GetDescription() const;
 
     bool isLocked() const { return myState.isLocked; }
     bool isLockedPersistent() const { return myState.isLockedPersistent; }
