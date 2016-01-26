@@ -10,6 +10,20 @@ namespace Fancy {
   class StringUtil
   {
   public:
+//---------------------------------------------------------------------------//
+    static std::wstring ToWideString(const String& aStr)
+    {
+      std::wstring wstr;
+      wstr.resize(aStr.size());
+
+      for (uint i = 0u; i < aStr.size(); ++i)
+      {
+        wstr[i] = aStr[i];
+      }
+
+      return wstr;
+    }
+//---------------------------------------------------------------------------//
     template<class T>
     static std::string toString(const T& _val)
     {
