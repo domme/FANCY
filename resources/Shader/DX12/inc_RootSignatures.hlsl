@@ -8,7 +8,7 @@
   "CBV(b3), " \
   "CBV(b4), " \
   "CBV(b5), " \
-  "DescriptorTable(SRV(t0, numDescriptors = 3), visibility = SHADER_VISIBILITY_PIXEL),
+  "DescriptorTable(SRV(t0, numDescriptors = 3), visibility = SHADER_VISIBILITY_PIXEL)," \
   "StaticSampler(s0, " \
     "addressU = TEXTURE_ADDRESS_CLAMP, " \
     "addressV = TEXTURE_ADDRESS_CLAMP, " \

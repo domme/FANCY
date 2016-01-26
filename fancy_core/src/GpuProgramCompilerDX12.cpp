@@ -8,6 +8,8 @@
 #if defined (RENDERER_DX12)
 
 #include "GpuProgramCompilerDX12.h"
+#include "RendererDX12.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -15,10 +17,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     switch(aStage)
     {
-      case ShaderStage::VERTEX: return "vs_5_0";
-      case ShaderStage::FRAGMENT: return "ps_5_0";
-      case ShaderStage::GEOMETRY: return "gs_5_0";
-      case ShaderStage::COMPUTE: return "cs_5_0";
+      case ShaderStage::VERTEX: return "vs_5_1";
+      case ShaderStage::FRAGMENT: return "ps_5_1";
+      case ShaderStage::GEOMETRY: return "gs_5_1";
+      case ShaderStage::COMPUTE: return "cs_5_1";
       default: 
         ASSERT_M(false, "Unsupported HLSL shader-profile");
         return "";
@@ -32,29 +34,38 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     const String& shaderStageDefineStr = GpuProgramCompilerUtils::ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
     const String& shaderProfileStr = locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage));
-    
-    D3D_SHADER_MACRO macro;
-    macro.Definition = shaderStageDefineStr.c_str();
-    macro.Name = "ShaderStage define";
+    std::wstring shaderPathAbs = StringUtil::ToWideString(IO::PathService::convertToAbsPath(aDesc.myShaderPath));
 
-    
+    const GpuProgramFeatureList& permuationFeatures = aDesc.myPermutation.getFeatureList();
 
-    String shaderPathAbs = "C:/Users/paino/Documents/GitHub/FANCY/resources/Shader/DX12/MaterialForward.hlsl";
+    std::vector<D3D_SHADER_MACRO> defines;
+    defines.resize(permuationFeatures.size() + 1u + 1u); // All permutation-defines + the stage define + termination macro
 
-    std::wstring shaderPathAbsW = StringUtil::ToWideString(shaderPathAbs);
+    defines[0].Name = shaderStageDefineStr.c_str();
+    defines[0].Definition = "1";
 
-      //IO::PathService::convertToAbsPath(aDesc.myShaderPath);
+    std::vector<String> featureDefineStrings; // We need some temporary strings so that the c_str() are backed by memory until the end of the method
+    featureDefineStrings.resize(permuationFeatures.size());
+
+    for (uint i = 0u; i < permuationFeatures.size(); ++i)
+    {
+      featureDefineStrings[i] = GpuProgramPermutation::featureToDefineString(permuationFeatures[i]);
+      defines[i + 1u].Name = featureDefineStrings[i].c_str(); 
+      defines[i + 1u].Definition = "1";
+    }
+
+    defines[defines.size() - 1].Name = nullptr;
+    defines[defines.size() - 1].Definition = nullptr;
 
     ID3DBlob* compiledShaderBytecode;
     ID3DBlob* errorData;
 
     HRESULT sucess = D3DCompileFromFile(
-      shaderPathAbsW.c_str(),
-      //nullptr,
-      macros[0],
-      nullptr,
+      shaderPathAbs.c_str(),
+      &defines[0],
+      D3D_COMPILE_STANDARD_FILE_INCLUDE,
       "main",
-      "vs_5_0",
+      shaderProfileStr.c_str(),
       D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
       0u,
       &compiledShaderBytecode,
@@ -62,18 +73,56 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     if (S_OK != sucess)
     {
-      const wchar_t* errorMsg = (const wchar_t*) errorData->GetBufferPointer();
+      if (errorData != nullptr)
+      {
+        const char* errorMsg = (const char*)errorData->GetBufferPointer();
+        log_Error(errorMsg);
+        errorData->Release();
+      }
 
-      log_Error(errorMsg);
       return false;
     }
 
+    ID3D12ShaderReflection* reflector;
 
+    sucess = D3DReflect(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_ID3D12ShaderReflection, (void**)&reflector);
 
+    if (S_OK != sucess)
+    {
+      log_Error("Failed reflecting shader");
+      return false;
+    }
 
+    ID3DBlob* rsBlob = nullptr;
+    sucess = D3DGetBlobPart(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), D3D_BLOB_ROOT_SIGNATURE, 0u, &rsBlob);
 
-                                        
-                                        
+    if (S_OK != sucess)
+    {
+      log_Error("Failed extracting the root signature from shader");
+      return false;
+    }
+    
+    ComPtr<ID3D12Device>& d3dDevice = Renderer::getInstance().GetDevice();
+
+    ComPtr<ID3D12RootSignature> rootSignature;
+    sucess = d3dDevice->CreateRootSignature(0u, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+
+    if (S_OK != sucess)
+    {
+      log_Error("Failed creating the root signature from shader");
+      return false;
+    }
+
+    ComPtr<ID3D12RootSignatureDeserializer> rsDeserializer;
+    sucess = D3D12CreateRootSignatureDeserializer(rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rsDeserializer));
+
+    if (S_OK != sucess)
+    {
+      log_Error("Failed creating a rootSignature deserializer");
+      return false;
+    }
+
+    const D3D12_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetRootSignatureDesc();
 
     return true;
   }

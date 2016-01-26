@@ -101,6 +101,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     /// Returns the graphics command list of the current thread
     ComPtr<ID3D12GraphicsCommandList>& getGraphicsCmdList();
 
+    ComPtr<ID3D12Device>& GetDevice() { return myDevice; }
+
 	protected:
     void applyViewport();
 	  void applyPipelineState();

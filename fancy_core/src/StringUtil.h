@@ -2,6 +2,7 @@
 #define INCLUDE_STRINGUTIL_H
 
 #include <list>
+#include <codecvt>
 
 #include "FancyCorePrerequisites.h"
 
@@ -13,15 +14,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
     static std::wstring ToWideString(const String& aStr)
     {
-      std::wstring wstr;
-      wstr.resize(aStr.size());
-
-      for (uint i = 0u; i < aStr.size(); ++i)
-      {
-        wstr[i] = aStr[i];
-      }
-
-      return wstr;
+      std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+      return converter.from_bytes(aStr);
     }
 //---------------------------------------------------------------------------//
     template<class T>

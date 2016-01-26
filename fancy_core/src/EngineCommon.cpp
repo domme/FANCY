@@ -35,10 +35,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool EngineCommon::initEngine(void* aNativeWindowHandle)
   {
+    initIOsubsystem();
     initComponentSubsystem();
     initRenderingSubsystem(aNativeWindowHandle);
-    initIOsubsystem();
-
+    
     return true;
   }
 //---------------------------------------------------------------------------//
