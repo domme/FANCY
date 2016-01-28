@@ -740,8 +740,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   void locReflectConstants( GLuint uProgram, ConstantBufferElementList& someConstantsOut )
   {
-    ShaderConstantsManager& constantsMgr = ShaderConstantsManager::getInstance();
-
     GLint iNumUniformBlocks = 0u;
     const GLenum eInterface = GL_UNIFORM_BLOCK;
     glGetProgramInterfaceiv(uProgram, eInterface, GL_ACTIVE_RESOURCES, &iNumUniformBlocks);
@@ -751,8 +749,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       GLchar _name[256] = {0u};
       glGetProgramResourceName(uProgram, eInterface, iBlock, _countof(_name), nullptr, _name);
       ObjectName blockName = _name;
-      ConstantBufferType eCbufferType = constantsMgr.getConstantBufferTypeFromName(blockName);
-      ASSERT_M(eCbufferType != ConstantBufferType::NONE, "Invalid constant buffer name");
 
       //uint32 uBlockIndex = glGetProgramResourceIndex(uProgram, eInterface, _name);
 
@@ -763,14 +759,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       const uint32 uUniformBlockBinding = vPropertyValues[0];
       const uint32 uNumUniformsInBlock = vPropertyValues[1];
       const uint32 uRequiredBlockSizeBytes = vPropertyValues[2];
-      
-      // Sanity-check of the binding point. We require it to match the eCbufferType
-      ASSERT_M(uUniformBlockBinding < (uint)ConstantBufferType::NUM &&
-               (ConstantBufferType) uUniformBlockBinding == eCbufferType, 
-               "CBuffer-name does not match its expected binding point");
-
-      // Allocate a backing buffer for this uniform block if necessary
-      constantsMgr.registerBufferWithSize(eCbufferType, uRequiredBlockSizeBytes);
 
       // Acquire the indices of all active uniforms in the block
       FixedArray<GLint, Constants::kMaxNumConstantBufferElements> vUniformIndices;
@@ -805,11 +793,6 @@ namespace Fancy { namespace Rendering { namespace GL4 {
         cBufferElement.eFormat = eFormat;
         cBufferElement.uSizeBytes = uSizeBytes;
         cBufferElement.uFormatComponentCount = uComponentCount;
-        
-        ConstantSemantics eSemantics = 
-          ShaderConstantsManager::getInstance().getSemanticFromName(cBufferElement.name);
-
-        ShaderConstantsManager::getInstance().registerElement(cBufferElement, eSemantics, eCbufferType);
 
         someConstantsOut.push_back(cBufferElement);
       }

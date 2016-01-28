@@ -38,77 +38,6 @@ namespace Fancy { namespace Rendering {
     NONE
   };
 //---------------------------------------------------------------------------//
-  enum class ConstantSemantics
-  {
-    // -------- PER_LAUNCH -------- //
-      
-    // -------- PER_FRAME -------- //
-      TIME_PARAMETERS, // (t, dt, unused, unused)
-    // -------- PER_VIEWPORT -------- //
-      RENDERTARGET_SIZE,  // (w, h, 1/w, 1/h)
-    
-    // -------- PER_STAGE -------- //
-
-    // -------- PER_CAMERA -------- //
-      VIEW_MATRIX,
-      VIEW_INVERSE_MATRIX,
-      PROJECTION_MATRIX,
-      PROJECTION_INVERSE_MATRIX,
-      VIEWPROJECTION_MATRIX,
-      VIEWPROJECTION_INVERSE_MATRIX,
-      NEARFAR_PARAMETERS, // (n, f, n/f, 1/f)
-      CAMERA_POSITION_WORLDSPACE,
-
-    // -------- PER_LIGHT -------- //
-      LIGHT_PARAMETERS,
-      LIGHT_POINTSPOT_PARAMETERS,
-      LIGHT_POSITION_WORLDSPACE,
-      LIGHT_POSITION_VIEWSPACE,
-      LIGHT_DIRECTION_WORLDSPACE,
-      LIGHT_DIRECTION_VIEWSPACE,
-
-   // -------- PER_MATERIAL -------- //
-      DIFFUSE_MATERIAL_COLORINTENSITY,
-      SPECULAR_MATERIAL_COLORINTENSITY,
-
-   // -------- PER_DRAW -------- //
-      WORLD_MATRIX,
-      WORLD_INVERSE_MATRIX,
-      WORLDVIEW_MATRIX,
-      WORLDVIEW_INVERSE_MATRIX,
-      WORLDVIEWPROJECTION_MATRIX,
-      WORLDVIEWPROJECTION_INVERSE_MATRIX,
-
-      NUM,
-      NONE = 0,  // set manually
-
-      //PER_LAUNCH_BEGIN = 0,
-      // PER_LAUNCH_END = 0,
-      
-      PER_FRAME_BEGIN = TIME_PARAMETERS,
-      PER_FRAME_END = RENDERTARGET_SIZE,
-
-      PER_VIEWPORT_BEGIN = RENDERTARGET_SIZE,
-      PER_VIEWPORT_END = VIEW_MATRIX,
-
-      // PER_STAGE_BEGIN = 0,
-      // PER_STAGE_END = 0,
-
-      PER_CAMERA_BEGIN = VIEW_MATRIX,
-      PER_CAMERA_END = LIGHT_PARAMETERS,
-
-      PER_LIGHT_BEGIN = LIGHT_PARAMETERS,
-      PER_LIGHT_END = DIFFUSE_MATERIAL_COLORINTENSITY,
-
-      PER_MATERIAL_BEGIN = DIFFUSE_MATERIAL_COLORINTENSITY,
-      PER_MATERIAL_END = WORLD_MATRIX,
-
-      PER_DRAW_BEGIN = WORLD_MATRIX,
-      PER_DRAW_END = NUM
-  };
-//---------------------------------------------------------------------------//
-  
-//---------------------------------------------------------------------------//
   struct ShaderConstantsUpdateStage
   {
     const Renderer* pRenderer;
@@ -129,13 +58,11 @@ namespace Fancy { namespace Rendering {
       /// Returns false if no constant buffer exists for this type
       static bool hasBackingBuffer(ConstantBufferType eType);
       /// Registers an element obtained from shader-reflection
-      static void registerElement(const ConstantBufferElement& element, ConstantSemantics eElementSemantic, ConstantBufferType eConstantBufferType);
-      static void registerBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes);
+      static void CreateBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes);
 
       /// Binds all constant buffers to the pipeline
       static void bindBuffers(Rendering::Renderer* _pRenderer);
 
-      static ConstantSemantics getSemanticFromName(const ObjectName& clName);
       static ConstantBufferType getConstantBufferTypeFromName(const ObjectName& clName);
 
       static ShaderConstantsUpdateStage updateStage;

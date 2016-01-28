@@ -146,7 +146,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       const String cBufferName = cbDesc.Name;
       const uint cBufferSize = cbDesc.Size;
 
-      ShaderConstantsManager::registerBufferWithSize(
+      ShaderConstantsManager::CreateBufferWithSize(
         cbManager.getConstantBufferTypeFromName(cBufferName), cBufferSize);
 
       for (uint32 iCBvar = 0u; iCBvar < cbDesc.Variables; ++iCBvar)
