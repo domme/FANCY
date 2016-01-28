@@ -121,7 +121,9 @@ namespace Fancy { namespace Rendering {
   class ShaderConstantsManager
   {
     public:
-      static ShaderConstantsManager& getInstance() {static ShaderConstantsManager instance; return instance;}
+      static void Init();
+      static void Shutdown();
+
       /// Updates all constants in the provided constantbuffer-type
       static void update(ConstantBufferType eType);
       /// Returns false if no constant buffer exists for this type

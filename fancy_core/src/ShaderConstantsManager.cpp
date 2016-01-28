@@ -16,6 +16,54 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   ShaderConstantsUpdateStage ShaderConstantsManager::updateStage = {0u};
 //---------------------------------------------------------------------------//
+  struct CBuffer_PER_VIEWPORT
+  {
+    glm::vec4 c_RenderTargetSize;
+  };
+
+  struct CBuffer_PER_FRAME
+  {
+    glm::vec4 c_TimeParameters;
+  };
+
+  struct CBuffer_PER_CAMERA
+  {
+    glm::mat4 c_ViewMatrix;
+    glm::mat4 c_ViewInverseMatrix;
+    glm::mat4 c_ProjectionMatrix;
+    glm::mat4 c_ProjectionInverseMatrix;
+    glm::mat4 c_ViewProjectionMatrix;
+    glm::mat4 c_ViewProjectionInverseMatrix;
+    glm::vec4 c_NearFarParameters;
+    glm::vec4 c_CameraPosWS;
+  };
+
+  struct CBuffer_PER_LIGHT
+  {
+    glm::vec4 c_LightParameters;
+    glm::vec4 c_PointSpotParameters;
+    glm::vec3 c_LightPosWS;
+    glm::vec3 c_LightPosVS;
+    glm::vec3 c_LightDirWS;
+    glm::vec3 c_LightDirVS;
+  };
+  
+  struct CBuffer_PER_MATERIAL
+  {
+    glm::vec4 c_MatDiffIntensity;
+    glm::vec4 c_MatSpecIntensity;
+  };
+
+  struct CBuffer_PER_OBJECT
+  {
+    glm::mat4 c_WorldMatrix;
+    glm::mat4 c_WorldInverseMatrix;
+    glm::mat4 c_WorldViewMatrix;
+    glm::mat4 c_WorldViewInverseMatrix;
+    glm::mat4 c_WorldViewProjectionMatrix;
+    glm::mat4 c_WorldViewProjectionInverseMatrix;
+  };
+  
   namespace Internal
   {
     typedef std::unordered_map<uint32, ConstantBufferType> ConstantBufferTypeMap;
@@ -138,17 +186,23 @@ namespace Fancy { namespace Rendering {
   void Internal::updatePerViewportData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
   {
     ASSERT(_updateStage.pRenderer);
-    float* pData = GET_ELEMENT_PTR(ConstantSemantics::RENDERTARGET_SIZE);
     const glm::uvec4& uvViewportParams = _updateStage.pRenderer->getViewport();
-    pData[0] = uvViewportParams.z;  // width
-    pData[1] = uvViewportParams.w;  // height
-    pData[2] = 1.0f / pData[0]; // 1 / width
-    pData[3] = 1.0f / pData[1];  // 1 / height
+
+    CBuffer_PER_VIEWPORT cBuffer;
+    cBuffer.c_RenderTargetSize =
+      glm::vec4(uvViewportParams.z, uvViewportParams.w, 1.0f / uvViewportParams.z, 1.0f / uvViewportParams.w);
+
+    memcpy(_pData, &cBuffer, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
   void Internal::updatePerFrameData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
   {
-    float* pData = GET_ELEMENT_PTR(ConstantSemantics::TIME_PARAMETERS);
+    float* pData = reinterpret_cast<float*>(_pData + offsetof(CBuffer_PER_FRAME, c_TimeParameters));
+
+    CBuffer_PER_FRAME cBuffer;
+
+
+
     pData[0] = Time::getDeltaTime();
     pData[1] = Time::getElapsedTime();
     pData[2] = 0.0f;  // unused
@@ -173,7 +227,7 @@ namespace Fancy { namespace Rendering {
     const float fNear = _updateStage.pCamera->getNearPlane();
     const float fFar = _updateStage.pCamera->getFarPlane();
 
-    float* pData = GET_ELEMENT_PTR(ConstantSemantics::VIEW_MATRIX);
+    float* pData = (float*)(_pData + offsetof(CBuffer_PER_CAMERA, c_ViewMatrix));
     memcpy(pData, glm::value_ptr(viewMat), sizeof(glm::mat4));
 
     pData = GET_ELEMENT_PTR(ConstantSemantics::VIEW_INVERSE_MATRIX);
@@ -281,25 +335,12 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   ShaderConstantsManager::ShaderConstantsManager()
   {
-    memset(Storage::m_vConstantBuffers, 0x0, sizeof(Storage::m_vConstantBuffers));
-    memset(Storage::m_vConstantBufferElements, 0x0, sizeof(Storage::m_vConstantBufferElements));
-    memset(Internal::vConstantElementOffsets, -1, sizeof(Internal::vConstantElementOffsets));
-
-    Internal::initialize();
-
-    updateStage.pRenderer = &Renderer::getInstance();
+    
   }
 //---------------------------------------------------------------------------//
   ShaderConstantsManager::~ShaderConstantsManager()
   {
-    for (uint32 i = 0; i < _countof(Storage::m_vConstantBuffers); ++i)
-    {
-      if (Storage::m_vConstantBuffers[i] != nullptr) 
-      {
-        FANCY_DELETE(Storage::m_vConstantBuffers[i], MemoryCategory::BUFFERS);
-        Storage::m_vConstantBuffers[i] = nullptr;
-      }
-    }
+    
   }  
 //---------------------------------------------------------------------------//
   bool ShaderConstantsManager::hasBackingBuffer(ConstantBufferType eType)
@@ -330,6 +371,35 @@ namespace Fancy { namespace Rendering {
 
     return ConstantBufferType::NONE;
   }
+
+//---------------------------------------------------------------------------//
+  void ShaderConstantsManager::Init()
+  {
+    memset(Storage::m_vConstantBuffers, 0x0, sizeof(Storage::m_vConstantBuffers));
+    memset(Storage::m_vConstantBufferElements, 0x0, sizeof(Storage::m_vConstantBufferElements));
+    memset(Internal::vConstantElementOffsets, -1, sizeof(Internal::vConstantElementOffsets));
+
+    Internal::initialize();
+
+    registerBufferWithSize(ConstantBufferType::PER_CAMERA, sizeof(CBuffer_PER_CAMERA));
+    registerBufferWithSize(ConstantBufferType::PER_VIEWPORT, sizeof(CBuffer_PER_VIEWPORT));
+    registerBufferWithSize(ConstantBufferType::PER_FRAME, sizeof(CBuffer_PER_FRAME));
+    registerBufferWithSize(ConstantBufferType::PER_LIGHT, sizeof(CBuffer_PER_LIGHT));
+    registerBufferWithSize(ConstantBufferType::PER_MATERIAL, sizeof(CBuffer_PER_MATERIAL));
+    registerBufferWithSize(ConstantBufferType::PER_OBJECT, sizeof(CBuffer_PER_OBJECT));
+  }
+//---------------------------------------------------------------------------//
+  void ShaderConstantsManager::Shutdown()
+  {
+    for (uint32 i = 0; i < _countof(Storage::m_vConstantBuffers); ++i)
+    {
+      if (Storage::m_vConstantBuffers[i] != nullptr)
+      {
+        FANCY_DELETE(Storage::m_vConstantBuffers[i], MemoryCategory::BUFFERS);
+        Storage::m_vConstantBuffers[i] = nullptr;
+      }
+    }
+  }
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::update( ConstantBufferType eType )
   {
@@ -339,13 +409,38 @@ namespace Fancy { namespace Rendering {
       GpuBuffer* pConstantBuffer = Storage::m_vConstantBuffers[(uint32) eType];
       uint8* pConstantData = static_cast<uint8*>(pConstantBuffer->lock(GpuResoruceLockOption::WRITE_PERSISTENT_COHERENT));
       ASSERT(pConstantData);
-        
-      const Internal::ConstantUpdateFunction& updateFunction = Internal::vConstantUpdateFunctions[(uint32) eType];
-      updateFunction(pConstantData, updateStage);
+
+      switch(eType)
+      {
+        case ConstantBufferType::PER_FRAME: 
+          Internal::updatePerFrameData(pConstantData, updateStage);
+          break;
+        case ConstantBufferType::PER_VIEWPORT: 
+          Internal::updatePerViewportData(pConstantData, updateStage);
+          break;
+        case ConstantBufferType::PER_CAMERA: 
+          Internal::updatePerCameraData(pConstantData, updateStage);
+          break;
+        case ConstantBufferType::PER_LIGHT: 
+          Internal::updatePerLightData(pConstantData, updateStage);
+          break;
+        case ConstantBufferType::PER_MATERIAL: 
+          Internal::updatePerMaterialData(pConstantData, updateStage);
+          break;
+        case ConstantBufferType::PER_OBJECT: 
+          Internal::updatePerObjectData(pConstantData, updateStage);
+          break;
+        case ConstantBufferType::NUM: break;
+        case ConstantBufferType::NONE: break;
+        default: break;
+      }
 
       pConstantBuffer->unlock();
   }
 //---------------------------------------------------------------------------//
+
+
+
   void ShaderConstantsManager::registerBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes)
   {
     // Allocate the constant buffer storage if needed
@@ -377,14 +472,14 @@ namespace Fancy { namespace Rendering {
   void ShaderConstantsManager::
     registerElement( const ConstantBufferElement& element, ConstantSemantics eElementSemantic, ConstantBufferType eConstantBufferType )
   {
-    const uint32 uSemanticIdx = static_cast<uint32>(eElementSemantic);
-    if (Storage::m_vConstantBufferElements[uSemanticIdx].uSizeBytes > 0u) 
-    {
-      // Element is already registered 
-      return;
-    }
-    Storage::m_vConstantBufferElements[uSemanticIdx] = element;
-    Internal::vConstantElementOffsets[uSemanticIdx] = element.uOffsetBytes;
+    //const uint32 uSemanticIdx = static_cast<uint32>(eElementSemantic);
+    //if (Storage::m_vConstantBufferElements[uSemanticIdx].uSizeBytes > 0u) 
+    //{
+    //  // Element is already registered 
+    //  return;
+    //}
+    //Storage::m_vConstantBufferElements[uSemanticIdx] = element;
+    //Internal::vConstantElementOffsets[uSemanticIdx] = element.uOffsetBytes;
   }
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::bindBuffers(Rendering::Renderer* _pRenderer)

@@ -14,12 +14,14 @@ namespace Fancy { namespace Rendering {
     BlendState defaultBlendstate;
     defaultBlendstate.SetFromDescription(BlendStateDesc::GetDefaultSolid());
     BlendState::Register(defaultBlendstate);
+
+    ShaderConstantsManager::Init();
     //---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
   void RenderingSubsystem::Shutdown()
   {
-    
+    ShaderConstantsManager::Shutdown();
   }
 //---------------------------------------------------------------------------//
 } }
