@@ -4,6 +4,8 @@
 #include "GpuProgramFeatures.h"
 #include "GpuProgram.h"
 #include "PathService.h"
+#include "RootSignatureDX12.h"
+#include "ShaderConstantsManager.h"
 
 #if defined (RENDERER_DX12)
 
@@ -83,16 +85,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return false;
     }
 
-    ID3D12ShaderReflection* reflector;
-
-    sucess = D3DReflect(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_ID3D12ShaderReflection, (void**)&reflector);
-
-    if (S_OK != sucess)
-    {
-      log_Error("Failed reflecting shader");
-      return false;
-    }
-
+    // Extract and parse RootSignature
     ID3DBlob* rsBlob = nullptr;
     sucess = D3DGetBlobPart(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), D3D_BLOB_ROOT_SIGNATURE, 0u, &rsBlob);
 
@@ -123,6 +116,61 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     const D3D12_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetRootSignatureDesc();
+    RootSignatureDX12* rsObject = RootSignaturePoolDX12::CreateOrRetrieve(*rsDesc, d3dDevice, &rootSignature);
+    ASSERT(nullptr != rsObject);
+
+
+    // Reflect the shader resources
+    //---------------------------------------------------------------------------//
+    ID3D12ShaderReflection* reflector;
+    sucess = D3DReflect(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_ID3D12ShaderReflection, (void**)&reflector);
+
+    if (S_OK != sucess)
+    {
+      log_Error("Failed reflecting shader");
+      return false;
+    }
+
+    D3D12_SHADER_DESC shaderDesc;
+    reflector->GetDesc(&shaderDesc);
+
+    ShaderConstantsManager& cbManager = ShaderConstantsManager::getInstance();
+
+    for (uint32 i = 0u; i < shaderDesc.ConstantBuffers; ++i)
+    {
+      ID3D12ShaderReflectionConstantBuffer* cb = reflector->GetConstantBufferByIndex(i);
+
+      D3D12_SHADER_BUFFER_DESC cbDesc;
+      cb->GetDesc(&cbDesc);
+
+      const String cBufferName = cbDesc.Name;
+      const uint cBufferSize = cbDesc.Size;
+
+      ShaderConstantsManager::registerBufferWithSize(
+        cbManager.getConstantBufferTypeFromName(cBufferName), cBufferSize);
+
+      for (uint32 iCBvar = 0u; iCBvar < cbDesc.Variables; ++iCBvar)
+      {
+        ID3D12ShaderReflectionVariable* cbVar = cb->GetVariableByIndex(iCBvar);
+        
+        D3D12_SHADER_VARIABLE_DESC cbVarDesc;
+        cbVar->GetDesc(&cbVarDesc);
+
+        ConstantBufferElement cbElem;
+        cbElem.uSizeBytes = cbVarDesc.Size;
+        cbElem.name = cBufferName + "." + cbVarDesc.Name;
+        cbElem.uOffsetBytes = cbVarDesc.StartOffset;
+        
+        
+        cbVarDesc.
+      }
+
+    }
+
+
+
+
+
 
     return true;
   }

@@ -57,8 +57,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     return rs;
-
-    //return nullptr;
   }
 //---------------------------------------------------------------------------//
   void RootSignaturePoolDX12::Init()
