@@ -287,32 +287,198 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return VertexSemantics::NONE;
   }
 //---------------------------------------------------------------------------//
+  void locResolveFormat(const char* aTypeName, uint32& aSizeBytesOut, DataFormat& aDataFormatOut)
+  {
+    uint32 sizeBytes = 0u;
+    DataFormat format = DataFormat::NONE;
+
+#define CHECK(str) strcmp(aTypeName, str) == 0
+    
+    const uint32 kFloatSize = 4u;
+    const uint32 kUintSize = 4u;
+    const uint32 kIntSize = 4u;
+
+    if (CHECK("float")) 
+    {
+      sizeBytes = kFloatSize; 
+      format = DataFormat::R_32F;
+    } 
+    else if (CHECK("float2"))
+    {
+      sizeBytes = 2u * kFloatSize;
+      format = DataFormat::RG_32F;
+    }
+    else if (CHECK("float3"))
+    {
+      sizeBytes = 3u * kFloatSize;
+      format = DataFormat::RGB_32F;
+    }
+    else if (CHECK("float4"))
+    {
+      sizeBytes = 4u * kFloatSize;
+      format = DataFormat::RGBA_32F;
+    }
+    else if(CHECK("float2x2"))
+    {
+      sizeBytes = 2 * 2 * kFloatSize;
+      format = DataFormat::RG_32F;
+    }
+    else if(CHECK("float3x3"))
+    {
+      sizeBytes = 3 * 3 * kFloatSize;
+      format = DataFormat::RGB_32F;
+    }
+    else if(CHECK("float4x4"))
+    {
+      sizeBytes = 4 * 4 * kFloatSize;
+      format = DataFormat::RGBA_32F;
+    }
+
+    else if (CHECK("uint"))
+    {
+      sizeBytes = kUintSize;
+      format = DataFormat::R_32UI;
+    }
+    else if (CHECK("uint2"))
+    {
+      sizeBytes = 2u * kUintSize;
+      format = DataFormat::RG_32UI;
+    }
+    else if (CHECK("uint3"))
+    {
+      sizeBytes = 3u * kUintSize;
+      format = DataFormat::RGB_32UI;
+    }
+    else if (CHECK("uint4"))
+    {
+      sizeBytes = 4u * kUintSize;
+      format = DataFormat::RGBA_32UI;
+    }
+    else if (CHECK("uint2x2"))
+    {
+      sizeBytes = 2 * 2 * kUintSize;
+      format = DataFormat::RG_32UI;
+    }
+    else if (CHECK("uint3x3"))
+    {
+      sizeBytes = 3 * 3 * kUintSize;
+      format = DataFormat::RGB_32UI;
+    }
+    else if (CHECK("uint4x4"))
+    {
+      sizeBytes = 4 * 4 * kUintSize;
+      format = DataFormat::RGBA_32UI;
+    }
+    
+    else if (CHECK("int"))
+    {
+      sizeBytes = kIntSize;
+      format = DataFormat::R_32UI;
+    }
+    else if (CHECK("int2"))
+    {
+      sizeBytes = 2u * kIntSize;
+      format = DataFormat::RG_32UI;
+    }
+    else if (CHECK("int3"))
+    {
+      sizeBytes = 3u * kIntSize;
+      format = DataFormat::RGB_32UI;
+    }
+    else if (CHECK("int4"))
+    {
+      sizeBytes = 4u * kIntSize;
+      format = DataFormat::RGBA_32UI;
+    }
+    else if (CHECK("int2x2"))
+    {
+      sizeBytes = 2 * 2 * kIntSize;
+      format = DataFormat::RG_32UI;
+    }
+    else if (CHECK("int3x3"))
+    {
+      sizeBytes = 3 * 3 * kIntSize;
+      format = DataFormat::RGB_32UI;
+    }
+    else if (CHECK("int4x4"))
+    {
+      sizeBytes = 4 * 4 * kIntSize;
+      format = DataFormat::RGBA_32UI;
+    }
+    else
+    {
+      ASSERT_M(false, "Unexpected HLSL format");
+    }
+
+    aSizeBytesOut = sizeBytes;
+    aDataFormatOut = format;
+
+#undef CHECK
+  }
+//---------------------------------------------------------------------------//
   bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramCompilerOutputDX12* aCompilerOutput)
   {
+    aCompilerOutput->myConstantBufferElements.clear();
+
     for (uint32 i = 0u; i < aShaderDesc.ConstantBuffers; ++i)
     {
       ID3D12ShaderReflectionConstantBuffer* cb = aReflector->GetConstantBufferByIndex(i);
-
+      
       D3D12_SHADER_BUFFER_DESC cbDesc;
       cb->GetDesc(&cbDesc);
 
+      uint32 currOffsetInCbuffer = 0u;
       for (uint32 iCBvar = 0u; iCBvar < cbDesc.Variables; ++iCBvar)
       {
         ID3D12ShaderReflectionVariable* cbVar = cb->GetVariableByIndex(iCBvar);
 
         D3D12_SHADER_VARIABLE_DESC cbVarDesc;
         cbVar->GetDesc(&cbVarDesc);
+        
+        ID3D12ShaderReflectionType* cbVarType = cbVar->GetType();
+        D3D12_SHADER_TYPE_DESC cbVarTypeDesc;
+        cbVarType->GetDesc(&cbVarTypeDesc);
 
-        ConstantBufferElement cbElem;
-        cbElem.uSizeBytes = cbVarDesc.Size;
-        cbElem.name = cbVarDesc.Name;
-        cbElem.uOffsetBytes = cbVarDesc.StartOffset;
+        currOffsetInCbuffer += cbVarDesc.StartOffset;
 
-        D3D12_SHADER_TYPE_DESC typeDesc;
-        cbVar->GetType()->GetDesc(&typeDesc);
+        if (cbVarTypeDesc.Members > 0u)  // This is a struct
+        {
+          for (uint32 iMember = 0u; iMember < cbVarTypeDesc.Members; ++iMember)
+          {
+            ID3D12ShaderReflectionType* cbVarMemberType = cbVarType->GetMemberTypeByIndex(iMember);
+            D3D12_SHADER_TYPE_DESC cbVarMemberTypeDesc;
+            cbVarMemberType->GetDesc(&cbVarMemberTypeDesc);
 
-        //cbElem.eFormat = locResolveFormat(typeDesc);
+            ConstantBufferElement cbElem;
+            cbElem.uOffsetBytes = currOffsetInCbuffer + cbVarMemberTypeDesc.Offset;
+            cbElem.name = cbVarType->GetMemberTypeName(iMember);
+
+            uint32 sizeBytes;
+            DataFormat format;
+            locResolveFormat(cbVarMemberTypeDesc.Name, sizeBytes, format);
+            cbElem.eFormat = format;
+            cbElem.uSizeBytes = sizeBytes;
+            cbElem.uFormatComponentCount = cbVarMemberTypeDesc.Rows;  // Columns is already encoded in the format
+
+            aCompilerOutput->myConstantBufferElements.push_back(cbElem);
+          }
         }
+        else
+        {
+          ConstantBufferElement cbElem;
+          cbElem.uOffsetBytes = cbVarTypeDesc.Offset;
+          cbElem.uSizeBytes = cbVarDesc.Size;
+
+          uint32 sizeBytes;
+          DataFormat format;
+          locResolveFormat(cbVarTypeDesc.Name, sizeBytes, format);
+          cbElem.eFormat = format;
+          cbElem.uFormatComponentCount = cbVarTypeDesc.Rows;
+          cbElem.name = cbVarDesc.Name;
+
+          aCompilerOutput->myConstantBufferElements.push_back(cbElem);
+        }
+      }
     }
     return true;
   }
