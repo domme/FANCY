@@ -46,15 +46,16 @@
   };
   ConstantBuffer<PER_MATERIAL> cbPerMaterial : register(b4);
 //---------------------------------------------------------------------------//  
-  struct PER_OBJECT
+  cbuffer PER_OBJECT : register(b5)
   {
-    float4x4 c_WorldMatrix;
-    float4x4 c_WorldInverseMatrix;
-    float4x4 c_WorldViewMatrix;
-    float4x4 c_WorldViewInverseMatrix;
-    float4x4 c_WorldViewProjectionMatrix;
-    float4x4 c_WorldViewProjectionInverseMatrix;
+      float4x4 c_WorldMatrix;
+      float4x4 c_WorldInverseMatrix;
+      float4x4 c_WorldViewMatrix;
+      float4x4 c_WorldViewInverseMatrix;
+      float4x4 c_WorldViewProjectionMatrix;
+      float4x4 c_WorldViewProjectionInverseMatrix;
+    
   };
-  ConstantBuffer<PER_OBJECT> cbPerObject : register(b5);
+  //ConstantBuffer<PER_OBJECT> cbPerObject : register(b5);
 //---------------------------------------------------------------------------//  
 #endif // INCLUDE_CONSTANTBUFFER_INCLUDE_

@@ -297,7 +297,7 @@ namespace Fancy { namespace Rendering {
       locConstantBuffers[uBufferTypeIdx] = pBuffer;
     }
     
-    ASSERT_M(locConstantBuffers[uBufferTypeIdx]->getTotalSizeBytes() == _requiredSizeBytes, "Requested the same constant buffer with two different sizes");
+    //ASSERT_M(locConstantBuffers[uBufferTypeIdx]->getTotalSizeBytes() == _requiredSizeBytes, "Requested the same constant buffer with two different sizes");
   }
 //---------------------------------------------------------------------------//
   void ShaderConstantsManager::bindBuffers(Rendering::Renderer* _pRenderer)

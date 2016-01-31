@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "DepthStencilState.h"
+#include "ShaderConstantsManager.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  

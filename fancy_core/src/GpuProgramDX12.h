@@ -20,7 +20,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   struct GpuProgramCompilerOutputDX12
   {
+    ShaderVertexInputLayout clVertexInputLayout;
+    GpuResourceInfoList vReadTextureInfos;
+    GpuResourceInfoList vReadBufferInfos;
+    GpuResourceInfoList vWriteTextureInfos;
+    GpuResourceInfoList vWriteBufferInfos;
+    ConstantBufferElementList myConstantBufferElements;
+    ShaderStage eShaderStage;
+    String myShaderCode;
+    String myShaderFilename;  /// Platform-independent shader filename (e.g. "MaterialForward")
 
+    GpuProgramPermutation myPermutation;
+    RootSignatureDX12* myRootSignature;
+    ComPtr<ID3DBlob>* myNativeData;
   };
 //---------------------------------------------------------------------------//
   class GpuProgramDX12
@@ -45,11 +57,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void SetFromCompilerOutput(const GpuProgramCompilerOutputDX12& aCompilerOutput);
         
     ShaderStage getShaderStage() const { return myStage; }
-    const GpuResourceInfoList& getReadTextureInfoList() const { return myReadTextureInfos; }
+    /*const GpuResourceInfoList& getReadTextureInfoList() const { return myReadTextureInfos; }
     const GpuResourceInfoList& getReadBufferInfoList() const { return myReadBufferInfos; }
     const GpuResourceInfoList& getWriteTextureInfoList() const { return myWriteTextureInfos; }
     const GpuResourceInfoList& getWriteBufferInfoList() const { return myWriteBufferInfos; }
-    const ShaderVertexInputLayout* getVertexInputLayout() const { return &myInputLayout; }
+    const ShaderVertexInputLayout* getVertexInputLayout() const { return &myInputLayout; } */
 
     ComPtr<ID3DBlob>& getNativeData() { return myNativeData; }
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
@@ -62,10 +74,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ShaderStage myStage;
     GpuProgramPermutation myPermutation;
 
+    /*
     GpuResourceInfoList myReadTextureInfos;
     GpuResourceInfoList myReadBufferInfos;
     GpuResourceInfoList myWriteTextureInfos;
     GpuResourceInfoList myWriteBufferInfos;
+    */
     ShaderVertexInputLayout myInputLayout;
 
     ComPtr<ID3DBlob> myNativeData;

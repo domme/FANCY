@@ -265,6 +265,18 @@ namespace Fancy {
       RGB_8UI,
       RG_8UI,
       R_8UI,
+      RGBA_32I,
+      RGB_32I,
+      RG_32I,
+      R_32I,
+      RGBA_16I,
+      RGB_16I,
+      RG_16I,
+      R_16I,
+      RGBA_8I,
+      RGB_8I,
+      RG_8I,
+      R_8I,
       DS_24_8,
 
       // Compressed formats go here...

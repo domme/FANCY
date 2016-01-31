@@ -30,6 +30,322 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
+  /*
+  DataFormat locResolveVectorFormat(const D3D12_SHADER_TYPE_DESC& aTypeDesc)
+  {
+    switch(aTypeDesc.Type)
+    {
+      case D3D_SVT_BOOL: 
+        switch(aTypeDesc.Columns) {
+          case 2: return DataFormat::RG_32UI;
+          case 3: return DataFormat::RGB_32UI;
+          case 4: return DataFormat::RGBA_32UI; 
+        }
+        break;
+      case D3D_SVT_INT: 
+        switch (aTypeDesc.Columns) {
+        case 2: return DataFormat::RG_32I;
+        case 3: return DataFormat::RGB_32I;
+        case 4: return DataFormat::RGBA_32I;
+        }
+        break;
+      case D3D_SVT_FLOAT:
+        switch (aTypeDesc.Columns) {
+        case 2: return DataFormat::RG_32F;
+        case 3: return DataFormat::RGB_32I;
+        case 4: return DataFormat::RGBA_32I;
+        }
+        break;
+      case D3D_SVT_STRING: break;
+      case D3D_SVT_TEXTURE: break;
+      case D3D_SVT_TEXTURE1D: break;
+      case D3D_SVT_TEXTURE2D: break;
+      case D3D_SVT_TEXTURE3D: break;
+      case D3D_SVT_TEXTURECUBE: break;
+      case D3D_SVT_SAMPLER: break;
+      case D3D_SVT_SAMPLER1D: break;
+      case D3D_SVT_SAMPLER2D: break;
+      case D3D_SVT_SAMPLER3D: break;
+      case D3D_SVT_SAMPLERCUBE: break;
+      case D3D_SVT_PIXELSHADER: break;
+      case D3D_SVT_VERTEXSHADER: break;
+      case D3D_SVT_PIXELFRAGMENT: break;
+      case D3D_SVT_VERTEXFRAGMENT: break;
+      case D3D_SVT_UINT: break;
+      case D3D_SVT_UINT8: break;
+      case D3D_SVT_GEOMETRYSHADER: break;
+      case D3D_SVT_RASTERIZER: break;
+      case D3D_SVT_DEPTHSTENCIL: break;
+      case D3D_SVT_BLEND: break;
+      case D3D_SVT_BUFFER: break;
+      case D3D_SVT_CBUFFER: break;
+      case D3D_SVT_TBUFFER: break;
+      case D3D_SVT_TEXTURE1DARRAY: break;
+      case D3D_SVT_TEXTURE2DARRAY: break;
+      case D3D_SVT_RENDERTARGETVIEW: break;
+      case D3D_SVT_DEPTHSTENCILVIEW: break;
+      case D3D_SVT_TEXTURE2DMS: break;
+      case D3D_SVT_TEXTURE2DMSARRAY: break;
+      case D3D_SVT_TEXTURECUBEARRAY: break;
+      case D3D_SVT_HULLSHADER: break;
+      case D3D_SVT_DOMAINSHADER: break;
+      case D3D_SVT_INTERFACE_POINTER: break;
+      case D3D_SVT_COMPUTESHADER: break;
+      case D3D_SVT_DOUBLE: break;
+      case D3D_SVT_RWTEXTURE1D: break;
+      case D3D_SVT_RWTEXTURE1DARRAY: break;
+      case D3D_SVT_RWTEXTURE2D: break;
+      case D3D_SVT_RWTEXTURE2DARRAY: break;
+      case D3D_SVT_RWTEXTURE3D: break;
+      case D3D_SVT_RWBUFFER: break;
+      case D3D_SVT_BYTEADDRESS_BUFFER: break;
+      case D3D_SVT_RWBYTEADDRESS_BUFFER: break;
+      case D3D_SVT_STRUCTURED_BUFFER: break;
+      case D3D_SVT_RWSTRUCTURED_BUFFER: break;
+      case D3D_SVT_APPEND_STRUCTURED_BUFFER: break;
+      case D3D_SVT_CONSUME_STRUCTURED_BUFFER: break;
+      case D3D_SVT_MIN8FLOAT: break;
+      case D3D_SVT_MIN10FLOAT: break;
+      case D3D_SVT_MIN16FLOAT: break;
+      case D3D_SVT_MIN12INT: break;
+      case D3D_SVT_MIN16INT: break;
+      case D3D_SVT_MIN16UINT: break;
+      case D3D10_SVT_VOID: break;
+      case D3D10_SVT_BOOL: break;
+      case D3D10_SVT_INT: break;
+      case D3D10_SVT_FLOAT: break;
+      case D3D10_SVT_STRING: break;
+      case D3D10_SVT_TEXTURE: break;
+      case D3D10_SVT_TEXTURE1D: break;
+      case D3D10_SVT_TEXTURE2D: break;
+      case D3D10_SVT_TEXTURE3D: break;
+      case D3D10_SVT_TEXTURECUBE: break;
+      case D3D10_SVT_SAMPLER: break;
+      case D3D10_SVT_SAMPLER1D: break;
+      case D3D10_SVT_SAMPLER2D: break;
+      case D3D10_SVT_SAMPLER3D: break;
+      case D3D10_SVT_SAMPLERCUBE: break;
+      case D3D10_SVT_PIXELSHADER: break;
+      case D3D10_SVT_VERTEXSHADER: break;
+      case D3D10_SVT_PIXELFRAGMENT: break;
+      case D3D10_SVT_VERTEXFRAGMENT: break;
+      case D3D10_SVT_UINT: break;
+      case D3D10_SVT_UINT8: break;
+      case D3D10_SVT_GEOMETRYSHADER: break;
+      case D3D10_SVT_RASTERIZER: break;
+      case D3D10_SVT_DEPTHSTENCIL: break;
+      case D3D10_SVT_BLEND: break;
+      case D3D10_SVT_BUFFER: break;
+      case D3D10_SVT_CBUFFER: break;
+      case D3D10_SVT_TBUFFER: break;
+      case D3D10_SVT_TEXTURE1DARRAY: break;
+      case D3D10_SVT_TEXTURE2DARRAY: break;
+      case D3D10_SVT_RENDERTARGETVIEW: break;
+      case D3D10_SVT_DEPTHSTENCILVIEW: break;
+      case D3D10_SVT_TEXTURE2DMS: break;
+      case D3D10_SVT_TEXTURE2DMSARRAY: break;
+      case D3D10_SVT_TEXTURECUBEARRAY: break;
+      case D3D11_SVT_HULLSHADER: break;
+      case D3D11_SVT_DOMAINSHADER: break;
+      case D3D11_SVT_INTERFACE_POINTER: break;
+      case D3D11_SVT_COMPUTESHADER: break;
+      case D3D11_SVT_DOUBLE: break;
+      case D3D11_SVT_RWTEXTURE1D: break;
+      case D3D11_SVT_RWTEXTURE1DARRAY: break;
+      case D3D11_SVT_RWTEXTURE2D: break;
+      case D3D11_SVT_RWTEXTURE2DARRAY: break;
+      case D3D11_SVT_RWTEXTURE3D: break;
+      case D3D11_SVT_RWBUFFER: break;
+      case D3D11_SVT_BYTEADDRESS_BUFFER: break;
+      case D3D11_SVT_RWBYTEADDRESS_BUFFER: break;
+      case D3D11_SVT_STRUCTURED_BUFFER: break;
+      case D3D11_SVT_RWSTRUCTURED_BUFFER: break;
+      case D3D11_SVT_APPEND_STRUCTURED_BUFFER: break;
+      case D3D11_SVT_CONSUME_STRUCTURED_BUFFER: break;
+      case D3D_SVT_FORCE_DWORD: break;
+      default: break;
+    }
+  }
+//---------------------------------------------------------------------------//
+  DataFormat locResolveMatrixFormat(const D3D12_SHADER_TYPE_DESC& aTypeDesc)
+  {
+    
+  }
+
+  DataFormat locResolveScalarFormat(const D3D12_SHADER_TYPE_DESC& aTypeDesc)
+  {
+    
+  }
+
+//---------------------------------------------------------------------------//
+  DataFormat locResolveFormat(const D3D12_SHADER_TYPE_DESC& aTypeDesc)
+  {
+    switch(aTypeDesc.Class)
+    {
+      case D3D_SVC_SCALAR:
+        return locResolveScalarFormat(aTypeDesc);
+        break;
+      case D3D_SVC_VECTOR: 
+        return locResolveVectorFormat(aTypeDesc);
+        break;
+      case D3D_SVC_MATRIX_ROWS: 
+      case D3D_SVC_MATRIX_COLUMNS: 
+        return locResolveMatrixFormat(aTypeDesc);
+        break;
+      case D3D_SVC_OBJECT: break;
+      case D3D_SVC_STRUCT: break;
+      case D3D_SVC_INTERFACE_CLASS: break;
+      case D3D_SVC_INTERFACE_POINTER: break;
+      default: break;
+    }
+  } */
+//---------------------------------------------------------------------------//
+  DataFormat locResolveFormat(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
+  {
+    switch(aParamDesc.ComponentType)
+    {
+      case D3D_REGISTER_COMPONENT_UINT32: 
+      {
+        if (aParamDesc.Mask <= 1) return DataFormat::R_32UI;
+        else if (aParamDesc.Mask <= 3) return DataFormat::RG_32UI;
+        else if (aParamDesc.Mask <= 7) return DataFormat::RGB_32UI;
+        else if (aParamDesc.Mask <= 15) return DataFormat::RGBA_32UI;
+      }
+      break;
+
+      case D3D_REGISTER_COMPONENT_SINT32: 
+      {
+        if (aParamDesc.Mask <= 1) return DataFormat::R_32I;
+        else if (aParamDesc.Mask <= 3) return DataFormat::RG_32I;
+        else if (aParamDesc.Mask <= 7) return DataFormat::RGB_32I;
+        else if (aParamDesc.Mask <= 15) return DataFormat::RGBA_32I;
+      }
+      break;
+
+      case D3D_REGISTER_COMPONENT_FLOAT32: 
+      {
+        if (aParamDesc.Mask <= 1) return DataFormat::R_32F;
+        else if (aParamDesc.Mask <= 3) return DataFormat::RG_32F;
+        else if (aParamDesc.Mask <= 7) return DataFormat::RGB_32F;
+        else if (aParamDesc.Mask <= 15) return DataFormat::RGBA_32F;
+      }
+      break;
+    }
+
+    ASSERT_M(false, "Component type not implemented");
+    return DataFormat::NONE;
+  }
+//---------------------------------------------------------------------------//
+  uint32 locResolveSizeBytes(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
+  {
+    switch (aParamDesc.ComponentType)
+    {
+      case D3D_REGISTER_COMPONENT_SINT32:
+      case D3D_REGISTER_COMPONENT_UINT32:
+      case D3D_REGISTER_COMPONENT_FLOAT32:
+      {
+        if (aParamDesc.Mask <= 1) return 4u;
+        else if (aParamDesc.Mask <= 3) return 8u;
+        else if (aParamDesc.Mask <= 7) return 12u;
+        else if (aParamDesc.Mask <= 15) return 16u;
+      }
+      break;
+    }
+
+    ASSERT_M(false, "Component type not implemented");
+    return 0u;
+  }
+//---------------------------------------------------------------------------//
+  uint32 locResolveComponentCount(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
+  {
+    if (aParamDesc.Mask <= 1) return 1u;
+    else if (aParamDesc.Mask <= 3) return 2u;
+    else if (aParamDesc.Mask <= 7) return 3u;
+    else if (aParamDesc.Mask <= 15) return 4u;
+
+    ASSERT_M(false, "Unknown param-mask");
+    return 0u;
+  }
+//---------------------------------------------------------------------------//
+  VertexSemantics locResolveVertexSemantics(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
+  {
+    if (strcmp(aParamDesc.SemanticName, "POSITION") == 0)
+      return VertexSemantics::POSITION;
+    else if (strcmp(aParamDesc.SemanticName, "NORMAL") == 0)
+      return VertexSemantics::NORMAL;
+    else if (strcmp(aParamDesc.SemanticName, "TANGENT") == 0)
+      return VertexSemantics::TANGENT;
+    else if (strcmp(aParamDesc.SemanticName, "TEXCOORD") == 0)
+      return VertexSemantics::TEXCOORD;
+    else if (strcmp(aParamDesc.SemanticName, "COLOR") == 0)
+      return VertexSemantics::COLOR;
+    else if (strcmp(aParamDesc.SemanticName, "BITANGENT") == 0 
+      || strcmp(aParamDesc.SemanticName, "BINORMAL") == 0)
+      return VertexSemantics::BITANGENT;
+    
+    ASSERT_M(false, "Unknown vertex semantics");
+    return VertexSemantics::NONE;
+  }
+//---------------------------------------------------------------------------//
+  bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramCompilerOutputDX12* aCompilerOutput)
+  {
+    for (uint32 i = 0u; i < aShaderDesc.ConstantBuffers; ++i)
+    {
+      ID3D12ShaderReflectionConstantBuffer* cb = aReflector->GetConstantBufferByIndex(i);
+
+      D3D12_SHADER_BUFFER_DESC cbDesc;
+      cb->GetDesc(&cbDesc);
+
+      for (uint32 iCBvar = 0u; iCBvar < cbDesc.Variables; ++iCBvar)
+      {
+        ID3D12ShaderReflectionVariable* cbVar = cb->GetVariableByIndex(iCBvar);
+
+        D3D12_SHADER_VARIABLE_DESC cbVarDesc;
+        cbVar->GetDesc(&cbVarDesc);
+
+        ConstantBufferElement cbElem;
+        cbElem.uSizeBytes = cbVarDesc.Size;
+        cbElem.name = cbVarDesc.Name;
+        cbElem.uOffsetBytes = cbVarDesc.StartOffset;
+
+        D3D12_SHADER_TYPE_DESC typeDesc;
+        cbVar->GetType()->GetDesc(&typeDesc);
+
+        //cbElem.eFormat = locResolveFormat(typeDesc);
+        }
+    }
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  bool locReflectVertexInputLayout(ID3D12ShaderReflection* aReflector, 
+    const D3D12_SHADER_DESC& aShaderDesc, GpuProgramCompilerOutputDX12* aCompilerOutput)
+  {
+    if (aShaderDesc.InputParameters == 0u)
+      return false;
+
+    aCompilerOutput->clVertexInputLayout.clear();
+
+    D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
+    for (uint i = 0u; i < aShaderDesc.InputParameters; ++i)
+    {
+      aReflector->GetInputParameterDesc(i, &paramDesc);
+      
+      ShaderVertexInputElement inputElem;
+
+      inputElem.mySemantics = locResolveVertexSemantics(paramDesc);
+      inputElem.mySemanticIndex = paramDesc.SemanticIndex;
+      inputElem.myRegisterIndex = paramDesc.Register;
+      inputElem.myFormat = locResolveFormat(paramDesc);
+      inputElem.mySizeBytes = locResolveSizeBytes(paramDesc);
+      inputElem.myName = paramDesc.SemanticName;
+      inputElem.myFormatComponentCount = locResolveComponentCount(paramDesc);
+
+      aCompilerOutput->clVertexInputLayout.addVertexInputElement(inputElem);
+    }
+
+    return true;
+  }
+//---------------------------------------------------------------------------//
   bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputDX12* aProgram)
   {
     log_Info("Compiling shader " + aDesc.myShaderPath + " ...");
@@ -68,7 +384,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       D3D_COMPILE_STANDARD_FILE_INCLUDE,
       "main",
       shaderProfileStr.c_str(),
-      D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+      D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_OPTIMIZATION_LEVEL0,
       0u,
       &compiledShaderBytecode,
       &errorData);
@@ -134,43 +450,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_SHADER_DESC shaderDesc;
     reflector->GetDesc(&shaderDesc);
 
-    ShaderConstantsManager& cbManager = ShaderConstantsManager::getInstance();
-
-    for (uint32 i = 0u; i < shaderDesc.ConstantBuffers; ++i)
+    if (!locReflectConstants(reflector, shaderDesc, aProgram))
     {
-      ID3D12ShaderReflectionConstantBuffer* cb = reflector->GetConstantBufferByIndex(i);
-
-      D3D12_SHADER_BUFFER_DESC cbDesc;
-      cb->GetDesc(&cbDesc);
-
-      const String cBufferName = cbDesc.Name;
-      const uint cBufferSize = cbDesc.Size;
-
-      ShaderConstantsManager::CreateBufferWithSize(
-        cbManager.getConstantBufferTypeFromName(cBufferName), cBufferSize);
-
-      for (uint32 iCBvar = 0u; iCBvar < cbDesc.Variables; ++iCBvar)
-      {
-        ID3D12ShaderReflectionVariable* cbVar = cb->GetVariableByIndex(iCBvar);
-        
-        D3D12_SHADER_VARIABLE_DESC cbVarDesc;
-        cbVar->GetDesc(&cbVarDesc);
-
-        ConstantBufferElement cbElem;
-        cbElem.uSizeBytes = cbVarDesc.Size;
-        cbElem.name = cBufferName + "." + cbVarDesc.Name;
-        cbElem.uOffsetBytes = cbVarDesc.StartOffset;
-        
-        
-        cbVarDesc.
-      }
-
+      log_Error("Failed reflecting constants");
+      return false;
     }
 
-
-
-
-
+    if (aDesc.myShaderStage == static_cast<uint32>(ShaderStage::VERTEX))
+    {
+      if (!locReflectVertexInputLayout(reflector, shaderDesc, aProgram))
+      {
+        log_Error("Failed reflecting vertex input layout");
+        return false;
+      }
+    }
 
     return true;
   }
