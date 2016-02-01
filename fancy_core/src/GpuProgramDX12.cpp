@@ -62,7 +62,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void GpuProgramDX12::SetFromCompilerOutput(const GpuProgramCompilerOutputDX12& aCompilerOutput)
   {
+    myNativeData = aCompilerOutput.myNativeData;
+    myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();
+    myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
 
+    myReadTextureInfos = aCompilerOutput.vReadTextureInfos;
+    myReadBufferInfos = aCompilerOutput.vReadBufferInfos;
+    myWriteTextureInfos = aCompilerOutput.vWriteTextureInfos;
+    myWriteBufferInfos = aCompilerOutput.vWriteBufferInfos;
+    myConstantBufferElements = aCompilerOutput.myConstantBufferElements;
+
+    myStage = aCompilerOutput.eShaderStage;
+    mySourcePath = aCompilerOutput.myShaderFilename;
+    myPermutation = aCompilerOutput.myPermutation;
+    myInputLayout = aCompilerOutput.clVertexInputLayout;
+    myRootSignature = aCompilerOutput.myRootSignature;
   }
 //---------------------------------------------------------------------------//
 } } }

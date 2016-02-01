@@ -541,8 +541,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     defines[defines.size() - 1].Name = nullptr;
     defines[defines.size() - 1].Definition = nullptr;
 
-    ID3DBlob* compiledShaderBytecode;
-    ID3DBlob* errorData;
+    ComPtr<ID3DBlob> compiledShaderBytecode;
+    ComPtr<ID3DBlob> errorData;
 
     HRESULT sucess = D3DCompileFromFile(
       shaderPathAbs.c_str(),
@@ -561,7 +561,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       {
         const char* errorMsg = (const char*)errorData->GetBufferPointer();
         log_Error(errorMsg);
-        errorData->Release();
+        errorData.ReleaseAndGetAddressOf();
       }
 
       return false;
@@ -601,6 +601,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     RootSignatureDX12* rsObject = RootSignaturePoolDX12::CreateOrRetrieve(*rsDesc, d3dDevice, &rootSignature);
     ASSERT(nullptr != rsObject);
 
+    aProgram->myPermutation = aDesc.myPermutation;
+    aProgram->eShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
+    aProgram->myShaderFilename = aDesc.myShaderPath;
+    aProgram->myRootSignature = rsObject;
+    aProgram->myNativeData = compiledShaderBytecode;
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//
