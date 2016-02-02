@@ -25,7 +25,7 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     void create(const GpuBufferCreationParams& clParameters, void* pInitialData = nullptr);
     void destroy();
     void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
-    void unlock() {}
+    void unlock();
 
   private:
 
@@ -42,6 +42,10 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     GpuBufferCreationParams myParameters;
     uint myTotalSizeBytes;
     uint myNumElements;
+
+    ComPtr<ID3D12Resource> myResource;
+    ComPtr<ID3D12Resource> myUploadResource;  //< Optional shadow-resource for CPU-writes
+    ComPtr<ID3D12Resource> myDownloadResource;   //< Optional shadow-resource for CPU-reads
 	};
 //---------------------------------------------------------------------------//
 } } }

@@ -39,8 +39,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     GpuBufferCreationParams* pBaseParams = &myParameters;
     *pBaseParams = someParameters;
     
-    D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT;
-    D3D12_CPU_PAGE_PROPERTY cpuPageProp = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     D3D12_RESOURCE_STATES resourceStates = D3D12_RESOURCE_STATE_COMMON;
     
     switch (someParameters.ePrimaryUsageType)
@@ -68,6 +66,40 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       default: break;
     }
 
+    const bool wantsUnorderedAccess = 
+      someParameters.ePrimaryUsageType == GpuBufferUsage::RESOURCE_BUFFER_RW 
+      || someParameters.ePrimaryUsageType == GpuBufferUsage::RESOURCE_BUFFER_LARGE_RW;
+
+    // Create the default resource (no CPU-access)
+    {
+      D3D12_HEAP_PROPERTIES heapProps;
+      heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
+      heapProps.CreationNodeMask = 1u;
+      heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+      heapProps.VisibleNodeMask = 1u;
+
+      D3D12_RESOURCE_DESC resourceDesc;
+      resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+      resourceDesc.Alignment = 0;
+      resourceDesc.Width = someParameters.uNumElements * someParameters.uElementSizeBytes;
+      resourceDesc.Height = 1;
+      resourceDesc.DepthOrArraySize = 1;
+      resourceDesc.MipLevels = 1;
+      resourceDesc.SampleDesc.Count = 1;
+      resourceDesc.SampleDesc.Quality = 0;
+      resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+      resourceDesc.Flags = wantsUnorderedAccess ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
+
+      ASSERT(renderer.GetDevice()->CreateCommittedResource(
+        &heapProps, 
+        D3D12_HEAP_FLAG_NONE, 
+        &resourceDesc, 
+        resourceStates, 
+        nullptr, IID_PPV_ARGS(&myResource)));
+    }
+
+    // Do we need additional resources for CPU-access?
     const bool wantsCpuWrite = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
     const bool wantsCpuRead = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::READ) > 0u;
 
@@ -76,46 +108,89 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     //const bool wantsCoherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
     //const bool wantsCpuStorage = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::PREFER_CPU_STORAGE) > 0u;
 
-    if (wantsCpuWrite && wantsCpuRead)
+    if (wantsCpuWrite)
     {
-      heapType = D3D12_HEAP_TYPE_UPLOAD;  // could also select _READBACK here...
-      cpuPageProp = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;  // For CPU-reads, we need the data as soon as possible
+      D3D12_HEAP_PROPERTIES heapProps;
+      heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+      heapProps.CreationNodeMask = 1u;
+      heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+      heapProps.VisibleNodeMask = 1u;
+
+      D3D12_RESOURCE_DESC resourceDesc;
+      resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+      resourceDesc.Alignment = 0;
+      resourceDesc.Width = someParameters.uNumElements * someParameters.uElementSizeBytes;
+      resourceDesc.Height = 1;
+      resourceDesc.DepthOrArraySize = 1;
+      resourceDesc.MipLevels = 1;
+      resourceDesc.SampleDesc.Count = 1;
+      resourceDesc.SampleDesc.Quality = 0;
+      resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+      resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+      ASSERT(renderer.GetDevice()->CreateCommittedResource(
+        &heapProps, 
+        D3D12_HEAP_FLAG_NONE, 
+        &resourceDesc, 
+        D3D12_RESOURCE_STATE_GENERIC_READ, 
+        nullptr, IID_PPV_ARGS(&myUploadResource)));
     }
-    else if(wantsCpuWrite && !wantsCpuRead)
+
+    if (wantsCpuRead)
     {
-      heapType = D3D12_HEAP_TYPE_UPLOAD;
-      cpuPageProp = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+      D3D12_HEAP_PROPERTIES heapProps;
+      heapProps.Type = D3D12_HEAP_TYPE_READBACK;
+      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+      heapProps.CreationNodeMask = 1u;
+      heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+      heapProps.VisibleNodeMask = 1u;
+
+      D3D12_RESOURCE_DESC resourceDesc;
+      resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+      resourceDesc.Alignment = 0;
+      resourceDesc.Width = someParameters.uNumElements * someParameters.uElementSizeBytes;
+      resourceDesc.Height = 1;
+      resourceDesc.DepthOrArraySize = 1;
+      resourceDesc.MipLevels = 1;
+      resourceDesc.SampleDesc.Count = 1;
+      resourceDesc.SampleDesc.Quality = 0;
+      resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+      resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+      ASSERT(renderer.GetDevice()->CreateCommittedResource(
+        &heapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &resourceDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr, IID_PPV_ARGS(&myDownloadResource)));
     }
-    else if(!wantsCpuWrite && wantsCpuRead)
+
+    if (pInitialData != nullptr)
     {
-      heapType = D3D12_HEAP_TYPE_READBACK;
-      cpuPageProp = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+      void* dest = lock(GpuResoruceLockOption::WRITE);
+      ASSERT(dest != nullptr);
+      memcpy(dest, pInitialData, someParameters.uNumElements * someParameters.uElementSizeBytes);
+      unlock();
     }
-
-    if (heapType == D3D12_HEAP_TYPE_UPLOAD)
-      resourceStates |= D3D12_RESOURCE_STATE_GENERIC_READ;
-    else if (heapType == D3D12_HEAP_TYPE_READBACK)
-      resourceStates |= D3D12_RESOURCE_STATE_COPY_DEST;
-
-
-    D3D12_HEAP_PROPERTIES heapProps;
-    heapProps.Type = heapType;
-    heapProps.CPUPageProperty = cpuPageProp;
-    heapProps.CreationNodeMask = 1u;
-    heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-    heapProps.VisibleNodeMask = 1u;
-
-    renderer.myDevice->CreateCommittedResource(&heapProps)
-
   }
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::destroy()
   {
+    myResource = nullptr;
+    myDownloadResource = nullptr;
+    myUploadResource = nullptr;
   }
 //---------------------------------------------------------------------------//
   void* GpuBufferDX12::lock(GpuResoruceLockOption eLockOption, uint uOffsetElements, uint uNumElements)
   {
+
     return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  void GpuBufferDX12::unlock()
+  {
+      
   }
 //---------------------------------------------------------------------------//
 } } }
