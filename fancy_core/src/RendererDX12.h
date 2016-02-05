@@ -97,7 +97,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
 		void renderGeometry(const Geometry::GeometryData* pGeometry);
 
-    void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, )
+    void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
 
     /// Returns the pipeline state in the current thread
     PipelineState& getState();

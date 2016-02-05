@@ -455,7 +455,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RendererDX12::CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount)
   {
-    ComPtr<ID3D12CommandList>& cmdList = getGraphicsCmdList();
+    ComPtr<ID3D12GraphicsCommandList>& cmdList = getGraphicsCmdList();
+
+    CD3DX12_RESOURCE_BARRIER copyPrepareTransitionBarriers[] =
+    {
+      CD3DX12_RESOURCE_BARRIER::Transition(aDestResource, D3D12_Resource_state_)
+    }
+
+    cmdList->ResourceBarrier()
+
+
   }
 
 //---------------------------------------------------------------------------//
