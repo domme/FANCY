@@ -451,6 +451,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	{
 
 	}
+
+//---------------------------------------------------------------------------//
+  void RendererDX12::CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount)
+  {
+    ComPtr<ID3D12CommandList>& cmdList = getGraphicsCmdList();
+  }
+
 //---------------------------------------------------------------------------//
 #pragma region Pipeline Apply
 //---------------------------------------------------------------------------//

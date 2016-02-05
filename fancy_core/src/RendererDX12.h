@@ -96,6 +96,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		void setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage);
 
 		void renderGeometry(const Geometry::GeometryData* pGeometry);
+
+    void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, )
+
     /// Returns the pipeline state in the current thread
     PipelineState& getState();
     /// Returns the graphics command list of the current thread

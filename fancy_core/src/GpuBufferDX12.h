@@ -15,7 +15,7 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     GpuBufferDesc GetDescription() const;
 
     bool isLocked() const { return myState.isLocked; }
-    bool isLockedPersistent() const { return myState.isLockedPersistent; }
+    bool isLockedPersistent() const { return myState.isLocked; }
     bool isValid() const { return false; }  // TODO: Implement
     uint getTotalSizeBytes() const { return myTotalSizeBytes; }
     uint32 getNumElements() const { return myNumElements; }
@@ -30,22 +30,27 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
   private:
 
     struct BufferState {
-      BufferState() :
-        isLocked(0u),
-        isLockedPersistent(0u) {}
+      BufferState() 
+        : isLocked(false)
+        , isLockedForWrite(false) 
+        , myCachedLockDataPtr(nullptr)
+      {}
 
-      uint isLocked : 1;
-      uint isLockedPersistent : 1;
+      bool isLocked : 1;
+      bool isLockedForWrite : 1;
+
+      D3D12_RANGE myLockedRange;
+      void* myCachedLockDataPtr;
     };
 
     BufferState myState;
+
     GpuBufferCreationParams myParameters;
     uint myTotalSizeBytes;
     uint myNumElements;
 
     ComPtr<ID3D12Resource> myResource;
-    ComPtr<ID3D12Resource> myUploadResource;  //< Optional shadow-resource for CPU-writes
-    ComPtr<ID3D12Resource> myDownloadResource;   //< Optional shadow-resource for CPU-reads
+    ComPtr<ID3D12Resource> myStagingResource;  //< Optional shadow-resource for CPU-writes
 	};
 //---------------------------------------------------------------------------//
 } } }

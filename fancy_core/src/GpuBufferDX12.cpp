@@ -91,7 +91,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
       resourceDesc.Flags = wantsUnorderedAccess ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-      ASSERT(renderer.GetDevice()->CreateCommittedResource(
+      CheckD3Dcall(renderer.GetDevice()->CreateCommittedResource(
         &heapProps, 
         D3D12_HEAP_FLAG_NONE, 
         &resourceDesc, 
@@ -108,11 +108,22 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     //const bool wantsCoherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
     //const bool wantsCpuStorage = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::PREFER_CPU_STORAGE) > 0u;
 
-    if (wantsCpuWrite)
+    if (wantsCpuWrite || wantsCpuRead)
     {
+      const bool wantsOnlyWrite = wantsCpuWrite && !wantsCpuRead;
+      const bool wantsOnlyRead = !wantsCpuWrite && wantsCpuRead;
+
+      D3D12_HEAP_TYPE optimalHeapType = D3D12_HEAP_TYPE_UPLOAD;  //< Default to _UPLOAD if both read and write are needed (assuming write will be more frequently)
+      if (wantsOnlyRead)
+        optimalHeapType = D3D12_HEAP_TYPE_READBACK;
+
+      D3D12_CPU_PAGE_PROPERTY optimalCpuPageProp = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;  //< WRITE_BACK is the safest option if we also need to read
+      if (wantsOnlyWrite)
+        optimalCpuPageProp = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+
       D3D12_HEAP_PROPERTIES heapProps;
-      heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+      heapProps.Type = optimalHeapType;
+      heapProps.CPUPageProperty = optimalCpuPageProp;
       heapProps.CreationNodeMask = 1u;
       heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
       heapProps.VisibleNodeMask = 1u;
@@ -129,41 +140,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
       resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-      ASSERT(renderer.GetDevice()->CreateCommittedResource(
+      CheckD3Dcall(renderer.GetDevice()->CreateCommittedResource(
         &heapProps, 
         D3D12_HEAP_FLAG_NONE, 
         &resourceDesc, 
         D3D12_RESOURCE_STATE_GENERIC_READ, 
-        nullptr, IID_PPV_ARGS(&myUploadResource)));
-    }
-
-    if (wantsCpuRead)
-    {
-      D3D12_HEAP_PROPERTIES heapProps;
-      heapProps.Type = D3D12_HEAP_TYPE_READBACK;
-      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-      heapProps.CreationNodeMask = 1u;
-      heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-      heapProps.VisibleNodeMask = 1u;
-
-      D3D12_RESOURCE_DESC resourceDesc;
-      resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-      resourceDesc.Alignment = 0;
-      resourceDesc.Width = someParameters.uNumElements * someParameters.uElementSizeBytes;
-      resourceDesc.Height = 1;
-      resourceDesc.DepthOrArraySize = 1;
-      resourceDesc.MipLevels = 1;
-      resourceDesc.SampleDesc.Count = 1;
-      resourceDesc.SampleDesc.Quality = 0;
-      resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-      resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-      ASSERT(renderer.GetDevice()->CreateCommittedResource(
-        &heapProps,
-        D3D12_HEAP_FLAG_NONE,
-        &resourceDesc,
-        D3D12_RESOURCE_STATE_COPY_DEST,
-        nullptr, IID_PPV_ARGS(&myDownloadResource)));
+        nullptr, IID_PPV_ARGS(&myStagingResource)));
     }
 
     if (pInitialData != nullptr)
@@ -178,19 +160,92 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void GpuBufferDX12::destroy()
   {
     myResource = nullptr;
-    myDownloadResource = nullptr;
-    myUploadResource = nullptr;
+    myStagingResource = nullptr;
+  }
+//---------------------------------------------------------------------------//
+  void locResolveLockOptions(GpuResoruceLockOption aLockOption, bool& aNeedsRead, bool& aNeedsWrite, bool& aNeedsRename)
+  {
+    aNeedsRead = false;
+    aNeedsWrite = false;
+    aNeedsRename = false;
+
+    switch (aLockOption)
+    {
+      case GpuResoruceLockOption::READ: 
+      case GpuResoruceLockOption::READ_UNSYNCHRONIZED:
+      case GpuResoruceLockOption::READ_PERSISTENT:
+      case GpuResoruceLockOption::READ_PERSISTENT_COHERENT:
+        aNeedsRead = true;
+        break;
+      case GpuResoruceLockOption::WRITE: 
+      case GpuResoruceLockOption::WRITE_UNSYNCHRONIZED:
+      case GpuResoruceLockOption::WRITE_PERSISTENT:
+      case GpuResoruceLockOption::WRITE_PERSISTENT_COHERENT:
+        aNeedsWrite = true;
+        break;
+      case GpuResoruceLockOption::READ_WRITE: 
+      case GpuResoruceLockOption::READ_WRITE_UNSYNCHRONIZED:
+      case GpuResoruceLockOption::READ_WRITE_PERSISTENT:
+      case GpuResoruceLockOption::READ_WRITE_PERSISTENT_COHERENT:
+        aNeedsRead = true;
+        aNeedsWrite = true;
+        break;
+      case GpuResoruceLockOption::WRITE_DISCARD: 
+        aNeedsWrite = true;
+        aNeedsRename = true;
+        break;
+      case GpuResoruceLockOption::READ_WRITE_DISCARD: 
+        aNeedsRead = true;
+        aNeedsWrite = true;
+        aNeedsRename = true;
+        break;
+    }
   }
 //---------------------------------------------------------------------------//
   void* GpuBufferDX12::lock(GpuResoruceLockOption eLockOption, uint uOffsetElements, uint uNumElements)
   {
+    if (myState.isLocked)
+      return nullptr;
 
-    return nullptr;
+    bool needsRead, needsWrite, needsRename;
+    locResolveLockOptions(eLockOption, needsRead, needsWrite, needsRename);
+    ASSERT_M(!needsRead && !needsRename, "Reading- and renaming features for buffers not yet implemented");
+
+    D3D12_RANGE range;
+    range.Begin = uOffsetElements * myParameters.uElementSizeBytes;
+    range.End = range.Begin + uNumElements * myParameters.uElementSizeBytes;
+
+    void* mappedData;
+    CheckD3Dcall(myStagingResource->Map(0, &range, &mappedData));
+
+    if (mappedData != nullptr)
+    {
+      myState.isLocked = true;
+      myState.isLockedForWrite = needsWrite;
+      myState.myLockedRange = range;
+      myState.myCachedLockDataPtr = mappedData;
+    }
+    
+    return mappedData;
   }
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::unlock()
   {
+    if (!myState.isLocked)
+      return;
+
+    if (myState.isLockedForWrite)
+    {
+      myStagingResource->Unmap(0u, &myState.myLockedRange);
+
       
+
+    }
+
+    myState.isLocked = false;
+    myState.isLockedForWrite = false;
+    myState.myLockedRange = { 0 };
+    myState.myCachedLockDataPtr = nullptr;
   }
 //---------------------------------------------------------------------------//
 } } }
