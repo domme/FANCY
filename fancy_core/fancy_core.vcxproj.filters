@@ -346,6 +346,12 @@
     <ClInclude Include="src\d3dx12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="src\GpuResourceDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuDynamicAllocatorDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -578,6 +584,12 @@
     </ClCompile>
     <ClCompile Include="src\ModelDesc.cpp">
       <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuResourceDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GpuDynamicAllocatorDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

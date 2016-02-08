@@ -229,7 +229,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ComPtr<IDXGISwapChain> swapChain;
     success = dxgiFactory->CreateSwapChain(myCommandQueue.Get(), &swapChainDesc, &swapChain);
     success = swapChain.As(&mySwapChain);
-    myFrameIndex = mySwapChain->GetCurrentBackBufferIndex();
+    myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
 
     // Create descriptor heaps.
     {
@@ -301,7 +301,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myCommandAllocator->Reset();
     cmdList->Reset(myCommandAllocator.Get(), nullptr);
-    myFrameIndex = mySwapChain->GetCurrentBackBufferIndex();
+    myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
 	}
 //---------------------------------------------------------------------------//
 	void RendererDX12::endFrame()
@@ -315,14 +315,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_RESOURCE_BARRIER bbBarrier;
     bbBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
     bbBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    bbBarrier.Transition.pResource = myBackbuffers[myFrameIndex].Get();
+    bbBarrier.Transition.pResource = myBackbuffers[myCurrBackbufferIndex].Get();
     bbBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
     bbBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
     bbBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     cmdList->ResourceBarrier(1, &bbBarrier);
 
     D3D12_CPU_DESCRIPTOR_HANDLE backbufferHandle = myRtvHeap->GetCPUDescriptorHandleForHeapStart();
-    backbufferHandle.ptr += myFrameIndex * myRtvDescriptorSize;
+    backbufferHandle.ptr += myCurrBackbufferIndex * myRtvDescriptorSize;
 
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
     cmdList->ClearRenderTargetView(backbufferHandle, clearColor, 0, nullptr);
@@ -457,16 +457,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     ComPtr<ID3D12GraphicsCommandList>& cmdList = getGraphicsCmdList();
 
-    CD3DX12_RESOURCE_BARRIER copyPrepareTransitionBarriers[] =
-    {
-      CD3DX12_RESOURCE_BARRIER::Transition(aDestResource, D3D12_Resource_state_)
-    }
+    //CD3DX12_RESOURCE_BARRIER copyPrepareTransitionBarriers[] =
+    //{
+    //  CD3DX12_RESOURCE_BARRIER::Transition(aDestResource, D3D12_Resource_state_)
+    //}
 
-    cmdList->ResourceBarrier()
+    // cmdList->ResourceBarrier()
 
 
   }
-
+//---------------------------------------------------------------------------//
+  void RendererDX12::InitBufferData(GpuResourceDX12* aBuffer, void* aDataPtr)
+  {
+    
+  }
 //---------------------------------------------------------------------------//
 #pragma region Pipeline Apply
 //---------------------------------------------------------------------------//

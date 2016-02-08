@@ -3,10 +3,11 @@
 #if defined (RENDERER_DX12)
 
 #include "GpuBufferDesc.h"
+#include "GpuResourceDX12.h"
 
 namespace Fancy { namespace Rendering {	namespace DX12 {
 //---------------------------------------------------------------------------//
-	class GpuBufferDX12
+	class GpuBufferDX12 : public GpuResourceDX12
 	{
 	public:
     GpuBufferDX12();
@@ -32,12 +33,10 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     struct BufferState {
       BufferState() 
         : isLocked(false)
-        , isLockedForWrite(false) 
         , myCachedLockDataPtr(nullptr)
       {}
 
       bool isLocked : 1;
-      bool isLockedForWrite : 1;
 
       D3D12_RANGE myLockedRange;
       void* myCachedLockDataPtr;
@@ -48,9 +47,6 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     GpuBufferCreationParams myParameters;
     uint myTotalSizeBytes;
     uint myNumElements;
-
-    ComPtr<ID3D12Resource> myResource;
-    ComPtr<ID3D12Resource> myStagingResource;  //< Optional shadow-resource for CPU-writes
 	};
 //---------------------------------------------------------------------------//
 } } }

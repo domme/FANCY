@@ -331,6 +331,7 @@
     <ClInclude Include="src\GpuDataInterface.h" />
     <ClInclude Include="src\GpuDataInterfaceDX12.h" />
     <ClInclude Include="src\GpuDataInterfaceGL4.h" />
+    <ClInclude Include="src\GpuDynamicAllocatorDX12.h" />
     <ClInclude Include="src\GpuProgram.h" />
     <ClInclude Include="src\GpuProgramCompiler.h" />
     <ClInclude Include="src\GpuProgramCompilerDX12.h" />
@@ -347,6 +348,7 @@
     <ClInclude Include="src\GLSLpreprocessor.h" />
     <ClInclude Include="src\GpuProgramResourceDX12.h" />
     <ClInclude Include="src\GpuProgramResourceGL4.h" />
+    <ClInclude Include="src\GpuResourceDX12.h" />
     <ClInclude Include="src\GpuResourceSignature.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\JSONreader.h" />
@@ -425,6 +427,7 @@
     <ClCompile Include="src\GpuBufferGL4.cpp" />
     <ClCompile Include="src\GpuDataInterfaceDX12.cpp" />
     <ClCompile Include="src\GpuDataInterfaceGL4.cpp" />
+    <ClCompile Include="src\GpuDynamicAllocatorDX12.cpp" />
     <ClCompile Include="src\GpuProgram.cpp" />
     <ClCompile Include="src\GpuProgramCompilerDX12.cpp" />
     <ClCompile Include="src\GpuProgramCompilerGL4.cpp" />
@@ -438,6 +441,7 @@
     <ClCompile Include="src\GpuProgramResource.cpp" />
     <ClCompile Include="src\GpuProgramResourceDX12.cpp" />
     <ClCompile Include="src\GpuProgramResourceGL4.cpp" />
+    <ClCompile Include="src\GpuResourceDX12.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
     <ClCompile Include="src\JSONreader.cpp" />

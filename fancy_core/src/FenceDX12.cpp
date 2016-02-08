@@ -9,7 +9,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   FenceDX12::FenceDX12() :
       myFence(nullptr)
     , myIsDoneEvent(nullptr)
-    , myFenceVal(0u)
+    , myCurrInFlightVal(0u)
   {
     
   }
@@ -25,17 +25,30 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
 void FenceDX12::signal(ID3D12CommandQueue* aCommandQueue)
 {
-  ++myFenceVal;
-  aCommandQueue->Signal(myFence.Get(), myFenceVal);
+  ++myCurrInFlightVal;
+  aCommandQueue->Signal(myFence.Get(), myCurrInFlightVal);
 }
 
 void FenceDX12::wait()
 {
-  if (myFence->GetCompletedValue() < myFenceVal)
+  if (myFence->GetCompletedValue() < myCurrInFlightVal)
   {
-    myFence->SetEventOnCompletion(myFenceVal, myIsDoneEvent);
+    myFence->SetEventOnCompletion(myCurrInFlightVal, myIsDoneEvent);
     WaitForSingleObject(myIsDoneEvent, INFINITE);
+    myLastCompletedVal = myCurrInFlightVal;
   }
+}
+
+bool FenceDX12::IsDone(uint64 anOtherFenceVal)
+{
+  // The fast path: the other fence-value is passed if the last completed val is greater/equal
+  if (anOtherFenceVal <= myLastCompletedVal)
+    return true;
+
+  // Otherwise, we can't be sure and need to fetch the fence's value (potentially expensive..)
+  myLastCompletedVal = glm::max(myLastCompletedVal, myFence->GetCompletedValue());
+
+  return anOtherFenceVal <= myLastCompletedVal;
 }
 
 FenceDX12::~FenceDX12()

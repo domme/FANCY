@@ -15,6 +15,8 @@ namespace Fancy { namespace Rendering {
 } }
 
 namespace Fancy { namespace Rendering { namespace DX12 {
+class GpuResourceDX12;
+
 //---------------------------------------------------------------------------//
   struct InputLayout
   {
@@ -98,6 +100,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		void renderGeometry(const Geometry::GeometryData* pGeometry);
 
     void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
+    void InitBufferData(GpuResourceDX12* aBuffer, void* aDataPtr);
+
+    bool IsFrameDone(uint64 aFrameDoneFenceVal) { return myFrameDone.IsDone(aFrameDoneFenceVal); }
 
     /// Returns the pipeline state in the current thread
     PipelineState& getState();
@@ -122,7 +127,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool myViewportDirty;
 
     // Synchronization objects.
-    uint myFrameIndex;
+    uint myCurrBackbufferIndex;
     FenceDX12 myFrameDone;
 
     static const uint kBackbufferCount = 2u;
