@@ -374,6 +374,8 @@
     <ClInclude Include="src\ObjectName.h" />
     <ClInclude Include="src\OpenGLprerequisites.h" />
     <ClInclude Include="src\PathService.h" />
+    <ClInclude Include="src\RenderContext.h" />
+    <ClInclude Include="src\RenderContextDX12.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\RendererDX12.h" />
     <ClInclude Include="src\RendererGL4.h" />
@@ -462,6 +464,7 @@
     <ClCompile Include="src\ObjectFactory.cpp" />
     <ClCompile Include="src\ObjectName.cpp" />
     <ClCompile Include="src\PathService.cpp" />
+    <ClCompile Include="src\RenderContextDX12.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\RendererDX12.cpp" />
     <ClCompile Include="src\RendererGL4.cpp" />

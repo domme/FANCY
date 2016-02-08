@@ -67,6 +67,7 @@ namespace Fancy {
       namespace GL4 
       {
         class RendererGL4;
+        class RenderContextGL4;
         class TextureGL4;
         class GpuProgramGL4;
         class GpuBufferGL4;
@@ -80,6 +81,7 @@ namespace Fancy {
 
       #define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::GL4::name##GL4
       #define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererGL4.h"
+      #define PLATFORM_DEPENDENT_INCLUDE_RENDERCONTEXT   "RenderContextGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_TEXTURESAMPLER "TextureSamplerGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GpuProgramGL4.h"
@@ -96,6 +98,7 @@ namespace Fancy {
 		namespace DX12
 		{
 			class RendererDX12;
+      class RenderContextDX12;
 			class TextureDX12;
 			class GpuProgramDX12;
 			class GpuBufferDX12;
@@ -109,6 +112,7 @@ namespace Fancy {
 
 		#define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX12::name##DX12
 		#define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererDX12.h"
+    #define PLATFORM_DEPENDENT_INCLUDE_RENDERCONTEXT "RenderContextDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_TEXTURESAMPLER "TextureSamplerDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GpuProgramDX12.h"
