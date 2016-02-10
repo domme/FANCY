@@ -12,16 +12,22 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
 //---------------------------------------------------------------------------//
   RendererDX12::RendererDX12(void* aNativeWindowHandle)
-    : myDefaultContext(*((Renderer*)this))
+    : myCommandAllocatorPool(nullptr)
+    , myDefaultContext(nullptr)
 	{
-    init(aNativeWindowHandle);
+    CreateDeviceAndSwapChain(aNativeWindowHandle);
+    
+    myCommandAllocatorPool = new CommandAllocatorPoolDX12(*static_cast<Renderer*>(this), D3D12_COMMAND_LIST_TYPE_DIRECT);
+    myDefaultContext = new RenderContext(*static_cast<Renderer*>(this));
+
+    CreateBackbufferResources();
 	}
 //---------------------------------------------------------------------------//
 	RendererDX12::~RendererDX12()
 	{
-	
+    SAFE_DELETE(myDefaultContext);
+    SAFE_DELETE(myCommandAllocatorPool);
 	}
-
 //---------------------------------------------------------------------------//
   uint64 RendererDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
   {
@@ -31,7 +37,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return mySyncFence.signal(myCommandQueue.Get());
   }
 //---------------------------------------------------------------------------//
-  void RendererDX12::init(void* aNativeWindowHandle)
+  void RendererDX12::CreateDeviceAndSwapChain(void* aNativeWindowHandle)
   {
     using namespace Microsoft::WRL;
 
@@ -39,18 +45,18 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
       debugInterface->EnableDebugLayer();
 
-    HRESULT success = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&myDevice));
+    CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&myDevice)));
 
     // Describe and create the command queue.
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
     queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-    success = myDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&myCommandQueue));
+    CheckD3Dcall(myDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&myCommandQueue)));
 
     HWND windowHandle = *static_cast<HWND*>(aNativeWindowHandle);
 
     ComPtr<IDXGIFactory4> dxgiFactory;
-    success = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
+    CheckD3Dcall(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
 
     // Describe and create the swap chain.
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
@@ -65,10 +71,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     swapChainDesc.Windowed = TRUE;
 
     ComPtr<IDXGISwapChain> swapChain;
-    success = dxgiFactory->CreateSwapChain(myCommandQueue.Get(), &swapChainDesc, &swapChain);
-    success = swapChain.As(&mySwapChain);
+    CheckD3Dcall(dxgiFactory->CreateSwapChain(myCommandQueue.Get(), &swapChainDesc, &swapChain));
+    CheckD3Dcall(swapChain.As(&mySwapChain));
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
-
+  }
+//---------------------------------------------------------------------------//
+  void RendererDX12::CreateBackbufferResources()
+  {
     ID3D12DescriptorHeap* rtvHeap;
     uint32 rtvHeapIncrSize;
 
@@ -78,7 +87,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     rtvHeapDesc.NumDescriptors = kBackbufferCount;
     rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    success = myDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap));
+    CheckD3Dcall(myDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
 
     rtvHeapIncrSize = myDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
@@ -87,7 +96,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uint rtvHandleOffset = 0;
 
     // Create a RTV for each backbuffer.
-      
+
     for (UINT n = 0; n < kBackbufferCount; n++)
     {
       mySwapChain->GetBuffer(n, IID_PPV_ARGS(&myBackbuffers[n]));
@@ -96,19 +105,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     // Setup default renderContext
-    myDefaultContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, rtvHeap);
+    myDefaultContext->SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, rtvHeap);
   }
 //---------------------------------------------------------------------------//
   void RendererDX12::postInit()
 	{
-    for (uint i = 0u; i < Constants::kNumRenderThreads; ++i)
-    {
-      myDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, myCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&myCommandList[i]));
-      myCommandList[i]->Close();
-    }
-
     // Create synchronization objects.
-    myFrameDone.init(myDevice.Get(), "RendererDX12::FrameDone");
+    mySyncFence.init(myDevice.Get(), "RendererDX12::FrameDone");
 
     // DEBUG: Compile a shader
     GpuProgramPermutation permutation;
@@ -120,11 +123,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     vertexProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
     GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve(vertexProgramDesc);
 	}
-//---------------------------------------------------------------------------//
-  ComPtr<ID3D12GraphicsCommandList>& RendererDX12::getGraphicsCmdList()
-  {
-    return myCommandList[getCurrentRenderThreadIdx()];
-  }
 //---------------------------------------------------------------------------//
   void RendererDX12::beginFrame()
 	{

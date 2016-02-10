@@ -184,6 +184,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   RenderContextDX12::RenderContextDX12(Renderer& aRenderer) 
     : myRenderer(aRenderer)
+    , myCommandAllocatorPool(aRenderer.GetCommandAllocatorPool())
     , myPSOhash(0u)
     , myPSO(nullptr)
     , myViewportParams(0, 0, 1, 1)
@@ -198,20 +199,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memset(myDescriptorHeaps, 0u, sizeof(myDescriptorHeaps));
 
     ID3D12Device* device = myRenderer.GetDevice();
-
-    CheckD3Dcall(
-      device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, 
-        IID_PPV_ARGS(&myCommandAllocator))
-      );
+    
+    myCommandAllocator = myCommandAllocatorPool.RetrieveAllocator();
 
     CheckD3Dcall(
       device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
         myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
       );
-
-
-
-
   }
 //---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
@@ -222,16 +216,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderContextDX12::Release()
   {
     myPSO->Release();
+    myPSO = nullptr;
     myCommandList->Release();
-    myCommandAllocator->Release();
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::SetCommandAllocator(ID3D12CommandAllocator* aCommandAllocator)
-  {
-    if (myCommandAllocator != nullptr)
-      myCommandAllocator->Release();
-
-    myCommandAllocator = aCommandAllocator;
+    myCommandList = nullptr;
   }
 //---------------------------------------------------------------------------//
   uint64 RenderContextDX12::ExecuteAndFinish(bool aWaitForCompletion)
@@ -245,13 +232,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myCpuVisibleAllocator.CleanupAfterCmdListExecute(fenceVal);
     myGpuOnlyAllocator.CleanupAfterCmdListExecute(fenceVal);
+    myCommandAllocatorPool.ReleaseAllocator(&myCommandAllocator, fenceVal);
 
     if (aWaitForCompletion)
+      myRenderer.WaitForFence(fenceVal);
 
-        
+    Release();
 
-    
-
+    return fenceVal;
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, ID3D12DescriptorHeap* aDescriptorHeap)

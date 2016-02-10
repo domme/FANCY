@@ -328,6 +328,7 @@
     <ClInclude Include="src\GLDebug.h" />
     <ClInclude Include="src\GpuBuffer.h" />
     <ClInclude Include="src\GpuBufferGL4.h" />
+    <ClInclude Include="src\CommandAllocatorPoolDX12.h" />
     <ClInclude Include="src\GpuDataInterface.h" />
     <ClInclude Include="src\GpuDataInterfaceDX12.h" />
     <ClInclude Include="src\GpuDataInterfaceGL4.h" />
@@ -427,6 +428,7 @@
     <ClCompile Include="src\FenceDX12.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\GpuBufferGL4.cpp" />
+    <ClCompile Include="src\CommandAllocatorPoolDX12.cpp" />
     <ClCompile Include="src\GpuDataInterfaceDX12.cpp" />
     <ClCompile Include="src\GpuDataInterfaceGL4.cpp" />
     <ClCompile Include="src\GpuDynamicAllocatorDX12.cpp" />

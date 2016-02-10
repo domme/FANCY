@@ -8,6 +8,7 @@
 
 #include "FenceDX12.h"
 #include "RenderContextDX12.h"
+#include "CommandAllocatorPoolDX12.h"
 
 namespace Fancy { namespace Rendering {
   class GeometryVertexLayout;
@@ -28,14 +29,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool IsFenceDone(uint64 aFrameDoneFenceVal) { return mySyncFence.IsDone(aFrameDoneFenceVal); }
     ID3D12Device* GetDevice() const { return myDevice.Get(); }
 
-    RenderContext& GetDefaultContext() { return myDefaultContext; }
-
+    CommandAllocatorPoolDX12* GetCommandAllocatorPool() { return myCommandAllocatorPool; }
+    RenderContext* GetDefaultContext() { return myDefaultContext; }
     uint64 ExecuteCommandList(ID3D12CommandList* aCommandList);
 
 	protected:
-    void init(void* aNativeWindowHandle);
+    void CreateDeviceAndSwapChain(void* aNativeWindowHandle);
+    void CreateBackbufferResources();
 
-    RenderContext myDefaultContext; 
+    RenderContext* myDefaultContext; 
+    CommandAllocatorPoolDX12* myCommandAllocatorPool;
 
     // Synchronization objects.
     uint myCurrBackbufferIndex;
@@ -46,6 +49,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ComPtr<IDXGISwapChain3> mySwapChain;
     ComPtr<ID3D12Resource> myBackbuffers[kBackbufferCount];
     ComPtr<ID3D12CommandQueue> myCommandQueue;
+    
 	};
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//

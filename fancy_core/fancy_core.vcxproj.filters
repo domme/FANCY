@@ -358,6 +358,9 @@
     <ClInclude Include="src\RenderContextDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="src\CommandAllocatorPoolDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -598,6 +601,9 @@
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderContextDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CommandAllocatorPoolDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>

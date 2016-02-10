@@ -14,6 +14,7 @@ class Renderer;
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class GpuResourceDX12;
+  class CommandAllocatorPoolDX12;
 //---------------------------------------------------------------------------//
   struct InputLayout
   {
@@ -83,7 +84,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void InitBufferData(GpuResourceDX12* aBuffer, void* aDataPtr);
 
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, ID3D12DescriptorHeap* aDescriptorHeap);
-    void SetCommandAllocator(ID3D12CommandAllocator* aCommandAllocator);
 
     uint64 ExecuteAndFinish(bool aWaitForCompletion = false);
 
@@ -97,6 +97,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
     Renderer& myRenderer;
+    CommandAllocatorPoolDX12& myCommandAllocatorPool;
 
     PipelineState myState;
     uint myPSOhash;
