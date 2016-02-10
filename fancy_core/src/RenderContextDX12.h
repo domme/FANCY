@@ -55,7 +55,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       kMaxNumCachedResourceBarriers = 16
     };
 
-    RenderContextDX12(Renderer& aRenderer);
+    explicit RenderContextDX12(Renderer& aRenderer);
     ~RenderContextDX12();
 
     void SetGraphicsRootSignature(ID3D12RootSignature* aRootSignature);
@@ -83,11 +83,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void InitBufferData(GpuResourceDX12* aBuffer, void* aDataPtr);
 
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, ID3D12DescriptorHeap* aDescriptorHeap);
+    void SetCommandAllocator(ID3D12CommandAllocator* aCommandAllocator);
+
+    uint64 ExecuteAndFinish(bool aWaitForCompletion = false);
+
+    void Release();
 
   protected:
     void applyViewport();
     void applyPipelineState();
     void ApplyDescriptorHeaps();
+    void KickoffResourceBarriers();
 
     static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
     Renderer& myRenderer;
@@ -102,7 +108,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ID3D12RootSignature* myRootSignature;
     ID3D12GraphicsCommandList* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
-    FixedArray<D3D12_RESOURCE_BARRIER, kMaxNumCachedResourceBarriers> myCachedResourceBarriers;
+    FixedArray<D3D12_RESOURCE_BARRIER, kMaxNumCachedResourceBarriers> myWaitingResourceBarriers;
     
     ID3D12DescriptorHeap* myDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     bool myDescriptorHeapsDirty;

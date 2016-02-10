@@ -180,6 +180,80 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return psoDesc;
   }
 //---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  RenderContextDX12::RenderContextDX12(Renderer& aRenderer) 
+    : myRenderer(aRenderer)
+    , myPSOhash(0u)
+    , myPSO(nullptr)
+    , myViewportParams(0, 0, 1, 1)
+    , myViewportDirty(true)
+    , myRootSignature(nullptr)
+    , myCommandList(nullptr)
+    , myCommandAllocator(nullptr)
+    , myDescriptorHeapsDirty(false)
+    , myCpuVisibleAllocator(GpuDynamicAllocatorType::CpuWritable)
+    , myGpuOnlyAllocator(GpuDynamicAllocatorType::GpuOnly)
+  {
+    memset(myDescriptorHeaps, 0u, sizeof(myDescriptorHeaps));
+
+    ID3D12Device* device = myRenderer.GetDevice();
+
+    CheckD3Dcall(
+      device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, 
+        IID_PPV_ARGS(&myCommandAllocator))
+      );
+
+    CheckD3Dcall(
+      device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
+        myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
+      );
+
+
+
+
+  }
+//---------------------------------------------------------------------------//
+  RenderContextDX12::~RenderContextDX12()
+  {
+    Release();
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::Release()
+  {
+    myPSO->Release();
+    myCommandList->Release();
+    myCommandAllocator->Release();
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::SetCommandAllocator(ID3D12CommandAllocator* aCommandAllocator)
+  {
+    if (myCommandAllocator != nullptr)
+      myCommandAllocator->Release();
+
+    myCommandAllocator = aCommandAllocator;
+  }
+//---------------------------------------------------------------------------//
+  uint64 RenderContextDX12::ExecuteAndFinish(bool aWaitForCompletion)
+  {
+    KickoffResourceBarriers();
+
+    ASSERT(myCommandAllocator != nullptr && myCommandList != nullptr);
+    CheckD3Dcall(myCommandList->Close());
+
+    uint64 fenceVal = myRenderer.ExecuteCommandList(myCommandList);
+
+    myCpuVisibleAllocator.CleanupAfterCmdListExecute(fenceVal);
+    myGpuOnlyAllocator.CleanupAfterCmdListExecute(fenceVal);
+
+    if (aWaitForCompletion)
+
+        
+
+    
+
+  }
+//---------------------------------------------------------------------------//
   void RenderContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, ID3D12DescriptorHeap* aDescriptorHeap)
   {
     if (myDescriptorHeaps[aHeapType] == aDescriptorHeap)
@@ -203,6 +277,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     if (numHeapsToBind > 0u)
       myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::KickoffResourceBarriers()
+  {
+    if (myWaitingResourceBarriers.empty())
+      return;
+
+    myCommandList->ResourceBarrier(myWaitingResourceBarriers.size(), &myWaitingResourceBarriers[0]);
+    myWaitingResourceBarriers.clear();
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::setViewport(const glm::uvec4& uViewportParams)
@@ -272,7 +355,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderContextDX12::removeAllRenderTargets()
   {
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void RenderContextDX12::SetGraphicsRootSignature(ID3D12RootSignature* aRootSignature)
   {
     if (myRootSignature != aRootSignature)

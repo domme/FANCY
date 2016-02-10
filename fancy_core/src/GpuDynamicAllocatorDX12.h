@@ -47,10 +47,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     AllocResult Allocate(size_t aSizeBytes, size_t anAlignment);
 
-  protected:
-    GpuDynamicAllocPage* CreateNewPage();
     void CleanupAfterCmdListExecute(uint64 aCmdListDoneFence);
 
+  protected:
+    GpuDynamicAllocPage* CreateNewPage();
     GpuDynamicAllocatorType myType;
     uint64 myCurrPageOffsetBytes;
     GpuDynamicAllocPage* myCurrPage;

@@ -22,6 +22,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   Scene::ScenePtr EngineCommon::m_pCurrScene = nullptr;
   Rendering::RenderingProcess* EngineCommon::m_pRenderingProcess = nullptr;
+  Rendering::Renderer* EngineCommon::ourRenderer = nullptr;
 //---------------------------------------------------------------------------//
   EngineCommon::EngineCommon()
   {
@@ -61,15 +62,16 @@ namespace Fancy {
     Rendering::RenderingSubsystem::InitPlatform();
     Rendering::RenderingSubsystem::Init();
     
-    Rendering::Renderer& rend = Rendering::Renderer::getInstance();
-    rend.init(aNativeWindowHandle);
-    rend.postInit();
+    ourRenderer = new Rendering::Renderer(aNativeWindowHandle);
+    ourRenderer->postInit();
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::ShutdownRenderingSubsystem()
   {
     Rendering::RenderingSubsystem::Shutdown();
     Rendering::RenderingSubsystem::ShutdownPlatform();
+
+    SAFE_DELETE(ourRenderer);
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::initIOsubsystem()
@@ -80,12 +82,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void EngineCommon::setWindowSize(uint32 _uWidth, uint32 _uHeight)
   {
-    Rendering::Renderer& rend = Rendering::Renderer::getInstance();
-
-    const glm::uvec4& viewportParams = rend.getViewport();
+    const glm::uvec4& viewportParams = ourRenderer->GetDefaultContext().getViewport();
     if(viewportParams.z != _uWidth || viewportParams.w != _uHeight)
     {
-      rend.setViewport(glm::uvec4(viewportParams.x, viewportParams.y, _uWidth, _uHeight));
+      ourRenderer->GetDefaultContext().setViewport(glm::uvec4(viewportParams.x, viewportParams.y, _uWidth, _uHeight));
     }
   }
 //---------------------------------------------------------------------------//
@@ -108,9 +108,9 @@ namespace Fancy {
 
     m_pCurrScene->update(deltaTime);
 
-    Rendering::Renderer::getInstance().beginFrame();
+    ourRenderer->beginFrame();
     m_pRenderingProcess->tick(deltaTime);
-    Rendering::Renderer::getInstance().endFrame();
+    ourRenderer->endFrame();
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::setCurrentScene( const Scene::ScenePtr& _pScene )

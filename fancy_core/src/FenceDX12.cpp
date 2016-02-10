@@ -9,7 +9,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   FenceDX12::FenceDX12() :
       myFence(nullptr)
     , myIsDoneEvent(nullptr)
-    , myCurrInFlightVal(0u)
+    , myCurrWaitingOnVal(0u)
   {
     
   }
@@ -23,19 +23,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ASSERT(myIsDoneEvent != nullptr);
   }
 
-void FenceDX12::signal(ID3D12CommandQueue* aCommandQueue)
+uint64 FenceDX12::signal(ID3D12CommandQueue* aCommandQueue)
 {
-  ++myCurrInFlightVal;
-  aCommandQueue->Signal(myFence.Get(), myCurrInFlightVal);
+  ++myCurrWaitingOnVal;
+  aCommandQueue->Signal(myFence.Get(), myCurrWaitingOnVal);
+  return myCurrWaitingOnVal;
 }
 
 void FenceDX12::wait()
 {
-  if (myFence->GetCompletedValue() < myCurrInFlightVal)
+  if (!IsDone(myCurrWaitingOnVal))
   {
-    myFence->SetEventOnCompletion(myCurrInFlightVal, myIsDoneEvent);
+    myFence->SetEventOnCompletion(myCurrWaitingOnVal, myIsDoneEvent);
     WaitForSingleObject(myIsDoneEvent, INFINITE);
-    myLastCompletedVal = myCurrInFlightVal;
+    myLastCompletedVal = myCurrWaitingOnVal;
   }
 }
 

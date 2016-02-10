@@ -6,19 +6,30 @@
 #include "GpuProgram.h"
 #include "RootSignatureDX12.h"
 #include "GpuProgramCompiler.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
 
 //---------------------------------------------------------------------------//
-  RendererDX12::RendererDX12()
+  RendererDX12::RendererDX12(void* aNativeWindowHandle)
+    : myDefaultContext(*((Renderer*)this))
 	{
-
+    init(aNativeWindowHandle);
 	}
 //---------------------------------------------------------------------------//
 	RendererDX12::~RendererDX12()
 	{
 	
 	}
+
+//---------------------------------------------------------------------------//
+  uint64 RendererDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
+  {
+    mySyncFence.wait();
+
+    myCommandQueue->ExecuteCommandLists(1, &aCommandList);
+    return mySyncFence.signal(myCommandQueue.Get());
+  }
 //---------------------------------------------------------------------------//
   void RendererDX12::init(void* aNativeWindowHandle)
   {
@@ -58,34 +69,34 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     success = swapChain.As(&mySwapChain);
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
 
-    // Create descriptor heaps.
-    {
-      // Describe and create a render target view (RTV) descriptor heap.
-      D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-      rtvHeapDesc.NumDescriptors = kBackbufferCount;
-      rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-      rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-      success = myDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&myRtvHeap));
+    ID3D12DescriptorHeap* rtvHeap;
+    uint32 rtvHeapIncrSize;
 
-      myRtvDescriptorSize = myDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    }
+    // Create descriptor heaps.
+    // Describe and create a render target view (RTV) descriptor heap.
+    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+    rtvHeapDesc.NumDescriptors = kBackbufferCount;
+    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    success = myDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap));
+
+    rtvHeapIncrSize = myDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
     // Create frame resources.
-    {
-      D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = myRtvHeap->GetCPUDescriptorHandleForHeapStart();
-      uint rtvHandleOffset = 0;
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+    uint rtvHandleOffset = 0;
 
-      // Create a RTV for each backbuffer.
+    // Create a RTV for each backbuffer.
       
-      for (UINT n = 0; n < kBackbufferCount; n++)
-      {
-        mySwapChain->GetBuffer(n, IID_PPV_ARGS(&myBackbuffers[n]));
-        myDevice->CreateRenderTargetView(myBackbuffers[n].Get(), nullptr, rtvHandle);
-        rtvHandle.ptr += myRtvDescriptorSize;
-      }
+    for (UINT n = 0; n < kBackbufferCount; n++)
+    {
+      mySwapChain->GetBuffer(n, IID_PPV_ARGS(&myBackbuffers[n]));
+      myDevice->CreateRenderTargetView(myBackbuffers[n].Get(), nullptr, rtvHandle);
+      rtvHandle.ptr += rtvHeapIncrSize;
     }
 
-    myDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&myCommandAllocator));
+    // Setup default renderContext
+    myDefaultContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, rtvHeap);
   }
 //---------------------------------------------------------------------------//
   void RendererDX12::postInit()

@@ -10,6 +10,7 @@ namespace Fancy { namespace Scene {
 
 namespace Fancy { namespace Rendering {
   class RenderingProcess;
+  class Renderer;
 } }
 
 namespace Fancy {
@@ -40,6 +41,7 @@ namespace Fancy {
 
     static Scene::ScenePtr m_pCurrScene;
     static Rendering::RenderingProcess* m_pRenderingProcess;
+    static Rendering::Renderer* ourRenderer;
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy

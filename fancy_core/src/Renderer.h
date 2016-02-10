@@ -9,11 +9,11 @@ namespace Fancy { namespace Rendering {
   class Renderer : public PLATFORM_DEPENDENT_NAME(Renderer)
   {
     public:
-      static Renderer& getInstance() { static Renderer instance; return instance; }
+      Renderer(void* aNativeWindowHandle) : PLATFORM_DEPENDENT_NAME(Renderer)(aNativeWindowHandle) {}
       virtual ~Renderer() {}
 
     protected:
-      Renderer() {}
+      
   };
 //---------------------------------------------------------------------------//
 
