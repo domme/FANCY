@@ -311,6 +311,7 @@
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
     <ClInclude Include="src\d3dx12.h" />
+    <ClInclude Include="src\DescriptorHeapPoolDX12.h" />
     <ClInclude Include="src\GpuBufferDesc.h" />
     <ClInclude Include="src\GpuBufferDX12.h" />
     <ClInclude Include="src\CameraComponent.h" />
@@ -418,6 +419,7 @@
     <ClCompile Include="src\AdapterGL4.cpp" />
     <ClCompile Include="src\BinaryCache.cpp" />
     <ClCompile Include="src\BlendState.cpp" />
+    <ClCompile Include="src\DescriptorHeapPoolDX12.cpp" />
     <ClCompile Include="src\GpuBufferDX12.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\CameraControllerComponent.cpp" />

@@ -5,6 +5,7 @@
 #include "AdapterDX12.h"
 #include "GpuProgram.h"
 #include "Renderer.h"
+#include "DescriptorHeapPoolDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -184,7 +185,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   RenderContextDX12::RenderContextDX12(Renderer& aRenderer) 
     : myRenderer(aRenderer)
-    , myCommandAllocatorPool(aRenderer.GetCommandAllocatorPool())
+    , myCommandAllocatorPool(*aRenderer.GetCommandAllocatorPool())
     , myPSOhash(0u)
     , myPSO(nullptr)
     , myViewportParams(0, 0, 1, 1)
@@ -192,70 +193,118 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myRootSignature(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
-    , myDescriptorHeapsDirty(false)
     , myCpuVisibleAllocator(GpuDynamicAllocatorType::CpuWritable)
     , myGpuOnlyAllocator(GpuDynamicAllocatorType::GpuOnly)
+    , myIsInRecordState(false)
   {
     memset(myDescriptorHeaps, 0u, sizeof(myDescriptorHeaps));
 
     ID3D12Device* device = myRenderer.GetDevice();
     
-    myCommandAllocator = myCommandAllocatorPool.RetrieveAllocator();
+    myCommandAllocator = myCommandAllocatorPool.GetNewAllocator();
 
     CheckD3Dcall(
       device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
         myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
       );
+
+    myIsInRecordState = true;
   }
 //---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
   {
-    Release();
+    Destroy();
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::Release()
+  void RenderContextDX12::Destroy()
   {
     myPSO->Release();
     myPSO = nullptr;
     myCommandList->Release();
     myCommandList = nullptr;
+
+    if (myCommandAllocator != nullptr)
+      ReleaseAllocator(0u);
   }
 //---------------------------------------------------------------------------//
-  uint64 RenderContextDX12::ExecuteAndFinish(bool aWaitForCompletion)
+  void RenderContextDX12::Reset()
+  {
+    if (myIsInRecordState)
+      return;
+    
+    ASSERT_M(nullptr != myCommandAllocator, "myIsInRecordState-flag out of sync");
+
+    myCommandAllocator = myCommandAllocatorPool.GetNewAllocator();
+    ASSERT(myCommandAllocator != nullptr);
+
+    CheckD3Dcall(myCommandList->Reset(myCommandAllocator, myPSO));
+
+    myIsInRecordState = true;
+  }
+//---------------------------------------------------------------------------//
+  uint64 RenderContextDX12::ExecuteAndReset(bool aWaitForCompletion)
   {
     KickoffResourceBarriers();
 
     ASSERT(myCommandAllocator != nullptr && myCommandList != nullptr);
     CheckD3Dcall(myCommandList->Close());
+    myIsInRecordState = false;
 
     uint64 fenceVal = myRenderer.ExecuteCommandList(myCommandList);
 
     myCpuVisibleAllocator.CleanupAfterCmdListExecute(fenceVal);
     myGpuOnlyAllocator.CleanupAfterCmdListExecute(fenceVal);
-    myCommandAllocatorPool.ReleaseAllocator(&myCommandAllocator, fenceVal);
+    ReleaseAllocator(fenceVal);
 
     if (aWaitForCompletion)
       myRenderer.WaitForFence(fenceVal);
 
-    Release();
+    Reset();
 
     return fenceVal;
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, ID3D12DescriptorHeap* aDescriptorHeap)
+  void RenderContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap)
   {
-    if (myDescriptorHeaps[aHeapType] == aDescriptorHeap)
+    ID3D12DescriptorHeap* heap = aDescriptorHeap->GetHeap();
+
+    if (myDescriptorHeaps[aHeapType] == heap)
       return;
 
-    myDescriptorHeaps[aHeapType] = aDescriptorHeap;
-    myDescriptorHeapsDirty = true;
+    myDescriptorHeaps[aHeapType] = heap;
+    ApplyDescriptorHeaps();
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, float* aColor)
+  {
+    myCommandList->ClearRenderTargetView(aRTV, aColor, 0, nullptr);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow /* = false */)
+  {
+    if (aResource->GetUsageState() == aDestState)
+      return;
+
+    D3D12_RESOURCE_BARRIER barrier;
+    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrier.Transition.pResource = aResource->GetResource().Get();
+    barrier.Transition.StateBefore = aResource->GetUsageState();
+    barrier.Transition.StateAfter = aDestState;
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+    aResource->myUsageState = aDestState;
+
+    myWaitingResourceBarriers.push_back(barrier);
+
+    if (aExecuteNow || myWaitingResourceBarriers.IsFull())
+    {
+      KickoffResourceBarriers();
+    }
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::ApplyDescriptorHeaps()
   {
-    if (!myDescriptorHeapsDirty)
-      return;
-
     ID3D12DescriptorHeap* heapsToBind[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     uint32 numHeapsToBind = 0u;
     
@@ -274,6 +323,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myCommandList->ResourceBarrier(myWaitingResourceBarriers.size(), &myWaitingResourceBarriers[0]);
     myWaitingResourceBarriers.clear();
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::ReleaseAllocator(uint64 aFenceVal)
+  {
+    myCommandAllocatorPool.ReleaseAllocator(myCommandAllocator, aFenceVal);
+    myCommandAllocator = nullptr;
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::setViewport(const glm::uvec4& uViewportParams)
@@ -383,7 +438,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::renderGeometry(const Geometry::GeometryData* pGeometry)
   {
-    ApplyDescriptorHeaps();
     applyPipelineState();
     applyViewport();
   }

@@ -6,6 +6,7 @@
 #include "GpuProgram.h"
 #include "RootSignatureDX12.h"
 #include "GpuProgramCompiler.h"
+#include "DescriptorHeapPoolDX12.h"
 #include "Renderer.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
@@ -19,7 +20,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
     myCommandAllocatorPool = new CommandAllocatorPoolDX12(*static_cast<Renderer*>(this), D3D12_COMMAND_LIST_TYPE_DIRECT);
     myDefaultContext = new RenderContext(*static_cast<Renderer*>(this));
-
+    myDescriptorHeapPool = new DescriptorHeapPoolDX12(*this);
+    
     CreateBackbufferResources();
 	}
 //---------------------------------------------------------------------------//
@@ -27,14 +29,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	{
     SAFE_DELETE(myDefaultContext);
     SAFE_DELETE(myCommandAllocatorPool);
+    SAFE_DELETE(myDescriptorHeapPool);
 	}
 //---------------------------------------------------------------------------//
   uint64 RendererDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
   {
-    mySyncFence.wait();
+    myFence.wait();
 
     myCommandQueue->ExecuteCommandLists(1, &aCommandList);
-    return mySyncFence.signal(myCommandQueue.Get());
+    return myFence.signal(myCommandQueue.Get());
   }
 //---------------------------------------------------------------------------//
   void RendererDX12::CreateDeviceAndSwapChain(void* aNativeWindowHandle)
@@ -74,72 +77,49 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CheckD3Dcall(dxgiFactory->CreateSwapChain(myCommandQueue.Get(), &swapChainDesc, &swapChain));
     CheckD3Dcall(swapChain.As(&mySwapChain));
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
+
+    // Create synchronization objects.
+    myFence.Init(myDevice.Get(), "RendererDX12::FrameDone");
   }
 //---------------------------------------------------------------------------//
   void RendererDX12::CreateBackbufferResources()
   {
-    ID3D12DescriptorHeap* rtvHeap;
-    uint32 rtvHeapIncrSize;
+    DescriptorHeapDX12* rtvHeapCpu = myDescriptorHeapPool->GetCpuVisibleHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-    // Create descriptor heaps.
-    // Describe and create a render target view (RTV) descriptor heap.
-    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-    rtvHeapDesc.NumDescriptors = kBackbufferCount;
-    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    CheckD3Dcall(myDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap)));
-
-    rtvHeapIncrSize = myDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-    // Create frame resources.
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
-    uint rtvHandleOffset = 0;
-
-    // Create a RTV for each backbuffer.
-
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeapCpu->GetCpuHeapStart();
     for (UINT n = 0; n < kBackbufferCount; n++)
     {
-      mySwapChain->GetBuffer(n, IID_PPV_ARGS(&myBackbuffers[n]));
-      myDevice->CreateRenderTargetView(myBackbuffers[n].Get(), nullptr, rtvHandle);
-      rtvHandle.ptr += rtvHeapIncrSize;
-    }
+      GpuResourceDX12& backbufferResource = myBackbuffers[n];
 
-    // Setup default renderContext
-    myDefaultContext->SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, rtvHeap);
+      mySwapChain->GetBuffer(n, IID_PPV_ARGS(&myBackbuffers[n].myResource));
+      myDevice->CreateRenderTargetView(myBackbuffers[n].Get(), nullptr, rtvHandle);
+      rtvHandle.ptr += rtvHeapCpu->GetHandleIncrementSize();
+    }
   }
 //---------------------------------------------------------------------------//
   void RendererDX12::postInit()
 	{
-    // Create synchronization objects.
-    mySyncFence.init(myDevice.Get(), "RendererDX12::FrameDone");
-
     // DEBUG: Compile a shader
-    GpuProgramPermutation permutation;
-
-    GpuProgramDesc vertexProgramDesc;
-    vertexProgramDesc.myPermutation = permutation;
-    vertexProgramDesc.myShaderPath = Rendering::GpuProgramCompiler::GetPlatformShaderFileDirectory() +
-      String("MaterialForward") + Rendering::GpuProgramCompiler::GetPlatformShaderFileExtension();
-    vertexProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
-    GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve(vertexProgramDesc);
+    // GpuProgramPermutation permutation;
+    // 
+    // GpuProgramDesc vertexProgramDesc;
+    // vertexProgramDesc.myPermutation = permutation;
+    // vertexProgramDesc.myShaderPath = Rendering::GpuProgramCompiler::GetPlatformShaderFileDirectory() +
+    //   String("MaterialForward") + Rendering::GpuProgramCompiler::GetPlatformShaderFileExtension();
+    // vertexProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
+    // GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve(vertexProgramDesc);
 	}
 //---------------------------------------------------------------------------//
   void RendererDX12::beginFrame()
 	{
-    ComPtr<ID3D12GraphicsCommandList>&  cmdList = getGraphicsCmdList();
-
-    myFrameDone.wait();
-
-    myCommandAllocator->Reset();
-    cmdList->Reset(myCommandAllocator.Get(), nullptr);
+    myFence.wait();
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
 	}
 //---------------------------------------------------------------------------//
 	void RendererDX12::endFrame()
 	{
-    ComPtr<ID3D12GraphicsCommandList>&  cmdList = getGraphicsCmdList();
-
-    // TODO: Adapt this to multithreaded rendering: Wait until all cmd-lists are completed, patch them with transitional resource-barriers and execute them in-order
+    DescriptorHeapDX12* rtvHeap = myDescriptorHeapPool->GetCpuVisibleHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    myDefaultContext->SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, rtvHeap);
 
     // Move this part to rendering
     ////////////////////////////////////////////////////////////////////////////////
@@ -172,7 +152,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myFrameDone.signal(myCommandQueue.Get());
 	}
 //---------------------------------------------------------------------------//
+  void RendererDX12::WaitForFence(uint64 aFenceVal)
+  {
+    if (myFence.IsDone(aFenceVal))
+      return;
 
+    if (myFence.GetCurrWaitingFenceVal() >= aFenceVal)
+    {
+      myFence.wait();
+    }
+    else
+    {
+      myFence.signal(myCommandQueue.Get(), aFenceVal);
+      myFence.wait();
+    }
+  }
 //---------------------------------------------------------------------------//
   void RenderingSubsystemDX12::InitPlatform()
   {

@@ -6,8 +6,14 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
+  class RendererDX12;
+  class RenderContextDX12;
+//---------------------------------------------------------------------------//
   class GpuResourceDX12
   {
+    friend class RendererDX12;
+    friend class RenderContextDX12;
+
   public:
     GpuResourceDX12()
       : myUsageState(D3D12_RESOURCE_STATE_COMMON)

@@ -5,58 +5,71 @@
 #include "FenceDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
-
-  FenceDX12::FenceDX12() :
-      myFence(nullptr)
+//---------------------------------------------------------------------------//
+  FenceDX12::FenceDX12()
+    : myFence(nullptr)
     , myIsDoneEvent(nullptr)
     , myCurrWaitingOnVal(0u)
+    , myLastCompletedVal(0u)
   {
-    
-  }
 
-  void FenceDX12::init(ID3D12Device* aDevice, const String& aName)
+  }
+//---------------------------------------------------------------------------//
+  FenceDX12::FenceDX12(ID3D12Device* aDevice, const String& aName) 
+    : myFence(nullptr)
+    , myIsDoneEvent(nullptr)
+    , myCurrWaitingOnVal(0u)
+    , myLastCompletedVal(0u)
   {
-    HRESULT success = aDevice->CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myFence));
-    ASSERT(success == S_OK);
+    Init(aDevice, aName);
+  }
+//---------------------------------------------------------------------------//
+  void FenceDX12::Init(ID3D12Device* aDevice, const String& aName)
+  {
+    CheckD3Dcall(aDevice->CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myFence)));
 
     myIsDoneEvent = CreateEventEx(nullptr, nullptr, 0u, EVENT_ALL_ACCESS);
     ASSERT(myIsDoneEvent != nullptr);
   }
-
-uint64 FenceDX12::signal(ID3D12CommandQueue* aCommandQueue)
-{
-  ++myCurrWaitingOnVal;
-  aCommandQueue->Signal(myFence.Get(), myCurrWaitingOnVal);
-  return myCurrWaitingOnVal;
-}
-
-void FenceDX12::wait()
-{
-  if (!IsDone(myCurrWaitingOnVal))
+//---------------------------------------------------------------------------//
+  uint64 FenceDX12::signal(ID3D12CommandQueue* aCommandQueue, uint64 aFenceVal /* = ~0u */)
   {
+    if (aFenceVal != ~0u && aFenceVal > myCurrWaitingOnVal)
+      myCurrWaitingOnVal = aFenceVal;
+    else
+      ++myCurrWaitingOnVal;
+
+    aCommandQueue->Signal(myFence.Get(), myCurrWaitingOnVal);
+    return myCurrWaitingOnVal;
+  }
+//---------------------------------------------------------------------------//
+  void FenceDX12::wait()
+  {
+    if (IsDone(myCurrWaitingOnVal))
+      return;
+
     myFence->SetEventOnCompletion(myCurrWaitingOnVal, myIsDoneEvent);
     WaitForSingleObject(myIsDoneEvent, INFINITE);
     myLastCompletedVal = myCurrWaitingOnVal;
   }
-}
+//---------------------------------------------------------------------------//
+  bool FenceDX12::IsDone(uint64 anOtherFenceVal)
+  {
+    // The fast path: the other fence-value is passed if the last completed val is greater/equal
+    if (anOtherFenceVal <= myLastCompletedVal)
+      return true;
 
-bool FenceDX12::IsDone(uint64 anOtherFenceVal)
-{
-  // The fast path: the other fence-value is passed if the last completed val is greater/equal
-  if (anOtherFenceVal <= myLastCompletedVal)
-    return true;
+    // Otherwise, we can't be sure and need to fetch the fence's value (potentially expensive..)
+    myLastCompletedVal = glm::max(myLastCompletedVal, myFence->GetCompletedValue());
 
-  // Otherwise, we can't be sure and need to fetch the fence's value (potentially expensive..)
-  myLastCompletedVal = glm::max(myLastCompletedVal, myFence->GetCompletedValue());
-
-  return anOtherFenceVal <= myLastCompletedVal;
-}
-
-FenceDX12::~FenceDX12()
-{
+    return anOtherFenceVal <= myLastCompletedVal;
+  }
+//---------------------------------------------------------------------------//
+  FenceDX12::~FenceDX12()
+  {
   
-}
-
+  }
+//---------------------------------------------------------------------------//
 } } }
 
 #endif

@@ -26,7 +26,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myReleasedWaitingAllocators.clear();
   }
 //---------------------------------------------------------------------------//
-  ID3D12CommandAllocator* CommandAllocatorPoolDX12::RetrieveAllocator()
+  ID3D12CommandAllocator* CommandAllocatorPoolDX12::GetNewAllocator()
   {
     // Check if some of the waiting allocators can be made available again
     while(!myReleasedWaitingAllocators.empty() && myRenderer.IsFenceDone(myReleasedWaitingAllocators.front().first))
@@ -49,18 +49,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return allocator;
   }
 //---------------------------------------------------------------------------//
-  void CommandAllocatorPoolDX12::ReleaseAllocator(ID3D12CommandAllocator** anAllocator, uint64 anAllocatorDoneFenceVal)
+  void CommandAllocatorPoolDX12::ReleaseAllocator(ID3D12CommandAllocator* anAllocator, uint64 anAllocatorDoneFenceVal)
   {
 #if defined (FANCY_RENDERSYSTEM_USE_VALIDATION)
     for (ID3D12CommandAllocator* allocator : myAvailableAllocators)
-      ASSERT(allocator != *anAllocator);
+      ASSERT(allocator != anAllocator);
 
     for (auto allocatorEntry : myReleasedWaitingAllocators)
-      ASSERT(allocatorEntry.second != *anAllocator);
+      ASSERT(allocatorEntry.second != anAllocator);
 #endif // FANCY_RENDERSYSTEM_USE_VALIDATION
 
-    myReleasedWaitingAllocators.push_back(std::make_pair(anAllocatorDoneFenceVal, *anAllocator));
-    *anAllocator = nullptr;
+    myReleasedWaitingAllocators.push_back(std::make_pair(anAllocatorDoneFenceVal, anAllocator));
   }
 //---------------------------------------------------------------------------//
 } } }

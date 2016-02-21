@@ -12,6 +12,7 @@ class Renderer;
 }}
 
 namespace Fancy { namespace Rendering { namespace DX12 {
+class DescriptorHeapDX12;
 //---------------------------------------------------------------------------//
   class GpuResourceDX12;
   class CommandAllocatorPoolDX12;
@@ -80,20 +81,24 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void renderGeometry(const Geometry::GeometryData* pGeometry);
 
+    uint64 ExecuteAndReset(bool aWaitForCompletion = false);
+
+    void Destroy();
+    void Reset();
+
+    // DX12-Specific stuff
     void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
     void InitBufferData(GpuResourceDX12* aBuffer, void* aDataPtr);
-
-    void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, ID3D12DescriptorHeap* aDescriptorHeap);
-
-    uint64 ExecuteAndFinish(bool aWaitForCompletion = false);
-
-    void Release();
+    void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
+    void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, float* aColor);
+    void TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow = false);
 
   protected:
     void applyViewport();
     void applyPipelineState();
     void ApplyDescriptorHeaps();
     void KickoffResourceBarriers();
+    void ReleaseAllocator(uint64 aFenceVal);
 
     static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
     Renderer& myRenderer;
@@ -112,7 +117,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     FixedArray<D3D12_RESOURCE_BARRIER, kMaxNumCachedResourceBarriers> myWaitingResourceBarriers;
     
     ID3D12DescriptorHeap* myDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    bool myDescriptorHeapsDirty;
+
+    bool myIsInRecordState;
 
     GpuDynamicAllocatorDX12 myCpuVisibleAllocator;
     GpuDynamicAllocatorDX12 myGpuOnlyAllocator;

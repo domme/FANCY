@@ -16,8 +16,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CommandAllocatorPoolDX12(Renderer& aRenderer, D3D12_COMMAND_LIST_TYPE aType);
     ~CommandAllocatorPoolDX12();
 
-    ID3D12CommandAllocator* RetrieveAllocator();
-    void ReleaseAllocator(ID3D12CommandAllocator** anAllocator, uint64 anAllocatorDoneFenceVal);
+    ID3D12CommandAllocator* GetNewAllocator();
+    void ReleaseAllocator(ID3D12CommandAllocator* anAllocator, uint64 anAllocatorDoneFenceVal);
 
   private:
     Renderer& myRenderer;

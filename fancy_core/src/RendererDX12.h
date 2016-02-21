@@ -15,6 +15,8 @@ namespace Fancy { namespace Rendering {
 } }
 
 namespace Fancy { namespace Rendering { namespace DX12 {
+class DescriptorHeapPoolDX12;
+
 //---------------------------------------------------------------------------//
 	class RendererDX12
 	{
@@ -26,11 +28,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		void endFrame();
 
     void WaitForFence(uint64 aFenceVal);
-    bool IsFenceDone(uint64 aFrameDoneFenceVal) { return mySyncFence.IsDone(aFrameDoneFenceVal); }
+    bool IsFenceDone(uint64 aFrameDoneFenceVal) { return myFence.IsDone(aFrameDoneFenceVal); }
     ID3D12Device* GetDevice() const { return myDevice.Get(); }
 
     CommandAllocatorPoolDX12* GetCommandAllocatorPool() { return myCommandAllocatorPool; }
     RenderContext* GetDefaultContext() { return myDefaultContext; }
+    DescriptorHeapPoolDX12* GetDescriptorHeapPool() { return myDescriptorHeapPool; }
     uint64 ExecuteCommandList(ID3D12CommandList* aCommandList);
 
 	protected:
@@ -39,17 +42,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     RenderContext* myDefaultContext; 
     CommandAllocatorPoolDX12* myCommandAllocatorPool;
+    DescriptorHeapPoolDX12* myDescriptorHeapPool;
 
-    // Synchronization objects.
+    FenceDX12 myFence;
+
     uint myCurrBackbufferIndex;
-    FenceDX12 mySyncFence;
-
+    
     static const uint kBackbufferCount = 2u;
     ComPtr<ID3D12Device> myDevice;
     ComPtr<IDXGISwapChain3> mySwapChain;
-    ComPtr<ID3D12Resource> myBackbuffers[kBackbufferCount];
+    GpuResourceDX12 myBackbuffers[kBackbufferCount];
     ComPtr<ID3D12CommandQueue> myCommandQueue;
-    
 	};
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
