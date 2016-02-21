@@ -1,4 +1,5 @@
 #pragma once
+#include "GpuResourceDX12.h"
 
 #if defined (RENDERER_DX12)
 
@@ -6,7 +7,7 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  class TextureDX12
+  class TextureDX12 : public GpuResourceDX12
   {
   public:
     enum class CreationMethod {
@@ -37,6 +38,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const TextureCreationParams& getParameters() const { return myParameters; }
     const ObjectName& getPath() const { return myParameters.path; }
     void setPath(const String& _aPath) { myParameters.path = _aPath; }
+
+    // DX12-Specific stuff:
+    D3D12_CPU_DESCRIPTOR_HANDLE GetRTV() { return myRtv; }
+    
+    // DEBUG:
+    D3D12_CPU_DESCRIPTOR_HANDLE myRtv;
 
   protected:
     struct TextureInfos {

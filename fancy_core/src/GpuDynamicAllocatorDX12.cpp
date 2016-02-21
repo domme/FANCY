@@ -25,10 +25,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  GpuDynamicAllocatorDX12::GpuDynamicAllocatorDX12(GpuDynamicAllocatorType aType)
+  GpuDynamicAllocatorDX12::GpuDynamicAllocatorDX12(RendererDX12& aRenderer, GpuDynamicAllocatorType aType)
     : myCurrPage(nullptr)
     , myCurrPageOffsetBytes(0u)
     , myType(aType)
+    , myRenderer(aRenderer)
   {
     
   }
@@ -45,10 +46,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myAvailablePages.clear();
     
-    Renderer& renderer = Renderer::getInstance();
     for (auto waitingEntry : myWaitingPages)
     {
-      ASSERT(renderer.IsFrameDone(waitingEntry.first));
+      ASSERT(myRenderer.IsFenceDone(waitingEntry.first));
       delete waitingEntry.second;
     }
   }
@@ -60,11 +60,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ASSERT(aSizeBytes <= pageSize);
 
     // 1) Check if some waiting pages can be made available
-    Renderer& renderer = Renderer::getInstance();
     while (!myWaitingPages.empty())
     {
       auto& waitingEntry = myWaitingPages.front();
-      if (renderer.IsFrameDone(waitingEntry.first))
+      if (myRenderer.IsFenceDone(waitingEntry.first))
       {
         myAvailablePages.push_back(waitingEntry.second);
         myWaitingPages.pop_front();
@@ -153,9 +152,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     ID3D12Resource* resource;
 
-    Renderer& renderer = Renderer::getInstance();
     CheckD3Dcall(
-      renderer.GetDevice()->CreateCommittedResource(
+      myRenderer.GetDevice()->CreateCommittedResource(
         &heapProperties, 
         D3D12_HEAP_FLAG_NONE, 
         &resourceDesc, 

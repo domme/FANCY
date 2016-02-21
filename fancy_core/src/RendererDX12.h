@@ -6,6 +6,7 @@
 
 #if defined (RENDERER_DX12)
 
+#include "TextureDX12.h"
 #include "FenceDX12.h"
 #include "RenderContextDX12.h"
 #include "CommandAllocatorPoolDX12.h"
@@ -51,7 +52,7 @@ class DescriptorHeapPoolDX12;
     static const uint kBackbufferCount = 2u;
     ComPtr<ID3D12Device> myDevice;
     ComPtr<IDXGISwapChain3> mySwapChain;
-    GpuResourceDX12 myBackbuffers[kBackbufferCount];
+    TextureDX12 myBackbuffers[kBackbufferCount];
     ComPtr<ID3D12CommandQueue> myCommandQueue;
 	};
 //---------------------------------------------------------------------------//

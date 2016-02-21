@@ -45,19 +45,19 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     explicit DescriptorHeapPoolDX12(RendererDX12& aRenderer);
     ~DescriptorHeapPoolDX12();
 
-    DescriptorHeapDX12* GetGpuHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE);
-    void ReleaseGpuHeap(uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap);
+    DescriptorHeapDX12* AllocateShaderVisibleHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE);
+    void ReleaseShaderVisibleHeap(uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap);
 
-    DescriptorHeapDX12* GetCpuVisibleHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return &myCpuVisibleHeaps[aType]; }
+    DescriptorHeapDX12* GetCpuHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return &myCpuHeaps[aType]; }
     
   private:
     RendererDX12& myRenderer;
 
-    DescriptorHeapDX12 myCpuVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    DescriptorHeapDX12 myCpuHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 
-    std::vector<std::unique_ptr<DescriptorHeapDX12>> myDescriptorHeapPool;
-    std::deque<DescriptorHeapDX12*> myAvailableGpuVisibleHeaps;
-    std::queue<std::pair<uint64, DescriptorHeapDX12*>> myUsedGpuVisibleHeaps;
+    std::vector<std::unique_ptr<DescriptorHeapDX12>> myShaderVisibleHeapPool;
+    std::deque<DescriptorHeapDX12*> myAvailableShaderVisibleHeaps;
+    std::queue<std::pair<uint64, DescriptorHeapDX12*>> myUsedShaderVisibleHeaps;
   };
 //---------------------------------------------------------------------------//
 } } }

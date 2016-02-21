@@ -90,7 +90,7 @@ class DescriptorHeapDX12;
     void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
     void InitBufferData(GpuResourceDX12* aBuffer, void* aDataPtr);
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
-    void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, float* aColor);
+    void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, const float* aColor);
     void TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow = false);
 
   protected:

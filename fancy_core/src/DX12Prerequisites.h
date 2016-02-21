@@ -8,8 +8,10 @@
 
 using namespace Microsoft::WRL;  // Too ugly?!
 
-void CheckD3Dcall(HRESULT aResult)
-{
-  if (aResult != S_OK)
-    throw;
+namespace {
+  void CheckD3Dcall(HRESULT aResult)
+  {
+    if (aResult != S_OK)
+      throw;
+  }
 }

@@ -31,6 +31,9 @@ namespace Fancy {
     static void setRenderingProcess(Rendering::RenderingProcess* _pRenderingProcess);
     static void setWindowSize(uint32 _uWidth, uint32 _uHeight);
 
+    static Rendering::Renderer* GetRenderer();
+    static Rendering::RenderingProcess* GetRenderingProcess();
+
   private:
     EngineCommon();
 
@@ -38,11 +41,9 @@ namespace Fancy {
     static void initRenderingSubsystem(void* aNativeWindowHandle);
     static void ShutdownRenderingSubsystem();
     static void initIOsubsystem();
-
-    static Scene::ScenePtr m_pCurrScene;
-    static Rendering::RenderingProcess* m_pRenderingProcess;
-    static Rendering::Renderer* ourRenderer;
   };
+//---------------------------------------------------------------------------//
+   
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
 

@@ -19,10 +19,10 @@
 #include "LightComponent.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  Scene::ScenePtr EngineCommon::m_pCurrScene = nullptr;
-  Rendering::RenderingProcess* EngineCommon::m_pRenderingProcess = nullptr;
-  Rendering::Renderer* EngineCommon::ourRenderer = nullptr;
+  Scene::ScenePtr m_pCurrScene = nullptr;
+  Rendering::RenderingProcess* m_pRenderingProcess = nullptr;
+  Rendering::Renderer* ourRenderer = nullptr;
+
 //---------------------------------------------------------------------------//
   EngineCommon::EngineCommon()
   {
@@ -59,10 +59,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void EngineCommon::initRenderingSubsystem(void* aNativeWindowHandle)
   {
+    ourRenderer = new Rendering::Renderer(aNativeWindowHandle);
+    
     Rendering::RenderingSubsystem::InitPlatform();
     Rendering::RenderingSubsystem::Init();
     
-    ourRenderer = new Rendering::Renderer(aNativeWindowHandle);
     ourRenderer->postInit();
   }
 //---------------------------------------------------------------------------//
@@ -82,11 +83,21 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void EngineCommon::setWindowSize(uint32 _uWidth, uint32 _uHeight)
   {
-    const glm::uvec4& viewportParams = ourRenderer->GetDefaultContext().getViewport();
+    const glm::uvec4& viewportParams = ourRenderer->GetDefaultContext()->getViewport();
     if(viewportParams.z != _uWidth || viewportParams.w != _uHeight)
     {
-      ourRenderer->GetDefaultContext().setViewport(glm::uvec4(viewportParams.x, viewportParams.y, _uWidth, _uHeight));
+      ourRenderer->GetDefaultContext()->setViewport(glm::uvec4(viewportParams.x, viewportParams.y, _uWidth, _uHeight));
     }
+  }
+//---------------------------------------------------------------------------//
+  Rendering::Renderer* EngineCommon::GetRenderer()
+  {
+    return ourRenderer;
+  }
+//---------------------------------------------------------------------------//
+  Rendering::RenderingProcess* EngineCommon::GetRenderingProcess()
+  {
+    return m_pRenderingProcess;
   }
 //---------------------------------------------------------------------------//
   void EngineCommon::startup()
@@ -109,7 +120,7 @@ namespace Fancy {
     m_pCurrScene->update(deltaTime);
 
     ourRenderer->beginFrame();
-    m_pRenderingProcess->tick(deltaTime);
+    // m_pRenderingProcess->tick(deltaTime);
     ourRenderer->endFrame();
   }
 //---------------------------------------------------------------------------//

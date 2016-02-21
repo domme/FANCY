@@ -1,5 +1,6 @@
 #include "GpuBufferDX12.h"
 #include "Renderer.h"
+#include "EngineCommon.h"
 
 #if defined (RENDERER_DX12)
 
@@ -33,7 +34,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     destroy();
 
-    RendererDX12& renderer = Renderer::getInstance();
+    RendererDX12* renderer = EngineCommon::GetRenderer();
 
     ASSERT_M(someParameters.uElementSizeBytes > 0 && someParameters.uNumElements > 0,
       "Invalid buffer size specified");
@@ -41,29 +42,29 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     GpuBufferCreationParams* pBaseParams = &myParameters;
     *pBaseParams = someParameters;
     
-    D3D12_RESOURCE_STATES resourceStates = D3D12_RESOURCE_STATE_COMMON;
+    myUsageState = D3D12_RESOURCE_STATE_COMMON;
     
     switch (someParameters.ePrimaryUsageType)
     {
       case GpuBufferUsage::CONSTANT_BUFFER: 
       case GpuBufferUsage::VERTEX_BUFFER:
-        resourceStates |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+        myUsageState |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
         break;
       case GpuBufferUsage::INDEX_BUFFER: 
-        resourceStates |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
+        myUsageState |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
         break;
       case GpuBufferUsage::DRAW_INDIRECT_BUFFER: 
       case GpuBufferUsage::DISPATCH_INDIRECT_BUFFER:
-        resourceStates |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+        myUsageState |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
         break;
       case GpuBufferUsage::RESOURCE_BUFFER: 
       case GpuBufferUsage::RESOURCE_BUFFER_LARGE:
-        resourceStates |= 
+        myUsageState |=
           D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
         break;
       case GpuBufferUsage::RESOURCE_BUFFER_RW:
       case GpuBufferUsage::RESOURCE_BUFFER_LARGE_RW:
-        resourceStates |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        myUsageState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
        break;
       default: break;
     }
@@ -79,6 +80,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapProps.VisibleNodeMask = 1u;
 
     D3D12_RESOURCE_DESC resourceDesc;
+    memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
     resourceDesc.Alignment = 0;
     resourceDesc.Width = someParameters.uNumElements * someParameters.uElementSizeBytes;
@@ -88,6 +90,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
     resourceDesc.Flags = wantsUnorderedAccess ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
     const bool wantsCpuWrite = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
@@ -109,11 +112,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
       myUsageState = D3D12_RESOURCE_STATE_GENERIC_READ;
-
+      
       if (!wantsCpuWrite && !wantsCpuRead)
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
       else if (wantsCpuRead)
         heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+      else  // wants write
+        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     }
     else if (!wantsCpuWrite && wantsCpuRead)
     {
@@ -122,11 +127,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myUsageState = D3D12_RESOURCE_STATE_COPY_DEST;
     }
 
-    CheckD3Dcall(renderer.GetDevice()->CreateCommittedResource(
+    CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(
       &heapProps, 
       D3D12_HEAP_FLAG_NONE, 
       &resourceDesc, 
-      resourceStates, 
+      myUsageState, 
       nullptr, IID_PPV_ARGS(&myResource)));
 
     if (pInitialData != nullptr)
@@ -140,7 +145,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       }
       else
       {
-        renderer.InitBufferData(this, pInitialData);
+        // renderer->InitBufferData(this, pInitialData);
       }
     }
   }

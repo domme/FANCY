@@ -49,17 +49,6 @@ public:
     return hash;
   }
 //---------------------------------------------------------------------------//
-  static uint32 floatToUintBits(float _fVal)
-  {
-    STATIC_ASSERT(sizeof(uint32) == sizeof(float), "Sizes don't match (unsupported platform?)");
-
-    uint32 floatBits = 0x0;
-    uint8* const pFloatBits = reinterpret_cast<uint8*>(&floatBits);
-    std::copy(pFloatBits, pFloatBits + sizeof(float), reinterpret_cast<uint8*>(&_fVal));
-
-    return floatBits;
-  }
-//---------------------------------------------------------------------------//
 private:
   MathUtil();
   ~MathUtil();

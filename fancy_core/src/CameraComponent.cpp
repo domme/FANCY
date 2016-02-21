@@ -2,6 +2,7 @@
 #include "SceneNode.h"
 #include "Renderer.h"
 #include "Serializer.h"
+#include "EngineCommon.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
@@ -110,8 +111,9 @@ namespace Fancy { namespace Scene {
     float hFar = 2.0f * h2Far;
     float hNear = 2.0f * h2Near;
     
-    float aspect = (float) Rendering::Renderer::getInstance().getViewport().z /
-      (float) Rendering::Renderer::getInstance().getViewport().w;
+    Rendering::Renderer* renderer = EngineCommon::GetRenderer();
+    float aspect = (float)renderer->GetDefaultContext()->getViewport().z /
+      (float)renderer->GetDefaultContext()->getViewport().w;
     float w2Far = ( hFar * aspect ) / 2.0f;
     float w2Near = ( hNear * aspect ) / 2.0f;
 

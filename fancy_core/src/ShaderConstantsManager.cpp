@@ -14,7 +14,7 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  ShaderConstantsUpdateStage ShaderConstantsManager::updateStage = {0u};
+  ShaderConstantsUpdateStage ShaderConstantsManager::updateStage;
 //---------------------------------------------------------------------------//
   struct CBuffer_PER_VIEWPORT
   {
@@ -71,8 +71,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void locUpdatePerViewportData( uint8* _pData, const ShaderConstantsUpdateStage& _updateStage )
   {
-    ASSERT(_updateStage.pRenderer);
-    const glm::uvec4& uvViewportParams = _updateStage.pRenderer->getViewport();
+    ASSERT(_updateStage.myRenderContext);
+    const glm::uvec4& uvViewportParams = _updateStage.myRenderContext->getViewport();
 
     CBuffer_PER_VIEWPORT cBuffer;
     cBuffer.c_RenderTargetSize =
@@ -300,12 +300,12 @@ namespace Fancy { namespace Rendering {
     //ASSERT_M(locConstantBuffers[uBufferTypeIdx]->getTotalSizeBytes() == _requiredSizeBytes, "Requested the same constant buffer with two different sizes");
   }
 //---------------------------------------------------------------------------//
-  void ShaderConstantsManager::bindBuffers(Rendering::Renderer* _pRenderer)
+  void ShaderConstantsManager::bindBuffers(Rendering::RenderContext* aRenderContext)
   {
     for (uint32 iConstantBuffer = 0u; iConstantBuffer < (uint32) ConstantBufferType::NUM; ++iConstantBuffer)
     {
       const GpuBuffer* pConstantBuffer = locConstantBuffers[iConstantBuffer];
-      _pRenderer->setConstantBuffer(pConstantBuffer, iConstantBuffer);
+      aRenderContext->setConstantBuffer(pConstantBuffer, iConstantBuffer);
     }
   }
 //---------------------------------------------------------------------------//

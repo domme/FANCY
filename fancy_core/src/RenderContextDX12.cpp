@@ -182,6 +182,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
 
+  std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
 //---------------------------------------------------------------------------//
   RenderContextDX12::RenderContextDX12(Renderer& aRenderer) 
     : myRenderer(aRenderer)
@@ -193,9 +194,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myRootSignature(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
-    , myCpuVisibleAllocator(GpuDynamicAllocatorType::CpuWritable)
-    , myGpuOnlyAllocator(GpuDynamicAllocatorType::GpuOnly)
-    , myIsInRecordState(false)
+    , myCpuVisibleAllocator(aRenderer, GpuDynamicAllocatorType::CpuWritable)
+    , myGpuOnlyAllocator(aRenderer, GpuDynamicAllocatorType::GpuOnly)
+    , myIsInRecordState(true)
   {
     memset(myDescriptorHeaps, 0u, sizeof(myDescriptorHeaps));
 
@@ -206,9 +207,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CheckD3Dcall(
       device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
         myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
-      );
-
-    myIsInRecordState = true;
+      );    
   }
 //---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
@@ -232,7 +231,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (myIsInRecordState)
       return;
     
-    ASSERT_M(nullptr != myCommandAllocator, "myIsInRecordState-flag out of sync");
+    ASSERT_M(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
 
     myCommandAllocator = myCommandAllocatorPool.GetNewAllocator();
     ASSERT(myCommandAllocator != nullptr);
@@ -275,7 +274,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ApplyDescriptorHeaps();
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, float* aColor)
+  void RenderContextDX12::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, const float* aColor)
   {
     myCommandList->ClearRenderTargetView(aRTV, aColor, 0, nullptr);
   }
@@ -306,12 +305,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderContextDX12::ApplyDescriptorHeaps()
   {
     ID3D12DescriptorHeap* heapsToBind[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    memset(heapsToBind, 0, sizeof(heapsToBind));
     uint32 numHeapsToBind = 0u;
     
     for(ID3D12DescriptorHeap* heap : myDescriptorHeaps)
       if (heap != nullptr)
         heapsToBind[numHeapsToBind++] = heap;
-
+    
     if (numHeapsToBind > 0u)
       myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
   }

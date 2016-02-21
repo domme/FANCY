@@ -12,6 +12,7 @@ namespace Fancy { namespace Rendering {
   struct ConstantBufferElement;
   class Renderer;
   class MaterialPassInstance;
+  class RenderContext;
 } }
 
 namespace Fancy { namespace Scene {
@@ -40,7 +41,14 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct ShaderConstantsUpdateStage
   {
-    const Renderer* pRenderer;
+    ShaderConstantsUpdateStage() 
+    : myRenderContext(nullptr)
+    , pWorldMat(nullptr)
+    , pCamera(nullptr)
+    , pMaterial(nullptr)
+    , pLight(nullptr) {}
+
+    const RenderContext* myRenderContext;
     const glm::mat4* pWorldMat;
     const Scene::CameraComponent* pCamera;
     const MaterialPassInstance* pMaterial;
@@ -61,7 +69,7 @@ namespace Fancy { namespace Rendering {
       static void CreateBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes);
 
       /// Binds all constant buffers to the pipeline
-      static void bindBuffers(Rendering::Renderer* _pRenderer);
+      static void bindBuffers(Rendering::RenderContext* aRenderContext);
 
       static ConstantBufferType getConstantBufferTypeFromName(const ObjectName& clName);
 

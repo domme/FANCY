@@ -30,14 +30,14 @@ namespace Fancy { namespace Rendering {
   void RenderingProcessForward::tick(float _dt)
   {
     Scene::Scene* pScene = EngineCommon::getCurrentScene().get();
-    Renderer& renderer = Renderer::getInstance();
+    Renderer& renderer = *EngineCommon::GetRenderer();
 
     Scene::SceneRenderDescription renderDesc;
     pScene->gatherRenderItems(&renderDesc);
 
-    ShaderConstantsManager::bindBuffers(&renderer);
+    ShaderConstantsManager::bindBuffers(renderer.GetDefaultContext());
 
-    ShaderConstantsManager::updateStage.pRenderer = &renderer;
+    ShaderConstantsManager::updateStage.myRenderContext = renderer.GetDefaultContext();
     ShaderConstantsManager::update(ConstantBufferType::PER_FRAME);
 
     ShaderConstantsManager::updateStage.pCamera = pScene->getActiveCamera();
@@ -74,7 +74,8 @@ namespace Fancy { namespace Rendering {
 
         myGpuDataInterface->applyMaterialPassInstance(renderItem.pMaterialPassInstance, &renderer);
 
-        renderer.renderGeometry(renderItem.pGeometry);
+        // TODO: Do this with RenderContexts
+        // renderer.renderGeometry(renderItem.pGeometry);
       }  // end renderItems
     }  // end lights
   }

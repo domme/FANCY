@@ -8,6 +8,7 @@
 #include "GpuProgramCompiler.h"
 #include "DescriptorHeapPoolDX12.h"
 #include "Renderer.h"
+#include "RenderContext.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
 
@@ -84,15 +85,18 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RendererDX12::CreateBackbufferResources()
   {
-    DescriptorHeapDX12* rtvHeapCpu = myDescriptorHeapPool->GetCpuVisibleHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
+    DescriptorHeapDX12* rtvHeapCpu = myDescriptorHeapPool->GetCpuHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeapCpu->GetCpuHeapStart();
+    
     for (UINT n = 0; n < kBackbufferCount; n++)
     {
-      GpuResourceDX12& backbufferResource = myBackbuffers[n];
+      TextureDX12& backbufferResource = myBackbuffers[n];
+      backbufferResource.myUsageState = D3D12_RESOURCE_STATE_PRESENT;
 
-      mySwapChain->GetBuffer(n, IID_PPV_ARGS(&myBackbuffers[n].myResource));
-      myDevice->CreateRenderTargetView(myBackbuffers[n].Get(), nullptr, rtvHandle);
+      CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource.myResource)));
+      myDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, rtvHandle);
+      backbufferResource.myRtv = rtvHandle;
+      
       rtvHandle.ptr += rtvHeapCpu->GetHandleIncrementSize();
     }
   }
@@ -118,38 +122,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 	void RendererDX12::endFrame()
 	{
-    DescriptorHeapDX12* rtvHeap = myDescriptorHeapPool->GetCpuVisibleHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    myDefaultContext->SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, rtvHeap);
+    DescriptorHeapDX12* rtvHeap = myDescriptorHeapPool->GetCpuHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    //myDefaultContext->SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, rtvHeap);
 
-    // Move this part to rendering
-    ////////////////////////////////////////////////////////////////////////////////
-    D3D12_RESOURCE_BARRIER bbBarrier;
-    bbBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    bbBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    bbBarrier.Transition.pResource = myBackbuffers[myCurrBackbufferIndex].Get();
-    bbBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-    bbBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    bbBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    cmdList->ResourceBarrier(1, &bbBarrier);
-
-    D3D12_CPU_DESCRIPTOR_HANDLE backbufferHandle = myRtvHeap->GetCPUDescriptorHandleForHeapStart();
-    backbufferHandle.ptr += myCurrBackbufferIndex * myRtvDescriptorSize;
-
-    const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-    cmdList->ClearRenderTargetView(backbufferHandle, clearColor, 0, nullptr);
-
-    bbBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    bbBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-    cmdList->ResourceBarrier(1, &bbBarrier);
+    TextureDX12& currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
+    myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
     
-    cmdList->Close();
-    ////////////////////////////////////////////////////////////////////////////////
+    const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+    myDefaultContext->ClearRenderTargetView(currBackbuffer.GetRTV(), clearColor);
 
-    ID3D12CommandList* commandLists[] = { cmdList.Get() };
-    myCommandQueue->ExecuteCommandLists(1, commandLists);
+    myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
+    
+    myDefaultContext->ExecuteAndReset(false);
+
     mySwapChain->Present(1, 0);
-
-    myFrameDone.signal(myCommandQueue.Get());
 	}
 //---------------------------------------------------------------------------//
   void RendererDX12::WaitForFence(uint64 aFenceVal)
