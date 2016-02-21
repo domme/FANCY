@@ -1,6 +1,6 @@
 #include <windows.h>
 
-#include <EngineCommon.h>
+#include <Fancy.h>
 
 #include "Prerequisites.h"
 #include "WindowDX12.h"
@@ -31,10 +31,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
 	ourWindow.myResizeCallback = onWindowResize;
 
-  Fancy::EngineCommon::initEngine(&ourWindow.myWindowHandle);
-  Fancy::EngineCommon::setCurrentScene(std::make_shared<Fancy::Scene::Scene>());
-  Fancy::EngineCommon::setRenderingProcess(new Fancy::Rendering::RenderingProcessForward);
-  Fancy::EngineCommon::startup();
+  Fancy::Init(&ourWindow.myWindowHandle);
+  Fancy::SetCurrentScene(std::make_shared<Fancy::Scene::Scene>());
+  Fancy::SetRenderingProcess(new Fancy::Rendering::RenderingProcessForward);
+  Fancy::Startup();
 
 	MSG msg = { 0 };
 	while (true)
@@ -49,7 +49,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 				break;
 		}
 
-    Fancy::EngineCommon::update(0.0);
+    Fancy::Update(0.0);
 	}
 
 	return 0;

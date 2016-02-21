@@ -6,7 +6,7 @@
 #include "PathService.h"
 #include "RootSignatureDX12.h"
 #include "ShaderConstantsManager.h"
-#include "EngineCommon.h"
+#include "Fancy.h"
 
 #if defined (RENDERER_DX12)
 
@@ -578,7 +578,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return false;
     }
     
-    ID3D12Device* d3dDevice = EngineCommon::GetRenderer()->GetDevice();
+    ID3D12Device* d3dDevice = Fancy::GetRenderer()->GetDevice();
 
     ComPtr<ID3D12RootSignature> rootSignature;
     sucess = d3dDevice->CreateRootSignature(0u, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));

@@ -320,7 +320,7 @@
     <ClInclude Include="src\DebugOutStream.h" />
     <ClInclude Include="src\DepthStencilState.h" />
     <ClInclude Include="src\DX12Prerequisites.h" />
-    <ClInclude Include="src\EngineCommon.h" />
+    <ClInclude Include="src\Fancy.h" />
     <ClInclude Include="src\Events.h" />
     <ClInclude Include="src\FancyCorePrerequisites.h" />
     <ClInclude Include="src\FenceDX12.h" />
@@ -426,7 +426,7 @@
     <ClCompile Include="src\ComputeOperation.cpp" />
     <ClCompile Include="src\DebugOutStream.cpp" />
     <ClCompile Include="src\DepthStencilState.cpp" />
-    <ClCompile Include="src\EngineCommon.cpp" />
+    <ClCompile Include="src\Fancy.cpp" />
     <ClCompile Include="src\FenceDX12.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\GpuBufferGL4.cpp" />

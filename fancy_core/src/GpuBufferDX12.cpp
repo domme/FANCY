@@ -1,6 +1,6 @@
 #include "GpuBufferDX12.h"
 #include "Renderer.h"
-#include "EngineCommon.h"
+#include "Fancy.h"
 
 #if defined (RENDERER_DX12)
 
@@ -34,7 +34,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     destroy();
 
-    RendererDX12* renderer = EngineCommon::GetRenderer();
+    RendererDX12* renderer = Fancy::GetRenderer();
 
     ASSERT_M(someParameters.uElementSizeBytes > 0 && someParameters.uNumElements > 0,
       "Invalid buffer size specified");

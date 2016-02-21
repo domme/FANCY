@@ -13,7 +13,7 @@
 #include <Scene.h>
 #include <SceneNode.h>
 #include <CameraComponent.h>
-#include <EngineCommon.h>
+#include <Fancy.h>
 #include <SceneImporter.h>
 #include <RenderingProcessForward.h>
 #include <ObjectName.h>
@@ -32,13 +32,13 @@ glm::vec3 cameraMovement(0.0f, 0.0f, 0.0f);
 
 void startupEngine()
 {
-  Fancy::EngineCommon::initEngine(nullptr);
+  Fancy::Fancy::initEngine(nullptr);
 
   Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
-  EngineCommon::setCurrentScene(pScene);
+  Fancy::setCurrentScene(pScene);
 
   pRenderProcessFwd = new Rendering::RenderingProcessForward;
-  EngineCommon::setRenderingProcess(pRenderProcessFwd);
+  Fancy::setRenderingProcess(pRenderProcessFwd);
 
   Scene::SceneNode* pCameraNode = pScene->getRootNode()->createChildNode(_N(CameraNode));
   pCameraComponent = static_cast<Scene::CameraComponent*>(pCameraNode->addOrRetrieveComponent(_N(CameraComponent)));
@@ -52,12 +52,12 @@ void startupEngine()
   Scene::SceneNode* pLightNode = pScene->getRootNode()->createChildNode(_N(LightNode));
   Scene::LightComponent* pLight = static_cast<Scene::LightComponent*>(pLightNode->addOrRetrieveComponent(_N(LightComponent)));
 
-  EngineCommon::startup();
+  Fancy::startup();
 }
 
 void updateWindowSize(int width, int height)
 {
-  Fancy::EngineCommon::setWindowSize(width, height);
+  Fancy::Fancy::setWindowSize(width, height);
   pCameraComponent->setProjectionPersp(45.0f, width, height, 1.0f, 1000.0f);
 }
 
@@ -185,7 +185,7 @@ static void moveCamera()
 
 void shutdownEngine()
 {
-  Fancy::EngineCommon::shutdownEngine();
+  Fancy::Fancy::shutdownEngine();
 
   if (pRenderProcessFwd)
   {
@@ -252,7 +252,7 @@ int main(void)
     moveCamera();
 
     double currTime = glfwGetTime();
-    Fancy::EngineCommon::update(currTime - lastTime);
+    Fancy::Fancy::update(currTime - lastTime);
   
     glfwSwapBuffers(window);
     glfwPollEvents();

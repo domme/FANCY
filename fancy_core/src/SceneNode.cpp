@@ -2,7 +2,7 @@
 #include "SceneNode.h"
 #include "SceneNodeComponentFactory.h"
 #include "SceneRenderDescription.h"
-#include "EngineCommon.h"
+#include "Fancy.h"
 #include "Serializer.h"
 
 namespace Fancy { namespace Scene {
@@ -297,7 +297,7 @@ namespace Fancy { namespace Scene {
       m_pCameraComponent = static_cast<CameraComponent*>(pComponent.get());
     }
 
-    EngineCommon::getCurrentScene()->onComponentAdded(pComponent.get());
+    Fancy::GetCurrentScene()->onComponentAdded(pComponent.get());
   }
 //---------------------------------------------------------------------------//
   void SceneNode::onComponentRemoved(const SceneNodeComponentPtr& pComponent )
@@ -310,7 +310,7 @@ namespace Fancy { namespace Scene {
       m_pCameraComponent = nullptr;
     }
 
-    EngineCommon::getCurrentScene()->onComponentRemoved(pComponent.get());
+    Fancy::GetCurrentScene()->onComponentRemoved(pComponent.get());
   }
 //---------------------------------------------------------------------------//
   

@@ -1,4 +1,4 @@
-#include "EngineCommon.h"
+#include "Fancy.h"
 
 #include "Scene.h"
 #include "SceneNode.h"
@@ -23,18 +23,31 @@ namespace Fancy {
   Rendering::RenderingProcess* m_pRenderingProcess = nullptr;
   Rendering::Renderer* ourRenderer = nullptr;
 
-//---------------------------------------------------------------------------//
-  EngineCommon::EngineCommon()
+  void initComponentSubsystem()
   {
-
+    Scene::SceneNodeComponentFactory::registerFactory(_N(ModelComponent), Scene::ModelComponent::create);
+    Scene::SceneNodeComponentFactory::registerFactory(_N(CameraComponent), Scene::CameraComponent::create);
+    Scene::SceneNodeComponentFactory::registerFactory(_N(LightComponent), Scene::LightComponent::create);
+    // Scene::SceneNodeComponentFactory::registerFactory(_N(CameraControllerComponent), Scene::CameraControllerComponent::create);
   }
-//---------------------------------------------------------------------------//
-  EngineCommon::~EngineCommon()
+
+  void initRenderingSubsystem(void* aNativeWindowHandle)
   {
+    ourRenderer = new Rendering::Renderer(aNativeWindowHandle);
 
+    Rendering::RenderingSubsystem::InitPlatform();
+    Rendering::RenderingSubsystem::Init();
+
+    ourRenderer->postInit();
   }
-//---------------------------------------------------------------------------//
-  bool EngineCommon::initEngine(void* aNativeWindowHandle)
+
+  void initIOsubsystem()
+  {
+    IO::PathService::SetResourceLocation("../../../resources/");
+    IO::SceneImporter::initLogger();
+  }
+
+  bool Init(void* aNativeWindowHandle)
   {
     initIOsubsystem();
     initComponentSubsystem();
@@ -42,32 +55,8 @@ namespace Fancy {
     
     return true;
   }
-//---------------------------------------------------------------------------//
-  void EngineCommon::shutdownEngine()
-  {
-    IO::SceneImporter::destroyLogger();
-    ShutdownRenderingSubsystem();
-  }
-//---------------------------------------------------------------------------//
-  void EngineCommon::initComponentSubsystem()
-  {
-    Scene::SceneNodeComponentFactory::registerFactory(_N(ModelComponent), Scene::ModelComponent::create);
-    Scene::SceneNodeComponentFactory::registerFactory(_N(CameraComponent), Scene::CameraComponent::create);
-    Scene::SceneNodeComponentFactory::registerFactory(_N(LightComponent), Scene::LightComponent::create);
-    // Scene::SceneNodeComponentFactory::registerFactory(_N(CameraControllerComponent), Scene::CameraControllerComponent::create);
-  }
-//---------------------------------------------------------------------------//
-  void EngineCommon::initRenderingSubsystem(void* aNativeWindowHandle)
-  {
-    ourRenderer = new Rendering::Renderer(aNativeWindowHandle);
-    
-    Rendering::RenderingSubsystem::InitPlatform();
-    Rendering::RenderingSubsystem::Init();
-    
-    ourRenderer->postInit();
-  }
-//---------------------------------------------------------------------------//
-  void EngineCommon::ShutdownRenderingSubsystem()
+
+  void ShutdownRenderingSubsystem()
   {
     Rendering::RenderingSubsystem::Shutdown();
     Rendering::RenderingSubsystem::ShutdownPlatform();
@@ -75,13 +64,13 @@ namespace Fancy {
     SAFE_DELETE(ourRenderer);
   }
 //---------------------------------------------------------------------------//
-  void EngineCommon::initIOsubsystem()
+  void Shutdown()
   {
-    IO::PathService::SetResourceLocation("../../../resources/");
-    IO::SceneImporter::initLogger();
+    IO::SceneImporter::destroyLogger();
+    ShutdownRenderingSubsystem();
   }
 //---------------------------------------------------------------------------//
-  void EngineCommon::setWindowSize(uint32 _uWidth, uint32 _uHeight)
+  void SetWindowSize(uint32 _uWidth, uint32 _uHeight)
   {
     const glm::uvec4& viewportParams = ourRenderer->GetDefaultContext()->getViewport();
     if(viewportParams.z != _uWidth || viewportParams.w != _uHeight)
@@ -90,17 +79,17 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  Rendering::Renderer* EngineCommon::GetRenderer()
+  Rendering::Renderer* GetRenderer()
   {
     return ourRenderer;
   }
 //---------------------------------------------------------------------------//
-  Rendering::RenderingProcess* EngineCommon::GetRenderingProcess()
+  Rendering::RenderingProcess* GetRenderingProcess()
   {
     return m_pRenderingProcess;
   }
 //---------------------------------------------------------------------------//
-  void EngineCommon::startup()
+  void Startup()
   {
     ASSERT_M(m_pCurrScene, "No scene set");
     ASSERT_M(m_pRenderingProcess, "No rendering process set");
@@ -109,7 +98,7 @@ namespace Fancy {
     m_pCurrScene->startup();
   }
 //---------------------------------------------------------------------------//
-  void EngineCommon::update(double _dt)
+  void Update(double _dt)
   {
     ASSERT_M(m_pCurrScene, "No scene set");
     ASSERT_M(m_pRenderingProcess, "No rendering process set");
@@ -124,17 +113,17 @@ namespace Fancy {
     ourRenderer->endFrame();
   }
 //---------------------------------------------------------------------------//
-  void EngineCommon::setCurrentScene( const Scene::ScenePtr& _pScene )
+  void SetCurrentScene( const Scene::ScenePtr& _pScene )
   {
     m_pCurrScene = _pScene;
   }
 //---------------------------------------------------------------------------//
-  const Scene::ScenePtr& EngineCommon::getCurrentScene()
+  const Scene::ScenePtr& GetCurrentScene()
   {
     return m_pCurrScene;
   }
 //---------------------------------------------------------------------------//
-  void EngineCommon::setRenderingProcess( Rendering::RenderingProcess* _pRenderingProcess )
+  void SetRenderingProcess( Rendering::RenderingProcess* _pRenderingProcess )
   {
     m_pRenderingProcess = _pRenderingProcess;
   }

@@ -2,7 +2,7 @@
 #include "Renderer.h"
 #include "ShaderConstantsManager.h"
 #include "Scene.h"
-#include "EngineCommon.h"
+#include "Fancy.h"
 #include "SceneRenderDescription.h"
 #include "MaterialPass.h"
 #include "LightComponent.h"
@@ -29,8 +29,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::tick(float _dt)
   {
-    Scene::Scene* pScene = EngineCommon::getCurrentScene().get();
-    Renderer& renderer = *EngineCommon::GetRenderer();
+    Scene::Scene* pScene = Fancy::GetCurrentScene().get();
+    Renderer& renderer = *Fancy::GetRenderer();
 
     Scene::SceneRenderDescription renderDesc;
     pScene->gatherRenderItems(&renderDesc);
