@@ -20,7 +20,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CreateDeviceAndSwapChain(aNativeWindowHandle);
     
     myCommandAllocatorPool = new CommandAllocatorPoolDX12(*static_cast<Renderer*>(this), D3D12_COMMAND_LIST_TYPE_DIRECT);
-    myDefaultContext = new RenderContext(*static_cast<Renderer*>(this));
+    myDefaultContext = new RenderContext();
     myDescriptorHeapPool = new DescriptorHeapPoolDX12(*this);
     
     CreateBackbufferResources();
@@ -32,7 +32,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     SAFE_DELETE(myCommandAllocatorPool);
     SAFE_DELETE(myDescriptorHeapPool);
 	}
-//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------// 
   uint64 RendererDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
   {
     myFence.wait();

@@ -6,6 +6,9 @@
 #include "GpuProgram.h"
 #include "Renderer.h"
 #include "DescriptorHeapPoolDX12.h"
+#include <unordered_set>
+#include "GpuBuffer.h"
+#include "Fancy.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -181,12 +184,39 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return psoDesc;
   }
 //---------------------------------------------------------------------------//
-
+  namespace {
+    std::vector<std::unique_ptr<RenderContextDX12>> locRenderContextPool;
+    std::list<RenderContextDX12*> locAvailableRenderContexts;
+  }
+//---------------------------------------------------------------------------//
   std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
 //---------------------------------------------------------------------------//
-  RenderContextDX12::RenderContextDX12(Renderer& aRenderer) 
-    : myRenderer(aRenderer)
-    , myCommandAllocatorPool(*aRenderer.GetCommandAllocatorPool())
+  RenderContextDX12* RenderContextDX12::AllocateContext()
+  {
+    if (!locAvailableRenderContexts.empty())
+    {
+      RenderContextDX12* context = locAvailableRenderContexts.front();
+      context->Reset();
+      locAvailableRenderContexts.pop_front();
+      return context;
+    }
+
+    locRenderContextPool.push_back(std::make_unique<RenderContextDX12>());
+    return locRenderContextPool.back().get();
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::FreeContext(RenderContextDX12* aContext)
+  {
+    if (std::find(locAvailableRenderContexts.begin(), locAvailableRenderContexts.end(), aContext)
+      != locAvailableRenderContexts.end())
+      return;
+
+    locAvailableRenderContexts.push_back(aContext);
+  }
+//---------------------------------------------------------------------------//
+  RenderContextDX12::RenderContextDX12()
+    : myRenderer(*Fancy::GetRenderer())
+    , myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
     , myPSOhash(0u)
     , myPSO(nullptr)
     , myViewportParams(0, 0, 1, 1)
@@ -194,8 +224,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myRootSignature(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
-    , myCpuVisibleAllocator(aRenderer, GpuDynamicAllocatorType::CpuWritable)
-    , myGpuOnlyAllocator(aRenderer, GpuDynamicAllocatorType::GpuOnly)
+    , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
+    , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
     , myIsInRecordState(true)
   {
     memset(myDescriptorHeaps, 0u, sizeof(myDescriptorHeaps));
@@ -444,12 +474,38 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount)
   {
-
+    
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::InitBufferData(GpuResourceDX12* aBuffer, void* aDataPtr)
+  void RenderContextDX12::InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr)
   {
+    RendererDX12* renderer = Fancy::GetRenderer();
+    
+    D3D12_HEAP_PROPERTIES heapProps;
+    memset(&heapProps, 0, sizeof(heapProps));
+    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+    heapProps.CreationNodeMask = 1;
+    heapProps.VisibleNodeMask = 1;
 
+    const D3D12_RESOURCE_DESC& resourceDesc = aBuffer->GetResourceDesc();
+
+    ComPtr<ID3D12Resource> uploadResource;
+    CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS, 
+      &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
+
+    void* mappedBufferPtr;
+    CheckD3Dcall(uploadResource->Map(0, nullptr, &mappedBufferPtr));
+    memcpy(mappedBufferPtr, aDataPtr, aBuffer->getTotalSizeBytes());
+    uploadResource->Unmap(0, nullptr);
+
+    RenderContextDX12* initContext = RenderContextDX12::AllocateContext();
+    myCommandList->CopyTextureRegion()
+    initContext->Cop
+    initContext->ExecuteAndReset(true);
+
+    uploadResource.Reset();
+    RenderContextDX12::FreeContext(initContext);
   }
 //---------------------------------------------------------------------------//
 #pragma region Pipeline Apply

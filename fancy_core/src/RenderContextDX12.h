@@ -57,8 +57,11 @@ class DescriptorHeapDX12;
       kMaxNumCachedResourceBarriers = 16
     };
 
-    explicit RenderContextDX12(Renderer& aRenderer);
+    RenderContextDX12();
     ~RenderContextDX12();
+
+    static RenderContextDX12* AllocateContext();
+    static void FreeContext(RenderContextDX12* aContext);
 
     void SetGraphicsRootSignature(ID3D12RootSignature* aRootSignature);
     void setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex);
@@ -87,13 +90,25 @@ class DescriptorHeapDX12;
     void Reset();
 
     // DX12-Specific stuff
+    static void InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr);
+
+    void CopyRegion(TextureDX12* aSrcTexture, TextureDX12* aDestTexture
+      _In_  const D3D12_TEXTURE_COPY_LOCATION *pDst,
+      UINT DstX,
+      UINT DstY,
+      UINT DstZ,
+      _In_  const D3D12_TEXTURE_COPY_LOCATION *pSrc,
+      _In_opt_  const D3D12_BOX *pSrcBox
+      
+      );
+
     void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
-    void InitBufferData(GpuResourceDX12* aBuffer, void* aDataPtr);
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
     void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, const float* aColor);
     void TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow = false);
 
   protected:
+    
     void applyViewport();
     void applyPipelineState();
     void ApplyDescriptorHeaps();
@@ -101,6 +116,7 @@ class DescriptorHeapDX12;
     void ReleaseAllocator(uint64 aFenceVal);
 
     static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
+    
     Renderer& myRenderer;
     CommandAllocatorPoolDX12& myCommandAllocatorPool;
 

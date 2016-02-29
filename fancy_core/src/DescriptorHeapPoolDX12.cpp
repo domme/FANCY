@@ -32,7 +32,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     : myRenderer(aRenderer)
   {
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
-    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     heapDesc.NumDescriptors = kMaxNumDescriptorsPerCpuHeap;
     heapDesc.NodeMask = 0;
 

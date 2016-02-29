@@ -134,6 +134,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myUsageState, 
       nullptr, IID_PPV_ARGS(&myResource)));
 
+    myResourceDesc = resourceDesc;
+
     if (pInitialData != nullptr)
     {
       if (wantsCpuWrite)  // The fast path: Just lock and memcpy into cpu-visible region
@@ -145,7 +147,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       }
       else
       {
-        // renderer->InitBufferData(this, pInitialData);
+        RenderContext::InitBufferData(this, pInitialData);
       }
     }
   }
