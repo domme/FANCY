@@ -476,6 +476,65 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     
   }
+
+  void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint32 aNumRows, uint32 aNumSlices)
+  {
+    for (uint32 iSlice = 0u; iSlice < aNumSlices; ++iSlice)
+    {
+      uint8* destSliceDataPtr = static_cast<uint8*>(aDest->pData) + aDest->SlicePitch * iSlice;
+      const uint8* srcSliceDataPtr = static_cast<const uint8*>(aSrc->pData) + aSrc->SlicePitch * iSlice;
+      for (uint32 iRow = 0u; iRow < aNumRows; ++iRow)
+      {
+        memcpy(destSliceDataPtr + aDest->RowPitch * iRow,
+          srcSliceDataPtr + aSrc->RowPitch * iRow,
+          aRowStrideBytes);
+      }
+    }
+  }
+
+  void locUpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas)
+  {
+    ID3D12Device* device;
+
+    D3D12_RESOURCE_DESC srcDesc = aSrcResource->GetDesc();
+    D3D12_RESOURCE_DESC destDesc = aDestResource->GetDesc();
+
+    //if (srcDesc.Dimension != destDesc.Dimension ||
+    //    srcDesc.DepthOrArraySize != destDesc.DepthOrArraySize || 
+    //    srcDesc.Width != destDesc.Width ||
+    //    srcDesc.Height != destDesc.Height)
+    //{
+    //  return;
+    //}
+
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* destLayouts = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * aNumSubresources));
+    uint64* destRowSizesByte = static_cast<uint64*>(alloca(sizeof(uint64) * aNumSubresources));
+    uint32* destRowNums = static_cast<uint32*>(alloca(sizeof(uint32) * aNumSubresources));
+
+    uint64 destTotalSizeBytes = 0u;
+    device->GetCopyableFootprints(&destDesc, aFirstSubresourceIndex, aNumSubresources, 0u, destLayouts, destRowNums, destRowSizesByte, &destTotalSizeBytes);
+
+      uint8* destData;
+    if (S_OK != aSrcResource->Map(0, nullptr, reinterpret_cast<void**>(&destData)))
+      return;
+
+    for (uint32 i = 0u; i < aNumSubresources; ++i)
+    {
+      D3D12_MEMCPY_DEST dest;
+      dest.pData = destData + destLayouts[i].Offset;
+      dest.RowPitch = destLayouts[i].Footprint.RowPitch;
+      dest.SlicePitch = destLayouts[i].Footprint.RowPitch * destRowNums[i];
+
+    }
+
+
+
+    
+    
+
+
+  }
+
 //---------------------------------------------------------------------------//
   void RenderContextDX12::InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr)
   {
@@ -500,8 +559,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uploadResource->Unmap(0, nullptr);
 
     RenderContextDX12* initContext = RenderContextDX12::AllocateContext();
-    myCommandList->CopyTextureRegion()
-    initContext->Cop
+    //myCommandList->CopyTextureRegion()
+    
     initContext->ExecuteAndReset(true);
 
     uploadResource.Reset();
