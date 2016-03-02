@@ -317,7 +317,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_RESOURCE_BARRIER barrier;
     barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Transition.pResource = aResource->GetResource().Get();
+    barrier.Transition.pResource = aResource->GetResource();
     barrier.Transition.StateBefore = aResource->GetUsageState();
     barrier.Transition.StateAfter = aDestState;
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
@@ -476,65 +476,90 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     
   }
-
-  void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint32 aNumRows, uint32 aNumSlices)
-  {
-    for (uint32 iSlice = 0u; iSlice < aNumSlices; ++iSlice)
+//---------------------------------------------------------------------------//
+  namespace {
+    void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint32 aNumRows, uint32 aNumSlices)
     {
-      uint8* destSliceDataPtr = static_cast<uint8*>(aDest->pData) + aDest->SlicePitch * iSlice;
-      const uint8* srcSliceDataPtr = static_cast<const uint8*>(aSrc->pData) + aSrc->SlicePitch * iSlice;
-      for (uint32 iRow = 0u; iRow < aNumRows; ++iRow)
+      for (uint32 iSlice = 0u; iSlice < aNumSlices; ++iSlice)
       {
-        memcpy(destSliceDataPtr + aDest->RowPitch * iRow,
-          srcSliceDataPtr + aSrc->RowPitch * iRow,
-          aRowStrideBytes);
+        uint8* destSliceDataPtr = static_cast<uint8*>(aDest->pData) + aDest->SlicePitch * iSlice;
+        const uint8* srcSliceDataPtr = static_cast<const uint8*>(aSrc->pData) + aSrc->SlicePitch * iSlice;
+        for (uint32 iRow = 0u; iRow < aNumRows; ++iRow)
+        {
+          memcpy(destSliceDataPtr + aDest->RowPitch * iRow,
+            srcSliceDataPtr + aSrc->RowPitch * iRow,
+            aRowStrideBytes);
+        }
       }
     }
   }
-
-  void locUpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas)
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, 
+    uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas)
   {
-    ID3D12Device* device;
-
-    D3D12_RESOURCE_DESC srcDesc = aSrcResource->GetDesc();
+    D3D12_RESOURCE_DESC srcDesc = aStagingResource->GetDesc();
     D3D12_RESOURCE_DESC destDesc = aDestResource->GetDesc();
-
-    //if (srcDesc.Dimension != destDesc.Dimension ||
-    //    srcDesc.DepthOrArraySize != destDesc.DepthOrArraySize || 
-    //    srcDesc.Width != destDesc.Width ||
-    //    srcDesc.Height != destDesc.Height)
-    //{
-    //  return;
-    //}
-
+    
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT* destLayouts = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * aNumSubresources));
     uint64* destRowSizesByte = static_cast<uint64*>(alloca(sizeof(uint64) * aNumSubresources));
     uint32* destRowNums = static_cast<uint32*>(alloca(sizeof(uint32) * aNumSubresources));
 
     uint64 destTotalSizeBytes = 0u;
-    device->GetCopyableFootprints(&destDesc, aFirstSubresourceIndex, aNumSubresources, 0u, destLayouts, destRowNums, destRowSizesByte, &destTotalSizeBytes);
+    myRenderer.GetDevice()->GetCopyableFootprints(&destDesc, aFirstSubresourceIndex, aNumSubresources, 0u, destLayouts, destRowNums, destRowSizesByte, &destTotalSizeBytes);
 
-      uint8* destData;
-    if (S_OK != aSrcResource->Map(0, nullptr, reinterpret_cast<void**>(&destData)))
+    // Prepare a temporary buffer that contains all subresource data in the expected form (i.e. respecting the dest data layout)
+    uint8* tempBufferDataPtr;
+    if (S_OK != aStagingResource->Map(0, nullptr, reinterpret_cast<void**>(&tempBufferDataPtr)))
       return;
 
     for (uint32 i = 0u; i < aNumSubresources; ++i)
     {
       D3D12_MEMCPY_DEST dest;
-      dest.pData = destData + destLayouts[i].Offset;
+      dest.pData = tempBufferDataPtr + destLayouts[i].Offset;
       dest.RowPitch = destLayouts[i].Footprint.RowPitch;
       dest.SlicePitch = destLayouts[i].Footprint.RowPitch * destRowNums[i];
-
+      locMemcpySubresourceRows(&dest, &someSubresourceDatas[i], destRowSizesByte[i], destRowNums[i], destLayouts[i].Footprint.Depth);
     }
+    aStagingResource->Unmap(0, nullptr);
 
+    // Copy from the temp staging buffer to the destination resource (could be buffer or texture)
+    if (destDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
+    {
+      myCommandList->CopyBufferRegion(aDestResource, 0, aStagingResource, destLayouts[0].Offset, destLayouts[0].Footprint.Width);
+    }
+    else
+    {
+      for (uint32 i = 0u; i < aNumSubresources; ++i)
+      {
+        D3D12_TEXTURE_COPY_LOCATION destCopyLocation;
+        destCopyLocation.pResource = aDestResource;
+        destCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+        destCopyLocation.SubresourceIndex = aFirstSubresourceIndex + i;
 
-
-    
-    
-
-
+        D3D12_TEXTURE_COPY_LOCATION srcCopyLocation;
+        srcCopyLocation.pResource = aStagingResource;
+        srcCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+        destCopyLocation.PlacedFootprint = destLayouts[i];
+        myCommandList->CopyTextureRegion(&destCopyLocation, 0u, 0u, 0u, &srcCopyLocation, nullptr);
+      }
+    }
   }
+//---------------------------------------------------------------------------//
+ void RenderContextDX12::CopyResource(GpuResourceDX12* aDestResource, GpuResourceDX12* aSrcResource)
+ {
+   D3D12_RESOURCE_STATES oldDestState = aDestResource->GetUsageState();
+   D3D12_RESOURCE_STATES oldSrcState = aSrcResource->GetUsageState();
 
+   TransitionResource(aDestResource, D3D12_RESOURCE_STATE_COPY_DEST);
+   TransitionResource(aSrcResource, D3D12_RESOURCE_STATE_COPY_SOURCE);
+   KickoffResourceBarriers();
+
+   myCommandList->CopyResource(aDestResource->GetResource(), aSrcResource->GetResource());
+
+   TransitionResource(aDestResource, oldDestState);
+   TransitionResource(aSrcResource, oldSrcState);
+   KickoffResourceBarriers();
+ }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr)
   {
@@ -547,7 +572,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapProps.CreationNodeMask = 1;
     heapProps.VisibleNodeMask = 1;
 
-    const D3D12_RESOURCE_DESC& resourceDesc = aBuffer->GetResourceDesc();
+    const D3D12_RESOURCE_DESC& resourceDesc = aBuffer->GetResource()->GetDesc();
 
     ComPtr<ID3D12Resource> uploadResource;
     CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS, 
@@ -559,11 +584,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uploadResource->Unmap(0, nullptr);
 
     RenderContextDX12* initContext = RenderContextDX12::AllocateContext();
-    //myCommandList->CopyTextureRegion()
+    initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
+    initContext->myCommandList->CopyResource(aBuffer->GetResource(), uploadResource.Get());
+    initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, true);
     
     initContext->ExecuteAndReset(true);
-
-    uploadResource.Reset();
+    
     RenderContextDX12::FreeContext(initContext);
   }
 //---------------------------------------------------------------------------//

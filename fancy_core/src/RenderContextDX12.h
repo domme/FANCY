@@ -89,18 +89,13 @@ class DescriptorHeapDX12;
     void Destroy();
     void Reset();
 
+    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, 
+      uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
+
+    void CopyResource(GpuResourceDX12* aDestResource, GpuResourceDX12* aSrcResource);
+
     // DX12-Specific stuff
     static void InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr);
-
-    void CopyRegion(TextureDX12* aSrcTexture, TextureDX12* aDestTexture
-      _In_  const D3D12_TEXTURE_COPY_LOCATION *pDst,
-      UINT DstX,
-      UINT DstY,
-      UINT DstZ,
-      _In_  const D3D12_TEXTURE_COPY_LOCATION *pSrc,
-      _In_opt_  const D3D12_BOX *pSrcBox
-      
-      );
 
     void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
