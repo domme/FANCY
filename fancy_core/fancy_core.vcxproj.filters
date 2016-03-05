@@ -364,6 +364,9 @@
     <ClInclude Include="src\Fancy.h">
       <Filter>src\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\DescriptorDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">

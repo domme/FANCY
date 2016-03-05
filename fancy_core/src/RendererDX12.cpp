@@ -88,7 +88,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RendererDX12::CreateBackbufferResources()
   {
-    DescriptorHeapDX12* rtvHeapCpu = myDescriptorHeapPool->GetCpuHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    DescriptorHeapDX12* rtvHeapCpu = myDescriptorHeapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeapCpu->GetCpuHeapStart();
     
     for (UINT n = 0; n < kBackbufferCount; n++)
@@ -125,7 +125,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 	void RendererDX12::endFrame()
 	{
-    DescriptorHeapDX12* rtvHeap = myDescriptorHeapPool->GetCpuHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    DescriptorHeapDX12* rtvHeap = myDescriptorHeapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     //myDefaultContext->SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, rtvHeap);
 
     TextureDX12& currBackbuffer = myBackbuffers[myCurrBackbufferIndex];

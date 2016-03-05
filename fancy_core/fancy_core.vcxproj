@@ -311,6 +311,7 @@
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
     <ClInclude Include="src\d3dx12.h" />
+    <ClInclude Include="src\DescriptorDX12.h" />
     <ClInclude Include="src\DescriptorHeapPoolDX12.h" />
     <ClInclude Include="src\GpuBufferDesc.h" />
     <ClInclude Include="src\GpuBufferDX12.h" />
