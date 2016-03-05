@@ -1,6 +1,7 @@
 #include "GpuBufferDX12.h"
 #include "Renderer.h"
 #include "Fancy.h"
+#include "DescriptorHeapPoolDX12.h"
 
 #if defined (RENDERER_DX12)
 
@@ -133,6 +134,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       &resourceDesc, 
       myUsageState, 
       nullptr, IID_PPV_ARGS(&myResource)));
+
+    // Create derived views
+    DescriptorHeapPoolDX12* heapPool = renderer->GetDescriptorHeapPool();
+    DescriptorHeapDX12* cpuHeap = heapPool->GetCpuHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+
 
     if (pInitialData != nullptr)
     {

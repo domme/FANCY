@@ -28,7 +28,7 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
     void unlock();
 
-  private:
+  protected:
 
     struct BufferState {
       BufferState() 
@@ -47,6 +47,9 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     GpuBufferCreationParams myParameters;
     uint myTotalSizeBytes;
     uint myNumElements;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE mySrv;
+    D3D12_CPU_DESCRIPTOR_HANDLE myUav;
 	};
 //---------------------------------------------------------------------------//
 } } }

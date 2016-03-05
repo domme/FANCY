@@ -58,6 +58,7 @@ class DescriptorHeapDX12;
     };
 
     RenderContextDX12();
+    explicit RenderContextDX12(Renderer& aRenderer);
     ~RenderContextDX12();
 
     static RenderContextDX12* AllocateContext();
@@ -97,7 +98,7 @@ class DescriptorHeapDX12;
     // DX12-Specific stuff
     static void InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr);
 
-    void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
+    //void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
     void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, const float* aColor);
     void TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow = false);

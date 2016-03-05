@@ -9,7 +9,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class RenderContext : public PLATFORM_DEPENDENT_NAME(RenderContext)
   {
-  
+  public:
+    RenderContext(Renderer& aRenderer) : PLATFORM_DEPENDENT_NAME(RenderContext)(aRenderer) {}
   };
 //---------------------------------------------------------------------------//
 } }

@@ -19,8 +19,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	{
     CreateDeviceAndSwapChain(aNativeWindowHandle);
     
-    myCommandAllocatorPool = new CommandAllocatorPoolDX12(*static_cast<Renderer*>(this), D3D12_COMMAND_LIST_TYPE_DIRECT);
-    myDefaultContext = new RenderContext();
+    // TODO: Get rid of this ugly and dangerous madness:
+    Renderer& thisRenderer = *static_cast<Renderer*>(this);
+
+    myCommandAllocatorPool = new CommandAllocatorPoolDX12(thisRenderer, D3D12_COMMAND_LIST_TYPE_DIRECT);
+    myDefaultContext = new RenderContext(thisRenderer);
     myDescriptorHeapPool = new DescriptorHeapPoolDX12(*this);
     
     CreateBackbufferResources();

@@ -240,6 +240,32 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       );    
   }
 //---------------------------------------------------------------------------//
+  RenderContextDX12::RenderContextDX12(Renderer& aRenderer)
+    : myRenderer(aRenderer)
+    , myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
+    , myPSOhash(0u)
+    , myPSO(nullptr)
+    , myViewportParams(0, 0, 1, 1)
+    , myViewportDirty(true)
+    , myRootSignature(nullptr)
+    , myCommandList(nullptr)
+    , myCommandAllocator(nullptr)
+    , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
+    , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
+    , myIsInRecordState(true)
+  {
+    memset(myDescriptorHeaps, 0u, sizeof(myDescriptorHeaps));
+
+    ID3D12Device* device = myRenderer.GetDevice();
+
+    myCommandAllocator = myCommandAllocatorPool.GetNewAllocator();
+
+    CheckD3Dcall(
+      device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+        myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
+      );
+  }
+//---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
   {
     Destroy();
@@ -472,10 +498,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     applyViewport();
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount)
-  {
-    
-  }
+  //void RenderContextDX12::CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount)
+  //{
+  //  
+  //}
 //---------------------------------------------------------------------------//
   namespace {
     void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint32 aNumRows, uint32 aNumSlices)
