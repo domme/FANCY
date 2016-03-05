@@ -6,12 +6,30 @@
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   DescriptorHeapDX12::DescriptorHeapDX12(ID3D12Device* aDevice, const D3D12_DESCRIPTOR_HEAP_DESC& aDesc)
+    : myNextFreeHandleIndex(0u)
+    , myHandleIncrementSize(0u)
   {
     Create(aDevice, aDesc);
   }
 //---------------------------------------------------------------------------//
+  DescriptorDX12 DescriptorHeapDX12::AllocateDescriptor()
+  {
+    ASSERT(myNextFreeHandleIndex < myDesc.NumDescriptors);
+
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+    cpuHandle.ptr = myCpuHeapStart.ptr + myNextFreeHandleIndex * myHandleIncrementSize;
+
+    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+    gpuHandle.ptr = myGpuHeapStart.ptr + myNextFreeHandleIndex * myHandleIncrementSize;
+
+    ++myNextFreeHandleIndex;
+
+    return DescriptorDX12(cpuHandle, gpuHandle);
+  }
+//---------------------------------------------------------------------------//
   DescriptorHeapDX12::DescriptorHeapDX12()
     : myHandleIncrementSize(0u)
+    , myNextFreeHandleIndex(0u)
   {
 
   }
@@ -31,46 +49,51 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   DescriptorHeapPoolDX12::DescriptorHeapPoolDX12(RendererDX12& aRenderer)
     : myRenderer(aRenderer)
   {
+    const uint32 kMaxNumStaticDescriptorsPerHeap = 1000u;
+
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
-    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    heapDesc.NumDescriptors = kMaxNumDescriptorsPerCpuHeap;
-    heapDesc.NodeMask = 0;
+    heapDesc.NumDescriptors = kMaxNumStaticDescriptorsPerHeap;
+    heapDesc.NodeMask = 1u;
 
     for (uint32 i = 0u; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
     {
+      if(i == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || i == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+      else
+        heapDesc.Flags =  D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
       heapDesc.Type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
-      myCpuHeaps[i].Create(aRenderer.GetDevice(), heapDesc);
+      myStaticHeaps[i].Create(aRenderer.GetDevice(), heapDesc);
     }
   }
 //---------------------------------------------------------------------------//
   DescriptorHeapPoolDX12::~DescriptorHeapPoolDX12()
   {
-    while (!myUsedShaderVisibleHeaps.empty())
+    while (!myUsedDynamicHeaps.empty())
     {
-      myRenderer.WaitForFence(myUsedShaderVisibleHeaps.front().first);
-      myUsedShaderVisibleHeaps.pop();
+      myRenderer.WaitForFence(myUsedDynamicHeaps.front().first);
+      myUsedDynamicHeaps.pop();
     }
 
-    myAvailableShaderVisibleHeaps.clear();
+    myAvailableDynamicHeaps.clear();
   }
 //---------------------------------------------------------------------------//
-  DescriptorHeapDX12* DescriptorHeapPoolDX12::AllocateShaderVisibleHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE aType)
+  DescriptorHeapDX12* DescriptorHeapPoolDX12::AllocateDynamicHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE aType)
   {
-    while(!myUsedShaderVisibleHeaps.empty() && myRenderer.IsFenceDone(myUsedShaderVisibleHeaps.front().first))
+    while(!myUsedDynamicHeaps.empty() && myRenderer.IsFenceDone(myUsedDynamicHeaps.front().first))
     {
-      myAvailableShaderVisibleHeaps.push_back(myUsedShaderVisibleHeaps.front().second);
-      myUsedShaderVisibleHeaps.pop();
+      myAvailableDynamicHeaps.push_back(myUsedDynamicHeaps.front().second);
+      myUsedDynamicHeaps.pop();
     }
 
-    if (aRequiredNumDescriptors % kGpuDescriptorNumIncrement > 0)
-      aRequiredNumDescriptors = aRequiredNumDescriptors + (kGpuDescriptorNumIncrement - aRequiredNumDescriptors % kGpuDescriptorNumIncrement);
+    aRequiredNumDescriptors = MathUtil::Align(aRequiredNumDescriptors, kGpuDescriptorNumIncrement);
 
-    for (auto it = myAvailableShaderVisibleHeaps.begin(); it != myAvailableShaderVisibleHeaps.end(); ++it)
+    for (auto it = myAvailableDynamicHeaps.begin(); it != myAvailableDynamicHeaps.end(); ++it)
     {
       DescriptorHeapDX12* heap = (*it);
       if (heap->myDesc.NumDescriptors == aRequiredNumDescriptors && heap->myDesc.Type == aType)
       {
-        myAvailableShaderVisibleHeaps.erase(it);
+        myAvailableDynamicHeaps.erase(it);
         return heap;
       }
     }
@@ -79,13 +102,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapDesc.NumDescriptors = aRequiredNumDescriptors;
     heapDesc.Type = aType;
     heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    myShaderVisibleHeapPool.push_back(std::make_unique<DescriptorHeapDX12>(myRenderer.GetDevice(), heapDesc));
-    return myShaderVisibleHeapPool.back().get();
+    myDynamicHeapPool.push_back(std::make_unique<DescriptorHeapDX12>(myRenderer.GetDevice(), heapDesc));
+    return myDynamicHeapPool.back().get();
   }
 //---------------------------------------------------------------------------//
-  void DescriptorHeapPoolDX12::ReleaseShaderVisibleHeap(uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap)
+  void DescriptorHeapPoolDX12::ReleaseDynamicHeap(uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap)
   {
-    myUsedShaderVisibleHeaps.push(std::make_pair(aFenceVal, aUsedHeap));
+    myUsedDynamicHeaps.push(std::make_pair(aFenceVal, aUsedHeap));
   }
 //---------------------------------------------------------------------------//
 } } }

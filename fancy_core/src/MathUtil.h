@@ -49,6 +49,12 @@ public:
     return hash;
   }
 //---------------------------------------------------------------------------//
+  static uint Align(uint aVal, uint anAlignment)
+  {
+    const uint alignmentMin1 = anAlignment - 1u;
+    return (aVal + alignmentMin1) & (~alignmentMin1);
+  }
+//---------------------------------------------------------------------------//
 private:
   MathUtil();
   ~MathUtil();

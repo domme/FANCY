@@ -3,6 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include <queue>
+#include "DescriptorDX12.h"
 
 
 namespace Fancy { namespace Rendering {
@@ -24,6 +25,8 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     const D3D12_GPU_DESCRIPTOR_HANDLE& GetGpuHeapStart() const { return myGpuHeapStart; }
     ID3D12DescriptorHeap* GetHeap() const { return myDescriptorHeap.Get(); }
 
+    DescriptorDX12 AllocateDescriptor();
+
   private:
     DescriptorHeapDX12();
     void Create(ID3D12Device* aDevice, const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);
@@ -32,6 +35,7 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     D3D12_DESCRIPTOR_HEAP_DESC myDesc;
 
     uint myHandleIncrementSize;
+    uint myNextFreeHandleIndex;
     D3D12_CPU_DESCRIPTOR_HANDLE myCpuHeapStart;
     D3D12_GPU_DESCRIPTOR_HANDLE myGpuHeapStart;
   };
@@ -39,25 +43,25 @@ namespace Fancy {namespace Rendering { namespace DX12 {
   class DescriptorHeapPoolDX12
   {
   public:
-    static const uint32 kMaxNumDescriptorsPerCpuHeap = 1000u;
+    
     static const uint32 kGpuDescriptorNumIncrement = 16u;
 
     explicit DescriptorHeapPoolDX12(RendererDX12& aRenderer);
     ~DescriptorHeapPoolDX12();
 
-    DescriptorHeapDX12* AllocateShaderVisibleHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE);
-    void ReleaseShaderVisibleHeap(uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap);
+    DescriptorHeapDX12* AllocateDynamicHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
+    void ReleaseDynamicHeap(uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap);
 
-    DescriptorHeapDX12* GetCpuHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return &myCpuHeaps[aType]; }
+    DescriptorHeapDX12* GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return &myStaticHeaps[aType]; }
     
   private:
     RendererDX12& myRenderer;
 
-    DescriptorHeapDX12 myCpuHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    DescriptorHeapDX12 myStaticHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 
-    std::vector<std::unique_ptr<DescriptorHeapDX12>> myShaderVisibleHeapPool;
-    std::deque<DescriptorHeapDX12*> myAvailableShaderVisibleHeaps;
-    std::queue<std::pair<uint64, DescriptorHeapDX12*>> myUsedShaderVisibleHeaps;
+    std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
+    std::deque<DescriptorHeapDX12*> myAvailableDynamicHeaps;
+    std::queue<std::pair<uint64, DescriptorHeapDX12*>> myUsedDynamicHeaps;
   };
 //---------------------------------------------------------------------------//
 } } }

@@ -137,10 +137,34 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // Create derived views
     DescriptorHeapPoolDX12* heapPool = renderer->GetDescriptorHeapPool();
-    DescriptorHeapDX12* cpuHeap = heapPool->GetCpuHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    DescriptorHeapDX12* heap = heapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = myParameters.uNumElements;
+    srvDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
+    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
+    mySrvDescriptor = heap->AllocateDescriptor();
+    renderer->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.GetCpuHandle());
 
+    if (wantsUnorderedAccess)
+    {
+      D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+      uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+      uavDesc.Buffer.FirstElement = 0;
+      uavDesc.Buffer.NumElements = myParameters.uNumElements;
+      uavDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
+      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
+      myUavDescriptor = heap->AllocateDescriptor();
+      renderer->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.GetCpuHandle());
+    }
+    
     if (pInitialData != nullptr)
     {
       if (wantsCpuWrite)  // The fast path: Just lock and memcpy into cpu-visible region

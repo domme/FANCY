@@ -4,6 +4,7 @@
 
 #include "GpuBufferDesc.h"
 #include "GpuResourceDX12.h"
+#include "DescriptorDX12.h"
 
 namespace Fancy { namespace Rendering {	namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -28,8 +29,10 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
     void unlock();
 
-  protected:
+    const DescriptorDX12& GetSrvDescriptor() const { return mySrvDescriptor; }
+    const DescriptorDX12& GetUavDescriptor() const { return myUavDescriptor; }
 
+  protected:
     struct BufferState {
       BufferState() 
         : isLocked(false)
@@ -48,8 +51,8 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     uint myTotalSizeBytes;
     uint myNumElements;
 
-    D3D12_CPU_DESCRIPTOR_HANDLE mySrv;
-    D3D12_CPU_DESCRIPTOR_HANDLE myUav;
+    DescriptorDX12 mySrvDescriptor;
+    DescriptorDX12 myUavDescriptor;
 	};
 //---------------------------------------------------------------------------//
 } } }
