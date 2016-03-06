@@ -22,8 +22,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool IsDone(uint64 anOtherFenceVal);
    
   protected:
-    
-
     HANDLE myIsDoneEvent;
     Microsoft::WRL::ComPtr<ID3D12Fence> myFence;
     uint64 myCurrWaitingOnVal;   // The last signaled value, which might not yet be completed

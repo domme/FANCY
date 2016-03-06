@@ -331,13 +331,16 @@ namespace Fancy {
     struct TextureCreationParams {
       TextureCreationParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
         eFormat(DataFormat::NONE), uAccessFlags(0u), pPixelData(nullptr),
-        uPixelDataSizeBytes(0), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u) {}
+        uPixelDataSizeBytes(0), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u), 
+        myIsShaderWritable(false), myIsRenderTarget(false) {}
 
       uint16 u16Width;
       uint16 u16Height;
       uint16 u16Depth;
       DataFormat eFormat;
       uint32 uAccessFlags;
+      bool myIsShaderWritable;
+      bool myIsRenderTarget;
       /// true if the texture should be a depth- or depthStencil Texture
       bool bIsDepthStencil;
       /// (optional) pointer to pixelData

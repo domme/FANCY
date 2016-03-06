@@ -4,6 +4,7 @@
 #if defined (RENDERER_DX12)
 
 #include "TextureDesc.h"
+#include "DescriptorDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -40,12 +41,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void setPath(const String& _aPath) { myParameters.path = _aPath; }
 
     // DX12-Specific stuff:
-    D3D12_CPU_DESCRIPTOR_HANDLE GetRTV() { return myRtv; }
+    const DescriptorDX12& GetRtv() const { return myRtvDescriptor; }
+    const DescriptorDX12& GetSrv() const { return mySrvDescriptor; }
+    const DescriptorDX12& GetUav() const { return myUavDescriptor; }
     
-    // DEBUG:
-    D3D12_CPU_DESCRIPTOR_HANDLE myRtv;
-
   protected:
+    void Destroy();
+
     struct TextureInfos {
       TextureInfos() : isSRGB(0), isLocked(0), isArrayTexture(0), isCubemap(0),
         cachesTextureData(0), numDimensions(0) {}
@@ -60,6 +62,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     TextureCreationParams myParameters;
     TextureInfos myState;
+
+    DescriptorDX12 myRtvDescriptor;
+    DescriptorDX12 mySrvDescriptor;
+    DescriptorDX12 myUavDescriptor;
   };
 
 //---------------------------------------------------------------------------//
