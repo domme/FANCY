@@ -17,6 +17,7 @@
 #include "TimeManager.h"
 #include "RenderingProcess.h"
 #include "LightComponent.h"
+#include "TextureLoader.h"
 
 namespace Fancy {
   Scene::ScenePtr m_pCurrScene = nullptr;
@@ -52,6 +53,39 @@ namespace Fancy {
     initIOsubsystem();
     initComponentSubsystem();
     initRenderingSubsystem(aNativeWindowHandle);
+    
+    // DEBUG: Test texture loading
+    String texPathAbs = "C:\\Users\\paino\\Documents\\GitHub\\FANCY\\resources\\Textures\\Sibenik\\mramor6x6.png";
+
+    // Load and decode the texture to memory
+    std::vector<uint8> vTextureBytes;
+    IO::TextureLoadInfo texLoadInfo;
+    if (!IO::TextureLoader::loadTexture(texPathAbs, vTextureBytes, texLoadInfo))
+    {
+      log_Error("Failed to load texture at path " + texPathAbs);
+      return false;
+    }
+
+    if (texLoadInfo.bitsPerPixel / texLoadInfo.numChannels != 8u)
+    {
+      log_Error("Unsupported texture format: " + texPathAbs);
+      return false;
+    }
+
+    Rendering::Texture* tex = FANCY_NEW(Rendering::Texture, MemoryCategory::TEXTURES);
+
+    Rendering::TextureCreationParams texParams;
+    texParams.myIsExternalTexture = true;
+    texParams.path = texPathAbs;
+    texParams.bIsDepthStencil = false;
+    texParams.eFormat = texLoadInfo.numChannels == 3u ? Rendering::DataFormat::SRGB_8 : Rendering::DataFormat::SRGB_8_A_8;
+    texParams.u16Width = texLoadInfo.width;
+    texParams.u16Height = texLoadInfo.height;
+    texParams.u16Depth = 0u;
+    texParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::NONE;
+    texParams.uPixelDataSizeBytes = (texLoadInfo.width * texLoadInfo.height * texLoadInfo.bitsPerPixel) / 8u;
+    texParams.pPixelData = &vTextureBytes[0];
+    tex->create(texParams);
     
     return true;
   }

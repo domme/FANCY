@@ -121,20 +121,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     const uint32 pixelSizeBytes = locGetBytePerPixelFromFormat(someParameters.eFormat);
     uint32 widthSizeBytes = someParameters.u16Width * pixelSizeBytes;
-    uint32 heightSizeBytes = 0u;
-    uint32 depthSizeBytes = 0u;
+    uint32 heightSizeBytes = 1u;
+    uint32 depthSizeBytes = 1u;
     uint32 maxNumMipLevels = 0;
 
     switch(dimension)
     {
       case D3D12_RESOURCE_DIMENSION_TEXTURE1D: 
-        heightSizeBytes = 1u;  // Must be 1 per D3D12 reqs
-        depthSizeBytes = 0u;  // Interpreted as array-size
         maxNumMipLevels = static_cast<uint32>(glm::log2(someParameters.u16Width));
         break;
       case D3D12_RESOURCE_DIMENSION_TEXTURE2D: 
         heightSizeBytes = someParameters.u16Height * pixelSizeBytes;
-        depthSizeBytes = 0u; // Interpreted as array-size
         maxNumMipLevels = glm::min(glm::log2(someParameters.u16Width), glm::log2(someParameters.u16Height));
         break;
       case D3D12_RESOURCE_DIMENSION_TEXTURE3D: 
@@ -157,8 +154,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myState.numDimensions = 3u;
 
     uint32 actualNumMipLevels = glm::min(glm::max(1u, static_cast<uint32>(someParameters.u8NumMipLevels)), maxNumMipLevels);
-    myParameters.u8NumMipLevels = actualNumMipLevels;
-
+    myParameters.u8NumMipLevels = 1u; // TODO: Support mipmapping (need a custom compute shader for downsampling)  actualNumMipLevels;
+    
     D3D12_HEAP_PROPERTIES heapProps;
     heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
     heapProps.CreationNodeMask = 1u;
@@ -172,7 +169,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     resourceDesc.Width = widthSizeBytes;
     resourceDesc.Height = heightSizeBytes;
     resourceDesc.DepthOrArraySize = depthSizeBytes;
-    resourceDesc.MipLevels = actualNumMipLevels;
+    resourceDesc.MipLevels = myParameters.u8NumMipLevels;
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -185,11 +182,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const bool wantsCoherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
 
     myUsageState = D3D12_RESOURCE_STATE_GENERIC_READ;
+    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     if (!wantsCpuWrite && !wantsCpuRead && !wantsCpuStorage)
     {
       // The default for most textures: No Cpu-access at all required. Can be created as GPU-only visible heap
       heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
       myUsageState = D3D12_RESOURCE_STATE_GENERIC_READ;
     }
     else if (wantsCpuWrite || wantsCpuStorage)
@@ -197,9 +194,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
       myUsageState = D3D12_RESOURCE_STATE_GENERIC_READ;
 
-      if (!wantsCpuWrite && !wantsCpuRead)
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
-      else if (wantsCpuRead)
+      if (wantsCpuRead)
         heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
       else  // wants write
         heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -323,12 +318,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       renderer->GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.GetCpuHandle());
     }
 
-    
+    // Initialize texture data?
+    if (someParameters.pPixelData != nullptr)
+    {
+      RenderContextDX12::InitTextureDataMip0(this, someParameters.pPixelData, someParameters.uPixelDataSizeBytes);
+    }
   }
 //---------------------------------------------------------------------------//
   void TextureDX12::setPixelData(void* pData, uint uDataSizeBytes, glm::u32vec3 rectPosOffset, glm::u32vec3 rectDimensions)
   {
-
+    ASSERT_M(false, "Not implemented");
   }
 //---------------------------------------------------------------------------//
   void* TextureDX12::lock(GpuResoruceLockOption option)
@@ -338,13 +337,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void TextureDX12::unlock()
   {
+
   }
 //---------------------------------------------------------------------------//
   void TextureDX12::Destroy()
   {
-    
+    GpuResourceDX12::Reset();
   }
-
 //---------------------------------------------------------------------------//
 } } }
 

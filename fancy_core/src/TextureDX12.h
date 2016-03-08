@@ -10,6 +10,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class TextureDX12 : public GpuResourceDX12
   {
+    friend class RendererDX12;  // Remove after backbuffers are handled through the texture class
+
   public:
     enum class CreationMethod {
       UPLOADED_ONCE = 0,

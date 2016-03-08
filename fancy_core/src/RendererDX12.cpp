@@ -89,7 +89,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RendererDX12::CreateBackbufferResources()
   {
     DescriptorHeapDX12* rtvHeapCpu = myDescriptorHeapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeapCpu->GetCpuHeapStart();
     
     for (UINT n = 0; n < kBackbufferCount; n++)
     {
@@ -97,10 +96,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       backbufferResource.myUsageState = D3D12_RESOURCE_STATE_PRESENT;
 
       CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource.myResource)));
-      myDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, rtvHandle);
-      backbufferResource.myRtv = rtvHandle;
-      
-      rtvHandle.ptr += rtvHeapCpu->GetHandleIncrementSize();
+      backbufferResource.myRtvDescriptor = rtvHeapCpu->AllocateDescriptor();
+      myDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, backbufferResource.myRtvDescriptor.GetCpuHandle());
     }
   }
 //---------------------------------------------------------------------------//
@@ -132,7 +129,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
     
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-    myDefaultContext->ClearRenderTargetView(currBackbuffer.GetRTV(), clearColor);
+    myDefaultContext->ClearRenderTargetView(currBackbuffer.GetRtv().GetCpuHandle(), clearColor);
 
     myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
     

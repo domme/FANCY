@@ -183,10 +183,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::destroy()
   {
-    myResource = nullptr;
-    myUsageState = static_cast<D3D12_RESOURCE_STATES>(~0);
-    myTransitioningState = static_cast<D3D12_RESOURCE_STATES>(~0);
-    myGpuVirtualAddress = 0u;
+    GpuResourceDX12::Reset();
   }
 //---------------------------------------------------------------------------//
   void locResolveLockOptions(GpuResoruceLockOption aLockOption, bool& aNeedsRead, bool& aNeedsWrite, bool& aNeedsRename)

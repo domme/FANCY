@@ -32,6 +32,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_RESOURCE_STATES myUsageState;
     D3D12_RESOURCE_STATES myTransitioningState;
     D3D12_GPU_VIRTUAL_ADDRESS myGpuVirtualAddress;
+
+    void Reset()
+    {
+      myResource = nullptr;
+      myUsageState = static_cast<D3D12_RESOURCE_STATES>(~0);
+      myTransitioningState = static_cast<D3D12_RESOURCE_STATES>(~0);
+      myGpuVirtualAddress = 0u;
+    }
   };
 //---------------------------------------------------------------------------//
 } } }
