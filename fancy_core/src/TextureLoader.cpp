@@ -15,8 +15,7 @@ namespace Fancy { namespace IO {
     std::vector<uint8> vEncodedFileBytes;
     uint32 uWidth, uHeight;
     lodepng::State state;
-    //state.decoder.color_convert = 0;  // Don't convert RGBA->RGB
-    state.info_raw.colortype = LodePNGColorType::LCT_RGBA;
+    state.decoder.color_convert = 0;  // Don't convert RGBA->RGB
     
     lodepng::load_file(vEncodedFileBytes, _szPathAbs);
     ASSERT_M(vEncodedFileBytes.size() > 0u, "Error loading image file " + _szPathAbs);

@@ -23,7 +23,7 @@ namespace Fancy { namespace IO {
     public:
   //---------------------------------------------------------------------------//
     static String getCacheFilePathAbs(const String& aPathInResources);
-    static bool write(Rendering::Texture* aTexture, void* someData, uint32 aDataSize);
+    static bool write(Rendering::Texture* aTexture, const Rendering::TextureUploadData& someData);
     static bool write(Geometry::Mesh* aMesh, void** someVertexDatas, void** someIndexDatas);
     static bool read(Rendering::Texture** aTexture, uint64 aDescHash, uint32 aTimeStamp);
     static bool read(Geometry::Mesh** aMesh, uint64 aDescHash, uint32 aTimeStamp);

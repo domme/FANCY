@@ -46,11 +46,8 @@ namespace Fancy {  namespace IO {
       + aPathInResources + kBinaryCacheExtension;
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::write(Rendering::Texture* aTexture, void* someData, uint32 aDataSize)
+  bool BinaryCache::write(Rendering::Texture* aTexture, const Rendering::TextureUploadData& someData)
   {
-    ASSERT(someData);
-    ASSERT(aDataSize > 0u);
-
     const String cacheFilePath = getCacheFilePathAbs(aTexture->getPath());
     PathService::createDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
@@ -59,7 +56,7 @@ namespace Fancy {  namespace IO {
 
     archive.write(reinterpret_cast<const char*>(&kTextureVersion), sizeof(uint32));
 
-    Rendering::TextureCreationParams texParams = aTexture->getParameters();
+    Rendering::TextureParams texParams = aTexture->getParameters();
     Rendering::TextureDesc texDesc = aTexture->GetDescription();
     uint64 texDescHash = texDesc.GetHash();
 
@@ -79,8 +76,12 @@ namespace Fancy {  namespace IO {
     const uint32 format = static_cast<uint32>(texParams.eFormat);
     archive.write(reinterpret_cast<const char*>(&format), sizeof(uint32));
     archive.write(reinterpret_cast<const char*>(&texParams.u8NumMipLevels), sizeof(uint8));
-    archive.write(reinterpret_cast<const char*>(&aDataSize), sizeof(uint32));
-    archive.write(static_cast<const char*>(someData), aDataSize);
+    
+    archive.write(reinterpret_cast<const char*>(&someData.myPixelSizeBytes), sizeof(uint64));
+    archive.write(reinterpret_cast<const char*>(&someData.myRowSizeBytes), sizeof(uint64));
+    archive.write(reinterpret_cast<const char*>(&someData.mySliceSizeBytes), sizeof(uint64));
+    archive.write(reinterpret_cast<const char*>(&someData.myTotalSizeBytes), sizeof(uint64));
+    archive.write(reinterpret_cast<const char*>(someData.myData), someData.myTotalSizeBytes);
 
     return archive.good();
   }  
@@ -123,7 +124,7 @@ namespace Fancy {  namespace IO {
       archive.read((char*)&texDesc.myInternalRefIndex, sizeof(texDesc.myInternalRefIndex));
 
       // Read the texture
-      Rendering::TextureCreationParams texParams;
+      Rendering::TextureParams texParams;
       texParams.myIsExternalTexture = texDesc.myIsExternalTexture;
       texParams.path = texDesc.mySourcePath;
       texParams.myInternalRefIndex = texDesc.myInternalRefIndex;
@@ -135,15 +136,20 @@ namespace Fancy {  namespace IO {
       archive.read((char*)&format, sizeof(uint32));
       texParams.eFormat = static_cast<Rendering::DataFormat>(format);
       archive.read((char*)&texParams.u8NumMipLevels, sizeof(uint8));
-      archive.read((char*)&texParams.uPixelDataSizeBytes, sizeof(uint32));
-      texParams.pPixelData = FANCY_ALLOCATE(texParams.uPixelDataSizeBytes, MemoryCategory::TEXTURES);
-      archive.read((char*)&texParams.pPixelData, texParams.uPixelDataSizeBytes);
+
+      Rendering::TextureUploadData texData;
+      archive.read((char*)(&texData.myPixelSizeBytes), sizeof(uint64));
+      archive.read((char*)(&texData.myRowSizeBytes), sizeof(uint64));
+      archive.read((char*)(&texData.mySliceSizeBytes), sizeof(uint64));
+      archive.write((char*)(&texData.myTotalSizeBytes), sizeof(uint64));
+      texData.myData = static_cast<uint8*>(FANCY_ALLOCATE(texData.myTotalSizeBytes, MemoryCategory::TEXTURES));
+      archive.read((char*)&texData.myData, texData.myTotalSizeBytes);
 
       texture = FANCY_NEW(Rendering::Texture, MemoryCategory::TEXTURES);
-      texture->create(texParams);
+      texture->create(texParams, &texData, 1u);
       Rendering::Texture::Register(texture);
 
-      FANCY_FREE(texParams.pPixelData, MemoryCategory::TEXTURES);
+      FANCY_FREE(texData.myData, MemoryCategory::TEXTURES);
     }
 
     if ((*aTexture) != nullptr)

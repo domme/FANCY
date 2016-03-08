@@ -862,7 +862,7 @@ namespace Fancy { namespace IO {
 
     pTexture = FANCY_NEW(Texture, MemoryCategory::TEXTURES);
         
-    TextureCreationParams texParams;
+    TextureParams texParams;
     texParams.myIsExternalTexture = true;
     texParams.path = texPathInResources;
     texParams.bIsDepthStencil = false;
@@ -871,9 +871,15 @@ namespace Fancy { namespace IO {
     texParams.u16Height = texLoadInfo.height;
     texParams.u16Depth = 0u;
     texParams.uAccessFlags = (uint32) GpuResourceAccessFlags::NONE;
-    texParams.uPixelDataSizeBytes = (texLoadInfo.width * texLoadInfo.height * texLoadInfo.bitsPerPixel) / 8u;
-    texParams.pPixelData = &vTextureBytes[0];
-    pTexture->create(texParams);
+    
+    TextureUploadData uploadData;
+    uploadData.myData = &vTextureBytes[0];
+    uploadData.myPixelSizeBytes = texLoadInfo.bitsPerPixel / 8u;
+    uploadData.myRowSizeBytes = texLoadInfo.width * uploadData.myPixelSizeBytes;
+    uploadData.mySliceSizeBytes = texLoadInfo.width * texLoadInfo.height * uploadData.myPixelSizeBytes;
+    uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
+
+    pTexture->create(texParams, &uploadData, 1u);
 
     if (!pTexture->isValid())
     {
@@ -883,7 +889,7 @@ namespace Fancy { namespace IO {
     }
     else
     {
-      BinaryCache::write(pTexture, texParams.pPixelData, texParams.uPixelDataSizeBytes);
+      BinaryCache::write(pTexture, uploadData);
       Texture::Register(pTexture);
     }
 

@@ -13,10 +13,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     friend class RendererDX12;  // Remove after backbuffers are handled through the texture class
 
   public:
-    enum class CreationMethod {
-      UPLOADED_ONCE = 0,
-      UPLOADED_OFTEN
-    };
 
     TextureDX12();
     ~TextureDX12();
@@ -24,7 +20,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     TextureDesc GetDescription() const;
     void SetFromDescription(const TextureDesc& aDesc);
 
-    void create(const TextureCreationParams& clDeclaration, CreationMethod eCreationMethod = CreationMethod::UPLOADED_ONCE);
+    void create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint32 aNumInitialDatas = 0u);
     void setPixelData(void* pData, uint uDataSizeBytes,
       glm::u32vec3 rectPosOffset = glm::u32vec3(0, 0, 0), glm::u32vec3 rectDimensions = glm::u32vec3(0, 0, 0));
     void* lock(GpuResoruceLockOption option = GpuResoruceLockOption::WRITE_DISCARD);
@@ -38,7 +34,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool isValid() const { return false; }  // TODO: Implement
         
     uint getNumDimensions() const { return myState.numDimensions; }
-    const TextureCreationParams& getParameters() const { return myParameters; }
+    const TextureParams& getParameters() const { return myParameters; }
     const ObjectName& getPath() const { return myParameters.path; }
     void setPath(const String& _aPath) { myParameters.path = _aPath; }
 
@@ -62,7 +58,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       uint numDimensions : 4;
     };
 
-    TextureCreationParams myParameters;
+    TextureParams myParameters;
     TextureInfos myState;
 
     DescriptorDX12 myRtvDescriptor;

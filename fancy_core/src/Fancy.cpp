@@ -55,7 +55,7 @@ namespace Fancy {
     initRenderingSubsystem(aNativeWindowHandle);
     
     // DEBUG: Test texture loading
-    String texPathAbs = "C:\\Users\\paino\\Documents\\GitHub\\FANCY\\resources\\Textures\\Sibenik\\mramor6x6.png";
+    String texPathAbs = IO::PathService::convertToAbsPath("Textures\\Sibenik\\mramor6x6.png");
 
     // Load and decode the texture to memory
     std::vector<uint8> vTextureBytes;
@@ -74,7 +74,7 @@ namespace Fancy {
 
     Rendering::Texture* tex = FANCY_NEW(Rendering::Texture, MemoryCategory::TEXTURES);
 
-    Rendering::TextureCreationParams texParams;
+    Rendering::TextureParams texParams;
     texParams.myIsExternalTexture = true;
     texParams.path = texPathAbs;
     texParams.bIsDepthStencil = false;
@@ -83,9 +83,15 @@ namespace Fancy {
     texParams.u16Height = texLoadInfo.height;
     texParams.u16Depth = 0u;
     texParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::NONE;
-    texParams.uPixelDataSizeBytes = (texLoadInfo.width * texLoadInfo.height * texLoadInfo.bitsPerPixel) / 8u;
-    texParams.pPixelData = &vTextureBytes[0];
-    tex->create(texParams);
+
+    Rendering::TextureUploadData uploadData;
+    uploadData.myData = &vTextureBytes[0];
+    uploadData.myPixelSizeBytes = texLoadInfo.bitsPerPixel / 8u;
+    uploadData.myRowSizeBytes = texLoadInfo.width * uploadData.myPixelSizeBytes;
+    uploadData.mySliceSizeBytes = texLoadInfo.width * texLoadInfo.height * uploadData.myPixelSizeBytes;
+    uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
+
+    tex->create(texParams, &uploadData, 1u);
     
     return true;
   }

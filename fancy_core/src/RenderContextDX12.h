@@ -97,7 +97,7 @@ class DescriptorHeapDX12;
 
     // DX12-Specific stuff
     static void InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr);
-    static void InitTextureDataMip0(TextureDX12* aTexture, void* aDataPtr, uint64 aDataSizeByte);
+    static void InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas);
 
     //void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);

@@ -328,10 +328,22 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    struct TextureCreationParams {
-      TextureCreationParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
-        eFormat(DataFormat::NONE), uAccessFlags(0u), pPixelData(nullptr),
-        uPixelDataSizeBytes(0), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u), 
+    struct TextureUploadData
+    {
+      TextureUploadData() 
+        : myData(nullptr), myRowSizeBytes(0u), myTotalSizeBytes(0u), myPixelSizeBytes(0u), mySliceSizeBytes(0u)
+      {}
+
+      uint8* myData;
+      uint64 myPixelSizeBytes;
+      uint64 myRowSizeBytes;
+      uint64 mySliceSizeBytes;
+      uint64 myTotalSizeBytes;
+    };
+  //---------------------------------------------------------------------------//
+    struct TextureParams {
+      TextureParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
+        eFormat(DataFormat::NONE), uAccessFlags(0u), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u), 
         myIsShaderWritable(false), myIsRenderTarget(false) {}
 
       uint16 u16Width;
@@ -341,12 +353,7 @@ namespace Fancy {
       uint32 uAccessFlags;
       bool myIsShaderWritable;
       bool myIsRenderTarget;
-      /// true if the texture should be a depth- or depthStencil Texture
       bool bIsDepthStencil;
-      /// (optional) pointer to pixelData
-      void* pPixelData;
-      /// (optional) size of the pixelData
-      uint uPixelDataSizeBytes;
       String path;
       bool myIsExternalTexture;
       uint32 myInternalRefIndex;

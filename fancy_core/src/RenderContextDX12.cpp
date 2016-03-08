@@ -621,15 +621,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::InitTextureDataMip0(TextureDX12* aTexture, void* aDataPtr, uint64 aDataSizeByte)
+  void RenderContextDX12::InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
   {
     RendererDX12* renderer = Fancy::GetRenderer();
     ID3D12Device* device = renderer->GetDevice();
     const D3D12_RESOURCE_DESC& resourceDesc = aTexture->GetResource()->GetDesc();
 
-    uint64 requiredSizeInTexture;
-    device->GetCopyableFootprints(&resourceDesc, 0u, 1u, 0u, nullptr, nullptr, nullptr, &requiredSizeInTexture);
-    ASSERT(aDataSizeByte <= requiredSizeInTexture);
+    uint64 requiredStagingBufferSize;
+    device->GetCopyableFootprints(&resourceDesc, 0u, aNumUploadDatas, 0u, nullptr, nullptr, nullptr, &requiredStagingBufferSize);
 
     D3D12_HEAP_PROPERTIES HeapProps;
     HeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -641,7 +640,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_RESOURCE_DESC BufferDesc;
     BufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
     BufferDesc.Alignment = 0;
-    BufferDesc.Width = requiredSizeInTexture;
+    BufferDesc.Width = requiredStagingBufferSize;
     BufferDesc.Height = 1;
     BufferDesc.DepthOrArraySize = 1;
     BufferDesc.MipLevels = 1;
@@ -659,15 +658,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       nullptr, IID_PPV_ARGS(&stagingBuffer)));
 
     ASSERT(aTexture->getParameters().u16Depth <= 1u, "The code below might not work for 3D textures");
-    D3D12_SUBRESOURCE_DATA subData;
-    subData.pData = aDataPtr;
-    subData.SlicePitch = aDataSizeByte;
-    subData.RowPitch = aDataSizeByte / glm::max(1.0f, static_cast<float>(aTexture->getParameters().u16Height));
+
+    D3D12_SUBRESOURCE_DATA* subDatas = static_cast<D3D12_SUBRESOURCE_DATA*>(alloca(sizeof(D3D12_SUBRESOURCE_DATA) * aNumUploadDatas));
+    for (uint32 i = 0u; i < aNumUploadDatas; ++i)
+    {
+      subDatas[i].pData = someUploadDatas[i].myData;
+      subDatas[i].SlicePitch = someUploadDatas[i].mySliceSizeBytes;
+      subDatas[i].RowPitch = someUploadDatas[i].myRowSizeBytes;
+    }
 
     RenderContextDX12* uploadContext = RenderContextDX12::AllocateContext();
     D3D12_RESOURCE_STATES oldUsageState = aTexture->GetUsageState();
     uploadContext->TransitionResource(aTexture, D3D12_RESOURCE_STATE_COPY_DEST, true);
-    uploadContext->UpdateSubresources(aTexture->GetResource(), stagingBuffer.Get(), 0u, 1u, &subData);
+    uploadContext->UpdateSubresources(aTexture->GetResource(), stagingBuffer.Get(), 0u, aNumUploadDatas, subDatas);
     uploadContext->TransitionResource(aTexture, oldUsageState, true);
 
     uploadContext->ExecuteAndReset(true);
