@@ -23,8 +23,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     create(myName, aDesc);
   }
 //---------------------------------------------------------------------------//
-  void TextureSamplerDX12::create(const ObjectName& rName, const TextureSamplerDesc& rProperties)
+  void TextureSamplerDX12::create(const ObjectName& rName, const TextureSamplerDesc& someProperties)
   {
+
   }
 //---------------------------------------------------------------------------//
 } } }

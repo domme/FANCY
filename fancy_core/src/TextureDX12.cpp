@@ -76,6 +76,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       case DXGI_FORMAT_D32_FLOAT_S8X24_UINT: 
       case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS: 
       case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT: 
+        return 8u;
       case DXGI_FORMAT_R10G10B10A2_TYPELESS: 
       case DXGI_FORMAT_R10G10B10A2_UNORM: 
       case DXGI_FORMAT_R10G10B10A2_UINT: 
@@ -86,7 +87,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       case DXGI_FORMAT_R8G8B8A8_UINT: 
       case DXGI_FORMAT_R8G8B8A8_SNORM: 
       case DXGI_FORMAT_R8G8B8A8_SINT: 
-        return 8u;
       case DXGI_FORMAT_R16G16_TYPELESS: 
       case DXGI_FORMAT_R16G16_FLOAT: 
       case DXGI_FORMAT_R16G16_UNORM: 
@@ -267,9 +267,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 
     const uint32 pixelSizeBytes = locGetBytePerPixelFromFormat(someParameters.eFormat);
-    uint32 widthSizeBytes = someParameters.u16Width * pixelSizeBytes;
-    uint32 heightSizeBytes = 1u;
-    uint32 depthSizeBytes = 1u;
     uint32 maxNumMipLevels = 0;
 
     switch(dimension)
@@ -278,18 +275,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         maxNumMipLevels = static_cast<uint32>(glm::log2(someParameters.u16Width));
         break;
       case D3D12_RESOURCE_DIMENSION_TEXTURE2D: 
-        heightSizeBytes = someParameters.u16Height * pixelSizeBytes;
         maxNumMipLevels = glm::min(glm::log2(someParameters.u16Width), glm::log2(someParameters.u16Height));
         break;
       case D3D12_RESOURCE_DIMENSION_TEXTURE3D: 
-        heightSizeBytes = someParameters.u16Height * pixelSizeBytes;
-        depthSizeBytes = someParameters.u16Depth * pixelSizeBytes;
         maxNumMipLevels = glm::min(glm::min(glm::log2(someParameters.u16Width), glm::log2(someParameters.u16Height)), glm::log2(someParameters.u16Depth));
         break;
       default:
         ASSERT(false);
     }
 
+    uint32 depthOrArraySize = glm::max(1u, static_cast<uint32>(someParameters.u16Depth));
     myState.isCubemap = false;  // TODO: Implement cubemap textures
     myState.isArrayTexture = false;  // TODO: Implement array textures
     myState.isSRGB = (someParameters.eFormat == DataFormat::SRGB_8 || someParameters.eFormat == DataFormat::SRGB_8_A_8);
@@ -313,9 +308,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = dimension;
     resourceDesc.Alignment = 0;
-    resourceDesc.Width = widthSizeBytes;
-    resourceDesc.Height = heightSizeBytes;
-    resourceDesc.DepthOrArraySize = depthSizeBytes;
+    resourceDesc.Width = glm::max(1u, static_cast<uint32>(someParameters.u16Width));
+    resourceDesc.Height = glm::max(1u, static_cast<uint32>(someParameters.u16Height));
+    resourceDesc.DepthOrArraySize = depthOrArraySize;
     resourceDesc.MipLevels = myParameters.u8NumMipLevels;
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
@@ -487,13 +482,26 @@ namespace Fancy { namespace Rendering { namespace DX12 {
           newDatas[i].myPixelSizeBytes = pixelSizeBytes;
           newDatas[i].myRowSizeBytes = width * pixelSizeBytes;
           newDatas[i].mySliceSizeBytes = width * height * pixelSizeBytes;
+          
+          const uint64 oldPixelSizeBytes = someInitialDatas[i].myPixelSizeBytes;
+          const uint64 numPixels = width * height * depth;
+          for (uint64 iPixel = 0u; iPixel < numPixels; ++iPixel)
+          {
+            // Copy the smaller pixel to the new location
+            uint8* destPixelDataPtr = newDatas[i].myData + iPixel * pixelSizeBytes;
+            uint8* srcPixelDataPtr = someInitialDatas[i].myData + iPixel * oldPixelSizeBytes;
+            memcpy(destPixelDataPtr, srcPixelDataPtr, oldPixelSizeBytes);
 
-
+            // Add the padding value
+            const uint kPaddingValue = ~0u;
+            memset(destPixelDataPtr + oldPixelSizeBytes, kPaddingValue, pixelSizeBytes - oldPixelSizeBytes);
+          }
         }
 
+        RenderContextDX12::InitTextureData(this, newDatas, aNumInitialDatas);
 
-
-
+        for (uint32 i = 0u; i < aNumInitialDatas; ++i)
+          free(newDatas[i].myData);
       }
       else
       {

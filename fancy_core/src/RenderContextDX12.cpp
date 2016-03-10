@@ -566,7 +566,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         D3D12_TEXTURE_COPY_LOCATION srcCopyLocation;
         srcCopyLocation.pResource = aStagingResource;
         srcCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-        destCopyLocation.PlacedFootprint = destLayouts[i];
+        srcCopyLocation.PlacedFootprint = destLayouts[i];
         myCommandList->CopyTextureRegion(&destCopyLocation, 0u, 0u, 0u, &srcCopyLocation, nullptr);
       }
     }
@@ -627,8 +627,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ID3D12Device* device = renderer->GetDevice();
     const D3D12_RESOURCE_DESC& resourceDesc = aTexture->GetResource()->GetDesc();
 
+    // DEBUG: layouts and row-infos not needed here yet
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* destLayouts = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * aNumUploadDatas));
+    uint64* destRowSizesByte = static_cast<uint64*>(alloca(sizeof(uint64) * aNumUploadDatas));
+    uint32* destRowNums = static_cast<uint32*>(alloca(sizeof(uint32) * aNumUploadDatas));
+
     uint64 requiredStagingBufferSize;
-    device->GetCopyableFootprints(&resourceDesc, 0u, aNumUploadDatas, 0u, nullptr, nullptr, nullptr, &requiredStagingBufferSize);
+    //device->GetCopyableFootprints(&resourceDesc, 0u, aNumUploadDatas, 0u, nullptr, nullptr, nullptr, &requiredStagingBufferSize);
+    device->GetCopyableFootprints(&resourceDesc, 0u, aNumUploadDatas, 0u, destLayouts, destRowNums, destRowSizesByte, &requiredStagingBufferSize);
 
     D3D12_HEAP_PROPERTIES HeapProps;
     HeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
