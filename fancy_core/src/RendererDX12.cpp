@@ -35,6 +35,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     SAFE_DELETE(myCommandAllocatorPool);
     SAFE_DELETE(myDescriptorHeapPool);
 	}
+//---------------------------------------------------------------------------//
+  DescriptorDX12 RendererDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
+  {
+    myDescriptorHeapPool->GetStaticHeap(aHeapType)->AllocateDescriptor();
+  }
 //---------------------------------------------------------------------------// 
   uint64 RendererDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
   {

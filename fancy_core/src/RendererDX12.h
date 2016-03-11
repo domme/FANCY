@@ -35,6 +35,8 @@ class DescriptorHeapPoolDX12;
     CommandAllocatorPoolDX12* GetCommandAllocatorPool() { return myCommandAllocatorPool; }
     RenderContext* GetDefaultContext() { return myDefaultContext; }
     
+    DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
+
     DescriptorHeapPoolDX12* GetDescriptorHeapPool() { return myDescriptorHeapPool; }
     uint64 ExecuteCommandList(ID3D12CommandList* aCommandList);
 

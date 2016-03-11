@@ -2,6 +2,7 @@
 
 #if defined (RENDERER_DX12)
 #include "TextureSamplerDesc.h"
+#include "DescriptorDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -20,9 +21,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void SetFromDescription(const TextureSamplerDesc& aDesc);
     void create(const ObjectName& rName, const TextureSamplerDesc& rProperties);
 
+    const DescriptorDX12& GetDescriptor() const { return myDescriptor; }
+
   protected:
     ObjectName myName;
     TextureSamplerDesc myProperties;
+    DescriptorDX12 myDescriptor;
   };
 //---------------------------------------------------------------------------//
 } } }
