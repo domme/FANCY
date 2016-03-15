@@ -19,8 +19,7 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     bool isLocked() const { return myState.isLocked; }
     bool isLockedPersistent() const { return myState.isLocked; }
     bool isValid() const { return false; }  // TODO: Implement
-    uint getTotalSizeBytes() const { return myTotalSizeBytes; }
-    uint32 getNumElements() const { return myNumElements; }
+    uint getTotalSizeBytes() const { return myParameters.uNumElements * myParameters.uElementSizeBytes; }
     GpuBufferCreationParams getParameters() const { return myParameters; }
 
     void setBufferData(void* pData, uint uOffsetElements = 0, uint uNumElements = 0);
@@ -28,9 +27,16 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     void destroy();
     void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
     void unlock();
-
+ 
     const DescriptorDX12& GetSrvDescriptor() const { return mySrvDescriptor; }
     const DescriptorDX12& GetUavDescriptor() const { return myUavDescriptor; }
+    const DescriptorDX12& GetCbvDescriptor() const { return myCbvDescriptor; }
+    
+    const D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView() const 
+    { ASSERT(myParameters.myUsageFlags & (uint32)GpuBufferUsage::VERTEX_BUFFER); return myVertexBufferView; }
+
+    const D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() const
+    { ASSERT(myParameters.myUsageFlags & (uint32)GpuBufferUsage::INDEX_BUFFER); return myIndexBufferView; }
 
   protected:
     struct BufferState {
@@ -48,11 +54,12 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     BufferState myState;
 
     GpuBufferCreationParams myParameters;
-    uint myTotalSizeBytes;
-    uint myNumElements;
 
     DescriptorDX12 mySrvDescriptor;
     DescriptorDX12 myUavDescriptor;
+    DescriptorDX12 myCbvDescriptor;
+    D3D12_VERTEX_BUFFER_VIEW myVertexBufferView;
+    D3D12_INDEX_BUFFER_VIEW myIndexBufferView;
 	};
 //---------------------------------------------------------------------------//
 } } }

@@ -9,6 +9,9 @@
 #include <unordered_set>
 #include "GpuBuffer.h"
 #include "Fancy.h"
+#include "Texture.h"
+#include "TextureSampler.h"
+#include "GeometryData.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -184,6 +187,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return psoDesc;
   }
 //---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  ResourceState::ResourceState() 
+    : myDirtyFlags(0u)
+    , myReadTexturesRebindCount(0u)
+    , myConstantBufferRebindCount(0u)
+    , myTextureSamplerRebindCount(0u)
+  {
+    memset(myReadTextures, 0, sizeof(myReadTextures));
+    memset(myConstantBuffers, 0, sizeof(myConstantBuffers));
+    memset(myTextureSamplers, 0, sizeof(myTextureSamplers));
+  }
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
   namespace {
     std::vector<std::unique_ptr<RenderContextDX12>> locRenderContextPool;
     std::list<RenderContextDX12*> locAvailableRenderContexts;
@@ -228,7 +246,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
     , myIsInRecordState(true)
   {
-    memset(myDescriptorHeaps, 0u, sizeof(myDescriptorHeaps));
+    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
 
     ID3D12Device* device = myRenderer.GetDevice();
     
@@ -254,7 +272,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
     , myIsInRecordState(true)
   {
-    memset(myDescriptorHeaps, 0u, sizeof(myDescriptorHeaps));
+    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
 
     ID3D12Device* device = myRenderer.GetDevice();
 
@@ -309,6 +327,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myCpuVisibleAllocator.CleanupAfterCmdListExecute(fenceVal);
     myGpuOnlyAllocator.CleanupAfterCmdListExecute(fenceVal);
+    ReleaseDynamicHeaps(fenceVal);
     ReleaseAllocator(fenceVal);
 
     if (aWaitForCompletion)
@@ -321,12 +340,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap)
   {
-    ID3D12DescriptorHeap* heap = aDescriptorHeap->GetHeap();
-
-    if (myDescriptorHeaps[aHeapType] == heap)
+    if (myDynamicShaderVisibleHeaps[aHeapType] == aDescriptorHeap)
       return;
 
-    myDescriptorHeaps[aHeapType] = heap;
+    // Has this heap already been used on this commandList? Then we need to "remember" it until ExecuteAndReset()
+    if (myDynamicShaderVisibleHeaps[aHeapType] != nullptr)
+      myRetiredDescriptorHeaps.push_back(myDynamicShaderVisibleHeaps[aHeapType]);
+
+    myDynamicShaderVisibleHeaps[aHeapType] = aDescriptorHeap;
     ApplyDescriptorHeaps();
   }
 //---------------------------------------------------------------------------//
@@ -364,9 +385,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memset(heapsToBind, 0, sizeof(heapsToBind));
     uint32 numHeapsToBind = 0u;
     
-    for(ID3D12DescriptorHeap* heap : myDescriptorHeaps)
+    for(DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
       if (heap != nullptr)
-        heapsToBind[numHeapsToBind++] = heap;
+        heapsToBind[numHeapsToBind++] = heap->GetHeap();
     
     if (numHeapsToBind > 0u)
       myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
@@ -387,6 +408,25 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCommandAllocator = nullptr;
   }
 //---------------------------------------------------------------------------//
+  void RenderContextDX12::ReleaseDynamicHeaps(uint64 aFenceVal)
+  {
+    DescriptorHeapPoolDX12* heapPool = myRenderer.GetDescriptorHeapPool();
+
+    for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
+    {
+      if (heap != nullptr)
+        heapPool->ReleaseDynamicHeap(aFenceVal, heap);
+    }
+
+    for (DescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
+    {
+      heapPool->ReleaseDynamicHeap(aFenceVal, heap);
+    }
+
+    myRetiredDescriptorHeaps.clear();
+    memset(myDynamicShaderVisibleHeaps, 0, sizeof(myDynamicShaderVisibleHeaps));
+  }
+//---------------------------------------------------------------------------//
   void RenderContextDX12::setViewport(const glm::uvec4& uViewportParams)
   {
     if (myViewportParams == uViewportParams)
@@ -398,7 +438,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setBlendState(const BlendState& clBlendState)
   {
-    PipelineState& state = myState;
+    PipelineState& state = myPipelineState;
     uint requestedHash = clBlendState.GetHash();
 
     if (state.myBlendState.GetHash() == requestedHash)
@@ -410,7 +450,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setDepthStencilState(const DepthStencilState& aDepthStencilState)
   {
-    PipelineState& state = myState;
+    PipelineState& state = myPipelineState;
     uint requestedHash = aDepthStencilState.GetHash();
 
     if (state.myDepthStencilState.GetHash() == requestedHash)
@@ -422,21 +462,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setFillMode(const FillMode eFillMode)
   {
-    PipelineState& state = myState;
+    PipelineState& state = myPipelineState;
     state.myIsDirty |= eFillMode != state.myFillMode;
     state.myFillMode = eFillMode;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setCullMode(const CullMode eCullMode)
   {
-    PipelineState& state = myState;
+    PipelineState& state = myPipelineState;
     state.myIsDirty |= eCullMode != state.myCullMode;
     state.myCullMode = eCullMode;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setWindingOrder(const WindingOrder eWindingOrder)
   {
-    PipelineState& state = myState;
+    PipelineState& state = myPipelineState;
     state.myIsDirty |= eWindingOrder != state.myWindingOrder;
     state.myWindingOrder = eWindingOrder;
   }
@@ -463,6 +503,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex)
   {
+    if (myResourceState.myReadTextures[u8RegisterIndex] == pTexture)
+      return;
+
+    myResourceState.myReadTextures[u8RegisterIndex] = pTexture;
+    myResourceState.myDirtyFlags |= ResourceState::READ_TEXTURES_DIRTY;
+    myResourceState.myReadTexturesRebindCount = 
+      glm::max(myResourceState.myReadTexturesRebindCount, (uint32) u8RegisterIndex + 1u);
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setWriteTexture(const Texture* pTexture, const uint8 u8RegisterIndex)
@@ -475,15 +522,29 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setConstantBuffer(const GpuBuffer* pConstantBuffer, const uint8 u8RegisterIndex)
   {
+    if (myResourceState.myConstantBuffers[u8RegisterIndex] == pConstantBuffer)
+      return;
+
+    myResourceState.myConstantBuffers[u8RegisterIndex] = pConstantBuffer;
+    myResourceState.myDirtyFlags |= ResourceState::CONSTANT_BUFFERS_DIRTY;
+    myResourceState.myConstantBufferRebindCount =
+      glm::max(myResourceState.myConstantBufferRebindCount, (uint32)u8RegisterIndex + 1u);
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setTextureSampler(const TextureSampler* pSampler, const uint8 u8RegisterIndex)
   {
+    if (myResourceState.myTextureSamplers[u8RegisterIndex] == pSampler)
+      return;
+
+    myResourceState.myTextureSamplers[u8RegisterIndex] = pSampler;
+    myResourceState.myDirtyFlags |= ResourceState::TEXTURE_SAMPLERS_DIRTY;
+    myResourceState.myTextureSamplerRebindCount =
+      glm::max(myResourceState.myTextureSamplerRebindCount, (uint32)u8RegisterIndex + 1u);
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage)
   {
-    PipelineState& state = myState;
+    PipelineState& state = myPipelineState;
 
     if (state.myShaderStages[(uint)eShaderStage] == pProgram)
       return;
@@ -494,29 +555,28 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::renderGeometry(const Geometry::GeometryData* pGeometry)
   {
-    applyPipelineState();
-    applyViewport();
+    ApplyPipelineState();
+    ApplyViewport();
+    ApplyResourceState();
+
+    myCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    myCommandList->IASetVertexBuffers(0, 1, &pGeometry->getVertexBuffer()->GetVertexBufferView());
+    myCommandList->IASetIndexBuffer(&pGeometry->getIndexBuffer()->GetIndexBufferView());
+    myCommandList->DrawIndexedInstanced(pGeometry->getNumIndices(), 1, 0, 0, 0);
   }
 //---------------------------------------------------------------------------//
-  //void RenderContextDX12::CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount)
-  //{
-  //  
-  //}
-//---------------------------------------------------------------------------//
-  namespace {
-    void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint32 aNumRows, uint32 aNumSlices)
+  static void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint32 aNumRows, uint32 aNumSlices)
+  {
+    for (uint32 iSlice = 0u; iSlice < aNumSlices; ++iSlice)
     {
-      for (uint32 iSlice = 0u; iSlice < aNumSlices; ++iSlice)
+      uint8* destSliceDataPtr = static_cast<uint8*>(aDest->pData) + aDest->SlicePitch * iSlice;
+      const uint8* srcSliceDataPtr = static_cast<const uint8*>(aSrc->pData) + aSrc->SlicePitch * iSlice;
+      for (uint32 iRow = 0u; iRow < aNumRows; ++iRow)
       {
-        uint8* destSliceDataPtr = static_cast<uint8*>(aDest->pData) + aDest->SlicePitch * iSlice;
-        const uint8* srcSliceDataPtr = static_cast<const uint8*>(aSrc->pData) + aSrc->SlicePitch * iSlice;
-        for (uint32 iRow = 0u; iRow < aNumRows; ++iRow)
-        {
-          uint8* destDataPtr = destSliceDataPtr + aDest->RowPitch * iRow;
-          const uint8* srcDataPtr = srcSliceDataPtr + aSrc->RowPitch * iRow;
+        uint8* destDataPtr = destSliceDataPtr + aDest->RowPitch * iRow;
+        const uint8* srcDataPtr = srcSliceDataPtr + aSrc->RowPitch * iRow;
 
-          memcpy(destDataPtr, srcDataPtr, aRowStrideBytes);
-        }
+        memcpy(destDataPtr, srcDataPtr, aRowStrideBytes);
       }
     }
   }
@@ -619,7 +679,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
     RenderContextDX12::FreeContext(initContext);
   }
-
 //---------------------------------------------------------------------------//
   void RenderContextDX12::InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
   {
@@ -686,19 +745,26 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 #pragma region Pipeline Apply
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::applyViewport()
+  void RenderContextDX12::ApplyViewport()
   {
-
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::applyPipelineState()
-  {
-    PipelineState& requestedState = myState;
-
-    if (!requestedState.myIsDirty)
+    if (!myViewportDirty)
       return;
 
-    uint requestedHash = requestedState.getHash();
+    D3D12_VIEWPORT viewport = {0u};
+    viewport.TopLeftX = myViewportParams.x;
+    viewport.TopLeftY = myViewportParams.y;
+    viewport.Width = myViewportParams.z;
+    viewport.Height = myViewportParams.w;
+
+    myCommandList->RSSetViewports(1u, &viewport);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::ApplyPipelineState()
+  {
+    if (!myPipelineState.myIsDirty)
+      return;
+
+    uint requestedHash = myPipelineState.getHash();
 
     ID3D12PipelineState* pso = nullptr;
 
@@ -709,17 +775,92 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
     else
     {
-      const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = requestedState.toNativePSOdesc();
+      const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = myPipelineState.toNativePSOdesc();
       HRESULT result = myRenderer.GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
       ASSERT_M(result == S_OK, "Error creating graphics PSO");
 
       ourPSOcache[requestedHash] = pso;
     }
-    requestedState.myIsDirty = false;
-
+    myPipelineState.myIsDirty = false;
     myCommandList->SetPipelineState(pso);
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::ApplyResourceState()
+  {
+    if (myResourceState.myDirtyFlags == 0u)
+      return;
+
+    // Current strategy: The descriptors of all resources are dynamically copied into a 
+    // a dynamic shader-visible heap, which is set as a descriptor table to the commandlist
+
+    DescriptorDX12* srvUavCbvDescriptorsToSet = 
+      static_cast<DescriptorDX12*>(alloca(sizeof(DescriptorDX12*) * 
+        (myResourceState.myReadTexturesRebindCount + myResourceState.myConstantBufferRebindCount)));
+    uint32 numSrvUavCbvDescriptorsToSet = 0u;
+
+    // This assumes a fixed ordering of CBVs before SRVs in the shader... TODO: Move this logic to higher-level code
+
+    for (uint32 i = 0u; i < myResourceState.myConstantBufferRebindCount; ++i)
+    {
+      if (myResourceState.myConstantBuffers[i] != nullptr)
+        srvUavCbvDescriptorsToSet[numSrvUavCbvDescriptorsToSet++] = myResourceState.myConstantBuffers[i]->GetCbvDescriptor();
+    }
+
+    for (uint32 i = 0u; i < myResourceState.myReadTexturesRebindCount; ++i)
+    {
+      if (myResourceState.myReadTextures[i] != nullptr)
+        srvUavCbvDescriptorsToSet[numSrvUavCbvDescriptorsToSet++] = myResourceState.myReadTextures[i]->GetSrv();
+    }
+
+    DescriptorDX12* samplerDescriptorsToSet =
+      (DescriptorDX12*)alloca(sizeof(DescriptorDX12*) * myResourceState.myTextureSamplerRebindCount);
+    uint32 numSamplerDescriptorsToSet = 0u;
+
+    for (uint32 i = 0u; i < myResourceState.myTextureSamplerRebindCount; ++i)
+    {
+      if (myResourceState.myTextureSamplers[i] != nullptr)
+        samplerDescriptorsToSet[numSamplerDescriptorsToSet++] = myResourceState.myTextureSamplers[i]->GetDescriptor();
+    }
+
+    DescriptorHeapPoolDX12* heapPool = myRenderer.GetDescriptorHeapPool();
+
+    if (numSrvUavCbvDescriptorsToSet > 0u)
+    {
+      DescriptorHeapDX12* dynamicHeap = heapPool->AllocateDynamicHeap(numSrvUavCbvDescriptorsToSet, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+      D3D12_CPU_DESCRIPTOR_HANDLE destHandle = dynamicHeap->GetCpuHeapStart();
+      for (uint32 i = 0u; i < numSrvUavCbvDescriptorsToSet; ++i)
+      {
+        myRenderer.GetDevice()->CopyDescriptorsSimple(1, destHandle,
+          srvUavCbvDescriptorsToSet[i].GetCpuHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+        destHandle.ptr += dynamicHeap->GetHandleIncrementSize();
+      }
+
+      SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, dynamicHeap);
+      myCommandList->SetGraphicsRootDescriptorTable(0, dynamicHeap->GetGpuHeapStart());
+    }
+
+    if (numSamplerDescriptorsToSet > 0u)
+    {
+      DescriptorHeapDX12* dynamicHeap = heapPool->AllocateDynamicHeap(numSamplerDescriptorsToSet, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+
+      D3D12_CPU_DESCRIPTOR_HANDLE destHandle = dynamicHeap->GetCpuHeapStart();
+      for (uint32 i = 0u; i < numSamplerDescriptorsToSet; ++i)
+      {
+        myRenderer.GetDevice()->CopyDescriptorsSimple(1, destHandle,
+          samplerDescriptorsToSet[i].GetCpuHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+
+        destHandle.ptr += dynamicHeap->GetHandleIncrementSize();
+      }
+
+      SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, dynamicHeap);
+      myCommandList->SetGraphicsRootDescriptorTable(0, dynamicHeap->GetGpuHeapStart());
+    }
+
+    myResourceState.myDirtyFlags = 0u;
+  }
+//---------------------------------------------------------------------------//
 #pragma endregion 
 
 

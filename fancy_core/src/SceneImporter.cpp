@@ -557,7 +557,7 @@ namespace Fancy { namespace IO {
 
       Rendering::GpuBufferCreationParams bufferParams;
       bufferParams.bIsMultiBuffered = false;
-      bufferParams.ePrimaryUsageType = Rendering::GpuBufferUsage::VERTEX_BUFFER;
+      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
       bufferParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
       bufferParams.uNumElements = aiMesh->mNumVertices;
       bufferParams.uElementSizeBytes = vertexLayout.getStrideBytes();
@@ -593,7 +593,7 @@ namespace Fancy { namespace IO {
 
       Rendering::GpuBufferCreationParams indexBufParams;
       indexBufParams.bIsMultiBuffered = false;
-      indexBufParams.ePrimaryUsageType = Rendering::GpuBufferUsage::INDEX_BUFFER;
+      indexBufParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::INDEX_BUFFER);
       indexBufParams.uAccessFlags = static_cast<uint32>(Rendering::GpuResourceAccessFlags::NONE);
       indexBufParams.uNumElements = aiMesh->mNumFaces * 3u;
       indexBufParams.uElementSizeBytes = sizeof(uint32);

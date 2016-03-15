@@ -362,26 +362,26 @@ namespace Fancy {
     };
  //---------------------------------------------------------------------------//
     enum class GpuBufferUsage {
-      CONSTANT_BUFFER = 0u,
-      VERTEX_BUFFER,
-      INDEX_BUFFER,
-      DRAW_INDIRECT_BUFFER,
-      DISPATCH_INDIRECT_BUFFER,
-      RESOURCE_BUFFER,
-      RESOURCE_BUFFER_RW,
-      RESOURCE_BUFFER_LARGE,
-      RESOURCE_BUFFER_LARGE_RW
+      CONSTANT_BUFFER = (1 << 0),
+      VERTEX_BUFFER = (1 << 1),
+      INDEX_BUFFER = (1 << 2),
+      DRAW_INDIRECT_BUFFER = (1 << 3),
+      DISPATCH_INDIRECT_BUFFER = (1 << 4),
+      RESOURCE_BUFFER = (1 << 5),
+      RESOURCE_BUFFER_RW = (1 << 6),
+      RESOURCE_BUFFER_LARGE = (1 << 7),
+      RESOURCE_BUFFER_LARGE_RW = (1 << 8),
     };
  //---------------------------------------------------------------------------//
     struct GpuBufferCreationParams {
       GpuBufferCreationParams() : uNumElements(0u), myInternalRefIndex(~0u), bIsMultiBuffered(false), 
-        uElementSizeBytes(0u), ePrimaryUsageType(GpuBufferUsage::CONSTANT_BUFFER), uAccessFlags(0u) {}
+        uElementSizeBytes(0u), myUsageFlags(0u), uAccessFlags(0u) {}
 
       uint uNumElements;
       uint32 uElementSizeBytes;
       uint32 uAccessFlags;
       uint32 myInternalRefIndex;
-      GpuBufferUsage ePrimaryUsageType;
+      uint32 myUsageFlags;
       bool bIsMultiBuffered;
     };
  //---------------------------------------------------------------------------//
