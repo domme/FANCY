@@ -149,7 +149,7 @@ namespace Fancy {
     m_pCurrScene->update(deltaTime);
 
     ourRenderer->beginFrame();
-    // m_pRenderingProcess->tick(deltaTime);
+    m_pRenderingProcess->tick(deltaTime);
     ourRenderer->endFrame();
   }
 //---------------------------------------------------------------------------//

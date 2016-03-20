@@ -38,7 +38,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   DescriptorDX12 RendererDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
-    myDescriptorHeapPool->GetStaticHeap(aHeapType)->AllocateDescriptor();
+    return myDescriptorHeapPool->GetStaticHeap(aHeapType)->AllocateDescriptor();
   }
 //---------------------------------------------------------------------------// 
   uint64 RendererDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)

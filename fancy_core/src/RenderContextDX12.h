@@ -6,6 +6,9 @@
 #include "DepthStencilState.h"
 #include "BlendState.h"
 #include "GpuDynamicAllocatorDX12.h"
+#include "VertexInputLayout.h"
+#include "SmallObjectAllocator.h"
+#include "ObjectPool.h"
 
 namespace Fancy{ namespace Rendering{
 class Renderer;
@@ -17,21 +20,11 @@ class DescriptorHeapDX12;
   class GpuResourceDX12;
   class CommandAllocatorPoolDX12;
 //---------------------------------------------------------------------------//
-  struct InputLayout
-  {
-    std::vector<D3D12_INPUT_ELEMENT_DESC> myElements;
-
-    // Combined hash of ShaderVertexLayout, GeometryVertexLayout as well as any instancing data
-    // should be used to quickly determine if an inputlayout can be re-used for changing shader- geometry- or instance data 
-    // TODO: Important: Implement InputLayout in DX12
-    uint myHash;
-  };
-//---------------------------------------------------------------------------//
   struct PipelineState
   {
     PipelineState();
     uint getHash();
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC toNativePSOdesc();
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc();
 
     FillMode myFillMode;
     CullMode myCullMode;
@@ -42,8 +35,7 @@ class DescriptorHeapDX12;
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[Constants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
-    InputLayout myInputLayout;
-
+    
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//
@@ -83,9 +75,6 @@ class DescriptorHeapDX12;
     RenderContextDX12();
     explicit RenderContextDX12(Renderer& aRenderer);
     ~RenderContextDX12();
-
-    static RenderContextDX12* AllocateContext();
-    static void FreeContext(RenderContextDX12* aContext);
 
     // TODO: Replace this DX9/11-Style API with a more modern approach
     void setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex);

@@ -6,6 +6,7 @@
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   Scene::Scene()
+    : m_pActiveCamera(nullptr)
   {
     m_pRootNode = FANCY_NEW(SceneNode, MemoryCategory::GENERAL);
   }

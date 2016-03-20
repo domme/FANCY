@@ -9,7 +9,7 @@
 namespace Fancy { namespace Rendering {
   class GpuResourceSignature;
   class MaterialPassInstance;
-  class Renderer;
+  class RenderContext;
   class MaterialPass;
 }}
 //---------------------------------------------------------------------------//
@@ -21,8 +21,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       explicit GpuDataInterfaceDX12();
       ~GpuDataInterfaceDX12() {}
 
-      void applyMaterialPass(const MaterialPass* _pMaterialPass, Renderer* _pRenderer);
-      void applyMaterialPassInstance(const MaterialPassInstance* _pMaterialPassInstance, Renderer* _pRenderer);
+      void applyMaterialPass(const MaterialPass* _pMaterialPass, RenderContext* aRenderContext);
+      void applyMaterialPassInstance(const MaterialPassInstance* _pMaterialPassInstance, RenderContext* aRenderContext);
   };
 //---------------------------------------------------------------------------//
 }}} // namespace Fancy { namespace Rendering { namespace DX12 {

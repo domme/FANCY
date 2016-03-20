@@ -308,6 +308,7 @@
     <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h" />
     <ClInclude Include="src\AdapterDX12.h" />
     <ClInclude Include="src\AdapterGL4.h" />
+    <ClInclude Include="src\AlignedStorage.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
     <ClInclude Include="src\d3dx12.h" />
@@ -375,6 +376,7 @@
     <ClInclude Include="src\ModelDesc.h" />
     <ClInclude Include="src\ObjectFactory.h" />
     <ClInclude Include="src\ObjectName.h" />
+    <ClInclude Include="src\ObjectPool.h" />
     <ClInclude Include="src\OpenGLprerequisites.h" />
     <ClInclude Include="src\PathService.h" />
     <ClInclude Include="src\RenderContext.h" />
@@ -396,6 +398,7 @@
     <ClInclude Include="src\Serializable.h" />
     <ClInclude Include="src\Serializer.h" />
     <ClInclude Include="src\ShaderConstantsManager.h" />
+    <ClInclude Include="src\SmallObjectAllocator.h" />
     <ClInclude Include="src\StaticManagedObject.h" />
     <ClInclude Include="src\StdAfx.h" />
     <ClInclude Include="src\GeometryData.h" />
@@ -469,6 +472,7 @@
     <ClCompile Include="src\ObjectFactory.cpp" />
     <ClCompile Include="src\ObjectName.cpp" />
     <ClCompile Include="src\PathService.cpp" />
+    <ClCompile Include="src\RenderContext.cpp" />
     <ClCompile Include="src\RenderContextDX12.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\RendererDX12.cpp" />

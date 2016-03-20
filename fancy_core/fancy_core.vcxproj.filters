@@ -367,6 +367,15 @@
     <ClInclude Include="src\DescriptorDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="src\SmallObjectAllocator.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AlignedStorage.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ObjectPool.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -614,6 +623,9 @@
     </ClCompile>
     <ClCompile Include="src\Fancy.cpp">
       <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderContext.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

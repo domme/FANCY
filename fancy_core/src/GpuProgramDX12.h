@@ -62,6 +62,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const GpuResourceInfoList& getWriteTextureInfoList() const { return myWriteTextureInfos; }
     const GpuResourceInfoList& getWriteBufferInfoList() const { return myWriteBufferInfos; }
     const ShaderVertexInputLayout* getVertexInputLayout() const { return &myInputLayout; }
+    const D3D12_INPUT_ELEMENT_DESC* GetNativeInputElements() const { ASSERT(!myNativeInputElements.empty()); return &myNativeInputElements[0u]; }
+    const uint32 GetNumNativeInputElements() const { return myNativeInputElements.size(); }
 
     ComPtr<ID3DBlob>& getNativeData() { return myNativeData; }
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
@@ -81,6 +83,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ConstantBufferElementList myConstantBufferElements;
 
     ShaderVertexInputLayout myInputLayout;
+    std::vector<D3D12_INPUT_ELEMENT_DESC> myNativeInputElements;
 
     ComPtr<ID3DBlob> myNativeData;
     RootSignatureDX12* myRootSignature;

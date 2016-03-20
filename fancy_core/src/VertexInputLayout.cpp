@@ -1,5 +1,6 @@
 #include "VertexInputLayout.h"
 #include "Serializer.h"
+#include "MathUtil.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -27,6 +28,39 @@ namespace Fancy { namespace Rendering {
 #endif  // FANCY_RENDERSYSTEM_USE_VALIDATION
   }
 //---------------------------------------------------------------------------//
+  uint64 ShaderVertexInputElement::GetHash() const
+  {
+    uint64 hash = 0;
+    MathUtil::hash_combine(hash, myName.getHash());
+    MathUtil::hash_combine(hash, (uint32)mySemantics);
+    MathUtil::hash_combine(hash, mySemanticIndex);
+    MathUtil::hash_combine(hash, myRegisterIndex);
+    MathUtil::hash_combine(hash, mySizeBytes);
+    MathUtil::hash_combine(hash, (uint32)myFormat);
+    MathUtil::hash_combine(hash, myFormatComponentCount);
+    return hash;
+  }
+  //---------------------------------------------------------------------------//
+  void ShaderVertexInputElement::serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->serialize(&myName, "myName");
+    aSerializer->serialize(&mySemantics, "eSemantics");
+    aSerializer->serialize(&myRegisterIndex, "registerIndex");
+    aSerializer->serialize(&mySizeBytes, "sizeBytes");
+    aSerializer->serialize(&myFormat, "dataFormat");
+    aSerializer->serialize(&myFormatComponentCount, "formatComponentCount");
+  }
+//---------------------------------------------------------------------------//
+  uint64 ShaderVertexInputLayout::GetHash() const
+  {
+    uint64 hash = 0;
+    
+    for (uint32 i = 0u; i < myVertexInputElements.size(); ++i)
+      MathUtil::hash_combine(hash, myVertexInputElements[i].GetHash());
+    
+    return hash;
+  }
+//---------------------------------------------------------------------------//
   void ShaderVertexInputLayout::serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serialize(&myVertexInputElements, "VertexInputElements");
@@ -46,16 +80,6 @@ namespace Fancy { namespace Rendering {
   {
     myVertexInputElements.push_back(clVertexElement);
     Validation::validateLayout(myVertexInputElements);
-  }
-//---------------------------------------------------------------------------//
-  void ShaderVertexInputElement::serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->serialize(&myName, "myName");
-    aSerializer->serialize(&mySemantics, "eSemantics");
-    aSerializer->serialize(&myRegisterIndex, "registerIndex");
-    aSerializer->serialize(&mySizeBytes, "sizeBytes");
-    aSerializer->serialize(&myFormat, "dataFormat");
-    aSerializer->serialize(&myFormatComponentCount, "formatComponentCount");
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

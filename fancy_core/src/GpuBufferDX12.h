@@ -20,6 +20,7 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     bool isLockedPersistent() const { return myState.isLocked; }
     bool isValid() const { return false; }  // TODO: Implement
     uint getTotalSizeBytes() const { return myParameters.uNumElements * myParameters.uElementSizeBytes; }
+    uint32 getNumElements() const { return myParameters.uNumElements; }
     GpuBufferCreationParams getParameters() const { return myParameters; }
 
     void setBufferData(void* pData, uint uOffsetElements = 0, uint uNumElements = 0);

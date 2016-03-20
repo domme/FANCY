@@ -45,7 +45,7 @@
     SamplerState sampler_default : register(s0);
     
     [RootSignature(RS_FORWARD_COLORPASS)]
-    float4 main(VS_OUT fs_in)
+    float4 main(VS_OUT fs_in) : SV_Target
     {
       float3 albedo = float3(1.0, 1.0, 1.0);
       albedo *= tex_diffuse.Sample(sampler_default, fs_in.uv).xyz;

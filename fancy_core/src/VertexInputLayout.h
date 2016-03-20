@@ -16,7 +16,7 @@ namespace Fancy { namespace Rendering {
   {
     SERIALIZABLE(ShaderVertexInputElement)
     static ObjectName getTypeName() { return _N(ShaderVertexInputElement); }
-    uint64 GetHash() const { return 0u; }
+    uint64 GetHash() const;
     void serialize(IO::Serializer* aSerializer);
 
     ShaderVertexInputElement() : 
@@ -47,7 +47,7 @@ namespace Fancy { namespace Rendering {
   public:
     SERIALIZABLE(ShaderVertexInputLayout)
     static ObjectName getTypeName() { return _N(ShaderVertexInputLayout); }
-    uint64 GetHash() const { return 0u; }
+    uint64 GetHash() const;
     void serialize(IO::Serializer* aSerializer);
 
     ShaderVertexInputLayout();

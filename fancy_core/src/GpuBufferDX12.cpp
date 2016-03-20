@@ -64,16 +64,23 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       (someParameters.myUsageFlags & (uint32)GpuBufferUsage::CONSTANT_BUFFER);
 
     D3D12_HEAP_PROPERTIES heapProps;
-    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
+    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     heapProps.CreationNodeMask = 1u;
     heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
     heapProps.VisibleNodeMask = 1u;
 
+    uint32 alignment = 0u;
+    if (wantsConstantBufferView)
+      alignment = 256u;
+
+    uint32 actualWidthBytesWithAlignment = 
+      MathUtil::Align(someParameters.uNumElements * someParameters.uElementSizeBytes, alignment);
+
     D3D12_RESOURCE_DESC resourceDesc;
     memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-    resourceDesc.Alignment = 0;
-    resourceDesc.Width = someParameters.uNumElements * someParameters.uElementSizeBytes;
+    resourceDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+    resourceDesc.Width = actualWidthBytesWithAlignment;
     resourceDesc.Height = 1;
     resourceDesc.DepthOrArraySize = 1;
     resourceDesc.MipLevels = 1;
@@ -96,7 +103,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       // The default for most buffers: No Cpu-access at all required. Can be created as GPU-only visible heap
       heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
       myUsageState = D3D12_RESOURCE_STATE_COMMON;
     }
     else if (wantsCpuWrite || wantsCpuStorage)
@@ -104,12 +110,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
       myUsageState = D3D12_RESOURCE_STATE_GENERIC_READ;
       
-      if (!wantsCpuWrite && !wantsCpuRead)
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
-      else if (wantsCpuRead)
+      if (wantsCpuRead)
         heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
-      else  // wants write
-        heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     }
     else if (!wantsCpuWrite && wantsCpuRead)
     {
@@ -161,7 +163,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (wantsConstantBufferView)
     {
       D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-      cbvDesc.SizeInBytes = myParameters.uNumElements * myParameters.uElementSizeBytes;
+      cbvDesc.SizeInBytes = actualWidthBytesWithAlignment;
       cbvDesc.BufferLocation = GetGpuVirtualAddress();
 
       myCbvDescriptor = heap->AllocateDescriptor();

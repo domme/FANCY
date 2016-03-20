@@ -35,7 +35,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     MathUtil::hash_combine(hash, myBlendState.GetHash());
 
     for (uint i = 0u; i < static_cast<uint>(ShaderStage::NUM); ++i)
-      MathUtil::hash_combine(hash, reinterpret_cast<uint>(myShaderStages[i]));
+      MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myShaderStages[i]));
 
     MathUtil::hash_combine(hash, myNumRenderTargets);
 
@@ -44,12 +44,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     MathUtil::hash_combine(hash, static_cast<uint>(myDSVformat));
 
-    MathUtil::hash_combine(hash, myInputLayout.myHash);
-
     return hash;
   }
   //---------------------------------------------------------------------------//
-  D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineState::toNativePSOdesc()
+  D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineState::GetNativePSOdesc()
   {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
     memset(&psoDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
@@ -158,10 +156,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     // INPUT LAYOUT
-    ASSERT_M(!myInputLayout.myElements.empty(), "Invalid input layout");
-    D3D12_INPUT_LAYOUT_DESC& inputLayout = psoDesc.InputLayout;
-    inputLayout.NumElements = myInputLayout.myElements.size();
-    inputLayout.pInputElementDescs = &myInputLayout.myElements[0u];
+    if (const GpuProgram* vertexShader = myShaderStages[(uint32) ShaderStage::VERTEX])
+    {
+      D3D12_INPUT_LAYOUT_DESC& inputLayout = psoDesc.InputLayout;
+      inputLayout.NumElements = vertexShader->GetNumNativeInputElements();
+      inputLayout.pInputElementDescs = vertexShader->GetNativeInputElements();
+    }
 
     // IB STRIP CUT VALUE
     psoDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
@@ -187,7 +187,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return psoDesc;
   }
 //---------------------------------------------------------------------------//
-
+  std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
 //---------------------------------------------------------------------------//
   ResourceState::ResourceState() 
     : myDirtyFlags(0u)
@@ -199,39 +199,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memset(myConstantBuffers, 0, sizeof(myConstantBuffers));
     memset(myTextureSamplers, 0, sizeof(myTextureSamplers));
   }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  namespace {
-    std::vector<std::unique_ptr<RenderContextDX12>> locRenderContextPool;
-    std::list<RenderContextDX12*> locAvailableRenderContexts;
-  }
-//---------------------------------------------------------------------------//
-  std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
-//---------------------------------------------------------------------------//
-  RenderContextDX12* RenderContextDX12::AllocateContext()
-  {
-    if (!locAvailableRenderContexts.empty())
-    {
-      RenderContextDX12* context = locAvailableRenderContexts.front();
-      context->Reset();
-      locAvailableRenderContexts.pop_front();
-      return context;
-    }
-
-    locRenderContextPool.push_back(std::make_unique<RenderContextDX12>());
-    return locRenderContextPool.back().get();
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::FreeContext(RenderContextDX12* aContext)
-  {
-    if (std::find(locAvailableRenderContexts.begin(), locAvailableRenderContexts.end(), aContext)
-      != locAvailableRenderContexts.end())
-      return;
-
-    locAvailableRenderContexts.push_back(aContext);
-  }
-//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------// 
   RenderContextDX12::RenderContextDX12()
     : myRenderer(*Fancy::GetRenderer())
     , myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
@@ -291,9 +259,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::Destroy()
   {
-    myPSO->Release();
+    if (myPSO != nullptr)
+      myPSO->Release();
     myPSO = nullptr;
-    myCommandList->Release();
+
+    if (myCommandList != nullptr)
+      myCommandList->Release(); 
     myCommandList = nullptr;
 
     if (myCommandAllocator != nullptr)
@@ -542,14 +513,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       glm::max(myResourceState.myTextureSamplerRebindCount, (uint32)u8RegisterIndex + 1u);
   }
   //---------------------------------------------------------------------------//
-  void RenderContextDX12::setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage)
+  void RenderContextDX12::setGpuProgram(const GpuProgram* aGpuProgram, const ShaderStage aShaderStage)
   {
     PipelineState& state = myPipelineState;
 
-    if (state.myShaderStages[(uint)eShaderStage] == pProgram)
+    if (state.myShaderStages[(uint)aShaderStage] == aGpuProgram)
       return;
 
-    state.myShaderStages[(uint)eShaderStage] = pProgram;
+    state.myShaderStages[(uint)aShaderStage] = aGpuProgram;
+
     state.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
@@ -662,7 +634,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const D3D12_RESOURCE_DESC& resourceDesc = aBuffer->GetResource()->GetDesc();
 
     ComPtr<ID3D12Resource> uploadResource;
-    CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS, 
+    CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, 
       &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
 
     void* mappedBufferPtr;
@@ -670,14 +642,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memcpy(mappedBufferPtr, aDataPtr, aBuffer->getTotalSizeBytes());
     uploadResource->Unmap(0, nullptr);
 
-    RenderContextDX12* initContext = RenderContextDX12::AllocateContext();
+    RenderContext* initContext = RenderContext::AllocateContext();
     initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
     initContext->myCommandList->CopyResource(aBuffer->GetResource(), uploadResource.Get());
     initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, true);
     
     initContext->ExecuteAndReset(true);
     
-    RenderContextDX12::FreeContext(initContext);
+    RenderContext::FreeContext(initContext);
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
@@ -732,7 +704,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       subDatas[i].RowPitch = someUploadDatas[i].myRowSizeBytes;
     }
 
-    RenderContextDX12* uploadContext = RenderContextDX12::AllocateContext();
+    RenderContext* uploadContext = RenderContext::AllocateContext();
     D3D12_RESOURCE_STATES oldUsageState = aTexture->GetUsageState();
     uploadContext->TransitionResource(aTexture, D3D12_RESOURCE_STATE_COPY_DEST, true);
     uploadContext->UpdateSubresources(aTexture->GetResource(), stagingBuffer.Get(), 0u, aNumUploadDatas, subDatas);
@@ -740,7 +712,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     uploadContext->ExecuteAndReset(true);
 
-    RenderContextDX12::FreeContext(uploadContext);
+    RenderContext::FreeContext(uploadContext);
   }
 //---------------------------------------------------------------------------//
 #pragma region Pipeline Apply
@@ -775,7 +747,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
     else
     {
-      const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = myPipelineState.toNativePSOdesc();
+      const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = myPipelineState.GetNativePSOdesc();
       HRESULT result = myRenderer.GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
       ASSERT_M(result == S_OK, "Error creating graphics PSO");
 

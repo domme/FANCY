@@ -8,6 +8,7 @@
 #include "LightComponent.h"
 #include "GpuDataInterface.h"
 #include "MaterialPassInstance.h"
+#include "RenderContext.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -31,13 +32,15 @@ namespace Fancy { namespace Rendering {
   {
     Scene::Scene* pScene = Fancy::GetCurrentScene().get();
     Renderer& renderer = *Fancy::GetRenderer();
+    
+    RenderContext* context = RenderContext::AllocateContext();
 
     Scene::SceneRenderDescription renderDesc;
     pScene->gatherRenderItems(&renderDesc);
 
-    ShaderConstantsManager::bindBuffers(renderer.GetDefaultContext());
+    ShaderConstantsManager::bindBuffers(context);
 
-    ShaderConstantsManager::updateStage.myRenderContext = renderer.GetDefaultContext();
+    ShaderConstantsManager::updateStage.myRenderContext = context;
     ShaderConstantsManager::update(ConstantBufferType::PER_FRAME);
 
     ShaderConstantsManager::updateStage.pCamera = pScene->getActiveCamera();
@@ -69,15 +72,20 @@ namespace Fancy { namespace Rendering {
         if (pCachedMaterialPass != pMaterialPass)
         {
           pCachedMaterialPass = pMaterialPass;
-          myGpuDataInterface->applyMaterialPass(pMaterialPass, &renderer);
+          myGpuDataInterface->applyMaterialPass(pMaterialPass, context);
         }
 
-        myGpuDataInterface->applyMaterialPassInstance(renderItem.pMaterialPassInstance, &renderer);
+        myGpuDataInterface->applyMaterialPassInstance(renderItem.pMaterialPassInstance, context);
+
+        context->renderGeometry(renderItem.pGeometry);
 
         // TODO: Do this with RenderContexts
         // renderer.renderGeometry(renderItem.pGeometry);
       }  // end renderItems
     }  // end lights
+
+    context->ExecuteAndReset(true);
+    RenderContext::FreeContext(context);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering
