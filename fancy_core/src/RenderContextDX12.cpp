@@ -213,8 +213,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
     , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
     , myIsInRecordState(true)
+    , myRenderTargetsDirty(true)
   {
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
+    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
 
     ID3D12Device* device = myRenderer.GetDevice();
     
@@ -239,8 +241,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
     , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
     , myIsInRecordState(true)
+    , myRenderTargetsDirty(true)
   {
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
+    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
 
     ID3D12Device* device = myRenderer.GetDevice();
 
@@ -459,7 +463,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex)
   {
+    if (myRenderTargets[u8RenderTargetIndex] == pRTTexture)
+      return;
 
+    myRenderTargets[u8RenderTargetIndex] = pRTTexture;
+    myRenderTargetsDirty = true;
+
+    PipelineState& state = myPipelineState;
+    state.myNumRenderTargets = glm::max(state.myNumRenderTargets, (uint8) (u8RenderTargetIndex + 1));
+    state.myRTVformats[u8RenderTargetIndex] = pRTTexture->getParameters().eFormat;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::removeAllRenderTargets()
@@ -527,6 +539,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::renderGeometry(const Geometry::GeometryData* pGeometry)
   {
+    ApplyRenderTargets();
     ApplyPipelineState();
     ApplyViewport();
     ApplyResourceState();
@@ -722,6 +735,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (!myViewportDirty)
       return;
 
+    myViewportDirty = false;
+
     D3D12_VIEWPORT viewport = {0u};
     viewport.TopLeftX = myViewportParams.x;
     viewport.TopLeftY = myViewportParams.y;
@@ -731,10 +746,33 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCommandList->RSSetViewports(1u, &viewport);
   }
 //---------------------------------------------------------------------------//
+  void RenderContextDX12::ApplyRenderTargets()
+  {
+    if (!myRenderTargetsDirty)
+      return;
+
+    myRenderTargetsDirty = false;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Rendering::Constants::kMaxNumRenderTargets];
+    uint32 numRtsToSet = 0u;
+
+    for (uint32 i = 0u; i < Rendering::Constants::kMaxNumRenderTargets; ++i)
+    {
+      Texture* rt = myRenderTargets[i];
+
+      if (rt != nullptr)
+        rtDescriptors[numRtsToSet++] = rt->GetRtv().GetCpuHandle();
+    }
+
+    myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, nullptr);
+  }
+//---------------------------------------------------------------------------//
   void RenderContextDX12::ApplyPipelineState()
   {
     if (!myPipelineState.myIsDirty)
       return;
+
+    myPipelineState.myIsDirty = false;
 
     uint requestedHash = myPipelineState.getHash();
 
@@ -753,7 +791,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
       ourPSOcache[requestedHash] = pso;
     }
-    myPipelineState.myIsDirty = false;
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
@@ -761,6 +798,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     if (myResourceState.myDirtyFlags == 0u)
       return;
+
+    myResourceState.myDirtyFlags = 0u;
 
     // Current strategy: The descriptors of all resources are dynamically copied into a 
     // a dynamic shader-visible heap, which is set as a descriptor table to the commandlist
@@ -829,8 +868,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, dynamicHeap);
       myCommandList->SetGraphicsRootDescriptorTable(0, dynamicHeap->GetGpuHeapStart());
     }
-
-    myResourceState.myDirtyFlags = 0u;
   }
 //---------------------------------------------------------------------------//
 #pragma endregion 

@@ -124,6 +124,7 @@ class DescriptorHeapDX12;
     void ApplyPipelineState();
     void ApplyResourceState();
     void ApplyDescriptorHeaps();
+    void ApplyRenderTargets();
     void KickoffResourceBarriers();
     void ReleaseAllocator(uint64 aFenceVal);
     void ReleaseDynamicHeaps(uint64 aFenceVal);
@@ -141,6 +142,9 @@ class DescriptorHeapDX12;
 
     glm::uvec4 myViewportParams;
     bool myViewportDirty;
+
+    Texture* myRenderTargets[Rendering::Constants::kMaxNumRenderTargets];
+    bool myRenderTargetsDirty;
 
     ID3D12RootSignature* myRootSignature;
     ID3D12GraphicsCommandList* myCommandList;

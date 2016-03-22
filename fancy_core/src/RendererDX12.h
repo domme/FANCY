@@ -6,7 +6,7 @@
 
 #if defined (RENDERER_DX12)
 
-#include "TextureDX12.h"
+#include "Texture.h"
 #include "FenceDX12.h"
 #include "RenderContextDX12.h"
 #include "CommandAllocatorPoolDX12.h"
@@ -40,7 +40,7 @@ class DescriptorHeapPoolDX12;
     DescriptorHeapPoolDX12* GetDescriptorHeapPool() { return myDescriptorHeapPool; }
     uint64 ExecuteCommandList(ID3D12CommandList* aCommandList);
 
-    TextureDX12* GetBackbuffer() { return &myBackbuffers[myCurrBackbufferIndex]; }
+    Texture* GetBackbuffer() { return &myBackbuffers[myCurrBackbufferIndex]; }
 
 	protected:
     void CreateDeviceAndSwapChain(void* aNativeWindowHandle);
@@ -57,7 +57,7 @@ class DescriptorHeapPoolDX12;
     static const uint kBackbufferCount = 2u;
     ComPtr<ID3D12Device> myDevice;
     ComPtr<IDXGISwapChain3> mySwapChain;
-    TextureDX12 myBackbuffers[kBackbufferCount];
+    Texture myBackbuffers[kBackbufferCount];
     ComPtr<ID3D12CommandQueue> myCommandQueue;
 	};
 //---------------------------------------------------------------------------//
