@@ -268,26 +268,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return 0u;
   }
 //---------------------------------------------------------------------------//
-  VertexSemantics locResolveVertexSemantics(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
-  {
-    if (strcmp(aParamDesc.SemanticName, "POSITION") == 0)
-      return VertexSemantics::POSITION;
-    else if (strcmp(aParamDesc.SemanticName, "NORMAL") == 0)
-      return VertexSemantics::NORMAL;
-    else if (strcmp(aParamDesc.SemanticName, "TANGENT") == 0)
-      return VertexSemantics::TANGENT;
-    else if (strcmp(aParamDesc.SemanticName, "TEXCOORD") == 0)
-      return VertexSemantics::TEXCOORD;
-    else if (strcmp(aParamDesc.SemanticName, "COLOR") == 0)
-      return VertexSemantics::COLOR;
-    else if (strcmp(aParamDesc.SemanticName, "BITANGENT") == 0 
-      || strcmp(aParamDesc.SemanticName, "BINORMAL") == 0)
-      return VertexSemantics::BITANGENT;
-    
-    ASSERT_M(false, "Unknown vertex semantics");
-    return VertexSemantics::NONE;
-  }
-//---------------------------------------------------------------------------//
   void locResolveFormat(const char* aTypeName, uint32& aSizeBytesOut, DataFormat& aDataFormatOut)
   {
     uint32 sizeBytes = 0u;
@@ -499,7 +479,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       
       ShaderVertexInputElement inputElem;
 
-      inputElem.mySemantics = locResolveVertexSemantics(paramDesc);
+      inputElem.mySemantics = GpuProgramDX12::GetVertexSemanticFromShaderString(paramDesc.SemanticName);
       inputElem.mySemanticIndex = paramDesc.SemanticIndex;
       inputElem.myRegisterIndex = paramDesc.Register;
       inputElem.myFormat = locResolveFormat(paramDesc);

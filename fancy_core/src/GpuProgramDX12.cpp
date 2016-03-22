@@ -8,8 +8,8 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  static void locCreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout, 
-    std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements)
+  void GpuProgramDX12::CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout,
+    std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements) const
   {
     someNativeInputElements.clear();
 
@@ -22,31 +22,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       
       D3D12_INPUT_ELEMENT_DESC nativeElem = { 0u };
 
-      switch (elem.mySemantics)
-      {
-        case VertexSemantics::POSITION: 
-          nativeElem.SemanticName = "POSITION";
-          break;
-        case VertexSemantics::NORMAL: 
-          nativeElem.SemanticName = "NORMAL";
-          break;
-        case VertexSemantics::TANGENT: 
-          nativeElem.SemanticName = "TANGENT";
-          break;
-        case VertexSemantics::BITANGENT: 
-          nativeElem.SemanticName = "BITANGENT"; 
-          break;
-        case VertexSemantics::COLOR: 
-          nativeElem.SemanticName = "COLOR";
-          break;
-        case VertexSemantics::TEXCOORD: 
-          nativeElem.SemanticName = "TEXCOORD";
-          break;
-        default:
-          ASSERT(false);
-      }
-
       nativeElem.SemanticIndex = elem.mySemanticIndex;
+      nativeElem.SemanticName = GetShaderStringFromVertexSemantic(elem.mySemantics);
 
       nativeElem.AlignedByteOffset = offsetByte;
       offsetByte += elem.mySizeBytes;
@@ -58,6 +35,41 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       nativeElem.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
 
       someNativeInputElements.push_back(nativeElem);
+    }
+  }
+//---------------------------------------------------------------------------//
+  VertexSemantics GpuProgramDX12::GetVertexSemanticFromShaderString(const char* aShaderString)
+  {
+    if (strcmp(aShaderString, "POSITION") == 0u)
+      return VertexSemantics::POSITION;
+    else if (strcmp(aShaderString, "NORMAL") == 0u)
+      return VertexSemantics::NORMAL;
+    else if (strcmp(aShaderString, "TANGENT") == 0u)
+      return VertexSemantics::TANGENT;
+    else if (strcmp(aShaderString, "TEXCOORD") == 0u)
+      return VertexSemantics::TEXCOORD;
+    else if (strcmp(aShaderString, "COLOR") == 0u)
+      return VertexSemantics::COLOR;
+    else if (strcmp(aShaderString, "BITANGENT") == 0u
+      || strcmp(aShaderString, "BINORMAL") == 0u)
+      return VertexSemantics::BITANGENT;
+
+    ASSERT_M(false, "Unknown vertex semantics");
+    return VertexSemantics::NONE;
+  }
+//---------------------------------------------------------------------------//
+  const char* GpuProgramDX12::GetShaderStringFromVertexSemantic(VertexSemantics aSemantic)
+  {
+    switch (aSemantic)
+    {
+    case VertexSemantics::POSITION: return "POSITION";
+    case VertexSemantics::NORMAL: return "NORMAL";
+    case VertexSemantics::TANGENT: return "TANGENT";
+    case VertexSemantics::BITANGENT: return "BINORMAL";
+    case VertexSemantics::COLOR: return "COLOR";
+    case VertexSemantics::TEXCOORD: return "TEXCOORD";
+    default:
+      ASSERT(false); return "POSITION";
     }
   }
 //---------------------------------------------------------------------------//
@@ -130,7 +142,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     mySourcePath = aCompilerOutput.myShaderFilename;
     myPermutation = aCompilerOutput.myPermutation;
     myInputLayout = aCompilerOutput.clVertexInputLayout;
-    locCreateNativeInputLayout(myInputLayout, myNativeInputElements);
+    CreateNativeInputLayout(myInputLayout, myNativeInputElements);
 
     myRootSignature = aCompilerOutput.myRootSignature;
   }

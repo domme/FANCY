@@ -31,11 +31,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool isLocked() const { return myState.isLocked; }
     bool isCubemap() const { return myState.isCubemap; }
     bool isArrayTexture() const { return myState.isArrayTexture; }
-    bool isValid() const { return false; }  // TODO: Implement
+    bool isValid() const { return true; }  // TODO: Implement
         
     uint getNumDimensions() const { return myState.numDimensions; }
     const TextureParams& getParameters() const { return myParameters; }
-    const ObjectName& getPath() const { return myParameters.path; }
+    const String& getPath() const { return myParameters.path; }
     void setPath(const String& _aPath) { myParameters.path = _aPath; }
 
     // DX12-Specific stuff:

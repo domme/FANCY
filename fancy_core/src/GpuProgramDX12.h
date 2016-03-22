@@ -52,6 +52,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void serialize(IO::Serializer* aSerializer);
     uint64 GetHash() const { return GetDescription().GetHash(); }
 
+    static VertexSemantics GetVertexSemanticFromShaderString(const char* aShaderString);
+    static const char* GetShaderStringFromVertexSemantic(VertexSemantics aSemantic);
+
     GpuProgramDesc GetDescription() const;
     bool SetFromDescription(const GpuProgramDesc& aDesc);
     void SetFromCompilerOutput(const GpuProgramCompilerOutputDX12& aCompilerOutput);
@@ -72,6 +75,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const RootSignatureDX12* GetRootSignature() { return myRootSignature; }
 
   private:
+    void CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout,
+      std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements) const;
+
     String mySourcePath;
     ShaderStage myStage;
     GpuProgramPermutation myPermutation;

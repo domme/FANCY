@@ -40,6 +40,8 @@ class DescriptorHeapPoolDX12;
     DescriptorHeapPoolDX12* GetDescriptorHeapPool() { return myDescriptorHeapPool; }
     uint64 ExecuteCommandList(ID3D12CommandList* aCommandList);
 
+    TextureDX12* GetBackbuffer() { return &myBackbuffers[myCurrBackbufferIndex]; }
+
 	protected:
     void CreateDeviceAndSwapChain(void* aNativeWindowHandle);
     void CreateBackbufferResources();
