@@ -22,12 +22,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     aRenderContext->setCullMode(_pMaterialPass->getCullMode());
     aRenderContext->setFillMode(_pMaterialPass->getFillMode());
     aRenderContext->setWindingOrder(_pMaterialPass->getWindingOrder());
-    
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-    {
-      ShaderStage eStage = static_cast<ShaderStage>(i);
-      aRenderContext->setGpuProgram(_pMaterialPass->myProgramPipeline->myGpuPrograms[(uint32)eStage], eStage);
-    }
+
+    aRenderContext->SetGpuProgramPipeline(_pMaterialPass->myProgramPipeline);
   }
 //---------------------------------------------------------------------------//
   void GpuDataInterfaceDX12::applyMaterialPassInstance(const MaterialPassInstance* aMaterialPassInstance, RenderContext* aRenderContext)

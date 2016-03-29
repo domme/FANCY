@@ -57,9 +57,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     for (uint32 i = 0u; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
     {
-      if(i == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || i == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)
-        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-      else
+      //if(i == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || i == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)
+      //  heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+      //else
         heapDesc.Flags =  D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
       heapDesc.Type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
@@ -102,6 +102,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapDesc.NumDescriptors = aRequiredNumDescriptors;
     heapDesc.Type = aType;
     heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    heapDesc.NodeMask = 0u;
     myDynamicHeapPool.push_back(std::make_unique<DescriptorHeapDX12>(myRenderer.GetDevice(), heapDesc));
     return myDynamicHeapPool.back().get();
   }

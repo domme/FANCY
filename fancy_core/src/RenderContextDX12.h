@@ -11,12 +11,13 @@
 #include "ObjectPool.h"
 
 namespace Fancy{ namespace Rendering{
-class Renderer;
+  class Renderer;
+  class GpuProgramPipeline;
 }}
 
 namespace Fancy { namespace Rendering { namespace DX12 {
-class DescriptorHeapDX12;
 //---------------------------------------------------------------------------//
+  class DescriptorHeapDX12;
   class GpuResourceDX12;
   class CommandAllocatorPoolDX12;
 //---------------------------------------------------------------------------//
@@ -31,7 +32,7 @@ class DescriptorHeapDX12;
     WindingOrder myWindingOrder;
     DepthStencilState myDepthStencilState;
     BlendState myBlendState;
-    const GpuProgram* myShaderStages[static_cast<uint>(ShaderStage::NUM)];
+    const GpuProgramPipeline* myGpuProgramPipeline;
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[Constants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
@@ -83,7 +84,7 @@ class DescriptorHeapDX12;
     void setConstantBuffer(const GpuBuffer* pConstantBuffer, const uint8 u8RegisterIndex);
     void setTextureSampler(const TextureSampler* pSampler, const uint8 u8RegisterIndex);
         
-    void setGpuProgram(const GpuProgram* pProgram, const ShaderStage eShaderStage);
+    void SetGpuProgramPipeline(const GpuProgramPipeline* pProgramPipeline);
     
     // It might be ok to keep these state-modifiers the way they are for a more modern approach
     void setViewport(const glm::uvec4& uViewportParams); /// x, y, width, height

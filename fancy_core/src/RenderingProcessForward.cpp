@@ -46,6 +46,8 @@ namespace Fancy { namespace Rendering {
     ShaderConstantsManager::updateStage.pCamera = pScene->getActiveCamera();
     ShaderConstantsManager::update(ConstantBufferType::PER_CAMERA);
 
+    context->setRenderTarget(renderer.GetBackbuffer(), 0u);
+
     const Scene::RenderingItemList& forwardRenderList = renderDesc.techniqueItemList[(uint32) Rendering::EMaterialPass::SOLID_FORWARD];
     // TODO: Sort based on material-pass
 

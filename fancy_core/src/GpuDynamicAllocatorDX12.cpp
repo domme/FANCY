@@ -12,7 +12,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     myResource.Attach(aResource);
     myUsageState = aDefaultUsage;
-    myGpuVirtualAddress = myResource->GetGPUVirtualAddress();
     if (aCpuAccessRequired)
       CheckD3Dcall(myResource->Map(0, nullptr, &myCpuDataPtr));  // Map the whole range (nullptr)
   }

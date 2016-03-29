@@ -12,8 +12,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       : myCpuHandle()
       , myGpuHandle()
     {
-      myCpuHandle.ptr = static_cast<uint64>(-1);
-      myGpuHandle.ptr = static_cast<uint64>(-1);
+      myCpuHandle.ptr = static_cast<uint64>(0);
+      myGpuHandle.ptr = static_cast<uint64>(0);
     }
 
     explicit DescriptorDX12(D3D12_CPU_DESCRIPTOR_HANDLE aCpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE aGpuHandle)
