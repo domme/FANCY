@@ -53,6 +53,8 @@ namespace Fancy { namespace Rendering {
 
     const Scene::LightList& aLightList = pScene->getCachedLights();
 
+    context->setRenderTarget(renderer.GetBackbuffer(), 0u);
+
     const MaterialPass* pCachedMaterialPass = nullptr;
     for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
     {

@@ -100,6 +100,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       TextureDX12& backbufferResource = myBackbuffers[n];
       backbufferResource.myUsageState = D3D12_RESOURCE_STATE_PRESENT;
 
+      // TODO: Sync this better with swap chain properties
+      backbufferResource.myParameters.myIsRenderTarget = true;
+      backbufferResource.myParameters.eFormat = DataFormat::RGBA_8;
+      backbufferResource.myParameters.u16Width = 1280;
+      backbufferResource.myParameters.u16Height = 720;
+      backbufferResource.myParameters.u16Depth = 1u;
+
       CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource.myResource)));
       backbufferResource.myRtvDescriptor = rtvHeapCpu->AllocateDescriptor();
       myDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, backbufferResource.myRtvDescriptor.GetCpuHandle());
