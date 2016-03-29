@@ -73,7 +73,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   void CameraComponent::setProjectionPersp( float yFov_deg, float fWidth, float fHeight, float fNear, float fFar )
   {
-    m_matProjection = glm::perspectiveFov( yFov_deg, fWidth, fHeight, fNear, fFar );
+    m_matProjection = MathUtil::perspectiveFov( yFov_deg, fWidth, fHeight, fNear, fFar );
     m_fNear = fNear;
     m_fFar = fFar;
     m_fFovDeg = yFov_deg;

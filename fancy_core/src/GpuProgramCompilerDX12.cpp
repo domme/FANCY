@@ -531,7 +531,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       D3D_COMPILE_STANDARD_FILE_INCLUDE,
       "main",
       shaderProfileStr.c_str(),
-      D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_OPTIMIZATION_LEVEL0,
+      D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_OPTIMIZATION_LEVEL0 | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR,
       0u,
       &compiledShaderBytecode,
       &errorData);
@@ -561,7 +561,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
     ID3D12Device* d3dDevice = Fancy::GetRenderer()->GetDevice();
 
-    ComPtr<ID3D12RootSignature> rootSignature;
+    ID3D12RootSignature* rootSignature;
     sucess = d3dDevice->CreateRootSignature(0u, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 
     if (S_OK != sucess)
@@ -580,7 +580,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     const D3D12_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetRootSignatureDesc();
-    RootSignatureDX12* rsObject = RootSignaturePoolDX12::CreateOrRetrieve(*rsDesc, d3dDevice, &rootSignature);
+    RootSignatureDX12* rsObject = RootSignaturePoolDX12::CreateOrRetrieve(*rsDesc, d3dDevice, rootSignature);
     ASSERT(nullptr != rsObject);
 
     aProgram->myPermutation = aDesc.myPermutation;

@@ -9,7 +9,7 @@ namespace Fancy { namespace Rendering {
     DepthStencilStateDesc desc;
     desc.myDepthTestEnabled = true;
     desc.myDepthWriteEnabled = true;
-    desc.myDepthCompFunc = static_cast<uint32>(CompFunc::LESS);
+    desc.myDepthCompFunc = static_cast<uint32>(CompFunc::ALWAYS);
     desc.myStencilEnabled = false;
     desc.myTwoSidedStencil = false;
     desc.myStencilRef = 0;

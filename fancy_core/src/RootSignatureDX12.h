@@ -18,7 +18,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     public:
       static RootSignatureDX12* CreateOrRetrieve(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, const ComPtr<ID3D12Device>& aDevice, 
-        const ComPtr<ID3D12RootSignature>* anRS = nullptr);
+        ComPtr<ID3D12RootSignature> anRS = nullptr);
       static void Init();
       static void Destroy();
 

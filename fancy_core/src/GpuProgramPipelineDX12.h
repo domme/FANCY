@@ -14,6 +14,8 @@ namespace Fancy { namespace IO {
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
+  class RootSignatureDX12;
+//---------------------------------------------------------------------------//
   class GpuProgramPipelineDX12
   {
   public:
@@ -36,7 +38,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     GpuProgram* myGpuPrograms[(uint32)ShaderStage::NUM];
 
     uint myShaderHash;  /// Used to quickly compare two pipelines
-    ComPtr<ID3D12RootSignature> myRootSignature;
+    const RootSignatureDX12* myRootSignature;
   };
 //---------------------------------------------------------------------------//
 } } }

@@ -287,7 +287,8 @@ namespace Fancy {
       // Compressed formats go here...
       // TODO: Find a way to declare compressed formats
   
-      NUM
+      NUM,
+      UNKNOWN = NONE
     };
   //---------------------------------------------------------------------------//
     enum class GpuResourceAccessFlags {

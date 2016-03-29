@@ -47,7 +47,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myGpuPrograms[i] = GpuProgram::FindFromDesc(aDesc.myGpuPrograms[i]);
     }
 
-    // TODO: Update the root signature
+    myRootSignature = nullptr;
+    if (GpuProgram* vertexShader = myGpuPrograms[(uint32) ShaderStage::VERTEX])
+    {
+      myRootSignature = vertexShader->GetRootSignature();
+    }
 
     RecomputeHashFromShaders();
   }

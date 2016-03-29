@@ -34,6 +34,7 @@ void StartupEngine()
 
   Fancy::Scene::SceneNode* pCameraNode = pScene->getRootNode()->createChildNode(_N(CameraNode));
   pCameraComponent = static_cast<Fancy::Scene::CameraComponent*>(pCameraNode->addOrRetrieveComponent(_N(CameraComponent)));
+  pCameraComponent->setProjectionPersp(45.0f, kWidth, kHeight, 1.0f, 1000.0f);
   pScene->setActiveCamera(pCameraComponent);
 
   Fancy::Scene::SceneNode* pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));

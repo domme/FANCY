@@ -13,6 +13,7 @@
 #include "TextureSampler.h"
 #include "GeometryData.h"
 #include "GpuProgramPipeline.h"
+#include "RootSignatureDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -21,7 +22,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myCullMode(CullMode::BACK)
     , myWindingOrder(WindingOrder::CCW)
     , myNumRenderTargets(0u)
-    , myDSVformat(DataFormat::DS_24_8)
+    , myDSVformat(DataFormat::UNKNOWN)
     , myIsDirty(true)
   {
   }
@@ -68,7 +69,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
     
     // ROOT SIGNATURE
-    psoDesc.pRootSignature = myGpuProgramPipeline->myRootSignature.Get();
+    psoDesc.pRootSignature = myGpuProgramPipeline->myRootSignature->myRootSignature.Get();
 
                                        // BLEND DESC
     D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
@@ -133,7 +134,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // DEPTH STENCIL STATE
     D3D12_DEPTH_STENCIL_DESC& dsState = psoDesc.DepthStencilState;
-    dsState.DepthEnable = myDepthStencilState.myDepthTestEnabled;
+    dsState.DepthEnable = false; // myDepthStencilState.myDepthTestEnabled;
     dsState.DepthWriteMask = myDepthStencilState.myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
     dsState.DepthFunc = Adapter::toNativeType(myDepthStencilState.myDepthCompFunc);
     dsState.StencilEnable = myDepthStencilState.myStencilEnabled;
@@ -751,7 +752,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     viewport.Width = myViewportParams.z;
     viewport.Height = myViewportParams.w;
 
+    D3D12_RECT rect = { 0u };
+    rect.left = viewport.TopLeftX;
+    rect.top = viewport.TopLeftY;
+    rect.right = viewport.Width;
+    rect.bottom = viewport.Height;
+
     myCommandList->RSSetViewports(1u, &viewport);
+    myCommandList->RSSetScissorRects(1u, &rect);
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::ApplyRenderTargets()
@@ -813,7 +821,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (myPipelineState.myGpuProgramPipeline == nullptr)
       return;  // Nothing to set if we don't have shaders
 
-    myCommandList->SetGraphicsRootSignature(myPipelineState.myGpuProgramPipeline->myRootSignature.Get());
+    myCommandList->SetGraphicsRootSignature(myPipelineState.myGpuProgramPipeline->myRootSignature->myRootSignature.Get());
 
     // Current strategy: The descriptors of all resources are dynamically copied into a 
     // a dynamic shader-visible heap, which is set as a descriptor table to the commandlist
@@ -863,7 +871,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       }
 
       SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, dynamicHeap);
-      myCommandList->SetGraphicsRootDescriptorTable(5, dynamicHeap->GetGpuHeapStart());
+      myCommandList->SetGraphicsRootDescriptorTable(6, dynamicHeap->GetGpuHeapStart());
     }
 
     //if (numSamplerDescriptorsToSet > 0u)

@@ -130,21 +130,23 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	{
     myFence.wait();
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
+
+    TextureDX12& currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
+    myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+
+    const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+    myDefaultContext->ClearRenderTargetView(currBackbuffer.GetRtv().GetCpuHandle(), clearColor);
+
+    myDefaultContext->ExecuteAndReset(false);
 	}
 //---------------------------------------------------------------------------//
 	void RendererDX12::endFrame()
 	{
-    DescriptorHeapDX12* rtvHeap = myDescriptorHeapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    //myDefaultContext->SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, rtvHeap);
-
     TextureDX12& currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
-    myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-    
-    const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-    myDefaultContext->ClearRenderTargetView(currBackbuffer.GetRtv().GetCpuHandle(), clearColor);
+
+    //myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
     myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
-    
     myDefaultContext->ExecuteAndReset(false);
 
     mySwapChain->Present(1, 0);

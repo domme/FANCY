@@ -53,6 +53,33 @@ public:
   {
     return anAlignment == 0u ? aVal : ((aVal + (anAlignment - 1u)) & (~(anAlignment - 1u)));
   }
+
+  static glm::mat4 perspectiveFov(float const & fov,
+                           float const & width,
+                           float const & height,
+                           float const & zNear,
+                           float const & zFar)
+  {
+
+    float rad = glm::radians(fov);
+
+    float h = glm::cos(float(0.5) * rad) / glm::sin(float(0.5) * rad);
+    float w = h * height / width; ///todo max(width , Height) / min(width , Height)?
+
+    glm::mat4 Result(float(0));
+    Result[0][0] = w;
+    Result[1][1] = h;
+
+#if defined (RENDERER_DX12)
+    Result[2][2] = -zFar / (zFar - zNear);
+    Result[2][3] = -1.0f;
+    Result[3][2] = -(zFar * zNear) / (zFar - zNear);
+#else
+    
+#endif
+    return Result;
+  }
+
 //---------------------------------------------------------------------------//
 private:
   MathUtil();

@@ -168,6 +168,7 @@ namespace Fancy {
 					case DataFormat::RG_8UI:         return DXGI_FORMAT_R8G8_UINT;
 					case DataFormat::R_8UI:          return DXGI_FORMAT_R8_UINT;
 					case DataFormat::DS_24_8:        return DXGI_FORMAT_D24_UNORM_S8_UINT;
+          case DataFormat::UNKNOWN:        return DXGI_FORMAT_UNKNOWN;
 					default: ASSERT_M(false, "Missing implementation"); return DXGI_FORMAT_R8G8B8A8_UNORM;
 				}
 			}
