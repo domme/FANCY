@@ -27,10 +27,10 @@
     VS_OUT main(VS_IN v)
     {
       VS_OUT vs_out = (VS_OUT)0;
-      vs_out.pos = mul(float4(v.position, 1.0f), cbPerObject.c_WorldViewProjectionMatrix);
+      vs_out.pos = mul(cbPerObject.c_WorldViewProjectionMatrix, float4(v.position, 1.0f));
 
-      vs_out.posWS = mul(float4(v.position, 1.0f), cbPerObject.c_WorldMatrix).xyz;
-      vs_out.normalWS = normalize(mul(float4(v.normal, 0.0), cbPerObject.c_WorldMatrix).xyz);
+      vs_out.posWS = mul(cbPerObject.c_WorldMatrix, float4(v.position, 1.0f)).xyz;
+      vs_out.normalWS = normalize(mul(cbPerObject.c_WorldMatrix, float4(v.normal, 0.0)).xyz);
       vs_out.uv = v.texcoord0;
 
       return vs_out;

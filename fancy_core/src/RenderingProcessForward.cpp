@@ -51,10 +51,10 @@ namespace Fancy { namespace Rendering {
     // | / |
     // 3---2
 
-    quadVertices[0].pos = glm::vec3(-1.0f, -1.0f, 0.5f);
-    quadVertices[1].pos = glm::vec3(1.0f, -1.0f, 0.5f);
-    quadVertices[2].pos = glm::vec3(1.0f, 1.0f, 0.5f);
-    quadVertices[3].pos = glm::vec3(-1.0f, 1.0f, 0.5f);
+    quadVertices[0].pos = glm::vec3(-0.5f, -0.5f, 0.5f);
+    quadVertices[1].pos = glm::vec3(0.5f, -0.5f, 0.5f);
+    quadVertices[2].pos = glm::vec3(0.5f, 0.5f, 0.5f);
+    quadVertices[3].pos = glm::vec3(-0.5f, 0.5f, 0.5f);
 
     uint16 quadIndices[6] =
     {
@@ -100,22 +100,21 @@ namespace Fancy { namespace Rendering {
     
     RenderContext* context = RenderContext::AllocateContext();
 
-    context->setRenderTarget(renderer.GetBackbuffer(), 0u);
-    context->SetGpuProgramPipeline(&ourDummyPipeline);
+    //context->setViewport(glm::uvec4(0, 0, 1280, 720));
+    //context->setRenderTarget(renderer.GetBackbuffer(), 0u);
+    //context->SetGpuProgramPipeline(&ourDummyPipeline);
+    //
+    //BlendState* blendState = BlendState::FindFromDesc(BlendStateDesc::GetDefaultSolid());
+    //DepthStencilState* dsState = DepthStencilState::FindFromDesc(DepthStencilStateDesc::GetDefaultDepthNoStencil());
+    //
+    //context->setBlendState(*blendState);
+    //context->setDepthStencilState(*dsState);
+    //context->setCullMode(CullMode::NONE);
+    //context->setFillMode(FillMode::SOLID);
+    //context->setWindingOrder(WindingOrder::CCW);
+    //
+    //context->renderGeometry(&ourFsQuadGeometry);
 
-    BlendState* blendState = BlendState::FindFromDesc(BlendStateDesc::GetDefaultSolid());
-    DepthStencilState* dsState = DepthStencilState::FindFromDesc(DepthStencilStateDesc::GetDefaultDepthNoStencil());
-
-    context->setBlendState(*blendState);
-    context->setDepthStencilState(*dsState);
-    context->setCullMode(CullMode::NONE);
-    context->setFillMode(FillMode::SOLID);
-    context->setWindingOrder(WindingOrder::CCW);
-
-    context->renderGeometry(&ourFsQuadGeometry);
-
-
-    /*
     Scene::SceneRenderDescription renderDesc;
     pScene->gatherRenderItems(&renderDesc);
 
@@ -127,6 +126,7 @@ namespace Fancy { namespace Rendering {
     ShaderConstantsManager::updateStage.pCamera = pScene->getActiveCamera();
     ShaderConstantsManager::update(ConstantBufferType::PER_CAMERA);
 
+    context->setViewport(glm::uvec4(0, 0, 1280, 720));
     context->setRenderTarget(renderer.GetBackbuffer(), 0u);
 
     const Scene::RenderingItemList& forwardRenderList = renderDesc.techniqueItemList[(uint32) Rendering::EMaterialPass::SOLID_FORWARD];
@@ -163,13 +163,8 @@ namespace Fancy { namespace Rendering {
         myGpuDataInterface->applyMaterialPassInstance(renderItem.pMaterialPassInstance, context);
 
         context->renderGeometry(renderItem.pGeometry);
-
-        // TODO: Do this with RenderContexts
-        // renderer.renderGeometry(renderItem.pGeometry);
       }  // end renderItems
     }  // end lights
-
-    */
 
     context->ExecuteAndReset(true);
     RenderContext::FreeContext(context);

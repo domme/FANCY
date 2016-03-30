@@ -138,9 +138,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     PipelineState myPipelineState;
     ResourceState myResourceState;
 
-    uint myPSOhash;
-    ID3D12PipelineState* myPSO;
-
     glm::uvec4 myViewportParams;
     bool myViewportDirty;
 

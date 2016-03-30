@@ -212,8 +212,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   RenderContextDX12::RenderContextDX12()
     : myRenderer(*Fancy::GetRenderer())
     , myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
-    , myPSOhash(0u)
-    , myPSO(nullptr)
     , myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
     , myRootSignature(nullptr)
@@ -241,8 +239,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   RenderContextDX12::RenderContextDX12(Renderer& aRenderer)
     : myRenderer(aRenderer)
     , myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
-    , myPSOhash(0u)
-    , myPSO(nullptr)
     , myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
     , myRootSignature(nullptr)
@@ -273,10 +269,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::Destroy()
   {
-    if (myPSO != nullptr)
-      myPSO->Release();
-    myPSO = nullptr;
-
     if (myCommandList != nullptr)
       myCommandList->Release(); 
     myCommandList = nullptr;
@@ -289,16 +281,24 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     if (myIsInRecordState)
       return;
-    
+
     ASSERT_M(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
 
     myCommandAllocator = myCommandAllocatorPool.GetNewAllocator();
     ASSERT(myCommandAllocator != nullptr);
 
-    CheckD3Dcall(myCommandList->Reset(myCommandAllocator, myPSO));
+    CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
+
+    // Reset internal states
     myRootSignature = nullptr;
     myRootSignatureDirty = true;
-
+    myPipelineState = PipelineState();
+    myResourceState = ResourceState();
+    myViewportDirty = true;
+    myRenderTargetsDirty = true;
+    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
+    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
+    
     myIsInRecordState = true;
   }
 //---------------------------------------------------------------------------//
@@ -490,12 +490,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::SetGraphicsRootSignature(ID3D12RootSignature* aRootSignature)
-  {
-    if (myRootSignature != aRootSignature)
-      myCommandList->SetGraphicsRootSignature(aRootSignature);
-  }
-  //---------------------------------------------------------------------------//
   void RenderContextDX12::setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex)
   {
     if (myResourceState.myReadTextures[u8RegisterIndex] == pTexture)
@@ -833,11 +827,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myResourceState.myDirtyFlags = 0u;
 
-
     if (myPipelineState.myGpuProgramPipeline == nullptr)
       return;  // Nothing to set if we don't have shaders
-
-    myCommandList->SetGraphicsRootSignature(myPipelineState.myGpuProgramPipeline->myRootSignature->myRootSignature.Get());
 
     // Current strategy: The descriptors of all resources are dynamically copied into a 
     // a dynamic shader-visible heap, which is set as a descriptor table to the commandlist
