@@ -15,4 +15,7 @@
     "addressV = TEXTURE_ADDRESS_CLAMP, " \
     "filter = FILTER_MIN_MAG_MIP_LINEAR )"
 
+#define RS_EMPTY \
+  "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT )"
+
 #endif  // INCLUDE_ROOTSIGNATURES_INCLUDE_

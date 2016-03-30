@@ -107,7 +107,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void Reset();
 
     // DX12-Specific stuff - TODO: Check if we need to find platform-independent ways to express these
-    void SetGraphicsRootSignature(ID3D12RootSignature* aRootSignature);
     void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, 
       uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
@@ -122,6 +121,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
   protected:
     void ApplyViewport();
+    void ApplyRootSignature();
     void ApplyPipelineState();
     void ApplyResourceState();
     void ApplyDescriptorHeaps();
@@ -147,8 +147,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Texture* myRenderTargets[Rendering::Constants::kMaxNumRenderTargets];
     bool myRenderTargetsDirty;
 
-    ID3D12RootSignature* myRootSignature;
+    ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
+    bool myRootSignatureDirty;
     ID3D12GraphicsCommandList* myCommandList;
+
     ID3D12CommandAllocator* myCommandAllocator;
     FixedArray<D3D12_RESOURCE_BARRIER, kMaxNumCachedResourceBarriers> myWaitingResourceBarriers;
     

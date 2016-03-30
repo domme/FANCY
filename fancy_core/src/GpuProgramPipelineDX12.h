@@ -32,6 +32,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     GpuProgramPipelineDesc GetDescription() const;
     void SetFromDescription(const GpuProgramPipelineDesc& aDesc);
+    ID3D12RootSignature* GetRootSignatureNative() const;
     
     void RecomputeHashFromShaders();
 

@@ -20,6 +20,8 @@ class GpuDataInterface;
 
   private:
     std::shared_ptr<GpuDataInterface> myGpuDataInterface;
+
+
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(RenderingProcessForward)

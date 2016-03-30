@@ -2,6 +2,7 @@
 #include "RendererPrerequisites.h"
 #include "MathUtil.h"
 #include "Serializer.h"
+#include "RootSignatureDX12.h"
 
 #if defined (RENDERER_DX12)
 
@@ -55,7 +56,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     RecomputeHashFromShaders();
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  ID3D12RootSignature* GpuProgramPipelineDX12::GetRootSignatureNative() const
+  {
+    return myRootSignature->myRootSignature.Get();
+  }
+//---------------------------------------------------------------------------//
   bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDesc& anOtherDesc) const
   {
     return GetDescription() == anOtherDesc;

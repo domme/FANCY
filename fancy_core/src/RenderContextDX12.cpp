@@ -217,6 +217,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
     , myRootSignature(nullptr)
+    , myRootSignatureDirty(false)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
     , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
@@ -295,6 +296,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ASSERT(myCommandAllocator != nullptr);
 
     CheckD3Dcall(myCommandList->Reset(myCommandAllocator, myPSO));
+    myRootSignature = nullptr;
+    myRootSignatureDirty = true;
 
     myIsInRecordState = true;
   }
@@ -536,21 +539,25 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::SetGpuProgramPipeline(const GpuProgramPipeline* aGpuProgramPipeline)
   {
-    PipelineState& state = myPipelineState;
+    if (myPipelineState.myGpuProgramPipeline != aGpuProgramPipeline)
+    {
+      myPipelineState.myGpuProgramPipeline = aGpuProgramPipeline;
+      myPipelineState.myIsDirty = true;
+    }
 
-    if (state.myGpuProgramPipeline == aGpuProgramPipeline)
-      return;
-
-    state.myGpuProgramPipeline = aGpuProgramPipeline;
-
-    state.myIsDirty = true;
+    if (myRootSignature != aGpuProgramPipeline->GetRootSignatureNative())
+    {
+      myRootSignature = aGpuProgramPipeline->GetRootSignatureNative();
+      myRootSignatureDirty = true;
+    }
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::renderGeometry(const Geometry::GeometryData* pGeometry)
   {
-    ApplyRenderTargets();
-    ApplyPipelineState();
     ApplyViewport();
+    ApplyRenderTargets();
+    ApplyRootSignature();
+    ApplyPipelineState();
     ApplyResourceState();
 
     myCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -760,6 +767,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myCommandList->RSSetViewports(1u, &viewport);
     myCommandList->RSSetScissorRects(1u, &rect);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::ApplyRootSignature()
+  {
+    if (!myRootSignatureDirty)
+      return;
+
+    myCommandList->SetGraphicsRootSignature(myRootSignature);
+    myRootSignatureDirty = false;
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::ApplyRenderTargets()
