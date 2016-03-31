@@ -329,12 +329,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       // The default for most textures: No Cpu-access at all required. Can be created as GPU-only visible heap
       heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-      myUsageState = D3D12_RESOURCE_STATE_GENERIC_READ;
     }
     else if (wantsCpuWrite || wantsCpuStorage)
     {
       heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-      myUsageState = D3D12_RESOURCE_STATE_GENERIC_READ;
 
       if (wantsCpuRead)
         heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
@@ -347,6 +345,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
       myUsageState = D3D12_RESOURCE_STATE_COPY_DEST;
     }
+
+    
 
     CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(
       &heapProps,
@@ -456,6 +456,41 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         break;
       }
       
+      myRtvDescriptor = heap->AllocateDescriptor();
+      renderer->GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.GetCpuHandle());
+    }
+
+    if (someParameters.bIsDepthStencil)
+    {
+      D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+      dsvDesc.Format = resourceDesc.Format;
+      dsvDesc.Flags = D3D12_DSV_FLAG_NONE; // TODO: Implement support for readonly depth or stencil
+
+      switch (dimension)
+      {
+      case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
+      {
+        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1D;
+        dsvDesc.Texture1D.MipSlice = 0u;
+      }
+      break;
+      case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+      {
+        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        dsvDesc.Texture2D.MipSlice = 0u;
+        dsvDesc.Texture2D.PlaneSlice = 0u;
+      }
+      break;
+      case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
+      {
+        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
+        rtvDesc.Texture3D.MipSlice = 0u;
+        rtvDesc.Texture3D.FirstWSlice = 0u;
+        rtvDesc.Texture3D.WSize = someParameters.u16Depth;
+      }
+      break;
+      }
+
       myRtvDescriptor = heap->AllocateDescriptor();
       renderer->GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.GetCpuHandle());
     }

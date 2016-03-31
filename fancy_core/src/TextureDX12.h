@@ -42,6 +42,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const DescriptorDX12& GetRtv() const { return myRtvDescriptor; }
     const DescriptorDX12& GetSrv() const { return mySrvDescriptor; }
     const DescriptorDX12& GetUav() const { return myUavDescriptor; }
+    const DescriptorDX12& GetDsv() const { return myDsvDescriptor; }
     
   protected:
     void Destroy();
@@ -64,6 +65,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     DescriptorDX12 myRtvDescriptor;
     DescriptorDX12 mySrvDescriptor;
     DescriptorDX12 myUavDescriptor;
+    DescriptorDX12 myDsvDescriptor;
   };
 
 //---------------------------------------------------------------------------//

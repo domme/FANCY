@@ -94,7 +94,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RendererDX12::CreateBackbufferResources()
   {
     DescriptorHeapDX12* rtvHeapCpu = myDescriptorHeapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    
+
+    TextureParams dsTexParams;
+    dsTexParams.bIsDepthStencil = true;
+    dsTexParams.eFormat = DataFormat::DS_24_8;
+    dsTexParams.myIsExternalTexture = false;
+    dsTexParams.myIsRenderTarget = false;
+    dsTexParams.myIsShaderWritable = false;
+    dsTexParams.u16Depth = 1u;
+    dsTexParams.u16Width = 1280u;
+    dsTexParams.u16Height = 720u;
+    dsTexParams.u8NumMipLevels = 1u;
+    myDefaultDepthStencil.create(dsTexParams);
+
     for (UINT n = 0; n < kBackbufferCount; n++)
     {
       TextureDX12& backbufferResource = myBackbuffers[n];

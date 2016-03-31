@@ -41,6 +41,7 @@ class DescriptorHeapPoolDX12;
     uint64 ExecuteCommandList(ID3D12CommandList* aCommandList);
 
     Texture* GetBackbuffer() { return &myBackbuffers[myCurrBackbufferIndex]; }
+    Texture* GetDefaultDepthStencilBuffer() { return &myDefaultDepthStencil; }
 
 	protected:
     void CreateDeviceAndSwapChain(void* aNativeWindowHandle);
@@ -58,6 +59,7 @@ class DescriptorHeapPoolDX12;
     ComPtr<ID3D12Device> myDevice;
     ComPtr<IDXGISwapChain3> mySwapChain;
     Texture myBackbuffers[kBackbufferCount];
+    Texture myDefaultDepthStencil;
     ComPtr<ID3D12CommandQueue> myCommandQueue;
 	};
 //---------------------------------------------------------------------------//

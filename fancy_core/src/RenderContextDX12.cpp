@@ -134,7 +134,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // DEPTH STENCIL STATE
     D3D12_DEPTH_STENCIL_DESC& dsState = psoDesc.DepthStencilState;
-    dsState.DepthEnable = false; // myDepthStencilState.myDepthTestEnabled;
+    dsState.DepthEnable = myDepthStencilState.myDepthTestEnabled;
     dsState.DepthWriteMask = myDepthStencilState.myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
     dsState.DepthFunc = Adapter::toNativeType(myDepthStencilState.myDepthCompFunc);
     dsState.StencilEnable = myDepthStencilState.myStencilEnabled;
