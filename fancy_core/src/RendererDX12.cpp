@@ -25,8 +25,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCommandAllocatorPool = new CommandAllocatorPoolDX12(thisRenderer, D3D12_COMMAND_LIST_TYPE_DIRECT);
     myDefaultContext = new RenderContext(thisRenderer);
     myDescriptorHeapPool = new DescriptorHeapPoolDX12(*this);
-    
-    CreateBackbufferResources();
 	}
 //---------------------------------------------------------------------------//
 	RendererDX12::~RendererDX12()
@@ -101,7 +99,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     dsTexParams.myIsExternalTexture = false;
     dsTexParams.myIsRenderTarget = false;
     dsTexParams.myIsShaderWritable = false;
-    dsTexParams.u16Depth = 1u;
     dsTexParams.u16Width = 1280u;
     dsTexParams.u16Height = 720u;
     dsTexParams.u8NumMipLevels = 1u;
@@ -121,21 +118,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
       CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource.myResource)));
       backbufferResource.myRtvDescriptor = rtvHeapCpu->AllocateDescriptor();
-      myDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, backbufferResource.myRtvDescriptor.GetCpuHandle());
+      myDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, backbufferResource.myRtvDescriptor.myCpuHandle);
     }
   }
 //---------------------------------------------------------------------------//
   void RendererDX12::postInit()
 	{
-    // DEBUG: Compile a shader
-    // GpuProgramPermutation permutation;
-    // 
-    // GpuProgramDesc vertexProgramDesc;
-    // vertexProgramDesc.myPermutation = permutation;
-    // vertexProgramDesc.myShaderPath = Rendering::GpuProgramCompiler::GetPlatformShaderFileDirectory() +
-    //   String("MaterialForward") + Rendering::GpuProgramCompiler::GetPlatformShaderFileExtension();
-    // vertexProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
-    // GpuProgram* pVertexProgram = GpuProgramCompiler::createOrRetrieve(vertexProgramDesc);
+    CreateBackbufferResources();
 	}
 //---------------------------------------------------------------------------//
   void RendererDX12::beginFrame()
@@ -143,11 +132,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myFence.wait();
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
 
-    TextureDX12& currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
+    Texture& currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
     myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
 
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-    myDefaultContext->ClearRenderTargetView(currBackbuffer.GetRtv().GetCpuHandle(), clearColor);
+    myDefaultContext->ClearRenderTarget(&currBackbuffer, clearColor);
+
+    const float clearDepth = 1.0f;
+    uint8 clearStencil = 0u;
+    myDefaultContext->ClearDepthStencilTarget(&myDefaultDepthStencil, clearDepth, clearStencil);
 
     myDefaultContext->ExecuteAndReset(false);
 	}

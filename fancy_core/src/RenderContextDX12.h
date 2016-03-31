@@ -85,6 +85,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void setTextureSampler(const TextureSampler* pSampler, const uint8 u8RegisterIndex);
         
     void SetGpuProgramPipeline(const GpuProgramPipeline* pProgramPipeline);
+
+    void ClearRenderTarget(Texture* aTexture, const float* aColor);
+    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32) DepthStencilClearFlags::CLEAR_ALL);
     
     // It might be ok to keep these state-modifiers the way they are for a more modern approach
     void setViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
@@ -110,7 +113,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, 
       uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
-    void ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, const float* aColor);
     void TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow = false);
     //void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
 
@@ -129,6 +131,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void KickoffResourceBarriers();
     void ReleaseAllocator(uint64 aFenceVal);
     void ReleaseDynamicHeaps(uint64 aFenceVal);
+    void ResetInternalStates();
 
     static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
     
@@ -142,6 +145,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool myViewportDirty;
 
     Texture* myRenderTargets[Rendering::Constants::kMaxNumRenderTargets];
+    Texture* myDepthStencilTarget;
     bool myRenderTargetsDirty;
 
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList

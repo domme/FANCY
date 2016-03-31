@@ -128,6 +128,7 @@ namespace Fancy { namespace Rendering {
 
     context->setViewport(glm::uvec4(0, 0, 1280, 720));
     context->setRenderTarget(renderer.GetBackbuffer(), 0u);
+    context->setDepthStencilRenderTarget(renderer.GetDefaultDepthStencilBuffer());
 
     const Scene::RenderingItemList& forwardRenderList = renderDesc.techniqueItemList[(uint32) Rendering::EMaterialPass::SOLID_FORWARD];
     // TODO: Sort based on material-pass

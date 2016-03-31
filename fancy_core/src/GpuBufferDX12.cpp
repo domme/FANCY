@@ -143,7 +143,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
       mySrvDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.GetCpuHandle());
+      renderer->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
     }
 
     if (wantsUnorderedAccess)
@@ -157,7 +157,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
       myUavDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.GetCpuHandle());
+      renderer->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
     }
 
     if (wantsConstantBufferView)
@@ -167,7 +167,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       cbvDesc.BufferLocation = GetGpuVirtualAddress();
 
       myCbvDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateConstantBufferView(&cbvDesc, myCbvDescriptor.GetCpuHandle());
+      renderer->GetDevice()->CreateConstantBufferView(&cbvDesc, myCbvDescriptor.myCpuHandle);
     }
 
     if (wantsVboView)

@@ -109,7 +109,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myDescriptor = renderer->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
     ID3D12Device* device = renderer->GetDevice();
 
-    device->CreateSampler(&desc, myDescriptor.GetCpuHandle());
+    device->CreateSampler(&desc, myDescriptor.myCpuHandle);
   }
 //---------------------------------------------------------------------------//
 } } }

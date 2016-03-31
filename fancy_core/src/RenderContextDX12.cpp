@@ -222,9 +222,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
     , myIsInRecordState(true)
     , myRenderTargetsDirty(true)
+    , myDepthStencilTarget(nullptr)
   {
-    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
-    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
+    ResetInternalStates();
 
     ID3D12Device* device = myRenderer.GetDevice();
     
@@ -242,15 +242,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
     , myRootSignature(nullptr)
+    , myRootSignatureDirty(false)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
     , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
     , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
     , myIsInRecordState(true)
     , myRenderTargetsDirty(true)
+    , myDepthStencilTarget(nullptr)
   {
-    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
-    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
+    ResetInternalStates();
 
     ID3D12Device* device = myRenderer.GetDevice();
 
@@ -277,6 +278,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       ReleaseAllocator(0u);
   }
 //---------------------------------------------------------------------------//
+  void RenderContextDX12::ResetInternalStates()
+  {
+    myRootSignature = nullptr;
+    myRootSignatureDirty = true;
+    myPipelineState = PipelineState();
+    myResourceState = ResourceState();
+    myViewportDirty = true;
+    myRenderTargetsDirty = true;
+    myDepthStencilTarget = nullptr;
+    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
+    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
+  }
+//---------------------------------------------------------------------------//
   void RenderContextDX12::Reset()
   {
     if (myIsInRecordState)
@@ -289,17 +303,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
 
-    // Reset internal states
-    myRootSignature = nullptr;
-    myRootSignatureDirty = true;
-    myPipelineState = PipelineState();
-    myResourceState = ResourceState();
-    myViewportDirty = true;
-    myRenderTargetsDirty = true;
-    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
-    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
-    
     myIsInRecordState = true;
+
+    ResetInternalStates();
   }
 //---------------------------------------------------------------------------//
   uint64 RenderContextDX12::ExecuteAndReset(bool aWaitForCompletion)
@@ -338,9 +344,24 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ApplyDescriptorHeaps();
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::ClearRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE aRTV, const float* aColor)
+  void RenderContextDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
   {
-    myCommandList->ClearRenderTargetView(aRTV, aColor, 0, nullptr);
+    ASSERT(aTexture->getParameters().myIsRenderTarget);
+    myCommandList->ClearRenderTargetView(aTexture->GetRtv().myCpuHandle, aColor, 0, nullptr);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, 
+    uint8 aStencilClear, uint32 someClearFlags /* = (uint32)DepthStencilClearFlags::CLEAR_ALL */)
+  {
+    ASSERT(aTexture->getParameters().bIsDepthStencil);
+
+    D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS) 0;
+    if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_DEPTH)
+      clearFlags |= D3D12_CLEAR_FLAG_DEPTH;
+    if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_STENCIL)
+      clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
+
+    myCommandList->ClearDepthStencilView(aTexture->GetDsv().myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow /* = false */)
@@ -470,7 +491,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setDepthStencilRenderTarget(Texture* pDStexture)
   {
+    if (myDepthStencilTarget == pDStexture)
+      return;
 
+    ASSERT(pDStexture->getParameters().bIsDepthStencil);
+
+    myDepthStencilTarget = pDStexture;
+    myRenderTargetsDirty = true;
+
+    myPipelineState.myDSVformat = pDStexture->getParameters().eFormat;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex)
@@ -481,13 +510,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myRenderTargets[u8RenderTargetIndex] = pRTTexture;
     myRenderTargetsDirty = true;
 
-    PipelineState& state = myPipelineState;
-    state.myNumRenderTargets = glm::max(state.myNumRenderTargets, (uint8) (u8RenderTargetIndex + 1));
-    state.myRTVformats[u8RenderTargetIndex] = pRTTexture->getParameters().eFormat;
+    myPipelineState.myNumRenderTargets = glm::max(myPipelineState.myNumRenderTargets, (uint8) (u8RenderTargetIndex + 1));
+    myPipelineState.myRTVformats[u8RenderTargetIndex] = pRTTexture->getParameters().eFormat;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::removeAllRenderTargets()
   {
+    memset(myRenderTargets, 0, sizeof(myRenderTargets));
+    myDepthStencilTarget = nullptr;
+    myRenderTargetsDirty = true;
+
+    myPipelineState.myNumRenderTargets = 0u;
+    for (uint32 i = 0u; i < ARRAY_LENGTH(myPipelineState.myRTVformats); ++i)
+      myPipelineState.myRTVformats[i] = DataFormat::NONE;
+
+    myPipelineState.myDSVformat = DataFormat::NONE;
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex)
@@ -787,10 +824,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       Texture* rt = myRenderTargets[i];
 
       if (rt != nullptr)
-        rtDescriptors[numRtsToSet++] = rt->GetRtv().GetCpuHandle();
+        rtDescriptors[numRtsToSet++] = rt->GetRtv().myCpuHandle;
     }
 
-    myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, nullptr);
+    if (myDepthStencilTarget) 
+      myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &myDepthStencilTarget->GetDsv().myCpuHandle); 
+    else 
+      myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, nullptr);
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::ApplyPipelineState()
@@ -872,7 +912,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       for (uint32 i = 0u; i < numSrvDescriptorsToSet; ++i)
       {
         myRenderer.GetDevice()->CopyDescriptorsSimple(1, destHandle,
-          srvDescriptorsToSet[i].GetCpuHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+          srvDescriptorsToSet[i].myCpuHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         destHandle.ptr += dynamicHeap->GetHandleIncrementSize();
       }

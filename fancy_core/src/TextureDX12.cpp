@@ -316,7 +316,23 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     resourceDesc.Format = Adapter::toNativeType(someParameters.eFormat);
-    resourceDesc.Flags = wantsGpuWriteAccess ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
+
+    resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    if (someParameters.bIsDepthStencil)
+    {
+      resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+    }
+    else
+    {
+      if (wantsGpuWriteAccess)
+          resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+      if (someParameters.myIsRenderTarget)
+        resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+    }
+
+    const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
+      || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
 
     const bool wantsCpuWrite = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
     const bool wantsCpuRead = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::READ) > 0u;
@@ -346,41 +362,80 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myUsageState = D3D12_RESOURCE_STATE_COPY_DEST;
     }
 
+    D3D12_CLEAR_VALUE clearValue;
+    clearValue.Format = Adapter::toNativeType(someParameters.eFormat);
+    if (someParameters.bIsDepthStencil)
+    {
+      clearValue.DepthStencil.Depth = 1.0f;
+      clearValue.DepthStencil.Stencil = 0u;
+    }
+    else
+    {
+      memset(clearValue.Color, 0, sizeof(clearValue.Color));
+    }
     
-
     CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(
       &heapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
       myUsageState,
-      nullptr, IID_PPV_ARGS(&myResource)));
+      useOptimizeClearValue ? &clearValue : nullptr,
+      IID_PPV_ARGS(&myResource)));
 
     // Create derived views
     DescriptorHeapPoolDX12* heapPool = renderer->GetDescriptorHeapPool();
     DescriptorHeapDX12* heap = heapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Format = resourceDesc.Format;
-    switch(dimension)
+    if (someParameters.bIsDepthStencil)
     {
-      case D3D12_RESOURCE_DIMENSION_TEXTURE1D: 
-        {
-          srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
-          srvDesc.Texture1D.MipLevels = actualNumMipLevels;
-          srvDesc.Texture1D.MostDetailedMip = 0u;
-          srvDesc.Texture1D.ResourceMinLODClamp = 0.0f;
-        }
-        break;
-      case D3D12_RESOURCE_DIMENSION_TEXTURE2D: 
-        {
-          srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-          srvDesc.Texture2D.MipLevels = actualNumMipLevels;
-          srvDesc.Texture2D.MostDetailedMip = 0u;
-          srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-          srvDesc.Texture2D.PlaneSlice = 0u;
-        }
-        break;
+      D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+      dsvDesc.Format = resourceDesc.Format;
+      dsvDesc.Flags = D3D12_DSV_FLAG_NONE; // TODO: Implement support for readonly depth or stencil
+
+      switch (dimension)
+      {
+      case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
+      {
+        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1D;
+        dsvDesc.Texture1D.MipSlice = 0u;
+      }
+      break;
+      case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+      {
+        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        dsvDesc.Texture2D.MipSlice = 0u;
+      }
+      break;
+      }
+
+      myDsvDescriptor = heapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)->AllocateDescriptor();
+      renderer->GetDevice()->CreateDepthStencilView(myResource.Get(), &dsvDesc, myDsvDescriptor.myCpuHandle);
+    }
+    else
+    {
+      D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+      srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+      srvDesc.Format = resourceDesc.Format;
+
+      switch (dimension)
+      {
+      case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
+      {
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+        srvDesc.Texture1D.MipLevels = actualNumMipLevels;
+        srvDesc.Texture1D.MostDetailedMip = 0u;
+        srvDesc.Texture1D.ResourceMinLODClamp = 0.0f;
+      }
+      break;
+      case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+      {
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = actualNumMipLevels;
+        srvDesc.Texture2D.MostDetailedMip = 0u;
+        srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+        srvDesc.Texture2D.PlaneSlice = 0u;
+      }
+      break;
       case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
       {
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
@@ -389,31 +444,31 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         srvDesc.Texture3D.ResourceMinLODClamp = 0.0f;
       }
       break;
-    }
-    
-    mySrvDescriptor = heap->AllocateDescriptor();
-    renderer->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.GetCpuHandle());
+      }
 
-    if (wantsGpuWriteAccess)
-    {
-      D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-      uavDesc.Format = resourceDesc.Format;
-      switch (dimension)
+      mySrvDescriptor = heap->AllocateDescriptor();
+      renderer->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
+
+      if (wantsGpuWriteAccess)
       {
-      case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+        uavDesc.Format = resourceDesc.Format;
+        switch (dimension)
+        {
+        case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
         {
           uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
           uavDesc.Texture1D.MipSlice = 0u;
         }
         break;
-      case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+        case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
         {
           uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
           uavDesc.Texture2D.MipSlice = 0u;
           uavDesc.Texture2D.PlaneSlice = 0u;
         }
         break;
-      case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
+        case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
         {
           uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
           uavDesc.Texture3D.MipSlice = 0u;
@@ -421,18 +476,18 @@ namespace Fancy { namespace Rendering { namespace DX12 {
           uavDesc.Texture3D.WSize = someParameters.u16Depth;
         }
         break;
+        }
+
+        myUavDescriptor = heap->AllocateDescriptor();
+        renderer->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
       }
 
-      myUavDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.GetCpuHandle());
-    }
-
-    if (someParameters.myIsRenderTarget)
-    {
-      D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-      rtvDesc.Format = resourceDesc.Format;
-      switch (dimension)
+      if (someParameters.myIsRenderTarget)
       {
+        D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+        rtvDesc.Format = resourceDesc.Format;
+        switch (dimension)
+        {
         case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
         {
           rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1D;
@@ -454,45 +509,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
           rtvDesc.Texture3D.WSize = someParameters.u16Depth;
         }
         break;
-      }
-      
-      myRtvDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.GetCpuHandle());
-    }
+        }
 
-    if (someParameters.bIsDepthStencil)
-    {
-      D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-      dsvDesc.Format = resourceDesc.Format;
-      dsvDesc.Flags = D3D12_DSV_FLAG_NONE; // TODO: Implement support for readonly depth or stencil
-
-      switch (dimension)
-      {
-      case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
-      {
-        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1D;
-        dsvDesc.Texture1D.MipSlice = 0u;
+        myRtvDescriptor = heap->AllocateDescriptor();
+        renderer->GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.myCpuHandle);
       }
-      break;
-      case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
-      {
-        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-        dsvDesc.Texture2D.MipSlice = 0u;
-        dsvDesc.Texture2D.PlaneSlice = 0u;
-      }
-      break;
-      case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
-      {
-        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
-        rtvDesc.Texture3D.MipSlice = 0u;
-        rtvDesc.Texture3D.FirstWSlice = 0u;
-        rtvDesc.Texture3D.WSize = someParameters.u16Depth;
-      }
-      break;
-      }
-
-      myRtvDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.GetCpuHandle());
     }
 
     // Initialize texture data?

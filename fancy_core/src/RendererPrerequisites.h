@@ -426,6 +426,13 @@ namespace Fancy {
       // More to come...
       NUM
     };
+  //---------------------------------------------------------------------------//
+    enum class DepthStencilClearFlags
+    {
+      CLEAR_DEPTH = (1 << 0),
+      CLEAR_STENCIL = (1 << 1),
+      CLEAR_ALL = 0xFF
+    };
 //---------------------------------------------------------------------------//
   } // end of namespace Rendering 
   }  // end of namespace Fancy
