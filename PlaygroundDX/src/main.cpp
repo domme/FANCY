@@ -21,6 +21,7 @@ constexpr uint kHeight = 720u;
 
 Fancy::Rendering::RenderingProcessForward* pRenderProcessFwd = nullptr;
 Fancy::Scene::CameraComponent* pCameraComponent;
+Fancy::Scene::SceneNode* pModelNode;
 
 void StartupEngine()
 {
@@ -37,7 +38,7 @@ void StartupEngine()
   pCameraComponent->setProjectionPersp(45.0f, kWidth, kHeight, 1.0f, 1000.0f);
   pScene->setActiveCamera(pCameraComponent);
 
-  Fancy::Scene::SceneNode* pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));
+  pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));
   Fancy::IO::SceneImporter::importToSceneGraph("Models/cube.obj", pModelNode);
   pModelNode->getTransform().setPositionLocal(glm::vec3(0.0f, 0.0f, -10.0f));
 
@@ -79,6 +80,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 			if (msg.message == WM_QUIT)
 				break;
 		}
+
+    pModelNode->getTransform().rotate(glm::vec3(1.0f, 1.0f, 0.0f), 20.0f);
 
     Fancy::Update(0.0);
 	}

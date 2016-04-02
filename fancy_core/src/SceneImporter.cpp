@@ -498,6 +498,15 @@ namespace Fancy { namespace IO {
 
           vSourceDataStrides.push_back(sizeof(aiMesh->mTextureCoords[iUVchannel][0]));
           vVertexDataPointers.push_back(aiMesh->mTextureCoords[iUVchannel]);
+
+          for (uint32 i = 0u; i < aiMesh->mNumVertices; ++i)
+          {
+            aiVector3D& texCoord = aiMesh->mTextureCoords[iUVchannel][i];
+
+            log_Info(StringUtil::toString(texCoord.x) + ", " + StringUtil::toString(texCoord.y));
+          }
+          log_Info("-------------------");
+
         }
       }
 
@@ -569,6 +578,15 @@ namespace Fancy { namespace IO {
       };
 
       _Vertex* vertexData = (_Vertex*)pData;
+
+      for (uint32 i = 0u; i < bufferParams.uNumElements; ++i)
+      {
+        _Vertex& vertex = vertexData[i];
+        float u = vertex.uv.x;
+        float v = vertex.uv.y;
+
+        log_Info(StringUtil::toString(u) + ", " + StringUtil::toString(v));
+      }
 
       vertexBuffer->create(bufferParams, pData);
       pGeometryData->setVertexLayout(vertexLayout);
