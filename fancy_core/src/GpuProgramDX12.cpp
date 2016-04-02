@@ -31,7 +31,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       nativeElem.Format = Adapter::toNativeType(elem.myFormat);
 
       // TODO: Add support for instancing
-      nativeElem.InputSlot = 0;  
+      nativeElem.InputSlot = 0;
       nativeElem.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
 
       someNativeInputElements.push_back(nativeElem);

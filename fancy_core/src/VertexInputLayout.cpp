@@ -51,6 +51,8 @@ namespace Fancy { namespace Rendering {
     aSerializer->serialize(&myFormatComponentCount, "formatComponentCount");
   }
 //---------------------------------------------------------------------------//
+  ShaderVertexInputLayout ShaderVertexInputLayout::ourDefaultModelLayout;
+//---------------------------------------------------------------------------//
   uint64 ShaderVertexInputLayout::GetHash() const
   {
     uint64 hash = 0;
@@ -80,6 +82,14 @@ namespace Fancy { namespace Rendering {
   {
     myVertexInputElements.push_back(clVertexElement);
     Validation::validateLayout(myVertexInputElements);
+  }
+//---------------------------------------------------------------------------//
+  ShaderVertexInputElement& ShaderVertexInputLayout::addVertexInputElement()
+  {
+    ShaderVertexInputElement elem;
+    myVertexInputElements.push_back(elem);
+
+    return myVertexInputElements.back();
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

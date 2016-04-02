@@ -342,6 +342,19 @@ namespace Fancy { namespace IO {
     return hash;
   }
 //---------------------------------------------------------------------------//
+
+  const ShaderVertexInputElement* locGetShaderExpectedInput(VertexSemantics aSemantic)
+  {
+    const ShaderVertexInputLayout& modelLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
+    const ShaderVertexInputElementList& vertexElements = modelLayout.getVertexElementList();
+
+    for (uint32 i = 0u; i < vertexElements.size(); ++i)
+      if (vertexElements[i].mySemantics == aSemantic)
+        return &vertexElements[i];
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
   Geometry::Mesh* Processing::constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pANode, aiMesh** someMeshes, uint32 aMeshCount)
   {
     Geometry::Mesh* outputMesh = nullptr;
@@ -396,117 +409,65 @@ namespace Fancy { namespace IO {
       Geometry::GeometryData* pGeometryData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::GEOMETRY);
       vGeometryDatas.push_back(pGeometryData);
 
-      // Construct the vertex layout description
-      Rendering::GeometryVertexLayout vertexLayout;
-      ASSERT(aiMesh->HasPositions());
-
-      FixedArray<void*, Rendering::kMaxNumGeometryVertexAttributes> vVertexDataPointers;
-      FixedArray<uint32, Rendering::kMaxNumInputVertexAttributes> vSourceDataStrides;
-
-      uint32 u32OffsetBytes = 0u;
-      if (aiMesh->HasPositions())
+      struct ImportVertexStream
       {
-        Rendering::GeometryVertexElement vertexElement;
-        vertexElement.name = _N(Positions);
-        vertexElement.eSemantics = Rendering::VertexSemantics::POSITION;
-        vertexElement.eFormat = Rendering::DataFormat::RGB_32F;
-        vertexElement.u32OffsetBytes = u32OffsetBytes;
-        vertexElement.u32SizeBytes = sizeof(float) * 3u;
-        u32OffsetBytes += vertexElement.u32SizeBytes;
-        vertexLayout.addVertexElement(vertexElement);
-        vVertexDataPointers.push_back(aiMesh->mVertices);
-        vSourceDataStrides.push_back(sizeof(aiMesh->mVertices[0]));
-        ASSERT(sizeof(aiMesh->mVertices[0]) == vertexElement.u32SizeBytes);
+        void* mySourceData;
+        uint32 mySourceDataStride;
+        VertexSemantics mySourceSemantic;
+        uint32 mySourceSemanticIndex;
+      };
+      FixedArray<ImportVertexStream, Rendering::kMaxNumGeometryVertexAttributes> importStreams;
+
+      ASSERT(aiMesh->HasPositions());
+      {
+        ImportVertexStream stream;
+        stream.mySourceDataStride = sizeof(aiMesh->mVertices[0]);
+        stream.mySourceData = aiMesh->mVertices;
+        stream.mySourceSemantic = VertexSemantics::POSITION;
+        stream.mySourceSemanticIndex = 0u;
+        importStreams.push_back(stream);
       }
 
       if (aiMesh->HasNormals())
       {
-        Rendering::GeometryVertexElement vertexElement;
-        vertexElement.name = _N(Normals);
-        vertexElement.eSemantics = Rendering::VertexSemantics::NORMAL;
-        vertexElement.eFormat = Rendering::DataFormat::RGB_32F;
-        vertexElement.u32OffsetBytes = u32OffsetBytes;
-        vertexElement.u32SizeBytes = sizeof(float) * 3u;
-        u32OffsetBytes += vertexElement.u32SizeBytes;
-        vertexLayout.addVertexElement(vertexElement);
-        vVertexDataPointers.push_back(aiMesh->mNormals);
-        vSourceDataStrides.push_back(sizeof(aiMesh->mNormals[0]));
-        ASSERT(sizeof(aiMesh->mNormals[0]) == vertexElement.u32SizeBytes);
+        ImportVertexStream stream;
+        stream.mySourceDataStride = sizeof(aiMesh->mNormals[0]);
+        stream.mySourceData = aiMesh->mNormals;
+        stream.mySourceSemantic = VertexSemantics::NORMAL;
+        stream.mySourceSemanticIndex = 0u;
+        importStreams.push_back(stream);
       }
 
       if (aiMesh->HasTangentsAndBitangents())
       {
-        Rendering::GeometryVertexElement vertexElement;
-        vertexElement.name = _N(Tangents);
-        vertexElement.eSemantics = Rendering::VertexSemantics::TANGENT;
-        vertexElement.eFormat = Rendering::DataFormat::RGB_32F;
-        vertexElement.u32OffsetBytes = u32OffsetBytes;
-        vertexElement.u32SizeBytes = sizeof(float) * 3u;
-        u32OffsetBytes += vertexElement.u32SizeBytes;
-        vertexLayout.addVertexElement(vertexElement);
-        vVertexDataPointers.push_back(aiMesh->mTangents);
-        vSourceDataStrides.push_back(sizeof(aiMesh->mTangents[0]));
-        ASSERT(sizeof(aiMesh->mTangents[0]) == vertexElement.u32SizeBytes);
-
-        vertexElement = Rendering::GeometryVertexElement();
-        vertexElement.name = _N(Bitangents);
-        vertexElement.eSemantics = Rendering::VertexSemantics::BITANGENT;
-        vertexElement.eFormat = Rendering::DataFormat::RGB_32F;
-        vertexElement.u32OffsetBytes = u32OffsetBytes;
-        vertexElement.u32SizeBytes = sizeof(float) * 3u;
-        u32OffsetBytes += vertexElement.u32SizeBytes;
-        vertexLayout.addVertexElement(vertexElement);
-        vVertexDataPointers.push_back(aiMesh->mBitangents);
-        vSourceDataStrides.push_back(sizeof(aiMesh->mBitangents[0]));
-        ASSERT(sizeof(aiMesh->mBitangents[0]) == vertexElement.u32SizeBytes);
+        {
+          ImportVertexStream stream;
+          stream.mySourceDataStride = sizeof(aiMesh->mTangents[0]);
+          stream.mySourceData = aiMesh->mTangents;
+          stream.mySourceSemantic = VertexSemantics::TANGENT;
+          stream.mySourceSemanticIndex = 0u;
+          importStreams.push_back(stream);
+        }
+        {
+          ImportVertexStream stream;
+          stream.mySourceDataStride = sizeof(aiMesh->mBitangents[0]);
+          stream.mySourceData = aiMesh->mBitangents;
+          stream.mySourceSemantic = VertexSemantics::BITANGENT;
+          stream.mySourceSemanticIndex = 0u;
+          importStreams.push_back(stream);
+        }
       }
 
       for (uint32 iUVchannel = 0u; iUVchannel < aiMesh->GetNumUVChannels(); ++iUVchannel)
       {
         if (aiMesh->HasTextureCoords(iUVchannel))
         {
-          Rendering::GeometryVertexElement vertexElement;
-          vertexElement.name = _N(TexCoords);
-          vertexElement.eSemantics = VertexSemantics::TEXCOORD;
-          vertexElement.mySemanticIndex = iUVchannel;
-
-          if (aiMesh->mNumUVComponents[iUVchannel] == 1u)
-          {
-            vertexElement.eFormat = Rendering::DataFormat::R_32F;
-          }
-          else if (aiMesh->mNumUVComponents[iUVchannel] == 2u)
-          {
-            vertexElement.eFormat = Rendering::DataFormat::RG_32F;
-          }
-          else if (aiMesh->mNumUVComponents[iUVchannel] == 3u)
-          {
-            vertexElement.eFormat = Rendering::DataFormat::RGB_32F;
-          }
-          else
-          {
-            // Not implemented
-            ASSERT(false);
-          }
-
-          vertexElement.u32OffsetBytes = u32OffsetBytes;
-          vertexElement.u32SizeBytes = sizeof(float) * aiMesh->mNumUVComponents[iUVchannel];
-          u32OffsetBytes += vertexElement.u32SizeBytes;
-          vertexLayout.addVertexElement(vertexElement);
-
-          // These sizes might differ since assimp stores 2-component UVs in Vec3s
-          // ASSERT(sizeof(aiMesh->mTextureCoords[iUVchannel][0]) == vertexElement.u32SizeBytes);
-
-          vSourceDataStrides.push_back(sizeof(aiMesh->mTextureCoords[iUVchannel][0]));
-          vVertexDataPointers.push_back(aiMesh->mTextureCoords[iUVchannel]);
-
-          for (uint32 i = 0u; i < aiMesh->mNumVertices; ++i)
-          {
-            aiVector3D& texCoord = aiMesh->mTextureCoords[iUVchannel][i];
-
-            log_Info(StringUtil::toString(texCoord.x) + ", " + StringUtil::toString(texCoord.y));
-          }
-          log_Info("-------------------");
-
+          ImportVertexStream stream;
+          stream.mySourceDataStride = sizeof(aiMesh->mTextureCoords[iUVchannel][0]);
+          stream.mySourceData = aiMesh->mTextureCoords[iUVchannel];
+          stream.mySourceSemantic = VertexSemantics::TEXCOORD;
+          stream.mySourceSemanticIndex = iUVchannel;
+          importStreams.push_back(stream);
         }
       }
 
@@ -514,24 +475,97 @@ namespace Fancy { namespace IO {
       {
         if (aiMesh->HasVertexColors(iColorChannel))
         {
-          Rendering::GeometryVertexElement vertexElement;
-          vertexElement.name = _N(Colors);
-          vertexElement.eSemantics = VertexSemantics::COLOR;
-          vertexElement.mySemanticIndex = iColorChannel;
-          vertexElement.eFormat = Rendering::DataFormat::RGBA_32F;
-          vertexElement.u32OffsetBytes = u32OffsetBytes;
-          vertexElement.u32SizeBytes = sizeof(float) * 4u;
-          u32OffsetBytes += vertexElement.u32SizeBytes;
-          vertexLayout.addVertexElement(vertexElement);
-          ASSERT(sizeof(aiMesh->mColors[iColorChannel][0]) == vertexElement.u32SizeBytes);
-          vSourceDataStrides.push_back(sizeof(aiMesh->mColors[iColorChannel][0]));
-          vVertexDataPointers.push_back(aiMesh->mColors[iColorChannel]);
+          ImportVertexStream stream;
+          stream.mySourceDataStride = sizeof(aiMesh->mColors[iColorChannel][0]);
+          stream.mySourceData = aiMesh->mColors[iColorChannel];
+          stream.mySourceSemantic = VertexSemantics::COLOR;
+          stream.mySourceSemanticIndex = iColorChannel;
+          importStreams.push_back(stream);
         }
       }
 
-      if (aiMesh->HasBones())
+      const ShaderVertexInputLayout* expectedLayout = &ShaderVertexInputLayout::ourDefaultModelLayout;
+      const ShaderVertexInputElementList& expectedInputList = expectedLayout->getVertexElementList();
+
+      // Check if we need additional patching-streams when the model-shaders expect more data than this model has
+
+      FixedArray<ImportVertexStream, Rendering::kMaxNumGeometryVertexAttributes> actualImportStreams;
+      actualImportStreams.resize(expectedInputList.size());
+
+      FixedArray<void*, Rendering::kMaxNumGeometryVertexAttributes> patchingDatas;
+
+      for (uint32 i = 0u; i < expectedInputList.size(); ++i)
       {
-        log_Warning("Bone data is currently not supported in FANCY");
+        const ShaderVertexInputElement& expectedElem = expectedInputList[i];
+
+        bool foundInImportStreams = false;
+        for (uint32 k = 0u; k < importStreams.size(); ++k)
+        {
+          ImportVertexStream& stream = importStreams[k];
+
+          if (expectedElem.mySemantics != stream.mySourceSemantic)
+            continue;
+
+          foundInImportStreams = true;
+          
+          // Stride-mismatch? Then we have to patch! 
+          // Either we have more data we need or not enough. Below accounts for both cases
+          if (stream.mySourceDataStride != expectedElem.mySizeBytes) 
+          {
+            void* patchedData = malloc(expectedElem.mySizeBytes * aiMesh->mNumVertices);
+            patchingDatas.push_back(patchedData);
+
+            for (uint32 iVertex = 0u; iVertex < aiMesh->mNumVertices; ++iVertex)
+            {
+              uint8* dest = ((uint8*)patchedData) + iVertex * expectedElem.mySizeBytes;
+              uint8* src = ((uint8*)stream.mySourceData) + iVertex * stream.mySourceDataStride;
+
+              memcpy(dest, src, glm::min(expectedElem.mySizeBytes, stream.mySourceDataStride));
+
+              if (expectedElem.mySizeBytes > stream.mySourceDataStride)
+                memset(dest + stream.mySourceDataStride, 0, (expectedElem.mySizeBytes - stream.mySourceDataStride));
+            }
+
+            stream.mySourceDataStride = expectedElem.mySizeBytes;
+            stream.mySourceData = patchedData;
+          }
+
+          actualImportStreams[i] = stream;
+        }
+
+        // Is this semantic missing entirely? 
+        if (!foundInImportStreams)
+        {
+          void* patchedData = malloc(expectedElem.mySizeBytes * aiMesh->mNumVertices);
+          patchingDatas.push_back(patchedData);
+          memset(patchedData, 0, expectedElem.mySizeBytes * aiMesh->mNumVertices);
+
+          actualImportStreams[i].mySourceDataStride = expectedElem.mySizeBytes;
+          actualImportStreams[i].mySourceData = patchedData;
+          actualImportStreams[i].mySourceSemantic = expectedElem.mySemantics;
+          actualImportStreams[i].mySourceSemanticIndex = expectedElem.mySemanticIndex;
+        }
+      }
+            
+      // Construct the vertex layout description.
+      // After doing the patching-work above, this can be set up to exactly match the input layout expected by the shaders
+      Rendering::GeometryVertexLayout vertexLayout;
+
+      uint32 offset = 0u;
+      for (uint32 i = 0u; i < expectedInputList.size(); ++i)
+      {
+        const ShaderVertexInputElement& expectedInput = expectedInputList[i];
+
+        GeometryVertexElement vertexElem;
+        vertexElem.u32OffsetBytes = offset;
+        vertexElem.eFormat = expectedInput.myFormat;
+        vertexElem.mySemanticIndex = expectedInput.mySemanticIndex;
+        vertexElem.eSemantics = expectedInput.mySemantics;
+        vertexElem.name = expectedInput.myName;
+        vertexElem.u32SizeBytes = expectedInput.mySizeBytes;
+
+        offset += vertexElem.u32SizeBytes;
+        vertexLayout.addVertexElement(vertexElem);
       }
 
       const uint uSizeVertexBufferBytes = vertexLayout.getStrideBytes() * aiMesh->mNumVertices;
@@ -544,16 +578,18 @@ namespace Fancy { namespace IO {
       }
 
       // Construct an interleaved vertex array
-      ASSERT(vVertexDataPointers.size() == vertexLayout.getNumVertexElements());
       for (uint iVertex = 0u; iVertex < aiMesh->mNumVertices; ++iVertex)
       {
         for (uint iVertexElement = 0u; iVertexElement < vertexLayout.getNumVertexElements(); ++iVertexElement)
         {
-          const Rendering::GeometryVertexElement& rVertexElement = vertexLayout.getVertexElement(iVertexElement);
-          uint uInterleavedOffset = iVertex * vertexLayout.getStrideBytes() + rVertexElement.u32OffsetBytes;
-          uint uContinousOffset = iVertex * vSourceDataStrides[iVertexElement];
-          void* pDataPointer = vVertexDataPointers[iVertexElement];
-          memcpy(static_cast<uint8*>(pData)+uInterleavedOffset, static_cast<uint8*>(pDataPointer)+uContinousOffset, rVertexElement.u32SizeBytes);
+          const Rendering::GeometryVertexElement& vertexElem = vertexLayout.getVertexElement(iVertexElement);
+          uint destInterleavedOffset = iVertex * vertexLayout.getStrideBytes() + vertexElem.u32OffsetBytes;
+          uint srcOffset = iVertex * actualImportStreams[iVertexElement].mySourceDataStride;
+
+          uint8* dest = ((uint8*)pData) + destInterleavedOffset;
+          uint8* src = ((uint8*)actualImportStreams[iVertexElement].mySourceData) + srcOffset;
+
+          memcpy(dest, src, vertexElem.u32SizeBytes);
         }
       }
 
@@ -579,22 +615,16 @@ namespace Fancy { namespace IO {
 
       _Vertex* vertexData = (_Vertex*)pData;
 
-      for (uint32 i = 0u; i < bufferParams.uNumElements; ++i)
-      {
-        _Vertex& vertex = vertexData[i];
-        float u = vertex.uv.x;
-        float v = vertex.uv.y;
-
-        log_Info(StringUtil::toString(u) + ", " + StringUtil::toString(v));
-      }
-
       vertexBuffer->create(bufferParams, pData);
       pGeometryData->setVertexLayout(vertexLayout);
       pGeometryData->setVertexBuffer(vertexBuffer);
 
       vertexDatas.push_back(pData);
-      
 
+      for (uint32 i = 0u; i < patchingDatas.size(); ++i)
+        free(patchingDatas[i]);
+      patchingDatas.clear();
+      
       /// Construct the index buffer
 #if defined (FANCY_IMPORTER_USE_VALIDATION)
       // Ensure that we have only triangles
@@ -646,6 +676,8 @@ namespace Fancy { namespace IO {
       FANCY_FREE(vertexDatas[i], MemoryCategory::GEOMETRY);
     }
     vertexDatas.clear();
+
+    
 
     for (uint32 i = 0u; i < indexDatas.size(); ++i)
     {

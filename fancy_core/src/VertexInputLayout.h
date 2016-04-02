@@ -55,9 +55,12 @@ namespace Fancy { namespace Rendering {
 
     void clear() {myVertexInputElements.clear();}
     void addVertexInputElement(const ShaderVertexInputElement& clVertexElement);
+    ShaderVertexInputElement& addVertexInputElement();
     const ShaderVertexInputElement& getVertexInputElement(uint32 u32Index) const { ASSERT(u32Index < myVertexInputElements.size()); return myVertexInputElements[u32Index]; }
     uint32 getNumVertexInputElements() const { return myVertexInputElements.size(); }
     const ShaderVertexInputElementList& getVertexElementList() const { return myVertexInputElements; }
+
+    static ShaderVertexInputLayout ourDefaultModelLayout;
 
   private:
     ShaderVertexInputElementList myVertexInputElements;
