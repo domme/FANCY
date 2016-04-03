@@ -15,6 +15,7 @@
 #include <memory>
 #include <functional>
 #include <float.h>
+#include <stdio.h>
 
 //Math includes
 #include <glm/glm.hpp>
@@ -24,6 +25,8 @@
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }
 #define SAFE_DELETE_ARR(p) if( p[ 0 ] ) delete[] p;
 #define BUFFER_OFFSET(i) ( (char*) NULL + (i) )
+#include <stdio.h>
+
 //---------------------------------------------------------------------------//  
   enum class MemoryCategory {
     GENERAL,
@@ -40,45 +43,27 @@
   #define FANCY_ALLOCATE(sizeBytes, memoryCategory) malloc(sizeBytes)
   #define FANCY_FREE(pData, memoryCategory) free(pData)
 //---------------------------------------------------------------------------//
-  template<typename T>
-  void _log_impl(T s, const std::string& szPrefix)
+  void Log(const char* aSeverity, const char* aFile, const int aLine, const char* aMessageFormat, ...)
   {
-    std::ostringstream ss;
-    ss << szPrefix << s << '\n';
+    va_list args;
+    va_start(args, aMessageFormat);
+    const int severitySizeBytes = strlen(aSeverity) + 2; // accounts for ": " between severity and message
+    const int messageSizeBytes = severitySizeBytes + vsnprintf(nullptr, 0u, aMessageFormat, args) + 1u;
 
-#ifdef __WINDOWS
-    OutputDebugStringA( ss.str().c_str() );
-#else
-    std::cout << ss.str();
-#endif
-  };
-//---------------------------------------------------------------------------//
-  template<typename T>
-  void log_Info( T s )
-  {
-    _log_impl(s, "Info: ");
-  }
-//---------------------------------------------------------------------------//
-  template<typename T>
-  void log_Warning( T s )
-  {
-    _log_impl(s, "Warning: ");
-  }
-//---------------------------------------------------------------------------//
-  template<typename T>
-  void log_Error( T s )
-  {
-    _log_impl(s, "ERROR: ");
-  }
-//---------------------------------------------------------------------------//
-/* For some reason this specialization doesnt work...
-void log_Info( glm::vec3 vec )
-{
-  std::stringstream ss;
-  ss << vec.x << " " << vec.y << " " << vec.z;
+    char* messageBuf = (char*)alloca(messageSizeBytes);
 
-  log_Info( ss.str() );
-} */
+
+
+    snprintf(messageBuf, severitySizeBytes, "%s: ", aSeverity);
+    sprintf(messageBuf + severitySizeBytes, aMessageFormat, args);
+
+    va_end(args);
+
+    OutputDebugStringA(messageBuf);
+  }
+  //---------------------------------------------------------------------------//
+#define LOG_INFO(aFormat, ...) Log("Info", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
+
 //---------------------------------------------------------------------------//
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 //---------------------------------------------------------------------------//
@@ -103,30 +88,6 @@ void log_Info( glm::vec3 vec )
       DebugBreak(); \
     }\
   }
-//---------------------------------------------------------------------------//
-  #define RUN_NOT_FIRST( function ) \
-  {								\
-    static bool bFirst = false; \
-                  \
-    if( bFirst )  \
-    {							\
-      function;		\
-    }							\
-                  \
-    bFirst = true; \
-  }
-//---------------------------------------------------------------------------//
-  #define RUN_ONLY_ONCE_STATIC( function ) \
-  {								\
-    static bool bInit = false;	\
-                  \
-    if( bInit == true )			\
-      return;					\
-                  \
-    function;					\
-                  \
-    bInit = true;				\
-  }	
 //---------------------------------------------------------------------------//
 //DLL-Export MACROS
 #define DLLEXPORT __declspec(dllexport)

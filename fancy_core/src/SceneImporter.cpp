@@ -604,17 +604,6 @@ namespace Fancy { namespace IO {
       bufferParams.uNumElements = aiMesh->mNumVertices;
       bufferParams.uElementSizeBytes = vertexLayout.getStrideBytes();
 
-      struct _Vertex
-      {
-        glm::vec3 pos;
-        glm::vec3 norm;
-        glm::vec3 tan;
-        glm::vec3 bitan;
-        glm::vec2 uv;
-      };
-
-      _Vertex* vertexData = (_Vertex*)pData;
-
       vertexBuffer->create(bufferParams, pData);
       pGeometryData->setVertexLayout(vertexLayout);
       pGeometryData->setVertexBuffer(vertexBuffer);
