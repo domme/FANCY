@@ -41,29 +41,7 @@
   #define FANCY_DELETE(type, memoryCategory) delete type
   #define FANCY_DELETE_ARR(type, memoryCategory) delete[] type
   #define FANCY_ALLOCATE(sizeBytes, memoryCategory) malloc(sizeBytes)
-  #define FANCY_FREE(pData, memoryCategory) free(pData)
-//---------------------------------------------------------------------------//
-  void Log(const char* aSeverity, const char* aFile, const int aLine, const char* aMessageFormat, ...)
-  {
-    va_list args;
-    va_start(args, aMessageFormat);
-    const int severitySizeBytes = strlen(aSeverity) + 2; // accounts for ": " between severity and message
-    const int messageSizeBytes = severitySizeBytes + vsnprintf(nullptr, 0u, aMessageFormat, args) + 1u;
-
-    char* messageBuf = (char*)alloca(messageSizeBytes);
-
-
-
-    snprintf(messageBuf, severitySizeBytes, "%s: ", aSeverity);
-    sprintf(messageBuf + severitySizeBytes, aMessageFormat, args);
-
-    va_end(args);
-
-    OutputDebugStringA(messageBuf);
-  }
-  //---------------------------------------------------------------------------//
-#define LOG_INFO(aFormat, ...) Log("Info", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
-
+  #define FANCY_FREE(pData, memoryCategory) free(pData) 
 //---------------------------------------------------------------------------//
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 //---------------------------------------------------------------------------//
@@ -74,19 +52,6 @@
   #define STATIC_ASSERT( condition, message ) \
   {								\
     static_assert(condition, message); \
-  }
-//---------------------------------------------------------------------------//
-  #define ASSERT( value ) \
-  { \
-    if(!(value)) DebugBreak(); \
-  }
-//---------------------------------------------------------------------------//
-  #define ASSERT_M( value, message ) \
-  { \
-    if(!(value)) { \
-      log_Info(message); \
-      DebugBreak(); \
-    }\
   }
 //---------------------------------------------------------------------------//
 //DLL-Export MACROS
@@ -121,8 +86,6 @@ namespace Fancy {
 // Typedefs
 //---------------------------------------------------------------------------//
   namespace Fancy {
-    typedef std::string String;
-
     typedef glm::uint16		uint16;
     typedef glm::uint32		uint32;
     typedef glm::uint64		uint64;

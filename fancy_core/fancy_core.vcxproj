@@ -362,6 +362,7 @@
     <ClInclude Include="src\LightComponent.h" />
     <ClInclude Include="src\LoadableObject.h" />
     <ClInclude Include="src\lodepng.h" />
+    <ClInclude Include="src\Log.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\MaterialDesc.h" />
     <ClInclude Include="src\MaterialPass.h" />
@@ -402,6 +403,7 @@
     <ClInclude Include="src\StaticManagedObject.h" />
     <ClInclude Include="src\StdAfx.h" />
     <ClInclude Include="src\GeometryData.h" />
+    <ClInclude Include="src\String.h" />
     <ClInclude Include="src\StringUtil.h" />
     <ClInclude Include="src\SubModel.h" />
     <ClInclude Include="src\Texture.h" />
@@ -498,6 +500,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\GeometryData.cpp" />
+    <ClCompile Include="src\String.cpp" />
     <ClCompile Include="src\SubModel.cpp" />
     <ClCompile Include="src\TextureDX12.cpp" />
     <ClCompile Include="src\TextureGL4.cpp" />

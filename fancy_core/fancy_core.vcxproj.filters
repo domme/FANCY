@@ -376,6 +376,12 @@
     <ClInclude Include="src\DescriptorHeapPoolDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="src\String.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Log.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -626,6 +632,9 @@
     </ClCompile>
     <ClCompile Include="src\DescriptorHeapPoolDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\String.cpp">
+      <Filter>src\Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
