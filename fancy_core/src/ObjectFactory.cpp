@@ -110,7 +110,7 @@ namespace Fancy { namespace IO {
       if (createFuncEntry.first == aTypeName)
         return createFuncEntry.second(aHash, aWasCreated);
 
-    ASSERT_M(false, "Unknown typename");
+    ASSERT(false, "Unknown typename");
     return nullptr;
   }
 //---------------------------------------------------------------------------//

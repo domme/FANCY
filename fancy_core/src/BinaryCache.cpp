@@ -52,7 +52,7 @@ namespace Fancy {  namespace IO {
     PathService::createDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
-    ASSERT_M(archive.good(), "Failed to open cache file");
+    ASSERT(archive.good(), "Failed to open cache file");
 
     archive.write(reinterpret_cast<const char*>(&kTextureVersion), sizeof(uint32));
 
@@ -166,7 +166,7 @@ namespace Fancy {  namespace IO {
     PathService::createDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
-    ASSERT_M(archive.good(), "Failed to open cache file");
+    ASSERT(archive.good(), "Failed to open cache file");
 
     archive.write(reinterpret_cast<const char*>(&kMeshVersion), sizeof(uint32));
     uint64 hash = aMesh->GetDescription().GetHash();

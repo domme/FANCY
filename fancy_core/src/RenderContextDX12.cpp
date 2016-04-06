@@ -296,7 +296,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (myIsInRecordState)
       return;
 
-    ASSERT_M(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
+    ASSERT(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
 
     myCommandAllocator = myCommandAllocatorPool.GetNewAllocator();
     ASSERT(myCommandAllocator != nullptr);
@@ -853,7 +853,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = myPipelineState.GetNativePSOdesc();
       HRESULT result = myRenderer.GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
-      ASSERT_M(result == S_OK, "Error creating graphics PSO");
+      ASSERT(result == S_OK, "Error creating graphics PSO");
 
       ourPSOcache[requestedHash] = pso;
     }

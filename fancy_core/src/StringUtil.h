@@ -19,7 +19,7 @@ namespace Fancy {
     }
 //---------------------------------------------------------------------------//
     template<class T>
-    static std::string toString(const T& _val)
+    static String toString(const T& _val)
     {
       std::stringstream ss;
       ss << _val;

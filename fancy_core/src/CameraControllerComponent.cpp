@@ -25,7 +25,7 @@
 ////---------------------------------------------------------------------------//
 //  void CameraControllerComponent::init()
 //  {
-//    ASSERT_M(m_pOwner->getComponent(_N(CameraComponent)) != nullptr, "The camera controller requires a camera");
+//    ASSERT(m_pOwner->getComponent(_N(CameraComponent)) != nullptr, "The camera controller requires a camera");
 //    m_pCamera = m_pOwner->getCameraComponentPtr();
 //  }
 ////---------------------------------------------------------------------------//

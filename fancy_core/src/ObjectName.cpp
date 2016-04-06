@@ -7,7 +7,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace internal 
   {
-    uint hashFromName(const String& szName) 
+    uint hashFromName(const std::string& szName) 
     {
       if (szName != "0x0") {
         return MathUtil::hashFromString(szName);
@@ -33,7 +33,7 @@ namespace Fancy {
 
   }
 //---------------------------------------------------------------------------//
-  ObjectName::ObjectName( const String& szString )
+  ObjectName::ObjectName( const std::string& szString )
   {
     m_uNameHash = internal::hashFromName(szString);
 
@@ -64,7 +64,7 @@ namespace Fancy {
 
   }
 //---------------------------------------------------------------------------//
-  String ObjectName::toString() const
+  std::string ObjectName::toString() const
   {
 #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
     return m_szName;
@@ -72,7 +72,7 @@ namespace Fancy {
     // TODO: Check if that compiles...
     char cbuf[17];
     printf(cbuf, "0x80%u", m_uNameHash);
-    return String(cbuf);
+    return std::string(cbuf);
 #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   }
 //---------------------------------------------------------------------------//
@@ -85,7 +85,7 @@ namespace Fancy {
 #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   }
 //---------------------------------------------------------------------------//
-  void ObjectName::operator=( const String& szOther )
+  void ObjectName::operator=( const std::string& szOther )
   {
     m_uNameHash = internal::hashFromName(szOther);
 
@@ -122,33 +122,33 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  String operator+(const String& szString, const ObjectName& name )
+  std::string operator+(const std::string& szString, const ObjectName& name )
   {
     return szString + name.toString();
   }
 //---------------------------------------------------------------------------//
-  String operator+( const ObjectName& name, const String& szString )
+  std::string operator+( const ObjectName& name, const std::string& szString )
   {
     return name.toString() + szString;
   }
 //---------------------------------------------------------------------------//
-  bool operator==(const String& szString, const ObjectName& name)
+  bool operator==(const std::string& szString, const ObjectName& name)
   {
     uint hash = internal::hashFromName(szString);
     return hash == name.getHash(); 
   }
 //---------------------------------------------------------------------------//
-  bool operator==( const ObjectName& name, const String& szString )
+  bool operator==( const ObjectName& name, const std::string& szString )
   {
     return szString == name; 
   }
 //---------------------------------------------------------------------------//
-  bool operator!=( const String& szString, const ObjectName& name )
+  bool operator!=( const std::string& szString, const ObjectName& name )
   {
     return !(szString == name);
   }
 //---------------------------------------------------------------------------//
-  bool operator!=( const ObjectName& name, const String& szString )
+  bool operator!=( const ObjectName& name, const std::string& szString )
   {
     return !(szString == name);
   }

@@ -1,10 +1,10 @@
 #pragma once
-#include "string.h"
+#include "FC_String.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
     // C-style logging (downside: no auto-conversion from std::string to const char*. Argument would need to be str.c_str() always...
-  void LogC(const char* aSeverity, const char* aFile, const int aLine, const char* aMessageFormat, ...)
+  inline void LogC(const char* aSeverity, const char* aFile, const int aLine, const char* aMessageFormat, ...)
   {
     va_list args;
     va_start(args, aMessageFormat);
@@ -33,13 +33,13 @@ namespace Fancy {
     std::cout << logBuffer;
   }
 //---------------------------------------------------------------------------//
-    //#define LOG_INFO(aFormat, ...)    LogC("Info", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
-    //#define LOG_WARNING(aFormat, ...) LogC("Warning", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
-    //#define LOG_ERROR(aFormat, ...)   LogC("Error", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
+   #define C_LOG_INFO(aFormat, ...)    LogC("Info", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
+   #define C_LOG_WARNING(aFormat, ...) LogC("Warning", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
+   #define C_LOG_ERROR(aFormat, ...)   LogC("Error", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  void Log(const char* aSeverity, const char* aFile, const int aLine, bool aBreak, const std::string& aMessage)
+  inline void Log(const char* aSeverity, const char* aFile, const int aLine, bool aBreak, const std::string& aMessage)
   {
     const std::string& logOutput = Fancy::StringFormat("%: % \n % (%) \n", aSeverity, aMessage, aFile, aLine);
     std::cout << logOutput;
@@ -53,7 +53,8 @@ namespace Fancy {
   #define LOG_WARNING(aFormat, ...) Log("Warning", __FILE__, __LINE__, false, StringFormat(aFormat, ##__VA_ARGS__))
   #define LOG_ERROR(aFormat, ...)   Log("Error", __FILE__, __LINE__, true, StringFormat(aFormat, ##__VA_ARGS__))
 //---------------------------------------------------------------------------//
-  #define ASSERT(aValue, ...) { if(!aValue) LOG_ERROR(##__VA_ARGS__); }
+  #define ASSERT(aValue, ...) { if(!(aValue)) LOG_ERROR("", ##__VA_ARGS__); }
+  #define STATIC_ASSERT( condition, message ) { static_assert(condition, message); }
 //---------------------------------------------------------------------------//
 }
   

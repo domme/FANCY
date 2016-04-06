@@ -21,7 +21,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case Fancy::Rendering::SamplerFilterMode::ANISOTROPIC:
         return GL_LINEAR_MIPMAP_LINEAR;
       default:
-        ASSERT_M(false, "Invalid filtering mode");
+        ASSERT(false, "Invalid filtering mode");
         break;
       }
 
@@ -45,7 +45,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case Fancy::Rendering::SamplerAddressMode::MIRROR_REPEAT:
         return GL_MIRRORED_REPEAT;
       default:
-        ASSERT_M(false, "Invalid address mode");
+        ASSERT(false, "Invalid address mode");
         break;
     }
 
@@ -89,13 +89,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     if (rProperties.minFiltering == SamplerFilterMode::ANISOTROPIC
       || rProperties.magFiltering == SamplerFilterMode::ANISOTROPIC)
     {
-      ASSERT_M(rProperties.fMaxAnisotropy > 1.0f, 
+      ASSERT(rProperties.fMaxAnisotropy > 1.0f, 
         "Anisotropic filtering requested but maxAnisotropy level is 0");
     }
 
     if (!useMipmaps)
     {
-      ASSERT_M(rProperties.minFiltering <= SamplerFilterMode::BILINEAR 
+      ASSERT(rProperties.minFiltering <= SamplerFilterMode::BILINEAR 
               && rProperties.magFiltering <= SamplerFilterMode::BILINEAR,
               "No mipmaps available but mipmap-filtering requested");
     }

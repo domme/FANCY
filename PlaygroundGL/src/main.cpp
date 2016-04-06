@@ -18,6 +18,7 @@
 #include <RenderingProcessForward.h>
 #include <ObjectName.h>
 #include <LightComponent.h>
+#include <Log.h>
 
 using namespace Fancy;
 
@@ -236,7 +237,7 @@ int main(void)
     ss << "   Renderer: " << (const char*) glGetString(GL_RENDERER) << std::endl;
     ss << "   Version: " << (const char*) glGetString(GL_VERSION) << std::endl;
     ss << "   GLSL Version: " << (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-    log_Info(ss.str());
+
   }
 
   startupEngine();

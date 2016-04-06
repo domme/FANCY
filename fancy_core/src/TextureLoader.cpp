@@ -3,6 +3,7 @@
 #include "PathService.h"
 
 #include "lodepng.h"
+#include "Log.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -18,13 +19,13 @@ namespace Fancy { namespace IO {
     state.decoder.color_convert = 0;  // Don't convert RGBA->RGB
     
     lodepng::load_file(vEncodedFileBytes, _szPathAbs);
-    ASSERT_M(vEncodedFileBytes.size() > 0u, "Error loading image file " + _szPathAbs);
+    ASSERT(vEncodedFileBytes.size() > 0u, "Error loading image file %", _szPathAbs);
 
     uint32 uErrorCode = lodepng::decode(_vOutBytes, uWidth, uHeight, state, vEncodedFileBytes);
     
     if (uErrorCode != 0u)
     {
-      log_Error("Failed decoding .png image " + _szPathAbs + ": " + lodepng_error_text(uErrorCode) );
+      LOG_ERROR("Failed decoding .png image % \n ErrorMessage: %", _szPathAbs, lodepng_error_text(uErrorCode) );
       return false;
     }
 
@@ -47,7 +48,7 @@ namespace Fancy { namespace IO {
       return Internal::loadPNG(_szPathAbs, _vOutBytes, _outTexLoadInfo);
     }
 
-    ASSERT_M(false, std::string("Missing implementation to load textures of filetype ") + szFileType);
+    ASSERT(false, "Missing implementation to load textures of filetype %", szFileType);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

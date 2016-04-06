@@ -105,7 +105,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     case 6: return GL_COLOR_ATTACHMENT6;
     case 7: return GL_COLOR_ATTACHMENT7;
     default:
-      ASSERT_M(false, "Color attachment index not supported");
+      ASSERT(false, "Color attachment index not supported");
       return GL_COLOR_ATTACHMENT8;
       break;
     }
@@ -138,7 +138,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case Fancy::Rendering::GpuResourceType::BUFFER_TEXTURE:
         return GL_TEXTURE_BUFFER;
       default:
-        ASSERT_M(false, "The provided glsl resource is no texture");
+        ASSERT(false, "The provided glsl resource is no texture");
     }
 
     return GL_TEXTURE_1D;
@@ -408,8 +408,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setRenderTarget( Texture* pRTTexture, const uint8 u8RenderTargetIndex )
   {
-    ASSERT_M(u8RenderTargetIndex < Rendering::Constants::kMaxNumRenderTargets, "RenderTarget-index not supported");
-    //ASSERT_M(pRTTexture->isDepthStencilTexture(), "Tried to set depthStencil-texture as color-rendertexture");
+    ASSERT(u8RenderTargetIndex < Rendering::Constants::kMaxNumRenderTargets, "RenderTarget-index not supported");
+    //ASSERT(pRTTexture->isDepthStencilTexture(), "Tried to set depthStencil-texture as color-rendertexture");
   
     if(getCachedRenderTarget(u8RenderTargetIndex) == pRTTexture) {
       return;
@@ -438,7 +438,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setReadTexture(const Texture* pTexture, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < Rendering::Constants::kMaxNumReadTextures, "Referenced an undefined texture unit");
+    ASSERT(u8Index < Rendering::Constants::kMaxNumReadTextures, "Referenced an undefined texture unit");
   
     if(m_pCachedReadTextures[u8Index] == pTexture) {
       return;
@@ -453,7 +453,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setWriteTexture(const Texture* pTexture, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < Rendering::Constants::kMaxNumWriteTextures, "Referenced an undefined image unit");
+    ASSERT(u8Index < Rendering::Constants::kMaxNumWriteTextures, "Referenced an undefined image unit");
 
     if(m_pCachedWriteTextures[u8Index] == pTexture) {
       return;
@@ -468,7 +468,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setReadBuffer(const GpuBuffer* pBuffer, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < Rendering::Constants::kMaxNumReadBuffers, "Referenced an undefined buffer register");
+    ASSERT(u8Index < Rendering::Constants::kMaxNumReadBuffers, "Referenced an undefined buffer register");
   
     if(m_pCachedReadBuffers[u8Index] == pBuffer) {
       return;
@@ -483,7 +483,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setConstantBuffer(const GpuBuffer* pConstantBuffer, const uint8 u8Index)
   {
-    ASSERT_M(u8Index < (uint32) ConstantBufferType::NUM, "Referenced an undefined constant buffer register");
+    ASSERT(u8Index < (uint32) ConstantBufferType::NUM, "Referenced an undefined constant buffer register");
   
     if(m_pCachedConstantBuffers[u8Index] == pConstantBuffer) {
       return;
@@ -498,7 +498,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //-----------------------------------------------------------------------//
   void RendererGL4::setTextureSampler(const TextureSampler* pSampler, const uint8 u8Index )
   {
-    ASSERT_M(u8Index < Rendering::Constants::kMaxNumTextureSamplers, "Referenced an undefined sampler register");
+    ASSERT(u8Index < Rendering::Constants::kMaxNumTextureSamplers, "Referenced an undefined sampler register");
   
     if(m_pCachedTextureSamplers[u8Index] == pSampler) {
       return;
@@ -707,7 +707,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   void RendererGL4::bindBlendState()
   {
-    ASSERT_M(m_uBlendStateRebindMask > 0, 
+    ASSERT(m_uBlendStateRebindMask > 0, 
       "pipelineRebindMask not in sync with blendStateRebindMask");
 
     uint32 uBlendStateRebindMask = m_uBlendStateRebindMask;
@@ -843,7 +843,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     uint32 uDepthStencilRebindMask = m_uDepthStencilRebindMask;
 
-    ASSERT_M(m_uDepthStencilRebindMask > 0, 
+    ASSERT(m_uDepthStencilRebindMask > 0, 
       "pipelineRebindMask not in sync with depthStencilRebindMask");
 
     if ((uDepthStencilRebindMask & (uint) DepthStencilRebindFlags::DEPTH_TEST) > 0 ) {
@@ -972,7 +972,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
     }
 
-    ASSERT_M(pFBOentry != nullptr, "No free FBO found in the pool. Increase its size?" );
+    ASSERT(pFBOentry != nullptr, "No free FBO found in the pool. Increase its size?" );
 
     pFBOentry->hash = hash;
     glGenFramebuffers(1, &pFBOentry->glHandle);
@@ -1022,7 +1022,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
     }
 
-    ASSERT_M(pCacheEntry != nullptr, "No free program pipeline object found in the pool");
+    ASSERT(pCacheEntry != nullptr, "No free program pipeline object found in the pool");
 
     uint32 uPipeline;
     glGenProgramPipelines(1, &uPipeline);
@@ -1068,7 +1068,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     // No suitable cached VAO found in the pool. Create one and establish the vertex stream
 
-    ASSERT_M(pCacheEntry != nullptr, "No free VAO found in the pool");
+    ASSERT(pCacheEntry != nullptr, "No free VAO found in the pool");
 
     // Create a mapping between the geometric vertices and the shader attributes
     struct MappingEntry 

@@ -18,8 +18,6 @@
 #include "RenderingProcess.h"
 #include "LightComponent.h"
 #include "TextureLoader.h"
-#include "string.h"
-#include "Log.h"
 
 namespace Fancy {
   Scene::ScenePtr m_pCurrScene = nullptr;
@@ -133,8 +131,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void Startup()
   {
-    ASSERT_M(m_pCurrScene, "No scene set");
-    ASSERT_M(m_pRenderingProcess, "No rendering process set");
+    ASSERT(m_pCurrScene, "No scene set");
+    ASSERT(m_pRenderingProcess, "No rendering process set");
 
     m_pRenderingProcess->startup();
     m_pCurrScene->startup();
@@ -142,8 +140,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void Update(double _dt)
   {
-    ASSERT_M(m_pCurrScene, "No scene set");
-    ASSERT_M(m_pRenderingProcess, "No rendering process set");
+    ASSERT(m_pCurrScene, "No scene set");
+    ASSERT(m_pRenderingProcess, "No rendering process set");
 
     Time::update(_dt);
     const float deltaTime = Time::getDeltaTime();

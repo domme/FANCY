@@ -22,7 +22,7 @@ public:
       return 0x0;
     }
 
-    std::hash<String> hasher;
+    std::hash<std::string> hasher;
     return hasher(szString);
   }
 //---------------------------------------------------------------------------//

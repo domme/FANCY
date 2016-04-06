@@ -49,11 +49,6 @@
   typedef std::shared_ptr<##class> ##class##Ptr; \
   typedef std::weak_ptr<##class> ##class##WeakPtr;
 //---------------------------------------------------------------------------//
-  #define STATIC_ASSERT( condition, message ) \
-  {								\
-    static_assert(condition, message); \
-  }
-//---------------------------------------------------------------------------//
 //DLL-Export MACROS
 #define DLLEXPORT __declspec(dllexport)
 
@@ -99,7 +94,8 @@ namespace Fancy {
     //using DynamicArray = std::vector<T>;
   }  // end of namespace Fancy
 //---------------------------------------------------------------------------//
-  
+  #include "FC_String.h"
+  #include "Log.h"
 //---------------------------------------------------------------------------//
 
 #endif  // INCLUDE_FANCYCOREPREREQUISITES_H

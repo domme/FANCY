@@ -26,11 +26,11 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void GeometryVertexLayout::addVertexElement( const GeometryVertexElement& clVertexElement )
   {
-    ASSERT_M(clVertexElement.u32SizeBytes > 0, "Invalid vertex element");
+    ASSERT(clVertexElement.u32SizeBytes > 0, "Invalid vertex element");
 
     // Adjacency-check. Currently we require all vertex elements to be specified in order to
     // avoid a sorting-step afterwards
-    ASSERT_M((m_vVertexElements.size() == 0 && clVertexElement.u32OffsetBytes == 0) ||
+    ASSERT((m_vVertexElements.size() == 0 && clVertexElement.u32OffsetBytes == 0) ||
               (m_vVertexElements.size() > 0 && m_vVertexElements.back().u32OffsetBytes
                 + m_vVertexElements.back().u32SizeBytes == clVertexElement.u32OffsetBytes), 
                 "Vertex-elements must be added in order");

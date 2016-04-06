@@ -149,7 +149,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case GL_UNSIGNED_INT_ATOMIC_COUNTER:                break;
     }
 
-    ASSERT_M(rFormat != DataFormat::NONE, "Missing GL implementation");
+    ASSERT(rFormat != DataFormat::NONE, "Missing GL implementation");
   }
 //---------------------------------------------------------------------------//
   void locGetResourceTypeAndAccessTypeFromGLtype(GLenum typeGL, GpuResourceType& rType, 
@@ -242,7 +242,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       */
     }
 
-    ASSERT_M(rType != GpuResourceType::NONE, "Missing GL implementation");
+    ASSERT(rType != GpuResourceType::NONE, "Missing GL implementation");
   }
 //---------------------------------------------------------------------------//
   uint32 locGetIteratorPosition(std::list<String>::const_iterator& _it, std::list<String>& _lineList)
@@ -524,12 +524,12 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       pos = logMsg.find(kLineSearchKey, pos);
     }
 
-    log_Info(logMsg);
+    LOG_INFO(logMsg);
   }
 //---------------------------------------------------------------------------//
   bool locCompileFromSource(const String& szSource, const ShaderStage& eShaderStage, GpuProgramCompilerOutputGL4& _rDesc, const ShaderSourceInfo* sourceInfo)
   {
-    ASSERT_M(!szSource.empty(), "Invalid shader source");
+    ASSERT(!szSource.empty(), "Invalid shader source");
 
     GLenum eShaderStageGL = Adapter::toGLType(eShaderStage);
 
@@ -547,7 +547,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       if (sourceInfo)
         locOutputCompilerLogMsg(logBuffer, *sourceInfo);
       else
-        log_Info(logBuffer);
+        LOG_INFO(logBuffer);
     }
 
     int iProgramLinkStatus = GL_FALSE;
@@ -645,7 +645,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       else
       {
         // Non-implemented case
-        ASSERT_M(false, "GpuResource type not supported yet");
+        ASSERT(false, "GpuResource type not supported yet");
       }
     }
   }
@@ -839,7 +839,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     if (!success)
     {
-      log_Error(String("GpuProgram ") + _rDesc.name.toString() + " failed to compile");
+      LOG_ERROR("GpuProgram % failed to compile", _rDesc.name.toString());
       ASSERT(false);
       glDeleteProgram(_rDesc.uProgramHandleGL);
     }
@@ -863,14 +863,14 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   bool GpuProgramCompilerGL4::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputGL4& aCompilerOutput)
   {
-    log_Info("Compiling shader " + aDesc.myShaderPath + " ...");
+    LOG_INFO("Compiling shader %...", aDesc.myShaderPath);
 
     std::list<String> sourceLines;
     IO::FileReader::ReadTextFileLines(aDesc.myShaderPath, sourceLines);
 
     if (sourceLines.empty())
     {
-      log_Error("Error reading shader file " + aDesc.myShaderPath);
+      LOG_ERROR("Error reading shader file %", aDesc.myShaderPath);
       return false;
     }
 

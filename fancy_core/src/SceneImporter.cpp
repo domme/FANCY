@@ -56,7 +56,7 @@ namespace Fancy { namespace IO {
     //---------------------------------------------------------------------------//
     void FancyLog::write(const char* message)
     {
-      LOG_INFO("SceneImporter: %", message);
+      C_LOG_INFO("SceneImporter: %s", message);
     }
 //---------------------------------------------------------------------------//
     glm::mat4 matFromAiMat( const aiMatrix4x4& mat )
@@ -620,7 +620,7 @@ namespace Fancy { namespace IO {
       // Ensure that we have only triangles
       for (uint i = 0u; i < aiMesh->mNumFaces; ++i)
       {
-        ASSERT_M(aiMesh->mFaces[i].mNumIndices == 3u, "Unsupported face type");
+        ASSERT(aiMesh->mFaces[i].mNumIndices == 3u, "Unsupported face type");
       }
 #endif  // FANCY_IMPORTER_USE_VALIDATION
 
@@ -931,7 +931,7 @@ namespace Fancy { namespace IO {
 
     if (!pTexture->isValid())
     {
-      log_Error("Failed to upload pixel data of texture " + szTexPath);
+      LOG_ERROR("Failed to upload pixel data of texture %", szTexPath);
       FANCY_DELETE(pTexture, MemoryCategory::TEXTURES);
       pTexture = nullptr;
     }

@@ -55,7 +55,7 @@ namespace Fancy { namespace IO {
         break;
       }
 
-      ObjectName typeName = currJsonVal["Type"].asString();
+      ObjectName typeName = ObjectName(currJsonVal["Type"].asString());
       uint64 instanceHash = currJsonVal["Hash"].asUInt64();
 
       bool wasCreated = false;
@@ -212,7 +212,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   void JSONreader::endName()
   {
-    ASSERT_M(!myTypeStack.empty(), "Mismatching number of beginType() / endType() calls");
+    ASSERT(!myTypeStack.empty(), "Mismatching number of beginType() / endType() calls");
 
     Json::Value& val = *myTypeStack.top();
     if (val.isArray())

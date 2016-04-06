@@ -21,7 +21,7 @@ namespace Fancy { namespace Rendering {
         if (i == k) continue;
 
         const ShaderVertexInputElement& otherElement = vInputElements[k];
-        ASSERT_M(element.myRegisterIndex != otherElement.myRegisterIndex,
+        ASSERT(element.myRegisterIndex != otherElement.myRegisterIndex,
           "Invalid vertex layout");
       }
     }

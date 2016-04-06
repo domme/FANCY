@@ -48,7 +48,7 @@ namespace Fancy {
 				{
 					case FillMode::WIREFRAME: return D3D12_FILL_MODE_WIREFRAME;
 					case FillMode::SOLID:     return D3D12_FILL_MODE_SOLID;
-					default: ASSERT_M(false, "Missing native values"); return D3D12_FILL_MODE_SOLID;
+					default: ASSERT(false, "Missing native values"); return D3D12_FILL_MODE_SOLID;
 				}
 			}
 		//---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ namespace Fancy {
 					case CullMode::NONE:  return D3D12_CULL_MODE_NONE; 
 					case CullMode::FRONT: return D3D12_CULL_MODE_FRONT;
 					case CullMode::BACK:  return D3D12_CULL_MODE_BACK;
-					default: ASSERT_M(false, "Missing native values"); return D3D12_CULL_MODE_NONE;
+					default: ASSERT(false, "Missing native values"); return D3D12_CULL_MODE_NONE;
 				}
 			}
 		//---------------------------------------------------------------------------//
@@ -67,7 +67,7 @@ namespace Fancy {
 				switch (generalType) {
 				case WindingOrder::CCW: return GL_CCW;
 				case WindingOrder::CW:  return GL_CW;
-				default: ASSERT_M(false, "Missing GL values"); return GL_CCW;
+				default: ASSERT(false, "Missing GL values"); return GL_CCW;
 				}
 			}*/
 		//---------------------------------------------------------------------------//
@@ -95,7 +95,7 @@ namespace Fancy {
 					case BlendInput::INV_SRC1_COLOR:      return D3D12_BLEND_INV_SRC1_COLOR;
 					case BlendInput::SRC1_ALPHA:          return D3D12_BLEND_SRC1_ALPHA;
 					case BlendInput::INV_SRC1_ALPHA:      return D3D12_BLEND_INV_SRC1_ALPHA;
-					default: ASSERT_M(false, "Missing native values"); return D3D12_BLEND_ZERO;
+					default: ASSERT(false, "Missing native values"); return D3D12_BLEND_ZERO;
 				}
 			}
 		//---------------------------------------------------------------------------//
@@ -107,7 +107,7 @@ namespace Fancy {
 					case BlendOp::REV_SUBTRACT:   return D3D12_BLEND_OP_REV_SUBTRACT;
 					case BlendOp::MIN:            return D3D12_BLEND_OP_MIN;
 					case BlendOp::MAX:            return D3D12_BLEND_OP_MAX;
-					default: ASSERT_M(false, "Missing implementation"); return D3D12_BLEND_OP_ADD;
+					default: ASSERT(false, "Missing implementation"); return D3D12_BLEND_OP_ADD;
 				}
 			}
 		//---------------------------------------------------------------------------//
@@ -120,7 +120,7 @@ namespace Fancy {
 				case ShaderStage::TESS_DOMAIN:  return GL_TESS_EVALUATION_SHADER;
 				case ShaderStage::TESS_HULL:    return GL_TESS_CONTROL_SHADER;
 				case ShaderStage::COMPUTE:      return GL_COMPUTE_SHADER;
-				default: ASSERT_M(false, "Missing GL values"); return GL_VERTEX_SHADER;
+				default: ASSERT(false, "Missing GL values"); return GL_VERTEX_SHADER;
 				}
 			}*/
 		//---------------------------------------------------------------------------//
@@ -133,7 +133,7 @@ namespace Fancy {
 				case ShaderStageFlag::TESS_HULL:    return GL_TESS_CONTROL_SHADER_BIT;
 				case ShaderStageFlag::COMPUTE:      return GL_COMPUTE_SHADER_BIT;
 				case ShaderStageFlag::ALL:          return GL_ALL_SHADER_BITS;
-				default: ASSERT_M(false, "Missing GL values"); return GL_ALL_SHADER_BITS;
+				default: ASSERT(false, "Missing GL values"); return GL_ALL_SHADER_BITS;
 				}
 			}*/
 		//---------------------------------------------------------------------------//
@@ -169,7 +169,7 @@ namespace Fancy {
 					case DataFormat::R_8UI:          return DXGI_FORMAT_R8_UINT;
 					case DataFormat::DS_24_8:        return DXGI_FORMAT_D24_UNORM_S8_UINT;
           case DataFormat::UNKNOWN:        return DXGI_FORMAT_UNKNOWN;
-					default: ASSERT_M(false, "Missing implementation"); return DXGI_FORMAT_R8G8B8A8_UNORM;
+					default: ASSERT(false, "Missing implementation"); return DXGI_FORMAT_R8G8B8A8_UNORM;
 				}
 			}
 		//---------------------------------------------------------------------------//
@@ -201,7 +201,7 @@ namespace Fancy {
 				case DataFormat::RGB_8UI:   ruComponents = 3; reTypeGL = GL_UNSIGNED_BYTE; break;
 				case DataFormat::RG_8UI:    ruComponents = 2; reTypeGL = GL_UNSIGNED_BYTE; break;
 				case DataFormat::R_8UI:     ruComponents = 1; reTypeGL = GL_UNSIGNED_BYTE; break;
-				default: ASSERT_M(false, "Format cannot be converted to a GL-type");
+				default: ASSERT(false, "Format cannot be converted to a GL-type");
 				}
 			}
 		*/	//---------------------------------------------------------------------------//

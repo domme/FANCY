@@ -220,8 +220,8 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   void JSONwriter::endName()
   {
-    ASSERT_M(!myTypeStack.empty(), "Mismatching number of beginType() / endType() calls");
-    ASSERT_M(!myNameStack.empty(), "Mismatching number of beginType() / endType() calls");
+    ASSERT(!myTypeStack.empty(), "Mismatching number of beginType() / endType() calls");
+    ASSERT(!myNameStack.empty(), "Mismatching number of beginType() / endType() calls");
 
     myCurrentEndType = myTypeStack.top();
     myTypeStack.pop();

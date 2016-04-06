@@ -58,7 +58,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
         eBindingQueryGL = GL_SHADER_STORAGE_BUFFER_BINDING;
         break;
       default:
-        ASSERT_M(false, "Missing GL implementation");
+        ASSERT(false, "Missing GL implementation");
         break;
     }
 
@@ -111,7 +111,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     case GpuResoruceLockOption::READ_WRITE_PERSISTENT_COHERENT:
       return GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
 
-    default: ASSERT_M(false, "Missing GL implementation");
+    default: ASSERT(false, "Missing GL implementation");
       return GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
     }
   }
@@ -151,7 +151,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       return;
     }
 
-    ASSERT_M( isLockedPersistent() || !isLocked(), "Trying to destroy a locked buffer");
+    ASSERT( isLockedPersistent() || !isLocked(), "Trying to destroy a locked buffer");
 
     // Persistent buffers stay locked and have to be unlocked here
     if (isLockedPersistent())
@@ -176,7 +176,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
   {
     destroy();
 
-    ASSERT_M(clParameters.uElementSizeBytes > 0 && clParameters.uNumElements > 0,
+    ASSERT(clParameters.uElementSizeBytes > 0 && clParameters.uNumElements > 0,
        "Invalid buffer size specified");
 
     GpuBufferCreationParams* pBaseParams = &m_clParameters;
@@ -219,13 +219,13 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     if((uAccessFlagsGL & GL_MAP_PERSISTENT_BIT) > 0 
       && ((uAccessFlagsGL & GL_MAP_WRITE_BIT) == 0 && (uAccessFlagsGL & GL_MAP_READ_BIT) == 0))
     {
-      ASSERT_M(false, "A persistent buffer without CPU-access doesn't make sense");
+      ASSERT(false, "A persistent buffer without CPU-access doesn't make sense");
     }
 
     /*if ((uAccessFlagsGL & GL_MAP_COHERENT_BIT) > 0 &&
         (uAccessFlagsGL & GL_MAP_PERSISTENT_BIT) == 0) 
     {
-      ASSERT_M(false, "Coherent buffers also need to be persistent");
+      ASSERT(false, "Coherent buffers also need to be persistent");
     } */
 
     // Derive the appropriate multibuffering settings
@@ -306,8 +306,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
   void GpuBufferGL4::setBufferData( void* pData, uint uOffsetElements /*= 0*/, uint uNumElements /*= 0*/ )
   {
-    ASSERT_M(pData != nullptr, "Invalid buffer data");
-    ASSERT_M((m_clParameters.uAccessFlagsGL & GL_DYNAMIC_STORAGE_BIT) > 0, "Buffer storage is immuatable");
+    ASSERT(pData != nullptr, "Invalid buffer data");
+    ASSERT((m_clParameters.uAccessFlagsGL & GL_DYNAMIC_STORAGE_BIT) > 0, "Buffer storage is immuatable");
 
     GLint origBoundBuffer;
     const GLenum targetGL = m_clParameters.eInitialBufferTargetGL;
@@ -365,9 +365,9 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       }
     }
     
-    ASSERT_M(isValid(), "Tried to lock an uninitialized buffer");
-    ASSERT_M(!isLocked(), "Buffer is already locked");
-    ASSERT_M(uOffsetElements < m_clParameters.uNumElements, "Invalid lock-range provided");
+    ASSERT(isValid(), "Tried to lock an uninitialized buffer");
+    ASSERT(!isLocked(), "Buffer is already locked");
+    ASSERT(uOffsetElements < m_clParameters.uNumElements, "Invalid lock-range provided");
 
     const uint offsetBytes = uOffsetElements * m_clParameters.uElementSizeBytes;
     const uint rangeBytes = uNumElements * m_clParameters.uElementSizeBytes;
@@ -381,7 +381,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
 
     glBindBuffer(m_clParameters.eInitialBufferTargetGL, origBoundBuffer);
 
-    ASSERT_M(m_pCachedLockPtr, "Buffer-lock failed");
+    ASSERT(m_pCachedLockPtr, "Buffer-lock failed");
     m_clStateInfos.isLocked = true;
     if ((uLockOptionsGL & GL_MAP_PERSISTENT_BIT) > 0u)
     {
@@ -406,7 +406,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       return;
     }
 
-    ASSERT_M(isLocked(), "Tried to unlock and unlocked buffer");
+    ASSERT(isLocked(), "Tried to unlock and unlocked buffer");
     _unlock(getBufferIndex());
 
     m_clStateInfos.isLocked = false;

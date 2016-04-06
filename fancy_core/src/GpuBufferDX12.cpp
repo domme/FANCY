@@ -39,7 +39,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     RendererDX12* renderer = Fancy::GetRenderer();
 
-    ASSERT_M(someParameters.uElementSizeBytes > 0 && someParameters.uNumElements > 0,
+    ASSERT(someParameters.uElementSizeBytes > 0 && someParameters.uNumElements > 0,
       "Invalid buffer size specified");
 
     GpuBufferCreationParams* pBaseParams = &myParameters;
@@ -184,7 +184,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       else if (myParameters.uElementSizeBytes == 4u)
         myIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
       else
-        ASSERT_M(false, "Unsupported Index buffer stride");
+        ASSERT(false, "Unsupported Index buffer stride");
 
       myIndexBufferView.BufferLocation = GetGpuVirtualAddress();
       myIndexBufferView.SizeInBytes = myParameters.uNumElements * myParameters.uElementSizeBytes;

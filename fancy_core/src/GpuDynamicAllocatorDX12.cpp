@@ -36,7 +36,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   GpuDynamicAllocatorDX12::~GpuDynamicAllocatorDX12()
   {
     // If there are still pages in this list, we destroyed the allocator too early...
-    ASSERT_M(myFullyUsedPages.empty(), "There are still pages in use by a command list. The allocator has to be destroyed only after the last frame is finished");
+    ASSERT(myFullyUsedPages.empty(), "There are still pages in use by a command list. The allocator has to be destroyed only after the last frame is finished");
 
     delete myCurrPage;
 

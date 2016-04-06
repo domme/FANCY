@@ -18,7 +18,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case GpuResourceType::BUFFER_TEXTURE: return GL_TEXTURE_BUFFER;
       case GpuResourceType::BUFFER: return GL_SHADER_STORAGE_BUFFER;
       default:
-        ASSERT_M(false, "Resource type has no binding target");
+        ASSERT(false, "Resource type has no binding target");
         return GL_TEXTURE_2D;
         break;
       }
@@ -36,7 +36,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case CompFunc::NOTEQUAL:  return GL_NOTEQUAL;
       case CompFunc::GEQUAL:    return GL_GEQUAL;
       case CompFunc::ALWAYS:    return GL_ALWAYS;
-      default: ASSERT_M(false, "Missing GL values"); return GL_LESS;
+      default: ASSERT(false, "Missing GL values"); return GL_LESS;
       }
     }
     //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case StencilOp::INVERT:           return GL_INVERT;
       case StencilOp::INCEMENT_WRAP:    return GL_INCR_WRAP;
       case StencilOp::DECREMENT_WRAP:   return GL_DECR_WRAP;
-      default: ASSERT_M(false, "Missing GL values"); return GL_KEEP;
+      default: ASSERT(false, "Missing GL values"); return GL_KEEP;
       }
     }
     //---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       switch (generalType) {
       case FillMode::WIREFRAME: return GL_LINE;
       case FillMode::SOLID:     return GL_FILL;
-      default: ASSERT_M(false, "Missing GL values"); return GL_FILL;
+      default: ASSERT(false, "Missing GL values"); return GL_FILL;
       }
     }
     //---------------------------------------------------------------------------//
@@ -67,7 +67,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case CullMode::NONE:  return GL_NONE; // Special type. Requires call to glDisable(CULLING)
       case CullMode::FRONT: return GL_FRONT;
       case CullMode::BACK:  return GL_BACK;
-      default: ASSERT_M(false, "Missing GL values"); return GL_BACK;
+      default: ASSERT(false, "Missing GL values"); return GL_BACK;
       }
     }
     //---------------------------------------------------------------------------//
@@ -75,7 +75,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       switch (generalType) {
       case WindingOrder::CCW: return GL_CCW;
       case WindingOrder::CW:  return GL_CW;
-      default: ASSERT_M(false, "Missing GL values"); return GL_CCW;
+      default: ASSERT(false, "Missing GL values"); return GL_CCW;
       }
     }
     //---------------------------------------------------------------------------//
@@ -92,8 +92,8 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case BlendInput::DEST_COLOR:          return GL_DST_COLOR;
       case BlendInput::INV_DEST_COLOR:      return GL_ONE_MINUS_DST_COLOR;
       case BlendInput::SRC_ALPHA_CLAMPED:   return GL_SRC_ALPHA;
-      case BlendInput::BLEND_FACTOR:        ASSERT_M(false, "BLEND_FACTOR not supported by OpenGL"); return GL_ONE;
-      case BlendInput::INV_BLEND_FACTOR:    ASSERT_M(false, "INV_BLEND_FACTOR not supported by OpenGL"); return GL_ZERO;
+      case BlendInput::BLEND_FACTOR:        ASSERT(false, "BLEND_FACTOR not supported by OpenGL"); return GL_ONE;
+      case BlendInput::INV_BLEND_FACTOR:    ASSERT(false, "INV_BLEND_FACTOR not supported by OpenGL"); return GL_ZERO;
       case BlendInput::SRC1_COLOR:          return GL_SRC1_COLOR;
       case BlendInput::INV_SRC1_COLOR:      return GL_ONE_MINUS_SRC1_COLOR;
       case BlendInput::SRC1_ALPHA:          return GL_SRC1_ALPHA;
@@ -102,7 +102,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case BlendInput::INV_CONSTANT_COLOR:  return GL_ONE_MINUS_CONSTANT_COLOR;
       case BlendInput::CONSTANT_ALPHA:      return GL_CONSTANT_ALPHA;
       case BlendInput::INV_CONSTANT_ALPHA:  return GL_ONE_MINUS_CONSTANT_ALPHA;
-      default: ASSERT_M(false, "Missing GL values"); return GL_ONE;
+      default: ASSERT(false, "Missing GL values"); return GL_ONE;
       }
     }
     //---------------------------------------------------------------------------//
@@ -113,7 +113,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case BlendOp::REV_SUBTRACT:   return GL_FUNC_REVERSE_SUBTRACT;
       case BlendOp::MIN:            return GL_MIN;
       case BlendOp::MAX:            return GL_MAX;
-      default: ASSERT_M(false, "Missing GL values"); return GL_FUNC_ADD;
+      default: ASSERT(false, "Missing GL values"); return GL_FUNC_ADD;
       }
     }
     //---------------------------------------------------------------------------//
@@ -125,7 +125,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case ShaderStage::TESS_DOMAIN:  return GL_TESS_EVALUATION_SHADER;
       case ShaderStage::TESS_HULL:    return GL_TESS_CONTROL_SHADER;
       case ShaderStage::COMPUTE:      return GL_COMPUTE_SHADER;
-      default: ASSERT_M(false, "Missing GL values"); return GL_VERTEX_SHADER;
+      default: ASSERT(false, "Missing GL values"); return GL_VERTEX_SHADER;
       }
     }
     //---------------------------------------------------------------------------//
@@ -138,7 +138,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case ShaderStageFlag::TESS_HULL:    return GL_TESS_CONTROL_SHADER_BIT;
       case ShaderStageFlag::COMPUTE:      return GL_COMPUTE_SHADER_BIT;
       case ShaderStageFlag::ALL:          return GL_ALL_SHADER_BITS;
-      default: ASSERT_M(false, "Missing GL values"); return GL_ALL_SHADER_BITS;
+      default: ASSERT(false, "Missing GL values"); return GL_ALL_SHADER_BITS;
       }
     }
   //---------------------------------------------------------------------------//
@@ -173,7 +173,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case DataFormat::RG_8UI:         return GL_RG8UI;
       case DataFormat::R_8UI:          return GL_R8UI;
       case DataFormat::DS_24_8:        return GL_DEPTH24_STENCIL8;
-      default: ASSERT_M(false, "Missing GL values"); return GL_RGBA8;
+      default: ASSERT(false, "Missing GL values"); return GL_RGBA8;
       }
     }
     //---------------------------------------------------------------------------//
@@ -210,7 +210,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case GL_RG8UI:          eFormat = GL_RG;    ePixelType = GL_UNSIGNED_BYTE;  break;
       case GL_R8UI:           eFormat = GL_RED;   ePixelType = GL_UNSIGNED_BYTE;  break;
       case GL_DEPTH24_STENCIL8: eFormat = GL_DEPTH_STENCIL; ePixelType = GL_UNSIGNED_INT_24_8; break;
-      default: ASSERT_M(false, "Missing GL values"); break;
+      default: ASSERT(false, "Missing GL values"); break;
       }
 
       // Check if a depth-surface is requested without the usual DS_24_8 format
@@ -222,7 +222,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
         switch (eInternalFormat) {
         case GL_R16F: newInternalFormat = GL_DEPTH_COMPONENT16;  break;
         case GL_R32F: newInternalFormat = GL_DEPTH_COMPONENT32F; break;
-        default: ASSERT_M(false, "Invalid depth format requested"); break;
+        default: ASSERT(false, "Invalid depth format requested"); break;
         }
 
         eInternalFormat = newInternalFormat;
@@ -257,7 +257,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
       case DataFormat::RGB_8UI:   ruComponents = 3; reTypeGL = GL_UNSIGNED_BYTE; break;
       case DataFormat::RG_8UI:    ruComponents = 2; reTypeGL = GL_UNSIGNED_BYTE; break;
       case DataFormat::R_8UI:     ruComponents = 1; reTypeGL = GL_UNSIGNED_BYTE; break;
-      default: ASSERT_M(false, "Format cannot be converted to a GL-type");
+      default: ASSERT(false, "Format cannot be converted to a GL-type");
       }
     }
     //---------------------------------------------------------------------------//

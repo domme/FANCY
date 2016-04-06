@@ -10,41 +10,40 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     public:
       ObjectName();
-      ObjectName(const String& szString);
+      ObjectName(const std::string& szString);
       ObjectName(const char* aString);
       ObjectName(uint32 aHash);
       ~ObjectName();
       static const ObjectName blank;
     //---------------------------------------------------------------------------//
-      String toString() const;
+      std::string toString() const;
       uint getHash() const {return m_uNameHash;}
     //---------------------------------------------------------------------------//
       void operator=(const ObjectName& clOther);
-      void operator=(const String& szOther);
+      void operator=(const std::string& szOther);
       void operator=(const char* aString);
       bool operator==(const ObjectName& clOther) const;
       bool operator!=(const ObjectName& clOther) const;
       bool operator<(const ObjectName& clOther) const;
       /// Implicit conversion operator to size_t:
       operator size_t() const {return getHash();}
-      /// Implicit conversion operator to string:
-      operator String() const {return toString();}
+      operator std::string() const { return toString(); }
     //---------------------------------------------------------------------------//
     private:
 #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)
-      String m_szName;
+      std::string m_szName;
 #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
       uint   m_uNameHash;
   };
 //---------------------------------------------------------------------------//
-  String operator+(const String& szString, const ObjectName& name);
-  String operator+(const ObjectName& name, const String& szString);
+  std::string operator+(const std::string& szString, const ObjectName& name);
+  std::string operator+(const ObjectName& name, const std::string& szString);
 //---------------------------------------------------------------------------//
-  bool operator==(const String& szOther, const ObjectName& name);
-  bool operator==(const ObjectName& name, const String& szOther);
+  bool operator==(const std::string& szOther, const ObjectName& name);
+  bool operator==(const ObjectName& name, const std::string& szOther);
 //---------------------------------------------------------------------------//
-  bool operator!=(const String& szString, const ObjectName& name);
-  bool operator!=(const ObjectName& name, const String& szString);
+  bool operator!=(const std::string& szString, const ObjectName& name);
+  bool operator!=(const ObjectName& name, const std::string& szString);
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//

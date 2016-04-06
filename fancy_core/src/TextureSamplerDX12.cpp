@@ -84,7 +84,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         break;
     }
 
-    ASSERT_M(false, "Missing conversion");
+    ASSERT(false, "Missing conversion");
     return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
   }
 //---------------------------------------------------------------------------//

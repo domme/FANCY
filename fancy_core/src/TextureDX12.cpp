@@ -257,8 +257,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     const bool wantsGpuWriteAccess = someParameters.myIsShaderWritable;
 
-    ASSERT_M(someParameters.u16Width > 0u, "Invalid texture dimension specified");
-    ASSERT_M (someParameters.u16Depth == 0u || someParameters.u16Height > 0u, "3D-textures also need a height. Please specify width and height for a 2D texture");
+    ASSERT(someParameters.u16Width > 0u, "Invalid texture dimension specified");
+    ASSERT(someParameters.u16Depth == 0u || someParameters.u16Height > 0u, "3D-textures also need a height. Please specify width and height for a 2D texture");
     
     D3D12_RESOURCE_DIMENSION dimension = D3D12_RESOURCE_DIMENSION_TEXTURE1D;
     if (someParameters.u16Height > 0u && someParameters.u16Depth == 0u)
@@ -568,7 +568,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void TextureDX12::setPixelData(void* pData, uint uDataSizeBytes, glm::u32vec3 rectPosOffset, glm::u32vec3 rectDimensions)
   {
-    ASSERT_M(false, "Not implemented");
+    ASSERT(false, "Not implemented");
   }
 //---------------------------------------------------------------------------//
   void* TextureDX12::lock(GpuResoruceLockOption option)

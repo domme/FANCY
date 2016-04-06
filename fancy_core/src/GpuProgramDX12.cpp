@@ -54,7 +54,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       || strcmp(aShaderString, "BINORMAL") == 0u)
       return VertexSemantics::BITANGENT;
 
-    ASSERT_M(false, "Unknown vertex semantics");
+    ASSERT(false, "Unknown vertex semantics");
     return VertexSemantics::NONE;
   }
 //---------------------------------------------------------------------------//

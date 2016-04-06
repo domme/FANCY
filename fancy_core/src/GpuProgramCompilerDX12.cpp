@@ -13,6 +13,7 @@
 #include "GpuProgramCompilerDX12.h"
 #include "RendererDX12.h"
 #include "Renderer.h"
+#include "Log.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -25,7 +26,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       case ShaderStage::GEOMETRY: return "gs_5_1";
       case ShaderStage::COMPUTE: return "cs_5_1";
       default: 
-        ASSERT_M(false, "Unsupported HLSL shader-profile");
+        ASSERT(false, "Unsupported HLSL shader-profile");
         return "";
         break;
     }
@@ -233,7 +234,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       break;
     }
 
-    ASSERT_M(false, "Component type not implemented");
+    ASSERT(false, "Component type not implemented");
     return DataFormat::NONE;
   }
 //---------------------------------------------------------------------------//
@@ -253,7 +254,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       break;
     }
 
-    ASSERT_M(false, "Component type not implemented");
+    ASSERT(false, "Component type not implemented");
     return 0u;
   }
 //---------------------------------------------------------------------------//
@@ -264,7 +265,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     else if (aParamDesc.Mask <= 7) return 3u;
     else if (aParamDesc.Mask <= 15) return 4u;
 
-    ASSERT_M(false, "Unknown param-mask");
+    ASSERT(false, "Unknown param-mask");
     return 0u;
   }
 //---------------------------------------------------------------------------//
@@ -388,7 +389,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
     else
     {
-      ASSERT_M(false, "Unexpected HLSL format");
+      ASSERT(false, "Unexpected HLSL format");
     }
 
     aSizeBytesOut = sizeBytes;
@@ -495,7 +496,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputDX12* aProgram)
   {
-    log_Info("Compiling shader " + aDesc.myShaderPath + " ...");
+    LOG_INFO("Compiling shader %...", aDesc.myShaderPath);
 
     const String& shaderStageDefineStr = GpuProgramCompilerUtils::ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
     const String& shaderProfileStr = locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage));
@@ -541,11 +542,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       if (errorData != nullptr)
       {
         const char* errorMsg = (const char*)errorData->GetBufferPointer();
-        log_Error(errorMsg);
+        LOG_ERROR(errorMsg);
         errorData.ReleaseAndGetAddressOf();
       }
 
-      ASSERT(false);
       return false;
     }
 
@@ -555,7 +555,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     if (S_OK != sucess)
     {
-      log_Error("Failed extracting the root signature from shader");
+      LOG_ERROR("Failed extracting the root signature from shader");
       return false;
     }
     
@@ -566,7 +566,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     if (S_OK != sucess)
     {
-      log_Error("Failed creating the root signature from shader");
+      LOG_ERROR("Failed creating the root signature from shader");
       return false;
     }
 
@@ -575,7 +575,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     if (S_OK != sucess)
     {
-      log_Error("Failed creating a rootSignature deserializer");
+      LOG_ERROR("Failed creating a rootSignature deserializer");
       return false;
     }
 
@@ -596,7 +596,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     if (S_OK != sucess)
     {
-      log_Error("Failed reflecting shader");
+      LOG_ERROR("Failed reflecting shader");
       return false;
     }
 
@@ -605,7 +605,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     if (!locReflectConstants(reflector, shaderDesc, aProgram))
     {
-      log_Error("Failed reflecting constants");
+      LOG_ERROR("Failed reflecting constants");
       return false;
     }
 
@@ -613,7 +613,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       if (!locReflectVertexInputLayout(reflector, shaderDesc, aProgram))
       {
-        log_Error("Failed reflecting vertex input layout");
+        LOG_ERROR("Failed reflecting vertex input layout");
         return false;
       }
     }

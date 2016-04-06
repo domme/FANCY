@@ -17,7 +17,7 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
 
     // If necessary, destroy CPU-resource
     if(m_clStateInfo.cachesTextureData) {
-      ASSERT_M(m_clParameters.pPixelData, "Invalid pixel data");
+      ASSERT(m_clParameters.pPixelData, "Invalid pixel data");
       FANCY_FREE(m_clParameters.pPixelData, MemoryCategory::TEXTURES);
     }
 
@@ -91,7 +91,7 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
     GLenum eTexBindingQuery = 0u;
     GLuint uNumDimensions = 0u;
 
-    ASSERT_M(clDeclaration.u16Width > 0u, "Invalid texture dimensions");
+    ASSERT(clDeclaration.u16Width > 0u, "Invalid texture dimensions");
     if (clDeclaration.u16Height == 0u && clDeclaration.u16Depth == 0u )
     {
       eTextureType = GL_TEXTURE_1D;
@@ -111,7 +111,7 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
       uNumDimensions = 3u;
     }
     
-    ASSERT_M (uNumDimensions > 0u, "Invalid texture dimensions");
+    ASSERT (uNumDimensions > 0u, "Invalid texture dimensions");
     m_clParameters.eTextureTypeGL = eTextureType;
     m_clParameters.eTexBindQueryGL = eTexBindingQuery;
 
@@ -178,8 +178,8 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
   void TextureGL4::setPixelData( void* pData, uint uDataSizeBytes, 
     glm::u32vec3 rectPosOffset /* = glm::ivec3(0,0,0) */, glm::u32vec3 rectDimensions /*= glm::ivec3(0,0,0) */ )
   {
-    ASSERT_M(pData && uDataSizeBytes > 0, "Invalid texture data specified");
-    ASSERT_M(isValid(), "OpenGL-texture is not valid");
+    ASSERT(pData && uDataSizeBytes > 0, "Invalid texture data specified");
+    ASSERT(isValid(), "OpenGL-texture is not valid");
 
     const uint32 uNumDimensions = m_clStateInfo.numDimensions;
     const bool bUsesTextureCache = m_clStateInfo.cachesTextureData;
@@ -187,8 +187,8 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
 
     // Free and recreate the texture cache
     if (bUsesTextureCache && pData != m_clParameters.pPixelData) {
-      ASSERT_M( !bSetSubregion, "Sub-memcpys in subregions of cached pixeldata not implemented yet" );
-      ASSERT_M(m_clParameters.uPixelDataSizeBytes == uDataSizeBytes, "Data size does not match");
+      ASSERT( !bSetSubregion, "Sub-memcpys in subregions of cached pixeldata not implemented yet" );
+      ASSERT(m_clParameters.uPixelDataSizeBytes == uDataSizeBytes, "Data size does not match");
       memcpy(m_clParameters.pPixelData, pData, uDataSizeBytes);
     }
 
@@ -245,13 +245,13 @@ namespace Fancy { namespace Rendering {  namespace GL4 {
 //---------------------------------------------------------------------------//
   void* TextureGL4::lock( GpuResoruceLockOption option /*= GpuResoruceMapOption::WRITE_DISCARD*/ )
   {
-    ASSERT_M(false, "lock/unlock not supported on OpenGL textures");
+    ASSERT(false, "lock/unlock not supported on OpenGL textures");
     return nullptr;
   }
 //---------------------------------------------------------------------------//
   void TextureGL4::unlock()
   {
-    ASSERT_M(false, "lock/unlock not supported on OpenGL textures");
+    ASSERT(false, "lock/unlock not supported on OpenGL textures");
   }
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Rendering::GL4

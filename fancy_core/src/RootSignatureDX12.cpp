@@ -44,10 +44,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       ComPtr<ID3DBlob> error;
       ComPtr<ID3D12RootSignature> rootSignature;
       HRESULT success = D3D12SerializeRootSignature(&anRSdesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-      ASSERT_M(success == S_OK, "Failed serializing RootSignature");
+      ASSERT(success == S_OK, "Failed serializing RootSignature");
 
       success = aDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
-      ASSERT_M(success == S_OK, "Failed creating RootSignature");
+      ASSERT(success == S_OK, "Failed creating RootSignature");
 
       rs->myRootSignature = rootSignature;
     }

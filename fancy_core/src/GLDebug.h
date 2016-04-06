@@ -23,37 +23,37 @@ public:
 		{
 			case GL_INVALID_ENUM:
 				{
-					log_Info( "GL-ERROR: INVALID ENUM" );
+					LOG_INFO( "GL-ERROR: INVALID ENUM" );
 				}break;
 
 			case GL_INVALID_VALUE:
 				{
-					log_Info( "GL-ERROR: INVALID VALUE" );
+          LOG_INFO( "GL-ERROR: INVALID VALUE" );
 				}break;
 
 			case GL_INVALID_OPERATION:
 				{
-					log_Info( "GL-ERROR: INVALID OPERATION" );
+          LOG_INFO( "GL-ERROR: INVALID OPERATION" );
 				}break;
 
 			case GL_STACK_OVERFLOW:
 				{
-					log_Info( "GL-ERROR: STACK OVERFLOW" );
+          LOG_INFO( "GL-ERROR: STACK OVERFLOW" );
 				}break;
 
 			case GL_STACK_UNDERFLOW:
 				{
-					log_Info( "GL-ERROR: STACK UNDERFLOW" );
+          LOG_INFO( "GL-ERROR: STACK UNDERFLOW" );
 				}break;
 
 			case GL_OUT_OF_MEMORY:
 				{
-					log_Info( "GL-ERROR: OUT OF MEMORY" );
+          LOG_INFO( "GL-ERROR: OUT OF MEMORY" );
 				}break;
 
 			case GL_TABLE_TOO_LARGE:
 				{
-					log_Info( "GL-ERROR: TABLE TOO LARGE" );
+          LOG_INFO( "GL-ERROR: TABLE TOO LARGE" );
 				}break;
 		}
 	}
@@ -65,23 +65,23 @@ public:
     switch( error )
     {
     case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" );
+      LOG_INFO( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" );
       assert( false );
       break;
     case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" );
+      LOG_INFO( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" );
       assert( false );
       break;
     case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER" );
+      LOG_INFO( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER" );
       assert( false );
       break;
     case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER" );
+      LOG_INFO( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER" );
       assert( false );
       break;
     case GL_FRAMEBUFFER_UNSUPPORTED:
-      log_Info( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_UNSUPPORTED" );
+      LOG_INFO( "FRAMEBUFFER-ERROR: GL_FRAMEBUFFER_UNSUPPORTED" );
       assert( false );
       break;
     }

@@ -145,7 +145,7 @@ namespace Fancy { namespace Scene {
       std::find_if(pParent->m_vpChildren.begin(), pParent->m_vpChildren.end(), 
       [pChild] (const std::shared_ptr<SceneNode>& it) { return it.get() == pChild; } );
 
-    ASSERT_M(it != pParent->m_vpChildren.end(), "Invalid parent-child relationship");
+    ASSERT(it != pParent->m_vpChildren.end(), "Invalid parent-child relationship");
 
     pChild->m_pParent = nullptr;
     pParent->m_vpChildren.erase(it);
@@ -249,7 +249,7 @@ namespace Fancy { namespace Scene {
     }
 
     SceneNodeComponentFactory::CreateFunction createFunc = SceneNodeComponentFactory::getFactoryMethod(typeName);
-    ASSERT_M(createFunc != nullptr, String("No factory registered for typename ") + typeName.toString());
+    ASSERT(createFunc != nullptr, String("No factory registered for typename ") + typeName.toString());
 
     SceneNodeComponentPtr componentPtr(createFunc(const_cast<SceneNode*>(this)));
 
