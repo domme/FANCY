@@ -39,6 +39,7 @@
 #include "VertexInputLayout.h"
 #include "GpuProgramPipeline.h"
 #include "MaterialPassInstance.h"
+#include "Log.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -55,7 +56,7 @@ namespace Fancy { namespace IO {
     //---------------------------------------------------------------------------//
     void FancyLog::write(const char* message)
     {
-      log_Info(message);
+      LOG_INFO("SceneImporter: %", message);
     }
 //---------------------------------------------------------------------------//
     glm::mat4 matFromAiMat( const aiMatrix4x4& mat )
@@ -573,7 +574,7 @@ namespace Fancy { namespace IO {
 
       if (!pData)
       {
-        log_Error("Failed to allocate vertex buffer");
+        LOG_ERROR("Failed to allocate vertex buffer");
         return false;
       }
 
@@ -732,12 +733,12 @@ namespace Fancy { namespace IO {
     // Fancy only supports textures where opacity is combined with diffuse and specPower is combined with specular
     if (hasSpecTex && hasSpecPowerTex && pSpecPowerTex != pSpecularTex)
     {
-      log_Warning("Fancy doesn't support storing specular power in a separate texture. Consider putting it in spec.a");
+      LOG_WARNING("Fancy doesn't support storing specular power in a separate texture. Consider putting it in spec.a");
     }
 
     if (hasDiffuseTex && hasOpacityTex && pOpacityTex != pDiffuseTex)
     {
-      log_Warning("Fancy doesn't support storing opacity in a separate texture. Consider putting it in diff.a");
+      LOG_WARNING("Fancy doesn't support storing opacity in a separate texture. Consider putting it in diff.a");
     }
 
     // Find/Create matching Shaders
@@ -897,13 +898,13 @@ namespace Fancy { namespace IO {
     TextureLoadInfo texLoadInfo;
     if (!TextureLoader::loadTexture(szTexPath, vTextureBytes, texLoadInfo))
     {
-      log_Error("Failed to load texture at path " + szTexPath);
+      LOG_ERROR("Failed to load texture at path %", szTexPath);
       return nullptr;
     }
 
     if (texLoadInfo.bitsPerPixel / texLoadInfo.numChannels != 8u)
     {
-      log_Error("Unsupported texture format: " + szTexPath);
+      LOG_ERROR("Unsupported texture format: %", szTexPath);
       return nullptr;
     }
 

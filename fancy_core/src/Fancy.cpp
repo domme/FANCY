@@ -18,6 +18,8 @@
 #include "RenderingProcess.h"
 #include "LightComponent.h"
 #include "TextureLoader.h"
+#include "string.h"
+#include "Log.h"
 
 namespace Fancy {
   Scene::ScenePtr m_pCurrScene = nullptr;
@@ -62,13 +64,13 @@ namespace Fancy {
     IO::TextureLoadInfo texLoadInfo;
     if (!IO::TextureLoader::loadTexture(texPathAbs, vTextureBytes, texLoadInfo))
     {
-      log_Error("Failed to load texture at path " + texPathAbs);
+      LOG_ERROR("Failed to load texture at path %", texPathAbs);
       return false;
     }
 
     if (texLoadInfo.bitsPerPixel / texLoadInfo.numChannels != 8u)
     {
-      log_Error("Unsupported texture format: " + texPathAbs);
+      LOG_ERROR("Unsupported texture format: %", texPathAbs);
       return false;
     }
 
