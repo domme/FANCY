@@ -14,6 +14,8 @@
 #include "GeometryData.h"
 #include "GpuProgramPipeline.h"
 #include "RootSignatureDX12.h"
+#include "GpuResource.h"
+#include "Descriptor.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -24,6 +26,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myNumRenderTargets(0u)
     , myDSVformat(DataFormat::UNKNOWN)
     , myIsDirty(true)
+    , myGpuProgramPipeline(nullptr)
   {
   }
   //---------------------------------------------------------------------------//
@@ -538,11 +541,44 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ASSERT(myRootSignature != nullptr);
     myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, aConstantBuffer->GetGpuVirtualAddress());
   }
+//---------------------------------------------------------------------------//
+  D3D12_DESCRIPTOR_HEAP_TYPE locResolveDescriptorHeapType(uint32 aDescriptorTypeMask)
+  {
+    if (aDescriptorTypeMask & (uint32)GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER)
+      return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    else if (aDescriptorTypeMask & (uint32)GpuDescriptorTypeFlags::SAMPLER)
+      return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
 
-void RenderContextDX12::SetMultipleResources(const GpuResource* someResources, uint32 aResourceCount)
-{
-}
+    ASSERT(false, "Invalid descriptor type for Gpu-Binding");
+    return (D3D12_DESCRIPTOR_HEAP_TYPE) -1;
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aDescriptorTypeMask, uint32 aRegisterIndex)
+  {
+    ASSERT(myRootSignature != nullptr);
+    ASSERT(aResourceCount > 0u);
+    DescriptorHeapPoolDX12* heapPool = myRenderer.GetDescriptorHeapPool();
 
+    D3D12_DESCRIPTOR_HEAP_TYPE heapType = locResolveDescriptorHeapType(aDescriptorTypeMask);
+    DescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
+    
+    if (dynamicHeap == nullptr)
+    {
+      dynamicHeap = heapPool->AllocateDynamicHeap(aResourceCount, heapType);
+      SetDescriptorHeap(heapType, dynamicHeap);
+    }
+
+    uint32 startOffset = dynamicHeap->GetNumAllocatedDescriptors();
+    for (uint32 i = 0u; i < aResourceCount; ++i)
+    {
+      DescriptorDX12 destDescriptor = dynamicHeap->AllocateDescriptor();
+    
+      myRenderer.GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle,
+        someResources[i].myCpuHandle, heapType);
+    }
+    
+    myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicHeap->GetDescriptor(startOffset).myGpuHandle);
+  }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::SetGpuProgramPipeline(const GpuProgramPipeline* aGpuProgramPipeline)
   {
@@ -565,7 +601,6 @@ void RenderContextDX12::SetMultipleResources(const GpuResource* someResources, u
     ApplyRenderTargets();
     ApplyRootSignature();
     ApplyPipelineState();
-    ApplyResourceState();
 
     myCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     myCommandList->IASetVertexBuffers(0, 1, &pGeometry->getVertexBuffer()->GetVertexBufferView());
@@ -836,89 +871,5 @@ void RenderContextDX12::SetMultipleResources(const GpuResource* someResources, u
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::ApplyResourceState()
-  {
-    if (myResourceState.myDirtyFlags == 0u)
-      return;
-
-    myResourceState.myDirtyFlags = 0u;
-
-    if (myPipelineState.myGpuProgramPipeline == nullptr)
-      return;  // Nothing to set if we don't have shaders
-
-    // Current strategy: The descriptors of all resources are dynamically copied into a 
-    // a dynamic shader-visible heap, which is set as a descriptor table to the commandlist
-
-    // This assumes a fixed ordering of CBVs before SRVs in the shader... TODO: Move this logic to higher-level code
-
-    for (uint32 i = 0u; i < myResourceState.myConstantBufferRebindCount; ++i)
-    {
-      if (myResourceState.myConstantBuffers[i] != nullptr)
-        myCommandList->SetGraphicsRootConstantBufferView(i, myResourceState.myConstantBuffers[i]->GetGpuVirtualAddress());
-    }
-
-    DescriptorDX12* srvDescriptorsToSet = 
-      static_cast<DescriptorDX12*>(alloca(sizeof(DescriptorDX12) * myResourceState.myReadTexturesRebindCount));
-
-    uint32 numSrvDescriptorsToSet = 0u;
-
-    for (uint32 i = 0u; i < myResourceState.myReadTexturesRebindCount; ++i)
-    {
-      if (myResourceState.myReadTextures[i] != nullptr)
-        srvDescriptorsToSet[numSrvDescriptorsToSet++] = myResourceState.myReadTextures[i]->GetSrv();
-    }
-
-    DescriptorDX12* samplerDescriptorsToSet =
-      (DescriptorDX12*)alloca(sizeof(DescriptorDX12) * myResourceState.myTextureSamplerRebindCount);
-    uint32 numSamplerDescriptorsToSet = 0u;
-
-    for (uint32 i = 0u; i < myResourceState.myTextureSamplerRebindCount; ++i)
-    {
-      if (myResourceState.myTextureSamplers[i] != nullptr)
-        samplerDescriptorsToSet[numSamplerDescriptorsToSet++] = myResourceState.myTextureSamplers[i]->GetDescriptor();
-    }
-
-    DescriptorHeapPoolDX12* heapPool = myRenderer.GetDescriptorHeapPool();
-
-    if (numSrvDescriptorsToSet > 0u)
-    {
-      DescriptorHeapDX12* dynamicHeap = heapPool->AllocateDynamicHeap(numSrvDescriptorsToSet, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-      D3D12_CPU_DESCRIPTOR_HANDLE destHandle = dynamicHeap->GetCpuHeapStart();
-      for (uint32 i = 0u; i < numSrvDescriptorsToSet; ++i)
-      {
-        myRenderer.GetDevice()->CopyDescriptorsSimple(1, destHandle,
-          srvDescriptorsToSet[i].myCpuHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-        destHandle.ptr += dynamicHeap->GetHandleIncrementSize();
-      }
-
-      SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, dynamicHeap);
-      myCommandList->SetGraphicsRootDescriptorTable(6, dynamicHeap->GetGpuHeapStart());
-    }
-
-    //if (numSamplerDescriptorsToSet > 0u)
-    //{
-    //  DescriptorHeapDX12* dynamicHeap = heapPool->AllocateDynamicHeap(numSamplerDescriptorsToSet, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-    //
-    //  D3D12_CPU_DESCRIPTOR_HANDLE destHandle = dynamicHeap->GetCpuHeapStart();
-    //  for (uint32 i = 0u; i < numSamplerDescriptorsToSet; ++i)
-    //  {
-    //    myRenderer.GetDevice()->CopyDescriptorsSimple(1, destHandle,
-    //      samplerDescriptorsToSet[i].GetCpuHandle(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-    //
-    //    destHandle.ptr += dynamicHeap->GetHandleIncrementSize();
-    //  }
-    //
-    //  SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, dynamicHeap);
-    //  myCommandList->SetGraphicsRootDescriptorTable(0, dynamicHeap->GetGpuHeapStart());
-    //}
-
-    myResourceState.myDirtyFlags = 0u;
-  }
-//---------------------------------------------------------------------------//
 #pragma endregion 
-
-
-//---------------------------------------------------------------------------//
 } } }

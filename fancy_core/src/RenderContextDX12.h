@@ -11,6 +11,7 @@
 #include "ObjectPool.h"
 
 namespace Fancy{ namespace Rendering{
+class Descriptor;
 class GpuResource;
 class Renderer;
   class GpuProgramPipeline;
@@ -60,7 +61,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const;
     
     // Descriptor tables:
-    void SetMultipleResources(const GpuResource* someResources, uint32 aResourceCount);
+    void SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aDescriptorTypeMask, uint32 aRegisterIndex);
         
     void SetGpuProgramPipeline(const GpuProgramPipeline* pProgramPipeline);
 
@@ -103,7 +104,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ApplyViewport();
     void ApplyRootSignature();
     void ApplyPipelineState();
-    void ApplyResourceState();
     void ApplyDescriptorHeaps();
     void ApplyRenderTargets();
     void KickoffResourceBarriers();

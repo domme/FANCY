@@ -68,8 +68,7 @@ namespace Fancy { namespace Rendering {
       /// Registers an element obtained from shader-reflection
       static void CreateBufferWithSize(ConstantBufferType _eConstantBufferType, uint32 _requiredSizeBytes);
 
-      /// Binds all constant buffers to the pipeline
-      static void bindBuffers(Rendering::RenderContext* aRenderContext);
+      static GpuBuffer* GetConstantBuffer(ConstantBufferType _eConstantBufferType);
 
       static ConstantBufferType getConstantBufferTypeFromName(const ObjectName& clName);
 

@@ -7,19 +7,10 @@ namespace Fancy { namespace Rendering {
   class RenderContext;
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
-  class ResourceBinding
-  {
-  public:
-    ResourceBinding() {}
-    virtual ~ResourceBinding() {}
+} }
 
-    virtual void ApplyResources(RenderContext* aContext, MaterialPassInstance* aMaterial) = 0;
-  };
+namespace Fancy { namespace Rendering { namespace ResourceBinding {
 //---------------------------------------------------------------------------//
-  class ResourceBindingForwardColor : public ResourceBinding  //< Binds RootSignature RS_FORWARD_COLORPASS
-  {
-  public:
-    void ApplyResources(RenderContext* aContext, MaterialPassInstance* aMaterial) override;
-  };
+  void BindResources_ForwardColorPass(RenderContext* aContext, MaterialPassInstance* aMaterial);
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+} } }  // end of namespace Fancy::Rendering::ResourceBinding

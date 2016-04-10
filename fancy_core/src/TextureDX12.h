@@ -5,6 +5,11 @@
 
 #include "TextureDesc.h"
 #include "DescriptorDX12.h"
+#include "Descriptor.h"
+
+namespace Fancy{ namespace Rendering{
+class Descriptor;
+}}
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -38,11 +43,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const String& getPath() const { return myParameters.path; }
     void setPath(const String& _aPath) { myParameters.path = _aPath; }
 
-    // DX12-Specific stuff:
-    const DescriptorDX12& GetRtv() const { return myRtvDescriptor; }
-    const DescriptorDX12& GetSrv() const { return mySrvDescriptor; }
-    const DescriptorDX12& GetUav() const { return myUavDescriptor; }
-    const DescriptorDX12& GetDsv() const { return myDsvDescriptor; }
+    const Descriptor& GetRtv() const { return myRtvDescriptor; }
+    const Descriptor& GetSrv() const { return mySrvDescriptor; }
+    const Descriptor& GetUav() const { return myUavDescriptor; }
+    const Descriptor& GetDsv() const { return myDsvDescriptor; }
     
   protected:
     void Destroy();
@@ -62,10 +66,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     TextureParams myParameters;
     TextureInfos myState;
 
-    DescriptorDX12 myRtvDescriptor;
-    DescriptorDX12 mySrvDescriptor;
-    DescriptorDX12 myUavDescriptor;
-    DescriptorDX12 myDsvDescriptor;
+    Descriptor myRtvDescriptor;
+    Descriptor mySrvDescriptor;
+    Descriptor myUavDescriptor;
+    Descriptor myDsvDescriptor;
   };
 
 //---------------------------------------------------------------------------//

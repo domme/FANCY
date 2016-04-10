@@ -110,6 +110,7 @@ namespace Fancy {
       class GpuDataInterfaceDX12;
       class RenderingSubsystemDX12;
       class GpuResourceDX12;
+      class DescriptorDX12;
 		}
 
 		#define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX12::name##DX12
@@ -124,6 +125,7 @@ namespace Fancy {
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceDX12.h"
     #define PLATFORM_DEPENDENT_INCLUDE_GPUDATAINTERFACE "GpuDataInterfaceDX12.h"
     #define PLATFORM_DEPENDENT_INCLUDE_GPURESOURCE "GpuResourceDX12.h"
+    #define PLATFORM_DEPENDENT_INCLUDE_DESCRIPTOR "DescriptorDX12.h"
     #endif // RENDERER
   //---------------------------------------------------------------------------//
 
@@ -434,6 +436,21 @@ namespace Fancy {
       CLEAR_DEPTH = (1 << 0),
       CLEAR_STENCIL = (1 << 1),
       CLEAR_ALL = 0xFF
+    };
+//---------------------------------------------------------------------------//
+    enum class GpuDescriptorTypeFlags
+    {
+      READ_BUFFER = (1 << 0),
+      READ_TEXTURE = (1 << 1),
+      WRITE_BUFFER = (1 << 2),
+      WRITE_TEXTURE = (1 << 3),
+      CONSTANT_BUFFER = (1 << 4),
+      BUFFER_TEXTURE_CONSTANT_BUFFER = READ_BUFFER | READ_TEXTURE | WRITE_BUFFER | WRITE_TEXTURE | CONSTANT_BUFFER,
+      SAMPLER = (1 << 5),
+      RENDER_TARGET = (1 << 6),
+      VERTEX_BUFFER = (1 << 7),
+      INDEX_BUFFER = (1 << 8),
+      DEPTH_STENCIL_TEXTURE = (1 << 9)
     };
 //---------------------------------------------------------------------------//
   } // end of namespace Rendering 

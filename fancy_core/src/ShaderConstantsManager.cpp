@@ -300,13 +300,9 @@ namespace Fancy { namespace Rendering {
     //ASSERT(locConstantBuffers[uBufferTypeIdx]->getTotalSizeBytes() == _requiredSizeBytes, "Requested the same constant buffer with two different sizes");
   }
 //---------------------------------------------------------------------------//
-  void ShaderConstantsManager::bindBuffers(Rendering::RenderContext* aRenderContext)
+  GpuBuffer* ShaderConstantsManager::GetConstantBuffer(ConstantBufferType _eConstantBufferType)
   {
-    for (uint32 iConstantBuffer = 0u; iConstantBuffer < (uint32) ConstantBufferType::NUM; ++iConstantBuffer)
-    {
-      const GpuBuffer* pConstantBuffer = locConstantBuffers[iConstantBuffer];
-      aRenderContext->setConstantBuffer(pConstantBuffer, iConstantBuffer);
-    }
+    return locConstantBuffers[static_cast<uint32>(_eConstantBufferType)];
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

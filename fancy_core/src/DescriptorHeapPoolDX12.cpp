@@ -27,6 +27,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return DescriptorDX12(cpuHandle, gpuHandle);
   }
 //---------------------------------------------------------------------------//
+  DescriptorDX12 DescriptorHeapDX12::GetDescriptor(uint32 anIndex)
+  {
+    ASSERT(anIndex < myNextFreeHandleIndex);
+
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+    cpuHandle.ptr = myCpuHeapStart.ptr + anIndex * myHandleIncrementSize;
+
+    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+    gpuHandle.ptr = myGpuHeapStart.ptr + anIndex * myHandleIncrementSize;
+
+    return DescriptorDX12(cpuHandle, gpuHandle);
+  }
+//---------------------------------------------------------------------------//
   DescriptorHeapDX12::DescriptorHeapDX12()
     : myHandleIncrementSize(0u)
     , myNextFreeHandleIndex(0u)
