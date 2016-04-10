@@ -11,7 +11,8 @@
 #include "ObjectPool.h"
 
 namespace Fancy{ namespace Rendering{
-  class Renderer;
+class GpuResource;
+class Renderer;
   class GpuProgramPipeline;
 }}
 
@@ -40,31 +41,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//
-  struct ResourceState
-  {
-    enum EDirtyFlags
-    {
-      READ_TEXTURES_DIRTY = (1 << 1),
-      CONSTANT_BUFFERS_DIRTY = (1 << 2),
-      TEXTURE_SAMPLERS_DIRTY = (1 << 3),
-
-      COMPLEX_RESOURCES_DIRTY = READ_TEXTURES_DIRTY | CONSTANT_BUFFERS_DIRTY,
-    };
-
-    ResourceState();
-
-    const Texture* myReadTextures[Constants::kMaxNumReadTextures];
-    uint32 myReadTexturesRebindCount;
-
-    const TextureSampler* myTextureSamplers[Constants::kMaxNumTextureSamplers];
-    uint32 myTextureSamplerRebindCount;
-
-    const GpuBuffer* myConstantBuffers[Constants::kMaxNumBoundConstantBuffers];
-    uint32 myConstantBufferRebindCount;
-
-    uint32 myDirtyFlags;
-  };
-//---------------------------------------------------------------------------//
   class RenderContextDX12
   {
   public:
@@ -76,13 +52,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     RenderContextDX12();
     explicit RenderContextDX12(Renderer& aRenderer);
     ~RenderContextDX12();
-
-    // TODO: Replace this DX9/11-Style API with a more modern approach
-    void setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex);
-    void setWriteTexture(const Texture* pTexture, const uint8 u8RegisterIndex);
-    void setReadBuffer(const GpuBuffer* pBuffer, const uint8 u8RegisterIndex);
-    void setConstantBuffer(const GpuBuffer* pConstantBuffer, const uint8 u8RegisterIndex);
-    void setTextureSampler(const TextureSampler* pSampler, const uint8 u8RegisterIndex);
+    
+    // Root arguments:
+    void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const;
+    void SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const;
+    void SetReadBuffer(const GpuBuffer* aBuffer, uint32 aRegisterIndex) const;
+    void SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const;
+    
+    // Descriptor tables:
+    void SetMultipleResources(const GpuResource* someResources, uint32 aResourceCount);
         
     void SetGpuProgramPipeline(const GpuProgramPipeline* pProgramPipeline);
 
@@ -139,7 +117,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CommandAllocatorPoolDX12& myCommandAllocatorPool;
 
     PipelineState myPipelineState;
-    ResourceState myResourceState;
 
     glm::uvec4 myViewportParams;
     bool myViewportDirty;

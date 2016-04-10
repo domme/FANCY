@@ -197,17 +197,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
   std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
-//---------------------------------------------------------------------------//
-  ResourceState::ResourceState() 
-    : myDirtyFlags(0u)
-    , myReadTexturesRebindCount(0u)
-    , myConstantBufferRebindCount(0u)
-    , myTextureSamplerRebindCount(0u)
-  {
-    memset(myReadTextures, 0, sizeof(myReadTextures));
-    memset(myConstantBuffers, 0, sizeof(myConstantBuffers));
-    memset(myTextureSamplers, 0, sizeof(myTextureSamplers));
-  }
 //---------------------------------------------------------------------------// 
   RenderContextDX12::RenderContextDX12()
     : myRenderer(*Fancy::GetRenderer())
@@ -283,7 +272,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myRootSignature = nullptr;
     myRootSignatureDirty = true;
     myPipelineState = PipelineState();
-    myResourceState = ResourceState();
     myViewportDirty = true;
     myRenderTargetsDirty = true;
     myDepthStencilTarget = nullptr;
@@ -527,47 +515,35 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myPipelineState.myDSVformat = DataFormat::NONE;
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::setReadTexture(const Texture* pTexture, const uint8 u8RegisterIndex)
+  void RenderContextDX12::SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const
   {
-    if (myResourceState.myReadTextures[u8RegisterIndex] == pTexture)
-      return;
+    ASSERT(myRootSignature != nullptr);
+    myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, aTexture->GetGpuVirtualAddress());    
+  }
+  //---------------------------------------------------------------------------//
+  void RenderContextDX12::SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const
+  {
+    ASSERT(myRootSignature != nullptr);
+    myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, aTexture->GetGpuVirtualAddress());
+  }
+  //---------------------------------------------------------------------------//
+  void RenderContextDX12::SetReadBuffer(const GpuBuffer* aBuffer, uint32 aRegisterIndex) const
+  {
+    ASSERT(myRootSignature != nullptr);
+    myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, aBuffer->GetGpuVirtualAddress());
+  }
+  //---------------------------------------------------------------------------//
+  void RenderContextDX12::SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const
+  {
+    ASSERT(myRootSignature != nullptr);
+    myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, aConstantBuffer->GetGpuVirtualAddress());
+  }
 
-    myResourceState.myReadTextures[u8RegisterIndex] = pTexture;
-    myResourceState.myDirtyFlags |= ResourceState::READ_TEXTURES_DIRTY;
-    myResourceState.myReadTexturesRebindCount = 
-      glm::max(myResourceState.myReadTexturesRebindCount, (uint32) u8RegisterIndex + 1u);
-  }
-  //---------------------------------------------------------------------------//
-  void RenderContextDX12::setWriteTexture(const Texture* pTexture, const uint8 u8RegisterIndex)
-  {
-  }
-  //---------------------------------------------------------------------------//
-  void RenderContextDX12::setReadBuffer(const GpuBuffer* pBuffer, const uint8 u8RegisterIndex)
-  {
-  }
-  //---------------------------------------------------------------------------//
-  void RenderContextDX12::setConstantBuffer(const GpuBuffer* pConstantBuffer, const uint8 u8RegisterIndex)
-  {
-    if (myResourceState.myConstantBuffers[u8RegisterIndex] == pConstantBuffer)
-      return;
+void RenderContextDX12::SetMultipleResources(const GpuResource* someResources, uint32 aResourceCount)
+{
+}
 
-    myResourceState.myConstantBuffers[u8RegisterIndex] = pConstantBuffer;
-    myResourceState.myDirtyFlags |= ResourceState::CONSTANT_BUFFERS_DIRTY;
-    myResourceState.myConstantBufferRebindCount =
-      glm::max(myResourceState.myConstantBufferRebindCount, (uint32)u8RegisterIndex + 1u);
-  }
-  //---------------------------------------------------------------------------//
-  void RenderContextDX12::setTextureSampler(const TextureSampler* pSampler, const uint8 u8RegisterIndex)
-  {
-    if (myResourceState.myTextureSamplers[u8RegisterIndex] == pSampler)
-      return;
-
-    myResourceState.myTextureSamplers[u8RegisterIndex] = pSampler;
-    myResourceState.myDirtyFlags |= ResourceState::TEXTURE_SAMPLERS_DIRTY;
-    myResourceState.myTextureSamplerRebindCount =
-      glm::max(myResourceState.myTextureSamplerRebindCount, (uint32)u8RegisterIndex + 1u);
-  }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void RenderContextDX12::SetGpuProgramPipeline(const GpuProgramPipeline* aGpuProgramPipeline)
   {
     if (myPipelineState.myGpuProgramPipeline != aGpuProgramPipeline)

@@ -16,8 +16,8 @@ namespace Fancy { namespace Rendering {
 } }
 
 namespace Fancy { namespace Rendering { namespace DX12 {
-class DescriptorHeapPoolDX12;
-
+//---------------------------------------------------------------------------//
+  class DescriptorHeapPoolDX12;
 //---------------------------------------------------------------------------//
 	class RendererDX12
 	{

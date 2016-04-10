@@ -109,6 +109,7 @@ namespace Fancy {
 			class GpuProgramResourceDX12;
       class GpuDataInterfaceDX12;
       class RenderingSubsystemDX12;
+      class GpuResourceDX12;
 		}
 
 		#define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX12::name##DX12
@@ -122,6 +123,7 @@ namespace Fancy {
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceDX12.h"
     #define PLATFORM_DEPENDENT_INCLUDE_GPUDATAINTERFACE "GpuDataInterfaceDX12.h"
+    #define PLATFORM_DEPENDENT_INCLUDE_GPURESOURCE "GpuResourceDX12.h"
     #endif // RENDERER
   //---------------------------------------------------------------------------//
 

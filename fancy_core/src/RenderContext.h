@@ -12,8 +12,7 @@ namespace Fancy { namespace Rendering {
   public:
     RenderContext(Renderer& aRenderer) : PLATFORM_DEPENDENT_NAME(RenderContext)(aRenderer) {}
     RenderContext() {}
-
-
+    
     static RenderContext* AllocateContext();
     static void FreeContext(RenderContext* aContext);
   };
