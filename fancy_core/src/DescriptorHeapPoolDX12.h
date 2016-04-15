@@ -2,9 +2,8 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "Descriptor.h"
 #include <queue>
-#include "DescriptorDX12.h"
-
 
 namespace Fancy { namespace Rendering {
   class RendererDX12;
@@ -25,8 +24,8 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     const D3D12_GPU_DESCRIPTOR_HANDLE& GetGpuHeapStart() const { return myGpuHeapStart; }
     ID3D12DescriptorHeap* GetHeap() const { return myDescriptorHeap.Get(); }
 
-    DescriptorDX12 AllocateDescriptor();
-    DescriptorDX12 GetDescriptor(uint32 anIndex);
+    Descriptor AllocateDescriptor();
+    Descriptor GetDescriptor(uint32 anIndex);
     uint32 GetNumAllocatedDescriptors() { return myNextFreeHandleIndex; }
 
 

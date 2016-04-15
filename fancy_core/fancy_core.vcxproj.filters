@@ -304,9 +304,6 @@
     <ClInclude Include="src\GpuProgramPipelineDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\RootSignatureDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -390,6 +387,15 @@
     </ClInclude>
     <ClInclude Include="src\Descriptor.h">
       <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderResourceInterfaceDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderResourceInterface.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderResourceInterfaceDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -600,9 +606,6 @@
     <ClCompile Include="src\GpuProgramPipelineDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\RootSignatureDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClCompile>
     <ClCompile Include="src\GpuProgramCompilerUtils.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
@@ -647,6 +650,12 @@
     </ClCompile>
     <ClCompile Include="src\ResourceBinding.cpp">
       <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShaderResourceInterfaceDesc.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShaderResourceInterfaceDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

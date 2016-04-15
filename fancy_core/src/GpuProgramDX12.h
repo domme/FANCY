@@ -9,9 +9,11 @@ namespace Fancy{ namespace IO{
 class ObjectFactory;
 }}
 
+namespace Fancy { namespace Rendering {
+  class ShaderResourceInterface;
+} }
+
 namespace Fancy { namespace Rendering { namespace DX12 {
-//---------------------------------------------------------------------------//
-  class RootSignatureDX12;
 //---------------------------------------------------------------------------//
   struct ShaderVertexInputLayoutDX12
   {
@@ -31,7 +33,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     String myShaderFilename;  /// Platform-independent shader filename (e.g. "MaterialForward")
 
     GpuProgramPermutation myPermutation;
-    RootSignatureDX12* myRootSignature;
+    ShaderResourceInterface* myRootSignature;
     ComPtr<ID3DBlob> myNativeData;
   };
 //---------------------------------------------------------------------------//
@@ -72,7 +74,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
     /// Returns the pipeline state embedded into the HLSL code
-    const RootSignatureDX12* GetRootSignature() { return myRootSignature; }
+    const ShaderResourceInterface* GetResourceInterface() { return myResourceInterface; }
 
   private:
     void CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout,
@@ -92,7 +94,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     std::vector<D3D12_INPUT_ELEMENT_DESC> myNativeInputElements;
 
     ComPtr<ID3DBlob> myNativeData;
-    RootSignatureDX12* myRootSignature;
+    ShaderResourceInterface* myResourceInterface;
     D3D12_SHADER_BYTECODE myNativeByteCode;
   };
 //---------------------------------------------------------------------------//

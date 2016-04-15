@@ -12,7 +12,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Create(aDevice, aDesc);
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 DescriptorHeapDX12::AllocateDescriptor()
+  Descriptor DescriptorHeapDX12::AllocateDescriptor()
   {
     ASSERT(myNextFreeHandleIndex < myDesc.NumDescriptors);
 
@@ -24,10 +24,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     ++myNextFreeHandleIndex;
 
-    return DescriptorDX12(cpuHandle, gpuHandle);
+    Descriptor descr;
+    descr.myCpuHandle = cpuHandle;
+    descr.myGpuHandle = gpuHandle;
+
+    return descr;
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 DescriptorHeapDX12::GetDescriptor(uint32 anIndex)
+  Descriptor DescriptorHeapDX12::GetDescriptor(uint32 anIndex)
   {
     ASSERT(anIndex < myNextFreeHandleIndex);
 
@@ -37,7 +41,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
     gpuHandle.ptr = myGpuHeapStart.ptr + anIndex * myHandleIncrementSize;
 
-    return DescriptorDX12(cpuHandle, gpuHandle);
+    Descriptor descr;
+    descr.myCpuHandle = cpuHandle;
+    descr.myGpuHandle = gpuHandle;
+
+    return descr;
   }
 //---------------------------------------------------------------------------//
   DescriptorHeapDX12::DescriptorHeapDX12()

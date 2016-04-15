@@ -12,9 +12,11 @@ namespace Fancy { namespace IO {
   class Serializer;
 } }
 
+namespace Fancy { namespace Rendering {
+  class ShaderResourceInterface;
+} }
+
 namespace Fancy { namespace Rendering { namespace DX12 {
-//---------------------------------------------------------------------------//
-  class RootSignatureDX12;
 //---------------------------------------------------------------------------//
   class GpuProgramPipelineDX12
   {
@@ -32,14 +34,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     GpuProgramPipelineDesc GetDescription() const;
     void SetFromDescription(const GpuProgramPipelineDesc& aDesc);
-    ID3D12RootSignature* GetRootSignatureNative() const;
+    ID3D12RootSignature* GetRootSignature() const;
     
     void RecomputeHashFromShaders();
 
     GpuProgram* myGpuPrograms[(uint32)ShaderStage::NUM];
 
     uint myShaderHash;  /// Used to quickly compare two pipelines
-    const RootSignatureDX12* myRootSignature;
+    const ShaderResourceInterface* myResourceInterface;
   };
 //---------------------------------------------------------------------------//
 } } }

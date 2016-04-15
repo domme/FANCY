@@ -2,17 +2,19 @@
 #include "RendererPrerequisites.h"
 #include "MathUtil.h"
 #include "Serializer.h"
-#include "RootSignatureDX12.h"
+#include "ShaderResourceInterface.h"
 
 #if defined (RENDERER_DX12)
 
 #include "GpuProgramPipelineDX12.h"
+#include "ShaderResourceInterfaceDX12.h"
 #include "GpuProgram.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  GpuProgramPipelineDX12::GpuProgramPipelineDX12() :
-    myShaderHash(0u)
+  GpuProgramPipelineDX12::GpuProgramPipelineDX12() 
+    : myShaderHash(0u)
+    , myResourceInterface(nullptr)
   {
     memset(myGpuPrograms, 0u, sizeof(myGpuPrograms));
   }
@@ -48,18 +50,18 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myGpuPrograms[i] = GpuProgram::FindFromDesc(aDesc.myGpuPrograms[i]);
     }
 
-    myRootSignature = nullptr;
+    myResourceInterface = nullptr;
     if (GpuProgram* vertexShader = myGpuPrograms[(uint32) ShaderStage::VERTEX])
     {
-      myRootSignature = vertexShader->GetRootSignature();
+      myResourceInterface = vertexShader->GetResourceInterface();
     }
 
     RecomputeHashFromShaders();
   }
 //---------------------------------------------------------------------------//
-  ID3D12RootSignature* GpuProgramPipelineDX12::GetRootSignatureNative() const
+  ID3D12RootSignature* GpuProgramPipelineDX12::GetRootSignature() const
   {
-    return myRootSignature->myRootSignature.Get();
+    return myResourceInterface->myRootSignature.Get();
   }
 //---------------------------------------------------------------------------//
   bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDesc& anOtherDesc) const

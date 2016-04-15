@@ -13,7 +13,7 @@
 #include "TextureSampler.h"
 #include "GeometryData.h"
 #include "GpuProgramPipeline.h"
-#include "RootSignatureDX12.h"
+#include "ShaderResourceInterface.h"
 #include "GpuResource.h"
 #include "Descriptor.h"
 
@@ -72,7 +72,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
     
     // ROOT SIGNATURE
-    psoDesc.pRootSignature = myGpuProgramPipeline->myRootSignature->myRootSignature.Get();
+    psoDesc.pRootSignature = myGpuProgramPipeline->myResourceInterface->myResourceInterface.Get();
 
                                        // BLEND DESC
     D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
@@ -588,9 +588,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myPipelineState.myIsDirty = true;
     }
 
-    if (myRootSignature != aGpuProgramPipeline->GetRootSignatureNative())
+    if (myRootSignature != aGpuProgramPipeline->GetRootSignature())
     {
-      myRootSignature = aGpuProgramPipeline->GetRootSignatureNative();
+      myRootSignature = aGpuProgramPipeline->GetRootSignature();
       myRootSignatureDirty = true;
     }
   }

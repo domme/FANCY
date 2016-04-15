@@ -1,10 +1,11 @@
 #include "Renderer.h"
 #include "DepthStencilState.h"
 #include "ShaderConstantsManager.h"
+#include "ResourceBinding.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
-  void RenderingSubsystem::Init()
+  void RenderCore::Init()
   {
     DepthStencilState defaultDepthStencilState;
     defaultDepthStencilState.SetFromDescription(DepthStencilStateDesc::GetDefaultDepthNoStencil());
@@ -57,9 +58,11 @@ namespace Fancy { namespace Rendering {
       elem->mySizeBytes = 8;
     }
 
+    ResourceBinding::Register();
+
   }
 //---------------------------------------------------------------------------//
-  void RenderingSubsystem::Shutdown()
+  void RenderCore::Shutdown()
   {
     ShaderConstantsManager::Shutdown();
   }

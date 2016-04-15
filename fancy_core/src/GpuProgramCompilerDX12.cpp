@@ -4,7 +4,7 @@
 #include "GpuProgramFeatures.h"
 #include "GpuProgram.h"
 #include "PathService.h"
-#include "RootSignatureDX12.h"
+#include "ShaderResourceInterface.h"
 #include "ShaderConstantsManager.h"
 #include "Fancy.h"
 
@@ -580,7 +580,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     const D3D12_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetRootSignatureDesc();
-    RootSignatureDX12* rsObject = RootSignaturePoolDX12::CreateOrRetrieve(*rsDesc, d3dDevice, rootSignature);
+    ShaderResourceInterface* rsObject = RenderCoreDX12::GetShaderResourceInterface(*rsDesc, rootSignature);
     ASSERT(nullptr != rsObject);
 
     aProgram->myPermutation = aDesc.myPermutation;

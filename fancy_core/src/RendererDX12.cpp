@@ -1,10 +1,13 @@
 #include "RendererDX12.h"
 #include "AdapterDX12.h"
+#include "Fancy.h"
+
 
 #if defined (RENDERER_DX12)
 #include "MathUtil.h"
 #include "GpuProgram.h"
-#include "RootSignatureDX12.h"
+#include "ShaderResourceInterface.h"
+#include "ShaderResourceInterfaceDX12.h"
 #include "GpuProgramCompiler.h"
 #include "DescriptorHeapPoolDX12.h"
 #include "Renderer.h"
@@ -173,14 +176,147 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderingSubsystemDX12::InitPlatform()
+  void RenderCoreDX12::InitPlatform()
   {
-    RootSignaturePoolDX12::Init();
+    ShaderResourceInterfacePoolDX12::Init();
   }
 //---------------------------------------------------------------------------//
-  void RenderingSubsystemDX12::ShutdownPlatform()
+  void RenderCoreDX12::ShutdownPlatform()
   {
-    RootSignaturePoolDX12::Destroy();
+    ShaderResourceInterfacePoolDX12::Destroy();
+  }
+//---------------------------------------------------------------------------//
+
+
+//---------------------------------------------------------------------------//
+  namespace {
+//---------------------------------------------------------------------------//
+    SriResourceType locGetResourceType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
+    {
+      switch (aRangeType)
+      {
+      case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return SriResourceType::BufferOrTexture;
+      case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return SriResourceType::BufferOrTextureRW;
+      case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return SriResourceType::ConstantBuffer;
+      case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return SriResourceType::Sampler;
+      default:
+        ASSERT(false);
+        return SriResourceType::BufferOrTexture;
+        break;
+      }
+    }
+//---------------------------------------------------------------------------//
+    ShaderResourceInterfaceDesc locGetInterfaceDescFromRSdesc(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc)
+    {
+      ShaderResourceInterfaceDesc sri;
+
+      for (uint iParam = 0u; iParam < anRSdesc.NumParameters; ++iParam)
+      {
+        SriElement sriElement;
+
+        const D3D12_ROOT_PARAMETER& param = anRSdesc.pParameters[iParam];
+        switch (param.ParameterType)
+        {
+        case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
+          sriElement.myType = SriElementType::DescriptorSet;
+          sriElement.myDescriptorSet.myNumElements = param.DescriptorTable.NumDescriptorRanges;
+          ASSERT(param.DescriptorTable.NumDescriptorRanges <= kMaxNumDescriptorSetElements);
+
+          for (uint iRange = 0u; iRange < param.DescriptorTable.NumDescriptorRanges; ++iRange)
+          {
+            const D3D12_DESCRIPTOR_RANGE& range = param.DescriptorTable.pDescriptorRanges[iRange];
+            SriDescriptorSetElement& setElement = sriElement.myDescriptorSet.myRangeElements[iRange];
+            setElement.myResourceType = locGetResourceType(range.RangeType);
+            setElement.myNumElements = range.NumDescriptors;
+            setElement.myBindingSlot = range.BaseShaderRegister;
+          }
+          break;
+        case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+          sriElement.myType = SriElementType::Constants;
+          sriElement.myConstants.myBindingSlot = param.Constants.ShaderRegister;
+          sriElement.myConstants.myNumValues = param.Constants.Num32BitValues;
+          break;
+        case D3D12_ROOT_PARAMETER_TYPE_CBV:
+          sriElement.myType = SriElementType::Descriptor;
+          sriElement.myDescriptor.myResourceType = SriResourceType::ConstantBuffer;
+          sriElement.myDescriptor.myBindingSlot = param.Descriptor.ShaderRegister;
+          break;
+        case D3D12_ROOT_PARAMETER_TYPE_SRV:
+          sriElement.myType = SriElementType::Descriptor;
+          sriElement.myDescriptor.myResourceType = SriResourceType::BufferOrTexture;
+          sriElement.myDescriptor.myBindingSlot = param.Descriptor.ShaderRegister;
+          break;
+        case D3D12_ROOT_PARAMETER_TYPE_UAV:
+          sriElement.myType = SriElementType::Descriptor;
+          sriElement.myDescriptor.myResourceType = SriResourceType::BufferOrTextureRW;
+          sriElement.myDescriptor.myBindingSlot = param.Descriptor.ShaderRegister;
+          break;
+        default: break;
+        }
+
+        sri.myElements.push_back(sriElement);
+      }
+
+      return sri;
+    }
+    //---------------------------------------------------------------------------//
+    uint locComputeRSdescHash(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc)
+    {
+      uint hash = 0u;
+      MathUtil::hash_combine(hash, anRSdesc.NumParameters);
+      for (uint i = 0u; i < anRSdesc.NumParameters; ++i)
+        MathUtil::hash_combine(hash, MathUtil::hashFromGeneric(anRSdesc.pParameters[i]));
+
+      MathUtil::hash_combine(hash, anRSdesc.NumStaticSamplers);
+      for (uint i = 0u; i < anRSdesc.NumStaticSamplers; ++i)
+        MathUtil::hash_combine(hash, MathUtil::hashFromGeneric(anRSdesc.pStaticSamplers[i]));
+
+      MathUtil::hash_combine(hash, anRSdesc.Flags);
+
+      return hash;
+    }
+    //---------------------------------------------------------------------------//
+    std::vector<std::unique_ptr<ShaderResourceInterface>> locShaderResourceInterfacePool;
+  }  // namespace
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  Rendering::ShaderResourceInterface* RenderCoreDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS = nullptr)
+  {
+    const uint& requestedHash = locComputeRSdescHash(anRSdesc);
+    
+    for (auto& rs : locShaderResourceInterfacePool)
+      if (rs->myHash == requestedHash)
+        return rs.get();
+
+    ShaderResourceInterface* rs = new ShaderResourceInterface;
+    locShaderResourceInterfacePool.push_back(std::unique_ptr<ShaderResourceInterface>(rs));
+    
+    rs->myHash = requestedHash;
+    rs->myInterfaceDesc = locGetInterfaceDescFromRSdesc(anRSdesc);
+
+    if (anRS == nullptr)
+    {
+      ComPtr<ID3DBlob> signature;
+      ComPtr<ID3DBlob> error;
+      ComPtr<ID3D12RootSignature> rootSignature;
+      HRESULT success = D3D12SerializeRootSignature(&anRSdesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+      ASSERT(success == S_OK, "Failed serializing RootSignature");
+
+      ID3D12Device* device = Fancy::GetRenderer()->GetDevice();
+      ASSERT(device);
+
+      success = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+      ASSERT(success == S_OK, "Failed creating RootSignature");
+
+      rs->myRootSignature = rootSignature;
+    }
+    else
+    {
+      rs->myRootSignature = anRS;
+    }
+
+    return rs;
   }
 //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::DX12

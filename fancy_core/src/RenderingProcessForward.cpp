@@ -33,7 +33,7 @@ namespace Fancy { namespace Rendering {
 
     ourDummyPipeline.myGpuPrograms[(uint32)ShaderStage::VERTEX] = vertexShader;
     ourDummyPipeline.myGpuPrograms[(uint32)ShaderStage::FRAGMENT] = fragmentShader;
-    ourDummyPipeline.myRootSignature = vertexShader->GetRootSignature();
+    ourDummyPipeline.myResourceInterface = vertexShader->GetResourceInterface();
 
     struct Vertex
     {

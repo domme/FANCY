@@ -36,8 +36,8 @@ namespace Fancy {
   {
     ourRenderer = new Rendering::Renderer(aNativeWindowHandle);
 
-    Rendering::RenderingSubsystem::InitPlatform();
-    Rendering::RenderingSubsystem::Init();
+    Rendering::RenderCore::InitPlatform();
+    Rendering::RenderCore::Init();
 
     ourRenderer->postInit();
   }
@@ -98,8 +98,8 @@ namespace Fancy {
 
   void ShutdownRenderingSubsystem()
   {
-    Rendering::RenderingSubsystem::Shutdown();
-    Rendering::RenderingSubsystem::ShutdownPlatform();
+    Rendering::RenderCore::Shutdown();
+    Rendering::RenderCore::ShutdownPlatform();
 
     SAFE_DELETE(ourRenderer);
   }

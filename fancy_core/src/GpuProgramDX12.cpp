@@ -74,6 +74,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
   GpuProgramDX12::GpuProgramDX12()
+    : myResourceInterface(nullptr)
   {
   }
 //---------------------------------------------------------------------------//
@@ -144,7 +145,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myInputLayout = aCompilerOutput.clVertexInputLayout;
     CreateNativeInputLayout(myInputLayout, myNativeInputElements);
 
-    myRootSignature = aCompilerOutput.myRootSignature;
+    myResourceInterface = aCompilerOutput.myRootSignature;
   }
 //---------------------------------------------------------------------------//
 } } }

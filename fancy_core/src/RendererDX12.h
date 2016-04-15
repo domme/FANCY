@@ -12,7 +12,8 @@
 #include "CommandAllocatorPoolDX12.h"
 
 namespace Fancy { namespace Rendering {
-  class GeometryVertexLayout;
+class ShaderResourceInterface;
+class GeometryVertexLayout;
 } }
 
 namespace Fancy { namespace Rendering { namespace DX12 {
@@ -63,14 +64,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ComPtr<ID3D12CommandQueue> myCommandQueue;
 	};
 //---------------------------------------------------------------------------//
+
 //---------------------------------------------------------------------------//
-  class RenderingSubsystemDX12
+
+  // TODO: Make the RenderCore the main API entry point for render-related stuff (avoid having to call Fancy::GetRenderer() everywhere)
+
+  class RenderCoreDX12
   {
   public:
     /// Initializes platform-dependent rendering stuff
     static void InitPlatform();
     /// Shutdown of platform-dependent rendering stuff
     static void ShutdownPlatform();
+
+    static Rendering::ShaderResourceInterface* 
+      GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS = nullptr);
   };
 //---------------------------------------------------------------------------//
 } } } // end of namespace Fancy::Renderer::DX12
