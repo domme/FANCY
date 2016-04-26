@@ -5,6 +5,18 @@
  #include "inc_Lighting.hlsl"
  #include "inc_RootSignatures.hlsl"
 
+#define ROOT_SIGNATURE  "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT )," \
+                        "CBV(b0), " \
+                        "CBV(b1), " \
+                        "DescriptorTable(SRV(t0, numDescriptors = 3), visibility = SHADER_VISIBILITY_PIXEL)," \
+                        "StaticSampler(s0, " \
+                        "addressU = TEXTURE_ADDRESS_WRAP, " \
+                        "addressV = TEXTURE_ADDRESS_WRAP, " \
+                        "filter = FILTER_MIN_MAG_MIP_POINT )"
+
+ConstantBuffer<PER_LIGHT> cbPerLight : register(b0);
+ConstantBuffer<PER_OBJECT> cbPerObject : register(b1);
+
   struct VS_OUT
   {
     float4 pos : SV_POSITION;
@@ -23,7 +35,7 @@
       float2 texcoord0 : TEXCOORD0;
     };
     
-    [RootSignature(RS_FORWARD_COLORPASS)]
+    [RootSignature(ROOT_SIGNATURE)]
     VS_OUT main(VS_IN v)
     {
       VS_OUT vs_out = (VS_OUT)0;
@@ -37,14 +49,13 @@
     }
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
-  #if defined(PROGRAM_TYPE_FRAGMENT)
-  
+  #if defined(PROGRAM_TYPE_FRAGMENT)  
     Texture2D tex_diffuse : register(t0);
     Texture2D tex_normal : register(t1);
     Texture2D tex_specular : register(t2);
     SamplerState sampler_default : register(s0);
-    
-    [RootSignature(RS_FORWARD_COLORPASS)]
+
+    [RootSignature(ROOT_SIGNATURE)]
     float4 main(VS_OUT fs_in) : SV_TARGET
     {
       float3 albedo = float3(1.0, 1.0, 1.0);

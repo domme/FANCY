@@ -14,13 +14,9 @@ namespace Fancy { namespace Rendering { namespace ResourceBinding {
 //---------------------------------------------------------------------------//
   void BindResources_ForwardColorPass(RenderContext* aContext, const ResourceBindingDataSource& aDataSource)
   {
-    aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_FRAME), 0);
-    aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_VIEWPORT), 1);
-    aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_CAMERA), 2);
-    aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_LIGHT), 3);
-    aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_MATERIAL), 4);
-    aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_OBJECT), 5);
-
+    aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_LIGHT), 0);
+    aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_OBJECT), 1);
+    
     const uint32 kNumTextures = 3u;
     Descriptor textureDescriptors[kNumTextures];
 
@@ -31,7 +27,7 @@ namespace Fancy { namespace Rendering { namespace ResourceBinding {
         textureDescriptors[i] = readTextures[i]->GetSrv();
     }
 
-    aContext->SetMultipleResources(textureDescriptors, kNumTextures, (uint32)GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER, 6);
+    aContext->SetMultipleResources(textureDescriptors, kNumTextures, (uint32)GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER, 2);
   }
 //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::ResourceBinding

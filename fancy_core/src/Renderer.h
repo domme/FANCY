@@ -31,6 +31,10 @@ namespace Fancy { namespace Rendering {
     /// Shutdown platform-independent stuff
     static void Shutdown();
 
+    static const Texture* GetDefaultDiffuseTexture() { return ourDefaultDiffuseTexture.get(); }
+    static const Texture* GetDefaultNormalTexture() { return ourDefaultNormalTexture.get(); }
+    static const Texture* GetDefaultSpecularTexture() { return ourDefaultSpecularTexture.get(); }
+
   private:
     RenderCore() {}
 

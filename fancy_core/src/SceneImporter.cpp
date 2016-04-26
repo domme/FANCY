@@ -40,6 +40,7 @@
 #include "GpuProgramPipeline.h"
 #include "MaterialPassInstance.h"
 #include "Log.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -806,6 +807,10 @@ namespace Fancy { namespace IO {
     //---------------------------------------------------------------------------//
     MaterialPassInstanceDesc mpiDesc;
     mpiDesc.myMaterialPass = matPassDesc;
+    mpiDesc.myReadTextures[0u] = RenderCore::GetDefaultDiffuseTexture()->GetDescription();
+    mpiDesc.myReadTextures[1u] = RenderCore::GetDefaultNormalTexture()->GetDescription();
+    mpiDesc.myReadTextures[2u] = RenderCore::GetDefaultSpecularTexture()->GetDescription();
+
     if (nullptr != pDiffuseTex)
       mpiDesc.myReadTextures[0u] = pDiffuseTex->GetDescription();
     if (nullptr != pNormalTex)

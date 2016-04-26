@@ -5,13 +5,11 @@
   {
     float4 c_TimeParamters;
   };
-  ConstantBuffer<PER_FRAME> cbPerFrame : register(b0);
 //---------------------------------------------------------------------------//
   struct PER_VIEWPORT
   {
     float4 c_RenderTargetSize;
   };
-  ConstantBuffer<PER_VIEWPORT> cbPerViewport : register(b1);
 //---------------------------------------------------------------------------//
   struct PER_CAMERA
   {
@@ -24,7 +22,6 @@
     float4 c_NearFarParameters;
     float4 c_CameraPosWS;
   };
-  ConstantBuffer<PER_CAMERA> cbPerCamera : register(b2);
 //---------------------------------------------------------------------------//
   struct PER_LIGHT
   {
@@ -37,14 +34,12 @@
     float3 c_LightDirWS;
     float3 c_LightDirVS;
   };
-  ConstantBuffer<PER_LIGHT> cbPerLight : register(b3);
 //---------------------------------------------------------------------------//  
   struct PER_MATERIAL
   {
     float4 c_MatDiffIntensity;
     float4 c_MatSpecIntensity;
   };
-  ConstantBuffer<PER_MATERIAL> cbPerMaterial : register(b4);
 //---------------------------------------------------------------------------//  
   struct PER_OBJECT
   {
@@ -55,6 +50,5 @@
       float4x4 c_WorldViewProjectionMatrix;
       float4x4 c_WorldViewProjectionInverseMatrix;
   };
-  ConstantBuffer<PER_OBJECT> cbPerObject : register(b5);
 //---------------------------------------------------------------------------//  
 #endif // INCLUDE_CONSTANTBUFFER_INCLUDE_

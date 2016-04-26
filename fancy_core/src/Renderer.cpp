@@ -2,6 +2,7 @@
 #include "DepthStencilState.h"
 #include "ShaderConstantsManager.h"
 #include "ResourceBinding.h"
+#include "TextureRefs.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -75,12 +76,15 @@ namespace Fancy { namespace Rendering {
       params.eFormat = DataFormat::SRGB_8;
       params.u16Height = 1u;
       params.u16Width = 1u;
+      params.myInternalRefIndex = (uint32) TextureRef::DEFAULT_DIFFUSE;
 
       TextureUploadData data(params);
       uint8 color[3] = { 0, 0, 0 };
       data.myData = color;
 
       ourDefaultDiffuseTexture->create(params, &data, 1);
+
+      params.myInternalRefIndex = (uint32)TextureRef::DEFAULT_SPECULAR;
       ourDefaultSpecularTexture->create(params, &data, 1);
     }
 
@@ -90,10 +94,12 @@ namespace Fancy { namespace Rendering {
       params.eFormat = DataFormat::RGB_8;
       params.u16Height = 1u;
       params.u16Width = 1u;
+      params.myInternalRefIndex = (uint32)TextureRef::DEFAULT_NORMAL;
 
       TextureUploadData data(params);
       uint8 color[3] = { 128, 128, 128 };
       data.myData = color;
+
 
       ourDefaultNormalTexture->create(params, &data, 1);
     }
