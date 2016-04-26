@@ -312,6 +312,7 @@
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
     <ClInclude Include="src\d3dx12.h" />
+    <ClInclude Include="src\DataFormat.h" />
     <ClInclude Include="src\Descriptor.h" />
     <ClInclude Include="src\DescriptorDX12.h" />
     <ClInclude Include="src\DescriptorHeapPoolDX12.h" />
@@ -333,9 +334,6 @@
     <ClInclude Include="src\GpuBuffer.h" />
     <ClInclude Include="src\GpuBufferGL4.h" />
     <ClInclude Include="src\CommandAllocatorPoolDX12.h" />
-    <ClInclude Include="src\GpuDataInterface.h" />
-    <ClInclude Include="src\GpuDataInterfaceDX12.h" />
-    <ClInclude Include="src\GpuDataInterfaceGL4.h" />
     <ClInclude Include="src\GpuDynamicAllocatorDX12.h" />
     <ClInclude Include="src\GpuProgram.h" />
     <ClInclude Include="src\GpuProgramCompiler.h" />
@@ -392,7 +390,6 @@
     <ClInclude Include="src\RenderingProcessForward.h" />
     <ClInclude Include="src\RenderOperation.h" />
     <ClInclude Include="src\ResourceBinding.h" />
-    <ClInclude Include="src\RootSignatureDX12.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneImporter.h" />
     <ClInclude Include="src\SceneNode.h" />
@@ -414,6 +411,7 @@
     <ClInclude Include="src\TextureDX12.h" />
     <ClInclude Include="src\TextureGL4.h" />
     <ClInclude Include="src\TextureLoader.h" />
+    <ClInclude Include="src\TextureRefs.h" />
     <ClInclude Include="src\TextureSampler.h" />
     <ClInclude Include="src\TextureSamplerDesc.h" />
     <ClInclude Include="src\TextureSamplerDX12.h" />
@@ -428,6 +426,7 @@
     <ClCompile Include="src\AdapterGL4.cpp" />
     <ClCompile Include="src\BinaryCache.cpp" />
     <ClCompile Include="src\BlendState.cpp" />
+    <ClCompile Include="src\DataFormat.cpp" />
     <ClCompile Include="src\DescriptorHeapPoolDX12.cpp" />
     <ClCompile Include="src\GpuBufferDX12.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
@@ -440,8 +439,6 @@
     <ClCompile Include="src\FileReader.cpp" />
     <ClCompile Include="src\GpuBufferGL4.cpp" />
     <ClCompile Include="src\CommandAllocatorPoolDX12.cpp" />
-    <ClCompile Include="src\GpuDataInterfaceDX12.cpp" />
-    <ClCompile Include="src\GpuDataInterfaceGL4.cpp" />
     <ClCompile Include="src\GpuDynamicAllocatorDX12.cpp" />
     <ClCompile Include="src\GpuProgram.cpp" />
     <ClCompile Include="src\GpuProgramCompilerDX12.cpp" />
@@ -487,7 +484,6 @@
     <ClCompile Include="src\RenderingProcessForward.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
     <ClCompile Include="src\ResourceBinding.cpp" />
-    <ClCompile Include="src\RootSignatureDX12.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\SceneImporter.cpp" />
     <ClCompile Include="src\SceneNode.cpp" />

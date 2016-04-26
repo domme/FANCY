@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "GpuProgramCompilerDX12.h"
 #include "AdapterDX12.h"
+#include "Renderer.h"
 
 #if defined (RENDERER_DX12)
 
@@ -28,7 +29,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       nativeElem.AlignedByteOffset = offsetByte;
       offsetByte += elem.mySizeBytes;
 
-      nativeElem.Format = Adapter::toNativeType(elem.myFormat);
+      nativeElem.Format = RenderCore::GetFormat(elem.myFormat);
 
       // TODO: Add support for instancing
       nativeElem.InputSlot = 0;

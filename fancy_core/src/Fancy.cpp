@@ -40,6 +40,8 @@ namespace Fancy {
     Rendering::RenderCore::Init();
 
     ourRenderer->postInit();
+
+    Rendering::RenderCore::PostInit();
   }
 
   void initIOsubsystem()

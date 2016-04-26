@@ -65,7 +65,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myGpuHeapStart = myDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
   }
 //---------------------------------------------------------------------------//
-
+  
 //---------------------------------------------------------------------------//
   DescriptorHeapPoolDX12::DescriptorHeapPoolDX12(RendererDX12& aRenderer)
     : myRenderer(aRenderer)
@@ -103,7 +103,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     while(!myUsedDynamicHeaps.empty() && myRenderer.IsFenceDone(myUsedDynamicHeaps.front().first))
     {
-      myAvailableDynamicHeaps.push_back(myUsedDynamicHeaps.front().second);
+      DescriptorHeapDX12* heap = myUsedDynamicHeaps.front().second;
+      heap->Reset();
+
+      myAvailableDynamicHeaps.push_back(heap);
       myUsedDynamicHeaps.pop();
     }
 

@@ -137,41 +137,8 @@ namespace Fancy {
 				}
 			}*/
 		//---------------------------------------------------------------------------//
-			/// Returns the internal format (prior to any modifications)
-			DXGI_FORMAT Adapter::toNativeType(const DataFormat& generalType)
-			{
-				switch (generalType)
-				{
-					case DataFormat::SRGB_8_A_8:     return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-					case DataFormat::RGBA_8:         return DXGI_FORMAT_R8G8B8A8_UNORM;
-					case DataFormat::SRGB_8:         return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-					case DataFormat::RGB_8:          return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-					case DataFormat::RGB_11_11_10F:  return DXGI_FORMAT_R11G11B10_FLOAT;
-					case DataFormat::RGBA_16F:       return DXGI_FORMAT_R16G16B16A16_FLOAT;
-					case DataFormat::RGB_16F:        return DXGI_FORMAT_R16G16B16A16_FLOAT;
-					case DataFormat::RG_16F:         return DXGI_FORMAT_R16G16_FLOAT;
-					case DataFormat::R_16F:          return DXGI_FORMAT_R16_FLOAT;
-					case DataFormat::RGBA_32F:       return DXGI_FORMAT_R32G32B32A32_FLOAT;
-					case DataFormat::RGB_32F:        return DXGI_FORMAT_R32G32B32_FLOAT;
-					case DataFormat::RG_32F:         return DXGI_FORMAT_R32G32_FLOAT;
-					case DataFormat::R_32F:          return DXGI_FORMAT_R32_FLOAT;
-					case DataFormat::RGBA_32UI:      return DXGI_FORMAT_R32G32B32A32_UINT;
-					case DataFormat::RGB_32UI:       return DXGI_FORMAT_R32G32B32_UINT;
-					case DataFormat::RG_32UI:        return DXGI_FORMAT_R32G32_UINT;
-					case DataFormat::R_32UI:         return DXGI_FORMAT_R32_UINT;
-					case DataFormat::RGBA_16UI:      return DXGI_FORMAT_R16G16B16A16_UINT;
-					case DataFormat::RGB_16UI:       return DXGI_FORMAT_R16G16B16A16_UINT;
-					case DataFormat::RG_16UI:        return DXGI_FORMAT_R16G16_UINT;
-					case DataFormat::R_16UI:         return DXGI_FORMAT_R16_UINT;
-					case DataFormat::RGBA_8UI:       return DXGI_FORMAT_R8G8B8A8_UINT;
-					case DataFormat::RGB_8UI:        return DXGI_FORMAT_R8G8B8A8_UINT;
-					case DataFormat::RG_8UI:         return DXGI_FORMAT_R8G8_UINT;
-					case DataFormat::R_8UI:          return DXGI_FORMAT_R8_UINT;
-					case DataFormat::DS_24_8:        return DXGI_FORMAT_D24_UNORM_S8_UINT;
-          case DataFormat::UNKNOWN:        return DXGI_FORMAT_UNKNOWN;
-					default: ASSERT(false, "Missing implementation"); return DXGI_FORMAT_R8G8B8A8_UNORM;
-				}
-			}
+			
+			
 		//---------------------------------------------------------------------------//
 		/*	void Adapter::getGLtypeAndNumComponentsFromFormat(const DataFormat& eFormat,
 				uint32& ruComponents, GLenum& reTypeGL)

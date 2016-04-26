@@ -14,6 +14,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "ObjectName.h"
+#include "DataFormat.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -76,7 +77,6 @@ namespace Fancy {
         class GpuProgramCompilerGL4;
         class TextureSamplerGL4;
         class GpuProgramResourceGL4;
-        class GpuDataInterfaceGL4;
         class RenderCoreGL4;
       }
 
@@ -90,7 +90,6 @@ namespace Fancy {
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerGL4.h"
       #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_GPUDATAINTERFACE "GpuDataInterfaceGL4.h"
 
     #elif defined (RENDERER_DX11)
       namespace DX11 {}
@@ -107,7 +106,6 @@ namespace Fancy {
 			class GpuProgramCompilerDX12;
 			class TextureSamplerDX12;
 			class GpuProgramResourceDX12;
-      class GpuDataInterfaceDX12;
       class RenderCoreDX12;
       class GpuResourceDX12;
       class DescriptorDX12;
@@ -124,7 +122,6 @@ namespace Fancy {
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceDX12.h"
-    #define PLATFORM_DEPENDENT_INCLUDE_GPUDATAINTERFACE "GpuDataInterfaceDX12.h"
     #define PLATFORM_DEPENDENT_INCLUDE_GPURESOURCE "GpuResourceDX12.h"
     #define PLATFORM_DEPENDENT_INCLUDE_DESCRIPTOR "DescriptorDX12.h"
     #define PLATFORM_DEPENDENT_INCLUDE_SHADERRESOURCEINTERFACE "ShaderResourceInterfaceDX12.h"
@@ -249,54 +246,6 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    enum class DataFormat {
-      NONE = 0,
-      SRGB_8_A_8,
-      RGBA_8,
-      SRGB_8,
-      RGB_8,
-      RGB_11_11_10F,
-      RGBA_16F,
-      RGB_16F,
-      RG_16F,
-      R_16F,
-      RGBA_32F,
-      RGB_32F,
-      RG_32F,
-      R_32F,
-      RGBA_32UI,
-      RGB_32UI,
-      RG_32UI,
-      R_32UI,
-      RGBA_16UI,
-      RGB_16UI,
-      RG_16UI,
-      R_16UI,
-      RGBA_8UI,
-      RGB_8UI,
-      RG_8UI,
-      R_8UI,
-      RGBA_32I,
-      RGB_32I,
-      RG_32I,
-      R_32I,
-      RGBA_16I,
-      RGB_16I,
-      RG_16I,
-      R_16I,
-      RGBA_8I,
-      RGB_8I,
-      RG_8I,
-      R_8I,
-      DS_24_8,
-
-      // Compressed formats go here...
-      // TODO: Find a way to declare compressed formats
-  
-      NUM,
-      UNKNOWN = NONE
-    };
-  //---------------------------------------------------------------------------//
     enum class GpuResourceAccessFlags {
       /// No special access flags
       NONE                = 0x00000000,
@@ -335,19 +284,6 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    struct TextureUploadData
-    {
-      TextureUploadData() 
-        : myData(nullptr), myRowSizeBytes(0u), myTotalSizeBytes(0u), myPixelSizeBytes(0u), mySliceSizeBytes(0u)
-      {}
-
-      uint8* myData;
-      uint64 myPixelSizeBytes;
-      uint64 myRowSizeBytes;
-      uint64 mySliceSizeBytes;
-      uint64 myTotalSizeBytes;
-    };
-  //---------------------------------------------------------------------------//
     struct TextureParams {
       TextureParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
         eFormat(DataFormat::NONE), uAccessFlags(0u), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u), 
@@ -368,6 +304,22 @@ namespace Fancy {
       uint8 u8NumMipLevels;
     };
  //---------------------------------------------------------------------------//
+ //---------------------------------------------------------------------------//
+    struct TextureUploadData
+    {
+      TextureUploadData()
+        : myData(nullptr), myRowSizeBytes(0u), myTotalSizeBytes(0u), myPixelSizeBytes(0u), mySliceSizeBytes(0u)
+      {}
+    
+      TextureUploadData(const TextureParams& someParams);
+      
+      uint8* myData;
+      uint64 myPixelSizeBytes;
+      uint64 myRowSizeBytes;
+      uint64 mySliceSizeBytes;
+      uint64 myTotalSizeBytes;
+    };
+//---------------------------------------------------------------------------//
     enum class GpuBufferUsage {
       CONSTANT_BUFFER = (1 << 0),
       VERTEX_BUFFER = (1 << 1),

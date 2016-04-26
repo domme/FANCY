@@ -6,12 +6,12 @@
 #include "SceneRenderDescription.h"
 #include "MaterialPass.h"
 #include "LightComponent.h"
-#include "GpuDataInterface.h"
 #include "MaterialPassInstance.h"
 #include "RenderContext.h"
 #include "GpuProgramCompiler.h"
 #include "GpuProgramPipeline.h"
 #include "GeometryData.h"
+#include "ResourceBinding.h"
 
 namespace Fancy { namespace Rendering {
 
@@ -19,8 +19,7 @@ namespace Fancy { namespace Rendering {
   Geometry::GeometryData ourFsQuadGeometry;
 
 //---------------------------------------------------------------------------//
-  RenderingProcessForward::RenderingProcessForward() :
-    myGpuDataInterface(new GpuDataInterface)
+  RenderingProcessForward::RenderingProcessForward()
   {
     // Setup dummy stuff
     GpuProgramDesc shaderDesc;
@@ -118,8 +117,6 @@ namespace Fancy { namespace Rendering {
     Scene::SceneRenderDescription renderDesc;
     pScene->gatherRenderItems(&renderDesc);
 
-    ShaderConstantsManager::bindBuffers(context);
-
     ShaderConstantsManager::updateStage.myRenderContext = context;
     ShaderConstantsManager::update(ConstantBufferType::PER_FRAME);
 
@@ -144,6 +141,8 @@ namespace Fancy { namespace Rendering {
       ShaderConstantsManager::updateStage.pLight = aLight;
       ShaderConstantsManager::update(ConstantBufferType::PER_LIGHT);
 
+      ResourceBindingDataSource bindingSource;
+      
       for (uint32 iRenderItem = 0u; iRenderItem < forwardRenderList.size(); ++iRenderItem)
       {
         const RenderingItem& renderItem = forwardRenderList[iRenderItem];
@@ -158,11 +157,12 @@ namespace Fancy { namespace Rendering {
         if (pCachedMaterialPass != pMaterialPass)
         {
           pCachedMaterialPass = pMaterialPass;
-          myGpuDataInterface->applyMaterialPass(pMaterialPass, context);
+          ApplyMaterialPass(pMaterialPass, context);
         }
 
-        myGpuDataInterface->applyMaterialPassInstance(renderItem.pMaterialPassInstance, context);
-
+        bindingSource.myMaterial = renderItem.pMaterialPassInstance;
+        ResourceBinding::BindResources_ForwardColorPass(context, bindingSource);
+        
         context->renderGeometry(renderItem.pGeometry);
       }  // end renderItems
     }  // end lights

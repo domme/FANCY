@@ -23,6 +23,7 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     const D3D12_CPU_DESCRIPTOR_HANDLE& GetCpuHeapStart() const { return myCpuHeapStart; }
     const D3D12_GPU_DESCRIPTOR_HANDLE& GetGpuHeapStart() const { return myGpuHeapStart; }
     ID3D12DescriptorHeap* GetHeap() const { return myDescriptorHeap.Get(); }
+    void Reset() { myNextFreeHandleIndex = 0u; }
 
     Descriptor AllocateDescriptor();
     Descriptor GetDescriptor(uint32 anIndex);

@@ -102,7 +102,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
   protected:
     void ApplyViewport();
-    void ApplyRootSignature();
     void ApplyPipelineState();
     void ApplyDescriptorHeaps();
     void ApplyRenderTargets();
@@ -126,7 +125,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool myRenderTargetsDirty;
 
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
-    bool myRootSignatureDirty;
     ID3D12GraphicsCommandList* myCommandList;
 
     ID3D12CommandAllocator* myCommandAllocator;

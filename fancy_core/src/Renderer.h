@@ -18,16 +18,25 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
+  class Texture;
+//---------------------------------------------------------------------------//
   class RenderCore : public PLATFORM_DEPENDENT_NAME(RenderCore)
   {
   public:
     /// Init platform-independent stuff
     static void Init();
+    /// Called after the rendering system has been fully initialzed (Rendering-resources can be created here)
+    static void PostInit();
+
     /// Shutdown platform-independent stuff
     static void Shutdown();
 
   private:
     RenderCore() {}
+
+    static std::shared_ptr<Texture> ourDefaultDiffuseTexture;
+    static std::shared_ptr<Texture> ourDefaultNormalTexture;
+    static std::shared_ptr<Texture> ourDefaultSpecularTexture;
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Rendering

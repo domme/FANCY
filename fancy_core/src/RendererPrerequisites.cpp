@@ -1,5 +1,6 @@
 #include "RendererPrerequisites.h"
 #include "TimeManager.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -11,4 +12,20 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
- } }  // end of namespace Fancy::Rendering
+TextureUploadData::TextureUploadData(const TextureParams& someParams)
+  : myData(nullptr)
+{
+  DataFormat actualFormat = RenderCore::ResolveFormat(someParams.eFormat);
+  DataFormatInfo info(actualFormat);
+  myPixelSizeBytes = info.mySizeBytes;
+
+  uint32 width = someParams.u16Width;
+  uint32 height = glm::max((uint16)1, someParams.u16Height);
+  uint32 depth = glm::max((uint16)1, someParams.u16Depth);
+
+  myTotalSizeBytes = myPixelSizeBytes * width * height * depth;
+  mySliceSizeBytes = myPixelSizeBytes * width * height;
+  myRowSizeBytes = myPixelSizeBytes * width;
+}
+//---------------------------------------------------------------------------//
+} }  // end of namespace Fancy::Rendering

@@ -20,7 +20,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		static D3D12_STENCIL_OP toNativeType(const StencilOp& generalType);
 		static D3D12_FILL_MODE toNativeType(const FillMode& generalType);
 		static D3D12_CULL_MODE toNativeType(const CullMode& generalType);
-		static DXGI_FORMAT toNativeType(const DataFormat& generalType);
 		//static Glenum toNativeType(const WindingOrder& generalType);
 		//static GLenum toNativeType(const ShaderStage& generalType);
 		//static GLuint toNativeFlag(const ShaderStageFlag& generalType);

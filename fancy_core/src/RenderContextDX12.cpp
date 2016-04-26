@@ -72,7 +72,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
     
     // ROOT SIGNATURE
-    psoDesc.pRootSignature = myGpuProgramPipeline->myResourceInterface->myResourceInterface.Get();
+    psoDesc.pRootSignature = myGpuProgramPipeline->GetRootSignature();
 
                                        // BLEND DESC
     D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
@@ -187,11 +187,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     // RTV-FORMATS
     for (uint i = 0u; i < myNumRenderTargets; ++i)
     {
-      psoDesc.RTVFormats[i] = Adapter::toNativeType(myRTVformats[i]);
+      psoDesc.RTVFormats[i] = RenderCore::GetFormat(myRTVformats[i]);
     }
 
     // DSV FORMAT
-    psoDesc.DSVFormat = Adapter::toNativeType(myDSVformat);
+    psoDesc.DSVFormat = RenderCore::GetFormat(myDSVformat);
 
     // NODE MASK
     psoDesc.NodeMask = 0u;
@@ -207,7 +207,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
     , myRootSignature(nullptr)
-    , myRootSignatureDirty(false)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
     , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
@@ -234,7 +233,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
     , myRootSignature(nullptr)
-    , myRootSignatureDirty(false)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
     , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
@@ -273,7 +271,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderContextDX12::ResetInternalStates()
   {
     myRootSignature = nullptr;
-    myRootSignatureDirty = true;
     myPipelineState = PipelineState();
     myViewportDirty = true;
     myRenderTargetsDirty = true;
@@ -591,7 +588,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (myRootSignature != aGpuProgramPipeline->GetRootSignature())
     {
       myRootSignature = aGpuProgramPipeline->GetRootSignature();
-      myRootSignatureDirty = true;
+      myCommandList->SetGraphicsRootSignature(myRootSignature);
     }
   }
 //---------------------------------------------------------------------------//
@@ -599,7 +596,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     ApplyViewport();
     ApplyRenderTargets();
-    ApplyRootSignature();
     ApplyPipelineState();
 
     myCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -809,15 +805,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myCommandList->RSSetViewports(1u, &viewport);
     myCommandList->RSSetScissorRects(1u, &rect);
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::ApplyRootSignature()
-  {
-    if (!myRootSignatureDirty)
-      return;
-
-    myCommandList->SetGraphicsRootSignature(myRootSignature);
-    myRootSignatureDirty = false;
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::ApplyRenderTargets()

@@ -9,15 +9,6 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   const uint32 kMaxNumDescriptorSetElements = 32u;
 //---------------------------------------------------------------------------//
-  struct ResourceBindingDataSource
-  {
-    MaterialPassInstance* myMaterial;
-    GpuBuffer** myConstantBuffers;
-    uint32 myNumConstantBuffers;
-
-    // TODO: Add support for primitive data ("RootConstants" in DX12)
-  };
-//---------------------------------------------------------------------------//
   enum class SriElementType
   {
     Constants = 0,
@@ -73,12 +64,11 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  class ShaderResourceInterfaceDesc
+  struct ShaderResourceInterfaceDesc
   {
-  public:
-    // void Bind(RenderContext* aRenderContext, const ResourceBindingDataSource& aDataSource) const;
     
     std::vector<SriElement> myElements;
+    uint64 myHash;
   };
 //---------------------------------------------------------------------------//
 } }  // Fancy::Rendering

@@ -6,41 +6,13 @@
 #include "MaterialPassInstance.h"
 #include "Descriptor.h"
 #include "Texture.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace Rendering { namespace ResourceBinding {
 //---------------------------------------------------------------------------//
-  namespace {
-    std::vector<std::pair<uint64, BindingFunction*>> locBindingFunctions;
-  }
-//---------------------------------------------------------------------------//
-  void Register()
-  {
-
-  }
-//---------------------------------------------------------------------------//
-  void RegisterForResourceInterface(uint64 anInterfaceHash, BindingFunction* aBindingFunction)
-  {
-    for (auto& elem : locBindingFunctions)
-      if (elem.first == anInterfaceHash)
-        return;
-
-    locBindingFunctions.push_back(std::make_pair(anInterfaceHash, aBindingFunction));
-  }
-//---------------------------------------------------------------------------//
-  BindingFunction* GetFromResourceInterface(uint64 anInterfaceHash)
-  {
-    for (auto& elem : locBindingFunctions)
-      if (elem.first == anInterfaceHash)
-        return elem.second;
-
-    ASSERT(false, "No binding function registered for resource interface hash %", anInterfaceHash);
-  }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // Binding Functions:
 //---------------------------------------------------------------------------//
-  void BindResources_ForwardColorPass(RenderContext* aContext, MaterialPassInstance* aMaterial)
+  void BindResources_ForwardColorPass(RenderContext* aContext, const ResourceBindingDataSource& aDataSource)
   {
     aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_FRAME), 0);
     aContext->SetConstantBuffer(ShaderConstantsManager::GetConstantBuffer(ConstantBufferType::PER_VIEWPORT), 1);
@@ -52,9 +24,11 @@ namespace Fancy { namespace Rendering { namespace ResourceBinding {
     const uint32 kNumTextures = 3u;
     Descriptor textureDescriptors[kNumTextures];
 
+    const Texture * const* readTextures = aDataSource.myMaterial->getReadTextures();
+
     for (uint32 i = 0u; i < kNumTextures; ++i)
     {
-      textureDescriptors[i] = aMaterial->getReadTextures()[i]->GetSrv();
+        textureDescriptors[i] = readTextures[i]->GetSrv();
     }
 
     aContext->SetMultipleResources(textureDescriptors, kNumTextures, (uint32)GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER, 6);

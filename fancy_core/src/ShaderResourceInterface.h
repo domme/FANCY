@@ -10,16 +10,4 @@ namespace Fancy { namespace Rendering {
     
   };
 //---------------------------------------------------------------------------//
-
-
-  class ShaderResourceInterfacePoolDX12
-  {
-  public:
-    
-    static void Init();
-    static void Destroy();
-
-  protected:
-    static std::vector<ShaderResourceInterfaceDX12*> myRootSignaturePool;
-  };
 } }  // Fancy::Rendering

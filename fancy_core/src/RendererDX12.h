@@ -3,6 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "RenderContext.h"
+#include "DataFormat.h"
 
 #if defined (RENDERER_DX12)
 
@@ -76,6 +77,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static void InitPlatform();
     /// Shutdown of platform-dependent rendering stuff
     static void ShutdownPlatform();
+
+    static DXGI_FORMAT GetFormat(DataFormat aFormat);
+    static DataFormat ResolveFormat(DataFormat aFormat);
+    static DataFormatInfo GetFormatInfo(DXGI_FORMAT aFormat);
 
     static Rendering::ShaderResourceInterface* 
       GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS = nullptr);

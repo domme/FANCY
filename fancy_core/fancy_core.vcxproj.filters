@@ -286,15 +286,6 @@
     <ClInclude Include="src\AdapterDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuDataInterfaceGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuDataInterface.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuDataInterfaceDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="src\GpuResourceSignature.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -388,14 +379,11 @@
     <ClInclude Include="src\Descriptor.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\ShaderResourceInterfaceDesc.h">
+    <ClInclude Include="src\DataFormat.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\ShaderResourceInterface.h">
+    <ClInclude Include="src\TextureRefs.h">
       <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ShaderResourceInterfaceDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -594,12 +582,6 @@
     <ClCompile Include="src\AdapterDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuDataInterfaceGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GpuDataInterfaceDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClCompile>
     <ClCompile Include="src\MaterialPassInstance.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
@@ -651,11 +633,8 @@
     <ClCompile Include="src\ResourceBinding.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\ShaderResourceInterfaceDesc.cpp">
+    <ClCompile Include="src\DataFormat.cpp">
       <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ShaderResourceInterfaceDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
