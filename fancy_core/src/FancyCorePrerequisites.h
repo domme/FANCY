@@ -45,6 +45,9 @@
 //---------------------------------------------------------------------------//
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
 //---------------------------------------------------------------------------//
+  template<class T>
+  using SharedPtr = std::shared_ptr<T>;
+//---------------------------------------------------------------------------//
 #define DECLARE_SMART_PTRS(class) \
   typedef std::shared_ptr<##class> ##class##Ptr; \
   typedef std::weak_ptr<##class> ##class##WeakPtr;

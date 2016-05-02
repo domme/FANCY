@@ -15,11 +15,12 @@ class DLLEXPORT RenderingProcess
     RenderingProcess();
     virtual ~RenderingProcess();
 
-    virtual void startup() = 0;
-    virtual void tick(float _dt) = 0;
+    virtual void Startup() = 0;
+    virtual void Tick(float _dt) = 0;
 
   protected:
     static void ApplyMaterialPass(const MaterialPass* _pMaterialPass, RenderContext* aRenderContext);
+
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(RenderingProcess)

@@ -203,21 +203,21 @@ namespace Fancy {  namespace IO {
       // Vertex data
       {
         const Rendering::GpuBuffer* buffer = geoData->getVertexBuffer();
-        const Rendering::GpuBufferCreationParams& bufferParams = buffer->getParameters();
+        const Rendering::GpuBufferCreationParams& bufferParams = buffer->GetParameters();
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
-        const uint32 buffersize = buffer->getTotalSizeBytes();
+        const uint32 buffersize = buffer->GetSizeBytes();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint32));
-        archive.write(reinterpret_cast<const char*>(someVertexDatas[i]), buffer->getTotalSizeBytes());
+        archive.write(reinterpret_cast<const char*>(someVertexDatas[i]), buffer->GetSizeBytes());
       }
 
       // Index data
       {
         const Rendering::GpuBuffer* buffer = geoData->getIndexBuffer();
-        const Rendering::GpuBufferCreationParams& bufferParams = buffer->getParameters();
+        const Rendering::GpuBufferCreationParams& bufferParams = buffer->GetParameters();
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
-        const uint32 buffersize = buffer->getTotalSizeBytes();
+        const uint32 buffersize = buffer->GetSizeBytes();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint32));
-        archive.write(reinterpret_cast<const char*>(someIndexDatas[i]), buffer->getTotalSizeBytes());
+        archive.write(reinterpret_cast<const char*>(someIndexDatas[i]), buffer->GetSizeBytes());
       }
     }
 

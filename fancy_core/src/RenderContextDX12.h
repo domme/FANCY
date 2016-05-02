@@ -98,6 +98,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void CopyResource(GpuResourceDX12* aDestResource, GpuResourceDX12* aSrcResource);
 
     static void InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr);
+    static void UpdateBufferData(GpuBufferDX12* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize);
     static void InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas);
 
   protected:

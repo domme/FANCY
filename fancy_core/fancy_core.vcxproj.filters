@@ -145,9 +145,6 @@
     <ClInclude Include="src\GeometryVertexLayout.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\ShaderConstantsManager.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\GpuProgramPipeline.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -385,6 +382,9 @@
     <ClInclude Include="src\TextureRefs.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="src\ScopedPtr.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -454,9 +454,6 @@
       <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
     <ClCompile Include="src\GeometryVertexLayout.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ShaderConstantsManager.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\TimeManager.cpp">

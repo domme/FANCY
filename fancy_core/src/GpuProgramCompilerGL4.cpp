@@ -5,7 +5,6 @@
 #if defined (RENDERER_OPENGL4)
 
 #include "GpuProgram.h"
-#include "ShaderConstantsManager.h"
 #include "FileReader.h"
 #include "StringUtil.h"
 #include "MathUtil.h"

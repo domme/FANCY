@@ -706,7 +706,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void* mappedBufferPtr;
     CheckD3Dcall(uploadResource->Map(0, nullptr, &mappedBufferPtr));
-    memcpy(mappedBufferPtr, aDataPtr, aBuffer->getTotalSizeBytes());
+    memcpy(mappedBufferPtr, aDataPtr, aBuffer->GetSizeBytes());
     uploadResource->Unmap(0, nullptr);
 
     RenderContext* initContext = RenderContext::AllocateContext();
@@ -716,6 +716,39 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
     initContext->ExecuteAndReset(true);
     
+    RenderContext::FreeContext(initContext);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::UpdateBufferData(GpuBufferDX12* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize)
+  {
+    RendererDX12* renderer = Fancy::GetRenderer();
+
+    D3D12_HEAP_PROPERTIES heapProps;
+    memset(&heapProps, 0, sizeof(heapProps));
+    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+    heapProps.CreationNodeMask = 1;
+    heapProps.VisibleNodeMask = 1;
+
+    D3D12_RESOURCE_DESC uploadResourceDesc = aBuffer->GetResource()->GetDesc();
+    uploadResourceDesc.Width = MathUtil::Align(aByteSize, aBuffer->GetAlignment());
+
+    ComPtr<ID3D12Resource> uploadResource;
+    CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
+      &uploadResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
+
+    void* uploadBufferPtr;
+    CheckD3Dcall(uploadResource->Map(0, nullptr, &uploadBufferPtr));
+    memcpy(uploadBufferPtr, aDataPtr, aByteSize);
+    uploadResource->Unmap(0, nullptr);
+
+    RenderContext* initContext = RenderContext::AllocateContext();
+    initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
+    initContext->myCommandList->CopyBufferRegion(aBuffer->GetResource(), aByteOffset, uploadResource.Get(), 0u, aByteSize);
+    initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+
+    initContext->ExecuteAndReset(true);
+
     RenderContext::FreeContext(initContext);
   }
 //---------------------------------------------------------------------------//

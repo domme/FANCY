@@ -396,9 +396,9 @@
     <ClInclude Include="src\SceneNodeComponent.h" />
     <ClInclude Include="src\SceneNodeComponentFactory.h" />
     <ClInclude Include="src\SceneRenderDescription.h" />
+    <ClInclude Include="src\ScopedPtr.h" />
     <ClInclude Include="src\Serializable.h" />
     <ClInclude Include="src\Serializer.h" />
-    <ClInclude Include="src\ShaderConstantsManager.h" />
     <ClInclude Include="src\SmallObjectAllocator.h" />
     <ClInclude Include="src\StaticManagedObject.h" />
     <ClInclude Include="src\StdAfx.h" />
@@ -491,7 +491,6 @@
     <ClCompile Include="src\SceneNodeComponentFactory.cpp" />
     <ClCompile Include="src\Serializable.cpp" />
     <ClCompile Include="src\Serializer.cpp" />
-    <ClCompile Include="src\ShaderConstantsManager.cpp" />
     <ClCompile Include="src\StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|Win32'">Create</PrecompiledHeader>

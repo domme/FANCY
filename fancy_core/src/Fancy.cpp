@@ -18,10 +18,11 @@
 #include "RenderingProcess.h"
 #include "LightComponent.h"
 #include "TextureLoader.h"
+#include "ScopedPtr.h"
 
 namespace Fancy {
   Scene::ScenePtr m_pCurrScene = nullptr;
-  Rendering::RenderingProcess* m_pRenderingProcess = nullptr;
+  ScopedPtr<Rendering::RenderingProcess> m_pRenderingProcess;
   Rendering::Renderer* ourRenderer = nullptr;
 
   void initComponentSubsystem()
@@ -55,45 +56,6 @@ namespace Fancy {
     initIOsubsystem();
     initComponentSubsystem();
     initRenderingSubsystem(aNativeWindowHandle);
-    
-    // DEBUG: Test texture loading
-    String texPathAbs = IO::PathService::convertToAbsPath("Textures\\Sibenik\\mramor6x6.png");
-
-    // Load and decode the texture to memory
-    std::vector<uint8> vTextureBytes;
-    IO::TextureLoadInfo texLoadInfo;
-    if (!IO::TextureLoader::loadTexture(texPathAbs, vTextureBytes, texLoadInfo))
-    {
-      LOG_ERROR("Failed to load texture at path %", texPathAbs);
-      return false;
-    }
-
-    if (texLoadInfo.bitsPerPixel / texLoadInfo.numChannels != 8u)
-    {
-      LOG_ERROR("Unsupported texture format: %", texPathAbs);
-      return false;
-    }
-
-    Rendering::Texture* tex = FANCY_NEW(Rendering::Texture, MemoryCategory::TEXTURES);
-
-    Rendering::TextureParams texParams;
-    texParams.myIsExternalTexture = true;
-    texParams.path = texPathAbs;
-    texParams.bIsDepthStencil = false;
-    texParams.eFormat = texLoadInfo.numChannels == 3u ? Rendering::DataFormat::SRGB_8 : Rendering::DataFormat::SRGB_8_A_8;
-    texParams.u16Width = texLoadInfo.width;
-    texParams.u16Height = texLoadInfo.height;
-    texParams.u16Depth = 0u;
-    texParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::NONE;
-
-    Rendering::TextureUploadData uploadData;
-    uploadData.myData = &vTextureBytes[0];
-    uploadData.myPixelSizeBytes = texLoadInfo.bitsPerPixel / 8u;
-    uploadData.myRowSizeBytes = texLoadInfo.width * uploadData.myPixelSizeBytes;
-    uploadData.mySliceSizeBytes = texLoadInfo.width * texLoadInfo.height * uploadData.myPixelSizeBytes;
-    uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
-
-    tex->create(texParams, &uploadData, 1u);
     
     return true;
   }
@@ -136,7 +98,7 @@ namespace Fancy {
     ASSERT(m_pCurrScene, "No scene set");
     ASSERT(m_pRenderingProcess, "No rendering process set");
 
-    m_pRenderingProcess->startup();
+    m_pRenderingProcess->Startup();
     m_pCurrScene->startup();
   }
 //---------------------------------------------------------------------------//
@@ -151,7 +113,7 @@ namespace Fancy {
     m_pCurrScene->update(deltaTime);
 
     ourRenderer->beginFrame();
-    m_pRenderingProcess->tick(deltaTime);
+    m_pRenderingProcess->Tick(deltaTime);
     ourRenderer->endFrame();
   }
 //---------------------------------------------------------------------------//
@@ -167,7 +129,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void SetRenderingProcess( Rendering::RenderingProcess* _pRenderingProcess )
   {
+    if (m_pRenderingProcess == _pRenderingProcess)
+      return;
+
     m_pRenderingProcess = _pRenderingProcess;
+    m_pRenderingProcess->Startup();
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

@@ -1,8 +1,8 @@
 #include "Renderer.h"
 #include "DepthStencilState.h"
-#include "ShaderConstantsManager.h"
 #include "ResourceBinding.h"
 #include "TextureRefs.h"
+#include "GpuBuffer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -19,8 +19,6 @@ namespace Fancy { namespace Rendering {
     BlendState defaultBlendstate;
     defaultBlendstate.SetFromDescription(BlendStateDesc::GetDefaultSolid());
     BlendState::Register(defaultBlendstate);
-
-    ShaderConstantsManager::Init();
 
     {
       ShaderVertexInputLayout& modelVertexLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
@@ -111,7 +109,33 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
   {
-    ShaderConstantsManager::Shutdown();
+    
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData /* = nullptr */)
+  {
+    SharedPtr<GpuBuffer> buffer(new GpuBuffer);
+    buffer->create(someParams, someInitialData);
+    return buffer;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer /* = 0 */)
+  {
+    ASSERT(aByteOffsetFromBuffer + aDataSizeBytes <= aBuffer->GetSizeBytes());
+
+    const GpuBufferCreationParams& bufParams = aBuffer->GetParameters();
+
+    if (bufParams.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE)
+    {
+      uint8* dest = static_cast<uint8*>(aBuffer->Lock(GpuResoruceLockOption::WRITE));
+      ASSERT(dest != nullptr);
+      memcpy(dest + aByteOffsetFromBuffer, aData, aDataSizeBytes);
+      aBuffer->Unlock();
+    }
+    else
+    {
+      RenderContext::UpdateBufferData(aBuffer, aData, aByteOffsetFromBuffer, aDataSizeBytes);
+    }
   }
 //---------------------------------------------------------------------------//
 } }

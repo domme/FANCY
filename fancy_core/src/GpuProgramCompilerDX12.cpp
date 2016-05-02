@@ -5,7 +5,6 @@
 #include "GpuProgram.h"
 #include "PathService.h"
 #include "ShaderResourceInterface.h"
-#include "ShaderConstantsManager.h"
 #include "Fancy.h"
 
 #if defined (RENDERER_DX12)

@@ -19,15 +19,15 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     bool isLocked() const { return myState.isLocked; }
     bool isLockedPersistent() const { return myState.isLocked; }
     bool isValid() const { return false; }  // TODO: Implement
-    uint getTotalSizeBytes() const { return myParameters.uNumElements * myParameters.uElementSizeBytes; }
+    uint GetSizeBytes() const { return myParameters.uNumElements * myParameters.uElementSizeBytes; }
     uint32 getNumElements() const { return myParameters.uNumElements; }
-    GpuBufferCreationParams getParameters() const { return myParameters; }
+    GpuBufferCreationParams GetParameters() const { return myParameters; }
+    uint32 GetAlignment() const { return myAlignment; }
 
-    void setBufferData(void* pData, uint uOffsetElements = 0, uint uNumElements = 0);
     void create(const GpuBufferCreationParams& clParameters, void* pInitialData = nullptr);
     void destroy();
-    void* lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
-    void unlock();
+    void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u);
+    void Unlock();
  
     const DescriptorDX12& GetSrvDescriptor() const { return mySrvDescriptor; }
     const DescriptorDX12& GetUavDescriptor() const { return myUavDescriptor; }
@@ -53,6 +53,8 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     };
 
     BufferState myState;
+
+    uint32 myAlignment;
 
     GpuBufferCreationParams myParameters;
 

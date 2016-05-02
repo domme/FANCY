@@ -8,6 +8,7 @@
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   GpuBufferDX12::GpuBufferDX12()
+    : myAlignment(0u)
   {
     memset(&myVertexBufferView, 0, sizeof(myVertexBufferView));
     memset(&myIndexBufferView, 0, sizeof(myIndexBufferView));
@@ -27,10 +28,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     GpuBufferDesc desc;
     desc.myInternalRefIndex = myParameters.myInternalRefIndex;
     return desc;
-  }
-//---------------------------------------------------------------------------//
-  void GpuBufferDX12::setBufferData(void* pData, uint uOffsetElements, uint uNumElements)
-  {
   }
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::create(const GpuBufferCreationParams& someParameters, void* pInitialData)
@@ -69,12 +66,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
     heapProps.VisibleNodeMask = 1u;
 
-    uint32 alignment = 0u;
+    myAlignment = 0u;
     if (wantsConstantBufferView)
-      alignment = 256u;
+      myAlignment = 256u;
 
     uint32 actualWidthBytesWithAlignment = 
-      MathUtil::Align(someParameters.uNumElements * someParameters.uElementSizeBytes, alignment);
+      MathUtil::Align(someParameters.uNumElements * someParameters.uElementSizeBytes, myAlignment);
 
     D3D12_RESOURCE_DESC resourceDesc;
     memset(&resourceDesc, 0, sizeof(resourceDesc));
@@ -194,10 +191,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       if (wantsCpuWrite)  // The fast path: Just lock and memcpy into cpu-visible region
       {
-        void* dest = lock(GpuResoruceLockOption::WRITE);
+        void* dest = Lock(GpuResoruceLockOption::WRITE);
         ASSERT(dest != nullptr);
         memcpy(dest, pInitialData, someParameters.uNumElements * someParameters.uElementSizeBytes);
-        unlock();
+        Unlock();
       }
       else
       {
@@ -252,7 +249,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
-  void* GpuBufferDX12::lock(GpuResoruceLockOption eLockOption, uint uOffsetElements, uint uNumElements)
+  void* GpuBufferDX12::Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements, uint uNumElements)
   {
     if (myState.isLocked)
       return nullptr;
@@ -285,7 +282,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return mappedData;
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::unlock()
+  void GpuBufferDX12::Unlock()
   {
     if (!myState.isLocked)
       return;

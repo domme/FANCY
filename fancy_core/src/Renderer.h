@@ -35,6 +35,9 @@ namespace Fancy { namespace Rendering {
     static const Texture* GetDefaultNormalTexture() { return ourDefaultNormalTexture.get(); }
     static const Texture* GetDefaultSpecularTexture() { return ourDefaultSpecularTexture.get(); }
 
+    static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
+    static void UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer = 0u);
+
   private:
     RenderCore() {}
 

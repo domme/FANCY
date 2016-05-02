@@ -10,7 +10,6 @@
 #include "VertexInputLayout.h"
 #include "DepthStencilState.h"
 #include "BlendState.h"
-#include "ShaderConstantsManager.h"
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 
