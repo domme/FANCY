@@ -197,7 +197,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
       return hash;
     }
-    //---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
+    CommandListType locGetCommandListType(D3D12_COMMAND_LIST_TYPE aType)
+    {
+      switch(aType)
+      {
+        case D3D12_COMMAND_LIST_TYPE_DIRECT: return CommandListType::Graphics;
+        case D3D12_COMMAND_LIST_TYPE_COMPUTE: return CommandListType::Compute;
+        case D3D12_COMMAND_LIST_TYPE_COPY: return CommandListType::DMA;
+        default: 
+          ASSERT("Command list type % not supported", aType);
+          return CommandListType::Graphics;
+      }
+    }
+  //---------------------------------------------------------------------------//
     std::vector<std::unique_ptr<ShaderResourceInterface>> locShaderResourceInterfacePool;
   }  // namespace
 //---------------------------------------------------------------------------//
@@ -205,22 +218,50 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   CommandAllocatorPoolDX12* RenderCoreDX12::ourCommandAllocatorPool = nullptr;
   DescriptorHeapPoolDX12* RenderCoreDX12::ourDescriptorHeapPool = nullptr;
   ComPtr<ID3D12Device> RenderCoreDX12::ourDevice;
-  ComPtr<ID3D12CommandQueue> RenderCoreDX12::ourGraphicsCommandQueue;
-  ComPtr<ID3D12CommandQueue> RenderCoreDX12::ourComputeCommandQueue;
-  FenceDX12 RenderCoreDX12::ourGraphicsFence;
-  FenceDX12 RenderCoreDX12::ourComputeFence;
+  ComPtr<ID3D12CommandQueue> RenderCoreDX12::ourCommandQueues[(uint) CommandListType::NUM];
+  FenceDX12 RenderCoreDX12::ourCmdListDoneFences[(uint) CommandListType::NUM];
 //---------------------------------------------------------------------------//
-  Rendering::ShaderResourceInterface* RenderCoreDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS /* = nullptr */ )
+  void RenderCoreDX12::InitPlatform()
+  {
+    using namespace Microsoft::WRL;
+
+    ComPtr<ID3D12Debug> debugInterface;
+    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
+      debugInterface->EnableDebugLayer();
+
+    CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&ourDevice)));
+
+    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+    CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourCommandQueues[(uint) CommandListType::Graphics])));
+
+    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+    CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourCommandQueues[(uint) CommandListType::Compute])));
+
+    // Create synchronization objects.
+    ourCmdListDoneFences[(uint) CommandListType::Graphics].Init(ourDevice.Get(), "RenderCoreDX12::GraphicsCommandListFinished");
+    ourCmdListDoneFences[(uint)CommandListType::Compute].Init(ourDevice.Get(), "RenderCoreDX12::ComputeCommandListFinished");
+
+    ourCommandAllocatorPool = new CommandAllocatorPoolDX12(D3D12_COMMAND_LIST_TYPE_DIRECT);
+    ourDescriptorHeapPool = new DescriptorHeapPoolDX12();
+  }
+//---------------------------------------------------------------------------//
+  void RenderCoreDX12::ShutdownPlatform()
+  {
+  }
+//---------------------------------------------------------------------------//
+  Rendering::ShaderResourceInterface* RenderCoreDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS /* = nullptr */)
   {
     const uint& requestedHash = locComputeRSdescHash(anRSdesc);
-    
+
     for (auto& rs : locShaderResourceInterfacePool)
       if (rs->myHash == requestedHash)
         return rs.get();
 
     ShaderResourceInterface* rs = new ShaderResourceInterface;
     locShaderResourceInterfacePool.push_back(std::unique_ptr<ShaderResourceInterface>(rs));
-    
+
     rs->myHash = requestedHash;
     rs->myInterfaceDesc = locGetInterfaceDescFromRSdesc(anRSdesc);
 
@@ -266,57 +307,23 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
-uint64 RenderCoreDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
-{
-  
-}
-
-//---------------------------------------------------------------------------//
-  
-//---------------------------------------------------------------------------//
-  uint64 RenderCoreDX12::ExecuteGraphicsCommandList(ID3D12CommandList* aCommandList)
+  bool RenderCoreDX12::IsFenceDone(CommandListType aType, uint64 aFenceVal)
   {
-    ourGraphicsFence.wait();
-    ourGraphicsCommandQueue->ExecuteCommandLists(1, &aCommandList);
-    return ourGraphicsFence.signal(ourGraphicsCommandQueue.Get());
+    return ourCmdListDoneFences[(uint)aType].IsDone(aFenceVal);
   }
 //---------------------------------------------------------------------------//
-  uint64 RenderCoreDX12::ExecuteComputeCommandList(ID3D12CommandList* aCommandList)
+  uint64 RenderCoreDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
   {
-    ourComputeFence.wait();
-    ourComputeCommandQueue->ExecuteCommandLists(1, &aCommandList);
-    return ourComputeFence.signal(ourComputeCommandQueue.Get());
+    CommandListType type = locGetCommandListType(aCommandList->GetType());
+
+    ID3D12CommandQueue* cmdQueue = ourCommandQueues[(uint)type].Get();
+    FenceDX12& cmdListDoneFence = ourCmdListDoneFences[(uint)type];
+
+    cmdListDoneFence.wait();
+    cmdQueue->ExecuteCommandLists(1, &aCommandList);
+    return cmdListDoneFence.signal(cmdQueue);
   }
-//---------------------------------------------------------------------------//
-  void RenderCoreDX12::InitPlatform()
-  {
-    using namespace Microsoft::WRL;
 
-    ComPtr<ID3D12Debug> debugInterface;
-    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
-      debugInterface->EnableDebugLayer();
-
-    CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&ourDevice)));
-
-    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-    CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourGraphicsCommandQueue)));
-
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-    CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourComputeCommandQueue)));
-
-    // Create synchronization objects.
-    ourGraphicsFence.Init(ourDevice.Get(), "RenderCoreDX12::GraphicsCommandListFinished");
-    ourComputeFence.Init(ourDevice.Get(), "RenderCoreDX12::GraphicsCommandListFinished");
-
-    ourCommandAllocatorPool = new CommandAllocatorPoolDX12(D3D12_COMMAND_LIST_TYPE_DIRECT);
-    ourDescriptorHeapPool = new DescriptorHeapPoolDX12();
-  }
-//---------------------------------------------------------------------------//
-  void RenderCoreDX12::ShutdownPlatform()
-  {
-  }
 //---------------------------------------------------------------------------//
   DataFormatInfo RenderCoreDX12::GetFormatInfo(DXGI_FORMAT aFormat)
   {

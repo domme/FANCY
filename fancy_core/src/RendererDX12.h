@@ -67,7 +67,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS = nullptr);
 
     static void WaitForFence(CommandListType aType, uint64 aFenceVal);
-    static void IsFenceDone(CommandListType aType, uint64 aFenceVal);
+    static bool IsFenceDone(CommandListType aType, uint64 aFenceVal);
 
     static uint64 ExecuteCommandList(ID3D12CommandList* aCommandList);
     

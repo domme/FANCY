@@ -2,6 +2,7 @@
 #include  "DescriptorHeapPoolDX12.h"
 
 #include "RendererDX12.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -67,8 +68,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
-  DescriptorHeapPoolDX12::DescriptorHeapPoolDX12(RenderOutputDX12& aRenderer)
-    : myRenderer(aRenderer)
+  DescriptorHeapPoolDX12::DescriptorHeapPoolDX12()
   {
     const uint32 kMaxNumStaticDescriptorsPerHeap = 1000u;
 
@@ -84,7 +84,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         heapDesc.Flags =  D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
       heapDesc.Type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
-      myStaticHeaps[i].Create(aRenderer.GetDevice(), heapDesc);
+      myStaticHeaps[i].Create(RenderCore::ourDevice.Get(), heapDesc);
     }
   }
 //---------------------------------------------------------------------------//
