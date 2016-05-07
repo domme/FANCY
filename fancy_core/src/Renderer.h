@@ -6,11 +6,11 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class Renderer : public PLATFORM_DEPENDENT_NAME(Renderer)
+  class RenderOutput : public PLATFORM_DEPENDENT_NAME(RenderOutput)
   {
     public:
-      Renderer(void* aNativeWindowHandle) : PLATFORM_DEPENDENT_NAME(Renderer)(aNativeWindowHandle) {}
-      virtual ~Renderer() {}
+      RenderOutput(void* aNativeWindowHandle) : PLATFORM_DEPENDENT_NAME(RenderOutput)(aNativeWindowHandle) {}
+      virtual ~RenderOutput() {}
 
     protected:
       

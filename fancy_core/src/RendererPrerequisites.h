@@ -97,7 +97,7 @@ namespace Fancy {
 	#elif defined (RENDERER_DX12)
 		namespace DX12
 		{
-			class RendererDX12;
+			class RenderOutputDX12;
       class RenderContextDX12;
 			class TextureDX12;
 			class GpuProgramDX12;

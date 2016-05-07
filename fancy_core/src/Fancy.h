@@ -10,7 +10,7 @@ namespace Fancy { namespace Scene {
 
 namespace Fancy { namespace Rendering {
   class RenderingProcess;
-  class Renderer;
+  class RenderOutput;
 } }
 
 namespace Fancy {
@@ -21,9 +21,8 @@ namespace Fancy {
     DLLEXPORT void Startup();
     DLLEXPORT void Update(double _dt);
     DLLEXPORT void SetRenderingProcess(Rendering::RenderingProcess* _pRenderingProcess);
-    DLLEXPORT void SetWindowSize(uint32 _uWidth, uint32 _uHeight);
-
-    Rendering::Renderer* GetRenderer();
+    
+    Rendering::RenderOutput* GetCurrentRenderOutput();
     Rendering::RenderingProcess* GetRenderingProcess();
     const Scene::ScenePtr& GetCurrentScene();
 //---------------------------------------------------------------------------//

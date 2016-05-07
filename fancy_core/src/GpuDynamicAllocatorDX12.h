@@ -42,7 +42,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class GpuDynamicAllocatorDX12
   {
   public:
-    GpuDynamicAllocatorDX12(RendererDX12& aRenderer, GpuDynamicAllocatorType aType);
+    GpuDynamicAllocatorDX12(RenderOutputDX12& aRenderer, GpuDynamicAllocatorType aType);
     ~GpuDynamicAllocatorDX12();
 
     AllocResult Allocate(size_t aSizeBytes, size_t anAlignment);
@@ -50,7 +50,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void CleanupAfterCmdListExecute(uint64 aCmdListDoneFence);
 
   protected:
-    RendererDX12& myRenderer;
+    RenderOutputDX12& myRenderer;
 
     GpuDynamicAllocPage* CreateNewPage();
     GpuDynamicAllocatorType myType;

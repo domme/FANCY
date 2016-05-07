@@ -15,7 +15,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class TextureDX12 : public GpuResourceDX12
   {
-    friend class RendererDX12;  // Remove after backbuffers are handled through the texture class
+    friend class RenderOutputDX12;  // Remove after backbuffers are handled through the texture class
 
   public:
 

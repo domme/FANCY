@@ -202,8 +202,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
 //---------------------------------------------------------------------------// 
   RenderContextDX12::RenderContextDX12()
-    : myRenderer(*Fancy::GetRenderer())
-    , myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
+    : myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
     , myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
     , myRootSignature(nullptr)
@@ -227,7 +226,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       );    
   }
 //---------------------------------------------------------------------------//
-  RenderContextDX12::RenderContextDX12(Renderer& aRenderer)
+  RenderContextDX12::RenderContextDX12(RenderOutput& aRenderer)
     : myRenderer(aRenderer)
     , myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
     , myViewportParams(0, 0, 1, 1)
@@ -335,6 +334,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderContextDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
   {
     ASSERT(aTexture->getParameters().myIsRenderTarget);
+
+    TransitionResource(aTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
     myCommandList->ClearRenderTargetView(aTexture->GetRtv().myCpuHandle, aColor, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
@@ -689,7 +690,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr)
   {
-    RendererDX12* renderer = Fancy::GetRenderer();
+    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
     
     D3D12_HEAP_PROPERTIES heapProps;
     memset(&heapProps, 0, sizeof(heapProps));
@@ -721,7 +722,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::UpdateBufferData(GpuBufferDX12* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize)
   {
-    RendererDX12* renderer = Fancy::GetRenderer();
+    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
 
     D3D12_HEAP_PROPERTIES heapProps;
     memset(&heapProps, 0, sizeof(heapProps));
@@ -754,7 +755,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
   {
-    RendererDX12* renderer = Fancy::GetRenderer();
+    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
     ID3D12Device* device = renderer->GetDevice();
     const D3D12_RESOURCE_DESC& resourceDesc = aTexture->GetResource()->GetDesc();
 

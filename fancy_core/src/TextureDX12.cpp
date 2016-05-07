@@ -50,7 +50,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     Destroy();
 
-    RendererDX12* renderer = Fancy::GetRenderer();
+    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
     ID3D12Device* device = renderer->GetDevice();
 
     myParameters = someParameters;

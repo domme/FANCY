@@ -105,7 +105,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     desc.MinLOD = someProperties.fMinLod;
     desc.MipLODBias = someProperties.fLodBias;
 
-    RendererDX12* renderer = Fancy::GetRenderer();
+    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
     myDescriptor = renderer->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
     ID3D12Device* device = renderer->GetDevice();
 

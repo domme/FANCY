@@ -311,6 +311,7 @@
     <ClInclude Include="src\AlignedStorage.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
+    <ClInclude Include="src\CommandListType.h" />
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\DataFormat.h" />
     <ClInclude Include="src\Descriptor.h" />

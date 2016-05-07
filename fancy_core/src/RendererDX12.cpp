@@ -16,55 +16,18 @@
 namespace Fancy { namespace Rendering { namespace DX12 { 
 
 //---------------------------------------------------------------------------//
-  RendererDX12::RendererDX12(void* aNativeWindowHandle)
-    : myCommandAllocatorPool(nullptr)
-    , myDefaultContext(nullptr)
+  RenderOutputDX12::RenderOutputDX12(void* aNativeWindowHandle)
 	{
-    CreateDeviceAndSwapChain(aNativeWindowHandle);
-    
-    // TODO: Get rid of this ugly and dangerous madness:
-    Renderer& thisRenderer = *static_cast<Renderer*>(this);
-
-    myCommandAllocatorPool = new CommandAllocatorPoolDX12(thisRenderer, D3D12_COMMAND_LIST_TYPE_DIRECT);
-    myDefaultContext = new RenderContext(thisRenderer);
-    myDescriptorHeapPool = new DescriptorHeapPoolDX12(*this);
+    CreateSwapChain(aNativeWindowHandle);
 	}
 //---------------------------------------------------------------------------//
-	RendererDX12::~RendererDX12()
+	RenderOutputDX12::~RenderOutputDX12()
 	{
-    SAFE_DELETE(myDefaultContext);
-    SAFE_DELETE(myCommandAllocatorPool);
-    SAFE_DELETE(myDescriptorHeapPool);
 	}
 //---------------------------------------------------------------------------//
-  DescriptorDX12 RendererDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
-  {
-    return myDescriptorHeapPool->GetStaticHeap(aHeapType)->AllocateDescriptor();
-  }
-//---------------------------------------------------------------------------// 
-  uint64 RendererDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
-  {
-    myFence.wait();
-
-    myCommandQueue->ExecuteCommandLists(1, &aCommandList);
-    return myFence.signal(myCommandQueue.Get());
-  }
-//---------------------------------------------------------------------------//
-  void RendererDX12::CreateDeviceAndSwapChain(void* aNativeWindowHandle)
+  void RenderOutputDX12::CreateSwapChain(void* aNativeWindowHandle)
   {
     using namespace Microsoft::WRL;
-
-    ComPtr<ID3D12Debug> debugInterface;
-    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
-      debugInterface->EnableDebugLayer();
-
-    CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&myDevice)));
-
-    // Describe and create the command queue.
-    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-    CheckD3Dcall(myDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&myCommandQueue)));
 
     HWND windowHandle = *static_cast<HWND*>(aNativeWindowHandle);
 
@@ -84,15 +47,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     swapChainDesc.Windowed = TRUE;
 
     ComPtr<IDXGISwapChain> swapChain;
-    CheckD3Dcall(dxgiFactory->CreateSwapChain(myCommandQueue.Get(), &swapChainDesc, &swapChain));
+    CheckD3Dcall(dxgiFactory->CreateSwapChain(RenderCore::ourGraphicsCommandQueue.Get(), &swapChainDesc, &swapChain));
     CheckD3Dcall(swapChain.As(&mySwapChain));
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
-
-    // Create synchronization objects.
-    myFence.Init(myDevice.Get(), "RendererDX12::FrameDone");
   }
 //---------------------------------------------------------------------------//
-  void RendererDX12::CreateBackbufferResources()
+  void RenderOutputDX12::CreateBackbufferResources()
   {
     DescriptorHeapDX12* rtvHeapCpu = myDescriptorHeapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
@@ -121,60 +81,32 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
       CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource.myResource)));
       backbufferResource.myRtvDescriptor = rtvHeapCpu->AllocateDescriptor();
-      myDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, backbufferResource.myRtvDescriptor.myCpuHandle);
+      RenderCoreDX12::ourDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, backbufferResource.myRtvDescriptor.myCpuHandle);
     }
   }
 //---------------------------------------------------------------------------//
-  void RendererDX12::postInit()
+  void RenderOutputDX12::postInit()
 	{
     CreateBackbufferResources();
 	}
 //---------------------------------------------------------------------------//
-  void RendererDX12::beginFrame()
+  void RenderOutputDX12::beginFrame()
 	{
-    myFence.wait();
+    RenderCoreDX12::ourGraphicsFence.wait();  // Needed?
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
-
-    Texture& currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
-    myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-
-    const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-    myDefaultContext->ClearRenderTarget(&currBackbuffer, clearColor);
-
-    const float clearDepth = 1.0f;
-    uint8 clearStencil = 0u;
-    myDefaultContext->ClearDepthStencilTarget(&myDefaultDepthStencil, clearDepth, clearStencil);
-
-    myDefaultContext->ExecuteAndReset(false);
 	}
 //---------------------------------------------------------------------------//
-	void RendererDX12::endFrame()
+	void RenderOutputDX12::endFrame()
 	{
     TextureDX12& currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
 
-    //myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-
-    myDefaultContext->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
-    myDefaultContext->ExecuteAndReset(false);
+    RenderContext* context = RenderContext::AllocateContext();
+    context->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
+    context->ExecuteAndReset(false);
+    RenderContext::FreeContext(context);
 
     mySwapChain->Present(1, 0);
 	}
-//---------------------------------------------------------------------------//
-  void RendererDX12::WaitForFence(uint64 aFenceVal)
-  {
-    if (myFence.IsDone(aFenceVal))
-      return;
-
-    if (myFence.GetCurrWaitingFenceVal() >= aFenceVal)
-    {
-      myFence.wait();
-    }
-    else
-    {
-      myFence.signal(myCommandQueue.Get(), aFenceVal);
-      myFence.wait();
-    }
-  }
 //---------------------------------------------------------------------------//
 
 
@@ -270,6 +202,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }  // namespace
 //---------------------------------------------------------------------------//
 
+  CommandAllocatorPoolDX12* RenderCoreDX12::ourCommandAllocatorPool = nullptr;
+  DescriptorHeapPoolDX12* RenderCoreDX12::ourDescriptorHeapPool = nullptr;
+  ComPtr<ID3D12Device> RenderCoreDX12::ourDevice;
+  ComPtr<ID3D12CommandQueue> RenderCoreDX12::ourGraphicsCommandQueue;
+  ComPtr<ID3D12CommandQueue> RenderCoreDX12::ourComputeCommandQueue;
+  FenceDX12 RenderCoreDX12::ourGraphicsFence;
+  FenceDX12 RenderCoreDX12::ourComputeFence;
 //---------------------------------------------------------------------------//
   Rendering::ShaderResourceInterface* RenderCoreDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS /* = nullptr */ )
   {
@@ -293,10 +232,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       HRESULT success = D3D12SerializeRootSignature(&anRSdesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
       ASSERT(success == S_OK, "Failed serializing RootSignature");
 
-      ID3D12Device* device = Fancy::GetRenderer()->GetDevice();
-      ASSERT(device);
+      ASSERT(ourDevice);
 
-      success = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+      success = ourDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
       ASSERT(success == S_OK, "Failed creating RootSignature");
 
       rs->myRootSignature = rootSignature;
@@ -309,10 +247,71 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return rs;
   }
 //---------------------------------------------------------------------------//
+  void RenderCoreDX12::WaitForFence(CommandListType aType, uint64 aFenceVal)
+  {
+    FenceDX12& fence = ourCmdListDoneFences[(uint)aType];
+    ID3D12CommandQueue* cmdQueue = ourCommandQueues[(uint)aType].Get();
 
+    if (fence.IsDone(aFenceVal))
+      return;
+
+    if (fence.GetCurrWaitingFenceVal() >= aFenceVal)
+    {
+      fence.wait();
+    }
+    else
+    {
+      fence.signal(cmdQueue, aFenceVal);
+      fence.wait();
+    }
+  }
+//---------------------------------------------------------------------------//
+uint64 RenderCoreDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
+{
+  
+}
+
+//---------------------------------------------------------------------------//
+  
+//---------------------------------------------------------------------------//
+  uint64 RenderCoreDX12::ExecuteGraphicsCommandList(ID3D12CommandList* aCommandList)
+  {
+    ourGraphicsFence.wait();
+    ourGraphicsCommandQueue->ExecuteCommandLists(1, &aCommandList);
+    return ourGraphicsFence.signal(ourGraphicsCommandQueue.Get());
+  }
+//---------------------------------------------------------------------------//
+  uint64 RenderCoreDX12::ExecuteComputeCommandList(ID3D12CommandList* aCommandList)
+  {
+    ourComputeFence.wait();
+    ourComputeCommandQueue->ExecuteCommandLists(1, &aCommandList);
+    return ourComputeFence.signal(ourComputeCommandQueue.Get());
+  }
 //---------------------------------------------------------------------------//
   void RenderCoreDX12::InitPlatform()
   {
+    using namespace Microsoft::WRL;
+
+    ComPtr<ID3D12Debug> debugInterface;
+    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
+      debugInterface->EnableDebugLayer();
+
+    CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&ourDevice)));
+
+    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+    CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourGraphicsCommandQueue)));
+
+    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+    CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourComputeCommandQueue)));
+
+    // Create synchronization objects.
+    ourGraphicsFence.Init(ourDevice.Get(), "RenderCoreDX12::GraphicsCommandListFinished");
+    ourComputeFence.Init(ourDevice.Get(), "RenderCoreDX12::GraphicsCommandListFinished");
+
+    ourCommandAllocatorPool = new CommandAllocatorPoolDX12(D3D12_COMMAND_LIST_TYPE_DIRECT);
+    ourDescriptorHeapPool = new DescriptorHeapPoolDX12();
   }
 //---------------------------------------------------------------------------//
   void RenderCoreDX12::ShutdownPlatform()

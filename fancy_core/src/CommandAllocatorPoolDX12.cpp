@@ -4,9 +4,8 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//  
-  CommandAllocatorPoolDX12::CommandAllocatorPoolDX12(Renderer& aRenderer, D3D12_COMMAND_LIST_TYPE aType)
-    : myRenderer(aRenderer)
-    , myCommandListType(aType)
+  CommandAllocatorPoolDX12::CommandAllocatorPoolDX12(D3D12_COMMAND_LIST_TYPE aType)
+    : myCommandListType(aType)
   {
     
   }
@@ -20,7 +19,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     for (auto allocatorEntry : myReleasedWaitingAllocators)
     {
-      myRenderer.WaitForFence(allocatorEntry.first);
+      RenderCore::WaitForFence(allocatorEntry.first);
       allocatorEntry.second->Release();
     }
     myReleasedWaitingAllocators.clear();

@@ -385,6 +385,9 @@
     <ClInclude Include="src\ScopedPtr.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\CommandListType.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">

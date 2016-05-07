@@ -67,7 +67,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
-  DescriptorHeapPoolDX12::DescriptorHeapPoolDX12(RendererDX12& aRenderer)
+  DescriptorHeapPoolDX12::DescriptorHeapPoolDX12(RenderOutputDX12& aRenderer)
     : myRenderer(aRenderer)
   {
     const uint32 kMaxNumStaticDescriptorsPerHeap = 1000u;

@@ -40,7 +40,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class GpuProgramDX12
   {
     friend class GpuProgramCompilerDX12;
-    friend class RendererDX12;
+    friend class RenderOutputDX12;
     friend class IO::ObjectFactory;
 
   public:

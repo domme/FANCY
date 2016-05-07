@@ -294,7 +294,7 @@ namespace Fancy { namespace Rendering {
   void RenderingProcessForward::Tick(float _dt)
   {
     Scene::Scene* pScene = Fancy::GetCurrentScene().get();
-    Renderer& renderer = *Fancy::GetRenderer();
+    RenderOutput& renderer = *Fancy::GetCurrentRenderOutput();
     
     Scene::SceneRenderDescription renderDesc;
     pScene->gatherRenderItems(&renderDesc);
@@ -305,6 +305,13 @@ namespace Fancy { namespace Rendering {
     UpdatePerCameraData(camera);
 
     RenderContext* context = RenderContext::AllocateContext();
+    const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+    context->ClearRenderTarget(renderer.GetBackbuffer(), clearColor);
+
+    const float clearDepth = 1.0f;
+    uint8 clearStencil = 0u;
+    context->ClearDepthStencilTarget(renderer.GetDefaultDepthStencilBuffer(), clearDepth, clearStencil);
+
     context->setViewport(glm::uvec4(0, 0, 1280, 720));
     context->setRenderTarget(renderer.GetBackbuffer(), 0u);
     context->setDepthStencilRenderTarget(renderer.GetDefaultDepthStencilBuffer());

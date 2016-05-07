@@ -13,7 +13,7 @@
 namespace Fancy{ namespace Rendering{
 class Descriptor;
 class GpuResource;
-class Renderer;
+class RenderOutput;
   class GpuProgramPipeline;
 }}
 
@@ -51,7 +51,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     };
 
     RenderContextDX12();
-    explicit RenderContextDX12(Renderer& aRenderer);
     ~RenderContextDX12();
     
     // Root arguments:
@@ -112,9 +111,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ResetInternalStates();
 
     static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
-    
-    Renderer& myRenderer;
-    CommandAllocatorPoolDX12& myCommandAllocatorPool;
 
     PipelineState myPipelineState;
 

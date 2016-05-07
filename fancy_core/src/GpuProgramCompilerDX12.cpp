@@ -558,7 +558,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return false;
     }
     
-    ID3D12Device* d3dDevice = Fancy::GetRenderer()->GetDevice();
+    ID3D12Device* d3dDevice = Fancy::GetCurrentRenderOutput()->GetDevice();
 
     ID3D12RootSignature* rootSignature;
     sucess = d3dDevice->CreateRootSignature(0u, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));

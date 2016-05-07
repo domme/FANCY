@@ -23,7 +23,7 @@
 namespace Fancy {
   Scene::ScenePtr m_pCurrScene = nullptr;
   ScopedPtr<Rendering::RenderingProcess> m_pRenderingProcess;
-  Rendering::Renderer* ourRenderer = nullptr;
+  Rendering::RenderOutput* ourRenderer = nullptr;
 
   void initComponentSubsystem()
   {
@@ -35,7 +35,7 @@ namespace Fancy {
 
   void initRenderingSubsystem(void* aNativeWindowHandle)
   {
-    ourRenderer = new Rendering::Renderer(aNativeWindowHandle);
+    ourRenderer = new Rendering::RenderOutput(aNativeWindowHandle);
 
     Rendering::RenderCore::InitPlatform();
     Rendering::RenderCore::Init();
@@ -74,16 +74,7 @@ namespace Fancy {
     ShutdownRenderingSubsystem();
   }
 //---------------------------------------------------------------------------//
-  void SetWindowSize(uint32 _uWidth, uint32 _uHeight)
-  {
-    const glm::uvec4& viewportParams = ourRenderer->GetDefaultContext()->getViewport();
-    if(viewportParams.z != _uWidth || viewportParams.w != _uHeight)
-    {
-      ourRenderer->GetDefaultContext()->setViewport(glm::uvec4(viewportParams.x, viewportParams.y, _uWidth, _uHeight));
-    }
-  }
-//---------------------------------------------------------------------------//
-  Rendering::Renderer* GetRenderer()
+  Rendering::RenderOutput* GetCurrentRenderOutput()
   {
     return ourRenderer;
   }

@@ -6,7 +6,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   RenderingProcess::RenderingProcess()
   {
-
+    
   }
 //---------------------------------------------------------------------------//
   RenderingProcess::~RenderingProcess()

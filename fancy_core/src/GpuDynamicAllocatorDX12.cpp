@@ -24,7 +24,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  GpuDynamicAllocatorDX12::GpuDynamicAllocatorDX12(RendererDX12& aRenderer, GpuDynamicAllocatorType aType)
+  GpuDynamicAllocatorDX12::GpuDynamicAllocatorDX12(RenderOutputDX12& aRenderer, GpuDynamicAllocatorType aType)
     : myCurrPage(nullptr)
     , myCurrPageOffsetBytes(0u)
     , myType(aType)
