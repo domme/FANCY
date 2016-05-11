@@ -50,9 +50,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     Destroy();
 
-    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
-    ID3D12Device* device = renderer->GetDevice();
-
     myParameters = someParameters;
 
     const bool wantsGpuWriteAccess = someParameters.myIsShaderWritable;
@@ -177,7 +174,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       memset(clearValue.Color, 0, sizeof(clearValue.Color));
     }
     
-    CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(
+    CheckD3Dcall(RenderCoreDX12::GetDevice()->CreateCommittedResource(
       &heapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
@@ -186,9 +183,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       IID_PPV_ARGS(&myResource)));
 
     // Create derived views
-    DescriptorHeapPoolDX12* heapPool = renderer->GetDescriptorHeapPool();
-    DescriptorHeapDX12* heap = heapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
     if (someParameters.bIsDepthStencil)
     {
       D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
@@ -211,8 +205,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       break;
       }
 
-      myDsvDescriptor = heapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)->AllocateDescriptor();
-      renderer->GetDevice()->CreateDepthStencilView(myResource.Get(), &dsvDesc, myDsvDescriptor.myCpuHandle);
+      myDsvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+      RenderCoreDX12::GetDevice()->CreateDepthStencilView(myResource.Get(), &dsvDesc, myDsvDescriptor.myCpuHandle);
     }
     else
     {
@@ -249,8 +243,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       break;
       }
 
-      mySrvDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
+      mySrvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      RenderCoreDX12::GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
 
       if (wantsGpuWriteAccess)
       {
@@ -281,8 +275,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         break;
         }
 
-        myUavDescriptor = heap->AllocateDescriptor();
-        renderer->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
+        myUavDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        RenderCoreDX12::GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
       }
 
       if (someParameters.myIsRenderTarget)
@@ -314,8 +308,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         break;
         }
 
-        myRtvDescriptor = heap->AllocateDescriptor();
-        renderer->GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.myCpuHandle);
+        myRtvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        RenderCoreDX12::GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.myCpuHandle);
       }
     }
 

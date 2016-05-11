@@ -101,7 +101,7 @@ namespace Fancy { namespace Scene {
     recalculateFrustumPlanes();
   }
 //---------------------------------------------------------------------------//
-  FixedArray<glm::vec3, 8u> CameraComponent::getWSfrustumCorners()
+  FixedArray<glm::vec3, 8u> CameraComponent::getWSfrustumCorners(float aViewportAspectRatio)
   {
     //calculate frustum corner coordinates
     float fFov2 = getFovRad() * 0.5f;
@@ -112,8 +112,7 @@ namespace Fancy { namespace Scene {
     float hNear = 2.0f * h2Near;
     
     Rendering::RenderOutput* renderer = Fancy::GetCurrentRenderOutput();
-    float aspect = (float)renderer->GetDefaultContext()->getViewport().z /
-      (float)renderer->GetDefaultContext()->getViewport().w;
+    float aspect = aViewportAspectRatio;
     float w2Far = ( hFar * aspect ) / 2.0f;
     float w2Near = ( hNear * aspect ) / 2.0f;
 

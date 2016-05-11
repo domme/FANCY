@@ -5,12 +5,9 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class RenderOutput;
-//---------------------------------------------------------------------------//
   class RenderContext : public PLATFORM_DEPENDENT_NAME(RenderContext)
   {
   public:
-    RenderContext(RenderOutput& aRenderer) : PLATFORM_DEPENDENT_NAME(RenderContext)(aRenderer) {}
     RenderContext() {}
     
     static RenderContext* AllocateContext();

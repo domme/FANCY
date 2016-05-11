@@ -23,7 +23,7 @@
 namespace Fancy {
   Scene::ScenePtr m_pCurrScene = nullptr;
   ScopedPtr<Rendering::RenderingProcess> m_pRenderingProcess;
-  Rendering::RenderOutput* ourRenderer = nullptr;
+  Rendering::RenderOutput* ourRenderOutput = nullptr;
 
   void initComponentSubsystem()
   {
@@ -35,12 +35,11 @@ namespace Fancy {
 
   void initRenderingSubsystem(void* aNativeWindowHandle)
   {
-    ourRenderer = new Rendering::RenderOutput(aNativeWindowHandle);
-
     Rendering::RenderCore::InitPlatform();
     Rendering::RenderCore::Init();
 
-    ourRenderer->postInit();
+    ourRenderOutput = new Rendering::RenderOutput(aNativeWindowHandle);
+    ourRenderOutput->postInit();
 
     Rendering::RenderCore::PostInit();
   }
@@ -65,7 +64,7 @@ namespace Fancy {
     Rendering::RenderCore::Shutdown();
     Rendering::RenderCore::ShutdownPlatform();
 
-    SAFE_DELETE(ourRenderer);
+    SAFE_DELETE(ourRenderOutput);
   }
 //---------------------------------------------------------------------------//
   void Shutdown()
@@ -76,7 +75,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   Rendering::RenderOutput* GetCurrentRenderOutput()
   {
-    return ourRenderer;
+    return ourRenderOutput;
   }
 //---------------------------------------------------------------------------//
   Rendering::RenderingProcess* GetRenderingProcess()
@@ -103,9 +102,9 @@ namespace Fancy {
 
     m_pCurrScene->update(deltaTime);
 
-    ourRenderer->beginFrame();
+    ourRenderOutput->beginFrame();
     m_pRenderingProcess->Tick(deltaTime);
-    ourRenderer->endFrame();
+    ourRenderOutput->endFrame();
   }
 //---------------------------------------------------------------------------//
   void SetCurrentScene( const Scene::ScenePtr& _pScene )

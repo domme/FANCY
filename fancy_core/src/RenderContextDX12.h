@@ -11,9 +11,9 @@
 #include "ObjectPool.h"
 
 namespace Fancy{ namespace Rendering{
-class Descriptor;
-class GpuResource;
-class RenderOutput;
+  class Descriptor;
+  class GpuResource;
+  class RenderOutput;
   class GpuProgramPipeline;
 }}
 

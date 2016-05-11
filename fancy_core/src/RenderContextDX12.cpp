@@ -202,54 +202,25 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
 //---------------------------------------------------------------------------// 
   RenderContextDX12::RenderContextDX12()
-    : myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
-    , myViewportParams(0, 0, 1, 1)
+    : myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
     , myRootSignature(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
-    , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
-    , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
+    , myCpuVisibleAllocator(CommandListType::Graphics, GpuDynamicAllocatorType::CpuWritable)
+    , myGpuOnlyAllocator(CommandListType::Graphics, GpuDynamicAllocatorType::GpuOnly)
     , myIsInRecordState(true)
     , myRenderTargetsDirty(true)
     , myDepthStencilTarget(nullptr)
   {
     ResetInternalStates();
 
-    ID3D12Device* device = myRenderer.GetDevice();
-    
-    myCommandAllocator = myCommandAllocatorPool.GetNewAllocator();
+    myCommandAllocator = RenderCore::GetCommandAllocator(CommandListType::Graphics);
 
     CheckD3Dcall(
-      device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
+      RenderCore::GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
         myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
       );    
-  }
-//---------------------------------------------------------------------------//
-  RenderContextDX12::RenderContextDX12(RenderOutput& aRenderer)
-    : myRenderer(aRenderer)
-    , myCommandAllocatorPool(*myRenderer.GetCommandAllocatorPool())
-    , myViewportParams(0, 0, 1, 1)
-    , myViewportDirty(true)
-    , myRootSignature(nullptr)
-    , myCommandList(nullptr)
-    , myCommandAllocator(nullptr)
-    , myCpuVisibleAllocator(myRenderer, GpuDynamicAllocatorType::CpuWritable)
-    , myGpuOnlyAllocator(myRenderer, GpuDynamicAllocatorType::GpuOnly)
-    , myIsInRecordState(true)
-    , myRenderTargetsDirty(true)
-    , myDepthStencilTarget(nullptr)
-  {
-    ResetInternalStates();
-
-    ID3D12Device* device = myRenderer.GetDevice();
-
-    myCommandAllocator = myCommandAllocatorPool.GetNewAllocator();
-
-    CheckD3Dcall(
-      device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-        myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
-      );
   }
 //---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
@@ -285,7 +256,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     ASSERT(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
 
-    myCommandAllocator = myCommandAllocatorPool.GetNewAllocator();
+    myCommandAllocator = RenderCore::GetCommandAllocator(CommandListType::Graphics);
     ASSERT(myCommandAllocator != nullptr);
 
     CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
@@ -303,7 +274,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CheckD3Dcall(myCommandList->Close());
     myIsInRecordState = false;
 
-    uint64 fenceVal = myRenderer.ExecuteCommandList(myCommandList);
+    uint64 fenceVal = RenderCore::ExecuteCommandList(myCommandList);
 
     myCpuVisibleAllocator.CleanupAfterCmdListExecute(fenceVal);
     myGpuOnlyAllocator.CleanupAfterCmdListExecute(fenceVal);
@@ -311,7 +282,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ReleaseAllocator(fenceVal);
 
     if (aWaitForCompletion)
-      myRenderer.WaitForFence(fenceVal);
+      RenderCore::WaitForFence(CommandListType::Graphics, fenceVal);
 
     Reset();
 
@@ -401,23 +372,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::ReleaseAllocator(uint64 aFenceVal)
   {
-    myCommandAllocatorPool.ReleaseAllocator(myCommandAllocator, aFenceVal);
+    RenderCore::ReleaseCommandAllocator(myCommandAllocator, CommandListType::Graphics, aFenceVal);
     myCommandAllocator = nullptr;
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::ReleaseDynamicHeaps(uint64 aFenceVal)
   {
-    DescriptorHeapPoolDX12* heapPool = myRenderer.GetDescriptorHeapPool();
-
     for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
     {
       if (heap != nullptr)
-        heapPool->ReleaseDynamicHeap(aFenceVal, heap);
+        RenderCore::ReleaseDynamicDescriptorHeap(heap, CommandListType::Graphics, aFenceVal);
     }
 
     for (DescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
     {
-      heapPool->ReleaseDynamicHeap(aFenceVal, heap);
+      RenderCore::ReleaseDynamicDescriptorHeap(heap, CommandListType::Graphics, aFenceVal);
     }
 
     myRetiredDescriptorHeaps.clear();
@@ -555,14 +524,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     ASSERT(myRootSignature != nullptr);
     ASSERT(aResourceCount > 0u);
-    DescriptorHeapPoolDX12* heapPool = myRenderer.GetDescriptorHeapPool();
-
+    
     D3D12_DESCRIPTOR_HEAP_TYPE heapType = locResolveDescriptorHeapType(aDescriptorTypeMask);
     DescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
     
     if (dynamicHeap == nullptr)
     {
-      dynamicHeap = heapPool->AllocateDynamicHeap(aResourceCount, heapType);
+      dynamicHeap = RenderCore::AllocateDynamicDescriptorHeap(aResourceCount, heapType);
       SetDescriptorHeap(heapType, dynamicHeap);
     }
 
@@ -571,7 +539,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       DescriptorDX12 destDescriptor = dynamicHeap->AllocateDescriptor();
     
-      myRenderer.GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle,
+      RenderCore::GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle,
         someResources[i].myCpuHandle, heapType);
     }
     
@@ -632,7 +600,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uint32* destRowNums = static_cast<uint32*>(alloca(sizeof(uint32) * aNumSubresources));
 
     uint64 destTotalSizeBytes = 0u;
-    myRenderer.GetDevice()->GetCopyableFootprints(&destDesc, aFirstSubresourceIndex, aNumSubresources, 0u, destLayouts, destRowNums, destRowSizesByte, &destTotalSizeBytes);
+    RenderCore::GetDevice()->GetCopyableFootprints(&destDesc, aFirstSubresourceIndex, aNumSubresources, 0u, destLayouts, destRowNums, destRowSizesByte, &destTotalSizeBytes);
 
     // Prepare a temporary buffer that contains all subresource data in the expected form (i.e. respecting the dest data layout)
     uint8* tempBufferDataPtr;
@@ -702,7 +670,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const D3D12_RESOURCE_DESC& resourceDesc = aBuffer->GetResource()->GetDesc();
 
     ComPtr<ID3D12Resource> uploadResource;
-    CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, 
+    CheckD3Dcall(RenderCore::GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, 
       &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
 
     void* mappedBufferPtr;
@@ -735,7 +703,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uploadResourceDesc.Width = MathUtil::Align(aByteSize, aBuffer->GetAlignment());
 
     ComPtr<ID3D12Resource> uploadResource;
-    CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
+    CheckD3Dcall(RenderCore::GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
       &uploadResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
 
     void* uploadBufferPtr;
@@ -756,7 +724,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderContextDX12::InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
   {
     RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
-    ID3D12Device* device = renderer->GetDevice();
+    ID3D12Device* device = RenderCore::GetDevice();
     const D3D12_RESOURCE_DESC& resourceDesc = aTexture->GetResource()->GetDesc();
 
     // DEBUG: layouts and row-infos not needed here yet
@@ -884,7 +852,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     else
     {
       const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = myPipelineState.GetNativePSOdesc();
-      HRESULT result = myRenderer.GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+      HRESULT result = RenderCore::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
       ASSERT(result == S_OK, "Error creating graphics PSO");
 
       ourPSOcache[requestedHash] = pso;

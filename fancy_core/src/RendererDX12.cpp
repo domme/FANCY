@@ -47,14 +47,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     swapChainDesc.Windowed = TRUE;
 
     ComPtr<IDXGISwapChain> swapChain;
-    CheckD3Dcall(dxgiFactory->CreateSwapChain(RenderCore::ourGraphicsCommandQueue.Get(), &swapChainDesc, &swapChain));
+    CheckD3Dcall(dxgiFactory->CreateSwapChain(RenderCore::ourCommandQueues[(uint) CommandListType::Graphics].Get(), &swapChainDesc, &swapChain));
     CheckD3Dcall(swapChain.As(&mySwapChain));
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::CreateBackbufferResources()
   {
-    DescriptorHeapDX12* rtvHeapCpu = myDescriptorHeapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    DescriptorHeapDX12* rtvHeapCpu = RenderCore::ourDescriptorHeapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
     TextureParams dsTexParams;
     dsTexParams.bIsDepthStencil = true;
@@ -92,7 +92,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::beginFrame()
 	{
-    RenderCoreDX12::ourGraphicsFence.wait();  // Needed?
+    RenderCoreDX12::ourCmdListDoneFences[(uint) CommandListType::Graphics].wait();  // Needed?
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
 	}
 //---------------------------------------------------------------------------//
@@ -215,9 +215,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }  // namespace
 //---------------------------------------------------------------------------//
 
-  CommandAllocatorPoolDX12* RenderCoreDX12::ourCommandAllocatorPool = nullptr;
-  DescriptorHeapPoolDX12* RenderCoreDX12::ourDescriptorHeapPool = nullptr;
   ComPtr<ID3D12Device> RenderCoreDX12::ourDevice;
+  DescriptorHeapPoolDX12* RenderCoreDX12::ourDescriptorHeapPool = nullptr;
+  CommandAllocatorPoolDX12* RenderCoreDX12::ourCommandAllocatorPools[(uint)CommandListType::NUM] = {nullptr};
   ComPtr<ID3D12CommandQueue> RenderCoreDX12::ourCommandQueues[(uint) CommandListType::NUM];
   FenceDX12 RenderCoreDX12::ourCmdListDoneFences[(uint) CommandListType::NUM];
 //---------------------------------------------------------------------------//
@@ -241,14 +241,31 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // Create synchronization objects.
     ourCmdListDoneFences[(uint) CommandListType::Graphics].Init(ourDevice.Get(), "RenderCoreDX12::GraphicsCommandListFinished");
-    ourCmdListDoneFences[(uint)CommandListType::Compute].Init(ourDevice.Get(), "RenderCoreDX12::ComputeCommandListFinished");
+    ourCmdListDoneFences[(uint) CommandListType::Compute].Init(ourDevice.Get(), "RenderCoreDX12::ComputeCommandListFinished");
 
-    ourCommandAllocatorPool = new CommandAllocatorPoolDX12(D3D12_COMMAND_LIST_TYPE_DIRECT);
+    ourCommandAllocatorPools[(uint)CommandListType::Graphics] = new CommandAllocatorPoolDX12(CommandListType::Graphics);
+    ourCommandAllocatorPools[(uint)CommandListType::Compute] = new CommandAllocatorPoolDX12(CommandListType::Compute);
+
     ourDescriptorHeapPool = new DescriptorHeapPoolDX12();
   }
 //---------------------------------------------------------------------------//
   void RenderCoreDX12::ShutdownPlatform()
   {
+    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
+      ourCmdListDoneFences[i].wait();
+
+    for (CommandAllocatorPoolDX12* allocatorPool : ourCommandAllocatorPools)
+      delete allocatorPool;
+
+    memset(ourCommandAllocatorPools, 0u, sizeof(ourCommandAllocatorPools));
+
+    delete ourDescriptorHeapPool;
+    ourDescriptorHeapPool = nullptr;
+
+    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
+      ourCommandQueues[i].Reset();
+
+    ourDevice.Reset();
   }
 //---------------------------------------------------------------------------//
   Rendering::ShaderResourceInterface* RenderCoreDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS /* = nullptr */)
@@ -323,7 +340,31 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     cmdQueue->ExecuteCommandLists(1, &aCommandList);
     return cmdListDoneFence.signal(cmdQueue);
   }
-
+//---------------------------------------------------------------------------//
+  ID3D12CommandAllocator* RenderCoreDX12::GetCommandAllocator(CommandListType aCmdListType)
+  {
+    return ourCommandAllocatorPools[(uint)aCmdListType]->GetNewAllocator();
+  }
+//---------------------------------------------------------------------------//
+  void RenderCoreDX12::ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal)
+  {
+    ourCommandAllocatorPools[(uint)aCmdListType]->ReleaseAllocator(anAllocator, aFenceVal);
+  }
+//---------------------------------------------------------------------------//
+  Descriptor RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
+  {
+    return ourDescriptorHeapPool->GetStaticHeap(aHeapType)->AllocateDescriptor();
+  }
+//---------------------------------------------------------------------------//
+  DescriptorHeapDX12* RenderCoreDX12::AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
+  {
+    return ourDescriptorHeapPool->AllocateDynamicHeap(aDescriptorCount, aHeapType);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCoreDX12::ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal)
+  {
+    ourDescriptorHeapPool->ReleaseDynamicHeap(aCmdListType, aFenceVal, aHeap);
+  }
 //---------------------------------------------------------------------------//
   DataFormatInfo RenderCoreDX12::GetFormatInfo(DXGI_FORMAT aFormat)
   {
@@ -471,6 +512,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         return 0u;
       }
       */
+  }
+//---------------------------------------------------------------------------//
+  D3D12_COMMAND_LIST_TYPE RenderCoreDX12::GetCommandListType(CommandListType aType)
+  {
+    switch (aType)
+    {
+    case CommandListType::Graphics: return D3D12_COMMAND_LIST_TYPE_DIRECT;
+      case CommandListType::Compute: return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+      case CommandListType::DMA: return D3D12_COMMAND_LIST_TYPE_COPY;
+      default:
+        ASSERT(false);
+        return D3D12_COMMAND_LIST_TYPE_DIRECT;
+    }
   }
 //---------------------------------------------------------------------------//
   DataFormat RenderCoreDX12::ResolveFormat(DataFormat aFormat)

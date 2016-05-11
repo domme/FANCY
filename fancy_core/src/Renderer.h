@@ -12,8 +12,6 @@ namespace Fancy { namespace Rendering {
       RenderOutput(void* aNativeWindowHandle) : PLATFORM_DEPENDENT_NAME(RenderOutput)(aNativeWindowHandle) {}
       virtual ~RenderOutput() {}
 
-    protected:
-      
   };
 //---------------------------------------------------------------------------//
 
@@ -38,7 +36,7 @@ namespace Fancy { namespace Rendering {
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
     static void UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer = 0u);
 
-  private:
+  protected:
     RenderCore() {}
 
     static std::shared_ptr<Texture> ourDefaultDiffuseTexture;

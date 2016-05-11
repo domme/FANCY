@@ -92,7 +92,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     while (!myUsedDynamicHeaps.empty())
     {
-      myRenderer.WaitForFence(myUsedDynamicHeaps.front().first);
+      RenderCore::WaitForFence(myUsedDynamicHeaps.front().first.myType, 
+                               myUsedDynamicHeaps.front().first.myFenceVal);
       myUsedDynamicHeaps.pop();
     }
 
@@ -101,7 +102,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   DescriptorHeapDX12* DescriptorHeapPoolDX12::AllocateDynamicHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE aType)
   {
-    while(!myUsedDynamicHeaps.empty() && myRenderer.IsFenceDone(myUsedDynamicHeaps.front().first))
+    while(!myUsedDynamicHeaps.empty() 
+      && RenderCore::IsFenceDone(myUsedDynamicHeaps.front().first.myType,
+                                 myUsedDynamicHeaps.front().first.myFenceVal))
     {
       DescriptorHeapDX12* heap = myUsedDynamicHeaps.front().second;
       heap->Reset();
@@ -127,13 +130,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapDesc.Type = aType;
     heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     heapDesc.NodeMask = 0u;
-    myDynamicHeapPool.push_back(std::make_unique<DescriptorHeapDX12>(myRenderer.GetDevice(), heapDesc));
+    myDynamicHeapPool.push_back(std::make_unique<DescriptorHeapDX12>(RenderCore::GetDevice(), heapDesc));
     return myDynamicHeapPool.back().get();
   }
 //---------------------------------------------------------------------------//
-  void DescriptorHeapPoolDX12::ReleaseDynamicHeap(uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap)
+  void DescriptorHeapPoolDX12::ReleaseDynamicHeap(CommandListType aCmdListType, uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap)
   {
-    myUsedDynamicHeaps.push(std::make_pair(aFenceVal, aUsedHeap));
+    FenceInfo info;
+    info.myType = aCmdListType;
+    info.myFenceVal = aFenceVal;
+
+    myUsedDynamicHeaps.push(std::make_pair(info, aUsedHeap));
   }
 //---------------------------------------------------------------------------//
 } } }

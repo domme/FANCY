@@ -117,7 +117,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myUsageState = D3D12_RESOURCE_STATE_COPY_DEST;
     }
 
-    CheckD3Dcall(renderer->GetDevice()->CreateCommittedResource(
+    CheckD3Dcall(RenderCore::GetDevice()->CreateCommittedResource(
       &heapProps, 
       D3D12_HEAP_FLAG_NONE, 
       &resourceDesc, 
@@ -125,9 +125,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       nullptr, IID_PPV_ARGS(&myResource)));
 
     // Create derived views
-    DescriptorHeapPoolDX12* heapPool = renderer->GetDescriptorHeapPool();
-    DescriptorHeapDX12* heap = heapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    
+       
     if (wantsShaderResourceView)
     {
       D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -139,8 +137,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       srvDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
       srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-      mySrvDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
+      mySrvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      RenderCoreDX12::GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
     }
 
     if (wantsUnorderedAccess)
@@ -153,8 +151,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       uavDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
       uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
-      myUavDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
+      myUavDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      RenderCoreDX12::GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
     }
 
     if (wantsConstantBufferView)
@@ -163,8 +161,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       cbvDesc.SizeInBytes = actualWidthBytesWithAlignment;
       cbvDesc.BufferLocation = GetGpuVirtualAddress();
 
-      myCbvDescriptor = heap->AllocateDescriptor();
-      renderer->GetDevice()->CreateConstantBufferView(&cbvDesc, myCbvDescriptor.myCpuHandle);
+      myCbvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      RenderCoreDX12::GetDevice()->CreateConstantBufferView(&cbvDesc, myCbvDescriptor.myCpuHandle);
     }
 
     if (wantsVboView)

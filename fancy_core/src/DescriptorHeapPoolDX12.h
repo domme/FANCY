@@ -4,6 +4,7 @@
 #include "RendererPrerequisites.h"
 #include "Descriptor.h"
 #include <queue>
+#include "CommandListType.h"
 
 namespace Fancy { namespace Rendering {
   class RendererDX12;
@@ -49,20 +50,26 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     
     static const uint32 kGpuDescriptorNumIncrement = 16u;
 
-    explicit DescriptorHeapPoolDX12();
+    DescriptorHeapPoolDX12();
     ~DescriptorHeapPoolDX12();
 
     DescriptorHeapDX12* AllocateDynamicHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    void ReleaseDynamicHeap(uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap);
+    void ReleaseDynamicHeap(CommandListType aCmdListType, uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap);
 
     DescriptorHeapDX12* GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return &myStaticHeaps[aType]; }
     
   private:
+    struct FenceInfo
+    {
+      CommandListType myType;
+      uint64 myFenceVal;
+    };
+
     DescriptorHeapDX12 myStaticHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 
     std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
     std::deque<DescriptorHeapDX12*> myAvailableDynamicHeaps;
-    std::queue<std::pair<uint64, DescriptorHeapDX12*>> myUsedDynamicHeaps;
+    std::queue<std::pair<FenceInfo, DescriptorHeapDX12*>> myUsedDynamicHeaps;
   };
 //---------------------------------------------------------------------------//
 } } }

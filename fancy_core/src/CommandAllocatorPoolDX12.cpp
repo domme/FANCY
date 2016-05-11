@@ -4,7 +4,7 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//  
-  CommandAllocatorPoolDX12::CommandAllocatorPoolDX12(D3D12_COMMAND_LIST_TYPE aType)
+  CommandAllocatorPoolDX12::CommandAllocatorPoolDX12(CommandListType aType)
     : myCommandListType(aType)
   {
     
@@ -19,7 +19,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     for (auto allocatorEntry : myReleasedWaitingAllocators)
     {
-      RenderCore::WaitForFence(allocatorEntry.first);
+      RenderCore::WaitForFence(myCommandListType, allocatorEntry.first);
       allocatorEntry.second->Release();
     }
     myReleasedWaitingAllocators.clear();
@@ -28,7 +28,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   ID3D12CommandAllocator* CommandAllocatorPoolDX12::GetNewAllocator()
   {
     // Check if some of the waiting allocators can be made available again
-    while(!myReleasedWaitingAllocators.empty() && myRenderer.IsFenceDone(myReleasedWaitingAllocators.front().first))
+    while(!myReleasedWaitingAllocators.empty() 
+      && RenderCore::IsFenceDone(myCommandListType, 
+                                 myReleasedWaitingAllocators.front().first))
     {
       myAvailableAllocators.push_back(myReleasedWaitingAllocators.front().second);
       myReleasedWaitingAllocators.pop_front();
@@ -42,8 +44,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return allocator;
     }
 
+    D3D12_COMMAND_LIST_TYPE nativeCmdListType = RenderCore::GetCommandListType(myCommandListType);
+
     ID3D12CommandAllocator* allocator;
-    CheckD3Dcall(myRenderer.GetDevice()->CreateCommandAllocator(myCommandListType, IID_PPV_ARGS(&allocator)));
+    CheckD3Dcall(RenderCore::GetDevice()->CreateCommandAllocator(nativeCmdListType, IID_PPV_ARGS(&allocator)));
 
     return allocator;
   }

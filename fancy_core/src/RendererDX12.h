@@ -5,6 +5,7 @@
 #include "RenderContext.h"
 #include "DataFormat.h"
 #include "CommandListType.h"
+#include "ScopedPtr.h"
 
 #if defined (RENDERER_DX12)
 
@@ -62,6 +63,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static DXGI_FORMAT GetFormat(DataFormat aFormat);
     static DataFormat ResolveFormat(DataFormat aFormat);
     static DataFormatInfo GetFormatInfo(DXGI_FORMAT aFormat);
+    static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
+
+    static ID3D12Device* GetDevice() { return ourDevice.Get(); }
 
     static Rendering::ShaderResourceInterface* 
       GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS = nullptr);
@@ -70,19 +74,23 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static bool IsFenceDone(CommandListType aType, uint64 aFenceVal);
 
     static uint64 ExecuteCommandList(ID3D12CommandList* aCommandList);
-    
-    static CommandAllocatorPoolDX12* GetCommandAllocatorPool() { return ourCommandAllocatorPool; }
-    static DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    static DescriptorHeapPoolDX12* GetDescriptorHeapPool() { return ourDescriptorHeapPool; }
 
-    static CommandAllocatorPoolDX12* ourCommandAllocatorPool;
+    static ID3D12CommandAllocator* GetCommandAllocator(CommandListType aCmdListType);
+    static void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal);
+    
+    static Descriptor AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
+    static DescriptorHeapPoolDX12* GetDescriptorHeapPool() { return ourDescriptorHeapPool; }
+    static DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
+    static void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal);
+
     static DescriptorHeapPoolDX12* ourDescriptorHeapPool;
     static ComPtr<ID3D12Device> ourDevice;
 
+    static CommandAllocatorPoolDX12* ourCommandAllocatorPools [(uint) CommandListType::NUM];
     static ComPtr<ID3D12CommandQueue> ourCommandQueues[(uint) CommandListType::NUM];
     static FenceDX12 ourCmdListDoneFences[(uint)CommandListType::NUM];
 
-  private:
+  protected:
     RenderCoreDX12() {}
   };
 //---------------------------------------------------------------------------//

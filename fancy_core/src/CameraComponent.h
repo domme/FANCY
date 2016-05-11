@@ -34,7 +34,7 @@ namespace Fancy { namespace Scene {
     float	getAspectRatio() const { return m_fWidth / m_fHeight; }
     void setProjectionPersp( float yFov_deg, float fWidth, float fHeight, float fNear, float fFar );
     void setProjectionOrtho( float fLeft, float fRight, float fBottom, float fTop, float fNear, float fFar ); 
-    FixedArray<glm::vec3, 8u> getWSfrustumCorners();
+    FixedArray<glm::vec3, 8u> getWSfrustumCorners(float aViewportAspectRatio);
 
   private:
     void updateCameraInternal();

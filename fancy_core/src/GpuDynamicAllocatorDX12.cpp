@@ -24,11 +24,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  GpuDynamicAllocatorDX12::GpuDynamicAllocatorDX12(RenderOutputDX12& aRenderer, GpuDynamicAllocatorType aType)
+  GpuDynamicAllocatorDX12::GpuDynamicAllocatorDX12(CommandListType aCmdListType, GpuDynamicAllocatorType aType)
     : myCurrPage(nullptr)
     , myCurrPageOffsetBytes(0u)
-    , myType(aType)
-    , myRenderer(aRenderer)
+    , myAllocatorType(aType)
+    , myCmdListType(aCmdListType)
   {
     
   }
@@ -47,7 +47,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
     for (auto waitingEntry : myWaitingPages)
     {
-      ASSERT(myRenderer.IsFenceDone(waitingEntry.first));
+      ASSERT(RenderCore::IsFenceDone(myCmdListType, waitingEntry.first));
       delete waitingEntry.second;
     }
   }
@@ -55,14 +55,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   AllocResult GpuDynamicAllocatorDX12::Allocate(size_t aSizeBytes, size_t anAlignment)
   {
     // 0) Check for argument-sanity
-    const uint32 pageSize = myType == GpuDynamicAllocatorType::GpuOnly ? kGpuPageSize : kCpuPageSize;
+    const uint32 pageSize = myAllocatorType == GpuDynamicAllocatorType::GpuOnly ? kGpuPageSize : kCpuPageSize;
     ASSERT(aSizeBytes <= pageSize);
 
     // 1) Check if some waiting pages can be made available
     while (!myWaitingPages.empty())
     {
       auto& waitingEntry = myWaitingPages.front();
-      if (myRenderer.IsFenceDone(waitingEntry.first))
+      if (RenderCore::IsFenceDone(myCmdListType, waitingEntry.first))
       {
         myAvailablePages.push_back(waitingEntry.second);
         myWaitingPages.pop_front();
@@ -131,7 +131,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     D3D12_RESOURCE_STATES initialResourceState;
 
-    if (myType == GpuDynamicAllocatorType::GpuOnly)
+    if (myAllocatorType == GpuDynamicAllocatorType::GpuOnly)
     {
       heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
       resourceDesc.Width = kGpuPageSize;
@@ -152,7 +152,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ID3D12Resource* resource;
 
     CheckD3Dcall(
-      myRenderer.GetDevice()->CreateCommittedResource(
+      RenderCore::GetDevice()->CreateCommittedResource(
         &heapProperties, 
         D3D12_HEAP_FLAG_NONE, 
         &resourceDesc, 
@@ -161,7 +161,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         IID_PPV_ARGS(&resource))
       );
 
-    return new GpuDynamicAllocPage(resource, initialResourceState, myType == GpuDynamicAllocatorType::CpuWritable);
+    return new GpuDynamicAllocPage(resource, initialResourceState, myAllocatorType == GpuDynamicAllocatorType::CpuWritable);
   }
 //---------------------------------------------------------------------------//
   void GpuDynamicAllocatorDX12::CleanupAfterCmdListExecute(uint64 aCmdListDoneFence)

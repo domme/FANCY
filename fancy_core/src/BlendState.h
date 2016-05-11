@@ -40,7 +40,7 @@ public:
 
   explicit BlendState();
   ~BlendState() {}
-  friend class PLATFORM_DEPENDENT_NAME(Renderer);
+  friend class PLATFORM_DEPENDENT_NAME(RenderCore);
   bool operator==(const BlendState& clOther) const;
   bool operator==(const BlendStateDesc& clOther) const;
 
