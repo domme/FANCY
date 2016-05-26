@@ -14,7 +14,10 @@
 #include "RenderContextDX12.h"
 #include "CommandAllocatorPoolDX12.h"
 #include "DescriptorHeapPoolDX12.h"
-#include "RenderWindow.h"
+
+namespace Fancy {
+class RenderWindow;
+}
 
 namespace Fancy { namespace Rendering {
   class ShaderResourceInterface;
