@@ -12,21 +12,16 @@
 #include <ObjectName.h>
 #include <LightComponent.h>
 
-WindowDX12 ourWindow;
-// RendererDX12 ourRenderer;
-constexpr uint kWidth = 1280u;
-constexpr uint kHeight = 720u;
-
-
-
 Fancy::Rendering::RenderingProcessForward* pRenderProcessFwd = nullptr;
 Fancy::Scene::CameraComponent* pCameraComponent;
 Fancy::Scene::SceneNode* pModelNode;
 
-void StartupEngine()
+void StartupEngine(HINSTANCE anAppInstanceHandle)
 {
-  Fancy::Init(&ourWindow.myWindowHandle);
+  Fancy::Init(anAppInstanceHandle);
 
+  Fancy::RenderWindow* window = Fancy::GetCurrentRenderWindow();
+  
   Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
   Fancy::SetCurrentScene(pScene);
 
@@ -35,7 +30,7 @@ void StartupEngine()
 
   Fancy::Scene::SceneNode* pCameraNode = pScene->getRootNode()->createChildNode(_N(CameraNode));
   pCameraComponent = static_cast<Fancy::Scene::CameraComponent*>(pCameraNode->addOrRetrieveComponent(_N(CameraComponent)));
-  pCameraComponent->setProjectionPersp(45.0f, kWidth, kHeight, 1.0f, 1000.0f);
+  pCameraComponent->setProjectionPersp(45.0f, window->GetWidth(), window->GetHeight(), 1.0f, 1000.0f);
   pScene->setActiveCamera(pCameraComponent);
 
   pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));
@@ -56,13 +51,7 @@ void onWindowResize(uint aWidth, uint aHeight)
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-	WindowParameters params;
-	params.myTitle = "Fancy Engine (DX12)";
-	params.myWidth = kWidth;
-	params.myHeight = kHeight;
-
-	if (!ourWindow.init(hInstance, nCmdShow, params))
-		return -1;
+  
 
 	ourWindow.myResizeCallback = onWindowResize;
 

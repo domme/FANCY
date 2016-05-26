@@ -15,6 +15,7 @@ namespace Fancy {namespace Rendering { namespace DX12 {
   class DescriptorHeapDX12
   {
     friend class DescriptorHeapPoolDX12;
+    friend class RenderCoreDX12;
 
   public:
     DescriptorHeapDX12(ID3D12Device* aDevice, const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);
@@ -28,7 +29,7 @@ namespace Fancy {namespace Rendering { namespace DX12 {
 
     Descriptor AllocateDescriptor();
     Descriptor GetDescriptor(uint32 anIndex);
-    uint32 GetNumAllocatedDescriptors() { return myNextFreeHandleIndex; }
+    uint32 GetNumAllocatedDescriptors() const { return myNextFreeHandleIndex; }
 
 
   private:
@@ -55,8 +56,6 @@ namespace Fancy {namespace Rendering { namespace DX12 {
 
     DescriptorHeapDX12* AllocateDynamicHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicHeap(CommandListType aCmdListType, uint64 aFenceVal, DescriptorHeapDX12* aUsedHeap);
-
-    DescriptorHeapDX12* GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return &myStaticHeaps[aType]; }
     
   private:
     struct FenceInfo
@@ -64,8 +63,6 @@ namespace Fancy {namespace Rendering { namespace DX12 {
       CommandListType myType;
       uint64 myFenceVal;
     };
-
-    DescriptorHeapDX12 myStaticHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 
     std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
     std::deque<DescriptorHeapDX12*> myAvailableDynamicHeaps;

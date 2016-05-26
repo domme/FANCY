@@ -388,6 +388,12 @@
     <ClInclude Include="src\CommandListType.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="src\RenderWindow.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CallbackSlot.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -635,6 +641,9 @@
     </ClCompile>
     <ClCompile Include="src\DataFormat.cpp">
       <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderWindow.cpp">
+      <Filter>src\Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

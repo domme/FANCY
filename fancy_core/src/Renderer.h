@@ -6,10 +6,10 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class RenderOutput : public PLATFORM_DEPENDENT_NAME(RenderOutput)
+  class DLLEXPORT RenderOutput : public PLATFORM_DEPENDENT_NAME(RenderOutput)
   {
     public:
-      RenderOutput(void* aNativeWindowHandle) : PLATFORM_DEPENDENT_NAME(RenderOutput)(aNativeWindowHandle) {}
+      RenderOutput() {}
       virtual ~RenderOutput() {}
 
   };

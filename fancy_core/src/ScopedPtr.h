@@ -11,7 +11,7 @@ namespace Fancy {
       : myRawPtr(nullptr)
     { }
   //---------------------------------------------------------------------------//
-    explicit ScopedPtr(T* aRawPtr) { Reset(aRawPtr); }
+    ScopedPtr(T* aRawPtr) { Reset(aRawPtr); }
     ~ScopedPtr() { Reset(nullptr); }
   //---------------------------------------------------------------------------//
     operator T*() { return Get(); }

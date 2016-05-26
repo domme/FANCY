@@ -70,22 +70,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   DescriptorHeapPoolDX12::DescriptorHeapPoolDX12()
   {
-    const uint32 kMaxNumStaticDescriptorsPerHeap = 1000u;
-
-    D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
-    heapDesc.NumDescriptors = kMaxNumStaticDescriptorsPerHeap;
-    heapDesc.NodeMask = 0u;
     
-    for (uint32 i = 0u; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
-    {
-      //if(i == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || i == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)
-      //  heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-      //else
-        heapDesc.Flags =  D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-
-      heapDesc.Type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
-      myStaticHeaps[i].Create(RenderCore::ourDevice.Get(), heapDesc);
-    }
   }
 //---------------------------------------------------------------------------//
   DescriptorHeapPoolDX12::~DescriptorHeapPoolDX12()

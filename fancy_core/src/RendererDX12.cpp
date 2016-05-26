@@ -2,7 +2,6 @@
 #include "AdapterDX12.h"
 #include "Fancy.h"
 
-
 #if defined (RENDERER_DX12)
 #include "MathUtil.h"
 #include "GpuProgram.h"
@@ -16,20 +15,33 @@
 namespace Fancy { namespace Rendering { namespace DX12 { 
 
 //---------------------------------------------------------------------------//
-  RenderOutputDX12::RenderOutputDX12(void* aNativeWindowHandle)
+  RenderOutputDX12::RenderOutputDX12()
 	{
-    CreateSwapChain(aNativeWindowHandle);
+    Fancy::WindowParameters params;
+    params.myTitle = "Fancy Engine (DX12)";
+    params.myWidth = 1280u;
+    params.myHeight = 720u;
+
+    myWindow = RenderWindow::Create(params);
+
+    CreateSwapChain();
 	}
 //---------------------------------------------------------------------------//
 	RenderOutputDX12::~RenderOutputDX12()
 	{
 	}
+
 //---------------------------------------------------------------------------//
-  void RenderOutputDX12::CreateSwapChain(void* aNativeWindowHandle)
+  RenderWindow* RenderOutputDX12::GetWindow()
+  {
+    return myWindow.get();
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutputDX12::CreateSwapChain()
   {
     using namespace Microsoft::WRL;
 
-    HWND windowHandle = *static_cast<HWND*>(aNativeWindowHandle);
+    HWND windowHandle = myWindow->GetWindowHandle();
 
     ComPtr<IDXGIFactory4> dxgiFactory;
     CheckD3Dcall(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
@@ -54,8 +66,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::CreateBackbufferResources()
   {
-    DescriptorHeapDX12* rtvHeapCpu = RenderCore::ourDescriptorHeapPool->GetStaticHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
     TextureParams dsTexParams;
     dsTexParams.bIsDepthStencil = true;
     dsTexParams.eFormat = DataFormat::DS_24_8;
@@ -80,7 +90,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       backbufferResource.myParameters.u16Depth = 1u;
 
       CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource.myResource)));
-      backbufferResource.myRtvDescriptor = rtvHeapCpu->AllocateDescriptor();
+      backbufferResource.myRtvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
       RenderCoreDX12::ourDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, backbufferResource.myRtvDescriptor.myCpuHandle);
     }
   }
@@ -216,10 +226,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 
   ComPtr<ID3D12Device> RenderCoreDX12::ourDevice;
-  DescriptorHeapPoolDX12* RenderCoreDX12::ourDescriptorHeapPool = nullptr;
+  DescriptorHeapPoolDX12* RenderCoreDX12::ourDynamicDescriptorHeapPool = nullptr;
   CommandAllocatorPoolDX12* RenderCoreDX12::ourCommandAllocatorPools[(uint)CommandListType::NUM] = {nullptr};
   ComPtr<ID3D12CommandQueue> RenderCoreDX12::ourCommandQueues[(uint) CommandListType::NUM];
   FenceDX12 RenderCoreDX12::ourCmdListDoneFences[(uint) CommandListType::NUM];
+  DescriptorHeapDX12 RenderCoreDX12::ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+
 //---------------------------------------------------------------------------//
   void RenderCoreDX12::InitPlatform()
   {
@@ -246,7 +258,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ourCommandAllocatorPools[(uint)CommandListType::Graphics] = new CommandAllocatorPoolDX12(CommandListType::Graphics);
     ourCommandAllocatorPools[(uint)CommandListType::Compute] = new CommandAllocatorPoolDX12(CommandListType::Compute);
 
-    ourDescriptorHeapPool = new DescriptorHeapPoolDX12();
+    ourDynamicDescriptorHeapPool = new DescriptorHeapPoolDX12();
+
+    const uint32 kMaxNumStaticDescriptorsPerHeap = 1000u;
+
+    D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
+    heapDesc.NumDescriptors = kMaxNumStaticDescriptorsPerHeap;
+    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    heapDesc.NodeMask = 0u;
+
+    for (uint32 i = 0u; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
+    {
+      heapDesc.Type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
+      ourStaticDescriptorHeaps[i].Create(RenderCore::ourDevice.Get(), heapDesc);
+    }
   }
 //---------------------------------------------------------------------------//
   void RenderCoreDX12::ShutdownPlatform()
@@ -259,8 +284,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     memset(ourCommandAllocatorPools, 0u, sizeof(ourCommandAllocatorPools));
 
-    delete ourDescriptorHeapPool;
-    ourDescriptorHeapPool = nullptr;
+    delete ourDynamicDescriptorHeapPool;
+    ourDynamicDescriptorHeapPool = nullptr;
 
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
       ourCommandQueues[i].Reset();
@@ -353,17 +378,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   Descriptor RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
-    return ourDescriptorHeapPool->GetStaticHeap(aHeapType)->AllocateDescriptor();
+    return ourStaticDescriptorHeaps[(uint32) aHeapType].AllocateDescriptor();
   }
 //---------------------------------------------------------------------------//
   DescriptorHeapDX12* RenderCoreDX12::AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
-    return ourDescriptorHeapPool->AllocateDynamicHeap(aDescriptorCount, aHeapType);
+    return ourDynamicDescriptorHeapPool->AllocateDynamicHeap(aDescriptorCount, aHeapType);
   }
 //---------------------------------------------------------------------------//
   void RenderCoreDX12::ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal)
   {
-    ourDescriptorHeapPool->ReleaseDynamicHeap(aCmdListType, aFenceVal, aHeap);
+    ourDynamicDescriptorHeapPool->ReleaseDynamicHeap(aCmdListType, aFenceVal, aHeap);
   }
 //---------------------------------------------------------------------------//
   DataFormatInfo RenderCoreDX12::GetFormatInfo(DXGI_FORMAT aFormat)

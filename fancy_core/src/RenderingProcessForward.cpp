@@ -302,6 +302,7 @@ namespace Fancy { namespace Rendering {
     UpdatePerFrameData();
 
     const Scene::CameraComponent* camera = pScene->getActiveCamera();
+
     UpdatePerCameraData(camera);
 
     RenderContext* context = RenderContext::AllocateContext();

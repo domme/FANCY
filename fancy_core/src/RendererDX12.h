@@ -13,10 +13,12 @@
 #include "FenceDX12.h"
 #include "RenderContextDX12.h"
 #include "CommandAllocatorPoolDX12.h"
+#include "DescriptorHeapPoolDX12.h"
+#include "RenderWindow.h"
 
 namespace Fancy { namespace Rendering {
-class ShaderResourceInterface;
-class GeometryVertexLayout;
+  class ShaderResourceInterface;
+  class GeometryVertexLayout;
 } }
 
 namespace Fancy { namespace Rendering { namespace DX12 {
@@ -26,7 +28,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	class RenderOutputDX12
 	{
 	public:
-    RenderOutputDX12(void* aNativeWindowHandle);
+    RenderOutputDX12();
 		virtual ~RenderOutputDX12();
 		void postInit(); /// Sets the render-system to a valid state. Should be called just before the first frame
 		void beginFrame();
@@ -34,10 +36,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     Texture* GetBackbuffer() { return &myBackbuffers[myCurrBackbufferIndex]; }
     Texture* GetDefaultDepthStencilBuffer() { return &myDefaultDepthStencil; }
+    RenderWindow* GetWindow();
 
 	protected:
-    void CreateSwapChain(void* aNativeWindowHandle);
+    void CreateSwapChain();
     void CreateBackbufferResources();
+
+    SharedPtr<RenderWindow> myWindow;
 
     uint myCurrBackbufferIndex;
     
@@ -79,11 +84,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal);
     
     static Descriptor AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    static DescriptorHeapPoolDX12* GetDescriptorHeapPool() { return ourDescriptorHeapPool; }
+    static DescriptorHeapPoolDX12* GetDescriptorHeapPool() { return ourDynamicDescriptorHeapPool; }
     static DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     static void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal);
 
-    static DescriptorHeapPoolDX12* ourDescriptorHeapPool;
     static ComPtr<ID3D12Device> ourDevice;
 
     static CommandAllocatorPoolDX12* ourCommandAllocatorPools [(uint) CommandListType::NUM];
@@ -91,6 +95,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static FenceDX12 ourCmdListDoneFences[(uint)CommandListType::NUM];
 
   protected:
+    static DescriptorHeapPoolDX12* ourDynamicDescriptorHeapPool;
+    static DescriptorHeapDX12 ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+
     RenderCoreDX12() {}
   };
 //---------------------------------------------------------------------------//

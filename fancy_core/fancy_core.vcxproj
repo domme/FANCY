@@ -311,6 +311,7 @@
     <ClInclude Include="src\AlignedStorage.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
+    <ClInclude Include="src\CallbackSlot.h" />
     <ClInclude Include="src\CommandListType.h" />
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\DataFormat.h" />
@@ -421,6 +422,7 @@
     <ClInclude Include="src\VertexInputLayout.h" />
     <ClInclude Include="src\GeometryVertexLayout.h" />
     <ClInclude Include="src\vsDebugLib.h" />
+    <ClInclude Include="src\RenderWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AdapterDX12.cpp" />
@@ -511,6 +513,7 @@
     <ClCompile Include="src\VertexInputLayout.cpp" />
     <ClCompile Include="src\GeometryVertexLayout.cpp" />
     <ClCompile Include="src\vsDebugLib.cpp" />
+    <ClCompile Include="src\RenderWindow.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

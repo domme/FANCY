@@ -19,11 +19,13 @@
 #include "LightComponent.h"
 #include "TextureLoader.h"
 #include "ScopedPtr.h"
+#include "RenderWindow.h"
 
 namespace Fancy {
   Scene::ScenePtr m_pCurrScene = nullptr;
   ScopedPtr<Rendering::RenderingProcess> m_pRenderingProcess;
   Rendering::RenderOutput* ourRenderOutput = nullptr;
+  HINSTANCE ourAppInstanceHandle = nullptr;
 
   void initComponentSubsystem()
   {
@@ -33,12 +35,12 @@ namespace Fancy {
     // Scene::SceneNodeComponentFactory::registerFactory(_N(CameraControllerComponent), Scene::CameraControllerComponent::create);
   }
 
-  void initRenderingSubsystem(void* aNativeWindowHandle)
+  void initRenderingSubsystem()
   {
     Rendering::RenderCore::InitPlatform();
     Rendering::RenderCore::Init();
 
-    ourRenderOutput = new Rendering::RenderOutput(aNativeWindowHandle);
+    ourRenderOutput = new Rendering::RenderOutput();
     ourRenderOutput->postInit();
 
     Rendering::RenderCore::PostInit();
@@ -50,11 +52,13 @@ namespace Fancy {
     IO::SceneImporter::initLogger();
   }
 
-  bool Init(void* aNativeWindowHandle)
+  bool Init(HINSTANCE anAppInstanceHandle)
   {
+    ourAppInstanceHandle = anAppInstanceHandle;
+
     initIOsubsystem();
     initComponentSubsystem();
-    initRenderingSubsystem(aNativeWindowHandle);
+    initRenderingSubsystem();
     
     return true;
   }
@@ -124,6 +128,20 @@ namespace Fancy {
 
     m_pRenderingProcess = _pRenderingProcess;
     m_pRenderingProcess->Startup();
+  }
+//---------------------------------------------------------------------------//
+  HINSTANCE GetAppInstanceHandle()
+  {
+    return ourAppInstanceHandle;
+  }
+
+//---------------------------------------------------------------------------//
+  Fancy::RenderWindow* GetCurrentRenderWindow()
+  {
+    if (ourRenderOutput != nullptr) 
+      return ourRenderOutput->GetWindow(); 
+    
+    return nullptr;
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

@@ -14,14 +14,20 @@ namespace Fancy { namespace Rendering {
 } }
 
 namespace Fancy {
+  class RenderWindow;
+}
+
+namespace Fancy {
 //---------------------------------------------------------------------------//
-    DLLEXPORT bool Init(void* aNativeWindowHandle);
+    DLLEXPORT bool Init(HINSTANCE anAppInstanceHandle);
     DLLEXPORT void Shutdown();
     DLLEXPORT void SetCurrentScene(const Scene::ScenePtr& _pScene);
     DLLEXPORT void Startup();
     DLLEXPORT void Update(double _dt);
     DLLEXPORT void SetRenderingProcess(Rendering::RenderingProcess* _pRenderingProcess);
     
+    HINSTANCE GetAppInstanceHandle();
+    RenderWindow* GetCurrentRenderWindow();
     Rendering::RenderOutput* GetCurrentRenderOutput();
     Rendering::RenderingProcess* GetRenderingProcess();
     const Scene::ScenePtr& GetCurrentScene();
