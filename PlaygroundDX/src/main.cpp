@@ -11,6 +11,7 @@
 #include <SceneNode.h>
 #include <ObjectName.h>
 #include <LightComponent.h>
+#include <RenderWindow.h>
 
 Fancy::Rendering::RenderingProcessForward* pRenderProcessFwd = nullptr;
 Fancy::Scene::CameraComponent* pCameraComponent;
@@ -51,11 +52,7 @@ void onWindowResize(uint aWidth, uint aHeight)
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-  
-
-	ourWindow.myResizeCallback = onWindowResize;
-
-  StartupEngine();
+  StartupEngine(hInstance);
 
 	MSG msg = { 0 };
 	while (true)

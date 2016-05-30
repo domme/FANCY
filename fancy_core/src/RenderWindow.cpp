@@ -3,12 +3,12 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  std::vector<SharedPtr<RenderWindow>> RenderWindow::ourCreatedWindows;  
+  std::vector<SharedPtr<RenderWindow>> RenderWindow::ourCreatedWindows;
 //---------------------------------------------------------------------------//
   LRESULT RenderWindow::OnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   {
     auto it = std::find_if(ourCreatedWindows.begin(), ourCreatedWindows.end(),
-      [hWnd](auto wndIt) { return (*wndIt)->myWindowHandle == hWnd; });
+      [hWnd](auto wndIt) { return wndIt->myWindowHandle == hWnd; });
 
     if (it == ourCreatedWindows.end())
       return 0;
@@ -18,16 +18,18 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  RenderWindow::RenderWindow() :
-    myWindowHandle(nullptr)
+  RenderWindow::RenderWindow(HWND aHandle)
+    : myWindowHandle(aHandle)
+    , myWidth(1)
+    , myHeight(1)
   {
-
+    
   }
 //---------------------------------------------------------------------------//
   RenderWindow::~RenderWindow()
   {
     auto it = std::find_if(ourCreatedWindows.begin(), ourCreatedWindows.end(),
-      [=](auto wndIt) { return (*wndIt)->myWindowHandle == myWindowHandle; });
+      [=](auto wndIt) { return wndIt->myWindowHandle == myWindowHandle; });
 
     if (it != ourCreatedWindows.end())
     {
@@ -54,9 +56,6 @@ namespace Fancy {
     HINSTANCE instanceHandle = Fancy::GetAppInstanceHandle();
     ASSERT(instanceHandle != nullptr);
 
-    SharedPtr<RenderWindow> window(new RenderWindow());
-    ourCreatedWindows.push_back(window);
-    
     WNDCLASSEX windowClass = { 0 };
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -66,14 +65,11 @@ namespace Fancy {
     windowClass.lpszClassName = "WindowClass1";
     RegisterClassEx(&windowClass);
 
-    window->myWidth = someParams.myWidth;
-    window->myHeight = someParams.myHeight;
-
     RECT windowRect = { 0, 0, static_cast<LONG>(someParams.myWidth), static_cast<LONG>(someParams.myHeight) };
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
     // Create the window and store a handle to it.
-    window->myWindowHandle = CreateWindowEx(NULL,
+    HWND windowHandle = CreateWindowEx(NULL,
       "WindowClass1",
       "Fancy (DX12)",
       WS_OVERLAPPEDWINDOW,
@@ -86,30 +82,14 @@ namespace Fancy {
       instanceHandle,
       NULL);		// We aren't using multiple windows, NULL.
 
+    SharedPtr<RenderWindow> window(new RenderWindow(windowHandle));
+    window->myWidth = someParams.myWidth;
+    window->myHeight = someParams.myHeight;
+    ourCreatedWindows.push_back(window);
+
     ShowWindow(window->myWindowHandle, 1);
 
     return window;
   }
 //---------------------------------------------------------------------------//
-  void RenderWindow::AddResizeCallback(const std::function<void(uint, uint)>& aCallback)
-  {
-    
-  }
-//---------------------------------------------------------------------------//
-
-
-  struct test
-  {
-    void OnResize(uint width, uint height)
-    {
-      
-    }
-
-    test()
-    {
-      RenderWindow* wnd = new RenderWindow();
-
-      wnd->AddResizeCallback(std::)
-    }
-  };
 }

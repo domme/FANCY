@@ -11,9 +11,9 @@
 #include "DescriptorHeapPoolDX12.h"
 #include "Renderer.h"
 #include "RenderContext.h"
+#include "RenderWindow.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
-
 //---------------------------------------------------------------------------//
   RenderOutputDX12::RenderOutputDX12()
 	{
@@ -23,14 +23,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     params.myHeight = 720u;
 
     myWindow = RenderWindow::Create(params);
+    myWindow->myOnResize.Connect(this, &RenderOutput::OnWindowResized);
 
     CreateSwapChain();
 	}
 //---------------------------------------------------------------------------//
 	RenderOutputDX12::~RenderOutputDX12()
 	{
+    myWindow->myOnResize.DetachObserver(this);
 	}
-
 //---------------------------------------------------------------------------//
   RenderWindow* RenderOutputDX12::GetWindow()
   {
@@ -99,6 +100,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	{
     CreateBackbufferResources();
 	}
+//---------------------------------------------------------------------------//
+  void RenderOutputDX12::OnWindowResized(uint aWidth, uint aHeight)
+  {
+    
+  }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::beginFrame()
 	{

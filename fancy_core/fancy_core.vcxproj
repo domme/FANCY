@@ -311,7 +311,6 @@
     <ClInclude Include="src\AlignedStorage.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
-    <ClInclude Include="src\CallbackSlot.h" />
     <ClInclude Include="src\CommandListType.h" />
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\DataFormat.h" />
@@ -401,6 +400,7 @@
     <ClInclude Include="src\ScopedPtr.h" />
     <ClInclude Include="src\Serializable.h" />
     <ClInclude Include="src\Serializer.h" />
+    <ClInclude Include="src\Slot.h" />
     <ClInclude Include="src\SmallObjectAllocator.h" />
     <ClInclude Include="src\StaticManagedObject.h" />
     <ClInclude Include="src\StdAfx.h" />

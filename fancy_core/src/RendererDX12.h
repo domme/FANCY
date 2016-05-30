@@ -45,10 +45,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void CreateSwapChain();
     void CreateBackbufferResources();
 
-    SharedPtr<RenderWindow> myWindow;
+    void OnWindowResized(uint aWidth, uint aHeight);
 
+    SharedPtr<RenderWindow> myWindow;
     uint myCurrBackbufferIndex;
-    
     static const uint kBackbufferCount = 2u;
     ComPtr<IDXGISwapChain3> mySwapChain;
     Texture myBackbuffers[kBackbufferCount];

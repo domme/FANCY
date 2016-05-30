@@ -25,9 +25,9 @@ namespace Fancy {
     DLLEXPORT void Startup();
     DLLEXPORT void Update(double _dt);
     DLLEXPORT void SetRenderingProcess(Rendering::RenderingProcess* _pRenderingProcess);
+    DLLEXPORT RenderWindow* GetCurrentRenderWindow();
     
     HINSTANCE GetAppInstanceHandle();
-    RenderWindow* GetCurrentRenderWindow();
     Rendering::RenderOutput* GetCurrentRenderOutput();
     Rendering::RenderingProcess* GetRenderingProcess();
     const Scene::ScenePtr& GetCurrentScene();

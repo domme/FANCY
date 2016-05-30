@@ -3,6 +3,7 @@
 #include <windows.h>
 #include "FancyCorePrerequisites.h"
 #include "ScopedPtr.h"
+#include "Slot.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -23,10 +24,12 @@ namespace Fancy {
       HWND GetWindowHandle() const { return myWindowHandle; }
       uint32 GetWidth() const { return myWidth; }
       uint32 GetHeight() const { return myHeight; }
-      void AddResizeCallback(const std::function<void(uint, uint)>& aCallback);
+
+      Slot<void(uint, uint)> myOnResize;
 
     private:
-      
+      explicit RenderWindow(HWND aHandle);
+
       static std::vector<SharedPtr<RenderWindow>> ourCreatedWindows;
       static LRESULT CALLBACK OnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -35,8 +38,6 @@ namespace Fancy {
       HWND myWindowHandle;
       uint32 myHeight;
       uint32 myWidth;
-
-      std::vector<std::function<void(uint, uint)>> myResizeCallbacks;
   };
 //---------------------------------------------------------------------------//
 }
