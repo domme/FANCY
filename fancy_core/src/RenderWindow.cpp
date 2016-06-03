@@ -3,20 +3,25 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  std::vector<SharedPtr<RenderWindow>> RenderWindow::ourCreatedWindows;
+  std::vector<SharedPtr<RenderWindow>> ourCreatedWindows;
 //---------------------------------------------------------------------------//
-  LRESULT RenderWindow::OnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+  LRESULT CALLBACK locOnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   {
     auto it = std::find_if(ourCreatedWindows.begin(), ourCreatedWindows.end(),
-      [hWnd](auto wndIt) { return wndIt->myWindowHandle == hWnd; });
+      [hWnd](auto wndIt) { return wndIt->GetWindowHandle() == hWnd; });
 
-    if (it == ourCreatedWindows.end())
-      return 0;
+    LRESULT handled = S_FALSE;
+    
+    if (it != ourCreatedWindows.end())
+      handled = (*it)->HandleWindowEvent(message, wParam, lParam);
 
-    return (*it)->HandleWindowEvent(message, wParam, lParam);
+    if (handled == S_OK)
+      return handled;
+
+    return DefWindowProc(hWnd, message, wParam, lParam);
   }
 //---------------------------------------------------------------------------//
-
+  
 //---------------------------------------------------------------------------//
   RenderWindow::RenderWindow(HWND aHandle)
     : myWindowHandle(aHandle)
@@ -29,7 +34,7 @@ namespace Fancy {
   RenderWindow::~RenderWindow()
   {
     auto it = std::find_if(ourCreatedWindows.begin(), ourCreatedWindows.end(),
-      [=](auto wndIt) { return wndIt->myWindowHandle == myWindowHandle; });
+      [=](auto wndIt) { return wndIt->GetWindowHandle() == myWindowHandle; });
 
     if (it != ourCreatedWindows.end())
     {
@@ -42,13 +47,20 @@ namespace Fancy {
     // Handle destroy/shutdown messages.
     switch (message)
     {
-    case WM_DESTROY:
-      PostQuitMessage(0);
-      return 0;
+      case WM_DESTROY:
+        PostQuitMessage(0);
+        return S_OK;
+
+      case WM_SIZE:
+      {
+        uint width = LOWORD(lParam);
+        uint height = HIWORD(lParam);
+        SetSize(width, height);
+        return S_OK;
+      }
     }
 
-    // Handle any messages the switch statement didn't.
-    return DefWindowProc(myWindowHandle, message, wParam, lParam);
+    return S_FALSE; // This window doesn't handle this message
   }
 //---------------------------------------------------------------------------//
   SharedPtr<RenderWindow> RenderWindow::Create(const WindowParameters& someParams)
@@ -59,7 +71,7 @@ namespace Fancy {
     WNDCLASSEX windowClass = { 0 };
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
-    windowClass.lpfnWndProc = &RenderWindow::OnWindowEvent;
+    windowClass.lpfnWndProc = &locOnWindowEvent;
     windowClass.hInstance = instanceHandle;
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
     windowClass.lpszClassName = "WindowClass1";
@@ -82,14 +94,27 @@ namespace Fancy {
       instanceHandle,
       NULL);		// We aren't using multiple windows, NULL.
 
+    ASSERT(windowHandle != nullptr);
+
     SharedPtr<RenderWindow> window(new RenderWindow(windowHandle));
     window->myWidth = someParams.myWidth;
     window->myHeight = someParams.myHeight;
     ourCreatedWindows.push_back(window);
 
-    ShowWindow(window->myWindowHandle, 1);
+    ShowWindow(window->myWindowHandle, 10);
 
     return window;
+  }
+//---------------------------------------------------------------------------//
+  void RenderWindow::SetSize(uint aWidth, uint aHeight)
+  {
+    if (myWidth == aWidth && myHeight == aHeight)
+      return;
+
+    myWidth = aWidth;
+    myHeight = aHeight;
+
+    myOnResize(aWidth, aHeight);
   }
 //---------------------------------------------------------------------------//
 }

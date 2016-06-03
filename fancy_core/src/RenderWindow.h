@@ -24,16 +24,14 @@ namespace Fancy {
       HWND GetWindowHandle() const { return myWindowHandle; }
       uint32 GetWidth() const { return myWidth; }
       uint32 GetHeight() const { return myHeight; }
+      void SetSize(uint aWidth, uint aHeight);
 
       Slot<void(uint, uint)> myOnResize;
 
+      LRESULT HandleWindowEvent(UINT message, WPARAM wParam, LPARAM lParam);
+
     private:
       explicit RenderWindow(HWND aHandle);
-
-      static std::vector<SharedPtr<RenderWindow>> ourCreatedWindows;
-      static LRESULT CALLBACK OnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-      LRESULT HandleWindowEvent(UINT message, WPARAM wParam, LPARAM lParam);
 
       HWND myWindowHandle;
       uint32 myHeight;

@@ -17,11 +17,19 @@ Fancy::Rendering::RenderingProcessForward* pRenderProcessFwd = nullptr;
 Fancy::Scene::CameraComponent* pCameraComponent;
 Fancy::Scene::SceneNode* pModelNode;
 
+void OnWindowResized(uint aWidth, uint aHeight)
+{
+  pCameraComponent->setProjectionPersp(45.0f, aWidth, aHeight, 1.0f, 1000.0f);
+}
+
 void StartupEngine(HINSTANCE anAppInstanceHandle)
 {
   Fancy::Init(anAppInstanceHandle);
 
   Fancy::RenderWindow* window = Fancy::GetCurrentRenderWindow();
+
+  std::function<void(uint, uint)> onResizeCallback = &OnWindowResized;
+  window->myOnResize.Connect(onResizeCallback);
   
   Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
   Fancy::SetCurrentScene(pScene);
@@ -47,6 +55,20 @@ void StartupEngine(HINSTANCE anAppInstanceHandle)
 void onWindowResize(uint aWidth, uint aHeight)
 {
 	
+}
+
+LRESULT CALLBACK locOnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+  // Handle destroy/shutdown messages.
+  switch (message)
+  {
+  case WM_DESTROY:
+    PostQuitMessage(0);
+    return 0;
+  }
+
+  // Handle any messages the switch statement didn't.
+  return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
 _Use_decl_annotations_

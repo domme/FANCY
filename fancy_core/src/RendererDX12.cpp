@@ -50,8 +50,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     // Describe and create the swap chain.
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     swapChainDesc.BufferCount = kBackbufferCount;
-    swapChainDesc.BufferDesc.Width = 1280;
-    swapChainDesc.BufferDesc.Height = 720;
+    swapChainDesc.BufferDesc.Width = myWindow->GetWidth();
+    swapChainDesc.BufferDesc.Height = myWindow->GetHeight();
     swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
@@ -65,6 +65,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
 //---------------------------------------------------------------------------//
+  void RenderOutputDX12::DestroyBackbufferResources()
+  {
+    for (uint i = 0u; i < kBackbufferCount; ++i)
+      myBackbuffers[i] = nullptr;
+
+    myDefaultDepthStencil = nullptr;
+  }
+//---------------------------------------------------------------------------//
   void RenderOutputDX12::CreateBackbufferResources()
   {
     TextureParams dsTexParams;
@@ -73,26 +81,29 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     dsTexParams.myIsExternalTexture = false;
     dsTexParams.myIsRenderTarget = false;
     dsTexParams.myIsShaderWritable = false;
-    dsTexParams.u16Width = 1280u;
-    dsTexParams.u16Height = 720u;
+    dsTexParams.u16Width = myWindow->GetWidth();
+    dsTexParams.u16Height = myWindow->GetHeight();
     dsTexParams.u8NumMipLevels = 1u;
-    myDefaultDepthStencil.create(dsTexParams);
+    myDefaultDepthStencil = new Texture();
+    myDefaultDepthStencil->create(dsTexParams);
 
     for (UINT n = 0; n < kBackbufferCount; n++)
     {
-      TextureDX12& backbufferResource = myBackbuffers[n];
-      backbufferResource.myUsageState = D3D12_RESOURCE_STATE_PRESENT;
+      myBackbuffers[n] = new Texture();
+
+      TextureDX12* backbufferResource = myBackbuffers[n];
+      backbufferResource->myUsageState = D3D12_RESOURCE_STATE_PRESENT;
 
       // TODO: Sync this better with swap chain properties
-      backbufferResource.myParameters.myIsRenderTarget = true;
-      backbufferResource.myParameters.eFormat = DataFormat::RGBA_8;
-      backbufferResource.myParameters.u16Width = 1280;
-      backbufferResource.myParameters.u16Height = 720;
-      backbufferResource.myParameters.u16Depth = 1u;
+      backbufferResource->myParameters.myIsRenderTarget = true;
+      backbufferResource->myParameters.eFormat = DataFormat::RGBA_8;
+      backbufferResource->myParameters.u16Width = myWindow->GetWidth();
+      backbufferResource->myParameters.u16Height = myWindow->GetHeight();
+      backbufferResource->myParameters.u16Depth = 1u;
 
-      CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource.myResource)));
-      backbufferResource.myRtvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-      RenderCoreDX12::ourDevice->CreateRenderTargetView(backbufferResource.myResource.Get(), nullptr, backbufferResource.myRtvDescriptor.myCpuHandle);
+      CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource->myResource)));
+      backbufferResource->myRtvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+      RenderCoreDX12::ourDevice->CreateRenderTargetView(backbufferResource->myResource.Get(), nullptr, backbufferResource->myRtvDescriptor.myCpuHandle);
     }
   }
 //---------------------------------------------------------------------------//
@@ -103,7 +114,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::OnWindowResized(uint aWidth, uint aHeight)
   {
-    
+    DestroyBackbufferResources();
+    CheckD3Dcall(mySwapChain->ResizeBuffers(kBackbufferCount, aWidth, aHeight, DXGI_FORMAT_UNKNOWN, 0));
+    CreateBackbufferResources();
   }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::beginFrame()
@@ -114,10 +127,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 	void RenderOutputDX12::endFrame()
 	{
-    TextureDX12& currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
+    TextureDX12* currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
 
     RenderContext* context = RenderContext::AllocateContext();
-    context->TransitionResource(&currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
+    context->TransitionResource(currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
     context->ExecuteAndReset(false);
     RenderContext::FreeContext(context);
 

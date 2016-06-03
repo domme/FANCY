@@ -37,12 +37,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		void beginFrame();
 		void endFrame();
 
-    Texture* GetBackbuffer() { return &myBackbuffers[myCurrBackbufferIndex]; }
-    Texture* GetDefaultDepthStencilBuffer() { return &myDefaultDepthStencil; }
+    Texture* GetBackbuffer() { return myBackbuffers[myCurrBackbufferIndex]; }
+    Texture* GetDefaultDepthStencilBuffer() { return myDefaultDepthStencil; }
     RenderWindow* GetWindow();
 
 	protected:
     void CreateSwapChain();
+    void DestroyBackbufferResources();
     void CreateBackbufferResources();
 
     void OnWindowResized(uint aWidth, uint aHeight);
@@ -51,8 +52,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uint myCurrBackbufferIndex;
     static const uint kBackbufferCount = 2u;
     ComPtr<IDXGISwapChain3> mySwapChain;
-    Texture myBackbuffers[kBackbufferCount];
-    Texture myDefaultDepthStencil;
+    ScopedPtr<Texture> myBackbuffers[kBackbufferCount];
+    ScopedPtr<Texture> myDefaultDepthStencil;
 	};
 //---------------------------------------------------------------------------//
 

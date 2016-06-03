@@ -14,6 +14,7 @@
 #include "TimeManager.h"
 #include "CameraComponent.h"
 #include "SceneNode.h"
+#include "RenderWindow.h"
 
 namespace Fancy { namespace Rendering {
 
@@ -294,7 +295,8 @@ namespace Fancy { namespace Rendering {
   void RenderingProcessForward::Tick(float _dt)
   {
     Scene::Scene* pScene = Fancy::GetCurrentScene().get();
-    RenderOutput& renderer = *Fancy::GetCurrentRenderOutput();
+    RenderOutput& renderOutput = *Fancy::GetCurrentRenderOutput();
+    RenderWindow* renderWindow = renderOutput.GetWindow();
     
     Scene::SceneRenderDescription renderDesc;
     pScene->gatherRenderItems(&renderDesc);
@@ -307,22 +309,22 @@ namespace Fancy { namespace Rendering {
 
     RenderContext* context = RenderContext::AllocateContext();
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-    context->ClearRenderTarget(renderer.GetBackbuffer(), clearColor);
+    context->ClearRenderTarget(renderOutput.GetBackbuffer(), clearColor);
 
     const float clearDepth = 1.0f;
     uint8 clearStencil = 0u;
-    context->ClearDepthStencilTarget(renderer.GetDefaultDepthStencilBuffer(), clearDepth, clearStencil);
+    context->ClearDepthStencilTarget(renderOutput.GetDefaultDepthStencilBuffer(), clearDepth, clearStencil);
 
-    context->setViewport(glm::uvec4(0, 0, 1280, 720));
-    context->setRenderTarget(renderer.GetBackbuffer(), 0u);
-    context->setDepthStencilRenderTarget(renderer.GetDefaultDepthStencilBuffer());
+    context->setViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
+    context->setRenderTarget(renderOutput.GetBackbuffer(), 0u);
+    context->setDepthStencilRenderTarget(renderOutput.GetDefaultDepthStencilBuffer());
 
     const Scene::RenderingItemList& forwardRenderList = renderDesc.techniqueItemList[(uint32) Rendering::EMaterialPass::SOLID_FORWARD];
     // TODO: Sort based on material-pass
 
     const Scene::LightList& aLightList = pScene->getCachedLights();
 
-    context->setRenderTarget(renderer.GetBackbuffer(), 0u);
+    context->setRenderTarget(renderOutput.GetBackbuffer(), 0u);
 
     const MaterialPass* pCachedMaterialPass = nullptr;
     for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
