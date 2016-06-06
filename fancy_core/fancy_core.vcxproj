@@ -311,7 +311,11 @@
     <ClInclude Include="src\AlignedStorage.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
+    <ClInclude Include="src\CommandContext.h" />
+    <ClInclude Include="src\CommandContextDX12.h" />
     <ClInclude Include="src\CommandListType.h" />
+    <ClInclude Include="src\ComputeContext.h" />
+    <ClInclude Include="src\ComputeContextDX12.h" />
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\DataFormat.h" />
     <ClInclude Include="src\Descriptor.h" />
@@ -429,6 +433,10 @@
     <ClCompile Include="src\AdapterGL4.cpp" />
     <ClCompile Include="src\BinaryCache.cpp" />
     <ClCompile Include="src\BlendState.cpp" />
+    <ClCompile Include="src\CommandContext.cpp" />
+    <ClCompile Include="src\CommandContextDX12.cpp" />
+    <ClCompile Include="src\ComputeContext.cpp" />
+    <ClCompile Include="src\ComputeContextDX12.cpp" />
     <ClCompile Include="src\DataFormat.cpp" />
     <ClCompile Include="src\DescriptorHeapPoolDX12.cpp" />
     <ClCompile Include="src\GpuBufferDX12.cpp" />

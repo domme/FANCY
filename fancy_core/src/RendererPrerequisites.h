@@ -110,11 +110,15 @@ namespace Fancy {
       class GpuResourceDX12;
       class DescriptorDX12;
       class ShaderResourceInterfaceDX12;
+      class CommandContextDX12;
+      class ComputeContextDX12;
 		}
 
 		#define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX12::name##DX12
 		#define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererDX12.h"
     #define PLATFORM_DEPENDENT_INCLUDE_RENDERCONTEXT "RenderContextDX12.h"
+    #define PLATFORM_DEPENDENT_INCLUDE_COMMANDCONTEXT "CommandContextDX12.h"
+    #define PLATFORM_DEPENDENT_INCLUDE_COMPUTECONTEXT "ComputeContextDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_TEXTURESAMPLER "TextureSamplerDX12.h"
 		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GpuProgramDX12.h"
