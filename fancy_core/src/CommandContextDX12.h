@@ -11,6 +11,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class CommandContextDX12
   {
   public:
+    CommandContextDX12(CommandListType aType);
+    virtual ~CommandContextDX12();
+
+    void Destroy();
+    void Reset();
+
     static void InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr);
     static void UpdateBufferData(GpuBufferDX12* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize);
     static void InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas);
@@ -29,16 +35,18 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     uint64 ExecuteAndReset(bool aWaitForCompletion = false);
 
-    void Destroy();
-    void Reset();
-
+    CommandListType GetType() const { return myCommandListType; }
 
   protected:
-    static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
+    virtual void ResetInternal();
 
+    void ApplyDescriptorHeaps();
+    void KickoffResourceBarriers();
     void ReleaseAllocator(uint64 aFenceVal);
     void ReleaseDynamicHeaps(uint64 aFenceVal);
 
+    CommandListType myCommandListType;
+    
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12GraphicsCommandList* myCommandList;
 
@@ -52,6 +60,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     GpuDynamicAllocatorDX12 myCpuVisibleAllocator;
     GpuDynamicAllocatorDX12 myGpuOnlyAllocator;
+
+    
 
   };
 //---------------------------------------------------------------------------//

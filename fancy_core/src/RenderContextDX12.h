@@ -47,7 +47,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   public:
      RenderContextDX12();
-    ~RenderContextDX12();
+    ~RenderContextDX12() override;
     
     // Root arguments:
     void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const;
@@ -76,14 +76,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void renderGeometry(const Geometry::GeometryData* pGeometry);
 
   protected:
+    static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
+
+    void ResetInternal() override;
+
     void ApplyViewport();
     void ApplyPipelineState();
-    void ApplyDescriptorHeaps();
     void ApplyRenderTargets();
-    void KickoffResourceBarriers();
-    void ResetInternalStates();
-
-    PipelineState myPipelineState;
+    
+    PipelineState myGraphicsPipelineState;
 
     glm::uvec4 myViewportParams;
     bool myViewportDirty;

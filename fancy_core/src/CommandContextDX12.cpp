@@ -1,8 +1,149 @@
 #include "FancyCorePrerequisites.h"
 #include "CommandContextDX12.h"
 #include "Renderer.h"
+#include "Fancy.h"
+#include "GpuBufferDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
+//---------------------------------------------------------------------------//
+  CommandContextDX12::CommandContextDX12(CommandListType aCommandListType)
+    : myCommandListType(aCommandListType)
+    , myCpuVisibleAllocator(aCommandListType, GpuDynamicAllocatorType::CpuWritable)
+    , myGpuOnlyAllocator(aCommandListType, GpuDynamicAllocatorType::GpuOnly)
+    , myRootSignature(nullptr)
+    , myCommandList(nullptr)
+    , myCommandAllocator(nullptr)
+    , myIsInRecordState(true)
+  {
+    ResetInternal();
+
+    myCommandAllocator = RenderCore::GetCommandAllocator(myCommandListType);
+
+    CheckD3Dcall(
+      RenderCore::GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+        myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
+      );
+  }
+//---------------------------------------------------------------------------//
+  CommandContextDX12::~CommandContextDX12()
+  {
+    Destroy();
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::ResetInternal()
+  {
+    myRootSignature = nullptr;
+    
+    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps)); 
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::Destroy()
+  {
+    if (myCommandList != nullptr)
+      myCommandList->Release();
+    myCommandList = nullptr;
+
+    if (myCommandAllocator != nullptr)
+      ReleaseAllocator(0u);
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::Reset()
+  {
+    if (myIsInRecordState)
+      return;
+
+    ASSERT(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
+
+    myCommandAllocator = RenderCore::GetCommandAllocator(CommandListType::Graphics);
+    ASSERT(myCommandAllocator != nullptr);
+
+    CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
+
+    myIsInRecordState = true;
+
+    ResetInternal();
+  }
+//---------------------------------------------------------------------------//
+  uint64 CommandContextDX12::ExecuteAndReset(bool aWaitForCompletion)
+  {
+    KickoffResourceBarriers();
+
+    ASSERT(myCommandAllocator != nullptr && myCommandList != nullptr);
+    CheckD3Dcall(myCommandList->Close());
+    myIsInRecordState = false;
+
+    uint64 fenceVal = RenderCore::ExecuteCommandList(myCommandList);
+
+    myCpuVisibleAllocator.CleanupAfterCmdListExecute(fenceVal);
+    myGpuOnlyAllocator.CleanupAfterCmdListExecute(fenceVal);
+    ReleaseDynamicHeaps(fenceVal);
+    ReleaseAllocator(fenceVal);
+
+    if (aWaitForCompletion)
+      RenderCore::WaitForFence(myCommandListType, fenceVal);
+
+    Reset();
+
+    return fenceVal;
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap)
+  {
+    if (myDynamicShaderVisibleHeaps[aHeapType] == aDescriptorHeap)
+      return;
+
+    // Has this heap already been used on this commandList? Then we need to "remember" it until ExecuteAndReset()
+    if (myDynamicShaderVisibleHeaps[aHeapType] != nullptr)
+      myRetiredDescriptorHeaps.push_back(myDynamicShaderVisibleHeaps[aHeapType]);
+
+    myDynamicShaderVisibleHeaps[aHeapType] = aDescriptorHeap;
+    ApplyDescriptorHeaps();
+  }
+  //---------------------------------------------------------------------------//
+  void CommandContextDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
+  {
+    ASSERT(aTexture->getParameters().myIsRenderTarget);
+
+    TransitionResource(aTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+    myCommandList->ClearRenderTargetView(aTexture->GetRtv().myCpuHandle, aColor, 0, nullptr);
+  }
+  //---------------------------------------------------------------------------//
+  void CommandContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear,
+    uint8 aStencilClear, uint32 someClearFlags /* = (uint32)DepthStencilClearFlags::CLEAR_ALL */)
+  {
+    ASSERT(aTexture->getParameters().bIsDepthStencil);
+
+    D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS)0;
+    if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_DEPTH)
+      clearFlags |= D3D12_CLEAR_FLAG_DEPTH;
+    if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_STENCIL)
+      clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
+
+    myCommandList->ClearDepthStencilView(aTexture->GetDsv().myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
+  }
+  //---------------------------------------------------------------------------//
+  void CommandContextDX12::TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow /* = false */)
+  {
+    if (aResource->GetUsageState() == aDestState)
+      return;
+
+    D3D12_RESOURCE_BARRIER barrier;
+    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrier.Transition.pResource = aResource->GetResource();
+    barrier.Transition.StateBefore = aResource->GetUsageState();
+    barrier.Transition.StateAfter = aDestState;
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+    aResource->myUsageState = aDestState;
+
+    myWaitingResourceBarriers.push_back(barrier);
+
+    if (aExecuteNow || myWaitingResourceBarriers.IsFull())
+    {
+      KickoffResourceBarriers();
+    }
+  }
 //---------------------------------------------------------------------------//
   static void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint32 aNumRows, uint32 aNumSlices)
   {
@@ -86,11 +227,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     TransitionResource(aSrcResource, oldSrcState);
     KickoffResourceBarriers();
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandContextDX12::InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr)
   {
-    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
-
     D3D12_HEAP_PROPERTIES heapProps;
     memset(&heapProps, 0, sizeof(heapProps));
     heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -109,7 +248,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memcpy(mappedBufferPtr, aDataPtr, aBuffer->GetSizeBytes());
     uploadResource->Unmap(0, nullptr);
 
-    RenderContext* initContext = RenderContext::AllocateContext();
+    CommandContext* initContext = RenderContext::AllocateContext(CommandListType::Graphics);
     initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
     initContext->myCommandList->CopyResource(aBuffer->GetResource(), uploadResource.Get());
     initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, true);
@@ -121,8 +260,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void CommandContextDX12::UpdateBufferData(GpuBufferDX12* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize)
   {
-    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
-
     D3D12_HEAP_PROPERTIES heapProps;
     memset(&heapProps, 0, sizeof(heapProps));
     heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -142,7 +279,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memcpy(uploadBufferPtr, aDataPtr, aByteSize);
     uploadResource->Unmap(0, nullptr);
 
-    RenderContext* initContext = RenderContext::AllocateContext();
+    CommandContext* initContext = RenderContext::AllocateContext(CommandListType::Graphics);
     initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
     initContext->myCommandList->CopyBufferRegion(aBuffer->GetResource(), aByteOffset, uploadResource.Get(), 0u, aByteSize);
     initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, true);
@@ -154,7 +291,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void CommandContextDX12::InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
   {
-    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
     ID3D12Device* device = RenderCore::GetDevice();
     const D3D12_RESOURCE_DESC& resourceDesc = aTexture->GetResource()->GetDesc();
 
@@ -204,7 +340,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       subDatas[i].RowPitch = someUploadDatas[i].myRowSizeBytes;
     }
 
-    RenderContext* uploadContext = RenderContext::AllocateContext();
+    CommandContext* uploadContext = CommandContext::AllocateContext(CommandListType::Graphics);
     D3D12_RESOURCE_STATES oldUsageState = aTexture->GetUsageState();
     uploadContext->TransitionResource(aTexture, D3D12_RESOURCE_STATE_COPY_DEST, true);
     uploadContext->UpdateSubresources(aTexture->GetResource(), stagingBuffer.Get(), 0u, aNumUploadDatas, subDatas);
@@ -214,6 +350,51 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     RenderContext::FreeContext(uploadContext);
   }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::ApplyDescriptorHeaps()
+  {
+    ID3D12DescriptorHeap* heapsToBind[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    memset(heapsToBind, 0, sizeof(heapsToBind));
+    uint32 numHeapsToBind = 0u;
+
+    for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
+      if (heap != nullptr)
+        heapsToBind[numHeapsToBind++] = heap->GetHeap();
+
+    if (numHeapsToBind > 0u)
+      myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
+  }
   //---------------------------------------------------------------------------//
+  void CommandContextDX12::KickoffResourceBarriers()
+  {
+    if (myWaitingResourceBarriers.empty())
+      return;
+
+    myCommandList->ResourceBarrier(myWaitingResourceBarriers.size(), &myWaitingResourceBarriers[0]);
+    myWaitingResourceBarriers.clear();
+  }
+  //---------------------------------------------------------------------------//
+  void CommandContextDX12::ReleaseAllocator(uint64 aFenceVal)
+  {
+    RenderCore::ReleaseCommandAllocator(myCommandAllocator, CommandListType::Graphics, aFenceVal);
+    myCommandAllocator = nullptr;
+  }
+  //---------------------------------------------------------------------------//
+  void CommandContextDX12::ReleaseDynamicHeaps(uint64 aFenceVal)
+  {
+    for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
+    {
+      if (heap != nullptr)
+        RenderCore::ReleaseDynamicDescriptorHeap(heap, CommandListType::Graphics, aFenceVal);
+    }
+
+    for (DescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
+    {
+      RenderCore::ReleaseDynamicDescriptorHeap(heap, CommandListType::Graphics, aFenceVal);
+    }
+
+    myRetiredDescriptorHeaps.clear();
+    memset(myDynamicShaderVisibleHeaps, 0, sizeof(myDynamicShaderVisibleHeaps));
+  }
 //---------------------------------------------------------------------------//
 } } }

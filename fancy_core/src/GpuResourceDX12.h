@@ -13,6 +13,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     friend class RenderOutputDX12;
     friend class RenderContextDX12;
+    friend class CommandContextDX12;
 
   public:
     GpuResourceDX12()

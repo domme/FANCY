@@ -202,197 +202,28 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
 //---------------------------------------------------------------------------// 
   RenderContextDX12::RenderContextDX12()
-    : myViewportParams(0, 0, 1, 1)
+    : CommandContext::CommandContext(CommandListType::Graphics)
+    , myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
-    , myRootSignature(nullptr)
-    , myCommandList(nullptr)
-    , myCommandAllocator(nullptr)
-    , myCpuVisibleAllocator(CommandListType::Graphics, GpuDynamicAllocatorType::CpuWritable)
-    , myGpuOnlyAllocator(CommandListType::Graphics, GpuDynamicAllocatorType::GpuOnly)
-    , myIsInRecordState(true)
     , myRenderTargetsDirty(true)
     , myDepthStencilTarget(nullptr)
   {
-    ResetInternalStates();
-
-    myCommandAllocator = RenderCore::GetCommandAllocator(CommandListType::Graphics);
-
-    CheckD3Dcall(
-      RenderCore::GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, 
-        myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
-      );    
+    ResetInternal();
   }
 //---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
   {
-    Destroy();
-  }
+  }  
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::Destroy()
+  void RenderContextDX12::ResetInternal()
   {
-    if (myCommandList != nullptr)
-      myCommandList->Release(); 
-    myCommandList = nullptr;
+    CommandContext::ResetInternal();
 
-    if (myCommandAllocator != nullptr)
-      ReleaseAllocator(0u);
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::ResetInternalStates()
-  {
-    myRootSignature = nullptr;
-    myPipelineState = PipelineState();
+    myGraphicsPipelineState = PipelineState();
     myViewportDirty = true;
     myRenderTargetsDirty = true;
     myDepthStencilTarget = nullptr;
-    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
     memset(myRenderTargets, 0u, sizeof(myRenderTargets));
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::Reset()
-  {
-    if (myIsInRecordState)
-      return;
-
-    ASSERT(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
-
-    myCommandAllocator = RenderCore::GetCommandAllocator(CommandListType::Graphics);
-    ASSERT(myCommandAllocator != nullptr);
-
-    CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
-
-    myIsInRecordState = true;
-
-    ResetInternalStates();
-  }
-//---------------------------------------------------------------------------//
-  uint64 RenderContextDX12::ExecuteAndReset(bool aWaitForCompletion)
-  {
-    KickoffResourceBarriers();
-
-    ASSERT(myCommandAllocator != nullptr && myCommandList != nullptr);
-    CheckD3Dcall(myCommandList->Close());
-    myIsInRecordState = false;
-
-    uint64 fenceVal = RenderCore::ExecuteCommandList(myCommandList);
-
-    myCpuVisibleAllocator.CleanupAfterCmdListExecute(fenceVal);
-    myGpuOnlyAllocator.CleanupAfterCmdListExecute(fenceVal);
-    ReleaseDynamicHeaps(fenceVal);
-    ReleaseAllocator(fenceVal);
-
-    if (aWaitForCompletion)
-      RenderCore::WaitForFence(CommandListType::Graphics, fenceVal);
-
-    Reset();
-
-    return fenceVal;
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap)
-  {
-    if (myDynamicShaderVisibleHeaps[aHeapType] == aDescriptorHeap)
-      return;
-
-    // Has this heap already been used on this commandList? Then we need to "remember" it until ExecuteAndReset()
-    if (myDynamicShaderVisibleHeaps[aHeapType] != nullptr)
-      myRetiredDescriptorHeaps.push_back(myDynamicShaderVisibleHeaps[aHeapType]);
-
-    myDynamicShaderVisibleHeaps[aHeapType] = aDescriptorHeap;
-    ApplyDescriptorHeaps();
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
-  {
-    ASSERT(aTexture->getParameters().myIsRenderTarget);
-
-    
-
-    TransitionResource(aTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-    myCommandList->ClearRenderTargetView(aTexture->GetRtv().myCpuHandle, aColor, 0, nullptr);
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, 
-    uint8 aStencilClear, uint32 someClearFlags /* = (uint32)DepthStencilClearFlags::CLEAR_ALL */)
-  {
-    ASSERT(aTexture->getParameters().bIsDepthStencil);
-
-    D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS) 0;
-    if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_DEPTH)
-      clearFlags |= D3D12_CLEAR_FLAG_DEPTH;
-    if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_STENCIL)
-      clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
-
-    myCommandList->ClearDepthStencilView(aTexture->GetDsv().myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow /* = false */)
-  {
-    if (aResource->GetUsageState() == aDestState)
-      return;
-
-    D3D12_RESOURCE_BARRIER barrier;
-    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Transition.pResource = aResource->GetResource();
-    barrier.Transition.StateBefore = aResource->GetUsageState();
-    barrier.Transition.StateAfter = aDestState;
-    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-
-    aResource->myUsageState = aDestState;
-
-    myWaitingResourceBarriers.push_back(barrier);
-
-    if (aExecuteNow || myWaitingResourceBarriers.IsFull())
-    {
-      KickoffResourceBarriers();
-    }
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::ApplyDescriptorHeaps()
-  {
-    ID3D12DescriptorHeap* heapsToBind[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    memset(heapsToBind, 0, sizeof(heapsToBind));
-    uint32 numHeapsToBind = 0u;
-    
-    for(DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
-      if (heap != nullptr)
-        heapsToBind[numHeapsToBind++] = heap->GetHeap();
-    
-    if (numHeapsToBind > 0u)
-      myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::KickoffResourceBarriers()
-  {
-    if (myWaitingResourceBarriers.empty())
-      return;
-
-    myCommandList->ResourceBarrier(myWaitingResourceBarriers.size(), &myWaitingResourceBarriers[0]);
-    myWaitingResourceBarriers.clear();
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::ReleaseAllocator(uint64 aFenceVal)
-  {
-    RenderCore::ReleaseCommandAllocator(myCommandAllocator, CommandListType::Graphics, aFenceVal);
-    myCommandAllocator = nullptr;
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::ReleaseDynamicHeaps(uint64 aFenceVal)
-  {
-    for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
-    {
-      if (heap != nullptr)
-        RenderCore::ReleaseDynamicDescriptorHeap(heap, CommandListType::Graphics, aFenceVal);
-    }
-
-    for (DescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
-    {
-      RenderCore::ReleaseDynamicDescriptorHeap(heap, CommandListType::Graphics, aFenceVal);
-    }
-
-    myRetiredDescriptorHeaps.clear();
-    memset(myDynamicShaderVisibleHeaps, 0, sizeof(myDynamicShaderVisibleHeaps));
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::setViewport(const glm::uvec4& uViewportParams)
@@ -406,7 +237,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setBlendState(const BlendState& clBlendState)
   {
-    PipelineState& state = myPipelineState;
+    PipelineState& state = myGraphicsPipelineState;
     uint requestedHash = clBlendState.GetHash();
 
     if (state.myBlendState.GetHash() == requestedHash)
@@ -418,7 +249,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setDepthStencilState(const DepthStencilState& aDepthStencilState)
   {
-    PipelineState& state = myPipelineState;
+    PipelineState& state = myGraphicsPipelineState;
     uint requestedHash = aDepthStencilState.GetHash();
 
     if (state.myDepthStencilState.GetHash() == requestedHash)
@@ -430,21 +261,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setFillMode(const FillMode eFillMode)
   {
-    PipelineState& state = myPipelineState;
+    PipelineState& state = myGraphicsPipelineState;
     state.myIsDirty |= eFillMode != state.myFillMode;
     state.myFillMode = eFillMode;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setCullMode(const CullMode eCullMode)
   {
-    PipelineState& state = myPipelineState;
+    PipelineState& state = myGraphicsPipelineState;
     state.myIsDirty |= eCullMode != state.myCullMode;
     state.myCullMode = eCullMode;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setWindingOrder(const WindingOrder eWindingOrder)
   {
-    PipelineState& state = myPipelineState;
+    PipelineState& state = myGraphicsPipelineState;
     state.myIsDirty |= eWindingOrder != state.myWindingOrder;
     state.myWindingOrder = eWindingOrder;
   }
@@ -459,7 +290,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myDepthStencilTarget = pDStexture;
     myRenderTargetsDirty = true;
 
-    myPipelineState.myDSVformat = pDStexture->getParameters().eFormat;
+    myGraphicsPipelineState.myDSVformat = pDStexture->getParameters().eFormat;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex)
@@ -470,8 +301,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myRenderTargets[u8RenderTargetIndex] = pRTTexture;
     myRenderTargetsDirty = true;
 
-    myPipelineState.myNumRenderTargets = glm::max(myPipelineState.myNumRenderTargets, (uint8) (u8RenderTargetIndex + 1));
-    myPipelineState.myRTVformats[u8RenderTargetIndex] = pRTTexture->getParameters().eFormat;
+    myGraphicsPipelineState.myNumRenderTargets = glm::max(myGraphicsPipelineState.myNumRenderTargets, (uint8) (u8RenderTargetIndex + 1));
+    myGraphicsPipelineState.myRTVformats[u8RenderTargetIndex] = pRTTexture->getParameters().eFormat;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::removeAllRenderTargets()
@@ -480,11 +311,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myDepthStencilTarget = nullptr;
     myRenderTargetsDirty = true;
 
-    myPipelineState.myNumRenderTargets = 0u;
+    myGraphicsPipelineState.myNumRenderTargets = 0u;
     for (uint32 i = 0u; i < ARRAY_LENGTH(myPipelineState.myRTVformats); ++i)
-      myPipelineState.myRTVformats[i] = DataFormat::NONE;
+      myGraphicsPipelineState.myRTVformats[i] = DataFormat::NONE;
 
-    myPipelineState.myDSVformat = DataFormat::NONE;
+    myGraphicsPipelineState.myDSVformat = DataFormat::NONE;
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const
@@ -550,10 +381,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::SetGpuProgramPipeline(const GpuProgramPipeline* aGpuProgramPipeline)
   {
-    if (myPipelineState.myGpuProgramPipeline != aGpuProgramPipeline)
+    if (myGraphicsPipelineState.myGpuProgramPipeline != aGpuProgramPipeline)
     {
-      myPipelineState.myGpuProgramPipeline = aGpuProgramPipeline;
-      myPipelineState.myIsDirty = true;
+      myGraphicsPipelineState.myGpuProgramPipeline = aGpuProgramPipeline;
+      myGraphicsPipelineState.myIsDirty = true;
     }
 
     if (myRootSignature != aGpuProgramPipeline->GetRootSignature())
@@ -626,12 +457,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::ApplyPipelineState()
   {
-    if (!myPipelineState.myIsDirty)
+    if (!myGraphicsPipelineState.myIsDirty)
       return;
 
-    myPipelineState.myIsDirty = false;
+    myGraphicsPipelineState.myIsDirty = false;
 
-    uint requestedHash = myPipelineState.getHash();
+    uint requestedHash = myGraphicsPipelineState.getHash();
 
     ID3D12PipelineState* pso = nullptr;
 
@@ -642,7 +473,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
     else
     {
-      const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = myPipelineState.GetNativePSOdesc();
+      const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = myGraphicsPipelineState.GetNativePSOdesc();
       HRESULT result = RenderCore::GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
       ASSERT(result == S_OK, "Error creating graphics PSO");
 
