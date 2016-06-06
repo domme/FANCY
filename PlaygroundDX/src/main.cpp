@@ -52,11 +52,6 @@ void StartupEngine(HINSTANCE anAppInstanceHandle)
   Fancy::Startup();
 }
 
-void onWindowResize(uint aWidth, uint aHeight)
-{
-	
-}
-
 LRESULT CALLBACK locOnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
   // Handle destroy/shutdown messages.
