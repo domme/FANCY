@@ -35,15 +35,21 @@
     BUFFERS,
     GEOMETRY
   };
+  //---------------------------------------------------------------------------//
+    // Allocation defines (will be replaced by custom allocators in the future)
+#define FANCY_NEW(type, memoryCategory) new type
+#define FANCY_DELETE(type, memoryCategory) delete type
+#define FANCY_DELETE_ARR(type, memoryCategory) delete[] type
+#define FANCY_ALLOCATE(sizeBytes, memoryCategory) malloc(sizeBytes)
+#define FANCY_FREE(pData, memoryCategory) free(pData) 
 //---------------------------------------------------------------------------//
-  // Allocation defines (will be replaced by custom allocators in the future)
-  #define FANCY_NEW(type, memoryCategory) new type
-  #define FANCY_DELETE(type, memoryCategory) delete type
-  #define FANCY_DELETE_ARR(type, memoryCategory) delete[] type
-  #define FANCY_ALLOCATE(sizeBytes, memoryCategory) malloc(sizeBytes)
-  #define FANCY_FREE(pData, memoryCategory) free(pData) 
+  template<class T, int Size>
+  constexpr int GetArraySize(T(&anArray)[Size])
+  {
+    return Size;
+  }
 //---------------------------------------------------------------------------//
-#define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
+#define ARRAY_LENGTH(array) GetArraySize(array)
 //---------------------------------------------------------------------------//
   template<class T>
   using SharedPtr = std::shared_ptr<T>;

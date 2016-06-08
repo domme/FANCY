@@ -60,9 +60,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     GpuDynamicAllocatorDX12 myCpuVisibleAllocator;
     GpuDynamicAllocatorDX12 myGpuOnlyAllocator;
-
-    
-
   };
 //---------------------------------------------------------------------------//
 } } }

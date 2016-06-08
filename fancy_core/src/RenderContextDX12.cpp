@@ -19,7 +19,7 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  PipelineState::PipelineState()
+  GraphicsPipelineState::GraphicsPipelineState()
     : myFillMode(FillMode::SOLID)
     , myCullMode(CullMode::BACK)
     , myWindingOrder(WindingOrder::CCW)
@@ -30,7 +30,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   }
   //---------------------------------------------------------------------------//
-  uint PipelineState::getHash()
+  uint GraphicsPipelineState::getHash()
   {
     uint hash = 0u;
     MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
@@ -51,7 +51,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return hash;
   }
   //---------------------------------------------------------------------------//
-  D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineState::GetNativePSOdesc()
+  D3D12_GRAPHICS_PIPELINE_STATE_DESC GraphicsPipelineState::GetNativePSOdesc()
   {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
     memset(&psoDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
@@ -208,7 +208,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myRenderTargetsDirty(true)
     , myDepthStencilTarget(nullptr)
   {
-    ResetInternal();
+    RenderContextDX12::ResetInternal();
   }
 //---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
@@ -219,7 +219,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     CommandContext::ResetInternal();
 
-    myGraphicsPipelineState = PipelineState();
+    myGraphicsPipelineState = GraphicsPipelineState();
     myViewportDirty = true;
     myRenderTargetsDirty = true;
     myDepthStencilTarget = nullptr;
@@ -237,7 +237,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setBlendState(const BlendState& clBlendState)
   {
-    PipelineState& state = myGraphicsPipelineState;
+    GraphicsPipelineState& state = myGraphicsPipelineState;
     uint requestedHash = clBlendState.GetHash();
 
     if (state.myBlendState.GetHash() == requestedHash)
@@ -249,7 +249,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setDepthStencilState(const DepthStencilState& aDepthStencilState)
   {
-    PipelineState& state = myGraphicsPipelineState;
+    GraphicsPipelineState& state = myGraphicsPipelineState;
     uint requestedHash = aDepthStencilState.GetHash();
 
     if (state.myDepthStencilState.GetHash() == requestedHash)
@@ -261,21 +261,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setFillMode(const FillMode eFillMode)
   {
-    PipelineState& state = myGraphicsPipelineState;
+    GraphicsPipelineState& state = myGraphicsPipelineState;
     state.myIsDirty |= eFillMode != state.myFillMode;
     state.myFillMode = eFillMode;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setCullMode(const CullMode eCullMode)
   {
-    PipelineState& state = myGraphicsPipelineState;
+    GraphicsPipelineState& state = myGraphicsPipelineState;
     state.myIsDirty |= eCullMode != state.myCullMode;
     state.myCullMode = eCullMode;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setWindingOrder(const WindingOrder eWindingOrder)
   {
-    PipelineState& state = myGraphicsPipelineState;
+    GraphicsPipelineState& state = myGraphicsPipelineState;
     state.myIsDirty |= eWindingOrder != state.myWindingOrder;
     state.myWindingOrder = eWindingOrder;
   }
@@ -312,7 +312,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myRenderTargetsDirty = true;
 
     myGraphicsPipelineState.myNumRenderTargets = 0u;
-    for (uint32 i = 0u; i < ARRAY_LENGTH(myPipelineState.myRTVformats); ++i)
+    for (uint32 i = 0u; i < ARRAY_LENGTH(myGraphicsPipelineState.myRTVformats); ++i)
       myGraphicsPipelineState.myRTVformats[i] = DataFormat::NONE;
 
     myGraphicsPipelineState.myDSVformat = DataFormat::NONE;

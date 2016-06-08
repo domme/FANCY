@@ -307,7 +307,7 @@ namespace Fancy { namespace Rendering {
 
     UpdatePerCameraData(camera);
 
-    RenderContext* context = RenderContext::AllocateContext();
+    RenderContext* context = static_cast<RenderContext*>(RenderContext::AllocateContext(CommandListType::Graphics));
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
     context->ClearRenderTarget(renderOutput.GetBackbuffer(), clearColor);
 
@@ -352,7 +352,7 @@ namespace Fancy { namespace Rendering {
     }  // end lights
 
     context->ExecuteAndReset(true);
-    RenderContext::FreeContext(context);
+    CommandContext::FreeContext(context);
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::BindResources_ForwardColorPass(RenderContext* aContext, const MaterialPassInstance* aMaterial) const

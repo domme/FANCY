@@ -129,10 +129,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	{
     TextureDX12* currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
 
-    RenderContext* context = RenderContext::AllocateContext();
+    CommandContext* context = CommandContext::AllocateContext(CommandListType::Graphics);
     context->TransitionResource(currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
     context->ExecuteAndReset(false);
-    RenderContext::FreeContext(context);
+    CommandContext::FreeContext(context);
 
     mySwapChain->Present(1, 0);
 	}
@@ -562,7 +562,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     switch (aType)
     {
-    case CommandListType::Graphics: return D3D12_COMMAND_LIST_TYPE_DIRECT;
+      case CommandListType::Graphics: return D3D12_COMMAND_LIST_TYPE_DIRECT;
       case CommandListType::Compute: return D3D12_COMMAND_LIST_TYPE_COMPUTE;
       case CommandListType::DMA: return D3D12_COMMAND_LIST_TYPE_COPY;
       default:

@@ -24,9 +24,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class GpuResourceDX12;
   class CommandAllocatorPoolDX12;
 //---------------------------------------------------------------------------//
-  struct PipelineState
+  struct GraphicsPipelineState
   {
-    PipelineState();
+    GraphicsPipelineState();
     uint getHash();
     D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc();
 
@@ -47,7 +47,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   public:
      RenderContextDX12();
-    ~RenderContextDX12() override;
+     ~RenderContextDX12() override;
     
     // Root arguments:
     void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const;
@@ -84,7 +84,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ApplyPipelineState();
     void ApplyRenderTargets();
     
-    PipelineState myGraphicsPipelineState;
+    GraphicsPipelineState myGraphicsPipelineState;
 
     glm::uvec4 myViewportParams;
     bool myViewportDirty;

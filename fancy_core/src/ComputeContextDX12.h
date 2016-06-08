@@ -13,6 +13,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class ComputeContextDX12 : public CommandContext
   {
   public:
+    ComputeContextDX12();
+    ~ComputeContextDX12() override;
+
     // Root arguments:
     void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const;
     void SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const;

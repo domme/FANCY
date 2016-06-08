@@ -16,7 +16,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   CommandContext* CommandContext::AllocateContext(CommandListType aType)
   {
-    ASSERT(aType != CommandListType::Graphics && aType != CommandListType::Compute, 
+    ASSERT(aType == CommandListType::Graphics || aType == CommandListType::Compute, 
       "CommandContext type % not implemented", (uint) aType);
 
     std::vector<std::unique_ptr<CommandContext>>& contextPool = 
@@ -45,7 +45,7 @@ namespace Fancy { namespace Rendering {
   {
     CommandListType type = aContext->GetType();
 
-    ASSERT(type != CommandListType::Graphics && type != CommandListType::Compute,
+    ASSERT(type == CommandListType::Graphics || type == CommandListType::Compute,
       "CommandContext type % not implemented", (uint)type);
 
     std::list<CommandContext*>& availableContextList =

@@ -15,7 +15,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myCommandAllocator(nullptr)
     , myIsInRecordState(true)
   {
-    ResetInternal();
+    CommandContextDX12::ResetInternal();
 
     myCommandAllocator = RenderCore::GetCommandAllocator(myCommandListType);
 
@@ -54,7 +54,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     ASSERT(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
 
-    myCommandAllocator = RenderCore::GetCommandAllocator(CommandListType::Graphics);
+    myCommandAllocator = RenderCore::GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
 
     CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
@@ -376,7 +376,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void CommandContextDX12::ReleaseAllocator(uint64 aFenceVal)
   {
-    RenderCore::ReleaseCommandAllocator(myCommandAllocator, CommandListType::Graphics, aFenceVal);
+    RenderCore::ReleaseCommandAllocator(myCommandAllocator, myCommandListType, aFenceVal);
     myCommandAllocator = nullptr;
   }
   //---------------------------------------------------------------------------//
@@ -385,12 +385,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
     {
       if (heap != nullptr)
-        RenderCore::ReleaseDynamicDescriptorHeap(heap, CommandListType::Graphics, aFenceVal);
+        RenderCore::ReleaseDynamicDescriptorHeap(heap, myCommandListType, aFenceVal);
     }
 
     for (DescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
     {
-      RenderCore::ReleaseDynamicDescriptorHeap(heap, CommandListType::Graphics, aFenceVal);
+      RenderCore::ReleaseDynamicDescriptorHeap(heap, myCommandListType, aFenceVal);
     }
 
     myRetiredDescriptorHeaps.clear();
