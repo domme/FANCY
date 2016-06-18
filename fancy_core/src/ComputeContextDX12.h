@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommandContext.h"
+#include <unordered_map>
 
 namespace Fancy{
 namespace Rendering{
@@ -9,6 +10,16 @@ class Descriptor;
 }
 
 namespace Fancy { namespace Rendering { namespace DX12 {
+//---------------------------------------------------------------------------//
+  struct ComputePipelineState
+  {
+    ComputePipelineState();
+    uint GetHash();
+    D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc();
+
+    const GpuProgram* myGpuProgram;
+    bool myIsDirty;
+  };
 //---------------------------------------------------------------------------//
   class ComputeContextDX12 : public CommandContext
   {
@@ -23,7 +34,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const;
 
     // Descriptor tables:
-    void SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aDescriptorTypeMask, uint32 aRegisterIndex);
+    void SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex);
+
+    void SetComputeProgram(const GpuProgram* aProgram);
+    void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ);
+    
+  protected:
+    static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
+
+    ComputePipelineState myComputePipelineState;
+
+    void ResetInternal() override;
+
+    void ApplyPipelineState();
   };
 //---------------------------------------------------------------------------//
 } } }

@@ -37,6 +37,16 @@ class DLLEXPORT RenderingProcessForward : public RenderingProcess
     SharedPtr<GpuBuffer> myPerLightData;
     SharedPtr<GpuBuffer> myPerViewportData;
     SharedPtr<GpuBuffer> myPerDrawData;
+
+    SharedPtr<Geometry::GeometryData> myFullscreenQuad;
+    SharedPtr<GpuProgramPipeline> myFsTextureShaderState;
+
+    // Tests:
+    void _DebugLoadComputeShader();
+    void _DebugExecuteComputeShader();
+    SharedPtr<Texture> myTestTexture;
+    SharedPtr<GpuProgram> myComputeProgram;
+
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(RenderingProcessForward)

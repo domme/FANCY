@@ -112,11 +112,19 @@ namespace Fancy { namespace Rendering {
     
   }
 //---------------------------------------------------------------------------//
+  SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
+  {
+    SharedPtr<Texture> texture(new Texture);
+    texture->create(someParams, someUploadDatas, aNumUploadDatas);
+
+    return texture->isValid() ? texture : nullptr;
+  }
+//---------------------------------------------------------------------------//
   SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData /* = nullptr */)
   {
     SharedPtr<GpuBuffer> buffer(new GpuBuffer);
     buffer->create(someParams, someInitialData);
-    return buffer;
+    return buffer->isValid() ? buffer : nullptr;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer /* = 0 */)

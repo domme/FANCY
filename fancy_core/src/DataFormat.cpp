@@ -10,9 +10,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   const DataFormatInfo& DataFormatInfo::GetFormatInfo(DataFormat aFormat)
   {
-    static DataFormatInfo locOurDataFormats[(uint32) DataFormat::NUM] =
+    static DataFormatInfo locOurDataFormats[static_cast<uint32>(DataFormat::NUM)] =
     {
-      // Format,      ByteSize,  NumComponents,  DepthStencil,  SRGB,    Compressed
+      // Format,                 ByteSize,  NumComponents,  DepthStencil,  SRGB,    Compressed
       { DataFormat::NONE,          0,           0,             false,       false,     false},
       { DataFormat::SRGB_8_A_8,    4,           4,             false,       true,      false},
       { DataFormat::RGBA_8,        4,           4,             false,       false,     false},
@@ -54,7 +54,7 @@ namespace Fancy { namespace Rendering {
       { DataFormat::DS_24_8,       4,           2,             true,        false,     false},
     };
 
-    return locOurDataFormats[(uint32) aFormat];
+    return locOurDataFormats[static_cast<uint32>(aFormat)];
   }
 //---------------------------------------------------------------------------//
 } }

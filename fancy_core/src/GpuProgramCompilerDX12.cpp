@@ -529,7 +529,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       shaderPathAbs.c_str(),
       &defines[0],
       D3D_COMPILE_STANDARD_FILE_INCLUDE,
-      "main",
+      aDesc.myMainFunction.c_str(),
       shaderProfileStr.c_str(),
       D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_OPTIMIZATION_LEVEL0 | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR,
       0u,

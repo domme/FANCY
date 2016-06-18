@@ -28,6 +28,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Descriptor descr;
     descr.myCpuHandle = cpuHandle;
     descr.myGpuHandle = gpuHandle;
+    descr.myHeapType = myDesc.Type;
 
     return descr;
   }
@@ -45,6 +46,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Descriptor descr;
     descr.myCpuHandle = cpuHandle;
     descr.myGpuHandle = gpuHandle;
+    descr.myHeapType = myDesc.Type;
 
     return descr;
   }

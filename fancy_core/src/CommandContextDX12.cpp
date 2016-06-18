@@ -6,6 +6,24 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
+  namespace {
+  //---------------------------------------------------------------------------//
+    D3D12_COMMAND_LIST_TYPE locResolveCommandListType(CommandListType aCommandListType)
+    {
+      switch(aCommandListType)
+      {
+        case CommandListType::Graphics: return D3D12_COMMAND_LIST_TYPE_DIRECT;
+        case CommandListType::Compute: return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+        case CommandListType::DMA: return D3D12_COMMAND_LIST_TYPE_COPY;
+        default:
+          ASSERT(false, "CommandListType % not implemented", (uint32)aCommandListType);
+          return D3D12_COMMAND_LIST_TYPE_DIRECT;
+      }
+    }
+  //---------------------------------------------------------------------------//
+  }
+  
+//---------------------------------------------------------------------------//
   CommandContextDX12::CommandContextDX12(CommandListType aCommandListType)
     : myCommandListType(aCommandListType)
     , myCpuVisibleAllocator(aCommandListType, GpuDynamicAllocatorType::CpuWritable)
@@ -19,8 +37,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myCommandAllocator = RenderCore::GetCommandAllocator(myCommandListType);
 
+    D3D12_COMMAND_LIST_TYPE nativeCmdListType = locResolveCommandListType(aCommandListType);
+
     CheckD3Dcall(
-      RenderCore::GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+      RenderCore::GetDevice()->CreateCommandList(0, nativeCmdListType,
         myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
       );
   }
@@ -28,6 +48,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   CommandContextDX12::~CommandContextDX12()
   {
     Destroy();
+  }
+//---------------------------------------------------------------------------//
+  D3D12_DESCRIPTOR_HEAP_TYPE CommandContextDX12::ResolveDescriptorHeapTypeFromMask(uint32 aDescriptorTypeMask)
+  {
+    if (aDescriptorTypeMask & (uint32)GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER)
+      return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    else if (aDescriptorTypeMask & (uint32)GpuDescriptorTypeFlags::SAMPLER)
+      return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+
+    ASSERT(false, "unsupported descriptor type mask");
+    return (D3D12_DESCRIPTOR_HEAP_TYPE)-1;
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ResetInternal()
@@ -41,6 +72,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     if (myCommandList != nullptr)
       myCommandList->Release();
+
     myCommandList = nullptr;
 
     if (myCommandAllocator != nullptr)

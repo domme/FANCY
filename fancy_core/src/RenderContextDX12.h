@@ -56,7 +56,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const;
     
     // Descriptor tables:
-    void SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aDescriptorTypeMask, uint32 aRegisterIndex);
+    void SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex);
     
     void SetGpuProgramPipeline(const GpuProgramPipeline* pProgramPipeline);
 

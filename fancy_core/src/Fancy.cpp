@@ -127,7 +127,6 @@ namespace Fancy {
       return;
 
     m_pRenderingProcess = _pRenderingProcess;
-    m_pRenderingProcess->Startup();
   }
 //---------------------------------------------------------------------------//
   HINSTANCE GetAppInstanceHandle()

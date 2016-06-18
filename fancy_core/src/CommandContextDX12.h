@@ -14,6 +14,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CommandContextDX12(CommandListType aType);
     virtual ~CommandContextDX12();
 
+    static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint32 aDescriptorTypeMask);
+
     void Destroy();
     void Reset();
 

@@ -2,6 +2,7 @@
 #include "GpuProgramCompilerDX12.h"
 #include "AdapterDX12.h"
 #include "Renderer.h"
+#include "ShaderResourceInterface.h"
 
 #if defined (RENDERER_DX12)
 
@@ -147,6 +148,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CreateNativeInputLayout(myInputLayout, myNativeInputElements);
 
     myResourceInterface = aCompilerOutput.myRootSignature;
+  }
+//---------------------------------------------------------------------------//
+  ID3D12RootSignature* GpuProgramDX12::GetRootSignature() const
+  {
+    return myResourceInterface->myRootSignature.Get();
   }
 //---------------------------------------------------------------------------//
 } } }

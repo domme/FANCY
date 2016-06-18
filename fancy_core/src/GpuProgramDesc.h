@@ -7,11 +7,12 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct GpuProgramDesc
   {
-    GpuProgramDesc() : myShaderPath(""), myShaderStage(0u) {}
+    GpuProgramDesc() : myShaderPath(""), myShaderStage(0u), myMainFunction("main") {}
     bool operator==(const GpuProgramDesc& anOther) const;
     uint64 GetHash() const;
 
     String myShaderPath;
+    String myMainFunction;
     uint myShaderStage;
     GpuProgramPermutation myPermutation;
   };
@@ -20,7 +21,8 @@ namespace Fancy { namespace Rendering {
   {
     return myShaderPath == anOther.myShaderPath
       && myShaderStage == anOther.myShaderStage
-      && myPermutation == anOther.myPermutation;
+      && myPermutation == anOther.myPermutation
+      && myMainFunction == anOther.myMainFunction;
   }
 //---------------------------------------------------------------------------//
   inline uint64 GpuProgramDesc::GetHash() const
@@ -29,6 +31,7 @@ namespace Fancy { namespace Rendering {
     MathUtil::hash_combine(hash, MathUtil::hashFromString(myShaderPath));
     MathUtil::hash_combine(hash, myShaderStage);
     MathUtil::hash_combine(hash, myPermutation.GetHash());
+    MathUtil::hash_combine(hash, MathUtil::hashFromString(myMainFunction));
     return hash;
   }
 //---------------------------------------------------------------------------//

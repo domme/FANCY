@@ -15,6 +15,8 @@
 #include "CameraComponent.h"
 #include "SceneNode.h"
 #include "RenderWindow.h"
+#include "ComputeContext.h"
+#include "ShaderResourceInterface.h"
 
 namespace Fancy { namespace Rendering {
 
@@ -70,73 +72,6 @@ namespace Fancy { namespace Rendering {
       glm::float4x4 c_WorldViewProjectionInverseMatrix;
     };
   //---------------------------------------------------------------------------//  
-
-  //---------------------------------------------------------------------------//
-    GpuProgramPipeline ourDummyPipeline;
-    Geometry::GeometryData ourFsQuadGeometry;
-
-    void locCreateFullscreenQuad()
-    {
-      GpuProgramDesc shaderDesc;
-      shaderDesc.myShaderPath = "shader/DX12/FullscreenQuad.hlsl";
-      shaderDesc.myShaderStage = (uint32)ShaderStage::VERTEX;
-      GpuProgram* vertexShader = GpuProgramCompiler::createOrRetrieve(shaderDesc);
-
-      shaderDesc.myShaderStage = (uint32)ShaderStage::FRAGMENT;
-      GpuProgram* fragmentShader = GpuProgramCompiler::createOrRetrieve(shaderDesc);
-
-      ourDummyPipeline.myGpuPrograms[(uint32)ShaderStage::VERTEX] = vertexShader;
-      ourDummyPipeline.myGpuPrograms[(uint32)ShaderStage::FRAGMENT] = fragmentShader;
-      ourDummyPipeline.myResourceInterface = vertexShader->GetResourceInterface();
-
-      struct Vertex
-      {
-        glm::vec3 pos;
-        glm::vec3 normal;
-        glm::vec3 tangent;
-        glm::vec3 bitangent;
-        glm::vec2 uv;
-      };
-
-      Vertex quadVertices[4];
-      memset(quadVertices, 0, sizeof(quadVertices));
-
-      // 0---1
-      // | / |
-      // 3---2
-
-      quadVertices[0].pos = glm::vec3(-0.5f, -0.5f, 0.5f);
-      quadVertices[1].pos = glm::vec3(0.5f, -0.5f, 0.5f);
-      quadVertices[2].pos = glm::vec3(0.5f, 0.5f, 0.5f);
-      quadVertices[3].pos = glm::vec3(-0.5f, 0.5f, 0.5f);
-
-      uint16 quadIndices[6] =
-      {
-        0, 3, 1,
-        1, 3, 2
-      };
-
-      GpuBufferCreationParams bufferParams;
-      bufferParams.uNumElements = 4u;
-      bufferParams.uElementSizeBytes = sizeof(Vertex);
-      bufferParams.myUsageFlags = (uint32)GpuBufferUsage::VERTEX_BUFFER;
-      bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
-
-      GpuBuffer* vertexBuffer = new GpuBuffer();
-      vertexBuffer->create(bufferParams, quadVertices);
-
-      bufferParams.uNumElements = 6u;
-      bufferParams.uElementSizeBytes = sizeof(uint16);
-      bufferParams.myUsageFlags = (uint32)GpuBufferUsage::INDEX_BUFFER;
-      bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
-
-      GpuBuffer* indexBuffer = new GpuBuffer();
-      indexBuffer->create(bufferParams, quadIndices);
-
-      ourFsQuadGeometry.setVertexBuffer(vertexBuffer);
-      ourFsQuadGeometry.setIndexBuffer(indexBuffer);
-    }
-  //---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
   RenderingProcessForward::RenderingProcessForward()
@@ -213,6 +148,73 @@ namespace Fancy { namespace Rendering {
       myPerDrawData = RenderCore::CreateBuffer(bufferParams, &initialData);
       ASSERT(myPerDrawData != nullptr);
     }
+
+    // Create Fullscreen-quad geometry
+    {
+      struct Vertex
+      {
+        glm::vec3 pos;
+      };
+
+      Vertex quadVertices[4];
+      memset(quadVertices, 0, sizeof(quadVertices));
+
+      // 0---1
+      // | / |
+      // 3---2
+
+      quadVertices[0].pos = glm::vec3(-0.5f, -0.5f, 0.5f);
+      quadVertices[1].pos = glm::vec3(0.5f, -0.5f, 0.5f);
+      quadVertices[2].pos = glm::vec3(0.5f, 0.5f, 0.5f);
+      quadVertices[3].pos = glm::vec3(-0.5f, 0.5f, 0.5f);
+
+      uint16 quadIndices[6] =
+      {
+        0, 3, 1,
+        1, 3, 2
+      };
+
+      GpuBufferCreationParams bufferParams;
+      bufferParams.uNumElements = 4u;
+      bufferParams.uElementSizeBytes = sizeof(Vertex);
+      bufferParams.myUsageFlags = (uint32)GpuBufferUsage::VERTEX_BUFFER;
+      bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
+
+      GpuBuffer* vertexBuffer = new GpuBuffer();
+      vertexBuffer->create(bufferParams, quadVertices);
+
+      bufferParams.uNumElements = 6u;
+      bufferParams.uElementSizeBytes = sizeof(uint16);
+      bufferParams.myUsageFlags = (uint32)GpuBufferUsage::INDEX_BUFFER;
+      bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
+
+      GpuBuffer* indexBuffer = new GpuBuffer();
+      indexBuffer->create(bufferParams, quadIndices);
+
+      myFullscreenQuad = std::make_shared<Geometry::GeometryData>();
+      myFullscreenQuad->setVertexBuffer(vertexBuffer);
+      myFullscreenQuad->setIndexBuffer(indexBuffer);
+      
+      GpuProgramDesc shaderDesc;
+      shaderDesc.myShaderPath = "shader/DX12/FullscreenQuad.hlsl";
+      shaderDesc.myMainFunction = "main";
+      shaderDesc.myShaderStage = (uint32)ShaderStage::VERTEX;
+      GpuProgram* vertexShader = GpuProgramCompiler::createOrRetrieve(shaderDesc);
+      ASSERT(vertexShader != nullptr && vertexShader->GetResourceInterface()->IsEmpty(),
+        "The resourceInterface of the vertexShader is expected to be empty as it is shared by multiple fragment shaders");
+
+      shaderDesc.myShaderStage = (uint32)ShaderStage::FRAGMENT;
+      shaderDesc.myMainFunction = "main_textured";
+      GpuProgram* fragmentShader = GpuProgramCompiler::createOrRetrieve(shaderDesc);
+
+      myFsTextureShaderState = SharedPtr<GpuProgramPipeline>(new GpuProgramPipeline);
+      myFsTextureShaderState->myGpuPrograms[(uint32)ShaderStage::VERTEX] = vertexShader;
+      myFsTextureShaderState->myGpuPrograms[(uint32)ShaderStage::FRAGMENT] = fragmentShader;
+      myFsTextureShaderState->myResourceInterface = fragmentShader->GetResourceInterface();
+    }
+
+    // Tests:
+    _DebugLoadComputeShader();
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::UpdatePerFrameData() const
@@ -292,8 +294,60 @@ namespace Fancy { namespace Rendering {
     RenderCore::UpdateBufferData(myPerDrawData.get(), &cBuffer, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
+  void RenderingProcessForward::_DebugLoadComputeShader()
+  {
+    // Compute shader
+    GpuProgramDesc desc;
+    desc.myShaderStage = static_cast<uint>(ShaderStage::COMPUTE);
+    desc.myShaderPath =
+      GpuProgramCompiler::GetPlatformShaderFileDirectory() + "/ComputeMipmapCS" + GpuProgramCompiler::GetPlatformShaderFileExtension();
+
+    myComputeProgram = SharedPtr<GpuProgram>(GpuProgramCompiler::createOrRetrieve(desc));
+
+    // Texture
+    TextureParams texParams;
+    texParams.myIsExternalTexture = false;
+    texParams.eFormat = DataFormat::RGBA_8;
+    texParams.myIsRenderTarget = false;
+    texParams.myIsShaderWritable = true;
+    texParams.u16Width = 32;
+    texParams.u16Height = 32;
+
+    DataFormatInfo formatInfo(texParams.eFormat);
+
+    std::vector<uint8> data;
+    data.resize(texParams.u16Width * texParams.u16Height, 0);
+
+    TextureUploadData texData;
+    texData.myTotalSizeBytes = texParams.u16Width * texParams.u16Height * formatInfo.mySizeBytes;
+    texData.mySliceSizeBytes = texData.myTotalSizeBytes;
+    texData.myRowSizeBytes = texParams.u16Width * formatInfo.mySizeBytes;
+    texData.myPixelSizeBytes = formatInfo.mySizeBytes;
+    texData.myData = &data[0];
+    
+    myTestTexture = RenderCore::CreateTexture(texParams, &texData, 1u);
+    ASSERT(myTestTexture != nullptr);
+  }
+//---------------------------------------------------------------------------//
+  void RenderingProcessForward::_DebugExecuteComputeShader()
+  {
+    ComputeContext* computeContext = 
+      static_cast<ComputeContext*>(CommandContext::AllocateContext(CommandListType::Compute));
+
+    computeContext->SetComputeProgram(myComputeProgram.get());
+
+    const Descriptor& textureUAV = myTestTexture->GetUav();
+    computeContext->SetMultipleResources(&textureUAV, 1u, 0u);
+    computeContext->Dispatch(32, 32, 1);
+
+    computeContext->ExecuteAndReset(true);
+    CommandContext::FreeContext(computeContext);
+  }
+//---------------------------------------------------------------------------//
   void RenderingProcessForward::Tick(float _dt)
   {
+    _DebugExecuteComputeShader();
+
     Scene::Scene* pScene = Fancy::GetCurrentScene().get();
     RenderOutput& renderOutput = *Fancy::GetCurrentRenderOutput();
     RenderWindow* renderWindow = renderOutput.GetWindow();
@@ -351,6 +405,18 @@ namespace Fancy { namespace Rendering {
       }  // end renderItems
     }  // end lights
 
+    //context->ExecuteAndReset(true);
+    
+    // Debug: Render FS-quad with texture
+    context->setViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
+    context->setRenderTarget(renderOutput.GetBackbuffer(), 0u);
+    context->setDepthStencilRenderTarget(renderOutput.GetDefaultDepthStencilBuffer());
+
+    context->SetGpuProgramPipeline(myFsTextureShaderState.get());
+
+    context->SetMultipleResources(&myTestTexture->GetSrv(), 1, 0u);
+    context->renderGeometry(myFullscreenQuad.get());
+    
     context->ExecuteAndReset(true);
     CommandContext::FreeContext(context);
   }
@@ -369,7 +435,7 @@ namespace Fancy { namespace Rendering {
       textureDescriptors[i] = readTextures[i]->GetSrv();
     }
 
-    aContext->SetMultipleResources(textureDescriptors, kNumTextures, (uint32)GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER, 2);
+    aContext->SetMultipleResources(textureDescriptors, kNumTextures, 2);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

@@ -11,6 +11,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class ShaderResourceInterfaceDX12
   {
   public:
+    bool IsEmpty() const { return myInterfaceDesc.myElements.empty(); }
+
     ComPtr<ID3D12RootSignature> myRootSignature;
     uint myHash;
     ShaderResourceInterfaceDesc myInterfaceDesc;

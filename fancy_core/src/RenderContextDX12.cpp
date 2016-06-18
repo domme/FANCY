@@ -340,25 +340,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     ASSERT(myRootSignature != nullptr);
     myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, aConstantBuffer->GetGpuVirtualAddress());
-  }
+  }  
 //---------------------------------------------------------------------------//
-  D3D12_DESCRIPTOR_HEAP_TYPE locResolveDescriptorHeapType(uint32 aDescriptorTypeMask)
-  {
-    if (aDescriptorTypeMask & (uint32)GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER)
-      return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    else if (aDescriptorTypeMask & (uint32)GpuDescriptorTypeFlags::SAMPLER)
-      return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-
-    ASSERT(false, "Invalid descriptor type for Gpu-Binding");
-    return (D3D12_DESCRIPTOR_HEAP_TYPE) -1;
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aDescriptorTypeMask, uint32 aRegisterIndex)
+  void RenderContextDX12::SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex)
   {
     ASSERT(myRootSignature != nullptr);
     ASSERT(aResourceCount > 0u);
-    
-    D3D12_DESCRIPTOR_HEAP_TYPE heapType = locResolveDescriptorHeapType(aDescriptorTypeMask);
+
+    D3D12_DESCRIPTOR_HEAP_TYPE heapType = someResources[0].myHeapType;
     DescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
     
     if (dynamicHeap == nullptr)
