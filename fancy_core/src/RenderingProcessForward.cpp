@@ -163,10 +163,11 @@ namespace Fancy { namespace Rendering {
       // | / |
       // 3---2
 
-      quadVertices[0].pos = glm::vec3(-0.5f, -0.5f, 0.5f);
-      quadVertices[1].pos = glm::vec3(0.5f, -0.5f, 0.5f);
-      quadVertices[2].pos = glm::vec3(0.5f, 0.5f, 0.5f);
-      quadVertices[3].pos = glm::vec3(-0.5f, 0.5f, 0.5f);
+      float depth = 1.0f;
+      quadVertices[0].pos = glm::vec3(-1.0f, 1.0f, depth);
+      quadVertices[1].pos = glm::vec3(1.0f, 1.0f, depth);
+      quadVertices[2].pos = glm::vec3(1.0f, -1.0f, depth);
+      quadVertices[3].pos = glm::vec3(-1.0f, -1.0f, depth);
 
       uint16 quadIndices[6] =
       {
@@ -204,10 +205,10 @@ namespace Fancy { namespace Rendering {
         "The resourceInterface of the vertexShader is expected to be empty as it is shared by multiple fragment shaders");
 
       shaderDesc.myShaderStage = (uint32)ShaderStage::FRAGMENT;
-      shaderDesc.myMainFunction = "main_textured";
+      shaderDesc.myMainFunction = "main";
       GpuProgram* fragmentShader = GpuProgramCompiler::createOrRetrieve(shaderDesc);
 
-      myFsTextureShaderState = SharedPtr<GpuProgramPipeline>(new GpuProgramPipeline);
+      myFsTextureShaderState = std::make_shared<GpuProgramPipeline>();
       myFsTextureShaderState->myGpuPrograms[(uint32)ShaderStage::VERTEX] = vertexShader;
       myFsTextureShaderState->myGpuPrograms[(uint32)ShaderStage::FRAGMENT] = fragmentShader;
       myFsTextureShaderState->myResourceInterface = fragmentShader->GetResourceInterface();
@@ -346,7 +347,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::Tick(float _dt)
   {
-    _DebugExecuteComputeShader();
+    // _DebugExecuteComputeShader();
 
     Scene::Scene* pScene = Fancy::GetCurrentScene().get();
     RenderOutput& renderOutput = *Fancy::GetCurrentRenderOutput();
@@ -411,10 +412,10 @@ namespace Fancy { namespace Rendering {
     context->setViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
     context->setRenderTarget(renderOutput.GetBackbuffer(), 0u);
     context->setDepthStencilRenderTarget(renderOutput.GetDefaultDepthStencilBuffer());
-
+    
     context->SetGpuProgramPipeline(myFsTextureShaderState.get());
-
-    context->SetMultipleResources(&myTestTexture->GetSrv(), 1, 0u);
+    
+    //context->SetMultipleResources(&myTestTexture->GetSrv(), 1, 0u);
     context->renderGeometry(myFullscreenQuad.get());
     
     context->ExecuteAndReset(true);
