@@ -428,6 +428,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myRenderTargetsDirty = false;
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Rendering::Constants::kMaxNumRenderTargets];
+    GpuResource* rtResources[Rendering::Constants::kMaxNumRenderTargets];
     uint32 numRtsToSet = 0u;
 
     for (uint32 i = 0u; i < Rendering::Constants::kMaxNumRenderTargets; ++i)
@@ -435,8 +436,23 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       Texture* rt = myRenderTargets[i];
 
       if (rt != nullptr)
-        rtDescriptors[numRtsToSet++] = rt->GetRtv().myCpuHandle;
+      {
+        rtResources[numRtsToSet] = rt;
+        rtDescriptors[numRtsToSet] = rt->GetRtv().myCpuHandle;
+        ++numRtsToSet;
+      }
+        
     }
+
+    for (uint32 i = 0u; i < numRtsToSet; ++i)
+    {
+      TransitionResource(rtResources[i], D3D12_RESOURCE_STATE_RENDER_TARGET);
+    }
+
+    if (myDepthStencilTarget)
+      TransitionResource(myDepthStencilTarget, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+    KickoffResourceBarriers();
 
     if (myDepthStencilTarget) 
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &myDepthStencilTarget->GetDsv().myCpuHandle); 

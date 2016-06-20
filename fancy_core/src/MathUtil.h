@@ -71,8 +71,8 @@ public:
     Result[1][1] = h;
 
 #if defined (RENDERER_DX12)
-    Result[2][2] = -zFar / (zFar - zNear);
-    Result[2][3] = -1.0f;
+    Result[2][2] = zFar / (zFar - zNear);
+    Result[2][3] = 1.0f;
     Result[3][2] = -(zFar * zNear) / (zFar - zNear);
 #else
     

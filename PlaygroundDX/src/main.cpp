@@ -44,7 +44,7 @@ void StartupEngine(HINSTANCE anAppInstanceHandle)
 
   pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));
   Fancy::IO::SceneImporter::importToSceneGraph("Models/cube.obj", pModelNode);
-  pModelNode->getTransform().setPositionLocal(glm::vec3(0.0f, 0.0f, -10.0f));
+  pModelNode->getTransform().setPositionLocal(glm::vec3(0.0f, 0.0f, 10.0f));
 
   Fancy::Scene::SceneNode* pLightNode = pScene->getRootNode()->createChildNode(_N(LightNode));
   Fancy::Scene::LightComponent* pLight = static_cast<Fancy::Scene::LightComponent*>(pLightNode->addOrRetrieveComponent(_N(LightComponent)));

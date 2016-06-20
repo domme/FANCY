@@ -24,7 +24,7 @@
     VS_OUT main(VS_IN v)
     {
       VS_OUT vs_out = (VS_OUT)0;
-      vs_out.pos = float4(v.position, v.position.z);
+      vs_out.pos = float4(v.position.xy, 0.0f, 1.0f);
 
       return vs_out;
     }

@@ -1,4 +1,5 @@
 #pragma once
+#include "GpuResource.h"
 
 #if defined (RENDERER_DX12)
 
@@ -8,7 +9,7 @@
 
 namespace Fancy { namespace Rendering {	namespace DX12 {
 //---------------------------------------------------------------------------//
-	class GpuBufferDX12 : public GpuResourceDX12
+	class GpuBufferDX12 : public GpuResource
 	{
 	public:
     GpuBufferDX12();

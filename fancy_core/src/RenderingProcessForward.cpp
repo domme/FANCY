@@ -326,8 +326,8 @@ namespace Fancy { namespace Rendering {
     texData.myPixelSizeBytes = formatInfo.mySizeBytes;
     texData.myData = &data[0];
     
-    myTestTexture = RenderCore::CreateTexture(texParams, &texData, 1u);
-    ASSERT(myTestTexture != nullptr);
+    //myTestTexture = RenderCore::CreateTexture(texParams, &texData, 1u);
+    //ASSERT(myTestTexture != nullptr);
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::_DebugExecuteComputeShader()
@@ -379,8 +379,6 @@ namespace Fancy { namespace Rendering {
 
     const Scene::LightList& aLightList = pScene->getCachedLights();
 
-    context->setRenderTarget(renderOutput.GetBackbuffer(), 0u);
-
     const MaterialPass* pCachedMaterialPass = nullptr;
     for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
     {
@@ -408,15 +406,11 @@ namespace Fancy { namespace Rendering {
 
     //context->ExecuteAndReset(true);
     
-    // Debug: Render FS-quad with texture
-    context->setViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
-    context->setRenderTarget(renderOutput.GetBackbuffer(), 0u);
-    context->setDepthStencilRenderTarget(renderOutput.GetDefaultDepthStencilBuffer());
-    
+    // Debug: Render FS-quad with texture 
     context->SetGpuProgramPipeline(myFsTextureShaderState.get());
     
     //context->SetMultipleResources(&myTestTexture->GetSrv(), 1, 0u);
-    context->renderGeometry(myFullscreenQuad.get());
+    //context->renderGeometry(myFullscreenQuad.get());
     
     context->ExecuteAndReset(true);
     CommandContext::FreeContext(context);

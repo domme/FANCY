@@ -19,7 +19,10 @@ namespace Fancy { namespace Rendering {
     aRenderContext->setBlendState(*_pMaterialPass->getBlendState());
     aRenderContext->setDepthStencilState(*_pMaterialPass->getDepthStencilState());
 
-    aRenderContext->setCullMode(_pMaterialPass->getCullMode());
+    // DEBUG:
+    //aRenderContext->setCullMode(_pMaterialPass->getCullMode());
+    aRenderContext->setCullMode(CullMode::NONE);
+
     aRenderContext->setFillMode(_pMaterialPass->getFillMode());
     aRenderContext->setWindingOrder(_pMaterialPass->getWindingOrder());
 

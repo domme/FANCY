@@ -1,5 +1,6 @@
 #pragma once
 #include "GpuResourceDX12.h"
+#include "GpuResource.h"
 
 #if defined (RENDERER_DX12)
 
@@ -13,7 +14,7 @@ class Descriptor;
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  class TextureDX12 : public GpuResourceDX12
+  class TextureDX12 : public GpuResource
   {
     friend class RenderOutputDX12;  // Remove after backbuffers are handled through the texture class
 
