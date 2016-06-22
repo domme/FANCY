@@ -61,6 +61,26 @@ public:
                            float const & zFar)
   {
 
+    
+    const float fovY_rad = glm::radians(fov);
+
+    const float aspect = height / width;
+    const float xScale = 1.0f / glm::tan(0.0f * fovY_rad);
+    const float yScale = xScale * aspect;
+
+    float Q1 = zFar / (zNear - zFar);
+    float Q2 = zNear * Q1;
+
+    glm::float4x4 matResult(
+      xScale, 0.0f, 0.0f, 0.0f,
+      0.0f, yScale, 0.0f, 0.0f,
+      0.0f, 0.0f, Q1, -1.0f,
+      0.0f, 0.0f, Q2, 0.0f);
+
+    return glm::transpose(matResult);
+
+    
+    /*
     float rad = glm::radians(fov);
 
     float h = glm::cos(float(0.5) * rad) / glm::sin(float(0.5) * rad);
@@ -78,6 +98,8 @@ public:
     
 #endif
     return Result;
+
+    */
   }
 
 //---------------------------------------------------------------------------//
