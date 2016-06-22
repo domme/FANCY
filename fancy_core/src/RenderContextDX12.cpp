@@ -409,12 +409,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     viewport.TopLeftY = myViewportParams.y;
     viewport.Width = myViewportParams.z;
     viewport.Height = myViewportParams.w;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
 
     D3D12_RECT rect = { 0u };
     rect.left = viewport.TopLeftX;
     rect.top = viewport.TopLeftY;
     rect.right = viewport.Width;
     rect.bottom = viewport.Height;
+    
 
     myCommandList->RSSetViewports(1u, &viewport);
     myCommandList->RSSetScissorRects(1u, &rect);
