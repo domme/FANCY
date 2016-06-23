@@ -205,7 +205,7 @@ namespace Fancy { namespace Rendering {
         "The resourceInterface of the vertexShader is expected to be empty as it is shared by multiple fragment shaders");
 
       shaderDesc.myShaderStage = (uint32)ShaderStage::FRAGMENT;
-      shaderDesc.myMainFunction = "main";
+      shaderDesc.myMainFunction = "main_textured";
       GpuProgram* fragmentShader = GpuProgramCompiler::createOrRetrieve(shaderDesc);
 
       myFsTextureShaderState = std::make_shared<GpuProgramPipeline>();
@@ -317,7 +317,7 @@ namespace Fancy { namespace Rendering {
     DataFormatInfo formatInfo(texParams.eFormat);
 
     std::vector<uint8> data;
-    data.resize(texParams.u16Width * texParams.u16Height, 0);
+    data.resize(texParams.u16Width * texParams.u16Height * formatInfo.mySizeBytes, 0);
 
     TextureUploadData texData;
     texData.myTotalSizeBytes = texParams.u16Width * texParams.u16Height * formatInfo.mySizeBytes;
@@ -326,8 +326,8 @@ namespace Fancy { namespace Rendering {
     texData.myPixelSizeBytes = formatInfo.mySizeBytes;
     texData.myData = &data[0];
     
-    //myTestTexture = RenderCore::CreateTexture(texParams, &texData, 1u);
-    //ASSERT(myTestTexture != nullptr);
+    myTestTexture = RenderCore::CreateTexture(texParams, &texData, 1u);
+    ASSERT(myTestTexture != nullptr);
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::_DebugExecuteComputeShader()
@@ -347,7 +347,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::Tick(float _dt)
   {
-    // _DebugExecuteComputeShader();
+    _DebugExecuteComputeShader();
 
     Scene::Scene* pScene = Fancy::GetCurrentScene().get();
     RenderOutput& renderOutput = *Fancy::GetCurrentRenderOutput();
@@ -408,9 +408,8 @@ namespace Fancy { namespace Rendering {
     
     // Debug: Render FS-quad with texture 
     context->SetGpuProgramPipeline(myFsTextureShaderState.get());
-    
-    //context->SetMultipleResources(&myTestTexture->GetSrv(), 1, 0u);
-    //context->renderGeometry(myFullscreenQuad.get());
+    context->SetMultipleResources(&myTestTexture->GetSrv(), 1, 0u);
+    context->renderGeometry(myFullscreenQuad.get());
     
     context->ExecuteAndReset(true);
     CommandContext::FreeContext(context);
