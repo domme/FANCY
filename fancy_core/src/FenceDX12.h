@@ -23,7 +23,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
    
   protected:
     HANDLE myIsDoneEvent;
-    Microsoft::WRL::ComPtr<ID3D12Fence> myFence;
+    Microsoft::WRL::ComPtr<ID3D12Fence> myGpuFence;
     uint64 myCurrWaitingOnVal;   // The last signaled value, which might not yet be completed
     uint64 myLastCompletedVal;  // The last completed value
     String myName;

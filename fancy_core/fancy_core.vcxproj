@@ -311,6 +311,7 @@
     <ClInclude Include="src\AlignedStorage.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
+    <ClInclude Include="src\Callback.h" />
     <ClInclude Include="src\CommandContext.h" />
     <ClInclude Include="src\CommandContextDX12.h" />
     <ClInclude Include="src\CommandListType.h" />
@@ -321,6 +322,7 @@
     <ClInclude Include="src\Descriptor.h" />
     <ClInclude Include="src\DescriptorDX12.h" />
     <ClInclude Include="src\DescriptorHeapPoolDX12.h" />
+    <ClInclude Include="src\FileWatcher.h" />
     <ClInclude Include="src\GpuBufferDesc.h" />
     <ClInclude Include="src\GpuBufferDX12.h" />
     <ClInclude Include="src\CameraComponent.h" />
@@ -439,6 +441,7 @@
     <ClCompile Include="src\ComputeContextDX12.cpp" />
     <ClCompile Include="src\DataFormat.cpp" />
     <ClCompile Include="src\DescriptorHeapPoolDX12.cpp" />
+    <ClCompile Include="src\FileWatcher.cpp" />
     <ClCompile Include="src\GpuBufferDX12.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\CameraControllerComponent.cpp" />

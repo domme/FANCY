@@ -20,12 +20,15 @@
 #include "TextureLoader.h"
 #include "ScopedPtr.h"
 #include "RenderWindow.h"
+#include "TimeManager.h"
 
 namespace Fancy {
   Scene::ScenePtr m_pCurrScene = nullptr;
   ScopedPtr<Rendering::RenderingProcess> m_pRenderingProcess;
   Rendering::RenderOutput* ourRenderOutput = nullptr;
   HINSTANCE ourAppInstanceHandle = nullptr;
+  Time ourRealTimeClock;
+  uint64 ourFrameIndex = 0u;
 
   void initComponentSubsystem()
   {
@@ -101,14 +104,16 @@ namespace Fancy {
     ASSERT(m_pCurrScene, "No scene set");
     ASSERT(m_pRenderingProcess, "No rendering process set");
 
-    Time::update(_dt);
-    const float deltaTime = Time::getDeltaTime();
+    ourRealTimeClock.Update(_dt);
+    const float deltaTime = ourRealTimeClock.GetDelta();
 
     m_pCurrScene->update(deltaTime);
 
     ourRenderOutput->beginFrame();
     m_pRenderingProcess->Tick(deltaTime);
     ourRenderOutput->endFrame();
+
+    ++ourFrameIndex;
   }
 //---------------------------------------------------------------------------//
   void SetCurrentScene( const Scene::ScenePtr& _pScene )
@@ -119,6 +124,16 @@ namespace Fancy {
   const Scene::ScenePtr& GetCurrentScene()
   {
     return m_pCurrScene;
+  }
+//---------------------------------------------------------------------------//
+  Time& GetRealTimeClock()
+  {
+    return ourRealTimeClock;
+  }
+//---------------------------------------------------------------------------//
+  uint64 GetCurrentFrameIndex()
+  {
+    return ourFrameIndex;
   }
 //---------------------------------------------------------------------------//
   void SetRenderingProcess( Rendering::RenderingProcess* _pRenderingProcess )

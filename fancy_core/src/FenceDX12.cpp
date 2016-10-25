@@ -7,7 +7,7 @@
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   FenceDX12::FenceDX12()
-    : myFence(nullptr)
+    : myGpuFence(nullptr)
     , myIsDoneEvent(nullptr)
     , myCurrWaitingOnVal(0u)
     , myLastCompletedVal(0u)
@@ -16,7 +16,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
   FenceDX12::FenceDX12(ID3D12Device* aDevice, const String& aName) 
-    : myFence(nullptr)
+    : myGpuFence(nullptr)
     , myIsDoneEvent(nullptr)
     , myCurrWaitingOnVal(0u)
     , myLastCompletedVal(0u)
@@ -26,7 +26,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void FenceDX12::Init(ID3D12Device* aDevice, const String& aName)
   {
-    CheckD3Dcall(aDevice->CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myFence)));
+    CheckD3Dcall(aDevice->CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myGpuFence)));
 
     myIsDoneEvent = CreateEventEx(nullptr, nullptr, 0u, EVENT_ALL_ACCESS);
     ASSERT(myIsDoneEvent != nullptr);
@@ -39,7 +39,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     else
       ++myCurrWaitingOnVal;
 
-    aCommandQueue->Signal(myFence.Get(), myCurrWaitingOnVal);
+    aCommandQueue->Signal(myGpuFence.Get(), myCurrWaitingOnVal);
     return myCurrWaitingOnVal;
   }
 //---------------------------------------------------------------------------//
@@ -48,7 +48,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (IsDone(myCurrWaitingOnVal))
       return;
 
-    myFence->SetEventOnCompletion(myCurrWaitingOnVal, myIsDoneEvent);
+    myGpuFence->SetEventOnCompletion(myCurrWaitingOnVal, myIsDoneEvent);
     WaitForSingleObject(myIsDoneEvent, INFINITE);
     myLastCompletedVal = myCurrWaitingOnVal;
   }
@@ -60,7 +60,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return true;
 
     // Otherwise, we can't be sure and need to fetch the fence's value (potentially expensive..)
-    myLastCompletedVal = glm::max(myLastCompletedVal, myFence->GetCompletedValue());
+    myLastCompletedVal = glm::max(myLastCompletedVal, myGpuFence->GetCompletedValue());
 
     return anOtherFenceVal <= myLastCompletedVal;
   }

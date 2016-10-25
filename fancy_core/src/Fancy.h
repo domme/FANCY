@@ -15,6 +15,7 @@ namespace Fancy { namespace Rendering {
 
 namespace Fancy {
   class RenderWindow;
+  class Time;
 }
 
 namespace Fancy {
@@ -31,6 +32,8 @@ namespace Fancy {
     Rendering::RenderOutput* GetCurrentRenderOutput();
     Rendering::RenderingProcess* GetRenderingProcess();
     const Scene::ScenePtr& GetCurrentScene();
+    Time& GetRealTimeClock();
+    uint64 GetCurrentFrameIndex();
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
 

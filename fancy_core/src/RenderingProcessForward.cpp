@@ -220,8 +220,10 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::UpdatePerFrameData() const
   {
+    const Time& clock = Fancy::GetRealTimeClock();
+
     PerFrameData frameData;
-    frameData.c_TimeParamters = glm::float4(Time::getDeltaTime(), Time::getElapsedTime(), 0.0f, 0.0f);
+    frameData.c_TimeParamters = glm::float4(clock.GetDelta(), clock.GetElapsed(), 0.0f, 0.0f);
 
     RenderCore::UpdateBufferData(myPerFrameData.get(), &frameData, sizeof(frameData));
   }
@@ -332,17 +334,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::_DebugExecuteComputeShader()
   {
-    ComputeContext* computeContext = 
-      static_cast<ComputeContext*>(CommandContext::AllocateContext(CommandListType::Compute));
-
-    computeContext->SetComputeProgram(myComputeProgram.get());
-
-    const Descriptor& textureUAV = myTestTexture->GetUav();
-    computeContext->SetMultipleResources(&textureUAV, 1u, 0u);
-    computeContext->Dispatch(32, 32, 1);
-
-    computeContext->ExecuteAndReset(true);
-    CommandContext::FreeContext(computeContext);
+    
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::Tick(float _dt)
@@ -404,14 +396,29 @@ namespace Fancy { namespace Rendering {
       }  // end renderItems
     }  // end lights
 
-    //context->ExecuteAndReset(true);
+    context->ExecuteAndReset(true);
     
     // Debug: Render FS-quad with texture 
+    //---------------------------------------------------------------------------//
+    /*ComputeContext* computeContext =
+      static_cast<ComputeContext*>(CommandContext::AllocateContext(CommandListType::Compute));
+
+    computeContext->SetComputeProgram(myComputeProgram.get());
+
+    const Descriptor& textureUAV = myTestTexture->GetUav();
+    computeContext->SetMultipleResources(&textureUAV, 1u, 0u);
+    computeContext->Dispatch(32, 32, 1);
+
+    computeContext->ExecuteAndReset(true);
+    CommandContext::FreeContext(computeContext);
+
     context->SetGpuProgramPipeline(myFsTextureShaderState.get());
     context->SetMultipleResources(&myTestTexture->GetSrv(), 1, 0u);
     context->renderGeometry(myFullscreenQuad.get());
     
     context->ExecuteAndReset(true);
+    */
+    //---------------------------------------------------------------------------//
     CommandContext::FreeContext(context);
   }
 //---------------------------------------------------------------------------//

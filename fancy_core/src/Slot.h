@@ -1,102 +1,8 @@
 #pragma once
 
+#include "Callback.h"
+
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  template<class ClassT, class ReturnT, class Arg1T>
-  std::function<ReturnT(Arg1T)> 
-    Bind( ClassT* anInstance, 
-          ReturnT(ClassT::*aMemFnPtr) (Arg1T))
-  {
-    std::function<ReturnT(Arg1T)> func = std::bind(aMemFnPtr, anInstance, std::placeholders::_1);
-    return func;
-  }
-//---------------------------------------------------------------------------//
-  template<class ClassT, class ReturnT, class Arg1T>
-  std::function<ReturnT(Arg1T)>
-    Bind(ClassT* anInstance,
-      ReturnT(ClassT::*aMemFnPtr) (Arg1T),
-      const Arg1T& anArg)
-  {
-    std::function<ReturnT(Arg1T)> func = std::bind(aMemFnPtr, anInstance, anArg);
-    return func;
-  }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  template<class ClassT, class ReturnT, class Arg1T, class Arg2T>
-  std::function<ReturnT(Arg1T, Arg2T)> 
-    Bind( ClassT* anInstance, 
-          ReturnT(ClassT::*aMemFnPtr) (Arg1T, Arg2T))
-  {
-    std::function<ReturnT(Arg1T, Arg2T)> func = std::bind(aMemFnPtr, anInstance, std::placeholders::_1, std::placeholders::_2);
-    return func;
-  }
-//---------------------------------------------------------------------------//
-  template<class ClassT, class ReturnT, class Arg1T, class Arg2T>
-  std::function<ReturnT(Arg1T, Arg2T)>
-    Bind(ClassT* anInstance,
-      ReturnT(ClassT::*aMemFnPtr) (Arg1T, Arg2T),
-      const Arg1T& anArg1,
-      const Arg2T& anArg2)
-  {
-    std::function<ReturnT(Arg1T, Arg2T)> func = std::bind(aMemFnPtr, anInstance, anArg1, anArg2);
-    return func;
-  }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  template<class ClassT, class ReturnT, class Arg1T, class Arg2T, class Arg3T>
-  std::function<ReturnT(Arg1T, Arg2T, Arg3T)>
-    Bind( ClassT* anInstance, 
-          ReturnT(ClassT::*aMemFnPtr) (Arg1T, Arg2T, Arg3T))
-  {
-    std::function<ReturnT(Arg1T, Arg2T, Arg3T)> func
-      = std::bind(aMemFnPtr, anInstance, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-    return func;
-  }
-//---------------------------------------------------------------------------//
-  template<class ClassT, class ReturnT, class Arg1T, class Arg2T, class Arg3T>
-  std::function<ReturnT(Arg1T, Arg2T, Arg3T)>
-    Bind(ClassT* anInstance,
-      ReturnT(ClassT::*aMemFnPtr) (Arg1T, Arg2T, Arg3T),
-      const Arg1T& anArg1,
-      const Arg2T& anArg2,
-      const Arg3T& anArg3)
-  {
-    std::function<ReturnT(Arg1T, Arg2T, Arg3T)> func
-      = std::bind(aMemFnPtr, anInstance, anArg1, anArg2, anArg3);
-    return func;
-  }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  template<class ClassT, class ReturnT, class Arg1T, class Arg2T, class Arg3T, class Arg4T>
-  std::function<ReturnT(Arg1T, Arg2T, Arg3T, Arg4T)> 
-    Bind( ClassT* anInstance, 
-          ReturnT(ClassT::*aMemFnPtr) (Arg1T, Arg2T, Arg3T, Arg4T))
-  {
-    std::function<ReturnT(Arg1T, Arg2T, Arg3T, Arg4T)> func
-      = std::bind(aMemFnPtr, anInstance, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-
-    return func;
-  }
-//---------------------------------------------------------------------------//
-  template<class ClassT, class ReturnT, class Arg1T, class Arg2T, class Arg3T, class Arg4T>
-  std::function<ReturnT(Arg1T, Arg2T, Arg3T, Arg4T)>
-    Bind(ClassT* anInstance,
-      ReturnT(ClassT::*aMemFnPtr) (Arg1T, Arg2T, Arg3T, Arg4T),
-      const Arg1T& anArg1,
-      const Arg2T& anArg2,
-      const Arg3T& anArg3,
-      const Arg4T& anArg4)
-  {
-    std::function<ReturnT(Arg1T, Arg2T, Arg3T, Arg4T)> func
-      = std::bind(aMemFnPtr, anInstance, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-
-    return func;
-  }
-//---------------------------------------------------------------------------//
-  
 //---------------------------------------------------------------------------//
   template<typename SignatureT>
   struct Slot;
@@ -107,31 +13,32 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
       void operator()(const Args&... someArgs)
       {
-        for (ObserverEntry& observer : myObservers)
-          observer.myFunction(someArgs...);
+        for (CallbackT& callback : myCallbacks)
+          callback.myFunction(someArgs...);
       }
-    //---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
       template<typename ClassT>
       void Connect(ClassT* anObserver, ReturnT(ClassT::*aMemFnPtr)(Args...))
       {
-        Connect(Bind(anObserver, aMemFnPtr), anObserver);
+        Callback<ReturnT(Args...)> tempCallback = Bind(anObserver, aMemFnPtr);
+        Connect(tempCallback.myFunction, anObserver);
       }
-    //---------------------------------------------------------------------------//
-      void Connect(std::function<ReturnT(Args...)>& aFunction, void* anObserver = nullptr)
+  //---------------------------------------------------------------------------//
+      void Connect(std::function<ReturnT(Args...)>& aFunction, void* anInstance = nullptr)
       {
-        if (anObserver != nullptr && 
-          std::find_if(myObservers.begin(), myObservers.end(), [anObserver](const ObserverEntry& entry) {
-          return entry.myInstance == anObserver;
-        }) != myObservers.end())
+        if (anInstance != nullptr && 
+          std::find_if(myCallbacks.begin(), myCallbacks.end(), [anInstance](const CallbackT& entry) {
+          return entry.myInstance == anInstance;
+        }) != myCallbacks.end())
         {
           return;
         }
 
-        ObserverEntry entry;
-        entry.myFunction = aFunction;
-        entry.myInstance = anObserver;
+        CallbackT callback;
+        callback.myFunction = aFunction;
+        callback.myInstance = anInstance;
 
-        myObservers.push_back(entry);
+        myCallbacks.push_back(callback);
       }
     //---------------------------------------------------------------------------//
       void DetachObserver(void* anObserver)
@@ -139,19 +46,16 @@ namespace Fancy {
         if (anObserver == nullptr)
           return;
 
-        std::remove_if(myObservers.begin(), myObservers.end(), [anObserver](const ObserverEntry& entry) {
+        std::remove_if(myCallbacks.begin(), myCallbacks.end(), [anObserver](const CallbackT& entry) {
           return entry.myInstance == anObserver;
         });
       }
     //---------------------------------------------------------------------------//
   private:
-    struct ObserverEntry
-    {
-      std::function<ReturnT(Args...)> myFunction;
-      void* myInstance;
-    };
-
-    std::vector<ObserverEntry> myObservers;
+    using CallbackT = Callback<ReturnT(Args...)>;
+    std::vector<CallbackT> myCallbacks;
   };
 //---------------------------------------------------------------------------//
 }
+
+// NEXT: Compile and resolve bugs!!

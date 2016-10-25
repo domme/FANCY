@@ -3,21 +3,18 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  namespace Internal
+  static float locUpdateFrequencies[(uint32) TimedUpdateInterval::NUM] =
   {
-
-  }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  uint32 Time::m_uCurrentFrameIndex = 0u;
-  float Time::m_fTimeScale = 1.0f;
-  float Time::m_fElapsedTime = 0.0f;
-  float Time::m_fCurrDerivedDt = 0.0f;
+    0.0f,
+    1.0f,
+  };
 //---------------------------------------------------------------------------//
   Time::Time()
+    : myTimeScale(1.0f)
+    , myElapsedTime(0.0f)
+    , myDerivedDeltaTime(0.0f)
   {
-
+    memset(myLastUpdateTimes, sizeof(myLastUpdateTimes), 0u);
   }
 //---------------------------------------------------------------------------//
   Time::~Time()
@@ -25,13 +22,20 @@ namespace Fancy {
 
   }
 //---------------------------------------------------------------------------//
-  void Time::update( float fDt )
+  void Time::Update( float fDt )
   {
-    ++m_uCurrentFrameIndex;
-    m_fCurrDerivedDt = fDt * m_fTimeScale;
-    m_fElapsedTime += m_fCurrDerivedDt;
+    myDerivedDeltaTime = fDt * myTimeScale;
+    myElapsedTime += myDerivedDeltaTime;
+
+    for (uint32 i = 0u; i < (uint32)TimedUpdateInterval::NUM; ++i)
+    {
+      if (myElapsedTime - myLastUpdateTimes[i] >= locUpdateFrequencies[i] - FLT_MIN)
+      {
+        myLastUpdateTimes[i] = myElapsedTime;
+        myOnTimeIntervalElapsed[i]();
+      }
+    }
   }
 //---------------------------------------------------------------------------//
- 
 }  // end of namespace Fancy
 

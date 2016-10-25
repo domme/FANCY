@@ -406,6 +406,12 @@
     <ClInclude Include="src\ComputeContext.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="src\FileWatcher.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Callback.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -668,6 +674,9 @@
     </ClCompile>
     <ClCompile Include="src\ComputeContext.cpp">
       <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FileWatcher.cpp">
+      <Filter>src\Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

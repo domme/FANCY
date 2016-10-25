@@ -444,7 +444,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         rtDescriptors[numRtsToSet] = rt->GetRtv().myCpuHandle;
         ++numRtsToSet;
       }
-        
     }
 
     for (uint32 i = 0u; i < numRtsToSet; ++i)

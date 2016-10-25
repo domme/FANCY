@@ -1,13 +1,13 @@
 #include "RendererPrerequisites.h"
-#include "TimeManager.h"
 #include "Renderer.h"
+#include "Fancy.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
   uint32 MultiBuffering::getCurrentBufferIndex()
   {
-    return Time::getCurrentFrameIndex() % MultiBuffering::kGpuMultiBufferingCount;
+    return Fancy::GetCurrentFrameIndex() % MultiBuffering::kGpuMultiBufferingCount;
   }
 //---------------------------------------------------------------------------//
 

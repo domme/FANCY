@@ -10,5 +10,9 @@ void main(uint3 aGroupID : SV_GroupID,
           uint3 aGroupThreadID : SV_GroupThreadID, 
           uint aGroupIndex : SV_GroupIndex)
 {
-  testTexture[aDispatchThreadID.xy] = float4(1, 0, 0, 1);
+  for (int i = 0; i < 9999; ++i)
+  {
+    testTexture[aDispatchThreadID.xy] = float4(sin(i), 0, 0, 1);
+  }
+
 }

@@ -635,17 +635,29 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return nullptr;
     }
     GpuProgram::Register(pGpuProgram);
+
+    // TODO: This doesn't work because the shadercompiler is static --> make actual object
+    // TODO: There might be multiple shaders for a given path... either search linearly in the registered shaders or make assoziative
+    // AddFileWatch(aDesc.myShaderPath);
+
     return pGpuProgram;
   }
-
+//---------------------------------------------------------------------------//
+  void GpuProgramCompilerDX12::OnFileUpdated(const String& aFile)
+  {
+  }
+//---------------------------------------------------------------------------//
+  void GpuProgramCompilerDX12::OnFileDeletedMoved(const String& aFile)
+  {
+  }
+//---------------------------------------------------------------------------//
   GpuProgramCompilerDX12::GpuProgramCompilerDX12()
   {
   }
-
+//---------------------------------------------------------------------------//
   GpuProgramCompilerDX12::~GpuProgramCompilerDX12()
   {
   }
-
 //---------------------------------------------------------------------------//
 } } }
 
