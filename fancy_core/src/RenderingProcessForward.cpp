@@ -197,16 +197,16 @@ namespace Fancy { namespace Rendering {
       myFullscreenQuad->setIndexBuffer(indexBuffer);
       
       GpuProgramDesc shaderDesc;
-      shaderDesc.myShaderPath = "shader/DX12/FullscreenQuad.hlsl";
+      shaderDesc.myShaderPath = "FullscreenQuad";
       shaderDesc.myMainFunction = "main";
       shaderDesc.myShaderStage = (uint32)ShaderStage::VERTEX;
-      GpuProgram* vertexShader = GpuProgramCompiler::createOrRetrieve(shaderDesc);
+      GpuProgram* vertexShader = RenderCore::GetGpuProgram(shaderDesc);
       ASSERT(vertexShader != nullptr && vertexShader->GetResourceInterface()->IsEmpty(),
         "The resourceInterface of the vertexShader is expected to be empty as it is shared by multiple fragment shaders");
 
       shaderDesc.myShaderStage = (uint32)ShaderStage::FRAGMENT;
       shaderDesc.myMainFunction = "main_textured";
-      GpuProgram* fragmentShader = GpuProgramCompiler::createOrRetrieve(shaderDesc);
+      GpuProgram* fragmentShader = RenderCore::GetGpuProgram(shaderDesc);
 
       myFsTextureShaderState = std::make_shared<GpuProgramPipeline>();
       myFsTextureShaderState->myGpuPrograms[(uint32)ShaderStage::VERTEX] = vertexShader;
@@ -302,10 +302,9 @@ namespace Fancy { namespace Rendering {
     // Compute shader
     GpuProgramDesc desc;
     desc.myShaderStage = static_cast<uint>(ShaderStage::COMPUTE);
-    desc.myShaderPath =
-      GpuProgramCompiler::GetPlatformShaderFileDirectory() + "/ComputeMipmapCS" + GpuProgramCompiler::GetPlatformShaderFileExtension();
+    desc.myShaderPath = "ComputeMipmapCS";
 
-    myComputeProgram = SharedPtr<GpuProgram>(GpuProgramCompiler::createOrRetrieve(desc));
+    myComputeProgram = SharedPtr<GpuProgram>(RenderCore::GetGpuProgram(desc));
 
     // Texture
     TextureParams texParams;

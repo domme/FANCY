@@ -25,14 +25,14 @@ namespace Fancy {
       RemoveFileWatch(path);
   }
 //---------------------------------------------------------------------------//
-  void FileWatcher::AddFileWatch(const String& aPath)
+  void FileWatcher::AddFileWatch(const String& aPath) const
   {
     if (std::find_if(myWatchEntries.begin(), myWatchEntries.end(), [=](const auto& entry){ return entry.myPath == aPath; }) != myWatchEntries.end())
       return;
 
     uint64 currWriteTime = GetFileWriteTime(aPath);
 
-    ASSERT(currWriteTime > 0u, "Could not read file write time");
+   // ASSERT(currWriteTime > 0u, "Could not read file write time");
     if (currWriteTime == 0u)
     {
       return;
@@ -67,7 +67,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  uint64 FileWatcher::GetFileWriteTime(const String& aFile)
+  uint64 FileWatcher::GetFileWriteTime(const String& aFile) const
   {
     return 0u;
   }

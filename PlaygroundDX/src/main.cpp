@@ -86,7 +86,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     pModelNode->getTransform().rotate(glm::vec3(1.0f, 1.0f, 0.0f), 20.0f);
 
-    Fancy::Update(0.0);
+    Fancy::Update(0.016f);
 	}
 
 	return 0;

@@ -493,13 +493,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputDX12* aProgram)
+  bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputDX12* aProgram) const
   {
     LOG_INFO("Compiling shader %...", aDesc.myShaderPath);
 
     const String& shaderStageDefineStr = GpuProgramCompilerUtils::ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
     const String& shaderProfileStr = locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage));
-    std::wstring shaderPathAbs = StringUtil::ToWideString(IO::PathService::convertToAbsPath(aDesc.myShaderPath));
+
+    const String actualShaderPath = GetPlatformShaderFileDirectory() + String("/") + aDesc.myShaderPath + GetPlatformShaderFileExtension();
+    std::wstring shaderPathAbs = StringUtil::ToWideString(IO::PathService::convertToAbsPath(actualShaderPath));
 
     const GpuProgramFeatureList& permuationFeatures = aDesc.myPermutation.getFeatureList();
 
@@ -620,7 +622,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return true;
   }
 //---------------------------------------------------------------------------//
-  GpuProgram* GpuProgramCompilerDX12::createOrRetrieve(const GpuProgramDesc& aDesc)
+  GpuProgram* GpuProgramCompilerDX12::CreateOrRetrieve(const GpuProgramDesc& aDesc) const
   {
     GpuProgram* pGpuProgram = GpuProgram::FindFromDesc(aDesc);
     if (pGpuProgram != nullptr)
@@ -636,9 +638,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
     GpuProgram::Register(pGpuProgram);
 
-    // TODO: This doesn't work because the shadercompiler is static --> make actual object
     // TODO: There might be multiple shaders for a given path... either search linearly in the registered shaders or make assoziative
-    // AddFileWatch(aDesc.myShaderPath);
+    AddFileWatch(aDesc.myShaderPath);
 
     return pGpuProgram;
   }

@@ -1,17 +1,20 @@
 #include "Renderer.h"
 #include "DepthStencilState.h"
-#include "ResourceBinding.h"
 #include "TextureRefs.h"
 #include "GpuBuffer.h"
+#include "GpuProgramCompiler.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  ScopedPtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
   std::shared_ptr<Texture> RenderCore::ourDefaultDiffuseTexture;
   std::shared_ptr<Texture> RenderCore::ourDefaultNormalTexture;
   std::shared_ptr<Texture> RenderCore::ourDefaultSpecularTexture;
 //---------------------------------------------------------------------------//  
   void RenderCore::Init()
   {
+    ourShaderCompiler = FANCY_NEW(GpuProgramCompiler, MemoryCategory::GENERAL);
+
     DepthStencilState defaultDepthStencilState;
     defaultDepthStencilState.SetFromDescription(DepthStencilStateDesc::GetDefaultDepthNoStencil());
     DepthStencilState::Register(defaultDepthStencilState);
@@ -110,6 +113,11 @@ namespace Fancy { namespace Rendering {
   void RenderCore::Shutdown()
   {
     
+  }
+//---------------------------------------------------------------------------//
+  GpuProgram* RenderCore::GetGpuProgram(const GpuProgramDesc& aDesc)
+  {
+    return ourShaderCompiler->CreateOrRetrieve(aDesc);
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)

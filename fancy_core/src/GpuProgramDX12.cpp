@@ -1,8 +1,9 @@
 #include "StdAfx.h"
-#include "GpuProgramCompilerDX12.h"
+#include "GpuProgramCompiler.h"
 #include "AdapterDX12.h"
 #include "Renderer.h"
 #include "ShaderResourceInterface.h"
+#include "GpuProgramCompiler.h"
 
 #if defined (RENDERER_DX12)
 
@@ -114,7 +115,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   bool GpuProgramDX12::SetFromDescription(const GpuProgramDesc& aDesc)
   {
     GpuProgramCompilerOutputDX12 output;
-    const bool success = GpuProgramCompilerDX12::Compile(aDesc, &output);
+    const bool success = RenderCore::GetGpuProgramCompiler()->Compile(aDesc, &output);
 
     if (success)
     {
