@@ -27,6 +27,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       static String GetPlatformShaderFileDirectory() { return "shader/DX12/"; }
 
   protected:
+    void FindGpuProgramsForFile(const String& aFile, std::vector<GpuProgram*>& someProgramsOut) const;
     void OnFileUpdated(const String& aFile) override;
     void OnFileDeletedMoved(const String& aFile) override;
   };

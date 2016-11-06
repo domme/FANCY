@@ -23,3 +23,5 @@ lib/*
 *.opendb
 
 dependencies/lib/*
+*.db
+FANCY.VC.db

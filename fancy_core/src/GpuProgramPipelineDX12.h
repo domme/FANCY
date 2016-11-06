@@ -23,6 +23,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
     SERIALIZABLE(GpuProgramPipelineDX12);
 
+    static void NotifyChangedShaders(const std::vector<GpuProgramDX12*>& someChangedPrograms);
+
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
     uint64 GetHash() const { return GetDescription().GetHash(); }

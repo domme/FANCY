@@ -8,6 +8,8 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
   class GpuProgramPipeline : public PLATFORM_DEPENDENT_NAME(GpuProgramPipeline), public StaticManagedHeapObject<GpuProgramPipeline>
   {
   public:

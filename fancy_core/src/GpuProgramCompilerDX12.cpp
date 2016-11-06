@@ -645,7 +645,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return pGpuProgram;
   }
 //---------------------------------------------------------------------------//
-  void locFindGpuProgramsForFile(const String& aFile, std::vector<GpuProgram*>& someProgramsOut)
+  void GpuProgramCompilerDX12::FindGpuProgramsForFile(const String& aFile, std::vector<GpuProgram*>& someProgramsOut) const
   {
     auto& programCache = GpuProgram::getRegisterMap();
 
@@ -653,7 +653,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       GpuProgram* program = it->second;
 
-      if (program->GetDescription().myShaderFileName == aFile)
+      const GpuProgramDesc& desc = program->GetDescription();
+      const String actualShaderPath =
+        IO::PathService::convertToAbsPath(GetPlatformShaderFileDirectory() + String("/") + desc.myShaderFileName + GetPlatformShaderFileExtension());
+
+      if (actualShaderPath == aFile)
         someProgramsOut.push_back(program);
     }
   }
@@ -661,9 +665,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void GpuProgramCompilerDX12::OnFileUpdated(const String& aFile)
   {
     std::vector<GpuProgram*> programsToRecompile;
-    locFindGpuProgramsForFile(aFile, programsToRecompile);
+    FindGpuProgramsForFile(aFile, programsToRecompile);
 
-
+    for (GpuProgram* program : programsToRecompile)
+    {
+      // Triggers recompile...
+      program->SetFromDescription(program->GetDescription());
+    }
   }
 //---------------------------------------------------------------------------//
   void GpuProgramCompilerDX12::OnFileDeletedMoved(const String& aFile)

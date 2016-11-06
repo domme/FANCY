@@ -9,6 +9,7 @@
 #include "GpuProgramPipelineDX12.h"
 #include "ShaderResourceInterfaceDX12.h"
 #include "GpuProgram.h"
+#include "GpuProgramPipeline.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -22,6 +23,37 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   GpuProgramPipelineDX12::~GpuProgramPipelineDX12()
   {
     
+  }
+//---------------------------------------------------------------------------//
+  void GpuProgramPipelineDX12::NotifyChangedShaders(const std::vector<GpuProgramDX12*>& someChangedPrograms)
+  {
+    std::vector<GpuProgramPipeline*> pipelinesToUpdate;
+
+    auto& pipelineCache = GpuProgramPipeline::getRegisterMap();
+
+    for (auto it = pipelineCache.begin(); it != pipelineCache.end(); ++it)
+    {
+      GpuProgramPipeline* pipeline = it->second;
+
+      bool hasShader = false;
+      for (GpuProgram* program : pipeline->myGpuPrograms)
+      {
+        for (GpuProgramDX12* changedProgram : someChangedPrograms)
+        {
+          hasShader |= program == changedProgram;
+        }
+      }
+
+      if (hasShader)
+        pipelinesToUpdate.push_back(pipeline);
+    }
+
+    // TODO next: change function so that pipelines are changed right away (i.e. change the programs in the correct stages...)
+
+    for (GpuProgramPipeline* pipeline : pipelinesToUpdate)
+    {
+      
+    }
   }
 //---------------------------------------------------------------------------//
   bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDX12& anOther) const
@@ -78,6 +110,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       MathUtil::hash_combine(myShaderHash, reinterpret_cast<uint>(myGpuPrograms[i]));
     }
   }
+//---------------------------------------------------------------------------//
+  
 //---------------------------------------------------------------------------//
   void GpuProgramPipelineDX12::serialize(IO::Serializer* aSerializer)
   {
