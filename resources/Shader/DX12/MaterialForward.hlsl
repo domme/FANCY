@@ -24,6 +24,8 @@ ConstantBuffer<PER_OBJECT> cbPerObject : register(b1);
     float3 normalWS : TEXCOORD1;
     float2 uv : TEXCOORD2;
   };
+
+
 //---------------------------------------------------------------------------//
   #if defined(PROGRAM_TYPE_VERTEX)
     struct VS_IN

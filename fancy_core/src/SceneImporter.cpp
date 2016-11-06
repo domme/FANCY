@@ -757,7 +757,7 @@ namespace Fancy { namespace IO {
 
     GpuProgramDesc vertexProgramDesc;
     vertexProgramDesc.myPermutation = permutation;
-    vertexProgramDesc.myShaderPath = "MaterialForward";
+    vertexProgramDesc.myShaderFileName = "MaterialForward";
     vertexProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
     GpuProgram* pVertexProgram = RenderCore::GetGpuProgram(vertexProgramDesc);
 

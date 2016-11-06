@@ -106,7 +106,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   GpuProgramDesc GpuProgramDX12::GetDescription() const
   {
     GpuProgramDesc desc;
-    desc.myShaderPath = mySourcePath;
+    desc.myShaderFileName = mySourcePath;
     desc.myShaderStage = static_cast<uint32>(myStage);
     desc.myPermutation = myPermutation;
     return desc;
@@ -119,7 +119,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     if (success)
     {
-      mySourcePath = aDesc.myShaderPath;
+      mySourcePath = aDesc.myShaderFileName;
       myPermutation = aDesc.myPermutation;
       myStage = static_cast<ShaderStage>(aDesc.myShaderStage);
 

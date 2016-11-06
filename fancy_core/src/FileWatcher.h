@@ -16,6 +16,8 @@ namespace Fancy {
     FileWatcher();
     virtual ~FileWatcher();
 
+    static uint64 GetFileWriteTime(const String& aFile);
+
     void AddFileWatch(const String& aPath) const;
     void RemoveFileWatch(const String& aPath);
 
@@ -25,8 +27,7 @@ namespace Fancy {
 
   private:
     void UpdateFileInfos();
-    uint64 GetFileWriteTime(const String& aFile) const;
-
+    
     mutable std::vector<FileWatchEntry> myWatchEntries;
   };
 //---------------------------------------------------------------------------//

@@ -197,7 +197,7 @@ namespace Fancy { namespace Rendering {
       myFullscreenQuad->setIndexBuffer(indexBuffer);
       
       GpuProgramDesc shaderDesc;
-      shaderDesc.myShaderPath = "FullscreenQuad";
+      shaderDesc.myShaderFileName = "FullscreenQuad";
       shaderDesc.myMainFunction = "main";
       shaderDesc.myShaderStage = (uint32)ShaderStage::VERTEX;
       GpuProgram* vertexShader = RenderCore::GetGpuProgram(shaderDesc);
@@ -302,7 +302,7 @@ namespace Fancy { namespace Rendering {
     // Compute shader
     GpuProgramDesc desc;
     desc.myShaderStage = static_cast<uint>(ShaderStage::COMPUTE);
-    desc.myShaderPath = "ComputeMipmapCS";
+    desc.myShaderFileName = "ComputeMipmapCS";
 
     myComputeProgram = SharedPtr<GpuProgram>(RenderCore::GetGpuProgram(desc));
 

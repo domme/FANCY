@@ -495,12 +495,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputDX12* aProgram) const
   {
-    LOG_INFO("Compiling shader %...", aDesc.myShaderPath);
+    LOG_INFO("Compiling shader %...", aDesc.myShaderFileName);
 
     const String& shaderStageDefineStr = GpuProgramCompilerUtils::ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
     const String& shaderProfileStr = locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage));
 
-    const String actualShaderPath = GetPlatformShaderFileDirectory() + String("/") + aDesc.myShaderPath + GetPlatformShaderFileExtension();
+    const String actualShaderPath = GetPlatformShaderFileDirectory() + String("/") + aDesc.myShaderFileName + GetPlatformShaderFileExtension();
     std::wstring shaderPathAbs = StringUtil::ToWideString(IO::PathService::convertToAbsPath(actualShaderPath));
 
     const GpuProgramFeatureList& permuationFeatures = aDesc.myPermutation.getFeatureList();
@@ -586,7 +586,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     aProgram->myPermutation = aDesc.myPermutation;
     aProgram->eShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
-    aProgram->myShaderFilename = aDesc.myShaderPath;
+    aProgram->myShaderFilename = aDesc.myShaderFileName;
     aProgram->myRootSignature = rsObject;
     aProgram->myNativeData = compiledShaderBytecode;
 
@@ -639,13 +639,31 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     GpuProgram::Register(pGpuProgram);
 
     // TODO: There might be multiple shaders for a given path... either search linearly in the registered shaders or make assoziative
-    AddFileWatch(aDesc.myShaderPath);
+    const String actualShaderPath = IO::PathService::convertToAbsPath(GetPlatformShaderFileDirectory() + String("/") + aDesc.myShaderFileName + GetPlatformShaderFileExtension());
+    AddFileWatch(actualShaderPath);
 
     return pGpuProgram;
   }
 //---------------------------------------------------------------------------//
+  void locFindGpuProgramsForFile(const String& aFile, std::vector<GpuProgram*>& someProgramsOut)
+  {
+    auto& programCache = GpuProgram::getRegisterMap();
+
+    for (auto it = programCache.begin(); it != programCache.end(); ++it)
+    {
+      GpuProgram* program = it->second;
+
+      if (program->GetDescription().myShaderFileName == aFile)
+        someProgramsOut.push_back(program);
+    }
+  }
+//---------------------------------------------------------------------------//
   void GpuProgramCompilerDX12::OnFileUpdated(const String& aFile)
   {
+    std::vector<GpuProgram*> programsToRecompile;
+    locFindGpuProgramsForFile(aFile, programsToRecompile);
+
+
   }
 //---------------------------------------------------------------------------//
   void GpuProgramCompilerDX12::OnFileDeletedMoved(const String& aFile)
