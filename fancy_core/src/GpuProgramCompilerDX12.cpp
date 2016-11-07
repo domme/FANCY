@@ -13,6 +13,7 @@
 #include "RendererDX12.h"
 #include "Renderer.h"
 #include "Log.h"
+#include "GpuProgramPipeline.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -668,10 +669,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     FindGpuProgramsForFile(aFile, programsToRecompile);
 
     for (GpuProgram* program : programsToRecompile)
-    {
-      // Triggers recompile...
       program->SetFromDescription(program->GetDescription());
-    }
+
+    GpuProgramPipeline::NotifyChangedShaders(programsToRecompile);
   }
 //---------------------------------------------------------------------------//
   void GpuProgramCompilerDX12::OnFileDeletedMoved(const String& aFile)

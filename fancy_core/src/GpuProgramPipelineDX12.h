@@ -23,7 +23,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
     SERIALIZABLE(GpuProgramPipelineDX12);
 
-    static void NotifyChangedShaders(const std::vector<GpuProgramDX12*>& someChangedPrograms);
+    static void NotifyChangedShaders(const std::vector<GpuProgram*>& someChangedPrograms);
 
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
@@ -36,6 +36,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     GpuProgramPipelineDesc GetDescription() const;
     void SetFromDescription(const GpuProgramPipelineDesc& aDesc);
+    void SetFromShaders(const std::array<GpuProgram*, (uint32) ShaderStage::NUM>& someShaders);
     ID3D12RootSignature* GetRootSignature() const;
     
     void RecomputeHashFromShaders();

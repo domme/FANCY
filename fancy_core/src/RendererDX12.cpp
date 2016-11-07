@@ -256,9 +256,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     using namespace Microsoft::WRL;
 
-    ComPtr<ID3D12Debug> debugInterface;
-    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
-      debugInterface->EnableDebugLayer();
+    // ComPtr<ID3D12Debug> debugInterface;
+    // if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
+    //   debugInterface->EnableDebugLayer();
 
     CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&ourDevice)));
 

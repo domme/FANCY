@@ -48,7 +48,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
      RenderContextDX12();
      ~RenderContextDX12() override;
-    
+
     // Root arguments:
     void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const;
     void SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const;

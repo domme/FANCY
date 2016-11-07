@@ -25,34 +25,31 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipelineDX12::NotifyChangedShaders(const std::vector<GpuProgramDX12*>& someChangedPrograms)
+  void GpuProgramPipelineDX12::NotifyChangedShaders(const std::vector<GpuProgram*>& someChangedPrograms)
   {
-    std::vector<GpuProgramPipeline*> pipelinesToUpdate;
-
+    std::vector<GpuProgramPipeline*> changedPipelines;
+    
     auto& pipelineCache = GpuProgramPipeline::getRegisterMap();
 
     for (auto it = pipelineCache.begin(); it != pipelineCache.end(); ++it)
     {
       GpuProgramPipeline* pipeline = it->second;
 
-      bool hasShader = false;
-      for (GpuProgram* program : pipeline->myGpuPrograms)
+      for (GpuProgramDX12* changedProgram : someChangedPrograms)
       {
-        for (GpuProgramDX12* changedProgram : someChangedPrograms)
-        {
-          hasShader |= program == changedProgram;
-        }
+        const uint stage = static_cast<uint>(changedProgram->getShaderStage());
+        if (changedProgram == pipeline->myGpuPrograms[stage])
+          changedPipelines.push_back(pipeline);
       }
-
-      if (hasShader)
-        pipelinesToUpdate.push_back(pipeline);
     }
 
-    // TODO next: change function so that pipelines are changed right away (i.e. change the programs in the correct stages...)
-
-    for (GpuProgramPipeline* pipeline : pipelinesToUpdate)
+    for (GpuProgramPipeline* pipeline : changedPipelines)
     {
-      
+      std::array <GpuProgram*, (uint32)ShaderStage::NUM> newShaders;
+      for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+        newShaders[i] = pipeline->myGpuPrograms[i];
+
+      pipeline->SetFromShaders(newShaders);
     }
   }
 //---------------------------------------------------------------------------//
@@ -77,13 +74,22 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void GpuProgramPipelineDX12::SetFromDescription(const GpuProgramPipelineDesc& aDesc)
   {
+    std::array<GpuProgram*, (uint32)ShaderStage::NUM> newGpuPrograms;
     for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
     {
-      myGpuPrograms[i] = GpuProgram::FindFromDesc(aDesc.myGpuPrograms[i]);
+      newGpuPrograms[i] = GpuProgram::FindFromDesc(aDesc.myGpuPrograms[i]);
     }
 
+    SetFromShaders(newGpuPrograms);
+  }
+//---------------------------------------------------------------------------//
+  void GpuProgramPipelineDX12::SetFromShaders(const std::array<GpuProgram*, (uint32)ShaderStage::NUM>& someShaders)
+  {
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+      myGpuPrograms[i] = someShaders[i];
+
     myResourceInterface = nullptr;
-    if (GpuProgram* vertexShader = myGpuPrograms[(uint32) ShaderStage::VERTEX])
+    if (GpuProgram* vertexShader = myGpuPrograms[(uint32)ShaderStage::VERTEX])
     {
       myResourceInterface = vertexShader->GetResourceInterface();
     }

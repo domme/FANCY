@@ -31,20 +31,11 @@ public:
   static uint hashFromGeneric(const T& _val)
   {
     const size_t sizeBytes = sizeof(T);
-    const uint numDwords = sizeBytes / sizeof(uint64);
-    const uint numBytesRemaining = sizeBytes - numDwords * sizeof(uint64);
-    const T* pMem = &_val;
+    const uint8* byteBlock = reinterpret_cast<const uint8*>(&_val);
 
     uint hash = 0x0;
-    for (uint i = 0u; i < numDwords; ++i)
-    {
-      hash_combine(hash, reinterpret_cast<const uint64*>(pMem)[i]);
-    }
-    const T* byteStartBlock = pMem + numDwords * sizeof(uint64);
-    for (uint i = 0u; i < numBytesRemaining; ++i)
-    {
-      hash_combine(hash, reinterpret_cast<const uint8*>(byteStartBlock)[i]);
-    }
+    for (uint i = 0u; i < sizeBytes; ++i)
+      hash_combine(hash, byteBlock[i]);
 
     return hash;
   }
