@@ -70,7 +70,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const D3D12_INPUT_ELEMENT_DESC* GetNativeInputElements() const { ASSERT(!myNativeInputElements.empty()); return &myNativeInputElements[0u]; }
     const uint32 GetNumNativeInputElements() const { return myNativeInputElements.size(); }
 
-    ComPtr<ID3DBlob>& getNativeData() { return myNativeData; }
+    const ComPtr<ID3DBlob>& getNativeData() const { return myNativeData; }
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
     /// Returns the pipeline state embedded into the HLSL code

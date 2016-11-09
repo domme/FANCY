@@ -18,10 +18,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   uint ComputePipelineState::GetHash()
   {
     uint hash = 0u;
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgram));
+
     if (myGpuProgram != nullptr)
-    {
-      MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgram));
-    }
+      MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgram->getNativeData().Get()));
+
     return hash;
   }
 //---------------------------------------------------------------------------//
