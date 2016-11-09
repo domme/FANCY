@@ -41,6 +41,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgramPipeline));
 
+    if (myGpuProgramPipeline != nullptr)
+      MathUtil::hash_combine(hash, myGpuProgramPipeline->GetShaderByteCodeHash());
+
     MathUtil::hash_combine(hash, myNumRenderTargets);
 
     for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)

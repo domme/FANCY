@@ -28,6 +28,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
     uint64 GetHash() const { return GetDescription().GetHash(); }
+    uint64 GetShaderByteCodeHash() const { return myShaderByteCodeHash; }
 
     GpuProgramPipelineDX12();
     ~GpuProgramPipelineDX12();
@@ -39,11 +40,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void SetFromShaders(const std::array<GpuProgram*, (uint32) ShaderStage::NUM>& someShaders);
     ID3D12RootSignature* GetRootSignature() const;
     
-    void RecomputeHashFromShaders();
+    void UpdateShaderByteCodeHash();
 
     GpuProgram* myGpuPrograms[(uint32)ShaderStage::NUM];
 
-    uint myShaderHash;  /// Used to quickly compare two pipelines
+    uint myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
     const ShaderResourceInterface* myResourceInterface;
   };
 //---------------------------------------------------------------------------//

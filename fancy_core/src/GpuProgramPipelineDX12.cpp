@@ -14,7 +14,7 @@
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   GpuProgramPipelineDX12::GpuProgramPipelineDX12() 
-    : myShaderHash(0u)
+    : myShaderByteCodeHash(0u)
     , myResourceInterface(nullptr)
   {
     memset(myGpuPrograms, 0u, sizeof(myGpuPrograms));
@@ -55,7 +55,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDX12& anOther) const
   {
-    return myShaderHash == anOther.myShaderHash;
+    return GetHash() == anOther.GetHash();
   }
   //---------------------------------------------------------------------------//
   GpuProgramPipelineDesc GpuProgramPipelineDX12::GetDescription() const
@@ -94,7 +94,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myResourceInterface = vertexShader->GetResourceInterface();
     }
 
-    RecomputeHashFromShaders();
+    UpdateShaderByteCodeHash();
   }
 //---------------------------------------------------------------------------//
   ID3D12RootSignature* GpuProgramPipelineDX12::GetRootSignature() const
@@ -108,12 +108,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 
 //---------------------------------------------------------------------------//
-  void GpuProgramPipelineDX12::RecomputeHashFromShaders()
+  void GpuProgramPipelineDX12::UpdateShaderByteCodeHash()
   {
-    myShaderHash = 0u;
+    myShaderByteCodeHash = 0u;
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
-      MathUtil::hash_combine(myShaderHash, reinterpret_cast<uint>(myGpuPrograms[i]));
+      GpuProgram* shader = myGpuPrograms[i];
+      MathUtil::hash_combine(myShaderByteCodeHash, reinterpret_cast<uint64>(shader));
+      if (shader != nullptr)
+        MathUtil::hash_combine(myShaderByteCodeHash, reinterpret_cast<uint64>(shader->getNativeData().Get()));
     }
   }
 //---------------------------------------------------------------------------//
