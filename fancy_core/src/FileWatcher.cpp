@@ -63,9 +63,9 @@ namespace Fancy {
       uint64 currWriteTime = GetFileWriteTime(entry.myPath);
 
       if (entry.myLastWriteTime < currWriteTime)
-        OnFileUpdated(entry.myPath);
+        myOnFileUpdated(entry.myPath);
       else if (currWriteTime == 0u && entry.myLastWriteTime != 0u)
-        OnFileDeletedMoved(entry.myPath);
+        myOnFileDeletedMoved(entry.myPath);
 
       entry.myLastWriteTime = currWriteTime;
     }

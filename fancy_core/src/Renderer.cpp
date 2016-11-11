@@ -3,10 +3,17 @@
 #include "TextureRefs.h"
 #include "GpuBuffer.h"
 #include "GpuProgramCompiler.h"
+#include "FileWatcher.h"
+#include <mutex>
+#include "PathService.h"
 
+//---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  std::map<uint64, std::weak_ptr<GpuProgram>> RenderCore::ourShaderCache;
+  FileWatcher* RenderCore::ourShaderFileWatcher = nullptr;
+
+  std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
+  std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
 
   ScopedPtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
   std::shared_ptr<Texture> RenderCore::ourDefaultDiffuseTexture;
@@ -15,6 +22,12 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
   void RenderCore::Init()
   {
+    ourShaderFileWatcher = FANCY_NEW(FileWatcher, MemoryCategory::GENERAL);
+    std::function<void(const String&)> onUpdatedFn(&RenderCore::OnShaderFileUpdated);
+    std::function<void(const String&)> onDeletedFn(&RenderCore::OnShaderFileDeletedMoved);
+    ourShaderFileWatcher->myOnFileUpdated.Connect(onUpdatedFn);
+    ourShaderFileWatcher->myOnFileDeletedMoved.Connect(onDeletedFn);
+    
     ourShaderCompiler = FANCY_NEW(GpuProgramCompiler, MemoryCategory::GENERAL);
 
     DepthStencilState defaultDepthStencilState;
@@ -114,7 +127,11 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
   {
-    
+    FANCY_DELETE(ourShaderFileWatcher, MemoryCategory::GENERAL);
+    ourShaderFileWatcher = nullptr;
+
+    FANCY_DELETE(ourShaderCompiler, MemoryCategory::GENERAL);
+    ourShaderCompiler = nullptr;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuProgram> RenderCore::CreateGpuProgram(const GpuProgramDesc& aDesc)
@@ -123,16 +140,48 @@ namespace Fancy { namespace Rendering {
 
     auto it = ourShaderCache.find(hash);
     if (it != ourShaderCache.end())
-      return it->second.lock();
+      return it->second;
 
     SharedPtr<GpuProgram> program(FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS));
     if (program->SetFromDescription(aDesc, ourShaderCompiler))
     {
       ourShaderCache.insert(std::make_pair(hash, program));
+
+      const String actualShaderPath =
+        IO::PathService::convertToAbsPath(ourShaderCompiler->ResolvePlatformShaderPath(aDesc.myShaderFileName));
+      
+      ourShaderFileWatcher->AddFileWatch(actualShaderPath);
+
       return program;
     }
 
     return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::OnShaderFileUpdated(const String& aShaderFile)
+  {
+    // Find GpuPrograms for this file
+    std::vector<GpuProgram*> programsToRecompile;
+    for (auto it = ourShaderCache.begin(); it != ourShaderCache.end(); ++it)
+    {
+      GpuProgram* program = it->second.get();
+
+      const GpuProgramDesc& desc = program->GetDescription();
+      String actualShaderPath = 
+        IO::PathService::convertToAbsPath(ourShaderCompiler->ResolvePlatformShaderPath(desc.myShaderFileName));
+
+      if (actualShaderPath == aShaderFile)
+        programsToRecompile.push_back(program);
+    }
+
+    for (GpuProgram* program : programsToRecompile)
+      program->SetFromDescription(program->GetDescription(), ourShaderCompiler);
+
+    GpuProgramPipeline::NotifyChangedShaders(programsToRecompile);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::OnShaderFileDeletedMoved(const String& aShaderFile)
+  {
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuProgramPipeline> RenderCore::CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc)

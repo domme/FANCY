@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
+#include "Slot.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -14,16 +15,15 @@ namespace Fancy {
   {
   public:
     FileWatcher();
-    virtual ~FileWatcher();
+    ~FileWatcher();
 
     static uint64 GetFileWriteTime(const String& aFile);
 
     void AddFileWatch(const String& aPath) const;
     void RemoveFileWatch(const String& aPath);
 
-  protected:
-    virtual void OnFileUpdated(const String& aFile) = 0;
-    virtual void OnFileDeletedMoved(const String& aFile) = 0;
+    Slot<void(const String&)> myOnFileUpdated;
+    Slot<void(const String&)> myOnFileDeletedMoved;
 
   private:
     void UpdateFileInfos();

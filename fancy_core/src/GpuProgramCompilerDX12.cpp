@@ -623,59 +623,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return true;
   }
 //---------------------------------------------------------------------------//
-  GpuProgram* GpuProgramCompilerDX12::CreateOrRetrieve(const GpuProgramDesc& aDesc) const
+  String GpuProgramCompilerDX12::ResolvePlatformShaderPath(const String& aPath) const
   {
-    GpuProgram* pGpuProgram = GpuProgram::FindFromDesc(aDesc);
-    if (pGpuProgram != nullptr)
-    {
-      return pGpuProgram;
-    }
-
-    pGpuProgram = FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS);
-    if (!pGpuProgram->SetFromDescription(aDesc))
-    {
-      FANCY_DELETE(pGpuProgram, MemoryCategory::MATERIALS);
-      return nullptr;
-    }
-    GpuProgram::Register(pGpuProgram);
-
-    // TODO: There might be multiple shaders for a given path... either search linearly in the registered shaders or make assoziative
-    const String actualShaderPath = IO::PathService::convertToAbsPath(GetPlatformShaderFileDirectory() + String("/") + aDesc.myShaderFileName + GetPlatformShaderFileExtension());
-    AddFileWatch(actualShaderPath);
-
-    return pGpuProgram;
-  }
-//---------------------------------------------------------------------------//
-  void GpuProgramCompilerDX12::FindGpuProgramsForFile(const String& aFile, std::vector<GpuProgram*>& someProgramsOut) const
-  {
-    auto& programCache = GpuProgram::getRegisterMap();
-
-    for (auto it = programCache.begin(); it != programCache.end(); ++it)
-    {
-      GpuProgram* program = it->second;
-
-      const GpuProgramDesc& desc = program->GetDescription();
-      const String actualShaderPath =
-        IO::PathService::convertToAbsPath(GetPlatformShaderFileDirectory() + String("/") + desc.myShaderFileName + GetPlatformShaderFileExtension());
-
-      if (actualShaderPath == aFile)
-        someProgramsOut.push_back(program);
-    }
-  }
-//---------------------------------------------------------------------------//
-  void GpuProgramCompilerDX12::OnFileUpdated(const String& aFile)
-  {
-    std::vector<GpuProgram*> programsToRecompile;
-    FindGpuProgramsForFile(aFile, programsToRecompile);
-
-    for (GpuProgram* program : programsToRecompile)
-      program->SetFromDescription(program->GetDescription());
-
-    GpuProgramPipeline::NotifyChangedShaders(programsToRecompile);
-  }
-//---------------------------------------------------------------------------//
-  void GpuProgramCompilerDX12::OnFileDeletedMoved(const String& aFile)
-  {
+    return GetPlatformShaderFileDirectory() + String("/") + aPath + GetPlatformShaderFileExtension();
   }
 //---------------------------------------------------------------------------//
   GpuProgramCompilerDX12::GpuProgramCompilerDX12()

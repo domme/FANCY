@@ -4,9 +4,15 @@
 #include "RendererPrerequisites.h"
 #include PLATFORM_DEPENDENT_INCLUDE_RENDERER
 
+
+namespace Fancy {
+  class FileWatcher;
+}
+
 namespace Fancy { namespace Rendering {
 struct GpuProgramDesc;
 struct GpuProgramPipelineDesc;
+
 
 //---------------------------------------------------------------------------//
   class DLLEXPORT RenderOutput : public PLATFORM_DEPENDENT_NAME(RenderOutput)
@@ -14,7 +20,6 @@ struct GpuProgramPipelineDesc;
     public:
       RenderOutput() {}
       virtual ~RenderOutput() {}
-
   };
 //---------------------------------------------------------------------------//
 
@@ -43,17 +48,22 @@ struct GpuProgramPipelineDesc;
     static void UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer = 0u);
 
   protected:
-    static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
-    static std::map<uint64, SharedPtr<GpuProgramPipeline>> our
-
     RenderCore() {}
 
+    static FileWatcher* ourShaderFileWatcher;
+
+    static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
+    static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
+    
     static ScopedPtr<GpuProgramCompiler> ourShaderCompiler;
     static std::shared_ptr<Texture> ourDefaultDiffuseTexture;
     static std::shared_ptr<Texture> ourDefaultNormalTexture;
     static std::shared_ptr<Texture> ourDefaultSpecularTexture;
 
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
+
+    static void OnShaderFileUpdated(const String& aShaderFile);
+    static void OnShaderFileDeletedMoved(const String& aShaderFile);
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Rendering
