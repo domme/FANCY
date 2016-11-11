@@ -396,6 +396,7 @@
     <ClInclude Include="src\RenderingProcess.h" />
     <ClInclude Include="src\RenderingProcessForward.h" />
     <ClInclude Include="src\RenderOperation.h" />
+    <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\ResourceBinding.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneImporter.h" />

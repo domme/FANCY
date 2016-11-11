@@ -58,7 +58,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static const char* GetShaderStringFromVertexSemantic(VertexSemantics aSemantic);
 
     GpuProgramDesc GetDescription() const;
-    bool SetFromDescription(const GpuProgramDesc& aDesc);
+    bool SetFromDescription(const GpuProgramDesc& aDesc, const GpuProgramCompiler* aCompiler);
     void SetFromCompilerOutput(const GpuProgramCompilerOutputDX12& aCompilerOutput);
         
     ShaderStage getShaderStage() const { return myStage; }

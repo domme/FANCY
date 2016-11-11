@@ -112,10 +112,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramDX12::SetFromDescription(const GpuProgramDesc& aDesc)
+  bool GpuProgramDX12::SetFromDescription(const GpuProgramDesc& aDesc, const GpuProgramCompiler* aCompiler)
   {
     GpuProgramCompilerOutputDX12 output;
-    const bool success = RenderCore::GetGpuProgramCompiler()->Compile(aDesc, &output);
+    const bool success = aCompiler->Compile(aDesc, &output);
 
     if (success)
     {

@@ -6,6 +6,8 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  std::map<uint64, std::weak_ptr<GpuProgram>> RenderCore::ourShaderCache;
+
   ScopedPtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
   std::shared_ptr<Texture> RenderCore::ourDefaultDiffuseTexture;
   std::shared_ptr<Texture> RenderCore::ourDefaultNormalTexture;
@@ -115,9 +117,27 @@ namespace Fancy { namespace Rendering {
     
   }
 //---------------------------------------------------------------------------//
-  GpuProgram* RenderCore::GetGpuProgram(const GpuProgramDesc& aDesc)
+  SharedPtr<GpuProgram> RenderCore::CreateGpuProgram(const GpuProgramDesc& aDesc)
   {
-    return ourShaderCompiler->CreateOrRetrieve(aDesc);
+    uint64 hash = aDesc.GetHash();
+
+    auto it = ourShaderCache.find(hash);
+    if (it != ourShaderCache.end())
+      return it->second.lock();
+
+    SharedPtr<GpuProgram> program(FANCY_NEW(GpuProgram, MemoryCategory::MATERIALS));
+    if (program->SetFromDescription(aDesc, ourShaderCompiler))
+    {
+      ourShaderCache.insert(std::make_pair(hash, program));
+      return program;
+    }
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<GpuProgramPipeline> RenderCore::CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc)
+  {
+
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)

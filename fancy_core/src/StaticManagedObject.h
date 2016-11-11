@@ -3,6 +3,7 @@
 
 #include "ObjectName.h"
 
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class BaseManagedObject

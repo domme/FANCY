@@ -21,7 +21,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
-  class MaterialPass : public StaticManagedHeapObject<MaterialPass>
+  class MaterialPass
   {
     friend class MaterialPassInstance;
 

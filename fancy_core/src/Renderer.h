@@ -6,6 +6,7 @@
 
 namespace Fancy { namespace Rendering {
 struct GpuProgramDesc;
+struct GpuProgramPipelineDesc;
 
 //---------------------------------------------------------------------------//
   class DLLEXPORT RenderOutput : public PLATFORM_DEPENDENT_NAME(RenderOutput)
@@ -35,19 +36,24 @@ struct GpuProgramDesc;
     static const Texture* GetDefaultNormalTexture() { return ourDefaultNormalTexture.get(); }
     static const Texture* GetDefaultSpecularTexture() { return ourDefaultSpecularTexture.get(); }
     static const GpuProgramCompiler* GetGpuProgramCompiler() { ASSERT(ourShaderCompiler != nullptr); return ourShaderCompiler; }
-    static GpuProgram* GetGpuProgram(const GpuProgramDesc& aDesc);
-
+    
+    static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint32 aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
     static void UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer = 0u);
 
   protected:
+    static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
+    static std::map<uint64, SharedPtr<GpuProgramPipeline>> our
+
     RenderCore() {}
 
     static ScopedPtr<GpuProgramCompiler> ourShaderCompiler;
     static std::shared_ptr<Texture> ourDefaultDiffuseTexture;
     static std::shared_ptr<Texture> ourDefaultNormalTexture;
     static std::shared_ptr<Texture> ourDefaultSpecularTexture;
+
+    static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Rendering
