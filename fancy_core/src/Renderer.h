@@ -42,7 +42,12 @@ struct GpuProgramPipelineDesc;
     static const Texture* GetDefaultSpecularTexture() { return ourDefaultSpecularTexture.get(); }
     static const GpuProgramCompiler* GetGpuProgramCompiler() { ASSERT(ourShaderCompiler != nullptr); return ourShaderCompiler; }
     
+    static SharedPtr<Texture> GetTexture(uint64 aDescHash);
+    static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
+    static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
+
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
+    static SharedPtr<Texture> CreateTexture(const String& aTexturePath);
     static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint32 aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
     static void UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer = 0u);
@@ -54,11 +59,12 @@ struct GpuProgramPipelineDesc;
 
     static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
+    static std::map<uint64, SharedPtr<Texture>> ourTextureCache;
     
     static ScopedPtr<GpuProgramCompiler> ourShaderCompiler;
-    static std::shared_ptr<Texture> ourDefaultDiffuseTexture;
-    static std::shared_ptr<Texture> ourDefaultNormalTexture;
-    static std::shared_ptr<Texture> ourDefaultSpecularTexture;
+    static SharedPtr<Texture> ourDefaultDiffuseTexture;
+    static SharedPtr<Texture> ourDefaultNormalTexture;
+    static SharedPtr<Texture> ourDefaultSpecularTexture;
 
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
 

@@ -25,32 +25,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipelineDX12::NotifyChangedShaders(const std::vector<GpuProgram*>& someChangedPrograms)
+  bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDesc& anOtherDesc) const
   {
-    std::vector<GpuProgramPipeline*> changedPipelines;
-    
-    auto& pipelineCache = GpuProgramPipeline::getRegisterMap();
-
-    for (auto it = pipelineCache.begin(); it != pipelineCache.end(); ++it)
-    {
-      GpuProgramPipeline* pipeline = it->second;
-
-      for (GpuProgramDX12* changedProgram : someChangedPrograms)
-      {
-        const uint stage = static_cast<uint>(changedProgram->getShaderStage());
-        if (changedProgram == pipeline->myGpuPrograms[stage])
-          changedPipelines.push_back(pipeline);
-      }
-    }
-
-    for (GpuProgramPipeline* pipeline : changedPipelines)
-    {
-      std::array <GpuProgram*, (uint32)ShaderStage::NUM> newShaders;
-      for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-        newShaders[i] = pipeline->myGpuPrograms[i];
-
-      pipeline->SetFromShaders(newShaders);
-    }
+    return GetDescription() == anOtherDesc;
   }
 //---------------------------------------------------------------------------//
   bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDX12& anOther) const
@@ -64,36 +41,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
     {
-      const GpuProgram* pProgram = myGpuPrograms[i];
+      const GpuProgram* pProgram = myGpuPrograms[i].get();
       if (pProgram)
         desc.myGpuPrograms[i] = pProgram->GetDescription();
     }
 
     return desc;
   }
-  //---------------------------------------------------------------------------//
-  void GpuProgramPipelineDX12::SetFromDescription(const GpuProgramPipelineDesc& aDesc)
-  {
-    std::array<GpuProgram*, (uint32)ShaderStage::NUM> newGpuPrograms;
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-    {
-      newGpuPrograms[i] = GpuProgram::FindFromDesc(aDesc.myGpuPrograms[i]);
-    }
-
-    SetFromShaders(newGpuPrograms);
-  }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipelineDX12::SetFromShaders(const std::array<GpuProgram*, (uint32)ShaderStage::NUM>& someShaders)
+  void GpuProgramPipelineDX12::SetFromShaders(const std::array<SharedPtr<GpuProgram>, (uint32)ShaderStage::NUM>& someShaders)
   {
     for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
       myGpuPrograms[i] = someShaders[i];
-
-    myResourceInterface = nullptr;
-    if (GpuProgram* vertexShader = myGpuPrograms[(uint32)ShaderStage::VERTEX])
-    {
-      myResourceInterface = vertexShader->GetResourceInterface();
-    }
-
+        
+    UpdateResourceInterface();
     UpdateShaderByteCodeHash();
   }
 //---------------------------------------------------------------------------//
@@ -102,25 +63,26 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return myResourceInterface->myRootSignature.Get();
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramPipelineDX12::operator==(const GpuProgramPipelineDesc& anOtherDesc) const
+  void GpuProgramPipelineDX12::UpdateResourceInterface()
   {
-    return GetDescription() == anOtherDesc;
+    myResourceInterface = nullptr;
+    if (GpuProgram* vertexShader = myGpuPrograms[(uint32)ShaderStage::VERTEX].get())
+    {
+      myResourceInterface = vertexShader->GetResourceInterface();
+    }
   }
-
 //---------------------------------------------------------------------------//
   void GpuProgramPipelineDX12::UpdateShaderByteCodeHash()
   {
     myShaderByteCodeHash = 0u;
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
-      GpuProgram* shader = myGpuPrograms[i];
+      GpuProgram* shader = myGpuPrograms[i].get();
       MathUtil::hash_combine(myShaderByteCodeHash, reinterpret_cast<uint64>(shader));
       if (shader != nullptr)
         MathUtil::hash_combine(myShaderByteCodeHash, reinterpret_cast<uint64>(shader->getNativeData().Get()));
     }
   }
-//---------------------------------------------------------------------------//
-  
 //---------------------------------------------------------------------------//
   void GpuProgramPipelineDX12::serialize(IO::Serializer* aSerializer)
   {

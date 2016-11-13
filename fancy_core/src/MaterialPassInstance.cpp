@@ -5,6 +5,7 @@
 #include "GpuBuffer.h"
 #include "TextureSampler.h"
 #include "Serializer.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -88,11 +89,11 @@ namespace Fancy { namespace Rendering {
     {
     case MpiResourceType::ReadTexture:
       for (const ResourceStorageEntry& entry : someResources)
-        m_vpReadTextures[entry.myIndex] = Texture::Find(entry.myHash);
+        m_vpReadTextures[entry.myIndex] = RenderCore::GetTexture(entry.myHash);
       break;
     case MpiResourceType::WriteTexture:
       for (const ResourceStorageEntry& entry : someResources)
-        m_vpWriteTextures[entry.myIndex] = Texture::Find(entry.myHash);
+        m_vpWriteTextures[entry.myIndex] = RenderCore::GetTexture(entry.myHash);
       break;
     case MpiResourceType::ReadBuffer:
       for (const ResourceStorageEntry entry : someResources)
@@ -172,10 +173,10 @@ namespace Fancy { namespace Rendering {
     ASSERT(nullptr != m_pMaterialPass);
 
     for (uint i = 0u; i < Constants::kMaxNumReadTextures; ++i)
-      m_vpReadTextures[i] = Texture::FindFromDesc(aDesc.myReadTextures[i]);
+      m_vpReadTextures[i] = RenderCore::GetTexture(aDesc.myReadTextures[i].GetHash());
 
     for (uint i = 0u; i < Constants::kMaxNumWriteTextures; ++i)
-      m_vpWriteTextures[i] = Texture::FindFromDesc(aDesc.myWriteTextures[i]);
+      m_vpWriteTextures[i] = RenderCore::GetTexture(aDesc.myWriteTextures[i].GetHash());
 
     for (uint i = 0u; i < Constants::kMaxNumReadBuffers; ++i)
       m_vpReadBuffers[i] = GpuBuffer::FindFromDesc(aDesc.myReadBuffers[i]);

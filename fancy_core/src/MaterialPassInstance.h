@@ -47,8 +47,8 @@ namespace Fancy { namespace Rendering {
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(MaterialPassInstance); }
 
-    const Texture* const* getReadTextures() const { return m_vpReadTextures; }
-    const Texture* const* getWriteTextures() const { return m_vpWriteTextures; }
+    const SharedPtr<Texture>* getReadTextures() const { return m_vpReadTextures; }
+    const SharedPtr<Texture>* getWriteTextures() const { return m_vpWriteTextures; }
     const GpuBuffer* const* getReadBuffers() const { return m_vpReadBuffers; }
     const GpuBuffer* const* getWriteBuffers() const { return m_vpWriteBuffers; }
     const TextureSampler* const* getTextureSamplers() const { return m_vpTextureSamplers; }
@@ -60,8 +60,8 @@ namespace Fancy { namespace Rendering {
     // void setWriteBuffer(ShaderStage _eStage, const ObjectName& _name, const GpuBuffer* _pBuffer);
     // void setTextureSampler(ShaderStage _eStage, const ObjectName& _name, const TextureSampler* _pTextureSampler);
 
-    void setReadTexture(uint32 aRegisterIndex, Texture* aTexture) { ASSERT(aRegisterIndex < Constants::kMaxNumReadTextures); m_vpReadTextures[aRegisterIndex] = aTexture; }
-    void setWriteTexture(uint32 aRegisterIndex, Texture* aTexture) { ASSERT(aRegisterIndex < Constants::kMaxNumWriteTextures); m_vpWriteTextures[aRegisterIndex] = aTexture; }
+    void setReadTexture(uint32 aRegisterIndex, const SharedPtr<Texture>& aTexture) { ASSERT(aRegisterIndex < Constants::kMaxNumReadTextures); m_vpReadTextures[aRegisterIndex] = aTexture; }
+    void setWriteTexture(uint32 aRegisterIndex, const SharedPtr<Texture>& aTexture) { ASSERT(aRegisterIndex < Constants::kMaxNumWriteTextures); m_vpWriteTextures[aRegisterIndex] = aTexture; }
     void setReadBuffer(uint32 aRegisterIndex, GpuBuffer* aBuffer) { ASSERT(aRegisterIndex < Constants::kMaxNumReadBuffers); m_vpReadBuffers[aRegisterIndex] = aBuffer; }
     void setWriteBuffer(uint32 aRegisterIndex, GpuBuffer* aBuffer) { ASSERT(aRegisterIndex < Constants::kMaxNumWriteBuffers); m_vpWriteBuffers[aRegisterIndex] = aBuffer; }
     void setTextureSampler(uint32 aRegisterIndex, TextureSampler* aSampler) { ASSERT(aRegisterIndex < Constants::kMaxNumTextureSamplers); m_vpTextureSamplers[aRegisterIndex] = aSampler; }
@@ -75,8 +75,8 @@ namespace Fancy { namespace Rendering {
     MaterialPass* m_pMaterialPass;
 
     // TODO: Make these FixedArrays
-    Texture* m_vpReadTextures[Constants::kMaxNumReadTextures];
-    Texture* m_vpWriteTextures[Constants::kMaxNumWriteTextures];
+    SharedPtr<Texture> m_vpReadTextures[Constants::kMaxNumReadTextures];
+    SharedPtr<Texture> m_vpWriteTextures[Constants::kMaxNumWriteTextures];
     GpuBuffer* m_vpReadBuffers[Constants::kMaxNumReadBuffers];
     GpuBuffer* m_vpWriteBuffers[Constants::kMaxNumWriteBuffers];
     TextureSampler* m_vpTextureSamplers[Constants::kMaxNumTextureSamplers];

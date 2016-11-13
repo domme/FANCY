@@ -8,7 +8,7 @@
 
 namespace Fancy { namespace Rendering {
 
-class Texture : public PLATFORM_DEPENDENT_NAME(Texture), public StaticManagedHeapObject<Texture>
+class Texture : public PLATFORM_DEPENDENT_NAME(Texture)
 {
 
 };

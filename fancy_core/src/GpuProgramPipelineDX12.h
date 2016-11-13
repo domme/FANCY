@@ -23,8 +23,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
     SERIALIZABLE(GpuProgramPipelineDX12);
 
-    static void NotifyChangedShaders(const std::vector<GpuProgram*>& someChangedPrograms);
-
     void serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
     uint64 GetHash() const { return GetDescription().GetHash(); }
@@ -36,13 +34,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool operator==(const GpuProgramPipelineDesc& anOtherDesc) const;
 
     GpuProgramPipelineDesc GetDescription() const;
-    void SetFromDescription(const GpuProgramPipelineDesc& aDesc);
-    void SetFromShaders(const std::array<GpuProgram*, (uint32) ShaderStage::NUM>& someShaders);
+    void SetFromShaders(const std::array<SharedPtr<GpuProgram>, (uint32) ShaderStage::NUM>& someShaders);
     ID3D12RootSignature* GetRootSignature() const;
     
+    void UpdateResourceInterface();
     void UpdateShaderByteCodeHash();
 
-    GpuProgram* myGpuPrograms[(uint32)ShaderStage::NUM];
+    SharedPtr<GpuProgram> myGpuPrograms[(uint32)ShaderStage::NUM];
 
     uint myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
     const ShaderResourceInterface* myResourceInterface;

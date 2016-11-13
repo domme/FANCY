@@ -171,7 +171,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         myGpuProgramPipeline->myGpuPrograms[(uint32)ShaderStage::VERTEX] != nullptr)
     {
       const GpuProgram* vertexShader =
-        myGpuProgramPipeline->myGpuPrograms[(uint32)ShaderStage::VERTEX];
+        myGpuProgramPipeline->myGpuPrograms[(uint32)ShaderStage::VERTEX].get();
 
       D3D12_INPUT_LAYOUT_DESC& inputLayout = psoDesc.InputLayout;
       inputLayout.NumElements = vertexShader->GetNumNativeInputElements();

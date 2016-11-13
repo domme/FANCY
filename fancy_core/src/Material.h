@@ -17,7 +17,7 @@ namespace Fancy {
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class Material
+  class Material : public StaticManagedHeapObject<Material>
   {
   public:
       SERIALIZABLE(Material)

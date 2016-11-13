@@ -6,6 +6,10 @@
 #include "FileWatcher.h"
 #include <mutex>
 #include "PathService.h"
+#include "GpuProgramPipeline.h"
+#include <array>
+#include "TextureLoader.h"
+#include "BinaryCache.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
@@ -115,14 +119,13 @@ namespace Fancy { namespace Rendering {
       TextureUploadData data(params);
       uint8 color[3] = { 128, 128, 128 };
       data.myData = color;
-
-
+      
       ourDefaultNormalTexture->create(params, &data, 1);
     }
 
-    Texture::Register(ourDefaultDiffuseTexture.get());
-    Texture::Register(ourDefaultNormalTexture.get());
-    Texture::Register(ourDefaultSpecularTexture.get());
+    ourTextureCache.insert(std::make_pair(ourDefaultDiffuseTexture->GetDescription().GetHash(), ourDefaultDiffuseTexture));
+    ourTextureCache.insert(std::make_pair(ourDefaultSpecularTexture->GetDescription().GetHash(), ourDefaultSpecularTexture));
+    ourTextureCache.insert(std::make_pair(ourDefaultNormalTexture->GetDescription().GetHash(), ourDefaultNormalTexture));
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
@@ -158,35 +161,119 @@ namespace Fancy { namespace Rendering {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::OnShaderFileUpdated(const String& aShaderFile)
-  {
-    // Find GpuPrograms for this file
-    std::vector<GpuProgram*> programsToRecompile;
-    for (auto it = ourShaderCache.begin(); it != ourShaderCache.end(); ++it)
-    {
-      GpuProgram* program = it->second.get();
-
-      const GpuProgramDesc& desc = program->GetDescription();
-      String actualShaderPath = 
-        IO::PathService::convertToAbsPath(ourShaderCompiler->ResolvePlatformShaderPath(desc.myShaderFileName));
-
-      if (actualShaderPath == aShaderFile)
-        programsToRecompile.push_back(program);
-    }
-
-    for (GpuProgram* program : programsToRecompile)
-      program->SetFromDescription(program->GetDescription(), ourShaderCompiler);
-
-    GpuProgramPipeline::NotifyChangedShaders(programsToRecompile);
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore::OnShaderFileDeletedMoved(const String& aShaderFile)
-  {
-  }
-//---------------------------------------------------------------------------//
   SharedPtr<GpuProgramPipeline> RenderCore::CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc)
   {
+    uint64 hash = aDesc.GetHash();
 
+    auto it = ourGpuProgramPipelineCache.find(hash);
+    if (it != ourGpuProgramPipelineCache.end())
+      return it->second;
+
+    std::array<SharedPtr<GpuProgram>, (uint32)ShaderStage::NUM> pipelinePrograms {nullptr};
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    {
+      if (!aDesc.myGpuPrograms[i].myShaderFileName.empty())
+        pipelinePrograms[i] = CreateGpuProgram(aDesc.myGpuPrograms[i]);
+    }
+
+    SharedPtr<GpuProgramPipeline> pipeline(FANCY_NEW(GpuProgramPipeline, MemoryCategory::MATERIALS));
+    pipeline->SetFromShaders(pipelinePrograms);
+
+    ourGpuProgramPipelineCache.insert(std::make_pair(hash, pipeline));
+
+    return pipeline;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<Texture> RenderCore::GetTexture(uint64 aDescHash)
+  {
+    auto it = ourTextureCache.find(aDescHash);
+    if (it != ourTextureCache.end())
+      return it->second;
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<GpuProgram> RenderCore::GetGpuProgram(uint64 aDescHash)
+  {
+    auto it = ourShaderCache.find(aDescHash);
+    if (it != ourShaderCache.end())
+      return it->second;
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<GpuProgramPipeline> RenderCore::GetGpuProgramPipeline(uint64 aDescHash)
+  {
+    auto it = ourGpuProgramPipelineCache.find(aDescHash);
+    if (it != ourGpuProgramPipelineCache.end())
+      return it->second;
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<Texture> RenderCore::CreateTexture(const String& aTexturePath)
+  {
+    String texPathAbs = aTexturePath;
+    String texPathRel = aTexturePath;
+    if (!IO::PathService::isAbsolutePath(aTexturePath))
+      IO::PathService::convertToAbsPath(texPathAbs);
+    else
+      texPathRel = IO::PathService::toRelPath(texPathAbs);
+
+    TextureDesc desc;
+    desc.mySourcePath = texPathAbs;
+    desc.myIsExternalTexture = true;
+    uint64 hash = desc.GetHash();
+
+    auto it = ourTextureCache.find(hash);
+    if (it != ourTextureCache.end())
+      return it->second;
+
+    std::vector<uint8> textureBytes;
+    IO::TextureLoadInfo textureInfo;
+    if (!IO::TextureLoader::loadTexture(texPathAbs, textureBytes, textureInfo))
+    {
+      LOG_ERROR("Failed to load texture at path %", texPathAbs);
+      return nullptr;
+    }
+
+    if (textureInfo.bitsPerPixel / textureInfo.numChannels != 8u)
+    {
+      LOG_ERROR("Unsupported texture format: %", texPathAbs);
+      return nullptr;
+    }
+
+    SharedPtr<Texture> texture(FANCY_NEW(Texture, MemoryCategory::TEXTURES));
+
+    TextureParams texParams;
+    texParams.myIsExternalTexture = true;
+    texParams.path = texPathRel;
+    texParams.bIsDepthStencil = false;
+    texParams.eFormat = textureInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
+    texParams.u16Width = textureInfo.width;
+    texParams.u16Height = textureInfo.height;
+    texParams.u16Depth = 0u;
+    texParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
+
+    TextureUploadData uploadData;
+    uploadData.myData = &textureBytes[0];
+    uploadData.myPixelSizeBytes = textureInfo.bitsPerPixel / 8u;
+    uploadData.myRowSizeBytes = textureInfo.width * uploadData.myPixelSizeBytes;
+    uploadData.mySliceSizeBytes = textureInfo.width * textureInfo.height * uploadData.myPixelSizeBytes;
+    uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
+
+    texture->create(texParams, &uploadData, 1u);
+
+    if (!texture->isValid())
+    {
+      LOG_ERROR("Failed to upload pixel data of texture %", texPathAbs);
+      return nullptr;
+    }
+
+    IO::BinaryCache::write(texture, uploadData);
+    ourTextureCache.insert(std::make_pair(hash, texture));
+
+    return texture;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
@@ -221,6 +308,54 @@ namespace Fancy { namespace Rendering {
     {
       RenderContext::UpdateBufferData(aBuffer, aData, aByteOffsetFromBuffer, aDataSizeBytes);
     }
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::OnShaderFileUpdated(const String& aShaderFile)
+  {
+    // Find GpuPrograms for this file
+    std::vector<GpuProgram*> programsToRecompile;
+    for (auto it = ourShaderCache.begin(); it != ourShaderCache.end(); ++it)
+    {
+      GpuProgram* program = it->second.get();
+
+      const GpuProgramDesc& desc = program->GetDescription();
+      String actualShaderPath =
+        IO::PathService::convertToAbsPath(ourShaderCompiler->ResolvePlatformShaderPath(desc.myShaderFileName));
+
+      if (actualShaderPath == aShaderFile)
+        programsToRecompile.push_back(program);
+    }
+
+    for (GpuProgram* program : programsToRecompile)
+      program->SetFromDescription(program->GetDescription(), ourShaderCompiler);
+
+
+    // Check which pipelines need to be updated...
+    std::vector<GpuProgramPipeline*> changedPipelines;
+    for (auto it = ourGpuProgramPipelineCache.begin(); it != ourGpuProgramPipelineCache.end(); ++it)
+    {
+      GpuProgramPipeline* pipeline = it->second.get();
+
+      for (GpuProgram* changedProgram : programsToRecompile)
+      {
+        const uint stage = static_cast<uint>(changedProgram->getShaderStage());
+        if (changedProgram == pipeline->myGpuPrograms[stage].get())
+        {
+          changedPipelines.push_back(pipeline);
+          break;
+        }
+      }
+    }
+
+    for (GpuProgramPipeline* pipeline : changedPipelines)
+    {
+      pipeline->UpdateResourceInterface();
+      pipeline->UpdateShaderByteCodeHash();
+    }
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::OnShaderFileDeletedMoved(const String& aShaderFile)
+  {
   }
 //---------------------------------------------------------------------------//
 } }

@@ -11,6 +11,7 @@
 #include "BinaryCache.h"
 #include "SceneNode.h"
 #include "SceneNodeComponentFactory.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -36,21 +37,38 @@ namespace Fancy { namespace IO {
   }
 //---------------------------------------------------------------------------//
   template<>
-  void* locCreateManaged<Rendering::Texture, MemoryCategory::TEXTURES>
+  void* locCreateManaged<Rendering::GpuProgram, MemoryCategory::TEXTURES>
     (uint64 aHash, bool& aWasCreated)
   {
-    Rendering::Texture* object = Rendering::Texture::Find(aHash);
+    SharedPtr<Rendering::GpuProgram> object = Rendering::RenderCore::GetGpuProgram(aHash);
 
     if (object)
     {
       aWasCreated = false;
-      return object;
+      return object.get();  // TODO: return smartptr
+    }
+
+    aWasCreated = true;
+    return FANCY_NEW(Rendering::GpuProgram, eMemoryCategory);
+  }
+//---------------------------------------------------------------------------//
+
+  template<>
+  void* locCreateManaged<Rendering::Texture, MemoryCategory::TEXTURES>
+    (uint64 aHash, bool& aWasCreated)
+  {
+    SharedPtr<Rendering::Texture> object = Rendering::RenderCore::GetTexture(aHash);
+
+    if (object)
+    {
+      aWasCreated = false;
+      return object.get();  // TODO: return smartptr
     }
 
     aWasCreated = true;
     BinaryCache::read(&object, aHash, 0u);
 
-    return object;
+    return object.get();
   }
 //---------------------------------------------------------------------------//
   template<>

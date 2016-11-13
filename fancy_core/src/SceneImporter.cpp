@@ -102,7 +102,7 @@ namespace Fancy { namespace IO {
     bool processMeshes(WorkingData& _workingData, const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
     Geometry::Mesh* constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pAnode, aiMesh** someMeshes, uint32 aMeshCount);
     Rendering::Material* createOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial);
-    Rendering::Texture* createOrRetrieveTexture(WorkingData& _workingData, const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex);
+    SharedPtr<Rendering::Texture> createOrRetrieveTexture(WorkingData& _workingData, const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex);
 
     std::string GetCachePathForMesh(WorkingData& _workingData);
   }
@@ -719,11 +719,11 @@ namespace Fancy { namespace IO {
     float specular;
     bool hasSpecular = _pAmaterial->Get(AI_MATKEY_SHININESS_STRENGTH, specular) == AI_SUCCESS;
 
-    Texture* pDiffuseTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_DIFFUSE, 0u);
-    Texture* pNormalTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_NORMALS, 0u);
-    Texture* pSpecularTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SPECULAR, 0u);
-    Texture* pSpecPowerTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SHININESS, 0u);
-    Texture* pOpacityTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_OPACITY, 0u);
+    SharedPtr<Texture> pDiffuseTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_DIFFUSE, 0u);
+    SharedPtr<Texture> pNormalTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_NORMALS, 0u);
+    SharedPtr<Texture> pSpecularTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SPECULAR, 0u);
+    SharedPtr<Texture> pSpecPowerTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SHININESS, 0u);
+    SharedPtr<Texture> pOpacityTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_OPACITY, 0u);
 
     bool hasDiffuseTex = pDiffuseTex != nullptr;
     bool hasNormalTex = pDiffuseTex != nullptr;
@@ -755,33 +755,17 @@ namespace Fancy { namespace IO {
       permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR_TEXTURE);
     }
 
-    GpuProgramDesc vertexProgramDesc;
-    vertexProgramDesc.myPermutation = permutation;
-    vertexProgramDesc.myShaderFileName = "MaterialForward";
-    vertexProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
-    GpuProgram* pVertexProgram = RenderCore::GetGpuProgram(vertexProgramDesc);
-
-    GpuProgramDesc fragmentProgramDesc = vertexProgramDesc;
-    fragmentProgramDesc.myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
-    GpuProgram* pFragmentProgram = RenderCore::GetGpuProgram(fragmentProgramDesc);
-    //---------------------------------------------------------------------------//
-
-
-    // Find/Create a matching GpuProgramPipeline
-    //---------------------------------------------------------------------------//
     GpuProgramPipelineDesc pipelineDesc;
-    pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX] = vertexProgramDesc;
-    pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT] = fragmentProgramDesc;
-    GpuProgramPipeline* pipeline = GpuProgramPipeline::FindFromDesc(pipelineDesc);
-    if (pipeline == nullptr)
-    {
-      pipeline = FANCY_NEW(GpuProgramPipeline, MemoryCategory::MATERIALS);
-      pipeline->SetFromDescription(pipelineDesc);
-      GpuProgramPipeline::Register(pipeline);
-    }
-    //---------------------------------------------------------------------------//
-
-
+    GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
+    shaderDesc->myPermutation = permutation;
+    shaderDesc->myShaderFileName = "MaterialForward";
+    shaderDesc->myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
+    shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
+    shaderDesc->myPermutation = permutation;
+    shaderDesc->myShaderFileName = "MaterialForward";
+    shaderDesc->myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
+    SharedPtr<GpuProgramPipeline> pipeline = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+    
     // Find/Create a matching MaterialPass
     //---------------------------------------------------------------------------//
     MaterialPassDesc matPassDesc;
@@ -851,7 +835,7 @@ namespace Fancy { namespace IO {
     return pMaterial;
   }
 //---------------------------------------------------------------------------//
-  Rendering::Texture* Processing::createOrRetrieveTexture(WorkingData& _workingData, 
+  SharedPtr<Rendering::Texture> Processing::createOrRetrieveTexture(WorkingData& _workingData, 
     const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex)
   {
     uint32 numTextures = _pAmaterial->GetTextureCount(_aiTextureType);
@@ -876,76 +860,9 @@ namespace Fancy { namespace IO {
     }
 
     PathService::removeFolderUpMarkers(szTexPath);
-
     String texPathInResources = PathService::toRelPath(szTexPath);
 
-    TextureDesc texDesc;
-    texDesc.myIsExternalTexture = true;
-    texDesc.mySourcePath = texPathInResources;
-
-    // Did we already load this texture before?
-    Texture* pTexture = Texture::FindFromDesc(texDesc);
-    if (pTexture)
-    {
-      return pTexture;
-    }
-
-    // Try to load the texture from cache
-    /*pTexture = BinaryCache::get<Texture>(textureName);
-    if (pTexture)
-    {
-      return pTexture;
-    }*/
-
-    // Load and decode the texture to memory
-    std::vector<uint8> vTextureBytes;
-    TextureLoadInfo texLoadInfo;
-    if (!TextureLoader::loadTexture(szTexPath, vTextureBytes, texLoadInfo))
-    {
-      LOG_ERROR("Failed to load texture at path %", szTexPath);
-      return nullptr;
-    }
-
-    if (texLoadInfo.bitsPerPixel / texLoadInfo.numChannels != 8u)
-    {
-      LOG_ERROR("Unsupported texture format: %", szTexPath);
-      return nullptr;
-    }
-
-    pTexture = FANCY_NEW(Texture, MemoryCategory::TEXTURES);
-        
-    TextureParams texParams;
-    texParams.myIsExternalTexture = true;
-    texParams.path = texPathInResources;
-    texParams.bIsDepthStencil = false;
-    texParams.eFormat = texLoadInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
-    texParams.u16Width = texLoadInfo.width;
-    texParams.u16Height = texLoadInfo.height;
-    texParams.u16Depth = 0u;
-    texParams.uAccessFlags = (uint32) GpuResourceAccessFlags::NONE;
-    
-    TextureUploadData uploadData;
-    uploadData.myData = &vTextureBytes[0];
-    uploadData.myPixelSizeBytes = texLoadInfo.bitsPerPixel / 8u;
-    uploadData.myRowSizeBytes = texLoadInfo.width * uploadData.myPixelSizeBytes;
-    uploadData.mySliceSizeBytes = texLoadInfo.width * texLoadInfo.height * uploadData.myPixelSizeBytes;
-    uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
-
-    pTexture->create(texParams, &uploadData, 1u);
-
-    if (!pTexture->isValid())
-    {
-      LOG_ERROR("Failed to upload pixel data of texture %", szTexPath);
-      FANCY_DELETE(pTexture, MemoryCategory::TEXTURES);
-      pTexture = nullptr;
-    }
-    else
-    {
-      BinaryCache::write(pTexture, uploadData);
-      Texture::Register(pTexture);
-    }
-
-    return pTexture;
+    return RenderCore::CreateTexture(texPathInResources);
   }
 //---------------------------------------------------------------------------//
   std::string Processing::GetCachePathForMesh(WorkingData& _workingData)

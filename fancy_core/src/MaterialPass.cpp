@@ -3,6 +3,7 @@
 #include "StringUtil.h"
 #include "MaterialPassInstance.h"
 #include "GpuProgramPipeline.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -81,7 +82,7 @@ namespace Fancy { namespace Rendering {
     m_eWindingOrder = static_cast<WindingOrder>(aDesc.m_eWindingOrder);
     m_pBlendState = BlendState::FindFromDesc(aDesc.m_BlendStateDesc);
     m_pDepthStencilState = DepthStencilState::FindFromDesc(aDesc.m_DepthStencilStateDesc);
-    myProgramPipeline = GpuProgramPipeline::FindFromDesc(aDesc.m_GpuProgramPipelineDesc);
+    myProgramPipeline = RenderCore::CreateGpuProgramPipeline(aDesc.m_GpuProgramPipelineDesc);
   }
 //---------------------------------------------------------------------------//
   void MaterialPass::serialize(IO::Serializer* aSerializer)

@@ -142,6 +142,7 @@ namespace Fancy { namespace IO {
   DECLARE_DATATYPE(char, Char);
   DECLARE_DATATYPE(const char*, CString);
   DECLARE_DATATYPE(std::string, String);
+  DECLARE_DATATYPE(String, String);
   DECLARE_DATATYPE(ObjectName, ObjectName);
   DECLARE_DATATYPE(glm::mat4, Matrix4x4);
   DECLARE_DATATYPE(glm::mat3, Matrix3x3);

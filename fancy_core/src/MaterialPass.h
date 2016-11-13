@@ -21,7 +21,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
-  class MaterialPass
+  class MaterialPass : public StaticManagedHeapObject<MaterialPass>
   {
     friend class MaterialPassInstance;
 
@@ -40,7 +40,7 @@ namespace Fancy { namespace Rendering {
       static ObjectName getTypeName() { return _N(MaterialPass); }
       uint64 GetHash() const { return GetDescription().GetHash(); }
 
-      const GpuProgramPipeline* GetProgramPipeline() const { return myProgramPipeline; }
+      const GpuProgramPipeline* GetProgramPipeline() const { return myProgramPipeline.get(); }
       
       FillMode getFillMode() const {return m_eFillMode;}
       CullMode getCullMode() const {return m_eCullMode;}
@@ -53,7 +53,7 @@ namespace Fancy { namespace Rendering {
       WindingOrder m_eWindingOrder;
       BlendState* m_pBlendState;
       DepthStencilState* m_pDepthStencilState;
-      GpuProgramPipeline* myProgramPipeline;
+      SharedPtr<GpuProgramPipeline> myProgramPipeline;
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

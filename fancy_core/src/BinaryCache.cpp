@@ -2,6 +2,7 @@
 #include "GeometryData.h"
 #include "Mesh.h"
 #include "TextureDesc.h"
+#include "Renderer.h"
 
 namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//
@@ -46,7 +47,7 @@ namespace Fancy {  namespace IO {
       + aPathInResources + kBinaryCacheExtension;
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::write(Rendering::Texture* aTexture, const Rendering::TextureUploadData& someData)
+  bool BinaryCache::write(const SharedPtr<Rendering::Texture>& aTexture, const Rendering::TextureUploadData& someData)
   {
     const String cacheFilePath = getCacheFilePathAbs(aTexture->getPath());
     PathService::createDirectoryTreeForPath(cacheFilePath);
@@ -86,7 +87,7 @@ namespace Fancy {  namespace IO {
     return archive.good();
   }  
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::read(Rendering::Texture** aTexture, uint64 aDescHash, uint32 aTimeStamp)
+  bool BinaryCache::read(SharedPtr<Rendering::Texture>* aTexture, uint64 aDescHash, uint32 aTimeStamp)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
@@ -94,66 +95,50 @@ namespace Fancy {  namespace IO {
     if (!archive.good())
       return false;
 
-    Rendering::Texture* texture = nullptr;
-
     uint32 textureVersion;
     archive.read((char*)&textureVersion, sizeof(uint32));
 
     if (textureVersion != kTextureVersion)
       return false;
 
-    uint64 textureHash = 0u;
-    archive.read((char*)&textureHash, sizeof(textureHash));
-    
-    if (textureHash == aDescHash)
+    Rendering::TextureDesc texDesc;
+
+    // Read the desc
+    texDesc.mySourcePath = locReadString(archive);
+    archive.read((char*)&texDesc.myIsExternalTexture, sizeof(texDesc.myIsExternalTexture));
+    archive.read((char*)&texDesc.myInternalRefIndex, sizeof(texDesc.myInternalRefIndex));
+
+    SharedPtr<Rendering::Texture> texture = Rendering::RenderCore::GetTexture(texDesc.GetHash());
+    if (texture != nullptr)
     {
-      Rendering::Texture* textureFromMemCache = Rendering::Texture::Find(textureHash);
-      if (nullptr != textureFromMemCache)
-      {
-        texture = textureFromMemCache;
-      }
+      *aTexture = texture;
+      return true;
     }
 
-    if (nullptr == texture)
-    {
-      Rendering::TextureDesc texDesc;
+    // Read the texture
+    Rendering::TextureParams texParams;
+    texParams.myIsExternalTexture = texDesc.myIsExternalTexture;
+    texParams.path = texDesc.mySourcePath;
+    texParams.myInternalRefIndex = texDesc.myInternalRefIndex;
+    archive.read((char*)&texParams.u16Width, sizeof(uint16));
+    archive.read((char*)&texParams.u16Height, sizeof(uint16));
+    archive.read((char*)&texParams.u16Depth, sizeof(uint16));
+    archive.read((char*)&texParams.uAccessFlags, sizeof(uint32));
+    uint32 format = 0;
+    archive.read((char*)&format, sizeof(uint32));
+    texParams.eFormat = static_cast<Rendering::DataFormat>(format);
+    archive.read((char*)&texParams.u8NumMipLevels, sizeof(uint8));
 
-      // Read the desc
-      texDesc.mySourcePath = locReadString(archive);
-      archive.read((char*)&texDesc.myIsExternalTexture, sizeof(texDesc.myIsExternalTexture));
-      archive.read((char*)&texDesc.myInternalRefIndex, sizeof(texDesc.myInternalRefIndex));
+    Rendering::TextureUploadData texData;
+    archive.read((char*)(&texData.myPixelSizeBytes), sizeof(uint64));
+    archive.read((char*)(&texData.myRowSizeBytes), sizeof(uint64));
+    archive.read((char*)(&texData.mySliceSizeBytes), sizeof(uint64));
+    archive.write((char*)(&texData.myTotalSizeBytes), sizeof(uint64));
+    texData.myData = static_cast<uint8*>(FANCY_ALLOCATE(texData.myTotalSizeBytes, MemoryCategory::TEXTURES));
+    archive.read((char*)&texData.myData, texData.myTotalSizeBytes);
 
-      // Read the texture
-      Rendering::TextureParams texParams;
-      texParams.myIsExternalTexture = texDesc.myIsExternalTexture;
-      texParams.path = texDesc.mySourcePath;
-      texParams.myInternalRefIndex = texDesc.myInternalRefIndex;
-      archive.read((char*)&texParams.u16Width, sizeof(uint16));
-      archive.read((char*)&texParams.u16Height, sizeof(uint16));
-      archive.read((char*)&texParams.u16Depth, sizeof(uint16));
-      archive.read((char*)&texParams.uAccessFlags, sizeof(uint32));
-      uint32 format = 0;
-      archive.read((char*)&format, sizeof(uint32));
-      texParams.eFormat = static_cast<Rendering::DataFormat>(format);
-      archive.read((char*)&texParams.u8NumMipLevels, sizeof(uint8));
-
-      Rendering::TextureUploadData texData;
-      archive.read((char*)(&texData.myPixelSizeBytes), sizeof(uint64));
-      archive.read((char*)(&texData.myRowSizeBytes), sizeof(uint64));
-      archive.read((char*)(&texData.mySliceSizeBytes), sizeof(uint64));
-      archive.write((char*)(&texData.myTotalSizeBytes), sizeof(uint64));
-      texData.myData = static_cast<uint8*>(FANCY_ALLOCATE(texData.myTotalSizeBytes, MemoryCategory::TEXTURES));
-      archive.read((char*)&texData.myData, texData.myTotalSizeBytes);
-
-      texture = FANCY_NEW(Rendering::Texture, MemoryCategory::TEXTURES);
-      texture->create(texParams, &texData, 1u);
-      Rendering::Texture::Register(texture);
-
-      FANCY_FREE(texData.myData, MemoryCategory::TEXTURES);
-    }
-
-    if ((*aTexture) != nullptr)
-      FANCY_DELETE(*aTexture, MemoryCategory::TEXTURES);
+    texture = Rendering::RenderCore::CreateTexture(texParams, &texData, 1u);
+    FANCY_FREE(texData.myData, MemoryCategory::TEXTURES);
 
     (*aTexture) = texture;
     
