@@ -18,6 +18,7 @@ namespace Fancy { namespace Rendering {
 
   std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
   std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
+  std::map<uint64, SharedPtr<Texture>> RenderCore::ourTextureCache;
 
   ScopedPtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
   std::shared_ptr<Texture> RenderCore::ourDefaultDiffuseTexture;

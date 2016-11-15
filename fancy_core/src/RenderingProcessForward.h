@@ -45,7 +45,7 @@ class DLLEXPORT RenderingProcessForward : public RenderingProcess
     void _DebugLoadComputeShader();
     void _DebugExecuteComputeShader();
     SharedPtr<Texture> myTestTexture;
-    SharedPtr<GpuProgram> myComputeProgram;
+    SharedPtr<GpuProgramPipeline> myComputeProgram;
 
   };
 //---------------------------------------------------------------------------//

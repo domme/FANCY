@@ -14,6 +14,9 @@
 #include "Renderer.h"
 
 namespace Fancy { namespace IO {
+  
+/*
+
 //---------------------------------------------------------------------------//
   template<class T, MemoryCategory eMemoryCategory>
   void* locCreateManaged(uint64 aHash, bool& aWasCreated)
@@ -94,36 +97,16 @@ namespace Fancy { namespace IO {
     ASSERT(false, "Unknown typename");
     return nullptr;
   }
-//---------------------------------------------------------------------------//
+*/
 
-
-  std::shared_ptr<Rendering::GpuProgram> locCreateGpuProgram(uint64 aHash, bool& aWasCreated)
+  void* ObjectFactory::create(const ObjectName& aTypeName, bool& aWasCreated, uint64 aHash)
   {
-    std::shared_ptr<Rendering::GpuProgram> object = Rendering::RenderCore::GetGpuProgram(aHash);
-
-    if (object)
-    {
-      aWasCreated = false;
-      return object;
-    }
-
-    Doesn't work... can't create without desc-info
-
-    aWasCreated = true;
-    object = FANCY_NEW(T, eMemoryCategory);
-
-    // TODO: This is bad design... we should set the whole description here. 
-    // We need to do this during a refactoring of the serialization-system...
-    T::Register(object, aHash);
-
-    return object;
+    // TODO: We have to redesign the whole functionality how "managed" objects are stored. Instead of the hash we need to serialize real descriptions from which to create objects properly!
+    return nullptr;
   }
 
 
-  std::shared_ptr<void*> ObjectFactory::CreatePtr(const ObjectName& aTypeName, bool& aWasCreated, uint64 anInstanceHash)
-  {
-    
-  }
+
 
 //---------------------------------------------------------------------------//
 } }

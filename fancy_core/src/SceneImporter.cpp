@@ -162,7 +162,6 @@ namespace Fancy { namespace IO {
       serializer.serialize(&_pParentNode, "rootNode");
     }
     
-
     return success;
   }
 //---------------------------------------------------------------------------//

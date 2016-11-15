@@ -195,23 +195,18 @@ namespace Fancy { namespace Rendering {
       myFullscreenQuad = std::make_shared<Geometry::GeometryData>();
       myFullscreenQuad->setVertexBuffer(vertexBuffer);
       myFullscreenQuad->setIndexBuffer(indexBuffer);
-      
-      GpuProgramDesc shaderDesc;
-      shaderDesc.myShaderFileName = "FullscreenQuad";
-      shaderDesc.myMainFunction = "main";
-      shaderDesc.myShaderStage = (uint32)ShaderStage::VERTEX;
-      GpuProgram* vertexShader = RenderCore::GetGpuProgram(shaderDesc);
-      ASSERT(vertexShader != nullptr && vertexShader->GetResourceInterface()->IsEmpty(),
-        "The resourceInterface of the vertexShader is expected to be empty as it is shared by multiple fragment shaders");
 
-      shaderDesc.myShaderStage = (uint32)ShaderStage::FRAGMENT;
-      shaderDesc.myMainFunction = "main_textured";
-      GpuProgram* fragmentShader = RenderCore::GetGpuProgram(shaderDesc);
-
-      myFsTextureShaderState = std::make_shared<GpuProgramPipeline>();
-      myFsTextureShaderState->myGpuPrograms[(uint32)ShaderStage::VERTEX] = vertexShader;
-      myFsTextureShaderState->myGpuPrograms[(uint32)ShaderStage::FRAGMENT] = fragmentShader;
-      myFsTextureShaderState->myResourceInterface = fragmentShader->GetResourceInterface();
+      GpuProgramPipelineDesc pipelineDesc;
+      GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
+      shaderDesc->myShaderFileName = "FullscreenQuad";
+      shaderDesc->myMainFunction = "main";
+      shaderDesc->myShaderStage = (uint32)ShaderStage::VERTEX;
+      shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
+      shaderDesc->myShaderFileName = "FullscreenQuad";
+      shaderDesc->myShaderStage = (uint32)ShaderStage::FRAGMENT;
+      shaderDesc->myMainFunction = "main_textured";
+      myFsTextureShaderState = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+      ASSERT(myFsTextureShaderState != nullptr, "Failed creating fullscreen texture shader state");
     }
 
     // Tests:
@@ -300,11 +295,11 @@ namespace Fancy { namespace Rendering {
   void RenderingProcessForward::_DebugLoadComputeShader()
   {
     // Compute shader
-    GpuProgramDesc desc;
-    desc.myShaderStage = static_cast<uint>(ShaderStage::COMPUTE);
-    desc.myShaderFileName = "ComputeMipmapCS";
-
-    myComputeProgram = SharedPtr<GpuProgram>(RenderCore::GetGpuProgram(desc));
+    GpuProgramPipelineDesc desc;
+    desc.myGpuPrograms[(uint)ShaderStage::COMPUTE].myShaderStage = (uint)ShaderStage::COMPUTE;
+    desc.myGpuPrograms[(uint)ShaderStage::COMPUTE].myShaderFileName = "ComputeMipmapCS";
+    
+    myComputeProgram = RenderCore::CreateGpuProgramPipeline(desc);
 
     // Texture
     TextureParams texParams;
@@ -429,7 +424,7 @@ namespace Fancy { namespace Rendering {
     const uint32 kNumTextures = 3u;
     Descriptor textureDescriptors[kNumTextures];
 
-    const Texture* const* readTextures = aMaterial->getReadTextures();
+    const SharedPtr<Texture>* readTextures = aMaterial->getReadTextures();
     for (uint32 i = 0u; i < kNumTextures; ++i)
     {
       textureDescriptors[i] = readTextures[i]->GetSrv();

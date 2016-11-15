@@ -26,7 +26,7 @@ namespace Fancy { namespace Rendering {
     aRenderContext->setFillMode(_pMaterialPass->getFillMode());
     aRenderContext->setWindingOrder(_pMaterialPass->getWindingOrder());
 
-    aRenderContext->SetGpuProgramPipeline(_pMaterialPass->myProgramPipeline);
+    aRenderContext->SetGpuProgramPipeline(_pMaterialPass->myProgramPipeline.get());
   }
 
 //---------------------------------------------------------------------------//    
