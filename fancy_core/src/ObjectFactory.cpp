@@ -37,41 +37,6 @@ namespace Fancy { namespace IO {
   }
 //---------------------------------------------------------------------------//
   template<>
-  void* locCreateManaged<Rendering::GpuProgram, MemoryCategory::TEXTURES>
-    (uint64 aHash, bool& aWasCreated)
-  {
-    SharedPtr<Rendering::GpuProgram> object = Rendering::RenderCore::GetGpuProgram(aHash);
-
-    if (object)
-    {
-      aWasCreated = false;
-      return object.get();  // TODO: return smartptr
-    }
-
-    aWasCreated = true;
-    return FANCY_NEW(Rendering::GpuProgram, eMemoryCategory);
-  }
-//---------------------------------------------------------------------------//
-
-  template<>
-  void* locCreateManaged<Rendering::Texture, MemoryCategory::TEXTURES>
-    (uint64 aHash, bool& aWasCreated)
-  {
-    SharedPtr<Rendering::Texture> object = Rendering::RenderCore::GetTexture(aHash);
-
-    if (object)
-    {
-      aWasCreated = false;
-      return object.get();  // TODO: return smartptr
-    }
-
-    aWasCreated = true;
-    BinaryCache::read(&object, aHash, 0u);
-
-    return object.get();
-  }
-//---------------------------------------------------------------------------//
-  template<>
   void* locCreateManaged<Geometry::Mesh, MemoryCategory::GEOMETRY>
     (uint64 aHash, bool& aWasCreated)
   {
@@ -100,10 +65,8 @@ namespace Fancy { namespace IO {
   std::pair<ObjectName, CreateFunc> locResourceCreateFunctions[] =
   {
     // Managed:
-    { _N(GpuProgram), &locCreateManaged<Rendering::GpuProgram, MemoryCategory::MATERIALS> },
     { _N(MaterialPass), &locCreateManaged<Rendering::MaterialPass, MemoryCategory::MATERIALS> },
     { _N(Material), &locCreateManaged<Rendering::Material, MemoryCategory::MATERIALS> },
-    { _N(Texture), &locCreateManaged<Rendering::Texture, MemoryCategory::MATERIALS> },
     { _N(Mesh), &locCreateManaged<Geometry::Mesh, MemoryCategory::GEOMETRY> },
     { _N(SubModel), &locCreateManaged<Geometry::SubModel, MemoryCategory::GEOMETRY> },
     { _N(Model), &locCreateManaged<Geometry::Model, MemoryCategory::GEOMETRY> },
@@ -131,5 +94,36 @@ namespace Fancy { namespace IO {
     ASSERT(false, "Unknown typename");
     return nullptr;
   }
+//---------------------------------------------------------------------------//
+
+
+  std::shared_ptr<Rendering::GpuProgram> locCreateGpuProgram(uint64 aHash, bool& aWasCreated)
+  {
+    std::shared_ptr<Rendering::GpuProgram> object = Rendering::RenderCore::GetGpuProgram(aHash);
+
+    if (object)
+    {
+      aWasCreated = false;
+      return object;
+    }
+
+    Doesn't work... can't create without desc-info
+
+    aWasCreated = true;
+    object = FANCY_NEW(T, eMemoryCategory);
+
+    // TODO: This is bad design... we should set the whole description here. 
+    // We need to do this during a refactoring of the serialization-system...
+    T::Register(object, aHash);
+
+    return object;
+  }
+
+
+  std::shared_ptr<void*> ObjectFactory::CreatePtr(const ObjectName& aTypeName, bool& aWasCreated, uint64 anInstanceHash)
+  {
+    
+  }
+
 //---------------------------------------------------------------------------//
 } }
