@@ -152,6 +152,8 @@ namespace Fancy { namespace IO {
     success = Processing::processAiScene(workingData, aScene, _pParentNode);
 
     // Serialization-tests....
+    // Serialization needs a re-work after adjusting Resource-Handling apis
+    /*
     {
       JSONwriter serializer(szImportPathAbs);
       serializer.serialize(&_pParentNode, "rootNode");
@@ -161,6 +163,7 @@ namespace Fancy { namespace IO {
       JSONreader serializer(szImportPathAbs);
       serializer.serialize(&_pParentNode, "rootNode");
     }
+    */
     
     return success;
   }
