@@ -314,6 +314,149 @@ namespace Fancy { namespace IO {
     template<class T>
     MetaTableImpl<std::shared_ptr<T>> MetaTableImpl<std::shared_ptr<T>>::ourVTable;
   //---------------------------------------------------------------------------//
+
+
+
+    template<class T>
+    struct MetaTableResourceImpl : public MetaTable
+    {
+      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
+        uint64 aHash = 0u) override { }
+
+      virtual String getTypeName(void* anObject) override
+      {
+        T* serializable = static_cast<T*>(anObject);
+        return serializable->getTypeName();
+      }
+
+      virtual bool isManaged(void* anObject) override
+      {
+        return std::is_base_of<BaseManagedObject, T>::value;
+      }
+
+      virtual uint64 getHash(void* anObject) override
+      {
+        T* serializable = static_cast<T*>(anObject);
+        return serializable->GetHash();
+      }
+
+      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      {
+        T* serializable = static_cast<T*>(anObject);
+        serializable->serialize(aSerializer);
+      }
+
+      static MetaTableImpl<T> ourVTable;
+    };
+    template<class T>
+    MetaTableImpl<T> MetaTableImpl<T>::ourVTable;
+    //---------------------------------------------------------------------------//
+    template<class T>
+    struct MetaTableImpl<T*> : public MetaTable
+    {
+      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
+        uint64 aHash = 0u) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        (*serializable) = static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, aHash));
+      }
+
+      virtual bool isValid(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        return (*serializable) != nullptr;
+      }
+
+      virtual void invalidate(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        (*serializable) = nullptr;
+      }
+
+      virtual String getTypeName(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        return (*serializable)->getTypeName();
+      }
+
+      virtual bool isManaged(void* anObject) override
+      {
+        return std::is_base_of<BaseManagedObject, T>::value;
+      }
+
+      virtual uint64 getHash(void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        return (*serializable)->GetHash();
+      }
+
+      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      {
+        T** serializable = static_cast<T**>(anObject);
+        (*serializable)->serialize(aSerializer);
+      }
+
+      static MetaTableImpl<T*> ourVTable;
+    };
+    template<class T>
+    MetaTableImpl<T*> MetaTableImpl<T*>::ourVTable;
+    //---------------------------------------------------------------------------//
+    template<class T>
+    struct MetaTableImpl<std::shared_ptr<T>> : public MetaTable
+    {
+      virtual ~MetaTableImpl<std::shared_ptr<T>>() {}
+
+      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
+        uint64 aHash = 0u) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        (*serializable) = std::shared_ptr<T>(static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, aHash)));
+      }
+
+      virtual bool isValid(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        return (*serializable) != nullptr;
+      }
+
+      virtual void invalidate(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        (*serializable) = nullptr;
+      }
+
+      virtual bool isManaged(void* anObject) override
+      {
+        return std::is_base_of<BaseManagedObject, T>::value;
+      }
+
+      virtual String getTypeName(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        return (*serializable)->getTypeName();
+      }
+
+      virtual uint64 getHash(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        return (*serializable)->GetHash();
+      }
+
+      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        (*serializable)->serialize(aSerializer);
+      }
+
+      static MetaTableImpl<std::shared_ptr<T>> ourVTable;
+    };
+    template<class T>
+    MetaTableImpl<std::shared_ptr<T>> MetaTableImpl<std::shared_ptr<T>>::ourVTable;
+    //---------------------------------------------------------------------------//
+
+
+
+
   
   //---------------------------------------------------------------------------//
     // Dummy general template:
@@ -492,6 +635,24 @@ namespace Fancy { namespace IO {
   static IO::DataType getDataTypeRawPtr() \
   { \
     return IO::DataType(IO::EBaseDataType::SerializablePtr, &Fancy::Internal::MetaTableImpl<T*>::ourVTable); \
+  }
+//---------------------------------------------------------------------------//
+#define SERIALIZABLE_RESOURCE(T) \
+  enum { IsSerializable = 1 }; \
+  template<class dummy> \
+  static IO::DataType getDataType() \
+  { \
+    return IO::DataType(IO::EBaseDataType::Resource, &Fancy::Internal::MetaTableImpl<T>::ourVTable); \
+  } \
+  template<class dummy> \
+  static IO::DataType getDataTypePtr() \
+  { \
+    return IO::DataType(IO::EBaseDataType::ResourcePtr, &Fancy::Internal::MetaTableImpl<std::shared_ptr<T>>::ourVTable); \
+  } \
+  template<class dummy> \
+  static IO::DataType getDataTypeRawPtr() \
+  { \
+    return IO::DataType(IO::EBaseDataType::ResourcePtr, &Fancy::Internal::MetaTableImpl<T*>::ourVTable); \
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy
