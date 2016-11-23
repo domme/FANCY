@@ -39,6 +39,26 @@ namespace Fancy { namespace IO {
     bool handled = true;
     switch (aDataType.myBaseType)
     {
+    case EBaseDataType::ResourcePtr:
+    {
+      MetaTableResource* metaTable = static_cast<MetaTableResource*>(aDataType.myUserData);
+      if (!metaTable->IsValid(anObject))
+      {
+        currJsonVal = NULL;
+        break;
+      }
+
+      String typeName = metaTable->GetTypeName(anObject);
+      uint64 hash = metaTable->GetHash(anObject);
+
+      currJsonVal["Type"] = typeName;
+      currJsonVal["Hash"] = hash;
+
+
+
+    }
+    break;
+
     case EBaseDataType::Serializable:
     case EBaseDataType::SerializablePtr:
     {

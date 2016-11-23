@@ -398,6 +398,7 @@
     <ClInclude Include="src\RenderOperation.h" />
     <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\ResourceBinding.h" />
+    <ClInclude Include="src\ResourceDesc.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneImporter.h" />
     <ClInclude Include="src\SceneNode.h" />
@@ -516,6 +517,7 @@
     <ClCompile Include="src\GeometryData.cpp" />
     <ClCompile Include="src\FC_String.cpp" />
     <ClCompile Include="src\SubModel.cpp" />
+    <ClCompile Include="src\TextureDesc.cpp" />
     <ClCompile Include="src\TextureDX12.cpp" />
     <ClCompile Include="src\TextureGL4.cpp" />
     <ClCompile Include="src\TextureLoader.cpp" />

@@ -3,7 +3,6 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "StaticManagedObject.h"
 #include PLATFORM_DEPENDENT_INCLUDE_TEXTURE
 
 namespace Fancy { namespace Rendering {

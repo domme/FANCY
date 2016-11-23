@@ -4,8 +4,12 @@
 #include "FixedArray.h"
 #include "StaticManagedObject.h"
 #include "ObjectFactory.h"
+#include "ResourceDesc.h"
 
-namespace Fancy { namespace IO {
+namespace Fancy {
+struct ResourceDesc;
+
+namespace IO {
 
   class Serializer;
 
@@ -34,6 +38,7 @@ namespace Fancy { namespace IO {
     Matrix4x4,
     Serializable,
     SerializablePtr,
+    ResourcePtr,
     StructOrClass,
   };
 //---------------------------------------------------------------------------//
@@ -153,7 +158,7 @@ namespace Fancy { namespace IO {
 #undef DECLARE_DATATYPE
 
 
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   struct MetaTable
   {
     virtual ~MetaTable() {}
@@ -165,7 +170,7 @@ namespace Fancy { namespace IO {
     virtual bool isValid(void* anObject) { return true; }
     virtual void invalidate(void* anObject) {}
   };
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   struct MetaTableArray
   {
     virtual ~MetaTableArray() {}
@@ -174,9 +179,20 @@ namespace Fancy { namespace IO {
     virtual void resize(void* anObject, uint aNewSize) = 0;
     virtual IO::DataType getElementDataType() = 0;
   };
-
+//---------------------------------------------------------------------------//
+  struct MetaTableResource
+  {
+    virtual ~MetaTableResource() {}
+    virtual bool IsValid(void* anObject) = 0;
+    virtual String GetTypeName(void* anObject) = 0;
+    virtual uint64 GetHash(void* anObject) = 0;
+    virtual SharedPtr<ResourceDesc> GetDescription(void* anObject) = 0;
+  };
+//---------------------------------------------------------------------------//
   namespace Internal
   {
+    //---------------------------------------------------------------------------//
+    // Default Serializable objects
     //---------------------------------------------------------------------------//
     template<class T>
     struct MetaTableImpl : public MetaTable
@@ -212,6 +228,7 @@ namespace Fancy { namespace IO {
     template<class T>
     MetaTableImpl<T> MetaTableImpl<T>::ourVTable;
 //---------------------------------------------------------------------------//
+    // Raw ptrs to Serializable objects
     template<class T>
     struct MetaTableImpl<T*> : public MetaTable
     {
@@ -262,6 +279,7 @@ namespace Fancy { namespace IO {
     template<class T>
     MetaTableImpl<T*> MetaTableImpl<T*>::ourVTable;
 //---------------------------------------------------------------------------//
+    // Shared ptrs to Serializable objects
     template<class T>
     struct MetaTableImpl<std::shared_ptr<T>> : public MetaTable
     {
@@ -314,151 +332,49 @@ namespace Fancy { namespace IO {
     template<class T>
     MetaTableImpl<std::shared_ptr<T>> MetaTableImpl<std::shared_ptr<T>>::ourVTable;
   //---------------------------------------------------------------------------//
-
-
-
+    // Default resource objects (dummy - should never be instanciated)
     template<class T>
-    struct MetaTableResourceImpl : public MetaTable
+    struct MetaTableResourceImpl : public MetaTableResource
     {
-      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
-        uint64 aHash = 0u) override { }
-
-      virtual String getTypeName(void* anObject) override
-      {
-        T* serializable = static_cast<T*>(anObject);
-        return serializable->getTypeName();
-      }
-
-      virtual bool isManaged(void* anObject) override
-      {
-        return std::is_base_of<BaseManagedObject, T>::value;
-      }
-
-      virtual uint64 getHash(void* anObject) override
-      {
-        T* serializable = static_cast<T*>(anObject);
-        return serializable->GetHash();
-      }
-
-      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
-      {
-        T* serializable = static_cast<T*>(anObject);
-        serializable->serialize(aSerializer);
-      }
-
-      static MetaTableImpl<T> ourVTable;
+    
     };
+//---------------------------------------------------------------------------//
+     // Shared pointers to resource objects (should be the only specialization that is ever used)
     template<class T>
-    MetaTableImpl<T> MetaTableImpl<T>::ourVTable;
-    //---------------------------------------------------------------------------//
-    template<class T>
-    struct MetaTableImpl<T*> : public MetaTable
+    struct MetaTableResourceImpl<std::shared_ptr<T>> : public MetaTableResource
     {
-      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
-        uint64 aHash = 0u) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        (*serializable) = static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, aHash));
-      }
-
-      virtual bool isValid(void* anObject) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        return (*serializable) != nullptr;
-      }
-
-      virtual void invalidate(void* anObject) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        (*serializable) = nullptr;
-      }
-
-      virtual String getTypeName(void* anObject) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        return (*serializable)->getTypeName();
-      }
-
-      virtual bool isManaged(void* anObject) override
-      {
-        return std::is_base_of<BaseManagedObject, T>::value;
-      }
-
-      virtual uint64 getHash(void* anObject) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        return (*serializable)->GetHash();
-      }
-
-      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
-      {
-        T** serializable = static_cast<T**>(anObject);
-        (*serializable)->serialize(aSerializer);
-      }
-
-      static MetaTableImpl<T*> ourVTable;
-    };
-    template<class T>
-    MetaTableImpl<T*> MetaTableImpl<T*>::ourVTable;
-    //---------------------------------------------------------------------------//
-    template<class T>
-    struct MetaTableImpl<std::shared_ptr<T>> : public MetaTable
-    {
-      virtual ~MetaTableImpl<std::shared_ptr<T>>() {}
-
-      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
-        uint64 aHash = 0u) override
-      {
-        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable) = std::shared_ptr<T>(static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, aHash)));
-      }
-
-      virtual bool isValid(void* anObject) override
+      bool IsValid(void* anObject) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
         return (*serializable) != nullptr;
       }
 
-      virtual void invalidate(void* anObject) override
-      {
+      String GetTypeName(void* anObject) override
+      { 
+        SharedPtr<ResourceDesc> desc = GetDescription(anObject);
+        return desc->GetTypeName().toString();
+      }
+
+      uint64 GetHash(void* anObject) override 
+      { 
+        SharedPtr<ResourceDesc> desc = GetDescription(anObject);
+        return desc->GetHash();
+      }
+
+      SharedPtr<ResourceDesc> GetDescription(void* anObject) override 
+      { 
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable) = nullptr;
+        return serializable->GetDescription();
       }
-
-      virtual bool isManaged(void* anObject) override
-      {
-        return std::is_base_of<BaseManagedObject, T>::value;
-      }
-
-      virtual String getTypeName(void* anObject) override
-      {
-        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        return (*serializable)->getTypeName();
-      }
-
-      virtual uint64 getHash(void* anObject) override
-      {
-        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        return (*serializable)->GetHash();
-      }
-
-      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
-      {
-        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable)->serialize(aSerializer);
-      }
-
-      static MetaTableImpl<std::shared_ptr<T>> ourVTable;
+      static MetaTableResourceImpl<std::shared_ptr<T>> ourVTable;
     };
     template<class T>
-    MetaTableImpl<std::shared_ptr<T>> MetaTableImpl<std::shared_ptr<T>>::ourVTable;
-    //---------------------------------------------------------------------------//
+    MetaTableResourceImpl<std::shared_ptr<T>> MetaTableResourceImpl<std::shared_ptr<T>>::ourVTable;
+//---------------------------------------------------------------------------//
 
-
-
-
-  
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  // Array metatables
+//---------------------------------------------------------------------------//
     // Dummy general template:
     template<class T>
     struct MetaTableArrayImpl : public MetaTableArray
@@ -490,7 +406,8 @@ namespace Fancy { namespace IO {
     };
     template<class T>
     MetaTableArrayImpl<T> MetaTableArrayImpl<T>::ourVTable;
-    //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+    // Specialization for std::vector
     template<class T>
     struct MetaTableArrayImpl<std::vector<T>> : public MetaTableArray
     {
@@ -522,6 +439,7 @@ namespace Fancy { namespace IO {
     template<class T>
     MetaTableArrayImpl<std::vector<T>> MetaTableArrayImpl<std::vector<T>>::ourVTable;
 //---------------------------------------------------------------------------//
+    // Specialization for FixedArray
     template<class T, uint32 Capacity>
     struct MetaTableArrayImpl<FixedArray<T, Capacity>> : public MetaTableArray
     {
@@ -552,10 +470,10 @@ namespace Fancy { namespace IO {
 
       static MetaTableArrayImpl<FixedArray<T, Capacity>> ourVTable;
     };
-
     template<class T, uint32 Capacity>
     MetaTableArrayImpl<FixedArray<T, Capacity>> MetaTableArrayImpl<FixedArray<T, Capacity>>::ourVTable;
 //---------------------------------------------------------------------------//
+    // Specialization for C-Arrays
     template<class T, uint32 Capacity>
     struct MetaTableArrayImpl<T[Capacity]> : public MetaTableArray
     {
@@ -584,7 +502,6 @@ namespace Fancy { namespace IO {
 
       static MetaTableArrayImpl<T[Capacity]> ourVTable;
     };
-
     template<class T, uint32 Capacity>
     MetaTableArrayImpl<T[Capacity]> MetaTableArrayImpl<T[Capacity]>::ourVTable;
 //---------------------------------------------------------------------------//
@@ -640,19 +557,9 @@ namespace Fancy { namespace IO {
 #define SERIALIZABLE_RESOURCE(T) \
   enum { IsSerializable = 1 }; \
   template<class dummy> \
-  static IO::DataType getDataType() \
-  { \
-    return IO::DataType(IO::EBaseDataType::Resource, &Fancy::Internal::MetaTableImpl<T>::ourVTable); \
-  } \
-  template<class dummy> \
   static IO::DataType getDataTypePtr() \
   { \
-    return IO::DataType(IO::EBaseDataType::ResourcePtr, &Fancy::Internal::MetaTableImpl<std::shared_ptr<T>>::ourVTable); \
-  } \
-  template<class dummy> \
-  static IO::DataType getDataTypeRawPtr() \
-  { \
-    return IO::DataType(IO::EBaseDataType::ResourcePtr, &Fancy::Internal::MetaTableImpl<T*>::ourVTable); \
+    return IO::DataType(IO::EBaseDataType::ResourcePtr, &Fancy::Internal::MetaTableResourceImpl<std::shared_ptr<T>>::ourVTable); \
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

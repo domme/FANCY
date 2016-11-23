@@ -415,6 +415,9 @@
     <ClInclude Include="src\Resource.h">
       <Filter>src\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\ResourceDesc.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -680,6 +683,9 @@
     </ClCompile>
     <ClCompile Include="src\FileWatcher.cpp">
       <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextureDesc.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
