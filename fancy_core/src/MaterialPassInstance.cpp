@@ -192,9 +192,12 @@ namespace Fancy { namespace Rendering {
   {
     aSerializer->serialize(&m_pMaterialPass, "m_pMaterialPass");
 
+    /*
     std::vector<ResourceStorageEntry> readTextures;
     getResourceDesc(MpiResourceType::ReadTexture, readTextures);
     aSerializer->serialize(&readTextures, "readTextures");
+    */
+    aSerializer->serialize(&m_vpReadTextures, "m_vpReadTextures"); 
 
     std::vector<ResourceStorageEntry> writeTextures;
     getResourceDesc(MpiResourceType::WriteTexture, writeTextures);
@@ -206,7 +209,7 @@ namespace Fancy { namespace Rendering {
 
     if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
     {
-      setFromResourceDesc(readTextures, MpiResourceType::ReadTexture);
+      // setFromResourceDesc(readTextures, MpiResourceType::ReadTexture);
       setFromResourceDesc(writeTextures, MpiResourceType::WriteTexture);
       setFromResourceDesc(textureSamplers, MpiResourceType::TextureSampler);
     }

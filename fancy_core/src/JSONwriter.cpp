@@ -54,8 +54,17 @@ namespace Fancy { namespace IO {
       currJsonVal["Type"] = typeName;
       currJsonVal["Hash"] = hash;
 
+      if (!HasResourceDependency(hash))
+      {
+        SharedPtr<ResourceDesc> desc = metaTable->GetDescription(anObject);
+        desc->Serialize(this);
 
+        currJsonVal["Type"] = typeName;
+        currJsonVal["Hash"] = hash;
 
+        AddResourceDependency(typeName, currJsonVal, hash);
+        currJsonVal.clear();
+      }
     }
     break;
 
@@ -261,6 +270,30 @@ namespace Fancy { namespace IO {
     }
   }
 //---------------------------------------------------------------------------//
+  void JSONwriter::AddResourceDependency(const ObjectName& aTypeName, const Json::Value& aResourceDescVal, uint64 aHash)
+  {
+    std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
+      { _N(Texture), &myHeader.myTextures }
+    };
+
+    for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
+    {
+      if (aTypeName == typeNameToVal[i].first)
+        typeNameToVal[i].second->append(aResourceDescVal);
+    }
+
+    myHeader.myResourceDependencies.push_back(aHash);
+  }
+//---------------------------------------------------------------------------//
+  bool JSONwriter::HasResourceDependency(uint64 aKey)
+  {
+    for (uint64 storedHash : myHeader.myResourceDependencies)
+      if (storedHash == aKey)
+        return true;
+
+    return false;
+  }
+//---------------------------------------------------------------------------//
   void JSONwriter::appendResource(const ObjectName& aTypeName, const Json::Value& aResourceValue)
   {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
@@ -288,6 +321,7 @@ namespace Fancy { namespace IO {
     aValue["myMeshes"] = myHeader.myMeshes;
     aValue["mySubModels"] = myHeader.mySubModels;
     aValue["myModels"] = myHeader.myModels;
+    aValue["myTextures"] = myHeader.myTextures;
   }
 //---------------------------------------------------------------------------//
 
