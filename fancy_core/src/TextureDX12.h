@@ -19,7 +19,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     friend class RenderOutputDX12;  // Remove after backbuffers are handled through the texture class
 
   public:
-
     TextureDX12();
     ~TextureDX12();
     bool operator==(const TextureDesc& aDesc) const;

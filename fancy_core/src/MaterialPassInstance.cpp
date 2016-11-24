@@ -197,7 +197,11 @@ namespace Fancy { namespace Rendering {
     getResourceDesc(MpiResourceType::ReadTexture, readTextures);
     aSerializer->serialize(&readTextures, "readTextures");
     */
-    aSerializer->serialize(&m_vpReadTextures, "m_vpReadTextures"); 
+
+    // SharedPtr<Texture> tex;
+    // aSerializer->serialize(&tex, "TestTex");
+
+    aSerializer->serializeArray(m_vpReadTextures, "m_vpReadTextures");
 
     std::vector<ResourceStorageEntry> writeTextures;
     getResourceDesc(MpiResourceType::WriteTexture, writeTextures);

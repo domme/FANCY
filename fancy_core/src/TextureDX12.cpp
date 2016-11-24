@@ -27,11 +27,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   TextureDesc TextureDX12::GetDescription() const
   {
     TextureDesc desc;
-
     desc.myIsExternalTexture = myParameters.myIsExternalTexture;
     desc.myInternalRefIndex = myParameters.myInternalRefIndex;
     desc.mySourcePath = myParameters.path;
-
     return desc;
   }
 //---------------------------------------------------------------------------//

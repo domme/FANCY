@@ -6,8 +6,14 @@
 #include "ObjectFactory.h"
 #include "ResourceDesc.h"
 
+
+
 namespace Fancy {
 struct ResourceDesc;
+
+namespace Rendering {
+  class Texture;
+}
 
 namespace IO {
 
@@ -108,7 +114,7 @@ namespace IO {
       return T::template getDataTypePtr<void>();
     }
   };
-
+//---------------------------------------------------------------------------//
   template<class T>
   struct Get_DataType<std::shared_ptr<T>*>
   {
@@ -363,8 +369,13 @@ namespace IO {
 
       SharedPtr<ResourceDesc> GetDescription(void* anObject) override 
       { 
+        typedef typename T::DescT DescT;
+
+        static_assert(std::is_base_of_v<ResourceDesc, DescT>, "Invalid Resource Desc type");
+
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        return serializable->GetDescription();
+        SharedPtr<DescT> desc(new DescT((*serializable)->GetDescription()));
+        return desc;
       }
       static MetaTableResourceImpl<std::shared_ptr<T>> ourVTable;
     };
@@ -535,7 +546,7 @@ namespace IO {
       return IO::DataType(IO::EBaseDataType::Array, &Fancy::Internal::MetaTableArrayImpl<T[Capacity]>::ourVTable);
     }
   };
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
 #define SERIALIZABLE(T) \
   enum { IsSerializable = 1 }; \
   template<class dummy> \
@@ -556,6 +567,7 @@ namespace IO {
 //---------------------------------------------------------------------------//
 #define SERIALIZABLE_RESOURCE(T) \
   enum { IsSerializable = 1 }; \
+  using DescT = ##T##Desc; \
   template<class dummy> \
   static IO::DataType getDataTypePtr() \
   { \
