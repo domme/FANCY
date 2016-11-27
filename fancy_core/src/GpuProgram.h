@@ -13,7 +13,7 @@ namespace Fancy { namespace Rendering {
   class GpuProgram : public PLATFORM_DEPENDENT_NAME(GpuProgram)
   {
   public:
-    SERIALIZABLE(GpuProgram)
+    SERIALIZABLE_RESOURCE(GpuProgram)
 
   };
 //---------------------------------------------------------------------------//

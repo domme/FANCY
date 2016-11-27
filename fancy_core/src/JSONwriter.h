@@ -20,7 +20,7 @@ namespace Fancy { namespace IO {
     struct RootHeader
     {
       uint32 myVersion;
-      Json::Value myGpuPrograms;
+      
       Json::Value myMaterialPasses;
       Json::Value myMaterials;
       Json::Value myMaterialPassInstances;
@@ -31,6 +31,9 @@ namespace Fancy { namespace IO {
       std::vector<ObjectName> myStoredManagedObjects;
       
       Json::Value myTextures;
+      Json::Value myGpuPrograms;
+      Json::Value myGpuProgramPipelines;
+
       std::vector<uint64> myResourceDependencies;
     };
 

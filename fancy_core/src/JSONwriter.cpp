@@ -324,14 +324,18 @@ namespace Fancy { namespace IO {
   void JSONwriter::storeHeader(Json::Value& aValue)
   {
     aValue["myVersion"] = myHeader.myVersion;
+
+    aValue["myTextures"] = myHeader.myTextures;
     aValue["myGpuPrograms"] = myHeader.myGpuPrograms;
+    aValue["myGpuProgramPipelines"] = myHeader.myGpuProgramPipelines;
+
     aValue["myMaterialPasses"] = myHeader.myMaterialPasses;
     aValue["myMaterialPassInstances"] = myHeader.myMaterialPassInstances;
     aValue["myMaterials"] = myHeader.myMaterials;
     aValue["myMeshes"] = myHeader.myMeshes;
     aValue["mySubModels"] = myHeader.mySubModels;
     aValue["myModels"] = myHeader.myModels;
-    aValue["myTextures"] = myHeader.myTextures;
+    
   }
 //---------------------------------------------------------------------------//
 

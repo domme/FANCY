@@ -352,6 +352,7 @@
     <ClInclude Include="src\GpuProgramFeatures.h" />
     <ClInclude Include="src\GpuProgramGL4.h" />
     <ClInclude Include="src\GpuProgramPipeline.h" />
+    <ClInclude Include="src\GpuProgramPipelineDesc.h" />
     <ClInclude Include="src\GpuProgramPipelineDX12.h" />
     <ClInclude Include="src\GpuProgramPipelineGL4.h" />
     <ClInclude Include="src\GpuProgramResource.h" />

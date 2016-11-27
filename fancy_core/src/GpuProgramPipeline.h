@@ -3,17 +3,17 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "GpuProgramPipelineDesc.h"
 #include PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE
-#include "StaticManagedObject.h"
+
+#include "Serializable.h"
 
 namespace Fancy { namespace Rendering {
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
   class GpuProgramPipeline : public PLATFORM_DEPENDENT_NAME(GpuProgramPipeline)
   {
   public:
-    SERIALIZABLE(GpuProgramPipeline);
+    SERIALIZABLE_RESOURCE(GpuProgramPipeline);
 
   };
 //---------------------------------------------------------------------------//

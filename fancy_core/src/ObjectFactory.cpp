@@ -8,6 +8,8 @@
 #include "Model.h"
 #include "SubModel.h"
 
+#include "GpuProgramPipelineDesc.h"
+
 #include "BinaryCache.h"
 #include "SceneNode.h"
 #include "SceneNodeComponentFactory.h"
@@ -102,6 +104,16 @@ namespace Fancy { namespace IO {
     {
       const Rendering::TextureDesc& desc = static_cast<const Rendering::TextureDesc&>(aDesc);
       return Rendering::RenderCore::CreateTexture(desc);
+    }
+    else if (aTypeName == _N(GpuProgram))
+    {
+      const Rendering::GpuProgramDesc& desc = static_cast<const Rendering::GpuProgramDesc&>(aDesc);
+      return Rendering::RenderCore::CreateGpuProgram(desc);
+    }
+    else if (aTypeName == _N(GpuProgramPipeline))
+    {
+      const Rendering::GpuProgramPipelineDesc& desc = static_cast<const Rendering::GpuProgramPipelineDesc&>(aDesc);
+      return Rendering::RenderCore::CreateGpuProgramPipeline(desc);
     }
     
     ASSERT(false, "Unknown typename");

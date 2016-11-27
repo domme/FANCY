@@ -2,15 +2,21 @@
 #include "FancyCorePrerequisites.h"
 #include "GpuProgramFeatures.h"
 #include "MathUtil.h"
+#include "DescriptionBase.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct GpuProgramDesc
+  struct GpuProgramDesc : public DescriptionBase
   {
     GpuProgramDesc() : myShaderFileName(""), myShaderStage(0u), myMainFunction("main") {}
     bool operator==(const GpuProgramDesc& anOther) const;
-    uint64 GetHash() const;
+    
+    uint64 GetHash() const override;
+    ~GpuProgramDesc() override {}
+    ObjectName GetTypeName() const override { return _N(GpuProgram); }
 
+    void Serialize(IO::Serializer* aSerializer) override;
     String myShaderFileName;
     String myMainFunction;
     uint myShaderStage;
@@ -35,32 +41,12 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//  
-  struct GpuProgramPipelineDesc
+  inline void GpuProgramDesc::Serialize(IO::Serializer* aSerializer)
   {
-    bool operator==(const GpuProgramPipelineDesc& anOther) const;
-    uint64 GetHash() const;
-    
-    GpuProgramDesc myGpuPrograms[(uint32)ShaderStage::NUM];
-  };
-//---------------------------------------------------------------------------//
-  inline bool GpuProgramPipelineDesc::operator==(const GpuProgramPipelineDesc& anOther) const
-  {
-    bool equal = true;
-    for (uint32 i = 0u; equal && i < (uint32)ShaderStage::NUM; ++i)
-      equal &= myGpuPrograms[i] == anOther.myGpuPrograms[i];
-    return equal;
-  }
-//---------------------------------------------------------------------------//
-  inline uint64 GpuProgramPipelineDesc::GetHash() const
-  {
-    uint64 hash = 0u;
-
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
-      MathUtil::hash_combine(hash, myGpuPrograms[i].GetHash());
-
-    return hash;
+    aSerializer->serialize(&myShaderFileName, "myShaderFileName");
+    aSerializer->serialize(&myMainFunction, "myMainFunction");
+    aSerializer->serialize(&myShaderStage, "myShaderStage");
+    aSerializer->serialize(&myPermutation, "myPermutation");
   }
 //---------------------------------------------------------------------------//
 } }

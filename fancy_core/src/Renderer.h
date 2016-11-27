@@ -46,6 +46,7 @@ struct GpuProgramPipelineDesc;
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
 
+    static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureDesc &aTextureDesc);
     static SharedPtr<Texture> CreateTexture(const String& aTexturePath);
@@ -67,7 +68,7 @@ struct GpuProgramPipelineDesc;
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
 
-    static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
+    
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

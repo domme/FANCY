@@ -265,8 +265,7 @@ namespace Fancy { namespace IO {
     myTypeStack.pop();
   }
 //---------------------------------------------------------------------------//
-  void JSONreader::
-loadHeader()
+  void JSONreader::loadHeader()
   {
     Json::Value& rootVal = *myTypeStack.top();
     myHeader.myVersion = rootVal["myVersion"].asUInt();
