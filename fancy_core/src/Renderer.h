@@ -47,6 +47,7 @@ struct GpuProgramPipelineDesc;
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
 
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
+    static SharedPtr<Texture> CreateTexture(const TextureDesc &aTextureDesc);
     static SharedPtr<Texture> CreateTexture(const String& aTexturePath);
     static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint32 aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);

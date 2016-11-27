@@ -37,13 +37,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   Material::Material()
   {
-    // TODO: these can be changed to c-arrays again (serialization should support this by now...)
-
-    m_vPasses.resize(m_vPasses.capacity());
-    memset(&m_vPasses[0], 0u, sizeof(MaterialPassInstance*) * m_vPasses.capacity());
-
-    m_vParameters.resize(m_vParameters.capacity());
-    memset(&m_vParameters[0], 0x0, sizeof(float) * m_vParameters.capacity());
+    memset(&m_vPasses[0], 0u, sizeof(m_vPasses));
+    memset(&m_vParameters[0], 0x0, sizeof(m_vParameters));
   }
 //---------------------------------------------------------------------------//
   Material::~Material()
@@ -53,8 +48,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   bool Material::operator==(const Material& _other) const
   {
-    bool same = memcmp(&m_vPasses[0], &_other.m_vPasses[0], 
-      sizeof(MaterialPassInstance*) * m_vPasses.capacity()) == 0;
+    bool same = memcmp(&m_vPasses[0], &_other.m_vPasses[0], sizeof(m_vPasses)) == 0;
 
     if (same)
     {
@@ -76,11 +70,11 @@ namespace Fancy { namespace Rendering {
   {
     MaterialDesc desc;
 
-    for (uint i = 0u; i < m_vPasses.size(); ++i)
+    for (uint i = 0u; i < ARRAY_LENGTH(m_vPasses); ++i)
       if (m_vPasses[i] != nullptr)
         desc.myPasses[i] = m_vPasses[i]->GetDescription();
 
-    for (uint i = 0u; i < m_vParameters.size(); ++i)
+    for (uint i = 0u; i < ARRAY_LENGTH(m_vParameters); ++i)
       desc.myParameters[i] = m_vParameters[i];
 
     return desc;
@@ -92,23 +86,20 @@ namespace Fancy { namespace Rendering {
     if (aDesc == GetDescription())
       return;
 
-    m_vPasses.clear();
-    m_vParameters.clear();
+    memset(&m_vPasses[0], 0u, sizeof(m_vPasses));
+    memset(&m_vParameters[0], 0x0, sizeof(m_vParameters));
 
-    m_vPasses.resize(aDesc.myPasses.size());
-    m_vParameters.resize(aDesc.myParameters.size());
-
-    for (uint i = 0u; i < aDesc.myPasses.size(); ++i)
+    for (uint i = 0u; i < ARRAY_LENGTH(m_vPasses); ++i)
       m_vPasses[i] = MaterialPassInstance::FindFromDesc(aDesc.myPasses[i]);
       
-    for (uint i = 0u; i < aDesc.myParameters.size(); ++i)
+    for (uint i = 0u; i < ARRAY_LENGTH(m_vParameters); ++i)
       m_vParameters[i] = aDesc.myParameters[i];
   }
 //---------------------------------------------------------------------------//
   void Material::serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_vParameters, "m_vParameters");
-    aSerializer->serialize(&m_vPasses, "m_vPasses");
+    aSerializer->serializeArray(m_vParameters, "m_vParameters");
+    aSerializer->serializeArray(m_vPasses, "m_vPasses");
   }
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

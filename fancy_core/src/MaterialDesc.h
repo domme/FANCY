@@ -19,8 +19,8 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct MaterialDesc
   {
-    FixedArray<float, (uint32)EMaterialParameterSemantic::NUM> myParameters;
-    FixedArray<MaterialPassInstanceDesc, (uint32)EMaterialPass::NUM> myPasses;
+    float myParameters [(uint32)EMaterialParameterSemantic::NUM];
+    MaterialPassInstanceDesc myPasses [(uint32)EMaterialPass::NUM];
 
     MaterialDesc();
     bool operator==(const MaterialDesc& anOther) const;

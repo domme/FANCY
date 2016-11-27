@@ -415,7 +415,7 @@
     <ClInclude Include="src\Resource.h">
       <Filter>src\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\ResourceDesc.h">
+    <ClInclude Include="src\DescriptionBase.h">
       <Filter>src\Common</Filter>
     </ClInclude>
   </ItemGroup>

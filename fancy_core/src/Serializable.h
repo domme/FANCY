@@ -4,12 +4,12 @@
 #include "FixedArray.h"
 #include "StaticManagedObject.h"
 #include "ObjectFactory.h"
-#include "ResourceDesc.h"
+#include "DescriptionBase.h"
 
 
 
 namespace Fancy {
-struct ResourceDesc;
+struct DescriptionBase;
 
 namespace Rendering {
   class Texture;
@@ -190,9 +190,12 @@ namespace IO {
   {
     virtual ~MetaTableResource() {}
     virtual bool IsValid(void* anObject) = 0;
+    virtual void Invalidate(void* anObject) = 0;
     virtual String GetTypeName(void* anObject) = 0;
     virtual uint64 GetHash(void* anObject) = 0;
-    virtual SharedPtr<ResourceDesc> GetDescription(void* anObject) = 0;
+    virtual SharedPtr<DescriptionBase> GetDescription(void* anObject) = 0;
+    virtual SharedPtr<DescriptionBase> CreateDescription() = 0;
+    virtual void Create(void* anObject, const ObjectName& aTypeName, const DescriptionBase& aDescription) = 0;
   };
 //---------------------------------------------------------------------------//
   namespace Internal
@@ -355,28 +358,50 @@ namespace IO {
         return (*serializable) != nullptr;
       }
 
+      void Invalidate(void* anObject) override
+      {
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        (*serializable) = nullptr;
+      }
+
       String GetTypeName(void* anObject) override
       { 
-        SharedPtr<ResourceDesc> desc = GetDescription(anObject);
+        SharedPtr<DescriptionBase> desc = GetDescription(anObject);
         return desc->GetTypeName().toString();
       }
 
       uint64 GetHash(void* anObject) override 
       { 
-        SharedPtr<ResourceDesc> desc = GetDescription(anObject);
+        SharedPtr<DescriptionBase> desc = GetDescription(anObject);
         return desc->GetHash();
       }
 
-      SharedPtr<ResourceDesc> GetDescription(void* anObject) override 
+      SharedPtr<DescriptionBase> GetDescription(void* anObject) override 
       { 
         typedef typename T::DescT DescT;
 
-        static_assert(std::is_base_of_v<ResourceDesc, DescT>, "Invalid Resource Desc type");
+        static_assert(std::is_base_of_v<DescriptionBase, DescT>, "Invalid Resource Desc type");
 
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
         SharedPtr<DescT> desc(new DescT((*serializable)->GetDescription()));
         return desc;
       }
+
+      SharedPtr<DescriptionBase> CreateDescription() override
+      {
+        typedef typename T::DescT DescT;
+        static_assert(std::is_base_of_v<DescriptionBase, DescT>, "Invalid Resource Desc type");
+
+        return std::make_shared<DescT>();
+      }
+      
+      void Create(void* anObject, const ObjectName& aTypeName, const DescriptionBase& aDescription) override
+      {
+        SharedPtr<T> createdObject = std::static_pointer_cast<T>(IO::ObjectFactory::Create(aTypeName, aDescription));
+        std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
+        (*serializable) = createdObject;
+      }
+      
       static MetaTableResourceImpl<std::shared_ptr<T>> ourVTable;
     };
     template<class T>

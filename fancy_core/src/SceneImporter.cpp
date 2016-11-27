@@ -153,7 +153,6 @@ namespace Fancy { namespace IO {
 
     // Serialization-tests....
     // Serialization needs a re-work after adjusting Resource-Handling apis
-    /*
     {
       JSONwriter serializer(szImportPathAbs);
       serializer.serialize(&_pParentNode, "rootNode");
@@ -163,7 +162,6 @@ namespace Fancy { namespace IO {
       JSONreader serializer(szImportPathAbs);
       serializer.serialize(&_pParentNode, "rootNode");
     }
-    */
     
     return success;
   }

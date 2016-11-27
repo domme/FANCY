@@ -41,8 +41,8 @@ namespace Fancy { namespace Rendering {
       void setParameter(EMaterialParameterSemantic _semantic, float _value) { m_vParameters[(uint32)_semantic] = _value; }
 
     private:
-      FixedArray<float, (uint32)EMaterialParameterSemantic::NUM> m_vParameters;
-      FixedArray<MaterialPassInstance*, (uint32)EMaterialPass::NUM> m_vPasses;
+      float m_vParameters [(uint32)EMaterialParameterSemantic::NUM];
+      MaterialPassInstance* m_vPasses[(uint32)EMaterialPass::NUM];
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

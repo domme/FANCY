@@ -8,6 +8,7 @@
 #include "Model.h"
 #include "Mesh.h"
 #include "SubModel.h"
+#include "Texture.h"
 
 namespace Fancy { namespace IO {
   Json::Value nullVal = Json::Value(NULL);
@@ -35,6 +36,11 @@ namespace Fancy { namespace IO {
     
   }
 //---------------------------------------------------------------------------//
+  void JSONreader::SerializeDescription(DescriptionBase* aDescription)
+  {
+    aDescription->Serialize(this);
+  }
+//---------------------------------------------------------------------------//
   bool JSONreader::serializeImpl(DataType aDataType, void* anObject, const char* aName)
   {
     beginName(aName, aDataType.myBaseType == EBaseDataType::Array);
@@ -44,6 +50,44 @@ namespace Fancy { namespace IO {
     bool handled = true;
     switch (aDataType.myBaseType)
     {
+    case EBaseDataType::ResourcePtr:
+    {
+      MetaTableResource* metaTable = static_cast<MetaTableResource*>(aDataType.myUserData);
+
+
+      if (currJsonVal.type() == Json::nullValue
+        || ( currJsonVal.type() == Json::intValue && currJsonVal.asInt() == 0))  // nullptrs in arrays will appear as "0"
+      {
+        metaTable->Invalidate(anObject);
+        break;
+      }
+
+      ObjectName typeName = ObjectName(currJsonVal["Type"].asString());
+      uint64 hash = currJsonVal["Hash"].asUInt64();
+
+      SharedPtr<DescriptionBase> description;
+
+      for (SharedPtr<DescriptionBase>& desc : myHeader.myResourceDependencies)
+      {
+        if (desc->GetHash() == hash)
+        {
+          description = desc;
+          break;
+        }
+      }
+
+      if (description == nullptr)
+      {
+        description = metaTable->CreateDescription();
+        SerializeDescription(description.get());
+        myHeader.myResourceDependencies.push_back(description);
+      }
+
+      metaTable->Create(anObject, typeName, *description);
+      
+    } break;
+
+
     case EBaseDataType::Serializable:
     case EBaseDataType::SerializablePtr:
     {
@@ -221,13 +265,17 @@ namespace Fancy { namespace IO {
     myTypeStack.pop();
   }
 //---------------------------------------------------------------------------//
-  void JSONreader::loadHeader()
+  void JSONreader::
+loadHeader()
   {
     Json::Value& rootVal = *myTypeStack.top();
     myHeader.myVersion = rootVal["myVersion"].asUInt();
 
+    serialize(&myHeader.myTextures, "myTextures");
+
     serialize(&myHeader.myGpuPrograms, "myGpuPrograms");
     serialize(&myHeader.myMaterialPasses, "myMaterialPasses");
+    serialize(&myHeader.myMaterialPassInstances, "myMaterialPassInstances");
     serialize(&myHeader.myMaterials, "myMaterials");
     serialize(&myHeader.myMeshes, "myMeshes");
     serialize(&myHeader.mySubModels, "mySubModels");

@@ -7,9 +7,9 @@ namespace Fancy {
   }
 
 //---------------------------------------------------------------------------//
-  struct ResourceDesc
+  struct DescriptionBase
   {
-    virtual ~ResourceDesc() {}
+    virtual ~DescriptionBase() {}
 
     virtual ObjectName GetTypeName() const = 0;
     virtual uint64 GetHash() const = 0;

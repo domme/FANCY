@@ -1,11 +1,11 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "ResourceDesc.h"
+#include "DescriptionBase.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
-  struct TextureDesc : public ResourceDesc
+  struct TextureDesc : public DescriptionBase
   {
     TextureDesc() : myIsExternalTexture(false), myInternalRefIndex(~0u) {}
     ~TextureDesc() override {}

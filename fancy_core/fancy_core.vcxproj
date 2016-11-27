@@ -398,7 +398,7 @@
     <ClInclude Include="src\RenderOperation.h" />
     <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\ResourceBinding.h" />
-    <ClInclude Include="src\ResourceDesc.h" />
+    <ClInclude Include="src\DescriptionBase.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneImporter.h" />
     <ClInclude Include="src\SceneNode.h" />

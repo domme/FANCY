@@ -173,8 +173,11 @@ namespace Fancy { namespace Rendering {
     ASSERT(nullptr != m_pMaterialPass);
 
     for (uint i = 0u; i < Constants::kMaxNumReadTextures; ++i)
-      m_vpReadTextures[i] = RenderCore::GetTexture(aDesc.myReadTextures[i].GetHash());
-
+      if (aDesc.myReadTextures[i].myIsExternalTexture)
+        m_vpReadTextures[i] = RenderCore::CreateTexture(aDesc.myReadTextures[i].mySourcePath);
+      else
+        m_vpReadTextures[i] = RenderCore::GetTexture(aDesc.myReadTextures[i].GetHash());
+    
     for (uint i = 0u; i < Constants::kMaxNumWriteTextures; ++i)
       m_vpWriteTextures[i] = RenderCore::GetTexture(aDesc.myWriteTextures[i].GetHash());
 

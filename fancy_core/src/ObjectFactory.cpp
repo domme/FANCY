@@ -14,8 +14,6 @@
 #include "Renderer.h"
 
 namespace Fancy { namespace IO {
-  
-/*
 
 //---------------------------------------------------------------------------//
   template<class T, MemoryCategory eMemoryCategory>
@@ -97,16 +95,17 @@ namespace Fancy { namespace IO {
     ASSERT(false, "Unknown typename");
     return nullptr;
   }
-*/
-
-  void* ObjectFactory::create(const ObjectName& aTypeName, bool& aWasCreated, uint64 aHash)
+//---------------------------------------------------------------------------//
+  SharedPtr<void> ObjectFactory::Create(const ObjectName& aTypeName, const DescriptionBase& aDesc)
   {
-    // TODO: We have to redesign the whole functionality how "managed" objects are stored. Instead of the hash we need to serialize real descriptions from which to create objects properly!
+    if (aTypeName == _N(Texture))
+    {
+      const Rendering::TextureDesc& desc = static_cast<const Rendering::TextureDesc&>(aDesc);
+      return Rendering::RenderCore::CreateTexture(desc);
+    }
+    
+    ASSERT(false, "Unknown typename");
     return nullptr;
   }
-
-
-
-
 //---------------------------------------------------------------------------//
 } }

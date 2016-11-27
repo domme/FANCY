@@ -212,6 +212,33 @@ namespace Fancy { namespace Rendering {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
+  SharedPtr<Texture> RenderCore::CreateTexture(const TextureDesc& aTextureDesc)
+  {
+    TextureDesc desc = aTextureDesc;
+
+    if (aTextureDesc.myIsExternalTexture)
+    {
+      String texPathAbs = aTextureDesc.mySourcePath;
+      String texPathRel = aTextureDesc.mySourcePath;
+      if (!IO::PathService::isAbsolutePath(texPathAbs))
+        IO::PathService::convertToAbsPath(texPathAbs);
+      else
+        texPathRel = IO::PathService::toRelPath(texPathAbs);
+      
+      desc.mySourcePath = texPathAbs;
+    }
+
+    auto it = ourTextureCache.find(desc.GetHash());
+    if (it != ourTextureCache.end())
+      return it->second;
+
+    ASSERT(aTextureDesc.myIsExternalTexture, 
+      "Couldn't find internal texture with refIndex %", 
+        aTextureDesc.myInternalRefIndex);
+
+    return CreateTexture(desc.mySourcePath);
+  }
+//---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::CreateTexture(const String& aTexturePath)
   {
     String texPathAbs = aTexturePath;

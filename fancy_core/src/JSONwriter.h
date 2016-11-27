@@ -13,6 +13,8 @@ namespace Fancy { namespace IO {
 
     const uint32 myVersion = 0;
 
+    void SerializeDescription(DescriptionBase* aDescription) override;
+
   protected:
 
     struct RootHeader
@@ -21,6 +23,7 @@ namespace Fancy { namespace IO {
       Json::Value myGpuPrograms;
       Json::Value myMaterialPasses;
       Json::Value myMaterials;
+      Json::Value myMaterialPassInstances;
       Json::Value myMeshes;
       Json::Value mySubModels;
       Json::Value myModels;
@@ -39,8 +42,7 @@ namespace Fancy { namespace IO {
     // New resourceDesc-based dependency system:
     void AddResourceDependency(const ObjectName& aTypeName, const Json::Value& aResourceDescVal, uint64 aHash);
     bool HasResourceDependency(uint64 aHash);
-
-
+    
     void appendResource(const ObjectName& aTypeName, const Json::Value& aResourceValue);
     bool isManagedObjectStored(const ObjectName& aName);
     void storeHeader(Json::Value& aValue);

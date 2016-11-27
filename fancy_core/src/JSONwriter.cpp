@@ -30,6 +30,20 @@ namespace Fancy { namespace IO {
     myJsonWriter.write(myArchive, myCurrentEndType);
   }
 //---------------------------------------------------------------------------//
+  void JSONwriter::SerializeDescription(DescriptionBase* aDescription)
+  {
+    ObjectName typeName = aDescription->GetTypeName();
+    uint64 hash = aDescription->GetHash();
+
+    myTypeStack.push(Json::Value(Json::objectValue));
+    Json::Value& descVal = myTypeStack.top();
+    descVal["Type"] = typeName.toString();
+    descVal["Hash"] = hash;
+    aDescription->Serialize(this);
+    AddResourceDependency(typeName, descVal, hash);
+    myTypeStack.pop();
+  }
+//---------------------------------------------------------------------------//
   bool JSONwriter::serializeImpl(DataType aDataType, void* anObject, const char* aName)
   {
     beginName(aName, aDataType.myBaseType == EBaseDataType::Array);
@@ -56,14 +70,8 @@ namespace Fancy { namespace IO {
 
       if (!HasResourceDependency(hash))
       {
-        SharedPtr<ResourceDesc> desc = metaTable->GetDescription(anObject);
-        desc->Serialize(this);
-
-        currJsonVal["Type"] = typeName;
-        currJsonVal["Hash"] = hash;
-
-        AddResourceDependency(typeName, currJsonVal, hash);
-        currJsonVal.clear();
+        SharedPtr<DescriptionBase> desc = metaTable->GetDescription(anObject);
+        SerializeDescription(desc.get());
       }
     }
     break;
@@ -303,6 +311,7 @@ namespace Fancy { namespace IO {
       { _N(Mesh), &myHeader.myMeshes },
       { _N(SubModel), &myHeader.mySubModels },
       { _N(Model), &myHeader.myModels },
+      { _N(MaterialPassInstance), &myHeader.myMaterialPassInstances },
     };
 
     for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
@@ -317,6 +326,7 @@ namespace Fancy { namespace IO {
     aValue["myVersion"] = myHeader.myVersion;
     aValue["myGpuPrograms"] = myHeader.myGpuPrograms;
     aValue["myMaterialPasses"] = myHeader.myMaterialPasses;
+    aValue["myMaterialPassInstances"] = myHeader.myMaterialPassInstances;
     aValue["myMaterials"] = myHeader.myMaterials;
     aValue["myMeshes"] = myHeader.myMeshes;
     aValue["mySubModels"] = myHeader.mySubModels;
