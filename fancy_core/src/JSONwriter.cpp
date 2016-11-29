@@ -288,7 +288,7 @@ namespace Fancy { namespace IO {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
       { _N(Texture), &myHeader.myTextures },
       { _N(GpuProgram), &myHeader.myGpuPrograms },
-      { _N()}
+      { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines }
     };
 
     for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
@@ -312,8 +312,6 @@ namespace Fancy { namespace IO {
   void JSONwriter::appendResource(const ObjectName& aTypeName, const Json::Value& aResourceValue)
   {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
-      { _N(GpuProgram), &myHeader.myGpuPrograms },
-      { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines },
       { _N(MaterialPass), &myHeader.myMaterialPasses },
       { _N(Material), &myHeader.myMaterials },
       { _N(Mesh), &myHeader.myMeshes },
