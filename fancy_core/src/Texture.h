@@ -11,7 +11,7 @@ namespace Fancy { namespace Rendering {
 class Texture : public PLATFORM_DEPENDENT_NAME(Texture)
 {
 public:
-  enum { IsSerializable = 1 }; using DescT =TextureDesc; template<class dummy> static IO::DataType getDataTypePtr() { return IO::DataType(IO::EBaseDataType::ResourcePtr, &Fancy::Internal::MetaTableResourceImpl<std::shared_ptr<Texture>>::ourVTable); }
+  SERIALIZABLE_RESOURCE(Texture)
 };
 
 } } // end of namespace Fancy::Rendering
