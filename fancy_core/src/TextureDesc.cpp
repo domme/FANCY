@@ -17,9 +17,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void TextureDesc::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&myIsExternalTexture, "myIsExternalTexture");
-    aSerializer->serialize(&mySourcePath, "mySourcePath");
-    aSerializer->serialize(&myInternalRefIndex, "myInternalRefIndex");
+    aSerializer->Serialize(&myIsExternalTexture, "myIsExternalTexture");
+    aSerializer->Serialize(&mySourcePath, "mySourcePath");
+    aSerializer->Serialize(&myInternalRefIndex, "myInternalRefIndex");
   }
 //---------------------------------------------------------------------------//
 } }

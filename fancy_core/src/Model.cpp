@@ -52,9 +52,9 @@ namespace Fancy { namespace Geometry {
       m_vSubModels[i] = SubModel::FindFromDesc(aDesc.mySubmodels[i]);
   }
 //---------------------------------------------------------------------------//
-  void Model::serialize(IO::Serializer* aSerializer)
+  void Model::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_vSubModels, "m_vSubModels");
+    aSerializer->Serialize(&m_vSubModels, "m_vSubModels");
   }
 //---------------------------------------------------------------------------//
   void Model::addSubModel(SubModel* _pSubModel)

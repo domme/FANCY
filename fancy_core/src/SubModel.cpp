@@ -55,10 +55,10 @@ namespace Fancy { namespace Geometry {
     m_pMesh = Mesh::FindFromDesc(aDesc.myMesh);
   }
 //---------------------------------------------------------------------------//
-  void SubModel::serialize(IO::Serializer* aSerializer)
+  void SubModel::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_pMaterial, "m_pMaterial");
-    aSerializer->serialize(&m_pMesh, "m_pMesh");
+    aSerializer->Serialize(&m_pMaterial, "m_pMaterial");
+    aSerializer->Serialize(&m_pMesh, "m_pMesh");
   }
 //---------------------------------------------------------------------------//
 } }   // end of namespace Fancy::Geometry

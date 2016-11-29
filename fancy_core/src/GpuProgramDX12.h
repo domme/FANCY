@@ -51,7 +51,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool operator==(const GpuProgramDesc& aDesc) const;
   //---------------------------------------------------------------------------//
     static ObjectName getTypeName() { return _N(GpuProgram); }
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
     uint64 GetHash() const { return GetDescription().GetHash(); }
 
     static VertexSemantics GetVertexSemanticFromShaderString(const char* aShaderString);

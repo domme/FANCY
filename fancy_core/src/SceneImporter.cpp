@@ -155,13 +155,15 @@ namespace Fancy { namespace IO {
     // Serialization needs a re-work after adjusting Resource-Handling apis
     {
       JSONwriter serializer(szImportPathAbs);
-      serializer.serialize(&_pParentNode, "rootNode");
+      serializer.Serialize(&_pParentNode, "rootNode");
     }
 
+    /*
     {
       JSONreader serializer(szImportPathAbs);
-      serializer.serialize(&_pParentNode, "rootNode");
+      serializer.Serialize(&_pParentNode, "rootNode");
     }
+    */
     
     return success;
   }

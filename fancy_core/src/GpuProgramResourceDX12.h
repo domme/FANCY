@@ -16,7 +16,7 @@ namespace Fancy {
         GpuProgramResourceDX12();
         ~GpuProgramResourceDX12();
 
-        void serialize(IO::Serializer* aSerializer);
+        void Serialize(IO::Serializer* aSerializer);
       };
 
     }

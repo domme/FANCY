@@ -36,7 +36,7 @@ namespace Fancy { namespace IO {
 
         ESerializationMode getMode() { return myMode; }
 
-        template<class T> void serialize(T* anObject, const char* aName = nullptr)
+        template<class T> void Serialize(T* anObject, const char* aName = nullptr)
         {
           DataType dataType = Get_DataType<T>::get();
           serializeImpl(dataType, anObject, aName);

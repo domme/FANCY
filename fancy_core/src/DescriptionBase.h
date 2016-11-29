@@ -1,8 +1,8 @@
 #pragma once
 
 
-namespace Fancy { 
-  namespace IO {
+
+namespace Fancy { namespace IO {
   class Serializer;
   }
 

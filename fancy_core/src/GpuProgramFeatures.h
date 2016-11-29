@@ -31,7 +31,7 @@ namespace Fancy { namespace Rendering {
         
       static ObjectName getTypeName() { return _N(GpuProgramPermutation); }
       uint64 GetHash() const { return m_uHash; }
-      void serialize(IO::Serializer* aSerializer);
+      void Serialize(IO::Serializer* aSerializer);
 
       bool operator==(const GpuProgramPermutation& anOtherPermutation) const {
         return m_uHash == anOtherPermutation.m_uHash;

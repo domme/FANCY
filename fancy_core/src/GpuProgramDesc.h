@@ -43,10 +43,10 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   inline void GpuProgramDesc::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&myShaderFileName, "myShaderFileName");
-    aSerializer->serialize(&myMainFunction, "myMainFunction");
-    aSerializer->serialize(&myShaderStage, "myShaderStage");
-    aSerializer->serialize(&myPermutation, "myPermutation");
+    aSerializer->Serialize(&myShaderFileName, "myShaderFileName");
+    aSerializer->Serialize(&myMainFunction, "myMainFunction");
+    aSerializer->Serialize(&myShaderStage, "myShaderStage");
+    aSerializer->Serialize(&myPermutation, "myPermutation");
   }
 //---------------------------------------------------------------------------//
 } }

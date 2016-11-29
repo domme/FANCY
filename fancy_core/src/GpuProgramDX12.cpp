@@ -99,7 +99,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return GetDescription() == aDesc;
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramDX12::serialize(IO::Serializer* aSerializer)
+  void GpuProgramDX12::Serialize(IO::Serializer* aSerializer)
   {
   }
 //---------------------------------------------------------------------------//

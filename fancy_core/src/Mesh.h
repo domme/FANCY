@@ -31,7 +31,7 @@ namespace Fancy { namespace Geometry {
     uint64 GetHash() const { return GetDescription().GetHash(); }
   //---------------------------------------------------------------------------//
     static ObjectName getTypeName() { return _N(Mesh); }
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
 
     uint32 getNumGeometryDatas() const {return m_vGeometries.size();}
     GeometryData* getGeometryData(uint32 u32Index) {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}

@@ -32,7 +32,7 @@ namespace Fancy { namespace Rendering {
 
       uint64 GetHash() const { return GetDescription().GetHash(); }
       static ObjectName getTypeName() { return _N(Material); }
-      void serialize(IO::Serializer* aSerializer);
+      void Serialize(IO::Serializer* aSerializer);
 
       const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint32) ePassType]; }
       void setPass(MaterialPassInstance* _pPass, EMaterialPass _ePassType) {m_vPasses[(uint32) _ePassType] = _pPass; }

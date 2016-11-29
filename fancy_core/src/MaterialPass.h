@@ -36,7 +36,7 @@ namespace Fancy { namespace Rendering {
       MaterialPassDesc GetDescription() const;
       void SetFromDescription(const MaterialPassDesc& aDesc);
 
-      void serialize(IO::Serializer* aSerializer);
+      void Serialize(IO::Serializer* aSerializer);
       static ObjectName getTypeName() { return _N(MaterialPass); }
       uint64 GetHash() const { return GetDescription().GetHash(); }
 

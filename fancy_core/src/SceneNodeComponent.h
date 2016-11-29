@@ -25,7 +25,7 @@ namespace Fancy { namespace Scene {
 
       uint64 GetHash() const { return 0u; }
       virtual ObjectName getTypeName() const = 0;
-      virtual void serialize(IO::Serializer* aSerializer) = 0;
+      virtual void Serialize(IO::Serializer* aSerializer) = 0;
       
       SceneNode* getSceneNode() { return m_pOwner; }
       const SceneNode* getSceneNode() const { return m_pOwner; }

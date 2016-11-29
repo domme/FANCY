@@ -70,7 +70,7 @@ namespace Fancy { namespace Scene {
       ~SceneNode();
 
       static ObjectName getTypeName() { return _N(SceneNode); }
-      void serialize(IO::Serializer* aSerializer);
+      void Serialize(IO::Serializer* aSerializer);
       uint64 GetHash() const { return 0u; }
 
       static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent);

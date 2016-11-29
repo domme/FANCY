@@ -85,14 +85,14 @@ namespace Fancy { namespace Rendering {
     myProgramPipeline = RenderCore::CreateGpuProgramPipeline(aDesc.m_GpuProgramPipelineDesc);
   }
 //---------------------------------------------------------------------------//
-  void MaterialPass::serialize(IO::Serializer* aSerializer)
+  void MaterialPass::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&myProgramPipeline, "myProgramPipeline");
-    aSerializer->serialize(&m_eFillMode, "m_eFillMode");
-    aSerializer->serialize(&m_eCullMode, "m_eCullMode");
-    aSerializer->serialize(&m_eWindingOrder, "m_eWindingOrder");
-    aSerializer->serialize(&m_pBlendState, "m_pBlendState");
-    aSerializer->serialize(&m_pDepthStencilState, "m_pDepthStencilState");
+    aSerializer->Serialize(&myProgramPipeline, "myProgramPipeline");
+    aSerializer->Serialize(&m_eFillMode, "m_eFillMode");
+    aSerializer->Serialize(&m_eCullMode, "m_eCullMode");
+    aSerializer->Serialize(&m_eWindingOrder, "m_eWindingOrder");
+    aSerializer->Serialize(&m_pBlendState, "m_pBlendState");
+    aSerializer->Serialize(&m_pDepthStencilState, "m_pDepthStencilState");
   }
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

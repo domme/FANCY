@@ -20,9 +20,9 @@ namespace Fancy { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPermutation::serialize(IO::Serializer* aSerializer)
+  void GpuProgramPermutation::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_vFeatures, "myFeatures");
+    aSerializer->Serialize(&m_vFeatures, "myFeatures");
      
     if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
       m_uHash = Internal::sortAndGetHash(m_vFeatures);

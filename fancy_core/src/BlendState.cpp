@@ -139,9 +139,9 @@ namespace Fancy { namespace Rendering {
     myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
-  void BlendState::serialize(IO::Serializer* aSerializer)
+  void BlendState::Serialize(IO::Serializer* aSerializer)
   {
-    // aSerializer->serialize(&myName, "myName");
+    // aSerializer->Serialize(&myName, "myName");
   }
 //---------------------------------------------------------------------------//
 	uint64 BlendState::GetHash() const

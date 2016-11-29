@@ -2,7 +2,7 @@
 
 #include "BlendState.h"
 #include "DepthStencilState.h"
-#include "GpuProgramDesc.h"
+#include "GpuProgramPipelineDesc.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//

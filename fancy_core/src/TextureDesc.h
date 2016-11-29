@@ -7,6 +7,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
   struct TextureDesc : public DescriptionBase
   {
+    
     TextureDesc() : myIsExternalTexture(false), myInternalRefIndex(~0u) {}
     ~TextureDesc() override {}
     

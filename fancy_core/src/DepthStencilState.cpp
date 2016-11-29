@@ -147,9 +147,9 @@ namespace Fancy { namespace Rendering {
     myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
-  void DepthStencilState::serialize(IO::Serializer* aSerializer)
+  void DepthStencilState::Serialize(IO::Serializer* aSerializer)
   {
-    // aSerializer->serialize(&myName, "myName");
+    // aSerializer->Serialize(&myName, "myName");
   }
 //---------------------------------------------------------------------------//
   uint64 DepthStencilState::GetHash() const

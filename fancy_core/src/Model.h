@@ -32,7 +32,7 @@ namespace Fancy { namespace Geometry {
 
       static ObjectName getTypeName() { return _N(Model); }
       uint64 GetHash() const { return GetDescription().GetHash(); }
-      void serialize(IO::Serializer* aSerializer);
+      void Serialize(IO::Serializer* aSerializer);
 
       uint32 getNumSubModels() const {return m_vSubModels.size();}
     //---------------------------------------------------------------------------//

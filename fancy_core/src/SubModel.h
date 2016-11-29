@@ -46,7 +46,7 @@ namespace Fancy { namespace Geometry {
     void SetFromDescription(const SubModelDesc& aDesc);
 
     static ObjectName getTypeName() { return _N(SubModel); }
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
     uint64 GetHash() const { return GetDescription().GetHash(); }
 
     Rendering::Material* getMaterial() const {return m_pMaterial;}

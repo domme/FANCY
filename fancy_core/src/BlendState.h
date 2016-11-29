@@ -49,7 +49,7 @@ public:
 
   uint64 GetHash() const;
   static ObjectName getTypeName() { return _N(BlendState); }
-  void serialize(IO::Serializer* aSerializer);
+  void Serialize(IO::Serializer* aSerializer);
 
   bool getAlphaToCoverageEnabled() const { return myAlphaToCoverageEnabled; }
   void setAlphaToCoverageEnabled(bool val) { myIsDirty |= myAlphaToCoverageEnabled != val; myAlphaToCoverageEnabled = val; }

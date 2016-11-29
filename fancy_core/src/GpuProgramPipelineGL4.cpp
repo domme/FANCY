@@ -111,7 +111,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipelineGL4::serialize(IO::Serializer* aSerializer)
+  void GpuProgramPipelineGL4::Serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serializeArray(myGpuPrograms, "myGpuPrograms");
   }

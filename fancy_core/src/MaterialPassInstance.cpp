@@ -112,10 +112,10 @@ namespace Fancy { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//
-  void ResourceStorageEntry::serialize(IO::Serializer* aSerializer)
+  void ResourceStorageEntry::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&myIndex, "myIndex");
-    aSerializer->serialize(&myHash, "myHash");
+    aSerializer->Serialize(&myIndex, "myIndex");
+    aSerializer->Serialize(&myHash, "myHash");
   }
 //---------------------------------------------------------------------------//
   MaterialPassInstance::MaterialPassInstance() :
@@ -191,28 +191,28 @@ namespace Fancy { namespace Rendering {
       m_vpTextureSamplers[i] = TextureSampler::FindFromDesc(aDesc.myTextureSamplers[i]);
   }
 //---------------------------------------------------------------------------//
-  void MaterialPassInstance::serialize(IO::Serializer* aSerializer)
+  void MaterialPassInstance::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&m_pMaterialPass, "m_pMaterialPass");
+    aSerializer->Serialize(&m_pMaterialPass, "m_pMaterialPass");
 
     /*
     std::vector<ResourceStorageEntry> readTextures;
     getResourceDesc(MpiResourceType::ReadTexture, readTextures);
-    aSerializer->serialize(&readTextures, "readTextures");
+    aSerializer->Serialize(&readTextures, "readTextures");
     */
 
     // SharedPtr<Texture> tex;
-    // aSerializer->serialize(&tex, "TestTex");
+    // aSerializer->Serialize(&tex, "TestTex");
 
     aSerializer->serializeArray(m_vpReadTextures, "m_vpReadTextures");
 
     std::vector<ResourceStorageEntry> writeTextures;
     getResourceDesc(MpiResourceType::WriteTexture, writeTextures);
-    aSerializer->serialize(&writeTextures, "writeTextures");
+    aSerializer->Serialize(&writeTextures, "writeTextures");
 
     std::vector<ResourceStorageEntry> textureSamplers;
     getResourceDesc(MpiResourceType::TextureSampler, textureSamplers);
-    aSerializer->serialize(&textureSamplers, "textureSamplers");
+    aSerializer->Serialize(&textureSamplers, "textureSamplers");
 
     if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
     {

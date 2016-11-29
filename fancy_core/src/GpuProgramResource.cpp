@@ -3,23 +3,23 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
-  void GpuProgramResourceInfo::serialize(IO::Serializer* aSerializer)
+  void GpuProgramResourceInfo::Serialize(IO::Serializer* aSerializer)
   {
-    PLATFORM_DEPENDENT_NAME(GpuProgramResource)::serialize(aSerializer);
+    PLATFORM_DEPENDENT_NAME(GpuProgramResource)::Serialize(aSerializer);
     
-    aSerializer->serialize(&u32RegisterIndex, "registerIndex");
-    aSerializer->serialize(&name, "name");
-    aSerializer->serialize(&eAccessType, "accessType");
-    aSerializer->serialize(&eResourceType, "resourceType");
+    aSerializer->Serialize(&u32RegisterIndex, "registerIndex");
+    aSerializer->Serialize(&name, "name");
+    aSerializer->Serialize(&eAccessType, "accessType");
+    aSerializer->Serialize(&eResourceType, "resourceType");
   }
 //---------------------------------------------------------------------------//
-  void ConstantBufferElement::serialize(IO::Serializer* aSerializer)
+  void ConstantBufferElement::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&name, "name");
-    aSerializer->serialize(&uOffsetBytes, "OffsetBytes");
-    aSerializer->serialize(&uSizeBytes, "SizeBytes");
-    aSerializer->serialize(&eFormat, "dataFormat");
-    aSerializer->serialize(&uFormatComponentCount, "formatComponentCount");
+    aSerializer->Serialize(&name, "name");
+    aSerializer->Serialize(&uOffsetBytes, "OffsetBytes");
+    aSerializer->Serialize(&uSizeBytes, "SizeBytes");
+    aSerializer->Serialize(&eFormat, "dataFormat");
+    aSerializer->Serialize(&uFormatComponentCount, "formatComponentCount");
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

@@ -17,7 +17,7 @@ namespace Fancy {
       {
       }
 
-      void GpuProgramResourceDX12::serialize(IO::Serializer* aSerializer)
+      void GpuProgramResourceDX12::Serialize(IO::Serializer* aSerializer)
       {
       }
     }

@@ -6,26 +6,26 @@
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//
-  void ShaderStageInterfaceElement::serialize(IO::Serializer* aSerializer)
+  void ShaderStageInterfaceElement::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&name, "name");
-    aSerializer->serialize(&uLocation, "location");
-    aSerializer->serialize(&uArraySize, "arraySize");
-    aSerializer->serialize(&uArrayStride, "arrayStride");
-    aSerializer->serialize(&uOffset, "offset");
-    aSerializer->serialize(&uBlockIndex, "blockIndex");
-    aSerializer->serialize(&eTypeGL, "eTypeGL");
-    aSerializer->serialize(&uAtomicCountBufIndex, "atomicCountBufIndex");
+    aSerializer->Serialize(&name, "name");
+    aSerializer->Serialize(&uLocation, "location");
+    aSerializer->Serialize(&uArraySize, "arraySize");
+    aSerializer->Serialize(&uArrayStride, "arrayStride");
+    aSerializer->Serialize(&uOffset, "offset");
+    aSerializer->Serialize(&uBlockIndex, "blockIndex");
+    aSerializer->Serialize(&eTypeGL, "eTypeGL");
+    aSerializer->Serialize(&uAtomicCountBufIndex, "atomicCountBufIndex");
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  void ShaderStageFragmentOutput::serialize(IO::Serializer* aSerializer)
+  void ShaderStageFragmentOutput::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&name, "name");
-    aSerializer->serialize(&uRtIndex, "rtIndex");
-    aSerializer->serialize(&uLocation, "location");
-    aSerializer->serialize(&eFormat, "dataFormat");
-    aSerializer->serialize(&uFormatComponentCount, "formatComponentCount");
+    aSerializer->Serialize(&name, "name");
+    aSerializer->Serialize(&uRtIndex, "rtIndex");
+    aSerializer->Serialize(&uLocation, "location");
+    aSerializer->Serialize(&eFormat, "dataFormat");
+    aSerializer->Serialize(&uFormatComponentCount, "formatComponentCount");
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -69,25 +69,25 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     myPermutation = _desc.myPermutation;
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramGL4::serialize(IO::Serializer* aSerializer)
+  void GpuProgramGL4::Serialize(IO::Serializer* aSerializer)
   {
     if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
       destroy();
     
-    aSerializer->serialize(&m_Name, "m_Name");
-    aSerializer->serialize(&m_eShaderStage, "ShaderStage");
-    aSerializer->serialize(&m_clVertexInputLayout, "VertexInputLayout");
-    aSerializer->serialize(&m_vInputInterfaces, "InputInterfaces");
-    aSerializer->serialize(&m_vOutputInterfaces, "OutputInterfaces");
-    aSerializer->serialize(&m_vFragmentOutputs, "FragmentOutpus");
-    aSerializer->serialize(&m_vReadTextureInfos, "ReadTextureInfos");
-    aSerializer->serialize(&m_vReadBufferInfos, "ReadBufferInfos");
-    aSerializer->serialize(&m_vWriteTextureInfos, "WriteTextureInfos");
-    aSerializer->serialize(&m_vWriteBufferInfos, "WriteBufferInfos");
-    aSerializer->serialize(&myConstantBufferElements, "ConstantBufferElements");
-    aSerializer->serialize(&myShaderCode, "ShaderCode");
-    aSerializer->serialize(&myShaderFilename, "ShaderFilename");
-    aSerializer->serialize(&myPermutation, "Permutation");
+    aSerializer->Serialize(&m_Name, "m_Name");
+    aSerializer->Serialize(&m_eShaderStage, "ShaderStage");
+    aSerializer->Serialize(&m_clVertexInputLayout, "VertexInputLayout");
+    aSerializer->Serialize(&m_vInputInterfaces, "InputInterfaces");
+    aSerializer->Serialize(&m_vOutputInterfaces, "OutputInterfaces");
+    aSerializer->Serialize(&m_vFragmentOutputs, "FragmentOutpus");
+    aSerializer->Serialize(&m_vReadTextureInfos, "ReadTextureInfos");
+    aSerializer->Serialize(&m_vReadBufferInfos, "ReadBufferInfos");
+    aSerializer->Serialize(&m_vWriteTextureInfos, "WriteTextureInfos");
+    aSerializer->Serialize(&m_vWriteBufferInfos, "WriteBufferInfos");
+    aSerializer->Serialize(&myConstantBufferElements, "ConstantBufferElements");
+    aSerializer->Serialize(&myShaderCode, "ShaderCode");
+    aSerializer->Serialize(&myShaderFilename, "ShaderFilename");
+    aSerializer->Serialize(&myPermutation, "Permutation");
 
     if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
       GpuProgramCompilerGL4::compileFromSource(myShaderCode, m_eShaderStage, m_uProgramHandleGL);

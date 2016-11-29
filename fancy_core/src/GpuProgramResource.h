@@ -35,7 +35,7 @@ namespace Fancy { namespace Rendering {
   struct ConstantBufferElement
   {
     SERIALIZABLE(ConstantBufferElement)
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
     uint64 GetHash() const { return 0u; }
     ObjectName getTypeName() const { return _N(ConstantBufferElement); }
 
@@ -57,7 +57,7 @@ namespace Fancy { namespace Rendering {
         eResourceType(GpuResourceType::NONE) {}
 
     SERIALIZABLE(GpuProgramResourceInfo)
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
     uint64 GetHash() const { return 0u; }
     ObjectName getTypeName() const { return _N(GpuProgramResourceInfo); }
 

@@ -2,7 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "GpuProgramDesc.h"
+#include "GpuProgramPipelineDesc.h"
 
 #if defined (RENDERER_DX12)
 
@@ -23,7 +23,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
     SERIALIZABLE(GpuProgramPipelineDX12);
 
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
     uint64 GetHash() const { return GetDescription().GetHash(); }
     uint64 GetShaderByteCodeHash() const { return myShaderByteCodeHash; }

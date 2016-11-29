@@ -33,9 +33,9 @@ namespace Fancy { namespace Geometry {
     return myVertexAndIndexHash == aDesc.myVertexAndIndexHash;
   }
 //---------------------------------------------------------------------------//
-  void Mesh::serialize(IO::Serializer* aSerializer)
+  void Mesh::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&myVertexAndIndexHash, "VertexAndIndexHash");
+    aSerializer->Serialize(&myVertexAndIndexHash, "VertexAndIndexHash");
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry

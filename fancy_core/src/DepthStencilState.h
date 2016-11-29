@@ -46,7 +46,7 @@ namespace Fancy { namespace Rendering {
 
       uint64 GetHash() const;
       static ObjectName getTypeName() { return _N(DepthStencilState); }
-      void serialize(IO::Serializer* aSerializer);
+      void Serialize(IO::Serializer* aSerializer);
 
       bool GetDepthTestEnabled() const { return myDepthTestEnabled; }
       void SetDepthTestEnabled(bool aDepthTestEnabled) { myIsDirty |= myDepthTestEnabled != aDepthTestEnabled; myDepthTestEnabled = aDepthTestEnabled; }

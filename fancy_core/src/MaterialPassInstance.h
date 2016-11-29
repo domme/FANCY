@@ -24,7 +24,7 @@ namespace Fancy { namespace Rendering {
     uint32 myIndex;
     uint64 myHash;
 
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
     ObjectName getTypeName() const { return _N(ResourceStorageEntry); }
     uint64 GetHash() const { return 0u; }
   };
@@ -44,7 +44,7 @@ namespace Fancy { namespace Rendering {
     void SetFromDescription(const MaterialPassInstanceDesc& aDesc);
 
     uint64 GetHash() const { return GetDescription().GetHash(); }
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
     static ObjectName getTypeName() { return _N(MaterialPassInstance); }
 
     const SharedPtr<Texture>* getReadTextures() const { return m_vpReadTextures; }

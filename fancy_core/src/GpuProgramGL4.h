@@ -23,7 +23,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     SERIALIZABLE(ShaderStageInterfaceElement)
     static ObjectName getTypeName() { return _N(ShaderStageInterfaceElement); }
     uint64 GetHash() const { return 0u; }
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
 
     ShaderStageInterfaceElement() : 
       uLocation(0u), uArraySize(0u), uArrayStride(0u), uOffset(0u), 
@@ -44,7 +44,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     SERIALIZABLE(ShaderStageFragmentOutput)
       static ObjectName getTypeName() { return _N(ShaderStageFragmentOutput); }
     const uint64 GetHash() const { return 0u; }
-    void serialize(IO::Serializer* aSerializer);
+    void Serialize(IO::Serializer* aSerializer);
 
     ShaderStageFragmentOutput() :
       uRtIndex(0u), uLocation(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
@@ -103,7 +103,7 @@ namespace Fancy { namespace Rendering { namespace GL4 {
     //---------------------------------------------------------------------------//
       uint64 GetHash() const { return GetDescription().GetHash(); }
       static ObjectName getTypeName() { return _N(GpuProgram); }
-      void serialize(IO::Serializer* aSerializer);
+      void Serialize(IO::Serializer* aSerializer);
 
       bool operator==(const GpuProgramDesc& anOtherDesc) const;
       GpuProgramDesc GetDescription() const;

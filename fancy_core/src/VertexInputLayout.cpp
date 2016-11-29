@@ -41,14 +41,14 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
   //---------------------------------------------------------------------------//
-  void ShaderVertexInputElement::serialize(IO::Serializer* aSerializer)
+  void ShaderVertexInputElement::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&myName, "myName");
-    aSerializer->serialize(&mySemantics, "eSemantics");
-    aSerializer->serialize(&myRegisterIndex, "registerIndex");
-    aSerializer->serialize(&mySizeBytes, "sizeBytes");
-    aSerializer->serialize(&myFormat, "dataFormat");
-    aSerializer->serialize(&myFormatComponentCount, "formatComponentCount");
+    aSerializer->Serialize(&myName, "myName");
+    aSerializer->Serialize(&mySemantics, "eSemantics");
+    aSerializer->Serialize(&myRegisterIndex, "registerIndex");
+    aSerializer->Serialize(&mySizeBytes, "sizeBytes");
+    aSerializer->Serialize(&myFormat, "dataFormat");
+    aSerializer->Serialize(&myFormatComponentCount, "formatComponentCount");
   }
 //---------------------------------------------------------------------------//
   ShaderVertexInputLayout ShaderVertexInputLayout::ourDefaultModelLayout;
@@ -63,9 +63,9 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-  void ShaderVertexInputLayout::serialize(IO::Serializer* aSerializer)
+  void ShaderVertexInputLayout::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serialize(&myVertexInputElements, "VertexInputElements");
+    aSerializer->Serialize(&myVertexInputElements, "VertexInputElements");
   }
   //---------------------------------------------------------------------------//
   ShaderVertexInputLayout::ShaderVertexInputLayout()

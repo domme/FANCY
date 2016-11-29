@@ -53,6 +53,11 @@ namespace Fancy { namespace IO {
     bool handled = true;
     switch (aDataType.myBaseType)
     {
+    case EBaseDataType::StructOrClass:
+    {
+      MetaTableStructOrClass* metaTable = static_cast<MetaTableStructOrClass*>(aDataType.myUserData);
+      metaTable->Serialize(this, anObject);
+    } break;
     case EBaseDataType::ResourcePtr:
     {
       MetaTableResource* metaTable = static_cast<MetaTableResource*>(aDataType.myUserData);
@@ -100,7 +105,7 @@ namespace Fancy { namespace IO {
         String key = typeName + "_" + StringUtil::toString(instanceHash);
         if (!isManagedObjectStored(key))
         {
-          metaTable->serialize(this, anObject);
+          metaTable->Serialize(this, anObject);
           appendResource(typeName, currJsonVal);
           currJsonVal.clear();
 
@@ -114,7 +119,7 @@ namespace Fancy { namespace IO {
       }
       else
       {
-        metaTable->serialize(this, anObject);
+        metaTable->Serialize(this, anObject);
       }
     } break;
 
@@ -281,7 +286,9 @@ namespace Fancy { namespace IO {
   void JSONwriter::AddResourceDependency(const ObjectName& aTypeName, const Json::Value& aResourceDescVal, uint64 aHash)
   {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
-      { _N(Texture), &myHeader.myTextures }
+      { _N(Texture), &myHeader.myTextures },
+      { _N(GpuProgram), &myHeader.myGpuPrograms },
+      { _N()}
     };
 
     for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
@@ -306,6 +313,7 @@ namespace Fancy { namespace IO {
   {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
       { _N(GpuProgram), &myHeader.myGpuPrograms },
+      { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines },
       { _N(MaterialPass), &myHeader.myMaterialPasses },
       { _N(Material), &myHeader.myMaterials },
       { _N(Mesh), &myHeader.myMeshes },

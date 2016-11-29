@@ -106,7 +106,7 @@ namespace Fancy { namespace IO {
       metaTable->create(anObject, typeName, wasCreated, instanceHash);
 
       if (wasCreated)
-        metaTable->serialize(this, anObject);
+        metaTable->Serialize(this, anObject);
 
     } break;
 
@@ -270,15 +270,15 @@ namespace Fancy { namespace IO {
     Json::Value& rootVal = *myTypeStack.top();
     myHeader.myVersion = rootVal["myVersion"].asUInt();
 
-    serialize(&myHeader.myTextures, "myTextures");
+    Serialize(&myHeader.myTextures, "myTextures");
 
-    serialize(&myHeader.myGpuPrograms, "myGpuPrograms");
-    serialize(&myHeader.myMaterialPasses, "myMaterialPasses");
-    serialize(&myHeader.myMaterialPassInstances, "myMaterialPassInstances");
-    serialize(&myHeader.myMaterials, "myMaterials");
-    serialize(&myHeader.myMeshes, "myMeshes");
-    serialize(&myHeader.mySubModels, "mySubModels");
-    serialize(&myHeader.myModels, "myModels");
+    Serialize(&myHeader.myGpuPrograms, "myGpuPrograms");
+    Serialize(&myHeader.myMaterialPasses, "myMaterialPasses");
+    Serialize(&myHeader.myMaterialPassInstances, "myMaterialPassInstances");
+    Serialize(&myHeader.myMaterials, "myMaterials");
+    Serialize(&myHeader.myMeshes, "myMeshes");
+    Serialize(&myHeader.mySubModels, "mySubModels");
+    Serialize(&myHeader.myModels, "myModels");
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//

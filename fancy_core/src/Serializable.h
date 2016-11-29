@@ -6,14 +6,40 @@
 #include "ObjectFactory.h"
 #include "DescriptionBase.h"
 
-
-
 namespace Fancy {
 struct DescriptionBase;
 
 namespace Rendering {
   class Texture;
 }
+
+//---------------------------------------------------------------------------//
+  template <typename T>
+  class HasSerializeMemFn
+  {
+    typedef char Yes;
+    typedef long No;
+
+    template <typename C> static Yes Test(decltype(&C::Serialize));
+    template <typename C> static No Test(...);
+
+  public:
+     enum {value = sizeof(Test<T>(0)) == sizeof(Yes) };
+  };
+//---------------------------------------------------------------------------//
+  template <typename T>
+  class IsSerializable
+  {
+    typedef char Yes;
+    typedef long No;
+
+    template <typename C> static Yes Test(decltype(&C::IsSerializable));
+    template <typename C> static No Test(...);
+
+  public:
+    enum { value = sizeof(Test<T>(0)) == sizeof(Yes) };
+  };
+//---------------------------------------------------------------------------//
 
 namespace IO {
 
@@ -48,23 +74,23 @@ namespace IO {
     StructOrClass,
   };
 //---------------------------------------------------------------------------//
-  //struct MetaTableStructOrClass
-  //{
-  //  virtual void serialize(IO::Serializer* aSerializer, void* anObject) = 0;
-  //};
+  struct MetaTableStructOrClass
+  {
+    virtual void Serialize(IO::Serializer* aSerializer, void* anObject) = 0;
+  };
 ////---------------------------------------------------------------------------//
-  //template<class T>
-  //struct MetaTableStructOrClassImpl : public MetaTableStructOrClass
-  //{
-  //  virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
-  //  {
-  //    ((T*)anObject)->serialize(aSerializer);
-  //  }
-  //
-  //  static MetaTableStructOrClassImpl<T> ourVTable;
-  //};+
-  //template<class T>
-  //MetaTableStructOrClassImpl<T> MetaTableStructOrClassImpl<T>::ourVTable;
+  template<class T>
+  struct MetaTableStructOrClassImpl : public MetaTableStructOrClass
+  {
+    void Serialize(IO::Serializer* aSerializer, void* anObject) override
+    {
+      static_cast<T*>(anObject)->Serialize(aSerializer);
+    }
+  
+    static MetaTableStructOrClassImpl<T> ourVTable;
+  };
+  template<class T>
+  MetaTableStructOrClassImpl<T> MetaTableStructOrClassImpl<T>::ourVTable;
 //---------------------------------------------------------------------------//
   struct DataType
   {
@@ -78,7 +104,7 @@ namespace IO {
 } // end of namespace IO
 
 //---------------------------------------------------------------------------//
-  template<class T, typename = void>
+  template<class T, typename IsEnumT = void, typename HasSerializationMethodT = void>
   struct Get_DataType
   {
     static IO::DataType get()
@@ -97,14 +123,15 @@ namespace IO {
     }
   };
 //---------------------------------------------------------------------------//
-  //template<class T>
-  //struct Get_DataType<T, typename T::IsSerializable>
-  //{
-  //  static IO::DataType get()
-  //  {
-  //    return T::template getDataType<void>();
-  //  }
-  //};
+  // Special case if T has a Serialize() method
+  template<class T>
+  struct Get_DataType<T, void, std::enable_if_t<HasSerializeMemFn<T>::value && !IsSerializable<T>::value>>
+  {
+    static IO::DataType get()
+    {
+      return IO::DataType(IO::EBaseDataType::StructOrClass, &IO::MetaTableStructOrClassImpl<T>::ourVTable);
+    }
+  };
 //---------------------------------------------------------------------------//
   template<class T>
   struct Get_DataType<std::shared_ptr<T>>
@@ -172,7 +199,7 @@ namespace IO {
     virtual String getTypeName(void* anObject) { return ""; }
     virtual uint64 getHash(void* anObject) { return 0u; }
     virtual bool isManaged(void* anObject) { return false; }
-    virtual void serialize(IO::Serializer* aSerializer, void* anObject) = 0;
+    virtual void Serialize(IO::Serializer* aSerializer, void* anObject) = 0;
     virtual bool isValid(void* anObject) { return true; }
     virtual void invalidate(void* anObject) {}
   };
@@ -226,10 +253,10 @@ namespace IO {
         return serializable->GetHash();
       }
 
-      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      virtual void Serialize(IO::Serializer* aSerializer, void* anObject) override
       {
         T* serializable = static_cast<T*>(anObject);
-        serializable->serialize(aSerializer);
+        serializable->Serialize(aSerializer);
       }
 
       static MetaTableImpl<T> ourVTable;
@@ -277,10 +304,10 @@ namespace IO {
         return (*serializable)->GetHash();
       }
 
-      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      virtual void Serialize(IO::Serializer* aSerializer, void* anObject) override
       {
         T** serializable = static_cast<T**>(anObject);
-        (*serializable)->serialize(aSerializer);
+        (*serializable)->Serialize(aSerializer);
       }
 
       static MetaTableImpl<T*> ourVTable;
@@ -330,10 +357,10 @@ namespace IO {
         return (*serializable)->GetHash();
       }
 
-      virtual void serialize(IO::Serializer* aSerializer, void* anObject) override
+      virtual void Serialize(IO::Serializer* aSerializer, void* anObject) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable)->serialize(aSerializer);
+        (*serializable)->Serialize(aSerializer);
       }
 
       static MetaTableImpl<std::shared_ptr<T>> ourVTable;

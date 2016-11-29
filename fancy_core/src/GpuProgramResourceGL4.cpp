@@ -5,10 +5,10 @@
 
 namespace Fancy { namespace Rendering { namespace GL4 {
 //---------------------------------------------------------------------------//  
-void GpuProgramResourceGL4::serialize(IO::Serializer* aSerializer)
+void GpuProgramResourceGL4::Serialize(IO::Serializer* aSerializer)
 {
-  aSerializer->serialize(&bindingTargetGL, "GLbindingTarget");
-  aSerializer->serialize(&dataFormatGL, "GLdataFormat");
+  aSerializer->Serialize(&bindingTargetGL, "GLbindingTarget");
+  aSerializer->Serialize(&dataFormatGL, "GLdataFormat");
 }
 //---------------------------------------------------------------------------//  
 } } }  // end of namespace Fancy::Rendering::GL4

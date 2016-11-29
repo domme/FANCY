@@ -17,7 +17,7 @@ namespace Fancy {namespace Rendering { namespace GL4 {
       /// e.g. GL_RGB32F 
       GLenum dataFormatGL;
 
-      void serialize(IO::Serializer* aSerializer);
+      void Serialize(IO::Serializer* aSerializer);
   };
 } } } // end of namespace Fancy::Rendering::GL4
 

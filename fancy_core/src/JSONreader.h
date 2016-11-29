@@ -27,7 +27,7 @@ namespace Fancy { namespace IO {
     struct RootHeader
     {
       uint32 myVersion;
-      std::vector<Rendering::GpuProgram*> myGpuPrograms;
+      
       std::vector<Rendering::MaterialPass*> myMaterialPasses;
       std::vector<Rendering::MaterialPassInstance*> myMaterialPassInstances;
       std::vector<Rendering::Material*> myMaterials;
@@ -35,6 +35,7 @@ namespace Fancy { namespace IO {
       std::vector<Geometry::SubModel*> mySubModels;
       std::vector<Geometry::Model*> myModels;
 
+      std::vector<SharedPtr<Rendering::GpuProgram>> myGpuPrograms;
       std::vector<SharedPtr<Rendering::Texture>> myTextures;
 
       std::vector<SharedPtr<DescriptionBase>> myResourceDependencies;

@@ -96,7 +96,7 @@ namespace Fancy { namespace Rendering {
       m_vParameters[i] = aDesc.myParameters[i];
   }
 //---------------------------------------------------------------------------//
-  void Material::serialize(IO::Serializer* aSerializer)
+  void Material::Serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serializeArray(m_vParameters, "m_vParameters");
     aSerializer->serializeArray(m_vPasses, "m_vPasses");
