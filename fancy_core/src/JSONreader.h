@@ -35,6 +35,7 @@ namespace Fancy { namespace IO {
       std::vector<Geometry::SubModel*> mySubModels;
       std::vector<Geometry::Model*> myModels;
 
+      std::vector<SharedPtr<Rendering::GpuProgramPipeline>> myGpuProgramPipelines;
       std::vector<SharedPtr<Rendering::GpuProgram>> myGpuPrograms;
       std::vector<SharedPtr<Rendering::Texture>> myTextures;
 

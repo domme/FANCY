@@ -158,12 +158,10 @@ namespace Fancy { namespace IO {
       serializer.Serialize(&_pParentNode, "rootNode");
     }
 
-    /*
     {
       JSONreader serializer(szImportPathAbs);
       serializer.Serialize(&_pParentNode, "rootNode");
     }
-    */
     
     return success;
   }
