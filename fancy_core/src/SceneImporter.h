@@ -3,6 +3,10 @@
 
 #include "FancyCorePrerequisites.h"
 
+namespace Fancy {
+class GraphicsWorld;
+}
+
 namespace Fancy { namespace Scene {
   class Scene;
   class SceneNode;
@@ -17,7 +21,7 @@ namespace Fancy { namespace IO {
 
       static void initLogger();
       static void destroyLogger();
-      static bool importToSceneGraph(const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode);
+      static bool importToSceneGraph(const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode, GraphicsWorld* aWorld);
   };
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

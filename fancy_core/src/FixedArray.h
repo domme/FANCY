@@ -74,7 +74,7 @@ namespace Fancy {
       void push_back(const T& clElement) {ASSERT(m_u32Size < u32Capacity, "Array is full"); m_Array[m_u32Size++] = clElement;}
       void erase(const T& _anElement);
     //---------------------------------------------------------------------------//
-      bool contains(const T& _item) {
+      bool contains(const T& _item) const {
         for (uint32 i = 0; i < m_u32Size; ++i) {
           if (m_Array[i] == _item){
             return true;

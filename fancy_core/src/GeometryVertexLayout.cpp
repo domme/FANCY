@@ -1,4 +1,5 @@
 #include "GeometryVertexLayout.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -9,6 +10,16 @@ namespace Fancy { namespace Rendering {
     eFormat(DataFormat::RGB_32F)
   {
 
+  }
+//---------------------------------------------------------------------------//
+  void GeometryVertexElement::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->Serialize(&name, "myName");
+    aSerializer->Serialize(&eSemantics, "mySemenatics");
+    aSerializer->Serialize(&mySemanticIndex, "mySemanticIndex");
+    aSerializer->Serialize(&u32OffsetBytes, "myOffsetBytes");
+    aSerializer->Serialize(&u32SizeBytes, "mySizeBytes");
+    aSerializer->Serialize(&eFormat, "myFormat");
   }
 //---------------------------------------------------------------------------//
 
@@ -22,6 +33,12 @@ namespace Fancy { namespace Rendering {
   GeometryVertexLayout::~GeometryVertexLayout()
   {
 
+  }
+//---------------------------------------------------------------------------//
+  void GeometryVertexLayout::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->Serialize(&m_u32StrideBytes, "m_u32StrideBytes");
+    aSerializer->Serialize(&m_vVertexElements, "m_vVertexElements");
   }
 //---------------------------------------------------------------------------//
   void GeometryVertexLayout::addVertexElement( const GeometryVertexElement& clVertexElement )

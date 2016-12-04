@@ -4,14 +4,19 @@
 #include "RendererPrerequisites.h"
 #include "ObjectName.h"
 #include "FixedArray.h"
-#include "Serializer.h"
+
+namespace Fancy {namespace IO {
+class Serializer;
+}
+}
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct GeometryVertexElement 
   {
     GeometryVertexElement();
-
+    void Serialize(IO::Serializer* aSerializer);
+    
     /// Name of the vertex attribute as imported from the mesh
     ObjectName name;
     /// Semantic of the attribute as imported from the mesh
@@ -35,6 +40,7 @@ namespace Fancy { namespace Rendering {
     public:
       GeometryVertexLayout();
       ~GeometryVertexLayout();
+      void Serialize(IO::Serializer* aSerializer);
 
       void addVertexElement(const GeometryVertexElement& clVertexElement);
       const GeometryVertexElement& getVertexElement(uint32 u32Index) const { ASSERT(u32Index < m_vVertexElements.size()); return m_vVertexElements[u32Index]; }

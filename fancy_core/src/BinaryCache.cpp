@@ -145,7 +145,7 @@ namespace Fancy {  namespace IO {
     return false;
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::write(Geometry::Mesh* aMesh, void** someVertexDatas, void** someIndexDatas)
+  bool BinaryCache::write(const SharedPtr<Geometry::Mesh>& aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aMesh->GetDescription().GetHash()));
     PathService::createDirectoryTreeForPath(cacheFilePath);
@@ -209,7 +209,7 @@ namespace Fancy {  namespace IO {
     return archive.good();
   }
 //---------------------------------------------------------------------------//
-  bool BinaryCache::read(Geometry::Mesh** aMesh, uint64 aDescHash, uint32 aTimeStamp)
+  bool BinaryCache::read(SharedPtr<Geometry::Mesh>& aMesh, uint64 aDescHash, uint32 aTimeStamp)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
@@ -223,101 +223,80 @@ namespace Fancy {  namespace IO {
     if (meshVersion != kMeshVersion)
       return false;
 
-    Geometry::Mesh* mesh = nullptr;
-
     uint64 hash = 0u;
     archive.read((char*)&hash, sizeof(hash));
 
-    if (hash == aDescHash)
+    uint32 numGeometryDatas;
+    archive.read(reinterpret_cast<char*>(&numGeometryDatas), sizeof(uint32));
+
+    Geometry::GeometryDataList vGeoDatas;
+    vGeoDatas.resize(numGeometryDatas);
+
+    for (uint32 i = 0u; i < vGeoDatas.size(); ++i)
     {
-      Geometry::Mesh* meshFromMemCache = Geometry::Mesh::Find(hash);
-      if (nullptr != meshFromMemCache)
+      Geometry::GeometryData* geoData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::Geometry);
+      vGeoDatas[i] = geoData;
+
+      Rendering::GeometryVertexLayout vertexLayout;
+      uint32 numVertexElements;
+      archive.read(reinterpret_cast<char*>(&numVertexElements), sizeof(uint32));
+
+      for (uint32 iVertexElem = 0u; iVertexElem < numVertexElements; ++iVertexElem)
       {
-        mesh = meshFromMemCache;
+        Rendering::GeometryVertexElement elem;
+        uint32 semantics;
+        archive.read(reinterpret_cast<char*>(&semantics), sizeof(uint32));
+        elem.eSemantics = static_cast<Rendering::VertexSemantics>(semantics);
+        archive.read(reinterpret_cast<char*>(&elem.u32OffsetBytes), sizeof(uint32));
+        archive.read(reinterpret_cast<char*>(&elem.u32SizeBytes), sizeof(uint32));
+        uint32 format;
+        archive.read(reinterpret_cast<char*>(&format), sizeof(uint32));
+        elem.eFormat = static_cast<Rendering::DataFormat>(format);
+        vertexLayout.addVertexElement(elem);
+      }
+      uint32 strideBytes;
+      archive.read(reinterpret_cast<char*>(&strideBytes), sizeof(uint32));
+
+      geoData->setVertexLayout(vertexLayout);
+
+      // Vertex data
+      {
+        Rendering::GpuBuffer* buffer = FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::Geometry);
+        Rendering::GpuBufferCreationParams bufferParams;
+        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
+        uint32 totalBufferBytes;
+        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint32));
+
+        void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
+        archive.read((char*)(bufferData), totalBufferBytes);
+        buffer->create(bufferParams, bufferData);
+
+        FANCY_FREE(bufferData, MemoryCategory::Geometry);
+        geoData->setVertexBuffer(buffer);
+      }
+
+      // Index data
+      {
+        Rendering::GpuBuffer* buffer = FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::Geometry);
+        Rendering::GpuBufferCreationParams bufferParams;
+        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
+        uint32 totalBufferBytes;
+        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint32));
+
+        void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
+        archive.read(static_cast<char*>(bufferData), totalBufferBytes);
+        buffer->create(bufferParams, bufferData);
+        FANCY_FREE(bufferData, MemoryCategory::Geometry);
+
+        geoData->setIndexBuffer(buffer);
       }
     }
 
-    if (nullptr == mesh)
-    {
-      mesh = FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY);
-      mesh->SetVertexIndexHash(aDescHash);
-      Geometry::Mesh::Register(mesh);
+    if (vGeoDatas.empty())
+      return false;
 
-      uint32 numGeometryDatas;
-      archive.read(reinterpret_cast<char*>(&numGeometryDatas), sizeof(uint32));
-
-      Geometry::GeometryDataList vGeoDatas;
-      vGeoDatas.resize(numGeometryDatas);
-
-      for (uint32 i = 0u; i < vGeoDatas.size(); ++i)
-      {
-        Geometry::GeometryData* geoData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::Geometry);
-        vGeoDatas[i] = geoData;
-
-        Rendering::GeometryVertexLayout vertexLayout;
-        uint32 numVertexElements;
-        archive.read(reinterpret_cast<char*>(&numVertexElements), sizeof(uint32));
-
-        for (uint32 iVertexElem = 0u; iVertexElem < numVertexElements; ++iVertexElem)
-        {
-          Rendering::GeometryVertexElement elem;
-          uint32 semantics;
-          archive.read(reinterpret_cast<char*>(&semantics), sizeof(uint32));
-          elem.eSemantics = static_cast<Rendering::VertexSemantics>(semantics);
-          archive.read(reinterpret_cast<char*>(&elem.u32OffsetBytes), sizeof(uint32));
-          archive.read(reinterpret_cast<char*>(&elem.u32SizeBytes), sizeof(uint32));
-          uint32 format;
-          archive.read(reinterpret_cast<char*>(&format), sizeof(uint32));
-          elem.eFormat = static_cast<Rendering::DataFormat>(format);
-          vertexLayout.addVertexElement(elem);
-        }
-        uint32 strideBytes;
-        archive.read(reinterpret_cast<char*>(&strideBytes), sizeof(uint32));
-
-        geoData->setVertexLayout(vertexLayout);
-
-        // Vertex data
-        {
-          Rendering::GpuBuffer* buffer = FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::Geometry);
-          Rendering::GpuBufferCreationParams bufferParams;
-          archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
-          uint32 totalBufferBytes;
-          archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint32));
-
-          void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
-          archive.read((char*)(bufferData), totalBufferBytes);
-          buffer->create(bufferParams, bufferData);
-
-          FANCY_FREE(bufferData, MemoryCategory::Geometry);
-          geoData->setVertexBuffer(buffer);
-        }
-
-        // Index data
-        {
-          Rendering::GpuBuffer* buffer = FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::Geometry);
-          Rendering::GpuBufferCreationParams bufferParams;
-          archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
-          uint32 totalBufferBytes;
-          archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint32));
-
-          void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
-          archive.read(static_cast<char*>(bufferData), totalBufferBytes);
-          buffer->create(bufferParams, bufferData);
-          FANCY_FREE(bufferData, MemoryCategory::Geometry);
-
-          geoData->setIndexBuffer(buffer);
-        }
-      }
-
-      mesh->setGeometryDataList(vGeoDatas);
-    }
-
-    if ((*aMesh) != nullptr)
-    {
-      FANCY_DELETE((*aMesh), MemoryCategory::GEOMETRY);
-      (*aMesh) = mesh;
-    }
-
+    aMesh->SetVertexIndexHash(aDescHash);
+    aMesh->setGeometryDataList(vGeoDatas);
     return true;
   }
 //---------------------------------------------------------------------------//

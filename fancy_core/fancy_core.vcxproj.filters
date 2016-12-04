@@ -301,9 +301,6 @@
     <ClInclude Include="src\GpuProgramDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\MeshDesc.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\MaterialDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -320,9 +317,6 @@
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\TextureSamplerDesc.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ModelDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\d3dx12.h">
@@ -420,6 +414,15 @@
     </ClInclude>
     <ClInclude Include="src\GpuProgramPipelineDesc.h">
       <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsWorld.h">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshDesc.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ModelDesc.h">
+      <Filter>src\Geometry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -636,9 +639,6 @@
     <ClCompile Include="src\MaterialPassInstanceDesc.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\ModelDesc.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\GpuResourceDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
@@ -689,6 +689,15 @@
     </ClCompile>
     <ClCompile Include="src\TextureDesc.cpp">
       <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GraphicsWorld.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ModelDesc.cpp">
+      <Filter>src\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshDesc.cpp">
+      <Filter>src\Geometry</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

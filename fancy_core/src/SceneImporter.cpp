@@ -41,6 +41,7 @@
 #include "MaterialPassInstance.h"
 #include "Log.h"
 #include "Renderer.h"
+#include "GraphicsWorld.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -79,15 +80,16 @@ namespace Fancy { namespace IO {
     const uint32 kMaxNumAssimpMeshesPerNode = 128u;
     typedef FixedArray<aiMesh*, kMaxNumAssimpMeshesPerNode> AiMeshList;
     typedef std::map<const aiMaterial*, Rendering::Material*> MaterialCacheMap;
-    typedef FixedArray<std::pair<AiMeshList, Geometry::Mesh*>, 256u> MeshCacheList;
+    typedef FixedArray<std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>, 256u> MeshCacheList;
 
     struct WorkingData
     {
-      WorkingData() : szCurrScenePathInResources(""), pCurrScene(nullptr),
+      WorkingData() : szCurrScenePathInResources(""), pCurrScene(nullptr), myGraphicsWorld(nullptr),
         u32NumCreatedMeshes(0u), u32NumCreatedModels(0u), u32NumCreatedGeometryDatas(0u), u32NumCreatedSubModels(0u) {}
 
       std::string szCurrScenePathInResources;
       const aiScene* pCurrScene;
+      GraphicsWorld* myGraphicsWorld;
       MaterialCacheMap mapAiMatToMat;
       MeshCacheList localMeshCache;
 
@@ -100,7 +102,7 @@ namespace Fancy { namespace IO {
     bool processAiScene(WorkingData& _workingData, const aiScene* _pAscene, Scene::SceneNode* _pParentNode);
     bool processAiNode(WorkingData& _workingData, const aiNode* _pAnode, Scene::SceneNode* _pParentNode);
     bool processMeshes(WorkingData& _workingData, const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
-    Geometry::Mesh* constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pAnode, aiMesh** someMeshes, uint32 aMeshCount);
+    SharedPtr<Geometry::Mesh> constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pAnode, aiMesh** someMeshes, uint32 aMeshCount);
     Rendering::Material* createOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial);
     SharedPtr<Rendering::Texture> createOrRetrieveTexture(WorkingData& _workingData, const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex);
 
@@ -126,7 +128,7 @@ namespace Fancy { namespace IO {
     Assimp::DefaultLogger::get()->detatchStream(Internal::m_pLogger);
   }
 //---------------------------------------------------------------------------//
-  bool SceneImporter::importToSceneGraph( const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode )
+  bool SceneImporter::importToSceneGraph( const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode, GraphicsWorld* aWorld)
   {
     bool success = false;
     std::string szImportPathAbs = PathService::convertToAbsPath(_szImportPathRel);
@@ -149,6 +151,7 @@ namespace Fancy { namespace IO {
 
     Processing::WorkingData workingData;
     workingData.szCurrScenePathInResources = _szImportPathRel;
+    workingData.myGraphicsWorld = aWorld;
     success = Processing::processAiScene(workingData, aScene, _pParentNode);
 
     // Serialization-tests....
@@ -247,7 +250,7 @@ namespace Fancy { namespace IO {
       const uint32 uMaterialIndex = it->first;
       AssimpMeshList& vAssimpMeshes = it->second;
       
-      Geometry::Mesh* pMesh = constructOrRetrieveMesh(_workingData, _pAnode, &vAssimpMeshes[0], vAssimpMeshes.size());
+      SharedPtr<Geometry::Mesh> pMesh = constructOrRetrieveMesh(_workingData, _pAnode, &vAssimpMeshes[0], vAssimpMeshes.size());
 
       // Create or retrieve the material
       aiMaterial* pAmaterial = 
@@ -357,10 +360,8 @@ namespace Fancy { namespace IO {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  Geometry::Mesh* Processing::constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pANode, aiMesh** someMeshes, uint32 aMeshCount)
+  SharedPtr<Geometry::Mesh> Processing::constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pANode, aiMesh** someMeshes, uint32 aMeshCount)
   {
-    Geometry::Mesh* outputMesh = nullptr;
-
     // TODO: Refactor this caching-mechanism:
     // We don't save any processing time if we read in the cached mesh, construct its hash and THEN check if we already have this mesh loaded in the engine
     // Instead, do the following:
@@ -374,10 +375,10 @@ namespace Fancy { namespace IO {
     // return outputMesh;
 
     // Did we construct a similar mesh before from the same ai-Meshes?
-    auto findMeshInCache = [_workingData, someMeshes, aMeshCount]() -> Geometry::Mesh* {
+    auto findMeshInCache = [_workingData, someMeshes, aMeshCount]() -> SharedPtr<Geometry::Mesh> {
       for (uint32 i = 0u; i < _workingData.localMeshCache.size(); ++i)
       {
-        std::pair<AiMeshList, Geometry::Mesh*> entry = _workingData.localMeshCache[i];
+        const std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>& entry = _workingData.localMeshCache[i];
 
         bool isValid = true;
         for (uint32 iAiMesh = 0u; isValid && iAiMesh < aMeshCount; ++iAiMesh)
@@ -388,28 +389,31 @@ namespace Fancy { namespace IO {
       }
       return nullptr;
     };
+    
+    SharedPtr<Geometry::Mesh> mesh;
+    mesh = findMeshInCache();
+    if (mesh != nullptr)
+      return mesh;
 
-    outputMesh = findMeshInCache();
-    if (outputMesh != nullptr)
-      return outputMesh;
-
+    GraphicsWorld* graphicsWorld = _workingData.myGraphicsWorld;
     uint64 vertexIndexHash = locComputeHashFromVertexData(someMeshes, aMeshCount);
+    
+    mesh = graphicsWorld->GetMesh(vertexIndexHash);
+    if (mesh != nullptr)
+      return mesh;
+    
+    // We don't have the mesh in any cache and have to create it.
 
-    // Already loaded this scene before? Then we already have this mesh
-    outputMesh = Geometry::Mesh::Find(vertexIndexHash);
-    if (outputMesh != nullptr)
-      return outputMesh;
-
-    // We have to construct a new mesh...
-    GeometryDataList vGeometryDatas;
-    FixedArray<void*, Constants::kMaxNumGeometriesPerSubModel> vertexDatas;
-    FixedArray<void*, Constants::kMaxNumGeometriesPerSubModel> indexDatas;
+    MeshDesc meshDesc;
+    meshDesc.myVertexAndIndexHash = vertexIndexHash;
+    
+    std::vector<void*> vertexDatas;
+    std::vector<uint> numVertices;
+    std::vector<void*> indexDatas;
+    std::vector<uint> numIndices;
     for (uint32 iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
     {
       const aiMesh* aiMesh = someMeshes[iAiMesh];
-
-      Geometry::GeometryData* pGeometryData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::GEOMETRY);
-      vGeometryDatas.push_back(pGeometryData);
 
       struct ImportVertexStream
       {
@@ -595,22 +599,9 @@ namespace Fancy { namespace IO {
         }
       }
 
-      // Construct the actual vertex buffer object
-      Rendering::GpuBuffer* vertexBuffer =
-        FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::GEOMETRY);
-
-      Rendering::GpuBufferCreationParams bufferParams;
-      bufferParams.bIsMultiBuffered = false;
-      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
-      bufferParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
-      bufferParams.uNumElements = aiMesh->mNumVertices;
-      bufferParams.uElementSizeBytes = vertexLayout.getStrideBytes();
-
-      vertexBuffer->create(bufferParams, pData);
-      pGeometryData->setVertexLayout(vertexLayout);
-      pGeometryData->setVertexBuffer(vertexBuffer);
-
       vertexDatas.push_back(pData);
+      numVertices.push_back(aiMesh->mNumVertices);
+      meshDesc.myVertexLayouts.push_back(vertexLayout);
 
       for (uint32 i = 0u; i < patchingDatas.size(); ++i)
         free(patchingDatas[i]);
@@ -635,40 +626,24 @@ namespace Fancy { namespace IO {
         memcpy(&indices[i * 3u], aFace.mIndices, sizeof(uint32) * 3u);
       }
 
-      Rendering::GpuBuffer* indexBuffer =
-        FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::GEOMETRY);
-
-      Rendering::GpuBufferCreationParams indexBufParams;
-      indexBufParams.bIsMultiBuffered = false;
-      indexBufParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::INDEX_BUFFER);
-      indexBufParams.uAccessFlags = static_cast<uint32>(Rendering::GpuResourceAccessFlags::NONE);
-      indexBufParams.uNumElements = aiMesh->mNumFaces * 3u;
-      indexBufParams.uElementSizeBytes = sizeof(uint32);
-
-      indexBuffer->create(indexBufParams, indices);
-      pGeometryData->setIndexBuffer(indexBuffer);
+      // indexBufParams.uNumElements = aiMesh->mNumFaces * 3u;
       indexDatas.push_back(indices);
+      numIndices.push_back(aiMesh->mNumFaces * 3u);
     }
 
-    Geometry::Mesh* mesh = FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY);
-    mesh->setGeometryDataList(vGeometryDatas);
-    mesh->SetVertexIndexHash(vertexIndexHash);
-    Geometry::Mesh::Register(mesh);
-    
-    BinaryCache::write(mesh, &vertexDatas[0], &indexDatas[0]);
+    mesh = graphicsWorld->CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
+    ASSERT(mesh != nullptr);
 
     AiMeshList aiMeshList;
     aiMeshList.resize(aMeshCount);
     memcpy(&aiMeshList[0], &someMeshes[0], sizeof(aiMesh*) * aMeshCount);
-    _workingData.localMeshCache.push_back(std::pair<AiMeshList, Geometry::Mesh*>(aiMeshList, mesh));
+    _workingData.localMeshCache.push_back(std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>(aiMeshList, mesh));
 
     for (uint32 i = 0u; i < vertexDatas.size(); ++i)
     {
       FANCY_FREE(vertexDatas[i], MemoryCategory::GEOMETRY);
     }
     vertexDatas.clear();
-
-    
 
     for (uint32 i = 0u; i < indexDatas.size(); ++i)
     {

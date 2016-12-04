@@ -16,10 +16,10 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   /// Represents a collection of raw geometric pieces that can be rendered with a single material
   /// Two GeometryDatas always have different vertex-attributes or primitive types which makes their distinction necessary.
-  class Mesh : public StaticManagedHeapObject<Mesh>
+  class Mesh
   {
   public:
-    SERIALIZABLE(Mesh)
+    SERIALIZABLE_RESOURCE(Mesh)
 
     Mesh();
     ~Mesh();
@@ -30,9 +30,6 @@ namespace Fancy { namespace Geometry {
   //---------------------------------------------------------------------------//
     uint64 GetHash() const { return GetDescription().GetHash(); }
   //---------------------------------------------------------------------------//
-    static ObjectName getTypeName() { return _N(Mesh); }
-    void Serialize(IO::Serializer* aSerializer);
-
     uint32 getNumGeometryDatas() const {return m_vGeometries.size();}
     GeometryData* getGeometryData(uint32 u32Index) {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}
     const GeometryData* getGeometryData(uint32 u32Index) const {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}

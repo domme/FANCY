@@ -24,9 +24,9 @@ namespace Fancy { namespace IO {
   //---------------------------------------------------------------------------//
     static String getCacheFilePathAbs(const String& aPathInResources);
     static bool write(const SharedPtr<Rendering::Texture>& aTexture, const Rendering::TextureUploadData& someData);
-    static bool write(Geometry::Mesh* aMesh, void** someVertexDatas, void** someIndexDatas);
+    static bool write(const SharedPtr<Geometry::Mesh>& aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas);
     static bool read(SharedPtr<Rendering::Texture>* aTexture, uint64 aDescHash, uint32 aTimeStamp);
-    static bool read(Geometry::Mesh** aMesh, uint64 aDescHash, uint32 aTimeStamp);
+    static bool read(SharedPtr<Geometry::Mesh>& aMesh, uint64 aDescHash, uint32 aTimeStamp);
   //---------------------------------------------------------------------------//      
 };
 } }  // end of namespace Fancy::IO 

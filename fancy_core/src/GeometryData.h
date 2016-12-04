@@ -11,11 +11,6 @@
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  struct GeometryDataDesc
-  {
-      
-  };
-//---------------------------------------------------------------------------//
   class GeometryData {
     public:
       GeometryData();

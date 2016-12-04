@@ -362,6 +362,7 @@
     <ClInclude Include="src\GpuResource.h" />
     <ClInclude Include="src\GpuResourceDX12.h" />
     <ClInclude Include="src\GpuResourceSignature.h" />
+    <ClInclude Include="src\GraphicsWorld.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\JSONreader.h" />
     <ClInclude Include="src\JSONwriter.h" />
@@ -471,6 +472,7 @@
     <ClCompile Include="src\GpuProgramResourceDX12.cpp" />
     <ClCompile Include="src\GpuProgramResourceGL4.cpp" />
     <ClCompile Include="src\GpuResourceDX12.cpp" />
+    <ClCompile Include="src\GraphicsWorld.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
     <ClCompile Include="src\JSONreader.cpp" />
@@ -485,6 +487,7 @@
     <ClCompile Include="src\MaterialPassInstance.cpp" />
     <ClCompile Include="src\MaterialPassInstanceDesc.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\MeshDesc.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\ModelComponent.cpp" />
     <ClCompile Include="src\ModelDesc.cpp" />
