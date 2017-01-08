@@ -2,8 +2,7 @@
 #include "GpuProgram.h"
 #include "MaterialPass.h"
 #include "MaterialPassInstance.h"
-#include "Texture.h"
-#include "Mesh.h"
+#include "MeshDesc.h"
 #include "Material.h"
 #include "Model.h"
 #include "SubModel.h"
@@ -14,6 +13,7 @@
 #include "SceneNode.h"
 #include "SceneNodeComponentFactory.h"
 #include "Renderer.h"
+#include "GraphicsWorld.h"
 
 namespace Fancy { namespace IO {
 
@@ -39,24 +39,6 @@ namespace Fancy { namespace IO {
     return object;
   }
 //---------------------------------------------------------------------------//
-  template<>
-  void* locCreateManaged<Geometry::Mesh, MemoryCategory::GEOMETRY>
-    (uint64 aHash, bool& aWasCreated)
-  {
-    Geometry::Mesh* object = Geometry::Mesh::Find(aHash);
-
-    if (object)
-    {
-      aWasCreated = false;
-      return object;
-    }
-
-    aWasCreated = true;
-    BinaryCache::read(&object, aHash, 0u);
-
-    return object;
-  }
-//---------------------------------------------------------------------------//
   template<class T, MemoryCategory eMemoryCategory>
   void* locCreate(uint64, bool& aWasCreated)
   {
@@ -70,7 +52,6 @@ namespace Fancy { namespace IO {
     // Managed:
     { _N(MaterialPass), &locCreateManaged<Rendering::MaterialPass, MemoryCategory::MATERIALS> },
     { _N(Material), &locCreateManaged<Rendering::Material, MemoryCategory::MATERIALS> },
-    { _N(Mesh), &locCreateManaged<Geometry::Mesh, MemoryCategory::GEOMETRY> },
     { _N(SubModel), &locCreateManaged<Geometry::SubModel, MemoryCategory::GEOMETRY> },
     { _N(Model), &locCreateManaged<Geometry::Model, MemoryCategory::GEOMETRY> },
 
@@ -98,7 +79,7 @@ namespace Fancy { namespace IO {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<void> ObjectFactory::Create(const ObjectName& aTypeName, const DescriptionBase& aDesc)
+  SharedPtr<void> ObjectFactory::Create(const ObjectName& aTypeName, const DescriptionBase& aDesc, GraphicsWorld* aGraphicsWorld)
   {
     if (aTypeName == _N(Texture))
     {
@@ -114,6 +95,11 @@ namespace Fancy { namespace IO {
     {
       const Rendering::GpuProgramPipelineDesc& desc = static_cast<const Rendering::GpuProgramPipelineDesc&>(aDesc);
       return Rendering::RenderCore::CreateGpuProgramPipeline(desc);
+    }
+    else if (aTypeName == _N(Mesh))
+    {
+      const Geometry::MeshDesc& desc = static_cast<const Geometry::MeshDesc&>(aDesc);
+      return aGraphicsWorld->GetMesh(aDesc.GetHash()); 
     }
     
     ASSERT(false, "Unknown typename");

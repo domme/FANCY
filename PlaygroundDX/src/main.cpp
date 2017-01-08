@@ -13,9 +13,9 @@
 #include <LightComponent.h>
 #include <RenderWindow.h>
 
-Fancy::Rendering::RenderingProcessForward* pRenderProcessFwd = nullptr;
 Fancy::Scene::CameraComponent* pCameraComponent;
 Fancy::Scene::SceneNode* pModelNode;
+Fancy::FancyRuntime* pRuntime = nullptr;
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
@@ -24,32 +24,31 @@ void OnWindowResized(uint aWidth, uint aHeight)
 
 void StartupEngine(HINSTANCE anAppInstanceHandle)
 {
-  Fancy::Init(anAppInstanceHandle);
+  if (pRuntime != nullptr)
+    return;
 
-  Fancy::RenderWindow* window = Fancy::GetCurrentRenderWindow();
+  Fancy::EngineParameters params;
+  params.myResourceFolder = "../../../resources/";
+  params.myRenderingTechnique = Fancy::RenderingTechnique::FORWARD;
+
+  pRuntime = new Fancy::FancyRuntime(anAppInstanceHandle, params);
+
+  Fancy::RenderWindow* window = pRuntime->GetCurrentRenderWindow();
 
   std::function<void(uint, uint)> onResizeCallback = &OnWindowResized;
   window->myOnResize.Connect(onResizeCallback);
   
-  Fancy::Scene::ScenePtr pScene = std::make_shared<Fancy::Scene::Scene>();
-  Fancy::SetCurrentScene(pScene);
-
-  pRenderProcessFwd = new Fancy::Rendering::RenderingProcessForward;
-  Fancy::SetRenderingProcess(pRenderProcessFwd);
-
+  Fancy::Scene::Scene* pScene = pRuntime->GetCurrentScene();
   Fancy::Scene::SceneNode* pCameraNode = pScene->getRootNode()->createChildNode(_N(CameraNode));
   pCameraComponent = static_cast<Fancy::Scene::CameraComponent*>(pCameraNode->addOrRetrieveComponent(_N(CameraComponent)));
   pCameraComponent->setProjectionPersp(45.0f, window->GetWidth(), window->GetHeight(), 1.0f, 1000.0f);
   pScene->setActiveCamera(pCameraComponent);
 
-  pModelNode = pScene->getRootNode()->createChildNode(_N(ModelNode));
-  Fancy::IO::SceneImporter::importToSceneGraph("Models/cube.obj", pModelNode);
+  pModelNode = pRuntime->Import("Models/cube.obj");
   pModelNode->getTransform().setPositionLocal(glm::vec3(0.0f, 0.0f, 10.0f));
 
   Fancy::Scene::SceneNode* pLightNode = pScene->getRootNode()->createChildNode(_N(LightNode));
   Fancy::Scene::LightComponent* pLight = static_cast<Fancy::Scene::LightComponent*>(pLightNode->addOrRetrieveComponent(_N(LightComponent)));
-
-  Fancy::Startup();
 }
 
 LRESULT CALLBACK locOnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -86,7 +85,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     pModelNode->getTransform().rotate(glm::vec3(1.0f, 1.0f, 0.0f), 20.0f);
 
-    Fancy::Update(0.016f);
+    pRuntime->Update(0.016f);
 	}
 
 	return 0;

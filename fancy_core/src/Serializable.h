@@ -8,6 +8,7 @@
 
 namespace Fancy {
 struct DescriptionBase;
+class GraphicsWorld;
 
 namespace Rendering {
   class Texture;
@@ -222,7 +223,7 @@ namespace IO {
     virtual uint64 GetHash(void* anObject) = 0;
     virtual SharedPtr<DescriptionBase> GetDescription(void* anObject) = 0;
     virtual SharedPtr<DescriptionBase> CreateDescription() = 0;
-    virtual void Create(void* anObject, const ObjectName& aTypeName, const DescriptionBase& aDescription) = 0;
+    virtual void Create(void* anObject, const ObjectName& aTypeName, const DescriptionBase& aDescription, GraphicsWorld* aGraphicsWorld) = 0;
   };
 //---------------------------------------------------------------------------//
   namespace Internal
@@ -422,9 +423,9 @@ namespace IO {
         return std::make_shared<DescT>();
       }
       
-      void Create(void* anObject, const ObjectName& aTypeName, const DescriptionBase& aDescription) override
+      void Create(void* anObject, const ObjectName& aTypeName, const DescriptionBase& aDescription, GraphicsWorld* aGraphicsWorld) override
       {
-        SharedPtr<T> createdObject = std::static_pointer_cast<T>(IO::ObjectFactory::Create(aTypeName, aDescription));
+        SharedPtr<T> createdObject = std::static_pointer_cast<T>(IO::ObjectFactory::Create(aTypeName, aDescription, aGraphicsWorld));
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
         (*serializable) = createdObject;
       }

@@ -34,8 +34,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     destroy();
 
-    RenderOutputDX12* renderer = Fancy::GetCurrentRenderOutput();
-
     ASSERT(someParameters.uElementSizeBytes > 0 && someParameters.uNumElements > 0,
       "Invalid buffer size specified");
 

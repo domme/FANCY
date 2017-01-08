@@ -18,7 +18,7 @@ struct GpuProgramPipelineDesc;
   class DLLEXPORT RenderOutput : public PLATFORM_DEPENDENT_NAME(RenderOutput)
   {
     public:
-      RenderOutput() {}
+      RenderOutput(void* aNativeInstanceHandle) : PLATFORM_DEPENDENT_NAME(RenderOutput)(aNativeInstanceHandle) {}
       virtual ~RenderOutput() {}
   };
 //---------------------------------------------------------------------------//

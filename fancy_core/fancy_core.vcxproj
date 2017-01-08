@@ -398,6 +398,7 @@
     <ClInclude Include="src\RenderingProcess.h" />
     <ClInclude Include="src\RenderingProcessForward.h" />
     <ClInclude Include="src\RenderOperation.h" />
+    <ClInclude Include="src\RenderView.h" />
     <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\ResourceBinding.h" />
     <ClInclude Include="src\DescriptionBase.h" />
@@ -503,6 +504,7 @@
     <ClCompile Include="src\RenderingProcess.cpp" />
     <ClCompile Include="src\RenderingProcessForward.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
+    <ClCompile Include="src\RenderView.cpp" />
     <ClCompile Include="src\ResourceBinding.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\SceneImporter.cpp" />

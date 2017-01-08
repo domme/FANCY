@@ -11,7 +11,7 @@ namespace Fancy { namespace IO {
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  struct MeshDesc
+  struct MeshDesc : public DescriptionBase
   {
     // Because of the high amount of data involved in meshes, we'll completely rely on the BinaryCache to store the actual geometric
     // data for meshes. The VertexAndIndexHash is just used to identify the requested mesh for Serialization
@@ -20,10 +20,12 @@ namespace Fancy { namespace Geometry {
     std::vector<Rendering::GeometryVertexLayout> myVertexLayouts;
 
     MeshDesc() : myVertexAndIndexHash(0u) {}
-    bool operator==(const MeshDesc& anOther) const { return myVertexAndIndexHash == anOther.myVertexAndIndexHash; }
-    uint64 GetHash() const { return myVertexAndIndexHash; }
+    ~MeshDesc() override {}
 
-    void Serialize(IO::Serializer* aSerializer);
+    ObjectName GetTypeName() const override { return _N(Mesh); }
+    bool operator==(const MeshDesc& anOther) const { return myVertexAndIndexHash == anOther.myVertexAndIndexHash; }
+    uint64 GetHash() const override { return myVertexAndIndexHash; }
+    void Serialize(IO::Serializer* aSerializer) override;
   };
 //---------------------------------------------------------------------------//
 } }

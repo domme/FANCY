@@ -9,153 +9,100 @@
 #include "ModelComponent.h"
 #include "CameraComponent.h"
 #include "CameraControllerComponent.h"
-#include "Texture.h"
-#include "DepthStencilState.h"
-#include "BlendState.h"
 #include "PathService.h"
 #include "SceneImporter.h"
 #include "TimeManager.h"
 #include "RenderingProcess.h"
 #include "LightComponent.h"
-#include "TextureLoader.h"
 #include "ScopedPtr.h"
-#include "RenderWindow.h"
-#include "TimeManager.h"
+#include "RenderingProcessForward.h"
 
 namespace Fancy {
-  Scene::ScenePtr m_pCurrScene = nullptr;
-  ScopedPtr<Rendering::RenderingProcess> m_pRenderingProcess;
-  Rendering::RenderOutput* ourRenderOutput = nullptr;
-  HINSTANCE ourAppInstanceHandle = nullptr;
-  Time ourRealTimeClock;
-  uint64 ourFrameIndex = 0u;
-
-  void initComponentSubsystem()
+//---------------------------------------------------------------------------//
+  FancyRuntime::FancyRuntime(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams)
+    : myAppInstanceHandle(anAppInstanceHandle)
+    , myFrameIndex(0u)
   {
+    // Init IO-subsystem
+    IO::PathService::SetResourceLocation(someParams.myResourceFolder);
+    IO::SceneImporter::initLogger();
+
+    // Init Component subsystem
     Scene::SceneNodeComponentFactory::registerFactory(_N(ModelComponent), Scene::ModelComponent::create);
     Scene::SceneNodeComponentFactory::registerFactory(_N(CameraComponent), Scene::CameraComponent::create);
     Scene::SceneNodeComponentFactory::registerFactory(_N(LightComponent), Scene::LightComponent::create);
     // Scene::SceneNodeComponentFactory::registerFactory(_N(CameraControllerComponent), Scene::CameraControllerComponent::create);
-  }
 
-  void initRenderingSubsystem()
-  {
-    Rendering::RenderCore::InitPlatform();
-    Rendering::RenderCore::Init();
-
-    ourRenderOutput = new Rendering::RenderOutput();
-    ourRenderOutput->postInit();
-
-    Rendering::RenderCore::PostInit();
-  }
-
-  void initIOsubsystem()
-  {
-    IO::PathService::SetResourceLocation("../../../resources/");
-    IO::SceneImporter::initLogger();
-  }
-
-  bool Init(HINSTANCE anAppInstanceHandle)
-  {
-    ourAppInstanceHandle = anAppInstanceHandle;
-
-    initIOsubsystem();
-    initComponentSubsystem();
-    initRenderingSubsystem();
+    // Init rendering subsystem
+    if (!Rendering::RenderCore::IsInitialized())
+    {
+      Rendering::RenderCore::InitPlatform();
+      Rendering::RenderCore::Init();
+      Rendering::RenderCore::PostInit();
+    }
     
-    return true;
-  }
+    myRenderOutput = new Rendering::RenderOutput(anAppInstanceHandle);
+    myRenderOutput->postInit();
+    
+    // Init scene
+    myScene = new Scene::Scene();
 
-  void ShutdownRenderingSubsystem()
-  {
-    Rendering::RenderCore::Shutdown();
-    Rendering::RenderCore::ShutdownPlatform();
-
-    SAFE_DELETE(ourRenderOutput);
+    // Init Rendering process
+    switch(someParams.myRenderingTechnique)
+    {
+      case RenderingTechnique::FORWARD: 
+        myRenderingProcess = FANCY_NEW(Rendering::RenderingProcessForward, MemoryCategory::General);
+        break;
+      default: 
+        ASSERT(false, "Unsupported rendering technique %", (uint32)someParams.myRenderingTechnique);
+        break;
+    }
   }
 //---------------------------------------------------------------------------//
-  void Shutdown()
+  FancyRuntime::~FancyRuntime()
   {
     IO::SceneImporter::destroyLogger();
-    ShutdownRenderingSubsystem();
-  }
-//---------------------------------------------------------------------------//
-  Rendering::RenderOutput* GetCurrentRenderOutput()
-  {
-    return ourRenderOutput;
-  }
-//---------------------------------------------------------------------------//
-  Rendering::RenderingProcess* GetRenderingProcess()
-  {
-    return m_pRenderingProcess;
-  }
-//---------------------------------------------------------------------------//
-  void Startup()
-  {
-    ASSERT(m_pCurrScene, "No scene set");
-    ASSERT(m_pRenderingProcess, "No rendering process set");
 
-    m_pRenderingProcess->Startup();
-    m_pCurrScene->startup();
+    Rendering::RenderCore::Shutdown();
+    Rendering::RenderCore::ShutdownPlatform();
   }
 //---------------------------------------------------------------------------//
-  void Update(double _dt)
+  void FancyRuntime::DoFirstFrameTasks()
   {
-    ASSERT(m_pCurrScene, "No scene set");
-    ASSERT(m_pRenderingProcess, "No rendering process set");
+    myRenderingProcess->Startup();
+    myScene->startup();
+  }
+//---------------------------------------------------------------------------//
+  RenderWindow* FancyRuntime::GetCurrentRenderWindow()
+  {
+    return myRenderOutput->GetWindow();
+  }
+//---------------------------------------------------------------------------//
+  Scene::SceneNode* FancyRuntime::Import(const std::string& aPath)
+  {
+    IO::SceneImporter importer(*myGraphicsWorld);
+    Scene::SceneNode* node = myScene->getRootNode()->createChildNode();
+    if (!importer.importToSceneGraph(aPath, node))
+      return nullptr;
 
-    ourRealTimeClock.Update(_dt);
-    const float deltaTime = ourRealTimeClock.GetDelta();
+    return node;
+  }
+//---------------------------------------------------------------------------//
+  void FancyRuntime::Update(double _dt)
+  {
+    if (myRealTimeClock.GetElapsed() == 0.0f)
+      DoFirstFrameTasks();
 
-    m_pCurrScene->update(deltaTime);
+    myRealTimeClock.Update(_dt);
+    const float deltaTime = myRealTimeClock.GetDelta();
 
-    ourRenderOutput->beginFrame();
-    m_pRenderingProcess->Tick(deltaTime);
-    ourRenderOutput->endFrame();
+    myScene->update(deltaTime);
 
-    ++ourFrameIndex;
-  }
-//---------------------------------------------------------------------------//
-  void SetCurrentScene( const Scene::ScenePtr& _pScene )
-  {
-    m_pCurrScene = _pScene;
-  }
-//---------------------------------------------------------------------------//
-  const Scene::ScenePtr& GetCurrentScene()
-  {
-    return m_pCurrScene;
-  }
-//---------------------------------------------------------------------------//
-  Time& GetRealTimeClock()
-  {
-    return ourRealTimeClock;
-  }
-//---------------------------------------------------------------------------//
-  uint64 GetCurrentFrameIndex()
-  {
-    return ourFrameIndex;
-  }
-//---------------------------------------------------------------------------//
-  void SetRenderingProcess( Rendering::RenderingProcess* _pRenderingProcess )
-  {
-    if (m_pRenderingProcess == _pRenderingProcess)
-      return;
+    myRenderOutput->beginFrame();
+    myRenderingProcess->Tick(deltaTime);
+    myRenderOutput->endFrame();
 
-    m_pRenderingProcess = _pRenderingProcess;
-  }
-//---------------------------------------------------------------------------//
-  HINSTANCE GetAppInstanceHandle()
-  {
-    return ourAppInstanceHandle;
-  }
-
-//---------------------------------------------------------------------------//
-  Fancy::RenderWindow* GetCurrentRenderWindow()
-  {
-    if (ourRenderOutput != nullptr) 
-      return ourRenderOutput->GetWindow(); 
-    
-    return nullptr;
+    ++myFrameIndex;
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy
