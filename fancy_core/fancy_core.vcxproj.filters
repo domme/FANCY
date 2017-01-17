@@ -427,6 +427,9 @@
     <ClInclude Include="src\RenderView.h">
       <Filter>src\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\GraphicsLibrary.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -704,6 +707,9 @@
     </ClCompile>
     <ClCompile Include="src\RenderView.cpp">
       <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GraphicsLibrary.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

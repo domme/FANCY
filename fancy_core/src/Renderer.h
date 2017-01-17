@@ -9,6 +9,13 @@ namespace Fancy {
   class FileWatcher;
 }
 
+namespace Fancy { namespace Geometry {
+//---------------------------------------------------------------------------//
+  class Mesh;
+  struct MeshDesc;
+//---------------------------------------------------------------------------//
+} }
+
 namespace Fancy { namespace Rendering {
 struct GpuProgramDesc;
 struct GpuProgramPipelineDesc;
@@ -45,6 +52,10 @@ struct GpuProgramPipelineDesc;
     static SharedPtr<Texture> GetTexture(uint64 aDescHash);
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
+    static SharedPtr<Geometry::Mesh> GetMesh(uint64 aVertexIndexHash);
+    static SharedPtr<Geometry::Mesh> CreateMesh(const Geometry::MeshDesc& aDesc,
+      const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
+      const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices);
 
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
@@ -62,6 +73,7 @@ struct GpuProgramPipelineDesc;
     static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
     static std::map<uint64, SharedPtr<Texture>> ourTextureCache;
+    static std::map<uint64, SharedPtr<Geometry::Mesh>> ourMeshCache;
     
     static ScopedPtr<GpuProgramCompiler> ourShaderCompiler;
     static SharedPtr<Texture> ourDefaultDiffuseTexture;

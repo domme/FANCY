@@ -18,19 +18,20 @@ namespace Fancy { namespace Rendering {
 
 namespace Fancy {
   class RenderWindow;
+  class RenderView;
   class Time;
   class GraphicsWorld;
 }
 
-namespace Fancy {
+namespace Fancy {   
 //---------------------------------------------------------------------------//
-    enum class RenderingTechnique
-    {
-      FORWARD = 0,
-      FORWARD_PLUS,
+  enum class RenderingTechnique
+  {
+    FORWARD = 0,
+    FORWARD_PLUS,
 
-      NUM
-    };
+    NUM
+  };
 //---------------------------------------------------------------------------//
     struct EngineParameters
     {
@@ -47,22 +48,13 @@ namespace Fancy {
     {
     public:
       static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams);
-      static FancyRuntime* GetInstance();
+      static FancyRuntime* GetInstance() { return ourInstance; }
 
       void Update(double _dt);
 
       HINSTANCE GetAppInstanceHandle() const { return myAppInstanceHandle; }
-
-      // TODO: There can be more than one RenderOutput/RenderWindow in the future
-      RenderWindow* GetCurrentRenderWindow();
-      Rendering::RenderOutput* GetCurrentRenderOutput() { return myRenderOutput.Get(); }
-
-      Rendering::RenderingProcess* GetRenderingProcess() { return myRenderingProcess.Get(); }
-      Scene::Scene* GetCurrentScene() { return myScene.Get(); }
-      Time& GetRealTimeClock() { return myRealTimeClock; }
-      uint64 GetCurrentFrameIndex() { return myFrameIndex; }
-
-      Scene::SceneNode* Import(const std::string& aPath);
+      const Time& GetRealTimeClock() const { return myRealTimeClock; }
+      uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
 
     private:
       FancyRuntime(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams);
@@ -70,20 +62,15 @@ namespace Fancy {
 
       void DoFirstFrameTasks();
 
+      static FancyRuntime* ourInstance;
+
       HINSTANCE myAppInstanceHandle;
-      
-      // TODO: Where to put these?
-      Time myRealTimeClock;
       uint64 myFrameIndex;
+      // TODO: Add support for secondary views
+      ScopedPtr<RenderView> myDefaultView;
 
-
-      
-      ScopedPtr<GraphicsWorld> myGraphicsWorld;
-      
-      ScopedPtr<Rendering::RenderingProcess> myRenderingProcess;
-      ScopedPtr<Rendering::RenderOutput> myRenderOutput;
+      Time myRealTimeClock;
     };
-
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
 

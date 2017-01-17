@@ -16,8 +16,11 @@
 #include "LightComponent.h"
 #include "ScopedPtr.h"
 #include "RenderingProcessForward.h"
+#include "RenderView.h"
 
 namespace Fancy {
+//---------------------------------------------------------------------------//
+  FancyRuntime* FancyRuntime::ourInstance = nullptr;
 //---------------------------------------------------------------------------//
   FancyRuntime::FancyRuntime(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams)
     : myAppInstanceHandle(anAppInstanceHandle)
@@ -40,23 +43,8 @@ namespace Fancy {
       Rendering::RenderCore::Init();
       Rendering::RenderCore::PostInit();
     }
-    
-    myRenderOutput = new Rendering::RenderOutput(anAppInstanceHandle);
-    myRenderOutput->postInit();
-    
-    // Init scene
-    myScene = new Scene::Scene();
 
-    // Init Rendering process
-    switch(someParams.myRenderingTechnique)
-    {
-      case RenderingTechnique::FORWARD: 
-        myRenderingProcess = FANCY_NEW(Rendering::RenderingProcessForward, MemoryCategory::General);
-        break;
-      default: 
-        ASSERT(false, "Unsupported rendering technique %", (uint32)someParams.myRenderingTechnique);
-        break;
-    }
+    myDefaultView = new RenderView(anAppInstanceHandle, static_cast<uint32>(someParams.myRenderingTechnique));
   }
 //---------------------------------------------------------------------------//
   FancyRuntime::~FancyRuntime()
@@ -86,6 +74,16 @@ namespace Fancy {
       return nullptr;
 
     return node;
+  }
+//---------------------------------------------------------------------------//
+  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams)
+  {
+    ASSERT(ourInstance == nullptr);
+    if (ourInstance != nullptr)
+      return ourInstance;
+
+    ourInstance = new FancyRuntime(anAppInstanceHandle, someParams);
+    return ourInstance;
   }
 //---------------------------------------------------------------------------//
   void FancyRuntime::Update(double _dt)
