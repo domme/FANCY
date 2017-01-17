@@ -14,7 +14,9 @@
 namespace Fancy { namespace IO {
   Json::Value nullVal = Json::Value(NULL);
 //---------------------------------------------------------------------------//
-  JSONreader::JSONreader(const String& anArchivePath) : Serializer(ESerializationMode::LOAD)
+  JSONreader::JSONreader(const String& anArchivePath, GraphicsWorld& aGraphicsWorld) 
+    : Serializer(ESerializationMode::LOAD)
+    , myGraphicsWorld(aGraphicsWorld)
   {
     uint32 archiveFlags = 0u;
 
@@ -84,7 +86,7 @@ namespace Fancy { namespace IO {
         myHeader.myResourceDependencies.push_back(description);
       }
 
-      metaTable->Create(anObject, typeName, *description);
+      metaTable->Create(anObject, typeName, *description, &myGraphicsWorld);
       
     } break;
 

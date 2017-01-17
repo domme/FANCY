@@ -3,6 +3,10 @@
 #include "Serializer.h"
 #include "Json/json.h"
 
+namespace Fancy {
+  class GraphicsWorld;
+}
+
 namespace Fancy { namespace Rendering {
   class MaterialPassInstance;
   class MaterialPass;
@@ -15,7 +19,7 @@ namespace Fancy { namespace IO {
   class JSONreader : public Serializer
   {
   public:
-    JSONreader(const String& anArchivePath);
+    JSONreader(const String& anArchivePath, GraphicsWorld& aGraphicsWorld);
     virtual ~JSONreader() override;
 
     const uint32 myVersion = 0;
@@ -47,8 +51,9 @@ namespace Fancy { namespace IO {
     virtual void beginName(const char* aName, bool anIsArray) override;
     virtual void endName() override;
 
-
     void loadHeader();
+
+    GraphicsWorld& myGraphicsWorld;
 
     RootHeader myHeader;
     Json::Value myDocumentVal;

@@ -12,9 +12,6 @@ namespace Fancy { namespace Scene {
   void SceneNodeComponentFactory::
     registerFactory( const ObjectName& typeName, CreateFunction creator )
   {
-    internal::ComponentCreatorMap::iterator it = internal::mapComponentCreators.find(typeName);
-    ASSERT(it == internal::mapComponentCreators.end());
-
     internal::mapComponentCreators[typeName] = creator;
   }
 //---------------------------------------------------------------------------//

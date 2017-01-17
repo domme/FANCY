@@ -31,7 +31,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	class RenderOutputDX12
 	{
 	public:
-    RenderOutputDX12();
+    RenderOutputDX12(void* aNativeInstanceHandle);
 		virtual ~RenderOutputDX12();
 		void postInit(); /// Sets the render-system to a valid state. Should be called just before the first frame
 		void beginFrame();
@@ -68,6 +68,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static void InitPlatform();
     /// Shutdown of platform-dependent rendering stuff
     static void ShutdownPlatform();
+
+    static bool IsInitialized() { return ourDevice.Get() != nullptr; }
 
     static DXGI_FORMAT GetFormat(DataFormat aFormat);
     static DataFormat ResolveFormat(DataFormat aFormat);

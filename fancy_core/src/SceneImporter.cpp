@@ -10,7 +10,6 @@
 #include <assimp/material.h>
 #include <xxHash/xxhash.h>
 
-#include "Scene.h"
 #include "SceneNode.h"
 #include "SceneNodeComponent.h"
 #include "Mesh.h"
@@ -74,42 +73,6 @@ namespace Fancy { namespace IO {
   //---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-  namespace Processing
-  {
-    const uint32 kMaxNumAssimpMeshesPerNode = 128u;
-    typedef FixedArray<aiMesh*, kMaxNumAssimpMeshesPerNode> AiMeshList;
-    typedef std::map<const aiMaterial*, Rendering::Material*> MaterialCacheMap;
-    typedef FixedArray<std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>, 256u> MeshCacheList;
-
-    struct WorkingData
-    {
-      WorkingData() : szCurrScenePathInResources(""), pCurrScene(nullptr), myGraphicsWorld(nullptr),
-        u32NumCreatedMeshes(0u), u32NumCreatedModels(0u), u32NumCreatedGeometryDatas(0u), u32NumCreatedSubModels(0u) {}
-
-      std::string szCurrScenePathInResources;
-      const aiScene* pCurrScene;
-      GraphicsWorld* myGraphicsWorld;
-      MaterialCacheMap mapAiMatToMat;
-      MeshCacheList localMeshCache;
-
-      uint32 u32NumCreatedMeshes;
-      uint32 u32NumCreatedModels;
-      uint32 u32NumCreatedGeometryDatas;
-      uint32 u32NumCreatedSubModels;
-    };
-
-    bool processAiScene(WorkingData& _workingData, const aiScene* _pAscene, Scene::SceneNode* _pParentNode);
-    bool processAiNode(WorkingData& _workingData, const aiNode* _pAnode, Scene::SceneNode* _pParentNode);
-    bool processMeshes(WorkingData& _workingData, const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
-    SharedPtr<Geometry::Mesh> constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pAnode, aiMesh** someMeshes, uint32 aMeshCount);
-    Rendering::Material* createOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial);
-    SharedPtr<Rendering::Texture> createOrRetrieveTexture(WorkingData& _workingData, const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex);
-
-    std::string GetCachePathForMesh(WorkingData& _workingData);
-  }
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
   void SceneImporter::initLogger()
   {
     const unsigned int severity = 
@@ -128,9 +91,18 @@ namespace Fancy { namespace IO {
     Assimp::DefaultLogger::get()->detatchStream(Internal::m_pLogger);
   }
 //---------------------------------------------------------------------------//
-  bool SceneImporter::importToSceneGraph( const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode, GraphicsWorld* aWorld)
+  SceneImporter::SceneImporter(GraphicsWorld& aGraphicsWorld)
+    : myGraphicsWorld(aGraphicsWorld)
   {
-    bool success = false;
+  }
+//---------------------------------------------------------------------------//
+  SceneImporter::~SceneImporter()
+  {
+
+  }
+//---------------------------------------------------------------------------//
+  bool SceneImporter::importToSceneGraph( const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode)
+  {
     std::string szImportPathAbs = PathService::convertToAbsPath(_szImportPathRel);
 
     // TODO: Look for cached binary data and don't re-import if possible
@@ -145,14 +117,19 @@ namespace Fancy { namespace IO {
         aiProcess_FindInstances);
 
     if (!aScene)
-    {
       return false;
-    }
 
-    Processing::WorkingData workingData;
-    workingData.szCurrScenePathInResources = _szImportPathRel;
-    workingData.myGraphicsWorld = aWorld;
-    success = Processing::processAiScene(workingData, aScene, _pParentNode);
+    myWorkingData = WorkingData();
+    myWorkingData.szCurrScenePathInResources = _szImportPathRel;
+    myWorkingData.pCurrScene = aScene;
+
+    const aiNode* pArootNode = aScene->mRootNode;
+
+    if (!pArootNode)
+      return false;
+
+    if (!processAiNode(pArootNode, _pParentNode))
+      return false;
 
     // Serialization-tests....
     // Serialization needs a re-work after adjusting Resource-Handling apis
@@ -162,28 +139,14 @@ namespace Fancy { namespace IO {
     }
 
     {
-      JSONreader serializer(szImportPathAbs);
+      JSONreader serializer(szImportPathAbs, myGraphicsWorld);
       serializer.Serialize(&_pParentNode, "rootNode");
     }
     
-    return success;
+    return true;
   }
 //---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-  bool Processing::processAiScene(WorkingData& _workingData, const aiScene* _pAscene, Scene::SceneNode* _pParentNode)
-  {
-    const aiNode* pArootNode = _pAscene->mRootNode;
-
-    if (!pArootNode)
-    {
-      return false;
-    }
-
-    _workingData.pCurrScene = _pAscene;
-    return processAiNode(_workingData, pArootNode, _pParentNode);
-  }
-//---------------------------------------------------------------------------//
-  bool Processing::processAiNode(WorkingData& _workingData, const aiNode* _pAnode, Scene::SceneNode* _pParentNode)
+  bool SceneImporter::processAiNode(const aiNode* _pAnode, Scene::SceneNode* _pParentNode)
   {
     bool success = true;
 
@@ -206,18 +169,18 @@ namespace Fancy { namespace IO {
     if (_pAnode->mNumMeshes > 0u)
     {
       Scene::ModelComponent* pModelComponent = static_cast<Scene::ModelComponent*>(pNode->addOrRetrieveComponent(_N(ModelComponent)));
-      Processing::processMeshes(_workingData, _pAnode, pModelComponent);
+      success &= processMeshes(_pAnode, pModelComponent);
     }
     
-    for (uint32 i = 0u; i < _pAnode->mNumChildren; ++i)
+    for (uint32 i = 0u; success && i < _pAnode->mNumChildren; ++i)
     {
-      success &= Processing::processAiNode(_workingData, _pAnode->mChildren[i], pNode);
+      success &= processAiNode(_pAnode->mChildren[i], pNode);
     }
 
     return success;
   }
 //---------------------------------------------------------------------------//
-  bool Processing::processMeshes(WorkingData& _workingData, const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent)
+  bool SceneImporter::processMeshes(const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent)
   {
     // Sort all meshes by their material. Each entry will become a submodel of the model
     
@@ -231,7 +194,7 @@ namespace Fancy { namespace IO {
     {
       const uint32 uMeshIndex = _pAnode->mMeshes[i];
       aiMesh* pAmesh = 
-        _workingData.pCurrScene->mMeshes[uMeshIndex];
+        myWorkingData.pCurrScene->mMeshes[uMeshIndex];
 
       const uint32 uMaterialIndex = pAmesh->mMaterialIndex;
       AssimpMeshList& vMeshesWithMaterial = mapMaterialIndexMesh[uMaterialIndex];
@@ -250,12 +213,13 @@ namespace Fancy { namespace IO {
       const uint32 uMaterialIndex = it->first;
       AssimpMeshList& vAssimpMeshes = it->second;
       
-      SharedPtr<Geometry::Mesh> pMesh = constructOrRetrieveMesh(_workingData, _pAnode, &vAssimpMeshes[0], vAssimpMeshes.size());
+      SharedPtr<Geometry::Mesh> pMesh = 
+        constructOrRetrieveMesh(_pAnode, &vAssimpMeshes[0], vAssimpMeshes.size());
 
       // Create or retrieve the material
       aiMaterial* pAmaterial = 
-        _workingData.pCurrScene->mMaterials[uMaterialIndex];
-      Rendering::Material* pMaterial = Processing::createOrRetrieveMaterial(_workingData, pAmaterial);
+        myWorkingData.pCurrScene->mMaterials[uMaterialIndex];
+      Rendering::Material* pMaterial = createOrRetrieveMaterial(pAmaterial);
 
       // Do we already have a Submodel with this mesh and material?
       Geometry::SubModelDesc submodelDesc;
@@ -347,7 +311,6 @@ namespace Fancy { namespace IO {
     return hash;
   }
 //---------------------------------------------------------------------------//
-
   const ShaderVertexInputElement* locGetShaderExpectedInput(VertexSemantics aSemantic)
   {
     const ShaderVertexInputLayout& modelLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
@@ -360,7 +323,7 @@ namespace Fancy { namespace IO {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Geometry::Mesh> Processing::constructOrRetrieveMesh(WorkingData& _workingData, const aiNode* _pANode, aiMesh** someMeshes, uint32 aMeshCount)
+  SharedPtr<Geometry::Mesh> SceneImporter::constructOrRetrieveMesh(const aiNode* _pANode, aiMesh** someMeshes, uint32 aMeshCount)
   {
     // TODO: Refactor this caching-mechanism:
     // We don't save any processing time if we read in the cached mesh, construct its hash and THEN check if we already have this mesh loaded in the engine
@@ -370,15 +333,15 @@ namespace Fancy { namespace IO {
     // 3) If there isn't any matching Mesh in the engine yet --> load it from cache if the cache-timestamp is newer than the imported scene-file
     // 4) If the scene-file is newer: load the mesh from assimp and update cache file
 
-    ObjectName meshName = Processing::GetCachePathForMesh(_workingData);
+    ObjectName meshName = GetCachePathForMesh();
     // if (BinaryCache::read(&outputMesh, meshName, 0u))
     // return outputMesh;
 
     // Did we construct a similar mesh before from the same ai-Meshes?
-    auto findMeshInCache = [_workingData, someMeshes, aMeshCount]() -> SharedPtr<Geometry::Mesh> {
-      for (uint32 i = 0u; i < _workingData.localMeshCache.size(); ++i)
+    auto findMeshInCache = [&]() -> SharedPtr<Geometry::Mesh> {
+      for (uint32 i = 0u; i < myWorkingData.localMeshCache.size(); ++i)
       {
-        const std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>& entry = _workingData.localMeshCache[i];
+        const std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>& entry = myWorkingData.localMeshCache[i];
 
         bool isValid = true;
         for (uint32 iAiMesh = 0u; isValid && iAiMesh < aMeshCount; ++iAiMesh)
@@ -395,10 +358,9 @@ namespace Fancy { namespace IO {
     if (mesh != nullptr)
       return mesh;
 
-    GraphicsWorld* graphicsWorld = _workingData.myGraphicsWorld;
     uint64 vertexIndexHash = locComputeHashFromVertexData(someMeshes, aMeshCount);
     
-    mesh = graphicsWorld->GetMesh(vertexIndexHash);
+    mesh = myGraphicsWorld.GetMesh(vertexIndexHash);
     if (mesh != nullptr)
       return mesh;
     
@@ -631,13 +593,13 @@ namespace Fancy { namespace IO {
       numIndices.push_back(aiMesh->mNumFaces * 3u);
     }
 
-    mesh = graphicsWorld->CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
+    mesh = myGraphicsWorld.CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
     ASSERT(mesh != nullptr);
 
     AiMeshList aiMeshList;
     aiMeshList.resize(aMeshCount);
     memcpy(&aiMeshList[0], &someMeshes[0], sizeof(aiMesh*) * aMeshCount);
-    _workingData.localMeshCache.push_back(std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>(aiMeshList, mesh));
+    myWorkingData.localMeshCache.push_back(std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>(aiMeshList, mesh));
 
     for (uint32 i = 0u; i < vertexDatas.size(); ++i)
     {
@@ -654,11 +616,11 @@ namespace Fancy { namespace IO {
     return mesh;
   }
 //---------------------------------------------------------------------------//
-  Rendering::Material* Processing::createOrRetrieveMaterial(WorkingData& _workingData, const aiMaterial* _pAmaterial)
+  Rendering::Material* SceneImporter::createOrRetrieveMaterial(const aiMaterial* _pAmaterial)
   {
     // Did we already import this material?
-    Processing::MaterialCacheMap::iterator cacheIt = _workingData.mapAiMatToMat.find(_pAmaterial);
-    if (cacheIt != _workingData.mapAiMatToMat.end())
+    MaterialCacheMap::iterator cacheIt = myWorkingData.mapAiMatToMat.find(_pAmaterial);
+    if (cacheIt != myWorkingData.mapAiMatToMat.end())
     {
       return cacheIt->second;
     }
@@ -694,11 +656,11 @@ namespace Fancy { namespace IO {
     float specular;
     bool hasSpecular = _pAmaterial->Get(AI_MATKEY_SHININESS_STRENGTH, specular) == AI_SUCCESS;
 
-    SharedPtr<Texture> pDiffuseTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_DIFFUSE, 0u);
-    SharedPtr<Texture> pNormalTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_NORMALS, 0u);
-    SharedPtr<Texture> pSpecularTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SPECULAR, 0u);
-    SharedPtr<Texture> pSpecPowerTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_SHININESS, 0u);
-    SharedPtr<Texture> pOpacityTex = createOrRetrieveTexture(_workingData, _pAmaterial, aiTextureType_OPACITY, 0u);
+    SharedPtr<Texture> pDiffuseTex = createOrRetrieveTexture(_pAmaterial, aiTextureType_DIFFUSE, 0u);
+    SharedPtr<Texture> pNormalTex = createOrRetrieveTexture(_pAmaterial, aiTextureType_NORMALS, 0u);
+    SharedPtr<Texture> pSpecularTex = createOrRetrieveTexture(_pAmaterial, aiTextureType_SPECULAR, 0u);
+    SharedPtr<Texture> pSpecPowerTex = createOrRetrieveTexture(_pAmaterial, aiTextureType_SHININESS, 0u);
+    SharedPtr<Texture> pOpacityTex = createOrRetrieveTexture(_pAmaterial, aiTextureType_OPACITY, 0u);
 
     bool hasDiffuseTex = pDiffuseTex != nullptr;
     bool hasNormalTex = pDiffuseTex != nullptr;
@@ -810,10 +772,10 @@ namespace Fancy { namespace IO {
     return pMaterial;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Rendering::Texture> Processing::createOrRetrieveTexture(WorkingData& _workingData, 
-    const aiMaterial* _pAmaterial, aiTextureType _aiTextureType, uint32 _texIndex)
+  SharedPtr<Rendering::Texture> SceneImporter::createOrRetrieveTexture(
+    const aiMaterial* _pAmaterial, uint32 _aiTextureType, uint32 _texIndex)
   {
-    uint32 numTextures = _pAmaterial->GetTextureCount(_aiTextureType);
+    uint32 numTextures = _pAmaterial->GetTextureCount(static_cast<aiTextureType>(_aiTextureType));
     if (numTextures == 0u)
     {
       return nullptr;
@@ -828,7 +790,7 @@ namespace Fancy { namespace IO {
     
     if (!PathService::isAbsolutePath(szTexPath))
     {
-      String absSceneFolderPath = _workingData.szCurrScenePathInResources;
+      String absSceneFolderPath = myWorkingData.szCurrScenePathInResources;
       PathService::convertToAbsPath(absSceneFolderPath);
       PathService::removeFilenameFromPath(absSceneFolderPath);
       szTexPath = absSceneFolderPath + szTexPath;
@@ -840,10 +802,10 @@ namespace Fancy { namespace IO {
     return RenderCore::CreateTexture(texPathInResources);
   }
 //---------------------------------------------------------------------------//
-  std::string Processing::GetCachePathForMesh(WorkingData& _workingData)
+  std::string SceneImporter::GetCachePathForMesh()
   {
-    return "Mesh_" + _workingData.szCurrScenePathInResources + "_" 
-      + StringUtil::toString(_workingData.u32NumCreatedMeshes++);
+    return "Mesh_" + myWorkingData.szCurrScenePathInResources + "_" 
+      + StringUtil::toString(myWorkingData.u32NumCreatedMeshes++);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

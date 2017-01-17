@@ -362,6 +362,7 @@
     <ClInclude Include="src\GpuResource.h" />
     <ClInclude Include="src\GpuResourceDX12.h" />
     <ClInclude Include="src\GpuResourceSignature.h" />
+    <ClInclude Include="src\GraphicsLibrary.h" />
     <ClInclude Include="src\GraphicsWorld.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\JSONreader.h" />
@@ -398,6 +399,7 @@
     <ClInclude Include="src\RenderingProcess.h" />
     <ClInclude Include="src\RenderingProcessForward.h" />
     <ClInclude Include="src\RenderOperation.h" />
+    <ClInclude Include="src\RenderView.h" />
     <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\ResourceBinding.h" />
     <ClInclude Include="src\DescriptionBase.h" />
@@ -472,6 +474,7 @@
     <ClCompile Include="src\GpuProgramResourceDX12.cpp" />
     <ClCompile Include="src\GpuProgramResourceGL4.cpp" />
     <ClCompile Include="src\GpuResourceDX12.cpp" />
+    <ClCompile Include="src\GraphicsLibrary.cpp" />
     <ClCompile Include="src\GraphicsWorld.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
@@ -503,6 +506,7 @@
     <ClCompile Include="src\RenderingProcess.cpp" />
     <ClCompile Include="src\RenderingProcessForward.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
+    <ClCompile Include="src\RenderView.cpp" />
     <ClCompile Include="src\ResourceBinding.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\SceneImporter.cpp" />

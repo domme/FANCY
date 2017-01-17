@@ -35,8 +35,8 @@
     BUFFERS,
     GEOMETRY
   };
-  //---------------------------------------------------------------------------//
-    // Allocation defines (will be replaced by custom allocators in the future)
+//---------------------------------------------------------------------------//
+// Allocation defines (will be replaced by custom allocators in the future)
 #define FANCY_NEW(type, memoryCategory) new type
 #define FANCY_DELETE(type, memoryCategory) delete type
 #define FANCY_DELETE_ARR(type, memoryCategory) delete[] type
