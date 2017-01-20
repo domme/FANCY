@@ -331,7 +331,7 @@ namespace Fancy { namespace Rendering {
     
   }
 //---------------------------------------------------------------------------//
-  void RenderingProcessForward::Tick(float _dt)
+  void RenderingProcessForward::Tick(const Time& aClock)
   {
     _DebugExecuteComputeShader();
 

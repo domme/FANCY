@@ -21,7 +21,7 @@ class DLLEXPORT RenderingProcessForward : public RenderingProcess
     virtual ~RenderingProcessForward();
 
     virtual void Startup() override;
-    virtual void Tick(float _dt) override;
+    virtual void Tick(const Time& aClock) override;
 
   protected:
     void BindResources_ForwardColorPass(RenderContext* aRenderContext, const MaterialPassInstance* aMaterial) const;

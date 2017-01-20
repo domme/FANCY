@@ -17,6 +17,7 @@
 #include "ScopedPtr.h"
 #include "RenderingProcessForward.h"
 #include "RenderView.h"
+#include "GraphicsWorld.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -44,7 +45,9 @@ namespace Fancy {
       Rendering::RenderCore::PostInit();
     }
 
-    myDefaultView = new RenderView(anAppInstanceHandle, static_cast<uint32>(someParams.myRenderingTechnique));
+    myMainWorld = std::make_shared<GraphicsWorld>();
+    myMainView = new RenderView(anAppInstanceHandle, static_cast<uint32>(someParams.myRenderingTechnique), myMainWorld);
+    myViews.push_back(myMainView.Get());
   }
 //---------------------------------------------------------------------------//
   FancyRuntime::~FancyRuntime()
@@ -57,23 +60,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void FancyRuntime::DoFirstFrameTasks()
   {
-    myRenderingProcess->Startup();
-    myScene->startup();
-  }
-//---------------------------------------------------------------------------//
-  RenderWindow* FancyRuntime::GetCurrentRenderWindow()
-  {
-    return myRenderOutput->GetWindow();
-  }
-//---------------------------------------------------------------------------//
-  Scene::SceneNode* FancyRuntime::Import(const std::string& aPath)
-  {
-    IO::SceneImporter importer(*myGraphicsWorld);
-    Scene::SceneNode* node = myScene->getRootNode()->createChildNode();
-    if (!importer.importToSceneGraph(aPath, node))
-      return nullptr;
-
-    return node;
+    for (RenderView* view : myViews)
+      view->Startup();
   }
 //---------------------------------------------------------------------------//
   FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams)
@@ -92,13 +80,10 @@ namespace Fancy {
       DoFirstFrameTasks();
 
     myRealTimeClock.Update(_dt);
-    const float deltaTime = myRealTimeClock.GetDelta();
+    
+    
 
-    myScene->update(deltaTime);
-
-    myRenderOutput->beginFrame();
-    myRenderingProcess->Tick(deltaTime);
-    myRenderOutput->endFrame();
+    
 
     ++myFrameIndex;
   }
