@@ -6,13 +6,11 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  RenderView::RenderView(HINSTANCE anAppInstanceHandle, uint32 aRenderingTechnique)
+  RenderView::RenderView(HINSTANCE anAppInstanceHandle, uint32 aRenderingTechnique, const SharedPtr<GraphicsWorld>& aWorld)
+    : myGraphicsWorld(aWorld)
   {
     myRenderOutput = new Rendering::RenderOutput(anAppInstanceHandle);
     myRenderOutput->postInit();
-
-    myGraphicsWorld = new GraphicsWorld();
-    
     // Init Rendering process
     switch (aRenderingTechnique)
     {
@@ -27,6 +25,21 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderView::~RenderView()
   {
+  }
+//---------------------------------------------------------------------------//
+  void RenderView::Startup()
+  {
+    myRenderingProcess->Startup();
+    myGraphicsWorld->Startup();
+  }
+//---------------------------------------------------------------------------//
+  void RenderView::Tick(const Time& aClock)
+  {
+    myGraphicsWorld->Tick(aClock);
+
+    myRenderOutput->beginFrame();
+    myRenderingProcess->Tick();
+    myRenderOutput->endFrame();
   }
 //---------------------------------------------------------------------------//
 }

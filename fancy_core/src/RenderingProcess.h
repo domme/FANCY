@@ -4,10 +4,17 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
+namespace Fancy{
+class GraphicsWorld;
+}
+
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
+
+class RenderOutput;
 class RenderContext;
 class MaterialPass;
+class Time;
 
 class DLLEXPORT RenderingProcess
   {
@@ -16,7 +23,7 @@ class DLLEXPORT RenderingProcess
     virtual ~RenderingProcess();
 
     virtual void Startup() = 0;
-    virtual void Tick(float _dt) = 0;
+    virtual void Render(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) = 0;
 
   protected:
     static void ApplyMaterialPass(const MaterialPass* _pMaterialPass, RenderContext* aRenderContext);

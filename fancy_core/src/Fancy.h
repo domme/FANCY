@@ -66,10 +66,14 @@ namespace Fancy {
 
       HINSTANCE myAppInstanceHandle;
       uint64 myFrameIndex;
+
       // TODO: Add support for secondary views
-      ScopedPtr<RenderView> myDefaultView;
+      SharedPtr<GraphicsWorld> myMainWorld;
+      ScopedPtr<RenderView> myMainView;
 
       Time myRealTimeClock;
+
+      std::vector<RenderView*> myViews;
     };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
