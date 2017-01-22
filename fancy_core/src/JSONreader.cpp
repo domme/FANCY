@@ -106,7 +106,7 @@ namespace Fancy { namespace IO {
       uint64 instanceHash = currJsonVal["Hash"].asUInt64();
 
       bool wasCreated = false;
-      metaTable->create(anObject, typeName, wasCreated, instanceHash);
+      metaTable->create(anObject, &myGraphicsWorld, typeName, wasCreated, instanceHash);
 
       if (wasCreated)
         metaTable->Serialize(this, anObject);

@@ -111,7 +111,6 @@ namespace Fancy { namespace Scene {
     float hFar = 2.0f * h2Far;
     float hNear = 2.0f * h2Near;
     
-    Rendering::RenderOutput* renderer = Fancy::GetCurrentRenderOutput();
     float aspect = aViewportAspectRatio;
     float w2Far = ( hFar * aspect ) / 2.0f;
     float w2Near = ( hNear * aspect ) / 2.0f;

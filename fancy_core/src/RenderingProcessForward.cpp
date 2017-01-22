@@ -17,6 +17,7 @@
 #include "RenderWindow.h"
 #include "ComputeContext.h"
 #include "ShaderResourceInterface.h"
+#include "GraphicsWorld.h"
 
 namespace Fancy { namespace Rendering {
 
@@ -213,12 +214,10 @@ namespace Fancy { namespace Rendering {
     _DebugLoadComputeShader();
   }
 //---------------------------------------------------------------------------//
-  void RenderingProcessForward::UpdatePerFrameData() const
+  void RenderingProcessForward::UpdatePerFrameData(const Time& aClock) const
   {
-    const Time& clock = Fancy::GetRealTimeClock();
-
     PerFrameData frameData;
-    frameData.c_TimeParamters = glm::float4(clock.GetDelta(), clock.GetElapsed(), 0.0f, 0.0f);
+    frameData.c_TimeParamters = glm::float4(aClock.GetDelta(), aClock.GetElapsed(), 0.0f, 0.0f);
 
     RenderCore::UpdateBufferData(myPerFrameData.get(), &frameData, sizeof(frameData));
   }
@@ -331,18 +330,17 @@ namespace Fancy { namespace Rendering {
     
   }
 //---------------------------------------------------------------------------//
-  void RenderingProcessForward::Tick(const Time& aClock)
+  void RenderingProcessForward::Render(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock)
   {
     _DebugExecuteComputeShader();
 
-    Scene::Scene* pScene = Fancy::GetCurrentScene().get();
-    RenderOutput& renderOutput = *Fancy::GetCurrentRenderOutput();
-    RenderWindow* renderWindow = renderOutput.GetWindow();
+    const Scene::Scene* pScene = aWorld->GetScene();
+    const RenderWindow* renderWindow = anOutput->GetWindow();
     
     Scene::SceneRenderDescription renderDesc;
     pScene->gatherRenderItems(&renderDesc);
 
-    UpdatePerFrameData();
+    UpdatePerFrameData(aClock);
 
     const Scene::CameraComponent* camera = pScene->getActiveCamera();
 
@@ -350,15 +348,15 @@ namespace Fancy { namespace Rendering {
 
     RenderContext* context = static_cast<RenderContext*>(RenderContext::AllocateContext(CommandListType::Graphics));
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-    context->ClearRenderTarget(renderOutput.GetBackbuffer(), clearColor);
+    context->ClearRenderTarget(anOutput->GetBackbuffer(), clearColor);
 
     const float clearDepth = 1.0f;
     uint8 clearStencil = 0u;
-    context->ClearDepthStencilTarget(renderOutput.GetDefaultDepthStencilBuffer(), clearDepth, clearStencil);
+    context->ClearDepthStencilTarget(anOutput->GetDefaultDepthStencilBuffer(), clearDepth, clearStencil);
 
     context->setViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
-    context->setRenderTarget(renderOutput.GetBackbuffer(), 0u);
-    context->setDepthStencilRenderTarget(renderOutput.GetDefaultDepthStencilBuffer());
+    context->setRenderTarget(anOutput->GetBackbuffer(), 0u);
+    context->setDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
 
     const Scene::RenderingItemList& forwardRenderList = renderDesc.techniqueItemList[(uint32) Rendering::EMaterialPass::SOLID_FORWARD];
     // TODO: Sort based on material-pass

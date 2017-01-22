@@ -6,6 +6,7 @@
 
 namespace Fancy{
 class GraphicsWorld;
+class Time;
 }
 
 //---------------------------------------------------------------------------//
@@ -14,7 +15,6 @@ namespace Fancy { namespace Rendering {
 class RenderOutput;
 class RenderContext;
 class MaterialPass;
-class Time;
 
 class DLLEXPORT RenderingProcess
   {

@@ -12,6 +12,8 @@
 #include <ObjectName.h>
 #include <LightComponent.h>
 #include <RenderWindow.h>
+#include "RenderView.h"
+#include "GraphicsWorld.h"
 
 Fancy::Scene::CameraComponent* pCameraComponent;
 Fancy::Scene::SceneNode* pModelNode;
@@ -31,20 +33,20 @@ void StartupEngine(HINSTANCE anAppInstanceHandle)
   params.myResourceFolder = "../../../resources/";
   params.myRenderingTechnique = Fancy::RenderingTechnique::FORWARD;
 
-  pRuntime = new Fancy::FancyRuntime(anAppInstanceHandle, params);
+  pRuntime = Fancy::FancyRuntime::Init(anAppInstanceHandle, params);
 
-  Fancy::RenderWindow* window = pRuntime->GetCurrentRenderWindow();
-
+  Fancy::RenderView* mainView = pRuntime->GetMainView();
+  Fancy::RenderWindow* window = mainView->GetRenderWindow();
   std::function<void(uint, uint)> onResizeCallback = &OnWindowResized;
   window->myOnResize.Connect(onResizeCallback);
   
-  Fancy::Scene::Scene* pScene = pRuntime->GetCurrentScene();
+  Fancy::Scene::Scene* pScene = pRuntime->GetMainWorld()->GetScene();
   Fancy::Scene::SceneNode* pCameraNode = pScene->getRootNode()->createChildNode(_N(CameraNode));
   pCameraComponent = static_cast<Fancy::Scene::CameraComponent*>(pCameraNode->addOrRetrieveComponent(_N(CameraComponent)));
   pCameraComponent->setProjectionPersp(45.0f, window->GetWidth(), window->GetHeight(), 1.0f, 1000.0f);
   pScene->setActiveCamera(pCameraComponent);
 
-  pModelNode = pRuntime->Import("Models/cube.obj");
+  pModelNode = pRuntime->GetMainWorld()->Import("Models/cube.obj");
   pModelNode->getTransform().setPositionLocal(glm::vec3(0.0f, 0.0f, 10.0f));
 
   Fancy::Scene::SceneNode* pLightNode = pScene->getRootNode()->createChildNode(_N(LightNode));

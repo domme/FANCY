@@ -1,6 +1,7 @@
 #include "SubModel.h"
 #include "Serializer.h"
 #include "Mesh.h"
+#include "Renderer.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -20,8 +21,7 @@ namespace Fancy { namespace Geometry {
   
 //---------------------------------------------------------------------------//
   SubModel::SubModel() :
-    m_pMaterial(nullptr),
-    m_pMesh(nullptr)
+    m_pMaterial(nullptr)
   {
 
   }
@@ -52,7 +52,7 @@ namespace Fancy { namespace Geometry {
   void SubModel::SetFromDescription(const SubModelDesc& aDesc)
   {
     m_pMaterial = Rendering::Material::FindFromDesc(aDesc.myMaterial);
-    m_pMesh = Mesh::FindFromDesc(aDesc.myMesh);
+    m_pMesh = Rendering::RenderCore::GetMesh(aDesc.myMesh.myVertexAndIndexHash);
   }
 //---------------------------------------------------------------------------//
   void SubModel::Serialize(IO::Serializer* aSerializer)

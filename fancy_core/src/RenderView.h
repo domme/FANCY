@@ -14,6 +14,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   class GraphicsWorld;
   class Time;
+  class RenderWindow;
 //---------------------------------------------------------------------------//
   class DLLEXPORT RenderView
   {
@@ -21,12 +22,20 @@ namespace Fancy {
     RenderView(HINSTANCE anAppInstanceHandle, uint32 aRenderingTechnique, const SharedPtr<GraphicsWorld>& aWorld);
     ~RenderView();
 
+    GraphicsWorld* GetWorld() const { return myGraphicsWorld.get(); }
+    Rendering::RenderingProcess* GetRenderingProcess() const { return myRenderingProcess; }
+    Rendering::RenderOutput* GetRenderOutput() const { return myRenderOutput; }
+    RenderWindow* GetRenderWindow();
+
     void Startup();
     void Tick(const Time& aClock);
 
   private:
     SharedPtr<GraphicsWorld> myGraphicsWorld;
-    ScopedPtr<Rendering::RenderingProcess> myRenderingProcess;
+
+    // TODO: All different RenderingProcesses should be kept in the Runtime-Instance instead of re-creating one for each View
+    ScopedPtr<Rendering::RenderingProcess> myRenderingProcess;  
+
     ScopedPtr<Rendering::RenderOutput> myRenderOutput;
   };
 //---------------------------------------------------------------------------//

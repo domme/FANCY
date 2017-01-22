@@ -196,7 +196,7 @@ namespace IO {
   struct MetaTable
   {
     virtual ~MetaTable() {}
-    virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated, uint64 aHash = 0u) = 0;
+    virtual void create(void* anObject, GraphicsWorld* aGraphicsWorld, const ObjectName& aTypeName, bool& aWasCreated, uint64 aHash = 0u) = 0;
     virtual String getTypeName(void* anObject) { return ""; }
     virtual uint64 getHash(void* anObject) { return 0u; }
     virtual bool isManaged(void* anObject) { return false; }
@@ -234,7 +234,7 @@ namespace IO {
     template<class T>
     struct MetaTableImpl : public MetaTable
     {
-      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated, 
+      virtual void create(void* anObject, GraphicsWorld* aGraphicsWorld, const ObjectName& aTypeName, bool& aWasCreated,
         uint64 aHash = 0u) override { }
 
       virtual String getTypeName(void* anObject) override
@@ -269,11 +269,11 @@ namespace IO {
     template<class T>
     struct MetaTableImpl<T*> : public MetaTable
     {
-      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
+      virtual void create(void* anObject, GraphicsWorld* aGraphicsWorld, const ObjectName& aTypeName, bool& aWasCreated,
         uint64 aHash = 0u) override 
       {
         T** serializable = static_cast<T**>(anObject);
-        (*serializable) = static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, aHash));
+        (*serializable) = static_cast<T*>(IO::ObjectFactory::create(aTypeName, aGraphicsWorld, aWasCreated, aHash));
       }
 
       virtual bool isValid(void* anObject) override
@@ -322,11 +322,11 @@ namespace IO {
     {
       virtual ~MetaTableImpl<std::shared_ptr<T>>() {}
       
-      virtual void create(void* anObject, const ObjectName& aTypeName, bool& aWasCreated,
+      virtual void create(void* anObject, GraphicsWorld* aGraphicsWorld, const ObjectName& aTypeName, bool& aWasCreated,
         uint64 aHash = 0u) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable) = std::shared_ptr<T>(static_cast<T*>(IO::ObjectFactory::create(aTypeName, aWasCreated, aHash)));
+        (*serializable) = std::shared_ptr<T>(static_cast<T*>(IO::ObjectFactory::create(aTypeName, aGraphicsWorld, aWasCreated, aHash)));
       }
 
       virtual bool isValid(void* anObject) override

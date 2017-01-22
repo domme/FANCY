@@ -16,7 +16,7 @@ namespace Fancy {
     NUM
   };
 //---------------------------------------------------------------------------//
-  class Time 
+  class DLLEXPORT Time 
   {
     public:
       Time();

@@ -85,8 +85,9 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  SceneNode::SceneNode() :
-    m_pParent(nullptr)
+  SceneNode::SceneNode(Scene* aScene) 
+    : m_pParent(nullptr)
+    , myScene(aScene)
   {
 
   }
@@ -234,7 +235,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   SceneNode* SceneNode::createChildNode( const ObjectName& _name /*= ObjectName::blank*/ )
   {
-    SceneNodePtr childNode = std::make_shared<SceneNode>();
+    SceneNodePtr childNode = std::make_shared<SceneNode>(myScene);
     childNode->m_name = _name;
 
     SceneNode::parentNodeToNode(childNode, this);
@@ -297,7 +298,7 @@ namespace Fancy { namespace Scene {
       m_pCameraComponent = static_cast<CameraComponent*>(pComponent.get());
     }
 
-    Fancy::GetCurrentScene()->onComponentAdded(pComponent.get());
+    myScene->onComponentAdded(pComponent.get());
   }
 //---------------------------------------------------------------------------//
   void SceneNode::onComponentRemoved(const SceneNodeComponentPtr& pComponent )
@@ -310,7 +311,7 @@ namespace Fancy { namespace Scene {
       m_pCameraComponent = nullptr;
     }
 
-    Fancy::GetCurrentScene()->onComponentRemoved(pComponent.get());
+    myScene->onComponentRemoved(pComponent.get());
   }
 //---------------------------------------------------------------------------//
   

@@ -14,7 +14,9 @@ namespace Fancy {
     ScopedPtr(T* aRawPtr) { Reset(aRawPtr); }
     ~ScopedPtr() { Reset(nullptr); }
   //---------------------------------------------------------------------------//
-    operator T*() { return Get(); }
+    operator T*() const { return Get(); }
+
+    const T* operator->() const { ASSERT(myRawPtr != nullptr); return myRawPtr; }
     T* operator->() { ASSERT(myRawPtr != nullptr); return myRawPtr; }
     void operator=(T* anOther) { Reset(anOther); }
     
@@ -38,8 +40,7 @@ namespace Fancy {
       return ptr;
     }
   //---------------------------------------------------------------------------//
-    T* Get() { return myRawPtr; }
-    
+    T* Get() const { return myRawPtr; }
   //---------------------------------------------------------------------------//
   private:
     T* myRawPtr;

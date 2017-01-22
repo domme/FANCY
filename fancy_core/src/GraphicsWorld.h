@@ -18,7 +18,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   class Time;
 //---------------------------------------------------------------------------//
-  class GraphicsWorld
+  class DLLEXPORT GraphicsWorld
   {
     public:
       GraphicsWorld();
@@ -26,6 +26,8 @@ namespace Fancy {
       Scene::SceneNode* Import(const std::string& aPath);
       void Startup();
       void Tick(const Time& aClock);
+
+      Scene::Scene* GetScene() const { return myScene.Get(); }
       
       // SharedPtr<Geometry::SubModel> CreateSubModel(const Geometry::SubModelDesc& aDesc);
       // SharedPtr<Geometry::Model> CreateModel(const Geometry::ModelDesc& aDesc);

@@ -15,14 +15,16 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 { 
 //---------------------------------------------------------------------------//
-  RenderOutputDX12::RenderOutputDX12()
+  RenderOutputDX12::RenderOutputDX12(void* aNativeInstanceHandle)
 	{
     Fancy::WindowParameters params;
     params.myTitle = "Fancy Engine (DX12)";
     params.myWidth = 1280u;
     params.myHeight = 720u;
 
-    myWindow = RenderWindow::Create(params);
+    HINSTANCE instanceHandle = (HINSTANCE)aNativeInstanceHandle;
+
+    myWindow = RenderWindow::Create(instanceHandle, params);
     myWindow->myOnResize.Connect(this, &RenderOutput::OnWindowResized);
 
     CreateSwapChain();
@@ -34,6 +36,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 	}
 //---------------------------------------------------------------------------//
   RenderWindow* RenderOutputDX12::GetWindow()
+  {
+    return myWindow.get();
+  }
+//---------------------------------------------------------------------------//
+  const RenderWindow* RenderOutputDX12::GetWindow() const
   {
     return myWindow.get();
   }

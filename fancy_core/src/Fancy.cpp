@@ -21,33 +21,13 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  FancyRuntime* FancyRuntime::ourInstance = nullptr;
+  DLLEXPORT FancyRuntime* FancyRuntime::ourInstance = nullptr;
 //---------------------------------------------------------------------------//
-  FancyRuntime::FancyRuntime(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams)
+  FancyRuntime::FancyRuntime(HINSTANCE anAppInstanceHandle)
     : myAppInstanceHandle(anAppInstanceHandle)
     , myFrameIndex(0u)
   {
-    // Init IO-subsystem
-    IO::PathService::SetResourceLocation(someParams.myResourceFolder);
-    IO::SceneImporter::initLogger();
-
-    // Init Component subsystem
-    Scene::SceneNodeComponentFactory::registerFactory(_N(ModelComponent), Scene::ModelComponent::create);
-    Scene::SceneNodeComponentFactory::registerFactory(_N(CameraComponent), Scene::CameraComponent::create);
-    Scene::SceneNodeComponentFactory::registerFactory(_N(LightComponent), Scene::LightComponent::create);
-    // Scene::SceneNodeComponentFactory::registerFactory(_N(CameraControllerComponent), Scene::CameraControllerComponent::create);
-
-    // Init rendering subsystem
-    if (!Rendering::RenderCore::IsInitialized())
-    {
-      Rendering::RenderCore::InitPlatform();
-      Rendering::RenderCore::Init();
-      Rendering::RenderCore::PostInit();
-    }
-
-    myMainWorld = std::make_shared<GraphicsWorld>();
-    myMainView = new RenderView(anAppInstanceHandle, static_cast<uint32>(someParams.myRenderingTechnique), myMainWorld);
-    myViews.push_back(myMainView.Get());
+    
   }
 //---------------------------------------------------------------------------//
   FancyRuntime::~FancyRuntime()
@@ -56,6 +36,13 @@ namespace Fancy {
 
     Rendering::RenderCore::Shutdown();
     Rendering::RenderCore::ShutdownPlatform();
+  }
+//---------------------------------------------------------------------------//
+  void FancyRuntime::Internal_Init(const EngineParameters& someParams)
+  {
+    myMainWorld = std::make_shared<GraphicsWorld>();
+    myMainView = new RenderView(myAppInstanceHandle, static_cast<uint32>(someParams.myRenderingTechnique), myMainWorld);
+    myViews.push_back(myMainView.Get());
   }
 //---------------------------------------------------------------------------//
   void FancyRuntime::DoFirstFrameTasks()
@@ -70,7 +57,33 @@ namespace Fancy {
     if (ourInstance != nullptr)
       return ourInstance;
 
-    ourInstance = new FancyRuntime(anAppInstanceHandle, someParams);
+    // Init IO-subsystem
+    IO::PathService::SetResourceLocation(someParams.myResourceFolder);
+    IO::SceneImporter::initLogger();
+
+    // Init Component subsystem
+    Scene::SceneNodeComponentFactory::registerFactory(_N(ModelComponent), Scene::ModelComponent::create);
+    Scene::SceneNodeComponentFactory::registerFactory(_N(CameraComponent), Scene::CameraComponent::create);
+    Scene::SceneNodeComponentFactory::registerFactory(_N(LightComponent), Scene::LightComponent::create);
+    // Scene::SceneNodeComponentFactory::registerFactory(_N(CameraControllerComponent), Scene::CameraControllerComponent::create);
+
+    ourInstance = new FancyRuntime(anAppInstanceHandle);
+
+    // Init rendering subsystem
+    if (!Rendering::RenderCore::IsInitialized())
+    {
+      Rendering::RenderCore::InitPlatform();
+      Rendering::RenderCore::Init();
+      Rendering::RenderCore::PostInit();
+    }
+
+    ourInstance->Internal_Init(someParams);
+
+    return ourInstance;
+  }
+//---------------------------------------------------------------------------//
+  FancyRuntime* FancyRuntime::GetInstance()
+  {
     return ourInstance;
   }
 //---------------------------------------------------------------------------//
@@ -80,10 +93,9 @@ namespace Fancy {
       DoFirstFrameTasks();
 
     myRealTimeClock.Update(_dt);
-    
-    
-
-    
+   
+    for (RenderView* view : myViews)
+      view->Tick(myRealTimeClock);
 
     ++myFrameIndex;
   }

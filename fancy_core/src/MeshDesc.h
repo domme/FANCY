@@ -2,6 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "GeometryVertexLayout.h"
+#include "DescriptionBase.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//

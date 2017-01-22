@@ -33,7 +33,7 @@ namespace Fancy {
     NUM
   };
 //---------------------------------------------------------------------------//
-    struct EngineParameters
+    struct DLLEXPORT EngineParameters
     {
       EngineParameters() 
         : myResourceFolder("../../../resources/")
@@ -48,17 +48,23 @@ namespace Fancy {
     {
     public:
       static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams);
-      static FancyRuntime* GetInstance() { return ourInstance; }
+      static FancyRuntime* GetInstance();
 
       void Update(double _dt);
 
       HINSTANCE GetAppInstanceHandle() const { return myAppInstanceHandle; }
-      const Time& GetRealTimeClock() const { return myRealTimeClock; }
+
+      Time& GetRealTimeClock() { return myRealTimeClock; }
       uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
 
+      RenderView* GetMainView() const { return myMainView; }
+      GraphicsWorld* GetMainWorld() const { return myMainWorld.get(); }
+
     private:
-      FancyRuntime(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams);
+      FancyRuntime(HINSTANCE anAppInstanceHandle);
       ~FancyRuntime();
+
+      void Internal_Init(const EngineParameters& someParams);
 
       void DoFirstFrameTasks();
 
@@ -72,7 +78,6 @@ namespace Fancy {
       ScopedPtr<RenderView> myMainView;
 
       Time myRealTimeClock;
-
       std::vector<RenderView*> myViews;
     };
 //---------------------------------------------------------------------------//

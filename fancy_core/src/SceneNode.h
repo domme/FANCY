@@ -15,6 +15,8 @@ namespace Fancy {
 
 namespace Fancy { namespace Scene { 
 //---------------------------------------------------------------------------//
+  class Scene;
+//---------------------------------------------------------------------------//
   class DLLEXPORT Transform
   {
   private:
@@ -66,7 +68,7 @@ namespace Fancy { namespace Scene {
     public: 
       SERIALIZABLE(SceneNode)
 
-      SceneNode();
+      SceneNode(Scene* aScene);
       ~SceneNode();
 
       static ObjectName getTypeName() { return _N(SceneNode); }
@@ -112,6 +114,7 @@ namespace Fancy { namespace Scene {
       SceneNode* m_pParent;
       Transform m_transform;
       ObjectName m_name;
+      Scene* myScene;
 
       // Cached components:
       CameraComponent* m_pCameraComponent;

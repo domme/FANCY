@@ -19,7 +19,7 @@ namespace Fancy { namespace IO {
 
 //---------------------------------------------------------------------------//
   template<class T, MemoryCategory eMemoryCategory>
-  void* locCreateManaged(uint64 aHash, bool& aWasCreated)
+  void* locCreateManaged(uint64 aHash, GraphicsWorld* aGraphicsWorld, bool& aWasCreated)
   {
     T* object = T::Find(aHash);
 
@@ -40,13 +40,20 @@ namespace Fancy { namespace IO {
   }
 //---------------------------------------------------------------------------//
   template<class T, MemoryCategory eMemoryCategory>
-  void* locCreate(uint64, bool& aWasCreated)
+  void* locCreate(uint64, GraphicsWorld* aGraphicsWorld, bool& aWasCreated)
   {
     aWasCreated = true;
     return FANCY_NEW(T, eMemoryCategory);
   }
 //---------------------------------------------------------------------------//
-  typedef void* (*CreateFunc)(uint64, bool&);
+  template<>
+  void* locCreate<Scene::SceneNode, MemoryCategory::GENERAL> (uint64, GraphicsWorld* aGraphicsWorld, bool& aWasCreated)
+  {
+    aWasCreated = true;
+    return FANCY_NEW(Scene::SceneNode(aGraphicsWorld->GetScene()), eMemoryCategory);
+  }
+//---------------------------------------------------------------------------//
+  typedef void* (*CreateFunc)(uint64, GraphicsWorld*, bool&);
   std::pair<ObjectName, CreateFunc> locResourceCreateFunctions[] =
   {
     // Managed:
@@ -60,7 +67,7 @@ namespace Fancy { namespace IO {
     { _N(SceneNode), &locCreate<Scene::SceneNode, MemoryCategory::GENERAL> },
   };
 //---------------------------------------------------------------------------//
-  void* ObjectFactory::create(const ObjectName& aTypeName, bool& aWasCreated, uint64 aHash)
+  void* ObjectFactory::create(const ObjectName& aTypeName, GraphicsWorld* aGraphicsWorld, bool& aWasCreated, uint64 aHash)
   {
     Scene::SceneNodeComponentFactory::CreateFunction createFunc = 
       Scene::SceneNodeComponentFactory::getFactoryMethod(aTypeName);
@@ -73,7 +80,7 @@ namespace Fancy { namespace IO {
     
     for (std::pair<ObjectName, CreateFunc>& createFuncEntry : locResourceCreateFunctions)
       if (createFuncEntry.first == aTypeName)
-        return createFuncEntry.second(aHash, aWasCreated);
+        return createFuncEntry.second(aHash, aGraphicsWorld, aWasCreated);
 
     ASSERT(false, "Unknown typename");
     return nullptr;
@@ -99,11 +106,11 @@ namespace Fancy { namespace IO {
     else if (aTypeName == _N(Mesh))
     {
       const Geometry::MeshDesc& desc = static_cast<const Geometry::MeshDesc&>(aDesc);
-      return aGraphicsWorld->GetMesh(aDesc.GetHash()); 
+      return Rendering::RenderCore::GetMesh(aDesc.GetHash()); 
     }
     
     ASSERT(false, "Unknown typename");
-    return nullptr;
+    return SharedPtr<void>();
   }
 //---------------------------------------------------------------------------//
 } }

@@ -50,14 +50,14 @@ namespace Fancy { namespace Geometry {
     uint64 GetHash() const { return GetDescription().GetHash(); }
 
     Rendering::Material* getMaterial() const {return m_pMaterial;}
-    Mesh* getMesh() const {return m_pMesh;}
+    Mesh* getMesh() const {return m_pMesh.get();}
 
-    void setMesh(Mesh* _pMesh) {m_pMesh = _pMesh;}
+    void setMesh(const SharedPtr<Mesh>& _pMesh) {m_pMesh = _pMesh;}
     void setMaterial(Rendering::Material* _pMaterial) {m_pMaterial = _pMaterial;}
 //---------------------------------------------------------------------------//
   private:
     Rendering::Material* m_pMaterial;
-    Mesh* m_pMesh;
+    SharedPtr<Mesh> m_pMesh;
   }; 
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry

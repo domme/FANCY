@@ -11,13 +11,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//  
   FileWatcher::FileWatcher()
   {
-    Time& realTimeClock = Fancy::GetRealTimeClock();
+    Time& realTimeClock = FancyRuntime::GetInstance()->GetRealTimeClock();
     realTimeClock.GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).Connect(this, &FileWatcher::UpdateFileInfos);
   }
 //---------------------------------------------------------------------------//
   FileWatcher::~FileWatcher()
   {
-    Time& realTimeClock = Fancy::GetRealTimeClock();
+    Time& realTimeClock = FancyRuntime::GetInstance()->GetRealTimeClock();
     realTimeClock.GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).DetachObserver(this);
 
     std::vector<String> watchedPaths;

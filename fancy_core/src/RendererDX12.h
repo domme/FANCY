@@ -37,9 +37,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		void beginFrame();
 		void endFrame();
 
-    Texture* GetBackbuffer() { return myBackbuffers[myCurrBackbufferIndex]; }
-    Texture* GetDefaultDepthStencilBuffer() { return myDefaultDepthStencil; }
+    Texture* GetBackbuffer() const { return myBackbuffers[myCurrBackbufferIndex]; }
+    Texture* GetDefaultDepthStencilBuffer() const { return myDefaultDepthStencil; }
     RenderWindow* GetWindow();
+    const RenderWindow* GetWindow() const;
 
 	protected:
     void CreateSwapChain();

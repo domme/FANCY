@@ -63,16 +63,15 @@ namespace Fancy {
     return S_FALSE; // This window doesn't handle this message
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<RenderWindow> RenderWindow::Create(const WindowParameters& someParams)
+  SharedPtr<RenderWindow> RenderWindow::Create(HINSTANCE anInstanceHandle, const WindowParameters& someParams)
   {
-    HINSTANCE instanceHandle = Fancy::GetAppInstanceHandle();
-    ASSERT(instanceHandle != nullptr);
+    ASSERT(anInstanceHandle != nullptr);
 
     WNDCLASSEX windowClass = { 0 };
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
     windowClass.lpfnWndProc = &locOnWindowEvent;
-    windowClass.hInstance = instanceHandle;
+    windowClass.hInstance = anInstanceHandle;
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
     windowClass.lpszClassName = "WindowClass1";
     RegisterClassEx(&windowClass);
@@ -91,7 +90,7 @@ namespace Fancy {
       windowRect.bottom - windowRect.top,
       NULL,		// We have no parent window, NULL.
       NULL,		// We aren't using menus, NULL.
-      instanceHandle,
+      anInstanceHandle,
       NULL);		// We aren't using multiple windows, NULL.
 
     ASSERT(windowHandle != nullptr);

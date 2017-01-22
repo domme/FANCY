@@ -28,13 +28,13 @@ namespace Fancy { namespace Scene {
       Scene();
       ~Scene();
 
-      SceneNode* getRootNode() {return m_pRootNode;}
+      SceneNode* getRootNode() const {return m_pRootNode;}
 
       void update(float _dt);
       void startup();
-      void gatherRenderItems(SceneRenderDescription* pRenderDesc);
+      void gatherRenderItems(SceneRenderDescription* pRenderDesc) const;
       void setActiveCamera(CameraComponent* _pCamera) {m_pActiveCamera = _pCamera;}
-      CameraComponent* getActiveCamera() {return m_pActiveCamera;}
+      CameraComponent* getActiveCamera() const {return m_pActiveCamera;}
 
       void onComponentAdded(const SceneNodeComponent* _pComponent);
       void onComponentRemoved(const SceneNodeComponent* _pComponent);

@@ -7,7 +7,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   uint32 MultiBuffering::getCurrentBufferIndex()
   {
-    return Fancy::GetCurrentFrameIndex() % MultiBuffering::kGpuMultiBufferingCount;
+    return Fancy::FancyRuntime::GetInstance()->GetCurrentFrameIndex() % MultiBuffering::kGpuMultiBufferingCount;
   }
 //---------------------------------------------------------------------------//
 

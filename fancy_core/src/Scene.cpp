@@ -8,7 +8,7 @@ namespace Fancy { namespace Scene {
   Scene::Scene()
     : m_pActiveCamera(nullptr)
   {
-    m_pRootNode = FANCY_NEW(SceneNode, MemoryCategory::GENERAL);
+    m_pRootNode = FANCY_NEW(SceneNode(this), MemoryCategory::GENERAL);
   }
 //---------------------------------------------------------------------------//
   Scene::~Scene()
@@ -27,7 +27,7 @@ namespace Fancy { namespace Scene {
     m_pRootNode->startup();
   }
 //---------------------------------------------------------------------------//
-  void Scene::gatherRenderItems( SceneRenderDescription* pRenderDesc )
+  void Scene::gatherRenderItems( SceneRenderDescription* pRenderDesc ) const
   {
     m_pRootNode->gatherRenderItems(pRenderDesc);
   }

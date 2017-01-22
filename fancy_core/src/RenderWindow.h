@@ -17,7 +17,7 @@ namespace Fancy {
   class DLLEXPORT RenderWindow
   {
     public:
-      static SharedPtr<RenderWindow> Create(const WindowParameters& someParams);
+      static SharedPtr<RenderWindow> Create(HINSTANCE anInstanceHandle, const WindowParameters& someParams);
 
       ~RenderWindow();
 

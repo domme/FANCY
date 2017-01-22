@@ -25,7 +25,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  class String : public std::string
+  class DLLEXPORT String : public std::string
   {
   public:
     String();

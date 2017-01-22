@@ -360,7 +360,7 @@ namespace Fancy { namespace IO {
 
     uint64 vertexIndexHash = locComputeHashFromVertexData(someMeshes, aMeshCount);
     
-    mesh = myGraphicsWorld.GetMesh(vertexIndexHash);
+    mesh = Rendering::RenderCore::GetMesh(vertexIndexHash);
     if (mesh != nullptr)
       return mesh;
     
@@ -593,7 +593,7 @@ namespace Fancy { namespace IO {
       numIndices.push_back(aiMesh->mNumFaces * 3u);
     }
 
-    mesh = myGraphicsWorld.CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
+    mesh = Rendering::RenderCore::CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
     ASSERT(mesh != nullptr);
 
     AiMeshList aiMeshList;

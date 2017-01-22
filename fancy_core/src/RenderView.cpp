@@ -3,6 +3,7 @@
 #include "RenderingProcessForward.h"
 #include "Fancy.h"
 #include "GraphicsWorld.h"
+#include "TimeManager.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -27,6 +28,11 @@ namespace Fancy {
   {
   }
 //---------------------------------------------------------------------------//
+  RenderWindow* RenderView::GetRenderWindow()
+  {
+    return myRenderOutput->GetWindow();
+  }
+//---------------------------------------------------------------------------//
   void RenderView::Startup()
   {
     myRenderingProcess->Startup();
@@ -38,7 +44,7 @@ namespace Fancy {
     myGraphicsWorld->Tick(aClock);
 
     myRenderOutput->beginFrame();
-    myRenderingProcess->Tick();
+    myRenderingProcess->Render(myGraphicsWorld.get(), myRenderOutput.Get(), aClock);
     myRenderOutput->endFrame();
   }
 //---------------------------------------------------------------------------//
