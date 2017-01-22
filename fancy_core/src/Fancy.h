@@ -61,7 +61,7 @@ namespace Fancy {
       GraphicsWorld* GetMainWorld() const { return myMainWorld.get(); }
 
     private:
-      FancyRuntime(HINSTANCE anAppInstanceHandle);
+      explicit FancyRuntime(HINSTANCE anAppInstanceHandle);
       ~FancyRuntime();
 
       void Internal_Init(const EngineParameters& someParams);

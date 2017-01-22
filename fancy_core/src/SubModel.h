@@ -8,6 +8,7 @@
 #include "Serializable.h"
 #include "MeshDesc.h"
 #include "MaterialDesc.h"
+#include "DescriptionBase.h"
 
 namespace Fancy {
   namespace IO {
@@ -23,19 +24,23 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   class Mesh;
 //---------------------------------------------------------------------------//
-  struct SubModelDesc
+  struct SubModelDesc : DescriptionBase
   {
     Rendering::MaterialDesc myMaterial;
     MeshDesc myMesh;
 
+    ~SubModelDesc() override { }
+    ObjectName GetTypeName() const override { return _N(SubModel); }
+    void Serialize(IO::Serializer* aSerializer) override;
+    uint64 GetHash() const override;
+
     bool operator==(const SubModelDesc& anOther) const;
-    uint64 GetHash() const;
   };
 //---------------------------------------------------------------------------//
-  class SubModel : public StaticManagedHeapObject<SubModel>
+  class SubModel
   {
   public:
-    SERIALIZABLE(SubModel)
+    SERIALIZABLE_RESOURCE(SubModel)
 
     SubModel();
     ~SubModel();

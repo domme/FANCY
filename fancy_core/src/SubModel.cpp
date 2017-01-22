@@ -10,6 +10,12 @@ namespace Fancy { namespace Geometry {
     return GetHash() == anOther.GetHash();
   }
 //---------------------------------------------------------------------------//
+  void SubModelDesc::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->Serialize(&myMaterial, "myMaterial");
+    aSerializer->Serialize(&myMesh, "myMesh");
+  }
+//---------------------------------------------------------------------------//
   uint64 SubModelDesc::GetHash() const
   {
     uint64 hash = 0u;
