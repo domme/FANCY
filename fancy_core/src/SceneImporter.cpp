@@ -207,7 +207,7 @@ namespace Fancy { namespace IO {
 
     // Construct or retrieve Fancy Meshes and Submodels
     // Each mesh-list with the same material becomes a submodel
-    std::vector<SubModel*> vSubModels;
+    std::vector<SharedPtr<SubModel>> vSubModels;
     for (MaterialMeshMap::iterator it = mapMaterialIndexMesh.begin(); it != mapMaterialIndexMesh.end(); ++it)
     {
       const uint32 uMaterialIndex = it->first;
@@ -226,15 +226,7 @@ namespace Fancy { namespace IO {
       submodelDesc.myMaterial = pMaterial->GetDescription();
       submodelDesc.myMesh = pMesh->GetDescription();
 
-      Geometry::SubModel* pSubModel = Geometry::SubModel::FindFromDesc(submodelDesc);
-      
-      if (!pSubModel)
-      {
-        pSubModel = FANCY_NEW(Geometry::SubModel, MemoryCategory::GEOMETRY);
-        pSubModel->SetFromDescription(submodelDesc);
-        SubModel::Register(pSubModel);
-      }
-
+      SharedPtr<Geometry::SubModel> pSubModel = myGraphicsWorld.CreateSubModel(submodelDesc);
       if (vSubModels.end() == std::find(vSubModels.begin(), vSubModels.end(), pSubModel))
       {
         vSubModels.push_back(pSubModel);
@@ -253,7 +245,7 @@ namespace Fancy { namespace IO {
     if (!pModel)
     {
       pModel = FANCY_NEW(Geometry::Model, MemoryCategory::GEOMETRY);
-      pModel->SetFromDescription(modelDesc);
+      pModel->SetFromDescription(modelDesc, &myGraphicsWorld);
       Model::Register(pModel);
     }
 

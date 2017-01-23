@@ -35,9 +35,9 @@ namespace Fancy { namespace IO {
       std::vector<Rendering::MaterialPass*> myMaterialPasses;
       std::vector<Rendering::MaterialPassInstance*> myMaterialPassInstances;
       std::vector<Rendering::Material*> myMaterials;
-      std::vector<Geometry::SubModel*> mySubModels;
       std::vector<Geometry::Model*> myModels;
       
+      std::vector<SharedPtr<Geometry::SubModel>> mySubModels;
       std::vector<SharedPtr<Geometry::Mesh>> myMeshes;
       std::vector<SharedPtr<Rendering::GpuProgramPipeline>> myGpuProgramPipelines;
       std::vector<SharedPtr<Rendering::GpuProgram>> myGpuPrograms;

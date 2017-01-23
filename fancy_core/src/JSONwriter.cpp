@@ -288,7 +288,9 @@ namespace Fancy { namespace IO {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
       { _N(Texture), &myHeader.myTextures },
       { _N(GpuProgram), &myHeader.myGpuPrograms },
-      { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines }
+      { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines },
+      { _N(Mesh), &myHeader.myMeshes },
+      { _N(SubModel), &myHeader.mySubModels }
     };
 
     for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
@@ -314,8 +316,6 @@ namespace Fancy { namespace IO {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
       { _N(MaterialPass), &myHeader.myMaterialPasses },
       { _N(Material), &myHeader.myMaterials },
-      { _N(Mesh), &myHeader.myMeshes },
-      { _N(SubModel), &myHeader.mySubModels },
       { _N(Model), &myHeader.myModels },
       { _N(MaterialPassInstance), &myHeader.myMaterialPassInstances },
     };
@@ -334,14 +334,14 @@ namespace Fancy { namespace IO {
     aValue["myTextures"] = myHeader.myTextures;
     aValue["myGpuPrograms"] = myHeader.myGpuPrograms;
     aValue["myGpuProgramPipelines"] = myHeader.myGpuProgramPipelines;
-
+    aValue["myMeshes"] = myHeader.myMeshes;
+    aValue["mySubModels"] = myHeader.mySubModels;
+    
     aValue["myMaterialPasses"] = myHeader.myMaterialPasses;
     aValue["myMaterialPassInstances"] = myHeader.myMaterialPassInstances;
     aValue["myMaterials"] = myHeader.myMaterials;
-    aValue["myMeshes"] = myHeader.myMeshes;
-    aValue["mySubModels"] = myHeader.mySubModels;
-    aValue["myModels"] = myHeader.myModels;
     
+    aValue["myModels"] = myHeader.myModels;
   }
 //---------------------------------------------------------------------------//
 

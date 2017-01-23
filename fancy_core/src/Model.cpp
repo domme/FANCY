@@ -1,6 +1,7 @@
 #include "Model.h"
 #include "Serializer.h"
 #include "SubModel.h"
+#include "GraphicsWorld.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -42,14 +43,14 @@ namespace Fancy { namespace Geometry {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void Model::SetFromDescription(const ModelDesc& aDesc)
+  void Model::SetFromDescription(const ModelDesc& aDesc, GraphicsWorld* aWorld)
   {
     if (GetDescription() == aDesc)
       return;
 
     m_vSubModels.resize(aDesc.mySubmodels.size());
     for (uint i = 0u; i < aDesc.mySubmodels.size(); ++i)
-      m_vSubModels[i] = SubModel::FindFromDesc(aDesc.mySubmodels[i]);
+      m_vSubModels[i] = aWorld->CreateSubModel(aDesc.mySubmodels[i]);
   }
 //---------------------------------------------------------------------------//
   void Model::Serialize(IO::Serializer* aSerializer)
@@ -57,7 +58,7 @@ namespace Fancy { namespace Geometry {
     aSerializer->Serialize(&m_vSubModels, "m_vSubModels");
   }
 //---------------------------------------------------------------------------//
-  void Model::addSubModel(SubModel* _pSubModel)
+  void Model::addSubModel(SharedPtr<SubModel>& _pSubModel)
   {
     for (uint32 i = 0u; i < m_vSubModels.size(); ++i)
     {

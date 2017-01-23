@@ -30,10 +30,15 @@ namespace Fancy {
       Scene::Scene* GetScene() const { return myScene.Get(); }
       
       SharedPtr<Geometry::SubModel> CreateSubModel(const Geometry::SubModelDesc& aDesc);
+
       // SharedPtr<Geometry::Model> CreateModel(const Geometry::ModelDesc& aDesc);
 
     private:
       ScopedPtr<Scene::Scene> myScene;
+
+      std::map<uint64, SharedPtr<Geometry::SubModel>> mySubModelCache;
+
+      
   };
 //---------------------------------------------------------------------------//
 }

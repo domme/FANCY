@@ -24,12 +24,12 @@ namespace Fancy { namespace IO {
       Json::Value myMaterialPasses;
       Json::Value myMaterials;
       Json::Value myMaterialPassInstances;
-      Json::Value myMeshes;
-      Json::Value mySubModels;
       Json::Value myModels;
+      Json::Value mySubModels;
 
       std::vector<ObjectName> myStoredManagedObjects;
       
+      Json::Value myMeshes;
       Json::Value myTextures;
       Json::Value myGpuPrograms;
       Json::Value myGpuProgramPipelines;

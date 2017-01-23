@@ -45,10 +45,10 @@ namespace Fancy { namespace Scene {
     {
       RenderingItemList& vRenderItems = pRenderDesc->techniqueItemList[iPass];
 
-      const std::vector<Geometry::SubModel*>& vSubmodels = m_pModel->getSubModelList();
+      const std::vector<SharedPtr<Geometry::SubModel>>& vSubmodels = m_pModel->getSubModelList();
       for (uint32 iSubmodel = 0; iSubmodel < m_pModel->getNumSubModels(); ++iSubmodel)
       {
-        const Geometry::SubModel* pSubmodel = vSubmodels[iSubmodel];
+        const Geometry::SubModel* pSubmodel = vSubmodels[iSubmodel].get();
         Rendering::Material* pMaterial = pSubmodel->getMaterial();
 
         const Rendering::MaterialPassInstance* pMaterialPassInstance = pMaterial->getPass((Rendering::EMaterialPass)iPass);

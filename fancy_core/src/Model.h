@@ -7,6 +7,10 @@
 #include "Serializable.h"
 #include "ModelDesc.h"
 
+namespace Fancy {
+  class GraphicsWorld;
+}
+
 namespace Fancy { namespace IO {
   class Serializer;
 } }
@@ -28,7 +32,7 @@ namespace Fancy { namespace Geometry {
       bool operator==(const ModelDesc& aDesc) const;
 
       ModelDesc GetDescription() const;
-      void SetFromDescription(const ModelDesc& aDesc);
+      void SetFromDescription(const ModelDesc& aDesc, GraphicsWorld* aWorld);
 
       static ObjectName getTypeName() { return _N(Model); }
       uint64 GetHash() const { return GetDescription().GetHash(); }
@@ -36,19 +40,19 @@ namespace Fancy { namespace Geometry {
 
       uint32 getNumSubModels() const {return m_vSubModels.size();}
     //---------------------------------------------------------------------------//
-      void addSubModel(SubModel* _pSubModel);
+      void addSubModel(SharedPtr<SubModel>& _pSubModel);
     //---------------------------------------------------------------------------//
-      SubModel* getSubModel(uint32 u32Index) {return m_vSubModels[u32Index];}
-      const SubModel* getSubModel(uint32 u32Index) const {return m_vSubModels[u32Index];}
+      SubModel* getSubModel(uint32 u32Index) {return m_vSubModels[u32Index].get();}
+      const SubModel* getSubModel(uint32 u32Index) const {return m_vSubModels[u32Index].get();}
     //---------------------------------------------------------------------------//
-      std::vector<SubModel*>& getSubModelList() {return m_vSubModels;}
-      const std::vector<SubModel*>& getSubModelList() const {return m_vSubModels;}
+      std::vector<SharedPtr<SubModel>>& getSubModelList() {return m_vSubModels;}
+      const std::vector<SharedPtr<SubModel>>& getSubModelList() const {return m_vSubModels;}
     //---------------------------------------------------------------------------//
-      void setSubModelList(const std::vector<SubModel*>& _vSubModels)
+      void setSubModelList(const std::vector<SharedPtr<SubModel>>& _vSubModels)
       {ASSERT(m_vSubModels.empty()); m_vSubModels = _vSubModels; }
     //---------------------------------------------------------------------------//
     private:
-      std::vector<SubModel*> m_vSubModels;
+      std::vector<SharedPtr<SubModel>> m_vSubModels;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(Model)

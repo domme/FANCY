@@ -59,7 +59,6 @@ namespace Fancy { namespace IO {
     // Managed:
     { _N(MaterialPass), &locCreateManaged<Rendering::MaterialPass, MemoryCategory::MATERIALS> },
     { _N(Material), &locCreateManaged<Rendering::Material, MemoryCategory::MATERIALS> },
-    { _N(SubModel), &locCreateManaged<Geometry::SubModel, MemoryCategory::GEOMETRY> },
     { _N(Model), &locCreateManaged<Geometry::Model, MemoryCategory::GEOMETRY> },
 
     // Non-managed
@@ -108,7 +107,12 @@ namespace Fancy { namespace IO {
       const Geometry::MeshDesc& desc = static_cast<const Geometry::MeshDesc&>(aDesc);
       return Rendering::RenderCore::GetMesh(aDesc.GetHash()); 
     }
-    
+    else if (aTypeName == _N(SubModel))
+    {
+      const Geometry::SubModelDesc& desc = static_cast<const Geometry::SubModelDesc&>(aDesc);
+      return aGraphicsWorld->CreateSubModel(desc);
+    }
+
     ASSERT(false, "Unknown typename");
     return SharedPtr<void>();
   }

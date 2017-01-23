@@ -7,6 +7,7 @@
 #include "SceneImporter.h"
 #include "SceneNode.h"
 #include "TimeManager.h"
+#include "SubModel.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -34,6 +35,19 @@ namespace Fancy {
   {
     const float deltaTime = aClock.GetDelta();
     myScene->update(deltaTime);
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<Geometry::SubModel> GraphicsWorld::CreateSubModel(const Geometry::SubModelDesc& aDesc)
+  {
+    auto it = mySubModelCache.find(aDesc.GetHash());
+    if (it != mySubModelCache.end())
+      return it->second;
+
+    SharedPtr<Geometry::SubModel> subModel(FANCY_NEW(Geometry::SubModel, MemoryCategory::GEOMETRY));
+    subModel->SetFromDescription(aDesc);
+
+    mySubModelCache.insert(std::make_pair(aDesc.GetHash(), subModel));
+    return subModel;
   }
 //---------------------------------------------------------------------------//
 }
