@@ -21,12 +21,12 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
-  class MaterialPass : public StaticManagedHeapObject<MaterialPass>
+  class MaterialPass
   {
     friend class MaterialPassInstance;
 
     public:
-      SERIALIZABLE(MaterialPass)
+      SERIALIZABLE_RESOURCE(MaterialPass)
 
       MaterialPass();
       ~MaterialPass();
@@ -45,14 +45,14 @@ namespace Fancy { namespace Rendering {
       FillMode getFillMode() const {return m_eFillMode;}
       CullMode getCullMode() const {return m_eCullMode;}
       WindingOrder getWindingOrder() const {return m_eWindingOrder;}
-      const BlendState* getBlendState() const {return m_pBlendState;}
-      const DepthStencilState* getDepthStencilState() const {return m_pDepthStencilState;}
+      const BlendState* getBlendState() const {return m_pBlendState.get();}
+      const DepthStencilState* getDepthStencilState() const {return m_pDepthStencilState.get();}
       
       FillMode m_eFillMode;
       CullMode m_eCullMode;
       WindingOrder m_eWindingOrder;
-      BlendState* m_pBlendState;
-      DepthStencilState* m_pDepthStencilState;
+      SharedPtr<BlendState> m_pBlendState;
+      SharedPtr<DepthStencilState> m_pDepthStencilState;
       SharedPtr<GpuProgramPipeline> myProgramPipeline;
   };
 //---------------------------------------------------------------------------//

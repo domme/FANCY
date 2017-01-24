@@ -5,6 +5,10 @@
 #include "MaterialPassInstanceDesc.h"
 #include "FixedArray.h"
 
+namespace Fancy { namespace IO {
+  class Serializer;
+} }
+
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class EMaterialParameterSemantic
@@ -25,6 +29,7 @@ namespace Fancy { namespace Rendering {
     MaterialDesc();
     bool operator==(const MaterialDesc& anOther) const;
     uint64 GetHash() const;
+    void Serialize(IO::Serializer* aSerializer);
   };
 //---------------------------------------------------------------------------//
 } }

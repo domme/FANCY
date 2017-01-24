@@ -12,13 +12,18 @@ namespace Fancy{namespace IO{
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct BlendStateDesc
+  struct BlendStateDesc : public DescriptionBase
   {
     static BlendStateDesc GetDefaultSolid();
 
     BlendStateDesc();
+    ~BlendStateDesc() override {}
+
     bool operator==(const BlendStateDesc& anOther) const;
-    uint64 GetHash() const;
+    uint64 GetHash() const override;
+
+    ObjectName GetTypeName() const override { return _N(BlendState); }
+    void Serialize(IO::Serializer* aSerializer) override;
 
     bool myAlphaToCoverageEnabled;
     bool myBlendStatePerRT;
@@ -33,10 +38,10 @@ namespace Fancy { namespace Rendering {
     uint32 myRTwriteMask[Constants::kMaxNumRenderTargets];
   };
 //---------------------------------------------------------------------------//
-class BlendState : public StaticManagedObject<BlendState> {
+class BlendState {
 
 public:
-  SERIALIZABLE(BlendState)
+  SERIALIZABLE_RESOURCE(BlendState)
 
   explicit BlendState();
   ~BlendState() {}

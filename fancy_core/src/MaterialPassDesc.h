@@ -3,14 +3,19 @@
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "GpuProgramPipelineDesc.h"
+#include "DescriptionBase.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct MaterialPassDesc
+  struct MaterialPassDesc : public DescriptionBase
   {
     MaterialPassDesc();
+    ~MaterialPassDesc() override {}
+
     bool operator==(const MaterialPassDesc& anOther) const;
-    uint64 GetHash() const;
+    uint64 GetHash() const override;
+    ObjectName GetTypeName() const override { return _N(MaterialPass); }
+    void Serialize(IO::Serializer* aSerializer) override;
 
     uint32 m_eFillMode;
     uint32 m_eCullMode;

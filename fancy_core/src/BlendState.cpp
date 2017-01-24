@@ -62,6 +62,21 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
+  void BlendStateDesc::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->Serialize(&myAlphaToCoverageEnabled, "myAlphaToCoverageEnabled");
+    aSerializer->Serialize(&myBlendStatePerRT, "myBlendStatePerRT");
+    aSerializer->serializeArray(myAlphaSeparateBlend, "myAlphaSeparateBlend");
+    aSerializer->serializeArray(myBlendEnabled, "myBlendEnabled");
+    aSerializer->serializeArray(mySrcBlend, "mySrcBlend");
+    aSerializer->serializeArray(myDestBlend, "myDestBlend");
+    aSerializer->serializeArray(myBlendOp, "myBlendOp");
+    aSerializer->serializeArray(mySrcBlendAlpha, "mySrcBlendAlpha");
+    aSerializer->serializeArray(myDestBlendAlpha, "myDestBlendAlpha");
+    aSerializer->serializeArray(myBlendOpAlpha, "myBlendOpAlpha");
+    aSerializer->serializeArray(myRTwriteMask, "myRTwriteMask");
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   BlendState::BlendState() 

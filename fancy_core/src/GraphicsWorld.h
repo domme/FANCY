@@ -14,6 +14,14 @@ namespace Fancy { namespace Geometry {
   struct MeshDesc;
 } }
 
+namespace Fancy { namespace Rendering {
+  struct DepthStencilStateDesc;
+  struct BlendStateDesc;
+  class BlendState;
+  class DepthStencilState;  
+} }
+
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class Time;
@@ -30,6 +38,8 @@ namespace Fancy {
       Scene::Scene* GetScene() const { return myScene.Get(); }
       
       SharedPtr<Geometry::SubModel> CreateSubModel(const Geometry::SubModelDesc& aDesc);
+      SharedPtr<Rendering::BlendState> CreateBlendState(const Rendering::BlendStateDesc& aDesc);
+      SharedPtr<Rendering::DepthStencilState> CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc);
 
       // SharedPtr<Geometry::Model> CreateModel(const Geometry::ModelDesc& aDesc);
 
@@ -37,8 +47,9 @@ namespace Fancy {
       ScopedPtr<Scene::Scene> myScene;
 
       std::map<uint64, SharedPtr<Geometry::SubModel>> mySubModelCache;
+      std::map<uint64, SharedPtr<Rendering::BlendState>> myBlendStateCache;
+      std::map<uint64, SharedPtr<Rendering::DepthStencilState>> myDepthStencilStateCache;
 
-      
   };
 //---------------------------------------------------------------------------//
 }

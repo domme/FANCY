@@ -24,4 +24,10 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
+void MaterialDesc::Serialize(IO::Serializer* aSerializer)
+{
+  aSerializer->serializeArray(myParameters, "myParameters");
+  aSerializer->serializeArray(myPasses, "myPasses");
+}
+//---------------------------------------------------------------------------//
 } }

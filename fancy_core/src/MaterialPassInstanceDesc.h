@@ -6,6 +6,10 @@
 #include "TextureSamplerDesc.h"
 #include "MaterialPassDesc.h"
 
+namespace Fancy { namespace IO {
+    class Serializer;
+} }
+
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct MaterialPassInstanceDesc
@@ -19,6 +23,7 @@ namespace Fancy { namespace Rendering {
 
     uint64 GetHash() const;
     bool operator==(const MaterialPassInstanceDesc& anOther) const;
+    void Serialize(IO::Serializer* aSerializer);
   };
 //---------------------------------------------------------------------------//
 } }

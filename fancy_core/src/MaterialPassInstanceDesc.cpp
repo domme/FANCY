@@ -33,4 +33,14 @@ namespace Fancy { namespace Rendering {
     return GetHash() == anOther.GetHash();
   }
 //---------------------------------------------------------------------------//
+  void MaterialPassInstanceDesc::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->Serialize(&myMaterialPass, "myMaterialPass");
+    aSerializer->serializeArray(myReadTextures, "myReadTextures");
+    aSerializer->serializeArray(myWriteTextures, "myWriteTextures");
+    aSerializer->serializeArray(myReadBuffers, "myReadBuffers");
+    aSerializer->serializeArray(myWriteBuffers, "myWriteBuffers");
+    aSerializer->serializeArray(myTextureSamplers, "myTextureSamplers");
+  }
+//---------------------------------------------------------------------------//
 } }

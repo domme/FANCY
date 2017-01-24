@@ -35,4 +35,14 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
+  void MaterialPassDesc::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->Serialize(&m_eFillMode, "m_eFillMode");
+    aSerializer->Serialize(&m_eCullMode, "m_eCullMode");
+    aSerializer->Serialize(&m_eWindingOrder, "m_eWindingOrder");
+    aSerializer->Serialize(&m_BlendStateDesc, "m_BlendStateDesc");
+    aSerializer->Serialize(&m_DepthStencilStateDesc, "m_DepthStencilStateDesc");
+    aSerializer->Serialize(&m_GpuProgramPipelineDesc, "m_GpuProgramPipelineDesc");
+  }
+//---------------------------------------------------------------------------//
 } }
