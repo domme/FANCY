@@ -21,12 +21,13 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
-  class MaterialPass
+  class MaterialPass : public StaticManagedHeapObject<MaterialPass>
   {
     friend class MaterialPassInstance;
 
     public:
-      SERIALIZABLE_RESOURCE(MaterialPass)
+      // SERIALIZABLE_RESOURCE(MaterialPass)
+      SERIALIZABLE(MaterialPass)
 
       MaterialPass();
       ~MaterialPass();
@@ -34,6 +35,7 @@ namespace Fancy { namespace Rendering {
       bool operator==(const MaterialPassDesc& aDesc) const;
 
       MaterialPassDesc GetDescription() const;
+  
       void SetFromDescription(const MaterialPassDesc& aDesc);
 
       void Serialize(IO::Serializer* aSerializer);

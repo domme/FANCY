@@ -73,6 +73,7 @@ namespace IO {
     SerializablePtr,
     ResourcePtr,
     StructOrClass,
+    ResourceDesc
   };
 //---------------------------------------------------------------------------//
   struct MetaTableStructOrClass
@@ -88,6 +89,19 @@ namespace IO {
       static_cast<T*>(anObject)->Serialize(aSerializer);
     }
   
+    static MetaTableStructOrClassImpl<T> ourVTable;
+  };
+  template<class T>
+  MetaTableStructOrClassImpl<T> MetaTableStructOrClassImpl<T>::ourVTable;
+//---------------------------------------------------------------------------//
+  template<class T>
+  struct MetaTableStructOrClassImpl : public MetaTableStructOrClass
+  {
+    void Serialize(IO::Serializer* aSerializer, void* anObject) override
+    {
+      static_cast<T*>(anObject)->Serialize(aSerializer);
+    }
+
     static MetaTableStructOrClassImpl<T> ourVTable;
   };
   template<class T>
@@ -126,7 +140,9 @@ namespace IO {
 //---------------------------------------------------------------------------//
   // Special case if T has a Serialize() method
   template<class T>
-  struct Get_DataType<T, void, std::enable_if_t<HasSerializeMemFn<T>::value && !IsSerializable<T>::value>>
+  struct Get_DataType<T, void, 
+    std::enable_if_t<HasSerializeMemFn<T>::value 
+                    && !IsSerializable<T>::value && std::is_base_of<Fancy::DescriptionBase>::value>>
   {
     static IO::DataType get()
     {

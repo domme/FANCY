@@ -22,6 +22,8 @@ namespace Fancy { namespace Rendering {
   std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
   std::map<uint64, SharedPtr<Texture>> RenderCore::ourTextureCache;
   std::map<uint64, SharedPtr<Geometry::Mesh>> RenderCore::ourMeshCache;
+  std::map<uint64, SharedPtr<Rendering::BlendState>> RenderCore::ourBlendStateCache;
+  std::map<uint64, SharedPtr<Rendering::DepthStencilState>> RenderCore::ourDepthStencilStateCache;
 
   ScopedPtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
   std::shared_ptr<Texture> RenderCore::ourDefaultDiffuseTexture;
@@ -38,14 +40,9 @@ namespace Fancy { namespace Rendering {
     
     ourShaderCompiler = FANCY_NEW(GpuProgramCompiler, MemoryCategory::GENERAL);
 
-    DepthStencilState defaultDepthStencilState;
-    defaultDepthStencilState.SetFromDescription(DepthStencilStateDesc::GetDefaultDepthNoStencil());
-    DepthStencilState::Register(defaultDepthStencilState);
-
-    BlendState defaultBlendstate;
-    defaultBlendstate.SetFromDescription(BlendStateDesc::GetDefaultSolid());
-    BlendState::Register(defaultBlendstate);
-
+    CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
+    CreateBlendState(BlendStateDesc::GetDefaultSolid());
+    
     {
       ShaderVertexInputLayout& modelVertexLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
       modelVertexLayout.clear();
@@ -215,6 +212,32 @@ namespace Fancy { namespace Rendering {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
+  SharedPtr<Rendering::BlendState> RenderCore::CreateBlendState(const Rendering::BlendStateDesc& aDesc)
+  {
+    auto it = ourBlendStateCache.find(aDesc.GetHash());
+    if (it != ourBlendStateCache.end())
+      return it->second;
+
+    SharedPtr<Rendering::BlendState> blendState(FANCY_NEW(Rendering::BlendState, MemoryCategory::GENERAL));
+    blendState->SetFromDescription(aDesc);
+    
+    ourBlendStateCache.insert(std::make_pair(aDesc.GetHash(), blendState));
+    return blendState;
+  }
+  //---------------------------------------------------------------------------//
+  SharedPtr<Rendering::DepthStencilState> RenderCore::CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc)
+  {
+    auto it = ourDepthStencilStateCache.find(aDesc.GetHash());
+    if (it != ourDepthStencilStateCache.end())
+      return it->second;
+
+    SharedPtr<Rendering::DepthStencilState> depthStencilState(FANCY_NEW(Rendering::DepthStencilState, MemoryCategory::GENERAL));
+    depthStencilState->SetFromDescription(aDesc);
+
+    ourDepthStencilStateCache.insert(std::make_pair(aDesc.GetHash(), depthStencilState));
+    return depthStencilState;
+  }
+//---------------------------------------------------------------------------//
   SharedPtr<Geometry::Mesh> RenderCore::GetMesh(uint64 aVertexIndexHash)
   {
     auto it = ourMeshCache.find(aVertexIndexHash);
@@ -296,7 +319,7 @@ namespace Fancy { namespace Rendering {
     IO::BinaryCache::write(mesh, someVertexDatas, someIndexDatas);
 
     return mesh;
-  }
+  } 
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureDesc& aTextureDesc)
   {

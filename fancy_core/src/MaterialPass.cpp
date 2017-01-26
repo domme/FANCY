@@ -80,8 +80,8 @@ namespace Fancy { namespace Rendering {
     m_eFillMode = static_cast<FillMode>(aDesc.m_eFillMode);
     m_eCullMode = static_cast<CullMode>(aDesc.m_eCullMode);
     m_eWindingOrder = static_cast<WindingOrder>(aDesc.m_eWindingOrder);
-    m_pBlendState = BlendState::FindFromDesc(aDesc.m_BlendStateDesc);
-    m_pDepthStencilState = DepthStencilState::FindFromDesc(aDesc.m_DepthStencilStateDesc);
+    m_pBlendState = RenderCore::CreateBlendState(aDesc.m_BlendStateDesc);
+    m_pDepthStencilState = RenderCore::CreateDepthStencilState(aDesc.m_DepthStencilStateDesc);
     myProgramPipeline = RenderCore::CreateGpuProgramPipeline(aDesc.m_GpuProgramPipelineDesc);
   }
 //---------------------------------------------------------------------------//

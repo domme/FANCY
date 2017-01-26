@@ -53,9 +53,7 @@ public:
   void SetFromDescription(const BlendStateDesc& aDesc);
 
   uint64 GetHash() const;
-  static ObjectName getTypeName() { return _N(BlendState); }
-  void Serialize(IO::Serializer* aSerializer);
-
+    
   bool getAlphaToCoverageEnabled() const { return myAlphaToCoverageEnabled; }
   void setAlphaToCoverageEnabled(bool val) { myIsDirty |= myAlphaToCoverageEnabled != val; myAlphaToCoverageEnabled = val; }
 

@@ -84,11 +84,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipelineDX12::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->serializeArray(myGpuPrograms, "myGpuPrograms");
-  }
-//---------------------------------------------------------------------------//
 } } }
 
 #endif  // RENDERER_DX12

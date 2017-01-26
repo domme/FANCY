@@ -48,10 +48,8 @@ namespace Fancy { namespace Geometry {
     bool operator==(const SubModelDesc& aDesc) const;
 
     SubModelDesc GetDescription() const;
-    void SetFromDescription(const SubModelDesc& aDesc);
+    void SetFromDescription(const SubModelDesc& aDesc, GraphicsWorld* aWorld);
 
-    static ObjectName getTypeName() { return _N(SubModel); }
-    void Serialize(IO::Serializer* aSerializer);
     uint64 GetHash() const { return GetDescription().GetHash(); }
 
     Rendering::Material* getMaterial() const {return m_pMaterial;}

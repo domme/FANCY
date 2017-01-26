@@ -311,6 +311,7 @@ namespace Fancy { namespace IO {
     return false;
   }
 //---------------------------------------------------------------------------//
+  // Old-style resources without a DescriptionBase-Interface. To be replaced one by one...
   void JSONwriter::appendResource(const ObjectName& aTypeName, const Json::Value& aResourceValue)
   {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {

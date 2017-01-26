@@ -17,10 +17,13 @@ namespace Fancy { namespace Geometry {
 } }
 
 namespace Fancy { namespace Rendering {
-struct GpuProgramDesc;
-struct GpuProgramPipelineDesc;
-
-
+//---------------------------------------------------------------------------//
+  struct GpuProgramDesc;
+  struct GpuProgramPipelineDesc;
+  struct DepthStencilStateDesc;
+  struct BlendStateDesc;
+  class BlendState;
+  class DepthStencilState;
 //---------------------------------------------------------------------------//
   class DLLEXPORT RenderOutput : public PLATFORM_DEPENDENT_NAME(RenderOutput)
   {
@@ -65,6 +68,9 @@ struct GpuProgramPipelineDesc;
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
     static void UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer = 0u);
 
+    static SharedPtr<Rendering::BlendState> CreateBlendState(const Rendering::BlendStateDesc& aDesc);
+    static SharedPtr<Rendering::DepthStencilState> CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc);
+
   protected:
     RenderCore() {}
 
@@ -74,13 +80,13 @@ struct GpuProgramPipelineDesc;
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
     static std::map<uint64, SharedPtr<Texture>> ourTextureCache;
     static std::map<uint64, SharedPtr<Geometry::Mesh>> ourMeshCache;
+    static std::map<uint64, SharedPtr<Rendering::BlendState>> ourBlendStateCache;
+    static std::map<uint64, SharedPtr<Rendering::DepthStencilState>> ourDepthStencilStateCache;
     
     static ScopedPtr<GpuProgramCompiler> ourShaderCompiler;
     static SharedPtr<Texture> ourDefaultDiffuseTexture;
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
-
-    
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

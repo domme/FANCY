@@ -55,16 +55,10 @@ namespace Fancy { namespace Geometry {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void SubModel::SetFromDescription(const SubModelDesc& aDesc)
+  void SubModel::SetFromDescription(const SubModelDesc& aDesc, GraphicsWorld* aWorld)
   {
     m_pMaterial = Rendering::Material::FindFromDesc(aDesc.myMaterial);
     m_pMesh = Rendering::RenderCore::GetMesh(aDesc.myMesh.myVertexAndIndexHash);
-  }
-//---------------------------------------------------------------------------//
-  void SubModel::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->Serialize(&m_pMaterial, "m_pMaterial");
-    aSerializer->Serialize(&m_pMesh, "m_pMesh");
   }
 //---------------------------------------------------------------------------//
 } }   // end of namespace Fancy::Geometry

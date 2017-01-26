@@ -38,6 +38,23 @@ namespace Fancy { namespace Rendering {
     memset(myStencilPassOp, 0u, sizeof(myStencilPassOp));
   }
 //---------------------------------------------------------------------------//
+  void DepthStencilStateDesc::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->Serialize(&myDepthTestEnabled, "myDepthTestEnabled");
+    aSerializer->Serialize(&myDepthWriteEnabled, "myDepthWriteEnabled");
+    aSerializer->Serialize(&myDepthCompFunc, "myDepthCompFunc");
+    aSerializer->Serialize(&myStencilEnabled, "myStencilEnabled");
+    aSerializer->Serialize(&myTwoSidedStencil, "myTwoSidedStencil");
+    aSerializer->Serialize(&myStencilRef, "myStencilRef");
+    aSerializer->Serialize(&myStencilReadMask, "myStencilReadMask");
+
+    aSerializer->serializeArray(myStencilCompFunc, "myStencilCompFunc");
+    aSerializer->serializeArray(myStencilWriteMask, "myStencilWriteMask");
+    aSerializer->serializeArray(myStencilFailOp, "myStencilFailOp");
+    aSerializer->serializeArray(myStencilDepthFailOp, "myStencilDepthFailOp");
+    aSerializer->serializeArray(myStencilPassOp, "myStencilPassOp");
+  }
+//---------------------------------------------------------------------------//
   bool DepthStencilStateDesc::operator==(const DepthStencilStateDesc& anOther) const
   {
     return memcmp(this, &anOther, sizeof(DepthStencilState)) == 0;
@@ -145,11 +162,6 @@ namespace Fancy { namespace Rendering {
     }
 
     myIsDirty = true;
-  }
-//---------------------------------------------------------------------------//
-  void DepthStencilState::Serialize(IO::Serializer* aSerializer)
-  {
-    // aSerializer->Serialize(&myName, "myName");
   }
 //---------------------------------------------------------------------------//
   uint64 DepthStencilState::GetHash() const

@@ -6,16 +6,22 @@
 #include "ObjectName.h"
 #include "StaticManagedObject.h"
 #include "Serializable.h"
+#include "DescriptionBase.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct DepthStencilStateDesc
+  struct DepthStencilStateDesc : public DescriptionBase
   {
     static DepthStencilStateDesc GetDefaultDepthNoStencil();
 
     DepthStencilStateDesc();
+    ~DepthStencilStateDesc() override {}
+
+    ObjectName GetTypeName() const override { return _N(DepthStencilState); }
+    void Serialize(IO::Serializer* aSerializer) override;
+    
     bool operator==(const DepthStencilStateDesc& anOther) const;
-    uint64 GetHash() const;
+    uint64 GetHash() const override;
 
     bool myDepthTestEnabled;
     bool myDepthWriteEnabled;
@@ -31,10 +37,10 @@ namespace Fancy { namespace Rendering {
     uint32 myStencilPassOp[(uint32)FaceType::NUM];
   };
 //---------------------------------------------------------------------------//
-  class DepthStencilState : public StaticManagedObject<DepthStencilState>
+  class DepthStencilState
   {
   public:
-    SERIALIZABLE(DepthStencilState)
+      SERIALIZABLE_RESOURCE(DepthStencilState)
 
       DepthStencilState();
       ~DepthStencilState() {}
@@ -45,8 +51,6 @@ namespace Fancy { namespace Rendering {
       void SetFromDescription(const DepthStencilStateDesc& aDesc);
 
       uint64 GetHash() const;
-      static ObjectName getTypeName() { return _N(DepthStencilState); }
-      void Serialize(IO::Serializer* aSerializer);
 
       bool GetDepthTestEnabled() const { return myDepthTestEnabled; }
       void SetDepthTestEnabled(bool aDepthTestEnabled) { myIsDirty |= myDepthTestEnabled != aDepthTestEnabled; myDepthTestEnabled = aDepthTestEnabled; }
@@ -64,7 +68,7 @@ namespace Fancy { namespace Rendering {
       void SetStencilReadMask(uint32 aStencilReadMask) { myIsDirty |= myStencilReadMask != aStencilReadMask;  myStencilReadMask = aStencilReadMask; }
       
       bool GetIsDirty() const { return myIsDirty; }
-      void SetDirty() { myIsDirty = true; }
+      void SetDirty() const { myIsDirty = true; }
 
       
 

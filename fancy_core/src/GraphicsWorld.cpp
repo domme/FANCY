@@ -44,7 +44,7 @@ namespace Fancy {
       return it->second;
 
     SharedPtr<Geometry::SubModel> subModel(FANCY_NEW(Geometry::SubModel, MemoryCategory::GEOMETRY));
-    subModel->SetFromDescription(aDesc);
+    subModel->SetFromDescription(aDesc, this);
 
     mySubModelCache.insert(std::make_pair(aDesc.GetHash(), subModel));
     return subModel;

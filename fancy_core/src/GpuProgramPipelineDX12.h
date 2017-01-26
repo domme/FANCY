@@ -21,10 +21,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class GpuProgramPipelineDX12
   {
   public:
-    SERIALIZABLE(GpuProgramPipelineDX12);
-
-    void Serialize(IO::Serializer* aSerializer);
-    static ObjectName getTypeName() { return _N(GpuProgramPipeline); }
+  
     uint64 GetHash() const { return GetDescription().GetHash(); }
     uint64 GetShaderByteCodeHash() const { return myShaderByteCodeHash; }
 

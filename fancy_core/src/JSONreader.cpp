@@ -276,11 +276,11 @@ namespace Fancy { namespace IO {
     Serialize(&myHeader.myTextures, "myTextures");
     Serialize(&myHeader.myGpuPrograms, "myGpuPrograms");
     Serialize(&myHeader.myGpuProgramPipelines, "myGpuProgramPipelines");
+    Serialize(&myHeader.myMeshes, "myMeshes");
 
     Serialize(&myHeader.myMaterialPasses, "myMaterialPasses");
     Serialize(&myHeader.myMaterialPassInstances, "myMaterialPassInstances");
     Serialize(&myHeader.myMaterials, "myMaterials");
-    Serialize(&myHeader.myMeshes, "myMeshes");
     Serialize(&myHeader.mySubModels, "mySubModels");
     Serialize(&myHeader.myModels, "myModels");
   }
