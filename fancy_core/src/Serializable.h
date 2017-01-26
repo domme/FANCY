@@ -80,19 +80,6 @@ namespace IO {
   {
     virtual void Serialize(IO::Serializer* aSerializer, void* anObject) = 0;
   };
-////---------------------------------------------------------------------------//
-  template<class T>
-  struct MetaTableStructOrClassImpl : public MetaTableStructOrClass
-  {
-    void Serialize(IO::Serializer* aSerializer, void* anObject) override
-    {
-      static_cast<T*>(anObject)->Serialize(aSerializer);
-    }
-  
-    static MetaTableStructOrClassImpl<T> ourVTable;
-  };
-  template<class T>
-  MetaTableStructOrClassImpl<T> MetaTableStructOrClassImpl<T>::ourVTable;
 //---------------------------------------------------------------------------//
   template<class T>
   struct MetaTableStructOrClassImpl : public MetaTableStructOrClass
@@ -106,6 +93,24 @@ namespace IO {
   };
   template<class T>
   MetaTableStructOrClassImpl<T> MetaTableStructOrClassImpl<T>::ourVTable;
+//---------------------------------------------------------------------------//
+  struct MetaTableResourceDesc
+  {
+    virtual void Serialize(IO::Serializer* aSerializer, void* anObject) = 0;
+  };
+//---------------------------------------------------------------------------//
+  template<class T>
+  struct MetaTableResourceDescImpl : public MetaTableResourceDesc
+  {
+    void Serialize(IO::Serializer* aSerializer, void* anObject) override
+    {
+      static_cast<T*>(anObject)->Serialize(aSerializer);
+    }
+  
+    static MetaTableResourceDescImpl<T> ourVTable;
+  };
+  template<class T>
+  MetaTableResourceDescImpl<T> MetaTableResourceDescImpl<T>::ourVTable;
 //---------------------------------------------------------------------------//
   struct DataType
   {
@@ -138,15 +143,27 @@ namespace IO {
     }
   };
 //---------------------------------------------------------------------------//
-  // Special case if T has a Serialize() method
+  // Special case if T has a Serialize() method but is no Description
   template<class T>
   struct Get_DataType<T, void, 
     std::enable_if_t<HasSerializeMemFn<T>::value 
-                    && !IsSerializable<T>::value && std::is_base_of<Fancy::DescriptionBase>::value>>
+                    && !IsSerializable<T>::value 
+                    && !std::is_base_of<T, Fancy::DescriptionBase>::value>>
   {
     static IO::DataType get()
     {
       return IO::DataType(IO::EBaseDataType::StructOrClass, &IO::MetaTableStructOrClassImpl<T>::ourVTable);
+    }
+  };
+//---------------------------------------------------------------------------//
+  // Special case if T is a Description
+  template<class T>
+  struct Get_DataType<T, void, 
+    std::enable_if_t<std::is_base_of<T, Fancy::DescriptionBase>::value>>
+  {
+    static IO::DataType get()
+    {
+      return IO::DataType(IO::EBaseDataType::ResourceDesc, &IO::MetaTableResourceDescImpl<T>::ourVTable);
     }
   };
 //---------------------------------------------------------------------------//

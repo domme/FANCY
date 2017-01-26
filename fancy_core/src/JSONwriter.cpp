@@ -69,15 +69,20 @@ namespace Fancy { namespace IO {
 
       String typeName = metaTable->GetTypeName(anObject);
       uint64 hash = metaTable->GetHash(anObject);
-
       currJsonVal["Type"] = typeName;
       currJsonVal["Hash"] = hash;
 
-      if (!HasResourceDependency(hash))
-      {
-        SharedPtr<DescriptionBase> desc = metaTable->GetDescription(anObject);
-        SerializeDescription(desc.get());
-      }
+      SharedPtr<DescriptionBase> desc = metaTable->GetDescription(anObject);
+      Serialize(desc.get(), "Description");
+    }
+    break;
+
+    case EBaseDataType::ResourceDesc:
+    {
+      DescriptionBase* desc = (DescriptionBase*)anObject;
+      
+      if (!HasResourceDependency(desc->GetHash()))
+        SerializeDescription(desc);
     }
     break;
 

@@ -39,11 +39,6 @@ namespace Fancy {
       std::map<uint64, SharedPtr<Rendering::Material>> myMaterialCache;
       std::map<uint64, SharedPtr<Geometry::SubModel>> mySubModelCache;
       std::map<uint64, SharedPtr<Geometry::Model>> myModelCache;
-
-      // TODO: Move these two to RenderCore?
-      
-      
-
   };
 //---------------------------------------------------------------------------//
 }
