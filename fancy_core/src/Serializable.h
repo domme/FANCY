@@ -148,7 +148,7 @@ namespace IO {
   struct Get_DataType<T, void, 
     std::enable_if_t<HasSerializeMemFn<T>::value 
                     && !IsSerializable<T>::value 
-                    && !std::is_base_of<T, Fancy::DescriptionBase>::value>>
+                    && !std::is_base_of<Fancy::DescriptionBase, T>::value>>
   {
     static IO::DataType get()
     {
@@ -159,7 +159,7 @@ namespace IO {
   // Special case if T is a Description
   template<class T>
   struct Get_DataType<T, void, 
-    std::enable_if_t<std::is_base_of<T, Fancy::DescriptionBase>::value>>
+    std::enable_if_t<std::is_base_of<Fancy::DescriptionBase, T>::value>>
   {
     static IO::DataType get()
     {
