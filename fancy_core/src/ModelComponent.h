@@ -14,20 +14,20 @@ namespace Fancy { namespace Scene {
     public SceneNodeComponent, public BaseCreator<ModelComponent, SceneNode*>
   {
     public:
-      ModelComponent(SceneNode* pOwner);
+      explicit ModelComponent(SceneNode* pOwner);
       virtual ~ModelComponent();
 
       virtual ObjectName getTypeName() const override { return _N(ModelComponent); }
       virtual void Serialize(IO::Serializer* aSerializer) override;
 
-      void setModel(Geometry::Model* pModel) {m_pModel = pModel;}
-      Geometry::Model* getModel() {return m_pModel;}
+      void setModel(const SharedPtr<Geometry::Model>& pModel) {m_pModel = pModel;}
+      Geometry::Model* getModel() const { return m_pModel.get(); }
       
-      virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
-      virtual void update() override;
+      void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
+      void update() override;
 
     private:
-      Geometry::Model* m_pModel;
+      SharedPtr<Geometry::Model> m_pModel;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(ModelComponent)

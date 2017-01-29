@@ -53,23 +53,5 @@ namespace Fancy { namespace Geometry {
       m_vSubModels[i] = aWorld->CreateSubModel(aDesc.mySubmodels[i]);
   }
 //---------------------------------------------------------------------------//
-  void Model::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->Serialize(&m_vSubModels, "m_vSubModels");
-  }
-//---------------------------------------------------------------------------//
-  void Model::addSubModel(SharedPtr<SubModel>& _pSubModel)
-  {
-    for (uint32 i = 0u; i < m_vSubModels.size(); ++i)
-    {
-      if (m_vSubModels[i] == _pSubModel)
-      {
-        return;
-      }
-    }
-
-    m_vSubModels.push_back(_pSubModel);
-  }
-//---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry
 

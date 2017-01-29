@@ -6,12 +6,18 @@
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  struct ModelDesc
+  struct ModelDesc : public DescriptionBase
   {
-    std::vector<SubModelDesc> mySubmodels;
-
+    ~ModelDesc() override {}
+    
     bool operator==(const ModelDesc& anOther) const;
-    uint64 GetHash() const;
+    uint64 GetHash() const override;
+    
+    ObjectName GetTypeName() const override { return _N(Model); }
+    void Serialize(IO::Serializer* aSerializer) override;
+    bool IsEmpty() const override;
+
+    std::vector<SubModelDesc> mySubmodels;
   };
 //---------------------------------------------------------------------------//
 } }

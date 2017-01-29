@@ -11,8 +11,7 @@
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   ModelComponent::ModelComponent(SceneNode* pOwner)
-    : SceneNodeComponent(pOwner),
-    m_pModel(nullptr)
+    : SceneNodeComponent(pOwner)
   {
 
   }

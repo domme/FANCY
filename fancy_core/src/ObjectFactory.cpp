@@ -19,27 +19,6 @@ namespace Fancy { namespace IO {
 
 //---------------------------------------------------------------------------//
   template<class T, MemoryCategory eMemoryCategory>
-  void* locCreateManaged(uint64 aHash, GraphicsWorld* aGraphicsWorld, bool& aWasCreated)
-  {
-    T* object = T::Find(aHash);
-
-    if (object)
-    {
-      aWasCreated = false;
-      return object;
-    }
-     
-    aWasCreated = true;
-    object = FANCY_NEW(T, eMemoryCategory);
-    
-    // TODO: This is bad design... we should set the whole description here. 
-    // We need to do this during a refactoring of the serialization-system...
-    T::Register(object, aHash);  
-    
-    return object;
-  }
-//---------------------------------------------------------------------------//
-  template<class T, MemoryCategory eMemoryCategory>
   void* locCreate(uint64, GraphicsWorld* aGraphicsWorld, bool& aWasCreated)
   {
     aWasCreated = true;
@@ -56,11 +35,6 @@ namespace Fancy { namespace IO {
   typedef void* (*CreateFunc)(uint64, GraphicsWorld*, bool&);
   std::pair<ObjectName, CreateFunc> locResourceCreateFunctions[] =
   {
-    // Managed:
-    { _N(MaterialPass), &locCreateManaged<Rendering::MaterialPass, MemoryCategory::MATERIALS> },
-    { _N(Model), &locCreateManaged<Geometry::Model, MemoryCategory::GEOMETRY> },
-
-    // Non-managed
     { _N(SceneNode), &locCreate<Scene::SceneNode, MemoryCategory::GENERAL> },
   };
 //---------------------------------------------------------------------------//
@@ -119,6 +93,16 @@ namespace Fancy { namespace IO {
     {
       const Rendering::MaterialDesc& desc = static_cast<const Rendering::MaterialDesc&>(aDesc);
       return aGraphicsWorld->CreateMaterial(desc);
+    }
+    if (aTypeName == _N(Model))
+    {
+      const Geometry::ModelDesc& desc = static_cast<const Geometry::ModelDesc&>(aDesc);
+      return aGraphicsWorld->CreateModel(desc);
+    }
+    if (aTypeName == _N(MaterialPass))
+    {
+      const Rendering::MaterialPassDesc& desc = static_cast<const Rendering::MaterialPassDesc&>(aDesc);
+      return aGraphicsWorld->CreateMaterialPass(desc);
     }
 
     ASSERT(false, "Unknown typename");

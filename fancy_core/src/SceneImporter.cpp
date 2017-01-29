@@ -240,15 +240,7 @@ namespace Fancy { namespace IO {
     for (uint i = 0u; i < vSubModels.size(); ++i)
       modelDesc.mySubmodels[i] = vSubModels[i]->GetDescription();
 
-    Geometry::Model* pModel = Geometry::Model::FindFromDesc(modelDesc);
-
-    if (!pModel)
-    {
-      pModel = FANCY_NEW(Geometry::Model, MemoryCategory::GEOMETRY);
-      pModel->SetFromDescription(modelDesc, &myGraphicsWorld);
-      Model::Register(pModel);
-    }
-
+    SharedPtr<Geometry::Model> pModel = myGraphicsWorld.CreateModel(modelDesc);
     _pModelComponent->setModel(pModel);
 
     return true;
@@ -534,7 +526,7 @@ namespace Fancy { namespace IO {
       if (!pData)
       {
         LOG_ERROR("Failed to allocate vertex buffer");
-        return false;
+        return nullptr;
       }
 
       // Construct an interleaved vertex array

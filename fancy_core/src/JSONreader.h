@@ -32,24 +32,23 @@ namespace Fancy { namespace IO {
     {
       uint32 myVersion;
       
-      std::vector<Rendering::MaterialPass*> myMaterialPasses;
-      std::vector<Geometry::Model*> myModels;
-      
-      std::vector<SharedPtr<Geometry::SubModel>> mySubModels;
       std::vector<SharedPtr<Geometry::Mesh>> myMeshes;
-      std::vector<SharedPtr<Rendering::GpuProgramPipeline>> myGpuProgramPipelines;
-      std::vector<SharedPtr<Rendering::GpuProgram>> myGpuPrograms;
       std::vector<SharedPtr<Rendering::Texture>> myTextures;
+      std::vector<SharedPtr<Rendering::GpuProgram>> myGpuPrograms;
+      std::vector<SharedPtr<Rendering::GpuProgramPipeline>> myGpuProgramPipelines;
+      std::vector<SharedPtr<Rendering::MaterialPass>> myMaterialPasses;
       std::vector<SharedPtr<Rendering::MaterialPassInstance>> myMaterialPassInstances;
       std::vector<SharedPtr<Rendering::Material>> myMaterials;
+      std::vector<SharedPtr<Geometry::SubModel>> mySubModels;
+      std::vector<SharedPtr<Geometry::Model>> myModels;
 
       std::vector<SharedPtr<DescriptionBase>> myResourceDependencies;
     };
 
-    virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
+    bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
 
-    virtual void beginName(const char* aName, bool anIsArray) override;
-    virtual void endName() override;
+    void beginName(const char* aName, bool anIsArray) override;
+    void endName() override;
 
     void loadHeader();
 

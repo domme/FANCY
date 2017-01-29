@@ -273,11 +273,10 @@ namespace Fancy { namespace IO {
     Json::Value& rootVal = *myTypeStack.top();
     myHeader.myVersion = rootVal["myVersion"].asUInt();
 
+    Serialize(&myHeader.myMeshes, "myMeshes");
     Serialize(&myHeader.myTextures, "myTextures");
     Serialize(&myHeader.myGpuPrograms, "myGpuPrograms");
     Serialize(&myHeader.myGpuProgramPipelines, "myGpuProgramPipelines");
-    Serialize(&myHeader.myMeshes, "myMeshes");
-
     Serialize(&myHeader.myMaterialPasses, "myMaterialPasses");
     Serialize(&myHeader.myMaterialPassInstances, "myMaterialPassInstances");
     Serialize(&myHeader.myMaterials, "myMaterials");

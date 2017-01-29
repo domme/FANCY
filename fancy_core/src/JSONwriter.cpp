@@ -102,29 +102,8 @@ namespace Fancy { namespace IO {
 
       if (instanceHash != 0u)
         currJsonVal["Hash"] = instanceHash;
-
-      const bool isManaged = metaTable->isManaged(anObject);
-      if (isManaged)
-      {
-        String key = typeName + "_" + StringUtil::toString(instanceHash);
-        if (!isManagedObjectStored(key))
-        {
-          metaTable->Serialize(this, anObject);
-          appendResource(typeName, currJsonVal);
-          currJsonVal.clear();
-
-          currJsonVal["Type"] = typeName;
-
-          if (instanceHash != 0u)
-            currJsonVal["Hash"] = instanceHash;
-
-          myHeader.myStoredManagedObjects.push_back(key);
-        }
-      }
-      else
-      {
-        metaTable->Serialize(this, anObject);
-      }
+      
+      metaTable->Serialize(this, anObject);
     } break;
 
     case EBaseDataType::Int:
@@ -294,9 +273,11 @@ namespace Fancy { namespace IO {
       { _N(Texture), &myHeader.myTextures },
       { _N(GpuProgram), &myHeader.myGpuPrograms },
       { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines },
-      { _N(Material), &myHeader.myMaterials },
+      { _N(MaterialPass), &myHeader.myMaterialPasses },
       { _N(MaterialPassInstance), &myHeader.myMaterialPassInstances },
+      { _N(Material), &myHeader.myMaterials },
       { _N(SubModel), &myHeader.mySubModels },
+      { _N(Model), &myHeader.myModels },
     };
 
     for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
@@ -317,49 +298,19 @@ namespace Fancy { namespace IO {
     return false;
   }
 //---------------------------------------------------------------------------//
-  // Old-style resources without a DescriptionBase-Interface. To be replaced one by one...
-  void JSONwriter::appendResource(const ObjectName& aTypeName, const Json::Value& aResourceValue)
-  {
-    std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
-      { _N(MaterialPass), &myHeader.myMaterialPasses },
-      { _N(Model), &myHeader.myModels },
-    };
-
-    for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
-    {
-      if (aTypeName == typeNameToVal[i].first)
-        typeNameToVal[i].second->append(aResourceValue);
-    }
-  }
-//---------------------------------------------------------------------------//
-  void JSONwriter::storeHeader(Json::Value& aValue)
+  void JSONwriter::storeHeader(Json::Value& aValue) const
   {
     aValue["myVersion"] = myHeader.myVersion;
-
+    
+    aValue["myMeshes"] = myHeader.myMeshes;
     aValue["myTextures"] = myHeader.myTextures;
     aValue["myGpuPrograms"] = myHeader.myGpuPrograms;
     aValue["myGpuProgramPipelines"] = myHeader.myGpuProgramPipelines;
-    aValue["myMeshes"] = myHeader.myMeshes;
-    aValue["mySubModels"] = myHeader.mySubModels;
-    
     aValue["myMaterialPasses"] = myHeader.myMaterialPasses;
     aValue["myMaterialPassInstances"] = myHeader.myMaterialPassInstances;
     aValue["myMaterials"] = myHeader.myMaterials;
-    
+    aValue["mySubModels"] = myHeader.mySubModels;
     aValue["myModels"] = myHeader.myModels;
-  }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  bool JSONwriter::isManagedObjectStored(const ObjectName& aName)
-  {
-    for (const ObjectName& storedName : myHeader.myStoredManagedObjects)
-    {
-      if (storedName == aName)
-        return true;
-    }
-
-    return false;
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO
