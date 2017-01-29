@@ -10,6 +10,10 @@
 #include "MaterialDesc.h"
 
 namespace Fancy {
+  class GraphicsWorld;
+}
+
+namespace Fancy {
   namespace IO {
     class Serializer;
   }
@@ -17,10 +21,10 @@ namespace Fancy {
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class Material : public StaticManagedHeapObject<Material>
+  class Material
   {
   public:
-      SERIALIZABLE(Material)
+      SERIALIZABLE_RESOURCE(Material)
 
       Material();
       ~Material();
@@ -28,12 +32,10 @@ namespace Fancy { namespace Rendering {
       bool operator==(const MaterialDesc& aDesc) const;
       
       MaterialDesc GetDescription() const;
-      void SetFromDescription(const MaterialDesc& aDesc);
+      void SetFromDescription(const MaterialDesc& aDesc, GraphicsWorld* aWorld);
 
       uint64 GetHash() const { return GetDescription().GetHash(); }
-      static ObjectName getTypeName() { return _N(Material); }
-      void Serialize(IO::Serializer* aSerializer);
-
+      
       const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint32) ePassType]; }
       void setPass(MaterialPassInstance* _pPass, EMaterialPass _ePassType) {m_vPasses[(uint32) _ePassType] = _pPass; }
 

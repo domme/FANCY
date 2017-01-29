@@ -12,18 +12,20 @@ namespace Fancy { namespace IO {
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct MaterialPassInstanceDesc
+  struct MaterialPassInstanceDesc : public DescriptionBase
   {
+    ~MaterialPassInstanceDesc() override {}
+    ObjectName GetTypeName() const override { return _N(MaterialPassInstance); }
+    uint64 GetHash() const override;
+    void Serialize(IO::Serializer* aSerializer) override;
+    bool operator==(const MaterialPassInstanceDesc& anOther) const;
+
     MaterialPassDesc myMaterialPass;
     TextureDesc myReadTextures[Constants::kMaxNumReadTextures];
     TextureDesc myWriteTextures[Constants::kMaxNumWriteTextures];
     GpuBufferDesc myReadBuffers[Constants::kMaxNumReadBuffers];
     GpuBufferDesc myWriteBuffers[Constants::kMaxNumWriteBuffers];
     TextureSamplerDesc myTextureSamplers[Constants::kMaxNumTextureSamplers];
-
-    uint64 GetHash() const;
-    bool operator==(const MaterialPassInstanceDesc& anOther) const;
-    void Serialize(IO::Serializer* aSerializer);
   };
 //---------------------------------------------------------------------------//
 } }

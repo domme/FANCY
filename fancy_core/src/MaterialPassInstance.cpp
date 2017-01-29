@@ -167,7 +167,7 @@ namespace Fancy { namespace Rendering {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void MaterialPassInstance::SetFromDescription(const MaterialPassInstanceDesc& aDesc)
+  void MaterialPassInstance::SetFromDescription(const MaterialPassInstanceDesc& aDesc, GraphicsWorld* aWorld)
   {
     m_pMaterialPass = MaterialPass::FindFromDesc(aDesc.myMaterialPass);
     ASSERT(nullptr != m_pMaterialPass);

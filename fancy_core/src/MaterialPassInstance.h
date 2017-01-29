@@ -6,6 +6,10 @@
 
 #include "Serializable.h"
 
+namespace Fancy {
+  class GraphicsWorld;
+}
+
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class MpiResourceType
@@ -34,19 +38,17 @@ namespace Fancy { namespace Rendering {
     friend class MaterialPass;
 
   public:
-    SERIALIZABLE(MaterialPassInstance)
+    SERIALIZABLE_RESOURCE(MaterialPassInstance)
 
     MaterialPassInstance();
     ~MaterialPassInstance();
     bool operator==(const MaterialPassInstanceDesc& aDesc) const;
 
     MaterialPassInstanceDesc GetDescription() const;
-    void SetFromDescription(const MaterialPassInstanceDesc& aDesc);
+    void SetFromDescription(const MaterialPassInstanceDesc& aDesc, GraphicsWorld* aWorld);
 
     uint64 GetHash() const { return GetDescription().GetHash(); }
-    void Serialize(IO::Serializer* aSerializer);
-    static ObjectName getTypeName() { return _N(MaterialPassInstance); }
-
+   
     const SharedPtr<Texture>* getReadTextures() const { return m_vpReadTextures; }
     const SharedPtr<Texture>* getWriteTextures() const { return m_vpWriteTextures; }
     const GpuBuffer* const* getReadBuffers() const { return m_vpReadBuffers; }

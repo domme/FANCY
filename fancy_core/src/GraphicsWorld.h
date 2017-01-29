@@ -14,6 +14,13 @@ namespace Fancy { namespace Geometry {
   struct MeshDesc;
 } }
 
+namespace Fancy { namespace Rendering {
+  class MaterialPassInstance;
+  struct MaterialPassInstanceDesc;
+  class Material;
+  struct MaterialDesc;
+} }
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class Time;
@@ -30,6 +37,8 @@ namespace Fancy {
       Scene::Scene* GetScene() const { return myScene.Get(); }
       
       SharedPtr<Geometry::SubModel> CreateSubModel(const Geometry::SubModelDesc& aDesc);
+      SharedPtr<Rendering::Material> CreateMaterial(const Rendering::MaterialDesc& aDesc);
+      SharedPtr<Rendering::MaterialPassInstance> CreateMaterialPassInstance(const Rendering::MaterialPassInstanceDesc& aDesc);
       
       // SharedPtr<Geometry::Model> CreateModel(const Geometry::ModelDesc& aDesc);
 
@@ -39,6 +48,7 @@ namespace Fancy {
       std::map<uint64, SharedPtr<Rendering::Material>> myMaterialCache;
       std::map<uint64, SharedPtr<Geometry::SubModel>> mySubModelCache;
       std::map<uint64, SharedPtr<Geometry::Model>> myModelCache;
+      std::map<uint64, SharedPtr<Rendering::MaterialPassInstance>> myMaterialPassInstanceCache;
   };
 //---------------------------------------------------------------------------//
 }

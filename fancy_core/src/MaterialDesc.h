@@ -21,15 +21,18 @@ namespace Fancy { namespace Rendering {
     NUM
   };
 //---------------------------------------------------------------------------//
-  struct MaterialDesc
+  struct MaterialDesc : public DescriptionBase
   {
+    MaterialDesc();
+    ~MaterialDesc() override {}
+
+    bool operator==(const MaterialDesc& anOther) const;
+    uint64 GetHash() const override;
+    void Serialize(IO::Serializer* aSerializer) override;
+    ObjectName GetTypeName() const override { return _N(Material); }
+
     float myParameters [(uint32)EMaterialParameterSemantic::NUM];
     MaterialPassInstanceDesc myPasses [(uint32)EMaterialPass::NUM];
-
-    MaterialDesc();
-    bool operator==(const MaterialDesc& anOther) const;
-    uint64 GetHash() const;
-    void Serialize(IO::Serializer* aSerializer);
   };
 //---------------------------------------------------------------------------//
 } }

@@ -81,7 +81,7 @@ namespace Fancy { namespace Rendering {
   }
 
 //---------------------------------------------------------------------------//
-  void Material::SetFromDescription(const MaterialDesc& aDesc)
+  void Material::SetFromDescription(const MaterialDesc& aDesc, GraphicsWorld* aWorld)
   {
     if (aDesc == GetDescription())
       return;
