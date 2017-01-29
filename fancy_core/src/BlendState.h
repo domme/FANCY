@@ -19,6 +19,8 @@ namespace Fancy { namespace Rendering {
     BlendStateDesc();
     ~BlendStateDesc() override {}
 
+    bool IsEmpty() const override { return false; }
+
     bool operator==(const BlendStateDesc& anOther) const;
     uint64 GetHash() const override;
 

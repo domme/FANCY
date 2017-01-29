@@ -16,6 +16,7 @@ namespace Fancy { namespace Rendering {
     ~GpuProgramPipelineDesc() override {}
     ObjectName GetTypeName() const override { return _N(GpuProgramPipeline); }
     void Serialize(IO::Serializer* aSerializer) override;
+    bool IsEmpty() const override;
 
     GpuProgramDesc myGpuPrograms[(uint32)ShaderStage::NUM];
   };
@@ -41,6 +42,15 @@ namespace Fancy { namespace Rendering {
   inline void GpuProgramPipelineDesc::Serialize(IO::Serializer* aSerializer)
   {
     aSerializer->serializeArray(myGpuPrograms, "myGpuPrograms");
+  }
+//---------------------------------------------------------------------------//
+  inline bool GpuProgramPipelineDesc::IsEmpty() const
+  {
+    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+      if (!myGpuPrograms[i].IsEmpty())
+        return false;
+
+    return true;
   }
 //---------------------------------------------------------------------------//
 } }

@@ -13,12 +13,17 @@ namespace Fancy { namespace IO {
     myArchive.open(archivePath, archiveFlags);
 
     myHeader = RootHeader();
-    myHeader.myGpuPrograms = Json::Value(Json::arrayValue);
-    myHeader.myMaterialPasses = Json::Value(Json::arrayValue);
     myHeader.myMeshes = Json::Value(Json::arrayValue);
+    myHeader.myTextures = Json::Value(Json::arrayValue);
+    myHeader.myGpuPrograms = Json::Value(Json::arrayValue);
+    myHeader.myGpuProgramPipelines = Json::Value(Json::arrayValue);
+    myHeader.myMaterials = Json::Value(Json::arrayValue);
+    myHeader.myMaterialPassInstances = Json::Value(Json::arrayValue);
     myHeader.mySubModels = Json::Value(Json::arrayValue);
-    myHeader.myModels = Json::Value(Json::arrayValue);
 
+    myHeader.myMaterialPasses = Json::Value(Json::arrayValue);
+    myHeader.myModels = Json::Value(Json::arrayValue);
+    
     JSONwriter::beginName("Root", false);
   }
 //---------------------------------------------------------------------------//
@@ -28,21 +33,7 @@ namespace Fancy { namespace IO {
 
     storeHeader(myCurrentEndType);
     myJsonWriter.write(myArchive, myCurrentEndType);
-  }
-//---------------------------------------------------------------------------//
-  void JSONwriter::SerializeDescription(DescriptionBase* aDescription)
-  {
-    ObjectName typeName = aDescription->GetTypeName();
-    uint64 hash = aDescription->GetHash();
-
-    myTypeStack.push(Json::Value(Json::objectValue));
-    Json::Value& descVal = myTypeStack.top();
-    descVal["Type"] = typeName.toString();
-    descVal["Hash"] = hash;
-    aDescription->Serialize(this);
-    AddResourceDependency(typeName, descVal, hash);
-    myTypeStack.pop();
-  }
+  }  
 //---------------------------------------------------------------------------//
   bool JSONwriter::serializeImpl(DataType aDataType, void* anObject, const char* aName)
   {
@@ -76,11 +67,21 @@ namespace Fancy { namespace IO {
     {
       DescriptionBase* desc = static_cast<DescriptionBase*>(anObject);
 
+      const uint64 descHash = desc->GetHash();
+
       currJsonVal["Type"] = desc->GetTypeName().toString();
-      currJsonVal["Hash"] = desc->GetHash();
+      currJsonVal["Hash"] = descHash;
       
-      if (!HasResourceDependency(desc->GetHash()))
-        SerializeDescription(desc);
+      if (!HasResourceDependency(descHash))
+      {
+        myTypeStack.push(Json::Value(Json::objectValue));
+        Json::Value& descVal = myTypeStack.top();
+        descVal["Type"] = desc->GetTypeName().toString();
+        descVal["Hash"] = descHash;
+        desc->Serialize(this);
+        AddResourceDependency(desc->GetTypeName(), descVal, descHash);
+        myTypeStack.pop();
+      }
     }
     break;
 
@@ -289,11 +290,13 @@ namespace Fancy { namespace IO {
   void JSONwriter::AddResourceDependency(const ObjectName& aTypeName, const Json::Value& aResourceDescVal, uint64 aHash)
   {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
+      { _N(Mesh), &myHeader.myMeshes },
       { _N(Texture), &myHeader.myTextures },
       { _N(GpuProgram), &myHeader.myGpuPrograms },
       { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines },
-      { _N(Mesh), &myHeader.myMeshes },
-      { _N(SubModel), &myHeader.mySubModels }
+      { _N(Material), &myHeader.myMaterials },
+      { _N(MaterialPassInstance), &myHeader.myMaterialPassInstances },
+      { _N(SubModel), &myHeader.mySubModels },
     };
 
     for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
@@ -319,9 +322,7 @@ namespace Fancy { namespace IO {
   {
     std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
       { _N(MaterialPass), &myHeader.myMaterialPasses },
-      { _N(Material), &myHeader.myMaterials },
       { _N(Model), &myHeader.myModels },
-      { _N(MaterialPassInstance), &myHeader.myMaterialPassInstances },
     };
 
     for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)

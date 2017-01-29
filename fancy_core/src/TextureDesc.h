@@ -21,6 +21,7 @@ namespace Fancy { namespace Rendering {
     ObjectName GetTypeName() const override { return _N(Texture); }
     uint64 GetHash() const override;
     void Serialize(IO::Serializer* aSerializer) override;
+    bool IsEmpty() const override { return mySourcePath.empty() && (myIsExternalTexture || myInternalRefIndex == ~0u); }
 
     bool myIsExternalTexture;
     String mySourcePath; // The path to the original texture file (before caching - e.g. textures/barrel.jpg). Only valid for external textures

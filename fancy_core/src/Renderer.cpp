@@ -214,6 +214,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   SharedPtr<Rendering::BlendState> RenderCore::CreateBlendState(const Rendering::BlendStateDesc& aDesc)
   {
+    if (aDesc.IsEmpty())
+      return nullptr;
+
     auto it = ourBlendStateCache.find(aDesc.GetHash());
     if (it != ourBlendStateCache.end())
       return it->second;
@@ -227,6 +230,9 @@ namespace Fancy { namespace Rendering {
   //---------------------------------------------------------------------------//
   SharedPtr<Rendering::DepthStencilState> RenderCore::CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc)
   {
+    if (aDesc.IsEmpty())
+      return nullptr;
+
     auto it = ourDepthStencilStateCache.find(aDesc.GetHash());
     if (it != ourDepthStencilStateCache.end())
       return it->second;
@@ -323,6 +329,9 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureDesc& aTextureDesc)
   {
+    if (aTextureDesc.IsEmpty())
+      return nullptr;
+
     TextureDesc desc = aTextureDesc;
 
     if (aTextureDesc.myIsExternalTexture)

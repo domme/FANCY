@@ -36,15 +36,14 @@ namespace Fancy { namespace Rendering {
 
       uint64 GetHash() const { return GetDescription().GetHash(); }
       
-      const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint32) ePassType]; }
-      void setPass(MaterialPassInstance* _pPass, EMaterialPass _ePassType) {m_vPasses[(uint32) _ePassType] = _pPass; }
+      const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint32) ePassType].get(); }
 
       float getParameter(EMaterialParameterSemantic _semantic) const { return m_vParameters[(uint32)_semantic]; }
       void setParameter(EMaterialParameterSemantic _semantic, float _value) { m_vParameters[(uint32)_semantic] = _value; }
 
     private:
       float m_vParameters [(uint32)EMaterialParameterSemantic::NUM];
-      MaterialPassInstance* m_vPasses[(uint32)EMaterialPass::NUM];
+      SharedPtr<MaterialPassInstance> m_vPasses[(uint32)EMaterialPass::NUM];
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

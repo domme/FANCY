@@ -24,7 +24,7 @@ namespace Fancy { namespace IO {
 
     const uint32 myVersion = 0;
 
-    void SerializeDescription(DescriptionBase* aDescription) override;
+    void SerializeDescription(DescriptionBase* aDescription);
 
   protected:
 
@@ -33,8 +33,6 @@ namespace Fancy { namespace IO {
       uint32 myVersion;
       
       std::vector<Rendering::MaterialPass*> myMaterialPasses;
-      std::vector<Rendering::MaterialPassInstance*> myMaterialPassInstances;
-      std::vector<Rendering::Material*> myMaterials;
       std::vector<Geometry::Model*> myModels;
       
       std::vector<SharedPtr<Geometry::SubModel>> mySubModels;
@@ -42,6 +40,8 @@ namespace Fancy { namespace IO {
       std::vector<SharedPtr<Rendering::GpuProgramPipeline>> myGpuProgramPipelines;
       std::vector<SharedPtr<Rendering::GpuProgram>> myGpuPrograms;
       std::vector<SharedPtr<Rendering::Texture>> myTextures;
+      std::vector<SharedPtr<Rendering::MaterialPassInstance>> myMaterialPassInstances;
+      std::vector<SharedPtr<Rendering::Material>> myMaterials;
 
       std::vector<SharedPtr<DescriptionBase>> myResourceDependencies;
     };

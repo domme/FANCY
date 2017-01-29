@@ -45,4 +45,9 @@ namespace Fancy { namespace Rendering {
     aSerializer->Serialize(&m_GpuProgramPipelineDesc, "m_GpuProgramPipelineDesc");
   }
 //---------------------------------------------------------------------------//
+  bool MaterialPassDesc::IsEmpty() const
+  {
+    return m_GpuProgramPipelineDesc.IsEmpty();
+  }
+//---------------------------------------------------------------------------//
 } }

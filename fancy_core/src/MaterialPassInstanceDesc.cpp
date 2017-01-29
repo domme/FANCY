@@ -33,6 +33,11 @@ namespace Fancy { namespace Rendering {
     return GetHash() == anOther.GetHash();
   }
 //---------------------------------------------------------------------------//
+  bool MaterialPassInstanceDesc::IsEmpty() const
+  {
+    return myMaterialPass.IsEmpty();
+  }
+//---------------------------------------------------------------------------//
   void MaterialPassInstanceDesc::Serialize(IO::Serializer* aSerializer)
   {
     aSerializer->Serialize(&myMaterialPass, "myMaterialPass");

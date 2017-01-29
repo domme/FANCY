@@ -58,11 +58,9 @@ namespace Fancy { namespace IO {
   {
     // Managed:
     { _N(MaterialPass), &locCreateManaged<Rendering::MaterialPass, MemoryCategory::MATERIALS> },
-    { _N(Material), &locCreateManaged<Rendering::Material, MemoryCategory::MATERIALS> },
     { _N(Model), &locCreateManaged<Geometry::Model, MemoryCategory::GEOMETRY> },
 
     // Non-managed
-    { _N(MaterialPassInstance), &locCreate<Rendering::MaterialPassInstance, MemoryCategory::MATERIALS> },
     { _N(SceneNode), &locCreate<Scene::SceneNode, MemoryCategory::GENERAL> },
   };
 //---------------------------------------------------------------------------//
@@ -111,6 +109,16 @@ namespace Fancy { namespace IO {
     {
       const Geometry::SubModelDesc& desc = static_cast<const Geometry::SubModelDesc&>(aDesc);
       return aGraphicsWorld->CreateSubModel(desc);
+    }
+    else if(aTypeName == _N(MaterialPassInstance))
+    {
+      const Rendering::MaterialPassInstanceDesc& desc = static_cast<const Rendering::MaterialPassInstanceDesc&>(aDesc);
+      return aGraphicsWorld->CreateMaterialPassInstance(desc);
+    }
+    else if (aTypeName == _N(Material))
+    {
+      const Rendering::MaterialDesc& desc = static_cast<const Rendering::MaterialDesc&>(aDesc);
+      return aGraphicsWorld->CreateMaterial(desc);
     }
 
     ASSERT(false, "Unknown typename");

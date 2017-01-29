@@ -19,6 +19,7 @@ namespace Fancy { namespace Rendering {
     uint64 GetHash() const override;
     void Serialize(IO::Serializer* aSerializer) override;
     bool operator==(const MaterialPassInstanceDesc& anOther) const;
+    bool IsEmpty() const override;
 
     MaterialPassDesc myMaterialPass;
     TextureDesc myReadTextures[Constants::kMaxNumReadTextures];

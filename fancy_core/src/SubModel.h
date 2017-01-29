@@ -33,6 +33,7 @@ namespace Fancy { namespace Geometry {
     ObjectName GetTypeName() const override { return _N(SubModel); }
     void Serialize(IO::Serializer* aSerializer) override;
     uint64 GetHash() const override;
+    bool IsEmpty() const override { return myMaterial.IsEmpty() || myMesh.IsEmpty(); }
 
     bool operator==(const SubModelDesc& anOther) const;
   };
@@ -52,14 +53,12 @@ namespace Fancy { namespace Geometry {
 
     uint64 GetHash() const { return GetDescription().GetHash(); }
 
-    Rendering::Material* getMaterial() const {return m_pMaterial;}
+    Rendering::Material* getMaterial() const {return m_pMaterial.get();}
     Mesh* getMesh() const {return m_pMesh.get();}
 
-    void setMesh(const SharedPtr<Mesh>& _pMesh) {m_pMesh = _pMesh;}
-    void setMaterial(Rendering::Material* _pMaterial) {m_pMaterial = _pMaterial;}
 //---------------------------------------------------------------------------//
   private:
-    Rendering::Material* m_pMaterial;
+    SharedPtr<Rendering::Material> m_pMaterial;
     SharedPtr<Mesh> m_pMesh;
   }; 
 //---------------------------------------------------------------------------//

@@ -2,6 +2,7 @@
 #include "Serializer.h"
 #include "Mesh.h"
 #include "Renderer.h"
+#include "GraphicsWorld.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -26,8 +27,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
-  SubModel::SubModel() :
-    m_pMaterial(nullptr)
+  SubModel::SubModel()
   {
 
   }
@@ -57,7 +57,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   void SubModel::SetFromDescription(const SubModelDesc& aDesc, GraphicsWorld* aWorld)
   {
-    m_pMaterial = Rendering::Material::FindFromDesc(aDesc.myMaterial);
+    m_pMaterial = aWorld->CreateMaterial(aDesc.myMaterial);
     m_pMesh = Rendering::RenderCore::GetMesh(aDesc.myMesh.myVertexAndIndexHash);
   }
 //---------------------------------------------------------------------------//

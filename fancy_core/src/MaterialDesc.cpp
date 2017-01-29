@@ -24,10 +24,19 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-void MaterialDesc::Serialize(IO::Serializer* aSerializer)
-{
-  aSerializer->serializeArray(myParameters, "myParameters");
-  aSerializer->serializeArray(myPasses, "myPasses");
-}
+  void MaterialDesc::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->serializeArray(myParameters, "myParameters");
+    aSerializer->serializeArray(myPasses, "myPasses");
+  }
+//---------------------------------------------------------------------------//
+  bool MaterialDesc::IsEmpty() const
+  {
+    for (uint i = 0u; i < ARRAY_LENGTH(myPasses); ++i)
+      if (!myPasses[i].IsEmpty())
+        return false;
+
+    return true;
+  }
 //---------------------------------------------------------------------------//
 } }

@@ -40,6 +40,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<Geometry::SubModel> GraphicsWorld::CreateSubModel(const Geometry::SubModelDesc& aDesc)
   {
+    if (aDesc.IsEmpty())
+      return nullptr;
+
     auto it = mySubModelCache.find(aDesc.GetHash());
     if (it != mySubModelCache.end())
       return it->second;
@@ -53,6 +56,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<Rendering::Material> GraphicsWorld::CreateMaterial(const Rendering::MaterialDesc& aDesc)
   {
+    if (aDesc.IsEmpty())
+      return nullptr;
+
     auto it = myMaterialCache.find(aDesc.GetHash());
     if (it != myMaterialCache.end())
       return it->second;
@@ -66,6 +72,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<Rendering::MaterialPassInstance> GraphicsWorld::CreateMaterialPassInstance(const Rendering::MaterialPassInstanceDesc& aDesc)
   {
+    if (aDesc.IsEmpty())
+      return nullptr;
+
     auto it = myMaterialPassInstanceCache.find(aDesc.GetHash());
     if (it != myMaterialPassInstanceCache.end())
       return it->second;
@@ -73,7 +82,7 @@ namespace Fancy {
     SharedPtr<Rendering::MaterialPassInstance> materialPassInstance(FANCY_NEW(Rendering::MaterialPassInstance, MemoryCategory::MATERIALS));
     materialPassInstance->SetFromDescription(aDesc, this);
 
-    myMaterialCache.insert(std::make_pair(aDesc.GetHash(), materialPassInstance));
+    myMaterialPassInstanceCache.insert(std::make_pair(aDesc.GetHash(), materialPassInstance));
     return materialPassInstance;
   }
 //---------------------------------------------------------------------------//

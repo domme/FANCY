@@ -15,6 +15,7 @@ namespace Fancy { namespace Rendering {
     uint64 GetHash() const override;
     ~GpuProgramDesc() override {}
     ObjectName GetTypeName() const override { return _N(GpuProgram); }
+    bool IsEmpty() const override { return myShaderFileName.empty(); }
 
     void Serialize(IO::Serializer* aSerializer) override;
     String myShaderFileName;

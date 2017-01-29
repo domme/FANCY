@@ -49,6 +49,7 @@ namespace Fancy {
       std::map<uint64, SharedPtr<Geometry::SubModel>> mySubModelCache;
       std::map<uint64, SharedPtr<Geometry::Model>> myModelCache;
       std::map<uint64, SharedPtr<Rendering::MaterialPassInstance>> myMaterialPassInstanceCache;
+
   };
 //---------------------------------------------------------------------------//
 }

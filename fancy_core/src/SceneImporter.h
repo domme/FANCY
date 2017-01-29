@@ -39,7 +39,7 @@ namespace Fancy { namespace IO {
   private:
     static const uint32 kMaxNumAssimpMeshesPerNode = 128u;
     typedef FixedArray<aiMesh*, kMaxNumAssimpMeshesPerNode> AiMeshList;
-    typedef std::map<const aiMaterial*, Rendering::Material*> MaterialCacheMap;
+    typedef std::map<const aiMaterial*, SharedPtr<Rendering::Material>> MaterialCacheMap;
     typedef FixedArray<std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>, 256u> MeshCacheList;
 
     struct WorkingData
@@ -65,7 +65,7 @@ namespace Fancy { namespace IO {
     bool processMeshes(const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
 
     SharedPtr<Geometry::Mesh> constructOrRetrieveMesh(const aiNode* _pAnode, aiMesh** someMeshes, uint32 aMeshCount);
-    Rendering::Material* createOrRetrieveMaterial(const aiMaterial* _pAmaterial);
+    SharedPtr<Rendering::Material> createOrRetrieveMaterial(const aiMaterial* _pAmaterial);
     SharedPtr<Rendering::Texture> createOrRetrieveTexture(const aiMaterial* _pAmaterial, uint32 _aiTextureType, uint32 _texIndex);
 
     std::string GetCachePathForMesh();

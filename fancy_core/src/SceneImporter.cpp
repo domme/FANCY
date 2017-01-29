@@ -219,7 +219,7 @@ namespace Fancy { namespace IO {
       // Create or retrieve the material
       aiMaterial* pAmaterial = 
         myWorkingData.pCurrScene->mMaterials[uMaterialIndex];
-      Rendering::Material* pMaterial = createOrRetrieveMaterial(pAmaterial);
+      SharedPtr<Rendering::Material> pMaterial = createOrRetrieveMaterial(pAmaterial);
 
       // Do we already have a Submodel with this mesh and material?
       Geometry::SubModelDesc submodelDesc;
@@ -608,7 +608,7 @@ namespace Fancy { namespace IO {
     return mesh;
   }
 //---------------------------------------------------------------------------//
-  Rendering::Material* SceneImporter::createOrRetrieveMaterial(const aiMaterial* _pAmaterial)
+  SharedPtr<Rendering::Material> SceneImporter::createOrRetrieveMaterial(const aiMaterial* _pAmaterial)
   {
     // Did we already import this material?
     MaterialCacheMap::iterator cacheIt = myWorkingData.mapAiMatToMat.find(_pAmaterial);
@@ -729,13 +729,7 @@ namespace Fancy { namespace IO {
       mpiDesc.myReadTextures[1u] = pNormalTex->GetDescription();
     if (nullptr != pSpecularTex)
       mpiDesc.myReadTextures[2u] = pSpecularTex->GetDescription();
-    MaterialPassInstance* pSolidForwardMpi = MaterialPassInstance::FindFromDesc(mpiDesc);
-    if (pSolidForwardMpi == nullptr)
-    {
-      pSolidForwardMpi = FANCY_NEW(MaterialPassInstance, MemoryCategory::MATERIALS);
-      pSolidForwardMpi->SetFromDescription(mpiDesc);
-      MaterialPassInstance::Register(pSolidForwardMpi);
-    }
+    SharedPtr<MaterialPassInstance> pSolidForwardMpi = myGraphicsWorld.CreateMaterialPassInstance(mpiDesc);
     //---------------------------------------------------------------------------//
 
     // Find/Create a matching Material
@@ -752,13 +746,8 @@ namespace Fancy { namespace IO {
     if (hasSpecularPower)
       matDesc.myParameters[(uint32)EMaterialParameterSemantic::SPECULAR_POWER] = specularPower;
     
-    Material* pMaterial = Material::FindFromDesc(matDesc);
-    if (pMaterial == nullptr)
-    {
-      pMaterial = FANCY_NEW(Material, MemoryCategory::MATERIALS);
-      pMaterial->SetFromDescription(matDesc);
-      Material::Register(pMaterial);
-    }
+    SharedPtr<Material> pMaterial = myGraphicsWorld.CreateMaterial(matDesc);
+    
     //---------------------------------------------------------------------------//
 
     return pMaterial;

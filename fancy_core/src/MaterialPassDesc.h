@@ -16,6 +16,7 @@ namespace Fancy { namespace Rendering {
     uint64 GetHash() const override;
     ObjectName GetTypeName() const override { return _N(MaterialPass); }
     void Serialize(IO::Serializer* aSerializer) override;
+    bool IsEmpty() const override;
 
     uint32 m_eFillMode;
     uint32 m_eCullMode;

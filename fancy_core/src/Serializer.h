@@ -47,8 +47,6 @@ namespace Fancy { namespace IO {
           serializeImpl(Get_DataTypeBuiltinArray<T, N>::get(), anObject, aName);
         }
 
-        virtual void SerializeDescription(DescriptionBase* aDescription) = 0;
-
     protected:
 
       virtual bool serializeImpl(DataType aDataType, void* anObject, const char* aName) = 0;

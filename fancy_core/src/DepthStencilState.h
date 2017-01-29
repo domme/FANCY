@@ -17,6 +17,8 @@ namespace Fancy { namespace Rendering {
     DepthStencilStateDesc();
     ~DepthStencilStateDesc() override {}
 
+    bool IsEmpty() const override { return false; }
+
     ObjectName GetTypeName() const override { return _N(DepthStencilState); }
     void Serialize(IO::Serializer* aSerializer) override;
     

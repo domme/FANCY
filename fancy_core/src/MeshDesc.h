@@ -27,6 +27,7 @@ namespace Fancy { namespace Geometry {
     bool operator==(const MeshDesc& anOther) const { return myVertexAndIndexHash == anOther.myVertexAndIndexHash; }
     uint64 GetHash() const override { return myVertexAndIndexHash; }
     void Serialize(IO::Serializer* aSerializer) override;
+    bool IsEmpty() const override { return myVertexAndIndexHash == 0u; }
   };
 //---------------------------------------------------------------------------//
 } }

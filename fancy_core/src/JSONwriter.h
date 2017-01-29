@@ -13,8 +13,6 @@ namespace Fancy { namespace IO {
 
     const uint32 myVersion = 0;
 
-    void SerializeDescription(DescriptionBase* aDescription) override;
-
   protected:
 
     struct RootHeader
@@ -22,8 +20,6 @@ namespace Fancy { namespace IO {
       uint32 myVersion;
       
       Json::Value myMaterialPasses;
-      Json::Value myMaterials;
-      Json::Value myMaterialPassInstances;
       Json::Value myModels;
       
       std::vector<ObjectName> myStoredManagedObjects;
@@ -32,6 +28,8 @@ namespace Fancy { namespace IO {
       Json::Value myTextures;
       Json::Value myGpuPrograms;
       Json::Value myGpuProgramPipelines;
+      Json::Value myMaterials;
+      Json::Value myMaterialPassInstances;
       Json::Value mySubModels;
 
       std::vector<uint64> myResourceDependencies;

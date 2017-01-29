@@ -2,6 +2,7 @@
 #include "Serializer.h"
 #include "MaterialPass.h"
 #include "MaterialPassInstance.h"
+#include "GraphicsWorld.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -86,20 +87,11 @@ namespace Fancy { namespace Rendering {
     if (aDesc == GetDescription())
       return;
 
-    memset(&m_vPasses[0], 0u, sizeof(m_vPasses));
-    memset(&m_vParameters[0], 0x0, sizeof(m_vParameters));
-
     for (uint i = 0u; i < ARRAY_LENGTH(m_vPasses); ++i)
-      m_vPasses[i] = MaterialPassInstance::FindFromDesc(aDesc.myPasses[i]);
+      m_vPasses[i] = aWorld->CreateMaterialPassInstance(aDesc.myPasses[i]);
       
     for (uint i = 0u; i < ARRAY_LENGTH(m_vParameters); ++i)
       m_vParameters[i] = aDesc.myParameters[i];
-  }
-//---------------------------------------------------------------------------//
-  void Material::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->serializeArray(m_vParameters, "m_vParameters");
-    aSerializer->serializeArray(m_vPasses, "m_vPasses");
   }
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

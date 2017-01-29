@@ -30,6 +30,7 @@ namespace Fancy { namespace Rendering {
     uint64 GetHash() const override;
     void Serialize(IO::Serializer* aSerializer) override;
     ObjectName GetTypeName() const override { return _N(Material); }
+    bool IsEmpty() const override;
 
     float myParameters [(uint32)EMaterialParameterSemantic::NUM];
     MaterialPassInstanceDesc myPasses [(uint32)EMaterialPass::NUM];

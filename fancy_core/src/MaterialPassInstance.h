@@ -12,28 +12,7 @@ namespace Fancy {
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  enum class MpiResourceType
-  {
-    ReadTexture,
-    WriteTexture,
-    ReadBuffer,
-    WriteBuffer,
-    TextureSampler
-  };
-//---------------------------------------------------------------------------//
-  struct ResourceStorageEntry
-  {
-    SERIALIZABLE(ResourceStorageEntry)
-
-    uint32 myIndex;
-    uint64 myHash;
-
-    void Serialize(IO::Serializer* aSerializer);
-    ObjectName getTypeName() const { return _N(ResourceStorageEntry); }
-    uint64 GetHash() const { return 0u; }
-  };
-//---------------------------------------------------------------------------//
-  class MaterialPassInstance : public StaticManagedHeapObject<MaterialPassInstance>
+  class MaterialPassInstance
   {
     friend class MaterialPass;
 
@@ -67,9 +46,6 @@ namespace Fancy { namespace Rendering {
     void setReadBuffer(uint32 aRegisterIndex, GpuBuffer* aBuffer) { ASSERT(aRegisterIndex < Constants::kMaxNumReadBuffers); m_vpReadBuffers[aRegisterIndex] = aBuffer; }
     void setWriteBuffer(uint32 aRegisterIndex, GpuBuffer* aBuffer) { ASSERT(aRegisterIndex < Constants::kMaxNumWriteBuffers); m_vpWriteBuffers[aRegisterIndex] = aBuffer; }
     void setTextureSampler(uint32 aRegisterIndex, TextureSampler* aSampler) { ASSERT(aRegisterIndex < Constants::kMaxNumTextureSamplers); m_vpTextureSamplers[aRegisterIndex] = aSampler; }
-
-    void getResourceDesc(MpiResourceType aType, std::vector<ResourceStorageEntry>& someEntries) const;
-    void setFromResourceDesc(const std::vector<ResourceStorageEntry>& someResources, MpiResourceType aType);
 
     MaterialPass* getMaterialPass() const { return m_pMaterialPass; }
 
