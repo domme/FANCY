@@ -45,6 +45,8 @@ namespace Fancy { namespace IO {
       std::vector<SharedPtr<DescriptionBase>> myResourceDependencies;
     };
 
+    DescriptionBase* GetResourceDesc(uint64 aHash);
+
     bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
 
     void beginName(const char* aName, bool anIsArray) override;

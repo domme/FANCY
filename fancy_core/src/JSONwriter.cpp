@@ -60,9 +60,7 @@ namespace Fancy { namespace IO {
 
       SharedPtr<DescriptionBase> desc = metaTable->GetDescription(anObject);
       Serialize(desc.get(), "Description");
-    }
-    break;
-
+    } break;
     case EBaseDataType::ResourceDesc:
     {
       DescriptionBase* desc = static_cast<DescriptionBase*>(anObject);
@@ -82,9 +80,7 @@ namespace Fancy { namespace IO {
         AddResourceDependency(desc->GetTypeName(), descVal, descHash);
         myTypeStack.pop();
       }
-    }
-    break;
-
+    } break;
     case EBaseDataType::Serializable:
     case EBaseDataType::SerializablePtr:
     {

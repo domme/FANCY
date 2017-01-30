@@ -44,6 +44,15 @@ namespace Fancy { namespace IO {
     aDescription->Serialize(this);
   }
 //---------------------------------------------------------------------------//
+  DescriptionBase* JSONreader::GetResourceDesc(uint64 aHash)
+  {
+    for (SharedPtr<DescriptionBase>& desc : myHeader.myResourceDependencies)
+      if (desc->GetHash() == aHash)
+        return desc.get();
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
   bool JSONreader::serializeImpl(DataType aDataType, void* anObject, const char* aName)
   {
     beginName(aName, aDataType.myBaseType == EBaseDataType::Array);
@@ -53,10 +62,19 @@ namespace Fancy { namespace IO {
     bool handled = true;
     switch (aDataType.myBaseType)
     {
+    case EBaseDataType::StructOrClass:
+    {
+      MetaTableStructOrClass* metaTable = static_cast<MetaTableStructOrClass*>(aDataType.myUserData);
+      metaTable->Serialize(this, anObject);
+    } break;
+    case EBaseDataType::ResourceDesc:
+    {
+      MetaTableResourceDesc* metaTable = static_cast<MetaTableResourceDesc*>(aDataType.myUserData);
+      metaTable->Serialize(this, anObject);
+    } break;
     case EBaseDataType::ResourcePtr:
     {
       MetaTableResource* metaTable = static_cast<MetaTableResource*>(aDataType.myUserData);
-
 
       if (currJsonVal.type() == Json::nullValue
         || ( currJsonVal.type() == Json::intValue && currJsonVal.asInt() == 0))  // nullptrs in arrays will appear as "0"
@@ -68,29 +86,19 @@ namespace Fancy { namespace IO {
       ObjectName typeName = ObjectName(currJsonVal["Type"].asString());
       uint64 hash = currJsonVal["Hash"].asUInt64();
 
-      SharedPtr<DescriptionBase> description;
-
-      for (SharedPtr<DescriptionBase>& desc : myHeader.myResourceDependencies)
-      {
-        if (desc->GetHash() == hash)
-        {
-          description = desc;
-          break;
-        }
-      }
-
+      DescriptionBase* description = GetResourceDesc(hash);
       if (description == nullptr)
       {
-        description = metaTable->CreateDescription();
-        SerializeDescription(description.get());
-        myHeader.myResourceDependencies.push_back(description);
+        SharedPtr<DescriptionBase> newDesc = metaTable->CreateDescription();
+        Serialize(newDesc.get(), "Description");
+        myHeader.myResourceDependencies.push_back(newDesc);
+        description = GetResourceDesc(hash);
+        ASSERT(description != nullptr);
       }
 
       metaTable->Create(anObject, typeName, *description, &myGraphicsWorld);
       
     } break;
-
-
     case EBaseDataType::Serializable:
     case EBaseDataType::SerializablePtr:
     {
