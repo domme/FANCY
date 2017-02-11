@@ -40,21 +40,13 @@ namespace Fancy { namespace IO {
     {
       uint32 myVersion;
 
-      Json::Value* myMeshes;
-      Json::Value* myTextures;
-      Json::Value* myGpuPrograms;
-      Json::Value* myGpuProgramPipelines;
-      Json::Value* myMaterialPasses;
-      Json::Value* myMaterialPassInstances;
-      Json::Value* myMaterials;
-      Json::Value* mySubModels;
-      Json::Value* myModels;
-
-      std::vector<DescriptionBase*> myLoadedDescriptions;
+      Json::Value* myResources;
+      std::vector<SharedPtr<DescriptionBase>> myCreatedDescs;
+      std::vector<DescriptionBase*> myLoadedDecscs;
     };
 
     DescriptionBase* GetResourceDesc(uint64 aHash);
-    Json::Value* GetResourceVal(const ObjectName& aTypeName, uint64 aHash);
+    Json::Value* GetResourceVal(const ObjectName& aTypeName, uint64 aHash) const;
 
     bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
 

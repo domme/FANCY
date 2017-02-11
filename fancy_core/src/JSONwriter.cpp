@@ -13,17 +13,7 @@ namespace Fancy { namespace IO {
     myArchive.open(archivePath, archiveFlags);
 
     myHeader = RootHeader();
-    myHeader.myMeshes = Json::Value(Json::arrayValue);
-    myHeader.myTextures = Json::Value(Json::arrayValue);
-    myHeader.myGpuPrograms = Json::Value(Json::arrayValue);
-    myHeader.myGpuProgramPipelines = Json::Value(Json::arrayValue);
-    myHeader.myMaterials = Json::Value(Json::arrayValue);
-    myHeader.myMaterialPassInstances = Json::Value(Json::arrayValue);
-    myHeader.mySubModels = Json::Value(Json::arrayValue);
-
-    myHeader.myMaterialPasses = Json::Value(Json::arrayValue);
-    myHeader.myModels = Json::Value(Json::arrayValue);
-    
+    myHeader.myResources = Json::Value(Json::arrayValue);
     JSONwriter::beginName("Root", false);
   }
 //---------------------------------------------------------------------------//
@@ -59,6 +49,10 @@ namespace Fancy { namespace IO {
       }
 
       SharedPtr<DescriptionBase> desc = metaTable->GetDescription(anObject);
+      
+      currJsonVal["Type"] = metaTable->GetTypeName(anObject);
+      currJsonVal["Hash"] = desc->GetHash();
+      
       Serialize(desc.get(), "Description");
     } break;
     case EBaseDataType::ResourceDesc:
@@ -264,30 +258,13 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   void JSONwriter::AddResourceDependency(const ObjectName& aTypeName, const Json::Value& aResourceDescVal, uint64 aHash)
   {
-    std::pair<ObjectName, Json::Value*> typeNameToVal[] = {
-      { _N(Mesh), &myHeader.myMeshes },
-      { _N(Texture), &myHeader.myTextures },
-      { _N(GpuProgram), &myHeader.myGpuPrograms },
-      { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines },
-      { _N(MaterialPass), &myHeader.myMaterialPasses },
-      { _N(MaterialPassInstance), &myHeader.myMaterialPassInstances },
-      { _N(Material), &myHeader.myMaterials },
-      { _N(SubModel), &myHeader.mySubModels },
-      { _N(Model), &myHeader.myModels },
-    };
-
-    for (uint32 i = 0u; i < ARRAY_LENGTH(typeNameToVal); ++i)
-    {
-      if (aTypeName == typeNameToVal[i].first)
-        typeNameToVal[i].second->append(aResourceDescVal);
-    }
-
-    myHeader.myResourceDependencies.push_back(aHash);
+    myHeader.myResources.append(aResourceDescVal);
+    myHeader.myStoredResources.push_back(aHash);
   }
 //---------------------------------------------------------------------------//
   bool JSONwriter::HasResourceDependency(uint64 aKey)
   {
-    for (uint64 storedHash : myHeader.myResourceDependencies)
+    for (uint64 storedHash : myHeader.myStoredResources)
       if (storedHash == aKey)
         return true;
 
@@ -297,16 +274,7 @@ namespace Fancy { namespace IO {
   void JSONwriter::storeHeader(Json::Value& aValue) const
   {
     aValue["myVersion"] = myHeader.myVersion;
-    
-    aValue["myMeshes"] = myHeader.myMeshes;
-    aValue["myTextures"] = myHeader.myTextures;
-    aValue["myGpuPrograms"] = myHeader.myGpuPrograms;
-    aValue["myGpuProgramPipelines"] = myHeader.myGpuProgramPipelines;
-    aValue["myMaterialPasses"] = myHeader.myMaterialPasses;
-    aValue["myMaterialPassInstances"] = myHeader.myMaterialPassInstances;
-    aValue["myMaterials"] = myHeader.myMaterials;
-    aValue["mySubModels"] = myHeader.mySubModels;
-    aValue["myModels"] = myHeader.myModels;
+    aValue["myResources"] = myHeader.myResources;
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

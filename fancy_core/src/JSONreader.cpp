@@ -49,40 +49,21 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   DescriptionBase* JSONreader::GetResourceDesc(uint64 aHash)
   {
-    for (DescriptionBase* desc : myHeader.myLoadedDescriptions)
+    for (DescriptionBase* desc : myHeader.myLoadedDecscs)
       if (desc->GetHash() == aHash)
         return desc;
 
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  Json::Value* JSONreader::GetResourceVal(const ObjectName& aTypeName, uint64 aHash)
+  Json::Value* JSONreader::GetResourceVal(const ObjectName& aTypeName, uint64 aHash) const
   {
-    std::pair<ObjectName, Json::Value**> vals[] = {
-      { _N(Mesh), &myHeader.myMeshes },
-      { _N(Texture), &myHeader.myTextures },
-      { _N(GpuProgram), &myHeader.myGpuPrograms },
-      { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines },
-      { _N(MaterialPass), &myHeader.myMaterialPasses },
-      { _N(MaterialPassInstance), &myHeader.myMaterialPassInstances },
-      { _N(Material), &myHeader.myMaterials },
-      { _N(SubModel), &myHeader.mySubModels },
-      { _N(Model), &myHeader.myModels },
-    };
-
-    Json::Value* resourceArrayVal = nullptr;
-    for (auto& it : vals)
-      if (it.first == aTypeName)
-        resourceArrayVal = *it.second;
-
-    if (resourceArrayVal == nullptr)
-      return nullptr;
-
-    for (int i = 0; i < resourceArrayVal->size(); ++i)
+    for (int i = 0; i < myHeader.myResources->size(); ++i)
     {
       Json::ArrayIndex index(i);
-      Json::Value& val = (*resourceArrayVal)[index];
-      if (val["Hash"].asUInt64() == aHash)
+      Json::Value& val = (*myHeader.myResources)[index];
+      if (val["Type"].asString() == aTypeName.toString() 
+       && val["Hash"].asUInt64() == aHash)
       {
         return &val;
       }
@@ -126,7 +107,7 @@ namespace Fancy { namespace IO {
         desc->Serialize(this);
         myTypeStack.pop();
 
-        myHeader.myLoadedDescriptions.push_back(desc);
+        myHeader.myLoadedDecscs.push_back(desc);
       }
     } break;
     case EBaseDataType::ResourcePtr:
@@ -147,6 +128,7 @@ namespace Fancy { namespace IO {
       if (description == nullptr)
       {
         SharedPtr<DescriptionBase> newDesc = metaTable->CreateDescription();
+        myHeader.myCreatedDescs.push_back(newDesc);
         Serialize(newDesc.get(), "Description");
         description = GetResourceDesc(hash);
         ASSERT(description != nullptr);
@@ -335,16 +317,7 @@ namespace Fancy { namespace IO {
   void JSONreader::loadHeader()
   {
     myHeader.myVersion = myDocumentVal["myVersion"].asUInt();
-
-    myHeader.myMeshes = &myDocumentVal["myMeshes"];
-    myHeader.myTextures = &myDocumentVal["myTextures"];
-    myHeader.myGpuPrograms = &myDocumentVal["myGpuPrograms"];
-    myHeader.myGpuProgramPipelines = &myDocumentVal["myGpuProgramPipelines"];
-    myHeader.myMaterialPasses = &myDocumentVal["myMaterialPasses"];
-    myHeader.myMaterialPassInstances = &myDocumentVal["myMaterialPassInstances"];
-    myHeader.myMaterials = &myDocumentVal["myMaterials"];
-    myHeader.mySubModels = &myDocumentVal["mySubModels"];
-    myHeader.myModels = &myDocumentVal["myModels"];
+    myHeader.myResources = &myDocumentVal["myResources"];
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//

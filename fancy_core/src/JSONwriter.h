@@ -19,17 +19,8 @@ namespace Fancy { namespace IO {
     {
       uint32 myVersion;
       
-      Json::Value myMeshes;
-      Json::Value myTextures;
-      Json::Value myGpuPrograms;
-      Json::Value myGpuProgramPipelines;
-      Json::Value myMaterialPasses;
-      Json::Value myMaterialPassInstances;
-      Json::Value myMaterials;
-      Json::Value mySubModels;
-      Json::Value myModels;
-
-      std::vector<uint64> myResourceDependencies;
+      Json::Value myResources;
+      std::vector<uint64> myStoredResources;
     };
 
     bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
