@@ -8,10 +8,18 @@ namespace Fancy {
 }
 
 namespace Fancy { namespace Rendering {
-  class MaterialPassInstance;
-  class MaterialPass;
-  class GpuProgram;
-  class Texture;
+  struct MaterialPassInstanceDesc;
+  struct MaterialPassDesc;
+  struct MaterialDesc;
+  struct TextureDesc;
+  struct GpuProgramDesc;
+  struct GpuProgramPipelineDesc;
+} }
+
+namespace Fancy { namespace Geometry {
+  struct MeshDesc;
+  struct ModelDesc;
+  struct SubModelDesc;
 } }
 
 namespace Fancy { namespace IO {
@@ -31,21 +39,22 @@ namespace Fancy { namespace IO {
     struct RootHeader
     {
       uint32 myVersion;
-      
-      std::vector<SharedPtr<Geometry::Mesh>> myMeshes;
-      std::vector<SharedPtr<Rendering::Texture>> myTextures;
-      std::vector<SharedPtr<Rendering::GpuProgram>> myGpuPrograms;
-      std::vector<SharedPtr<Rendering::GpuProgramPipeline>> myGpuProgramPipelines;
-      std::vector<SharedPtr<Rendering::MaterialPass>> myMaterialPasses;
-      std::vector<SharedPtr<Rendering::MaterialPassInstance>> myMaterialPassInstances;
-      std::vector<SharedPtr<Rendering::Material>> myMaterials;
-      std::vector<SharedPtr<Geometry::SubModel>> mySubModels;
-      std::vector<SharedPtr<Geometry::Model>> myModels;
 
-      std::vector<SharedPtr<DescriptionBase>> myResourceDependencies;
+      Json::Value* myMeshes;
+      Json::Value* myTextures;
+      Json::Value* myGpuPrograms;
+      Json::Value* myGpuProgramPipelines;
+      Json::Value* myMaterialPasses;
+      Json::Value* myMaterialPassInstances;
+      Json::Value* myMaterials;
+      Json::Value* mySubModels;
+      Json::Value* myModels;
+
+      std::vector<DescriptionBase*> myLoadedDescriptions;
     };
 
     DescriptionBase* GetResourceDesc(uint64 aHash);
+    Json::Value* GetResourceVal(const ObjectName& aTypeName, uint64 aHash);
 
     bool serializeImpl(DataType aDataType, void* anObject, const char* aName) override;
 

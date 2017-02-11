@@ -97,6 +97,7 @@ namespace IO {
   struct MetaTableResourceDesc
   {
     virtual void Serialize(IO::Serializer* aSerializer, void* anObject) = 0;
+    virtual void SetFromOtherDesc(void* anObject, void* anOtherObject) = 0;
   };
 //---------------------------------------------------------------------------//
   template<class T>
@@ -105,6 +106,11 @@ namespace IO {
     void Serialize(IO::Serializer* aSerializer, void* anObject) override
     {
       static_cast<T*>(anObject)->Serialize(aSerializer);
+    }
+
+    void SetFromOtherDesc(void* anObject, void* anOtherObject) override
+    {
+      *static_cast<T*>(anObject) = *static_cast<T*>(anOtherObject);
     }
   
     static MetaTableResourceDescImpl<T> ourVTable;

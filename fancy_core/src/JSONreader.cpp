@@ -11,7 +11,10 @@
 #include "SubModel.h"
 #include "Texture.h"
 
+#include "ObjectName.h"
+
 namespace Fancy { namespace IO {
+//---------------------------------------------------------------------------//
   Json::Value nullVal = Json::Value(NULL);
 //---------------------------------------------------------------------------//
   JSONreader::JSONreader(const String& anArchivePath, GraphicsWorld& aGraphicsWorld) 
@@ -46,9 +49,44 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   DescriptionBase* JSONreader::GetResourceDesc(uint64 aHash)
   {
-    for (SharedPtr<DescriptionBase>& desc : myHeader.myResourceDependencies)
+    for (DescriptionBase* desc : myHeader.myLoadedDescriptions)
       if (desc->GetHash() == aHash)
-        return desc.get();
+        return desc;
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  Json::Value* JSONreader::GetResourceVal(const ObjectName& aTypeName, uint64 aHash)
+  {
+    std::pair<ObjectName, Json::Value**> vals[] = {
+      { _N(Mesh), &myHeader.myMeshes },
+      { _N(Texture), &myHeader.myTextures },
+      { _N(GpuProgram), &myHeader.myGpuPrograms },
+      { _N(GpuProgramPipeline), &myHeader.myGpuProgramPipelines },
+      { _N(MaterialPass), &myHeader.myMaterialPasses },
+      { _N(MaterialPassInstance), &myHeader.myMaterialPassInstances },
+      { _N(Material), &myHeader.myMaterials },
+      { _N(SubModel), &myHeader.mySubModels },
+      { _N(Model), &myHeader.myModels },
+    };
+
+    Json::Value* resourceArrayVal = nullptr;
+    for (auto& it : vals)
+      if (it.first == aTypeName)
+        resourceArrayVal = *it.second;
+
+    if (resourceArrayVal == nullptr)
+      return nullptr;
+
+    for (int i = 0; i < resourceArrayVal->size(); ++i)
+    {
+      Json::ArrayIndex index(i);
+      Json::Value& val = (*resourceArrayVal)[index];
+      if (val["Hash"].asUInt64() == aHash)
+      {
+        return &val;
+      }
+    }
 
     return nullptr;
   }
@@ -69,8 +107,27 @@ namespace Fancy { namespace IO {
     } break;
     case EBaseDataType::ResourceDesc:
     {
-      MetaTableResourceDesc* metaTable = static_cast<MetaTableResourceDesc*>(aDataType.myUserData);
-      metaTable->Serialize(this, anObject);
+      DescriptionBase* desc = static_cast<DescriptionBase*>(anObject);
+
+      ObjectName typeName = ObjectName(currJsonVal["Type"].asString());
+      uint64 hash = currJsonVal["Hash"].asUInt64();
+
+      if (DescriptionBase* loadedDesc = GetResourceDesc(hash))
+      {
+        MetaTableResourceDesc* metaTable = static_cast<MetaTableResourceDesc*>(aDataType.myUserData);
+        metaTable->SetFromOtherDesc(anObject, loadedDesc);
+      }
+      else
+      {
+        Json::Value* jsonValInHeader = GetResourceVal(typeName, hash);
+        ASSERT(jsonValInHeader != nullptr);
+
+        myTypeStack.push(jsonValInHeader);
+        desc->Serialize(this);
+        myTypeStack.pop();
+
+        myHeader.myLoadedDescriptions.push_back(desc);
+      }
     } break;
     case EBaseDataType::ResourcePtr:
     {
@@ -91,7 +148,6 @@ namespace Fancy { namespace IO {
       {
         SharedPtr<DescriptionBase> newDesc = metaTable->CreateDescription();
         Serialize(newDesc.get(), "Description");
-        myHeader.myResourceDependencies.push_back(newDesc);
         description = GetResourceDesc(hash);
         ASSERT(description != nullptr);
       }
@@ -278,18 +334,17 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   void JSONreader::loadHeader()
   {
-    Json::Value& rootVal = *myTypeStack.top();
-    myHeader.myVersion = rootVal["myVersion"].asUInt();
+    myHeader.myVersion = myDocumentVal["myVersion"].asUInt();
 
-    Serialize(&myHeader.myMeshes, "myMeshes");
-    Serialize(&myHeader.myTextures, "myTextures");
-    Serialize(&myHeader.myGpuPrograms, "myGpuPrograms");
-    Serialize(&myHeader.myGpuProgramPipelines, "myGpuProgramPipelines");
-    Serialize(&myHeader.myMaterialPasses, "myMaterialPasses");
-    Serialize(&myHeader.myMaterialPassInstances, "myMaterialPassInstances");
-    Serialize(&myHeader.myMaterials, "myMaterials");
-    Serialize(&myHeader.mySubModels, "mySubModels");
-    Serialize(&myHeader.myModels, "myModels");
+    myHeader.myMeshes = &myDocumentVal["myMeshes"];
+    myHeader.myTextures = &myDocumentVal["myTextures"];
+    myHeader.myGpuPrograms = &myDocumentVal["myGpuPrograms"];
+    myHeader.myGpuProgramPipelines = &myDocumentVal["myGpuProgramPipelines"];
+    myHeader.myMaterialPasses = &myDocumentVal["myMaterialPasses"];
+    myHeader.myMaterialPassInstances = &myDocumentVal["myMaterialPassInstances"];
+    myHeader.myMaterials = &myDocumentVal["myMaterials"];
+    myHeader.mySubModels = &myDocumentVal["mySubModels"];
+    myHeader.myModels = &myDocumentVal["myModels"];
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
