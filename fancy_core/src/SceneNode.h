@@ -82,7 +82,6 @@ namespace Fancy { namespace Scene {
 
       void startup();
       void update(float _dt);
-      void gatherRenderItems(SceneRenderDescription* pRenderDesc);
 
       SceneNodeComponent* addOrRetrieveComponent(const ObjectName& typeName);
       SceneNodeComponentPtr addOrRetrieveComponentPtr(const ObjectName& typeName);

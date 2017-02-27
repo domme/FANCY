@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include "Renderer.h"
 #include "GraphicsWorld.h"
+#include "MathUtil.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//

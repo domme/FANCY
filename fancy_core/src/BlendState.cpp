@@ -6,34 +6,27 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   BlendStateDesc BlendStateDesc::GetDefaultSolid()
   {
-    BlendStateDesc desc;
-
-    desc.myAlphaToCoverageEnabled = false;
-    desc.myBlendStatePerRT = false;
-    memset(desc.myAlphaSeparateBlend, false, sizeof(desc.myAlphaSeparateBlend));
-    memset(desc.myBlendEnabled, false, sizeof(desc.myBlendEnabled));
-
-    for (uint32 i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
-    {
-      desc.mySrcBlend[i] = static_cast<uint32>(BlendInput::ONE);
-      desc.myDestBlend[i] = static_cast<uint32>(BlendInput::ONE);
-      desc.myBlendOp[i] = static_cast<uint32>(BlendOp::ADD);
-      desc.mySrcBlendAlpha[i] = static_cast<uint32>(BlendInput::ONE);
-      desc.myDestBlendAlpha[i] = static_cast<uint32>(BlendInput::ONE);
-      desc.myBlendOpAlpha[i] = static_cast<uint32>(BlendOp::ADD);
-      desc.myRTwriteMask[i] = UINT_MAX;
-    }
-
-    return desc;
+    return BlendStateDesc();
   }
 //---------------------------------------------------------------------------//
   BlendStateDesc::BlendStateDesc() 
     : myAlphaToCoverageEnabled(false)
     , myBlendStatePerRT(false)
   {
-    memset(myAlphaSeparateBlend, 0u, sizeof(myAlphaSeparateBlend));
-  }
+    memset(myAlphaSeparateBlend, false, sizeof(myAlphaSeparateBlend));
+    memset(myBlendEnabled, false, sizeof(myBlendEnabled));
 
+    for (uint32 i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    {
+      mySrcBlend[i] = static_cast<uint32>(BlendInput::ONE);
+      myDestBlend[i] = static_cast<uint32>(BlendInput::ONE);
+      myBlendOp[i] = static_cast<uint32>(BlendOp::ADD);
+      mySrcBlendAlpha[i] = static_cast<uint32>(BlendInput::ONE);
+      myDestBlendAlpha[i] = static_cast<uint32>(BlendInput::ONE);
+      myBlendOpAlpha[i] = static_cast<uint32>(BlendOp::ADD);
+      myRTwriteMask[i] = UINT_MAX;
+    }
+  }
 //---------------------------------------------------------------------------//
   bool BlendStateDesc::operator==(const BlendStateDesc& anOther) const
   {

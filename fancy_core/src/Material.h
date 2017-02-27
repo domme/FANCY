@@ -3,9 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "StaticManagedObject.h"
 #include "ObjectName.h"
-#include "MaterialPass.h"
 #include "Serializable.h"
 #include "MaterialDesc.h"
 
@@ -21,6 +19,18 @@ namespace Fancy {
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  struct MaterialTexture
+  {
+    EMaterialTextureSemantic mySemantic;
+    SharedPtr<Texture> myTexture;
+  };
+//---------------------------------------------------------------------------//
+  struct MaterialParameter
+  {
+    EMaterialParameterSemantic mySemantic;
+    float myValue;
+  };
+//---------------------------------------------------------------------------//
   class Material
   {
   public:
@@ -28,22 +38,15 @@ namespace Fancy { namespace Rendering {
 
       Material();
       ~Material();
-      bool operator==(const Material& _other) const;
       bool operator==(const MaterialDesc& aDesc) const;
       
       MaterialDesc GetDescription() const;
       void SetFromDescription(const MaterialDesc& aDesc, GraphicsWorld* aWorld);
 
       uint64 GetHash() const { return GetDescription().GetHash(); }
-      
-      const MaterialPassInstance* getPass(EMaterialPass ePassType) const { return m_vPasses[(uint32) ePassType].get(); }
 
-      float getParameter(EMaterialParameterSemantic _semantic) const { return m_vParameters[(uint32)_semantic]; }
-      void setParameter(EMaterialParameterSemantic _semantic, float _value) { m_vParameters[(uint32)_semantic] = _value; }
-
-    private:
-      float m_vParameters [(uint32)EMaterialParameterSemantic::NUM];
-      SharedPtr<MaterialPassInstance> m_vPasses[(uint32)EMaterialPass::NUM];
+      std::vector<MaterialParameter> myParameters;
+      std::vector<MaterialTexture> myTextures;
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

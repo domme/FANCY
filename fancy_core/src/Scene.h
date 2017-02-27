@@ -32,7 +32,6 @@ namespace Fancy { namespace Scene {
 
       void update(float _dt);
       void startup();
-      void gatherRenderItems(SceneRenderDescription* pRenderDesc) const;
       void setActiveCamera(CameraComponent* _pCamera) {m_pActiveCamera = _pCamera;}
       CameraComponent* getActiveCamera() const {return m_pActiveCamera;}
 

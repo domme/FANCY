@@ -374,10 +374,6 @@
     <ClInclude Include="src\Log.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\MaterialDesc.h" />
-    <ClInclude Include="src\MaterialPass.h" />
-    <ClInclude Include="src\MaterialPassDesc.h" />
-    <ClInclude Include="src\MaterialPassInstance.h" />
-    <ClInclude Include="src\MaterialPassInstanceDesc.h" />
     <ClInclude Include="src\MathUtil.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\MeshDesc.h" />
@@ -407,7 +403,7 @@
     <ClInclude Include="src\SceneNode.h" />
     <ClInclude Include="src\SceneNodeComponent.h" />
     <ClInclude Include="src\SceneNodeComponentFactory.h" />
-    <ClInclude Include="src\SceneRenderDescription.h" />
+    <ClInclude Include="src\RenderQueues.h" />
     <ClInclude Include="src\ScopedPtr.h" />
     <ClInclude Include="src\Serializable.h" />
     <ClInclude Include="src\Serializer.h" />
@@ -483,10 +479,6 @@
     <ClCompile Include="src\lodepng.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\MaterialDesc.cpp" />
-    <ClCompile Include="src\MaterialPass.cpp" />
-    <ClCompile Include="src\MaterialPassDesc.cpp" />
-    <ClCompile Include="src\MaterialPassInstance.cpp" />
-    <ClCompile Include="src\MaterialPassInstanceDesc.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\MeshDesc.cpp" />
     <ClCompile Include="src\Model.cpp" />

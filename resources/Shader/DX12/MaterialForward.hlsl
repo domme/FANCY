@@ -54,7 +54,7 @@ ConstantBuffer<PER_OBJECT> cbPerObject : register(b1);
   #if defined(PROGRAM_TYPE_FRAGMENT)  
     Texture2D tex_diffuse : register(t0);
     Texture2D tex_normal : register(t1);
-    Texture2D tex_specular : register(t2);
+    Texture2D tex_material : register(t2);
     SamplerState sampler_default : register(s0);
 
     [RootSignature(ROOT_SIGNATURE)]
@@ -65,8 +65,8 @@ ConstantBuffer<PER_OBJECT> cbPerObject : register(b1);
 
       float3 lightIntensity = ShadeLight(cbPerLight.c_LightParameters, cbPerLight.c_LightDirWS, fs_in.posWS, normalize(fs_in.normalWS));
 
-      // return float4(albedo, 1.0); 
-      return float4(1.0, 1.0, 0.0, 1.0);
+      return float4(albedo, 1.0); 
+      // return float4(1.0, 1.0, 0.0, 1.0);
     }
   #endif // PROGRAM_TYPE_FRAGMENT
 //---------------------------------------------------------------------------//  

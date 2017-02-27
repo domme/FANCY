@@ -380,14 +380,6 @@ namespace Fancy {
 
       NUM
     };
-//---------------------------------------------------------------------------//
-    enum class EMaterialPass {
-      SOLID_GBUFFER = 0,
-      SOLID_FORWARD,
-      TRANSPARENT_FORWARD,
-      // More to come...
-      NUM
-    };
   //---------------------------------------------------------------------------//
     enum class DepthStencilClearFlags
     {

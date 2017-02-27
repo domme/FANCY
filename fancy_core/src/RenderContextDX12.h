@@ -1,14 +1,9 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include <unordered_map>
-#include "DepthStencilState.h"
-#include "BlendState.h"
-#include "GpuDynamicAllocatorDX12.h"
-#include "VertexInputLayout.h"
-#include "SmallObjectAllocator.h"
-#include "ObjectPool.h"
 #include "CommandContext.h"
 
 namespace Fancy{ namespace Rendering{
@@ -16,6 +11,8 @@ namespace Fancy{ namespace Rendering{
   class GpuResource;
   class RenderOutput;
   class GpuProgramPipeline;
+  class BlendState;
+  class DepthStencilState;
 }}
 
 namespace Fancy { namespace Rendering { namespace DX12 {
@@ -33,9 +30,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     FillMode myFillMode;
     CullMode myCullMode;
     WindingOrder myWindingOrder;
-    DepthStencilState myDepthStencilState;
-    BlendState myBlendState;
-    const GpuProgramPipeline* myGpuProgramPipeline;
+    SharedPtr<DepthStencilState> myDepthStencilState;
+    SharedPtr<BlendState> myBlendState;
+    SharedPtr<GpuProgramPipeline> myGpuProgramPipeline;
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[Constants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
@@ -58,13 +55,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     // Descriptor tables:
     void SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex);
     
-    void SetGpuProgramPipeline(const GpuProgramPipeline* pProgramPipeline);
+    void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& pProgramPipeline);
 
     // It might be ok to keep these state-modifiers the way they are for a more modern approach
     void setViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4 getViewport() const { return myViewportParams; } /// x, y, width, height
-    void setBlendState(const BlendState& clBlendState);
-    void setDepthStencilState(const DepthStencilState& clDepthStencilState);
+    void SetBlendState(std::shared_ptr<BlendState> aBlendState);
+    void SetDepthStencilState(std::shared_ptr<DepthStencilState> aDepthStencilState);
     void setFillMode(const FillMode eFillMode);
     void setCullMode(const CullMode eCullMode);
     void setWindingOrder(const WindingOrder eWindingOrder);

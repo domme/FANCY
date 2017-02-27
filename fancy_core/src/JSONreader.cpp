@@ -1,15 +1,7 @@
 #include "JSONreader.h"
 #include "GpuProgram.h"
 
-#include "MaterialPass.h"
-#include "MaterialPassInstance.h"
-#include "Material.h"
-#include "GpuProgram.h"
-#include "GpuProgramPipeline.h"
 #include "Model.h"
-#include "Mesh.h"
-#include "SubModel.h"
-#include "Texture.h"
 
 #include "ObjectName.h"
 

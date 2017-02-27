@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Serializer.h"
 #include "Fancy.h"
+#include "MathUtil.h"
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
@@ -46,11 +47,6 @@ namespace Fancy { namespace Scene {
   void CameraComponent::update()
   {
     updateCameraInternal();
-  }
-//---------------------------------------------------------------------------//
-  void CameraComponent::gatherRenderItems( SceneRenderDescription* pRenderDesc )
-  {
-
   }
 //---------------------------------------------------------------------------//
   void CameraComponent::updateCameraInternal()

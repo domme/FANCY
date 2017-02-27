@@ -1,7 +1,7 @@
 #include "Scene.h"
 #include "SceneNode.h"
 #include "SceneNodeComponentFactory.h"
-#include "SceneRenderDescription.h"
+#include "RenderQueues.h"
 #include "Fancy.h"
 #include "Serializer.h"
 
@@ -183,19 +183,6 @@ namespace Fancy { namespace Scene {
       m_vpComponents[i]->update();
     }
   } 
-//---------------------------------------------------------------------------//
-  void SceneNode::gatherRenderItems(SceneRenderDescription* pRenderDesc)
-  {
-    for (uint i = 0u; i < m_vpChildren.size(); ++i)
-    {
-      m_vpChildren[i]->gatherRenderItems(pRenderDesc);
-    }
-
-    for (uint i = 0u; i < m_vpComponents.size(); ++i)
-    {
-      m_vpComponents[i]->gatherRenderItems(pRenderDesc);
-    }
-  }
 //---------------------------------------------------------------------------//
   SceneNodeComponentPtr SceneNode::getComponentPtr( const ObjectName& typeName )
   {

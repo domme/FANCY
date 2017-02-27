@@ -14,7 +14,6 @@ namespace Fancy { namespace Rendering {
 
 class RenderOutput;
 class RenderContext;
-class MaterialPass;
 
 class DLLEXPORT RenderingProcess
   {
@@ -24,10 +23,6 @@ class DLLEXPORT RenderingProcess
 
     virtual void Startup() = 0;
     virtual void Render(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) = 0;
-
-  protected:
-    static void ApplyMaterialPass(const MaterialPass* _pMaterialPass, RenderContext* aRenderContext);
-
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(RenderingProcess)

@@ -1,7 +1,5 @@
 #include "ObjectFactory.h"
 #include "GpuProgram.h"
-#include "MaterialPass.h"
-#include "MaterialPassInstance.h"
 #include "MeshDesc.h"
 #include "Material.h"
 #include "Model.h"
@@ -84,11 +82,6 @@ namespace Fancy { namespace IO {
       const Geometry::SubModelDesc& desc = static_cast<const Geometry::SubModelDesc&>(aDesc);
       return aGraphicsWorld->CreateSubModel(desc);
     }
-    else if(aTypeName == _N(MaterialPassInstance))
-    {
-      const Rendering::MaterialPassInstanceDesc& desc = static_cast<const Rendering::MaterialPassInstanceDesc&>(aDesc);
-      return aGraphicsWorld->CreateMaterialPassInstance(desc);
-    }
     else if (aTypeName == _N(Material))
     {
       const Rendering::MaterialDesc& desc = static_cast<const Rendering::MaterialDesc&>(aDesc);
@@ -98,11 +91,6 @@ namespace Fancy { namespace IO {
     {
       const Geometry::ModelDesc& desc = static_cast<const Geometry::ModelDesc&>(aDesc);
       return aGraphicsWorld->CreateModel(desc);
-    }
-    if (aTypeName == _N(MaterialPass))
-    {
-      const Rendering::MaterialPassDesc& desc = static_cast<const Rendering::MaterialPassDesc&>(aDesc);
-      return aGraphicsWorld->CreateMaterialPass(desc);
     }
 
     ASSERT(false, "Unknown typename");

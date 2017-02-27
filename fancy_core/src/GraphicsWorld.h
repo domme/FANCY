@@ -17,12 +17,8 @@ namespace Fancy { namespace Geometry {
 } }
 
 namespace Fancy { namespace Rendering {
-  class MaterialPassInstance;
   class Material;
-  class MaterialPass;
-  struct MaterialPassDesc;
   struct MaterialDesc;
-  struct MaterialPassInstanceDesc;
 } }
 
 namespace Fancy {
@@ -42,8 +38,6 @@ namespace Fancy {
       
       SharedPtr<Geometry::SubModel> CreateSubModel(const Geometry::SubModelDesc& aDesc);
       SharedPtr<Rendering::Material> CreateMaterial(const Rendering::MaterialDesc& aDesc);
-      SharedPtr<Rendering::MaterialPassInstance> CreateMaterialPassInstance(const Rendering::MaterialPassInstanceDesc& aDesc);
-      SharedPtr<Rendering::MaterialPass> CreateMaterialPass(const Rendering::MaterialPassDesc& aDesc);
       SharedPtr<Geometry::Model> CreateModel(const Geometry::ModelDesc& aDesc);
 
     private:
@@ -52,8 +46,6 @@ namespace Fancy {
       std::map<uint64, SharedPtr<Rendering::Material>> myMaterialCache;
       std::map<uint64, SharedPtr<Geometry::SubModel>> mySubModelCache;
       std::map<uint64, SharedPtr<Geometry::Model>> myModelCache;
-      std::map<uint64, SharedPtr<Rendering::MaterialPassInstance>> myMaterialPassInstanceCache;
-      std::map<uint64, SharedPtr<Rendering::MaterialPass>> myMaterialPassCache;
   };
 //---------------------------------------------------------------------------//
 }

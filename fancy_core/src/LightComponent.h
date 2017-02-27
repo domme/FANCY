@@ -28,7 +28,6 @@ namespace Fancy { namespace Scene {
 
       virtual void init() override;
       virtual void update() override;
-	    virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
 
       ELightType getType() const { return m_eType; }
       void setType(ELightType _type) { m_eType = _type; }

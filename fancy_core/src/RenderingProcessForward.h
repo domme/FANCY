@@ -4,6 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "RenderingProcess.h"
+#include "RenderQueues.h"
 
 namespace Fancy{ namespace Scene{
   class LightComponent;
@@ -12,7 +13,9 @@ namespace Fancy{ namespace Scene{
 
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
-class MaterialPassInstance;
+class Material;
+class BlendState;
+class DepthStencilState;
 
 class DLLEXPORT RenderingProcessForward : public RenderingProcess
   {
@@ -24,12 +27,14 @@ class DLLEXPORT RenderingProcessForward : public RenderingProcess
     void Render(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) override;
 
   protected:
-    void BindResources_ForwardColorPass(RenderContext* aRenderContext, const MaterialPassInstance* aMaterial) const;
+    void BindResources_ForwardColorPass(RenderContext* aRenderContext, const Material* aMaterial) const;
 
     void UpdatePerFrameData(const Time& aClock) const;
     void UpdatePerCameraData(const Scene::CameraComponent* aCamera) const;
     void UpdatePerLightData(const Scene::LightComponent* aLight, const Scene::CameraComponent* aCamera) const;
     void UpdatePerDrawData(const Scene::CameraComponent* aCamera, const glm::float4x4& aWorldMat) const;
+
+    RenderQueue myRenderQueueFromCamera;
 
     SharedPtr<GpuBuffer> myPerFrameData;
     SharedPtr<GpuBuffer> myPerMaterialData;
@@ -40,7 +45,10 @@ class DLLEXPORT RenderingProcessForward : public RenderingProcess
 
     SharedPtr<Geometry::GeometryData> myFullscreenQuad;
     SharedPtr<GpuProgramPipeline> myFsTextureShaderState;
-
+    
+    SharedPtr<BlendState> myBlendStateAdd;
+    SharedPtr<GpuProgramPipeline> myDefaultObjectShaderState;
+    
     // Tests:
     void _DebugLoadComputeShader();
     void _DebugExecuteComputeShader();

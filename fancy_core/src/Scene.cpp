@@ -27,11 +27,6 @@ namespace Fancy { namespace Scene {
     m_pRootNode->startup();
   }
 //---------------------------------------------------------------------------//
-  void Scene::gatherRenderItems( SceneRenderDescription* pRenderDesc ) const
-  {
-    m_pRootNode->gatherRenderItems(pRenderDesc);
-  }
-//---------------------------------------------------------------------------//
   void Scene::onComponentAdded(const SceneNodeComponent* _pComponent)
   {
     const ObjectName& typeName = _pComponent->getTypeName();

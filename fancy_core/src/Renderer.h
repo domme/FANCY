@@ -49,7 +49,7 @@ namespace Fancy { namespace Rendering {
 
     static const Texture* GetDefaultDiffuseTexture() { return ourDefaultDiffuseTexture.get(); }
     static const Texture* GetDefaultNormalTexture() { return ourDefaultNormalTexture.get(); }
-    static const Texture* GetDefaultSpecularTexture() { return ourDefaultSpecularTexture.get(); }
+    static const Texture* GetDefaultMaterialTexture() { return ourDefaultSpecularTexture.get(); }
     static const GpuProgramCompiler* GetGpuProgramCompiler() { ASSERT(ourShaderCompiler != nullptr); return ourShaderCompiler; }
     
     static SharedPtr<Texture> GetTexture(uint64 aDescHash);
@@ -68,8 +68,10 @@ namespace Fancy { namespace Rendering {
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
     static void UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer = 0u);
 
-    static SharedPtr<Rendering::BlendState> CreateBlendState(const Rendering::BlendStateDesc& aDesc);
-    static SharedPtr<Rendering::DepthStencilState> CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc);
+    static SharedPtr<BlendState> CreateBlendState(const Rendering::BlendStateDesc& aDesc);
+    static SharedPtr<DepthStencilState> CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc);
+    static const SharedPtr<BlendState>& GetDefaultBlendState() { return ourDefaultBlendState; }
+    static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState() { return ourDefaultDepthStencilState; }
 
   protected:
     RenderCore() {}
@@ -83,6 +85,8 @@ namespace Fancy { namespace Rendering {
     static std::map<uint64, SharedPtr<Rendering::BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<Rendering::DepthStencilState>> ourDepthStencilStateCache;
     
+    static SharedPtr<DepthStencilState> ourDefaultDepthStencilState;
+    static SharedPtr<BlendState> ourDefaultBlendState;
     static ScopedPtr<GpuProgramCompiler> ourShaderCompiler;
     static SharedPtr<Texture> ourDefaultDiffuseTexture;
     static SharedPtr<Texture> ourDefaultNormalTexture;

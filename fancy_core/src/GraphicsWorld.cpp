@@ -8,7 +8,6 @@
 #include "SceneNode.h"
 #include "TimeManager.h"
 #include "SubModel.h"
-#include "MaterialPassInstance.h"
 #include "ModelDesc.h"
 #include "Model.h"
 
@@ -70,38 +69,6 @@ namespace Fancy {
 
     myMaterialCache.insert(std::make_pair(aDesc.GetHash(), material));
     return material;
-  }
-//---------------------------------------------------------------------------//
-  SharedPtr<Rendering::MaterialPassInstance> GraphicsWorld::CreateMaterialPassInstance(const Rendering::MaterialPassInstanceDesc& aDesc)
-  {
-    if (aDesc.IsEmpty())
-      return nullptr;
-
-    auto it = myMaterialPassInstanceCache.find(aDesc.GetHash());
-    if (it != myMaterialPassInstanceCache.end())
-      return it->second;
-
-    SharedPtr<Rendering::MaterialPassInstance> materialPassInstance(FANCY_NEW(Rendering::MaterialPassInstance, MemoryCategory::MATERIALS));
-    materialPassInstance->SetFromDescription(aDesc, this);
-
-    myMaterialPassInstanceCache.insert(std::make_pair(aDesc.GetHash(), materialPassInstance));
-    return materialPassInstance;
-  }
-//---------------------------------------------------------------------------//
-  SharedPtr<Rendering::MaterialPass> GraphicsWorld::CreateMaterialPass(const Rendering::MaterialPassDesc& aDesc)
-  {
-    if (aDesc.IsEmpty())
-      return nullptr;
-
-    auto it = myMaterialPassCache.find(aDesc.GetHash());
-    if (it != myMaterialPassCache.end())
-      return it->second;
-
-    SharedPtr<Rendering::MaterialPass> materialPass(FANCY_NEW(Rendering::MaterialPass, MemoryCategory::MATERIALS));
-    materialPass->SetFromDescription(aDesc);
-
-    myMaterialPassCache.insert(std::make_pair(aDesc.GetHash(), materialPass));
-    return materialPass;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Geometry::Model> GraphicsWorld::CreateModel(const Geometry::ModelDesc& aDesc)

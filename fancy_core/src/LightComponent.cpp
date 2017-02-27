@@ -49,9 +49,4 @@ namespace Fancy { namespace Scene {
     
   }
 //---------------------------------------------------------------------------//
-  void LightComponent::gatherRenderItems(SceneRenderDescription* pRenderDesc)
-  {
-    // TODO: Render debug geometry
-  }
-//---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Scene::Components

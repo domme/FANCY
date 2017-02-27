@@ -178,9 +178,6 @@
     <ClInclude Include="src\Scene.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\SceneRenderDescription.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\DepthStencilState.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -250,9 +247,6 @@
     <ClInclude Include="src\Material.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\MaterialPass.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\RendererDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
@@ -286,9 +280,6 @@
     <ClInclude Include="src\GpuResourceSignature.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\MaterialPassInstance.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\GpuProgramPipelineDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
@@ -302,12 +293,6 @@
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\MaterialDesc.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MaterialPassInstanceDesc.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MaterialPassDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\TextureDesc.h">
@@ -427,8 +412,8 @@
     <ClInclude Include="src\RenderView.h">
       <Filter>src\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\GraphicsLibrary.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="src\RenderQueues.h">
+      <Filter>src\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -594,9 +579,6 @@
     <ClCompile Include="src\Material.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\MaterialPass.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\RendererDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
@@ -624,9 +606,6 @@
     <ClCompile Include="src\AdapterDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\MaterialPassInstance.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\GpuProgramPipelineDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
@@ -637,12 +616,6 @@
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\MaterialDesc.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MaterialPassDesc.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MaterialPassInstanceDesc.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\GpuResourceDX12.cpp">
@@ -707,9 +680,6 @@
     </ClCompile>
     <ClCompile Include="src\RenderView.cpp">
       <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GraphicsLibrary.cpp">
-      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

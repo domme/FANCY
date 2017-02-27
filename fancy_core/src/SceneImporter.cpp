@@ -14,7 +14,6 @@
 #include "SceneNodeComponent.h"
 #include "Mesh.h"
 #include "Material.h"
-#include "MaterialPass.h"
 #include "PathService.h"
 #include "ModelComponent.h"
 #include "Model.h"
@@ -37,7 +36,6 @@
 #include "GpuProgramFeatures.h"
 #include "VertexInputLayout.h"
 #include "GpuProgramPipeline.h"
-#include "MaterialPassInstance.h"
 #include "Log.h"
 #include "Renderer.h"
 #include "GraphicsWorld.h"
@@ -662,84 +660,50 @@ namespace Fancy { namespace IO {
     {
       LOG_WARNING("Fancy doesn't support storing opacity in a separate texture. Consider putting it in diff.a");
     }
-
-    // Find/Create matching Shaders
-    //---------------------------------------------------------------------------//
-    GpuProgramPermutation permutation;
-    if (hasDiffuseTex) 
-      permutation.addFeature(GpuProgramFeature::FEAT_ALBEDO_TEXTURE);
-    if (hasNormalTex) 
-      permutation.addFeature(GpuProgramFeature::FEAT_NORMAL_MAPPED);
-    if (hasSpecTex)
-    {
-      permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR);
-      permutation.addFeature(GpuProgramFeature::FEAT_SPECULAR_TEXTURE);
-    }
-
-    GpuProgramPipelineDesc pipelineDesc;
-    GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
-    shaderDesc->myPermutation = permutation;
-    shaderDesc->myShaderFileName = "MaterialForward";
-    shaderDesc->myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
-    shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
-    shaderDesc->myPermutation = permutation;
-    shaderDesc->myShaderFileName = "MaterialForward";
-    shaderDesc->myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
-    SharedPtr<GpuProgramPipeline> pipeline = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
     
-    // Find/Create a matching MaterialPass
-    //---------------------------------------------------------------------------//
-    MaterialPassDesc matPassDesc;
-    matPassDesc.m_BlendStateDesc = BlendStateDesc::GetDefaultSolid();
-    matPassDesc.m_DepthStencilStateDesc = DepthStencilStateDesc::GetDefaultDepthNoStencil();
-    matPassDesc.m_GpuProgramPipelineDesc = pipelineDesc;
-    matPassDesc.m_eCullMode = static_cast<uint32>(CullMode::BACK);
-    matPassDesc.m_eFillMode = static_cast<uint32>(FillMode::SOLID);
-    matPassDesc.m_eWindingOrder = static_cast<uint32>(WindingOrder::CCW);
-    
-    MaterialPass* pMaterialPass = MaterialPass::FindFromDesc(matPassDesc);
-    if (pMaterialPass == nullptr)
-    {
-      pMaterialPass = FANCY_NEW(MaterialPass, MemoryCategory::MATERIALS);
-      pMaterialPass->SetFromDescription(matPassDesc);
-      MaterialPass::Register(pMaterialPass);
-    }
-    //---------------------------------------------------------------------------//
-
-
-    // Find/Create a matching MaterialPassInstance
-    //---------------------------------------------------------------------------//
-    MaterialPassInstanceDesc mpiDesc;
-    mpiDesc.myMaterialPass = matPassDesc;
-    mpiDesc.myReadTextures[0u] = RenderCore::GetDefaultDiffuseTexture()->GetDescription();
-    mpiDesc.myReadTextures[1u] = RenderCore::GetDefaultNormalTexture()->GetDescription();
-    mpiDesc.myReadTextures[2u] = RenderCore::GetDefaultSpecularTexture()->GetDescription();
-
-    if (nullptr != pDiffuseTex)
-      mpiDesc.myReadTextures[0u] = pDiffuseTex->GetDescription();
-    if (nullptr != pNormalTex)
-      mpiDesc.myReadTextures[1u] = pNormalTex->GetDescription();
-    if (nullptr != pSpecularTex)
-      mpiDesc.myReadTextures[2u] = pSpecularTex->GetDescription();
-    SharedPtr<MaterialPassInstance> pSolidForwardMpi = myGraphicsWorld.CreateMaterialPassInstance(mpiDesc);
-    //---------------------------------------------------------------------------//
-
     // Find/Create a matching Material
     //---------------------------------------------------------------------------//
     MaterialDesc matDesc;
-    matDesc.myPasses[(uint32)EMaterialPass::SOLID_FORWARD] = mpiDesc;
-    
+
+    if (pDiffuseTex != nullptr)
+    {
+      MaterialTextureDesc matTex((uint32)EMaterialTextureSemantic::BASE_COLOR, pDiffuseTex->GetDescription());
+      matDesc.myTextures.push_back(matTex);
+    }
+    if (pNormalTex != nullptr)
+    {
+      MaterialTextureDesc matTex((uint32)EMaterialTextureSemantic::NORMAL, pNormalTex->GetDescription());
+      matDesc.myTextures.push_back(matTex);
+    }
+    if (pSpecularTex != nullptr)
+    {
+      MaterialTextureDesc matTex((uint32)EMaterialTextureSemantic::MATERIAL, pSpecularTex->GetDescription());
+      matDesc.myTextures.push_back(matTex);
+    }
+
     if (hasColor)
-      matDesc.myParameters[(uint32)EMaterialParameterSemantic::DIFFUSE_REFLECTIVITY] = (color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f);
+    {
+      MaterialParameterDesc matParam((uint32)EMaterialParameterSemantic::DIFFUSE_REFLECTIVITY, 
+        (color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f));
+      matDesc.myParameters.push_back(matParam);
+    }
     if (hasSpecular)
-      matDesc.myParameters[(uint32)EMaterialParameterSemantic::SPECULAR_REFLECTIVITY] = specular;
+    {
+      MaterialParameterDesc matParam((uint32)EMaterialParameterSemantic::SPECULAR_REFLECTIVITY,specular);
+      matDesc.myParameters.push_back(matParam);
+    }
     if (hasOpacity)
-      matDesc.myParameters[(uint32)EMaterialParameterSemantic::OPACITY] = opacity;
+    {
+      MaterialParameterDesc matParam((uint32)EMaterialParameterSemantic::OPACITY, opacity);
+      matDesc.myParameters.push_back(matParam);
+    }
     if (hasSpecularPower)
-      matDesc.myParameters[(uint32)EMaterialParameterSemantic::SPECULAR_POWER] = specularPower;
+    {
+      MaterialParameterDesc matParam((uint32)EMaterialParameterSemantic::SPECULAR_POWER, specularPower);
+      matDesc.myParameters.push_back(matParam);
+    }
     
     SharedPtr<Material> pMaterial = myGraphicsWorld.CreateMaterial(matDesc);
-    
     //---------------------------------------------------------------------------//
 
     return pMaterial;

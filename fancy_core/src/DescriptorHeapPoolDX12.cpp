@@ -3,6 +3,7 @@
 
 #include "RendererDX12.h"
 #include "Renderer.h"
+#include "MathUtil.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//

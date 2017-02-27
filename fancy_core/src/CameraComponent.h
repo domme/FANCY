@@ -20,7 +20,6 @@ namespace Fancy { namespace Scene {
     virtual void Serialize(IO::Serializer* aSerializer) override;
 
     virtual void update() override;
-    virtual void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
 
     const glm::mat4& getView() const { return m_matView; }
     const glm::mat4& getViewInv() const {return m_matViewInv; }

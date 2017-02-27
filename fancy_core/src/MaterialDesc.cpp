@@ -1,11 +1,23 @@
 #include "MaterialDesc.h"
 #include "MathUtil.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  void MaterialTextureDesc::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->Serialize(&mySemantic, "mySemantic");
+    aSerializer->Serialize(&myTexture, "myTexture");
+  }
+//---------------------------------------------------------------------------//
+  void MaterialParameterDesc::Serialize(IO::Serializer* aSerializer)
+  {
+    aSerializer->Serialize(&mySemantic, "mySemantic");
+    aSerializer->Serialize(&myValue, "myValue");
+  }
+//---------------------------------------------------------------------------//
   MaterialDesc::MaterialDesc()
   {
-    memset(&myParameters[0], 0x0, sizeof(myParameters));
   }
 //---------------------------------------------------------------------------//
   bool MaterialDesc::operator==(const MaterialDesc& anOther) const 
@@ -16,27 +28,31 @@ namespace Fancy { namespace Rendering {
   uint64 MaterialDesc::GetHash() const
   {
     uint64 hash = 0u;
-    MathUtil::hash_combine(hash, MathUtil::hashFromGeneric(myParameters));
+    
+    for (const MaterialTextureDesc& textureDesc : myTextures)
+    {
+      MathUtil::hash_combine(hash, static_cast<uint32>(textureDesc.mySemantic));
+      MathUtil::hash_combine(hash, textureDesc.myTexture.GetHash());
+    }
 
-    for (uint i = 0u; i < ARRAY_LENGTH(myPasses); ++i)
-      MathUtil::hash_combine(hash, myPasses[i].GetHash());
+    for (const MaterialParameterDesc& paramDesc : myParameters)
+    {
+      MathUtil::hash_combine(hash, static_cast<uint32>(paramDesc.mySemantic));
+      MathUtil::hash_combine(hash, paramDesc.myValue);
+    }
 
     return hash;
   }
 //---------------------------------------------------------------------------//
   void MaterialDesc::Serialize(IO::Serializer* aSerializer)
   {
-    aSerializer->serializeArray(myParameters, "myParameters");
-    aSerializer->serializeArray(myPasses, "myPasses");
+    aSerializer->Serialize(&myTextures, "myTextures");
+    aSerializer->Serialize(&myParameters, "myParameters");
   }
 //---------------------------------------------------------------------------//
   bool MaterialDesc::IsEmpty() const
   {
-    for (uint i = 0u; i < ARRAY_LENGTH(myPasses); ++i)
-      if (!myPasses[i].IsEmpty())
-        return false;
-
-    return true;
+    return myTextures.empty() && myParameters.empty();
   }
 //---------------------------------------------------------------------------//
 } }

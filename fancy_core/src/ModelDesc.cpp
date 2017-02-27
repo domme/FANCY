@@ -1,6 +1,8 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "ModelDesc.h"
+#include "MathUtil.h"
+#include "Serializer.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//

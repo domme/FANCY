@@ -2,15 +2,11 @@
 #include "Renderer.h"
 #include "Scene.h"
 #include "Fancy.h"
-#include "SceneRenderDescription.h"
-#include "MaterialPass.h"
+#include "RenderQueues.h"
 #include "LightComponent.h"
-#include "MaterialPassInstance.h"
 #include "RenderContext.h"
-#include "GpuProgramCompiler.h"
 #include "GpuProgramPipeline.h"
 #include "GeometryData.h"
-#include "ResourceBinding.h"
 #include "TimeManager.h"
 #include "CameraComponent.h"
 #include "SceneNode.h"
@@ -18,6 +14,9 @@
 #include "ComputeContext.h"
 #include "ShaderResourceInterface.h"
 #include "GraphicsWorld.h"
+#include "Model.h"
+#include "Mesh.h"
+#include "BlendState.h"
 
 namespace Fancy { namespace Rendering {
 
@@ -210,6 +209,32 @@ namespace Fancy { namespace Rendering {
       ASSERT(myFsTextureShaderState != nullptr, "Failed creating fullscreen texture shader state");
     }
 
+
+    // Create default object shader state
+    {
+      GpuProgramPipelineDesc pipelineDesc;
+      GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint32) ShaderStage::VERTEX];
+      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
+      programDesc->myShaderFileName = "MaterialForward";
+
+      programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
+      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
+      programDesc->myShaderFileName = "MaterialForward";
+
+      myDefaultObjectShaderState = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+      ASSERT(myDefaultObjectShaderState != nullptr);
+    }
+
+    // Create render states
+    {
+      BlendStateDesc blendAddDesc;
+      blendAddDesc.myBlendEnabled[0] = true;
+      blendAddDesc.mySrcBlend[0] = static_cast<uint32>(BlendInput::ONE);
+      blendAddDesc.myDestBlend[0] = static_cast<uint32>(BlendInput::ONE);
+      blendAddDesc.myBlendOp[0] = static_cast<uint32>(BlendOp::ADD);
+      myBlendStateAdd = RenderCore::CreateBlendState(blendAddDesc);
+    }
+
     // Tests:
     _DebugLoadComputeShader();
   }
@@ -334,15 +359,48 @@ namespace Fancy { namespace Rendering {
   {
     _DebugExecuteComputeShader();
 
-    const Scene::Scene* pScene = aWorld->GetScene();
+    const Scene::Scene* scene = aWorld->GetScene();
     const RenderWindow* renderWindow = anOutput->GetWindow();
-    
-    Scene::SceneRenderDescription renderDesc;
-    pScene->gatherRenderItems(&renderDesc);
+    const Scene::CameraComponent* camera = scene->getActiveCamera();
+
+    // Collect RenderQueue-Items
+    {
+      myRenderQueueFromCamera.myItems.clear();
+      const Scene::ModelList& modelComponents = scene->getCachedModels();
+
+      for (uint i = 0u; i < modelComponents.size(); ++i)
+      {
+        const Scene::ModelComponent* modelComp = modelComponents[i];
+        const Geometry::Model* model = modelComp->getModel();
+        if (model == nullptr)
+          continue;
+
+        const std::vector<SharedPtr<Geometry::SubModel>>& subModels = model->getSubModelList();
+        for (const SharedPtr<Geometry::SubModel>& subModel : subModels)
+        {
+          const Material* material = subModel->getMaterial();
+          const Geometry::Mesh* mesh = subModel->getMesh();
+
+          const Geometry::GeometryDataList& geometries = mesh->getGeometryDataList();
+          for (uint iGeo = 0u; iGeo < geometries.size(); ++iGeo)
+          {
+            const Geometry::GeometryData* geo = geometries[iGeo];
+
+            RenderQueueItem item;
+            item.myMaterial = material;
+            item.myGeometry = geo;
+            item.myWorldMat = modelComp->getSceneNode()->getTransform().getCachedWorld();
+
+            myRenderQueueFromCamera.myItems.push_back(item);
+          }
+        }
+      }
+    }
+
+    if (myRenderQueueFromCamera.myItems.empty())
+      return;
 
     UpdatePerFrameData(aClock);
-
-    const Scene::CameraComponent* camera = pScene->getActiveCamera();
 
     UpdatePerCameraData(camera);
 
@@ -358,35 +416,30 @@ namespace Fancy { namespace Rendering {
     context->setRenderTarget(anOutput->GetBackbuffer(), 0u);
     context->setDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
 
-    const Scene::RenderingItemList& forwardRenderList = renderDesc.techniqueItemList[(uint32) Rendering::EMaterialPass::SOLID_FORWARD];
-    // TODO: Sort based on material-pass
+    context->SetDepthStencilState(nullptr);
+    // context->SetBlendState(myBlendStateAdd);
+    context->SetBlendState(nullptr);
+    context->setCullMode(CullMode::NONE);
+    context->setFillMode(FillMode::SOLID);
+    context->setWindingOrder(WindingOrder::CCW);
 
-    const Scene::LightList& aLightList = pScene->getCachedLights();
+    context->SetGpuProgramPipeline(myDefaultObjectShaderState);
+    context->SetConstantBuffer(myPerLightData.get(), 0);
+    context->SetConstantBuffer(myPerDrawData.get(), 1);
 
-    const MaterialPass* pCachedMaterialPass = nullptr;
+    const Scene::LightList& aLightList = scene->getCachedLights();
     for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
     {
-      const Scene::LightComponent* aLight = aLightList[iLight];
-      UpdatePerLightData(aLight, pScene->getActiveCamera());
+      const Scene::LightComponent* lightComp = aLightList[iLight];
+      UpdatePerLightData(lightComp, camera);
 
-      for (uint32 iRenderItem = 0u; iRenderItem < forwardRenderList.size(); ++iRenderItem)
+      for (const RenderQueueItem& item : myRenderQueueFromCamera.myItems)
       {
-        const RenderingItem& renderItem = forwardRenderList[iRenderItem];
-
-        UpdatePerDrawData(camera, *renderItem.pWorldMat);
-        
-        const MaterialPass* pMaterialPass = renderItem.pMaterialPassInstance->getMaterialPass();
-        if (pCachedMaterialPass != pMaterialPass)
-        {
-          pCachedMaterialPass = pMaterialPass;
-          ApplyMaterialPass(pMaterialPass, context);
-        }
-
-        BindResources_ForwardColorPass(context, renderItem.pMaterialPassInstance);
-        
-        context->renderGeometry(renderItem.pGeometry);
-      }  // end renderItems
-    }  // end lights
+        UpdatePerDrawData(camera, item.myWorldMat);
+        BindResources_ForwardColorPass(context, item.myMaterial);
+        context->renderGeometry(item.myGeometry);
+      }
+    }
 
     context->ExecuteAndReset(true);
     
@@ -414,18 +467,34 @@ namespace Fancy { namespace Rendering {
     CommandContext::FreeContext(context);
   }
 //---------------------------------------------------------------------------//
-  void RenderingProcessForward::BindResources_ForwardColorPass(RenderContext* aContext, const MaterialPassInstance* aMaterial) const
+  uint32 locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)
   {
-    aContext->SetConstantBuffer(myPerLightData.get(), 0);
-    aContext->SetConstantBuffer(myPerDrawData.get(), 1);
-
+    switch (aSemantic)
+    {
+      case EMaterialTextureSemantic::BASE_COLOR: return 0;
+      case EMaterialTextureSemantic::NORMAL: return 1;
+      case EMaterialTextureSemantic::MATERIAL: return 2;
+      default: return ~0;
+    }
+  }
+//---------------------------------------------------------------------------//
+  void RenderingProcessForward::BindResources_ForwardColorPass(RenderContext* aContext, const Material* aMaterial) const
+  {
     const uint32 kNumTextures = 3u;
     Descriptor textureDescriptors[kNumTextures];
 
-    const SharedPtr<Texture>* readTextures = aMaterial->getReadTextures();
-    for (uint32 i = 0u; i < kNumTextures; ++i)
+    textureDescriptors[0] = RenderCore::GetDefaultDiffuseTexture()->GetSrv();
+    textureDescriptors[1] = RenderCore::GetDefaultNormalTexture()->GetSrv();
+    textureDescriptors[2] = RenderCore::GetDefaultMaterialTexture()->GetSrv();
+
+    for (const MaterialTexture& matTexture : aMaterial->myTextures)
     {
-      textureDescriptors[i] = readTextures[i]->GetSrv();
+      const uint32 regIndex = locTexSemanticToRegIndex_MaterialDefault(matTexture.mySemantic);
+      if (regIndex != ~0)
+      {
+        ASSERT(regIndex < kNumTextures);
+        textureDescriptors[regIndex] = matTexture.myTexture->GetSrv();
+      }
     }
 
     aContext->SetMultipleResources(textureDescriptors, kNumTextures, 2);

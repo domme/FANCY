@@ -1,17 +1,21 @@
 #include "Renderer.h"
+
+#include <mutex>
+#include <array>
+
 #include "DepthStencilState.h"
 #include "TextureRefs.h"
 #include "GpuBuffer.h"
 #include "GpuProgramCompiler.h"
 #include "FileWatcher.h"
-#include <mutex>
 #include "PathService.h"
 #include "GpuProgramPipeline.h"
-#include <array>
 #include "TextureLoader.h"
 #include "BinaryCache.h"
 #include "Mesh.h"
 #include "GeometryData.h"
+#include "BlendState.h"
+#include "GpuProgram.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
@@ -29,6 +33,8 @@ namespace Fancy { namespace Rendering {
   std::shared_ptr<Texture> RenderCore::ourDefaultDiffuseTexture;
   std::shared_ptr<Texture> RenderCore::ourDefaultNormalTexture;
   std::shared_ptr<Texture> RenderCore::ourDefaultSpecularTexture;
+  SharedPtr<DepthStencilState> RenderCore::ourDefaultDepthStencilState;
+  SharedPtr<BlendState> RenderCore::ourDefaultBlendState;
 //---------------------------------------------------------------------------//  
   void RenderCore::Init()
   {
@@ -127,6 +133,12 @@ namespace Fancy { namespace Rendering {
     ourTextureCache.insert(std::make_pair(ourDefaultDiffuseTexture->GetDescription().GetHash(), ourDefaultDiffuseTexture));
     ourTextureCache.insert(std::make_pair(ourDefaultSpecularTexture->GetDescription().GetHash(), ourDefaultSpecularTexture));
     ourTextureCache.insert(std::make_pair(ourDefaultNormalTexture->GetDescription().GetHash(), ourDefaultNormalTexture));
+
+    ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
+    ASSERT(ourDefaultDepthStencilState != nullptr);
+
+    ourDefaultBlendState = CreateBlendState(BlendStateDesc::GetDefaultSolid());
+    ASSERT(ourDefaultBlendState != nullptr);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
@@ -212,7 +224,7 @@ namespace Fancy { namespace Rendering {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Rendering::BlendState> RenderCore::CreateBlendState(const Rendering::BlendStateDesc& aDesc)
+  SharedPtr<BlendState> RenderCore::CreateBlendState(const Rendering::BlendStateDesc& aDesc)
   {
     if (aDesc.IsEmpty())
       return nullptr;
@@ -221,7 +233,7 @@ namespace Fancy { namespace Rendering {
     if (it != ourBlendStateCache.end())
       return it->second;
 
-    SharedPtr<Rendering::BlendState> blendState(FANCY_NEW(Rendering::BlendState, MemoryCategory::GENERAL));
+    SharedPtr<BlendState> blendState(FANCY_NEW(Rendering::BlendState, MemoryCategory::GENERAL));
     blendState->SetFromDescription(aDesc);
     
     ourBlendStateCache.insert(std::make_pair(aDesc.GetHash(), blendState));

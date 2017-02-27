@@ -1,21 +1,22 @@
 #include "FancyCorePrerequisites.h"
 
+#include <unordered_set>
+
 #include "RenderContextDX12.h"
 #include "MathUtil.h"
 #include "AdapterDX12.h"
 #include "GpuProgram.h"
 #include "Renderer.h"
 #include "DescriptorHeapPoolDX12.h"
-#include <unordered_set>
 #include "GpuBuffer.h"
-#include "Fancy.h"
 #include "Texture.h"
-#include "TextureSampler.h"
 #include "GeometryData.h"
 #include "GpuProgramPipeline.h"
 #include "ShaderResourceInterface.h"
 #include "GpuResource.h"
 #include "Descriptor.h"
+#include "BlendState.h"
+#include "DepthStencilState.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -26,8 +27,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myNumRenderTargets(0u)
     , myDSVformat(DataFormat::UNKNOWN)
     , myIsDirty(true)
-    , myGpuProgramPipeline(nullptr)
   {
+    myDepthStencilState = RenderCore::CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
+    myBlendState = RenderCore::CreateBlendState(BlendStateDesc::GetDefaultSolid());
   }
   //---------------------------------------------------------------------------//
   uint GraphicsPipelineState::getHash()
@@ -36,10 +38,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myCullMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
-    MathUtil::hash_combine(hash, myDepthStencilState.GetHash());
-    MathUtil::hash_combine(hash, myBlendState.GetHash());
-
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgramPipeline));
+    MathUtil::hash_combine(hash, myDepthStencilState->GetHash());
+    MathUtil::hash_combine(hash, myBlendState->GetHash());
+    MathUtil::hash_combine(hash, myGpuProgramPipeline->GetHash());
 
     if (myGpuProgramPipeline != nullptr)
       MathUtil::hash_combine(hash, myGpuProgramPipeline->GetShaderByteCodeHash());
@@ -80,34 +81,34 @@ namespace Fancy { namespace Rendering { namespace DX12 {
                                        // BLEND DESC
     D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
     memset(&blendDesc, 0u, sizeof(D3D12_BLEND_DESC));
-    blendDesc.AlphaToCoverageEnable = myBlendState.getAlphaToCoverageEnabled();
-    blendDesc.IndependentBlendEnable = myBlendState.getBlendStatePerRT();
+    blendDesc.AlphaToCoverageEnable = myBlendState->getAlphaToCoverageEnabled();
+    blendDesc.IndependentBlendEnable = myBlendState->getBlendStatePerRT();
     uint rtCount = blendDesc.IndependentBlendEnable ? Constants::kMaxNumRenderTargets : 1u;
     for (uint rt = 0u; rt < rtCount; ++rt)
     {
       D3D12_RENDER_TARGET_BLEND_DESC& rtBlendDesc = blendDesc.RenderTarget[rt];
       memset(&rtBlendDesc, 0u, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
 
-      rtBlendDesc.BlendEnable = myBlendState.myBlendEnabled[rt];
-      rtBlendDesc.BlendOp = Adapter::toNativeType(myBlendState.myBlendOp[rt]);
-      rtBlendDesc.BlendOpAlpha = Adapter::toNativeType(myBlendState.myBlendOpAlpha[rt]);
-      rtBlendDesc.DestBlend = Adapter::toNativeType(myBlendState.myDestBlend[rt]);
-      rtBlendDesc.DestBlendAlpha = Adapter::toNativeType(myBlendState.myDestBlendAlpha[rt]);
+      rtBlendDesc.BlendEnable = myBlendState->myBlendEnabled[rt];
+      rtBlendDesc.BlendOp = Adapter::toNativeType(myBlendState->myBlendOp[rt]);
+      rtBlendDesc.BlendOpAlpha = Adapter::toNativeType(myBlendState->myBlendOpAlpha[rt]);
+      rtBlendDesc.DestBlend = Adapter::toNativeType(myBlendState->myDestBlend[rt]);
+      rtBlendDesc.DestBlendAlpha = Adapter::toNativeType(myBlendState->myDestBlendAlpha[rt]);
 
       // FEATURE: Add support for LogicOps?
       rtBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
       rtBlendDesc.LogicOpEnable = false;
 
-      if (myBlendState.myRTwriteMask[rt] & 0xFFFFFF > 0u)
+      if (myBlendState->myRTwriteMask[rt] & 0xFFFFFF > 0u)
       {
         rtBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
       }
       else
       {
-        const bool red = (myBlendState.myRTwriteMask[rt] & 0xFF000000) > 0u;
-        const bool green = (myBlendState.myRTwriteMask[rt] & 0x00FF0000) > 0u;
-        const bool blue = (myBlendState.myRTwriteMask[rt] & 0x0000FF00) > 0u;
-        const bool alpha = (myBlendState.myRTwriteMask[rt] & 0x000000FF) > 0u;
+        const bool red = (myBlendState->myRTwriteMask[rt] & 0xFF000000) > 0u;
+        const bool green = (myBlendState->myRTwriteMask[rt] & 0x00FF0000) > 0u;
+        const bool blue = (myBlendState->myRTwriteMask[rt] & 0x0000FF00) > 0u;
+        const bool alpha = (myBlendState->myRTwriteMask[rt] & 0x000000FF) > 0u;
         rtBlendDesc.RenderTargetWriteMask |= red ? D3D12_COLOR_WRITE_ENABLE_RED : 0u;
         rtBlendDesc.RenderTargetWriteMask |= green ? D3D12_COLOR_WRITE_ENABLE_GREEN : 0u;
         rtBlendDesc.RenderTargetWriteMask |= blue ? D3D12_COLOR_WRITE_ENABLE_BLUE : 0u;
@@ -140,29 +141,29 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // DEPTH STENCIL STATE
     D3D12_DEPTH_STENCIL_DESC& dsState = psoDesc.DepthStencilState;
-    dsState.DepthEnable = myDepthStencilState.myDepthTestEnabled;
-    dsState.DepthWriteMask = myDepthStencilState.myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
-    dsState.DepthFunc = Adapter::toNativeType(myDepthStencilState.myDepthCompFunc);
-    dsState.StencilEnable = myDepthStencilState.myStencilEnabled;
-    dsState.StencilReadMask = static_cast<uint8>(myDepthStencilState.myStencilReadMask);
-    dsState.StencilWriteMask = static_cast<uint8>(myDepthStencilState.myStencilWriteMask[0u]);
+    dsState.DepthEnable = myDepthStencilState->myDepthTestEnabled;
+    dsState.DepthWriteMask = myDepthStencilState->myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+    dsState.DepthFunc = Adapter::toNativeType(myDepthStencilState->myDepthCompFunc);
+    dsState.StencilEnable = myDepthStencilState->myStencilEnabled;
+    dsState.StencilReadMask = static_cast<uint8>(myDepthStencilState->myStencilReadMask);
+    dsState.StencilWriteMask = static_cast<uint8>(myDepthStencilState->myStencilWriteMask[0u]);
     // FrontFace
     {
       D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.FrontFace;
       uint faceIdx = static_cast<uint>(FaceType::FRONT);
-      faceDesc.StencilFunc = Adapter::toNativeType(myDepthStencilState.myStencilCompFunc[faceIdx]);
-      faceDesc.StencilDepthFailOp = Adapter::toNativeType(myDepthStencilState.myStencilDepthFailOp[faceIdx]);
-      faceDesc.StencilFailOp = Adapter::toNativeType(myDepthStencilState.myStencilFailOp[faceIdx]);
-      faceDesc.StencilPassOp = Adapter::toNativeType(myDepthStencilState.myStencilPassOp[faceIdx]);
+      faceDesc.StencilFunc = Adapter::toNativeType(myDepthStencilState->myStencilCompFunc[faceIdx]);
+      faceDesc.StencilDepthFailOp = Adapter::toNativeType(myDepthStencilState->myStencilDepthFailOp[faceIdx]);
+      faceDesc.StencilFailOp = Adapter::toNativeType(myDepthStencilState->myStencilFailOp[faceIdx]);
+      faceDesc.StencilPassOp = Adapter::toNativeType(myDepthStencilState->myStencilPassOp[faceIdx]);
     }
     // BackFace
     {
       D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.BackFace;
       uint faceIdx = static_cast<uint>(FaceType::BACK);
-      faceDesc.StencilFunc = Adapter::toNativeType(myDepthStencilState.myStencilCompFunc[faceIdx]);
-      faceDesc.StencilDepthFailOp = Adapter::toNativeType(myDepthStencilState.myStencilDepthFailOp[faceIdx]);
-      faceDesc.StencilFailOp = Adapter::toNativeType(myDepthStencilState.myStencilFailOp[faceIdx]);
-      faceDesc.StencilPassOp = Adapter::toNativeType(myDepthStencilState.myStencilPassOp[faceIdx]);
+      faceDesc.StencilFunc = Adapter::toNativeType(myDepthStencilState->myStencilCompFunc[faceIdx]);
+      faceDesc.StencilDepthFailOp = Adapter::toNativeType(myDepthStencilState->myStencilDepthFailOp[faceIdx]);
+      faceDesc.StencilFailOp = Adapter::toNativeType(myDepthStencilState->myStencilFailOp[faceIdx]);
+      faceDesc.StencilPassOp = Adapter::toNativeType(myDepthStencilState->myStencilPassOp[faceIdx]);
     }
 
     // INPUT LAYOUT
@@ -238,28 +239,34 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myViewportDirty = true;
   }
   //---------------------------------------------------------------------------//
-  void RenderContextDX12::setBlendState(const BlendState& clBlendState)
+  void RenderContextDX12::SetBlendState(std::shared_ptr<BlendState> aBlendState)
   {
-    GraphicsPipelineState& state = myGraphicsPipelineState;
-    uint requestedHash = clBlendState.GetHash();
+    SharedPtr<BlendState> stateToSet =
+      aBlendState ? aBlendState : RenderCore::GetDefaultBlendState();
 
-    if (state.myBlendState.GetHash() == requestedHash)
+    GraphicsPipelineState& state = myGraphicsPipelineState;
+    const uint requestedHash = stateToSet->GetHash();
+
+    if (state.myBlendState->GetHash() == requestedHash)
       return;
 
-    state.myBlendState = clBlendState;
+    state.myBlendState = stateToSet;
     state.myIsDirty = true;
   }
   //---------------------------------------------------------------------------//
-  void RenderContextDX12::setDepthStencilState(const DepthStencilState& aDepthStencilState)
+  void RenderContextDX12::SetDepthStencilState(std::shared_ptr<DepthStencilState> aDepthStencilState)
   {
-    GraphicsPipelineState& state = myGraphicsPipelineState;
-    uint requestedHash = aDepthStencilState.GetHash();
+    SharedPtr<DepthStencilState> stateToSet = 
+      aDepthStencilState ? aDepthStencilState : RenderCore::GetDefaultDepthStencilState();
 
-    if (state.myDepthStencilState.GetHash() == requestedHash)
-      return;
+      GraphicsPipelineState& state = myGraphicsPipelineState;
+      uint requestedHash = stateToSet->GetHash();
 
-    state.myDepthStencilState = aDepthStencilState;
-    state.myIsDirty = true;
+      if (state.myDepthStencilState->GetHash() == requestedHash)
+        return;
+
+      state.myDepthStencilState = stateToSet;
+      state.myIsDirty = true;
   }
   //---------------------------------------------------------------------------//
   void RenderContextDX12::setFillMode(const FillMode eFillMode)
@@ -371,7 +378,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicHeap->GetDescriptor(startOffset).myGpuHandle);
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::SetGpuProgramPipeline(const GpuProgramPipeline* aGpuProgramPipeline)
+  void RenderContextDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
   {
     if (myGraphicsPipelineState.myGpuProgramPipeline != aGpuProgramPipeline)
     {

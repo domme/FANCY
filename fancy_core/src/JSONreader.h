@@ -8,8 +8,6 @@ namespace Fancy {
 }
 
 namespace Fancy { namespace Rendering {
-  struct MaterialPassInstanceDesc;
-  struct MaterialPassDesc;
   struct MaterialDesc;
   struct TextureDesc;
   struct GpuProgramDesc;

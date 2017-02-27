@@ -23,7 +23,6 @@ namespace Fancy { namespace Scene {
       void setModel(const SharedPtr<Geometry::Model>& pModel) {m_pModel = pModel;}
       Geometry::Model* getModel() const { return m_pModel.get(); }
       
-      void gatherRenderItems(SceneRenderDescription* pRenderDesc) override;
       void update() override;
 
     private:

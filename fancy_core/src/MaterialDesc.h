@@ -2,8 +2,8 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "MaterialPassInstanceDesc.h"
-#include "FixedArray.h"
+#include "DescriptionBase.h"
+#include "TextureDesc.h"
 
 namespace Fancy { namespace IO {
   class Serializer;
@@ -21,6 +21,36 @@ namespace Fancy { namespace Rendering {
     NUM
   };
 //---------------------------------------------------------------------------//
+  enum class EMaterialTextureSemantic
+  {
+    BASE_COLOR = 0,
+    NORMAL,
+    MATERIAL,
+
+    NUM,
+    NONE = ~0
+  };
+//---------------------------------------------------------------------------//
+  struct MaterialTextureDesc
+  {
+    MaterialTextureDesc() : mySemantic(~0u) {}
+    MaterialTextureDesc(uint32 aSemantic, const TextureDesc& aTextureDesc) : mySemantic(aSemantic), myTexture(aTextureDesc) {}
+    void Serialize(IO::Serializer* aSerializer);
+
+    uint32 mySemantic;
+    TextureDesc myTexture;
+  };
+//---------------------------------------------------------------------------//
+  struct MaterialParameterDesc
+  {
+    MaterialParameterDesc() : mySemantic(~0u), myValue(0.0f) {}
+    MaterialParameterDesc(uint32 aSemantic, float aValue) : mySemantic(aSemantic), myValue(aValue) {}
+    void Serialize(IO::Serializer* aSerializer);
+
+    uint32 mySemantic;
+    float myValue;
+  };
+//---------------------------------------------------------------------------//
   struct MaterialDesc : public DescriptionBase
   {
     MaterialDesc();
@@ -32,8 +62,8 @@ namespace Fancy { namespace Rendering {
     ObjectName GetTypeName() const override { return _N(Material); }
     bool IsEmpty() const override;
 
-    float myParameters [(uint32)EMaterialParameterSemantic::NUM];
-    MaterialPassInstanceDesc myPasses [(uint32)EMaterialPass::NUM];
+    std::vector<MaterialTextureDesc> myTextures;
+    std::vector<MaterialParameterDesc> myParameters;
   };
 //---------------------------------------------------------------------------//
 } }

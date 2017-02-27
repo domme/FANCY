@@ -3,7 +3,6 @@
 
 #include "ObjectName.h"
 #include "RendererPrerequisites.h"
-#include "StaticManagedObject.h"
 #include "Serializable.h"
 
 namespace Fancy{namespace IO{
