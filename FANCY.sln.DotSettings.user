@@ -11,7 +11,7 @@
 	<s:String x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=9951624B65E2DD418D1FAFF13D65A75A/RelativePath/@EntryValue">..\..\..\Dropbox\Entwicklung\ResharperCpp_Settings\Resharper_SharedSettings.DotSettings</s:String>
 	<s:Boolean x:Key="/Default/Environment/InjectedLayers/InjectedLayerCustomization/=File9951624B65E2DD418D1FAFF13D65A75A/@KeyIndexDefined">True</s:Boolean>
 	<s:Double x:Key="/Default/Environment/InjectedLayers/InjectedLayerCustomization/=File9951624B65E2DD418D1FAFF13D65A75A/RelativePriority/@EntryValue">1</s:Double>
-	<s:String x:Key="/Default/Environment/UpdatesManger/LastUpdateCheck/@EntryValue">02/27/2017 16:06:30</s:String>
+	
 	<s:Boolean x:Key="/Default/Housekeeping/Bookmarks/NumberedBookmarks/=Bookmark8/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/Housekeeping/Bookmarks/NumberedBookmarks/=Bookmark8/Coords/@EntryValue">(Doc Ln 46 Col 29)</s:String>
 	<s:String x:Key="/Default/Housekeeping/Bookmarks/NumberedBookmarks/=Bookmark8/FileId/@EntryValue">0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD/d:src/f:RenderView.cpp</s:String>
@@ -35,7 +35,7 @@
 	<s:String x:Key="/Default/Housekeeping/Bookmarks/NumberedBookmarks/=Bookmark9/Coords/@EntryValue">(Doc Ln 53 Col 59)</s:String>
 	<s:String x:Key="/Default/Housekeeping/Bookmarks/NumberedBookmarks/=Bookmark9/FileId/@EntryValue">0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD/d:src/f:Serializer.h</s:String>
 	<s:String x:Key="/Default/Housekeeping/Bookmarks/NumberedBookmarks/=Bookmark9/Owner/@EntryValue">NumberedBookmarkManager</s:String>
-	<s:Boolean x:Key="/Default/Housekeeping/RefactoringsMru/RenameRefactoring/DoSearchForTextInStrings/@EntryValue">True</s:Boolean>
+	
 	
 	
 	

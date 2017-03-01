@@ -4,6 +4,8 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "FixedArray.h"
+#include "SmallObjectAllocator.h"
+#include <array>
 
 // Forward declarations:
 namespace Fancy { namespace Geometry { 
@@ -27,7 +29,19 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct RenderQueue
   {
-    std::vector<RenderQueueItem> myItems;
+    static const uint32 kMaxNumRenderQueueItems = 4096u;
+
+    RenderQueue();
+    ~RenderQueue();
+
+    RenderQueueItem* AddItem();
+    void Clear();
+    bool IsEmpty() const { return myItems.empty(); }
+    const FixedArray<RenderQueueItem, kMaxNumRenderQueueItems>& GetItems() const { return myItems; }
+
+  private:
+    // SmallObjectAllocator<RenderQueueItem> myAllocator;
+    FixedArray<RenderQueueItem, kMaxNumRenderQueueItems> myItems;
   };
 //---------------------------------------------------------------------------//
 

@@ -73,7 +73,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     void AllocateNewPage()
     {
-      AllocatedPage* newPage = malloc(sizeof(AllocatedPage) + (sizeof(Entry) * myPageSize));
+      AllocatedPage* newPage = (AllocatedPage*) malloc(sizeof(AllocatedPage) + (sizeof(Entry) * myPageSize));
       newPage->myNext = myLastAllocatedPage;
       myLastAllocatedPage = newPage;
 
@@ -82,7 +82,7 @@ namespace Fancy {
       {
         newEntries[i].myNext = &newEntries[i + 1];
       }
-      newEntries[myPageSize - 1u] = nullptr;
+      newEntries[myPageSize - 1u].myNext = nullptr;
 
       myNextFreeEntry = newEntries;
     }

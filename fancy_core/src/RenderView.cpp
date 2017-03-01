@@ -44,7 +44,7 @@ namespace Fancy {
     myGraphicsWorld->Tick(aClock);
 
     myRenderOutput->beginFrame();
-    myRenderingProcess->Render(myGraphicsWorld.get(), myRenderOutput.Get(), aClock);
+    myRenderingProcess->Tick(myGraphicsWorld.get(), myRenderOutput.Get(), aClock);
     myRenderOutput->endFrame();
   }
 //---------------------------------------------------------------------------//

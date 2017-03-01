@@ -496,6 +496,7 @@
     <ClCompile Include="src\RenderingProcess.cpp" />
     <ClCompile Include="src\RenderingProcessForward.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
+    <ClCompile Include="src\RenderQueues.cpp" />
     <ClCompile Include="src\RenderView.cpp" />
     <ClCompile Include="src\ResourceBinding.cpp" />
     <ClCompile Include="src\Scene.cpp" />

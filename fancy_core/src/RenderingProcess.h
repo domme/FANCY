@@ -22,7 +22,7 @@ class DLLEXPORT RenderingProcess
     virtual ~RenderingProcess();
 
     virtual void Startup() = 0;
-    virtual void Render(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) = 0;
+    virtual void Tick(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) = 0;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(RenderingProcess)

@@ -413,7 +413,7 @@
       <Filter>src\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\RenderQueues.h">
-      <Filter>src\Scene</Filter>
+      <Filter>src\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -680,6 +680,9 @@
     </ClCompile>
     <ClCompile Include="src\RenderView.cpp">
       <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderQueues.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

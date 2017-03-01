@@ -24,9 +24,12 @@ class DLLEXPORT RenderingProcessForward : public RenderingProcess
     virtual ~RenderingProcessForward();
 
     void Startup() override;
-    void Render(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) override;
+    void Tick(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) override;
 
   protected:
+    void PopulateRenderQueues(const GraphicsWorld* aWorld);
+    void FlushRenderQueues(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) const;
+
     void BindResources_ForwardColorPass(RenderContext* aRenderContext, const Material* aMaterial) const;
 
     void UpdatePerFrameData(const Time& aClock) const;
@@ -54,7 +57,6 @@ class DLLEXPORT RenderingProcessForward : public RenderingProcess
     void _DebugExecuteComputeShader();
     SharedPtr<Texture> myTestTexture;
     SharedPtr<GpuProgramPipeline> myComputeProgram;
-
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(RenderingProcessForward)

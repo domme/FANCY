@@ -355,56 +355,66 @@ namespace Fancy { namespace Rendering {
     
   }
 //---------------------------------------------------------------------------//
-  void RenderingProcessForward::Render(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock)
+  void RenderingProcessForward::Tick(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock)
   {
     _DebugExecuteComputeShader();
 
+    PopulateRenderQueues(aWorld);
+    FlushRenderQueues(aWorld, anOutput, aClock);
+  }
+//---------------------------------------------------------------------------//
+  void RenderingProcessForward::PopulateRenderQueues(const GraphicsWorld* aWorld)
+  {
     const Scene::Scene* scene = aWorld->GetScene();
-    const RenderWindow* renderWindow = anOutput->GetWindow();
     const Scene::CameraComponent* camera = scene->getActiveCamera();
+    
+    myRenderQueueFromCamera.Clear();
+    const Scene::ModelList& modelComponents = scene->getCachedModels();
 
-    // Collect RenderQueue-Items
+    for (uint i = 0u; i < modelComponents.size(); ++i)
     {
-      myRenderQueueFromCamera.myItems.clear();
-      const Scene::ModelList& modelComponents = scene->getCachedModels();
+      const Scene::ModelComponent* modelComp = modelComponents[i];
+      const Geometry::Model* model = modelComp->getModel();
+      if (model == nullptr)
+        continue;
 
-      for (uint i = 0u; i < modelComponents.size(); ++i)
+      const std::vector<SharedPtr<Geometry::SubModel>>& subModels = model->getSubModelList();
+      for (const SharedPtr<Geometry::SubModel>& subModel : subModels)
       {
-        const Scene::ModelComponent* modelComp = modelComponents[i];
-        const Geometry::Model* model = modelComp->getModel();
-        if (model == nullptr)
-          continue;
+        const Material* material = subModel->getMaterial();
+        const Geometry::Mesh* mesh = subModel->getMesh();
 
-        const std::vector<SharedPtr<Geometry::SubModel>>& subModels = model->getSubModelList();
-        for (const SharedPtr<Geometry::SubModel>& subModel : subModels)
+        const Geometry::GeometryDataList& geometries = mesh->getGeometryDataList();
+        for (uint iGeo = 0u; iGeo < geometries.size(); ++iGeo)
         {
-          const Material* material = subModel->getMaterial();
-          const Geometry::Mesh* mesh = subModel->getMesh();
+          const Geometry::GeometryData* geo = geometries[iGeo];
 
-          const Geometry::GeometryDataList& geometries = mesh->getGeometryDataList();
-          for (uint iGeo = 0u; iGeo < geometries.size(); ++iGeo)
-          {
-            const Geometry::GeometryData* geo = geometries[iGeo];
-
-            RenderQueueItem item;
-            item.myMaterial = material;
-            item.myGeometry = geo;
-            item.myWorldMat = modelComp->getSceneNode()->getTransform().getCachedWorld();
-
-            myRenderQueueFromCamera.myItems.push_back(item);
-          }
+          RenderQueueItem* item = myRenderQueueFromCamera.AddItem();
+          item->myMaterial = material;
+          item->myGeometry = geo;
+          item->myWorldMat = modelComp->getSceneNode()->getTransform().getCachedWorld();
         }
       }
     }
 
-    if (myRenderQueueFromCamera.myItems.empty())
+    // TODO: Sort based on material
+    // TODO: Optimize with instanced calls if materials and geometries are the same
+  }
+//---------------------------------------------------------------------------//
+  void RenderingProcessForward::FlushRenderQueues(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) const
+  {
+    if (myRenderQueueFromCamera.IsEmpty())
       return;
 
-    UpdatePerFrameData(aClock);
+    const Scene::Scene* scene = aWorld->GetScene();
+    const Scene::CameraComponent* camera = scene->getActiveCamera();
+    const RenderWindow* renderWindow = anOutput->GetWindow();
 
+    UpdatePerFrameData(aClock);
     UpdatePerCameraData(camera);
 
     RenderContext* context = static_cast<RenderContext*>(RenderContext::AllocateContext(CommandListType::Graphics));
+
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
     context->ClearRenderTarget(anOutput->GetBackbuffer(), clearColor);
 
@@ -433,37 +443,20 @@ namespace Fancy { namespace Rendering {
       const Scene::LightComponent* lightComp = aLightList[iLight];
       UpdatePerLightData(lightComp, camera);
 
-      for (const RenderQueueItem& item : myRenderQueueFromCamera.myItems)
+      const auto& renderQueueItems = myRenderQueueFromCamera.GetItems();
+      for (uint32 iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
       {
+        const RenderQueueItem& item = renderQueueItems[iItem];
+
         UpdatePerDrawData(camera, item.myWorldMat);
+
         BindResources_ForwardColorPass(context, item.myMaterial);
+        
         context->renderGeometry(item.myGeometry);
       }
     }
 
     context->ExecuteAndReset(true);
-    
-    // Debug: Render FS-quad with texture 
-    //---------------------------------------------------------------------------//
-    /*ComputeContext* computeContext =
-      static_cast<ComputeContext*>(CommandContext::AllocateContext(CommandListType::Compute));
-
-    computeContext->SetComputeProgram(myComputeProgram.get());
-
-    const Descriptor& textureUAV = myTestTexture->GetUav();
-    computeContext->SetMultipleResources(&textureUAV, 1u, 0u);
-    computeContext->Dispatch(32, 32, 1);
-
-    computeContext->ExecuteAndReset(true);
-    CommandContext::FreeContext(computeContext);
-
-    context->SetGpuProgramPipeline(myFsTextureShaderState.get());
-    context->SetMultipleResources(&myTestTexture->GetSrv(), 1, 0u);
-    context->renderGeometry(myFullscreenQuad.get());
-    
-    context->ExecuteAndReset(true);
-    */
-    //---------------------------------------------------------------------------//
     CommandContext::FreeContext(context);
   }
 //---------------------------------------------------------------------------//
