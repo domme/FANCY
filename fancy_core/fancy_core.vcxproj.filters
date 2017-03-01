@@ -23,9 +23,6 @@
     <Filter Include="src\Common">
       <UniqueIdentifier>{3bbf5b5b-c9b6-4fb6-a957-965e0ce00c59}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Rendering\GL4">
-      <UniqueIdentifier>{3ea804fc-afc0-4188-8cd8-c2558fd4e149}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Math">
       <UniqueIdentifier>{df3b2819-40ab-4734-9789-c9d138468e7c}</UniqueIdentifier>
     </Filter>
@@ -76,23 +73,11 @@
     <ClInclude Include="src\SceneNode.h">
       <Filter>src\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\RendererGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GLDebug.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
     <ClInclude Include="src\RendererPrerequisites.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\MathUtil.h">
       <Filter>src\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GLSLpreprocessor.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
     <ClInclude Include="src\Mesh.h">
       <Filter>src\Geometry</Filter>
@@ -109,17 +94,8 @@
     <ClInclude Include="src\FixedArray.h">
       <Filter>src\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\OpenGLprerequisites.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuBufferGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
     <ClInclude Include="src\GpuBuffer.h">
       <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AdapterGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
     <ClInclude Include="src\GeometryData.h">
       <Filter>src\Geometry</Filter>
@@ -127,17 +103,11 @@
     <ClInclude Include="src\VertexInputLayout.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuProgramGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
     <ClInclude Include="src\GpuProgram.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\GpuProgramResource.h">
       <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramCompilerGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
     <ClInclude Include="src\GpuProgramCompiler.h">
       <Filter>src\Rendering</Filter>
@@ -154,12 +124,6 @@
     <ClInclude Include="src\TextureSampler.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\TextureSamplerGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramResourceGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClInclude>
     <ClInclude Include="src\SceneNodeComponent.h">
       <Filter>src\Scene\Components</Filter>
     </ClInclude>
@@ -171,9 +135,6 @@
     </ClInclude>
     <ClInclude Include="src\SceneNodeComponentFactory.h">
       <Filter>src\Scene\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramPipelineGL4.h">
-      <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene.h">
       <Filter>src\Scene</Filter>
@@ -204,9 +165,6 @@
     </ClInclude>
     <ClInclude Include="src\RenderingProcessForward.h">
       <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vsDebugLib.h">
-      <Filter>src\Rendering\GL4</Filter>
     </ClInclude>
     <ClInclude Include="src\DebugOutStream.h">
       <Filter>src\Common</Filter>
@@ -444,15 +402,6 @@
     <ClCompile Include="src\SceneNode.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\RendererGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GLSLpreprocessor.cpp">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TextureGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
     <ClCompile Include="src\Mesh.cpp">
       <Filter>src\Geometry</Filter>
     </ClCompile>
@@ -465,9 +414,6 @@
     <ClCompile Include="src\ObjectName.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuBufferGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
     <ClCompile Include="src\RendererPrerequisites.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
@@ -477,20 +423,11 @@
     <ClCompile Include="src\VertexInputLayout.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgramGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GpuProgramCompilerGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
     <ClCompile Include="src\GeometryVertexLayout.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\TimeManager.cpp">
       <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TextureSamplerGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
     <ClCompile Include="src\SceneNodeComponent.cpp">
       <Filter>src\Scene\Components</Filter>
@@ -504,14 +441,8 @@
     <ClCompile Include="src\SceneNodeComponentFactory.cpp">
       <Filter>src\Scene\Components</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgramPipelineGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
-    </ClCompile>
     <ClCompile Include="src\Scene.cpp">
       <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AdapterGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
     <ClCompile Include="src\DepthStencilState.cpp">
       <Filter>src\Rendering</Filter>
@@ -533,9 +464,6 @@
     </ClCompile>
     <ClCompile Include="src\RenderingProcessForward.cpp">
       <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vsDebugLib.cpp">
-      <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
     <ClCompile Include="src\DebugOutStream.cpp">
       <Filter>src\Common</Filter>
@@ -572,9 +500,6 @@
     </ClCompile>
     <ClCompile Include="src\GpuProgramResource.cpp">
       <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GpuProgramResourceGL4.cpp">
-      <Filter>src\Rendering\GL4</Filter>
     </ClCompile>
     <ClCompile Include="src\Material.cpp">
       <Filter>src\Rendering</Filter>

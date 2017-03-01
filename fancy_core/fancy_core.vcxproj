@@ -9,14 +9,6 @@
       <Configuration>Debug_DX12</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug_GL4|Win32">
-      <Configuration>Debug_GL4</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug_GL4|x64">
-      <Configuration>Debug_GL4</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -32,19 +24,7 @@
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
@@ -73,25 +53,10 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\property_sheets\glm.props" />
-    <Import Project="..\property_sheets\General_target.props" />
-    <Import Project="..\property_sheets\Assimp_debug_Win32.props" />
-    <Import Project="..\property_sheets\GLEW_32_static.props" />
-  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\property_sheets\glm.props" />
     <Import Project="..\property_sheets\General_target.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\property_sheets\glm.props" />
-    <Import Project="..\property_sheets\General_target.props" />
-    <Import Project="..\property_sheets\GLEW_64.props" />
-    <Import Project="..\property_sheets\Assimp_debug_x64.props" />
-    <Import Project="..\property_sheets\xxhash_static_release_x64.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -117,42 +82,21 @@
     <Import Project="..\property_sheets\DX12.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|Win32'">
-    <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)</OutDir>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|Win32'">
     <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|x64'">
-    <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)/</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
     <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)/</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|Win32'">
-    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|Win32'">
     <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|x64'">
-    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
     <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|Win32'">
-    <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|Win32'">
     <TargetExt>.dll</TargetExt>
     <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|x64'">
-    <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);$(UniversalCRT_IncludePath)</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(UniversalCRT_LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
     <TargetExt>.dll</TargetExt>
@@ -180,27 +124,6 @@
     <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);$(UniversalCRT_IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(UniversalCRT_LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|Win32'">
-    <ClCompile>
-      <WarningLevel>Level2</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>__LIB_STATIC;_CRT_SECURE_NO_DEPRECATE;__WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <MinimalRebuild>false</MinimalRebuild>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-    <PostBuildEvent>
-      <Command>xcopy $(SolutionDir)\lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)\bin\$(Platform)\$(Configuration)\fancy_core.dll /I /Y</Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|Win32'">
     <ClCompile>
       <WarningLevel>Level2</WarningLevel>
@@ -220,26 +143,6 @@
     </Link>
     <PostBuildEvent>
       <Command>xcopy $(SolutionDir)\lib\$(Platform)\$(Configuration)\fancy_core.dll $(SolutionDir)\bin\$(Platform)\$(Configuration)\fancy_core.dll /I /Y</Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;__WINDOWS;RENDERER_OPENGL4;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <MinimalRebuild>false</MinimalRebuild>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <ForcedIncludeFiles>StdAfx.h</ForcedIncludeFiles>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-    <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)\lib\$(Platform)\$(Configuration)\fancy_core.dll" "$(SolutionDir)\bin\$(Platform)\$(Configuration)\fancy_core.dll*" /I /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
@@ -307,7 +210,6 @@
   <ItemGroup>
     <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h" />
     <ClInclude Include="src\AdapterDX12.h" />
-    <ClInclude Include="src\AdapterGL4.h" />
     <ClInclude Include="src\AlignedStorage.h" />
     <ClInclude Include="src\BinaryCache.h" />
     <ClInclude Include="src\BlendState.h" />
@@ -337,28 +239,21 @@
     <ClInclude Include="src\FenceDX12.h" />
     <ClInclude Include="src\FileReader.h" />
     <ClInclude Include="src\FixedArray.h" />
-    <ClInclude Include="src\GLDebug.h" />
     <ClInclude Include="src\GpuBuffer.h" />
-    <ClInclude Include="src\GpuBufferGL4.h" />
     <ClInclude Include="src\CommandAllocatorPoolDX12.h" />
     <ClInclude Include="src\GpuDynamicAllocatorDX12.h" />
     <ClInclude Include="src\GpuProgram.h" />
     <ClInclude Include="src\GpuProgramCompiler.h" />
     <ClInclude Include="src\GpuProgramCompilerDX12.h" />
-    <ClInclude Include="src\GpuProgramCompilerGL4.h" />
     <ClInclude Include="src\GpuProgramCompilerUtils.h" />
     <ClInclude Include="src\GpuProgramDesc.h" />
     <ClInclude Include="src\GpuProgramDX12.h" />
     <ClInclude Include="src\GpuProgramFeatures.h" />
-    <ClInclude Include="src\GpuProgramGL4.h" />
     <ClInclude Include="src\GpuProgramPipeline.h" />
     <ClInclude Include="src\GpuProgramPipelineDesc.h" />
     <ClInclude Include="src\GpuProgramPipelineDX12.h" />
-    <ClInclude Include="src\GpuProgramPipelineGL4.h" />
     <ClInclude Include="src\GpuProgramResource.h" />
-    <ClInclude Include="src\GLSLpreprocessor.h" />
     <ClInclude Include="src\GpuProgramResourceDX12.h" />
-    <ClInclude Include="src\GpuProgramResourceGL4.h" />
     <ClInclude Include="src\GpuResource.h" />
     <ClInclude Include="src\GpuResourceDX12.h" />
     <ClInclude Include="src\GpuResourceSignature.h" />
@@ -383,13 +278,11 @@
     <ClInclude Include="src\ObjectFactory.h" />
     <ClInclude Include="src\ObjectName.h" />
     <ClInclude Include="src\ObjectPool.h" />
-    <ClInclude Include="src\OpenGLprerequisites.h" />
     <ClInclude Include="src\PathService.h" />
     <ClInclude Include="src\RenderContext.h" />
     <ClInclude Include="src\RenderContextDX12.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\RendererDX12.h" />
-    <ClInclude Include="src\RendererGL4.h" />
     <ClInclude Include="src\RendererPrerequisites.h" />
     <ClInclude Include="src\RenderingProcess.h" />
     <ClInclude Include="src\RenderingProcessForward.h" />
@@ -418,22 +311,18 @@
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\TextureDesc.h" />
     <ClInclude Include="src\TextureDX12.h" />
-    <ClInclude Include="src\TextureGL4.h" />
     <ClInclude Include="src\TextureLoader.h" />
     <ClInclude Include="src\TextureRefs.h" />
     <ClInclude Include="src\TextureSampler.h" />
     <ClInclude Include="src\TextureSamplerDesc.h" />
     <ClInclude Include="src\TextureSamplerDX12.h" />
-    <ClInclude Include="src\TextureSamplerGL4.h" />
     <ClInclude Include="src\TimeManager.h" />
     <ClInclude Include="src\VertexInputLayout.h" />
     <ClInclude Include="src\GeometryVertexLayout.h" />
-    <ClInclude Include="src\vsDebugLib.h" />
     <ClInclude Include="src\RenderWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AdapterDX12.cpp" />
-    <ClCompile Include="src\AdapterGL4.cpp" />
     <ClCompile Include="src\BinaryCache.cpp" />
     <ClCompile Include="src\BlendState.cpp" />
     <ClCompile Include="src\CommandContext.cpp" />
@@ -452,22 +341,16 @@
     <ClCompile Include="src\Fancy.cpp" />
     <ClCompile Include="src\FenceDX12.cpp" />
     <ClCompile Include="src\FileReader.cpp" />
-    <ClCompile Include="src\GpuBufferGL4.cpp" />
     <ClCompile Include="src\CommandAllocatorPoolDX12.cpp" />
     <ClCompile Include="src\GpuDynamicAllocatorDX12.cpp" />
     <ClCompile Include="src\GpuProgram.cpp" />
     <ClCompile Include="src\GpuProgramCompilerDX12.cpp" />
-    <ClCompile Include="src\GpuProgramCompilerGL4.cpp" />
     <ClCompile Include="src\GpuProgramCompilerUtils.cpp" />
     <ClCompile Include="src\GpuProgramDX12.cpp" />
     <ClCompile Include="src\GpuProgramFeatures.cpp" />
-    <ClCompile Include="src\GpuProgramGL4.cpp" />
     <ClCompile Include="src\GpuProgramPipelineDX12.cpp" />
-    <ClCompile Include="src\GpuProgramPipelineGL4.cpp" />
-    <ClCompile Include="src\GLSLpreprocessor.cpp" />
     <ClCompile Include="src\GpuProgramResource.cpp" />
     <ClCompile Include="src\GpuProgramResourceDX12.cpp" />
-    <ClCompile Include="src\GpuProgramResourceGL4.cpp" />
     <ClCompile Include="src\GpuResourceDX12.cpp" />
     <ClCompile Include="src\GraphicsWorld.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
@@ -491,7 +374,6 @@
     <ClCompile Include="src\RenderContextDX12.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\RendererDX12.cpp" />
-    <ClCompile Include="src\RendererGL4.cpp" />
     <ClCompile Include="src\RendererPrerequisites.cpp" />
     <ClCompile Include="src\RenderingProcess.cpp" />
     <ClCompile Include="src\RenderingProcessForward.cpp" />
@@ -507,10 +389,8 @@
     <ClCompile Include="src\Serializable.cpp" />
     <ClCompile Include="src\Serializer.cpp" />
     <ClCompile Include="src\StdAfx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_GL4|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\GeometryData.cpp" />
@@ -518,14 +398,11 @@
     <ClCompile Include="src\SubModel.cpp" />
     <ClCompile Include="src\TextureDesc.cpp" />
     <ClCompile Include="src\TextureDX12.cpp" />
-    <ClCompile Include="src\TextureGL4.cpp" />
     <ClCompile Include="src\TextureLoader.cpp" />
     <ClCompile Include="src\TextureSamplerDX12.cpp" />
-    <ClCompile Include="src\TextureSamplerGL4.cpp" />
     <ClCompile Include="src\TimeManager.cpp" />
     <ClCompile Include="src\VertexInputLayout.cpp" />
     <ClCompile Include="src\GeometryVertexLayout.cpp" />
-    <ClCompile Include="src\vsDebugLib.cpp" />
     <ClCompile Include="src\RenderWindow.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
