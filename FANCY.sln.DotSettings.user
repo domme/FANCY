@@ -1,11 +1,11 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=0562FEBF_002D6FA8_002D4ABD_002D8FF9_002DD7B3B8A889FD_002Fd_003Asrc_002Ff_003AMathUtil_002Eh/@EntryIndexedValue">ExplicitlyExcluded</s:String>
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CppFormatting/INDENT_ACCESS_SPECIFIERS_FROM_CLASS/@EntryValue">False</s:Boolean>
-	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CppFormatting/OUTDENT_NAMESPACE_MEMBER/@EntryValue">True</s:Boolean>
 	
-	<s:String x:Key="/Default/CodeStyle/Naming/CppNaming/UserRules/=GETTER/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="Get" Suffix="" Style="AaBb" /&gt;</s:String>
-	<s:String x:Key="/Default/CodeStyle/Naming/CppNaming/UserRules/=SETTER/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="Set" Suffix="" Style="AaBb" /&gt;</s:String>
-	<s:String x:Key="/Default/CodeStyle/Naming/CppNaming/UserRules/=STRUCT_005FMETHODS/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="" Suffix="" Style="AaBb" /&gt;</s:String>
+	
+	
+	
+	
 	<s:Boolean x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=9951624B65E2DD418D1FAFF13D65A75A/@KeyIndexDefined">True</s:Boolean>
 	<s:String x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=9951624B65E2DD418D1FAFF13D65A75A/AbsolutePath/@EntryValue">F:\Dropbox\Entwicklung\ResharperCpp_Settings\Resharper_SharedSettings.DotSettings</s:String>
 	<s:String x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=9951624B65E2DD418D1FAFF13D65A75A/RelativePath/@EntryValue">..\..\..\Dropbox\Entwicklung\ResharperCpp_Settings\Resharper_SharedSettings.DotSettings</s:String>

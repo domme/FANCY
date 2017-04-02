@@ -6,10 +6,6 @@
 #include <queue>
 #include "CommandListType.h"
 
-namespace Fancy { namespace Rendering {
-  class RendererDX12;
-} }
-
 namespace Fancy {namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class DescriptorHeapDX12

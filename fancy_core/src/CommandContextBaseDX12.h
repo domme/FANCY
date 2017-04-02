@@ -1,54 +1,46 @@
 #pragma once
 
 #include "FixedArray.h"
+#include "CommandContext.h"
 #include "GpuDynamicAllocatorDX12.h"
+#include "DX12Prerequisites.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
   class DescriptorHeapDX12;
-  
-
 //---------------------------------------------------------------------------//
-  class CommandContextDX12
+  class CommandContextBaseDX12
   {
   public:
-    CommandContextDX12(CommandListType aType);
-    virtual ~CommandContextDX12();
+    CommandContextBaseDX12(CommandListType aType);
+    virtual ~CommandContextBaseDX12();
 
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint32 aDescriptorTypeMask);
-
-    void Destroy();
-    void Reset();
 
     static void InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr);
     static void UpdateBufferData(GpuBufferDX12* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize);
     static void InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas);
 
+    void Destroy();
+
     void ClearRenderTarget(Texture* aTexture, const float* aColor);
     void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL);
 
-    // DX12-Specific stuff - TODO: Check if we need to find platform-independent ways to express these
-    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource,
-      uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
+    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
     void TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow = false);
-    //void CopySubresources(ID3D12Resource* aDestResource, ID3D12Resource* aSrcResource, uint aFirstSubresource, uint aSubResourceCount);
-
     void CopyResource(GpuResourceDX12* aDestResource, GpuResourceDX12* aSrcResource);
 
-    uint64 ExecuteAndReset(bool aWaitForCompletion = false);
-
-    CommandListType GetType() const { return myCommandListType; }
-
   protected:
-    virtual void ResetInternal();
+    virtual void Reset_Internal();
+    virtual uint64 ExecuteAndReset_Internal(bool aWaitForCompletion = false);
 
+    void ResetRootSignatureAndHeaps();
     void ApplyDescriptorHeaps();
     void KickoffResourceBarriers();
     void ReleaseAllocator(uint64 aFenceVal);
     void ReleaseDynamicHeaps(uint64 aFenceVal);
-
+  
     CommandListType myCommandListType;
-    
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12GraphicsCommandList* myCommandList;
 

@@ -82,7 +82,7 @@ namespace Fancy {
     // Create the window and store a handle to it.
     HWND windowHandle = CreateWindowEx(NULL,
       "WindowClass1",
-      "Fancy (DX12)",
+      "Fancy",
       WS_OVERLAPPEDWINDOW,
       300,
       300,

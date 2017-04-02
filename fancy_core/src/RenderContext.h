@@ -1,12 +1,15 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include PLATFORM_DEPENDENT_INCLUDE_RENDERCONTEXT
+#include "CommandContext.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class RenderContext : public PLATFORM_DEPENDENT_NAME(RenderContext)
+  class RenderContext : public CommandContext
   {
+  public:
+    RenderContext();
+    virtual ~RenderContext() {}
   
   };
 //---------------------------------------------------------------------------//

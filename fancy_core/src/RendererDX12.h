@@ -28,34 +28,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class DescriptorHeapPoolDX12;
 //---------------------------------------------------------------------------//
-	class RenderOutputDX12
-	{
-	public:
-    RenderOutputDX12(void* aNativeInstanceHandle);
-		virtual ~RenderOutputDX12();
-		void postInit(); /// Sets the render-system to a valid state. Should be called just before the first frame
-		void beginFrame();
-		void endFrame();
-
-    Texture* GetBackbuffer() const { return myBackbuffers[myCurrBackbufferIndex]; }
-    Texture* GetDefaultDepthStencilBuffer() const { return myDefaultDepthStencil; }
-    RenderWindow* GetWindow();
-    const RenderWindow* GetWindow() const;
-
-	protected:
-    void CreateSwapChain();
-    void DestroyBackbufferResources();
-    void CreateBackbufferResources();
-
-    void OnWindowResized(uint aWidth, uint aHeight);
-
-    SharedPtr<RenderWindow> myWindow;
-    uint myCurrBackbufferIndex;
-    static const uint kBackbufferCount = 2u;
-    ComPtr<IDXGISwapChain3> mySwapChain;
-    ScopedPtr<Texture> myBackbuffers[kBackbufferCount];
-    ScopedPtr<Texture> myDefaultDepthStencil;
-	};
+	
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//

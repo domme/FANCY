@@ -206,22 +206,22 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
 //---------------------------------------------------------------------------// 
   RenderContextDX12::RenderContextDX12()
-    : CommandContext::CommandContext(CommandListType::Graphics)
+    : CommandContextBaseDX12(CommandListType::Graphics)
     , myViewportParams(0, 0, 1, 1)
     , myViewportDirty(true)
     , myRenderTargetsDirty(true)
     , myDepthStencilTarget(nullptr)
   {
-    RenderContextDX12::ResetInternal();
+    RenderContextDX12::Reset_Internal();
   }
 //---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
   {
   }  
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::ResetInternal()
+  void RenderContextDX12::Reset_Internal()
   {
-    CommandContext::ResetInternal();
+    CommandContextBaseDX12::Reset_Internal();
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myViewportDirty = true;

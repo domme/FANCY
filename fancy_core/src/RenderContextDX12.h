@@ -5,6 +5,9 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "CommandContext.h"
+#include "DX12Prerequisites.h"
+#include "RenderContext.h"
+#include "CommandContextBaseDX12.h"
 
 namespace Fancy{ namespace Rendering{
   class Descriptor;
@@ -40,7 +43,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//
-  class RenderContextDX12 : public CommandContext
+  class RenderContextDX12 : public RenderContext, public CommandContextBaseDX12
   {
   public:
      RenderContextDX12();
@@ -75,7 +78,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   protected:
     static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
 
-    void ResetInternal() override;
+    void Reset_Internal() override;
 
     void ApplyViewport();
     void ApplyPipelineState();
@@ -88,9 +91,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     Texture* myRenderTargets[Rendering::Constants::kMaxNumRenderTargets];
     Texture* myDepthStencilTarget;
-    bool myRenderTargetsDirty;
-
-    
+    bool myRenderTargetsDirty;   
   };
 //---------------------------------------------------------------------------//
 } } }

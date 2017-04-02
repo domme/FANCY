@@ -1,19 +1,30 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include PLATFORM_DEPENDENT_INCLUDE_COMMANDCONTEXT
+#include "CommandListType.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class CommandContext : public PLATFORM_DEPENDENT_NAME(CommandContext)
+  class CommandContext
   {
   public:
-    CommandContext(CommandListType aType) 
-      : PLATFORM_DEPENDENT_NAME(CommandContext)(aType) 
-    {
+    CommandContext(CommandListType aType);
+    virtual ~CommandContext() {}
 
-    }
+    CommandListType GetType() const { return myCommandListType; }
 
+    virtual void Reset() = 0;
+    virtual uint64 ExecuteAndReset(bool aWaitForCompletion = false) = 0;
+
+  protected:
+    CommandListType myCommandListType;
+  };
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  class CommandContextPool
+  {
+  public:
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
   };

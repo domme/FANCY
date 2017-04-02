@@ -2,7 +2,6 @@
 #define INCLUDE_RENDERER_H
 
 #include "RendererPrerequisites.h"
-#include PLATFORM_DEPENDENT_INCLUDE_RENDERER
 
 
 namespace Fancy {
@@ -25,14 +24,7 @@ namespace Fancy { namespace Rendering {
   class BlendState;
   class DepthStencilState;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT RenderOutput : public PLATFORM_DEPENDENT_NAME(RenderOutput)
-  {
-    public:
-      RenderOutput(void* aNativeInstanceHandle) : PLATFORM_DEPENDENT_NAME(RenderOutput)(aNativeInstanceHandle) {}
-      virtual ~RenderOutput() {}
-  };
-//---------------------------------------------------------------------------//
-
+  
 //---------------------------------------------------------------------------//
   class Texture;
 //---------------------------------------------------------------------------//

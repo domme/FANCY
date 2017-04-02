@@ -334,9 +334,6 @@
     <ClInclude Include="src\CommandContext.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\CommandContextDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="src\ComputeContextDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
@@ -371,6 +368,21 @@
       <Filter>src\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\RenderQueues.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CommandContextBaseDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderCore.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderCoreDX12.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderOutput.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderOutputDX12.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
@@ -579,9 +591,6 @@
     <ClCompile Include="src\CommandContext.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\CommandContextDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClCompile>
     <ClCompile Include="src\ComputeContextDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
@@ -607,6 +616,21 @@
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderQueues.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CommandContextBaseDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderCore.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderCoreDX12.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderOutput.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderOutputDX12.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>

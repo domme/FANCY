@@ -1,17 +1,6 @@
 #ifndef INCLUDE_RENDERERPREREQUISITES_H
 #define INCLUDE_RENDERERPREREQUISITES_H
 
-// DEPRECATED: This will be selected by the VS-platform config
-// This define selects the render-system
-// #define RENDERER_OPENGL4
-// #define RENDERER_DX12
-
-#if defined (RENDERER_OPENGL4)
-	#include "OpenGLprerequisites.h"
-#elif defined (RENDERER_DX12)
-	#include "DX12Prerequisites.h"
-#endif // RENDERER_OPENGL4
-
 #include "FancyCorePrerequisites.h"
 #include "ObjectName.h"
 #include "DataFormat.h"
@@ -44,11 +33,7 @@ namespace Fancy {
         kMaxNumConstantBufferElements = 128u,
         kMaxNumGeometriesPerSubModel = 128u,
         kMaxNumRenderContexts = 256u,
-#if defined (RENDERER_OPENGL4)
-        kNumRenderThreads = 1u,
-#elif defined (RENDERER_DX12)
         kNumRenderThreads = 1u
-#endif // RENDERER_OPENGL4
       };
     }
 //---------------------------------------------------------------------------//
@@ -65,36 +50,6 @@ namespace Fancy {
     class GpuProgramResource;
   //---------------------------------------------------------------------------//
   // Forward-declarations of platform-dependent rendering classes
-    #if defined (RENDERER_OPENGL4)
-      namespace GL4 
-      {
-        class RendererGL4;
-        class RenderContextGL4;
-        class TextureGL4;
-        class GpuProgramGL4;
-        class GpuBufferGL4;
-        class GpuProgramPipelineGL4;
-        class GpuProgramCompilerGL4;
-        class TextureSamplerGL4;
-        class GpuProgramResourceGL4;
-        class RenderCoreGL4;
-      }
-
-      #define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::GL4::name##GL4
-      #define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_RENDERCONTEXT   "RenderContextGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_TEXTURESAMPLER "TextureSamplerGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GpuProgramGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_GPUBUFFER "GpuBufferGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerGL4.h"
-      #define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceGL4.h"
-
-    #elif defined (RENDERER_DX11)
-      namespace DX11 {}
-      #define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX11::name##DX11
-	#elif defined (RENDERER_DX12)
 		namespace DX12
 		{
 			class RenderOutputDX12;
@@ -110,26 +65,9 @@ namespace Fancy {
       class GpuResourceDX12;
       class DescriptorDX12;
       class ShaderResourceInterfaceDX12;
-      class CommandContextDX12;
+      class CommandContextBaseDX12;
       class ComputeContextDX12;
 		}
-
-		#define PLATFORM_DEPENDENT_NAME(name) Fancy::Rendering::DX12::name##DX12
-		#define PLATFORM_DEPENDENT_INCLUDE_RENDERER   "RendererDX12.h"
-    #define PLATFORM_DEPENDENT_INCLUDE_RENDERCONTEXT "RenderContextDX12.h"
-    #define PLATFORM_DEPENDENT_INCLUDE_COMMANDCONTEXT "CommandContextDX12.h"
-    #define PLATFORM_DEPENDENT_INCLUDE_COMPUTECONTEXT "ComputeContextDX12.h"
-		#define PLATFORM_DEPENDENT_INCLUDE_TEXTURE    "TextureDX12.h"
-		#define PLATFORM_DEPENDENT_INCLUDE_TEXTURESAMPLER "TextureSamplerDX12.h"
-		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAM "GpuProgramDX12.h"
-		#define PLATFORM_DEPENDENT_INCLUDE_GPUBUFFER "GpuBufferDX12.h"
-		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE "GpuProgramPipelineDX12.h"
-		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMCOMPILER "GpuProgramCompilerDX12.h"
-		#define PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE "GpuProgramResourceDX12.h"
-    #define PLATFORM_DEPENDENT_INCLUDE_GPURESOURCE "GpuResourceDX12.h"
-    #define PLATFORM_DEPENDENT_INCLUDE_DESCRIPTOR "DescriptorDX12.h"
-    #define PLATFORM_DEPENDENT_INCLUDE_SHADERRESOURCEINTERFACE "ShaderResourceInterfaceDX12.h"
-    #endif // RENDERER
   //---------------------------------------------------------------------------//
 
   //-----------------------------------------------------------------------//

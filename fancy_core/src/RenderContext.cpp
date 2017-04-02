@@ -4,7 +4,10 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-
+  RenderContext::RenderContext()
+    : CommandContext(CommandListType::Graphics)
+  {
+  }
 //---------------------------------------------------------------------------//
 } }
 

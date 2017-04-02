@@ -46,7 +46,8 @@ public:
 
   explicit BlendState();
   ~BlendState() {}
-  friend class PLATFORM_DEPENDENT_NAME(RenderCore);
+  friend class RenderCoreDX12;
+
   bool operator==(const BlendState& clOther) const;
   bool operator==(const BlendStateDesc& clOther) const;
 
