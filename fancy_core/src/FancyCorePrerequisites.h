@@ -16,6 +16,7 @@
 #include <functional>
 #include <float.h>
 #include <stdio.h>
+#include <windef.h>
 
 //Math includes
 #include <glm/glm.hpp>

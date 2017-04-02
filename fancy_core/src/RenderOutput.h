@@ -1,5 +1,4 @@
 #pragma once
-#include "ScopedPtr.h"
 
 namespace Fancy {
   class RenderWindow;
@@ -24,6 +23,10 @@ namespace Fancy { namespace Rendering {
     virtual void BeginFrame();
     virtual void EndFrame();
 
+    Texture* GetBackbuffer() const { return myBackbuffers[myCurrBackbufferIndex].get(); }
+    Texture* GetDefaultDepthStencilBuffer() const { return myDefaultDepthStencil.get(); }
+    RenderWindow* GetWindow() const { return myWindow.get(); }
+
   protected:
     virtual void OnWindowResized(uint aWidth, uint aHeight);
 
@@ -31,8 +34,8 @@ namespace Fancy { namespace Rendering {
 
     uint myCurrBackbufferIndex;
     SharedPtr<RenderWindow> myWindow;
-    ScopedPtr<Texture> myBackbuffers[kBackbufferCount];
-    ScopedPtr<Texture> myDefaultDepthStencil;
+    SharedPtr<Texture> myBackbuffers[kBackbufferCount];
+    SharedPtr<Texture> myDefaultDepthStencil;
   };
 //---------------------------------------------------------------------------//
 } }

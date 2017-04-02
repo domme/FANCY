@@ -4,6 +4,7 @@
 #include "FancyCorePrerequisites.h"
 #include "ScopedPtr.h"
 #include "TimeManager.h"
+#include "RenderCore_Platform.h"
 
 namespace Fancy { namespace Scene {
 class SceneNode;
@@ -33,53 +34,55 @@ namespace Fancy {
     NUM
   };
 //---------------------------------------------------------------------------//
-    struct DLLEXPORT EngineParameters
-    {
-      EngineParameters() 
-        : myResourceFolder("../../../resources/")
-        , myRenderingTechnique(RenderingTechnique::FORWARD) 
-      { }
+  struct DLLEXPORT EngineParameters
+  {
+    EngineParameters() 
+      : myResourceFolder("../../../resources/")
+      , myRenderingTechnique(RenderingTechnique::FORWARD) 
+      , myRenderingApi(Rendering::RenderingApi::DX12)
+    { }
 
-      String myResourceFolder;
-      RenderingTechnique myRenderingTechnique;
-    };
+    String myResourceFolder;
+    RenderingTechnique myRenderingTechnique;
+    Rendering::RenderingApi myRenderingApi;
+  };
 //---------------------------------------------------------------------------//
-    class DLLEXPORT FancyRuntime
-    {
-    public:
-      static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams);
-      static FancyRuntime* GetInstance();
+  class DLLEXPORT FancyRuntime
+  {
+  public:
+    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams);
+    static FancyRuntime* GetInstance();
 
-      void Update(double _dt);
+    void Update(double _dt);
 
-      HINSTANCE GetAppInstanceHandle() const { return myAppInstanceHandle; }
+    HINSTANCE GetAppInstanceHandle() const { return myAppInstanceHandle; }
 
-      Time& GetRealTimeClock() { return myRealTimeClock; }
-      uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
+    Time& GetRealTimeClock() { return myRealTimeClock; }
+    uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
 
-      RenderView* GetMainView() const { return myMainView; }
-      GraphicsWorld* GetMainWorld() const { return myMainWorld.get(); }
+    RenderView* GetMainView() const { return myMainView; }
+    GraphicsWorld* GetMainWorld() const { return myMainWorld.get(); }
 
-    private:
-      explicit FancyRuntime(HINSTANCE anAppInstanceHandle);
-      ~FancyRuntime();
+  private:
+    explicit FancyRuntime(HINSTANCE anAppInstanceHandle);
+    ~FancyRuntime();
 
-      void Internal_Init(const EngineParameters& someParams);
+    void Internal_Init(const EngineParameters& someParams);
 
-      void DoFirstFrameTasks();
+    void DoFirstFrameTasks();
 
-      static FancyRuntime* ourInstance;
+    static FancyRuntime* ourInstance;
 
-      HINSTANCE myAppInstanceHandle;
-      uint64 myFrameIndex;
+    HINSTANCE myAppInstanceHandle;
+    uint64 myFrameIndex;
 
-      // TODO: Add support for secondary views
-      SharedPtr<GraphicsWorld> myMainWorld;
-      ScopedPtr<RenderView> myMainView;
+    // TODO: Add support for secondary views
+    SharedPtr<GraphicsWorld> myMainWorld;
+    ScopedPtr<RenderView> myMainView;
 
-      Time myRealTimeClock;
-      std::vector<RenderView*> myViews;
-    };
+    Time myRealTimeClock;
+    std::vector<RenderView*> myViews;
+  };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
 

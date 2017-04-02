@@ -4,11 +4,10 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "Serializable.h"
-#include PLATFORM_DEPENDENT_INCLUDE_TEXTURE
 
 namespace Fancy { namespace Rendering {
 
-class Texture : public PLATFORM_DEPENDENT_NAME(Texture)
+class Texture
 {
 public:
   SERIALIZABLE_RESOURCE(Texture)

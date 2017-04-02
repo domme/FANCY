@@ -283,8 +283,8 @@
     <ClInclude Include="src\RenderContextDX12.h" />
     <ClInclude Include="src\RenderCore.h" />
     <ClInclude Include="src\RenderCoreDX12.h" />
-    <ClInclude Include="src\Renderer.h" />
-    <ClInclude Include="src\RendererDX12.h" />
+    <ClInclude Include="src\RenderCore_Platform.h" />
+    <ClInclude Include="src\RenderCore_PlatformDX12.h" />
     <ClInclude Include="src\RendererPrerequisites.h" />
     <ClInclude Include="src\RenderingProcess.h" />
     <ClInclude Include="src\RenderingProcessForward.h" />
@@ -378,7 +378,7 @@
     <ClCompile Include="src\RenderContextDX12.cpp" />
     <ClCompile Include="src\RenderCore.cpp" />
     <ClCompile Include="src\RenderCoreDX12.cpp" />
-    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\RenderCore_PlatformDX12.cpp" />
     <ClCompile Include="src\RendererDX12.cpp" />
     <ClCompile Include="src\RendererPrerequisites.cpp" />
     <ClCompile Include="src\RenderingProcess.cpp" />

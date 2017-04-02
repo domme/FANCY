@@ -3,7 +3,7 @@
 #include "Scene.h"
 #include "SceneNode.h"
 #include "SceneNodeComponent.h"
-#include "Renderer.h"
+#include "RenderCore.h"
 #include "SceneNodeComponentFactory.h"
 
 #include "ModelComponent.h"

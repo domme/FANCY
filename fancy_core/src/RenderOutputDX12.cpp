@@ -14,16 +14,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
   }
   //---------------------------------------------------------------------------//
-  RenderWindow* RenderOutputDX12::GetWindow()
-  {
-    return myWindow.get();
-  }
-  //---------------------------------------------------------------------------//
-  const RenderWindow* RenderOutputDX12::GetWindow() const
-  {
-    return myWindow.get();
-  }
-  //---------------------------------------------------------------------------//
   void RenderOutputDX12::CreateSwapChain()
   {
     using namespace Microsoft::WRL;
@@ -70,6 +60,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     dsTexParams.u16Width = myWindow->GetWidth();
     dsTexParams.u16Height = myWindow->GetHeight();
     dsTexParams.u8NumMipLevels = 1u;
+
     myDefaultDepthStencil = new Texture();
     myDefaultDepthStencil->create(dsTexParams);
 
