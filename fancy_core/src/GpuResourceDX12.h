@@ -1,8 +1,7 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-
-#if defined (RENDERER_DX12)
+#include "DX12Prerequisites.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -41,5 +40,3 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   };
 //---------------------------------------------------------------------------//
 } } }
-
-#endif  // RENDERER_DX12

@@ -1,4 +1,6 @@
 #include "RenderOutputDX12.h"
+#include "RenderCore_PlatformDX12.h"
+#include "RenderCore.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -51,32 +53,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void RenderOutputDX12::CreateBackbufferResources()
   {
-    TextureParams dsTexParams;
-    dsTexParams.bIsDepthStencil = true;
-    dsTexParams.eFormat = DataFormat::DS_24_8;
-    dsTexParams.myIsExternalTexture = false;
-    dsTexParams.myIsRenderTarget = false;
-    dsTexParams.myIsShaderWritable = false;
-    dsTexParams.u16Width = myWindow->GetWidth();
-    dsTexParams.u16Height = myWindow->GetHeight();
-    dsTexParams.u8NumMipLevels = 1u;
+    RenderOutput::CreateBackbufferResources();
 
-    myDefaultDepthStencil = new Texture();
-    myDefaultDepthStencil->create(dsTexParams);
+    // TODO: Remove this hack and let this be handled internally by the 
+    // core platform abstraction layer
 
-    for (UINT n = 0; n < kBackbufferCount; n++)
+    RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatformImpl());
+
+    for (uint32 i = 0u; i < kBackbufferCount; i++)
     {
-      myBackbuffers[n] = new Texture();
-
-      TextureDX12* backbufferResource = myBackbuffers[n];
+      TextureDX12* backbufferResource = (TextureDX12*)myBackbuffers[i].get();
       backbufferResource->myUsageState = D3D12_RESOURCE_STATE_PRESENT;
 
       // TODO: Sync this better with swap chain properties
       backbufferResource->myParameters.myIsRenderTarget = true;
-      backbufferResource->myParameters.eFormat = DataFormat::RGBA_8;
-      backbufferResource->myParameters.u16Width = myWindow->GetWidth();
-      backbufferResource->myParameters.u16Height = myWindow->GetHeight();
-      backbufferResource->myParameters.u16Depth = 1u;
+      
 
       CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource->myResource)));
       backbufferResource->myRtvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);

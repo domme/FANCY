@@ -23,7 +23,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   private:
     void CreateSwapChain();
     void DestroyBackbufferResources();
-    void CreateBackbufferResources();
+    void CreateBackbufferResources() override;
 
     ComPtr<IDXGISwapChain3> mySwapChain;
     

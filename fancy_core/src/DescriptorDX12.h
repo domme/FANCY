@@ -1,11 +1,11 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
+#include "Descriptor.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  class DescriptorDX12
+  class DescriptorDX12 : public Descriptor
   {
   public:
     DescriptorDX12()

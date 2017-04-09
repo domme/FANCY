@@ -1,24 +1,17 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
-#include "ShaderResourceInterfaceDesc.h"
-
-#if defined(RENDERER_DX12)
+#include "ShaderResourceInterface.h"
+#include "DX12Prerequisites.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  class ShaderResourceInterfaceDX12
+  class ShaderResourceInterfaceDX12 : public ShaderResourceInterface
   {
   public:
-    bool IsEmpty() const { return myInterfaceDesc.myElements.empty(); }
+    ~ShaderResourceInterfaceDX12() override;
 
     ComPtr<ID3D12RootSignature> myRootSignature;
-    uint myHash;
-    ShaderResourceInterfaceDesc myInterfaceDesc;
   };
 //---------------------------------------------------------------------------//
 } } }
-
-#endif  // RENDERER_DX12
 

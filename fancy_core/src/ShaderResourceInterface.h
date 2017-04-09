@@ -1,13 +1,19 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include PLATFORM_DEPENDENT_INCLUDE_SHADERRESOURCEINTERFACE
+#include "ShaderResourceInterfaceDesc.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class ShaderResourceInterface : public PLATFORM_DEPENDENT_NAME(ShaderResourceInterface)
+  class ShaderResourceInterface
   {
-    
+  public:
+    ShaderResourceInterface() = default;
+    virtual ~ShaderResourceInterface() = default;
+
+    bool IsEmpty() const { return myInterfaceDesc.myElements.empty(); }
+
+    ShaderResourceInterfaceDesc myInterfaceDesc;
   };
 //---------------------------------------------------------------------------//
 } }  // Fancy::Rendering

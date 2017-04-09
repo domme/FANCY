@@ -29,6 +29,7 @@ namespace Fancy { namespace Rendering {
 
   protected:
     virtual void OnWindowResized(uint aWidth, uint aHeight);
+    virtual void CreateBackbufferResources();
 
     static const uint kBackbufferCount = 2u;
 

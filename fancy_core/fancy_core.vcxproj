@@ -404,6 +404,7 @@
     <ClCompile Include="src\GeometryData.cpp" />
     <ClCompile Include="src\FC_String.cpp" />
     <ClCompile Include="src\SubModel.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\TextureDesc.cpp" />
     <ClCompile Include="src\TextureDX12.cpp" />
     <ClCompile Include="src\TextureLoader.cpp" />

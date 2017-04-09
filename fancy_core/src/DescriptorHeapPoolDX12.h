@@ -1,17 +1,18 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
-#include "Descriptor.h"
 #include <queue>
+
+#include "FancyCorePrerequisites.h"
+#include "Descriptor.h"
 #include "CommandListType.h"
+#include "DX12Prerequisites.h"
 
 namespace Fancy {namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class DescriptorHeapDX12
   {
     friend class DescriptorHeapPoolDX12;
-    friend class RenderCoreDX12;
+    friend class RenderCore_PlatformDX12;
 
   public:
     DescriptorHeapDX12(ID3D12Device* aDevice, const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);

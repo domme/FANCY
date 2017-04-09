@@ -1,11 +1,9 @@
 #include "StdAfx.h"
 #include "DataFormat.h"
 
-#if defined (RENDERER_DX12)
-
 #include "TextureDX12.h"
 #include "Fancy.h"
-#include "Renderer.h"
+#include "RenderCore.h"
 #include "AdapterDX12.h"
 #include "DescriptorHeapPoolDX12.h"
 
@@ -19,32 +17,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   }
 //---------------------------------------------------------------------------//
-  bool TextureDX12::operator==(const TextureDesc& aDesc) const
-  {
-    return GetDescription() == aDesc;
-  }
-//---------------------------------------------------------------------------//
-  TextureDesc TextureDX12::GetDescription() const
-  {
-    TextureDesc desc;
-    desc.myIsExternalTexture = myParameters.myIsExternalTexture;
-    desc.myInternalRefIndex = myParameters.myInternalRefIndex;
-    desc.mySourcePath = myParameters.path;
-    return desc;
-  }
-//---------------------------------------------------------------------------//
-  void TextureDX12::SetFromDescription(const TextureDesc& aDesc)
-  {
-    // TODO: Read from binary cache
-
-    myParameters.myIsExternalTexture = aDesc.myIsExternalTexture;
-    myParameters.myInternalRefIndex = aDesc.myInternalRefIndex;
-    myParameters.path = aDesc.mySourcePath;
-  }
-//---------------------------------------------------------------------------//
-  
-//---------------------------------------------------------------------------//
-  void TextureDX12::create(const TextureParams& someParameters, const TextureUploadData* someInitialDatas /* = nullptr */, uint32 aNumInitialDatas /*= 0u*/)
+  void TextureDX12::Create(const TextureParams& someParameters, const TextureUploadData* someInitialDatas /* = nullptr */, uint32 aNumInitialDatas /*= 0u*/)
   {
     Destroy();
 
@@ -361,26 +334,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
-  void TextureDX12::setPixelData(void* pData, uint uDataSizeBytes, glm::u32vec3 rectPosOffset, glm::u32vec3 rectDimensions)
-  {
-    ASSERT(false, "Not implemented");
-  }
-//---------------------------------------------------------------------------//
-  void* TextureDX12::lock(GpuResoruceLockOption option)
-  {
-    return nullptr;
-  }
-//---------------------------------------------------------------------------//
-  void TextureDX12::unlock()
-  {
-
-  }
-//---------------------------------------------------------------------------//
   void TextureDX12::Destroy()
   {
     GpuResourceDX12::Reset();
   }
 //---------------------------------------------------------------------------//
 } } }
-
-#endif

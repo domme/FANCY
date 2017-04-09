@@ -633,5 +633,8 @@
     <ClCompile Include="src\RenderCore_PlatformDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
+    <ClCompile Include="src\Texture.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

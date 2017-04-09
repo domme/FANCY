@@ -63,6 +63,8 @@ namespace Fancy { namespace Rendering {
     static const SharedPtr<BlendState>& GetDefaultBlendState() { return ourDefaultBlendState; }
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState() { return ourDefaultDepthStencilState; }
 
+    static RenderCore_Platform* GetPlatformImpl() { return ourPlatformImpl; }
+
   protected:
     RenderCore() {}
 

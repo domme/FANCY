@@ -2,11 +2,9 @@
 
 #include "RendererPrerequisites.h"
 
-#include PLATFORM_DEPENDENT_INCLUDE_GPURESOURCE
-
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class GpuResource : public PLATFORM_DEPENDENT_NAME(GpuResource)
+  class GpuResource
   {
 
   };

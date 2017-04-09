@@ -23,6 +23,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   public:
     RenderCore_PlatformDX12();
+    ~RenderCore_PlatformDX12() override;
 
     bool IsInitialized() { return ourDevice.Get() != nullptr; }
 
