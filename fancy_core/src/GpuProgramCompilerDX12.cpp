@@ -1,19 +1,19 @@
-#include "StdAfx.h"
 #include "GpuProgramCompilerUtils.h"
 #include "StringUtil.h"
 #include "GpuProgramFeatures.h"
 #include "GpuProgram.h"
 #include "PathService.h"
 #include "ShaderResourceInterface.h"
-#include "Fancy.h"
-
-#if defined (RENDERER_DX12)
 
 #include "GpuProgramCompilerDX12.h"
-#include "RendererDX12.h"
-#include "Renderer.h"
 #include "Log.h"
 #include "GpuProgramPipeline.h"
+
+#include "DX12Prerequisites.h"
+#include "GpuProgramResource.h"
+#include "GpuProgramDX12.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -398,7 +398,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 #undef CHECK
   }
 //---------------------------------------------------------------------------//
-  bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramCompilerOutputDX12* aCompilerOutput)
+  bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramCompilerOutput* aCompilerOutput)
   {
     aCompilerOutput->myConstantBufferElements.clear();
 
@@ -466,7 +466,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
   bool locReflectVertexInputLayout(ID3D12ShaderReflection* aReflector, 
-    const D3D12_SHADER_DESC& aShaderDesc, GpuProgramCompilerOutputDX12* aCompilerOutput)
+    const D3D12_SHADER_DESC& aShaderDesc, GpuProgramCompilerOutput* aCompilerOutput)
   {
     if (aShaderDesc.InputParameters == 0u)
       return false;
@@ -494,14 +494,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutputDX12* aProgram) const
+  bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutput* aProgram) const
   {
     LOG_INFO("Compiling shader %...", aDesc.myShaderFileName);
 
     const String& shaderStageDefineStr = GpuProgramCompilerUtils::ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
     const String& shaderProfileStr = locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage));
 
-    const String actualShaderPath = GetPlatformShaderFileDirectory() + String("/") + aDesc.myShaderFileName + GetPlatformShaderFileExtension();
+    const String actualShaderPath = "shader/DX12/" + aDesc.myShaderFileName + ".hlsl";
     std::wstring shaderPathAbs = StringUtil::ToWideString(IO::PathService::convertToAbsPath(actualShaderPath));
 
     const GpuProgramFeatureList& permuationFeatures = aDesc.myPermutation.getFeatureList();
@@ -561,7 +561,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return false;
     }
     
-    ID3D12Device* d3dDevice = RenderCoreDX12::GetDevice();
+    ID3D12Device* d3dDevice = RenderCore::GetPlatformDX12()->GetDevice();
 
     ID3D12RootSignature* rootSignature;
     sucess = d3dDevice->CreateRootSignature(0u, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
@@ -582,14 +582,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     const D3D12_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetRootSignatureDesc();
-    ShaderResourceInterface* rsObject = RenderCoreDX12::GetShaderResourceInterface(*rsDesc, rootSignature);
+    ShaderResourceInterface* rsObject = RenderCore::GetPlatformDX12()->GetShaderResourceInterface(*rsDesc, rootSignature);
     ASSERT(nullptr != rsObject);
 
     aProgram->myPermutation = aDesc.myPermutation;
     aProgram->eShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
     aProgram->myShaderFilename = aDesc.myShaderFileName;
     aProgram->myRootSignature = rsObject;
-    aProgram->myNativeData = compiledShaderBytecode;
+    aProgram->myNativeData = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//
@@ -625,17 +625,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   String GpuProgramCompilerDX12::ResolvePlatformShaderPath(const String& aPath) const
   {
-    return GetPlatformShaderFileDirectory() + String("/") + aPath + GetPlatformShaderFileExtension();
-  }
-//---------------------------------------------------------------------------//
-  GpuProgramCompilerDX12::GpuProgramCompilerDX12()
-  {
-  }
-//---------------------------------------------------------------------------//
-  GpuProgramCompilerDX12::~GpuProgramCompilerDX12()
-  {
+    return "shader/DX12/" + aPath + ".hlsl";
   }
 //---------------------------------------------------------------------------//
 } } }
-
-#endif

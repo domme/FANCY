@@ -1,8 +1,5 @@
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
 #include "ShaderResourceInterfaceDX12.h"
 
-#include "ShaderResourceInterface.h"
 #include "MathUtil.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
@@ -10,6 +7,37 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   ShaderResourceInterfaceDX12::~ShaderResourceInterfaceDX12()
   {
 
+  }
+//---------------------------------------------------------------------------//
+  bool ShaderResourceInterfaceDX12::Create(const D3D12_ROOT_SIGNATURE_DESC& anRSDesc, ComPtr<ID3D12RootSignature> aRootSignature /* = nullptr */)
+  {
+    myInterfaceDesc = CreateDescription(anRSDesc);
+
+    if (aRootSignature == nullptr)
+    {
+      ComPtr<ID3DBlob> signature;
+      ComPtr<ID3DBlob> error;
+      ComPtr<ID3D12RootSignature> rootSignature;
+      HRESULT success = D3D12SerializeRootSignature(&anRSdesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+      ASSERT(success == S_OK, "Failed serializing RootSignature");
+      if (success != S_OK)
+        return false;
+
+      RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
+      success = dx12Platform->GetDevice()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+      ASSERT(success == S_OK, "Failed creating RootSignature");
+
+      if (success != S_OK)
+        return false;
+
+      rs->myRootSignature = rootSignature;
+    }
+    else
+    {
+      rs->myRootSignature = anRS;
+    }
+
+    return true;
   }
 //---------------------------------------------------------------------------//
   ShaderResourceInterfaceDesc ShaderResourceInterfaceDX12::CreateDescription(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc)

@@ -15,7 +15,7 @@ namespace Fancy {
   {
   public:
     FileWatcher();
-    ~FileWatcher();
+    virtual ~FileWatcher();
 
     static uint64 GetFileWriteTime(const String& aFile);
 

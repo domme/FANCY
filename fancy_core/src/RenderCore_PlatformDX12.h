@@ -25,17 +25,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     RenderCore_PlatformDX12();
     ~RenderCore_PlatformDX12() override;
 
-    bool IsInitialized() { return ourDevice.Get() != nullptr; }
+    bool IsInitialized() override { return ourDevice.Get() != nullptr; }
 
-    DXGI_FORMAT GetFormat(DataFormat aFormat);
-    DataFormat ResolveFormat(DataFormat aFormat);
-    DataFormatInfo GetFormatInfo(DXGI_FORMAT aFormat);
-    D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
+    static DXGI_FORMAT GetFormat(DataFormat aFormat);
+    static DataFormat ResolveFormat(DataFormat aFormat);
+    static DataFormatInfo GetFormatInfo(DXGI_FORMAT aFormat);
+    static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
 
-    ID3D12Device* GetDevice() { return ourDevice.Get(); }
+    ID3D12Device* GetDevice() const { return ourDevice.Get(); }
 
     Rendering::ShaderResourceInterface*
-      GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS = nullptr);
+      GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS = nullptr) const;
 
     void WaitForFence(CommandListType aType, uint64 aFenceVal);
     bool IsFenceDone(CommandListType aType, uint64 aFenceVal);
@@ -46,7 +46,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal);
 
     Descriptor AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    DescriptorHeapPoolDX12* GetDescriptorHeapPool() { return ourDynamicDescriptorHeapPool; }
+    DescriptorHeapPoolDX12* GetDescriptorHeapPool() const { return ourDynamicDescriptorHeapPool; }
     DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal);
 

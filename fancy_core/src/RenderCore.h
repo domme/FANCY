@@ -14,6 +14,10 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
 } }
 
+namespace Fancy { namespace Rendering { namespace DX12 {
+  class RenderCore_PlatformDX12;
+} } }
+
 namespace Fancy { namespace Rendering {
   struct TextureDesc;
   struct GpuProgramDesc;
@@ -63,7 +67,8 @@ namespace Fancy { namespace Rendering {
     static const SharedPtr<BlendState>& GetDefaultBlendState() { return ourDefaultBlendState; }
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState() { return ourDefaultDepthStencilState; }
 
-    static RenderCore_Platform* GetPlatformImpl() { return ourPlatformImpl; }
+    static RenderCore_Platform* GetPlatform() { return ourPlatformImpl; }
+    static DX12::RenderCore_PlatformDX12* GetPlatformDX12();
 
   protected:
     RenderCore() {}

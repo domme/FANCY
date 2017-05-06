@@ -1,6 +1,4 @@
 #pragma once
-#include "FixedArray.h"
-#include <array>
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//

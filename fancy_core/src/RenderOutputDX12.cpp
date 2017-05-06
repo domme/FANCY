@@ -58,7 +58,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     // TODO: Remove this hack and let this be handled internally by the 
     // core platform abstraction layer
 
-    RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatformImpl());
+    RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
 
     for (uint32 i = 0u; i < kBackbufferCount; i++)
     {

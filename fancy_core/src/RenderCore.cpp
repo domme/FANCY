@@ -58,6 +58,11 @@ namespace Fancy { namespace Rendering {
     Shutdown_2_Platform();
   }
 //---------------------------------------------------------------------------//
+  DX12::RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
+  {
+    return static_cast<DX12::RenderCore_PlatformDX12*>(ourPlatformImpl.Get());
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
   {
     ASSERT(ourPlatformImpl == nullptr);

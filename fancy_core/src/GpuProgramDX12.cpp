@@ -1,18 +1,19 @@
 #include "StdAfx.h"
 #include "GpuProgramCompiler.h"
 #include "AdapterDX12.h"
-#include "Renderer.h"
+
 #include "ShaderResourceInterface.h"
 #include "GpuProgramCompiler.h"
 
-#if defined (RENDERER_DX12)
-
 #include "GpuProgramDX12.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
+#include "ShaderResourceInterfaceDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void GpuProgramDX12::CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout,
-    std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements) const
+    std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements)
   {
     someNativeInputElements.clear();
 
@@ -31,7 +32,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       nativeElem.AlignedByteOffset = offsetByte;
       offsetByte += elem.mySizeBytes;
 
-      nativeElem.Format = RenderCore::GetFormat(elem.myFormat);
+      nativeElem.Format = RenderCore_PlatformDX12::GetFormat(elem.myFormat);
 
       // TODO: Add support for instancing
       nativeElem.InputSlot = 0;
@@ -77,7 +78,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
   GpuProgramDX12::GpuProgramDX12()
-    : myResourceInterface(nullptr)
   {
   }
 //---------------------------------------------------------------------------//
@@ -85,73 +85,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramDX12::Destroy()
+  void GpuProgramDX12::SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput)
   {
-  }
-//---------------------------------------------------------------------------//
-  bool GpuProgramDX12::operator==(const GpuProgramDX12& anOther) const
-  {
-    return GetDescription() == anOther.GetDescription();
-  }
-//---------------------------------------------------------------------------//
-  bool GpuProgramDX12::operator==(const GpuProgramDesc& aDesc) const
-  {
-    return GetDescription() == aDesc;
-  }
-//---------------------------------------------------------------------------//
-  GpuProgramDesc GpuProgramDX12::GetDescription() const
-  {
-    GpuProgramDesc desc;
-    desc.myShaderFileName = mySourcePath;
-    desc.myShaderStage = static_cast<uint32>(myStage);
-    desc.myPermutation = myPermutation;
-    return desc;
-  }
-//---------------------------------------------------------------------------//
-  bool GpuProgramDX12::SetFromDescription(const GpuProgramDesc& aDesc, const GpuProgramCompiler* aCompiler)
-  {
-    GpuProgramCompilerOutputDX12 output;
-    const bool success = aCompiler->Compile(aDesc, &output);
+    GpuProgram::SetFromCompilerOutput(aCompilerOutput);
 
-    if (success)
-    {
-      mySourcePath = aDesc.myShaderFileName;
-      myPermutation = aDesc.myPermutation;
-      myStage = static_cast<ShaderStage>(aDesc.myShaderStage);
-
-      Destroy();
-      SetFromCompilerOutput(output);
-    }
-
-    return success;
-  }
-//---------------------------------------------------------------------------//
-  void GpuProgramDX12::SetFromCompilerOutput(const GpuProgramCompilerOutputDX12& aCompilerOutput)
-  {
-    myNativeData = aCompilerOutput.myNativeData;
+    myNativeData = static_cast<ID3DBlob*>(aCompilerOutput.myNativeData);
     myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();
     myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
 
-    myReadTextureInfos = aCompilerOutput.vReadTextureInfos;
-    myReadBufferInfos = aCompilerOutput.vReadBufferInfos;
-    myWriteTextureInfos = aCompilerOutput.vWriteTextureInfos;
-    myWriteBufferInfos = aCompilerOutput.vWriteBufferInfos;
-    myConstantBufferElements = aCompilerOutput.myConstantBufferElements;
-
-    myStage = aCompilerOutput.eShaderStage;
-    mySourcePath = aCompilerOutput.myShaderFilename;
-    myPermutation = aCompilerOutput.myPermutation;
-    myInputLayout = aCompilerOutput.clVertexInputLayout;
     CreateNativeInputLayout(myInputLayout, myNativeInputElements);
-
-    myResourceInterface = aCompilerOutput.myRootSignature;
   }
 //---------------------------------------------------------------------------//
   ID3D12RootSignature* GpuProgramDX12::GetRootSignature() const
   {
-    return myResourceInterface->myRootSignature.Get();
+    return static_cast<ShaderResourceInterfaceDX12*>(myResourceInterface)->myRootSignature.Get();
   }
 //---------------------------------------------------------------------------//
 } } }
-
-#endif

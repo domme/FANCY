@@ -111,7 +111,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ourDevice.Reset();
   }
 //---------------------------------------------------------------------------//
-  Rendering::ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS /* = nullptr */)
+  Rendering::ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const
   {
     const uint& requestedHash = ShaderResourceInterfaceDX12::ComputeHash(anRSdesc);
 
@@ -119,33 +119,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       if (rs->GetDesc().myHash == requestedHash)
         return rs.get();
 
-    ShaderResourceInterfaceDX12* rs = new ShaderResourceInterfaceDX12;
-    locShaderResourceInterfacePool.push_back(std::unique_ptr<ShaderResourceInterface>(rs));
-
-    rs->myHash = requestedHash;
-    rs->myInterfaceDesc = locGetInterfaceDescFromRSdesc(anRSdesc);
-
-    if (anRS == nullptr)
+    std::unique_ptr<ShaderResourceInterfaceDX12> rs(new ShaderResourceInterfaceDX12());
+    if (rs->Create(anRSdesc, anRS))
     {
-      ComPtr<ID3DBlob> signature;
-      ComPtr<ID3DBlob> error;
-      ComPtr<ID3D12RootSignature> rootSignature;
-      HRESULT success = D3D12SerializeRootSignature(&anRSdesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-      ASSERT(success == S_OK, "Failed serializing RootSignature");
-
-      ASSERT(ourDevice);
-
-      success = ourDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
-      ASSERT(success == S_OK, "Failed creating RootSignature");
-
-      rs->myRootSignature = rootSignature;
-    }
-    else
-    {
-      rs->myRootSignature = anRS;
+      ShaderResourceInterface* rs_ptr = rs.get();
+      locShaderResourceInterfacePool.push_back(std::move(rs));
+      return rs_ptr;
     }
 
-    return rs;
+    return nullptr;
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::WaitForFence(CommandListType aType, uint64 aFenceVal)
