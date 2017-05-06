@@ -66,7 +66,6 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct ShaderResourceInterfaceDesc
   {
-    
     std::vector<SriElement> myElements;
     uint64 myHash;
   };

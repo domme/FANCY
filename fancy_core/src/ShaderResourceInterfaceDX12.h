@@ -10,6 +10,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
     ~ShaderResourceInterfaceDX12() override;
 
+    static ShaderResourceInterfaceDesc CreateDescription(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc);
+    static uint64 ComputeHash(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc);
+
     ComPtr<ID3D12RootSignature> myRootSignature;
   };
 //---------------------------------------------------------------------------//

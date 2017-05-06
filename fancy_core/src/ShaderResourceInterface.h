@@ -12,7 +12,9 @@ namespace Fancy { namespace Rendering {
     virtual ~ShaderResourceInterface() = default;
 
     bool IsEmpty() const { return myInterfaceDesc.myElements.empty(); }
+    const ShaderResourceInterfaceDesc& GetDesc() const { return myInterfaceDesc; }
 
+  private:
     ShaderResourceInterfaceDesc myInterfaceDesc;
   };
 //---------------------------------------------------------------------------//
