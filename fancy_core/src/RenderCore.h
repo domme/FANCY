@@ -19,6 +19,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 } } }
 
 namespace Fancy { namespace Rendering {
+  enum class CommandListType;
   struct TextureDesc;
   struct GpuProgramDesc;
   struct GpuProgramPipelineDesc;
@@ -27,6 +28,7 @@ namespace Fancy { namespace Rendering {
   class BlendState;
   class DepthStencilState;
   class RenderCore_Platform;
+  class CommandContext;
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
@@ -69,6 +71,9 @@ namespace Fancy { namespace Rendering {
 
     static RenderCore_Platform* GetPlatform() { return ourPlatformImpl; }
     static DX12::RenderCore_PlatformDX12* GetPlatformDX12();
+
+    static CommandContext* AllocateContext(CommandListType aType);
+    static void FreeContext(CommandContext* aContext);
 
   protected:
     RenderCore() {}

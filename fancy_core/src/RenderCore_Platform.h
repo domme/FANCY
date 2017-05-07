@@ -1,10 +1,9 @@
 #pragma once
 
-
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class GpuProgramCompiler;
-
+  class CommandContext;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
   {
@@ -18,7 +17,7 @@ namespace Fancy { namespace Rendering {
     virtual SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline() = 0;
     virtual SharedPtr<Texture> CreateTexture() = 0;
     virtual GpuBuffer* CreateGpuBuffer() = 0;
-
+    virtual CommandContext* CreateContext(CommandListType aType) = 0;
   };
 //---------------------------------------------------------------------------//
 } }

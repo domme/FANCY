@@ -280,7 +280,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memcpy(mappedBufferPtr, aDataPtr, aBuffer->GetSizeBytes());
     uploadResource->Unmap(0, nullptr);
 
-    CommandContext* initContext = RenderContext::AllocateContext(CommandListType::Graphics);
+    CommandContext* initContext = CommandContextPool::AllocateContext(CommandListType::Graphics);
     initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
     initContext->myCommandList->CopyResource(aBuffer->GetResource(), uploadResource.Get());
     initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, true);
