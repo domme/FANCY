@@ -32,23 +32,5 @@ namespace Fancy { namespace Rendering {
     myParameters.myInternalRefIndex = aDesc.myInternalRefIndex;
     myParameters.path = aDesc.mySourcePath;
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //---------------------------------------------------------------------------//
 } }

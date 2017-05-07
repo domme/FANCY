@@ -2,12 +2,7 @@
 #include "GpuResourceDX12.h"
 
 #include "DescriptorDX12.h"
-#include "Descriptor.h"
 #include "Texture.h"
-
-namespace Fancy{ namespace Rendering{
-class Descriptor;
-}}
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -20,21 +15,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ~TextureDX12() override;
     
     void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint32 aNumInitialDatas = 0u) override;
-    
-    bool isValid() const { return myResource != nullptr; }
 
-    const Descriptor& GetRtv() const { return myRtvDescriptor; }
-    const Descriptor& GetSrv() const { return mySrvDescriptor; }
-    const Descriptor& GetUav() const { return myUavDescriptor; }
-    const Descriptor& GetDsv() const { return myDsvDescriptor; }
+    const DescriptorDX12& GetRtv() const { return myRtvDescriptor; }
+    const DescriptorDX12& GetSrv() const { return mySrvDescriptor; }
+    const DescriptorDX12& GetUav() const { return myUavDescriptor; }
+    const DescriptorDX12& GetDsv() const { return myDsvDescriptor; }
     
   protected:
     void Destroy();
 
-    Descriptor myRtvDescriptor;
-    Descriptor mySrvDescriptor;
-    Descriptor myUavDescriptor;
-    Descriptor myDsvDescriptor;
+    DescriptorDX12 myRtvDescriptor;
+    DescriptorDX12 mySrvDescriptor;
+    DescriptorDX12 myUavDescriptor;
+    DescriptorDX12 myDsvDescriptor;
   };
 
 //---------------------------------------------------------------------------//

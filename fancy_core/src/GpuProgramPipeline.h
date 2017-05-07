@@ -1,22 +1,35 @@
-#ifndef INCLUDE_GPUPROGRAMPIPELINE_H
-#define INCLUDE_GPUPROGRAMPIPELINE_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "GpuProgramPipelineDesc.h"
-#include PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMPIPELINE
 
 #include "Serializable.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class GpuProgramPipeline : public PLATFORM_DEPENDENT_NAME(GpuProgramPipeline)
+  class ShaderResourceInterface;
+//---------------------------------------------------------------------------//
+  class GpuProgramPipeline
   {
     public:
       SERIALIZABLE_RESOURCE(GpuProgramPipeline);
 
+      GpuProgramPipeline();
+      virtual ~GpuProgramPipeline();
+
+      GpuProgramPipelineDesc GetDescription() const;
+      void SetFromShaders(const std::array<SharedPtr<GpuProgram>, (uint32)ShaderStage::NUM>& someShaders);
+
+      uint64 GetHash() const { return GetDescription().GetHash(); }
+      uint64 GetShaderByteCodeHash() const { return myShaderByteCodeHash; }
+
+      void UpdateResourceInterface();
+      void UpdateShaderByteCodeHash();
+
+      SharedPtr<GpuProgram> myGpuPrograms[(uint32)ShaderStage::NUM];
+      uint myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
+      const ShaderResourceInterface* myResourceInterface;
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
-
-#endif  // INCLUDE_GPUPROGRAMPIPELINE_H

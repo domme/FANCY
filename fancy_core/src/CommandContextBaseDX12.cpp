@@ -1,8 +1,9 @@
 #include "FancyCorePrerequisites.h"
 #include "CommandContextBaseDX12.h"
-#include "Renderer.h"
-#include "Fancy.h"
 #include "GpuBufferDX12.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
+#include "TextureDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -35,12 +36,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
 
-    myCommandAllocator = RenderCore::GetCommandAllocator(myCommandListType);
+    myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
 
     D3D12_COMMAND_LIST_TYPE nativeCmdListType = locResolveCommandListType(aCommandListType);
 
     CheckD3Dcall(
-      RenderCore::GetDevice()->CreateCommandList(0, nativeCmdListType,
+      RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandList(0, nativeCmdListType,
         myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
       );
   }
@@ -79,7 +80,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     ASSERT(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
 
-    myCommandAllocator = RenderCore::GetCommandAllocator(myCommandListType);
+    myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
 
     CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
@@ -97,7 +98,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CheckD3Dcall(myCommandList->Close());
     myIsInRecordState = false;
 
-    uint64 fenceVal = RenderCore::ExecuteCommandList(myCommandList);
+    uint64 fenceVal = RenderCore::GetPlatformDX12()->ExecuteCommandList(myCommandList);
 
     myCpuVisibleAllocator.CleanupAfterCmdListExecute(fenceVal);
     myGpuOnlyAllocator.CleanupAfterCmdListExecute(fenceVal);
@@ -105,7 +106,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ReleaseAllocator(fenceVal);
 
     if (aWaitForCompletion)
-      RenderCore::WaitForFence(myCommandListType, fenceVal);
+      RenderCore::GetPlatformDX12()->WaitForFence(myCommandListType, fenceVal);
 
     Reset_Internal();
 
@@ -133,16 +134,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void CommandContextBaseDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
   {
-    ASSERT(aTexture->getParameters().myIsRenderTarget);
+    ASSERT(aTexture->GetParameters().myIsRenderTarget);
 
-    TransitionResource(aTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-    myCommandList->ClearRenderTargetView(aTexture->GetRtv().myCpuHandle, aColor, 0, nullptr);
+    TransitionResource(static_cast<TextureDX12*>(aTexture), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+    myCommandList->ClearRenderTargetView(static_cast<TextureDX12*>(aTexture)->GetRtv().myCpuHandle, aColor, 0, nullptr);
   }
   //---------------------------------------------------------------------------//
   void CommandContextBaseDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear,
     uint8 aStencilClear, uint32 someClearFlags /* = (uint32)DepthStencilClearFlags::CLEAR_ALL */)
   {
-    ASSERT(aTexture->getParameters().bIsDepthStencil);
+    ASSERT(aTexture->GetParameters().bIsDepthStencil);
 
     D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS)0;
     if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_DEPTH)
@@ -150,7 +151,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_STENCIL)
       clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
 
-    myCommandList->ClearDepthStencilView(aTexture->GetDsv().myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
+    myCommandList->ClearDepthStencilView(static_cast<TextureDX12*>(aTexture)->GetDsv().myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
   //---------------------------------------------------------------------------//
   void CommandContextBaseDX12::TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow /* = false */)
@@ -203,7 +204,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uint32* destRowNums = static_cast<uint32*>(alloca(sizeof(uint32) * aNumSubresources));
 
     uint64 destTotalSizeBytes = 0u;
-    RenderCore::GetDevice()->GetCopyableFootprints(&destDesc, aFirstSubresourceIndex, aNumSubresources, 0u, destLayouts, destRowNums, destRowSizesByte, &destTotalSizeBytes);
+    RenderCore::GetPlatformDX12()->GetDevice()->GetCopyableFootprints(&destDesc, aFirstSubresourceIndex, aNumSubresources, 0u, destLayouts, destRowNums, destRowSizesByte, &destTotalSizeBytes);
 
     // Prepare a temporary buffer that contains all subresource data in the expected form (i.e. respecting the dest data layout)
     uint8* tempBufferDataPtr;
@@ -271,7 +272,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const D3D12_RESOURCE_DESC& resourceDesc = aBuffer->GetResource()->GetDesc();
 
     ComPtr<ID3D12Resource> uploadResource;
-    CheckD3Dcall(RenderCore::GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
+    CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
       &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
 
     void* mappedBufferPtr;

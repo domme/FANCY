@@ -1,14 +1,12 @@
 #include "GpuBufferDX12.h"
-#include "Renderer.h"
 #include "Fancy.h"
 #include "DescriptorHeapPoolDX12.h"
-
-#if defined (RENDERER_DX12)
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   GpuBufferDX12::GpuBufferDX12()
-    : myAlignment(0u)
   {
     memset(&myVertexBufferView, 0, sizeof(myVertexBufferView));
     memset(&myIndexBufferView, 0, sizeof(myIndexBufferView));
@@ -18,21 +16,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   }
 //---------------------------------------------------------------------------//
-  bool GpuBufferDX12::operator==(const GpuBufferDesc& aDesc) const
+  void GpuBufferDX12::Create(const GpuBufferCreationParams& someParameters, void* pInitialData)
   {
-    return GetDescription() == aDesc;
-  }
-//---------------------------------------------------------------------------//
-  GpuBufferDesc GpuBufferDX12::GetDescription() const
-  {
-    GpuBufferDesc desc;
-    desc.myInternalRefIndex = myParameters.myInternalRefIndex;
-    return desc;
-  }
-//---------------------------------------------------------------------------//
-  void GpuBufferDX12::create(const GpuBufferCreationParams& someParameters, void* pInitialData)
-  {
-    destroy();
+    Destroy();
 
     ASSERT(someParameters.uElementSizeBytes > 0 && someParameters.uNumElements > 0,
       "Invalid buffer size specified");
@@ -115,7 +101,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myUsageState = D3D12_RESOURCE_STATE_COPY_DEST;
     }
 
-    CheckD3Dcall(RenderCore::GetDevice()->CreateCommittedResource(
+    RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
+
+    CheckD3Dcall(dx12Platform->GetDevice()->CreateCommittedResource(
       &heapProps, 
       D3D12_HEAP_FLAG_NONE, 
       &resourceDesc, 
@@ -135,8 +123,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       srvDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
       srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-      mySrvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      RenderCoreDX12::GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
+      mySrvDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      dx12Platform->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
     }
 
     if (wantsUnorderedAccess)
@@ -149,8 +137,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       uavDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
       uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
-      myUavDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      RenderCoreDX12::GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
+      myUavDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      dx12Platform->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
     }
 
     if (wantsConstantBufferView)
@@ -159,8 +147,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       cbvDesc.SizeInBytes = actualWidthBytesWithAlignment;
       cbvDesc.BufferLocation = GetGpuVirtualAddress();
 
-      myCbvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      RenderCoreDX12::GetDevice()->CreateConstantBufferView(&cbvDesc, myCbvDescriptor.myCpuHandle);
+      myCbvDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      dx12Platform->GetDevice()->CreateConstantBufferView(&cbvDesc, myCbvDescriptor.myCpuHandle);
     }
 
     if (wantsVboView)
@@ -194,12 +182,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       }
       else
       {
-        RenderContext::InitBufferData(this, pInitialData);
+        RenderContextDX12::InitBufferData(this, pInitialData);
       }
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::destroy()
+  void GpuBufferDX12::Destroy()
   {
     GpuResourceDX12::Reset();
     memset(&myVertexBufferView, 0, sizeof(myVertexBufferView));
@@ -271,7 +259,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (mappedData != nullptr)
     {
       myState.isLocked = true;
-      myState.myLockedRange = range;
+      myState.myLockedRange_Begin = range.Begin;
+      myState.myLockedRange_End = range.End;
       myState.myCachedLockDataPtr = mappedData;
     }
     
@@ -283,13 +272,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (!myState.isLocked)
       return;
 
-    myResource->Unmap(0u, &myState.myLockedRange);
+    D3D12_RANGE range;
+    range.Begin = myState.myLockedRange_Begin;
+    range.End = myState.myLockedRange_End;
+
+    myResource->Unmap(0u, &range);
 
     myState.isLocked = false;
-    myState.myLockedRange = { 0 };
+    myState.myLockedRange_Begin = 0u;
+    myState.myLockedRange_End = 0u;
     myState.myCachedLockDataPtr = nullptr;
   }
 //---------------------------------------------------------------------------//
 } } }
-
-#endif

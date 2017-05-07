@@ -28,6 +28,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
     void SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput) override;
+    uint64 GetNativeBytecodeHash() const override;
 
     /// Shortcut for retrieving the DX12-rootSignature through the resourceInterface
     ID3D12RootSignature* GetRootSignature() const;

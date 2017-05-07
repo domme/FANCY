@@ -24,11 +24,10 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     ID3D12DescriptorHeap* GetHeap() const { return myDescriptorHeap.Get(); }
     void Reset() { myNextFreeHandleIndex = 0u; }
 
-    Descriptor AllocateDescriptor();
-    Descriptor GetDescriptor(uint32 anIndex);
+    DescriptorDX12 AllocateDescriptor();
+    DescriptorDX12 GetDescriptor(uint32 anIndex);
     uint32 GetNumAllocatedDescriptors() const { return myNextFreeHandleIndex; }
-
-
+    
   private:
     DescriptorHeapDX12();
     void Create(ID3D12Device* aDevice, const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);

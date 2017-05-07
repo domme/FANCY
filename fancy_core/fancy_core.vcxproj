@@ -251,7 +251,6 @@
     <ClInclude Include="src\GpuProgramFeatures.h" />
     <ClInclude Include="src\GpuProgramPipeline.h" />
     <ClInclude Include="src\GpuProgramPipelineDesc.h" />
-    <ClInclude Include="src\GpuProgramPipelineDX12.h" />
     <ClInclude Include="src\GpuProgramResource.h" />
     <ClInclude Include="src\GpuProgramResourceDX12.h" />
     <ClInclude Include="src\GpuResource.h" />
@@ -336,6 +335,7 @@
     <ClCompile Include="src\DataFormat.cpp" />
     <ClCompile Include="src\DescriptorHeapPoolDX12.cpp" />
     <ClCompile Include="src\FileWatcher.cpp" />
+    <ClCompile Include="src\GpuBuffer.cpp" />
     <ClCompile Include="src\GpuBufferDX12.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\CameraControllerComponent.cpp" />
@@ -352,7 +352,7 @@
     <ClCompile Include="src\GpuProgramCompilerUtils.cpp" />
     <ClCompile Include="src\GpuProgramDX12.cpp" />
     <ClCompile Include="src\GpuProgramFeatures.cpp" />
-    <ClCompile Include="src\GpuProgramPipelineDX12.cpp" />
+    <ClCompile Include="src\GpuProgramPipeline.cpp" />
     <ClCompile Include="src\GpuProgramResource.cpp" />
     <ClCompile Include="src\GpuProgramResourceDX12.cpp" />
     <ClCompile Include="src\GpuResourceDX12.cpp" />

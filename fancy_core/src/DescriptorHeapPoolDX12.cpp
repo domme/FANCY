@@ -1,9 +1,8 @@
 #include "FancyCorePrerequisites.h"
 #include  "DescriptorHeapPoolDX12.h"
 
-#include "RendererDX12.h"
-#include "Renderer.h"
 #include "MathUtil.h"
+#include "DescriptorDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -14,7 +13,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Create(aDevice, aDesc);
   }
 //---------------------------------------------------------------------------//
-  Descriptor DescriptorHeapDX12::AllocateDescriptor()
+  DescriptorDX12 DescriptorHeapDX12::AllocateDescriptor()
   {
     ASSERT(myNextFreeHandleIndex < myDesc.NumDescriptors);
 
@@ -26,7 +25,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     ++myNextFreeHandleIndex;
 
-    Descriptor descr;
+    DescriptorDX12 descr;
     descr.myCpuHandle = cpuHandle;
     descr.myGpuHandle = gpuHandle;
     descr.myHeapType = myDesc.Type;
@@ -34,7 +33,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return descr;
   }
 //---------------------------------------------------------------------------//
-  Descriptor DescriptorHeapDX12::GetDescriptor(uint32 anIndex)
+  DescriptorDX12 DescriptorHeapDX12::GetDescriptor(uint32 anIndex)
   {
     ASSERT(anIndex < myNextFreeHandleIndex);
 
@@ -44,7 +43,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
     gpuHandle.ptr = myGpuHeapStart.ptr + anIndex * myHandleIncrementSize;
 
-    Descriptor descr;
+    DescriptorDX12 descr;
     descr.myCpuHandle = cpuHandle;
     descr.myGpuHandle = gpuHandle;
     descr.myHeapType = myDesc.Type;

@@ -12,7 +12,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     friend class RenderOutputDX12;
     friend class RenderContextDX12;
-    friend class CommandContextDX12;
+    friend class CommandContextBaseDX12;
 
   public:
     GpuResourceDX12()
@@ -20,6 +20,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       , myTransitioningState(static_cast<D3D12_RESOURCE_STATES>(~0))
     {
     }
+
+    bool IsValid() const { return myResource != nullptr; }
 
     ID3D12Resource* GetResource() const  { return myResource.Get(); }
     D3D12_RESOURCE_STATES GetUsageState() const { return myUsageState; }

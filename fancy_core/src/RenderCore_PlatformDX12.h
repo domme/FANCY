@@ -45,7 +45,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ID3D12CommandAllocator* GetCommandAllocator(CommandListType aCmdListType);
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal);
 
-    Descriptor AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
+    DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     DescriptorHeapPoolDX12* GetDescriptorHeapPool() const { return ourDynamicDescriptorHeapPool; }
     DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal);

@@ -33,6 +33,7 @@ namespace Fancy { namespace Rendering {
     bool SetFromDescription(const GpuProgramDesc& aDesc, const GpuProgramCompiler* aCompiler);
     virtual void SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput);
     uint64 GetHash() const { return GetDescription().GetHash(); }
+    virtual uint64 GetNativeBytecodeHash() const = 0;
 
     ShaderStage getShaderStage() const { return myStage; }
     const ShaderResourceInterface* GetResourceInterface() const { return myResourceInterface; }

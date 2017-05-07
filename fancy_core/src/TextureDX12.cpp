@@ -6,6 +6,7 @@
 #include "RenderCore.h"
 #include "AdapterDX12.h"
 #include "DescriptorHeapPoolDX12.h"
+#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -86,7 +87,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-    resourceDesc.Format = RenderCore::GetFormat(someParameters.eFormat);
+    resourceDesc.Format = RenderCore_PlatformDX12::GetFormat(someParameters.eFormat);
 
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     if (someParameters.bIsDepthStencil)
@@ -134,7 +135,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     D3D12_CLEAR_VALUE clearValue;
-    clearValue.Format = RenderCore::GetFormat(someParameters.eFormat);
+    clearValue.Format = RenderCore_PlatformDX12::GetFormat(someParameters.eFormat);
     if (someParameters.bIsDepthStencil)
     {
       clearValue.DepthStencil.Depth = 1.0f;
@@ -144,8 +145,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       memset(clearValue.Color, 0, sizeof(clearValue.Color));
     }
+
+    RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
     
-    CheckD3Dcall(RenderCoreDX12::GetDevice()->CreateCommittedResource(
+    CheckD3Dcall(platformDx12->GetDevice()->CreateCommittedResource(
       &heapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
@@ -176,8 +179,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       break;
       }
 
-      myDsvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-      RenderCoreDX12::GetDevice()->CreateDepthStencilView(myResource.Get(), &dsvDesc, myDsvDescriptor.myCpuHandle);
+      myDsvDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+      platformDx12->GetDevice()->CreateDepthStencilView(myResource.Get(), &dsvDesc, myDsvDescriptor.myCpuHandle);
     }
     else
     {
@@ -214,8 +217,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       break;
       }
 
-      mySrvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      RenderCoreDX12::GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
+      mySrvDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      platformDx12->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
 
       if (wantsGpuWriteAccess)
       {
@@ -246,8 +249,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         break;
         }
 
-        myUavDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        RenderCoreDX12::GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
+        myUavDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        platformDx12->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
       }
 
       if (someParameters.myIsRenderTarget)
@@ -279,8 +282,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         break;
         }
 
-        myRtvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        RenderCoreDX12::GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.myCpuHandle);
+        myRtvDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        platformDx12->GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.myCpuHandle);
       }
     }
 
@@ -293,7 +296,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         // This can happen e.g. if the data is provided as RGB_8 but DX only supports RGBA_8 formats
         // In this case, we need to manually add some padding per pixel so the upload works
 
-        TextureUploadData* newDatas = static_cast<TextureUploadData*>(alloca(sizeof(TextureUploadData) * aNumInitialDatas));
+        TextureUploadData* newDatas = static_cast<TextureUploadData*>(malloc(sizeof(TextureUploadData) * aNumInitialDatas));
         for (uint32 i = 0u; i < aNumInitialDatas; ++i)
         {
           const uint32 width = someInitialDatas[i].myRowSizeBytes / someInitialDatas[i].myPixelSizeBytes;
@@ -326,6 +329,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
         for (uint32 i = 0u; i < aNumInitialDatas; ++i)
           free(newDatas[i].myData);
+
+        free(newDatas);
       }
       else
       {

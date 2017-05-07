@@ -1,6 +1,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
 #include "Fancy.h"
+#include "DescriptorDX12.h"
 
 #if defined (RENDERER_DX12)
 #include "MathUtil.h"
@@ -176,7 +177,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ourCommandAllocatorPools[(uint)aCmdListType]->ReleaseAllocator(anAllocator, aFenceVal);
   }
 //---------------------------------------------------------------------------//
-  Descriptor RenderCore_PlatformDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
+  DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
     return ourStaticDescriptorHeaps[(uint32)aHeapType].AllocateDescriptor();
   }

@@ -101,4 +101,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return static_cast<ShaderResourceInterfaceDX12*>(myResourceInterface)->myRootSignature.Get();
   }
 //---------------------------------------------------------------------------//
+  uint64 GpuProgramDX12::GetNativeBytecodeHash() const
+  {
+    return reinterpret_cast<uint64>(getNativeData().Get());
+  }
+//---------------------------------------------------------------------------//
 } } }
