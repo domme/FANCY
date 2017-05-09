@@ -13,6 +13,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
     TextureDX12();
     ~TextureDX12() override;
+    bool IsValid() const override { return myResource != nullptr; }
     
     void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint32 aNumInitialDatas = 0u) override;
 

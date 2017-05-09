@@ -1,4 +1,4 @@
-l#include "CommandContext.h"
+#include "CommandContext.h"
 #include "RenderContext.h"
 #include "ComputeContext.h"
 #include "CommandListType.h"
@@ -10,10 +10,7 @@ l#include "CommandContext.h"
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   namespace {
-    std::vector<std::unique_ptr<CommandContext>> locRenderContextPool;
-    std::vector<std::unique_ptr<CommandContext>> locComputeContextPool;
-    std::list<CommandContext*> locAvailableRenderContexts;
-    std::list<CommandContext*> locAvailableComputeContexts;
+    
   }
 //---------------------------------------------------------------------------//
   CommandContext::CommandContext(CommandListType aType)

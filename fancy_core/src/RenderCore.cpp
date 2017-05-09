@@ -29,6 +29,11 @@ namespace Fancy { namespace Rendering {
   std::map<uint64, SharedPtr<Geometry::Mesh>> RenderCore::ourMeshCache;
   std::map<uint64, SharedPtr<Rendering::BlendState>> RenderCore::ourBlendStateCache;
   std::map<uint64, SharedPtr<Rendering::DepthStencilState>> RenderCore::ourDepthStencilStateCache;
+
+  std::vector<std::unique_ptr<CommandContext>> RenderCore::ourRenderContextPool;
+  std::vector<std::unique_ptr<CommandContext>> RenderCore::ourComputeContextPool;
+  std::list<CommandContext*> RenderCore::ourAvailableRenderContexts;
+  std::list<CommandContext*> RenderCore::ourAvailableComputeContexts;
   
   ScopedPtr<FileWatcher> RenderCore::ourShaderFileWatcher;
   SharedPtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
@@ -89,7 +94,7 @@ namespace Fancy { namespace Rendering {
     ourShaderFileWatcher->myOnFileUpdated.Connect(onUpdatedFn);
     ourShaderFileWatcher->myOnFileDeletedMoved.Connect(onDeletedFn);
 
-    ourShaderCompiler = ourPlatformImpl->CreateShaderCompiler();
+    ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
 
     CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
     CreateBlendState(BlendStateDesc::GetDefaultSolid());
@@ -207,8 +212,8 @@ namespace Fancy { namespace Rendering {
     if (it != ourShaderCache.end())
       return it->second;
 
-    SharedPtr<GpuProgram> program = ourPlatformImpl->CreateGpuProgram();
-    if (program->SetFromDescription(aDesc, ourShaderCompiler))
+    SharedPtr<GpuProgram> program(ourPlatformImpl->CreateGpuProgram());
+    if (program->SetFromDescription(aDesc, ourShaderCompiler.get()))
     {
       ourShaderCache.insert(std::make_pair(hash, program));
 
@@ -238,7 +243,7 @@ namespace Fancy { namespace Rendering {
         pipelinePrograms[i] = CreateGpuProgram(aDesc.myGpuPrograms[i]);
     }
 
-    SharedPtr<GpuProgramPipeline> pipeline = ourPlatformImpl->CreateGpuProgramPipeline();
+    SharedPtr<GpuProgramPipeline> pipeline(new GpuProgramPipeline);
     pipeline->SetFromShaders(pipelinePrograms);
 
     ourGpuProgramPipelineCache.insert(std::make_pair(hash, pipeline));
@@ -353,7 +358,7 @@ namespace Fancy { namespace Rendering {
       bufferParams.uNumElements = numVertices;
       bufferParams.uElementSizeBytes = vertexLayout.getStrideBytes();
 
-      vertexBuffer->create(bufferParams, ptrToVertexData);
+      vertexBuffer->Create(bufferParams, ptrToVertexData);
       pGeometryData->setVertexLayout(vertexLayout);
       pGeometryData->setVertexBuffer(vertexBuffer);
 
@@ -370,7 +375,7 @@ namespace Fancy { namespace Rendering {
       indexBufParams.uNumElements = numIndices;
       indexBufParams.uElementSizeBytes = sizeof(uint32);
 
-      indexBuffer->create(indexBufParams, ptrToIndexData);
+      indexBuffer->Create(indexBufParams, ptrToIndexData);
       pGeometryData->setIndexBuffer(indexBuffer);
 
       vGeometryDatas.push_back(pGeometryData);
@@ -448,7 +453,7 @@ namespace Fancy { namespace Rendering {
       return nullptr;
     }
 
-    SharedPtr<Texture> texture = ourPlatformImpl->CreateTexture();
+    SharedPtr<Texture> texture(ourPlatformImpl->CreateTexture());
 
     TextureParams texParams;
     texParams.myIsExternalTexture = true;
@@ -467,9 +472,9 @@ namespace Fancy { namespace Rendering {
     uploadData.mySliceSizeBytes = textureInfo.width * textureInfo.height * uploadData.myPixelSizeBytes;
     uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
 
-    texture->create(texParams, &uploadData, 1u);
+    texture->Create(texParams, &uploadData, 1u);
 
-    if (!texture->isValid())
+    if (!texture->IsValid())
     {
       LOG_ERROR("Failed to upload pixel data of texture %", texPathAbs);
       return nullptr;
@@ -483,17 +488,17 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
   {
-    SharedPtr<Texture> texture = ourPlatformImpl->CreateTexture();
-    texture->create(someParams, someUploadDatas, aNumUploadDatas);
+    SharedPtr<Texture> texture(ourPlatformImpl->CreateTexture());
+    texture->Create(someParams, someUploadDatas, aNumUploadDatas);
 
-    return texture->isValid() ? texture : nullptr;
+    return texture->IsValid() ? texture : nullptr;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData /* = nullptr */)
   {
-    SharedPtr<GpuBuffer> buffer = ourPlatformImpl->CreateGpuBuffer();
-    buffer->create(someParams, someInitialData);
-    return buffer->isValid() ? buffer : nullptr;
+    SharedPtr<GpuBuffer> buffer(ourPlatformImpl->CreateGpuBuffer());
+    buffer->Create(someParams, someInitialData);
+    return buffer->IsValid() ? buffer : nullptr;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer /* = 0 */)

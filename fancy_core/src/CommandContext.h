@@ -20,13 +20,4 @@ namespace Fancy { namespace Rendering {
     CommandListType myCommandListType;
   };
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  class CommandContextPool
-  {
-  public:
-    static CommandContext* AllocateContext(CommandListType aType);
-    static void FreeContext(CommandContext* aContext);
-  };
-//---------------------------------------------------------------------------//
 } }

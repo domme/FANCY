@@ -15,6 +15,7 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     void Create(const GpuBufferCreationParams& clParameters, void* pInitialData = nullptr) override;
     void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) override;
     void Unlock() override;
+    bool IsValid() const override { return myResource != nullptr; }
     
     const DescriptorDX12& GetSrvDescriptor() const { return mySrvDescriptor; }
     const DescriptorDX12& GetUavDescriptor() const { return myUavDescriptor; }

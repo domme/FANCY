@@ -50,12 +50,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal);
 
-    SharedPtr<GpuProgramCompiler> CreateShaderCompiler() override;
-    SharedPtr<GpuProgram> CreateGpuProgram() override;
-    SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline() override;
-    SharedPtr<Texture> CreateTexture() override;
+    GpuProgramCompiler* CreateShaderCompiler() override;
+    GpuProgram* CreateGpuProgram() override;
+    Texture* CreateTexture() override;
     GpuBuffer* CreateGpuBuffer() override;
-    CommandContext* CreateCommandContext(CommandListType aType) override;
+    CommandContext* CreateContext(CommandListType aType) override;
 
     ComPtr<ID3D12Device> ourDevice;
 

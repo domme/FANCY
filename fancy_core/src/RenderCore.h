@@ -2,6 +2,7 @@
 
 #include "RendererPrerequisites.h"
 #include "ScopedPtr.h"
+#include <list>
 
 namespace Fancy {
   class FileWatcher;
@@ -94,6 +95,10 @@ namespace Fancy { namespace Rendering {
     static std::map<uint64, SharedPtr<Geometry::Mesh>> ourMeshCache;
     static std::map<uint64, SharedPtr<Rendering::BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<Rendering::DepthStencilState>> ourDepthStencilStateCache;
+    static std::vector<std::unique_ptr<CommandContext>> ourRenderContextPool;
+    static std::vector<std::unique_ptr<CommandContext>> ourComputeContextPool;
+    static std::list<CommandContext*> ourAvailableRenderContexts;
+    static std::list<CommandContext*> ourAvailableComputeContexts;
 
     static SharedPtr<DepthStencilState> ourDefaultDepthStencilState;
     static SharedPtr<BlendState> ourDefaultBlendState;

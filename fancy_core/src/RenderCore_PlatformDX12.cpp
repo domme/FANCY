@@ -2,6 +2,11 @@
 #include "AdapterDX12.h"
 #include "Fancy.h"
 #include "DescriptorDX12.h"
+#include "GpuProgramCompilerDX12.h"
+#include "GpuProgramDX12.h"
+#include "TextureDX12.h"
+#include "GpuBufferDX12.h"
+#include "ComputeContextDX12.h"
 
 #if defined (RENDERER_DX12)
 #include "MathUtil.h"
@@ -190,6 +195,38 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderCore_PlatformDX12::ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal)
   {
     ourDynamicDescriptorHeapPool->ReleaseDynamicHeap(aCmdListType, aFenceVal, aHeap);
+  }
+//---------------------------------------------------------------------------//
+  GpuProgramCompiler* RenderCore_PlatformDX12::CreateShaderCompiler()
+  {
+    return new GpuProgramCompilerDX12();
+  }
+//---------------------------------------------------------------------------//
+  GpuProgram* RenderCore_PlatformDX12::CreateGpuProgram()
+  {
+    return new GpuProgramDX12();
+  }
+//---------------------------------------------------------------------------//
+  Texture* RenderCore_PlatformDX12::CreateTexture()
+  {
+    return new TextureDX12();
+  }
+//---------------------------------------------------------------------------//
+  GpuBuffer* RenderCore_PlatformDX12::CreateGpuBuffer()
+  {
+    return new GpuBufferDX12();
+  }
+//---------------------------------------------------------------------------//
+  CommandContext* RenderCore_PlatformDX12::CreateContext(CommandListType aType)
+  {
+    switch(aType)
+    {
+      case CommandListType::Graphics:
+        return new RenderContextDX12();
+      case CommandListType::Compute: 
+        return new ComputeContextDX12();
+      default: return nullptr;
+    }
   }
 //---------------------------------------------------------------------------//
   DataFormatInfo RenderCore_PlatformDX12::GetFormatInfo(DXGI_FORMAT aFormat)

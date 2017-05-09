@@ -21,8 +21,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
     }
 
-    bool IsValid() const { return myResource != nullptr; }
-
     ID3D12Resource* GetResource() const  { return myResource.Get(); }
     D3D12_RESOURCE_STATES GetUsageState() const { return myUsageState; }
     D3D12_RESOURCE_STATES GetTransitioningState() const { return myTransitioningState; }
