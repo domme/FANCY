@@ -416,7 +416,11 @@ namespace Fancy { namespace Rendering {
 
     ASSERT(aTextureDesc.myIsExternalTexture,
       "Couldn't find internal texture with refIndex %",
-      aTextureDesc.myInternalRefIndex);
+      aTextureDesc.myInternalRefIndex)
+
+
+
+;
 
     return CreateTexture(desc.mySourcePath);
   }
@@ -501,6 +505,54 @@ namespace Fancy { namespace Rendering {
     return buffer->IsValid() ? buffer : nullptr;
   }
 //---------------------------------------------------------------------------//
+  void RenderCore::InitBufferData(GpuBuffer* aBuffer, void* aDataPtr)
+  {
+    CommandContext* initContext = AllocateContext(CommandListType::Graphics);
+    ourPlatformImpl->InitBufferData(aBuffer, aDataPtr, initContext);
+    FreeContext(initContext);
+  }
+//---------------------------------------------------------------------------//
+  CommandContext* RenderCore::AllocateContext(CommandListType aType)
+  {
+    ASSERT(aType == CommandListType::Graphics || aType == CommandListType::Compute,
+      "CommandContext type % not implemented", (uint)aType);
+
+    std::vector<std::unique_ptr<CommandContext>>& contextPool =
+      aType == CommandListType::Graphics ? ourRenderContextPool : ourComputeContextPool;
+
+    std::list<CommandContext*>& availableContextList =
+      aType == CommandListType::Graphics ? ourAvailableRenderContexts : ourAvailableComputeContexts;
+
+    if (!availableContextList.empty())
+    {
+      CommandContext* context = availableContextList.front();
+      context->Reset();
+      availableContextList.pop_front();
+      return context;
+    }
+
+    contextPool.push_back(std::unique_ptr<CommandContext>(ourPlatformImpl->CreateContext(aType)));
+
+    return contextPool.back().get();
+  }
+  //---------------------------------------------------------------------------//
+  void RenderCore::FreeContext(CommandContext* aContext)
+  {
+    CommandListType type = aContext->GetType();
+
+    ASSERT(type == CommandListType::Graphics || type == CommandListType::Compute,
+      "CommandContext type % not implemented", (uint)type);
+
+    std::list<CommandContext*>& availableContextList =
+      type == CommandListType::Graphics ? ourAvailableRenderContexts : ourAvailableComputeContexts;
+
+    if (std::find(availableContextList.begin(), availableContextList.end(), aContext)
+      != availableContextList.end())
+      return;
+
+    availableContextList.push_back(aContext);
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer /* = 0 */)
   {
     ASSERT(aByteOffsetFromBuffer + aDataSizeBytes <= aBuffer->GetSizeBytes());
@@ -519,7 +571,12 @@ namespace Fancy { namespace Rendering {
       RenderContext::UpdateBufferData(aBuffer, aData, aByteOffsetFromBuffer, aDataSizeBytes);
     }
   }
-//---------------------------------------------------------------------------//
+
+  void RenderCore::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
+  {
+  }
+
+  //---------------------------------------------------------------------------//
   void RenderCore::OnShaderFileUpdated(const String& aShaderFile)
   {
     // Find GpuPrograms for this file

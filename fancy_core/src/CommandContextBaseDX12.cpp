@@ -262,28 +262,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void CommandContextBaseDX12::InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr)
   {
-    D3D12_HEAP_PROPERTIES heapProps;
-    memset(&heapProps, 0, sizeof(heapProps));
-    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-    heapProps.CreationNodeMask = 1;
-    heapProps.VisibleNodeMask = 1;
-
-    const D3D12_RESOURCE_DESC& resourceDesc = aBuffer->GetResource()->GetDesc();
-
-    ComPtr<ID3D12Resource> uploadResource;
-    CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
-      &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
-
-    void* mappedBufferPtr;
-    CheckD3Dcall(uploadResource->Map(0, nullptr, &mappedBufferPtr));
-    memcpy(mappedBufferPtr, aDataPtr, aBuffer->GetSizeBytes());
-    uploadResource->Unmap(0, nullptr);
+    
 
     CommandContext* initContext = CommandContextPool::AllocateContext(CommandListType::Graphics);
-    initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST, true);
-    initContext->myCommandList->CopyResource(aBuffer->GetResource(), uploadResource.Get());
-    initContext->TransitionResource(aBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+    
 
     initContext->ExecuteAndReset(true);
 

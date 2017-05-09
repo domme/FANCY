@@ -10,15 +10,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class CommandContextBaseDX12
   {
+    friend class RenderCore_PlatformDX12;
+
   public:
     CommandContextBaseDX12(CommandListType aType);
     virtual ~CommandContextBaseDX12();
 
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint32 aDescriptorTypeMask);
-
-    static void InitBufferData(GpuBufferDX12* aBuffer, void* aDataPtr);
-    static void UpdateBufferData(GpuBufferDX12* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize);
-    static void InitTextureData(TextureDX12* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas);
 
     void Destroy();
 

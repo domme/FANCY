@@ -63,7 +63,10 @@ namespace Fancy { namespace Rendering {
     static SharedPtr<Texture> CreateTexture(const String& aTexturePath);
     static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint32 aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
-    static void UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer = 0u);
+
+    static void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr);
+    static void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize);
+    static void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas);
 
     static SharedPtr<BlendState> CreateBlendState(const Rendering::BlendStateDesc& aDesc);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc);

@@ -55,6 +55,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Texture* CreateTexture() override;
     GpuBuffer* CreateGpuBuffer() override;
     CommandContext* CreateContext(CommandListType aType) override;
+    void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext) override;
+    void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext) override;
+    void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext) override;
+
 
     ComPtr<ID3D12Device> ourDevice;
 

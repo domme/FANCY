@@ -229,6 +229,45 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
+  void RenderCore_PlatformDX12::InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext)
+  {
+    D3D12_HEAP_PROPERTIES heapProps;
+    memset(&heapProps, 0, sizeof(heapProps));
+    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+    heapProps.CreationNodeMask = 1;
+    heapProps.VisibleNodeMask = 1;
+
+    GpuBufferDX12* bufferDx12 = static_cast<GpuBufferDX12*>(aBuffer);
+
+    const D3D12_RESOURCE_DESC& resourceDesc = bufferDx12->GetResource()->GetDesc();
+
+    ComPtr<ID3D12Resource> uploadResource;
+    CheckD3Dcall(GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
+      &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
+
+    void* mappedBufferPtr;
+    CheckD3Dcall(uploadResource->Map(0, nullptr, &mappedBufferPtr));
+    memcpy(mappedBufferPtr, aDataPtr, aBuffer->GetSizeBytes());
+    uploadResource->Unmap(0, nullptr);
+
+    ASSERT(aContext->GetType() == CommandListType::Graphics);
+    RenderContextDX12* context = static_cast<RenderContextDX12*>(aContext);
+
+    context->TransitionResource(bufferDx12, D3D12_RESOURCE_STATE_COPY_DEST, true);
+    context->myCommandList->CopyResource(bufferDx12->GetResource(), uploadResource.Get());
+    context->TransitionResource(bufferDx12, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+    context->ExecuteAndReset(true);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformDX12::UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext)
+  {
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformDX12::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext)
+  {
+  }
+  //---------------------------------------------------------------------------//
   DataFormatInfo RenderCore_PlatformDX12::GetFormatInfo(DXGI_FORMAT aFormat)
   {
     DataFormatInfo format;
