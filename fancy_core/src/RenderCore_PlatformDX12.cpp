@@ -262,10 +262,96 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext)
   {
+    D3D12_HEAP_PROPERTIES heapProps;
+    memset(&heapProps, 0, sizeof(heapProps));
+    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+    heapProps.CreationNodeMask = 1;
+    heapProps.VisibleNodeMask = 1;
+
+    GpuBufferDX12* bufferDx12 = static_cast<GpuBufferDX12*>(aBuffer);
+
+    D3D12_RESOURCE_DESC uploadResourceDesc = bufferDx12->GetResource()->GetDesc();
+    uploadResourceDesc.Width = MathUtil::Align(aByteSize, aBuffer->GetAlignment());
+
+    ComPtr<ID3D12Resource> uploadResource;
+    CheckD3Dcall(ourDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
+      &uploadResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
+
+    void* uploadBufferPtr;
+    CheckD3Dcall(uploadResource->Map(0, nullptr, &uploadBufferPtr));
+    memcpy(uploadBufferPtr, aDataPtr, aByteSize);
+    uploadResource->Unmap(0, nullptr);
+
+    ASSERT(aContext->GetType() == CommandListType::Graphics);
+    RenderContextDX12* context = static_cast<RenderContextDX12*>(aContext);
+    context->TransitionResource(bufferDx12, D3D12_RESOURCE_STATE_COPY_DEST, true);
+    context->myCommandList->CopyBufferRegion(bufferDx12->GetResource(), aByteOffset, uploadResource.Get(), 0u, aByteSize);
+    context->TransitionResource(bufferDx12, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+    context->ExecuteAndReset(true);
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext)
   {
+    TextureDX12* textureDx12 = static_cast<TextureDX12*>(aTexture);
+
+    ID3D12Device* device = GetDevice();
+    const D3D12_RESOURCE_DESC& resourceDesc = textureDx12->GetResource()->GetDesc();
+
+    // DEBUG: layouts and row-infos not needed here yet
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* destLayouts = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * aNumUploadDatas));
+    uint64* destRowSizesByte = static_cast<uint64*>(alloca(sizeof(uint64) * aNumUploadDatas));
+    uint32* destRowNums = static_cast<uint32*>(alloca(sizeof(uint32) * aNumUploadDatas));
+
+    uint64 requiredStagingBufferSize;
+    //device->GetCopyableFootprints(&resourceDesc, 0u, aNumUploadDatas, 0u, nullptr, nullptr, nullptr, &requiredStagingBufferSize);
+    device->GetCopyableFootprints(&resourceDesc, 0u, aNumUploadDatas, 0u, destLayouts, destRowNums, destRowSizesByte, &requiredStagingBufferSize);
+
+    D3D12_HEAP_PROPERTIES HeapProps;
+    HeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+    HeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    HeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    HeapProps.CreationNodeMask = 1;
+    HeapProps.VisibleNodeMask = 1;
+
+    D3D12_RESOURCE_DESC BufferDesc;
+    BufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+    BufferDesc.Alignment = 0;
+    BufferDesc.Width = requiredStagingBufferSize;
+    BufferDesc.Height = 1;
+    BufferDesc.DepthOrArraySize = 1;
+    BufferDesc.MipLevels = 1;
+    BufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+    BufferDesc.SampleDesc.Count = 1;
+    BufferDesc.SampleDesc.Quality = 0;
+    BufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    BufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+    ComPtr<ID3D12Resource> stagingBuffer;
+
+    CheckD3Dcall(device->CreateCommittedResource(
+      &HeapProps, D3D12_HEAP_FLAG_NONE,
+      &BufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ,
+      nullptr, IID_PPV_ARGS(&stagingBuffer)));
+
+    ASSERT(aTexture->GetParameters().u16Depth <= 1u, "The code below might not work for 3D textures");
+
+    D3D12_SUBRESOURCE_DATA* subDatas = static_cast<D3D12_SUBRESOURCE_DATA*>(alloca(sizeof(D3D12_SUBRESOURCE_DATA) * aNumUploadDatas));
+    for (uint32 i = 0u; i < aNumUploadDatas; ++i)
+    {
+      subDatas[i].pData = someUploadDatas[i].myData;
+      subDatas[i].SlicePitch = someUploadDatas[i].mySliceSizeBytes;
+      subDatas[i].RowPitch = someUploadDatas[i].myRowSizeBytes;
+    }
+
+    ASSERT(aContext->GetType() == CommandListType::Graphics);
+    RenderContextDX12* context = static_cast<RenderContextDX12*>(aContext);
+
+    D3D12_RESOURCE_STATES oldUsageState = textureDx12->GetUsageState();
+    context->TransitionResource(textureDx12, D3D12_RESOURCE_STATE_COPY_DEST, true);
+    context->UpdateSubresources(textureDx12->GetResource(), stagingBuffer.Get(), 0u, aNumUploadDatas, subDatas);
+    context->TransitionResource(textureDx12, oldUsageState, true);
+    context->ExecuteAndReset(true);
   }
   //---------------------------------------------------------------------------//
   DataFormatInfo RenderCore_PlatformDX12::GetFormatInfo(DXGI_FORMAT aFormat)

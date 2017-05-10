@@ -182,7 +182,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       }
       else
       {
-        RenderContextDX12::InitBufferData(this, pInitialData);
+        RenderCore::InitBufferData(this, pInitialData);
       }
     }
   }

@@ -505,13 +505,6 @@ namespace Fancy { namespace Rendering {
     return buffer->IsValid() ? buffer : nullptr;
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::InitBufferData(GpuBuffer* aBuffer, void* aDataPtr)
-  {
-    CommandContext* initContext = AllocateContext(CommandListType::Graphics);
-    ourPlatformImpl->InitBufferData(aBuffer, aDataPtr, initContext);
-    FreeContext(initContext);
-  }
-//---------------------------------------------------------------------------//
   CommandContext* RenderCore::AllocateContext(CommandListType aType)
   {
     ASSERT(aType == CommandListType::Graphics || aType == CommandListType::Compute,
@@ -568,15 +561,26 @@ namespace Fancy { namespace Rendering {
     }
     else
     {
-      RenderContext::UpdateBufferData(aBuffer, aData, aByteOffsetFromBuffer, aDataSizeBytes);
+      CommandContext* updateContext = AllocateContext(CommandListType::Graphics);
+      ourPlatformImpl->UpdateBufferData(aBuffer, aData, aByteOffsetFromBuffer, aDataSizeBytes, updateContext);
+      FreeContext(updateContext);
     }
   }
-
+//---------------------------------------------------------------------------//
   void RenderCore::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
   {
+    CommandContext* initContext = AllocateContext(CommandListType::Graphics);
+    ourPlatformImpl->InitTextureData(aTexture, someUploadDatas, aNumUploadDatas, initContext);
+    FreeContext(initContext);
   }
-
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void RenderCore::InitBufferData(GpuBuffer* aBuffer, void* aDataPtr)
+  {
+    CommandContext* initContext = AllocateContext(CommandListType::Graphics);
+    ourPlatformImpl->InitBufferData(aBuffer, aDataPtr, initContext);
+    FreeContext(initContext);
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::OnShaderFileUpdated(const String& aShaderFile)
   {
     // Find GpuPrograms for this file
@@ -594,7 +598,7 @@ namespace Fancy { namespace Rendering {
     }
 
     for (GpuProgram* program : programsToRecompile)
-      program->SetFromDescription(program->GetDescription(), ourShaderCompiler);
+      program->SetFromDescription(program->GetDescription(), ourShaderCompiler.get());
 
 
     // Check which pipelines need to be updated...
