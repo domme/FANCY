@@ -1,8 +1,8 @@
 #include "StdAfx.h"
 
-#if defined (RENDERER_DX12)
-
 #include "FenceDX12.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -15,18 +15,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
   }
 //---------------------------------------------------------------------------//
-  FenceDX12::FenceDX12(ID3D12Device* aDevice, const String& aName) 
+  FenceDX12::FenceDX12(const String& aName) 
     : myGpuFence(nullptr)
     , myIsDoneEvent(nullptr)
     , myCurrWaitingOnVal(0u)
     , myLastCompletedVal(0u)
   {
-    Init(aDevice, aName);
+    Init(aName);
   }
 //---------------------------------------------------------------------------//
-  void FenceDX12::Init(ID3D12Device* aDevice, const String& aName)
+  void FenceDX12::Init(const String& aName)
   {
-    CheckD3Dcall(aDevice->CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myGpuFence)));
+    CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->
+      CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myGpuFence)));
 
     myIsDoneEvent = CreateEventEx(nullptr, nullptr, 0u, EVENT_ALL_ACCESS);
     ASSERT(myIsDoneEvent != nullptr);
@@ -71,5 +72,3 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
 } } }
-
-#endif

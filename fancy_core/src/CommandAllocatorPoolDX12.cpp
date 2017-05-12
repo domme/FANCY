@@ -1,6 +1,7 @@
 #include "FancyCorePrerequisites.h"
 #include "CommandAllocatorPoolDX12.h"
-#include "Renderer.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//  
@@ -19,7 +20,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     for (auto allocatorEntry : myReleasedWaitingAllocators)
     {
-      RenderCore::WaitForFence(myCommandListType, allocatorEntry.first);
+      RenderCore::GetPlatformDX12()->WaitForFence(myCommandListType, allocatorEntry.first);
       allocatorEntry.second->Release();
     }
     myReleasedWaitingAllocators.clear();
@@ -29,7 +30,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     // Check if some of the waiting allocators can be made available again
     while(!myReleasedWaitingAllocators.empty() 
-      && RenderCore::IsFenceDone(myCommandListType, 
+      && RenderCore::GetPlatformDX12()->IsFenceDone(myCommandListType, 
                                  myReleasedWaitingAllocators.front().first))
     {
       myAvailableAllocators.push_back(myReleasedWaitingAllocators.front().second);
@@ -44,10 +45,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return allocator;
     }
 
-    D3D12_COMMAND_LIST_TYPE nativeCmdListType = RenderCore::GetCommandListType(myCommandListType);
+    D3D12_COMMAND_LIST_TYPE nativeCmdListType = RenderCore_PlatformDX12::GetCommandListType(myCommandListType);
 
     ID3D12CommandAllocator* allocator;
-    CheckD3Dcall(RenderCore::GetDevice()->CreateCommandAllocator(nativeCmdListType, IID_PPV_ARGS(&allocator)));
+    CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandAllocator(nativeCmdListType, IID_PPV_ARGS(&allocator)));
 
     return allocator;
   }

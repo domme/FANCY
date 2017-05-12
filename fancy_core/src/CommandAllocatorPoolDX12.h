@@ -1,13 +1,13 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
 #include <deque>
 #include "CommandListType.h"
+#include "DX12Prerequisites.h"
 
-namespace Fancy{ namespace Rendering{
-class RenderOutput;
-}}
+namespace Fancy { namespace Rendering {
+  class RenderOutput;
+} }
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//

@@ -2,39 +2,42 @@
 
 #include "ComputeContextDX12.h"
 #include "CommandListType.h"
-#include "GpuProgram.h"
-#include "ShaderResourceInterface.h"
-#include "Renderer.h"
+
 #include "GpuBuffer.h"
+#include "GpuBufferDX12.h"
+
+#include "GpuProgram.h"
+#include "GpuProgramDX12.h"
+#include "TextureDX12.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  ComputePipelineState::ComputePipelineState()
-    : myIsDirty(true)
-    , myGpuProgram(nullptr)
+  std::unordered_map<uint, ID3D12PipelineState*> ComputeContextDX12::ourPSOcache;
+//---------------------------------------------------------------------------//
+  ComputeContextDX12::ComputeContextDX12()
+    : CommandContextBaseDX12(CommandListType::Compute)
+  {
+    ComputeContextDX12::Reset_Internal();
+  }
+//---------------------------------------------------------------------------//
+  ComputeContextDX12::~ComputeContextDX12()
   {
   }
 //---------------------------------------------------------------------------//
-  uint ComputePipelineState::GetHash()
-  {
-    uint hash = 0u;
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgram));
-
-    if (myGpuProgram != nullptr)
-      MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgram->getNativeData().Get()));
-
-    return hash;
-  }
-//---------------------------------------------------------------------------//
-  D3D12_COMPUTE_PIPELINE_STATE_DESC ComputePipelineState::GetNativePSOdesc()
+  D3D12_COMPUTE_PIPELINE_STATE_DESC ComputeContextDX12::GetNativePSOdesc(const ComputePipelineState& aState)
   {
     D3D12_COMPUTE_PIPELINE_STATE_DESC desc;
     memset(&desc, 0u, sizeof(desc));
 
-    if (myGpuProgram != nullptr)
+    if (aState.myGpuProgram != nullptr)
     {
-      desc.pRootSignature = myGpuProgram->GetRootSignature();
-      desc.CS = myGpuProgram->getNativeByteCode();
+      const GpuProgramDX12* gpuProgramDx12 = 
+        static_cast<const GpuProgramDX12*>(aState.myGpuProgram);
+
+      desc.pRootSignature = gpuProgramDx12->GetRootSignature();
+      desc.CS = gpuProgramDx12->getNativeByteCode();
     }
 
     desc.NodeMask = 0u;
@@ -42,96 +45,75 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  std::unordered_map<uint, ID3D12PipelineState*> ComputeContextDX12::ourPSOcache;
-//---------------------------------------------------------------------------//
-ComputeContextDX12::ComputeContextDX12()
-  : CommandContext(CommandListType::Compute)
-{
-  ComputeContextDX12::ResetInternal();
-}
-//---------------------------------------------------------------------------//
-ComputeContextDX12::~ComputeContextDX12()
-{
-}
-//---------------------------------------------------------------------------//
 void ComputeContextDX12::SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const
 {
   ASSERT(myRootSignature != nullptr);
-  myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, aTexture->GetGpuVirtualAddress());
+  myCommandList->SetComputeRootShaderResourceView(aRegisterIndex,
+    static_cast<const TextureDX12*>(aTexture)->GetGpuVirtualAddress());
 }
 //---------------------------------------------------------------------------//
 void ComputeContextDX12::SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const
 {
   ASSERT(myRootSignature != nullptr);
-  myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, aTexture->GetGpuVirtualAddress());
+  myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, 
+    static_cast<const TextureDX12*>(aTexture)->GetGpuVirtualAddress());
 }
 //---------------------------------------------------------------------------//
 void ComputeContextDX12::SetReadBuffer(const GpuBuffer* aBuffer, uint32 aRegisterIndex) const
 {
   ASSERT(myRootSignature != nullptr);
-  myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, aBuffer->GetGpuVirtualAddress());
+  myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, 
+    static_cast<const GpuBufferDX12*>(aBuffer)->GetGpuVirtualAddress());
 }
 //---------------------------------------------------------------------------//
 void ComputeContextDX12::SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const
 {
   ASSERT(myRootSignature != nullptr);
-  myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, aConstantBuffer->GetGpuVirtualAddress());
+  myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, 
+    static_cast<const GpuBufferDX12*>(aConstantBuffer)->GetGpuVirtualAddress());
 }
 //---------------------------------------------------------------------------//
-void ComputeContextDX12::SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex)
-{
-  ASSERT(myRootSignature != nullptr);
-  ASSERT(aResourceCount > 0u);
-
-  D3D12_DESCRIPTOR_HEAP_TYPE heapType = someResources[0].myHeapType;
-  DescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
-
-  if (dynamicHeap == nullptr)
+  void ComputeContextDX12::SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex)
   {
-    dynamicHeap = RenderCore::AllocateDynamicDescriptorHeap(aResourceCount, heapType);
-    SetDescriptorHeap(heapType, dynamicHeap);
+    ASSERT(myRootSignature != nullptr);
+
+    DescriptorDX12 dynamicRangeStartDescriptor =
+      CopyDescriptorsToDynamicHeapRange(someResources, aResourceCount);
+
+    myCommandList->SetComputeRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
   }
-
-  uint32 startOffset = dynamicHeap->GetNumAllocatedDescriptors();
-  for (uint32 i = 0u; i < aResourceCount; ++i)
-  {
-    DescriptorDX12 destDescriptor = dynamicHeap->AllocateDescriptor();
-
-    RenderCore::GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle,
-      someResources[i].myCpuHandle, heapType);
-  }
-
-  myCommandList->SetComputeRootDescriptorTable(aRegisterIndex, dynamicHeap->GetDescriptor(startOffset).myGpuHandle);
-}
 //---------------------------------------------------------------------------//
-void ComputeContextDX12::SetComputeProgram(const GpuProgram* aProgram)
-{
-  ASSERT(aProgram->getShaderStage() == ShaderStage::COMPUTE);
-
-  if (myComputePipelineState.myGpuProgram != aProgram)
+  void ComputeContextDX12::SetComputeProgram(const GpuProgram* aProgram)
   {
-    myComputePipelineState.myGpuProgram = aProgram;
-    myComputePipelineState.myIsDirty = true;
-  }
+    ASSERT(aProgram->getShaderStage() == ShaderStage::COMPUTE);
 
-  if (myRootSignature != aProgram->GetRootSignature())
+    if (myComputePipelineState.myGpuProgram != aProgram)
+    {
+      myComputePipelineState.myGpuProgram = aProgram;
+      myComputePipelineState.myIsDirty = true;
+    }
+
+    const GpuProgramDX12* programDx12 = static_cast<const GpuProgramDX12*>(aProgram);
+
+    if (myRootSignature != programDx12->GetRootSignature())
+    {
+      myRootSignature = programDx12->GetRootSignature();
+      myCommandList->SetComputeRootSignature(myRootSignature);
+    }
+  }
+//---------------------------------------------------------------------------//
+  void ComputeContextDX12::Dispatch(size_t aThreadGroupCountX, size_t aThreadGroupCountY, size_t aThreadGroupCountZ)
   {
-    myRootSignature = aProgram->GetRootSignature();
-    myCommandList->SetComputeRootSignature(myRootSignature);
-  }
-}
-//---------------------------------------------------------------------------//
-void ComputeContextDX12::Dispatch(size_t aThreadGroupCountX, size_t aThreadGroupCountY, size_t aThreadGroupCountZ)
-{
-  ApplyPipelineState();
+    ApplyPipelineState();
 
-  KickoffResourceBarriers();
-  myCommandList->Dispatch(aThreadGroupCountX, aThreadGroupCountY, aThreadGroupCountZ);
-}
+    KickoffResourceBarriers();
+    myCommandList->Dispatch(aThreadGroupCountX, aThreadGroupCountY, aThreadGroupCountZ);
+  }
 //---------------------------------------------------------------------------//
-void ComputeContextDX12::ResetInternal()
+void ComputeContextDX12::Reset_Internal()
 {
-  CommandContext::ResetInternal();
+  CommandContextBaseDX12::Reset_Internal();
+
   myComputePipelineState = ComputePipelineState();
 }
 //---------------------------------------------------------------------------//
@@ -153,8 +135,8 @@ void ComputeContextDX12::ApplyPipelineState()
   }
   else
   {
-    const D3D12_COMPUTE_PIPELINE_STATE_DESC& psoDesc = myComputePipelineState.GetNativePSOdesc();
-    HRESULT result = RenderCore::GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+    const D3D12_COMPUTE_PIPELINE_STATE_DESC& psoDesc = GetNativePSOdesc(myComputePipelineState);
+    HRESULT result = RenderCore::GetPlatformDX12()->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pso));
     ASSERT(result == S_OK, "Error creating compute PSO");
 
     ourPSOcache[requestedHash] = pso;

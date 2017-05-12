@@ -1,8 +1,6 @@
 #pragma once
 
-#if defined (RENDERER_DX12)
-
-#include "RendererPrerequisites.h"
+#include "DX12Prerequisites.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -10,10 +8,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   public:
     FenceDX12();
-    explicit FenceDX12(ID3D12Device* aDevice, const String& aName);
+    explicit FenceDX12(const String& aName);
     ~FenceDX12();
 
-    void Init(ID3D12Device* aDevice, const String& aName);
+    void Init(const String& aName);
     
     uint64 GetCurrWaitingFenceVal() const { return myCurrWaitingOnVal; }
     uint64 GetLastCompletedFenceVal() const { return myLastCompletedVal; }
@@ -27,10 +25,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uint64 myCurrWaitingOnVal;   // The last signaled value, which might not yet be completed
     uint64 myLastCompletedVal;  // The last completed value
     String myName;
-
   };
 //---------------------------------------------------------------------------//
 } } }
-
-#endif
 

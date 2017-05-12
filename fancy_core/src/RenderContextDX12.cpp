@@ -2,8 +2,6 @@
 
 #include "RenderContextDX12.h"
 #include "AdapterDX12.h"
-#include "GpuProgram.h"
-#include "DescriptorHeapPoolDX12.h"
 #include "GpuBuffer.h"
 #include "Texture.h"
 #include "GeometryData.h"
@@ -227,31 +225,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderContextDX12::SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex)
   {
     ASSERT(myRootSignature != nullptr);
-    ASSERT(aResourceCount > 0u);
 
-    const Descriptor& firstDescriptor = someResources[0];
-    
-    D3D12_DESCRIPTOR_HEAP_TYPE heapType = static_cast<const DescriptorDX12&>(firstDescriptor).myHeapType;
-    DescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
+    DescriptorDX12 dynamicRangeStartDescriptor = 
+      CopyDescriptorsToDynamicHeapRange(someResources, aResourceCount);
 
-    RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
-    
-    if (dynamicHeap == nullptr)
-    {
-      dynamicHeap = platformDx12->AllocateDynamicDescriptorHeap(aResourceCount, heapType);
-      SetDescriptorHeap(heapType, dynamicHeap);
-    }
-
-    uint32 startOffset = dynamicHeap->GetNumAllocatedDescriptors();
-    for (uint32 i = 0u; i < aResourceCount; ++i)
-    {
-      DescriptorDX12 destDescriptor = dynamicHeap->AllocateDescriptor();
-    
-      platformDx12->GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle,
-        static_cast<const DescriptorDX12&>(someResources[i]).myCpuHandle, heapType);
-    }
-    
-    myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicHeap->GetDescriptor(startOffset).myGpuHandle);
+    myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)

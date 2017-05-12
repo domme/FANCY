@@ -1,16 +1,18 @@
 #include "FancyCorePrerequisites.h"
-#include  "DescriptorHeapPoolDX12.h"
+#include "DescriptorHeapPoolDX12.h"
 
 #include "MathUtil.h"
 #include "DescriptorDX12.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  DescriptorHeapDX12::DescriptorHeapDX12(ID3D12Device* aDevice, const D3D12_DESCRIPTOR_HEAP_DESC& aDesc)
+  DescriptorHeapDX12::DescriptorHeapDX12(const D3D12_DESCRIPTOR_HEAP_DESC& aDesc)
     : myNextFreeHandleIndex(0u)
     , myHandleIncrementSize(0u)
   {
-    Create(aDevice, aDesc);
+    Create(aDesc);
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 DescriptorHeapDX12::AllocateDescriptor()
@@ -33,7 +35,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return descr;
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 DescriptorHeapDX12::GetDescriptor(uint32 anIndex)
+  DescriptorDX12 DescriptorHeapDX12::GetDescriptor(uint32 anIndex) const
   {
     ASSERT(anIndex < myNextFreeHandleIndex);
 
@@ -58,12 +60,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
   }
 //---------------------------------------------------------------------------//
-  void DescriptorHeapDX12::Create(ID3D12Device* aDevice, const D3D12_DESCRIPTOR_HEAP_DESC& aDesc)
+  void DescriptorHeapDX12::Create(const D3D12_DESCRIPTOR_HEAP_DESC& aDesc)
   {
-    CheckD3Dcall(aDevice->CreateDescriptorHeap(&aDesc, IID_PPV_ARGS(&myDescriptorHeap)));
+    CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->CreateDescriptorHeap(&aDesc, IID_PPV_ARGS(&myDescriptorHeap)));
     myDesc = aDesc;
 
-    myHandleIncrementSize = aDevice->GetDescriptorHandleIncrementSize(aDesc.Type);
+    myHandleIncrementSize = 
+      RenderCore::GetPlatformDX12()->GetDevice()->GetDescriptorHandleIncrementSize(aDesc.Type);
     myCpuHeapStart = myDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
     myGpuHeapStart = myDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
   }
@@ -79,7 +82,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     while (!myUsedDynamicHeaps.empty())
     {
-      RenderCore::WaitForFence(myUsedDynamicHeaps.front().first.myType, 
+      RenderCore::GetPlatformDX12()->WaitForFence(myUsedDynamicHeaps.front().first.myType, 
                                myUsedDynamicHeaps.front().first.myFenceVal);
       myUsedDynamicHeaps.pop();
     }
@@ -90,7 +93,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   DescriptorHeapDX12* DescriptorHeapPoolDX12::AllocateDynamicHeap(uint32 aRequiredNumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE aType)
   {
     while(!myUsedDynamicHeaps.empty() 
-      && RenderCore::IsFenceDone(myUsedDynamicHeaps.front().first.myType,
+      && RenderCore::GetPlatformDX12()->IsFenceDone(myUsedDynamicHeaps.front().first.myType,
                                  myUsedDynamicHeaps.front().first.myFenceVal))
     {
       DescriptorHeapDX12* heap = myUsedDynamicHeaps.front().second;
@@ -117,7 +120,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapDesc.Type = aType;
     heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     heapDesc.NodeMask = 0u;
-    myDynamicHeapPool.push_back(std::make_unique<DescriptorHeapDX12>(RenderCore::GetDevice(), heapDesc));
+    myDynamicHeapPool.push_back(std::make_unique<DescriptorHeapDX12>(heapDesc));
     return myDynamicHeapPool.back().get();
   }
 //---------------------------------------------------------------------------//

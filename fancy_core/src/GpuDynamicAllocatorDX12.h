@@ -1,17 +1,13 @@
 #pragma once
 
-#include "RendererPrerequisites.h"
-
-#if defined (RENDERER_DX12)
-
+#include "DX12Prerequisites.h"
 #include "GpuResourceDX12.h"
+
 #include <deque>
 
-namespace Fancy{
-namespace Rendering{
-enum class CommandListType;
-}
-}
+namespace Fancy { namespace Rendering {
+  enum class CommandListType;
+} }
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -67,5 +63,3 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   };
 //---------------------------------------------------------------------------//
 } } }
-
-#endif  // RENDERER_DX12

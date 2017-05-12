@@ -4,7 +4,6 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "CommandContext.h"
 #include "DX12Prerequisites.h"
 #include "RenderContext.h"
 #include "CommandContextBaseDX12.h"
@@ -14,8 +13,8 @@ namespace Fancy{ namespace Rendering{
   class GpuResource;
   class RenderOutput;
   class GpuProgramPipeline;
-  class BlendState;
-  class DepthStencilState;
+  struct BlendState;
+  struct DepthStencilState;
 }}
 
 namespace Fancy { namespace Rendering { namespace DX12 {

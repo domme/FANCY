@@ -1,9 +1,8 @@
 #include "FancyCorePrerequisites.h"
 
 #include "GpuDynamicAllocatorDX12.h"
-
-#if defined (RENDERER_DX12)
-#include "Renderer.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -47,7 +46,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
     for (auto waitingEntry : myWaitingPages)
     {
-      ASSERT(RenderCore::IsFenceDone(myCmdListType, waitingEntry.first));
+      ASSERT(RenderCore::GetPlatformDX12()->IsFenceDone(myCmdListType, waitingEntry.first));
       delete waitingEntry.second;
     }
   }
@@ -62,7 +61,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     while (!myWaitingPages.empty())
     {
       auto& waitingEntry = myWaitingPages.front();
-      if (RenderCore::IsFenceDone(myCmdListType, waitingEntry.first))
+      if (RenderCore::GetPlatformDX12()->IsFenceDone(myCmdListType, waitingEntry.first))
       {
         myAvailablePages.push_back(waitingEntry.second);
         myWaitingPages.pop_front();
@@ -152,7 +151,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ID3D12Resource* resource;
 
     CheckD3Dcall(
-      RenderCore::GetDevice()->CreateCommittedResource(
+      RenderCore::GetPlatformDX12()->GetDevice()->CreateCommittedResource(
         &heapProperties, 
         D3D12_HEAP_FLAG_NONE, 
         &resourceDesc, 
@@ -175,6 +174,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
 } } }
-
-#endif  // RENDERER_DX12
   

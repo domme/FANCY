@@ -3,7 +3,6 @@
 #include <queue>
 
 #include "FancyCorePrerequisites.h"
-#include "Descriptor.h"
 #include "CommandListType.h"
 #include "DX12Prerequisites.h"
 
@@ -15,7 +14,7 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     friend class RenderCore_PlatformDX12;
 
   public:
-    DescriptorHeapDX12(ID3D12Device* aDevice, const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);
+    explicit DescriptorHeapDX12(const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);
 
     const D3D12_DESCRIPTOR_HEAP_DESC& GetDesc() const { return myDesc; }
     const uint& GetHandleIncrementSize() const { return myHandleIncrementSize; }
@@ -25,12 +24,12 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     void Reset() { myNextFreeHandleIndex = 0u; }
 
     DescriptorDX12 AllocateDescriptor();
-    DescriptorDX12 GetDescriptor(uint32 anIndex);
+    DescriptorDX12 GetDescriptor(uint32 anIndex) const;
     uint32 GetNumAllocatedDescriptors() const { return myNextFreeHandleIndex; }
     
   private:
     DescriptorHeapDX12();
-    void Create(ID3D12Device* aDevice, const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);
+    void Create(const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);
 
     ComPtr<ID3D12DescriptorHeap> myDescriptorHeap;
     D3D12_DESCRIPTOR_HEAP_DESC myDesc;
@@ -44,7 +43,6 @@ namespace Fancy {namespace Rendering { namespace DX12 {
   class DescriptorHeapPoolDX12
   {
   public:
-    
     static const uint32 kGpuDescriptorNumIncrement = 16u;
 
     DescriptorHeapPoolDX12();

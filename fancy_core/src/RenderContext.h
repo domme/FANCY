@@ -35,15 +35,6 @@ namespace Fancy { namespace Rendering {
     RenderContext();
     virtual ~RenderContext() {}
 
-    // Root arguments:
-    virtual void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const = 0;
-    virtual void SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const = 0;
-    virtual void SetReadBuffer(const GpuBuffer* aBuffer, uint32 aRegisterIndex) const = 0;
-    virtual void SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const = 0;
-
-    // Descriptor tables:
-    virtual void SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex) = 0;
-
     virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
 
     virtual void RenderGeometry(const Geometry::GeometryData* pGeometry) = 0;

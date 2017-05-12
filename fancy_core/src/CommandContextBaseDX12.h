@@ -5,6 +5,10 @@
 #include "GpuDynamicAllocatorDX12.h"
 #include "DX12Prerequisites.h"
 
+namespace Fancy{ namespace Rendering{
+  class Descriptor;
+}}
+
 namespace Fancy { namespace Rendering { namespace DX12 {
   class DescriptorHeapDX12;
 //---------------------------------------------------------------------------//
@@ -21,9 +25,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void Destroy();
 
     void ClearRenderTarget(Texture* aTexture, const float* aColor);
-    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL);
+    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const;
 
-    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
+    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const;
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
     void TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow = false);
     void CopyResource(GpuResourceDX12* aDestResource, GpuResourceDX12* aSrcResource);
@@ -37,6 +41,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void KickoffResourceBarriers();
     void ReleaseAllocator(uint64 aFenceVal);
     void ReleaseDynamicHeaps(uint64 aFenceVal);
+
+    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const Descriptor* someResources, uint32 aResourceCount);
   
     CommandListType myCommandListType;
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList

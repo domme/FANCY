@@ -139,9 +139,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     TransitionResource(static_cast<TextureDX12*>(aTexture), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
     myCommandList->ClearRenderTargetView(static_cast<TextureDX12*>(aTexture)->GetRtv().myCpuHandle, aColor, 0, nullptr);
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandContextBaseDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear,
-    uint8 aStencilClear, uint32 someClearFlags /* = (uint32)DepthStencilClearFlags::CLEAR_ALL */)
+    uint8 aStencilClear, uint32 someClearFlags /* = (uint32)DepthStencilClearFlags::CLEAR_ALL */) const
   {
     ASSERT(aTexture->GetParameters().bIsDepthStencil);
 
@@ -153,7 +153,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myCommandList->ClearDepthStencilView(static_cast<TextureDX12*>(aTexture)->GetDsv().myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandContextBaseDX12::TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow /* = false */)
   {
     if (aResource->GetUsageState() == aDestState)
@@ -194,7 +194,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
   void CommandContextBaseDX12::UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource,
-    uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas)
+    uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const
   {
     D3D12_RESOURCE_DESC srcDesc = aStagingResource->GetDesc();
     D3D12_RESOURCE_DESC destDesc = aDestResource->GetDesc();
@@ -285,7 +285,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   //---------------------------------------------------------------------------//
   void CommandContextBaseDX12::ReleaseAllocator(uint64 aFenceVal)
   {
-    RenderCore::ReleaseCommandAllocator(myCommandAllocator, myCommandListType, aFenceVal);
+    RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, myCommandListType, aFenceVal);
     myCommandAllocator = nullptr;
   }
   //---------------------------------------------------------------------------//
@@ -294,16 +294,45 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
     {
       if (heap != nullptr)
-        RenderCore::ReleaseDynamicDescriptorHeap(heap, myCommandListType, aFenceVal);
+        RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, myCommandListType, aFenceVal);
     }
 
     for (DescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
     {
-      RenderCore::ReleaseDynamicDescriptorHeap(heap, myCommandListType, aFenceVal);
+      RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, myCommandListType, aFenceVal);
     }
 
     myRetiredDescriptorHeaps.clear();
     memset(myDynamicShaderVisibleHeaps, 0, sizeof(myDynamicShaderVisibleHeaps));
+  }
+//---------------------------------------------------------------------------//
+  DescriptorDX12 CommandContextBaseDX12::CopyDescriptorsToDynamicHeapRange(const Descriptor* someResources, uint32 aResourceCount)
+  {
+    ASSERT(aResourceCount > 0u);
+
+    const Descriptor& firstDescriptor = someResources[0];
+
+    D3D12_DESCRIPTOR_HEAP_TYPE heapType = static_cast<const DescriptorDX12&>(firstDescriptor).myHeapType;
+    DescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
+
+    RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
+
+    if (dynamicHeap == nullptr)
+    {
+      dynamicHeap = platformDx12->AllocateDynamicDescriptorHeap(aResourceCount, heapType);
+      SetDescriptorHeap(heapType, dynamicHeap);
+    }
+
+    uint32 startOffset = dynamicHeap->GetNumAllocatedDescriptors();
+    for (uint32 i = 0u; i < aResourceCount; ++i)
+    {
+      DescriptorDX12 destDescriptor = dynamicHeap->AllocateDescriptor();
+
+      platformDx12->GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle,
+        static_cast<const DescriptorDX12&>(someResources[i]).myCpuHandle, heapType);
+    }
+    
+    return dynamicHeap->GetDescriptor(startOffset);
   }
 //---------------------------------------------------------------------------//
 } } }

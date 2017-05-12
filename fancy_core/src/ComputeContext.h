@@ -1,13 +1,27 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include PLATFORM_DEPENDENT_INCLUDE_COMPUTECONTEXT
+#include "CommandContext.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class ComputeContext : public PLATFORM_DEPENDENT_NAME(ComputeContext)
+  struct ComputePipelineState
   {
+    ComputePipelineState();
+    uint GetHash() const;
     
+    const GpuProgram* myGpuProgram;
+    bool myIsDirty;
+  };
+//---------------------------------------------------------------------------//
+  class ComputeContext : public CommandContext
+  {
+  public:
+    ComputeContext();
+    virtual ~ComputeContext();
+
+    virtual void SetComputeProgram(const GpuProgram* aProgram) = 0;
+    virtual void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) = 0;
   };
 //---------------------------------------------------------------------------//
 } }
