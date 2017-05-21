@@ -36,7 +36,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
 
     Rendering::ShaderResourceInterface*
-      GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS = nullptr) const;
+      GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS = nullptr) const;
 
     void WaitForFence(CommandListType aType, uint64 aFenceVal);
     bool IsFenceDone(CommandListType aType, uint64 aFenceVal);
@@ -60,10 +60,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext) override;
     void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext) override;
 
-    ComPtr<ID3D12Device> ourDevice;
+    Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
 
     CommandAllocatorPoolDX12* ourCommandAllocatorPools[(uint)CommandListType::NUM];
-    ComPtr<ID3D12CommandQueue> ourCommandQueues[(uint)CommandListType::NUM];
+    Microsoft::WRL::ComPtr<ID3D12CommandQueue> ourCommandQueues[(uint)CommandListType::NUM];
     FenceDX12 ourCmdListDoneFences[(uint)CommandListType::NUM];
 
   protected:

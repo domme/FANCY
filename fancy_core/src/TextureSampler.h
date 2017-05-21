@@ -1,17 +1,36 @@
-#ifndef INCLUDE_TEXTURESAMPLER_H
-#define INCLUDE_TEXTURESAMPLER_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
-#include PLATFORM_DEPENDENT_INCLUDE_TEXTURESAMPLER
+#include "ObjectName.h"
+#include "Serializable.h"
+#include "TextureSamplerDesc.h"
 
 namespace Fancy { namespace Rendering {
-
-  class TextureSampler : public PLATFORM_DEPENDENT_NAME(TextureSampler), public StaticManagedObject<TextureSampler>
+//---------------------------------------------------------------------------//
+  class TextureSampler
   {
+  public:
+    SERIALIZABLE_RESOURCE(TextureSampler)
 
+    TextureSampler() = default;
+    virtual ~TextureSampler() = default;
+
+    TextureSamplerDesc GetDescription() const { return myDescription; }
+
+    void SetFromDescription(const TextureSamplerDesc& aDesc)
+    {
+      if (aDesc == myDescription && IsCreated())
+        return;
+       
+      myDescription = aDesc;
+      Create();
+    }
+
+  protected:
+    TextureSamplerDesc myDescription;
+
+    virtual void Create() = 0;
+    virtual bool IsCreated() = 0;
   };
-
+//---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
-
-#endif  // INCLUDE_TEXTURESAMPLER_H

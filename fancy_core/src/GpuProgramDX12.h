@@ -24,7 +24,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const D3D12_INPUT_ELEMENT_DESC* GetNativeInputElements() const { ASSERT(!myNativeInputElements.empty()); return &myNativeInputElements[0u]; }
     uint32 GetNumNativeInputElements() const { return myNativeInputElements.size(); }
 
-    const ComPtr<ID3DBlob>& getNativeData() const { return myNativeData; }
+    const Microsoft::WRL::ComPtr<ID3DBlob>& getNativeData() const { return myNativeData; }
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
     void SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput) override;
@@ -38,7 +38,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         
     std::vector<D3D12_INPUT_ELEMENT_DESC> myNativeInputElements;
 
-    ComPtr<ID3DBlob> myNativeData;
+    Microsoft::WRL::ComPtr<ID3DBlob> myNativeData;
     D3D12_SHADER_BYTECODE myNativeByteCode;
   };
 //---------------------------------------------------------------------------//

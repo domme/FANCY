@@ -6,8 +6,6 @@
 #include <wrl.h>
 #include "d3dx12.h"
 
-using namespace Microsoft::WRL;  // Too ugly?!
-
 namespace {
   void CheckD3Dcall(HRESULT aResult)
   {

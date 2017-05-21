@@ -114,7 +114,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ourDevice.Reset();
   }
 //---------------------------------------------------------------------------//
-  Rendering::ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const
+  Rendering::ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const
   {
     const uint& requestedHash = ShaderResourceInterfaceDX12::ComputeHash(anRSdesc);
 
@@ -239,7 +239,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     const D3D12_RESOURCE_DESC& resourceDesc = bufferDx12->GetResource()->GetDesc();
 
-    ComPtr<ID3D12Resource> uploadResource;
+    Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
     CheckD3Dcall(GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
       &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
 
@@ -271,7 +271,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_RESOURCE_DESC uploadResourceDesc = bufferDx12->GetResource()->GetDesc();
     uploadResourceDesc.Width = MathUtil::Align(aByteSize, aBuffer->GetAlignment());
 
-    ComPtr<ID3D12Resource> uploadResource;
+    Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
     CheckD3Dcall(ourDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
       &uploadResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
 
@@ -324,7 +324,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     BufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
     BufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-    ComPtr<ID3D12Resource> stagingBuffer;
+    Microsoft::WRL::ComPtr<ID3D12Resource> stagingBuffer;
 
     CheckD3Dcall(device->CreateCommittedResource(
       &HeapProps, D3D12_HEAP_FLAG_NONE,

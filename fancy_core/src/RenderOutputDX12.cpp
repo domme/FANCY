@@ -1,6 +1,7 @@
 #include "RenderOutputDX12.h"
 #include "RenderCore_PlatformDX12.h"
 #include "RenderCore.h"
+#include "RenderWindow.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//

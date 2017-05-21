@@ -121,7 +121,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }  // namespace
 //---------------------------------------------------------------------------//
 
-  ComPtr<ID3D12Device> RenderCoreDX12::ourDevice;
+  Microsoft::WRL::ComPtr<ID3D12Device> RenderCoreDX12::ourDevice;
   DescriptorHeapPoolDX12* RenderCoreDX12::ourDynamicDescriptorHeapPool = nullptr;
   CommandAllocatorPoolDX12* RenderCoreDX12::ourCommandAllocatorPools[(uint)CommandListType::NUM] = {nullptr};
   ComPtr<ID3D12CommandQueue> RenderCoreDX12::ourCommandQueues[(uint) CommandListType::NUM];

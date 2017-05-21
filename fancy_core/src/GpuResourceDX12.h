@@ -1,6 +1,5 @@
 #pragma once
 
-#include "RendererPrerequisites.h"
 #include "DX12Prerequisites.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
@@ -27,7 +26,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress() const { return myResource->GetGPUVirtualAddress(); }
 
   protected:
-    ComPtr<ID3D12Resource> myResource;
+    Microsoft::WRL::ComPtr<ID3D12Resource> myResource;
     D3D12_RESOURCE_STATES myUsageState;
     D3D12_RESOURCE_STATES myTransitioningState;
 

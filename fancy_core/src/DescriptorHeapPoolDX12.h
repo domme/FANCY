@@ -5,6 +5,7 @@
 #include "FancyCorePrerequisites.h"
 #include "CommandListType.h"
 #include "DX12Prerequisites.h"
+#include "DescriptorDX12.h"
 
 namespace Fancy {namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -31,7 +32,7 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     DescriptorHeapDX12();
     void Create(const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);
 
-    ComPtr<ID3D12DescriptorHeap> myDescriptorHeap;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myDescriptorHeap;
     D3D12_DESCRIPTOR_HEAP_DESC myDesc;
 
     uint myHandleIncrementSize;

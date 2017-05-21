@@ -1,11 +1,10 @@
 #pragma once
 
-
-
-namespace Fancy { namespace IO {
+namespace Fancy {
+//---------------------------------------------------------------------------// 
+ namespace IO {
   class Serializer;
-  }
-
+}
 //---------------------------------------------------------------------------//
   struct DescriptionBase
   {
@@ -14,7 +13,8 @@ namespace Fancy { namespace IO {
     virtual ObjectName GetTypeName() const = 0;
     virtual uint64 GetHash() const = 0;
     virtual void Serialize(IO::Serializer* aSerializer) = 0;
-    virtual bool IsEmpty() const = 0;
+
+    virtual bool IsEmpty() const { return false; }
   };
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
 }

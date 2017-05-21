@@ -1,12 +1,7 @@
 #include "StdAfx.h"
 #include "GpuProgramCompiler.h"
-#include "AdapterDX12.h"
-
-#include "ShaderResourceInterface.h"
-#include "GpuProgramCompiler.h"
 
 #include "GpuProgramDX12.h"
-#include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "ShaderResourceInterfaceDX12.h"
 

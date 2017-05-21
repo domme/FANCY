@@ -630,5 +630,8 @@
     <ClCompile Include="src\GpuProgramPipeline.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="src\TextureSamplerDesc.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

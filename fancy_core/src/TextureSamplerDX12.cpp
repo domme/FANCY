@@ -3,11 +3,9 @@
 #include "DescriptorHeapPoolDX12.h"
 #include "AdapterDX12.h"
 
-#if defined (RENDERER_DX12)
-
 #include "TextureSamplerDX12.h"
-#include "RendererDX12.h"
-#include "Renderer.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -17,15 +15,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   TextureSamplerDX12::~TextureSamplerDX12()
   {
-  }
-//---------------------------------------------------------------------------//
-  void TextureSamplerDX12::SetFromDescription(const TextureSamplerDesc& aDesc)
-  {
-    if (aDesc == GetDescription())
-      return;
-
-    myProperties = aDesc;
-    create(myName, aDesc);
   }
 //---------------------------------------------------------------------------//
   static D3D12_TEXTURE_ADDRESS_MODE locResolveAddressMode(SamplerAddressMode aMode)
@@ -88,30 +77,30 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
   }
 //---------------------------------------------------------------------------//
-  void TextureSamplerDX12::create(const ObjectName& rName, const TextureSamplerDesc& someProperties)
+  void TextureSamplerDX12::Create()
   {
-    myProperties = someProperties;
-
     D3D12_SAMPLER_DESC desc;
-    desc.AddressU = locResolveAddressMode(someProperties.addressModeX);
-    desc.AddressU = locResolveAddressMode(someProperties.addressModeY);
-    desc.AddressW = locResolveAddressMode(someProperties.addressModeZ);
+    desc.AddressU = locResolveAddressMode(myDescription.addressModeX);
+    desc.AddressU = locResolveAddressMode(myDescription.addressModeY);
+    desc.AddressW = locResolveAddressMode(myDescription.addressModeZ);
     for (uint32 i = 0u; i < 4u; ++i)
-      desc.BorderColor[i] = someProperties.borderColor[i];
-    desc.ComparisonFunc = Adapter::toNativeType(someProperties.comparisonFunc);
-    desc.Filter = locResolveFilterMode(someProperties.minFiltering, someProperties.magFiltering);
-    desc.MaxAnisotropy = someProperties.fMaxAnisotropy;
-    desc.MaxLOD = someProperties.fMaxLod;
-    desc.MinLOD = someProperties.fMinLod;
-    desc.MipLODBias = someProperties.fLodBias;
+      desc.BorderColor[i] = myDescription.borderColor[i];
+    desc.ComparisonFunc = Adapter::toNativeType(myDescription.comparisonFunc);
+    desc.Filter = locResolveFilterMode(myDescription.minFiltering, myDescription.magFiltering);
+    desc.MaxAnisotropy = myDescription.fMaxAnisotropy;
+    desc.MaxLOD = myDescription.fMaxLod;
+    desc.MinLOD = myDescription.fMinLod;
+    desc.MipLODBias = myDescription.fLodBias;
 
-    myDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-    ID3D12Device* device = RenderCoreDX12::GetDevice();
+    RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
+    myDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
-    device->CreateSampler(&desc, myDescriptor.myCpuHandle);
+    dx12Platform->GetDevice()->CreateSampler(&desc, myDescriptor.myCpuHandle);
+  }
+//---------------------------------------------------------------------------//
+  bool TextureSamplerDX12::IsCreated()
+  {
+    return myDescriptor.myCpuHandle.ptr != 0u;
   }
 //---------------------------------------------------------------------------//
 } } }
-
-#endif
-

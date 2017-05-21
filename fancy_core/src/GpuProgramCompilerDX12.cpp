@@ -525,8 +525,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     defines[defines.size() - 1].Name = nullptr;
     defines[defines.size() - 1].Definition = nullptr;
 
-    ComPtr<ID3DBlob> compiledShaderBytecode;
-    ComPtr<ID3DBlob> errorData;
+    Microsoft::WRL::ComPtr<ID3DBlob> compiledShaderBytecode;
+    Microsoft::WRL::ComPtr<ID3DBlob> errorData;
 
     HRESULT sucess = D3DCompileFromFile(
       shaderPathAbs.c_str(),
@@ -572,7 +572,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return false;
     }
 
-    ComPtr<ID3D12RootSignatureDeserializer> rsDeserializer;
+    Microsoft::WRL::ComPtr<ID3D12RootSignatureDeserializer> rsDeserializer;
     sucess = D3D12CreateRootSignatureDeserializer(rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rsDeserializer));
 
     if (S_OK != sucess)

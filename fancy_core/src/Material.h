@@ -11,12 +11,6 @@ namespace Fancy {
   class GraphicsWorld;
 }
 
-namespace Fancy {
-  namespace IO {
-    class Serializer;
-  }
-}
-
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct MaterialTexture

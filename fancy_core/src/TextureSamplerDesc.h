@@ -2,13 +2,24 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "MathUtil.h"
-#include "Serializer.h"
+#include "DescriptionBase.h"
+
+namespace Fancy { namespace IO {
+  class Serializer;
+} }
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct TextureSamplerDesc 
+  struct TextureSamplerDesc : public DescriptionBase
   {
+    TextureSamplerDesc();
+    ~TextureSamplerDesc() override = default;
+    bool operator==(const TextureSamplerDesc& anOther) const;
+
+    uint64 GetHash() const override;
+    void Serialize(IO::Serializer* aSerializer) override;
+    ObjectName GetTypeName() const override { return _N(TextureSampler); }
+
     SamplerFilterMode  minFiltering;
     SamplerFilterMode  magFiltering;
     SamplerAddressMode addressModeX;
@@ -20,43 +31,6 @@ namespace Fancy { namespace Rendering {
     float              fMaxLod;
     float              fLodBias;
     float              fMaxAnisotropy;
-
-    TextureSamplerDesc() :
-      minFiltering(SamplerFilterMode::NEAREST),
-      magFiltering(SamplerFilterMode::NEAREST),
-      addressModeX(SamplerAddressMode::WRAP),
-      addressModeY(SamplerAddressMode::WRAP),
-      addressModeZ(SamplerAddressMode::WRAP),
-      comparisonFunc(CompFunc::ALWAYS),
-      borderColor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)),
-      fMinLod(0.0f),
-      fMaxLod(FLT_MAX),
-      fLodBias(0.0f),
-      fMaxAnisotropy(1.0f) {}
-
-    uint64 GetHash() const
-    {
-      return MathUtil::hashFromGeneric(*this);
-    }
-
-    bool operator==(const TextureSamplerDesc& anOther) const
-    {
-      return GetHash() == anOther.GetHash();
-    }
-
-    void Serialize(IO::Serializer* aSerializer)
-    {
-      aSerializer->Serialize(&minFiltering, "minFiltering");
-      aSerializer->Serialize(&magFiltering, "magFiltering");
-      aSerializer->Serialize(&addressModeX, "addressModeX");
-      aSerializer->Serialize(&addressModeY, "addressModeY");
-      aSerializer->Serialize(&addressModeZ, "addressModeZ");
-      aSerializer->Serialize(&borderColor, "borderColor");
-      aSerializer->Serialize(&fMinLod, "fMinLod");
-      aSerializer->Serialize(&fMaxLod, "fMaxLod");
-      aSerializer->Serialize(&fLodBias, "fLodBias");
-      aSerializer->Serialize(&fMaxAnisotropy, "fMaxAnisotropy");
-    }
   };
 //---------------------------------------------------------------------------//
 } }

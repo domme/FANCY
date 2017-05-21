@@ -1,7 +1,6 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
 #include "FileWatcher.h"
 #include "GpuProgramCompiler.h"
 

@@ -406,6 +406,7 @@
     <ClCompile Include="src\TextureDesc.cpp" />
     <ClCompile Include="src\TextureDX12.cpp" />
     <ClCompile Include="src\TextureLoader.cpp" />
+    <ClCompile Include="src\TextureSamplerDesc.cpp" />
     <ClCompile Include="src\TextureSamplerDX12.cpp" />
     <ClCompile Include="src\TimeManager.cpp" />
     <ClCompile Include="src\VertexInputLayout.cpp" />
