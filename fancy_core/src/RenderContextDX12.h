@@ -29,6 +29,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     RenderContextDX12();
     ~RenderContextDX12() override;
 
+    void Reset() override;
+    uint64 ExecuteAndReset(bool aWaitForCompletion) override;
+
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
 
     // Root arguments:

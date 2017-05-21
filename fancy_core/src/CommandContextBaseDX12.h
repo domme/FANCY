@@ -4,6 +4,7 @@
 #include "CommandContext.h"
 #include "GpuDynamicAllocatorDX12.h"
 #include "DX12Prerequisites.h"
+#include "DescriptorDX12.h"
 
 namespace Fancy{ namespace Rendering{
   class Descriptor;

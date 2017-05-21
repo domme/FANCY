@@ -47,30 +47,7 @@ namespace Fancy {
     class GpuProgram;
     class GpuProgramPipeline;
     class GpuProgramCompiler;
-    class GpuProgramResource;
   //---------------------------------------------------------------------------//
-  // Forward-declarations of platform-dependent rendering classes
-		namespace DX12
-		{
-			class RenderOutputDX12;
-      class RenderContextDX12;
-			class TextureDX12;
-			class GpuProgramDX12;
-			class GpuBufferDX12;
-			class GpuProgramPipelineDX12;
-			class GpuProgramCompilerDX12;
-			class TextureSamplerDX12;
-			class GpuProgramResourceDX12;
-      class RenderCoreDX12;
-      class GpuResourceDX12;
-      class DescriptorDX12;
-      class ShaderResourceInterfaceDX12;
-      class CommandContextBaseDX12;
-      class ComputeContextDX12;
-		}
-  //---------------------------------------------------------------------------//
-
-  //-----------------------------------------------------------------------//
     enum class CompFunc {
       NEVER = 0,
       LESS,

@@ -1,6 +1,4 @@
 #include "RenderCore_PlatformDX12.h"
-#include "AdapterDX12.h"
-#include "Fancy.h"
 #include "DescriptorDX12.h"
 #include "GpuProgramCompilerDX12.h"
 #include "GpuProgramDX12.h"
@@ -8,7 +6,6 @@
 #include "GpuBufferDX12.h"
 #include "ComputeContextDX12.h"
 
-#if defined (RENDERER_DX12)
 #include "MathUtil.h"
 #include "GpuProgram.h"
 #include "ShaderResourceInterface.h"
@@ -76,8 +73,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourCommandQueues[(uint)CommandListType::Compute])));
 
     // Create synchronization objects.
-    ourCmdListDoneFences[(uint)CommandListType::Graphics].Init(ourDevice.Get(), "RenderCore_PlatformDX12::GraphicsCommandListFinished");
-    ourCmdListDoneFences[(uint)CommandListType::Compute].Init(ourDevice.Get(), "RenderCore_PlatformDX12::ComputeCommandListFinished");
+    ourCmdListDoneFences[(uint)CommandListType::Graphics].Init("RenderCore_PlatformDX12::GraphicsCommandListFinished");
+    ourCmdListDoneFences[(uint)CommandListType::Compute].Init("RenderCore_PlatformDX12::ComputeCommandListFinished");
 
     ourCommandAllocatorPools[(uint)CommandListType::Graphics] = new CommandAllocatorPoolDX12(CommandListType::Graphics);
     ourCommandAllocatorPools[(uint)CommandListType::Compute] = new CommandAllocatorPoolDX12(CommandListType::Compute);
@@ -94,7 +91,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     for (uint32 i = 0u; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
     {
       heapDesc.Type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
-      ourStaticDescriptorHeaps[i].Create(ourDevice.Get(), heapDesc);
+      ourStaticDescriptorHeaps[i].Create(heapDesc);
     }
   }
 //---------------------------------------------------------------------------//
@@ -566,5 +563,3 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
 } } }  // end of namespace Fancy::Rendering::DX12
-
-#endif

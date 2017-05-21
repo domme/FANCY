@@ -7,6 +7,7 @@
 #include "RenderContextDX12.h"
 #include "CommandAllocatorPoolDX12.h"
 #include "DescriptorHeapPoolDX12.h"
+#include "DescriptorDX12.h"
 
 namespace Fancy {
   class RenderWindow;

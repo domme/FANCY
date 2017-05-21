@@ -109,7 +109,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return result;
   }
 //---------------------------------------------------------------------------//
-  GpuDynamicAllocPage* GpuDynamicAllocatorDX12::CreateNewPage()
+  GpuDynamicAllocPage* GpuDynamicAllocatorDX12::CreateNewPage() const
   {
     D3D12_HEAP_PROPERTIES heapProperties;
     heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;

@@ -28,8 +28,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
   {
+    Reset();
   }
 //---------------------------------------------------------------------------//
+  void RenderContextDX12::Reset()
+  {
+    Reset_Internal();
+  }
+//---------------------------------------------------------------------------//
+  uint64 RenderContextDX12::ExecuteAndReset(bool aWaitForCompletion)
+  {
+    return ExecuteAndReset_Internal(aWaitForCompletion);
+  }
+  //---------------------------------------------------------------------------//
   D3D12_GRAPHICS_PIPELINE_STATE_DESC RenderContextDX12::GetNativePSOdesc(const GraphicsPipelineState& aState)
   {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;

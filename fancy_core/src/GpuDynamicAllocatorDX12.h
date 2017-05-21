@@ -52,7 +52,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void CleanupAfterCmdListExecute(uint64 aCmdListDoneFence);
 
   protected:
-    GpuDynamicAllocPage* CreateNewPage();
+    GpuDynamicAllocPage* CreateNewPage() const;
     GpuDynamicAllocatorType myAllocatorType;
     CommandListType myCmdListType;
     uint64 myCurrPageOffsetBytes;

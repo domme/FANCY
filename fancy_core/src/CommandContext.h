@@ -4,7 +4,9 @@
 #include "CommandListType.h"
 
 namespace Fancy { namespace Rendering {
-//---------------------------------------------------------------------------//
+  class Descriptor;
+
+  //---------------------------------------------------------------------------//
   class CommandContext
   {
   public:
