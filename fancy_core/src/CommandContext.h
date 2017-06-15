@@ -4,9 +4,18 @@
 #include "CommandListType.h"
 
 namespace Fancy { namespace Rendering {
-  class Descriptor;
-
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  class GpuResource;
+//---------------------------------------------------------------------------//
+  enum class ResourceBindingType
+  {
+    SIMPLE = 0,
+    READ_WRITE,
+    RENDER_TARGET,
+    DEPTH_STENCIL_TARGET,
+    CONSTANT_BUFFER
+  };
+//---------------------------------------------------------------------------//
   class CommandContext
   {
   public:
@@ -19,13 +28,10 @@ namespace Fancy { namespace Rendering {
     virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const = 0;
 
     // Root arguments:
-    virtual void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const = 0;
-    virtual void SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const = 0;
-    virtual void SetReadBuffer(const GpuBuffer* aBuffer, uint32 aRegisterIndex) const = 0;
-    virtual void SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const = 0;
-
+    virtual void BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const = 0;
+    
     // Descriptor tables:
-    virtual void SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex) = 0;
+    virtual void BindResourceSet(const GpuResource** someResources, ResourceBindingType* someBindingTypes, uint32 aResourceCount, uint32 aRegisterIndex) = 0;
 
     virtual void Reset() = 0;
     virtual uint64 ExecuteAndReset(bool aWaitForCompletion = false) = 0;

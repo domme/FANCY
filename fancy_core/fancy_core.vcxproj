@@ -215,7 +215,7 @@
     <ClInclude Include="src\BlendState.h" />
     <ClInclude Include="src\Callback.h" />
     <ClInclude Include="src\CommandContext.h" />
-    <ClInclude Include="src\CommandContextBaseDX12.h" />
+    <ClInclude Include="src\CommandContextDX12.h" />
     <ClInclude Include="src\CommandListType.h" />
     <ClInclude Include="src\ComputeContext.h" />
     <ClInclude Include="src\ComputeContextDX12.h" />
@@ -326,7 +326,7 @@
     <ClCompile Include="src\BinaryCache.cpp" />
     <ClCompile Include="src\BlendState.cpp" />
     <ClCompile Include="src\CommandContext.cpp" />
-    <ClCompile Include="src\CommandContextBaseDX12.cpp" />
+    <ClCompile Include="src\CommandContextDX12.cpp" />
     <ClCompile Include="src\ComputeContext.cpp" />
     <ClCompile Include="src\ComputeContextDX12.cpp" />
     <ClCompile Include="src\DataFormat.cpp" />

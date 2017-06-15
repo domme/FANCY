@@ -1,5 +1,7 @@
 #include "FancyCorePrerequisites.h"
 
+#include <malloc.h>
+
 #include "RenderContextDX12.h"
 #include "AdapterDX12.h"
 #include "GpuBuffer.h"
@@ -21,7 +23,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   std::unordered_map<uint, ID3D12PipelineState*> RenderContextDX12::ourPSOcache;
 //---------------------------------------------------------------------------// 
   RenderContextDX12::RenderContextDX12()
-    : CommandContextBaseDX12(CommandListType::Graphics)
+    : CommandContextDX12(CommandListType::Graphics)
   {
     RenderContextDX12::Reset_Internal();
   }
@@ -194,7 +196,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::Reset_Internal()
   {
-    CommandContextBaseDX12::Reset_Internal();
+    CommandContextDX12::Reset_Internal();
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myViewportDirty = true;
@@ -213,41 +215,52 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ClearDepthStencilTarget_Internal(aTexture, aDepthClear, aStencilClear, someClearFlags);
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const
+  void RenderContextDX12::BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const
   {
     ASSERT(myRootSignature != nullptr);
-    myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, 
-      static_cast<const TextureDX12*>(aTexture)->GetGpuVirtualAddress());    
+ 
+    const GpuResourceDX12* resource = CastGpuResourceDX12(aResource);
+    ASSERT(resource != nullptr);
+
+    const uint64 gpuVirtualAddress = resource->GetGpuVirtualAddress();
+    
+    switch(aBindingType)
+    {
+      case ResourceBindingType::SIMPLE: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
+      case ResourceBindingType::READ_WRITE: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
+      case ResourceBindingType::CONSTANT_BUFFER: { myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
+      case ResourceBindingType::RENDER_TARGET:
+      case ResourceBindingType::DEPTH_STENCIL_TARGET:
+      default: { ASSERT(false); break; }
+    }
   }
-  //---------------------------------------------------------------------------//
-  void RenderContextDX12::SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const
-  {
-    ASSERT(myRootSignature != nullptr);
-    myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, 
-      static_cast<const TextureDX12*>(aTexture)->GetGpuVirtualAddress());
-  }
-  //---------------------------------------------------------------------------//
-  void RenderContextDX12::SetReadBuffer(const GpuBuffer* aBuffer, uint32 aRegisterIndex) const
-  {
-    ASSERT(myRootSignature != nullptr);
-    myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, 
-      static_cast<const GpuBufferDX12*>(aBuffer)->GetGpuVirtualAddress());
-  }
-  //---------------------------------------------------------------------------//
-  void RenderContextDX12::SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const
-  {
-    ASSERT(myRootSignature != nullptr);
-    myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, 
-      static_cast<const GpuBufferDX12*>(aConstantBuffer)->GetGpuVirtualAddress());
-  }  
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex)
+  void RenderContextDX12::BindResourceSet(const GpuResource** someResources, ResourceBindingType* someBindingTypes, uint32 aResourceCount, uint32 aRegisterIndex)
   {
     ASSERT(myRootSignature != nullptr);
 
-    DescriptorDX12 dynamicRangeStartDescriptor = 
-      CopyDescriptorsToDynamicHeapRange(someResources, aResourceCount);
+    const GpuResourceDX12** resources = static_cast<const GpuResourceDX12**>(alloca(sizeof(const GpuResourceDX12*) * aResourceCount));
+    for (uint32 i = 0u; i < aResourceCount; ++i)
+    {
+      resources[i] = CastGpuResourceDX12(someResources[i]);
+      ASSERT(resources[i] != nullptr);
+    }
 
+    DescriptorDX12* descriptors = static_cast<DescriptorDX12*>(alloca(sizeof(DescriptorDX12) * aResourceCount));
+    for (uint32 i = 0u; i < aResourceCount; ++i)
+    {
+      switch (someBindingTypes[i])
+      {
+        case ResourceBindingType::SIMPLE: { const DescriptorDX12* desc = resources[i]->GetSrv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
+        case ResourceBindingType::READ_WRITE: { const DescriptorDX12* desc = resources[i]->GetUav(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
+        case ResourceBindingType::RENDER_TARGET: { const DescriptorDX12* desc = resources[i]->GetRtv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
+        case ResourceBindingType::DEPTH_STENCIL_TARGET: { const DescriptorDX12* desc = resources[i]->GetDsv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
+        case ResourceBindingType::CONSTANT_BUFFER: { const DescriptorDX12* desc = resources[i]->GetCbv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
+        default: { ASSERT(false); break; };
+      }
+    }
+
+    DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(descriptors, aResourceCount);
     myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
   }
 //---------------------------------------------------------------------------//

@@ -14,13 +14,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     TextureDX12();
     ~TextureDX12() override;
     bool IsValid() const override { return myResource != nullptr; }
-    
+
     void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint32 aNumInitialDatas = 0u) override;
 
-    const DescriptorDX12& GetRtv() const { return myRtvDescriptor; }
-    const DescriptorDX12& GetSrv() const { return mySrvDescriptor; }
-    const DescriptorDX12& GetUav() const { return myUavDescriptor; }
-    const DescriptorDX12& GetDsv() const { return myDsvDescriptor; }
+    const DescriptorDX12* GetSrv() const override { return &mySrvDescriptor; }
+    const DescriptorDX12* GetUav() const override { return &myUavDescriptor; }
+    const DescriptorDX12* GetCbv() const override { return nullptr; }
+    const DescriptorDX12* GetRtv() const override { return &myRtvDescriptor; }
+    const DescriptorDX12* GetDsv() const override { return &myDsvDescriptor; }
     
   protected:
     void Destroy();

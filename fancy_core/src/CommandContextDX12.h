@@ -6,20 +6,18 @@
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 
-namespace Fancy{ namespace Rendering{
-  class Descriptor;
-}}
-
 namespace Fancy { namespace Rendering { namespace DX12 {
+//---------------------------------------------------------------------------//
+  class DescriptorDX12;
   class DescriptorHeapDX12;
 //---------------------------------------------------------------------------//
-  class CommandContextBaseDX12
+  class CommandContextDX12 : public virtual CommandContext
   {
     friend class RenderCore_PlatformDX12;
 
   public:
-    CommandContextBaseDX12(CommandListType aType);
-    virtual ~CommandContextBaseDX12();
+    CommandContextDX12(CommandListType aType);
+    virtual ~CommandContextDX12();
 
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint32 aDescriptorTypeMask);
 
@@ -43,7 +41,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ClearRenderTarget_Internal(Texture* aTexture, const float* aColor);
     void ClearDepthStencilTarget_Internal(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const;
 
-    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const Descriptor* someResources, uint32 aResourceCount);
+    static const GpuResourceDX12* CastGpuResourceDX12(const GpuResource* aResource);
+    
+    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint32 aResourceCount);
   
     CommandListType myCommandListType;
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList

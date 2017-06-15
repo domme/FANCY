@@ -352,9 +352,6 @@
     <ClInclude Include="src\RenderQueues.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\CommandContextBaseDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="src\RenderCore.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -372,6 +369,9 @@
     </ClInclude>
     <ClInclude Include="src\GpuResource.h">
       <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CommandContextDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -594,9 +594,6 @@
     <ClCompile Include="src\RenderQueues.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\CommandContextBaseDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClCompile>
     <ClCompile Include="src\RenderCore.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
@@ -620,6 +617,9 @@
     </ClCompile>
     <ClCompile Include="src\TextureSamplerDesc.cpp">
       <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CommandContextDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,24 +1,33 @@
 #pragma once
 
 #include "DX12Prerequisites.h"
+#include "GpuResource.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class RenderOutputDX12;
   class RenderContextDX12;
+  class DescriptorDX12;
 //---------------------------------------------------------------------------//
   class GpuResourceDX12
   {
     friend class RenderOutputDX12;
     friend class RenderContextDX12;
-    friend class CommandContextBaseDX12;
+    friend class CommandContextDX12;
 
   public:
     GpuResourceDX12()
       : myUsageState(D3D12_RESOURCE_STATE_COMMON)
       , myTransitioningState(static_cast<D3D12_RESOURCE_STATES>(~0))
-    {
-    }
+    { }
+
+    virtual ~GpuResourceDX12() { Reset(); }
+
+    virtual const DescriptorDX12* GetSrv() const = 0;
+    virtual const DescriptorDX12* GetUav() const = 0;
+    virtual const DescriptorDX12* GetCbv() const = 0;
+    virtual const DescriptorDX12* GetRtv() const = 0;
+    virtual const DescriptorDX12* GetDsv() const = 0;
 
     ID3D12Resource* GetResource() const  { return myResource.Get(); }
     D3D12_RESOURCE_STATES GetUsageState() const { return myUsageState; }

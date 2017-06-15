@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ComputeContext.h"
-#include "CommandContextBaseDX12.h"
+#include "CommandContextDX12.h"
 
 #include <unordered_map>
 
@@ -11,7 +11,7 @@ namespace Fancy { namespace Rendering {
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  class ComputeContextDX12 : public ComputeContext, public CommandContextBaseDX12
+  class ComputeContextDX12 : public ComputeContext, public CommandContextDX12
   {
   public:
     ComputeContextDX12();
@@ -23,13 +23,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const override;
 
     // Root arguments:
-    void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const override;
-    void SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const override;
-    void SetReadBuffer(const GpuBuffer* aBuffer, uint32 aRegisterIndex) const override;
-    void SetConstantBuffer(const GpuBuffer* aConstantBuffer, uint32 aRegisterIndex) const override;
+    void BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const override;
 
     // Descriptor tables:
-    void SetMultipleResources(const Descriptor* someResources, uint32 aResourceCount, uint32 aRegisterIndex) override;
+    void BindResourceSet(const GpuResource** someResources, ResourceBindingType* someBindingTypes, uint32 aResourceCount, uint32 aRegisterIndex) override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;
     void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) override;
