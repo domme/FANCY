@@ -34,6 +34,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
 
+    void ClearRenderTarget(Texture* aTexture, const float* aColor) override;
+    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const override;
+
     // Root arguments:
     void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const override;
     void SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const override;

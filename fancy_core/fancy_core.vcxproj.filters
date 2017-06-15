@@ -40,9 +40,6 @@
     <ClInclude Include="src\StdAfx.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\ComputeOperation.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\Events.h">
       <Filter>src\Common</Filter>
     </ClInclude>
@@ -361,9 +358,6 @@
     <ClInclude Include="src\RenderCore.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderCoreDX12.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\RenderOutput.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -383,9 +377,6 @@
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ComputeOperation.cpp">
-      <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\FileReader.cpp">
       <Filter>src\IO</Filter>
@@ -607,9 +598,6 @@
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderCore.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderCoreDX12.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderOutput.cpp">

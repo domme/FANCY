@@ -1,5 +1,5 @@
 #include "RenderingProcessForward.h"
-#include "Renderer.h"
+#include "RenderCore.h"
 #include "Scene.h"
 #include "Fancy.h"
 #include "RenderQueues.h"
@@ -11,12 +11,11 @@
 #include "CameraComponent.h"
 #include "SceneNode.h"
 #include "RenderWindow.h"
-#include "ComputeContext.h"
-#include "ShaderResourceInterface.h"
 #include "GraphicsWorld.h"
 #include "Model.h"
 #include "Mesh.h"
 #include "BlendState.h"
+#include "RenderOutput.h"
 
 namespace Fancy { namespace Rendering {
 
@@ -180,17 +179,13 @@ namespace Fancy { namespace Rendering {
       bufferParams.uElementSizeBytes = sizeof(Vertex);
       bufferParams.myUsageFlags = (uint32)GpuBufferUsage::VERTEX_BUFFER;
       bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
-
-      GpuBuffer* vertexBuffer = new GpuBuffer();
-      vertexBuffer->create(bufferParams, quadVertices);
+      SharedPtr<GpuBuffer> vertexBuffer = RenderCore::CreateBuffer(bufferParams, quadVertices);
 
       bufferParams.uNumElements = 6u;
       bufferParams.uElementSizeBytes = sizeof(uint16);
       bufferParams.myUsageFlags = (uint32)GpuBufferUsage::INDEX_BUFFER;
       bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
-
-      GpuBuffer* indexBuffer = new GpuBuffer();
-      indexBuffer->create(bufferParams, quadIndices);
+      SharedPtr<GpuBuffer> indexBuffer = RenderCore::CreateBuffer(bufferParams, quadIndices);
 
       myFullscreenQuad = std::make_shared<Geometry::GeometryData>();
       myFullscreenQuad->setVertexBuffer(vertexBuffer);
@@ -243,8 +238,7 @@ namespace Fancy { namespace Rendering {
   {
     PerFrameData frameData;
     frameData.c_TimeParamters = glm::float4(aClock.GetDelta(), aClock.GetElapsed(), 0.0f, 0.0f);
-
-    RenderCore::UpdateBufferData(myPerFrameData.get(), &frameData, sizeof(frameData));
+    RenderCore::UpdateBufferData(myPerFrameData.get(), &frameData, 0u, sizeof(frameData));
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::UpdatePerCameraData(const Scene::CameraComponent* aCamera) const
@@ -271,7 +265,7 @@ namespace Fancy { namespace Rendering {
     cBuffer.c_NearFarParameters[3] = 1.0f / fFar;
     cBuffer.c_CameraPosWS = glm::column(viewInvMat, 3);
 
-    RenderCore::UpdateBufferData(myPerCameraData.get(), &cBuffer, sizeof(cBuffer));
+    RenderCore::UpdateBufferData(myPerCameraData.get(), &cBuffer, 0u, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::UpdatePerLightData(const Scene::LightComponent* aLight, const Scene::CameraComponent* aCamera) const
@@ -291,7 +285,7 @@ namespace Fancy { namespace Rendering {
     cBuffer.c_LightDirWS = lightTransform.forward();
     cBuffer.c_LightDirVS = lightDirVS;
     
-    RenderCore::UpdateBufferData(myPerLightData.get(), &cBuffer, sizeof(cBuffer));
+    RenderCore::UpdateBufferData(myPerLightData.get(), &cBuffer, 0u, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::UpdatePerDrawData(const Scene::CameraComponent* aCamera, const glm::float4x4& aWorldMat) const
@@ -313,7 +307,7 @@ namespace Fancy { namespace Rendering {
     cBuffer.c_WorldViewProjectionMatrix = worldViewProj;
     cBuffer.c_WorldViewProjectionInverseMatrix = worldViewProjInv;
   
-    RenderCore::UpdateBufferData(myPerDrawData.get(), &cBuffer, sizeof(cBuffer));
+    RenderCore::UpdateBufferData(myPerDrawData.get(), &cBuffer, 0u, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::_DebugLoadComputeShader()
@@ -413,7 +407,7 @@ namespace Fancy { namespace Rendering {
     UpdatePerFrameData(aClock);
     UpdatePerCameraData(camera);
 
-    RenderContext* context = static_cast<RenderContext*>(RenderContext::AllocateContext(CommandListType::Graphics));
+    RenderContext* context = static_cast<RenderContext*>(RenderCore::AllocateContext(CommandListType::Graphics));
 
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
     context->ClearRenderTarget(anOutput->GetBackbuffer(), clearColor);
@@ -422,16 +416,16 @@ namespace Fancy { namespace Rendering {
     uint8 clearStencil = 0u;
     context->ClearDepthStencilTarget(anOutput->GetDefaultDepthStencilBuffer(), clearDepth, clearStencil);
 
-    context->setViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
-    context->setRenderTarget(anOutput->GetBackbuffer(), 0u);
-    context->setDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
+    context->SetViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
+    context->SetRenderTarget(anOutput->GetBackbuffer(), 0u);
+    context->SetDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
 
     context->SetDepthStencilState(nullptr);
     // context->SetBlendState(myBlendStateAdd);
     context->SetBlendState(nullptr);
-    context->setCullMode(CullMode::NONE);
-    context->setFillMode(FillMode::SOLID);
-    context->setWindingOrder(WindingOrder::CCW);
+    context->SetCullMode(CullMode::NONE);
+    context->SetFillMode(FillMode::SOLID);
+    context->SetWindingOrder(WindingOrder::CCW);
 
     context->SetGpuProgramPipeline(myDefaultObjectShaderState);
     context->SetConstantBuffer(myPerLightData.get(), 0);
@@ -452,12 +446,12 @@ namespace Fancy { namespace Rendering {
 
         BindResources_ForwardColorPass(context, item.myMaterial);
         
-        context->renderGeometry(item.myGeometry);
+        context->RenderGeometry(item.myGeometry);
       }
     }
 
     context->ExecuteAndReset(true);
-    CommandContext::FreeContext(context);
+    RenderCore::FreeContext(context);
   }
 //---------------------------------------------------------------------------//
   uint32 locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)

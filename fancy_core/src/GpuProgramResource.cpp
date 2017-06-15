@@ -5,8 +5,6 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
   void GpuProgramResourceInfo::Serialize(IO::Serializer* aSerializer)
   {
-    PLATFORM_DEPENDENT_NAME(GpuProgramResource)::Serialize(aSerializer);
-    
     aSerializer->Serialize(&u32RegisterIndex, "registerIndex");
     aSerializer->Serialize(&name, "name");
     aSerializer->Serialize(&eAccessType, "accessType");

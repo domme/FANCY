@@ -229,7 +229,6 @@
     <ClInclude Include="src\GpuBufferDX12.h" />
     <ClInclude Include="src\CameraComponent.h" />
     <ClInclude Include="src\CameraControllerComponent.h" />
-    <ClInclude Include="src\ComputeOperation.h" />
     <ClInclude Include="src\DebugOutStream.h" />
     <ClInclude Include="src\DepthStencilState.h" />
     <ClInclude Include="src\DX12Prerequisites.h" />
@@ -280,7 +279,6 @@
     <ClInclude Include="src\RenderContext.h" />
     <ClInclude Include="src\RenderContextDX12.h" />
     <ClInclude Include="src\RenderCore.h" />
-    <ClInclude Include="src\RenderCoreDX12.h" />
     <ClInclude Include="src\RenderCore_Platform.h" />
     <ClInclude Include="src\RenderCore_PlatformDX12.h" />
     <ClInclude Include="src\RendererPrerequisites.h" />
@@ -338,7 +336,6 @@
     <ClCompile Include="src\GpuBufferDX12.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\CameraControllerComponent.cpp" />
-    <ClCompile Include="src\ComputeOperation.cpp" />
     <ClCompile Include="src\DebugOutStream.cpp" />
     <ClCompile Include="src\DepthStencilState.cpp" />
     <ClCompile Include="src\Fancy.cpp" />
@@ -375,7 +372,6 @@
     <ClCompile Include="src\RenderContext.cpp" />
     <ClCompile Include="src\RenderContextDX12.cpp" />
     <ClCompile Include="src\RenderCore.cpp" />
-    <ClCompile Include="src\RenderCoreDX12.cpp" />
     <ClCompile Include="src\RenderCore_PlatformDX12.cpp" />
     <ClCompile Include="src\RendererDX12.cpp" />
     <ClCompile Include="src\RendererPrerequisites.cpp" />

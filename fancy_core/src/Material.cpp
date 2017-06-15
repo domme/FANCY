@@ -2,7 +2,7 @@
 #include "Serializer.h"
 #include "GraphicsWorld.h"
 #include "Texture.h"
-#include "Renderer.h"
+#include "RenderCore.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//

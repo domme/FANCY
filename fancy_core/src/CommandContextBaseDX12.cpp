@@ -132,7 +132,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ApplyDescriptorHeaps();
   }
   //---------------------------------------------------------------------------//
-  void CommandContextBaseDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
+  void CommandContextBaseDX12::ClearRenderTarget_Internal(Texture* aTexture, const float* aColor)
   {
     ASSERT(aTexture->GetParameters().myIsRenderTarget);
 
@@ -140,7 +140,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCommandList->ClearRenderTargetView(static_cast<TextureDX12*>(aTexture)->GetRtv().myCpuHandle, aColor, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextBaseDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear,
+  void CommandContextBaseDX12::ClearDepthStencilTarget_Internal(Texture* aTexture, float aDepthClear,
     uint8 aStencilClear, uint32 someClearFlags /* = (uint32)DepthStencilClearFlags::CLEAR_ALL */) const
   {
     ASSERT(aTexture->GetParameters().bIsDepthStencil);

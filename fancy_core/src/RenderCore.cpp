@@ -416,11 +416,7 @@ namespace Fancy { namespace Rendering {
 
     ASSERT(aTextureDesc.myIsExternalTexture,
       "Couldn't find internal texture with refIndex %",
-      aTextureDesc.myInternalRefIndex)
-
-
-
-;
+      aTextureDesc.myInternalRefIndex);
 
     return CreateTexture(desc.mySourcePath);
   }

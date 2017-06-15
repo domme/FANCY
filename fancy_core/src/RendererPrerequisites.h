@@ -38,9 +38,7 @@ namespace Fancy {
     }
 //---------------------------------------------------------------------------//
   // Forward-declarations of common rendering classes
-    class VolumeMesh;
     class Material;
-    class RenderOperation;
     class Texture;
     class TextureSampler;
     class GpuBuffer;

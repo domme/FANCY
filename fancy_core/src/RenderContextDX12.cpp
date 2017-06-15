@@ -28,7 +28,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   RenderContextDX12::~RenderContextDX12()
   {
-    Reset();
+    RenderContextDX12::Reset_Internal();
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::Reset()
@@ -203,7 +203,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memset(myRenderTargets, 0u, sizeof(myRenderTargets));
   }
 //---------------------------------------------------------------------------//
-  
+  void RenderContextDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
+  {
+    ClearRenderTarget_Internal(aTexture, aColor);
+  }
+  //---------------------------------------------------------------------------//
+  void RenderContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags) const
+  {
+    ClearDepthStencilTarget_Internal(aTexture, aDepthClear, aStencilClear, someClearFlags);
+  }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const
   {

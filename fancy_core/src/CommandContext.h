@@ -15,6 +15,9 @@ namespace Fancy { namespace Rendering {
 
     CommandListType GetType() const { return myCommandListType; }
 
+    virtual void ClearRenderTarget(Texture* aTexture, const float* aColor) = 0;
+    virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const = 0;
+
     // Root arguments:
     virtual void SetReadTexture(const Texture* aTexture, uint32 aRegisterIndex) const = 0;
     virtual void SetWriteTexture(const Texture* aTexture, uint32 aRegisterIndex) const = 0;

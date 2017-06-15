@@ -1,5 +1,4 @@
-#ifndef INCLUDE_MATERIAL_H
-#define INCLUDE_MATERIAL_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
@@ -44,5 +43,3 @@ namespace Fancy { namespace Rendering {
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
-
-#endif  // INCLUDE_MATERIAL_H

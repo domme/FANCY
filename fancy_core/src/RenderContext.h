@@ -3,8 +3,6 @@
 #include "RendererPrerequisites.h"
 #include "CommandContext.h"
 
-
-
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct DepthStencilState;
@@ -40,7 +38,7 @@ namespace Fancy { namespace Rendering {
     virtual void RenderGeometry(const Geometry::GeometryData* pGeometry) = 0;
 
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
-    const glm::uvec4 GetViewport() const { return myViewportParams; } /// x, y, width, height
+    const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
     void SetBlendState(std::shared_ptr<BlendState> aBlendState);
     void SetDepthStencilState(std::shared_ptr<DepthStencilState> aDepthStencilState);
     void SetFillMode(const FillMode eFillMode);
@@ -60,7 +58,6 @@ namespace Fancy { namespace Rendering {
     Texture* myRenderTargets[Rendering::Constants::kMaxNumRenderTargets];
     Texture* myDepthStencilTarget;
     bool myRenderTargetsDirty;
-  
   };
 //---------------------------------------------------------------------------//
 } }

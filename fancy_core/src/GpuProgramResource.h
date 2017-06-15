@@ -1,9 +1,7 @@
-#ifndef INCLUDE_GPUPROGRAMRESOURCE_H
-#define INCLUDE_GPUPROGRAMRESOURCE_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include PLATFORM_DEPENDENT_INCLUDE_GPUPROGRAMRESOURCE
 
 #include "ObjectName.h"
 #include "FixedArray.h"
@@ -50,7 +48,7 @@ namespace Fancy { namespace Rendering {
   };
 //---------------------------------------------------------------------------//
   /// Describes a resource (texture, buffer, ...) used in a gpuProgram as returned from reflection
-  struct GpuProgramResourceInfo : public PLATFORM_DEPENDENT_NAME(GpuProgramResource) {
+  struct GpuProgramResourceInfo {
     GpuProgramResourceInfo()
       : u32RegisterIndex(0u),
         eAccessType(GpuResourceAccessType::READ_ONLY), 
@@ -75,5 +73,3 @@ namespace Fancy { namespace Rendering {
  typedef FixedArray<GpuBuffer*, Constants::kMaxNumGpuProgramResources> GpuBufferResourceList;
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
-
-#endif  // INCLUDE_GPUPROGRAMRESOURCE_H
