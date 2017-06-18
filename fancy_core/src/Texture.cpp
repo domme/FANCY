@@ -3,6 +3,7 @@
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   Texture::Texture()
+    : GpuResource(GpuResourceCategory::TEXTURE)
   {
   }
 //---------------------------------------------------------------------------//

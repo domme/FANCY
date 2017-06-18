@@ -27,7 +27,7 @@ namespace Fancy { namespace Rendering {
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//
-  class RenderContext : public CommandContext
+  class RenderContext : public virtual CommandContext
   {
   public:
     RenderContext();

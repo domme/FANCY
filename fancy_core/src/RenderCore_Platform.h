@@ -1,9 +1,10 @@
 #pragma once
 
 namespace Fancy { namespace Rendering {
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
   class GpuProgramCompiler;
   class CommandContext;
+  enum class CommandListType;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
   {

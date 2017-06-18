@@ -16,6 +16,7 @@
 #include "Mesh.h"
 #include "BlendState.h"
 #include "RenderOutput.h"
+#include "Texture.h"
 
 namespace Fancy { namespace Rendering {
 
@@ -428,8 +429,8 @@ namespace Fancy { namespace Rendering {
     context->SetWindingOrder(WindingOrder::CCW);
 
     context->SetGpuProgramPipeline(myDefaultObjectShaderState);
-    context->SetConstantBuffer(myPerLightData.get(), 0);
-    context->SetConstantBuffer(myPerDrawData.get(), 1);
+    context->BindResource(myPerLightData.get(), ResourceBindingType::CONSTANT_BUFFER, 0);
+    context->BindResource(myPerDrawData.get(), ResourceBindingType::CONSTANT_BUFFER, 1);
 
     const Scene::LightList& aLightList = scene->getCachedLights();
     for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
@@ -468,11 +469,16 @@ namespace Fancy { namespace Rendering {
   void RenderingProcessForward::BindResources_ForwardColorPass(RenderContext* aContext, const Material* aMaterial) const
   {
     const uint32 kNumTextures = 3u;
-    Descriptor textureDescriptors[kNumTextures];
+    const GpuResource* texturesToBind[kNumTextures];
+    ResourceBindingType bindingTypes[kNumTextures];
 
-    textureDescriptors[0] = RenderCore::GetDefaultDiffuseTexture()->GetSrv();
-    textureDescriptors[1] = RenderCore::GetDefaultNormalTexture()->GetSrv();
-    textureDescriptors[2] = RenderCore::GetDefaultMaterialTexture()->GetSrv();
+    texturesToBind[0] = RenderCore::GetDefaultDiffuseTexture();
+    texturesToBind[1] = RenderCore::GetDefaultNormalTexture();
+    texturesToBind[2] = RenderCore::GetDefaultMaterialTexture();
+
+    bindingTypes[0] = ResourceBindingType::SIMPLE;
+    bindingTypes[1] = ResourceBindingType::SIMPLE;
+    bindingTypes[2] = ResourceBindingType::SIMPLE;
 
     for (const MaterialTexture& matTexture : aMaterial->myTextures)
     {
@@ -480,11 +486,11 @@ namespace Fancy { namespace Rendering {
       if (regIndex != ~0)
       {
         ASSERT(regIndex < kNumTextures);
-        textureDescriptors[regIndex] = matTexture.myTexture->GetSrv();
+        texturesToBind[regIndex] = matTexture.myTexture.get();
       }
     }
 
-    aContext->SetMultipleResources(textureDescriptors, kNumTextures, 2);
+    aContext->BindResourceSet(texturesToBind, bindingTypes, kNumTextures, 2);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

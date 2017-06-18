@@ -17,6 +17,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ComputeContextDX12();
     ~ComputeContextDX12() override;
 
+    void Reset() override;
+    uint64 ExecuteAndReset(bool aWaitForCompletion) override;
+
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
     void ClearRenderTarget(Texture* aTexture, const float* aColor) override;

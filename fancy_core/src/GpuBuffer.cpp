@@ -3,7 +3,8 @@
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   GpuBuffer::GpuBuffer()
-    : myAlignment(0u)
+    : GpuResource(GpuResourceCategory::BUFFER)
+    , myAlignment(0u)
   {
   }
 //---------------------------------------------------------------------------//

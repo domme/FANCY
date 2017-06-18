@@ -349,7 +349,7 @@ namespace Fancy { namespace Rendering {
       void* ptrToVertexData = someVertexDatas[iSubMesh];
       uint numVertices = someNumVertices[iSubMesh];
 
-      Rendering::GpuBuffer* vertexBuffer = ourPlatformImpl->CreateGpuBuffer();
+      SharedPtr<Rendering::GpuBuffer> vertexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
       Rendering::GpuBufferCreationParams bufferParams;
       bufferParams.bIsMultiBuffered = false;
@@ -366,7 +366,7 @@ namespace Fancy { namespace Rendering {
       void* ptrToIndexData = someIndexDatas[iSubMesh];
       uint numIndices = someNumIndices[iSubMesh];
 
-      Rendering::GpuBuffer* indexBuffer = ourPlatformImpl->CreateGpuBuffer();
+      SharedPtr<Rendering::GpuBuffer> indexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
       Rendering::GpuBufferCreationParams indexBufParams;
       indexBufParams.bIsMultiBuffered = false;

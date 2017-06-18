@@ -3,9 +3,6 @@
 #include "ComputeContextDX12.h"
 #include "CommandListType.h"
 
-#include "GpuBuffer.h"
-#include "GpuBufferDX12.h"
-
 #include "GpuProgram.h"
 #include "GpuProgramDX12.h"
 #include "TextureDX12.h"
@@ -25,6 +22,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   ComputeContextDX12::~ComputeContextDX12()
   {
+  }
+//---------------------------------------------------------------------------//
+  void ComputeContextDX12::Reset()
+  {
+    Reset_Internal();
+  }
+//---------------------------------------------------------------------------//
+  uint64 ComputeContextDX12::ExecuteAndReset(bool aWaitForCompletion)
+  {
+    return ExecuteAndReset_Internal(aWaitForCompletion);
   }
 //---------------------------------------------------------------------------//
   D3D12_COMPUTE_PIPELINE_STATE_DESC ComputeContextDX12::GetNativePSOdesc(const ComputePipelineState& aState)
