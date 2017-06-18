@@ -24,8 +24,8 @@ namespace Fancy {
 
     GraphicsWorld* GetWorld() const { return myGraphicsWorld.get(); }
     Rendering::RenderingProcess* GetRenderingProcess() const { return myRenderingProcess; }
-    Rendering::RenderOutput* GetRenderOutput() const { return myRenderOutput; }
-    RenderWindow* GetRenderWindow();
+    Rendering::RenderOutput* GetRenderOutput() const { return myRenderOutput.get(); }
+    RenderWindow* GetRenderWindow() const;
 
     void Startup();
     void Tick(const Time& aClock);
@@ -36,7 +36,7 @@ namespace Fancy {
     // TODO: All different RenderingProcesses should be kept in the Runtime-Instance instead of re-creating one for each View
     ScopedPtr<Rendering::RenderingProcess> myRenderingProcess;  
 
-    ScopedPtr<Rendering::RenderOutput> myRenderOutput;
+    SharedPtr<Rendering::RenderOutput> myRenderOutput;
   };
 //---------------------------------------------------------------------------//
 }

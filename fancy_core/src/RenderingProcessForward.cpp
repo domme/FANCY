@@ -466,7 +466,7 @@ namespace Fancy { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderingProcessForward::BindResources_ForwardColorPass(RenderContext* aContext, const Material* aMaterial) const
+  void RenderingProcessForward::BindResources_ForwardColorPass(RenderContext* aContext, const Material* aMaterial)
   {
     const uint32 kNumTextures = 3u;
     const GpuResource* texturesToBind[kNumTextures];

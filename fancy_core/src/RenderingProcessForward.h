@@ -30,7 +30,7 @@ protected:
   void PopulateRenderQueues(const GraphicsWorld* aWorld);
   void FlushRenderQueues(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) const;
 
-  void BindResources_ForwardColorPass(RenderContext* aRenderContext, const Material* aMaterial) const;
+  static void BindResources_ForwardColorPass(RenderContext* aRenderContext, const Material* aMaterial);
 
   void UpdatePerFrameData(const Time& aClock) const;
   void UpdatePerCameraData(const Scene::CameraComponent* aCamera) const;

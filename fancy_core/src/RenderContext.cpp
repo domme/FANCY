@@ -73,34 +73,34 @@ namespace Fancy { namespace Rendering {
     myViewportDirty = true;
   }
   //---------------------------------------------------------------------------//
-  void RenderContext::SetBlendState(std::shared_ptr<BlendState> aBlendState)
+  void RenderContext::SetBlendState(const SharedPtr<BlendState>& aBlendState)
   {
-    SharedPtr<BlendState> stateToSet =
+    const SharedPtr<BlendState>& stateToSet =
       aBlendState ? aBlendState : RenderCore::GetDefaultBlendState();
 
-    GraphicsPipelineState& state = myGraphicsPipelineState;
+    GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
     const uint requestedHash = stateToSet->GetHash();
 
-    if (state.myBlendState->GetHash() == requestedHash)
+    if (pipelineState.myBlendState->GetHash() == requestedHash)
       return;
 
-    state.myBlendState = stateToSet;
-    state.myIsDirty = true;
+    pipelineState.myBlendState = stateToSet;
+    pipelineState.myIsDirty = true;
   }
   //---------------------------------------------------------------------------//
-  void RenderContext::SetDepthStencilState(std::shared_ptr<DepthStencilState> aDepthStencilState)
+  void RenderContext::SetDepthStencilState(const SharedPtr<DepthStencilState>& aDepthStencilState)
   {
-    SharedPtr<DepthStencilState> stateToSet =
+    const SharedPtr<DepthStencilState>& stateToSet =
       aDepthStencilState ? aDepthStencilState : RenderCore::GetDefaultDepthStencilState();
 
-    GraphicsPipelineState& state = myGraphicsPipelineState;
+    GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
     uint requestedHash = stateToSet->GetHash();
 
-    if (state.myDepthStencilState->GetHash() == requestedHash)
+    if (pipelineState.myDepthStencilState->GetHash() == requestedHash)
       return;
 
-    state.myDepthStencilState = stateToSet;
-    state.myIsDirty = true;
+    pipelineState.myDepthStencilState = stateToSet;
+    pipelineState.myIsDirty = true;
   }
   //---------------------------------------------------------------------------//
   void RenderContext::SetFillMode(const FillMode eFillMode)

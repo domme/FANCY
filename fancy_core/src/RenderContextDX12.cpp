@@ -334,11 +334,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     for (uint32 i = 0u; i < Rendering::Constants::kMaxNumRenderTargets; ++i)
     {
       TextureDX12* rt = static_cast<TextureDX12*>(myRenderTargets[i]);
+      ASSERT(rt->GetRtv() != nullptr);
 
       if (rt != nullptr)
       {
         rtResources[numRtsToSet] = rt;
-        rtDescriptors[numRtsToSet] = rt->GetRtv().myCpuHandle;
+        rtDescriptors[numRtsToSet] = rt->GetRtv()->myCpuHandle;
         ++numRtsToSet;
       }
     }
@@ -349,6 +350,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     TextureDX12* dsvTargetDx12 = static_cast<TextureDX12*>(myDepthStencilTarget);
+    ASSERT(dsvTargetDx12->GetDsv() != nullptr);
 
     if (dsvTargetDx12)
       TransitionResource(dsvTargetDx12, D3D12_RESOURCE_STATE_DEPTH_WRITE);
@@ -356,7 +358,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     KickoffResourceBarriers();
 
     if (myDepthStencilTarget) 
-      myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvTargetDx12->GetDsv().myCpuHandle);
+      myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvTargetDx12->GetDsv()->myCpuHandle);
     else 
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, nullptr);
   }

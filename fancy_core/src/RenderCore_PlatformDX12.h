@@ -38,6 +38,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Rendering::ShaderResourceInterface*
       GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS = nullptr) const;
 
+    void WaitForFence(CommandListType aType);
     void WaitForFence(CommandListType aType, uint64 aFenceVal);
     bool IsFenceDone(CommandListType aType, uint64 aFenceVal);
 
@@ -51,6 +52,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal);
 
+    RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) override;
     GpuProgramCompiler* CreateShaderCompiler() override;
     GpuProgram* CreateGpuProgram() override;
     Texture* CreateTexture() override;
@@ -59,6 +61,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext) override;
     void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext) override;
     void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext) override;
+
+    // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
+    Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
     Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
 

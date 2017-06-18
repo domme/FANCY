@@ -14,6 +14,9 @@
 #include "DescriptorHeapPoolDX12.h"
 #include "RenderContext.h"
 #include "RenderWindow.h"
+#include "RenderOutputDX12.h"
+#include <malloc.h>
+#include "RenderCore.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -133,6 +136,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
+  void RenderCore_PlatformDX12::WaitForFence(CommandListType aType)
+  {
+    FenceDX12& fence = ourCmdListDoneFences[(uint)aType];
+    fence.wait();
+  }
+//---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::WaitForFence(CommandListType aType, uint64 aFenceVal)
   {
     FenceDX12& fence = ourCmdListDoneFences[(uint)aType];
@@ -192,6 +201,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderCore_PlatformDX12::ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal)
   {
     ourDynamicDescriptorHeapPool->ReleaseDynamicHeap(aCmdListType, aFenceVal, aHeap);
+  }
+//---------------------------------------------------------------------------//
+  RenderOutput* RenderCore_PlatformDX12::CreateRenderOutput(void* aNativeInstanceHandle)
+  {
+    return new RenderOutputDX12(aNativeInstanceHandle);
   }
 //---------------------------------------------------------------------------//
   GpuProgramCompiler* RenderCore_PlatformDX12::CreateShaderCompiler()
@@ -350,7 +364,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     context->TransitionResource(textureDx12, oldUsageState, true);
     context->ExecuteAndReset(true);
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
+  {
+    Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
+    CheckD3Dcall(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
+
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = aSwapChainDesc;
+
+    Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
+    CheckD3Dcall(dxgiFactory->CreateSwapChain(ourCommandQueues[(uint)CommandListType::Graphics].Get(), &swapChainDesc, &swapChain));
+    return swapChain;
+  }
+//---------------------------------------------------------------------------//
   DataFormatInfo RenderCore_PlatformDX12::GetFormatInfo(DXGI_FORMAT aFormat)
   {
     DataFormatInfo format;

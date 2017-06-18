@@ -1,17 +1,19 @@
 #include "RenderView.h"
-#include "Renderer.h"
 #include "RenderingProcessForward.h"
 #include "Fancy.h"
 #include "GraphicsWorld.h"
 #include "TimeManager.h"
+#include "RenderCore.h"
+#include "RenderOutput.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderView::RenderView(HINSTANCE anAppInstanceHandle, uint32 aRenderingTechnique, const SharedPtr<GraphicsWorld>& aWorld)
     : myGraphicsWorld(aWorld)
   {
-    myRenderOutput = new Rendering::RenderOutput(anAppInstanceHandle);
-    myRenderOutput->postInit();
+    myRenderOutput = Rendering::RenderCore::CreateRenderOutput(anAppInstanceHandle);
+    myRenderOutput->PrepareForFirstFrame();
+
     // Init Rendering process
     switch (aRenderingTechnique)
     {
@@ -28,7 +30,7 @@ namespace Fancy {
   {
   }
 //---------------------------------------------------------------------------//
-  RenderWindow* RenderView::GetRenderWindow()
+  RenderWindow* RenderView::GetRenderWindow() const
   {
     return myRenderOutput->GetWindow();
   }
@@ -43,9 +45,9 @@ namespace Fancy {
   {
     myGraphicsWorld->Tick(aClock);
 
-    myRenderOutput->beginFrame();
-    myRenderingProcess->Tick(myGraphicsWorld.get(), myRenderOutput.Get(), aClock);
-    myRenderOutput->endFrame();
+    myRenderOutput->BeginFrame();
+    myRenderingProcess->Tick(myGraphicsWorld.get(), myRenderOutput.get(), aClock);
+    myRenderOutput->EndFrame();
   }
 //---------------------------------------------------------------------------//
 }

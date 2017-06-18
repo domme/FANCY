@@ -35,7 +35,6 @@ namespace Fancy {
     IO::SceneImporter::destroyLogger();
 
     Rendering::RenderCore::Shutdown();
-    Rendering::RenderCore::ShutdownPlatform();
   }
 //---------------------------------------------------------------------------//
   void FancyRuntime::Internal_Init(const EngineParameters& someParams)
@@ -71,11 +70,9 @@ namespace Fancy {
 
     // Init rendering subsystem
     if (!Rendering::RenderCore::IsInitialized())
-    {
-      Rendering::RenderCore::InitPlatform();
-      Rendering::RenderCore::Init();
-      Rendering::RenderCore::PostInit();
-    }
+      Rendering::RenderCore::Init(someParams.myRenderingApi);
+
+    ASSERT(Rendering::RenderCore::IsInitialized());
 
     ourInstance->Internal_Init(someParams);
 

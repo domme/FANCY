@@ -23,11 +23,6 @@ namespace Fancy { namespace Rendering {
     myWindow->myOnResize.DetachObserver(this);
   }
 //---------------------------------------------------------------------------//
-  void RenderOutput::OnWindowResized(uint aWidth, uint aHeight)
-  {
-
-  }
-//---------------------------------------------------------------------------//
   void RenderOutput::CreateBackbufferResources()
   {
     TextureParams dsTexParams;

@@ -27,7 +27,7 @@ namespace Fancy { namespace Rendering {
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//
-  class RenderContext : public virtual CommandContext
+  class RenderContext : public CommandContext
   {
   public:
     RenderContext();
@@ -39,8 +39,8 @@ namespace Fancy { namespace Rendering {
 
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
-    void SetBlendState(std::shared_ptr<BlendState> aBlendState);
-    void SetDepthStencilState(std::shared_ptr<DepthStencilState> aDepthStencilState);
+    void SetBlendState(const SharedPtr<BlendState>& aBlendState);
+    void SetDepthStencilState(const SharedPtr<DepthStencilState>& aDepthStencilState);
     void SetFillMode(const FillMode eFillMode);
     void SetCullMode(const CullMode eCullMode);
     void SetWindingOrder(const WindingOrder eWindingOrder);

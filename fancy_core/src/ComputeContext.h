@@ -14,12 +14,9 @@ namespace Fancy { namespace Rendering {
     bool myIsDirty;
   };
 //---------------------------------------------------------------------------//
-  class ComputeContext : public virtual CommandContext
+  class ComputeContext : public CommandContext
   {
   public:
-    ComputeContext();
-    virtual ~ComputeContext();
-
     virtual void SetComputeProgram(const GpuProgram* aProgram) = 0;
     virtual void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) = 0;
   };

@@ -2,31 +2,49 @@
 #include "RenderCore_PlatformDX12.h"
 #include "RenderCore.h"
 #include "RenderWindow.h"
+#include "TextureDX12.h"
+#include "BlendState.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   RenderOutputDX12::RenderOutputDX12(void* aNativeInstanceHandle)
+    : RenderOutput(aNativeInstanceHandle)
   {
-    
-
     CreateSwapChain();
   }
   //---------------------------------------------------------------------------//
   RenderOutputDX12::~RenderOutputDX12()
   {
-    
+    DestroyBackbufferResources();
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void RenderOutputDX12::PrepareForFirstFrame()
+  {
+    CreateBackbufferResources();
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutputDX12::BeginFrame()
+  {
+    RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
+    coreDX12->WaitForFence(CommandListType::Graphics);  // Needed?
+    myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutputDX12::EndFrame()
+  {
+    TextureDX12* currBackbuffer = static_cast<TextureDX12*>(myBackbuffers[myCurrBackbufferIndex].get());
+
+    RenderContextDX12* context = 
+      static_cast<RenderContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
+    context->TransitionResource(currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
+    context->ExecuteAndReset(false);
+    RenderCore::FreeContext(context);
+
+    mySwapChain->Present(1, 0);
+  }
+//---------------------------------------------------------------------------//
   void RenderOutputDX12::CreateSwapChain()
   {
-    using namespace Microsoft::WRL;
-
-    HWND windowHandle = myWindow->GetWindowHandle();
-
-    ComPtr<IDXGIFactory4> dxgiFactory;
-    CheckD3Dcall(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
-
-    // Describe and create the swap chain.
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     swapChainDesc.BufferCount = kBackbufferCount;
     swapChainDesc.BufferDesc.Width = myWindow->GetWidth();
@@ -34,51 +52,46 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapChainDesc.OutputWindow = windowHandle;
+    swapChainDesc.OutputWindow = myWindow->GetWindowHandle();
     swapChainDesc.SampleDesc.Count = 1;
     swapChainDesc.Windowed = TRUE;
 
-    ComPtr<IDXGISwapChain> swapChain;
-    CheckD3Dcall(dxgiFactory->CreateSwapChain(RenderCore::ourCommandQueues[(uint)CommandListType::Graphics].Get(), &swapChainDesc, &swapChain));
+    RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
+    Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain = coreDX12->CreateSwapChain(swapChainDesc);
+    ASSERT(swapChain != nullptr);
+
     CheckD3Dcall(swapChain.As(&mySwapChain));
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void RenderOutputDX12::DestroyBackbufferResources()
   {
     for (uint i = 0u; i < kBackbufferCount; ++i)
-      myBackbuffers[i] = nullptr;
+      myBackbuffers[i].reset();
 
-    myDefaultDepthStencil = nullptr;
+    myDefaultDepthStencil.reset();
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void RenderOutputDX12::CreateBackbufferResources()
   {
     RenderOutput::CreateBackbufferResources();
 
-    // TODO: Remove this hack and let this be handled internally by the 
-    // core platform abstraction layer
+    // TODO: Remove this hack and let this be handled internally by the core platform abstraction layer
 
     RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
 
     for (uint32 i = 0u; i < kBackbufferCount; i++)
     {
-      TextureDX12* backbufferResource = (TextureDX12*)myBackbuffers[i].get();
+      TextureDX12* backbufferResource = static_cast<TextureDX12*>(myBackbuffers[i].get());
       backbufferResource->myUsageState = D3D12_RESOURCE_STATE_PRESENT;
 
       // TODO: Sync this better with swap chain properties
       backbufferResource->myParameters.myIsRenderTarget = true;
       
-
-      CheckD3Dcall(mySwapChain->GetBuffer(n, IID_PPV_ARGS(&backbufferResource->myResource)));
-      backbufferResource->myRtvDescriptor = RenderCoreDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-      RenderCoreDX12::ourDevice->CreateRenderTargetView(backbufferResource->myResource.Get(), nullptr, backbufferResource->myRtvDescriptor.myCpuHandle);
+      CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&backbufferResource->myResource)));
+      backbufferResource->myRtvDescriptor = coreDX12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+      coreDX12->GetDevice()->CreateRenderTargetView(backbufferResource->myResource.Get(), nullptr, backbufferResource->myRtvDescriptor.myCpuHandle);
     }
-  }
-  //---------------------------------------------------------------------------//
-  void RenderOutputDX12::postInit()
-  {
-    CreateBackbufferResources();
   }
   //---------------------------------------------------------------------------//
   void RenderOutputDX12::OnWindowResized(uint aWidth, uint aHeight)
@@ -88,22 +101,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CreateBackbufferResources();
   }
   //---------------------------------------------------------------------------//
-  void RenderOutputDX12::beginFrame()
-  {
-    RenderCoreDX12::ourCmdListDoneFences[(uint)CommandListType::Graphics].wait();  // Needed?
-    myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
-  }
-  //---------------------------------------------------------------------------//
-  void RenderOutputDX12::endFrame()
-  {
-    TextureDX12* currBackbuffer = myBackbuffers[myCurrBackbufferIndex];
-
-    CommandContext* context = CommandContext::AllocateContext(CommandListType::Graphics);
-    context->TransitionResource(currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
-    context->ExecuteAndReset(false);
-    CommandContext::FreeContext(context);
-
-    mySwapChain->Present(1, 0);
-  }
-//---------------------------------------------------------------------------//
 } } }

@@ -4,6 +4,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "TextureDX12.h"
+#include <malloc.h>
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -136,8 +137,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     ASSERT(aTexture->GetParameters().myIsRenderTarget);
 
-    TransitionResource(static_cast<TextureDX12*>(aTexture), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-    myCommandList->ClearRenderTargetView(static_cast<TextureDX12*>(aTexture)->GetRtv().myCpuHandle, aColor, 0, nullptr);
+    TextureDX12* textureDX12 = static_cast<TextureDX12*>(aTexture);
+    ASSERT(textureDX12->GetRtv() != nullptr, "Texture doesn't appear to be a render target");
+
+    TransitionResource(textureDX12, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+    myCommandList->ClearRenderTargetView(textureDX12->GetRtv()->myCpuHandle, aColor, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ClearDepthStencilTarget_Internal(Texture* aTexture, float aDepthClear,
@@ -145,13 +149,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     ASSERT(aTexture->GetParameters().bIsDepthStencil);
 
+    TextureDX12* textureDX12 = static_cast<TextureDX12*>(aTexture);
+    ASSERT(textureDX12->GetDsv() != nullptr, "Texture doesn't appear to be a depth-stencil target");
+
     D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS)0;
     if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_DEPTH)
       clearFlags |= D3D12_CLEAR_FLAG_DEPTH;
     if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_STENCIL)
       clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
 
-    myCommandList->ClearDepthStencilView(static_cast<TextureDX12*>(aTexture)->GetDsv().myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
+    myCommandList->ClearDepthStencilView(textureDX12->GetDsv()->myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
  //---------------------------------------------------------------------------//
   const GpuResourceDX12* CommandContextDX12::CastGpuResourceDX12(const GpuResource* aResource)

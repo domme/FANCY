@@ -11,7 +11,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class DescriptorDX12;
   class DescriptorHeapDX12;
 //---------------------------------------------------------------------------//
-  class CommandContextDX12 : public virtual CommandContext
+  class CommandContextDX12
   {
     friend class RenderCore_PlatformDX12;
 

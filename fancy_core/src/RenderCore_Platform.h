@@ -13,6 +13,7 @@ namespace Fancy { namespace Rendering {
 
     virtual bool IsInitialized() = 0;
 
+    virtual RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) = 0;
     virtual GpuProgramCompiler* CreateShaderCompiler() = 0;
     virtual GpuProgram* CreateGpuProgram() = 0;
     virtual Texture* CreateTexture() = 0;
@@ -22,5 +23,5 @@ namespace Fancy { namespace Rendering {
     virtual void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext) = 0;
     virtual void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext) = 0;
   };
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
 } }

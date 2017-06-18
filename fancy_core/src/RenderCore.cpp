@@ -204,6 +204,11 @@ namespace Fancy { namespace Rendering {
     ourPlatformImpl = nullptr;
   }
 //---------------------------------------------------------------------------//
+  SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle)
+  {
+    return SharedPtr<RenderOutput>(ourPlatformImpl->CreateRenderOutput(aNativeInstanceHandle));
+  }
+//---------------------------------------------------------------------------//
   SharedPtr<GpuProgram> RenderCore::CreateGpuProgram(const GpuProgramDesc& aDesc)
   {
     uint64 hash = aDesc.GetHash();
