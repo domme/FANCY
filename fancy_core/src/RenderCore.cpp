@@ -256,6 +256,11 @@ namespace Fancy { namespace Rendering {
     return pipeline;
   }
 //---------------------------------------------------------------------------//
+  DataFormat RenderCore::ResolveFormat(DataFormat aFormat)
+  {
+    return ourPlatformImpl->ResolveFormat(aFormat);
+  }
+//---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::GetTexture(uint64 aDescHash)
   {
     auto it = ourTextureCache.find(aDescHash);

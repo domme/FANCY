@@ -130,7 +130,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\WindowDX12.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\fancy_core\fancy_core.vcxproj">
@@ -142,7 +141,6 @@
   <ItemGroup>
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\Prerequisites.h" />
-    <ClInclude Include="src\WindowDX12.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

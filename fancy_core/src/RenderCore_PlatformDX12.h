@@ -29,7 +29,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool IsInitialized() override { return ourDevice.Get() != nullptr; }
 
     static DXGI_FORMAT GetFormat(DataFormat aFormat);
-    static DataFormat ResolveFormat(DataFormat aFormat);
     static DataFormatInfo GetFormatInfo(DXGI_FORMAT aFormat);
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
 
@@ -61,6 +60,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext) override;
     void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext) override;
     void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext) override;
+    DataFormat ResolveFormat(DataFormat aFormat) override;
 
     // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);

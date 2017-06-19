@@ -9,7 +9,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
   }
 //---------------------------------------------------------------------------//
-  bool ShaderResourceInterfaceDX12::Create(const D3D12_ROOT_SIGNATURE_DESC& anRSDesc, ComPtr<ID3D12RootSignature> aRootSignature /* = nullptr */)
+  bool ShaderResourceInterfaceDX12::Create(const D3D12_ROOT_SIGNATURE_DESC& anRSDesc, const Microsoft::WRL::ComPtr<ID3D12RootSignature>& aRootSignature /* = nullptr */)
   {
     myInterfaceDesc = CreateDescription(anRSDesc);
 

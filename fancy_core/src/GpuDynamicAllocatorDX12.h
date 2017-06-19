@@ -22,6 +22,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class GpuDynamicAllocPage : public GpuResourceDX12
   {
   public:
+    const DescriptorDX12* GetSrv() const override { return nullptr; }
+    const DescriptorDX12* GetUav() const override { return nullptr; }
+    const DescriptorDX12* GetCbv() const override { return nullptr; }
+    const DescriptorDX12* GetRtv() const override { return nullptr; }
+    const DescriptorDX12* GetDsv() const override { return nullptr; }
+
     GpuDynamicAllocPage(ID3D12Resource* aResource, D3D12_RESOURCE_STATES aDefaultUsage, bool aCpuAccessRequired);
     ~GpuDynamicAllocPage();
 

@@ -49,6 +49,7 @@ namespace Fancy { namespace Rendering {
     static const Texture* GetDefaultNormalTexture() { return ourDefaultNormalTexture.get(); }
     static const Texture* GetDefaultMaterialTexture() { return ourDefaultSpecularTexture.get(); }
     static const GpuProgramCompiler* GetGpuProgramCompiler() { return ourShaderCompiler.get(); }
+    static DataFormat ResolveFormat(DataFormat aFormat);
 
     static SharedPtr<Texture> GetTexture(uint64 aDescHash);
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);

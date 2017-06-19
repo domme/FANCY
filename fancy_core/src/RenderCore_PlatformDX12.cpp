@@ -538,7 +538,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
-  DataFormat RenderCore_PlatformDX12::ResolveFormat(DataFormat aFormat)
+  static DataFormat locDoResolveFormat(DataFormat aFormat)
   {
     switch (aFormat)
     {
@@ -550,9 +550,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
+  DataFormat RenderCore_PlatformDX12::ResolveFormat(DataFormat aFormat)
+  {
+    return locDoResolveFormat(aFormat);
+  }
+//---------------------------------------------------------------------------//
   DXGI_FORMAT RenderCore_PlatformDX12::GetFormat(DataFormat aFormat)
   {
-    DataFormat supportedFormat = ResolveFormat(aFormat);
+    DataFormat supportedFormat = locDoResolveFormat(aFormat);
 
     switch (supportedFormat)
     {

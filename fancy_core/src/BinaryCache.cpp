@@ -2,7 +2,7 @@
 #include "GeometryData.h"
 #include "Mesh.h"
 #include "TextureDesc.h"
-#include "Renderer.h"
+#include "RenderCore.h"
 
 namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//
@@ -49,7 +49,10 @@ namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//  
   bool BinaryCache::write(const SharedPtr<Rendering::Texture>& aTexture, const Rendering::TextureUploadData& someData)
   {
-    const String cacheFilePath = getCacheFilePathAbs(aTexture->getPath());
+    const Rendering::TextureDesc& texDesc = aTexture->GetDescription();
+    const uint64 texDescHash = texDesc.GetHash();
+
+    const String cacheFilePath = getCacheFilePathAbs(texDesc.mySourcePath);
     PathService::createDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
@@ -57,9 +60,7 @@ namespace Fancy {  namespace IO {
 
     archive.write(reinterpret_cast<const char*>(&kTextureVersion), sizeof(uint32));
 
-    Rendering::TextureParams texParams = aTexture->getParameters();
-    Rendering::TextureDesc texDesc = aTexture->GetDescription();
-    uint64 texDescHash = texDesc.GetHash();
+    const Rendering::TextureParams& texParams = aTexture->GetParameters();
 
     // Write the hash first the be able to "peek ahead" without reading in the whole stuff later on
     archive.write(reinterpret_cast<const char*>(&texDescHash), sizeof(texDescHash));
@@ -261,7 +262,6 @@ namespace Fancy {  namespace IO {
 
       // Vertex data
       {
-        Rendering::GpuBuffer* buffer = FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::Geometry);
         Rendering::GpuBufferCreationParams bufferParams;
         archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
         uint32 totalBufferBytes;
@@ -269,15 +269,15 @@ namespace Fancy {  namespace IO {
 
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         archive.read((char*)(bufferData), totalBufferBytes);
-        buffer->create(bufferParams, bufferData);
+
+        SharedPtr<Rendering::GpuBuffer> buffer = Rendering::RenderCore::CreateBuffer(bufferParams, bufferData);
+        geoData->setVertexBuffer(buffer);
 
         FANCY_FREE(bufferData, MemoryCategory::Geometry);
-        geoData->setVertexBuffer(buffer);
       }
 
       // Index data
       {
-        Rendering::GpuBuffer* buffer = FANCY_NEW(Rendering::GpuBuffer, MemoryCategory::Geometry);
         Rendering::GpuBufferCreationParams bufferParams;
         archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
         uint32 totalBufferBytes;
@@ -285,10 +285,11 @@ namespace Fancy {  namespace IO {
 
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         archive.read(static_cast<char*>(bufferData), totalBufferBytes);
-        buffer->create(bufferParams, bufferData);
-        FANCY_FREE(bufferData, MemoryCategory::Geometry);
 
+        SharedPtr<Rendering::GpuBuffer> buffer = Rendering::RenderCore::CreateBuffer(bufferParams, bufferData);
         geoData->setIndexBuffer(buffer);
+
+        FANCY_FREE(bufferData, MemoryCategory::Geometry);
       }
     }
 

@@ -1,6 +1,6 @@
 #include "RendererPrerequisites.h"
-#include "Renderer.h"
 #include "Fancy.h"
+#include "RenderCore.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//

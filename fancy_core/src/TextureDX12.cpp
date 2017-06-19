@@ -325,7 +325,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
           }
         }
 
-        RenderContextDX12::InitTextureData(this, newDatas, aNumInitialDatas);
+        RenderCore::InitTextureData(this, newDatas, aNumInitialDatas);
 
         for (uint32 i = 0u; i < aNumInitialDatas; ++i)
           free(newDatas[i].myData);
@@ -334,7 +334,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       }
       else
       {
-        RenderContextDX12::InitTextureData(this, someInitialDatas, aNumInitialDatas);
+        RenderCore::InitTextureData(this, someInitialDatas, aNumInitialDatas);
       }
     }
   }

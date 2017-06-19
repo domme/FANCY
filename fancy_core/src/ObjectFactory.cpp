@@ -10,8 +10,8 @@
 #include "BinaryCache.h"
 #include "SceneNode.h"
 #include "SceneNodeComponentFactory.h"
-#include "Renderer.h"
 #include "GraphicsWorld.h"
+#include "RenderCore.h"
 
 namespace Fancy { namespace IO {
 

@@ -17,6 +17,9 @@ namespace Fancy { namespace Rendering {
   class ComputeContext : public CommandContext
   {
   public:
+    ComputeContext();
+    virtual ~ComputeContext() = default;
+
     virtual void SetComputeProgram(const GpuProgram* aProgram) = 0;
     virtual void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) = 0;
   };

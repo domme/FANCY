@@ -3,8 +3,6 @@
 #include <Fancy.h>
 
 #include "Prerequisites.h"
-#include "WindowDX12.h"
-#include "RendererDX12.h"
 #include <RenderingProcessForward.h>
 #include <Scene.h>
 #include <SceneImporter.h>

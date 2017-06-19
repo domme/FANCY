@@ -21,4 +21,9 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
+  ComputeContext::ComputeContext()
+    : CommandContext(CommandListType::Compute)
+  {
+  }
+//---------------------------------------------------------------------------//
 } }

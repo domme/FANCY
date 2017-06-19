@@ -1,8 +1,6 @@
 #include "CameraComponent.h"
 #include "SceneNode.h"
-#include "Renderer.h"
 #include "Serializer.h"
-#include "Fancy.h"
 #include "MathUtil.h"
 
 namespace Fancy { namespace Scene {

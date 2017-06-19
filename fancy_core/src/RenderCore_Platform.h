@@ -1,6 +1,7 @@
 #pragma once
 
 namespace Fancy { namespace Rendering {
+  class RenderOutput;
   //---------------------------------------------------------------------------//
   class GpuProgramCompiler;
   class CommandContext;
@@ -22,6 +23,7 @@ namespace Fancy { namespace Rendering {
     virtual void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext) = 0;
     virtual void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext) = 0;
     virtual void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext) = 0;
+    virtual DataFormat ResolveFormat(DataFormat aFormat) = 0;
   };
   //---------------------------------------------------------------------------//
 } }
