@@ -14,7 +14,7 @@ namespace Fancy { namespace Rendering {
     bool IsEmpty() const { return myInterfaceDesc.myElements.empty(); }
     const ShaderResourceInterfaceDesc& GetDesc() const { return myInterfaceDesc; }
 
-  private:
+  protected:
     ShaderResourceInterfaceDesc myInterfaceDesc;
   };
 //---------------------------------------------------------------------------//

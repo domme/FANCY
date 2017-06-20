@@ -43,8 +43,8 @@ namespace Fancy { namespace Geometry {
   public:
     SERIALIZABLE_RESOURCE(SubModel)
 
-    SubModel();
-    ~SubModel();
+    SubModel() = default;
+    ~SubModel() = default;
     bool operator==(const SubModel& anOther) const;
     bool operator==(const SubModelDesc& aDesc) const;
 

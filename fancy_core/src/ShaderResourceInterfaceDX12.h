@@ -8,7 +8,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class ShaderResourceInterfaceDX12 : public ShaderResourceInterface
   {
   public:
-    ~ShaderResourceInterfaceDX12() override;
+    ~ShaderResourceInterfaceDX12() override = default;
     
     bool Create(const D3D12_ROOT_SIGNATURE_DESC& anRSDesc, const Microsoft::WRL::ComPtr<ID3D12RootSignature>& aRootSignature = nullptr);
 
@@ -17,5 +17,5 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
   };
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
 } } }

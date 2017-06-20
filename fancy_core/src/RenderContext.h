@@ -5,8 +5,8 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct DepthStencilState;
-  struct BlendState;
+  class DepthStencilState;
+  class BlendState;
   class Descriptor;
 //---------------------------------------------------------------------------//
   struct GraphicsPipelineState

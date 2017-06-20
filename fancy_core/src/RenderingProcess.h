@@ -17,8 +17,8 @@ class RenderContext;
 class DLLEXPORT RenderingProcess
 {
   public:
-    RenderingProcess();
-    virtual ~RenderingProcess();
+    RenderingProcess() = default;
+    virtual ~RenderingProcess() = default;
 
     virtual void Startup() = 0;
     virtual void Tick(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) = 0;

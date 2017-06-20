@@ -1,9 +1,9 @@
 #include "SubModel.h"
 #include "Serializer.h"
 #include "Mesh.h"
-#include "Renderer.h"
 #include "GraphicsWorld.h"
 #include "MathUtil.h"
+#include "RenderCore.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -27,16 +27,6 @@ namespace Fancy { namespace Geometry {
   }
 //---------------------------------------------------------------------------//
   
-//---------------------------------------------------------------------------//
-  SubModel::SubModel()
-  {
-
-  }
-//---------------------------------------------------------------------------//
-  SubModel::~SubModel()
-  {
-
-  }
 //---------------------------------------------------------------------------//
   bool SubModel::operator==(const SubModel& anOther) const
   {

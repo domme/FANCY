@@ -17,8 +17,8 @@ namespace Fancy { namespace Rendering {
     , myDSVformat(DataFormat::UNKNOWN)
     , myIsDirty(true)
   {
-    myDepthStencilState = RenderCore::CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
-    myBlendState = RenderCore::CreateBlendState(BlendStateDesc::GetDefaultSolid());
+    myDepthStencilState = RenderCore::GetDefaultDepthStencilState();
+    myBlendState = RenderCore::GetDefaultBlendState();
   }
 //---------------------------------------------------------------------------//
   uint GraphicsPipelineState::GetHash()

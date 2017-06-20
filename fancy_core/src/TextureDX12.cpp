@@ -215,6 +215,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         srvDesc.Texture3D.ResourceMinLODClamp = 0.0f;
       }
       break;
+      default: { ASSERT(false, "Unsuppoted texture dimension %", dimension); break; }
       }
 
       mySrvDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -247,6 +248,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
           uavDesc.Texture3D.WSize = someParameters.u16Depth;
         }
         break;
+        default: { ASSERT(false, "Unsuppoted texture dimension %", dimension); break; }
         }
 
         myUavDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -280,6 +282,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
           rtvDesc.Texture3D.WSize = someParameters.u16Depth;
         }
         break;
+        default: { ASSERT(false, "Unsuppoted texture dimension %", dimension); break; }
         }
 
         myRtvDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);

@@ -1,5 +1,4 @@
-#ifndef INCLUDE_DEPTHSTENCILSTATE_H
-#define INCLUDE_DEPTHSTENCILSTATE_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
@@ -96,5 +95,3 @@ namespace Fancy { namespace Rendering {
   DECLARE_SMART_PTRS(DepthStencilState)
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering
-
-#endif  // INCLUDE_DEPTHSTENCILSTATE_H

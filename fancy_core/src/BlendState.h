@@ -1,5 +1,4 @@
-#ifndef INCLUDE_BLENDSTATE_H
-#define INCLUDE_BLENDSTATE_H
+#pragma once
 
 #include "ObjectName.h"
 #include "RendererPrerequisites.h"
@@ -109,5 +108,3 @@ public:
 };
 
 } }  // end of namespace Fancy::Rendering
-
-#endif  // INCLUDE_BLENDSTATE_H

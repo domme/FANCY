@@ -18,27 +18,18 @@
 #include "ModelComponent.h"
 #include "Model.h"
 #include "SubModel.h"
-#include "Mesh.h"
 #include "GeometryData.h"
 #include "GeometryVertexLayout.h"
 #include "StringUtil.h"
 #include "Texture.h"
-#include "TextureLoader.h"
-#include "FileReader.h"
-#include "GpuProgram.h"
-#include "GpuProgramCompiler.h"
-
-#define FANCY_IMPORTER_USE_VALIDATION
-#include "MathUtil.h"
-#include "BinaryCache.h"
 #include "JSONwriter.h"
 #include "JSONreader.h"
-#include "GpuProgramFeatures.h"
 #include "VertexInputLayout.h"
-#include "GpuProgramPipeline.h"
 #include "Log.h"
-#include "Renderer.h"
+#include "RenderCore.h"
 #include "GraphicsWorld.h"
+
+#define FANCY_IMPORTER_USE_VALIDATION
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
