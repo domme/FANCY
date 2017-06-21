@@ -1,9 +1,8 @@
-#ifndef INCLUDE_RENDERERPREREQUISITES_H
-#define INCLUDE_RENDERERPREREQUISITES_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "ObjectName.h"
 #include "DataFormat.h"
+#include "EngineParameters.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -316,14 +315,6 @@ namespace Fancy {
       DEPTH_STENCIL_TEXTURE = (1 << 9)
     };
 //---------------------------------------------------------------------------//
-  enum class RenderingApi
-  {
-    DX12 = 0,
-    VULKAN,
-  };
-//---------------------------------------------------------------------------//
   } // end of namespace Rendering 
   }  // end of namespace Fancy
 //---------------------------------------------------------------------------//
-
-#endif  // INCLUDE_RENDERERPREREQUISITES

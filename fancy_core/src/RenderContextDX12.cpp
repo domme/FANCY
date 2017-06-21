@@ -90,7 +90,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       rtBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
       rtBlendDesc.LogicOpEnable = false;
 
-      if (aState.myBlendState->myRTwriteMask[rt] & 0xFFFFFF > 0u)
+      if ((aState.myBlendState->myRTwriteMask[rt] & 0xFFFFFF) > 0u)
       {
         rtBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
       }

@@ -549,7 +549,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     default: return aFormat;
     }
   }
-//---------------------------------------------------------------------------//
+//------------------------------------ ---------------------------------------//
   DataFormat RenderCore_PlatformDX12::ResolveFormat(DataFormat aFormat)
   {
     return locDoResolveFormat(aFormat);

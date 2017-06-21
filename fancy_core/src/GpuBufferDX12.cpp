@@ -36,13 +36,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       || (someParameters.myUsageFlags & (uint32)GpuBufferUsage::RESOURCE_BUFFER_LARGE);
 
     const bool wantsVboView =
-      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::VERTEX_BUFFER);
+      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::VERTEX_BUFFER) != 0;
 
     const bool wantsIboView =
-      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::INDEX_BUFFER);
+      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::INDEX_BUFFER) != 0;
 
     const bool wantsConstantBufferView =
-      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::CONSTANT_BUFFER);
+      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::CONSTANT_BUFFER) != 0;
 
     D3D12_HEAP_PROPERTIES heapProps;
     heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;

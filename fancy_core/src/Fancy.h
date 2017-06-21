@@ -1,10 +1,8 @@
-#ifndef INCLUDE_ENGINECOMMON_H
-#define INCLUDE_ENGINECOMMON_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 #include "ScopedPtr.h"
 #include "TimeManager.h"
-#include "RenderCore_Platform.h"
 
 namespace Fancy { namespace Scene {
 class SceneNode;
@@ -22,30 +20,10 @@ namespace Fancy {
   class RenderView;
   class Time;
   class GraphicsWorld;
+  struct EngineParameters;
 }
 
 namespace Fancy {   
-//---------------------------------------------------------------------------//
-  enum class RenderingTechnique
-  {
-    FORWARD = 0,
-    FORWARD_PLUS,
-
-    NUM
-  };
-//---------------------------------------------------------------------------//
-  struct DLLEXPORT EngineParameters
-  {
-    EngineParameters() 
-      : myResourceFolder("../../../resources/")
-      , myRenderingTechnique(RenderingTechnique::FORWARD) 
-      , myRenderingApi(Rendering::RenderingApi::DX12)
-    { }
-
-    String myResourceFolder;
-    RenderingTechnique myRenderingTechnique;
-    Rendering::RenderingApi myRenderingApi;
-  };
 //---------------------------------------------------------------------------//
   class DLLEXPORT FancyRuntime
   {
@@ -60,6 +38,7 @@ namespace Fancy {
     Time& GetRealTimeClock() { return myRealTimeClock; }
     uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
 
+    RenderWindow* GetMainRenderWindow() const;
     RenderView* GetMainView() const { return myMainView; }
     GraphicsWorld* GetMainWorld() const { return myMainWorld.get(); }
 
@@ -85,5 +64,3 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
-
-#endif  // INCLUDE_ENGINECOMMON_H

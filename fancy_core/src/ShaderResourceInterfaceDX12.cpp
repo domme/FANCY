@@ -6,6 +6,21 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
+  static SriResourceType locGetResourceType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
+  {
+    switch (aRangeType)
+    {
+      case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return SriResourceType::BufferOrTexture;
+      case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return SriResourceType::BufferOrTextureRW;
+      case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return SriResourceType::ConstantBuffer;
+      case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return SriResourceType::Sampler;
+      default:
+        ASSERT(false);
+        return SriResourceType::BufferOrTexture;
+        break;
+      }
+  }
+//---------------------------------------------------------------------------//
   bool ShaderResourceInterfaceDX12::Create(const D3D12_ROOT_SIGNATURE_DESC& anRSDesc, const Microsoft::WRL::ComPtr<ID3D12RootSignature>& aRootSignature /* = nullptr */)
   {
     myInterfaceDesc = CreateDescription(anRSDesc);

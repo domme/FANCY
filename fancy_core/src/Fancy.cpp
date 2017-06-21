@@ -1,7 +1,5 @@
 #include "Fancy.h"
 
-#include "Scene.h"
-#include "SceneNode.h"
 #include "SceneNodeComponent.h"
 #include "RenderCore.h"
 #include "SceneNodeComponentFactory.h"
@@ -12,12 +10,11 @@
 #include "PathService.h"
 #include "SceneImporter.h"
 #include "TimeManager.h"
-#include "RenderingProcess.h"
 #include "LightComponent.h"
 #include "ScopedPtr.h"
-#include "RenderingProcessForward.h"
 #include "RenderView.h"
 #include "GraphicsWorld.h"
+#include "EngineParameters.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -82,6 +79,11 @@ namespace Fancy {
   FancyRuntime* FancyRuntime::GetInstance()
   {
     return ourInstance;
+  }
+//---------------------------------------------------------------------------//
+  RenderWindow* FancyRuntime::GetMainRenderWindow() const
+  {
+    return myMainView->GetRenderWindow();
   }
 //---------------------------------------------------------------------------//
   void FancyRuntime::Update(double _dt)

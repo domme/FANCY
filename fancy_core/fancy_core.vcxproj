@@ -224,6 +224,8 @@
     <ClInclude Include="src\Descriptor.h" />
     <ClInclude Include="src\DescriptorDX12.h" />
     <ClInclude Include="src\DescriptorHeapPoolDX12.h" />
+    <ClInclude Include="src\EngineParameters.h" />
+    <ClInclude Include="src\Fancy_Include.h" />
     <ClInclude Include="src\FileWatcher.h" />
     <ClInclude Include="src\GpuBufferDesc.h" />
     <ClInclude Include="src\GpuBufferDX12.h" />
@@ -300,6 +302,7 @@
     <ClInclude Include="src\ScopedPtr.h" />
     <ClInclude Include="src\Serializable.h" />
     <ClInclude Include="src\Serializer.h" />
+    <ClInclude Include="src\ShaderResourceInterfaceDX12.h" />
     <ClInclude Include="src\Slot.h" />
     <ClInclude Include="src\SmallObjectAllocator.h" />
     <ClInclude Include="src\StaticManagedObject.h" />
@@ -390,6 +393,7 @@
     <ClCompile Include="src\SceneNodeComponentFactory.cpp" />
     <ClCompile Include="src\Serializable.cpp" />
     <ClCompile Include="src\Serializer.cpp" />
+    <ClCompile Include="src\ShaderResourceInterfaceDX12.cpp" />
     <ClCompile Include="src\StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

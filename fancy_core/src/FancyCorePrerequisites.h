@@ -1,5 +1,4 @@
-#ifndef INCLUDE_FANCYCOREPREREQUISITES_H
-#define INCLUDE_FANCYCOREPREREQUISITES_H
+#pragma once
 
 // Disable some warnings...
 #pragma warning( disable : 4251 )  // "...Needs to have a dll-interface to be used by clients"
@@ -18,6 +17,8 @@
 #include <stdio.h>
 #include <windef.h>
 #include <array>
+#include <malloc.h>
+#include <stdio.h>
 
 //Math includes
 #include <glm/glm.hpp>
@@ -27,7 +28,6 @@
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }
 #define SAFE_DELETE_ARR(p) if( p[ 0 ] ) delete[] p;
 #define BUFFER_OFFSET(i) ( (char*) NULL + (i) )
-#include <stdio.h>
 
 //---------------------------------------------------------------------------//  
   enum class MemoryCategory {
@@ -108,5 +108,3 @@ namespace Fancy {
   #include "FC_String.h"
   #include "Log.h"
 //---------------------------------------------------------------------------//
-
-#endif  // INCLUDE_FANCYCOREPREREQUISITES_H

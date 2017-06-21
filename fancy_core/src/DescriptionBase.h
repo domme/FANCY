@@ -1,5 +1,8 @@
 #pragma once
 
+#include "FancyCorePrerequisites.h"
+#include "ObjectName.h"
+
 namespace Fancy {
 //---------------------------------------------------------------------------// 
  namespace IO {

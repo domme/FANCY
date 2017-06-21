@@ -1,8 +1,6 @@
 #pragma once
 
-#include <windows.h>
 #include "FancyCorePrerequisites.h"
-#include "ScopedPtr.h"
 #include "Slot.h"
 
 namespace Fancy {

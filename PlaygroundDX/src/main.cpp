@@ -1,23 +1,12 @@
 #include <windows.h>
 
-#include <Fancy.h>
-
-#include "Prerequisites.h"
-#include <RenderingProcessForward.h>
-#include <Scene.h>
-#include <SceneImporter.h>
-#include <SceneNode.h>
-#include <ObjectName.h>
-#include <LightComponent.h>
-#include <RenderWindow.h>
-#include "RenderView.h"
-#include "GraphicsWorld.h"
+#include <Fancy_Include.h>
 
 Fancy::Scene::CameraComponent* pCameraComponent;
 Fancy::Scene::SceneNode* pModelNode;
 Fancy::FancyRuntime* pRuntime = nullptr;
 
-void OnWindowResized(uint aWidth, uint aHeight)
+void OnWindowResized(Fancy::uint aWidth, Fancy::uint aHeight)
 {
   pCameraComponent->setProjectionPersp(45.0f, aWidth, aHeight, 1.0f, 1000.0f);
 }
@@ -33,9 +22,8 @@ void StartupEngine(HINSTANCE anAppInstanceHandle)
 
   pRuntime = Fancy::FancyRuntime::Init(anAppInstanceHandle, params);
 
-  Fancy::RenderView* mainView = pRuntime->GetMainView();
-  Fancy::RenderWindow* window = mainView->GetRenderWindow();
-  std::function<void(uint, uint)> onResizeCallback = &OnWindowResized;
+  Fancy::RenderWindow* window = pRuntime->GetMainRenderWindow();
+  std::function<void(Fancy::uint, Fancy::uint)> onResizeCallback = &OnWindowResized;
   window->myOnResize.Connect(onResizeCallback);
   
   Fancy::Scene::Scene* pScene = pRuntime->GetMainWorld()->GetScene();

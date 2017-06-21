@@ -2,6 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "DescriptionBase.h"
+#include "ObjectName.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  

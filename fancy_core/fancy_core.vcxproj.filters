@@ -358,9 +358,6 @@
     <ClInclude Include="src\RenderOutput.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderOutputDX12.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\RenderCore_Platform.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -372,6 +369,18 @@
     </ClInclude>
     <ClInclude Include="src\CommandContextDX12.h">
       <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderOutputDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderResourceInterfaceDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EngineParameters.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Fancy_Include.h">
+      <Filter>src\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -600,9 +609,6 @@
     <ClCompile Include="src\RenderOutput.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderOutputDX12.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\RenderCore_PlatformDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
@@ -619,6 +625,12 @@
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\CommandContextDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderOutputDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShaderResourceInterfaceDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
