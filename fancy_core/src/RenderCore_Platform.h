@@ -13,6 +13,7 @@ namespace Fancy { namespace Rendering {
     virtual ~RenderCore_Platform() = default;
 
     virtual bool IsInitialized() = 0;
+    virtual bool InitInternalResources() = 0;
 
     virtual RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) = 0;
     virtual GpuProgramCompiler* CreateShaderCompiler() = 0;

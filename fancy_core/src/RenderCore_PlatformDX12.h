@@ -27,7 +27,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ~RenderCore_PlatformDX12() override;
 
     bool IsInitialized() override { return ourDevice.Get() != nullptr; }
-
+    bool InitInternalResources() override;
+    
     static DXGI_FORMAT GetFormat(DataFormat aFormat);
     static DataFormatInfo GetFormatInfo(DXGI_FORMAT aFormat);
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);

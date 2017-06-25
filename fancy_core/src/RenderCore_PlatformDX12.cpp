@@ -57,7 +57,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  RenderCore_PlatformDX12::RenderCore_PlatformDX12()
+  RenderCore_PlatformDX12::RenderCore_PlatformDX12() : 
+    ourDynamicDescriptorHeapPool(nullptr)
   {
     using namespace Microsoft::WRL;
 
@@ -74,7 +75,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
     CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourCommandQueues[(uint)CommandListType::Compute])));
-
+  }
+//---------------------------------------------------------------------------//
+  bool RenderCore_PlatformDX12::InitInternalResources()
+  {
     // Create synchronization objects.
     ourCmdListDoneFences[(uint)CommandListType::Graphics].Init("RenderCore_PlatformDX12::GraphicsCommandListFinished");
     ourCmdListDoneFences[(uint)CommandListType::Compute].Init("RenderCore_PlatformDX12::ComputeCommandListFinished");
@@ -96,6 +100,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       heapDesc.Type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
       ourStaticDescriptorHeaps[i].Create(heapDesc);
     }
+
+    return true;
   }
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::~RenderCore_PlatformDX12()

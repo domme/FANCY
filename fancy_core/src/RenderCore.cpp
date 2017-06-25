@@ -82,6 +82,9 @@ namespace Fancy { namespace Rendering {
     }
 
     ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
+
+    // From here, resources can be created that depend on ourPlatformImpl
+    ourPlatformImpl->InitInternalResources();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_1_Services()
