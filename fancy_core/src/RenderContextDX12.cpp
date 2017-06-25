@@ -334,10 +334,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     for (uint32 i = 0u; i < Rendering::Constants::kMaxNumRenderTargets; ++i)
     {
       TextureDX12* rt = static_cast<TextureDX12*>(myRenderTargets[i]);
-      ASSERT(rt->GetRtv() != nullptr);
-
+      
       if (rt != nullptr)
       {
+        ASSERT(rt->GetRtv() != nullptr);
         rtResources[numRtsToSet] = rt;
         rtDescriptors[numRtsToSet] = rt->GetRtv()->myCpuHandle;
         ++numRtsToSet;

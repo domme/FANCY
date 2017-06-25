@@ -239,7 +239,7 @@ namespace Fancy { namespace Rendering {
   {
     PerFrameData frameData;
     frameData.c_TimeParamters = glm::float4(aClock.GetDelta(), aClock.GetElapsed(), 0.0f, 0.0f);
-    RenderCore::UpdateBufferData(myPerFrameData.get(), &frameData, 0u, sizeof(frameData));
+    RenderCore::UpdateBufferData(myPerFrameData.get(), &frameData, sizeof(frameData));
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::UpdatePerCameraData(const Scene::CameraComponent* aCamera) const
@@ -266,7 +266,7 @@ namespace Fancy { namespace Rendering {
     cBuffer.c_NearFarParameters[3] = 1.0f / fFar;
     cBuffer.c_CameraPosWS = glm::column(viewInvMat, 3);
 
-    RenderCore::UpdateBufferData(myPerCameraData.get(), &cBuffer, 0u, sizeof(cBuffer));
+    RenderCore::UpdateBufferData(myPerCameraData.get(), &cBuffer, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::UpdatePerLightData(const Scene::LightComponent* aLight, const Scene::CameraComponent* aCamera) const
@@ -286,7 +286,7 @@ namespace Fancy { namespace Rendering {
     cBuffer.c_LightDirWS = lightTransform.forward();
     cBuffer.c_LightDirVS = lightDirVS;
     
-    RenderCore::UpdateBufferData(myPerLightData.get(), &cBuffer, 0u, sizeof(cBuffer));
+    RenderCore::UpdateBufferData(myPerLightData.get(), &cBuffer, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::UpdatePerDrawData(const Scene::CameraComponent* aCamera, const glm::float4x4& aWorldMat) const
@@ -308,7 +308,7 @@ namespace Fancy { namespace Rendering {
     cBuffer.c_WorldViewProjectionMatrix = worldViewProj;
     cBuffer.c_WorldViewProjectionInverseMatrix = worldViewProjInv;
   
-    RenderCore::UpdateBufferData(myPerDrawData.get(), &cBuffer, 0u, sizeof(cBuffer));
+    RenderCore::UpdateBufferData(myPerDrawData.get(), &cBuffer, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::_DebugLoadComputeShader()
