@@ -549,6 +549,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     switch (aFormat)
     {
     case DataFormat::RGB_8: return DataFormat::RGBA_8;
+    case DataFormat::SRGB_8: return DataFormat::SRGB_8_A_8;
     case DataFormat::RGB_16F: return DataFormat::RGBA_16F;
     case DataFormat::RGB_16UI: return DataFormat::RGBA_16UI;
     case DataFormat::RGB_8UI: return DataFormat::RGBA_8UI;
@@ -568,8 +569,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     switch (supportedFormat)
     {
     case DataFormat::SRGB_8_A_8:     return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    // case DataFormat::SRGB_8:      (Unsupported - DX12 doesn't support 3-component 8 bit formats. Needs to be resolved & padded to 4-component)   
     case DataFormat::RGBA_8:         return DXGI_FORMAT_R8G8B8A8_UNORM;
-    case DataFormat::SRGB_8:         return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     case DataFormat::RGB_11_11_10F:  return DXGI_FORMAT_R11G11B10_FLOAT;
     case DataFormat::RGBA_16F:       return DXGI_FORMAT_R16G16B16A16_FLOAT;
     case DataFormat::RG_16F:         return DXGI_FORMAT_R16G16_FLOAT;

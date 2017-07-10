@@ -2,10 +2,7 @@
 #include "DataFormat.h"
 
 #include "TextureDX12.h"
-#include "Fancy.h"
 #include "RenderCore.h"
-#include "AdapterDX12.h"
-#include "DescriptorHeapPoolDX12.h"
 #include "RenderCore_PlatformDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
@@ -35,7 +32,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     else if (someParameters.u16Height > 0u && someParameters.u16Depth > 0u)
       dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 
-    DataFormatInfo formatInfo = DataFormatInfo::GetFormatInfo(someParameters.eFormat);
+    DataFormat actualFormat = RenderCore::ResolveFormat(someParameters.eFormat);
+    
+    DataFormatInfo formatInfo = DataFormatInfo::GetFormatInfo(actualFormat);
     const uint32 pixelSizeBytes = formatInfo.mySizeBytes;
     uint32 maxNumMipLevels = 0;
 
@@ -59,7 +58,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uint32 depthOrArraySize = glm::max(1u, static_cast<uint32>(someParameters.u16Depth));
     myState.isCubemap = false;  // TODO: Implement cubemap textures
     myState.isArrayTexture = false;  // TODO: Implement array textures
-    myState.isSRGB = (someParameters.eFormat == DataFormat::SRGB_8 || someParameters.eFormat == DataFormat::SRGB_8_A_8);
+    myState.isSRGB = formatInfo.mySRGB;
     if (dimension == D3D12_RESOURCE_DIMENSION_TEXTURE1D)
       myState.numDimensions = 1u;
     else if (dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
@@ -87,7 +86,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-    resourceDesc.Format = RenderCore_PlatformDX12::GetFormat(someParameters.eFormat);
+    resourceDesc.Format = RenderCore_PlatformDX12::GetFormat(actualFormat);
 
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     if (someParameters.bIsDepthStencil)
@@ -135,7 +134,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     D3D12_CLEAR_VALUE clearValue;
-    clearValue.Format = RenderCore_PlatformDX12::GetFormat(someParameters.eFormat);
+    clearValue.Format = resourceDesc.Format;
     if (someParameters.bIsDepthStencil)
     {
       clearValue.DepthStencil.Depth = 1.0f;

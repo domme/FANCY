@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fancy_core", "fancy_core\fa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PlaygroundDX", "PlaygroundDX\PlaygroundDX.vcxproj", "{0FA942C7-385F-475A-A112-E35651842665}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fancy_gui", "fancy_gui\fancy_gui.vcxproj", "{FF76404D-47A9-485A-92B8-3373CEBF2CCA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_DX12|Mixed Platforms = Debug_DX12|Mixed Platforms
@@ -41,6 +43,18 @@ Global
 		{0FA942C7-385F-475A-A112-E35651842665}.Release|Win32.Build.0 = Release|Win32
 		{0FA942C7-385F-475A-A112-E35651842665}.Release|x64.ActiveCfg = Release|x64
 		{0FA942C7-385F-475A-A112-E35651842665}.Release|x64.Build.0 = Release|x64
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Debug_DX12|Mixed Platforms.ActiveCfg = Debug_DX12|Win32
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Debug_DX12|Mixed Platforms.Build.0 = Debug_DX12|Win32
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Debug_DX12|Win32.ActiveCfg = Debug_DX12|Win32
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Debug_DX12|Win32.Build.0 = Debug_DX12|Win32
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Debug_DX12|x64.ActiveCfg = Debug_DX12|x64
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Debug_DX12|x64.Build.0 = Debug_DX12|x64
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Release|Win32.ActiveCfg = Release|Win32
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Release|Win32.Build.0 = Release|Win32
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Release|x64.ActiveCfg = Release|x64
+		{FF76404D-47A9-485A-92B8-3373CEBF2CCA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

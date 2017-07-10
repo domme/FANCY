@@ -54,6 +54,7 @@ namespace Fancy { namespace Rendering {
       { DataFormat::DS_24_8,       4,           2,             true,        false,     false},
     };
 
+    STATIC_ASSERT(ARRAY_LENGTH(locOurDataFormats) == DataFormat::NUM, "DataFormatInfos don't match with the number of DataFormats");
     return locOurDataFormats[static_cast<uint32>(aFormat)];
   }
 //---------------------------------------------------------------------------//
