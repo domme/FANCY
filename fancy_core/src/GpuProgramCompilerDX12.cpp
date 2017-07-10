@@ -589,7 +589,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     aProgram->eShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
     aProgram->myShaderFilename = aDesc.myShaderFileName;
     aProgram->myRootSignature = rsObject;
-    aProgram->myNativeData = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//
@@ -619,6 +618,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         return false;
       }
     }
+
+    aProgram->myNativeData = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
 
     return true;
   }
