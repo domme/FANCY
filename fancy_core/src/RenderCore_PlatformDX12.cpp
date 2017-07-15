@@ -109,13 +109,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
       ourCmdListDoneFences[i].wait();
 
-    for (CommandAllocatorPoolDX12* allocatorPool : ourCommandAllocatorPools)
-      delete allocatorPool;
+    for (uint i = 0u; i < ARRAY_LENGTH(ourCommandAllocatorPools); ++i)
+      SAFE_DELETE(ourCommandAllocatorPools[i]);
 
-    memset(ourCommandAllocatorPools, 0u, sizeof(ourCommandAllocatorPools));
-
-    delete ourDynamicDescriptorHeapPool;
-    ourDynamicDescriptorHeapPool = nullptr;
+    SAFE_DELETE(ourDynamicDescriptorHeapPool);
 
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
       ourCommandQueues[i].Reset();
