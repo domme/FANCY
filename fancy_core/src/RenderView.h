@@ -27,16 +27,16 @@ namespace Fancy {
     Rendering::RenderOutput* GetRenderOutput() const { return myRenderOutput.get(); }
     RenderWindow* GetRenderWindow() const;
 
-    void Startup();
-    void Tick(const Time& aClock);
+    void Startup() const;
+    void Tick(const Time& aClock) const;
 
   private:
     SharedPtr<GraphicsWorld> myGraphicsWorld;
 
     // TODO: All different RenderingProcesses should be kept in the Runtime-Instance instead of re-creating one for each View
-    ScopedPtr<Rendering::RenderingProcess> myRenderingProcess;  
+    Rendering::RenderingProcess* myRenderingProcess;  
 
-    SharedPtr<Rendering::RenderOutput> myRenderOutput;
+    std::unique_ptr<Rendering::RenderOutput> myRenderOutput;
   };
 //---------------------------------------------------------------------------//
 }

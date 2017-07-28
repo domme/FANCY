@@ -16,6 +16,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   RenderOutputDX12::~RenderOutputDX12()
   {
     DestroyBackbufferResources();
+    mySwapChain.Reset();
   }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::PrepareForFirstFrame()

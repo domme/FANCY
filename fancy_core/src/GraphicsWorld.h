@@ -29,19 +29,20 @@ namespace Fancy {
   {
     public:
       GraphicsWorld();
+      ~GraphicsWorld();
 
       Scene::SceneNode* Import(const std::string& aPath);
-      void Startup();
-      void Tick(const Time& aClock);
+      void Startup() const;
+      void Tick(const Time& aClock) const;
 
-      Scene::Scene* GetScene() const { return myScene.Get(); }
+      Scene::Scene* GetScene() const { return myScene.get(); }
       
       SharedPtr<Geometry::SubModel> CreateSubModel(const Geometry::SubModelDesc& aDesc);
       SharedPtr<Rendering::Material> CreateMaterial(const Rendering::MaterialDesc& aDesc);
       SharedPtr<Geometry::Model> CreateModel(const Geometry::ModelDesc& aDesc);
 
     private:
-      ScopedPtr<Scene::Scene> myScene;
+      std::unique_ptr<Scene::Scene> myScene;
 
       std::map<uint64, SharedPtr<Rendering::Material>> myMaterialCache;
       std::map<uint64, SharedPtr<Geometry::SubModel>> mySubModelCache;

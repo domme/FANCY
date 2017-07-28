@@ -81,7 +81,21 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   RenderingProcessForward::~RenderingProcessForward()
   {
+    myTestTexture.reset();
+    myComputeProgram.reset();
 
+    myDefaultObjectShaderState.reset();
+    myBlendStateAdd.reset();
+
+    myFsTextureShaderState.reset();
+    myFullscreenQuad.reset();
+
+    myPerDrawData.reset();
+    myPerViewportData.reset();
+    myPerLightData.reset();
+    myPerCameraData.reset();
+    myPerMaterialData.reset();
+    myPerFrameData.reset();
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::Startup()

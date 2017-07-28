@@ -15,7 +15,27 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GraphicsWorld::GraphicsWorld()
   {
-    myScene = new Scene::Scene();
+    myScene = std::make_unique<Scene::Scene>();
+  }
+//---------------------------------------------------------------------------//
+  GraphicsWorld::~GraphicsWorld()
+  {
+    myScene.reset();
+
+#define CHECK_UNIQUE_PTRS(aCollection, aName) \
+    for (const auto& entry : aCollection) \
+      ASSERT(entry.second.unique(), "Dangling reference found when trying to delete % cache", aName); 
+
+    CHECK_UNIQUE_PTRS(myModelCache, "Model");
+    myModelCache.clear();
+
+    CHECK_UNIQUE_PTRS(mySubModelCache, "SubModel");
+    mySubModelCache.clear();
+
+    CHECK_UNIQUE_PTRS(myMaterialCache, "Material");
+    myMaterialCache.clear();
+
+#undef CHECK_UNIQUE_PTRS
   }
 //---------------------------------------------------------------------------//
   Scene::SceneNode* GraphicsWorld::Import(const std::string& aPath)
@@ -28,12 +48,12 @@ namespace Fancy {
     return node;
   }
 //---------------------------------------------------------------------------//
-  void GraphicsWorld::Startup()
+  void GraphicsWorld::Startup() const
   {
     myScene->startup();
   }
 //---------------------------------------------------------------------------//
-  void GraphicsWorld::Tick(const Time& aClock)
+  void GraphicsWorld::Tick(const Time& aClock) const
   {
     const float deltaTime = aClock.GetDelta();
     myScene->update(deltaTime);

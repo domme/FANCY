@@ -29,6 +29,7 @@ namespace Fancy {
   {
   public:
     static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams);
+    static void Shutdown();
     static FancyRuntime* GetInstance();
 
     void Update(double _dt);
@@ -39,7 +40,7 @@ namespace Fancy {
     uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
 
     RenderWindow* GetMainRenderWindow() const;
-    RenderView* GetMainView() const { return myMainView; }
+    RenderView* GetMainView() const { return myMainView.get(); }
     GraphicsWorld* GetMainWorld() const { return myMainWorld.get(); }
 
   private:
@@ -57,7 +58,7 @@ namespace Fancy {
 
     // TODO: Add support for secondary views
     SharedPtr<GraphicsWorld> myMainWorld;
-    ScopedPtr<RenderView> myMainView;
+    std::unique_ptr<RenderView> myMainView;
 
     Time myRealTimeClock;
     std::vector<RenderView*> myViews;

@@ -76,5 +76,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     pRuntime->Update(0.016f);
 	}
 
+  Fancy::FancyRuntime::Shutdown();
+  pRuntime = nullptr;
+
 	return 0;
 }

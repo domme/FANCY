@@ -23,6 +23,8 @@
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
+  std::unique_ptr<RenderCore_Platform> RenderCore::ourPlatformImpl;
+
   std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
   std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
   std::map<uint64, SharedPtr<Texture>> RenderCore::ourTextureCache;
@@ -35,14 +37,14 @@ namespace Fancy { namespace Rendering {
   std::list<CommandContext*> RenderCore::ourAvailableRenderContexts;
   std::list<CommandContext*> RenderCore::ourAvailableComputeContexts;
   
-  ScopedPtr<FileWatcher> RenderCore::ourShaderFileWatcher;
-  SharedPtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
   SharedPtr<Texture> RenderCore::ourDefaultDiffuseTexture;
   SharedPtr<Texture> RenderCore::ourDefaultNormalTexture;
   SharedPtr<Texture> RenderCore::ourDefaultSpecularTexture;
   SharedPtr<DepthStencilState> RenderCore::ourDefaultDepthStencilState;
   SharedPtr<BlendState> RenderCore::ourDefaultBlendState;
-  ScopedPtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
+  
+  std::unique_ptr<FileWatcher> RenderCore::ourShaderFileWatcher;
+  std::unique_ptr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -65,7 +67,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   DX12::RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
   {
-    return static_cast<DX12::RenderCore_PlatformDX12*>(ourPlatformImpl.Get());
+    return static_cast<DX12::RenderCore_PlatformDX12*>(ourPlatformImpl.get());
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
@@ -75,7 +77,7 @@ namespace Fancy { namespace Rendering {
     switch (aRenderingApi)
     {
       case RenderingApi::DX12:
-        ourPlatformImpl = FANCY_NEW(DX12::RenderCore_PlatformDX12, MemoryCategory::GENERAL);
+        ourPlatformImpl = std::make_unique<DX12::RenderCore_PlatformDX12>();
         break;
       case RenderingApi::VULKAN: break;
       default:;
@@ -91,10 +93,11 @@ namespace Fancy { namespace Rendering {
   {
     ASSERT(ourPlatformImpl != nullptr);
 
-    ourShaderFileWatcher = FANCY_NEW(FileWatcher, MemoryCategory::GENERAL);
+    ourShaderFileWatcher = std::make_unique<FileWatcher>();
     std::function<void(const String&)> onUpdatedFn(&RenderCore::OnShaderFileUpdated);
-    std::function<void(const String&)> onDeletedFn(&RenderCore::OnShaderFileDeletedMoved);
     ourShaderFileWatcher->myOnFileUpdated.Connect(onUpdatedFn);
+
+    std::function<void(const String&)> onDeletedFn(&RenderCore::OnShaderFileDeletedMoved);
     ourShaderFileWatcher->myOnFileDeletedMoved.Connect(onDeletedFn);
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
@@ -194,22 +197,56 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()
   {
+#define CHECK_UNIQUE_PTRS(aCollection, aName) \
+    for (const auto& entry : aCollection) \
+      ASSERT(entry.second.unique(), "Dangling reference found when trying to delete % cache", aName); 
+
+    ourDefaultDepthStencilState.reset();
+    ourDefaultBlendState.reset();
+
+    CHECK_UNIQUE_PTRS(ourGpuProgramPipelineCache, "Gpu program pipeline");
+    ourGpuProgramPipelineCache.clear();
+
+    CHECK_UNIQUE_PTRS(ourShaderCache,  "Shader");
+    ourShaderCache.clear();
+
+    CHECK_UNIQUE_PTRS(ourTextureCache, "Texture");
+    ourTextureCache.clear();
+
+    CHECK_UNIQUE_PTRS(ourMeshCache, "Mesh");
+    ourMeshCache.clear();
+
+    CHECK_UNIQUE_PTRS(ourBlendStateCache, "BlendState");
+    ourBlendStateCache.clear();
+
+    CHECK_UNIQUE_PTRS(ourDepthStencilStateCache, "DepthStencilState");
+    ourDepthStencilStateCache.clear();
     
+    ASSERT(ourRenderContextPool.size() == ourAvailableRenderContexts.size(), "There are still some rendercontexts in flight");
+    ourAvailableRenderContexts.clear();
+    ourRenderContextPool.clear();
+
+    ASSERT(ourComputeContextPool.size() == ourAvailableComputeContexts.size(), "There are still some compute contexts in flight");
+    ourAvailableComputeContexts.clear();
+    ourComputeContextPool.clear();
+
+#undef CHECK_UNIQUE_PTRS
   }
 //---------------------------------------------------------------------------//  
   void RenderCore::Shutdown_1_Services()
   {
-    ourShaderFileWatcher = nullptr;
+    ourShaderFileWatcher.reset();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_2_Platform()
   {
-    ourPlatformImpl = nullptr;
+    ourPlatformImpl.reset();
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle)
+  std::unique_ptr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle)
   {
-    return SharedPtr<RenderOutput>(ourPlatformImpl->CreateRenderOutput(aNativeInstanceHandle));
+    RenderOutput* output = ourPlatformImpl->CreateRenderOutput(aNativeInstanceHandle);
+    return std::unique_ptr<RenderOutput>(output);
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuProgram> RenderCore::CreateGpuProgram(const GpuProgramDesc& aDesc)

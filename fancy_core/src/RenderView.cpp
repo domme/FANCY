@@ -28,6 +28,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderView::~RenderView()
   {
+    SAFE_DELETE(myRenderingProcess);
+
+    myRenderOutput.reset();
+    myGraphicsWorld.reset();
   }
 //---------------------------------------------------------------------------//
   RenderWindow* RenderView::GetRenderWindow() const
@@ -35,13 +39,13 @@ namespace Fancy {
     return myRenderOutput->GetWindow();
   }
 //---------------------------------------------------------------------------//
-  void RenderView::Startup()
+  void RenderView::Startup() const
   {
     myRenderingProcess->Startup();
     myGraphicsWorld->Startup();
   }
 //---------------------------------------------------------------------------//
-  void RenderView::Tick(const Time& aClock)
+  void RenderView::Tick(const Time& aClock) const
   {
     myGraphicsWorld->Tick(aClock);
 

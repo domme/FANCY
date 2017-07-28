@@ -29,16 +29,20 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   FancyRuntime::~FancyRuntime()
   {
-    IO::SceneImporter::destroyLogger();
+    myMainView.reset();
 
+    ASSERT(myMainWorld.unique(), "Dangling references to myMainWorld during shutdown");
+    myMainWorld.reset();
+
+    IO::SceneImporter::destroyLogger();
     Rendering::RenderCore::Shutdown();
   }
 //---------------------------------------------------------------------------//
   void FancyRuntime::Internal_Init(const EngineParameters& someParams)
   {
     myMainWorld = std::make_shared<GraphicsWorld>();
-    myMainView = new RenderView(myAppInstanceHandle, static_cast<uint32>(someParams.myRenderingTechnique), myMainWorld);
-    myViews.push_back(myMainView.Get());
+    myMainView = std::make_unique<RenderView>(myAppInstanceHandle, static_cast<uint32>(someParams.myRenderingTechnique), myMainWorld);
+    myViews.push_back(myMainView.get());
   }
 //---------------------------------------------------------------------------//
   void FancyRuntime::DoFirstFrameTasks()
@@ -74,6 +78,12 @@ namespace Fancy {
     ourInstance->Internal_Init(someParams);
 
     return ourInstance;
+  }
+//---------------------------------------------------------------------------//
+  void FancyRuntime::Shutdown()
+  {
+    ASSERT(ourInstance != nullptr);
+    SAFE_DELETE(ourInstance);
   }
 //---------------------------------------------------------------------------//
   FancyRuntime* FancyRuntime::GetInstance()
