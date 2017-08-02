@@ -19,6 +19,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "VertexInputLayout.h"
 #include "TextureDesc.h"
+#include "RenderOutput.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {
