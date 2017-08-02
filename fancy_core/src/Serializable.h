@@ -377,7 +377,7 @@ namespace IO {
       virtual void invalidate(void* anObject) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable) = nullptr;
+        serializable->reset();
       }
 
       virtual bool isManaged(void* anObject) override
@@ -428,7 +428,7 @@ namespace IO {
       void Invalidate(void* anObject) override
       {
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable) = nullptr;
+        serializable->reset();
       }
 
       String GetTypeName(void* anObject) override
@@ -466,7 +466,7 @@ namespace IO {
       {
         SharedPtr<T> createdObject = std::static_pointer_cast<T>(IO::ObjectFactory::Create(aTypeName, aDescription, aGraphicsWorld));
         std::shared_ptr<T>* serializable = static_cast<std::shared_ptr<T>*>(anObject);
-        (*serializable) = createdObject;
+        serializable->swap(createdObject);
       }
       
       static MetaTableResourceImpl<std::shared_ptr<T>> ourVTable;
