@@ -75,13 +75,15 @@ namespace Fancy { namespace Scene {
       void Serialize(IO::Serializer* aSerializer);
       uint64 GetHash() const { return 0u; }
 
-      static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent);
-      static void parentNodeToNode(std::shared_ptr<SceneNode> pChild, SceneNode* pParent);
-      static void unparentNode(std::shared_ptr<SceneNode> pChild);
-      static void unparentNode(SceneNode* pChild);
+      static void AddChildNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent);
+      static void AddChildNode(std::shared_ptr<SceneNode> pChild, SceneNode* pParent);
+      static void RemoveChildNode(std::shared_ptr<SceneNode> pChild);
+      static void RemoveChildNode(SceneNode* pChild);
 
       void startup();
-      void update(float _dt);
+      void update(float _dt, const std::function<void(SceneNodeComponent*)>& aComponentCallback);
+
+      Scene* GetScene() const { return myScene; }
 
       SceneNodeComponent* addOrRetrieveComponent(const ObjectName& typeName);
       SceneNodeComponentPtr addOrRetrieveComponentPtr(const ObjectName& typeName);
@@ -91,11 +93,6 @@ namespace Fancy { namespace Scene {
 
       SceneNode* createChildNode(const ObjectName& _name = ObjectName::blank);
 
-      CameraComponentPtr getCameraComponentPtr();
-      CameraComponent* getCameraComponent() {return m_pCameraComponent;}
-      ModelComponentPtr getModelComponentPtr();
-      ModelComponent* getModelComponent() {return m_pModelComponent;}
-
       Transform& getTransform() {return m_transform;}
       const Transform& getTransform() const {return m_transform;}
       bool hasParent() const {return m_pParent != nullptr;}
@@ -104,9 +101,6 @@ namespace Fancy { namespace Scene {
       void setName(const ObjectName& _name) {m_name = _name;}
 
   private:
-      void onComponentAdded(const SceneNodeComponentPtr& pComponent);
-      void onComponentRemoved(const SceneNodeComponentPtr& pComponent);
-
       std::vector<SceneNodeComponentPtr> m_vpComponents;
       std::vector<std::shared_ptr<SceneNode>> m_vpChildren;
 
@@ -114,10 +108,6 @@ namespace Fancy { namespace Scene {
       Transform m_transform;
       ObjectName m_name;
       Scene* myScene;
-
-      // Cached components:
-      CameraComponent* m_pCameraComponent;
-      ModelComponent* m_pModelComponent;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(SceneNode)

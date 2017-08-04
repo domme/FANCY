@@ -16,34 +16,36 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   class DLLEXPORT SceneNodeComponent
   {
+    friend class SceneNode;
+
     public:
       SERIALIZABLE(SceneNodeComponent)
 
-      SceneNodeComponent(SceneNode* pOwner);
+      SceneNodeComponent();
       virtual ~SceneNodeComponent();
 
       uint64 GetHash() const { return 0u; }
       virtual ObjectName getTypeName() const = 0;
       virtual void Serialize(IO::Serializer* aSerializer) = 0;
       
-      SceneNode* getSceneNode() { return m_pOwner; }
-      const SceneNode* getSceneNode() const { return m_pOwner; }
+      SceneNode* getSceneNode() { return mySceneNode; }
+      const SceneNode* getSceneNode() const { return mySceneNode; }
       
       virtual void init() { };
       virtual void update() = 0;
 
     protected:
-      SceneNode* m_pOwner;
+      SceneNode* mySceneNode;
   };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(SceneNodeComponent)
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  template<class T, class ArgT>
+  template<class T>
   class BaseCreator
   {
   public: 
-    static T* create(ArgT arg) { return FANCY_NEW(T(arg), MemoryCategory::GENERAL); }
+    static T* create() { return FANCY_NEW(T(), MemoryCategory::GENERAL); }
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Scene

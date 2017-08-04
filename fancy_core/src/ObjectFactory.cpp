@@ -39,12 +39,12 @@ namespace Fancy { namespace IO {
   void* ObjectFactory::create(const ObjectName& aTypeName, GraphicsWorld* aGraphicsWorld, bool& aWasCreated, uint64 aHash)
   {
     Scene::SceneNodeComponentFactory::CreateFunction createFunc = 
-      Scene::SceneNodeComponentFactory::getFactoryMethod(aTypeName);
+      Scene::SceneNodeComponentFactory::GetFactoryFunction(aTypeName);
 
     if (createFunc != nullptr)
     {
       aWasCreated = true;
-      return createFunc(nullptr);
+      return createFunc();
     }
     
     for (std::pair<ObjectName, CreateFunc>& createFuncEntry : locResourceCreateFunctions)

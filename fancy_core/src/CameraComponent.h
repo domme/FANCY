@@ -8,12 +8,12 @@
 namespace Fancy { namespace Scene {
   //---------------------------------------------------------------------------//
   class DLLEXPORT CameraComponent : 
-    public SceneNodeComponent, public BaseCreator<CameraComponent, SceneNode*>
+    public SceneNodeComponent, public BaseCreator<CameraComponent>
   {
   public:
     SERIALIZABLE(CameraComponent)
 
-    explicit CameraComponent(SceneNode* pOwner);
+    CameraComponent();
     virtual ~CameraComponent();
 
     virtual ObjectName getTypeName() const override { return _N(CameraComponent); }

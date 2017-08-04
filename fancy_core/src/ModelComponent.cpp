@@ -5,8 +5,7 @@
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
-  ModelComponent::ModelComponent(SceneNode* pOwner)
-    : SceneNodeComponent(pOwner)
+  ModelComponent::ModelComponent()
   {
 
   }

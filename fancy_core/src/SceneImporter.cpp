@@ -117,20 +117,26 @@ namespace Fancy { namespace IO {
     if (!pArootNode)
       return false;
 
-    if (!processAiNode(pArootNode, _pParentNode))
+    Scene::Scene* scene = _pParentNode->GetScene();
+    Scene::SceneNode* importedSceneNode = new Scene::SceneNode(scene);
+    
+    if (!processAiNode(pArootNode, importedSceneNode))
       return false;
 
     // Serialization-tests....
     // Serialization needs a re-work after adjusting Resource-Handling apis
     {
       JSONwriter serializer(szImportPathAbs);
-      serializer.Serialize(&_pParentNode, "rootNode");
+      serializer.Serialize(&importedSceneNode, "rootNode");
     }
 
     {
+      SAFE_DELETE(importedSceneNode);
       JSONreader serializer(szImportPathAbs, myGraphicsWorld);
-      serializer.Serialize(&_pParentNode, "rootNode");
+      serializer.Serialize(&importedSceneNode, "rootNode");
     }
+
+    Scene::SceneNode::AddChildNode(SharedPtr<Scene::SceneNode>(importedSceneNode), _pParentNode);
     
     return true;
   }

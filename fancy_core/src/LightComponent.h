@@ -15,13 +15,13 @@ namespace Fancy { namespace Scene {
   };
 //---------------------------------------------------------------------------//
   DLLEXPORT class LightComponent :
-    public SceneNodeComponent, public BaseCreator<LightComponent, SceneNode*>
+    public SceneNodeComponent, public BaseCreator<LightComponent>
   {
     public:
       SERIALIZABLE(LightComponent)
 
-      explicit LightComponent(SceneNode* _pOwner);
-      virtual ~LightComponent();
+      LightComponent();
+      ~LightComponent() override;
 
       virtual ObjectName getTypeName() const override { return _N(LightComponent); }
       virtual void Serialize(IO::Serializer* aSerializer) override;

@@ -19,38 +19,23 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   void Scene::update(float _dt)
   {
-    m_pRootNode->update(_dt);
+    myLights.clear();
+    myModels.clear();
+    auto componentCallbackFn = [this](SceneNodeComponent* aComponent)
+    {
+      const ObjectName& typeName = aComponent->getTypeName();
+      if (typeName == _N(LightComponent))
+        myLights.push_back(static_cast<const LightComponent*>(aComponent));
+      else if (typeName == _N(ModelComponent))
+        myModels.push_back(static_cast<const ModelComponent*>(aComponent));
+    };
+
+    m_pRootNode->update(_dt, componentCallbackFn);
   }
 //---------------------------------------------------------------------------//
   void Scene::startup()
   {
     m_pRootNode->startup();
-  }
-//---------------------------------------------------------------------------//
-  void Scene::onComponentAdded(const SceneNodeComponent* _pComponent)
-  {
-    const ObjectName& typeName = _pComponent->getTypeName();
-    if (typeName == _N(LightComponent))
-    {
-      myLights.push_back(static_cast<const LightComponent*>(_pComponent));
-    }
-    else if (typeName == _N(ModelComponent))
-    {
-      myModels.push_back(static_cast<const ModelComponent*>(_pComponent));
-    }
-  }
-//---------------------------------------------------------------------------//
-  void Scene::onComponentRemoved(const SceneNodeComponent* _pComponent)
-  {
-    const ObjectName& typeName = _pComponent->getTypeName();
-    if (typeName == _N(LightComponent))
-    {
-      myLights.erase(static_cast<const LightComponent*>(_pComponent));
-    }
-    else if (typeName == _N(ModelComponent))
-    {
-      myModels.erase(static_cast<const ModelComponent*>(_pComponent));
-    }
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Scene

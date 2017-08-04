@@ -11,11 +11,11 @@ namespace Fancy { namespace Geometry {
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   class DLLEXPORT ModelComponent : 
-    public SceneNodeComponent, public BaseCreator<ModelComponent, SceneNode*>
+    public SceneNodeComponent, public BaseCreator<ModelComponent>
   {
     public:
-      explicit ModelComponent(SceneNode* pOwner);
-      virtual ~ModelComponent();
+      ModelComponent();
+      ~ModelComponent() override;
 
       virtual ObjectName getTypeName() const override { return _N(ModelComponent); }
       virtual void Serialize(IO::Serializer* aSerializer) override;

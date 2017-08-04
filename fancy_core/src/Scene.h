@@ -35,9 +35,6 @@ namespace Fancy { namespace Scene {
       void setActiveCamera(CameraComponent* _pCamera) {m_pActiveCamera = _pCamera;}
       CameraComponent* getActiveCamera() const {return m_pActiveCamera;}
 
-      void onComponentAdded(const SceneNodeComponent* _pComponent);
-      void onComponentRemoved(const SceneNodeComponent* _pComponent);
-
       const LightList& getCachedLights() const { return myLights; }
       const ModelList& getCachedModels() const { return myModels; }
 

@@ -105,35 +105,38 @@ namespace Fancy { namespace Scene {
     aSerializer->Serialize(&m_transform.m_localScale, "Local Scale");
 
     aSerializer->Serialize(&m_vpComponents, "m_vpComponents");
-    aSerializer->Serialize(&m_vpChildren, "m_vpChildren");
+    if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
+      for (SceneNodeComponentPtr& component : m_vpComponents)
+        component->mySceneNode = this;
 
+    aSerializer->Serialize(&m_vpChildren, "m_vpChildren");
     if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
       for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
         m_vpChildren[i]->m_pParent = this;
   }
 //---------------------------------------------------------------------------//
-  void SceneNode::parentNodeToNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent)
+  void SceneNode::AddChildNode(std::shared_ptr<SceneNode> pChild, std::shared_ptr<SceneNode> pParent)
   {
-    SceneNode::parentNodeToNode(pChild, pParent.get());
+    SceneNode::AddChildNode(pChild, pParent.get());
   }
 //---------------------------------------------------------------------------//
-  void SceneNode::unparentNode(std::shared_ptr<SceneNode> pChild)
+  void SceneNode::RemoveChildNode(std::shared_ptr<SceneNode> pChild)
   {
-    SceneNode::unparentNode(pChild.get());
+    SceneNode::RemoveChildNode(pChild.get());
   }
 //---------------------------------------------------------------------------//
-  void SceneNode::parentNodeToNode(std::shared_ptr<SceneNode> pChild, SceneNode* pParent)
+  void SceneNode::AddChildNode(std::shared_ptr<SceneNode> pChild, SceneNode* pParent)
   {
     if (pChild->hasParent())
     {
-      SceneNode::unparentNode(pChild);
+      SceneNode::RemoveChildNode(pChild);
     }
 
     pParent->m_vpChildren.push_back(pChild);
     pChild->m_pParent = pParent;
   }
   //---------------------------------------------------------------------------//
-  void SceneNode::unparentNode(SceneNode* pChild)
+  void SceneNode::RemoveChildNode(SceneNode* pChild)
   {
     if (!pChild->hasParent())
     {
@@ -167,7 +170,7 @@ namespace Fancy { namespace Scene {
     }
   }
 //---------------------------------------------------------------------------//
-  void SceneNode::update(float _dt)
+  void SceneNode::update(float _dt, const std::function<void(SceneNodeComponent*)>& aComponentCallback)
   {
     for (uint i = 0u; i < m_vpChildren.size(); ++i)
     {
@@ -175,12 +178,13 @@ namespace Fancy { namespace Scene {
       childTransform.m_parentWorld = getTransform().m_cachedWorld;
       childTransform.m_cachedWorld = childTransform.getLocalAsMat() * getTransform().m_cachedWorld;
 
-      m_vpChildren[i]->update(_dt);
+      m_vpChildren[i]->update(_dt, aComponentCallback);
     }
 
     for (uint i = 0u; i < m_vpComponents.size(); ++i)
     {
       m_vpComponents[i]->update();
+      aComponentCallback(m_vpComponents[i].get());
     }
   } 
 //---------------------------------------------------------------------------//
@@ -195,16 +199,6 @@ namespace Fancy { namespace Scene {
     }
 
     return SceneNodeComponentPtr();  // nullptr
-  }
-//---------------------------------------------------------------------------//
-  ModelComponentPtr SceneNode::getModelComponentPtr()
-  {
-    return std::static_pointer_cast<ModelComponent>(getComponentPtr(_N(Model)));
-  }
-//---------------------------------------------------------------------------//
-  CameraComponentPtr SceneNode::getCameraComponentPtr()
-  {
-    return std::static_pointer_cast<CameraComponent>(getComponentPtr(_N(Camera)));
   }
 //---------------------------------------------------------------------------//
   SceneNodeComponent* SceneNode::getComponent( const ObjectName& typeName )
@@ -225,7 +219,7 @@ namespace Fancy { namespace Scene {
     SceneNodePtr childNode = std::make_shared<SceneNode>(myScene);
     childNode->m_name = _name;
 
-    SceneNode::parentNodeToNode(childNode, this);
+    SceneNode::AddChildNode(childNode, this);
     return childNode.get();
   }
 //---------------------------------------------------------------------------//
@@ -236,13 +230,13 @@ namespace Fancy { namespace Scene {
       return getComponentPtr(typeName);
     }
 
-    SceneNodeComponentFactory::CreateFunction createFunc = SceneNodeComponentFactory::getFactoryMethod(typeName);
+    SceneNodeComponentFactory::CreateFunction createFunc = SceneNodeComponentFactory::GetFactoryFunction(typeName);
     ASSERT(createFunc != nullptr, String("No factory registered for typename ") + typeName.toString());
 
-    SceneNodeComponentPtr componentPtr(createFunc(const_cast<SceneNode*>(this)));
-
+    SceneNodeComponentPtr componentPtr(createFunc());
+    componentPtr->mySceneNode = this;
+    
     m_vpComponents.push_back(componentPtr);
-    onComponentAdded(componentPtr);
 
     return componentPtr;
   }
@@ -269,36 +263,9 @@ namespace Fancy { namespace Scene {
     {
       return;
     }
-    
-    onComponentRemoved(*itFound);
 
+    (*itFound)->mySceneNode = nullptr;
     m_vpComponents.erase(itFound);
-  }
-//---------------------------------------------------------------------------//
-  void SceneNode::onComponentAdded(const SceneNodeComponentPtr& pComponent )
-  {
-    ObjectName typeName = pComponent->getTypeName();
-
-    if (typeName == _N(Model)) {
-      m_pModelComponent = static_cast<ModelComponent*>(pComponent.get());
-    } else if (typeName == _N(Camera)) {
-      m_pCameraComponent = static_cast<CameraComponent*>(pComponent.get());
-    }
-
-    myScene->onComponentAdded(pComponent.get());
-  }
-//---------------------------------------------------------------------------//
-  void SceneNode::onComponentRemoved(const SceneNodeComponentPtr& pComponent )
-  {
-    ObjectName typeName = pComponent->getTypeName();
-
-    if (typeName == _N(Model)) {
-      m_pModelComponent = nullptr;
-    } else if (typeName == _N(Camera)) {
-      m_pCameraComponent = nullptr;
-    }
-
-    myScene->onComponentRemoved(pComponent.get());
   }
 //---------------------------------------------------------------------------//
   

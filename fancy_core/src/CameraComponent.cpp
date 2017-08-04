@@ -5,9 +5,8 @@
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
-  CameraComponent::CameraComponent(SceneNode* pOwner)
-    : SceneNodeComponent(pOwner),
-    m_fFovDeg( 0.0f ),
+  CameraComponent::CameraComponent()
+    : m_fFovDeg( 0.0f ),
     m_fFar( 0.0f ),
     m_fNear( 0.0f ),
     m_matViewInv( 1.0f ),
@@ -49,7 +48,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   void CameraComponent::updateCameraInternal()
   {
-    const glm::mat4& viewInverse = m_pOwner->getTransform().getCachedWorld();
+    const glm::mat4& viewInverse = mySceneNode->getTransform().getCachedWorld();
     m_matViewInv = viewInverse;
     onViewInvChanged();
   }

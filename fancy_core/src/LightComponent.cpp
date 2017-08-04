@@ -12,9 +12,8 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  LightComponent::LightComponent(SceneNode* _pOwner) :
-    SceneNodeComponent(_pOwner),
-    m_eType(ELightType::DIRECTIONAL),
+  LightComponent::LightComponent()
+    : m_eType(ELightType::DIRECTIONAL),
     m_colorIntensity(1.0f, 1.0f, 1.0f),
     m_castsShadows(false),
     m_falloffStart(0.0f),
