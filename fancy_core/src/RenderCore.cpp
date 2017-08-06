@@ -103,9 +103,6 @@ namespace Fancy { namespace Rendering {
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
 
-    CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
-    CreateBlendState(BlendStateDesc::GetDefaultSolid());
-
     {
       ShaderVertexInputLayout& modelVertexLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
       modelVertexLayout.clear();
@@ -198,9 +195,21 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()
   {
+    ASSERT(ourRenderContextPool.size() == ourAvailableRenderContexts.size(), "There are still some rendercontexts in flight");
+    ourAvailableRenderContexts.clear();
+    ourRenderContextPool.clear();
+
+    ASSERT(ourComputeContextPool.size() == ourAvailableComputeContexts.size(), "There are still some compute contexts in flight");
+    ourAvailableComputeContexts.clear();
+    ourComputeContextPool.clear();
+
 #define CHECK_UNIQUE_PTRS(aCollection, aName) \
     for (const auto& entry : aCollection) \
       ASSERT(entry.second.unique(), "Dangling reference found when trying to delete % cache", aName); 
+
+    ourDefaultDiffuseTexture.reset();
+    ourDefaultNormalTexture.reset();
+    ourDefaultSpecularTexture.reset();
 
     ourDefaultDepthStencilState.reset();
     ourDefaultBlendState.reset();
@@ -223,14 +232,6 @@ namespace Fancy { namespace Rendering {
     CHECK_UNIQUE_PTRS(ourDepthStencilStateCache, "DepthStencilState");
     ourDepthStencilStateCache.clear();
     
-    ASSERT(ourRenderContextPool.size() == ourAvailableRenderContexts.size(), "There are still some rendercontexts in flight");
-    ourAvailableRenderContexts.clear();
-    ourRenderContextPool.clear();
-
-    ASSERT(ourComputeContextPool.size() == ourAvailableComputeContexts.size(), "There are still some compute contexts in flight");
-    ourAvailableComputeContexts.clear();
-    ourComputeContextPool.clear();
-
 #undef CHECK_UNIQUE_PTRS
   }
 //---------------------------------------------------------------------------//  

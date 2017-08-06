@@ -17,12 +17,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       allocator->Release();
 
     myAvailableAllocators.clear();
-
-    for (auto allocatorEntry : myReleasedWaitingAllocators)
-    {
-      RenderCore::GetPlatformDX12()->WaitForFence(myCommandListType, allocatorEntry.first);
-      allocatorEntry.second->Release();
-    }
     myReleasedWaitingAllocators.clear();
   }
 //---------------------------------------------------------------------------//

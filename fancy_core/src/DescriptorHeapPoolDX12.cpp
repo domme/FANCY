@@ -80,13 +80,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   DescriptorHeapPoolDX12::~DescriptorHeapPoolDX12()
   {
-    while (!myUsedDynamicHeaps.empty())
-    {
-      RenderCore::GetPlatformDX12()->WaitForFence(myUsedDynamicHeaps.front().first.myType, 
-                               myUsedDynamicHeaps.front().first.myFenceVal);
-      myUsedDynamicHeaps.pop();
-    }
-
     myAvailableDynamicHeaps.clear();
   }
 //---------------------------------------------------------------------------//
