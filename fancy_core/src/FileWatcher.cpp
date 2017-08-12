@@ -17,8 +17,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   FileWatcher::~FileWatcher()
   {
-    Time& realTimeClock = FancyRuntime::GetInstance()->GetRealTimeClock();
-    realTimeClock.GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).DetachObserver(this);
+    FancyRuntime* runtime = Fancy::FancyRuntime::GetInstance();
+    if(runtime != nullptr)
+        runtime->GetRealTimeClock().GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).DetachObserver(this);
 
     std::vector<String> watchedPaths;
     watchedPaths.reserve(myWatchEntries.size());

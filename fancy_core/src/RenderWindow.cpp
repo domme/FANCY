@@ -3,7 +3,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  std::vector<SharedPtr<RenderWindow>> ourCreatedWindows;
+  std::vector<RenderWindow*> ourCreatedWindows;
 //---------------------------------------------------------------------------//
   LRESULT CALLBACK locOnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   {
@@ -98,7 +98,7 @@ namespace Fancy {
     SharedPtr<RenderWindow> window(new RenderWindow(windowHandle));
     window->myWidth = someParams.myWidth;
     window->myHeight = someParams.myHeight;
-    ourCreatedWindows.push_back(window);
+    ourCreatedWindows.push_back(window.get());
 
     ShowWindow(window->myWindowHandle, 10);
 

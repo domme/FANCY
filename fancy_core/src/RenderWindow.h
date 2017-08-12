@@ -16,7 +16,7 @@ namespace Fancy {
   {
     public:
       static SharedPtr<RenderWindow> Create(HINSTANCE anInstanceHandle, const WindowParameters& someParams);
-
+      
       ~RenderWindow();
 
       HWND GetWindowHandle() const { return myWindowHandle; }
