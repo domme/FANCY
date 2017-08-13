@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fancy_core", "fancy_core\fa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PlaygroundDX", "PlaygroundDX\PlaygroundDX.vcxproj", "{0FA942C7-385F-475A-A112-E35651842665}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fancy_gui", "fancy_gui\fancy_gui.vcxproj", "{FF76404D-47A9-485A-92B8-3373CEBF2CCA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fancy_imgui", "fancy_imgui\fancy_imgui.vcxproj", "{FF76404D-47A9-485A-92B8-3373CEBF2CCA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
