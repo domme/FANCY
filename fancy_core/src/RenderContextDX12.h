@@ -45,8 +45,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
 
+    virtual void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer,
+      uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX);
+    virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset);
+
     void RenderGeometry(const Geometry::GeometryData* pGeometry) override;
-    
+  
   protected:
     static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
 

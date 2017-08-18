@@ -35,7 +35,7 @@
 	<s:String x:Key="/Default/CodeStyle/Naming/CppNaming/UserRules/=UNION/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="" Suffix="" Style="aa_bb" /&gt;</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CppNaming/UserRules/=UNION_005FMEMBER/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="" Suffix="" Style="aa_bb" /&gt;</s:String>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EFeature_002EServices_002ECpp_002ECodeStyle_002ESettingsUpgrade_002ENamespaceIndentationSettingsUpgrader/@EntryIndexedValue">True</s:Boolean>
-	<s:String x:Key="/Default/Environment/UpdatesManger/LastUpdateCheck/@EntryValue">08/04/2017 06:49:53</s:String>
+	<s:String x:Key="/Default/Environment/UpdatesManger/LastUpdateCheck/@EntryValue">08/17/2017 21:17:20</s:String>
 	
 	
 	
@@ -73,7 +73,7 @@
 	
 	
 	<s:Boolean x:Key="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Housekeeping/IntellisenseHousekeeping/HintUsed/@EntryValue">True</s:Boolean>
+	
 	<s:String x:Key="/Default/Housekeeping/Layout/DialogWindows/OptionsDialog/Position/@EntryValue">[-141,2](1086,768)</s:String>
 	<s:String x:Key="/Default/Housekeeping/Layout/DialogWindows/OptionsDialog/SelectedPageId/@EntryValue">EditorBehavior</s:String>
 	

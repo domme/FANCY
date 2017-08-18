@@ -49,6 +49,7 @@ namespace Fancy { namespace Rendering {
   RenderContext::RenderContext()
     : CommandContext(CommandListType::Graphics)
     , myViewportParams(0, 0, 1, 1)
+    , myClipRect(0, 0, 0, 0)
     , myViewportDirty(true)
     , myRenderTargetsDirty(true)
     , myDepthStencilTarget(nullptr)
@@ -64,6 +65,15 @@ namespace Fancy { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//
+  void RenderContext::SetClipRect(const glm::uvec4& aClipRect)
+  {
+    if (myClipRect == aClipRect)
+      return;
+
+    myClipRect = aClipRect;
+    myViewportDirty = true;
+  }
+//---------------------------------------------------------------------------//
   void RenderContext::SetViewport(const glm::uvec4& uViewportParams)
   {
     if (myViewportParams == uViewportParams)
@@ -72,7 +82,7 @@ namespace Fancy { namespace Rendering {
     myViewportParams = uViewportParams;
     myViewportDirty = true;
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void RenderContext::SetBlendState(const SharedPtr<BlendState>& aBlendState)
   {
     const SharedPtr<BlendState>& stateToSet =

@@ -278,19 +278,54 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::RenderGeometry(const Geometry::GeometryData* pGeometry)
+  void RenderContextDX12::SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer, uint aVertexOffset, uint aNumVertices, uint anIndexOffset, uint aNumIndices)
   {
+    // TODO: Check again if we need to apply all this stuff here or rather only before drawing
     ApplyViewport();
     ApplyRenderTargets();
     ApplyPipelineState();
 
+    D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+    {
+      const GpuBufferDX12* buffer = static_cast<const GpuBufferDX12*>(aVertexBuffer);
+      const GpuBufferCreationParams bufferParams = buffer->GetParameters();
+
+      vertexBufferView.BufferLocation = buffer->GetGpuVirtualAddress() + aVertexOffset * bufferParams.uElementSizeBytes;
+      vertexBufferView.SizeInBytes = glm::min(aNumVertices, bufferParams.uNumElements) * bufferParams.uElementSizeBytes;
+      vertexBufferView.StrideInBytes = bufferParams.uElementSizeBytes;
+    }
+
+    D3D12_INDEX_BUFFER_VIEW indexBufferView;
+    {
+      const GpuBufferDX12* buffer = static_cast<const GpuBufferDX12*>(anIndexBuffer);
+      const GpuBufferCreationParams bufferParams = buffer->GetParameters();
+
+      indexBufferView.BufferLocation = buffer->GetGpuVirtualAddress() + anIndexOffset * bufferParams.uElementSizeBytes;
+      indexBufferView.Format = bufferParams.uElementSizeBytes == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+      indexBufferView.SizeInBytes = glm::min(aNumIndices, bufferParams.uNumElements) * bufferParams.uElementSizeBytes;
+    }
+
+    myCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // TODO: Don't hardcode the primitive topology?
+    myCommandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+    myCommandList->IASetIndexBuffer(&indexBufferView);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset)
+  {
+    ApplyViewport();
+    ApplyRenderTargets();
+    ApplyPipelineState();
+   
+    myCommandList->DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, anIndexOffset, aVertexOffset, anInstanceOffset);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::RenderGeometry(const Geometry::GeometryData* pGeometry)
+  {
     const GpuBufferDX12* vertexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getVertexBuffer());
     const GpuBufferDX12* indexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getIndexBuffer());
 
-    myCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    myCommandList->IASetVertexBuffers(0, 1, &vertexBufferDx12->GetVertexBufferView());
-    myCommandList->IASetIndexBuffer(&indexBufferDx12->GetIndexBufferView());
-    myCommandList->DrawIndexedInstanced(pGeometry->getNumIndices(), 1, 0, 0, 0);
+    SetVertexIndexBuffers(vertexBufferDx12, indexBufferDx12);
+    Render(indexBufferDx12->GetNumElements(), 1, 0, 0, 0);
   }
 //---------------------------------------------------------------------------//
 #pragma region Pipeline Apply
@@ -301,7 +336,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return;
 
     myViewportDirty = false;
-
+    
     D3D12_VIEWPORT viewport = {0u};
     viewport.TopLeftX = myViewportParams.x;
     viewport.TopLeftY = myViewportParams.y;
@@ -311,6 +346,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     viewport.MaxDepth = 1.0f;
 
     D3D12_RECT rect = { 0u };
+    if (myClipRect.z ==)
+
     rect.left = viewport.TopLeftX;
     rect.top = viewport.TopLeftY;
     rect.right = viewport.Width;
