@@ -60,7 +60,7 @@ _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
   StartupEngine(hInstance);
-  ImGui_ImplFancy_Init(pRuntime->GetMainRenderWindow(), pRuntime);
+  Fancy::ImGui::Init(pRuntime->GetMainRenderWindow(), pRuntime);
 
   bool show_test_window = true;
   bool show_another_window = false;
@@ -79,7 +79,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
   			break;
   	}
   
-    ImGui_ImplFancy_NewFrame();
+    pRuntime->BeginFrame();
+    Fancy::ImGui::NewFrame();
 
     pModelNode->getTransform().rotate(glm::vec3(1.0f, 1.0f, 0.0f), 20.0f);
     pRuntime->Update(0.016f);
@@ -97,6 +98,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     }
     
     ImGui::Render();
+
+    pRuntime->EndFrame();
   }
 
   Fancy::FancyRuntime::Shutdown();

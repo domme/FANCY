@@ -11,7 +11,7 @@
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  class GeometryData {
+  class DLLEXPORT GeometryData {
     public:
       GeometryData();
       ~GeometryData();

@@ -51,6 +51,27 @@ namespace Fancy { namespace Rendering {
   {
     return ourPlatformImpl != nullptr && ourPlatformImpl->IsInitialized();
   }
+
+  const Texture* RenderCore::GetDefaultDiffuseTexture()
+  {
+    return ourDefaultDiffuseTexture.get();
+  }
+
+  const Texture* RenderCore::GetDefaultNormalTexture()
+  {
+    return ourDefaultNormalTexture.get();
+  }
+
+  const Texture* RenderCore::GetDefaultMaterialTexture()
+  {
+    return ourDefaultSpecularTexture.get();
+  }
+
+  const GpuProgramCompiler* RenderCore::GetGpuProgramCompiler()
+  {
+    return ourShaderCompiler.get();
+  }
+
 //---------------------------------------------------------------------------//
   void RenderCore::Init(RenderingApi aRenderingApi)
   {
@@ -361,7 +382,22 @@ namespace Fancy { namespace Rendering {
     ourDepthStencilStateCache.insert(std::make_pair(aDesc.GetHash(), depthStencilState));
     return depthStencilState;
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  const SharedPtr<BlendState>& RenderCore::GetDefaultBlendState()
+  {
+    return ourDefaultBlendState;
+  }
+//---------------------------------------------------------------------------//
+  const SharedPtr<DepthStencilState>& RenderCore::GetDefaultDepthStencilState()
+  {
+    return ourDefaultDepthStencilState;
+  }
+//---------------------------------------------------------------------------//
+  RenderCore_Platform* RenderCore::GetPlatform()
+  {
+    return ourPlatformImpl.get();
+  }
+//---------------------------------------------------------------------------//
   SharedPtr<Geometry::Mesh> RenderCore::GetMesh(uint64 aVertexIndexHash)
   {
     auto it = ourMeshCache.find(aVertexIndexHash);

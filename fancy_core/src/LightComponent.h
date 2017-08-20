@@ -14,7 +14,7 @@ namespace Fancy { namespace Scene {
     AREA
   };
 //---------------------------------------------------------------------------//
-  DLLEXPORT class LightComponent :
+  class DLLEXPORT LightComponent :
     public SceneNodeComponent, public BaseCreator<LightComponent>
   {
     public:

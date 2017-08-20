@@ -200,7 +200,7 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    struct TextureParams {
+    struct DLLEXPORT TextureParams {
       TextureParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
         eFormat(DataFormat::NONE), uAccessFlags(0u), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u), 
         myIsShaderWritable(false), myIsRenderTarget(false) {}
@@ -221,7 +221,7 @@ namespace Fancy {
     };
  //---------------------------------------------------------------------------//
  //---------------------------------------------------------------------------//
-    struct TextureUploadData
+    struct DLLEXPORT TextureUploadData
     {
       TextureUploadData()
         : myData(nullptr), myRowSizeBytes(0u), myTotalSizeBytes(0u), myPixelSizeBytes(0u), mySliceSizeBytes(0u)
@@ -248,7 +248,7 @@ namespace Fancy {
       RESOURCE_BUFFER_LARGE_RW = (1 << 8),
     };
  //---------------------------------------------------------------------------//
-    struct GpuBufferCreationParams {
+    struct DLLEXPORT GpuBufferCreationParams {
       GpuBufferCreationParams() : uNumElements(0u), myInternalRefIndex(~0u), bIsMultiBuffered(false), 
         uElementSizeBytes(0u), myUsageFlags(0u), uAccessFlags(0u) {}
 

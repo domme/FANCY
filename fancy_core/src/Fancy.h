@@ -32,7 +32,9 @@ namespace Fancy {
     static void Shutdown();
     static FancyRuntime* GetInstance();
 
+    void BeginFrame();
     void Update(double _dt);
+    void EndFrame();
 
     HINSTANCE GetAppInstanceHandle() const { return myAppInstanceHandle; }
 

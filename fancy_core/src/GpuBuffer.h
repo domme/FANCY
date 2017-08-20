@@ -6,7 +6,7 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class GpuBuffer : public GpuResource
+  class DLLEXPORT GpuBuffer : public GpuResource
   {
   public:
     GpuBuffer();

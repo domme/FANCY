@@ -20,7 +20,7 @@ namespace Fancy { namespace Rendering {
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//  
-  class RenderCore_PlatformDX12 : public RenderCore_Platform
+  class DLLEXPORT RenderCore_PlatformDX12 : public RenderCore_Platform
   {
   public:
     RenderCore_PlatformDX12();

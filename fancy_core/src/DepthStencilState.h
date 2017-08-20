@@ -9,7 +9,7 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct DepthStencilStateDesc : public DescriptionBase
+  struct DLLEXPORT DepthStencilStateDesc : public DescriptionBase
   {
     static DepthStencilStateDesc GetDefaultDepthNoStencil();
 
@@ -38,7 +38,7 @@ namespace Fancy { namespace Rendering {
     uint32 myStencilPassOp[(uint32)FaceType::NUM];
   };
 //---------------------------------------------------------------------------//
-  class DepthStencilState
+  class DLLEXPORT DepthStencilState
   {
   public:
       SERIALIZABLE_RESOURCE(DepthStencilState)
@@ -70,8 +70,6 @@ namespace Fancy { namespace Rendering {
       
       bool GetIsDirty() const { return myIsDirty; }
       void SetDirty() const { myIsDirty = true; }
-
-      
 
 // TODO: Make these members private/protected to ensure validity of myIsDirty
   // protected:

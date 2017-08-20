@@ -49,8 +49,9 @@ namespace Fancy { namespace Rendering {
   RenderContext::RenderContext()
     : CommandContext(CommandListType::Graphics)
     , myViewportParams(0, 0, 1, 1)
-    , myClipRect(0, 0, 0, 0)
+    , myClipRect(0, 0, 1, 1)
     , myViewportDirty(true)
+    , myClipRectDirty(true)
     , myRenderTargetsDirty(true)
     , myDepthStencilTarget(nullptr)
   {
@@ -71,7 +72,7 @@ namespace Fancy { namespace Rendering {
       return;
 
     myClipRect = aClipRect;
-    myViewportDirty = true;
+    myClipRectDirty = true;
   }
 //---------------------------------------------------------------------------//
   void RenderContext::SetViewport(const glm::uvec4& uViewportParams)

@@ -58,7 +58,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ClearRenderTarget_Internal(aTexture, aColor);
   }
 //---------------------------------------------------------------------------//
-  void ComputeContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags) const
+  void ComputeContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags)
   {
     ClearDepthStencilTarget_Internal(aTexture, aDepthClear, aStencilClear, someClearFlags);
   }

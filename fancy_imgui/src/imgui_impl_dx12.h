@@ -1,3 +1,5 @@
+#if 0
+
 struct ID3D12Device;
 struct ID3D12GraphicsCommandList;
 struct ID3D12CommandQueue;
@@ -21,3 +23,5 @@ void ImGui_ImplDX12_SetRenderData(ID3D12GraphicsCommandList* _commandList
         , D3D12_CPU_DESCRIPTOR_HANDLE _renderTarget);
 
 void ImGui_ImplDX12_NewFrame();
+
+#endif

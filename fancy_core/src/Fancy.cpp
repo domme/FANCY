@@ -96,15 +96,27 @@ namespace Fancy {
     return myMainView->GetRenderWindow();
   }
 //---------------------------------------------------------------------------//
-  void FancyRuntime::Update(double _dt)
+  void FancyRuntime::BeginFrame()
   {
     if (myRealTimeClock.GetElapsed() == 0.0f)
       DoFirstFrameTasks();
 
+    for (RenderView* view : myViews)
+      view->BeginFrame();
+  }
+//---------------------------------------------------------------------------//
+  void FancyRuntime::Update(double _dt)
+  {
     myRealTimeClock.Update(_dt);
    
     for (RenderView* view : myViews)
       view->Tick(myRealTimeClock);
+  }
+//---------------------------------------------------------------------------//
+  void FancyRuntime::EndFrame()
+  {
+    for (RenderView* view : myViews)
+      view->EndFrame();
 
     ++myFrameIndex;
   }

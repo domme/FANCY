@@ -45,12 +45,19 @@ namespace Fancy {
     myGraphicsWorld->Startup();
   }
 //---------------------------------------------------------------------------//
+  void RenderView::BeginFrame() const
+  {
+    myRenderOutput->BeginFrame();
+  }
+//---------------------------------------------------------------------------//
   void RenderView::Tick(const Time& aClock) const
   {
     myGraphicsWorld->Tick(aClock);
-
-    myRenderOutput->BeginFrame();
     myRenderingProcess->Tick(myGraphicsWorld.get(), myRenderOutput.get(), aClock);
+  }
+//---------------------------------------------------------------------------//
+  void RenderView::EndFrame() const
+  {
     myRenderOutput->EndFrame();
   }
 //---------------------------------------------------------------------------//

@@ -9,7 +9,7 @@ namespace Fancy {
   class Serializer;
 }
 //---------------------------------------------------------------------------//
-  struct DescriptionBase
+  struct DLLEXPORT DescriptionBase
   {
     virtual ~DescriptionBase() {}
 

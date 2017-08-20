@@ -50,7 +50,7 @@ namespace Fancy { namespace Rendering {
     UNKNOWN = NONE
   };
 //---------------------------------------------------------------------------//
-  class DataFormatInfo
+  class DLLEXPORT DataFormatInfo
   {
   public:
     

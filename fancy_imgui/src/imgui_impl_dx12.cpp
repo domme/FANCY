@@ -1,3 +1,5 @@
+#if 0
+
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 
@@ -470,3 +472,5 @@ bool ImGui_ImplDX12_Init(void* _hwnd)
 
 	return true;
 }
+
+#endif

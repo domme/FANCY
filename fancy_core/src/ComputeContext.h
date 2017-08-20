@@ -14,7 +14,7 @@ namespace Fancy { namespace Rendering {
     bool myIsDirty;
   };
 //---------------------------------------------------------------------------//
-  class ComputeContext : public CommandContext
+  class DLLEXPORT ComputeContext : public CommandContext
   {
   public:
     ComputeContext();

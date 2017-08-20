@@ -23,7 +23,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
     void ClearRenderTarget(Texture* aTexture, const float* aColor) override;
-    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const override;
+    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) override;
 
     // Root arguments:
     void BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const override;

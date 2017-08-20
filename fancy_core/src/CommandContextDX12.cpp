@@ -145,7 +145,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ClearDepthStencilTarget_Internal(Texture* aTexture, float aDepthClear,
-    uint8 aStencilClear, uint32 someClearFlags /* = (uint32)DepthStencilClearFlags::CLEAR_ALL */) const
+    uint8 aStencilClear, uint32 someClearFlags /* = (uint32)DepthStencilClearFlags::CLEAR_ALL */)
   {
     ASSERT(aTexture->GetParameters().bIsDepthStencil);
 
@@ -158,6 +158,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_STENCIL)
       clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
 
+    TransitionResource(textureDX12, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
     myCommandList->ClearDepthStencilView(textureDX12->GetDsv()->myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
  //---------------------------------------------------------------------------//

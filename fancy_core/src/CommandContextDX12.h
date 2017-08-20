@@ -11,7 +11,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class DescriptorDX12;
   class DescriptorHeapDX12;
 //---------------------------------------------------------------------------//
-  class CommandContextDX12
+  class DLLEXPORT CommandContextDX12
   {
     friend class RenderCore_PlatformDX12;
 
@@ -39,7 +39,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ReleaseDynamicHeaps(uint64 aFenceVal);
 
     void ClearRenderTarget_Internal(Texture* aTexture, const float* aColor);
-    void ClearDepthStencilTarget_Internal(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const;
+    void ClearDepthStencilTarget_Internal(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL);
 
     static const GpuResourceDX12* CastGpuResourceDX12(const GpuResource* aResource);
     

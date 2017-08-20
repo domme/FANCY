@@ -16,7 +16,7 @@ namespace Fancy { namespace Rendering {
     CONSTANT_BUFFER
   };
 //---------------------------------------------------------------------------//
-  class CommandContext
+  class DLLEXPORT CommandContext
   {
   public:
     CommandContext(CommandListType aType);
@@ -25,7 +25,7 @@ namespace Fancy { namespace Rendering {
     CommandListType GetType() const { return myCommandListType; }
 
     virtual void ClearRenderTarget(Texture* aTexture, const float* aColor) = 0;
-    virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const = 0;
+    virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) = 0;
 
     // Root arguments:
     virtual void BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const = 0;

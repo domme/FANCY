@@ -13,8 +13,8 @@ namespace Fancy{ namespace Rendering{
   class GpuResource;
   class RenderOutput;
   class GpuProgramPipeline;
-  struct BlendState;
-  struct DepthStencilState;
+  class BlendState;
+  class DepthStencilState;
 }}
 
 namespace Fancy { namespace Rendering { namespace DX12 {
@@ -23,7 +23,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class GpuResourceDX12;
   class CommandAllocatorPoolDX12;
 //---------------------------------------------------------------------------//
-  class RenderContextDX12 : public RenderContext, public CommandContextDX12
+  class DLLEXPORT RenderContextDX12 : public RenderContext, public CommandContextDX12
   {
   public:
     RenderContextDX12();
@@ -35,7 +35,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
 
     void ClearRenderTarget(Texture* aTexture, const float* aColor) override;
-    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) const override;
+    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) override;
 
     // Root arguments:
     void BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const override;
@@ -45,9 +45,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
 
-    virtual void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer,
-      uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX);
-    virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset);
+    void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer,
+      uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) override;
+    void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) override;
 
     void RenderGeometry(const Geometry::GeometryData* pGeometry) override;
   
@@ -56,7 +56,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void Reset_Internal() override;
 
-    void ApplyViewport();
+    void ApplyViewportAndClipRect();
     void ApplyPipelineState();
     void ApplyRenderTargets();
   };

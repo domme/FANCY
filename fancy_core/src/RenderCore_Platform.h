@@ -7,7 +7,7 @@ namespace Fancy { namespace Rendering {
   class CommandContext;
   enum class CommandListType;
 //---------------------------------------------------------------------------//  
-  class RenderCore_Platform
+  class DLLEXPORT RenderCore_Platform
   {
   public:
     virtual ~RenderCore_Platform() = default;

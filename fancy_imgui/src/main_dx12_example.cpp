@@ -3,6 +3,8 @@
 * License: http://www.opensource.org/licenses/BSD-2-Clause
 */
 
+#if 0
+
 #include <windows.h>
 
 #include "imgui.cpp"
@@ -488,3 +490,6 @@ int main(int, char**)
     UnregisterClass(L"ImGui Example", wc.hInstance);
     return 0;
 }
+
+
+#endif

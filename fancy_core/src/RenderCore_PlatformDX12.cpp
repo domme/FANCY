@@ -64,11 +64,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     memset(ourCommandAllocatorPools, 0u, sizeof(ourCommandAllocatorPools));
 
-    // ComPtr<ID3D12Debug> debugInterface;
-    // if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))q))
-    //   debugInterface->EnableDebugLayer();
+    ComPtr<ID3D12Debug> debugInterface;
+    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
+      debugInterface->EnableDebugLayer();
 
-    CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&ourDevice)));
+    CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
 
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;

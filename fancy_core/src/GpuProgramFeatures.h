@@ -24,7 +24,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   typedef FixedArray<GpuProgramFeature, 128u> GpuProgramFeatureList;
 //---------------------------------------------------------------------------//
-  class GpuProgramPermutation
+  class DLLEXPORT GpuProgramPermutation
   {
     public:
       SERIALIZABLE(GpuProgramPermutation)

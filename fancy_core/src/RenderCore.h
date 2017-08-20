@@ -36,7 +36,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class Texture;
 //---------------------------------------------------------------------------//
-  class RenderCore
+  class DLLEXPORT RenderCore
   {
   public:
     /// Init platform-independent stuff
@@ -45,10 +45,10 @@ namespace Fancy { namespace Rendering {
 
     static bool IsInitialized();
 
-    static const Texture* GetDefaultDiffuseTexture() { return ourDefaultDiffuseTexture.get(); }
-    static const Texture* GetDefaultNormalTexture() { return ourDefaultNormalTexture.get(); }
-    static const Texture* GetDefaultMaterialTexture() { return ourDefaultSpecularTexture.get(); }
-    static const GpuProgramCompiler* GetGpuProgramCompiler() { return ourShaderCompiler.get(); }
+    static const Texture* GetDefaultDiffuseTexture();
+    static const Texture* GetDefaultNormalTexture();
+    static const Texture* GetDefaultMaterialTexture();
+    static const GpuProgramCompiler* GetGpuProgramCompiler();
     static DataFormat ResolveFormat(DataFormat aFormat);
 
     static SharedPtr<Texture> GetTexture(uint64 aDescHash);
@@ -73,10 +73,10 @@ namespace Fancy { namespace Rendering {
 
     static SharedPtr<BlendState> CreateBlendState(const Rendering::BlendStateDesc& aDesc);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc);
-    static const SharedPtr<BlendState>& GetDefaultBlendState() { return ourDefaultBlendState; }
-    static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState() { return ourDefaultDepthStencilState; }
+    static const SharedPtr<BlendState>& GetDefaultBlendState();
+    static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState();
 
-    static RenderCore_Platform* GetPlatform() { return ourPlatformImpl.get(); }
+    static RenderCore_Platform* GetPlatform();
     static DX12::RenderCore_PlatformDX12* GetPlatformDX12();
 
     static CommandContext* AllocateContext(CommandListType aType);

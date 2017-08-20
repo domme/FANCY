@@ -10,7 +10,7 @@ namespace Fancy{namespace IO{
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct BlendStateDesc : public DescriptionBase
+  struct DLLEXPORT BlendStateDesc : public DescriptionBase
   {
     static BlendStateDesc GetDefaultSolid();
 
@@ -38,7 +38,7 @@ namespace Fancy { namespace Rendering {
     uint32 myRTwriteMask[Constants::kMaxNumRenderTargets];
   };
 //---------------------------------------------------------------------------//
-class BlendState {
+class DLLEXPORT BlendState {
 
 public:
   SERIALIZABLE_RESOURCE(BlendState)

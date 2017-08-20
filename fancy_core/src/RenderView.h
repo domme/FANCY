@@ -28,7 +28,9 @@ namespace Fancy {
     RenderWindow* GetRenderWindow() const;
 
     void Startup() const;
+    void BeginFrame() const;
     void Tick(const Time& aClock) const;
+    void EndFrame() const;
 
   private:
     SharedPtr<GraphicsWorld> myGraphicsWorld;

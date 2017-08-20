@@ -10,7 +10,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class ShaderResourceInterface;
 //---------------------------------------------------------------------------//
-  class GpuProgramPipeline
+  class DLLEXPORT GpuProgramPipeline
   {
     public:
       SERIALIZABLE_RESOURCE(GpuProgramPipeline);

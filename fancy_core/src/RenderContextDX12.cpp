@@ -79,12 +79,23 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       D3D12_RENDER_TARGET_BLEND_DESC& rtBlendDesc = blendDesc.RenderTarget[rt];
       memset(&rtBlendDesc, 0u, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
-
       rtBlendDesc.BlendEnable = aState.myBlendState->myBlendEnabled[rt];
       rtBlendDesc.BlendOp = Adapter::toNativeType(aState.myBlendState->myBlendOp[rt]);
-      rtBlendDesc.BlendOpAlpha = Adapter::toNativeType(aState.myBlendState->myBlendOpAlpha[rt]);
       rtBlendDesc.DestBlend = Adapter::toNativeType(aState.myBlendState->myDestBlend[rt]);
-      rtBlendDesc.DestBlendAlpha = Adapter::toNativeType(aState.myBlendState->myDestBlendAlpha[rt]);
+      rtBlendDesc.SrcBlend = Adapter::toNativeType(aState.myBlendState->mySrcBlend[rt]);
+
+      if (aState.myBlendState->myAlphaSeparateBlend[rt])
+      {
+        rtBlendDesc.BlendOpAlpha = Adapter::toNativeType(aState.myBlendState->myBlendOpAlpha[rt]);
+        rtBlendDesc.DestBlendAlpha = Adapter::toNativeType(aState.myBlendState->myDestBlendAlpha[rt]);
+        rtBlendDesc.SrcBlendAlpha = Adapter::toNativeType(aState.myBlendState->mySrcBlendAlpha[rt]);
+      }
+      else
+      {
+        rtBlendDesc.BlendOpAlpha = rtBlendDesc.BlendOp;
+        rtBlendDesc.DestBlendAlpha = rtBlendDesc.DestBlend;
+        rtBlendDesc.SrcBlendAlpha = rtBlendDesc.SrcBlend;
+      }
 
       // FEATURE: Add support for LogicOps?
       rtBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
@@ -210,7 +221,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ClearRenderTarget_Internal(aTexture, aColor);
   }
   //---------------------------------------------------------------------------//
-  void RenderContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags) const
+  void RenderContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags)
   {
     ClearDepthStencilTarget_Internal(aTexture, aDepthClear, aStencilClear, someClearFlags);
   }
@@ -281,7 +292,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void RenderContextDX12::SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer, uint aVertexOffset, uint aNumVertices, uint anIndexOffset, uint aNumIndices)
   {
     // TODO: Check again if we need to apply all this stuff here or rather only before drawing
-    ApplyViewport();
+    ApplyViewportAndClipRect();
     ApplyRenderTargets();
     ApplyPipelineState();
 
@@ -312,7 +323,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderContextDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset)
   {
-    ApplyViewport();
+    ApplyViewportAndClipRect();
     ApplyRenderTargets();
     ApplyPipelineState();
    
@@ -330,31 +341,36 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
 #pragma region Pipeline Apply
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::ApplyViewport()
+  void RenderContextDX12::ApplyViewportAndClipRect()
   {
-    if (!myViewportDirty)
-      return;
+    if (myViewportDirty)
+    {
+      D3D12_VIEWPORT viewport = { 0u };
+      viewport.TopLeftX = myViewportParams.x;
+      viewport.TopLeftY = myViewportParams.y;
+      viewport.Width = myViewportParams.z;
+      viewport.Height = myViewportParams.w;
+      viewport.MinDepth = 0.0f;
+      viewport.MaxDepth = 1.0f;
 
-    myViewportDirty = false;
-    
-    D3D12_VIEWPORT viewport = {0u};
-    viewport.TopLeftX = myViewportParams.x;
-    viewport.TopLeftY = myViewportParams.y;
-    viewport.Width = myViewportParams.z;
-    viewport.Height = myViewportParams.w;
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
+      myCommandList->RSSetViewports(1u, &viewport);
 
-    D3D12_RECT rect = { 0u };
-    if (myClipRect.z ==)
+      myClipRectDirty = true;
+      myViewportDirty = false;
+    }
 
-    rect.left = viewport.TopLeftX;
-    rect.top = viewport.TopLeftY;
-    rect.right = viewport.Width;
-    rect.bottom = viewport.Height;
+    if (myClipRectDirty)
+    {
+      D3D12_RECT rect = { 0u };
+      rect.left = myClipRect.x;
+      rect.top = myClipRect.y;
+      rect.right = myClipRect.z;
+      rect.bottom = myClipRect.w;
 
-    myCommandList->RSSetViewports(1u, &viewport);
-    myCommandList->RSSetScissorRects(1u, &rect);
+      myCommandList->RSSetScissorRects(1u, &rect);
+
+      myClipRectDirty = false;
+    }
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::ApplyRenderTargets()

@@ -49,9 +49,6 @@ namespace Fancy { namespace Rendering {
 
       myBackbuffers[i] = RenderCore::CreateTexture(backbufferParams);
     }
-    
-
-
   }
 //---------------------------------------------------------------------------//  
 } }

@@ -8,7 +8,7 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct TextureInfos {
+  struct DLLEXPORT TextureInfos {
     TextureInfos() : isSRGB(0), isLocked(0), isArrayTexture(0), isCubemap(0),
       cachesTextureData(0), numDimensions(0) {}
 
@@ -20,7 +20,7 @@ namespace Fancy { namespace Rendering {
     uint numDimensions : 4;
   };
 //---------------------------------------------------------------------------//
-  class Texture : public GpuResource
+  class DLLEXPORT Texture : public GpuResource
   {
   public:
     SERIALIZABLE_RESOURCE(Texture)

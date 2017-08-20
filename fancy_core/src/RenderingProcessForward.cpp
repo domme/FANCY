@@ -432,11 +432,12 @@ namespace Fancy { namespace Rendering {
     context->ClearDepthStencilTarget(anOutput->GetDefaultDepthStencilBuffer(), clearDepth, clearStencil);
 
     context->SetViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
+    context->SetClipRect(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
     context->SetRenderTarget(anOutput->GetBackbuffer(), 0u);
     context->SetDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
 
-    context->SetDepthStencilState(nullptr);
-    // context->SetBlendState(myBlendStateAdd);
+    //context->SetDepthStencilState(nullptr);
+    context->SetBlendState(myBlendStateAdd);
     context->SetBlendState(nullptr);
     context->SetCullMode(CullMode::NONE);
     context->SetFillMode(FillMode::SOLID);
