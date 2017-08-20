@@ -44,6 +44,12 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   LRESULT RenderWindow::HandleWindowEvent(UINT message, WPARAM wParam, LPARAM lParam)
   {
+    bool handledExternally = false;
+    myWindowEventHandler(message, wParam, lParam, &handledExternally);
+
+    if (handledExternally)
+      return S_OK;
+
     // Handle destroy/shutdown messages.
     switch (message)
     {

@@ -25,6 +25,7 @@ namespace Fancy {
       void SetSize(uint aWidth, uint aHeight);
 
       Slot<void(uint, uint)> myOnResize;
+      Slot<void(UINT, WPARAM, LPARAM, bool*)> myWindowEventHandler;
 
       LRESULT HandleWindowEvent(UINT message, WPARAM wParam, LPARAM lParam);
 

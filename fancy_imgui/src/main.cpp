@@ -42,20 +42,6 @@ void StartupEngine(HINSTANCE anAppInstanceHandle)
   Fancy::Scene::LightComponent* pLight = static_cast<Fancy::Scene::LightComponent*>(pLightNode->addOrRetrieveComponent(_N(LightComponent)));
 }
 
-LRESULT CALLBACK locOnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-  // Handle destroy/shutdown messages.
-  switch (message)
-  {
-  case WM_DESTROY:
-    PostQuitMessage(0);
-    return 0;
-  }
-
-  // Handle any messages the switch statement didn't.
-  return DefWindowProc(hWnd, message, wParam, lParam);
-}
-
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
@@ -95,6 +81,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
       if (ImGui::Button("Test Window")) show_test_window ^= 1;
       if (ImGui::Button("Another Window")) show_another_window ^= 1;
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    }
+
+    // 2. Show another simple window, this time using an explicit Begin/End pair
+    if (show_another_window)
+    {
+      ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+      ImGui::Begin("Another Window", &show_another_window);
+      ImGui::Text("Hello");
+      ImGui::End();
+    }
+
+    // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
+    if (show_test_window)
+    {
+      ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);     // Normally user code doesn't need/want to call it because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+      ImGui::ShowTestWindow(&show_test_window);
     }
     
     ImGui::Render();

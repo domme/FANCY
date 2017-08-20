@@ -24,7 +24,7 @@ namespace Fancy { namespace ImGui {
     glm::float4x4 myProjectionMatrix;
   };
 
-  const uint32 kMaxNumVertices = 2048u;
+  const uint32 kMaxNumVertices = 4096u;
   const uint32 kMaxNumIndices = kMaxNumVertices * 3u;
 
   SharedPtr<Rendering::GpuBuffer> ourCBuffer;
@@ -38,13 +38,67 @@ namespace Fancy { namespace ImGui {
   HWND ourHwnd = nullptr;
   INT64 ourTicksPerSecond = 0;
   INT64 ourTime = 0;
-  
+
+  void HandleWindowEvent(UINT msg, WPARAM wParam, LPARAM lParam, bool* aWasHandled)
+  {
+    ImGuiIO& io = ::ImGui::GetIO();
+    switch (msg)
+    {
+    case WM_LBUTTONDOWN:
+      io.MouseDown[0] = true;
+      (*aWasHandled) = true;
+      return;
+    case WM_LBUTTONUP:
+      io.MouseDown[0] = false;
+      (*aWasHandled) = true;
+      return;
+    case WM_RBUTTONDOWN:
+      io.MouseDown[1] = true;
+      (*aWasHandled) = true;
+      return;
+    case WM_RBUTTONUP:
+      io.MouseDown[1] = false;
+      (*aWasHandled) = true;
+      return;
+    case WM_MOUSEWHEEL:
+      io.MouseWheel += GET_WHEEL_DELTA_WPARAM(wParam) > 0 ? +1.0f : -1.0f;
+      (*aWasHandled) = true;
+      return;
+    case WM_MOUSEMOVE:
+      io.MousePos.x = (signed short)(lParam);
+      io.MousePos.y = (signed short)(lParam >> 16);
+      (*aWasHandled) = true;
+      return;
+    case WM_KEYDOWN:
+      if (wParam < 256)
+        io.KeysDown[wParam] = 1;
+      (*aWasHandled) = true;
+      return;
+    case WM_KEYUP:
+      if (wParam < 256)
+        io.KeysDown[wParam] = 0;
+      (*aWasHandled) = true;
+      return;
+    case WM_CHAR:
+      // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
+      if (wParam > 0 && wParam < 0x10000)
+        io.AddInputCharacter((unsigned short)wParam);
+      (*aWasHandled) = true;
+      return;
+    }
+
+    (*aWasHandled) = false;
+  }
+    
   bool Init(Fancy::RenderWindow* aRenderWindow, Fancy::FancyRuntime* aRuntime)
   {
     ourRenderWindow = aRenderWindow;
+    std::function<void(UINT, WPARAM, LPARAM, bool*)> fnWindowHandler = &HandleWindowEvent;
+    ourRenderWindow->myWindowEventHandler.Connect(fnWindowHandler);
+
     ourFancyRuntime = aRuntime;
     ourHwnd = aRenderWindow->GetWindowHandle();
-  
+
     ImGuiIO& io = ::ImGui::GetIO();
     io.KeyMap[ImGuiKey_Tab] = VK_TAB;                              // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
     io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
@@ -279,6 +333,21 @@ namespace Fancy { namespace ImGui {
       Rendering::RenderCore::UpdateBufferData(ourCBuffer.get(), &cbuffer, sizeof(cbuffer));
     }
 
+    // Safety check on the number of vertices needed
+    {
+      uint numRequiredVertices = 0u;
+      uint numRequiredIndices = 0u;
+      for (int n = 0; n < _draw_data->CmdListsCount; n++)
+      {
+        const ImDrawList* cmd_list = _draw_data->CmdLists[n];
+        numRequiredVertices += cmd_list->VtxBuffer.size();
+        numRequiredIndices += cmd_list->IdxBuffer.size();
+      }
+
+      ASSERT(numRequiredVertices <= ourVertexBuffer->GetNumElements());
+      ASSERT(numRequiredIndices <= ourIndexBuffer->GetNumElements());
+    }
+
     // Copy all vertex- and index data
     {
       uint8* mappedVertexData = static_cast<uint8*>(ourVertexBuffer->Lock(Rendering::GpuResoruceLockOption::WRITE));
@@ -329,22 +398,20 @@ namespace Fancy { namespace ImGui {
     Rendering::ResourceBindingType resourceTypes[] = { Rendering::ResourceBindingType::SIMPLE };
     context->BindResourceSet(resources, resourceTypes, ARRAY_LENGTH(resources), 1u);
 
-    uint vertexBufferOffsetBytes = 0u;
-    uint indexBufferOffsetBytes = 0u;
+    uint cmdListVertexOffset = 0u;
+    uint cmdListIndexOffset = 0u;
     for (uint iCmdList = 0u; iCmdList < static_cast<uint>(_draw_data->CmdListsCount); ++iCmdList)
     {
       const ImDrawList* cmd_list = _draw_data->CmdLists[iCmdList];
       uint verticesCount = cmd_list->VtxBuffer.size();
       uint indicesCount = cmd_list->IdxBuffer.size();
-      uint verticesSizeBytes = verticesCount * sizeof(ImDrawVert);
-      uint indicesSizeBytes = indicesCount * sizeof(ImDrawIdx);
       
-      context->SetVertexIndexBuffers(ourVertexBuffer.get(), ourIndexBuffer.get(), vertexBufferOffsetBytes, verticesCount, indexBufferOffsetBytes, indicesCount);
+      context->SetVertexIndexBuffers(ourVertexBuffer.get(), ourIndexBuffer.get(), cmdListVertexOffset, verticesCount, cmdListIndexOffset, indicesCount);
       
-      vertexBufferOffsetBytes += verticesSizeBytes;
-      indexBufferOffsetBytes += indicesSizeBytes;
+      cmdListVertexOffset += verticesCount;
+      cmdListIndexOffset += indicesCount;
 
-      uint indexOffset = 0;
+      uint cmdIndexOffset = 0;
       for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.size(); cmd_i++)
       {
         const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
@@ -357,9 +424,9 @@ namespace Fancy { namespace ImGui {
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
           context->SetClipRect(clipRect);
 
-          context->Render(pcmd->ElemCount, 1u, indexOffset, 0u, 0u);
+          context->Render(pcmd->ElemCount, 1u, cmdIndexOffset, 0u, 0u);
         }
-        indexOffset += pcmd->ElemCount;
+        cmdIndexOffset += pcmd->ElemCount;
       }
     }
 
