@@ -24,8 +24,8 @@ namespace Fancy { namespace ImGui {
     glm::float4x4 myProjectionMatrix;
   };
 
-  const uint32 kMaxNumVertices = 4096u;
-  const uint32 kMaxNumIndices = kMaxNumVertices * 3u;
+  const uint32 kVertexNumIncrease = 2048u;
+  const uint32 kIndexNumIncrease = kVertexNumIncrease * 3u;
 
   SharedPtr<Rendering::GpuBuffer> ourCBuffer;
   SharedPtr<Rendering::GpuBuffer> ourVertexBuffer;
@@ -34,6 +34,7 @@ namespace Fancy { namespace ImGui {
   SharedPtr<Rendering::GpuProgramPipeline> ourProgramPipeline;
   SharedPtr<Rendering::BlendState> ourBlendState;
   SharedPtr<Rendering::DepthStencilState> ourDepthStencilState;
+  Rendering::RenderContext* ourRenderContext;
     
   HWND ourHwnd = nullptr;
   INT64 ourTicksPerSecond = 0;
@@ -89,7 +90,35 @@ namespace Fancy { namespace ImGui {
 
     (*aWasHandled) = false;
   }
-    
+  
+  namespace {
+    SharedPtr<Rendering::GpuBuffer> locCreateVertexBuffer(uint32 aNumRequiredVertices)
+    {
+      Rendering::GpuBufferCreationParams bufferParams;
+      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
+      bufferParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::WRITE
+                                | (uint32)Rendering::GpuResourceAccessFlags::COHERENT
+                                | (uint32)Rendering::GpuResourceAccessFlags::DYNAMIC
+                                | (uint32)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+      bufferParams.uElementSizeBytes = sizeof(ImDrawVert);
+      bufferParams.uNumElements = aNumRequiredVertices;
+      return Rendering::RenderCore::CreateBuffer(bufferParams);
+    }
+
+    SharedPtr<Rendering::GpuBuffer> locCreateIndexBuffer(uint32 aNumRequiredIndices)
+    {
+      Rendering::GpuBufferCreationParams bufferParams;
+      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::INDEX_BUFFER);
+      bufferParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::WRITE
+        | (uint32)Rendering::GpuResourceAccessFlags::COHERENT
+        | (uint32)Rendering::GpuResourceAccessFlags::DYNAMIC
+        | (uint32)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+      bufferParams.uElementSizeBytes = sizeof(ImDrawIdx);
+      bufferParams.uNumElements = aNumRequiredIndices;
+      return Rendering::RenderCore::CreateBuffer(bufferParams);
+    }
+  }
+
   bool Init(Fancy::RenderWindow* aRenderWindow, Fancy::FancyRuntime* aRuntime)
   {
     ourRenderWindow = aRenderWindow;
@@ -159,79 +188,13 @@ namespace Fancy { namespace ImGui {
       ourCBuffer = Rendering::RenderCore::CreateBuffer(bufferParams, &initialData);
       ASSERT(ourCBuffer != nullptr);
     }
-
-    // Vertex buffer
-    {
-      Rendering::GpuBufferCreationParams bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
-      bufferParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::WRITE
-                                  | (uint32)Rendering::GpuResourceAccessFlags::COHERENT
-                                  | (uint32)Rendering::GpuResourceAccessFlags::DYNAMIC
-                                  | (uint32)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
-      bufferParams.uElementSizeBytes = sizeof(ImDrawVert);
-      bufferParams.uNumElements = kMaxNumVertices;
-      ourVertexBuffer = Rendering::RenderCore::CreateBuffer(bufferParams);
-      ASSERT(ourVertexBuffer != nullptr);
-    }
-
-    // Index buffer
-    {
-      Rendering::GpuBufferCreationParams bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::INDEX_BUFFER);
-      bufferParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::WRITE
-        | (uint32)Rendering::GpuResourceAccessFlags::COHERENT
-        | (uint32)Rendering::GpuResourceAccessFlags::DYNAMIC
-        | (uint32)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
-      bufferParams.uElementSizeBytes = sizeof(ImDrawIdx);
-      bufferParams.uNumElements = kMaxNumIndices;
-      ourIndexBuffer = Rendering::RenderCore::CreateBuffer(bufferParams);
-      ASSERT(ourIndexBuffer != nullptr);
-    }
-
-    /*
-    // Geometry Data
-    {
-      Rendering::GeometryVertexLayout vertexLayout;
-      uint32 offsetBytes = 0u;
-
-      // pos
-      {
-        Rendering::GeometryVertexElement elem;
-        elem.eFormat = Rendering::DataFormat::RG_32F;
-        elem.eSemantics = Rendering::VertexSemantics::POSITION;
-        elem.name = "pos";
-        elem.u32SizeBytes = sizeof(ImVec2);
-        elem.u32OffsetBytes = offsetBytes;
-        vertexLayout.addVertexElement(elem);
-        offsetBytes += elem.u32SizeBytes;
-      }
-
-      // uv
-      {
-        Rendering::GeometryVertexElement elem;
-        elem.eFormat = Rendering::DataFormat::RG_32F;
-        elem.eSemantics = Rendering::VertexSemantics::TEXCOORD;
-        elem.name = "uv";
-        elem.u32SizeBytes = sizeof(ImVec2);
-        elem.u32OffsetBytes = offsetBytes;
-        vertexLayout.addVertexElement(elem);
-        offsetBytes += elem.u32SizeBytes;
-      }
-
-      // color
-      {
-        Rendering::GeometryVertexElement elem;
-        elem.eFormat = Rendering::DataFormat::RGBA_8;
-        elem.eSemantics = Rendering::VertexSemantics::COLOR;
-        elem.name = "col";
-        elem.u32SizeBytes = sizeof(ImU32);
-        elem.u32OffsetBytes = offsetBytes;
-        vertexLayout.addVertexElement(elem);
-        offsetBytes += elem.u32SizeBytes;
-      }
-    }
-    */
-
+  
+    ourVertexBuffer = locCreateVertexBuffer(kVertexNumIncrease);
+    ASSERT(ourVertexBuffer != nullptr);
+   
+    ourIndexBuffer = locCreateIndexBuffer(kIndexNumIncrease);
+    ASSERT(ourIndexBuffer != nullptr);
+   
     // Create the font texture
     {
       uint8* fontPixelData = nullptr;
@@ -278,6 +241,8 @@ namespace Fancy { namespace ImGui {
       ourDepthStencilState = Rendering::RenderCore::CreateDepthStencilState(desc);
       ASSERT(ourDepthStencilState != nullptr);
     }
+
+    ourRenderContext = static_cast<Rendering::RenderContext*>(Rendering::RenderCore::AllocateContext(Rendering::CommandListType::Graphics));
     
     return true;
   }
@@ -333,7 +298,7 @@ namespace Fancy { namespace ImGui {
       Rendering::RenderCore::UpdateBufferData(ourCBuffer.get(), &cbuffer, sizeof(cbuffer));
     }
 
-    // Safety check on the number of vertices needed
+    // Calculate the required number of vertices and indices and grow the buffers if neccessary
     {
       uint numRequiredVertices = 0u;
       uint numRequiredIndices = 0u;
@@ -344,8 +309,19 @@ namespace Fancy { namespace ImGui {
         numRequiredIndices += cmd_list->IdxBuffer.size();
       }
 
-      ASSERT(numRequiredVertices <= ourVertexBuffer->GetNumElements());
-      ASSERT(numRequiredIndices <= ourIndexBuffer->GetNumElements());
+      if (numRequiredVertices > ourVertexBuffer->GetNumElements())
+      {
+        const uint newBufferSize = Fancy::MathUtil::Align(numRequiredVertices, kVertexNumIncrease);
+        ourVertexBuffer = locCreateVertexBuffer(newBufferSize);
+        ASSERT(ourVertexBuffer != nullptr);
+      }
+
+      if (numRequiredIndices > ourIndexBuffer->GetNumElements())
+      {
+        const uint newBufferSize = Fancy::MathUtil::Align(numRequiredIndices, kIndexNumIncrease);
+        ourIndexBuffer = locCreateIndexBuffer(newBufferSize);
+        ASSERT(ourIndexBuffer != nullptr);
+      }
     }
 
     // Copy all vertex- and index data
@@ -375,28 +351,25 @@ namespace Fancy { namespace ImGui {
       ourIndexBuffer->Unlock();
     }
 
-    Rendering::RenderContext* context =
-      static_cast<Rendering::RenderContext*>(Rendering::RenderCore::AllocateContext(Rendering::CommandListType::Graphics));
-
     // TODO: Don't hardcode which renderOutput to use...
     Rendering::RenderOutput* renderOutput = ourFancyRuntime->GetMainView()->GetRenderOutput();
 
-    context->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
-    context->SetRenderTarget(renderOutput->GetBackbuffer(), 0u);
-    context->SetDepthStencilRenderTarget(renderOutput->GetDefaultDepthStencilBuffer());
+    ourRenderContext->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
+    ourRenderContext->SetRenderTarget(renderOutput->GetBackbuffer(), 0u);
+    ourRenderContext->SetDepthStencilRenderTarget(renderOutput->GetDefaultDepthStencilBuffer());
     
-    context->SetDepthStencilState(ourDepthStencilState);
-    context->SetBlendState(ourBlendState);
-    context->SetCullMode(Rendering::CullMode::NONE);
-    context->SetFillMode(Rendering::FillMode::SOLID);
-    context->SetWindingOrder(Rendering::WindingOrder::CCW);
+    ourRenderContext->SetDepthStencilState(ourDepthStencilState);
+    ourRenderContext->SetBlendState(ourBlendState);
+    ourRenderContext->SetCullMode(Rendering::CullMode::NONE);
+    ourRenderContext->SetFillMode(Rendering::FillMode::SOLID);
+    ourRenderContext->SetWindingOrder(Rendering::WindingOrder::CCW);
 
-    context->SetGpuProgramPipeline(ourProgramPipeline);
-    context->BindResource(ourCBuffer.get(), Rendering::ResourceBindingType::CONSTANT_BUFFER, 0u);
+    ourRenderContext->SetGpuProgramPipeline(ourProgramPipeline);
+    ourRenderContext->BindResource(ourCBuffer.get(), Rendering::ResourceBindingType::CONSTANT_BUFFER, 0u);
 
     const Rendering::GpuResource* resources[] = { ourFontTexture.get() };
     Rendering::ResourceBindingType resourceTypes[] = { Rendering::ResourceBindingType::SIMPLE };
-    context->BindResourceSet(resources, resourceTypes, ARRAY_LENGTH(resources), 1u);
+    ourRenderContext->BindResourceSet(resources, resourceTypes, ARRAY_LENGTH(resources), 1u);
 
     uint cmdListVertexOffset = 0u;
     uint cmdListIndexOffset = 0u;
@@ -406,7 +379,7 @@ namespace Fancy { namespace ImGui {
       uint verticesCount = cmd_list->VtxBuffer.size();
       uint indicesCount = cmd_list->IdxBuffer.size();
       
-      context->SetVertexIndexBuffers(ourVertexBuffer.get(), ourIndexBuffer.get(), cmdListVertexOffset, verticesCount, cmdListIndexOffset, indicesCount);
+      ourRenderContext->SetVertexIndexBuffers(ourVertexBuffer.get(), ourIndexBuffer.get(), cmdListVertexOffset, verticesCount, cmdListIndexOffset, indicesCount);
       
       cmdListVertexOffset += verticesCount;
       cmdListIndexOffset += indicesCount;
@@ -422,15 +395,36 @@ namespace Fancy { namespace ImGui {
         else
         {
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
-          context->SetClipRect(clipRect);
+          ourRenderContext->SetClipRect(clipRect);
 
-          context->Render(pcmd->ElemCount, 1u, cmdIndexOffset, 0u, 0u);
+          ourRenderContext->Render(pcmd->ElemCount, 1u, cmdIndexOffset, 0u, 0u);
         }
         cmdIndexOffset += pcmd->ElemCount;
       }
     }
 
-    context->ExecuteAndReset(true);
+    ourRenderContext->ExecuteAndReset(true);
+  }
+
+  void Shutdown()
+  {
+    Rendering::RenderCore::FreeContext(ourRenderContext);
+    ourRenderContext = nullptr;
+
+    ourFancyRuntime = nullptr;
+    ourRenderWindow = nullptr;
+    
+    ourCBuffer.reset();
+    ourVertexBuffer.reset();
+    ourIndexBuffer.reset();
+    ourFontTexture.reset();
+    ourProgramPipeline.reset();
+    ourBlendState.reset();
+    ourDepthStencilState.reset();
+    
+    ourHwnd = nullptr;
+    ourTicksPerSecond = 0;
+    ourTime = 0;
   }
 //---------------------------------------------------------------------------//
 } }
