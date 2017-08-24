@@ -1,31 +1,26 @@
-#ifndef INCLUDE_PATHSERVICE_H
-#define INCLUDE_PATHSERVICE_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
-  class PathService
+  namespace PathUtil
   {
-  public:
-    static String convertToAbsPath( const String& szRelPath, bool bInResources = true );
-    static void convertToAbsPath( String& szRelPath, bool bInResources = true );
-    static String toRelPath(const String& _anAbsPath, bool _isInResources = true );
-    static String getExePath();
-    static String getResourcesPath();
-    static bool isAbsolutePath(const String& _szPath);
-    static String getFileExtension( const String& szFileName );
-    static String GetContainingFolder( const String& szFileName );
-    static void SetResourceLocation( const String& szResource );
-    static void removeFolderUpMarkers(String& _szPath);
-    static void unifySlashes(String& _szPath);
-    static void removeFilenameFromPath( String& szPath );
-    static void createDirectoryTreeForPath(const String& _somePath);
+    void InitResourceFolders();
 
-  private:
-    static std::string m_szRelativeResourcePath;
-  };
+    String GetAbsPath( const String& szRelPath, bool bInResources = true );
+    void GetAbsPath( String& szRelPath, bool bInResources = true );
+    String GetRelativePath(const String& _anAbsPath, bool _isInResources = true );
+    String GetAppPath();
+    String GetAppName();
+    void GetResourceFolders(String& aCoreResourceFolderOut, String& anAppResourceFolderOut);
+    bool IsPathAbs(const String& _szPath);
+    String GetFileExtension( const String& szFileName );
+    String GetContainingFolder( const String& szFileName );
+    void RemoveFolderUpMarkers(String& _szPath);
+    void UnifySlashes(String& _szPath);
+    void RemoveFilenameFromPath(String& szPath);
+    void CreateDirectoryTreeForPath(const String& _somePath);
+  }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO
-
-#endif  // INCLUDE_PATHSERVICE_H

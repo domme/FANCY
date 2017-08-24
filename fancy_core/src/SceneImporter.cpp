@@ -92,7 +92,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   bool SceneImporter::importToSceneGraph( const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode)
   {
-    std::string szImportPathAbs = PathService::convertToAbsPath(_szImportPathRel);
+    std::string szImportPathAbs = PathService::GetAbsPath(_szImportPathRel);
 
     // TODO: Look for cached binary data and don't re-import if possible
 
@@ -722,16 +722,16 @@ namespace Fancy { namespace IO {
 
     String szTexPath = String(szATexPath.C_Str());
     
-    if (!PathService::isAbsolutePath(szTexPath))
+    if (!PathService::IsPathAbs(szTexPath))
     {
       String absSceneFolderPath = myWorkingData.szCurrScenePathInResources;
-      PathService::convertToAbsPath(absSceneFolderPath);
-      PathService::removeFilenameFromPath(absSceneFolderPath);
+      PathService::GetAbsPath(absSceneFolderPath);
+      PathService::RemoveFilenameFromPath(absSceneFolderPath);
       szTexPath = absSceneFolderPath + szTexPath;
     }
 
-    PathService::removeFolderUpMarkers(szTexPath);
-    String texPathInResources = PathService::toRelPath(szTexPath);
+    PathService::RemoveFolderUpMarkers(szTexPath);
+    String texPathInResources = PathService::GetRelativePath(szTexPath);
 
     return RenderCore::CreateTexture(texPathInResources);
   }

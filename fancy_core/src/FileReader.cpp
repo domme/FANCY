@@ -50,7 +50,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   void FileReader::OpenFileStream(const std::string& szRelativeFileName, std::ifstream& rStream, bool bInResources /* = true */ )
   {
-    std::string path = PathService::convertToAbsPath( szRelativeFileName, bInResources );
+    std::string path = PathService::GetAbsPath( szRelativeFileName, bInResources );
     rStream.open( path.c_str() );
   }
 //---------------------------------------------------------------------------//

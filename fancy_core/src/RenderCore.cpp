@@ -286,7 +286,7 @@ namespace Fancy { namespace Rendering {
       ourShaderCache.insert(std::make_pair(hash, program));
 
       const String actualShaderPath =
-        IO::PathService::convertToAbsPath(ourShaderCompiler->ResolvePlatformShaderPath(aDesc.myShaderFileName));
+        IO::PathService::GetAbsPath(ourShaderCompiler->ResolvePlatformShaderPath(aDesc.myShaderFileName));
 
       ourShaderFileWatcher->AddFileWatch(actualShaderPath);
 
@@ -490,10 +490,10 @@ namespace Fancy { namespace Rendering {
     {
       String texPathAbs = aTextureDesc.mySourcePath;
       String texPathRel = aTextureDesc.mySourcePath;
-      if (!IO::PathService::isAbsolutePath(texPathAbs))
-        IO::PathService::convertToAbsPath(texPathAbs);
+      if (!IO::PathService::IsPathAbs(texPathAbs))
+        IO::PathService::GetAbsPath(texPathAbs);
       else
-        texPathRel = IO::PathService::toRelPath(texPathAbs);
+        texPathRel = IO::PathService::GetRelativePath(texPathAbs);
 
       desc.mySourcePath = texPathAbs;
     }
@@ -513,10 +513,10 @@ namespace Fancy { namespace Rendering {
   {
     String texPathAbs = aTexturePath;
     String texPathRel = aTexturePath;
-    if (!IO::PathService::isAbsolutePath(aTexturePath))
-      IO::PathService::convertToAbsPath(texPathAbs);
+    if (!IO::PathService::IsPathAbs(aTexturePath))
+      IO::PathService::GetAbsPath(texPathAbs);
     else
-      texPathRel = IO::PathService::toRelPath(texPathAbs);
+      texPathRel = IO::PathService::GetRelativePath(texPathAbs);
 
     TextureDesc desc;
     desc.mySourcePath = texPathAbs;
@@ -675,7 +675,7 @@ namespace Fancy { namespace Rendering {
 
       const GpuProgramDesc& desc = program->GetDescription();
       String actualShaderPath =
-        IO::PathService::convertToAbsPath(ourShaderCompiler->ResolvePlatformShaderPath(desc.myShaderFileName));
+        IO::PathService::GetAbsPath(ourShaderCompiler->ResolvePlatformShaderPath(desc.myShaderFileName));
 
       if (actualShaderPath == aShaderFile)
         programsToRecompile.push_back(program);

@@ -41,7 +41,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   bool TextureLoader::loadTexture(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
   {
-    std::string szFileType = PathService::getFileExtension(_szPathAbs);
+    std::string szFileType = PathService::GetFileExtension(_szPathAbs);
 
     if (szFileType == "PNG" || szFileType == "png")
     {

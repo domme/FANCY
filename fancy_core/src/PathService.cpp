@@ -6,170 +6,199 @@
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
-  std::string PathService::m_szRelativeResourcePath;
-
-  String PathService::getExePath()
+  namespace PathUtil
   {
-    String pathOut = "";
+    static String ourCoreResourceFolder;
+    static String ourAppResourceFolder;
 
-    TCHAR outString[FILENAME_MAX];
-    int bytes = GetModuleFileName( NULL, outString, FILENAME_MAX );
+    static const char* kResourceFolderName = "resources";
 
-    pathOut = outString;
-    removeFilenameFromPath( pathOut );
-
-    return pathOut;
-  }
-//---------------------------------------------------------------------------//
-  String PathService::GetContainingFolder( const String& szFileName )
-  {
-    String szFolderPath = szFileName;
-    removeFilenameFromPath( szFolderPath );
-    return szFolderPath;
-  }
-//---------------------------------------------------------------------------//
-  String PathService::convertToAbsPath( const String& szRelPath, bool bInResources /* = true */ )
-  {
-    if( bInResources )
-      return getResourcesPath() + szRelPath;
-
-    else
-      return getExePath() + szRelPath;
-  }
-//---------------------------------------------------------------------------//
-  void PathService::convertToAbsPath( String& szRelPath, bool bInResources /* = true */ )
-  {
-    if( bInResources )
-      szRelPath = getResourcesPath() + szRelPath;
-
-    else
-      szRelPath = getExePath() + szRelPath;
-  }
-//---------------------------------------------------------------------------//
-  String PathService::toRelPath(const String& _anAbsPath, bool _isInResources)
-  {
-    const String theAbsPart = _isInResources ? getResourcesPath() : getExePath();
-
-    std::size_t thePosOfAbsPart = _anAbsPath.find(theAbsPart);
-
-    if (thePosOfAbsPart != String::npos)
+    void InitResourceFolders()
     {
-      return _anAbsPath.substr(thePosOfAbsPart + theAbsPart.length());
+      const String& appPath = GetExePath();
+      ourCoreResourceFolder.Format("%../../%", appPath.c_str(), kResourceFolderName);
+
+      
     }
 
-    return _anAbsPath;
-  }
-//---------------------------------------------------------------------------//
-  bool PathService::isAbsolutePath(const String& _szPath)
-  {
-    return _szPath.size() > 2u && _szPath[1] == ':';
-  }
-//---------------------------------------------------------------------------//
-  void PathService::SetResourceLocation( const String& szResource )
-  {
-    m_szRelativeResourcePath = szResource;
-  }
-//---------------------------------------------------------------------------//
-  String PathService::getResourcesPath()
-  {
-    static String szPath = "";
-
-    if( szPath != "" )
+    String GetAppName()
     {
+      String path = "";
+
+      TCHAR buf[FILENAME_MAX];
+      int bytes = GetModuleFileName(NULL, buf, FILENAME_MAX);
+      path = buf;
+
+      
+      UnifySlashes(path);
+      int iPosFrom = path.find_last_of("/");
+      int iPosTo = path
+      return path.substr(iPos + 1, path.size() - iPos);
+    }
+
+    String GetExePath()
+    {
+      String pathOut = "";
+
+      TCHAR outString[FILENAME_MAX];
+      int bytes = GetModuleFileName(NULL, outString, FILENAME_MAX);
+
+      pathOut = outString;
+      RemoveFilenameFromPath(pathOut);
+
+      return pathOut;
+    }
+    //---------------------------------------------------------------------------//
+    String PathService::GetContainingFolder(const String& szFileName)
+    {
+      String szFolderPath = szFileName;
+      RemoveFilenameFromPath(szFolderPath);
+      return szFolderPath;
+    }
+    //---------------------------------------------------------------------------//
+    String PathService::GetAbsPath(const String& szRelPath, bool bInResources /* = true */)
+    {
+      if (bInResources)
+        return GetResourceFolders() + szRelPath;
+
+      else
+        return GetExePath() + szRelPath;
+    }
+    //---------------------------------------------------------------------------//
+    void PathService::GetAbsPath(String& szRelPath, bool bInResources /* = true */)
+    {
+      if (bInResources)
+        szRelPath = GetResourceFolders() + szRelPath;
+
+      else
+        szRelPath = GetExePath() + szRelPath;
+    }
+    //---------------------------------------------------------------------------//
+    String PathService::GetRelativePath(const String& _anAbsPath, bool _isInResources)
+    {
+      const String theAbsPart = _isInResources ? GetResourceFolders() : GetExePath();
+
+      std::size_t thePosOfAbsPart = _anAbsPath.find(theAbsPart);
+
+      if (thePosOfAbsPart != String::npos)
+      {
+        return _anAbsPath.substr(thePosOfAbsPart + theAbsPart.length());
+      }
+
+      return _anAbsPath;
+    }
+    //---------------------------------------------------------------------------//
+    bool PathService::IsPathAbs(const String& _szPath)
+    {
+      return _szPath.size() > 2u && _szPath[1] == ':';
+    }
+    //---------------------------------------------------------------------------//
+    void PathService::SetResourceLocation(const String& szResource)
+    {
+      m_szRelativeResourcePath = szResource;
+    }
+    //---------------------------------------------------------------------------//
+    String PathService::GetResourceFolders()
+    {
+      static String szPath = "";
+
+      if (szPath != "")
+      {
+        return szPath;
+      }
+
+      szPath = GetExePath();
+
+      if (m_szRelativeResourcePath.empty())
+      {
+        szPath += "/Resources/";
+      }
+      else
+      {
+        szPath += m_szRelativeResourcePath;
+      }
+
+      RemoveFolderUpMarkers(szPath);
+
       return szPath;
     }
-
-    szPath = getExePath();
-
-    if( m_szRelativeResourcePath.empty() )
+    //---------------------------------------------------------------------------//
+    String PathService::GetFileExtension(const String& szFileName)
     {
-      szPath += "/Resources/";
+      int iPos = szFileName.find_last_of(".");
+      return szFileName.substr(iPos + 1, szFileName.size() - iPos);
     }
-    else
+    //---------------------------------------------------------------------------//
+    void PathService::UnifySlashes(String& _szPath)
     {
-      szPath += m_szRelativeResourcePath;
-    }
-
-    removeFolderUpMarkers(szPath);
-
-    return szPath;
-  }
-//---------------------------------------------------------------------------//
-  String PathService::getFileExtension( const String& szFileName )
-  {
-    int iPos = szFileName.find_last_of( "." );
-    return szFileName.substr( iPos + 1, szFileName.size() - iPos );
-  }
-//---------------------------------------------------------------------------//
-  void PathService::unifySlashes(String& _szPath)
-  {
-    for (uint32 i = 0; i < _szPath.size(); ++i)
-    {
-      if (_szPath[i] == '\\')
+      for (uint32 i = 0; i < _szPath.size(); ++i)
       {
-        _szPath[i] = '/';
+        if (_szPath[i] == '\\')
+        {
+          _szPath[i] = '/';
+        }
       }
     }
-  }
-//---------------------------------------------------------------------------//
-  void PathService::removeFilenameFromPath( String& szPath )
-  {
-    unifySlashes(szPath);
-    size_t posDot = szPath.find_last_of('.');
-    if (posDot == String::npos)
+    //---------------------------------------------------------------------------//
+    void PathService::RemoveFilenameFromPath(String& szPath)
     {
-      return;
-    }
-
-    size_t posLastSlash =	szPath.find_last_of( "/" );
-    if( posLastSlash != String::npos && posDot > posLastSlash )
-    {
-      szPath = szPath.substr( 0u, posLastSlash + 1u );
-    }
-  }
-//---------------------------------------------------------------------------//
-  void PathService::createDirectoryTreeForPath(const String& _somePath)
-  {
-    String aDirectoryTree = GetContainingFolder(_somePath);
-
-    size_t posSlash = aDirectoryTree.find('/');
-    if (posSlash != String::npos && isAbsolutePath(aDirectoryTree))
-    {
-      // Skip the first slash
-      posSlash = aDirectoryTree.find('/', posSlash + 1u);
-    }
-    
-    while (posSlash != String::npos)
-    {
-      String currDirPath = aDirectoryTree.substr(0u, posSlash);
-      CreateDirectory(currDirPath.c_str(), nullptr);
-      
-      posSlash = aDirectoryTree.find('/', posSlash + 1u);
-    }
-  }
-//---------------------------------------------------------------------------//
-  void PathService::removeFolderUpMarkers( String& _szPath )
-  {
-    unifySlashes(_szPath);
-
-    const String kSearchKey = "/../";
-    const uint32 kSearchKeyLen = kSearchKey.length();
-
-    size_t posDots = _szPath.find(kSearchKey);
-    while(posDots != String::npos)
-    {
-      size_t posSlashBefore = _szPath.rfind('/', posDots - 1u);
-      if (posSlashBefore == String::npos)
+      UnifySlashes(szPath);
+      size_t posDot = szPath.find_last_of('.');
+      if (posDot == String::npos)
       {
-        break;
+        return;
       }
 
-      String firstPart = _szPath.substr(0u, posSlashBefore + 1u);
-      String secondPart = _szPath.substr(posDots + kSearchKeyLen);
-      _szPath = firstPart + secondPart;
-
-      posDots = _szPath.find(kSearchKey);
+      size_t posLastSlash = szPath.find_last_of("/");
+      if (posLastSlash != String::npos && posDot > posLastSlash)
+      {
+        szPath = szPath.substr(0u, posLastSlash + 1u);
+      }
     }
+    //---------------------------------------------------------------------------//
+    void PathService::CreateDirectoryTreeForPath(const String& _somePath)
+    {
+      String aDirectoryTree = GetContainingFolder(_somePath);
+
+      size_t posSlash = aDirectoryTree.find('/');
+      if (posSlash != String::npos && IsPathAbs(aDirectoryTree))
+      {
+        // Skip the first slash
+        posSlash = aDirectoryTree.find('/', posSlash + 1u);
+      }
+
+      while (posSlash != String::npos)
+      {
+        String currDirPath = aDirectoryTree.substr(0u, posSlash);
+        CreateDirectory(currDirPath.c_str(), nullptr);
+
+        posSlash = aDirectoryTree.find('/', posSlash + 1u);
+      }
+    }
+    //---------------------------------------------------------------------------//
+    void PathService::RemoveFolderUpMarkers(String& _szPath)
+    {
+      UnifySlashes(_szPath);
+
+      const String kSearchKey = "/../";
+      const uint32 kSearchKeyLen = kSearchKey.length();
+
+      size_t posDots = _szPath.find(kSearchKey);
+      while (posDots != String::npos)
+      {
+        size_t posSlashBefore = _szPath.rfind('/', posDots - 1u);
+        if (posSlashBefore == String::npos)
+        {
+          break;
+        }
+
+        String firstPart = _szPath.substr(0u, posSlashBefore + 1u);
+        String secondPart = _szPath.substr(posDots + kSearchKeyLen);
+        _szPath = firstPart + secondPart;
+
+        posDots = _szPath.find(kSearchKey);
+      }
+    }
+    //---------------------------------------------------------------------------//
   }
-//---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO
