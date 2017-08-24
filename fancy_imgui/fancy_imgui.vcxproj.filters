@@ -9,12 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\imgui_impl_dx12.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\imgui.cpp">
       <Filter>src\imgui</Filter>
     </ClCompile>
@@ -24,17 +18,11 @@
     <ClCompile Include="src\imgui_draw.cpp">
       <Filter>src\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="src\main_dx12_example.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\imgui_impl_fancy.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\imgui_impl_dx12.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\imconfig.h">
       <Filter>src\imgui</Filter>
     </ClInclude>
