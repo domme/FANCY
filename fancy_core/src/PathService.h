@@ -6,21 +6,29 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   namespace PathUtil
   {
-    void InitResourceFolders();
-
-    String GetAbsPath( const String& szRelPath, bool bInResources = true );
-    void GetAbsPath( String& szRelPath, bool bInResources = true );
-    String GetRelativePath(const String& _anAbsPath, bool _isInResources = true );
-    String GetAppPath();
     String GetAppName();
+    String GetAppPath();
+    String GetContainingFolder(const String& szFileName);
+    
     void GetResourceFolders(String& aCoreResourceFolderOut, String& anAppResourceFolderOut);
     bool IsPathAbs(const String& _szPath);
     String GetFileExtension( const String& szFileName );
-    String GetContainingFolder( const String& szFileName );
-    void RemoveFolderUpMarkers(String& _szPath);
+    
+    void RemoveNavElementsFromPath(String& _szPath);
     void UnifySlashes(String& _szPath);
-    void RemoveFilenameFromPath(String& szPath);
     void CreateDirectoryTreeForPath(const String& _somePath);
   }
 //---------------------------------------------------------------------------//
+
+
+  namespace ResourceUtil
+  {
+    void InitResourceFolders();
+
+    String FindResourcePath(const String& aResourceName);
+    String GetResourceName(const String& aResourcePath);
+  }
+
+
+
 } }  // end of namespace Fancy::IO

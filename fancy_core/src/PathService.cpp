@@ -1,68 +1,58 @@
 #include "PathService.h"
 #include <stdio.h>
 #include <Windows.h>
+#include <Shlwapi.h>
 
 #include "FixedArray.h"
+#include <Shlwapi.h>
+#include <Shlwapi.h>
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   namespace PathUtil
   {
-    static String ourCoreResourceFolder;
-    static String ourAppResourceFolder;
-
-    static const char* kResourceFolderName = "resources";
-
-    void InitResourceFolders()
-    {
-      const String& appPath = GetExePath();
-      ourCoreResourceFolder.Format("%../../%", appPath.c_str(), kResourceFolderName);
-
-      
-    }
-
+  //---------------------------------------------------------------------------//
     String GetAppName()
     {
-      String path = "";
+      TCHAR buf[FILENAME_MAX] = {0};
+      GetModuleFileName(NULL, buf, FILENAME_MAX);
 
-      TCHAR buf[FILENAME_MAX];
-      int bytes = GetModuleFileName(NULL, buf, FILENAME_MAX);
-      path = buf;
+      TCHAR* fileName = PathFindFileName(buf);  // "myApp.exe"
+      *PathFindExtension(fileName) = 0;  // "myApp"
 
-      
-      UnifySlashes(path);
-      int iPosFrom = path.find_last_of("/");
-      int iPosTo = path
-      return path.substr(iPos + 1, path.size() - iPos);
+      return String(fileName);
     }
-
-    String GetExePath()
+  //---------------------------------------------------------------------------//
+    String GetAppPath()
     {
-      String pathOut = "";
-
       TCHAR outString[FILENAME_MAX];
-      int bytes = GetModuleFileName(NULL, outString, FILENAME_MAX);
+      GetModuleFileName(NULL, outString, FILENAME_MAX);
 
-      pathOut = outString;
-      RemoveFilenameFromPath(pathOut);
-
-      return pathOut;
+      String pathOut(outString);
+      return GetContainingFolder(pathOut);
     }
-    //---------------------------------------------------------------------------//
-    String PathService::GetContainingFolder(const String& szFileName)
+//---------------------------------------------------------------------------//
+    String GetContainingFolder(const String& szFileName)
     {
-      String szFolderPath = szFileName;
-      RemoveFilenameFromPath(szFolderPath);
-      return szFolderPath;
+      ASSERT(szFileName.size() <= FILENAME_MAX);
+
+      TCHAR buf[FILENAME_MAX] = { 0 };
+      memcpy(buf, szFileName.c_str(), szFileName.size() * sizeof(char));
+
+      PathRemoveFileSpec(buf);
+      return String(buf);
     }
-    //---------------------------------------------------------------------------//
-    String PathService::GetAbsPath(const String& szRelPath, bool bInResources /* = true */)
+//---------------------------------------------------------------------------//
+    String GetAbsPath(const String& szRelPath, bool bInResources /* = true */)
     {
       if (bInResources)
+      {
+        if (Exist)
+      }
         return GetResourceFolders() + szRelPath;
 
       else
-        return GetExePath() + szRelPath;
+        return GetAppPath() + szRelPath;
     }
     //---------------------------------------------------------------------------//
     void PathService::GetAbsPath(String& szRelPath, bool bInResources /* = true */)
@@ -71,12 +61,12 @@ namespace Fancy { namespace IO {
         szRelPath = GetResourceFolders() + szRelPath;
 
       else
-        szRelPath = GetExePath() + szRelPath;
+        szRelPath = GetAppPath() + szRelPath;
     }
     //---------------------------------------------------------------------------//
     String PathService::GetRelativePath(const String& _anAbsPath, bool _isInResources)
     {
-      const String theAbsPart = _isInResources ? GetResourceFolders() : GetExePath();
+      const String theAbsPart = _isInResources ? GetResourceFolders() : GetAppPath();
 
       std::size_t thePosOfAbsPart = _anAbsPath.find(theAbsPart);
 
@@ -118,7 +108,7 @@ namespace Fancy { namespace IO {
         szPath += m_szRelativeResourcePath;
       }
 
-      RemoveFolderUpMarkers(szPath);
+      RemoveNavElementsFromPath(szPath);
 
       return szPath;
     }
@@ -137,22 +127,6 @@ namespace Fancy { namespace IO {
         {
           _szPath[i] = '/';
         }
-      }
-    }
-    //---------------------------------------------------------------------------//
-    void PathService::RemoveFilenameFromPath(String& szPath)
-    {
-      UnifySlashes(szPath);
-      size_t posDot = szPath.find_last_of('.');
-      if (posDot == String::npos)
-      {
-        return;
-      }
-
-      size_t posLastSlash = szPath.find_last_of("/");
-      if (posLastSlash != String::npos && posDot > posLastSlash)
-      {
-        szPath = szPath.substr(0u, posLastSlash + 1u);
       }
     }
     //---------------------------------------------------------------------------//
@@ -176,29 +150,68 @@ namespace Fancy { namespace IO {
       }
     }
     //---------------------------------------------------------------------------//
-    void PathService::RemoveFolderUpMarkers(String& _szPath)
+    void RemoveNavElementsFromPath(String& _szPath)
     {
-      UnifySlashes(_szPath);
-
-      const String kSearchKey = "/../";
-      const uint32 kSearchKeyLen = kSearchKey.length();
-
-      size_t posDots = _szPath.find(kSearchKey);
-      while (posDots != String::npos)
-      {
-        size_t posSlashBefore = _szPath.rfind('/', posDots - 1u);
-        if (posSlashBefore == String::npos)
-        {
-          break;
-        }
-
-        String firstPart = _szPath.substr(0u, posSlashBefore + 1u);
-        String secondPart = _szPath.substr(posDots + kSearchKeyLen);
-        _szPath = firstPart + secondPart;
-
-        posDots = _szPath.find(kSearchKey);
-      }
+      ASSERT(_szPath.size() <= FILENAME_MAX);
+      
+      TCHAR out[FILENAME_MAX];
+      PathCanonicalize(out, _szPath.c_str());
+      _szPath = out;
     }
     //---------------------------------------------------------------------------//
   }
+
+
+  namespace ResourceUtil 
+  {
+    //---------------------------------------------------------------------------//
+    static std::vector<String> ourResourceFolders;
+    //---------------------------------------------------------------------------//
+    void InitResourceFolders()
+    {
+      const String& appPath = PathUtil::GetAppPath();
+
+      String appResourceFolder;
+      appResourceFolder.Format("%../../%/%", appPath.c_str(), PathUtil::GetAppName().c_str());
+      PathUtil::RemoveNavElementsFromPath(appResourceFolder);
+
+      String coreResourceFolder;
+      coreResourceFolder.Format("%../../resources", appPath.c_str());
+      PathUtil::RemoveNavElementsFromPath(coreResourceFolder);
+
+      // Folders are ordered in descending priority. 
+      // Resources in earlier folders can "override" resources in later folders
+      ourResourceFolders.clear();
+      ourResourceFolders.push_back(appResourceFolder);
+      ourResourceFolders.push_back(coreResourceFolder);
+    }
+  //---------------------------------------------------------------------------//
+    String FindResourcePath(const String& aResourceName)
+    {
+      for (const String& resourceFolder : ourResourceFolders)
+      {
+        String resourcePath = resourceFolder + aResourceName;
+        if (PathFileExists(resourcePath.c_str()) == 1)
+          return resourcePath;
+      }
+
+      return "";
+    }
+  //---------------------------------------------------------------------------//
+    String GetResourceName(const String& aResourcePath)
+    {
+      TCHAR commonPrefixPathBuf[FILENAME_MAX];
+      for (const String& resourceFolder : ourResourceFolders)
+      {
+        if (PathCommonPrefix(resourceFolder.c_str(), aResourcePath.c_str(), commonPrefixPathBuf) > 0)
+        {
+          if (strcmp(resourceFolder.c_str(), commonPrefixPathBuf) == 0)
+            return PathRelativePathTo()
+        }
+      }
+    }
+  //---------------------------------------------------------------------------//
+
+  }
+
 } }  // end of namespace Fancy::IO
