@@ -3,10 +3,6 @@
 #include <Windows.h>
 #include <Shlwapi.h>
 
-#include "FixedArray.h"
-#include <Shlwapi.h>
-#include <Shlwapi.h>
-
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   namespace PathUtil
@@ -43,83 +39,18 @@ namespace Fancy { namespace IO {
       return String(buf);
     }
 //---------------------------------------------------------------------------//
-    String GetAbsPath(const String& szRelPath, bool bInResources /* = true */)
+    bool IsPathAbsolute(const String& aPath)
     {
-      if (bInResources)
-      {
-        if (Exist)
-      }
-        return GetResourceFolders() + szRelPath;
-
-      else
-        return GetAppPath() + szRelPath;
+      return !PathIsRelative(aPath.c_str());
     }
-    //---------------------------------------------------------------------------//
-    void PathService::GetAbsPath(String& szRelPath, bool bInResources /* = true */)
-    {
-      if (bInResources)
-        szRelPath = GetResourceFolders() + szRelPath;
-
-      else
-        szRelPath = GetAppPath() + szRelPath;
-    }
-    //---------------------------------------------------------------------------//
-    String PathService::GetRelativePath(const String& _anAbsPath, bool _isInResources)
-    {
-      const String theAbsPart = _isInResources ? GetResourceFolders() : GetAppPath();
-
-      std::size_t thePosOfAbsPart = _anAbsPath.find(theAbsPart);
-
-      if (thePosOfAbsPart != String::npos)
-      {
-        return _anAbsPath.substr(thePosOfAbsPart + theAbsPart.length());
-      }
-
-      return _anAbsPath;
-    }
-    //---------------------------------------------------------------------------//
-    bool PathService::IsPathAbs(const String& _szPath)
-    {
-      return _szPath.size() > 2u && _szPath[1] == ':';
-    }
-    //---------------------------------------------------------------------------//
-    void PathService::SetResourceLocation(const String& szResource)
-    {
-      m_szRelativeResourcePath = szResource;
-    }
-    //---------------------------------------------------------------------------//
-    String PathService::GetResourceFolders()
-    {
-      static String szPath = "";
-
-      if (szPath != "")
-      {
-        return szPath;
-      }
-
-      szPath = GetExePath();
-
-      if (m_szRelativeResourcePath.empty())
-      {
-        szPath += "/Resources/";
-      }
-      else
-      {
-        szPath += m_szRelativeResourcePath;
-      }
-
-      RemoveNavElementsFromPath(szPath);
-
-      return szPath;
-    }
-    //---------------------------------------------------------------------------//
-    String PathService::GetFileExtension(const String& szFileName)
+//---------------------------------------------------------------------------//
+    String GetFileExtension(const String& szFileName)
     {
       int iPos = szFileName.find_last_of(".");
       return szFileName.substr(iPos + 1, szFileName.size() - iPos);
     }
-    //---------------------------------------------------------------------------//
-    void PathService::UnifySlashes(String& _szPath)
+//---------------------------------------------------------------------------//
+    void UnifySlashes(String& _szPath)
     {
       for (uint32 i = 0; i < _szPath.size(); ++i)
       {
@@ -129,13 +60,13 @@ namespace Fancy { namespace IO {
         }
       }
     }
-    //---------------------------------------------------------------------------//
-    void PathService::CreateDirectoryTreeForPath(const String& _somePath)
+//---------------------------------------------------------------------------//
+    void CreateDirectoryTreeForPath(const String& aPath)
     {
-      String aDirectoryTree = GetContainingFolder(_somePath);
+      String aDirectoryTree = GetContainingFolder(aPath);
 
       size_t posSlash = aDirectoryTree.find('/');
-      if (posSlash != String::npos && IsPathAbs(aDirectoryTree))
+      if (posSlash != String::npos && IsPathAbsolute(aDirectoryTree))
       {
         // Skip the first slash
         posSlash = aDirectoryTree.find('/', posSlash + 1u);
@@ -186,32 +117,36 @@ namespace Fancy { namespace IO {
       ourResourceFolders.push_back(coreResourceFolder);
     }
   //---------------------------------------------------------------------------//
-    String FindResourcePath(const String& aResourceName)
+    bool FindResourcePath(const String& aResourceName, String& aResourcePathOut)
     {
       for (const String& resourceFolder : ourResourceFolders)
       {
         String resourcePath = resourceFolder + aResourceName;
         if (PathFileExists(resourcePath.c_str()) == 1)
-          return resourcePath;
+        {
+          aResourcePathOut = resourcePath;
+          return true;
+        }
       }
 
-      return "";
+      return false;
     }
   //---------------------------------------------------------------------------//
-    String GetResourceName(const String& aResourcePath)
+    bool GetResourceName(const String& aResourcePath, String& aResourceNameOut)
     {
       TCHAR commonPrefixPathBuf[FILENAME_MAX];
       for (const String& resourceFolder : ourResourceFolders)
       {
-        if (PathCommonPrefix(resourceFolder.c_str(), aResourcePath.c_str(), commonPrefixPathBuf) > 0)
+        const int prefixNumChars = PathCommonPrefix(resourceFolder.c_str(), aResourcePath.c_str(), commonPrefixPathBuf);
+        if (prefixNumChars > 0)
         {
-          if (strcmp(resourceFolder.c_str(), commonPrefixPathBuf) == 0)
-            return PathRelativePathTo()
+          aResourceNameOut = aResourcePath.substr(prefixNumChars);
+          return true;
         }
       }
+
+      return false;
     }
   //---------------------------------------------------------------------------//
-
   }
-
 } }  // end of namespace Fancy::IO

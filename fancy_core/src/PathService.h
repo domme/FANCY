@@ -8,27 +8,22 @@ namespace Fancy { namespace IO {
   {
     String GetAppName();
     String GetAppPath();
-    String GetContainingFolder(const String& szFileName);
+    String GetContainingFolder(const String& aFileName);
     
-    void GetResourceFolders(String& aCoreResourceFolderOut, String& anAppResourceFolderOut);
-    bool IsPathAbs(const String& _szPath);
-    String GetFileExtension( const String& szFileName );
+    bool IsPathAbsolute(const String& aPath);
+    String GetFileExtension(const String& aFileName);
     
-    void RemoveNavElementsFromPath(String& _szPath);
-    void UnifySlashes(String& _szPath);
-    void CreateDirectoryTreeForPath(const String& _somePath);
+    void RemoveNavElementsFromPath(String& aPath);
+    void UnifySlashes(String& aPath);
+    void CreateDirectoryTreeForPath(const String& aPath);
   }
 //---------------------------------------------------------------------------//
-
-
   namespace ResourceUtil
   {
     void InitResourceFolders();
 
-    String FindResourcePath(const String& aResourceName);
-    String GetResourceName(const String& aResourcePath);
+    bool FindResourcePath(const String& aResourceName, String& aResourcePathOut);
+    bool GetResourceName(const String& aResourcePath, String & aResourceNameOut);
   }
-
-
-
+//---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO
