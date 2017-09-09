@@ -1,7 +1,6 @@
 #include "PathService.h"
 #include <stdio.h>
 #include <Windows.h>
-#include <Shlwapi.h>
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
@@ -45,6 +44,12 @@ namespace Fancy { namespace IO {
     }
 //---------------------------------------------------------------------------//
     String GetFileExtension(const String& szFileName)
+    {
+      int iPos = szFileName.find_last_of(".");
+      return szFileName.substr(iPos + 1, szFileName.size() - iPos);
+    }
+//---------------------------------------------------------------------------//
+    String GetFilenameWithoutExtension(const String& aPath)
     {
       int iPos = szFileName.find_last_of(".");
       return szFileName.substr(iPos + 1, szFileName.size() - iPos);

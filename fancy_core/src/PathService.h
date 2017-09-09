@@ -12,6 +12,7 @@ namespace Fancy { namespace IO {
     
     bool IsPathAbsolute(const String& aPath);
     String GetFileExtension(const String& aFileName);
+    String GetFilenameWithoutExtension(const String& aPath);
     
     void RemoveNavElementsFromPath(String& aPath);
     void UnifySlashes(String& aPath);
