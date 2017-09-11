@@ -43,8 +43,13 @@ namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//
   String BinaryCache::getCacheFilePathAbs(const String& aPathInResources)
   {
-    return PathService::GetAbsPath(kBinaryCacheRoot) 
-      + aPathInResources + kBinaryCacheExtension;
+    const String& resourceName = kBinaryCacheRoot + aPathInResources + kBinaryCacheExtension;
+
+    String resourcePathAbs;
+    const bool found = ResourceUtil::FindResourcePath(resourceName, resourcePathAbs);
+    ASSERT(found);
+
+    return resourcePathAbs;
   }
 //---------------------------------------------------------------------------//  
   bool BinaryCache::write(const SharedPtr<Rendering::Texture>& aTexture, const Rendering::TextureUploadData& someData)
@@ -53,7 +58,7 @@ namespace Fancy {  namespace IO {
     const uint64 texDescHash = texDesc.GetHash();
 
     const String cacheFilePath = getCacheFilePathAbs(texDesc.mySourcePath);
-    PathService::CreateDirectoryTreeForPath(cacheFilePath);
+    PathUtil::CreateDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
     ASSERT(archive.good(), "Failed to open cache file");
@@ -149,7 +154,7 @@ namespace Fancy {  namespace IO {
   bool BinaryCache::write(const SharedPtr<Geometry::Mesh>& aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aMesh->GetDescription().GetHash()));
-    PathService::CreateDirectoryTreeForPath(cacheFilePath);
+    PathUtil::CreateDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
     ASSERT(archive.good(), "Failed to open cache file");

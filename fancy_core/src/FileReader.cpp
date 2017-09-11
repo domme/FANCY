@@ -7,52 +7,51 @@
 #include "PathService.h"
 
 namespace Fancy { namespace IO {
-//---------------------------------------------------------------------------//
-  std::string FileReader::ReadTextFile( const std::string& szFileName )
-  {
-    std::ifstream fileStream;
-    OpenFileStream( szFileName, fileStream );
-    std::stringstream stringStream;
-    stringStream << fileStream.rdbuf();
-    return stringStream.str();
-  }
-//---------------------------------------------------------------------------//
-  void FileReader::ReadTextFileLines( const std::string& szFileName, std::vector<std::string>& rvLines, bool bInResources /* = true */ )
-  {
-    std::ifstream fileStream;
-    OpenFileStream( szFileName, fileStream, bInResources );
 
-    if( fileStream.good() )
+  namespace FileReader 
+  {
+//---------------------------------------------------------------------------//
+    std::string ReadTextFile(const std::string& aPathAbs)
     {
-      while( !fileStream.eof() )
-      {
-        rvLines.push_back(std::string());
-        std::getline( fileStream, rvLines[rvLines.size() - 1]);
-      }		
+      std::ifstream fileStream;
+      fileStream.open(aPathAbs.c_str());
+      std::stringstream stringStream;
+      stringStream << fileStream.rdbuf();
+      return stringStream.str();
     }
-  }
 //---------------------------------------------------------------------------//
-  void FileReader::ReadTextFileLines( const std::string& szFileName, std::list<std::string>& rvLines, bool bInResources /* = true */ )
-  {
-    std::ifstream fileStream;
-    OpenFileStream( szFileName, fileStream, bInResources );
-
-    if( fileStream.good() )
+    void ReadTextFileLines(const std::string& aPathAbs, std::vector<std::string>& someLinesOut)
     {
-      while( !fileStream.eof() )
+      std::ifstream fileStream;
+      fileStream.open(aPathAbs.c_str());
+
+      if (fileStream.good())
       {
         std::string line;
-        std::getline( fileStream, line);
-        rvLines.push_back(line);
+        while (!fileStream.eof())
+        {
+          std::getline(fileStream, line);
+          someLinesOut.push_back(line);
+        }
       }
     }
-  }
+    //---------------------------------------------------------------------------//
+    void ReadTextFileLines(const std::string& aPathAbs, std::list<std::string>& someLinesOut)
+    {
+      std::ifstream fileStream;
+      fileStream.open(aPathAbs.c_str());
+
+      if (fileStream.good())
+      {
+        std::string line;
+        while (!fileStream.eof())
+        {
+          std::getline(fileStream, line);
+          someLinesOut.push_back(line);
+        }
+      }
+    }
 //---------------------------------------------------------------------------//
-  void FileReader::OpenFileStream(const std::string& szRelativeFileName, std::ifstream& rStream, bool bInResources /* = true */ )
-  {
-    std::string path = PathService::GetAbsPath( szRelativeFileName, bInResources );
-    rStream.open( path.c_str() );
   }
-//---------------------------------------------------------------------------//
 } } // end of namespace Fancy::IO
 

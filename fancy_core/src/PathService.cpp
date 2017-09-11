@@ -12,10 +12,15 @@ namespace Fancy { namespace IO {
       TCHAR buf[FILENAME_MAX] = {0};
       GetModuleFileName(NULL, buf, FILENAME_MAX);
 
-      TCHAR* fileName = PathFindFileName(buf);  // "myApp.exe"
-      *PathFindExtension(fileName) = 0;  // "myApp"
+      String str(buf);
+      UnifySlashes(str);
 
-      return String(fileName);
+      size_t exePos = str.rfind(".exe");
+      ASSERT(exePos != String::npos);
+
+      size_t slashPos = str.rfind("/", exePos);
+
+      return str.substr(slashPos + 1, exePos - slashPos);
     }
   //---------------------------------------------------------------------------//
     String GetAppPath()
@@ -24,46 +29,111 @@ namespace Fancy { namespace IO {
       GetModuleFileName(NULL, outString, FILENAME_MAX);
 
       String pathOut(outString);
+      UnifySlashes(pathOut);
       return GetContainingFolder(pathOut);
     }
 //---------------------------------------------------------------------------//
-    String GetContainingFolder(const String& szFileName)
+    String GetContainingFolder(const String& aPath)
     {
-      ASSERT(szFileName.size() <= FILENAME_MAX);
+      size_t slashPos = glm::min(aPath.rfind('/'), aPath.rfind('\\'));
+      if (slashPos == String::npos)
+        return aPath;
 
-      TCHAR buf[FILENAME_MAX] = { 0 };
-      memcpy(buf, szFileName.c_str(), szFileName.size() * sizeof(char));
+      return aPath.substr(0, aPath.size() - slashPos);
+    }
 
-      PathRemoveFileSpec(buf);
-      return String(buf);
+    String GetWorkingDirectory()
+    {
+      TCHAR buf[MAX_PATH];
+      if (GetCurrentDirectory(MAX_PATH, buf))
+        return String(buf);
+
+      return "";
+    }
+//---------------------------------------------------------------------------//
+    String GetAbsolutePath(const String& aWorkingDirPath)
+    {
+      if (IsPathAbsolute(aWorkingDirPath))
+        return aWorkingDirPath;
+
+      return GetWorkingDirectory() + "/" + aWorkingDirPath;
+    }
+//---------------------------------------------------------------------------//
+    String GetRelativePath(const String& anAbsolutePath)
+    {
+      if (!IsPathAbsolute(anAbsolutePath))
+        return anAbsolutePath;
+
+      const String& workingDir = GetWorkingDirectory();
+
+      const size_t workingDirPos = anAbsolutePath.rfind(workingDir);
+      ASSERT(workingDirPos != String::npos);  // Path is not absolute but also not relative to our working directory
+
+      return anAbsolutePath.substr(workingDirPos + 1);
+    }
+//---------------------------------------------------------------------------//
+    bool FileExists(const String& aFilePath)
+    {
+      if (FILE *file = fopen(aFilePath.c_str(), "r")) 
+      {
+        fclose(file);
+        return true;
+      }
+
+      return false;
     }
 //---------------------------------------------------------------------------//
     bool IsPathAbsolute(const String& aPath)
     {
-      return !PathIsRelative(aPath.c_str());
+      return aPath.size() > 1 && aPath[1] == ':';
     }
 //---------------------------------------------------------------------------//
     String GetFileExtension(const String& szFileName)
     {
-      int iPos = szFileName.find_last_of(".");
-      return szFileName.substr(iPos + 1, szFileName.size() - iPos);
+      size_t dotPos = szFileName.find_last_of(".");
+      if (dotPos == String::npos)
+        return "";
+
+      return szFileName.substr(dotPos + 1, szFileName.size() - dotPos);
     }
 //---------------------------------------------------------------------------//
-    String GetFilenameWithoutExtension(const String& aPath)
+    String GetFilename(const String& aPath)
     {
-      int iPos = szFileName.find_last_of(".");
-      return szFileName.substr(iPos + 1, szFileName.size() - iPos);
-    }
-//---------------------------------------------------------------------------//
-    void UnifySlashes(String& _szPath)
-    {
-      for (uint32 i = 0; i < _szPath.size(); ++i)
+      const size_t slashPos = glm::min(aPath.rfind('/'), aPath.rfind('\\'));
+      const size_t dotPos = aPath.rfind(".");
+      if (dotPos == String::npos)
       {
-        if (_szPath[i] == '\\')
-        {
-          _szPath[i] = '/';
-        }
+        if (slashPos == String::npos)
+          return aPath;
+      
+        return aPath.substr(slashPos + 1);
       }
+
+      if (slashPos == String::npos)
+        return aPath.substr(0, aPath.size() - dotPos);
+      
+      return aPath.substr(slashPos + 1, aPath.size() - dotPos);
+    }
+//---------------------------------------------------------------------------//
+    String GetPathWithoutExtension(const String& aPath)
+    {
+      const size_t dotPos = aPath.rfind(".");
+      if (dotPos == String::npos)
+        return aPath;
+
+      return aPath.substr(0, aPath.size() - dotPos);
+    }
+//---------------------------------------------------------------------------//
+    void UnifySlashes(String& aPath)
+    {
+      for (uint32 i = 0; i < aPath.size(); ++i)
+        if (aPath[i] == '\\')
+          aPath[i] = '/';
+    }
+  //---------------------------------------------------------------------------//
+    bool HasUnifiedSlashes(const String& aPath)
+    {
+      return aPath.find('\\') == String::npos;
     }
 //---------------------------------------------------------------------------//
     void CreateDirectoryTreeForPath(const String& aPath)
@@ -86,18 +156,32 @@ namespace Fancy { namespace IO {
       }
     }
     //---------------------------------------------------------------------------//
-    void RemoveNavElementsFromPath(String& _szPath)
+    void RemoveFolderUpMarkers(String& aPath)
     {
-      ASSERT(_szPath.size() <= FILENAME_MAX);
-      
-      TCHAR out[FILENAME_MAX];
-      PathCanonicalize(out, _szPath.c_str());
-      _szPath = out;
+      UnifySlashes(aPath);
+
+      const String kSearchKey = "/../";
+      const uint32 kSearchKeyLen = kSearchKey.length();
+
+      size_t posDots = aPath.find(kSearchKey);
+      while (posDots != String::npos)
+      {
+        size_t posSlashBefore = aPath.rfind('/', posDots - 1u);
+        if (posSlashBefore == String::npos)
+        {
+          break;
+        }
+
+        String firstPart = aPath.substr(0u, posSlashBefore + 1u);
+        String secondPart = aPath.substr(posDots + kSearchKeyLen);
+        aPath = firstPart + secondPart;
+
+        posDots = aPath.find(kSearchKey);
+      }
     }
     //---------------------------------------------------------------------------//
   }
-
-
+  
   namespace ResourceUtil 
   {
     //---------------------------------------------------------------------------//
@@ -109,11 +193,11 @@ namespace Fancy { namespace IO {
 
       String appResourceFolder;
       appResourceFolder.Format("%../../%/%", appPath.c_str(), PathUtil::GetAppName().c_str());
-      PathUtil::RemoveNavElementsFromPath(appResourceFolder);
+      PathUtil::RemoveFolderUpMarkers(appResourceFolder);
 
       String coreResourceFolder;
       coreResourceFolder.Format("%../../resources", appPath.c_str());
-      PathUtil::RemoveNavElementsFromPath(coreResourceFolder);
+      PathUtil::RemoveFolderUpMarkers(coreResourceFolder);
 
       // Folders are ordered in descending priority. 
       // Resources in earlier folders can "override" resources in later folders
@@ -127,7 +211,7 @@ namespace Fancy { namespace IO {
       for (const String& resourceFolder : ourResourceFolders)
       {
         String resourcePath = resourceFolder + aResourceName;
-        if (PathFileExists(resourcePath.c_str()) == 1)
+        if (PathUtil::FileExists(resourcePath.c_str()))
         {
           aResourcePathOut = resourcePath;
           return true;
@@ -139,17 +223,16 @@ namespace Fancy { namespace IO {
   //---------------------------------------------------------------------------//
     bool GetResourceName(const String& aResourcePath, String& aResourceNameOut)
     {
-      TCHAR commonPrefixPathBuf[FILENAME_MAX];
       for (const String& resourceFolder : ourResourceFolders)
       {
-        const int prefixNumChars = PathCommonPrefix(resourceFolder.c_str(), aResourcePath.c_str(), commonPrefixPathBuf);
-        if (prefixNumChars > 0)
+        const size_t resourceFolderPos = aResourcePath.rfind(resourceFolder.c_str());
+        if (resourceFolderPos != String::npos)
         {
-          aResourceNameOut = aResourcePath.substr(prefixNumChars);
+          aResourceNameOut = aResourcePath.substr(resourceFolderPos + 1);
           return true;
         }
       }
-
+      
       return false;
     }
   //---------------------------------------------------------------------------//

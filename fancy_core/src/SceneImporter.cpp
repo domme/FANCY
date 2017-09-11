@@ -92,13 +92,15 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   bool SceneImporter::importToSceneGraph( const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode)
   {
-    std::string szImportPathAbs = PathService::GetAbsPath(_szImportPathRel);
+    String resourcePathAbs;
+    if (!ResourceUtil::FindResourcePath(_szImportPathRel, resourcePathAbs))
+      return false;
 
     // TODO: Look for cached binary data and don't re-import if possible
 
     Assimp::Importer aImporter;
 
-    const aiScene* aScene = aImporter.ReadFile(szImportPathAbs,
+    const aiScene* aScene = aImporter.ReadFile(resourcePathAbs,
         aiProcess_CalcTangentSpace |
         aiProcess_Triangulate |
         aiProcess_JoinIdenticalVertices |
@@ -126,13 +128,13 @@ namespace Fancy { namespace IO {
     // Serialization-tests....
     // Serialization needs a re-work after adjusting Resource-Handling apis
     {
-      JSONwriter serializer(szImportPathAbs);
+      JSONwriter serializer(resourcePathAbs);
       serializer.Serialize(&importedSceneNode, "rootNode");
     }
 
     {
       SAFE_DELETE(importedSceneNode);
-      JSONreader serializer(szImportPathAbs, myGraphicsWorld);
+      JSONreader serializer(resourcePathAbs, myGraphicsWorld);
       serializer.Serialize(&importedSceneNode, "rootNode");
     }
 
@@ -720,18 +722,20 @@ namespace Fancy { namespace IO {
     aiString szATexPath;
     _pAmaterial->Get(AI_MATKEY_TEXTURE(_aiTextureType, _texIndex), szATexPath);
 
-    String szTexPath = String(szATexPath.C_Str());
+    String texPathAbs = String(szATexPath.C_Str());
     
-    if (!PathService::IsPathAbs(szTexPath))
+    if (!PathUtil::IsPathAbsolute(texPathAbs))
     {
-      String absSceneFolderPath = myWorkingData.szCurrScenePathInResources;
-      PathService::GetAbsPath(absSceneFolderPath);
-      PathService::RemoveFilenameFromPath(absSceneFolderPath);
-      szTexPath = absSceneFolderPath + szTexPath;
+      String absSceneFolderPath;
+      ResourceUtil::FindResourcePath(PathUtil::GetContainingFolder(myWorkingData.szCurrScenePathInResources), absSceneFolderPath);
+      
+      texPathAbs = absSceneFolderPath + texPathAbs;
     }
 
-    PathService::RemoveFolderUpMarkers(szTexPath);
-    String texPathInResources = PathService::GetRelativePath(szTexPath);
+    PathUtil::RemoveFolderUpMarkers(texPathAbs);
+
+    String texPathInResources;
+    ResourceUtil::GetResourceName(texPathAbs, texPathInResources);
 
     return RenderCore::CreateTexture(texPathInResources);
   }
