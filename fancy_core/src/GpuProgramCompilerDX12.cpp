@@ -502,7 +502,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const String& shaderProfileStr = locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage));
 
     const String actualShaderPath = "shader/DX12/" + aDesc.myShaderFileName + ".hlsl";
-    std::wstring shaderPathAbs = StringUtil::ToWideString(IO::PathService::GetAbsPath(actualShaderPath));
+    std::wstring shaderPathAbs = StringUtil::ToWideString(IO::Resources::FindPath(actualShaderPath));
 
     const GpuProgramFeatureList& permuationFeatures = aDesc.myPermutation.getFeatureList();
 

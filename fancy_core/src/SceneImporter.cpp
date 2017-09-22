@@ -92,8 +92,10 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   bool SceneImporter::importToSceneGraph( const std::string& _szImportPathRel, Scene::SceneNode* _pParentNode)
   {
-    String resourcePathAbs;
-    if (!ResourceUtil::FindResourcePath(_szImportPathRel, resourcePathAbs))
+    bool foundFile = false;
+    String resourcePathAbs = Resources::FindPath(_szImportPathRel, &foundFile);
+
+    if (!foundFile)
       return false;
 
     // TODO: Look for cached binary data and don't re-import if possible
@@ -723,20 +725,18 @@ namespace Fancy { namespace IO {
     _pAmaterial->Get(AI_MATKEY_TEXTURE(_aiTextureType, _texIndex), szATexPath);
 
     String texPathAbs = String(szATexPath.C_Str());
+    Path::UnifySlashes(texPathAbs);
     
-    if (!PathUtil::IsPathAbsolute(texPathAbs))
+    if (!Path::IsPathAbsolute(texPathAbs))
     {
-      String absSceneFolderPath;
-      ResourceUtil::FindResourcePath(PathUtil::GetContainingFolder(myWorkingData.szCurrScenePathInResources), absSceneFolderPath);
-      
-      texPathAbs = absSceneFolderPath + texPathAbs;
+      String relativePath = Path::GetContainingFolder(myWorkingData.szCurrScenePathInResources) + "/" + texPathAbs;
+      Path::RemoveFolderUpMarkers(relativePath);
+      texPathAbs = Resources::FindPath(relativePath);
     }
 
-    PathUtil::RemoveFolderUpMarkers(texPathAbs);
-
-    String texPathInResources;
-    ResourceUtil::GetResourceName(texPathAbs, texPathInResources);
-
+    Path::RemoveFolderUpMarkers(texPathAbs);
+    
+    String texPathInResources = Resources::FindName(texPathAbs);
     return RenderCore::CreateTexture(texPathInResources);
   }
 //---------------------------------------------------------------------------//

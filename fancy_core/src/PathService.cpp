@@ -4,7 +4,7 @@
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
-  namespace PathUtil
+  namespace Path
   {
   //---------------------------------------------------------------------------//
     String GetAppName()
@@ -20,7 +20,7 @@ namespace Fancy { namespace IO {
 
       size_t slashPos = str.rfind("/", exePos);
 
-      return str.substr(slashPos + 1, exePos - slashPos);
+      return str.substr(slashPos + 1, exePos - slashPos - 1);
     }
   //---------------------------------------------------------------------------//
     String GetAppPath()
@@ -39,9 +39,9 @@ namespace Fancy { namespace IO {
       if (slashPos == String::npos)
         return aPath;
 
-      return aPath.substr(0, aPath.size() - slashPos);
+      return aPath.substr(0, slashPos);
     }
-
+//---------------------------------------------------------------------------//
     String GetWorkingDirectory()
     {
       TCHAR buf[MAX_PATH];
@@ -67,7 +67,9 @@ namespace Fancy { namespace IO {
       const String& workingDir = GetWorkingDirectory();
 
       const size_t workingDirPos = anAbsolutePath.rfind(workingDir);
-      ASSERT(workingDirPos != String::npos);  // Path is not absolute but also not relative to our working directory
+
+      if (workingDirPos == String::npos)
+        return ""; // Path is absolute but not relative to our working directory
 
       return anAbsolutePath.substr(workingDirPos + 1);
     }
@@ -166,38 +168,39 @@ namespace Fancy { namespace IO {
       size_t posDots = aPath.find(kSearchKey);
       while (posDots != String::npos)
       {
-        size_t posSlashBefore = aPath.rfind('/', posDots - 1u);
-        if (posSlashBefore == String::npos)
-        {
-          break;
-        }
+        int posSlashBefore = aPath.rfind('/', posDots - 1u);
+        if ((size_t)posSlashBefore == String::npos)
+          posSlashBefore = -1;
 
-        String firstPart = aPath.substr(0u, posSlashBefore + 1u);
+        String firstPart = aPath.substr(0u, (size_t)(posSlashBefore + 1u));
         String secondPart = aPath.substr(posDots + kSearchKeyLen);
         aPath = firstPart + secondPart;
 
         posDots = aPath.find(kSearchKey);
+
+        if (posSlashBefore == -1)
+          break;
       }
     }
     //---------------------------------------------------------------------------//
   }
   
-  namespace ResourceUtil 
+  namespace Resources 
   {
     //---------------------------------------------------------------------------//
     static std::vector<String> ourResourceFolders;
     //---------------------------------------------------------------------------//
     void InitResourceFolders()
     {
-      const String& appPath = PathUtil::GetAppPath();
+      const String& appPath = Path::GetAppPath();
 
       String appResourceFolder;
-      appResourceFolder.Format("%../../%/%", appPath.c_str(), PathUtil::GetAppName().c_str());
-      PathUtil::RemoveFolderUpMarkers(appResourceFolder);
+      appResourceFolder.Format("%/../../../%/", appPath.c_str(), Path::GetAppName().c_str());
+      Path::RemoveFolderUpMarkers(appResourceFolder);
 
       String coreResourceFolder;
-      coreResourceFolder.Format("%../../resources", appPath.c_str());
-      PathUtil::RemoveFolderUpMarkers(coreResourceFolder);
+      coreResourceFolder.Format("%/../../../resources/", appPath.c_str());
+      Path::RemoveFolderUpMarkers(coreResourceFolder);
 
       // Folders are ordered in descending priority. 
       // Resources in earlier folders can "override" resources in later folders
@@ -206,35 +209,52 @@ namespace Fancy { namespace IO {
       ourResourceFolders.push_back(coreResourceFolder);
     }
   //---------------------------------------------------------------------------//
-    bool FindResourcePath(const String& aResourceName, String& aResourcePathOut)
+    String FindPath(const String& aResourceName, bool* aWasFound /*=nullptr*/)
     {
       for (const String& resourceFolder : ourResourceFolders)
       {
         String resourcePath = resourceFolder + aResourceName;
-        if (PathUtil::FileExists(resourcePath.c_str()))
+        if (Path::FileExists(resourcePath.c_str()))
         {
-          aResourcePathOut = resourcePath;
-          return true;
+          if (aWasFound)
+            *aWasFound = true;
+
+          return resourcePath;
         }
       }
 
-      return false;
+      // Fall back to the working dir if the resource hasn't been found in any of the registered resource folders
+      const String& absPathInWorkDir = Path::GetAbsolutePath(aResourceName);
+      const bool existsInWorkDir = Path::FileExists(absPathInWorkDir);
+
+      if (aWasFound)
+        *aWasFound = existsInWorkDir;
+
+      return existsInWorkDir ? absPathInWorkDir : "";
     }
   //---------------------------------------------------------------------------//
-    bool GetResourceName(const String& aResourcePath, String& aResourceNameOut)
+    String FindName(const String& anAbsoluteResourcePath, bool* aWasFound /*=nullptr*/)
     {
       for (const String& resourceFolder : ourResourceFolders)
       {
-        const size_t resourceFolderPos = aResourcePath.rfind(resourceFolder.c_str());
+        const size_t resourceFolderPos = anAbsoluteResourcePath.rfind(resourceFolder.c_str());
         if (resourceFolderPos != String::npos)
         {
-          aResourceNameOut = aResourcePath.substr(resourceFolderPos + 1);
-          return true;
+          if (aWasFound)
+            *aWasFound = true;
+
+          return anAbsoluteResourcePath.substr(resourceFolderPos + resourceFolder.size());
         }
       }
+
+      const String& relPathWorkDir = Path::GetRelativePath(anAbsoluteResourcePath);
+      const bool isAbsoluteWorkDirPath = relPathWorkDir.size() > 0;
       
-      return false;
+      if (aWasFound)
+        *aWasFound = isAbsoluteWorkDirPath;
+      
+      return relPathWorkDir;
     }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   }
 } }  // end of namespace Fancy::IO

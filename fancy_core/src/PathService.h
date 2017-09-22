@@ -4,7 +4,7 @@
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
-  namespace PathUtil
+  namespace Path
   {
     String GetAppName();
     String GetAppPath();
@@ -25,12 +25,12 @@ namespace Fancy { namespace IO {
     void CreateDirectoryTreeForPath(const String& aPath);
   }
 //---------------------------------------------------------------------------//
-  namespace ResourceUtil
+  namespace Resources
   {
     void InitResourceFolders();
 
-    bool FindResourcePath(const String& aResourceName, String& aResourcePathOut);
-    bool GetResourceName(const String& aResourcePath, String & aResourceNameOut);
+    String FindPath(const String& aRelativeResourcePath, bool* aWasFound = nullptr);
+    String FindName(const String& anAbsoluteResourcePath, bool* aWasFound = nullptr);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

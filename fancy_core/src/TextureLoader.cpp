@@ -41,14 +41,15 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   bool TextureLoader::loadTexture(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
   {
-    std::string szFileType = PathService::GetFileExtension(_szPathAbs);
+    const String& extension = Path::GetFileExtension(_szPathAbs);
 
-    if (szFileType == "PNG" || szFileType == "png")
+    if (extension == "PNG" || extension == "png")
     {
       return Internal::loadPNG(_szPathAbs, _vOutBytes, _outTexLoadInfo);
     }
 
-    ASSERT(false, "Missing implementation to load textures of filetype %", szFileType);
+    ASSERT(false, "Missing implementation to load textures of filetype %", extension);
+    return false;
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::IO

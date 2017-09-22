@@ -58,7 +58,7 @@ namespace Fancy {
       return ourInstance;
 
     // Init IO-subsystem
-    IO::ResourceUtil::InitResourceFolders();
+    IO::Resources::InitResourceFolders();
     IO::SceneImporter::initLogger();
 
     // Init Component subsystem
