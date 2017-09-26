@@ -25,12 +25,10 @@ namespace Fancy {
   struct DLLEXPORT EngineParameters
   {
     EngineParameters()
-      : myResourceFolder("../../../resources/")
-      , myRenderingTechnique(RenderingTechnique::FORWARD)
+      : myRenderingTechnique(RenderingTechnique::FORWARD)
       , myRenderingApi(Rendering::RenderingApi::DX12)
     { }
 
-    String myResourceFolder;
     RenderingTechnique myRenderingTechnique;
     Rendering::RenderingApi myRenderingApi;
   };

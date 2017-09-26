@@ -138,6 +138,7 @@
     <ClInclude Include="src\RendererPrerequisites.h" />
     <ClInclude Include="src\RenderingProcess.h" />
     <ClInclude Include="src\RenderingProcessForward.h" />
+    <ClInclude Include="src\RenderingProcessForwardPlus.h" />
     <ClInclude Include="src\RenderOperation.h" />
     <ClInclude Include="src\RenderOutput.h" />
     <ClInclude Include="src\RenderOutputDX12.h" />
@@ -232,6 +233,7 @@
     <ClCompile Include="src\RendererPrerequisites.cpp" />
     <ClCompile Include="src\RenderingProcess.cpp" />
     <ClCompile Include="src\RenderingProcessForward.cpp" />
+    <ClCompile Include="src\RenderingProcessForwardPlus.cpp" />
     <ClCompile Include="src\RenderOperation.cpp" />
     <ClCompile Include="src\RenderOutput.cpp" />
     <ClCompile Include="src\RenderOutputDX12.cpp" />

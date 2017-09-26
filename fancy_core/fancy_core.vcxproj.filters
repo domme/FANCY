@@ -382,6 +382,9 @@
     <ClInclude Include="src\Fancy_Include.h">
       <Filter>src\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\RenderingProcessForwardPlus.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -632,6 +635,9 @@
     </ClCompile>
     <ClCompile Include="src\ShaderResourceInterfaceDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderingProcessForwardPlus.cpp">
+      <Filter>src\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
