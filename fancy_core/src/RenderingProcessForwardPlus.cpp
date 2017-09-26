@@ -219,17 +219,31 @@ namespace Fancy { namespace Rendering {
       ASSERT(myFsTextureShaderState != nullptr, "Failed creating fullscreen texture shader state");
     }
 
-
     // Create default object shader state
     {
       GpuProgramPipelineDesc pipelineDesc;
-      GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint32) ShaderStage::VERTEX];
+      GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
       programDesc->myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
       programDesc->myShaderFileName = "MaterialForward";
 
       programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
       programDesc->myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
       programDesc->myShaderFileName = "MaterialForward";
+
+      myDefaultObjectShaderState = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+      ASSERT(myDefaultObjectShaderState != nullptr);
+    }
+
+    // Depth prepass shader state
+    {
+      GpuProgramPipelineDesc pipelineDesc;
+      GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
+      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
+      programDesc->myShaderFileName = "DepthPrepass";
+
+      programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
+      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
+      programDesc->myShaderFileName = "DepthPrepass";
 
       myDefaultObjectShaderState = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
       ASSERT(myDefaultObjectShaderState != nullptr);
@@ -245,8 +259,6 @@ namespace Fancy { namespace Rendering {
       myBlendStateAdd = RenderCore::CreateBlendState(blendAddDesc);
     }
 
-    // Tests:
-    _DebugLoadComputeShader();
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForwardPlus::UpdatePerFrameData(const Time& aClock) const
@@ -325,51 +337,17 @@ namespace Fancy { namespace Rendering {
     RenderCore::UpdateBufferData(myPerDrawData.get(), &cBuffer, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
-  void RenderingProcessForwardPlus::_DebugLoadComputeShader()
-  {
-    // Compute shader
-    GpuProgramPipelineDesc desc;
-    desc.myGpuPrograms[(uint)ShaderStage::COMPUTE].myShaderStage = (uint)ShaderStage::COMPUTE;
-    desc.myGpuPrograms[(uint)ShaderStage::COMPUTE].myShaderFileName = "ComputeMipmapCS";
-    
-    myComputeProgram = RenderCore::CreateGpuProgramPipeline(desc);
-
-    // Texture
-    TextureParams texParams;
-    texParams.myIsExternalTexture = false;
-    texParams.eFormat = DataFormat::RGBA_8;
-    texParams.myIsRenderTarget = false;
-    texParams.myIsShaderWritable = true;
-    texParams.u16Width = 32;
-    texParams.u16Height = 32;
-
-    DataFormatInfo formatInfo(texParams.eFormat);
-
-    std::vector<uint8> data;
-    data.resize(texParams.u16Width * texParams.u16Height * formatInfo.mySizeBytes, 0);
-
-    TextureUploadData texData;
-    texData.myTotalSizeBytes = texParams.u16Width * texParams.u16Height * formatInfo.mySizeBytes;
-    texData.mySliceSizeBytes = texData.myTotalSizeBytes;
-    texData.myRowSizeBytes = texParams.u16Width * formatInfo.mySizeBytes;
-    texData.myPixelSizeBytes = formatInfo.mySizeBytes;
-    texData.myData = &data[0];
-    
-    myTestTexture = RenderCore::CreateTexture(texParams, &texData, 1u);
-    ASSERT(myTestTexture != nullptr);
-  }
-//---------------------------------------------------------------------------//
-  void RenderingProcessForwardPlus::_DebugExecuteComputeShader()
-  {
-    
-  }
-//---------------------------------------------------------------------------//
   void RenderingProcessForwardPlus::Tick(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock)
   {
-    _DebugExecuteComputeShader();
-
     PopulateRenderQueues(aWorld);
-    FlushRenderQueues(aWorld, anOutput, aClock);
+
+    UpdatePerFrameData(aClock);
+
+    const Scene::CameraComponent* camera = aWorld->GetScene()->getActiveCamera();
+    UpdatePerCameraData(camera);
+
+    DepthPrepass(aWorld, anOutput, aClock);
+    BuildLightTiles(aWorld, anOutput, aClock);
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForwardPlus::PopulateRenderQueues(const GraphicsWorld* aWorld)
@@ -410,6 +388,68 @@ namespace Fancy { namespace Rendering {
     // TODO: Optimize with instanced calls if materials and geometries are the same
   }
 //---------------------------------------------------------------------------//
+  void RenderingProcessForwardPlus::DepthPrepass(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock)
+  {
+    if (myRenderQueueFromCamera.IsEmpty())
+      return;
+
+    const Scene::Scene* scene = aWorld->GetScene();
+    const Scene::CameraComponent* camera = scene->getActiveCamera();
+    const RenderWindow* renderWindow = anOutput->GetWindow();
+
+    RenderContext* context = static_cast<RenderContext*>(RenderCore::AllocateContext(CommandListType::Graphics));
+
+    const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+    context->ClearRenderTarget(anOutput->GetBackbuffer(), clearColor);
+
+    const float clearDepth = 1.0f;
+    uint8 clearStencil = 0u;
+    context->ClearDepthStencilTarget(anOutput->GetDefaultDepthStencilBuffer(), clearDepth, clearStencil);
+
+    context->SetViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
+    context->SetClipRect(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
+    context->SetRenderTarget(anOutput->GetBackbuffer(), 0u);
+    context->SetDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
+
+    //context->SetDepthStencilState(nullptr);
+    context->SetBlendState(myBlendStateAdd);
+    context->SetBlendState(nullptr);
+    context->SetCullMode(CullMode::NONE);
+    context->SetFillMode(FillMode::SOLID);
+    context->SetWindingOrder(WindingOrder::CCW);
+
+    context->SetGpuProgramPipeline(myDefaultObjectShaderState);
+    context->BindResource(myPerLightData.get(), ResourceBindingType::CONSTANT_BUFFER, 0);
+    context->BindResource(myPerDrawData.get(), ResourceBindingType::CONSTANT_BUFFER, 1);
+
+    const Scene::LightList& aLightList = scene->getCachedLights();
+    for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
+    {
+      const Scene::LightComponent* lightComp = aLightList[iLight];
+      UpdatePerLightData(lightComp, camera);
+
+      const auto& renderQueueItems = myRenderQueueFromCamera.GetItems();
+      for (uint32 iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
+      {
+        const RenderQueueItem& item = renderQueueItems[iItem];
+
+        UpdatePerDrawData(camera, item.myWorldMat);
+
+        BindResources_ForwardColorPass(context, item.myMaterial);
+
+        context->RenderGeometry(item.myGeometry);
+      }
+    }
+
+    context->ExecuteAndReset(true);
+    RenderCore::FreeContext(context);
+  }
+
+  void RenderingProcessForwardPlus::BuildLightTiles(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock)
+  {
+  }
+
+  //---------------------------------------------------------------------------//
   void RenderingProcessForwardPlus::FlushRenderQueues(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) const
   {
     if (myRenderQueueFromCamera.IsEmpty())

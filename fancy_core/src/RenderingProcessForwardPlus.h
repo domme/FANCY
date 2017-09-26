@@ -27,6 +27,10 @@ public:
 
 protected:
   void PopulateRenderQueues(const GraphicsWorld* aWorld);
+
+  void DepthPrepass(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock);
+  void BuildLightTiles(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock);
+
   void FlushRenderQueues(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) const;
 
   static void BindResources_ForwardColorPass(RenderContext* aRenderContext, const Material* aMaterial);
@@ -50,10 +54,10 @@ protected:
     
   SharedPtr<BlendState> myBlendStateAdd;
   SharedPtr<GpuProgramPipeline> myDefaultObjectShaderState;
-    
-  // Tests:
-  void _DebugLoadComputeShader();
-  void _DebugExecuteComputeShader();
+
+  SharedPtr<GpuProgramPipeline> myDepthPrepassObjectShader;
+  SharedPtr<GpuProgramPipeline> myBuildLightTilesShader;
+  
   SharedPtr<Texture> myTestTexture;
   SharedPtr<GpuProgramPipeline> myComputeProgram;
 };
