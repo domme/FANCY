@@ -470,7 +470,7 @@ namespace Fancy { namespace Rendering {
     RenderCore::FreeContext(context);
   }
 //---------------------------------------------------------------------------//
-  uint32 locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)
+  static uint32 locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)
   {
     switch (aSemantic)
     {

@@ -20,7 +20,7 @@ void StartupEngine(HINSTANCE anAppInstanceHandle)
     return;
 
   Fancy::EngineParameters params;
-  params.myRenderingTechnique = Fancy::RenderingTechnique::FORWARD;
+  params.myRenderingTechnique = Fancy::RenderingTechnique::FORWARD_PLUS;
 
   pRuntime = Fancy::FancyRuntime::Init(anAppInstanceHandle, params);
 

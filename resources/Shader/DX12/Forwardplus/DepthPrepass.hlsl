@@ -1,4 +1,4 @@
- #include "inc_ConstantBuffers.hlsl"
+ #include "../inc_ConstantBuffers.hlsl"
 
 #define ROOT_SIGNATURE  "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT )," \
                         "CBV(b0)"

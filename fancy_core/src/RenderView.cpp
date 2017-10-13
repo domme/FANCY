@@ -1,5 +1,6 @@
 #include "RenderView.h"
 #include "RenderingProcessForward.h"
+#include "RenderingProcessForwardPlus.h"
 #include "Fancy.h"
 #include "GraphicsWorld.h"
 #include "TimeManager.h"
@@ -19,6 +20,9 @@ namespace Fancy {
     {
       case static_cast<uint32>(RenderingTechnique::FORWARD):
         myRenderingProcess = FANCY_NEW(Rendering::RenderingProcessForward, MemoryCategory::General);
+        break;
+      case static_cast<uint32>(RenderingTechnique::FORWARD_PLUS):
+        myRenderingProcess = FANCY_NEW(Rendering::RenderingProcessForwardPlus, MemoryCategory::General);
         break;
       default:
         ASSERT(false, "Unsupported rendering technique %", aRenderingTechnique);

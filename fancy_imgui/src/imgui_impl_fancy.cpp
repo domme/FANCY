@@ -367,10 +367,6 @@ namespace Fancy { namespace ImGui {
     ourRenderContext->SetGpuProgramPipeline(ourProgramPipeline);
     ourRenderContext->BindResource(ourCBuffer.get(), Rendering::ResourceBindingType::CONSTANT_BUFFER, 0u);
 
-    const Rendering::GpuResource* resources[] = { ourFontTexture.get() };
-    Rendering::ResourceBindingType resourceTypes[] = { Rendering::ResourceBindingType::SIMPLE };
-    ourRenderContext->BindResourceSet(resources, resourceTypes, ARRAY_LENGTH(resources), 1u);
-
     uint cmdListVertexOffset = 0u;
     uint cmdListIndexOffset = 0u;
     for (uint iCmdList = 0u; iCmdList < static_cast<uint>(_draw_data->CmdListsCount); ++iCmdList)
@@ -394,6 +390,23 @@ namespace Fancy { namespace ImGui {
         }
         else
         {
+          const Rendering::GpuResource* resources[] = { ourFontTexture.get() };
+          Rendering::ResourceBindingType resourceTypes[] = { Rendering::ResourceBindingType::SIMPLE };
+
+          ImTextureID textureId = pcmd->TextureId;
+          if (textureId != nullptr)
+          {
+            uint64 textureDescHash = reinterpret_cast<uint64>(textureId);
+            Rendering::Texture* texture = Rendering::RenderCore::GetTexture(textureDescHash).get();
+
+            if (texture != nullptr)
+              resources[0] = texture;
+            else
+              LOG_WARNING("Invliad texture id % passed to imgui", textureDescHash);
+          }
+
+          ourRenderContext->BindResourceSet(resources, resourceTypes, ARRAY_LENGTH(resources), 1u);
+
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
           ourRenderContext->SetClipRect(clipRect);
 

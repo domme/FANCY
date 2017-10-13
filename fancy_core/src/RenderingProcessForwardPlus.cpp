@@ -84,7 +84,6 @@ namespace Fancy { namespace Rendering {
     myTestTexture.reset();
     myComputeProgram.reset();
 
-    myDefaultObjectShaderState.reset();
     myBlendStateAdd.reset();
 
     myFsTextureShaderState.reset();
@@ -163,7 +162,7 @@ namespace Fancy { namespace Rendering {
       ASSERT(myPerDrawData != nullptr);
     }
 
-    // Create Fullscreen-quad geometry
+    // Create Fullscreen-quad geometry and debug shaders
     {
       struct Vertex
       {
@@ -207,31 +206,21 @@ namespace Fancy { namespace Rendering {
       myFullscreenQuad->setIndexBuffer(indexBuffer);
 
       GpuProgramPipelineDesc pipelineDesc;
-      GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
-      shaderDesc->myShaderFileName = "FullscreenQuad";
-      shaderDesc->myMainFunction = "main";
-      shaderDesc->myShaderStage = (uint32)ShaderStage::VERTEX;
-      shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
-      shaderDesc->myShaderFileName = "FullscreenQuad";
-      shaderDesc->myShaderStage = (uint32)ShaderStage::FRAGMENT;
-      shaderDesc->myMainFunction = "main_textured";
-      myFsTextureShaderState = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
-      ASSERT(myFsTextureShaderState != nullptr, "Failed creating fullscreen texture shader state");
-    }
+      GpuProgramDesc* vertexShaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
+      GpuProgramDesc* fragmentShaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
+      vertexShaderDesc->myShaderFileName = "Forwardplus/DebugTexture";
+      vertexShaderDesc->myMainFunction = "main";
+      vertexShaderDesc->myShaderStage = (uint32)ShaderStage::VERTEX;
+      
+      fragmentShaderDesc->myShaderFileName = "Forwardplus/DebugTexture";
+      fragmentShaderDesc->myShaderStage = (uint32)ShaderStage::FRAGMENT;
+      fragmentShaderDesc->myMainFunction = "main";
+      myDefaultTextureDebugShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+      ASSERT(myDefaultTextureDebugShader != nullptr, "Failed creating fullscreen texture shader state");
 
-    // Create default object shader state
-    {
-      GpuProgramPipelineDesc pipelineDesc;
-      GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
-      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
-      programDesc->myShaderFileName = "MaterialForward";
-
-      programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
-      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
-      programDesc->myShaderFileName = "MaterialForward";
-
-      myDefaultObjectShaderState = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
-      ASSERT(myDefaultObjectShaderState != nullptr);
+      fragmentShaderDesc->myMainFunction = "main_depthBuffer";
+      myDepthBufferDebugShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+      ASSERT(myDepthBufferDebugShader != nullptr, "Failed creating depth buffer debug shader state");
     }
 
     // Depth prepass shader state
@@ -239,24 +228,32 @@ namespace Fancy { namespace Rendering {
       GpuProgramPipelineDesc pipelineDesc;
       GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
       programDesc->myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
-      programDesc->myShaderFileName = "DepthPrepass";
+      programDesc->myShaderFileName = "Forwardplus/DepthPrepass";
 
       programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
       programDesc->myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
-      programDesc->myShaderFileName = "DepthPrepass";
+      programDesc->myShaderFileName = "ForwardPlus/DepthPrepass";
 
-      myDefaultObjectShaderState = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
-      ASSERT(myDefaultObjectShaderState != nullptr);
+      myDepthPrepassObjectShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+      ASSERT(myDepthPrepassObjectShader != nullptr);
     }
 
-    // Create render states
+    // Additive blend state
     {
-      BlendStateDesc blendAddDesc;
-      blendAddDesc.myBlendEnabled[0] = true;
-      blendAddDesc.mySrcBlend[0] = static_cast<uint32>(BlendInput::ONE);
-      blendAddDesc.myDestBlend[0] = static_cast<uint32>(BlendInput::ONE);
-      blendAddDesc.myBlendOp[0] = static_cast<uint32>(BlendOp::ADD);
-      myBlendStateAdd = RenderCore::CreateBlendState(blendAddDesc);
+      BlendStateDesc blendStateDesc;
+      blendStateDesc.myBlendEnabled[0] = true;
+      blendStateDesc.mySrcBlend[0] = static_cast<uint32>(BlendInput::ONE);
+      blendStateDesc.myDestBlend[0] = static_cast<uint32>(BlendInput::ONE);
+      blendStateDesc.myBlendOp[0] = static_cast<uint32>(BlendOp::ADD);
+      myBlendStateAdd = RenderCore::CreateBlendState(blendStateDesc);
+    }
+
+    // No-color write blend state
+    {
+      BlendStateDesc blendStateDesc;
+      blendStateDesc.myBlendEnabled[0] = false;
+      blendStateDesc.myRTwriteMask[0] = 0;
+      myBlendStateNoColors = RenderCore::CreateBlendState(blendStateDesc);
     }
 
   }
@@ -411,106 +408,31 @@ namespace Fancy { namespace Rendering {
     context->SetRenderTarget(anOutput->GetBackbuffer(), 0u);
     context->SetDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
 
-    //context->SetDepthStencilState(nullptr);
-    context->SetBlendState(myBlendStateAdd);
-    context->SetBlendState(nullptr);
+    context->SetBlendState(myBlendStateNoColors);
     context->SetCullMode(CullMode::NONE);
     context->SetFillMode(FillMode::SOLID);
     context->SetWindingOrder(WindingOrder::CCW);
 
-    context->SetGpuProgramPipeline(myDefaultObjectShaderState);
-    context->BindResource(myPerLightData.get(), ResourceBindingType::CONSTANT_BUFFER, 0);
-    context->BindResource(myPerDrawData.get(), ResourceBindingType::CONSTANT_BUFFER, 1);
-
-    const Scene::LightList& aLightList = scene->getCachedLights();
-    for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
-    {
-      const Scene::LightComponent* lightComp = aLightList[iLight];
-      UpdatePerLightData(lightComp, camera);
-
-      const auto& renderQueueItems = myRenderQueueFromCamera.GetItems();
-      for (uint32 iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
-      {
-        const RenderQueueItem& item = renderQueueItems[iItem];
-
-        UpdatePerDrawData(camera, item.myWorldMat);
-
-        BindResources_ForwardColorPass(context, item.myMaterial);
-
-        context->RenderGeometry(item.myGeometry);
-      }
-    }
-
-    context->ExecuteAndReset(true);
-    RenderCore::FreeContext(context);
-  }
-
-  void RenderingProcessForwardPlus::BuildLightTiles(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock)
-  {
-  }
-
-  //---------------------------------------------------------------------------//
-  void RenderingProcessForwardPlus::FlushRenderQueues(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) const
-  {
-    if (myRenderQueueFromCamera.IsEmpty())
-      return;
-
-    const Scene::Scene* scene = aWorld->GetScene();
-    const Scene::CameraComponent* camera = scene->getActiveCamera();
-    const RenderWindow* renderWindow = anOutput->GetWindow();
-
-    UpdatePerFrameData(aClock);
-    UpdatePerCameraData(camera);
-
-    RenderContext* context = static_cast<RenderContext*>(RenderCore::AllocateContext(CommandListType::Graphics));
-
-    const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-    context->ClearRenderTarget(anOutput->GetBackbuffer(), clearColor);
-
-    const float clearDepth = 1.0f;
-    uint8 clearStencil = 0u;
-    context->ClearDepthStencilTarget(anOutput->GetDefaultDepthStencilBuffer(), clearDepth, clearStencil);
-
-    context->SetViewport(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
-    context->SetClipRect(glm::uvec4(0, 0, renderWindow->GetWidth(), renderWindow->GetHeight()));
-    context->SetRenderTarget(anOutput->GetBackbuffer(), 0u);
-    context->SetDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
-
-    //context->SetDepthStencilState(nullptr);
-    context->SetBlendState(myBlendStateAdd);
-    context->SetBlendState(nullptr);
-    context->SetCullMode(CullMode::NONE);
-    context->SetFillMode(FillMode::SOLID);
-    context->SetWindingOrder(WindingOrder::CCW);
-
-    context->SetGpuProgramPipeline(myDefaultObjectShaderState);
-    context->BindResource(myPerLightData.get(), ResourceBindingType::CONSTANT_BUFFER, 0);
-    context->BindResource(myPerDrawData.get(), ResourceBindingType::CONSTANT_BUFFER, 1);
-
-    const Scene::LightList& aLightList = scene->getCachedLights();
-    for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
-    {
-      const Scene::LightComponent* lightComp = aLightList[iLight];
-      UpdatePerLightData(lightComp, camera);
-
-      const auto& renderQueueItems = myRenderQueueFromCamera.GetItems();
-      for (uint32 iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
-      {
-        const RenderQueueItem& item = renderQueueItems[iItem];
-
-        UpdatePerDrawData(camera, item.myWorldMat);
-
-        BindResources_ForwardColorPass(context, item.myMaterial);
+    context->SetGpuProgramPipeline(myDepthPrepassObjectShader);
+    context->BindResource(myPerDrawData.get(), ResourceBindingType::CONSTANT_BUFFER, 0);
         
-        context->RenderGeometry(item.myGeometry);
-      }
+    const auto& renderQueueItems = myRenderQueueFromCamera.GetItems();
+    for (uint32 iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
+    {
+      const RenderQueueItem& item = renderQueueItems[iItem];
+      UpdatePerDrawData(camera, item.myWorldMat);
+      context->RenderGeometry(item.myGeometry);
     }
-
+    
     context->ExecuteAndReset(true);
     RenderCore::FreeContext(context);
   }
 //---------------------------------------------------------------------------//
-  uint32 locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)
+  void RenderingProcessForwardPlus::BuildLightTiles(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock)
+  {
+  }
+//---------------------------------------------------------------------------//
+  static uint32 locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)
   {
     switch (aSemantic)
     {

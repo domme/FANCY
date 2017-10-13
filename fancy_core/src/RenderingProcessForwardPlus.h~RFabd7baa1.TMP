@@ -50,16 +50,14 @@ protected:
   SharedPtr<GpuBuffer> myPerDrawData;
 
   SharedPtr<Geometry::GeometryData> myFullscreenQuad;
-  SharedPtr<GpuProgramPipeline> myDefaultTextureDebugShader;
-  SharedPtr<GpuProgramPipeline> myDepthBufferDebugShader;
+  SharedPtr<GpuProgramPipeline> myFsTextureShaderState;
     
   SharedPtr<BlendState> myBlendStateAdd;
-  SharedPtr<BlendState> myBlendStateNoColors;
-  
+  SharedPtr<BlendState> myBlendStateDepthPrepass;
+  SharedPtr<GpuProgramPipeline> myDefaultObjectShaderState;
+
   SharedPtr<GpuProgramPipeline> myDepthPrepassObjectShader;
   SharedPtr<GpuProgramPipeline> myBuildLightTilesShader;
-
-  SharedPtr<Texture> myDepthBufferDebugTex;
   
   SharedPtr<Texture> myTestTexture;
   SharedPtr<GpuProgramPipeline> myComputeProgram;
