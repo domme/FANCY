@@ -2,19 +2,12 @@
 
 #include "RendererPrerequisites.h"
 #include "CommandListType.h"
+#include "Descriptor.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class GpuResource;
-//---------------------------------------------------------------------------//
-  enum class ResourceBindingType
-  {
-    SIMPLE = 0,
-    READ_WRITE,
-    RENDER_TARGET,
-    DEPTH_STENCIL_TARGET,
-    CONSTANT_BUFFER
-  };
+  class Descriptor;
+  class GpuResource;  
 //---------------------------------------------------------------------------//
   class DLLEXPORT CommandContext
   {
@@ -28,10 +21,10 @@ namespace Fancy { namespace Rendering {
     virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) = 0;
 
     // Root arguments:
-    virtual void BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const = 0;
+    virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const = 0;
     
     // Descriptor tables:
-    virtual void BindResourceSet(const GpuResource** someResources, ResourceBindingType* someBindingTypes, uint32 aResourceCount, uint32 aRegisterIndex) = 0;
+    virtual void BindDescriptorSet(const Descriptor** someDescriptors, uint32 aResourceCount, uint32 aRegisterIndex) = 0;
 
     virtual void Reset() = 0;
     virtual uint64 ExecuteAndReset(bool aWaitForCompletion = false) = 0;

@@ -63,7 +63,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ClearDepthStencilTarget_Internal(aTexture, aDepthClear, aStencilClear, someClearFlags);
   }
 //---------------------------------------------------------------------------//
-  void ComputeContextDX12::BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const
+  void ComputeContextDX12::BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const
   {
     ASSERT(myRootSignature != nullptr);
 
@@ -74,42 +74,21 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     switch (aBindingType)
     {
-    case ResourceBindingType::SIMPLE: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
-    case ResourceBindingType::READ_WRITE: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
-    case ResourceBindingType::CONSTANT_BUFFER: { myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
-    case ResourceBindingType::RENDER_TARGET:
-    case ResourceBindingType::DEPTH_STENCIL_TARGET:
+    case DescriptorType::DEFAULT_READ: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
+    case DescriptorType::READ_WRITE: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
+    case DescriptorType::CONSTANT_BUFFER: { myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
     default: { ASSERT(false); break; }
     }
   }
 //---------------------------------------------------------------------------//
-  void ComputeContextDX12::BindResourceSet(const GpuResource** someResources, ResourceBindingType* someBindingTypes, uint32 aResourceCount, uint32 aRegisterIndex)
+  void ComputeContextDX12::BindDescriptorSet(const Descriptor** someResources, uint32 aResourceCount, uint32 aRegisterIndex)
   {
     ASSERT(myRootSignature != nullptr);
 
-    const GpuResourceDX12** resources = static_cast<const GpuResourceDX12**>(alloca(sizeof(const GpuResourceDX12*) * aResourceCount));
-    for (uint32 i = 0u; i < aResourceCount; ++i)
-    {
-      resources[i] = CastGpuResourceDX12(someResources[i]);
-      ASSERT(resources[i] != nullptr);
-    }
+    const DescriptorDX12** dx12Descriptors = reinterpret_cast<const DescriptorDX12**>(someResources);
 
-    DescriptorDX12* descriptors = static_cast<DescriptorDX12*>(alloca(sizeof(DescriptorDX12) * aResourceCount));
-    for (uint32 i = 0u; i < aResourceCount; ++i)
-    {
-      switch (someBindingTypes[i])
-      {
-        case ResourceBindingType::SIMPLE: { const DescriptorDX12* desc = resources[i]->GetSrv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        case ResourceBindingType::READ_WRITE: { const DescriptorDX12* desc = resources[i]->GetUav(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        case ResourceBindingType::RENDER_TARGET: { const DescriptorDX12* desc = resources[i]->GetRtv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        case ResourceBindingType::DEPTH_STENCIL_TARGET: { const DescriptorDX12* desc = resources[i]->GetDsv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        case ResourceBindingType::CONSTANT_BUFFER: { const DescriptorDX12* desc = resources[i]->GetCbv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        default: { ASSERT(false); break; }
-      }
-    }
-
-    DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(descriptors, aResourceCount);
-    myCommandList->SetComputeRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
+    DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
+    myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
   }
 //---------------------------------------------------------------------------//
   void ComputeContextDX12::SetComputeProgram(const GpuProgram* aProgram)

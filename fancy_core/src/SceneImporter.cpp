@@ -129,6 +129,7 @@ namespace Fancy { namespace IO {
 
     // Serialization-tests....
     // Serialization needs a re-work after adjusting Resource-Handling apis
+    /*
     {
       JSONwriter serializer(resourcePathAbs);
       serializer.Serialize(&importedSceneNode, "rootNode");
@@ -139,6 +140,7 @@ namespace Fancy { namespace IO {
       JSONreader serializer(resourcePathAbs, myGraphicsWorld);
       serializer.Serialize(&importedSceneNode, "rootNode");
     }
+    */
 
     Scene::SceneNode::AddChildNode(SharedPtr<Scene::SceneNode>(importedSceneNode), _pParentNode);
     

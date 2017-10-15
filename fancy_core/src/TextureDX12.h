@@ -17,11 +17,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint32 aNumInitialDatas = 0u) override;
 
-    const DescriptorDX12* GetSrv() const override { return &mySrvDescriptor; }
-    const DescriptorDX12* GetUav() const override { return &myUavDescriptor; }
-    const DescriptorDX12* GetCbv() const override { return nullptr; }
-    const DescriptorDX12* GetRtv() const override { return &myRtvDescriptor; }
-    const DescriptorDX12* GetDsv() const override { return &myDsvDescriptor; }
+    const DescriptorDX12* GetSrv() const { return &mySrvDescriptor; }
+    const DescriptorDX12* GetUav() const { return &myUavDescriptor; }
+    const DescriptorDX12* GetRtv() const { return &myRtvDescriptor; }
+    const DescriptorDX12* GetDsv() const { return &myDsvDescriptor; }
+
+    const DescriptorDX12* GetDescriptor(DescriptorType aType, uint anIndex = 0u) const override;
     
   protected:
     void Destroy();
@@ -30,6 +31,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     DescriptorDX12 mySrvDescriptor;
     DescriptorDX12 myUavDescriptor;
     DescriptorDX12 myDsvDescriptor;
+    DescriptorDX12 myDsvDescriptorReadOnly;
+    DescriptorDX12 mySrvDescriptorDepth;
+    DescriptorDX12 mySrvDescriptorStencil;
   };
 
 //---------------------------------------------------------------------------//

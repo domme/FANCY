@@ -324,13 +324,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memset(myDynamicShaderVisibleHeaps, 0, sizeof(myDynamicShaderVisibleHeaps));
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 CommandContextDX12::CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint32 aResourceCount)
+  DescriptorDX12 CommandContextDX12::CopyDescriptorsToDynamicHeapRange(const DescriptorDX12** someResources, uint32 aResourceCount)
   {
     ASSERT(aResourceCount > 0u);
 
-    const DescriptorDX12& firstDescriptor = someResources[0];
+    const DescriptorDX12* firstDescriptor = someResources[0];
 
-    D3D12_DESCRIPTOR_HEAP_TYPE heapType = firstDescriptor.myHeapType;
+    D3D12_DESCRIPTOR_HEAP_TYPE heapType = firstDescriptor->myHeapType;
     DescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
 
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
@@ -345,7 +345,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     for (uint32 i = 0u; i < aResourceCount; ++i)
     {
       DescriptorDX12 destDescriptor = dynamicHeap->AllocateDescriptor();
-      platformDx12->GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle, someResources[i].myCpuHandle, heapType);
+      platformDx12->GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle, someResources[i]->myCpuHandle, heapType);
     }
     
     return dynamicHeap->GetDescriptor(startOffset);

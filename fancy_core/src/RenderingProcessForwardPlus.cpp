@@ -17,6 +17,7 @@
 #include "BlendState.h"
 #include "RenderOutput.h"
 #include "Texture.h"
+#include "DepthStencilState.h"
 
 namespace Fancy { namespace Rendering {
 
@@ -81,12 +82,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   RenderingProcessForwardPlus::~RenderingProcessForwardPlus()
   {
-    myTestTexture.reset();
-    myComputeProgram.reset();
-
     myBlendStateAdd.reset();
-
-    myFsTextureShaderState.reset();
     myFullscreenQuad.reset();
 
     myPerDrawData.reset();
@@ -204,23 +200,6 @@ namespace Fancy { namespace Rendering {
       myFullscreenQuad = std::make_shared<Geometry::GeometryData>();
       myFullscreenQuad->setVertexBuffer(vertexBuffer);
       myFullscreenQuad->setIndexBuffer(indexBuffer);
-
-      GpuProgramPipelineDesc pipelineDesc;
-      GpuProgramDesc* vertexShaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
-      GpuProgramDesc* fragmentShaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
-      vertexShaderDesc->myShaderFileName = "Forwardplus/DebugTexture";
-      vertexShaderDesc->myMainFunction = "main";
-      vertexShaderDesc->myShaderStage = (uint32)ShaderStage::VERTEX;
-      
-      fragmentShaderDesc->myShaderFileName = "Forwardplus/DebugTexture";
-      fragmentShaderDesc->myShaderStage = (uint32)ShaderStage::FRAGMENT;
-      fragmentShaderDesc->myMainFunction = "main";
-      myDefaultTextureDebugShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
-      ASSERT(myDefaultTextureDebugShader != nullptr, "Failed creating fullscreen texture shader state");
-
-      fragmentShaderDesc->myMainFunction = "main_depthBuffer";
-      myDepthBufferDebugShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
-      ASSERT(myDepthBufferDebugShader != nullptr, "Failed creating depth buffer debug shader state");
     }
 
     // Depth prepass shader state
@@ -246,6 +225,7 @@ namespace Fancy { namespace Rendering {
       blendStateDesc.myDestBlend[0] = static_cast<uint32>(BlendInput::ONE);
       blendStateDesc.myBlendOp[0] = static_cast<uint32>(BlendOp::ADD);
       myBlendStateAdd = RenderCore::CreateBlendState(blendStateDesc);
+      ASSERT(myBlendStateAdd != nullptr);
     }
 
     // No-color write blend state
@@ -254,8 +234,74 @@ namespace Fancy { namespace Rendering {
       blendStateDesc.myBlendEnabled[0] = false;
       blendStateDesc.myRTwriteMask[0] = 0;
       myBlendStateNoColors = RenderCore::CreateBlendState(blendStateDesc);
+      ASSERT(myBlendStateNoColors != nullptr);
     }
 
+    // Pass-through depth stencil state
+    {
+      DepthStencilStateDesc desc;
+      desc.myDepthTestEnabled = false;
+      desc.myStencilEnabled = false;
+      myDepthStencil_NoDepthTest = RenderCore::CreateDepthStencilState(desc);
+      ASSERT(myDepthStencil_NoDepthTest != nullptr);
+    }
+
+    StartupDebug();
+  }
+//---------------------------------------------------------------------------//
+  void RenderingProcessForwardPlus::StartupDebug()
+  {
+    GpuBufferCreationParams bufferParams;
+    bufferParams.myUsageFlags = static_cast<uint32>(GpuBufferUsage::CONSTANT_BUFFER);
+    bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::WRITE
+                                | (uint32)GpuResourceAccessFlags::COHERENT
+                                | (uint32)GpuResourceAccessFlags::DYNAMIC
+                                | (uint32)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+    bufferParams.uElementSizeBytes = sizeof(float);
+
+    // Debug texture params
+    {
+      struct DebugTexParams
+      {
+        glm::vec4 myParams;
+        glm::vec4 _padding;
+      };
+      DebugTexParams params = {};
+
+      bufferParams.uNumElements = 1;
+      bufferParams.uElementSizeBytes = sizeof(params);
+      myDebugTextureParams = RenderCore::CreateBuffer(bufferParams, &params);
+      ASSERT(myDebugTextureParams != nullptr);
+    }
+
+    // Depth buffer copy texture
+    {
+      TextureParams texParams;
+      texParams.myIsExternalTexture = false;
+      texParams.eFormat = DataFormat::RGBA_8;
+      texParams.myIsRenderTarget = true;
+      texParams.myIsShaderWritable = false;
+      texParams.u16Width = 1280u;
+      texParams.u16Height = 720u;
+      myDepthBufferDebugTex = RenderCore::CreateTexture(texParams);
+    }
+
+    GpuProgramPipelineDesc pipelineDesc;
+    GpuProgramDesc* vertexShaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
+    GpuProgramDesc* fragmentShaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
+    vertexShaderDesc->myShaderFileName = "Forwardplus/DebugTexture";
+    vertexShaderDesc->myMainFunction = "main";
+    vertexShaderDesc->myShaderStage = (uint32)ShaderStage::VERTEX;
+
+    fragmentShaderDesc->myShaderFileName = "Forwardplus/DebugTexture";
+    fragmentShaderDesc->myShaderStage = (uint32)ShaderStage::FRAGMENT;
+    fragmentShaderDesc->myMainFunction = "main";
+    myDefaultTextureDebugShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+    ASSERT(myDefaultTextureDebugShader != nullptr, "Failed creating fullscreen texture shader state");
+
+    fragmentShaderDesc->myMainFunction = "main_depthBuffer";
+    myDepthBufferDebugShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+    ASSERT(myDepthBufferDebugShader != nullptr, "Failed creating depth buffer debug shader state");
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForwardPlus::UpdatePerFrameData(const Time& aClock) const
@@ -334,8 +380,63 @@ namespace Fancy { namespace Rendering {
     RenderCore::UpdateBufferData(myPerDrawData.get(), &cBuffer, sizeof(cBuffer));
   }
 //---------------------------------------------------------------------------//
+  void RenderingProcessForwardPlus::UpdateDebug(const RenderOutput* anOutput)
+  {
+    const uint depthBufferWidth = anOutput->GetDefaultDepthStencilBuffer()->GetParameters().u16Width;
+    const uint depthBufferHeight = anOutput->GetDefaultDepthStencilBuffer()->GetParameters().u16Height;
+    const TextureParams& currParams = myDepthBufferDebugTex->GetParameters();
+    if (currParams.u16Width != depthBufferWidth ||
+        currParams.u16Height != depthBufferHeight)
+    {
+      TextureParams params = currParams;
+      params.u16Width = depthBufferWidth;
+      params.u16Height = depthBufferHeight;
+      myDepthBufferDebugTex->Create(params);
+    }
+  }
+//---------------------------------------------------------------------------//
+  void RenderingProcessForwardPlus::RenderDebug(const RenderOutput* anOutput)
+  {
+    const RenderWindow* renderWindow = anOutput->GetWindow();
+    RenderContext* context = static_cast<RenderContext*>(RenderCore::AllocateContext(CommandListType::Graphics));
+
+    const TextureParams& texParams = myDepthBufferDebugTex->GetParameters();
+
+    struct Constants
+    {
+      glm::vec4 myParams;
+      glm::vec4 _padding;
+    };
+    Constants constants = {};
+    constants.myParams = glm::vec4(0.0f, 100.0f, 0.0f, 0.0f);
+    RenderCore::UpdateBufferData(myDebugTextureParams.get(), &constants, sizeof(constants));
+
+    context->RemoveAllRenderTargets();
+    context->SetRenderTarget(myDepthBufferDebugTex.get(), 0u);
+    context->SetViewport(glm::uvec4(0, 0, texParams.u16Width, texParams.u16Height));
+    context->SetClipRect(glm::uvec4(0, 0, texParams.u16Width, texParams.u16Height));
+
+    context->SetBlendState(myBlendStateNoColors);
+    context->SetCullMode(CullMode::NONE);
+    context->SetFillMode(FillMode::SOLID);
+    context->SetWindingOrder(WindingOrder::CCW);
+
+    context->SetGpuProgramPipeline(myDepthBufferDebugShader);
+    context->BindResource(myDebugTextureParams.get(), DescriptorType::CONSTANT_BUFFER, 0);
+
+    const Descriptor* textures[] = { anOutput->GetDefaultDepthStencilBuffer()->GetDescriptor(DescriptorType::DEFAULT_READ_DEPTH) };
+    context->BindDescriptorSet(textures, 1, 1);
+
+    context->RenderGeometry(myFullscreenQuad.get());
+
+    context->ExecuteAndReset(true);
+    RenderCore::FreeContext(context);
+  }
+//---------------------------------------------------------------------------//
   void RenderingProcessForwardPlus::Tick(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock)
   {
+    UpdateDebug(anOutput);
+
     PopulateRenderQueues(aWorld);
 
     UpdatePerFrameData(aClock);
@@ -345,6 +446,8 @@ namespace Fancy { namespace Rendering {
 
     DepthPrepass(aWorld, anOutput, aClock);
     BuildLightTiles(aWorld, anOutput, aClock);
+
+    RenderDebug(anOutput);
   }
 //---------------------------------------------------------------------------//
   void RenderingProcessForwardPlus::PopulateRenderQueues(const GraphicsWorld* aWorld)
@@ -414,7 +517,7 @@ namespace Fancy { namespace Rendering {
     context->SetWindingOrder(WindingOrder::CCW);
 
     context->SetGpuProgramPipeline(myDepthPrepassObjectShader);
-    context->BindResource(myPerDrawData.get(), ResourceBindingType::CONSTANT_BUFFER, 0);
+    context->BindResource(myPerDrawData.get(), DescriptorType::CONSTANT_BUFFER, 0);
         
     const auto& renderQueueItems = myRenderQueueFromCamera.GetItems();
     for (uint32 iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
@@ -441,33 +544,6 @@ namespace Fancy { namespace Rendering {
       case EMaterialTextureSemantic::MATERIAL: return 2;
       default: return ~0;
     }
-  }
-//---------------------------------------------------------------------------//
-  void RenderingProcessForwardPlus::BindResources_ForwardColorPass(RenderContext* aContext, const Material* aMaterial)
-  {
-    const uint32 kNumTextures = 3u;
-    const GpuResource* texturesToBind[kNumTextures];
-    ResourceBindingType bindingTypes[kNumTextures];
-
-    texturesToBind[0] = RenderCore::GetDefaultDiffuseTexture();
-    texturesToBind[1] = RenderCore::GetDefaultNormalTexture();
-    texturesToBind[2] = RenderCore::GetDefaultMaterialTexture();
-
-    bindingTypes[0] = ResourceBindingType::SIMPLE;
-    bindingTypes[1] = ResourceBindingType::SIMPLE;
-    bindingTypes[2] = ResourceBindingType::SIMPLE;
-
-    for (const MaterialTexture& matTexture : aMaterial->myTextures)
-    {
-      const uint32 regIndex = locTexSemanticToRegIndex_MaterialDefault(matTexture.mySemantic);
-      if (regIndex != ~0)
-      {
-        ASSERT(regIndex < kNumTextures);
-        texturesToBind[regIndex] = matTexture.myTexture.get();
-      }
-    }
-
-    aContext->BindResourceSet(texturesToBind, bindingTypes, kNumTextures, 2);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

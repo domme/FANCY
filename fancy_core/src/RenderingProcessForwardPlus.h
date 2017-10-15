@@ -31,14 +31,14 @@ protected:
   void DepthPrepass(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock);
   void BuildLightTiles(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock);
 
-  void FlushRenderQueues(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) const;
-
-  static void BindResources_ForwardColorPass(RenderContext* aRenderContext, const Material* aMaterial);
-
   void UpdatePerFrameData(const Time& aClock) const;
   void UpdatePerCameraData(const Scene::CameraComponent* aCamera) const;
   void UpdatePerLightData(const Scene::LightComponent* aLight, const Scene::CameraComponent* aCamera) const;
   void UpdatePerDrawData(const Scene::CameraComponent* aCamera, const glm::float4x4& aWorldMat) const;
+
+  void StartupDebug();
+  void RenderDebug(const RenderOutput* anOutput);
+  void UpdateDebug(const RenderOutput* anOutput);
 
   RenderQueue myRenderQueueFromCamera;
 
@@ -50,8 +50,6 @@ protected:
   SharedPtr<GpuBuffer> myPerDrawData;
 
   SharedPtr<Geometry::GeometryData> myFullscreenQuad;
-  SharedPtr<GpuProgramPipeline> myDefaultTextureDebugShader;
-  SharedPtr<GpuProgramPipeline> myDepthBufferDebugShader;
     
   SharedPtr<BlendState> myBlendStateAdd;
   SharedPtr<BlendState> myBlendStateNoColors;
@@ -60,9 +58,10 @@ protected:
   SharedPtr<GpuProgramPipeline> myBuildLightTilesShader;
 
   SharedPtr<Texture> myDepthBufferDebugTex;
-  
-  SharedPtr<Texture> myTestTexture;
-  SharedPtr<GpuProgramPipeline> myComputeProgram;
+  SharedPtr<GpuBuffer> myDebugTextureParams;
+  SharedPtr<GpuProgramPipeline> myDefaultTextureDebugShader;
+  SharedPtr<GpuProgramPipeline> myDepthBufferDebugShader;
+  SharedPtr<DepthStencilState> myDepthStencil_NoDepthTest;
 };
 //---------------------------------------------------------------------------//
   DECLARE_SMART_PTRS(RenderingProcessForwardPlus)

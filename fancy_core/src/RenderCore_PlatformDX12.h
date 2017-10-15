@@ -2,6 +2,7 @@
 
 #include "RenderCore_Platform.h"
 
+#include "DX12Prerequisites.h"
 #include "Texture.h"
 #include "FenceDX12.h"
 #include "RenderContextDX12.h"
@@ -32,6 +33,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static DXGI_FORMAT GetFormat(DataFormat aFormat);
     static DataFormatInfo GetFormatInfo(DXGI_FORMAT aFormat);
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
+    static DXGI_FORMAT GetDepthStencilFormat(DXGI_FORMAT aDefaultFormat);
+    static DXGI_FORMAT GetDepthFormat(DXGI_FORMAT aDefaultFormat);
+    static DXGI_FORMAT GetStencilFormat(DXGI_FORMAT aDefaultFormat);
 
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
 

@@ -365,7 +365,7 @@ namespace Fancy { namespace ImGui {
     ourRenderContext->SetWindingOrder(Rendering::WindingOrder::CCW);
 
     ourRenderContext->SetGpuProgramPipeline(ourProgramPipeline);
-    ourRenderContext->BindResource(ourCBuffer.get(), Rendering::ResourceBindingType::CONSTANT_BUFFER, 0u);
+    ourRenderContext->BindResource(ourCBuffer.get(), Rendering::DescriptorType::CONSTANT_BUFFER, 0u);
 
     uint cmdListVertexOffset = 0u;
     uint cmdListIndexOffset = 0u;
@@ -390,22 +390,13 @@ namespace Fancy { namespace ImGui {
         }
         else
         {
-          const Rendering::GpuResource* resources[] = { ourFontTexture.get() };
-          Rendering::ResourceBindingType resourceTypes[] = { Rendering::ResourceBindingType::SIMPLE };
+          const Rendering::Descriptor* descriptors[] = { ourFontTexture->GetDescriptor(Rendering::DescriptorType::DEFAULT_READ) };
 
           ImTextureID textureId = pcmd->TextureId;
           if (textureId != nullptr)
-          {
-            uint64 textureDescHash = reinterpret_cast<uint64>(textureId);
-            Rendering::Texture* texture = Rendering::RenderCore::GetTexture(textureDescHash).get();
+            descriptors[0] = static_cast<const Rendering::Descriptor*>(textureId);
 
-            if (texture != nullptr)
-              resources[0] = texture;
-            else
-              LOG_WARNING("Invliad texture id % passed to imgui", textureDescHash);
-          }
-
-          ourRenderContext->BindResourceSet(resources, resourceTypes, ARRAY_LENGTH(resources), 1u);
+          ourRenderContext->BindDescriptorSet(descriptors, 1u, 1u);
 
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
           ourRenderContext->SetClipRect(clipRect);

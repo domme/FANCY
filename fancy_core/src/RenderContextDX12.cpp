@@ -197,7 +197,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     // DSV FORMAT
-    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetFormat(aState.myDSVformat);
+    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilFormat(RenderCore_PlatformDX12::GetFormat(aState.myDSVformat));
 
     // NODE MASK
     psoDesc.NodeMask = 0u;
@@ -226,7 +226,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ClearDepthStencilTarget_Internal(aTexture, aDepthClear, aStencilClear, someClearFlags);
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const
+  void RenderContextDX12::BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const
   {
     ASSERT(myRootSignature != nullptr);
  
@@ -237,41 +237,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
     switch(aBindingType)
     {
-      case ResourceBindingType::SIMPLE: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
-      case ResourceBindingType::READ_WRITE: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
-      case ResourceBindingType::CONSTANT_BUFFER: { myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
-      case ResourceBindingType::RENDER_TARGET:
-      case ResourceBindingType::DEPTH_STENCIL_TARGET:
+      case DescriptorType::DEFAULT_READ: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
+      case DescriptorType::READ_WRITE: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
+      case DescriptorType::CONSTANT_BUFFER: { myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
       default: { ASSERT(false); break; }
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::BindResourceSet(const GpuResource** someResources, ResourceBindingType* someBindingTypes, uint32 aResourceCount, uint32 aRegisterIndex)
+  void RenderContextDX12::BindDescriptorSet(const Descriptor** someResources, uint32 aResourceCount, uint32 aRegisterIndex)
   {
     ASSERT(myRootSignature != nullptr);
 
-    const GpuResourceDX12** resources = static_cast<const GpuResourceDX12**>(alloca(sizeof(const GpuResourceDX12*) * aResourceCount));
-    for (uint32 i = 0u; i < aResourceCount; ++i)
-    {
-      resources[i] = CastGpuResourceDX12(someResources[i]);
-      ASSERT(resources[i] != nullptr);
-    }
-
-    DescriptorDX12* descriptors = static_cast<DescriptorDX12*>(alloca(sizeof(DescriptorDX12) * aResourceCount));
-    for (uint32 i = 0u; i < aResourceCount; ++i)
-    {
-      switch (someBindingTypes[i])
-      {
-        case ResourceBindingType::SIMPLE: { const DescriptorDX12* desc = resources[i]->GetSrv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        case ResourceBindingType::READ_WRITE: { const DescriptorDX12* desc = resources[i]->GetUav(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        case ResourceBindingType::RENDER_TARGET: { const DescriptorDX12* desc = resources[i]->GetRtv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        case ResourceBindingType::DEPTH_STENCIL_TARGET: { const DescriptorDX12* desc = resources[i]->GetDsv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        case ResourceBindingType::CONSTANT_BUFFER: { const DescriptorDX12* desc = resources[i]->GetCbv(); ASSERT(desc != nullptr); descriptors[i] = *desc; break; }
-        default: { ASSERT(false); break; };
-      }
-    }
-
-    DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(descriptors, aResourceCount);
+    const DescriptorDX12** dx12Descriptors = reinterpret_cast<const DescriptorDX12**>(someResources);
+    
+    DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
     myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
   }
 //---------------------------------------------------------------------------//

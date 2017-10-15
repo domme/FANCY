@@ -140,12 +140,11 @@ namespace Fancy { namespace Rendering {
     if (myDepthStencilTarget == pDStexture)
       return;
 
-    ASSERT(pDStexture->GetParameters().bIsDepthStencil);
-
     myDepthStencilTarget = pDStexture;
     myRenderTargetsDirty = true;
 
-    myGraphicsPipelineState.myDSVformat = pDStexture->GetParameters().eFormat;
+    ASSERT(pDStexture == nullptr || pDStexture->GetParameters().bIsDepthStencil);
+    myGraphicsPipelineState.myDSVformat = pDStexture != nullptr ? pDStexture->GetParameters().eFormat : DataFormat::NONE;
   }
   //---------------------------------------------------------------------------//
   void RenderContext::SetRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex)
@@ -156,8 +155,14 @@ namespace Fancy { namespace Rendering {
     myRenderTargets[u8RenderTargetIndex] = pRTTexture;
     myRenderTargetsDirty = true;
 
-    myGraphicsPipelineState.myNumRenderTargets = glm::max(myGraphicsPipelineState.myNumRenderTargets, (uint8)(u8RenderTargetIndex + 1));
-    myGraphicsPipelineState.myRTVformats[u8RenderTargetIndex] = pRTTexture->GetParameters().eFormat;
+    myGraphicsPipelineState.myRTVformats[u8RenderTargetIndex] = pRTTexture != nullptr ? pRTTexture->GetParameters().eFormat : DataFormat::NONE;
+
+    uint numRenderTargets = 0u;
+    for (const Texture* rt : myRenderTargets)
+      if (rt != nullptr)
+        ++numRenderTargets;
+
+    myGraphicsPipelineState.myNumRenderTargets = numRenderTargets;
   }
   //---------------------------------------------------------------------------//
   void RenderContext::RemoveAllRenderTargets()

@@ -38,10 +38,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) override;
 
     // Root arguments:
-    void BindResource(const GpuResource* aResource, ResourceBindingType aBindingType, uint32 aRegisterIndex) const override;
+    void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const override;
 
     // Descriptor tables:
-    void BindResourceSet(const GpuResource** someResources, ResourceBindingType* someBindingTypes, uint32 aResourceCount, uint32 aRegisterIndex) override;
+    void BindDescriptorSet(const Descriptor** someDescriptors, uint32 aResourceCount, uint32 aRegisterIndex) override;
 
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
 

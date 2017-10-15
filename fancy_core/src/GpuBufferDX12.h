@@ -17,11 +17,10 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) override;
     void Unlock() override;
 
-    const DescriptorDX12* GetSrv() const override { return &mySrvDescriptor; }
-    const DescriptorDX12* GetUav() const override { return &myUavDescriptor; }
-    const DescriptorDX12* GetCbv() const override { return &myCbvDescriptor; }
-    const DescriptorDX12* GetRtv() const override { return nullptr; }
-    const DescriptorDX12* GetDsv() const override { return nullptr; }
+    const DescriptorDX12* GetSrv() const { return &mySrvDescriptor; }
+    const DescriptorDX12* GetUav() const { return &myUavDescriptor; }
+    const DescriptorDX12* GetCbv() const { return &myCbvDescriptor; }
+	  const DescriptorDX12* GetDescriptor(DescriptorType aType, uint anIndex = 0u) const override;
     
     const D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView() const 
     { ASSERT(myParameters.myUsageFlags & (uint32)GpuBufferUsage::VERTEX_BUFFER); return myVertexBufferView; }

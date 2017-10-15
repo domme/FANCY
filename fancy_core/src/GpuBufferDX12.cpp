@@ -60,7 +60,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_RESOURCE_DESC resourceDesc;
     memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-    resourceDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+    resourceDesc.Alignment = 0;
     resourceDesc.Width = actualWidthBytesWithAlignment;
     resourceDesc.Height = 1;
     resourceDesc.DepthOrArraySize = 1;
@@ -284,4 +284,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myState.myCachedLockDataPtr = nullptr;
   }
 //---------------------------------------------------------------------------//
+  const DescriptorDX12* GpuBufferDX12::GetDescriptor(DescriptorType aType, uint anIndex) const
+  {
+    switch (aType)
+    {
+    case DescriptorType::DEFAULT_READ: 
+    case DescriptorType::DEFAULT_READ_DEPTH: 
+    case DescriptorType::DEFAULT_READ_STENCIL: 
+      return &mySrvDescriptor;
+    case DescriptorType::READ_WRITE:
+      return &myUavDescriptor;
+    case DescriptorType::CONSTANT_BUFFER:
+      return &myCbvDescriptor;
+    }
+
+    return nullptr;
+  }
 } } }

@@ -5,6 +5,7 @@
 #include <d3dcompiler.h>
 #include <wrl.h>
 #include "d3dx12.h"
+#include <dxgiformat.h>
 
 namespace {
   void CheckD3Dcall(HRESULT aResult)

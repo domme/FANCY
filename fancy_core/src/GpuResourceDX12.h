@@ -23,12 +23,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     virtual ~GpuResourceDX12() { Reset(); }
 
-    virtual const DescriptorDX12* GetSrv() const = 0;
-    virtual const DescriptorDX12* GetUav() const = 0;
-    virtual const DescriptorDX12* GetCbv() const = 0;
-    virtual const DescriptorDX12* GetRtv() const = 0;
-    virtual const DescriptorDX12* GetDsv() const = 0;
-
     ID3D12Resource* GetResource() const  { return myResource.Get(); }
     D3D12_RESOURCE_STATES GetUsageState() const { return myUsageState; }
     D3D12_RESOURCE_STATES GetTransitioningState() const { return myTransitioningState; }

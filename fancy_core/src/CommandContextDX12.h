@@ -43,7 +43,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     static const GpuResourceDX12* CastGpuResourceDX12(const GpuResource* aResource);
     
-    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint32 aResourceCount);
+    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12** someResources, uint32 aResourceCount);
   
     CommandListType myCommandListType;
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList

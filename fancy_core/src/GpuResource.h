@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
+#include "Descriptor.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -19,8 +20,10 @@ namespace Fancy { namespace Rendering {
 
     virtual ~GpuResource() = default;
     virtual bool IsValid() const = 0;
+    virtual const Descriptor* GetDescriptor(DescriptorType aType, uint anIndex = 0u) const = 0;
 
     GpuResourceCategory myCategory;
+
   };
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering
