@@ -161,6 +161,18 @@ namespace Fancy {
 
       NUM
     };
+//---------------------------------------------------------------------------//
+    enum class GpuResourceState {
+      RESOURCE_STATE_COMMON = 0,
+      RESOURCE_STATE_GENERIC_READ,
+      RESOURCE_STATE_DEPTH_WRITE,
+      RESOURCE_STATE_DEPTH_READ,
+      RESOURCE_STATE_PRESENT,
+      RESOURCE_STATE_COPY_DEST,
+      RESOURCE_STATE_COPY_SRC,
+
+      NONE
+    };
   //---------------------------------------------------------------------------//
     enum class GpuResourceAccessFlags {
       /// No special access flags

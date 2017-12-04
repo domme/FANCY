@@ -5,6 +5,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "TextureDX12.h"
 #include <malloc.h>
+#include "AdapterDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -172,17 +173,29 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       }
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow /* = false */)
+  GpuResourceDX12* CommandContextDX12::CastGpuResourceDX12(GpuResource* aResource)
   {
-    if (aResource->GetUsageState() == aDestState)
+    switch (aResource->myCategory)
+    {
+      case GpuResourceCategory::TEXTURE: return static_cast<TextureDX12*>(aResource);
+      case GpuResourceCategory::BUFFER: return static_cast<GpuBufferDX12*>(aResource);
+      default: return nullptr;
+    }
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::TransitionResource_Internal(GpuResource* aResource, GpuResourceState aDestState, bool aExecuteNow /* = false */)
+  {
+    if (aResource->myUsageState == aDestState)
       return;
 
+    GpuResourceDX12* dxResource = CastGpuResourceDX12(aResource);
+    
     D3D12_RESOURCE_BARRIER barrier;
     barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Transition.pResource = aResource->GetResource();
-    barrier.Transition.StateBefore = aResource->GetUsageState();
-    barrier.Transition.StateAfter = aDestState;
+    barrier.Transition.pResource = dxResource->GetResource();
+    barrier.Transition.StateBefore = Adapter::toNativeType(aResource->myUsageState);
+    barrier.Transition.StateAfter = Adapter::toNativeType(aDestState);
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
     aResource->myUsageState = aDestState;

@@ -43,6 +43,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     // Descriptor tables:
     void BindDescriptorSet(const Descriptor** someDescriptors, uint32 aResourceCount, uint32 aRegisterIndex) override;
 
+    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow = false) override;
+
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
 
     void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer,

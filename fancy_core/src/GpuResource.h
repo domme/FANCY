@@ -9,13 +9,14 @@ namespace Fancy { namespace Rendering {
   {
     TEXTURE = 0,
     BUFFER
-  };
+  };  
 //---------------------------------------------------------------------------//
   class DLLEXPORT GpuResource
   {
   public:
     GpuResource(GpuResourceCategory aType)
       : myCategory(aType)   
+      , myUsageState(GpuResourceState::RESOURCE_STATE_COMMON)
     {}
 
     virtual ~GpuResource() = default;
@@ -23,7 +24,7 @@ namespace Fancy { namespace Rendering {
     virtual const Descriptor* GetDescriptor(DescriptorType aType, uint anIndex = 0u) const = 0;
 
     GpuResourceCategory myCategory;
-
+    GpuResourceState myUsageState;
   };
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

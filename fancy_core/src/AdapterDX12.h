@@ -13,6 +13,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		static D3D12_STENCIL_OP toNativeType(const StencilOp& generalType);
 		static D3D12_FILL_MODE toNativeType(const FillMode& generalType);
 		static D3D12_CULL_MODE toNativeType(const CullMode& generalType);
+    static D3D12_RESOURCE_STATES toNativeType(const GpuResourceState& aGeneralType);
 	};
 //---------------------------------------------------------------------------//
 } } }

@@ -254,6 +254,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
   }
 //---------------------------------------------------------------------------//
+  void RenderContextDX12::TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow /*= false*/)
+  {
+    CommandContextDX12::TransitionResource_Internal(aResource, aTransitionToState, aKickoffNow);
+  }
+//---------------------------------------------------------------------------//
   void RenderContextDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
   {
     RenderContext::SetGpuProgramPipeline(aGpuProgramPipeline);

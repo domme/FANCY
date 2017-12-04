@@ -420,9 +420,13 @@ namespace Fancy { namespace Rendering {
     context->SetCullMode(CullMode::NONE);
     context->SetFillMode(FillMode::SOLID);
     context->SetWindingOrder(WindingOrder::CCW);
-
+    context->SetDepthStencilState(myDepthStencil_NoDepthTest);
+    
     context->SetGpuProgramPipeline(myDepthBufferDebugShader);
     context->BindResource(myDebugTextureParams.get(), DescriptorType::CONSTANT_BUFFER, 0);
+
+    Texture* depthStencilTexture = anOutput->GetDefaultDepthStencilBuffer();
+
 
     const Descriptor* textures[] = { anOutput->GetDefaultDepthStencilBuffer()->GetDescriptor(DescriptorType::DEFAULT_READ_DEPTH) };
     context->BindDescriptorSet(textures, 1, 1);

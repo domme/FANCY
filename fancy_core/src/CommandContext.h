@@ -20,6 +20,8 @@ namespace Fancy { namespace Rendering {
     virtual void ClearRenderTarget(Texture* aTexture, const float* aColor) = 0;
     virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) = 0;
 
+    virtual void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow = false) = 0;
+
     // Root arguments:
     virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const = 0;
     
@@ -30,6 +32,7 @@ namespace Fancy { namespace Rendering {
     virtual uint64 ExecuteAndReset(bool aWaitForCompletion = false) = 0;
 
   protected:
+
     CommandListType myCommandListType;
   };
 //---------------------------------------------------------------------------//

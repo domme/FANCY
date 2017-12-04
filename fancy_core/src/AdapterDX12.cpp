@@ -57,6 +57,22 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		}
 	}
 //---------------------------------------------------------------------------//
+  D3D12_RESOURCE_STATES Adapter::toNativeType(const GpuResourceState& aGeneralType)
+  {
+    switch (aGeneralType)
+    {
+    case GpuResourceState::RESOURCE_STATE_COMMON: return D3D12_RESOURCE_STATE_COMMON;
+    case GpuResourceState::RESOURCE_STATE_GENERIC_READ: return D3D12_RESOURCE_STATE_GENERIC_READ;
+    case GpuResourceState::RESOURCE_STATE_DEPTH_WRITE: return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+    case GpuResourceState::RESOURCE_STATE_DEPTH_READ: return D3D12_RESOURCE_STATE_DEPTH_READ;
+    case GpuResourceState::RESOURCE_STATE_PRESENT: return D3D12_RESOURCE_STATE_PRESENT;
+    case GpuResourceState::RESOURCE_STATE_COPY_DEST: return D3D12_RESOURCE_STATE_COPY_DEST;
+    case GpuResourceState::RESOURCE_STATE_COPY_SRC: return D3D12_RESOURCE_STATE_COPY_SOURCE;
+    case GpuResourceState::NONE: return static_cast<D3D12_RESOURCE_STATES>(~0u);
+    default: ASSERT(false, "Missing native values"); return D3D12_RESOURCE_STATE_COMMON;
+    }
+  }
+//---------------------------------------------------------------------------//
 	D3D12_BLEND Adapter::toNativeType(const BlendInput& generalType) 
 	{
 		switch (generalType) {

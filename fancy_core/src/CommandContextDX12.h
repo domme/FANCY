@@ -25,7 +25,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const;
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
-    void TransitionResource(GpuResourceDX12* aResource, D3D12_RESOURCE_STATES aDestState, bool aExecuteNow = false);
     void CopyResource(GpuResourceDX12* aDestResource, GpuResourceDX12* aSrcResource);
 
   protected:
@@ -38,10 +37,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ReleaseAllocator(uint64 aFenceVal);
     void ReleaseDynamicHeaps(uint64 aFenceVal);
 
+    void TransitionResource_Internal(GpuResource* aResource, GpuResourceState aDestState, bool aExecuteNow = false);
     void ClearRenderTarget_Internal(Texture* aTexture, const float* aColor);
     void ClearDepthStencilTarget_Internal(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL);
 
     static const GpuResourceDX12* CastGpuResourceDX12(const GpuResource* aResource);
+    static GpuResourceDX12* CastGpuResourceDX12(GpuResource* aResource);
     
     DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12** someResources, uint32 aResourceCount);
   
