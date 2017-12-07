@@ -16,14 +16,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
     ComputeContextDX12();
     ~ComputeContextDX12() override;
-
-    void Reset() override;
-    uint64 ExecuteAndReset(bool aWaitForCompletion) override;
-
+    
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
     void ClearRenderTarget(Texture* aTexture, const float* aColor) override;
     void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) override;
+    void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) override;
+    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow) override;
+    uint64 ExecuteAndReset(bool aWaitForCompletion) override;
+    void Reset() override;
 
     // Root arguments:
     void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const override;

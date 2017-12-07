@@ -22,7 +22,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   class GpuDynamicAllocPage : public GpuResourceDX12
   {
   public:
-    GpuDynamicAllocPage(ID3D12Resource* aResource, D3D12_RESOURCE_STATES aDefaultUsage, bool aCpuAccessRequired);
+    GpuDynamicAllocPage(ID3D12Resource* aResource, bool aCpuAccessRequired);
     ~GpuDynamicAllocPage();
 
     void* myCpuDataPtr;   /// Cpu-Writable address to the start of the page

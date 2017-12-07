@@ -68,6 +68,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     case GpuResourceState::RESOURCE_STATE_PRESENT: return D3D12_RESOURCE_STATE_PRESENT;
     case GpuResourceState::RESOURCE_STATE_COPY_DEST: return D3D12_RESOURCE_STATE_COPY_DEST;
     case GpuResourceState::RESOURCE_STATE_COPY_SRC: return D3D12_RESOURCE_STATE_COPY_SOURCE;
+    case GpuResourceState::RESOURCE_STATE_RENDER_TARGET: return D3D12_RESOURCE_STATE_RENDER_TARGET;
     case GpuResourceState::NONE: return static_cast<D3D12_RESOURCE_STATES>(~0u);
     default: ASSERT(false, "Missing native values"); return D3D12_RESOURCE_STATE_COMMON;
     }

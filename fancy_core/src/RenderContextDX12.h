@@ -29,21 +29,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     RenderContextDX12();
     ~RenderContextDX12() override;
 
-    void Reset() override;
-    uint64 ExecuteAndReset(bool aWaitForCompletion) override;
-
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
 
     void ClearRenderTarget(Texture* aTexture, const float* aColor) override;
     void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) override;
+    void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) override;
+    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow = false) override;
+    uint64 ExecuteAndReset(bool aWaitForCompletion) override;
+    void Reset() override;
 
     // Root arguments:
     void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const override;
 
     // Descriptor tables:
     void BindDescriptorSet(const Descriptor** someDescriptors, uint32 aResourceCount, uint32 aRegisterIndex) override;
-
-    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow = false) override;
 
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
 

@@ -138,10 +138,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     ASSERT(aTexture->GetParameters().myIsRenderTarget);
 
+    TransitionResource_Internal(aTexture, GpuResourceState::RESOURCE_STATE_RENDER_TARGET, true);
+
     TextureDX12* textureDX12 = static_cast<TextureDX12*>(aTexture);
     ASSERT(textureDX12->GetRtv() != nullptr, "Texture doesn't appear to be a render target");
-
-    TransitionResource(textureDX12, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
     myCommandList->ClearRenderTargetView(textureDX12->GetRtv()->myCpuHandle, aColor, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
@@ -153,13 +153,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     TextureDX12* textureDX12 = static_cast<TextureDX12*>(aTexture);
     ASSERT(textureDX12->GetDsv() != nullptr, "Texture doesn't appear to be a depth-stencil target");
 
+    TransitionResource_Internal(aTexture, GpuResourceState::RESOURCE_STATE_DEPTH_WRITE, true);
+
     D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS)0;
     if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_DEPTH)
       clearFlags |= D3D12_CLEAR_FLAG_DEPTH;
     if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_STENCIL)
       clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
 
-    TransitionResource(textureDX12, D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
     myCommandList->ClearDepthStencilView(textureDX12->GetDsv()->myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
  //---------------------------------------------------------------------------//
@@ -275,19 +276,22 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyResource(GpuResourceDX12* aDestResource, GpuResourceDX12* aSrcResource)
+  void CommandContextDX12::CopyResource_Internal(GpuResource* aDestResource, GpuResource* aSrcResource)
   {
-    D3D12_RESOURCE_STATES oldDestState = aDestResource->GetUsageState();
-    D3D12_RESOURCE_STATES oldSrcState = aSrcResource->GetUsageState();
+    GpuResourceState oldDestState = aDestResource->myUsageState;
+    GpuResourceState oldSrcState = aSrcResource->myUsageState;
 
-    TransitionResource(aDestResource, D3D12_RESOURCE_STATE_COPY_DEST);
-    TransitionResource(aSrcResource, D3D12_RESOURCE_STATE_COPY_SOURCE);
+    TransitionResource_Internal(aDestResource, GpuResourceState::RESOURCE_STATE_COPY_DEST);
+    TransitionResource_Internal(aSrcResource, GpuResourceState::RESOURCE_STATE_COPY_SRC);
     KickoffResourceBarriers();
 
-    myCommandList->CopyResource(aDestResource->GetResource(), aSrcResource->GetResource());
+    GpuResourceDX12* destResourceDX12 = CastGpuResourceDX12(aDestResource);
+    GpuResourceDX12* srcResourceDX12 = CastGpuResourceDX12(aSrcResource);
 
-    TransitionResource(aDestResource, oldDestState);
-    TransitionResource(aSrcResource, oldSrcState);
+    myCommandList->CopyResource(destResourceDX12->GetResource(), srcResourceDX12->GetResource());
+
+    TransitionResource_Internal(aDestResource, oldDestState);
+    TransitionResource_Internal(aSrcResource, oldSrcState);
     KickoffResourceBarriers();
   }
 //---------------------------------------------------------------------------//

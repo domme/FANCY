@@ -33,16 +33,36 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     RenderContextDX12::Reset_Internal();
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::Reset()
+  void RenderContextDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
   {
-    Reset_Internal();
+    ClearRenderTarget_Internal(aTexture, aColor);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags)
+  {
+    ClearDepthStencilTarget_Internal(aTexture, aDepthClear, aStencilClear, someClearFlags);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
+  {
+    CopyResource_Internal(aDestResource, aSrcResource);
+  }
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow /*= false*/)
+  {
+    CommandContextDX12::TransitionResource_Internal(aResource, aTransitionToState, aKickoffNow);
   }
 //---------------------------------------------------------------------------//
   uint64 RenderContextDX12::ExecuteAndReset(bool aWaitForCompletion)
   {
     return ExecuteAndReset_Internal(aWaitForCompletion);
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void RenderContextDX12::Reset()
+  {
+    Reset_Internal();
+  }
+//---------------------------------------------------------------------------//
   D3D12_GRAPHICS_PIPELINE_STATE_DESC RenderContextDX12::GetNativePSOdesc(const GraphicsPipelineState& aState)
   {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
@@ -216,16 +236,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memset(myRenderTargets, 0u, sizeof(myRenderTargets));
   }
 //---------------------------------------------------------------------------//
-  void RenderContextDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
-  {
-    ClearRenderTarget_Internal(aTexture, aColor);
-  }
-  //---------------------------------------------------------------------------//
-  void RenderContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags)
-  {
-    ClearDepthStencilTarget_Internal(aTexture, aDepthClear, aStencilClear, someClearFlags);
-  }
-//---------------------------------------------------------------------------//
   void RenderContextDX12::BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const
   {
     ASSERT(myRootSignature != nullptr);
@@ -252,11 +262,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     
     DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
     myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
-  }
-//---------------------------------------------------------------------------//
-  void RenderContextDX12::TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow /*= false*/)
-  {
-    CommandContextDX12::TransitionResource_Internal(aResource, aTransitionToState, aKickoffNow);
   }
 //---------------------------------------------------------------------------//
   void RenderContextDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
@@ -365,7 +370,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myRenderTargetsDirty = false;
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Rendering::Constants::kMaxNumRenderTargets];
-    GpuResourceDX12* rtResources[Rendering::Constants::kMaxNumRenderTargets];
+    TextureDX12* rtResources[Rendering::Constants::kMaxNumRenderTargets];
     uint32 numRtsToSet = 0u;
 
     for (uint32 i = 0u; i < Rendering::Constants::kMaxNumRenderTargets; ++i)
@@ -383,14 +388,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     for (uint32 i = 0u; i < numRtsToSet; ++i)
     {
-      TransitionResource(rtResources[i], D3D12_RESOURCE_STATE_RENDER_TARGET);
+      TransitionResource(rtResources[i], GpuResourceState::RESOURCE_STATE_RENDER_TARGET);
     }
 
     TextureDX12* dsvTargetDx12 = static_cast<TextureDX12*>(myDepthStencilTarget);
     ASSERT(dsvTargetDx12->GetDsv() != nullptr);
 
     if (dsvTargetDx12)
-      TransitionResource(dsvTargetDx12, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+      TransitionResource(dsvTargetDx12, GpuResourceState::RESOURCE_STATE_DEPTH_WRITE);
 
     KickoffResourceBarriers();
 

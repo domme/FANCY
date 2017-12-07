@@ -63,6 +63,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ClearDepthStencilTarget_Internal(aTexture, aDepthClear, aStencilClear, someClearFlags);
   }
 //---------------------------------------------------------------------------//
+  void ComputeContextDX12::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
+  {
+    CopyResource_Internal(aDestResource, aSrcResource);
+  }
+//---------------------------------------------------------------------------//
+  void ComputeContextDX12::TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow)
+  {
+    TransitionResource_Internal(aResource, aTransitionToState, aKickoffNow);
+  }
+//---------------------------------------------------------------------------//
   void ComputeContextDX12::BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const
   {
     ASSERT(myRootSignature != nullptr);

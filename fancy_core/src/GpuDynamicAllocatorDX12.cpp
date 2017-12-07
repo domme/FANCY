@@ -6,11 +6,10 @@
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  GpuDynamicAllocPage::GpuDynamicAllocPage(ID3D12Resource* aResource, D3D12_RESOURCE_STATES aDefaultUsage, bool aCpuAccessRequired)
+  GpuDynamicAllocPage::GpuDynamicAllocPage(ID3D12Resource* aResource, bool aCpuAccessRequired)
     : myCpuDataPtr(nullptr)
   {
     myResource.Attach(aResource);
-    myUsageState = aDefaultUsage;
     if (aCpuAccessRequired)
       CheckD3Dcall(myResource->Map(0, nullptr, &myCpuDataPtr));  // Map the whole range (nullptr)
   }
@@ -160,7 +159,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         IID_PPV_ARGS(&resource))
       );
 
-    return new GpuDynamicAllocPage(resource, initialResourceState, myAllocatorType == GpuDynamicAllocatorType::CpuWritable);
+    return new GpuDynamicAllocPage(resource, myAllocatorType == GpuDynamicAllocatorType::CpuWritable);
   }
 //---------------------------------------------------------------------------//
   void GpuDynamicAllocatorDX12::CleanupAfterCmdListExecute(uint64 aCmdListDoneFence)

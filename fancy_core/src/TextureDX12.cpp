@@ -4,6 +4,7 @@
 #include "TextureDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
+#include "AdapterDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -110,7 +111,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const bool wantsCpuStorage = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::PREFER_CPU_STORAGE) > 0u;
     const bool wantsCoherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
 
-    myUsageState = D3D12_RESOURCE_STATE_GENERIC_READ;
+    myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
     heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     if (!wantsCpuWrite && !wantsCpuRead && !wantsCpuStorage)
     {
@@ -130,7 +131,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       heapProps.Type = D3D12_HEAP_TYPE_READBACK;
       heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
-      myUsageState = D3D12_RESOURCE_STATE_COPY_DEST;
+      myUsageState = GpuResourceState::RESOURCE_STATE_COPY_DEST;
     }
 
     D3D12_CLEAR_VALUE clearValue;
@@ -147,12 +148,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
 
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
+    D3D12_RESOURCE_STATES usageStateDx12 = Adapter::toNativeType(myUsageState);
     
     CheckD3Dcall(platformDx12->GetDevice()->CreateCommittedResource(
       &heapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
-      myUsageState,
+      usageStateDx12,
       useOptimizeClearValue ? &clearValue : nullptr,
       IID_PPV_ARGS(&myResource)));
 

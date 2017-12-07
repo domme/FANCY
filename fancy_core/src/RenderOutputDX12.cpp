@@ -33,11 +33,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::EndFrame()
   {
-    TextureDX12* currBackbuffer = static_cast<TextureDX12*>(myBackbuffers[myCurrBackbufferIndex].get());
+    Texture* currBackbuffer = myBackbuffers[myCurrBackbufferIndex].get();
 
     RenderContextDX12* context = 
       static_cast<RenderContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
-    context->TransitionResource(currBackbuffer, D3D12_RESOURCE_STATE_PRESENT, true);
+    context->TransitionResource(currBackbuffer, GpuResourceState::RESOURCE_STATE_PRESENT, true);
     context->ExecuteAndReset(false);
     RenderCore::FreeContext(context);
 
@@ -83,8 +83,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     for (uint32 i = 0u; i < kBackbufferCount; i++)
     {
-      TextureDX12* backbufferResource = static_cast<TextureDX12*>(myBackbuffers[i].get());
-      backbufferResource->myUsageState = D3D12_RESOURCE_STATE_PRESENT;
+      Texture* backbuffer = myBackbuffers[i].get();
+      TextureDX12* backbufferResource = static_cast<TextureDX12*>(backbuffer);
+      backbuffer->myUsageState = GpuResourceState::RESOURCE_STATE_PRESENT;
 
       // TODO: Sync this better with swap chain properties
       backbufferResource->myParameters.myIsRenderTarget = true;

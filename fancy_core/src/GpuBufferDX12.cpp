@@ -3,6 +3,7 @@
 #include "DescriptorHeapPoolDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
+#include "AdapterDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -79,17 +80,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     // TODO: What to do with these flags in DX12?
     //const bool wantsDynamic = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::DYNAMIC) > 0u;
 
-    myUsageState = D3D12_RESOURCE_STATE_COMMON;
+    myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
     if (!wantsCpuWrite && !wantsCpuRead && !wantsCpuStorage)
     {
       // The default for most buffers: No Cpu-access at all required. Can be created as GPU-only visible heap
       heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-      myUsageState = D3D12_RESOURCE_STATE_COMMON;
+      myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
     }
     else if (wantsCpuWrite || wantsCpuStorage)
     {
       heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-      myUsageState = D3D12_RESOURCE_STATE_GENERIC_READ;
+      myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
       
       if (wantsCpuRead)
         heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
@@ -98,20 +99,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       heapProps.Type = D3D12_HEAP_TYPE_READBACK;
       heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
-      myUsageState = D3D12_RESOURCE_STATE_COPY_DEST;
+      myUsageState = GpuResourceState::RESOURCE_STATE_COPY_DEST;
     }
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
+    D3D12_RESOURCE_STATES usageStateDX12 = Adapter::toNativeType(myUsageState);
 
     CheckD3Dcall(dx12Platform->GetDevice()->CreateCommittedResource(
       &heapProps, 
       D3D12_HEAP_FLAG_NONE, 
       &resourceDesc, 
-      myUsageState, 
+      usageStateDX12,
       nullptr, IID_PPV_ARGS(&myResource)));
 
     // Create derived views
-       
     if (wantsShaderResourceView)
     {
       D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;

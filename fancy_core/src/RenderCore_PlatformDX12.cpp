@@ -270,9 +270,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ASSERT(aContext->GetType() == CommandListType::Graphics);
     RenderContextDX12* context = static_cast<RenderContextDX12*>(aContext);
 
-    context->TransitionResource(bufferDx12, D3D12_RESOURCE_STATE_COPY_DEST, true);
+    context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST, true);
     context->myCommandList->CopyResource(bufferDx12->GetResource(), uploadResource.Get());
-    context->TransitionResource(bufferDx12, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+    context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ, true);
     context->ExecuteAndReset(true);
   }
 //---------------------------------------------------------------------------//
@@ -301,9 +301,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     ASSERT(aContext->GetType() == CommandListType::Graphics);
     RenderContextDX12* context = static_cast<RenderContextDX12*>(aContext);
-    context->TransitionResource(bufferDx12, D3D12_RESOURCE_STATE_COPY_DEST, true);
+    context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST, true);
     context->myCommandList->CopyBufferRegion(bufferDx12->GetResource(), aByteOffset, uploadResource.Get(), 0u, aByteSize);
-    context->TransitionResource(bufferDx12, D3D12_RESOURCE_STATE_GENERIC_READ, true);
+    context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ, true);
     context->ExecuteAndReset(true);
   }
 //---------------------------------------------------------------------------//
@@ -363,10 +363,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ASSERT(aContext->GetType() == CommandListType::Graphics);
     RenderContextDX12* context = static_cast<RenderContextDX12*>(aContext);
 
-    D3D12_RESOURCE_STATES oldUsageState = textureDx12->GetUsageState();
-    context->TransitionResource(textureDx12, D3D12_RESOURCE_STATE_COPY_DEST, true);
+    GpuResourceState oldUsageState = aTexture->myUsageState;
+    context->TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_COPY_DEST, true);
     context->UpdateSubresources(textureDx12->GetResource(), stagingBuffer.Get(), 0u, aNumUploadDatas, subDatas);
-    context->TransitionResource(textureDx12, oldUsageState, true);
+    context->TransitionResource(aTexture, oldUsageState, true);
     context->ExecuteAndReset(true);
   }
 //---------------------------------------------------------------------------//

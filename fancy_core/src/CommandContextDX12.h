@@ -25,7 +25,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const;
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
-    void CopyResource(GpuResourceDX12* aDestResource, GpuResourceDX12* aSrcResource);
 
   protected:
     virtual void Reset_Internal();
@@ -40,6 +39,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void TransitionResource_Internal(GpuResource* aResource, GpuResourceState aDestState, bool aExecuteNow = false);
     void ClearRenderTarget_Internal(Texture* aTexture, const float* aColor);
     void ClearDepthStencilTarget_Internal(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL);
+    void CopyResource_Internal(GpuResource* aDestResource, GpuResource* aSrcResource);
 
     static const GpuResourceDX12* CastGpuResourceDX12(const GpuResource* aResource);
     static GpuResourceDX12* CastGpuResourceDX12(GpuResource* aResource);
