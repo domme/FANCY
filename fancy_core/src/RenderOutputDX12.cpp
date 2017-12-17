@@ -4,6 +4,7 @@
 #include "RenderWindow.h"
 #include "TextureDX12.h"
 #include "BlendState.h"
+#include "CommandContextDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -35,8 +36,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     Texture* currBackbuffer = myBackbuffers[myCurrBackbufferIndex].get();
 
-    RenderContextDX12* context = 
-      static_cast<RenderContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
+    CommandContextDX12* context = 
+      static_cast<CommandContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
     context->TransitionResource(currBackbuffer, GpuResourceState::RESOURCE_STATE_PRESENT, true);
     context->ExecuteAndReset(false);
     RenderCore::FreeContext(context);

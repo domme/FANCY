@@ -69,8 +69,6 @@
     <ClInclude Include="src\CommandContext.h" />
     <ClInclude Include="src\CommandContextDX12.h" />
     <ClInclude Include="src\CommandListType.h" />
-    <ClInclude Include="src\ComputeContext.h" />
-    <ClInclude Include="src\ComputeContextDX12.h" />
     <ClInclude Include="src\d3dx12.h" />
     <ClInclude Include="src\DataFormat.h" />
     <ClInclude Include="src\Descriptor.h" />
@@ -130,8 +128,6 @@
     <ClInclude Include="src\ObjectName.h" />
     <ClInclude Include="src\ObjectPool.h" />
     <ClInclude Include="src\PathService.h" />
-    <ClInclude Include="src\RenderContext.h" />
-    <ClInclude Include="src\RenderContextDX12.h" />
     <ClInclude Include="src\RenderCore.h" />
     <ClInclude Include="src\RenderCore_Platform.h" />
     <ClInclude Include="src\RenderCore_PlatformDX12.h" />
@@ -183,8 +179,6 @@
     <ClCompile Include="src\BlendState.cpp" />
     <ClCompile Include="src\CommandContext.cpp" />
     <ClCompile Include="src\CommandContextDX12.cpp" />
-    <ClCompile Include="src\ComputeContext.cpp" />
-    <ClCompile Include="src\ComputeContextDX12.cpp" />
     <ClCompile Include="src\DataFormat.cpp" />
     <ClCompile Include="src\DescriptorHeapPoolDX12.cpp" />
     <ClCompile Include="src\FileWatcher.cpp" />
@@ -225,8 +219,6 @@
     <ClCompile Include="src\ObjectFactory.cpp" />
     <ClCompile Include="src\ObjectName.cpp" />
     <ClCompile Include="src\PathService.cpp" />
-    <ClCompile Include="src\RenderContext.cpp" />
-    <ClCompile Include="src\RenderContextDX12.cpp" />
     <ClCompile Include="src\RenderCore.cpp" />
     <ClCompile Include="src\RenderCore_PlatformDX12.cpp" />
     <ClCompile Include="src\RendererDX12.cpp" />

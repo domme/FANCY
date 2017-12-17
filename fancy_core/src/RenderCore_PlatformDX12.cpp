@@ -4,7 +4,6 @@
 #include "GpuProgramDX12.h"
 #include "TextureDX12.h"
 #include "GpuBufferDX12.h"
-#include "ComputeContextDX12.h"
 
 #include "MathUtil.h"
 #include "GpuProgram.h"
@@ -12,11 +11,11 @@
 #include "ShaderResourceInterfaceDX12.h"
 #include "GpuProgramCompiler.h"
 #include "DescriptorHeapPoolDX12.h"
-#include "RenderContext.h"
 #include "RenderWindow.h"
 #include "RenderOutputDX12.h"
 #include <malloc.h>
 #include "RenderCore.h"
+#include "CommandContextDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -235,14 +234,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   CommandContext* RenderCore_PlatformDX12::CreateContext(CommandListType aType)
   {
-    switch(aType)
-    {
-      case CommandListType::Graphics:
-        return new RenderContextDX12();
-      case CommandListType::Compute: 
-        return new ComputeContextDX12();
-      default: return nullptr;
-    }
+    return new CommandContextDX12(aType);
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext)
@@ -267,9 +259,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memcpy(mappedBufferPtr, aDataPtr, aBuffer->GetSizeBytes());
     uploadResource->Unmap(0, nullptr);
 
-    ASSERT(aContext->GetType() == CommandListType::Graphics);
-    RenderContextDX12* context = static_cast<RenderContextDX12*>(aContext);
-
+    CommandContextDX12* context = static_cast<CommandContextDX12*>(aContext);
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST, true);
     context->myCommandList->CopyResource(bufferDx12->GetResource(), uploadResource.Get());
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ, true);
@@ -299,8 +289,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memcpy(uploadBufferPtr, aDataPtr, aByteSize);
     uploadResource->Unmap(0, nullptr);
 
-    ASSERT(aContext->GetType() == CommandListType::Graphics);
-    RenderContextDX12* context = static_cast<RenderContextDX12*>(aContext);
+    CommandContextDX12* context = static_cast<CommandContextDX12*>(aContext);
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST, true);
     context->myCommandList->CopyBufferRegion(bufferDx12->GetResource(), aByteOffset, uploadResource.Get(), 0u, aByteSize);
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ, true);
@@ -360,8 +349,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       subDatas[i].RowPitch = someUploadDatas[i].myRowSizeBytes;
     }
 
-    ASSERT(aContext->GetType() == CommandListType::Graphics);
-    RenderContextDX12* context = static_cast<RenderContextDX12*>(aContext);
+    CommandContextDX12* context = static_cast<CommandContextDX12*>(aContext);
 
     GpuResourceState oldUsageState = aTexture->myUsageState;
     context->TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_COPY_DEST, true);

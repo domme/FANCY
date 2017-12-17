@@ -5,7 +5,6 @@
 #include "DX12Prerequisites.h"
 #include "Texture.h"
 #include "FenceDX12.h"
-#include "RenderContextDX12.h"
 #include "CommandAllocatorPoolDX12.h"
 #include "DescriptorHeapPoolDX12.h"
 #include "DescriptorDX12.h"

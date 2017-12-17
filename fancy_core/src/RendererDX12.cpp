@@ -12,7 +12,6 @@
 #include "GpuProgramCompiler.h"
 #include "DescriptorHeapPoolDX12.h"
 #include "Renderer.h"
-#include "RenderContext.h"
 #include "RenderWindow.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 { 

@@ -7,12 +7,13 @@
 #include <RenderCore.h>
 #include <GeometryVertexLayout.h>
 #include <GeometryData.h>
-#include <RenderContext.h>
 #include <RenderView.h>
 #include <RenderOutput.h>
 #include <Texture.h>
 #include "BlendState.h"
 #include "DepthStencilState.h"
+#include "CommandContext.h"
+#include "CommandListType.h"
 
 namespace Fancy { namespace ImGui {
 //---------------------------------------------------------------------------//
@@ -34,7 +35,7 @@ namespace Fancy { namespace ImGui {
   SharedPtr<Rendering::GpuProgramPipeline> ourProgramPipeline;
   SharedPtr<Rendering::BlendState> ourBlendState;
   SharedPtr<Rendering::DepthStencilState> ourDepthStencilState;
-  Rendering::RenderContext* ourRenderContext;
+  Rendering::CommandContext* ourRenderContext;
     
   HWND ourHwnd = nullptr;
   INT64 ourTicksPerSecond = 0;
@@ -242,7 +243,7 @@ namespace Fancy { namespace ImGui {
       ASSERT(ourDepthStencilState != nullptr);
     }
 
-    ourRenderContext = static_cast<Rendering::RenderContext*>(Rendering::RenderCore::AllocateContext(Rendering::CommandListType::Graphics));
+    ourRenderContext = Rendering::RenderCore::AllocateContext(Rendering::CommandListType::Graphics);
     
     return true;
   }

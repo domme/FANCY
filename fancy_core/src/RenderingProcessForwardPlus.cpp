@@ -4,7 +4,6 @@
 #include "Fancy.h"
 #include "RenderQueues.h"
 #include "LightComponent.h"
-#include "RenderContext.h"
 #include "GpuProgramPipeline.h"
 #include "GeometryData.h"
 #include "TimeManager.h"
@@ -18,6 +17,8 @@
 #include "RenderOutput.h"
 #include "Texture.h"
 #include "DepthStencilState.h"
+#include "CommandListType.h"
+#include "CommandContext.h"
 
 namespace Fancy { namespace Rendering {
 
@@ -398,7 +399,7 @@ namespace Fancy { namespace Rendering {
   void RenderingProcessForwardPlus::RenderDebug(const RenderOutput* anOutput)
   {
     const RenderWindow* renderWindow = anOutput->GetWindow();
-    RenderContext* context = static_cast<RenderContext*>(RenderCore::AllocateContext(CommandListType::Graphics));
+    CommandContext* context = RenderCore::AllocateContext(CommandListType::Graphics);
 
     const TextureParams& texParams = myDepthBufferDebugTex->GetParameters();
 
@@ -442,6 +443,8 @@ namespace Fancy { namespace Rendering {
     UpdateDebug(anOutput);
 
     PopulateRenderQueues(aWorld);
+
+    return;
 
     UpdatePerFrameData(aClock);
 
@@ -501,7 +504,7 @@ namespace Fancy { namespace Rendering {
     const Scene::CameraComponent* camera = scene->getActiveCamera();
     const RenderWindow* renderWindow = anOutput->GetWindow();
 
-    RenderContext* context = static_cast<RenderContext*>(RenderCore::AllocateContext(CommandListType::Graphics));
+    CommandContext* context = RenderCore::AllocateContext(CommandListType::Graphics);
 
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
     context->ClearRenderTarget(anOutput->GetBackbuffer(), clearColor);

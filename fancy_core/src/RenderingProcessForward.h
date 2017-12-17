@@ -16,6 +16,7 @@ namespace Fancy { namespace Rendering {
 class Material;
 class BlendState;
 class DepthStencilState;
+class CommandContext;
 
 class DLLEXPORT RenderingProcessForward : public RenderingProcess
 {
@@ -30,7 +31,7 @@ protected:
   void PopulateRenderQueues(const GraphicsWorld* aWorld);
   void FlushRenderQueues(const GraphicsWorld* aWorld, const RenderOutput* anOutput, const Time& aClock) const;
 
-  static void BindResources_ForwardColorPass(RenderContext* aRenderContext, const Material* aMaterial);
+  static void BindResources_ForwardColorPass(CommandContext* aRenderContext, const Material* aMaterial);
 
   void UpdatePerFrameData(const Time& aClock) const;
   void UpdatePerCameraData(const Scene::CameraComponent* aCamera) const;

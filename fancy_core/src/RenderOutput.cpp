@@ -9,8 +9,8 @@ namespace Fancy { namespace Rendering {
   {
     Fancy::WindowParameters params;
     params.myTitle = "Fancy Engine";
-    params.myWidth = 1280u;
-    params.myHeight = 720u;
+    params.myWidth = 800u;
+    params.myHeight = 600u;
 
     HINSTANCE instanceHandle = static_cast<HINSTANCE>(aNativeInstanceHandle);
 

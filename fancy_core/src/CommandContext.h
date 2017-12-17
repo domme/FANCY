@@ -8,8 +8,37 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class Descriptor;
   class GpuResource;  
+  class DepthStencilState;
+  class BlendState;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT CommandContext
+  struct GraphicsPipelineState
+  {
+    GraphicsPipelineState();
+    uint GetHash() const;
+
+    FillMode myFillMode;
+    CullMode myCullMode;
+    WindingOrder myWindingOrder;
+    SharedPtr<DepthStencilState> myDepthStencilState;
+    SharedPtr<BlendState> myBlendState;
+    SharedPtr<GpuProgramPipeline> myGpuProgramPipeline;
+    uint8 myNumRenderTargets;
+    DataFormat myRTVformats[Constants::kMaxNumRenderTargets];
+    DataFormat myDSVformat;
+
+    bool myIsDirty : 1;
+  };
+//---------------------------------------------------------------------------//
+  struct ComputePipelineState
+  {
+    ComputePipelineState();
+    uint GetHash() const;
+
+    const GpuProgram* myGpuProgram;
+    bool myIsDirty;
+  };
+//---------------------------------------------------------------------------//
+  class CommandContext
   {
   public:
     CommandContext(CommandListType aType);
@@ -23,16 +52,41 @@ namespace Fancy { namespace Rendering {
     virtual void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow = false) = 0;
     virtual uint64 ExecuteAndReset(bool aWaitForCompletion = false) = 0;
     virtual void Reset() = 0;
-
-    // Root arguments:
+    virtual void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) = 0;
     virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const = 0;
-    
-    // Descriptor tables:
     virtual void BindDescriptorSet(const Descriptor** someDescriptors, uint32 aResourceCount, uint32 aRegisterIndex) = 0;
+    virtual void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) = 0;
+    virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) = 0;
+    virtual void RenderGeometry(const Geometry::GeometryData* pGeometry) = 0;
+
+    virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
+    virtual void SetComputeProgram(const GpuProgram* aProgram);
+    virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
+    
+    void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
+    const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
+    void SetBlendState(const SharedPtr<BlendState>& aBlendState);
+    void SetDepthStencilState(const SharedPtr<DepthStencilState>& aDepthStencilState);
+    void SetFillMode(const FillMode eFillMode);
+    void SetCullMode(const CullMode eCullMode);
+    void SetWindingOrder(const WindingOrder eWindingOrder);
+    void SetDepthStencilRenderTarget(Texture* pDStexture);
+    void SetRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
+    void RemoveAllRenderTargets();
     
   protected:
-
     CommandListType myCommandListType;
+
+    GraphicsPipelineState myGraphicsPipelineState;
+    ComputePipelineState myComputePipelineState;
+
+    glm::uvec4 myViewportParams;
+    glm::uvec4 myClipRect;
+    bool myViewportDirty;
+    bool myClipRectDirty;
+    Texture* myRenderTargets[Rendering::Constants::kMaxNumRenderTargets];
+    Texture* myDepthStencilTarget;
+    bool myRenderTargetsDirty;
   };
 //---------------------------------------------------------------------------//
 } }

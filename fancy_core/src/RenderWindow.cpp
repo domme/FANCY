@@ -90,8 +90,8 @@ namespace Fancy {
       "WindowClass1",
       "Fancy",
       WS_OVERLAPPEDWINDOW,
-      300,
-      300,
+      100,
+      100,
       windowRect.right - windowRect.left,
       windowRect.bottom - windowRect.top,
       NULL,		// We have no parent window, NULL.

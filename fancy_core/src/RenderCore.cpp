@@ -20,6 +20,7 @@
 #include "VertexInputLayout.h"
 #include "TextureDesc.h"
 #include "RenderOutput.h"
+#include "CommandContext.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy { namespace Rendering {

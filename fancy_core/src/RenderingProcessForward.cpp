@@ -4,7 +4,6 @@
 #include "Fancy.h"
 #include "RenderQueues.h"
 #include "LightComponent.h"
-#include "RenderContext.h"
 #include "GpuProgramPipeline.h"
 #include "GeometryData.h"
 #include "TimeManager.h"
@@ -16,6 +15,8 @@
 #include "Mesh.h"
 #include "BlendState.h"
 #include "RenderOutput.h"
+#include "CommandListType.h"
+#include "CommandContext.h"
 #include "Texture.h"
 
 namespace Fancy { namespace Rendering {
@@ -422,7 +423,7 @@ namespace Fancy { namespace Rendering {
     UpdatePerFrameData(aClock);
     UpdatePerCameraData(camera);
 
-    RenderContext* context = static_cast<RenderContext*>(RenderCore::AllocateContext(CommandListType::Graphics));
+    CommandContext* context = RenderCore::AllocateContext(CommandListType::Graphics);
 
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
     context->ClearRenderTarget(anOutput->GetBackbuffer(), clearColor);
@@ -436,7 +437,7 @@ namespace Fancy { namespace Rendering {
     context->SetRenderTarget(anOutput->GetBackbuffer(), 0u);
     context->SetDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
 
-    //context->SetDepthStencilState(nullptr);
+    context->SetDepthStencilState(nullptr);
     context->SetBlendState(myBlendStateAdd);
     context->SetBlendState(nullptr);
     context->SetCullMode(CullMode::NONE);
@@ -481,7 +482,7 @@ namespace Fancy { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderingProcessForward::BindResources_ForwardColorPass(RenderContext* aContext, const Material* aMaterial)
+  void RenderingProcessForward::BindResources_ForwardColorPass(CommandContext* aContext, const Material* aMaterial)
   {
     const uint32 kNumTextures = 3u;
     const Descriptor* descriptorsToBind[kNumTextures];

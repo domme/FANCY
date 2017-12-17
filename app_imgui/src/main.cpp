@@ -98,7 +98,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
       ImGui::ShowTestWindow(&show_test_window);
     }
     
-    ImGui::Render();
+    // ImGui::Render();
 
     pRuntime->EndFrame();
   }
