@@ -438,7 +438,7 @@ namespace Fancy { namespace Rendering {
     context->SetDepthStencilRenderTarget(anOutput->GetDefaultDepthStencilBuffer());
 
     context->SetDepthStencilState(nullptr);
-    context->SetBlendState(myBlendStateAdd);
+    // context->SetBlendState(myBlendStateAdd);
     context->SetBlendState(nullptr);
     context->SetCullMode(CullMode::NONE);
     context->SetFillMode(FillMode::SOLID);

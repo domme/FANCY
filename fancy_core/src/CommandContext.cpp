@@ -174,8 +174,6 @@ namespace Fancy { namespace Rendering {
   //---------------------------------------------------------------------------//
   void CommandContext::SetDepthStencilRenderTarget(Texture* pDStexture)
   {
-    TransitionResource(pDStexture, GpuResourceState::RESOURCE_STATE_DEPTH_WRITE, true);
-
     if (myDepthStencilTarget == pDStexture)
       return;
 
@@ -217,7 +215,7 @@ namespace Fancy { namespace Rendering {
       myGraphicsPipelineState.myRTVformats[i] = DataFormat::NONE;
 
     myGraphicsPipelineState.myDSVformat = DataFormat::NONE;
-    myGraphicsPipelineState.myIsDirty = true;
+    // myGraphicsPipelineState.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
 
