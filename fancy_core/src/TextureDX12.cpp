@@ -186,7 +186,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
       dsvDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH | D3D12_DSV_FLAG_READ_ONLY_STENCIL;
       myDsvDescriptorReadOnly = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-      platformDx12->GetDevice()->CreateDepthStencilView(myResource.Get(), &dsvDesc, myDsvDescriptor.myCpuHandle);
+      platformDx12->GetDevice()->CreateDepthStencilView(myResource.Get(), &dsvDesc, myDsvDescriptorReadOnly.myCpuHandle);
 
       D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
       srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
