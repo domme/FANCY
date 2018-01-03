@@ -49,7 +49,6 @@ namespace Fancy { namespace Rendering {
     virtual void ClearRenderTarget(Texture* aTexture, const float* aColor) = 0;
     virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) = 0;
-    virtual void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState, bool aKickoffNow = false) = 0;
     virtual uint64 ExecuteAndReset(bool aWaitForCompletion = false) = 0;
     virtual void Reset() = 0;
     virtual void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) = 0;
@@ -58,7 +57,19 @@ namespace Fancy { namespace Rendering {
     virtual void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) = 0;
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) = 0;
     virtual void RenderGeometry(const Geometry::GeometryData* pGeometry) = 0;
-
+    virtual void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) = 0;
+    
+    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState);
+    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
+                            GpuResource* aResource2, GpuResourceState aTransitionToState2);
+    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
+                            GpuResource* aResource2, GpuResourceState aTransitionToState2,
+                            GpuResource* aResource3, GpuResourceState aTransitionToState3);
+    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
+                            GpuResource* aResource2, GpuResourceState aTransitionToState2,
+                            GpuResource* aResource3, GpuResourceState aTransitionToState3,
+                            GpuResource* aResource4, GpuResourceState aTransitionToState4);
+    
     virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
     virtual void SetComputeProgram(const GpuProgram* aProgram);
     virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height

@@ -38,7 +38,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     CommandContextDX12* context = 
       static_cast<CommandContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
-    context->TransitionResource(currBackbuffer, GpuResourceState::RESOURCE_STATE_PRESENT, true);
+    context->TransitionResource(currBackbuffer, GpuResourceState::RESOURCE_STATE_PRESENT);
     context->ExecuteAndReset(false);
     RenderCore::FreeContext(context);
 

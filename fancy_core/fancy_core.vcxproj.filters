@@ -253,9 +253,6 @@
     <ClInclude Include="src\GpuResourceDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuDynamicAllocatorDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="src\CommandAllocatorPoolDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
@@ -532,9 +529,6 @@
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\GpuResourceDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GpuDynamicAllocatorDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="src\CommandAllocatorPoolDX12.cpp">

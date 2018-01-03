@@ -37,12 +37,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   CommandContextDX12::CommandContextDX12(CommandListType aCommandListType)
     : CommandContext(aCommandListType)
-    , myCpuVisibleAllocator(aCommandListType, GpuDynamicAllocatorType::CpuWritable)
-    , myGpuOnlyAllocator(aCommandListType, GpuDynamicAllocatorType::GpuOnly)
     , myRootSignature(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
-    , myIsInRecordState(true)
   {
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
 
@@ -54,14 +51,19 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandList(0, nativeCmdListType,
         myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
     );
-
-    Reset_Internal();
   }
 //---------------------------------------------------------------------------//
   CommandContextDX12::~CommandContextDX12()
   {
     Reset();
-    Destroy();
+
+    if (myCommandList != nullptr)
+      myCommandList->Release();
+
+    myCommandList = nullptr;
+
+    if (myCommandAllocator != nullptr)
+      ReleaseAllocator(0u);
   }
 //---------------------------------------------------------------------------//
   D3D12_DESCRIPTOR_HEAP_TYPE CommandContextDX12::ResolveDescriptorHeapTypeFromMask(uint32 aDescriptorTypeMask)
@@ -73,40 +75,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     ASSERT(false, "unsupported descriptor type mask");
     return (D3D12_DESCRIPTOR_HEAP_TYPE)-1;
-  }
-//---------------------------------------------------------------------------//
-  void CommandContextDX12::Destroy()
-  {
-    if (myCommandList != nullptr)
-      myCommandList->Release();
-
-    myCommandList = nullptr;
-
-    if (myCommandAllocator != nullptr)
-      ReleaseAllocator(0u);
-  }
-//---------------------------------------------------------------------------//
-  void CommandContextDX12::Reset_Internal()
-  {
-    if (myIsInRecordState)
-      return;
-
-    ASSERT(nullptr == myCommandAllocator, "myIsInRecordState-flag out of sync");
-
-    myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
-    ASSERT(myCommandAllocator != nullptr);
-
-    CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
-
-    myIsInRecordState = true;
-
-    ResetRootSignatureAndHeaps();
-  }
-//---------------------------------------------------------------------------//
-  void CommandContextDX12::ResetRootSignatureAndHeaps()
-  {
-    myRootSignature = nullptr;
-    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap)
@@ -222,16 +190,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (numHeapsToBind > 0u)
       myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
   }
-  //---------------------------------------------------------------------------//
-  void CommandContextDX12::KickoffResourceBarriers()
-  {
-    if (myWaitingResourceBarriers.empty())
-      return;
-
-    myCommandList->ResourceBarrier(myWaitingResourceBarriers.size(), &myWaitingResourceBarriers[0]);
-    myWaitingResourceBarriers.clear();
-  }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandContextDX12::ReleaseAllocator(uint64 aFenceVal)
   {
     RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, myCommandListType, aFenceVal);
@@ -286,7 +245,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     ASSERT(aTexture->GetParameters().myIsRenderTarget);
 
-    TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_RENDER_TARGET, true);
+    TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_RENDER_TARGET);
 
     TextureDX12* textureDX12 = static_cast<TextureDX12*>(aTexture);
     ASSERT(textureDX12->GetRtv() != nullptr, "Texture doesn't appear to be a render target");
@@ -300,7 +259,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     TextureDX12* textureDX12 = static_cast<TextureDX12*>(aTexture);
     ASSERT(textureDX12->GetDsv() != nullptr, "Texture doesn't appear to be a depth-stencil target");
 
-    TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_DEPTH_WRITE, true);
+    TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_DEPTH_WRITE);
 
     D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS)0;
     if (someClearFlags & (uint32)DepthStencilClearFlags::CLEAR_DEPTH)
@@ -316,71 +275,74 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     GpuResourceState oldDestState = aDestResource->myUsageState;
     GpuResourceState oldSrcState = aSrcResource->myUsageState;
 
-    TransitionResource(aDestResource, GpuResourceState::RESOURCE_STATE_COPY_DEST);
-    TransitionResource(aSrcResource, GpuResourceState::RESOURCE_STATE_COPY_SRC);
-    KickoffResourceBarriers();
+    TransitionResource(aDestResource, GpuResourceState::RESOURCE_STATE_COPY_DEST,
+                       aSrcResource, GpuResourceState::RESOURCE_STATE_COPY_SRC);
 
     GpuResourceDX12* destResourceDX12 = CastGpuResourceDX12(aDestResource);
     GpuResourceDX12* srcResourceDX12 = CastGpuResourceDX12(aSrcResource);
 
     myCommandList->CopyResource(destResourceDX12->GetResource(), srcResourceDX12->GetResource());
 
-    TransitionResource(aDestResource, oldDestState);
-    TransitionResource(aSrcResource, oldSrcState);
-    KickoffResourceBarriers();
+    TransitionResource(aDestResource, oldDestState,
+                       aSrcResource, oldSrcState);
   }
-  //---------------------------------------------------------------------------//
-  void CommandContextDX12::TransitionResource(GpuResource* aResource, GpuResourceState aDestState, bool aKickoffNow /*= false*/)
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources)
   {
-    if (aResource->myUsageState == aDestState)
-      return;
-
-    GpuResourceDX12* dxResource = CastGpuResourceDX12(aResource);
-
-    D3D12_RESOURCE_BARRIER barrier;
-    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Transition.pResource = dxResource->GetResource();
-    barrier.Transition.StateBefore = Adapter::toNativeType(aResource->myUsageState);
-    barrier.Transition.StateAfter = Adapter::toNativeType(aDestState);
-    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-
-    aResource->myUsageState = aDestState;
-
-    myWaitingResourceBarriers.push_back(barrier);
-
-    if (aKickoffNow || myWaitingResourceBarriers.IsFull())
+    D3D12_RESOURCE_BARRIER* barriers = static_cast<D3D12_RESOURCE_BARRIER*>(alloca(sizeof(D3D12_RESOURCE_BARRIER) * aNumResources));
+    uint numBarriers = 0;
+    for (uint i = 0; i < aNumResources; ++i)
     {
-      KickoffResourceBarriers();
+      GpuResource* resource = someResources[i];
+      GpuResourceState destState = someTransitionToStates[i];
+      
+      if (resource->myUsageState == destState)
+        continue;
+
+      D3D12_RESOURCE_BARRIER& barrier = barriers[numBarriers++];
+
+      GpuResourceDX12* dxResource = CastGpuResourceDX12(resource);
+      barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+      barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+      barrier.Transition.pResource = dxResource->GetResource();
+      barrier.Transition.StateBefore = Adapter::toNativeType(resource->myUsageState);
+      barrier.Transition.StateAfter = Adapter::toNativeType(destState);
+      barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+      resource->myUsageState = destState;
     }
+
+    myCommandList->ResourceBarrier(numBarriers, barriers);
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   uint64 CommandContextDX12::ExecuteAndReset(bool aWaitForCompletion)
   {
-    KickoffResourceBarriers();
-
     ASSERT(myCommandAllocator != nullptr && myCommandList != nullptr);
     CheckD3Dcall(myCommandList->Close());
-    myIsInRecordState = false;
 
     uint64 fenceVal = RenderCore::GetPlatformDX12()->ExecuteCommandList(myCommandList);
 
-    myCpuVisibleAllocator.CleanupAfterCmdListExecute(fenceVal);
-    myGpuOnlyAllocator.CleanupAfterCmdListExecute(fenceVal);
     ReleaseDynamicHeaps(fenceVal);
     ReleaseAllocator(fenceVal);
 
     if (aWaitForCompletion)
       RenderCore::GetPlatformDX12()->WaitForFence(myCommandListType, fenceVal);
-
-    Reset_Internal();
-
+    
+    Reset();
+    
     return fenceVal;
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandContextDX12::Reset()
   {
-    Reset_Internal();
+    myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
+    ASSERT(myCommandAllocator != nullptr);
+    
+    myCommandList->Close();
+    CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
+
+    myRootSignature = nullptr;
+    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
@@ -760,8 +722,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (dsvTargetDx12)
       TransitionResource(dsvTargetDx12, GpuResourceState::RESOURCE_STATE_DEPTH_WRITE);
 
-    KickoffResourceBarriers();
-
     if (myDepthStencilTarget)
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvTargetDx12->GetDsv()->myCpuHandle);
     else
@@ -854,7 +814,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void CommandContextDX12::Dispatch(size_t aThreadGroupCountX, size_t aThreadGroupCountY, size_t aThreadGroupCountZ)
   {
     ApplyPipelineState();
-    KickoffResourceBarriers();
     myCommandList->Dispatch(aThreadGroupCountX, aThreadGroupCountY, aThreadGroupCountZ);
   }
 //---------------------------------------------------------------------------//

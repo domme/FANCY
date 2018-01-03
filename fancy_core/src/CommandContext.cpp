@@ -77,6 +77,34 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
+  void CommandContext::TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState)
+  {
+    GpuResource* resources[] = { aResource };
+    GpuResourceState states[] = { aTransitionToState };
+    TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1, GpuResource* aResource2, GpuResourceState aTransitionToState2)
+  {
+    GpuResource* resources[] = { aResource1, aResource2 };
+    GpuResourceState states[] = { aTransitionToState1, aTransitionToState2 };
+    TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1, GpuResource* aResource2, GpuResourceState aTransitionToState2, GpuResource* aResource3, GpuResourceState aTransitionToState3)
+  {
+    GpuResource* resources[] = { aResource1, aResource2, aResource3 };
+    GpuResourceState states[] = { aTransitionToState1, aTransitionToState2, aTransitionToState3 };
+    TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1, GpuResource* aResource2, GpuResourceState aTransitionToState2, GpuResource* aResource3, GpuResourceState aTransitionToState3, GpuResource* aResource4, GpuResourceState aTransitionToState4)
+  {
+    GpuResource* resources[] = { aResource1, aResource2, aResource3, aResource4 };
+    GpuResourceState states[] = { aTransitionToState1, aTransitionToState2, aTransitionToState3, aTransitionToState4 };
+    TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // Render Context:
