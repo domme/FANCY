@@ -1,6 +1,6 @@
 #include "GpuBufferDX12.h"
 #include "Fancy.h"
-#include "DescriptorHeapPoolDX12.h"
+#include "DescriptorHeapDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
@@ -55,7 +55,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (wantsConstantBufferView)
       myAlignment = 256u;
 
-    uint32 actualWidthBytesWithAlignment = 
+    uint actualWidthBytesWithAlignment = 
       MathUtil::Align(someParameters.uNumElements * someParameters.uElementSizeBytes, myAlignment);
 
     D3D12_RESOURCE_DESC resourceDesc;

@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "Fancy.h"
-#include "DescriptorHeapPoolDX12.h"
 #include "AdapterDX12.h"
 
 #include "TextureSamplerDX12.h"

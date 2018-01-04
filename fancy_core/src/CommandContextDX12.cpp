@@ -55,7 +55,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   CommandContextDX12::~CommandContextDX12()
   {
-    Reset();
+    CommandContextDX12::Reset();
 
     if (myCommandList != nullptr)
       myCommandList->Release();
@@ -335,6 +335,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::Reset()
   {
+    CommandContext::Reset();
+
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
     
@@ -343,13 +345,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myRootSignature = nullptr;
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
-
-    myGraphicsPipelineState = GraphicsPipelineState();
-    myComputePipelineState = ComputePipelineState();
-    myViewportDirty = true;
-    myRenderTargetsDirty = true;
-    myDepthStencilTarget = nullptr;
-    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
   }
 //---------------------------------------------------------------------------//
   D3D12_GRAPHICS_PIPELINE_STATE_DESC CommandContextDX12::GetNativePSOdesc(const GraphicsPipelineState& aState)

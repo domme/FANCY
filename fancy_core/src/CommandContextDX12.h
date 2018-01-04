@@ -25,8 +25,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ~CommandContextDX12() override;
 
     void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const;
-    void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
-
+    
     void ClearRenderTarget(Texture* aTexture, const float* aColor) override;
     void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) override;
     void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) override;
@@ -44,6 +43,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) override;
 
   protected:
+    void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
     void ApplyDescriptorHeaps();
     void ReleaseAllocator(uint64 aFenceVal);
     void ReleaseDynamicHeaps(uint64 aFenceVal);

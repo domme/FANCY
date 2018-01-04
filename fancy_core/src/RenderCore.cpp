@@ -627,7 +627,7 @@ namespace Fancy { namespace Rendering {
     if (std::find(availableContextList.begin(), availableContextList.end(), aContext)
       != availableContextList.end())
       return;
-
+    
     availableContextList.push_back(aContext);
   }
 //---------------------------------------------------------------------------//

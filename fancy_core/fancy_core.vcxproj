@@ -73,7 +73,7 @@
     <ClInclude Include="src\DataFormat.h" />
     <ClInclude Include="src\Descriptor.h" />
     <ClInclude Include="src\DescriptorDX12.h" />
-    <ClInclude Include="src\DescriptorHeapPoolDX12.h" />
+    <ClInclude Include="src\DescriptorHeapDX12.h" />
     <ClInclude Include="src\EngineParameters.h" />
     <ClInclude Include="src\Fancy_Include.h" />
     <ClInclude Include="src\FileWatcher.h" />
@@ -179,7 +179,7 @@
     <ClCompile Include="src\CommandContext.cpp" />
     <ClCompile Include="src\CommandContextDX12.cpp" />
     <ClCompile Include="src\DataFormat.cpp" />
-    <ClCompile Include="src\DescriptorHeapPoolDX12.cpp" />
+    <ClCompile Include="src\DescriptorHeapDX12.cpp" />
     <ClCompile Include="src\FileWatcher.cpp" />
     <ClCompile Include="src\GpuBuffer.cpp" />
     <ClCompile Include="src\GpuBufferDX12.cpp" />

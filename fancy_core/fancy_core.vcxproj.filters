@@ -271,9 +271,6 @@
     <ClInclude Include="src\ObjectPool.h">
       <Filter>src\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\DescriptorHeapPoolDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="src\Log.h">
       <Filter>src\Common</Filter>
     </ClInclude>
@@ -369,6 +366,9 @@
     </ClInclude>
     <ClInclude Include="src\RenderingProcessForwardPlus.h">
       <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DescriptorHeapDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -537,9 +537,6 @@
     <ClCompile Include="src\Fancy.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\DescriptorHeapPoolDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClCompile>
     <ClCompile Include="src\FC_String.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
@@ -608,6 +605,9 @@
     </ClCompile>
     <ClCompile Include="src\RenderingProcessForwardPlus.cpp">
       <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DescriptorHeapDX12.cpp">
+      <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

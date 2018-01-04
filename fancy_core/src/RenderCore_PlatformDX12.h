@@ -6,8 +6,10 @@
 #include "Texture.h"
 #include "FenceDX12.h"
 #include "CommandAllocatorPoolDX12.h"
-#include "DescriptorHeapPoolDX12.h"
+#include "DescriptorHeapDX12.h"
 #include "DescriptorDX12.h"
+
+#include <queue>
 
 namespace Fancy {
   class RenderWindow;
@@ -25,6 +27,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   public:
     RenderCore_PlatformDX12();
     ~RenderCore_PlatformDX12() override;
+    // Disallow copy and assignment (class contains a list of unique_ptrs)
+    RenderCore_PlatformDX12(const RenderCore_PlatformDX12&) = delete;
+    RenderCore_PlatformDX12& operator=(const RenderCore_PlatformDX12&) = delete;
 
     bool IsInitialized() override { return ourDevice.Get() != nullptr; }
     bool InitInternalResources() override;
@@ -51,7 +56,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal);
 
     DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    DescriptorHeapPoolDX12* GetDescriptorHeapPool() const { return ourDynamicDescriptorHeapPool; }
     DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal);
 
@@ -76,7 +80,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     FenceDX12 ourCmdListDoneFences[(uint)CommandListType::NUM];
 
   protected:
-    DescriptorHeapPoolDX12* ourDynamicDescriptorHeapPool;
+    struct FenceInfo
+    {
+      CommandListType myType;
+      uint64 myFenceVal;
+    };
+
+    std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
+    std::deque<DescriptorHeapDX12*> myAvailableDynamicHeaps;
+    std::queue<std::pair<FenceInfo, DescriptorHeapDX12*>> myUsedDynamicHeaps;
+    
     DescriptorHeapDX12 ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
   };
 //---------------------------------------------------------------------------//

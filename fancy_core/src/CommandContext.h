@@ -50,7 +50,6 @@ namespace Fancy { namespace Rendering {
     virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) = 0;
     virtual uint64 ExecuteAndReset(bool aWaitForCompletion = false) = 0;
-    virtual void Reset() = 0;
     virtual void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) = 0;
     virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const = 0;
     virtual void BindDescriptorSet(const Descriptor** someDescriptors, uint32 aResourceCount, uint32 aRegisterIndex) = 0;
@@ -59,20 +58,21 @@ namespace Fancy { namespace Rendering {
     virtual void RenderGeometry(const Geometry::GeometryData* pGeometry) = 0;
     virtual void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) = 0;
     
-    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState);
-    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
-                            GpuResource* aResource2, GpuResourceState aTransitionToState2);
-    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
-                            GpuResource* aResource2, GpuResourceState aTransitionToState2,
-                            GpuResource* aResource3, GpuResourceState aTransitionToState3);
-    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
-                            GpuResource* aResource2, GpuResourceState aTransitionToState2,
-                            GpuResource* aResource3, GpuResourceState aTransitionToState3,
-                            GpuResource* aResource4, GpuResourceState aTransitionToState4);
-    
     virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
     virtual void SetComputeProgram(const GpuProgram* aProgram);
     virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
+    virtual void Reset();
+
+    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState);
+    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
+      GpuResource* aResource2, GpuResourceState aTransitionToState2);
+    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
+      GpuResource* aResource2, GpuResourceState aTransitionToState2,
+      GpuResource* aResource3, GpuResourceState aTransitionToState3);
+    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
+      GpuResource* aResource2, GpuResourceState aTransitionToState2,
+      GpuResource* aResource3, GpuResourceState aTransitionToState3,
+      GpuResource* aResource4, GpuResourceState aTransitionToState4);
     
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height

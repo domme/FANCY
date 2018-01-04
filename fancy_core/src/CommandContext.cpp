@@ -140,6 +140,19 @@ namespace Fancy { namespace Rendering {
     myClipRectDirty = true;
   }
 //---------------------------------------------------------------------------//
+  void CommandContext::Reset()
+  {
+    myGraphicsPipelineState = GraphicsPipelineState();
+    myComputePipelineState = ComputePipelineState();
+    
+    myViewportParams = glm::uvec4(0, 0, 1, 1);
+    myClipRect = glm::uvec4(0, 0, 1, 1);
+    myViewportDirty = true;
+    myRenderTargetsDirty = true;
+    myDepthStencilTarget = nullptr;
+    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
+  }
+//---------------------------------------------------------------------------//
   void CommandContext::SetViewport(const glm::uvec4& uViewportParams)
   {
     if (myViewportParams == uViewportParams)
@@ -243,7 +256,7 @@ namespace Fancy { namespace Rendering {
       myGraphicsPipelineState.myRTVformats[i] = DataFormat::NONE;
 
     myGraphicsPipelineState.myDSVformat = DataFormat::NONE;
-    // myGraphicsPipelineState.myIsDirty = true;
+    myGraphicsPipelineState.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
 

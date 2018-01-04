@@ -16,7 +16,7 @@ namespace Fancy { namespace Rendering {
     GpuBufferDesc GetDescription() const;
 
     uint GetSizeBytes() const { return myParameters.uNumElements * myParameters.uElementSizeBytes; }
-    uint32 GetNumElements() const { return myParameters.uNumElements; }
+    uint GetNumElements() const { return myParameters.uNumElements; }
     GpuBufferCreationParams GetParameters() const { return myParameters; }
     uint32 GetAlignment() const { return myAlignment; }
 
