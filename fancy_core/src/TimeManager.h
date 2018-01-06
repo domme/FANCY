@@ -16,7 +16,7 @@ namespace Fancy {
     NUM
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT Time 
+  class Time 
   {
     public:
       Time();
@@ -30,15 +30,15 @@ namespace Fancy {
 
       float GetElapsed() const {return myElapsedTime;}
 
-      Slot<void()>& GetTimedUpdateSlot(TimedUpdateInterval anInterval) { return myOnTimeIntervalElapsed[(uint32)anInterval]; }
+      Slot<void()>& GetTimedUpdateSlot(TimedUpdateInterval anInterval) { return myOnTimeIntervalElapsed[(uint)anInterval]; }
 
     private:
       float myElapsedTime;
       float myTimeScale;
       float myDerivedDeltaTime;
 
-      Slot<void()> myOnTimeIntervalElapsed[(uint32) TimedUpdateInterval::NUM];
-      float myLastUpdateTimes[(uint32)TimedUpdateInterval::NUM];
+      Slot<void()> myOnTimeIntervalElapsed[(uint) TimedUpdateInterval::NUM];
+      float myLastUpdateTimes[(uint)TimedUpdateInterval::NUM];
   };
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

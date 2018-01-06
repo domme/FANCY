@@ -9,7 +9,7 @@ namespace Fancy {
   class ObjectPool : public SmallObjectAllocator<T>
   {
   public:
-    ObjectPool(uint32 anExpectedObjectNum = 256u) 
+    ObjectPool(uint anExpectedObjectNum = 256u) 
       : SmallObjectAllocator<T>(anExpectedObjectNum / 64u)
     {}
   };

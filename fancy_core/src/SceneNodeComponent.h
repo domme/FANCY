@@ -1,5 +1,4 @@
-#ifndef INCLUDE_SCENENODECOMPONENT_H
-#define INCLUDE_SCENENODECOMPONENT_H
+#pragma once
 
 #include "ObjectName.h"
 #include "Serializable.h"
@@ -14,7 +13,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   class SceneNode;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT SceneNodeComponent
+  class SceneNodeComponent
   {
     friend class SceneNode;
 
@@ -49,5 +48,3 @@ namespace Fancy { namespace Scene {
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Scene
-
-#endif  // INCLUDE_SCENENODECOMPONENT_H

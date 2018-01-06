@@ -25,7 +25,7 @@ namespace Fancy { namespace Rendering {
   {
     GpuProgramPipelineDesc desc;
 
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
       const GpuProgram* pProgram = myGpuPrograms[i].get();
       if (pProgram)
@@ -35,9 +35,9 @@ namespace Fancy { namespace Rendering {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipeline::SetFromShaders(const std::array<SharedPtr<GpuProgram>, (uint32)ShaderStage::NUM>& someShaders)
+  void GpuProgramPipeline::SetFromShaders(const std::array<SharedPtr<GpuProgram>, (uint)ShaderStage::NUM>& someShaders)
   {
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
       myGpuPrograms[i] = someShaders[i];
 
     UpdateResourceInterface();
@@ -47,7 +47,7 @@ namespace Fancy { namespace Rendering {
   void GpuProgramPipeline::UpdateResourceInterface()
   {
     myResourceInterface = nullptr;
-    if (GpuProgram* vertexShader = myGpuPrograms[(uint32)ShaderStage::VERTEX].get())
+    if (GpuProgram* vertexShader = myGpuPrograms[(uint)ShaderStage::VERTEX].get())
     {
       myResourceInterface = vertexShader->GetResourceInterface();
     }

@@ -8,7 +8,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
   struct GpuBufferDesc
   {
-    uint32 myInternalRefIndex;  // The internal index of a texture used by the engine. Can be some semantics-enum defined by the renderingprocess (e.g. GBUFFER)
+    uint myInternalRefIndex;  // The internal index of a texture used by the engine. Can be some semantics-enum defined by the renderingprocess (e.g. GBUFFER)
 
     GpuBufferDesc() : myInternalRefIndex(~0u) {}
 

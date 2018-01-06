@@ -14,7 +14,7 @@ namespace Fancy { namespace Scene {
     AREA
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT LightComponent :
+  class LightComponent final :
     public SceneNodeComponent, public BaseCreator<LightComponent>
   {
     public:
@@ -23,11 +23,11 @@ namespace Fancy { namespace Scene {
       LightComponent();
       ~LightComponent() override;
 
-      virtual ObjectName getTypeName() const override { return _N(LightComponent); }
-      virtual void Serialize(IO::Serializer* aSerializer) override;
+      ObjectName getTypeName() const override { return _N(LightComponent); }
+      void Serialize(IO::Serializer* aSerializer) override;
 
-      virtual void init() override;
-      virtual void update() override;
+      void init() override;
+      void update() override;
 
       ELightType getType() const { return m_eType; }
       void setType(ELightType _type) { m_eType = _type; }

@@ -21,9 +21,9 @@ namespace Fancy { namespace Rendering {
     myBlendState = RenderCore::GetDefaultBlendState();
   }
 //---------------------------------------------------------------------------//
-  uint GraphicsPipelineState::GetHash() const
+  uint64 GraphicsPipelineState::GetHash() const
   {
-    uint hash = 0u;
+    uint64 hash = 0u;
     MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myCullMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
@@ -37,7 +37,7 @@ namespace Fancy { namespace Rendering {
     MathUtil::hash_combine(hash, myNumRenderTargets);
 
     for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
-      MathUtil::hash_combine(hash, reinterpret_cast<uint>(myRTVformats));
+      MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myRTVformats));
 
     MathUtil::hash_combine(hash, static_cast<uint>(myDSVformat));
 
@@ -66,9 +66,9 @@ namespace Fancy { namespace Rendering {
   {
   }
   //---------------------------------------------------------------------------//
-  uint ComputePipelineState::GetHash() const
+  uint64 ComputePipelineState::GetHash() const
   {
-    uint hash = 0u;
+    uint64 hash = 0u;
     MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgram));
 
     if (myGpuProgram != nullptr)
@@ -168,7 +168,7 @@ namespace Fancy { namespace Rendering {
       aBlendState ? aBlendState : RenderCore::GetDefaultBlendState();
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
-    const uint requestedHash = stateToSet->GetHash();
+    const uint64 requestedHash = stateToSet->GetHash();
 
     if (pipelineState.myBlendState->GetHash() == requestedHash)
       return;
@@ -183,7 +183,7 @@ namespace Fancy { namespace Rendering {
       aDepthStencilState ? aDepthStencilState : RenderCore::GetDefaultDepthStencilState();
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
-    uint requestedHash = stateToSet->GetHash();
+    uint64 requestedHash = stateToSet->GetHash();
 
     if (pipelineState.myDepthStencilState->GetHash() == requestedHash)
       return;
@@ -252,7 +252,7 @@ namespace Fancy { namespace Rendering {
     myRenderTargetsDirty = true;
 
     myGraphicsPipelineState.myNumRenderTargets = 0u;
-    for (uint32 i = 0u; i < ARRAY_LENGTH(myGraphicsPipelineState.myRTVformats); ++i)
+    for (uint i = 0u; i < ARRAY_LENGTH(myGraphicsPipelineState.myRTVformats); ++i)
       myGraphicsPipelineState.myRTVformats[i] = DataFormat::NONE;
 
     myGraphicsPipelineState.myDSVformat = DataFormat::NONE;

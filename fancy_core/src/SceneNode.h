@@ -17,7 +17,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   class Scene;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT Transform
+  class Transform
   {
   private:
     friend class SceneNode;
@@ -63,7 +63,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   class SceneRenderDescription;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT SceneNode
+  class SceneNode
   {
     public: 
       SERIALIZABLE(SceneNode)
@@ -132,7 +132,7 @@ namespace Fancy { namespace Scene {
 
 class SceneManager;
 
-class DLLEXPORT  SceneNode
+class  SceneNode
 {
   friend class SceneManager;
   friend class SceneLoader;	

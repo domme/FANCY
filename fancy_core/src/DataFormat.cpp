@@ -10,7 +10,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   const DataFormatInfo& DataFormatInfo::GetFormatInfo(DataFormat aFormat)
   {
-    static DataFormatInfo locOurDataFormats[static_cast<uint32>(DataFormat::NUM)] =
+    static DataFormatInfo locOurDataFormats[static_cast<uint>(DataFormat::NUM)] =
     {
       // Format,                 ByteSize,  NumComponents,  DepthStencil,  SRGB,    Compressed
       { DataFormat::NONE,          0,           0,             false,       false,     false},
@@ -55,7 +55,7 @@ namespace Fancy { namespace Rendering {
     };
 
     STATIC_ASSERT(ARRAY_LENGTH(locOurDataFormats) == DataFormat::NUM, "DataFormatInfos don't match with the number of DataFormats");
-    return locOurDataFormats[static_cast<uint32>(aFormat)];
+    return locOurDataFormats[static_cast<uint>(aFormat)];
   }
 //---------------------------------------------------------------------------//
 } }

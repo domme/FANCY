@@ -16,9 +16,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 			D3D12_COMPARISON_FUNC_GREATER_EQUAL,
 			D3D12_COMPARISON_FUNC_NEVER
 		};
-		STATIC_ASSERT(ARRAY_LENGTH(ourTranslationTable) == (uint32)CompFunc::NUM, "Missing DX12 implementations");
+		STATIC_ASSERT(ARRAY_LENGTH(ourTranslationTable) == (uint)CompFunc::NUM, "Missing DX12 implementations");
 
-		return ourTranslationTable[(uint32)generalType];
+		return ourTranslationTable[(uint)generalType];
 	}
 //---------------------------------------------------------------------------//
 	D3D12_STENCIL_OP Adapter::toNativeType(const StencilOp& generalType) 

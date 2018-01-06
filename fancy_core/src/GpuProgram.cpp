@@ -13,7 +13,7 @@ namespace Fancy { namespace Rendering {
   {
     GpuProgramDesc desc;
     desc.myShaderFileName = mySourcePath;
-    desc.myShaderStage = static_cast<uint32>(myStage);
+    desc.myShaderStage = static_cast<uint>(myStage);
     desc.myPermutation = myPermutation;
     return desc;
   }

@@ -23,7 +23,7 @@ struct aiNode;
 
 namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
-  class DLLEXPORT SceneImporter 
+  class SceneImporter 
   {
     public:
     explicit SceneImporter(GraphicsWorld& aGraphicsWorld);
@@ -37,7 +37,7 @@ namespace Fancy { namespace IO {
       static void destroyLogger();
 
   private:
-    static const uint32 kMaxNumAssimpMeshesPerNode = 128u;
+    static const uint kMaxNumAssimpMeshesPerNode = 128u;
     typedef FixedArray<aiMesh*, kMaxNumAssimpMeshesPerNode> AiMeshList;
     typedef std::map<const aiMaterial*, SharedPtr<Rendering::Material>> MaterialCacheMap;
     typedef FixedArray<std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>, 256u> MeshCacheList;
@@ -52,10 +52,10 @@ namespace Fancy { namespace IO {
       MaterialCacheMap mapAiMatToMat;
       MeshCacheList localMeshCache;
 
-      uint32 u32NumCreatedMeshes;
-      uint32 u32NumCreatedModels;
-      uint32 u32NumCreatedGeometryDatas;
-      uint32 u32NumCreatedSubModels;
+      uint u32NumCreatedMeshes;
+      uint u32NumCreatedModels;
+      uint u32NumCreatedGeometryDatas;
+      uint u32NumCreatedSubModels;
     };
 
     GraphicsWorld& myGraphicsWorld;
@@ -64,9 +64,9 @@ namespace Fancy { namespace IO {
     bool processAiNode(const aiNode* _pAnode, Scene::SceneNode* _pParentNode);
     bool processMeshes(const aiNode* _pAnode, Scene::ModelComponent* _pModelComponent);
 
-    SharedPtr<Geometry::Mesh> constructOrRetrieveMesh(const aiNode* _pAnode, aiMesh** someMeshes, uint32 aMeshCount);
+    SharedPtr<Geometry::Mesh> constructOrRetrieveMesh(const aiNode* _pAnode, aiMesh** someMeshes, uint aMeshCount);
     SharedPtr<Rendering::Material> createOrRetrieveMaterial(const aiMaterial* _pAmaterial);
-    SharedPtr<Rendering::Texture> createOrRetrieveTexture(const aiMaterial* _pAmaterial, uint32 _aiTextureType, uint32 _texIndex);
+    SharedPtr<Rendering::Texture> createOrRetrieveTexture(const aiMaterial* _pAmaterial, uint _aiTextureType, uint _texIndex);
 
     std::string GetCachePathForMesh();
 

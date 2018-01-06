@@ -34,7 +34,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return descr;
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 DescriptorHeapDX12::GetDescriptor(uint32 anIndex) const
+  DescriptorDX12 DescriptorHeapDX12::GetDescriptor(uint anIndex) const
   {
     ASSERT(anIndex < myNextFreeHandleIndex);
 

@@ -4,7 +4,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------// 
-  template<class T, uint32 AlignmentBytes = 1u>  // Default: No alignment at all
+  template<class T, uint AlignmentBytes = 1u>  // Default: No alignment at all
   struct AlignedStorage
   {
     uint8 myBytes[MathUtil::Align(sizeof(T), AlignmentBytes)];

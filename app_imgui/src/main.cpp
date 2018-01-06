@@ -11,7 +11,7 @@ Fancy::FancyRuntime* pRuntime = nullptr;
 
 void OnWindowResized(Fancy::uint aWidth, Fancy::uint aHeight)
 {
-  pCameraComponent->setProjectionPersp(45.0f, aWidth, aHeight, 1.0f, 1000.0f);
+  pCameraComponent->setProjectionPersp(45.0f, (float) aWidth, (float) aHeight, 1.0f, 1000.0f);
 }
 
 void StartupEngine(HINSTANCE anAppInstanceHandle)
@@ -31,7 +31,7 @@ void StartupEngine(HINSTANCE anAppInstanceHandle)
   Fancy::Scene::Scene* pScene = pRuntime->GetMainWorld()->GetScene();
   Fancy::Scene::SceneNode* pCameraNode = pScene->getRootNode()->createChildNode(_N(CameraNode));
   pCameraComponent = static_cast<Fancy::Scene::CameraComponent*>(pCameraNode->addOrRetrieveComponent(_N(CameraComponent)));
-  pCameraComponent->setProjectionPersp(45.0f, window->GetWidth(), window->GetHeight(), 1.0f, 1000.0f);
+  pCameraComponent->setProjectionPersp(45.0f, (float) window->GetWidth(), (float) window->GetHeight(), 1.0f, 1000.0f);
   pScene->setActiveCamera(pCameraComponent);
 
   pModelNode = pRuntime->GetMainWorld()->Import("Models/cube.obj");

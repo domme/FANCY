@@ -11,13 +11,13 @@ namespace Fancy { namespace IO {
     JSONwriter(const String& anArchivePath);
     virtual ~JSONwriter() override;
 
-    const uint32 myVersion = 0;
+    const uint myVersion = 0;
 
   protected:
 
     struct RootHeader
     {
-      uint32 myVersion;
+      uint myVersion;
       
       Json::Value myResources;
       std::vector<uint64> myStoredResources;

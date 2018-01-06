@@ -14,14 +14,14 @@ namespace Fancy { namespace IO {
   bool Internal::loadPNG(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
   {
     std::vector<uint8> vEncodedFileBytes;
-    uint32 uWidth, uHeight;
+    uint uWidth, uHeight;
     lodepng::State state;
     state.decoder.color_convert = 0;  // Don't convert RGBA->RGB
     
     lodepng::load_file(vEncodedFileBytes, _szPathAbs);
     ASSERT(vEncodedFileBytes.size() > 0u, "Error loading image file %", _szPathAbs);
 
-    uint32 uErrorCode = lodepng::decode(_vOutBytes, uWidth, uHeight, state, vEncodedFileBytes);
+    uint uErrorCode = lodepng::decode(_vOutBytes, uWidth, uHeight, state, vEncodedFileBytes);
     
     if (uErrorCode != 0u)
     {

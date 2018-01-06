@@ -28,7 +28,7 @@ namespace Fancy { namespace IO {
     JSONreader(const String& anArchivePath, GraphicsWorld& aGraphicsWorld);
     virtual ~JSONreader() override;
 
-    const uint32 myVersion = 0;
+    const uint myVersion = 0;
 
     void SerializeDescription(DescriptionBase* aDescription);
 
@@ -36,7 +36,7 @@ namespace Fancy { namespace IO {
 
     struct RootHeader
     {
-      uint32 myVersion;
+      uint myVersion;
 
       Json::Value* myResources;
       std::vector<SharedPtr<DescriptionBase>> myCreatedDescs;

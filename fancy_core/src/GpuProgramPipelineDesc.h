@@ -18,13 +18,13 @@ namespace Fancy { namespace Rendering {
     void Serialize(IO::Serializer* aSerializer) override;
     bool IsEmpty() const override;
 
-    GpuProgramDesc myGpuPrograms[(uint32)ShaderStage::NUM];
+    GpuProgramDesc myGpuPrograms[(uint)ShaderStage::NUM];
   };
 //---------------------------------------------------------------------------//
   inline bool GpuProgramPipelineDesc::operator==(const GpuProgramPipelineDesc& anOther) const
   {
     bool equal = true;
-    for (uint32 i = 0u; equal && i < (uint32)ShaderStage::NUM; ++i)
+    for (uint i = 0u; equal && i < (uint)ShaderStage::NUM; ++i)
       equal &= myGpuPrograms[i] == anOther.myGpuPrograms[i];
     return equal;
   }
@@ -33,7 +33,7 @@ namespace Fancy { namespace Rendering {
   {
     uint64 hash = 0u;
 
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
       MathUtil::hash_combine(hash, myGpuPrograms[i].GetHash());
 
     return hash;
@@ -46,7 +46,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   inline bool GpuProgramPipelineDesc::IsEmpty() const
   {
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
       if (!myGpuPrograms[i].IsEmpty())
         return false;
 

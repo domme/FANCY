@@ -50,11 +50,11 @@ namespace Fancy { namespace Rendering {
     UNKNOWN = NONE
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT DataFormatInfo
+  class DataFormatInfo
   {
   public:
     
-    DataFormatInfo(DataFormat aFormat, uint32 aSizeBytes, uint32 aNumComponents, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false)
+    DataFormatInfo(DataFormat aFormat, uint aSizeBytes, uint aNumComponents, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false)
       : mySizeBytes(aSizeBytes)
       , myNumComponents(aNumComponents)
       , myFormat(aFormat)
@@ -74,8 +74,8 @@ namespace Fancy { namespace Rendering {
 
     explicit DataFormatInfo(DataFormat aFormat);
     
-    uint32 mySizeBytes;
-    uint32 myNumComponents;
+    uint mySizeBytes;
+    uint myNumComponents;
     DataFormat myFormat;
     bool myIsDepthStencil : 1;
     bool mySRGB : 1;

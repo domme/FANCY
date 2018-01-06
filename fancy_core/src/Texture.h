@@ -8,7 +8,7 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct DLLEXPORT TextureInfos {
+  struct TextureInfos {
     TextureInfos() : isSRGB(0), isLocked(0), isArrayTexture(0), isCubemap(0),
       cachesTextureData(0), numDimensions(0) {}
 
@@ -20,7 +20,7 @@ namespace Fancy { namespace Rendering {
     uint numDimensions : 4;
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT Texture : public GpuResource
+  class Texture : public GpuResource
   {
   public:
     SERIALIZABLE_RESOURCE(Texture)
@@ -32,7 +32,7 @@ namespace Fancy { namespace Rendering {
     TextureDesc GetDescription() const;
     void SetFromDescription(const TextureDesc& aDesc);
 
-    virtual void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint32 aNumInitialDatas = 0u) = 0;
+    virtual void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) = 0;
 
     const TextureInfos& GetStateInfos() const { return myState; }
     const TextureParams& GetParameters() const { return myParameters; }

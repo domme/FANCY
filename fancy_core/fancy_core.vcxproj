@@ -27,9 +27,7 @@
     <Import Project="..\property_sheets\inc_lib_dependencies.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
-    <OutDir>$(SolutionDir)/lib/$(Platform)/$(Configuration)/</OutDir>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
     <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
   </PropertyGroup>
@@ -37,6 +35,7 @@
     <TargetExt>.lib</TargetExt>
     <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);$(UniversalCRT_IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(UniversalCRT_LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)lib/$(Platform)/$(Configuration)/</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
     <ClCompile>
@@ -80,7 +79,6 @@
     <ClInclude Include="src\GpuBufferDesc.h" />
     <ClInclude Include="src\GpuBufferDX12.h" />
     <ClInclude Include="src\CameraComponent.h" />
-    <ClInclude Include="src\CameraControllerComponent.h" />
     <ClInclude Include="src\DebugOutStream.h" />
     <ClInclude Include="src\DepthStencilState.h" />
     <ClInclude Include="src\DX12Prerequisites.h" />
@@ -106,7 +104,6 @@
     <ClInclude Include="src\GpuResourceDX12.h" />
     <ClInclude Include="src\GpuResourceSignature.h" />
     <ClInclude Include="src\GraphicsWorld.h" />
-    <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\JSONreader.h" />
     <ClInclude Include="src\JSONwriter.h" />
     <ClInclude Include="src\json\json-forwards.h" />
@@ -134,12 +131,10 @@
     <ClInclude Include="src\RenderingProcess.h" />
     <ClInclude Include="src\RenderingProcessForward.h" />
     <ClInclude Include="src\RenderingProcessForwardPlus.h" />
-    <ClInclude Include="src\RenderOperation.h" />
     <ClInclude Include="src\RenderOutput.h" />
     <ClInclude Include="src\RenderOutputDX12.h" />
     <ClInclude Include="src\RenderView.h" />
     <ClInclude Include="src\Resource.h" />
-    <ClInclude Include="src\ResourceBinding.h" />
     <ClInclude Include="src\DescriptionBase.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneImporter.h" />
@@ -150,6 +145,8 @@
     <ClInclude Include="src\ScopedPtr.h" />
     <ClInclude Include="src\Serializable.h" />
     <ClInclude Include="src\Serializer.h" />
+    <ClInclude Include="src\ShaderResourceInterface.h" />
+    <ClInclude Include="src\shaderresourceinterfacedesc.h" />
     <ClInclude Include="src\ShaderResourceInterfaceDX12.h" />
     <ClInclude Include="src\Slot.h" />
     <ClInclude Include="src\SmallObjectAllocator.h" />
@@ -184,7 +181,6 @@
     <ClCompile Include="src\GpuBuffer.cpp" />
     <ClCompile Include="src\GpuBufferDX12.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
-    <ClCompile Include="src\CameraControllerComponent.cpp" />
     <ClCompile Include="src\DebugOutStream.cpp" />
     <ClCompile Include="src\DepthStencilState.cpp" />
     <ClCompile Include="src\Fancy.cpp" />
@@ -200,7 +196,6 @@
     <ClCompile Include="src\GpuProgramResource.cpp" />
     <ClCompile Include="src\GpuResourceDX12.cpp" />
     <ClCompile Include="src\GraphicsWorld.cpp" />
-    <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
     <ClCompile Include="src\JSONreader.cpp" />
     <ClCompile Include="src\JSONwriter.cpp" />
@@ -219,23 +214,18 @@
     <ClCompile Include="src\PathService.cpp" />
     <ClCompile Include="src\RenderCore.cpp" />
     <ClCompile Include="src\RenderCore_PlatformDX12.cpp" />
-    <ClCompile Include="src\RendererDX12.cpp" />
     <ClCompile Include="src\RendererPrerequisites.cpp" />
-    <ClCompile Include="src\RenderingProcess.cpp" />
     <ClCompile Include="src\RenderingProcessForward.cpp" />
     <ClCompile Include="src\RenderingProcessForwardPlus.cpp" />
-    <ClCompile Include="src\RenderOperation.cpp" />
     <ClCompile Include="src\RenderOutput.cpp" />
     <ClCompile Include="src\RenderOutputDX12.cpp" />
     <ClCompile Include="src\RenderQueues.cpp" />
     <ClCompile Include="src\RenderView.cpp" />
-    <ClCompile Include="src\ResourceBinding.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\SceneImporter.cpp" />
     <ClCompile Include="src\SceneNode.cpp" />
     <ClCompile Include="src\SceneNodeComponent.cpp" />
     <ClCompile Include="src\SceneNodeComponentFactory.cpp" />
-    <ClCompile Include="src\Serializable.cpp" />
     <ClCompile Include="src\Serializer.cpp" />
     <ClCompile Include="src\ShaderResourceInterfaceDX12.cpp" />
     <ClCompile Include="src\StdAfx.cpp">

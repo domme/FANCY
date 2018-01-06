@@ -5,7 +5,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   JSONwriter::JSONwriter(const String& anArchivePath) : Serializer(ESerializationMode::STORE)
   {
-    uint32 archiveFlags = 0u;
+    uint archiveFlags = 0u;
 
     archiveFlags |= std::ios::out;
 
@@ -106,21 +106,22 @@ namespace Fancy { namespace IO {
       currJsonVal = *static_cast<uint*>(anObject);
     } break;
 
-    case EBaseDataType::Uint32:
-    {
-      currJsonVal = *static_cast<uint32*>(anObject);
-    } break;
-
     case EBaseDataType::Uint8:
     {
       uint8 val8 = *static_cast<uint8*>(anObject);
-      currJsonVal = static_cast<uint32>(val8);
+      currJsonVal = static_cast<uint>(val8);
     } break;
 
     case EBaseDataType::Uint16:
     {
       uint16 val16 = *static_cast<uint16*>(anObject);
-      currJsonVal = static_cast<uint32>(val16);
+      currJsonVal = static_cast<uint>(val16);
+    } break;
+
+    case EBaseDataType::Uint64:
+    {
+      uint64 val = *static_cast<uint64*>(anObject);
+      currJsonVal = static_cast<uint64>(val);
     } break;
 
     case EBaseDataType::Float:
@@ -168,7 +169,7 @@ namespace Fancy { namespace IO {
     {
       const glm::vec3& val = *static_cast<const glm::vec3*>(anObject);
       Json::Value jsonVal(Json::arrayValue);
-      for (uint i = 0u; i < val.length(); ++i)
+      for (uint i = 0u; i < static_cast<uint>(val.length()); ++i)
         jsonVal.append(val[i]);
 
       currJsonVal = jsonVal;
@@ -178,7 +179,7 @@ namespace Fancy { namespace IO {
     {
       const glm::vec4& val = *static_cast<const glm::vec4*>(anObject);
       Json::Value jsonVal(Json::arrayValue);
-      for (uint i = 0u; i < val.length(); ++i)
+      for (uint i = 0u; i < static_cast<uint>(val.length()); ++i)
         jsonVal.append(val[i]);
 
       currJsonVal = jsonVal;
@@ -188,7 +189,7 @@ namespace Fancy { namespace IO {
     {
       const glm::quat& val = *static_cast<const glm::quat*>(anObject);
       Json::Value jsonVal(Json::arrayValue);
-      for (uint i = 0u; i < val.length(); ++i)
+      for (uint i = 0u; i < (uint) val.length(); ++i)
         jsonVal.append(val[i]);
 
       currJsonVal = jsonVal;
@@ -198,8 +199,8 @@ namespace Fancy { namespace IO {
     {
       const glm::mat3& val = *static_cast<const glm::mat3*>(anObject);
       Json::Value jsonVal(Json::arrayValue);
-      for (uint y = 0u; y < val.length(); ++y)
-        for (uint x = 0u; x < val[y].length(); ++x)
+      for (uint y = 0u; y < (uint) val.length(); ++y)
+        for (uint x = 0u; x < (uint) val[y].length(); ++x)
           jsonVal.append(val[x][y]);
 
       currJsonVal = jsonVal;
@@ -209,8 +210,8 @@ namespace Fancy { namespace IO {
     {
       const glm::mat4& val = *static_cast<const glm::mat4*>(anObject);
       Json::Value jsonVal(Json::arrayValue);
-      for (uint y = 0u; y < val.length(); ++y)
-        for (uint x = 0u; x < val[y].length(); ++x)
+      for (uint y = 0u; y < (uint) val.length(); ++y)
+        for (uint x = 0u; x < (uint) val[y].length(); ++x)
           jsonVal.append(val[x][y]);
 
       currJsonVal = jsonVal;

@@ -11,7 +11,7 @@ namespace Fancy { namespace Rendering {
     BUFFER
   };  
 //---------------------------------------------------------------------------//
-  class DLLEXPORT GpuResource
+  class GpuResource
   {
   public:
     GpuResource(GpuResourceCategory aType)

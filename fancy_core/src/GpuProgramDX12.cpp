@@ -14,8 +14,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     const ShaderVertexInputElementList& inputElements = anInputLayout.getVertexElementList();
 
-    uint32 offsetByte = 0u;
-    for (uint32 i = 0u; i < inputElements.size(); ++i)
+    uint offsetByte = 0u;
+    for (uint i = 0u; i < inputElements.size(); ++i)
     {
       const ShaderVertexInputElement& elem = inputElements[i];
       

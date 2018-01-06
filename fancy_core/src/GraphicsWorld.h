@@ -25,7 +25,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   class Time;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT GraphicsWorld
+  class GraphicsWorld
   {
     public:
       GraphicsWorld();

@@ -45,8 +45,8 @@
 #define FANCY_ALLOCATE(sizeBytes, memoryCategory) malloc(sizeBytes)
 #define FANCY_FREE(pData, memoryCategory) free(pData) 
 //---------------------------------------------------------------------------//
-  template<class T, int Size>
-  constexpr int GetArraySize(T(&anArray)[Size])
+  template<class T, unsigned int Size>
+  constexpr unsigned int GetArraySize(T(&anArray)[Size])
   {
     return Size;
   }
@@ -93,11 +93,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Fancy {
     typedef glm::uint16		uint16;
-    typedef glm::uint32		uint32;
     typedef glm::uint64		uint64;
     typedef glm::uint8		uint8;
-    typedef size_t		    uint;
-    typedef glm::int32    int32;
+    typedef unsigned int	uint;
     typedef double        float64;
 
     // TODO: This seems to give compile-errors on VS 2012

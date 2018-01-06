@@ -41,8 +41,8 @@ namespace Fancy { namespace Rendering {
       uOffsetBytes(0u), uSizeBytes(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
 
     ObjectName name;
-    uint32 uOffsetBytes;  // Byte-offset from the start of the buffer
-    uint32 uSizeBytes;  // Overall size of the element (==sizeof(eFormat) * uFormatComponentCount)
+    uint uOffsetBytes;  // Byte-offset from the start of the buffer
+    uint uSizeBytes;  // Overall size of the element (==sizeof(eFormat) * uFormatComponentCount)
     DataFormat eFormat;
     uint8 uFormatComponentCount;  // Multiplier for eFormat. Used for multi-component elements (e.g. Matrices)
   };
@@ -59,7 +59,7 @@ namespace Fancy { namespace Rendering {
     uint64 GetHash() const { return 0u; }
     ObjectName getTypeName() const { return _N(GpuProgramResourceInfo); }
 
-    uint32 u32RegisterIndex;
+    uint u32RegisterIndex;
     ObjectName name;
     GpuResourceAccessType eAccessType;
     GpuResourceType eResourceType;

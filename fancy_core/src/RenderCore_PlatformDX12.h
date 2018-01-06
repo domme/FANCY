@@ -22,7 +22,7 @@ namespace Fancy { namespace Rendering {
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//  
-  class DLLEXPORT RenderCore_PlatformDX12 : public RenderCore_Platform
+  class RenderCore_PlatformDX12 : public RenderCore_Platform
   {
   public:
     RenderCore_PlatformDX12();
@@ -56,7 +56,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal);
 
     DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
+    DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal);
 
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) override;
@@ -66,8 +66,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     GpuBuffer* CreateGpuBuffer() override;
     CommandContext* CreateContext(CommandListType aType) override;
     void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext) override;
-    void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext) override;
-    void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext) override;
+    void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext) override;
+    void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext) override;
     DataFormat ResolveFormat(DataFormat aFormat) override;
 
     // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)

@@ -12,7 +12,7 @@ namespace Fancy {
     uint myHeight;
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT RenderWindow
+  class RenderWindow
   {
     public:
       static SharedPtr<RenderWindow> Create(HINSTANCE anInstanceHandle, const WindowParameters& someParams);
@@ -20,8 +20,8 @@ namespace Fancy {
       ~RenderWindow();
 
       HWND GetWindowHandle() const { return myWindowHandle; }
-      uint32 GetWidth() const { return myWidth; }
-      uint32 GetHeight() const { return myHeight; }
+      uint GetWidth() const { return myWidth; }
+      uint GetHeight() const { return myHeight; }
       void SetSize(uint aWidth, uint aHeight);
 
       Slot<void(uint, uint)> myOnResize;
@@ -33,8 +33,8 @@ namespace Fancy {
       explicit RenderWindow(HWND aHandle);
 
       HWND myWindowHandle;
-      uint32 myHeight;
-      uint32 myWidth;
+      uint myHeight;
+      uint myWidth;
   };
 //---------------------------------------------------------------------------//
 }

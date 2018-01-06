@@ -6,23 +6,23 @@
 
 namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//
-  const uint32 kMeshVersion = 0;
-  const uint32 kTextureVersion = 0;
+  const uint kMeshVersion = 0;
+  const uint kTextureVersion = 0;
 //---------------------------------------------------------------------------//
   void locWriteString(std::fstream& aStream, const String& aString)
   {
     const char* name_cstr = aString.c_str();
-    const uint32 name_size = aString.size() + 1u; // size + '/0'
-    aStream.write(reinterpret_cast<const char*>(&name_size), sizeof(uint32));
+    const uint name_size = static_cast<uint>(aString.size()) + 1u; // size + '/0'
+    aStream.write(reinterpret_cast<const char*>(&name_size), sizeof(uint));
     aStream.write(name_cstr, name_size);
   }
   //---------------------------------------------------------------------------//
   String locReadString(std::fstream& aStream)
   {
-    uint32 name_size;
-    aStream.read(reinterpret_cast<char*>(&name_size), sizeof(uint32));
+    uint name_size;
+    aStream.read(reinterpret_cast<char*>(&name_size), sizeof(uint));
 
-    const uint32 kExpectedMaxLength = 64u;
+    const uint kExpectedMaxLength = 64u;
     char buf[kExpectedMaxLength];
     char* name_cstr = buf;
 
@@ -43,13 +43,8 @@ namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//
   String BinaryCache::getCacheFilePathAbs(const String& aPathInResources)
   {
-    const String& resourceName = kBinaryCacheRoot + aPathInResources + kBinaryCacheExtension;
-
-    bool found = false;
-    const String& resourcePathAbs = Resources::FindPath(resourceName, &found);
-    ASSERT(found);
-
-    return resourcePathAbs;
+    const String resourceName = kBinaryCacheRoot + aPathInResources + kBinaryCacheExtension;
+    return Path::GetAbsolutePath(resourceName);
   }
 //---------------------------------------------------------------------------//  
   bool BinaryCache::write(const SharedPtr<Rendering::Texture>& aTexture, const Rendering::TextureUploadData& someData)
@@ -63,7 +58,7 @@ namespace Fancy {  namespace IO {
 
     ASSERT(archive.good(), "Failed to open cache file");
 
-    archive.write(reinterpret_cast<const char*>(&kTextureVersion), sizeof(uint32));
+    archive.write(reinterpret_cast<const char*>(&kTextureVersion), sizeof(uint));
 
     const Rendering::TextureParams& texParams = aTexture->GetParameters();
 
@@ -79,9 +74,9 @@ namespace Fancy {  namespace IO {
     archive.write(reinterpret_cast<const char*>(&texParams.u16Width), sizeof(uint16));
     archive.write(reinterpret_cast<const char*>(&texParams.u16Height), sizeof(uint16));
     archive.write(reinterpret_cast<const char*>(&texParams.u16Depth), sizeof(uint16));
-    archive.write(reinterpret_cast<const char*>(&texParams.uAccessFlags), sizeof(uint32));
-    const uint32 format = static_cast<uint32>(texParams.eFormat);
-    archive.write(reinterpret_cast<const char*>(&format), sizeof(uint32));
+    archive.write(reinterpret_cast<const char*>(&texParams.uAccessFlags), sizeof(uint));
+    const uint format = static_cast<uint>(texParams.eFormat);
+    archive.write(reinterpret_cast<const char*>(&format), sizeof(uint));
     archive.write(reinterpret_cast<const char*>(&texParams.u8NumMipLevels), sizeof(uint8));
     
     archive.write(reinterpret_cast<const char*>(&someData.myPixelSizeBytes), sizeof(uint64));
@@ -93,7 +88,7 @@ namespace Fancy {  namespace IO {
     return archive.good();
   }  
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::read(SharedPtr<Rendering::Texture>* aTexture, uint64 aDescHash, uint32 aTimeStamp)
+  bool BinaryCache::read(SharedPtr<Rendering::Texture>* aTexture, uint64 aDescHash, uint aTimeStamp)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
@@ -101,8 +96,8 @@ namespace Fancy {  namespace IO {
     if (!archive.good())
       return false;
 
-    uint32 textureVersion;
-    archive.read((char*)&textureVersion, sizeof(uint32));
+    uint textureVersion;
+    archive.read((char*)&textureVersion, sizeof(uint));
 
     if (textureVersion != kTextureVersion)
       return false;
@@ -129,9 +124,9 @@ namespace Fancy {  namespace IO {
     archive.read((char*)&texParams.u16Width, sizeof(uint16));
     archive.read((char*)&texParams.u16Height, sizeof(uint16));
     archive.read((char*)&texParams.u16Depth, sizeof(uint16));
-    archive.read((char*)&texParams.uAccessFlags, sizeof(uint32));
-    uint32 format = 0;
-    archive.read((char*)&format, sizeof(uint32));
+    archive.read((char*)&texParams.uAccessFlags, sizeof(uint));
+    uint format = 0;
+    archive.read((char*)&format, sizeof(uint));
     texParams.eFormat = static_cast<Rendering::DataFormat>(format);
     archive.read((char*)&texParams.u8NumMipLevels, sizeof(uint8));
 
@@ -159,36 +154,36 @@ namespace Fancy {  namespace IO {
 
     ASSERT(archive.good(), "Failed to open cache file");
 
-    archive.write(reinterpret_cast<const char*>(&kMeshVersion), sizeof(uint32));
+    archive.write(reinterpret_cast<const char*>(&kMeshVersion), sizeof(uint));
     uint64 hash = aMesh->GetDescription().GetHash();
     archive.write((const char*)&hash, sizeof(hash));
 
     const Geometry::GeometryDataList& vGeoData = aMesh->getGeometryDataList();
-    const uint32 numGeoDatas = vGeoData.size();
-    archive.write(reinterpret_cast<const char*>(&numGeoDatas), sizeof(uint32));
+    const uint numGeoDatas = vGeoData.size();
+    archive.write(reinterpret_cast<const char*>(&numGeoDatas), sizeof(uint));
 
-    for (uint32 i = 0u; i < vGeoData.size(); ++i)
+    for (uint i = 0u; i < vGeoData.size(); ++i)
     {
       const Geometry::GeometryData* geoData = vGeoData[i];
 
       // Vertex-Layout begin
       const Rendering::GeometryVertexLayout& vertexLayout = geoData->getGeometryVertexLayout();
       const Rendering::VertexElementList& vVertexElements = vertexLayout.getVertexElementList();
-      const uint32 numVertexElements = vVertexElements.size();
-      archive.write(reinterpret_cast<const char*>(&numVertexElements), sizeof(uint32));
+      const uint numVertexElements = vVertexElements.size();
+      archive.write(reinterpret_cast<const char*>(&numVertexElements), sizeof(uint));
 
-      for (uint32 iVertexElem = 0u; iVertexElem < vVertexElements.size(); ++iVertexElem)
+      for (uint iVertexElem = 0u; iVertexElem < vVertexElements.size(); ++iVertexElem)
       {
         const Rendering::GeometryVertexElement& vertexElement = vVertexElements[iVertexElem];
-        const uint32 semantics = static_cast<uint32>(vertexElement.eSemantics);
-        archive.write(reinterpret_cast<const char*>(&semantics), sizeof(uint32));
-        archive.write(reinterpret_cast<const char*>(&vertexElement.u32OffsetBytes), sizeof(uint32));
-        archive.write(reinterpret_cast<const char*>(&vertexElement.u32SizeBytes), sizeof(uint32));
-        const uint32 format = static_cast<uint32>(vertexElement.eFormat);
-        archive.write(reinterpret_cast<const char*>(&format), sizeof(uint32));
+        const uint semantics = static_cast<uint>(vertexElement.eSemantics);
+        archive.write(reinterpret_cast<const char*>(&semantics), sizeof(uint));
+        archive.write(reinterpret_cast<const char*>(&vertexElement.u32OffsetBytes), sizeof(uint));
+        archive.write(reinterpret_cast<const char*>(&vertexElement.u32SizeBytes), sizeof(uint));
+        const uint format = static_cast<uint>(vertexElement.eFormat);
+        archive.write(reinterpret_cast<const char*>(&format), sizeof(uint));
       }
-      const uint32 stride = vertexLayout.getStrideBytes();
-      archive.write(reinterpret_cast<const char*>(&stride), sizeof(uint32));
+      const uint stride = vertexLayout.getStrideBytes();
+      archive.write(reinterpret_cast<const char*>(&stride), sizeof(uint));
       // Vertex-Layout end
 
       // Vertex data
@@ -196,8 +191,8 @@ namespace Fancy {  namespace IO {
         const Rendering::GpuBuffer* buffer = geoData->getVertexBuffer();
         const Rendering::GpuBufferCreationParams& bufferParams = buffer->GetParameters();
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
-        const uint32 buffersize = buffer->GetSizeBytes();
-        archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint32));
+        const uint buffersize = buffer->GetSizeBytes();
+        archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
         archive.write(reinterpret_cast<const char*>(someVertexDatas[i]), buffer->GetSizeBytes());
       }
 
@@ -206,8 +201,8 @@ namespace Fancy {  namespace IO {
         const Rendering::GpuBuffer* buffer = geoData->getIndexBuffer();
         const Rendering::GpuBufferCreationParams& bufferParams = buffer->GetParameters();
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
-        const uint32 buffersize = buffer->GetSizeBytes();
-        archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint32));
+        const uint buffersize = buffer->GetSizeBytes();
+        archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
         archive.write(reinterpret_cast<const char*>(someIndexDatas[i]), buffer->GetSizeBytes());
       }
     }
@@ -215,7 +210,7 @@ namespace Fancy {  namespace IO {
     return archive.good();
   }
 //---------------------------------------------------------------------------//
-  bool BinaryCache::read(SharedPtr<Geometry::Mesh>& aMesh, uint64 aDescHash, uint32 aTimeStamp)
+  bool BinaryCache::read(SharedPtr<Geometry::Mesh>& aMesh, uint64 aDescHash, uint aTimeStamp)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
@@ -223,8 +218,8 @@ namespace Fancy {  namespace IO {
     if (!archive.good())
       return false;
 
-    uint32 meshVersion;
-    archive.read(reinterpret_cast<char*>(&meshVersion), sizeof(uint32));
+    uint meshVersion;
+    archive.read(reinterpret_cast<char*>(&meshVersion), sizeof(uint));
 
     if (meshVersion != kMeshVersion)
       return false;
@@ -232,36 +227,36 @@ namespace Fancy {  namespace IO {
     uint64 hash = 0u;
     archive.read((char*)&hash, sizeof(hash));
 
-    uint32 numGeometryDatas;
-    archive.read(reinterpret_cast<char*>(&numGeometryDatas), sizeof(uint32));
+    uint numGeometryDatas;
+    archive.read(reinterpret_cast<char*>(&numGeometryDatas), sizeof(uint));
 
     Geometry::GeometryDataList vGeoDatas;
     vGeoDatas.resize(numGeometryDatas);
 
-    for (uint32 i = 0u; i < vGeoDatas.size(); ++i)
+    for (uint i = 0u; i < vGeoDatas.size(); ++i)
     {
       Geometry::GeometryData* geoData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::Geometry);
       vGeoDatas[i] = geoData;
 
       Rendering::GeometryVertexLayout vertexLayout;
-      uint32 numVertexElements;
-      archive.read(reinterpret_cast<char*>(&numVertexElements), sizeof(uint32));
+      uint numVertexElements;
+      archive.read(reinterpret_cast<char*>(&numVertexElements), sizeof(uint));
 
-      for (uint32 iVertexElem = 0u; iVertexElem < numVertexElements; ++iVertexElem)
+      for (uint iVertexElem = 0u; iVertexElem < numVertexElements; ++iVertexElem)
       {
         Rendering::GeometryVertexElement elem;
-        uint32 semantics;
-        archive.read(reinterpret_cast<char*>(&semantics), sizeof(uint32));
+        uint semantics;
+        archive.read(reinterpret_cast<char*>(&semantics), sizeof(uint));
         elem.eSemantics = static_cast<Rendering::VertexSemantics>(semantics);
-        archive.read(reinterpret_cast<char*>(&elem.u32OffsetBytes), sizeof(uint32));
-        archive.read(reinterpret_cast<char*>(&elem.u32SizeBytes), sizeof(uint32));
-        uint32 format;
-        archive.read(reinterpret_cast<char*>(&format), sizeof(uint32));
+        archive.read(reinterpret_cast<char*>(&elem.u32OffsetBytes), sizeof(uint));
+        archive.read(reinterpret_cast<char*>(&elem.u32SizeBytes), sizeof(uint));
+        uint format;
+        archive.read(reinterpret_cast<char*>(&format), sizeof(uint));
         elem.eFormat = static_cast<Rendering::DataFormat>(format);
         vertexLayout.addVertexElement(elem);
       }
-      uint32 strideBytes;
-      archive.read(reinterpret_cast<char*>(&strideBytes), sizeof(uint32));
+      uint strideBytes;
+      archive.read(reinterpret_cast<char*>(&strideBytes), sizeof(uint));
 
       geoData->setVertexLayout(vertexLayout);
 
@@ -269,8 +264,8 @@ namespace Fancy {  namespace IO {
       {
         Rendering::GpuBufferCreationParams bufferParams;
         archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
-        uint32 totalBufferBytes;
-        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint32));
+        uint totalBufferBytes;
+        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint));
 
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         archive.read((char*)(bufferData), totalBufferBytes);
@@ -285,8 +280,8 @@ namespace Fancy {  namespace IO {
       {
         Rendering::GpuBufferCreationParams bufferParams;
         archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
-        uint32 totalBufferBytes;
-        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint32));
+        uint totalBufferBytes;
+        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint));
 
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         archive.read(static_cast<char*>(bufferData), totalBufferBytes);

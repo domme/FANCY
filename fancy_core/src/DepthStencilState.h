@@ -9,7 +9,7 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct DLLEXPORT DepthStencilStateDesc : public DescriptionBase
+  struct DepthStencilStateDesc : public DescriptionBase
   {
     static DepthStencilStateDesc GetDefaultDepthNoStencil();
 
@@ -26,19 +26,19 @@ namespace Fancy { namespace Rendering {
 
     bool myDepthTestEnabled;
     bool myDepthWriteEnabled;
-    uint32 myDepthCompFunc;
+    uint myDepthCompFunc;
     bool myStencilEnabled;
     bool myTwoSidedStencil;
     int myStencilRef;
-    uint32 myStencilReadMask;
-    uint32 myStencilCompFunc[(uint32)FaceType::NUM];
-    uint32 myStencilWriteMask[(uint32)FaceType::NUM];
-    uint32 myStencilFailOp[(uint32)FaceType::NUM];
-    uint32 myStencilDepthFailOp[(uint32)FaceType::NUM];
-    uint32 myStencilPassOp[(uint32)FaceType::NUM];
+    uint myStencilReadMask;
+    uint myStencilCompFunc[(uint)FaceType::NUM];
+    uint myStencilWriteMask[(uint)FaceType::NUM];
+    uint myStencilFailOp[(uint)FaceType::NUM];
+    uint myStencilDepthFailOp[(uint)FaceType::NUM];
+    uint myStencilPassOp[(uint)FaceType::NUM];
   };
 //---------------------------------------------------------------------------//
-  class DLLEXPORT DepthStencilState
+  class DepthStencilState
   {
   public:
       SERIALIZABLE_RESOURCE(DepthStencilState)
@@ -65,8 +65,8 @@ namespace Fancy { namespace Rendering {
       void SetTwoSidedStencil(bool aTwoSidedStencil) { myIsDirty |= myTwoSidedStencil != aTwoSidedStencil;  myTwoSidedStencil = aTwoSidedStencil; }
       int GetStencilRef() const { return myStencilRef; }
       void SetStencilRef(int aStencilRef) { myIsDirty |= myStencilRef != aStencilRef; myStencilRef = aStencilRef; }
-      uint32 GetStencilReadMask() const { return myStencilReadMask; }
-      void SetStencilReadMask(uint32 aStencilReadMask) { myIsDirty |= myStencilReadMask != aStencilReadMask;  myStencilReadMask = aStencilReadMask; }
+      uint GetStencilReadMask() const { return myStencilReadMask; }
+      void SetStencilReadMask(uint aStencilReadMask) { myIsDirty |= myStencilReadMask != aStencilReadMask;  myStencilReadMask = aStencilReadMask; }
       
       bool GetIsDirty() const { return myIsDirty; }
       void SetDirty() const { myIsDirty = true; }
@@ -79,12 +79,12 @@ namespace Fancy { namespace Rendering {
       bool              myStencilEnabled;
       bool              myTwoSidedStencil;
       int               myStencilRef;
-      uint32            myStencilReadMask;
-      CompFunc          myStencilCompFunc[(uint32)FaceType::NUM];
-      uint32            myStencilWriteMask[(uint32)FaceType::NUM];
-      StencilOp         myStencilFailOp[(uint32)FaceType::NUM];
-      StencilOp         myStencilDepthFailOp[(uint32)FaceType::NUM];
-      StencilOp         myStencilPassOp[(uint32)FaceType::NUM];
+      uint            myStencilReadMask;
+      CompFunc          myStencilCompFunc[(uint)FaceType::NUM];
+      uint            myStencilWriteMask[(uint)FaceType::NUM];
+      StencilOp         myStencilFailOp[(uint)FaceType::NUM];
+      StencilOp         myStencilDepthFailOp[(uint)FaceType::NUM];
+      StencilOp         myStencilPassOp[(uint)FaceType::NUM];
 
       mutable bool myIsDirty;
       mutable uint64 myCachedHash;

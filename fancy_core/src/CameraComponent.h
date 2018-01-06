@@ -7,7 +7,7 @@
 
 namespace Fancy { namespace Scene {
   //---------------------------------------------------------------------------//
-  class DLLEXPORT CameraComponent : 
+  class CameraComponent : 
     public SceneNodeComponent, public BaseCreator<CameraComponent>
   {
   public:

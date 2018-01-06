@@ -16,7 +16,7 @@ namespace Fancy {
     namespace MultiBuffering {
       enum { kGpuMultiBufferingCount = 2u };
       
-      uint32 getCurrentBufferIndex();
+      uint getCurrentBufferIndex();
     }
 //---------------------------------------------------------------------------//
     namespace Constants {
@@ -213,7 +213,7 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    struct DLLEXPORT TextureParams {
+    struct TextureParams {
       TextureParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
         eFormat(DataFormat::NONE), uAccessFlags(0u), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u), 
         myIsShaderWritable(false), myIsRenderTarget(false) {}
@@ -222,19 +222,19 @@ namespace Fancy {
       uint16 u16Height;
       uint16 u16Depth;
       DataFormat eFormat;
-      uint32 uAccessFlags;
+      uint uAccessFlags;
       bool myIsShaderWritable;
       bool myIsRenderTarget;
       bool bIsDepthStencil;
       String path;
       bool myIsExternalTexture;
-      uint32 myInternalRefIndex;
+      uint myInternalRefIndex;
 
       uint8 u8NumMipLevels;
     };
  //---------------------------------------------------------------------------//
  //---------------------------------------------------------------------------//
-    struct DLLEXPORT TextureUploadData
+    struct TextureUploadData
     {
       TextureUploadData()
         : myData(nullptr), myRowSizeBytes(0u), myTotalSizeBytes(0u), myPixelSizeBytes(0u), mySliceSizeBytes(0u)
@@ -261,15 +261,15 @@ namespace Fancy {
       RESOURCE_BUFFER_LARGE_RW = (1 << 8),
     };
  //---------------------------------------------------------------------------//
-    struct DLLEXPORT GpuBufferCreationParams {
+    struct GpuBufferCreationParams {
       GpuBufferCreationParams() : uNumElements(0u), myInternalRefIndex(~0u), bIsMultiBuffered(false), 
         uElementSizeBytes(0u), myUsageFlags(0u), uAccessFlags(0u) {}
 
       uint uNumElements;
-      uint32 uElementSizeBytes;
-      uint32 uAccessFlags;
-      uint32 myInternalRefIndex;
-      uint32 myUsageFlags;
+      uint uElementSizeBytes;
+      uint uAccessFlags;
+      uint myInternalRefIndex;
+      uint myUsageFlags;
       bool bIsMultiBuffered;
     };
  //---------------------------------------------------------------------------//

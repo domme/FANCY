@@ -10,7 +10,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class ShaderResourceInterface;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT GpuProgramPipeline
+  class GpuProgramPipeline
   {
     public:
       SERIALIZABLE_RESOURCE(GpuProgramPipeline);
@@ -19,7 +19,7 @@ namespace Fancy { namespace Rendering {
       virtual ~GpuProgramPipeline();
 
       GpuProgramPipelineDesc GetDescription() const;
-      void SetFromShaders(const std::array<SharedPtr<GpuProgram>, (uint32)ShaderStage::NUM>& someShaders);
+      void SetFromShaders(const std::array<SharedPtr<GpuProgram>, (uint)ShaderStage::NUM>& someShaders);
 
       uint64 GetHash() const { return GetDescription().GetHash(); }
       uint64 GetShaderByteCodeHash() const { return myShaderByteCodeHash; }
@@ -27,8 +27,8 @@ namespace Fancy { namespace Rendering {
       void UpdateResourceInterface();
       void UpdateShaderByteCodeHash();
 
-      SharedPtr<GpuProgram> myGpuPrograms[(uint32)ShaderStage::NUM];
-      uint myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
+      SharedPtr<GpuProgram> myGpuPrograms[(uint)ShaderStage::NUM];
+      uint64 myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
       const ShaderResourceInterface* myResourceInterface;
   };
 //---------------------------------------------------------------------------//

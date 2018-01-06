@@ -86,14 +86,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ourCommandAllocatorPools[(uint)CommandListType::Graphics] = new CommandAllocatorPoolDX12(CommandListType::Graphics);
     ourCommandAllocatorPools[(uint)CommandListType::Compute] = new CommandAllocatorPoolDX12(CommandListType::Compute);
 
-    const uint32 kMaxNumStaticDescriptorsPerHeap = 1000u;
+    const uint kMaxNumStaticDescriptorsPerHeap = 1000u;
 
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
     heapDesc.NumDescriptors = kMaxNumStaticDescriptorsPerHeap;
     heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     heapDesc.NodeMask = 0u;
 
-    for (uint32 i = 0u; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
+    for (uint i = 0u; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
     {
       heapDesc.Type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
       ourStaticDescriptorHeaps[i].Create(heapDesc);
@@ -118,7 +118,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   Rendering::ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const
   {
-    const uint& requestedHash = ShaderResourceInterfaceDX12::ComputeHash(anRSdesc);
+    const uint64 requestedHash = ShaderResourceInterfaceDX12::ComputeHash(anRSdesc);
 
     for (auto& rs : locShaderResourceInterfacePool)
       if (rs->GetDesc().myHash == requestedHash)
@@ -189,10 +189,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
-    return ourStaticDescriptorHeaps[(uint32)aHeapType].AllocateDescriptor();
+    return ourStaticDescriptorHeaps[(uint)aHeapType].AllocateDescriptor();
   }
 //---------------------------------------------------------------------------//
-  DescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint32 aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
+  DescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
     while (!myUsedDynamicHeaps.empty()
       && RenderCore::GetPlatformDX12()->IsFenceDone(myUsedDynamicHeaps.front().first.myType,
@@ -205,8 +205,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       myUsedDynamicHeaps.pop();
     }
 
-    const uint32 kGpuDescriptorNumIncrement = 16u;
-    aDescriptorCount = MathUtil::Align(aDescriptorCount, kGpuDescriptorNumIncrement);
+    const uint kGpuDescriptorNumIncrement = 16u;
+    aDescriptorCount = static_cast<uint>(MathUtil::Align(aDescriptorCount, kGpuDescriptorNumIncrement));
 
     for (auto it = myAvailableDynamicHeaps.begin(); it != myAvailableDynamicHeaps.end(); ++it)
     {
@@ -295,7 +295,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     context->ExecuteAndReset(true);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext)
+  void RenderCore_PlatformDX12::UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext)
   {
     D3D12_HEAP_PROPERTIES heapProps;
     memset(&heapProps, 0, sizeof(heapProps));
@@ -325,7 +325,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     context->ExecuteAndReset(true);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext)
+  void RenderCore_PlatformDX12::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext)
   {
     TextureDX12* textureDx12 = static_cast<TextureDX12*>(aTexture);
 
@@ -335,7 +335,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     // DEBUG: layouts and row-infos not needed here yet
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT* destLayouts = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * aNumUploadDatas));
     uint64* destRowSizesByte = static_cast<uint64*>(alloca(sizeof(uint64) * aNumUploadDatas));
-    uint32* destRowNums = static_cast<uint32*>(alloca(sizeof(uint32) * aNumUploadDatas));
+    uint* destRowNums = static_cast<uint*>(alloca(sizeof(uint) * aNumUploadDatas));
 
     uint64 requiredStagingBufferSize;
     //device->GetCopyableFootprints(&resourceDesc, 0u, aNumUploadDatas, 0u, nullptr, nullptr, nullptr, &requiredStagingBufferSize);
@@ -371,7 +371,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ASSERT(aTexture->GetParameters().u16Depth <= 1u, "The code below might not work for 3D textures");
 
     D3D12_SUBRESOURCE_DATA* subDatas = static_cast<D3D12_SUBRESOURCE_DATA*>(alloca(sizeof(D3D12_SUBRESOURCE_DATA) * aNumUploadDatas));
-    for (uint32 i = 0u; i < aNumUploadDatas; ++i)
+    for (uint i = 0u; i < aNumUploadDatas; ++i)
     {
       subDatas[i].pData = someUploadDatas[i].myData;
       subDatas[i].SlicePitch = someUploadDatas[i].mySliceSizeBytes;

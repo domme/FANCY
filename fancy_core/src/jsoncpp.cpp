@@ -98,6 +98,11 @@ license you like.
  * It is an internal header that must not be exposed.
  */
 
+#if defined(_MSC_VER)
+#pragma warning (push)
+#pragma warning (disable: 4267) // '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+#endif
+
 namespace Json {
 
 /// Converts a unicode code-point to UTF-8.
@@ -5110,7 +5115,6 @@ std::ostream& operator<<(std::ostream& sout, Value const& root) {
 // End of content of file: src/lib_json/json_writer.cpp
 // //////////////////////////////////////////////////////////////////////
 
-
-
-
-
+#if defined(_MSC_VER)
+  #pragma warning (pop)
+#endif

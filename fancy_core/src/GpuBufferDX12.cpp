@@ -28,22 +28,22 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     *pBaseParams = someParameters;
     
     const bool wantsUnorderedAccess = 
-      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::RESOURCE_BUFFER_RW) 
-      || (someParameters.myUsageFlags & (uint32)GpuBufferUsage::RESOURCE_BUFFER_LARGE_RW);
+      (someParameters.myUsageFlags & (uint)GpuBufferUsage::RESOURCE_BUFFER_RW) 
+      || (someParameters.myUsageFlags & (uint)GpuBufferUsage::RESOURCE_BUFFER_LARGE_RW);
 
     const bool wantsShaderResourceView =
       wantsUnorderedAccess 
-      || (someParameters.myUsageFlags & (uint32)GpuBufferUsage::RESOURCE_BUFFER)
-      || (someParameters.myUsageFlags & (uint32)GpuBufferUsage::RESOURCE_BUFFER_LARGE);
+      || (someParameters.myUsageFlags & (uint)GpuBufferUsage::RESOURCE_BUFFER)
+      || (someParameters.myUsageFlags & (uint)GpuBufferUsage::RESOURCE_BUFFER_LARGE);
 
     const bool wantsVboView =
-      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::VERTEX_BUFFER) != 0;
+      (someParameters.myUsageFlags & (uint)GpuBufferUsage::VERTEX_BUFFER) != 0;
 
     const bool wantsIboView =
-      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::INDEX_BUFFER) != 0;
+      (someParameters.myUsageFlags & (uint)GpuBufferUsage::INDEX_BUFFER) != 0;
 
     const bool wantsConstantBufferView =
-      (someParameters.myUsageFlags & (uint32)GpuBufferUsage::CONSTANT_BUFFER) != 0;
+      (someParameters.myUsageFlags & (uint)GpuBufferUsage::CONSTANT_BUFFER) != 0;
 
     D3D12_HEAP_PROPERTIES heapProps;
     heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -55,7 +55,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (wantsConstantBufferView)
       myAlignment = 256u;
 
-    uint actualWidthBytesWithAlignment = 
+    const uint64 actualWidthBytesWithAlignment = 
       MathUtil::Align(someParameters.uNumElements * someParameters.uElementSizeBytes, myAlignment);
 
     D3D12_RESOURCE_DESC resourceDesc;
@@ -145,7 +145,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (wantsConstantBufferView)
     {
       D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-      cbvDesc.SizeInBytes = actualWidthBytesWithAlignment;
+      ASSERT(actualWidthBytesWithAlignment <= UINT_MAX);
+      cbvDesc.SizeInBytes = static_cast<uint>(actualWidthBytesWithAlignment);
       cbvDesc.BufferLocation = GetGpuVirtualAddress();
 
       myCbvDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

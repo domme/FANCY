@@ -30,9 +30,9 @@ namespace Fancy { namespace Geometry {
   //---------------------------------------------------------------------------//
     uint64 GetHash() const { return GetDescription().GetHash(); }
   //---------------------------------------------------------------------------//
-    uint32 getNumGeometryDatas() const {return m_vGeometries.size();}
-    GeometryData* getGeometryData(uint32 u32Index) {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}
-    const GeometryData* getGeometryData(uint32 u32Index) const {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}
+    uint getNumGeometryDatas() const {return m_vGeometries.size();}
+    GeometryData* getGeometryData(uint u32Index) {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}
+    const GeometryData* getGeometryData(uint u32Index) const {ASSERT(u32Index < m_vGeometries.size()); return m_vGeometries[u32Index];}
   //---------------------------------------------------------------------------//
     void addGeometryData(GeometryData* _pGeometryData) {m_vGeometries.push_back(_pGeometryData);}
   //---------------------------------------------------------------------------//

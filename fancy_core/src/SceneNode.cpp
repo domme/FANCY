@@ -111,7 +111,7 @@ namespace Fancy { namespace Scene {
 
     aSerializer->Serialize(&m_vpChildren, "m_vpChildren");
     if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
-      for (uint32 i = 0u; i < m_vpChildren.size(); ++i)
+      for (uint i = 0u; i < m_vpChildren.size(); ++i)
         m_vpChildren[i]->m_pParent = this;
   }
 //---------------------------------------------------------------------------//
@@ -203,7 +203,7 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
   SceneNodeComponent* SceneNode::getComponent( const ObjectName& typeName )
   {
-    for (uint32 i = 0u; i < m_vpComponents.size(); ++i)
+    for (uint i = 0u; i < m_vpComponents.size(); ++i)
     {
       if (m_vpComponents[i]->getTypeName() == typeName)
       {

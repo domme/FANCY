@@ -83,7 +83,7 @@ namespace Fancy {
       return 0u;
 
     FILETIME lastWriteTime;
-    const bool success = GetFileTime(hFile, nullptr, nullptr, &lastWriteTime);
+    const bool success = GetFileTime(hFile, nullptr, nullptr, &lastWriteTime) != 0;
     ASSERT(success, "File % exists with a valid handle but failed to read its file time", aFile);
 
     CloseHandle(hFile);

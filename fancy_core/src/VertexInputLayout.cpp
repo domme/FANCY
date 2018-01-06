@@ -13,10 +13,10 @@ namespace Fancy { namespace Rendering {
   void Validation::validateLayout(ShaderVertexInputElementList& vInputElements)
   {
 #if defined (FANCY_RENDERSYSTEM_USE_VALIDATION)
-    for (uint32 i = 0u; i < vInputElements.size(); ++i)
+    for (uint i = 0u; i < vInputElements.size(); ++i)
     {
       const ShaderVertexInputElement& element = vInputElements[i];
-      for (uint32 k = 0u; k < vInputElements.size(); ++k)
+      for (uint k = 0u; k < vInputElements.size(); ++k)
       {
         if (i == k) continue;
 
@@ -32,11 +32,11 @@ namespace Fancy { namespace Rendering {
   {
     uint64 hash = 0;
     MathUtil::hash_combine(hash, myName.getHash());
-    MathUtil::hash_combine(hash, (uint32)mySemantics);
+    MathUtil::hash_combine(hash, (uint)mySemantics);
     MathUtil::hash_combine(hash, mySemanticIndex);
     MathUtil::hash_combine(hash, myRegisterIndex);
     MathUtil::hash_combine(hash, mySizeBytes);
-    MathUtil::hash_combine(hash, (uint32)myFormat);
+    MathUtil::hash_combine(hash, (uint)myFormat);
     MathUtil::hash_combine(hash, myFormatComponentCount);
     return hash;
   }
@@ -57,7 +57,7 @@ namespace Fancy { namespace Rendering {
   {
     uint64 hash = 0;
     
-    for (uint32 i = 0u; i < myVertexInputElements.size(); ++i)
+    for (uint i = 0u; i < myVertexInputElements.size(); ++i)
       MathUtil::hash_combine(hash, myVertexInputElements[i].GetHash());
     
     return hash;

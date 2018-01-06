@@ -35,10 +35,10 @@ namespace Fancy { namespace Rendering {
   inline uint64 GpuProgramDesc::GetHash() const
   {
     uint64 hash;
-    MathUtil::hash_combine(hash, MathUtil::hashFromString(myShaderFileName));
+    MathUtil::hash_combine(hash, MathUtil::Hash(myShaderFileName));
     MathUtil::hash_combine(hash, myShaderStage);
     MathUtil::hash_combine(hash, myPermutation.GetHash());
-    MathUtil::hash_combine(hash, MathUtil::hashFromString(myMainFunction));
+    MathUtil::hash_combine(hash, MathUtil::Hash(myMainFunction));
     return hash;
   }
 //---------------------------------------------------------------------------//

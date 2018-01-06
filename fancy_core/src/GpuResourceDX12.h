@@ -16,19 +16,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     friend class CommandContextDX12;
 
   public:
-    GpuResourceDX12() = default;
-    virtual ~GpuResourceDX12() { Reset(); }
+    GpuResourceDX12();
+    virtual ~GpuResourceDX12();
 
     ID3D12Resource* GetResource() const  { return myResource.Get(); }
     D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress() const { return myResource->GetGPUVirtualAddress(); }
 
+    void Reset() { myResource.Reset(); }
+
   protected:
     Microsoft::WRL::ComPtr<ID3D12Resource> myResource;
-
-    void Reset()
-    {
-      myResource = nullptr;
-    }
   };
 //---------------------------------------------------------------------------//
 } } }

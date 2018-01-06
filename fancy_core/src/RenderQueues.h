@@ -29,7 +29,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct RenderQueue
   {
-    static const uint32 kMaxNumRenderQueueItems = 4096u;
+    static const uint kMaxNumRenderQueueItems = 4096u;
 
     RenderQueue();
     ~RenderQueue();

@@ -82,11 +82,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     desc.AddressU = locResolveAddressMode(myDescription.addressModeX);
     desc.AddressU = locResolveAddressMode(myDescription.addressModeY);
     desc.AddressW = locResolveAddressMode(myDescription.addressModeZ);
-    for (uint32 i = 0u; i < 4u; ++i)
+    for (uint i = 0u; i < 4u; ++i)
       desc.BorderColor[i] = myDescription.borderColor[i];
     desc.ComparisonFunc = Adapter::toNativeType(myDescription.comparisonFunc);
     desc.Filter = locResolveFilterMode(myDescription.minFiltering, myDescription.magFiltering);
-    desc.MaxAnisotropy = myDescription.fMaxAnisotropy;
+    desc.MaxAnisotropy = myDescription.myMaxAnisotropy;
     desc.MaxLOD = myDescription.fMaxLod;
     desc.MinLOD = myDescription.fMinLod;
     desc.MipLODBias = myDescription.fLodBias;

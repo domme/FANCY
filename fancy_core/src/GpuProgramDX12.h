@@ -22,7 +22,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static const char* GetShaderStringFromVertexSemantic(VertexSemantics aSemantic);
         
     const D3D12_INPUT_ELEMENT_DESC* GetNativeInputElements() const { ASSERT(!myNativeInputElements.empty()); return &myNativeInputElements[0u]; }
-    uint32 GetNumNativeInputElements() const { return myNativeInputElements.size(); }
+    uint GetNumNativeInputElements() const { return static_cast<uint>(myNativeInputElements.size()); }
 
     const Microsoft::WRL::ComPtr<ID3DBlob>& getNativeData() const { return myNativeData; }
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }

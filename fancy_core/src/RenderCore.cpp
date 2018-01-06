@@ -129,7 +129,7 @@ namespace Fancy { namespace Rendering {
       ShaderVertexInputLayout& modelVertexLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
       modelVertexLayout.clear();
 
-      uint32 registerIndex = 0u;
+      uint registerIndex = 0u;
       ShaderVertexInputElement* elem = &modelVertexLayout.addVertexInputElement();
       elem->myName = "Position";
       elem->mySemantics = VertexSemantics::POSITION;
@@ -177,7 +177,7 @@ namespace Fancy { namespace Rendering {
       params.eFormat = DataFormat::SRGB_8;
       params.u16Height = 1u;
       params.u16Width = 1u;
-      params.myInternalRefIndex = (uint32)TextureRef::DEFAULT_DIFFUSE;
+      params.myInternalRefIndex = (uint)TextureRef::DEFAULT_DIFFUSE;
 
       TextureUploadData data(params);
       uint8 color[3] = { 0, 0, 0 };
@@ -185,7 +185,7 @@ namespace Fancy { namespace Rendering {
 
       ourDefaultDiffuseTexture = CreateTexture(params, &data, 1);
 
-      params.myInternalRefIndex = (uint32)TextureRef::DEFAULT_SPECULAR;
+      params.myInternalRefIndex = (uint)TextureRef::DEFAULT_SPECULAR;
       ourDefaultSpecularTexture = CreateTexture(params, &data, 1);
     }
 
@@ -195,7 +195,7 @@ namespace Fancy { namespace Rendering {
       params.eFormat = DataFormat::RGB_8;
       params.u16Height = 1u;
       params.u16Width = 1u;
-      params.myInternalRefIndex = (uint32)TextureRef::DEFAULT_NORMAL;
+      params.myInternalRefIndex = (uint)TextureRef::DEFAULT_NORMAL;
 
       TextureUploadData data(params);
       uint8 color[3] = { 128, 128, 128 };
@@ -305,8 +305,8 @@ namespace Fancy { namespace Rendering {
     if (it != ourGpuProgramPipelineCache.end())
       return it->second;
 
-    std::array<SharedPtr<GpuProgram>, (uint32)ShaderStage::NUM> pipelinePrograms{ nullptr };
-    for (uint32 i = 0u; i < (uint32)ShaderStage::NUM; ++i)
+    std::array<SharedPtr<GpuProgram>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
+    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
       if (!aDesc.myGpuPrograms[i].myShaderFileName.empty())
         pipelinePrograms[i] = CreateGpuProgram(aDesc.myGpuPrograms[i]);
@@ -423,7 +423,7 @@ namespace Fancy { namespace Rendering {
     if (mesh != nullptr)
       return mesh;
 
-    const uint numSubMeshes = aDesc.myVertexLayouts.size();
+    const uint numSubMeshes = (uint) aDesc.myVertexLayouts.size();
     ASSERT(numSubMeshes == someVertexDatas.size() && numSubMeshes == someIndexDatas.size());
 
     Geometry::GeometryDataList vGeometryDatas;
@@ -442,7 +442,7 @@ namespace Fancy { namespace Rendering {
 
       Rendering::GpuBufferCreationParams bufferParams;
       bufferParams.bIsMultiBuffered = false;
-      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
+      bufferParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
       bufferParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
       bufferParams.uNumElements = numVertices;
       bufferParams.uElementSizeBytes = vertexLayout.getStrideBytes();
@@ -459,10 +459,10 @@ namespace Fancy { namespace Rendering {
 
       Rendering::GpuBufferCreationParams indexBufParams;
       indexBufParams.bIsMultiBuffered = false;
-      indexBufParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::INDEX_BUFFER);
-      indexBufParams.uAccessFlags = static_cast<uint32>(Rendering::GpuResourceAccessFlags::NONE);
+      indexBufParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::INDEX_BUFFER);
+      indexBufParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
       indexBufParams.uNumElements = numIndices;
-      indexBufParams.uElementSizeBytes = sizeof(uint32);
+      indexBufParams.uElementSizeBytes = sizeof(uint);
 
       indexBuffer->Create(indexBufParams, ptrToIndexData);
       pGeometryData->setIndexBuffer(indexBuffer);
@@ -552,7 +552,7 @@ namespace Fancy { namespace Rendering {
     texParams.u16Width = textureInfo.width;
     texParams.u16Height = textureInfo.height;
     texParams.u16Depth = 0u;
-    texParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
+    texParams.uAccessFlags = (uint)GpuResourceAccessFlags::NONE;
 
     TextureUploadData uploadData;
     uploadData.myData = &textureBytes[0];
@@ -575,7 +575,7 @@ namespace Fancy { namespace Rendering {
     return texture;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
+  SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint aNumUploadDatas)
   {
     SharedPtr<Texture> texture(ourPlatformImpl->CreateTexture());
     texture->Create(someParams, someUploadDatas, aNumUploadDatas);
@@ -631,7 +631,7 @@ namespace Fancy { namespace Rendering {
     availableContextList.push_back(aContext);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint32 aDataSizeBytes, uint32 aByteOffsetFromBuffer /* = 0 */)
+  void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint aDataSizeBytes, uint aByteOffsetFromBuffer /* = 0 */)
   {
     ASSERT(aByteOffsetFromBuffer + aDataSizeBytes <= aBuffer->GetSizeBytes());
 
@@ -652,7 +652,7 @@ namespace Fancy { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas)
+  void RenderCore::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas)
   {
     CommandContext* initContext = AllocateContext(CommandListType::Graphics);
     ourPlatformImpl->InitTextureData(aTexture, someUploadDatas, aNumUploadDatas, initContext);

@@ -16,14 +16,14 @@ namespace Fancy { namespace Rendering {
     memset(myAlphaSeparateBlend, false, sizeof(myAlphaSeparateBlend));
     memset(myBlendEnabled, false, sizeof(myBlendEnabled));
 
-    for (uint32 i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
     {
-      mySrcBlend[i] = static_cast<uint32>(BlendInput::ONE);
-      myDestBlend[i] = static_cast<uint32>(BlendInput::ONE);
-      myBlendOp[i] = static_cast<uint32>(BlendOp::ADD);
-      mySrcBlendAlpha[i] = static_cast<uint32>(BlendInput::ONE);
-      myDestBlendAlpha[i] = static_cast<uint32>(BlendInput::ONE);
-      myBlendOpAlpha[i] = static_cast<uint32>(BlendOp::ADD);
+      mySrcBlend[i] = static_cast<uint>(BlendInput::ONE);
+      myDestBlend[i] = static_cast<uint>(BlendInput::ONE);
+      myBlendOp[i] = static_cast<uint>(BlendOp::ADD);
+      mySrcBlendAlpha[i] = static_cast<uint>(BlendInput::ONE);
+      myDestBlendAlpha[i] = static_cast<uint>(BlendInput::ONE);
+      myBlendOpAlpha[i] = static_cast<uint>(BlendOp::ADD);
       myRTwriteMask[i] = UINT_MAX;
     }
   }
@@ -35,20 +35,20 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   uint64 BlendStateDesc::GetHash() const
   {
-    uint hash = 0x0;
+    uint64 hash = 0x0;
     MathUtil::hash_combine(hash, myAlphaToCoverageEnabled ? 1u : 0u);
     MathUtil::hash_combine(hash, myBlendStatePerRT ? 1u : 0u);
 
-    for (uint32 i = 0; i < Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0; i < Constants::kMaxNumRenderTargets; ++i)
     {
       MathUtil::hash_combine(hash, myAlphaSeparateBlend[i] ? 1u : 0u);
       MathUtil::hash_combine(hash, myBlendEnabled[i] ? 1u : 0u);
-      MathUtil::hash_combine(hash, static_cast<uint32>(mySrcBlend[i]));
-      MathUtil::hash_combine(hash, static_cast<uint32>(myDestBlend[i]));
-      MathUtil::hash_combine(hash, static_cast<uint32>(myBlendOp[i]));
-      MathUtil::hash_combine(hash, static_cast<uint32>(mySrcBlendAlpha[i]));
-      MathUtil::hash_combine(hash, static_cast<uint32>(myDestBlendAlpha[i]));
-      MathUtil::hash_combine(hash, static_cast<uint32>(myBlendOpAlpha[i]));
+      MathUtil::hash_combine(hash, static_cast<uint>(mySrcBlend[i]));
+      MathUtil::hash_combine(hash, static_cast<uint>(myDestBlend[i]));
+      MathUtil::hash_combine(hash, static_cast<uint>(myBlendOp[i]));
+      MathUtil::hash_combine(hash, static_cast<uint>(mySrcBlendAlpha[i]));
+      MathUtil::hash_combine(hash, static_cast<uint>(myDestBlendAlpha[i]));
+      MathUtil::hash_combine(hash, static_cast<uint>(myBlendOpAlpha[i]));
       MathUtil::hash_combine(hash, myRTwriteMask[i]);
     }
 
@@ -81,7 +81,7 @@ namespace Fancy { namespace Rendering {
     memset(myAlphaSeparateBlend, false, sizeof(myAlphaSeparateBlend));
     memset(myBlendEnabled, false, sizeof(myBlendEnabled));
 
-    for (uint32 i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
     {
       mySrcBlend[i] = BlendInput::ONE;
       myDestBlend[i] = BlendInput::ONE;
@@ -114,13 +114,13 @@ namespace Fancy { namespace Rendering {
     {
       desc.myAlphaSeparateBlend[i] = myAlphaSeparateBlend[i];
       desc.myBlendEnabled[i] = myBlendEnabled[i];
-      desc.mySrcBlend[i] = static_cast<uint32>(mySrcBlend[i]);
-      desc.myDestBlend[i] = static_cast<uint32>(myDestBlend[i]);
-      desc.myBlendOp[i] = static_cast<uint32>(myBlendOp[i]);
-      desc.mySrcBlendAlpha[i] = static_cast<uint32>(mySrcBlendAlpha[i]);
-      desc.myDestBlendAlpha[i] = static_cast<uint32>(myDestBlendAlpha[i]);
-      desc.myBlendOpAlpha[i] = static_cast<uint32>(myBlendOpAlpha[i]);
-      desc.myRTwriteMask[i] = static_cast<uint32>(myRTwriteMask[i]);
+      desc.mySrcBlend[i] = static_cast<uint>(mySrcBlend[i]);
+      desc.myDestBlend[i] = static_cast<uint>(myDestBlend[i]);
+      desc.myBlendOp[i] = static_cast<uint>(myBlendOp[i]);
+      desc.mySrcBlendAlpha[i] = static_cast<uint>(mySrcBlendAlpha[i]);
+      desc.myDestBlendAlpha[i] = static_cast<uint>(myDestBlendAlpha[i]);
+      desc.myBlendOpAlpha[i] = static_cast<uint>(myBlendOpAlpha[i]);
+      desc.myRTwriteMask[i] = static_cast<uint>(myRTwriteMask[i]);
     }
     
     return desc;

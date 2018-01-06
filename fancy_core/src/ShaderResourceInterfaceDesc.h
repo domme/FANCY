@@ -5,7 +5,7 @@ namespace Fancy { namespace Rendering {
   class RenderContext;
   class MaterialPassInstance;
 //---------------------------------------------------------------------------//
-  const uint32 kMaxNumDescriptorSetElements = 32u;
+  const uint kMaxNumDescriptorSetElements = 32u;
 //---------------------------------------------------------------------------//
   enum class SriElementType
   {
@@ -25,27 +25,27 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct SriDescriptorSetElement
   {
-    uint32 myNumElements;
+    uint myNumElements;
     SriResourceType myResourceType;
-    uint32 myBindingSlot;
+    uint myBindingSlot;
   };
 //---------------------------------------------------------------------------//
   struct SriDescriptorSet
   {
-    uint32 myNumElements;
+    uint myNumElements;
     SriDescriptorSetElement myRangeElements[kMaxNumDescriptorSetElements];
   };
 //---------------------------------------------------------------------------//
   struct SriDescriptorElement
   {
     SriResourceType myResourceType;
-    uint32 myBindingSlot;
+    uint myBindingSlot;
   };
 //---------------------------------------------------------------------------//
   struct SriConstantsElement
   {
-    uint32 myBindingSlot;
-    uint32 myNumValues;
+    uint myBindingSlot;
+    uint myNumValues;
   };
 //---------------------------------------------------------------------------//
   struct SriElement

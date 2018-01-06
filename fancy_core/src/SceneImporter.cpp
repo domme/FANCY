@@ -173,7 +173,7 @@ namespace Fancy { namespace IO {
       success &= processMeshes(_pAnode, pModelComponent);
     }
     
-    for (uint32 i = 0u; success && i < _pAnode->mNumChildren; ++i)
+    for (uint i = 0u; success && i < _pAnode->mNumChildren; ++i)
     {
       success &= processAiNode(_pAnode->mChildren[i], pNode);
     }
@@ -187,17 +187,17 @@ namespace Fancy { namespace IO {
     
     typedef FixedArray<aiMesh*, kMaxNumAssimpMeshesPerNode> AssimpMeshList;
 
-    typedef std::map<uint32, AssimpMeshList> MaterialMeshMap;
+    typedef std::map<uint, AssimpMeshList> MaterialMeshMap;
      MaterialMeshMap mapMaterialIndexMesh;
 
-    const uint32 uNumMeshes = _pAnode->mNumMeshes;
-    for (uint32 i = 0u; i < uNumMeshes; ++i)
+    const uint uNumMeshes = _pAnode->mNumMeshes;
+    for (uint i = 0u; i < uNumMeshes; ++i)
     {
-      const uint32 uMeshIndex = _pAnode->mMeshes[i];
+      const uint uMeshIndex = _pAnode->mMeshes[i];
       aiMesh* pAmesh = 
         myWorkingData.pCurrScene->mMeshes[uMeshIndex];
 
-      const uint32 uMaterialIndex = pAmesh->mMaterialIndex;
+      const uint uMaterialIndex = pAmesh->mMaterialIndex;
       AssimpMeshList& vMeshesWithMaterial = mapMaterialIndexMesh[uMaterialIndex];
       
       if (!vMeshesWithMaterial.contains(pAmesh))
@@ -211,7 +211,7 @@ namespace Fancy { namespace IO {
     std::vector<SharedPtr<SubModel>> vSubModels;
     for (MaterialMeshMap::iterator it = mapMaterialIndexMesh.begin(); it != mapMaterialIndexMesh.end(); ++it)
     {
-      const uint32 uMaterialIndex = it->first;
+      const uint uMaterialIndex = it->first;
       AssimpMeshList& vAssimpMeshes = it->second;
       
       SharedPtr<Geometry::Mesh> pMesh = 
@@ -247,7 +247,7 @@ namespace Fancy { namespace IO {
     return true;
   }
 //---------------------------------------------------------------------------//
-  uint64 locComputeHashFromVertexData(aiMesh** someMeshes, uint32 aMeshCount)
+  uint64 locComputeHashFromVertexData(aiMesh** someMeshes, uint aMeshCount)
   {
     XXH64_state_t* xxHashState = XXH64_createState();
     XXH64_reset(xxHashState, 0u);
@@ -301,14 +301,14 @@ namespace Fancy { namespace IO {
     const ShaderVertexInputLayout& modelLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
     const ShaderVertexInputElementList& vertexElements = modelLayout.getVertexElementList();
 
-    for (uint32 i = 0u; i < vertexElements.size(); ++i)
+    for (uint i = 0u; i < vertexElements.size(); ++i)
       if (vertexElements[i].mySemantics == aSemantic)
         return &vertexElements[i];
 
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Geometry::Mesh> SceneImporter::constructOrRetrieveMesh(const aiNode* _pANode, aiMesh** someMeshes, uint32 aMeshCount)
+  SharedPtr<Geometry::Mesh> SceneImporter::constructOrRetrieveMesh(const aiNode* _pANode, aiMesh** someMeshes, uint aMeshCount)
   {
     // TODO: Refactor this caching-mechanism:
     // We don't save any processing time if we read in the cached mesh, construct its hash and THEN check if we already have this mesh loaded in the engine
@@ -324,12 +324,12 @@ namespace Fancy { namespace IO {
 
     // Did we construct a similar mesh before from the same ai-Meshes?
     auto findMeshInCache = [&]() -> SharedPtr<Geometry::Mesh> {
-      for (uint32 i = 0u; i < myWorkingData.localMeshCache.size(); ++i)
+      for (uint i = 0u; i < myWorkingData.localMeshCache.size(); ++i)
       {
         const std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>& entry = myWorkingData.localMeshCache[i];
 
         bool isValid = true;
-        for (uint32 iAiMesh = 0u; isValid && iAiMesh < aMeshCount; ++iAiMesh)
+        for (uint iAiMesh = 0u; isValid && iAiMesh < aMeshCount; ++iAiMesh)
           isValid &= entry.first.contains(someMeshes[iAiMesh]);
 
         if (isValid)
@@ -358,16 +358,16 @@ namespace Fancy { namespace IO {
     std::vector<uint> numVertices;
     std::vector<void*> indexDatas;
     std::vector<uint> numIndices;
-    for (uint32 iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
+    for (uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
     {
       const aiMesh* aiMesh = someMeshes[iAiMesh];
 
       struct ImportVertexStream
       {
         void* mySourceData;
-        uint32 mySourceDataStride;
+        uint mySourceDataStride;
         VertexSemantics mySourceSemantic;
-        uint32 mySourceSemanticIndex;
+        uint mySourceSemanticIndex;
       };
       FixedArray<ImportVertexStream, Rendering::kMaxNumGeometryVertexAttributes> importStreams;
 
@@ -411,7 +411,7 @@ namespace Fancy { namespace IO {
         }
       }
 
-      for (uint32 iUVchannel = 0u; iUVchannel < aiMesh->GetNumUVChannels(); ++iUVchannel)
+      for (uint iUVchannel = 0u; iUVchannel < aiMesh->GetNumUVChannels(); ++iUVchannel)
       {
         if (aiMesh->HasTextureCoords(iUVchannel))
         {
@@ -424,7 +424,7 @@ namespace Fancy { namespace IO {
         }
       }
 
-      for (uint32 iColorChannel = 0u; iColorChannel < aiMesh->GetNumColorChannels(); ++iColorChannel)
+      for (uint iColorChannel = 0u; iColorChannel < aiMesh->GetNumColorChannels(); ++iColorChannel)
       {
         if (aiMesh->HasVertexColors(iColorChannel))
         {
@@ -447,12 +447,12 @@ namespace Fancy { namespace IO {
 
       FixedArray<void*, Rendering::kMaxNumGeometryVertexAttributes> patchingDatas;
 
-      for (uint32 i = 0u; i < expectedInputList.size(); ++i)
+      for (uint i = 0u; i < expectedInputList.size(); ++i)
       {
         const ShaderVertexInputElement& expectedElem = expectedInputList[i];
 
         bool foundInImportStreams = false;
-        for (uint32 k = 0u; k < importStreams.size(); ++k)
+        for (uint k = 0u; k < importStreams.size(); ++k)
         {
           ImportVertexStream& stream = importStreams[k];
 
@@ -468,7 +468,7 @@ namespace Fancy { namespace IO {
             void* patchedData = malloc(expectedElem.mySizeBytes * aiMesh->mNumVertices);
             patchingDatas.push_back(patchedData);
 
-            for (uint32 iVertex = 0u; iVertex < aiMesh->mNumVertices; ++iVertex)
+            for (uint iVertex = 0u; iVertex < aiMesh->mNumVertices; ++iVertex)
             {
               uint8* dest = ((uint8*)patchedData) + iVertex * expectedElem.mySizeBytes;
               uint8* src = ((uint8*)stream.mySourceData) + iVertex * stream.mySourceDataStride;
@@ -504,8 +504,8 @@ namespace Fancy { namespace IO {
       // After doing the patching-work above, this can be set up to exactly match the input layout expected by the shaders
       Rendering::GeometryVertexLayout vertexLayout;
 
-      uint32 offset = 0u;
-      for (uint32 i = 0u; i < expectedInputList.size(); ++i)
+      uint offset = 0u;
+      for (uint i = 0u; i < expectedInputList.size(); ++i)
       {
         const ShaderVertexInputElement& expectedInput = expectedInputList[i];
 
@@ -550,7 +550,7 @@ namespace Fancy { namespace IO {
       numVertices.push_back(aiMesh->mNumVertices);
       meshDesc.myVertexLayouts.push_back(vertexLayout);
 
-      for (uint32 i = 0u; i < patchingDatas.size(); ++i)
+      for (uint i = 0u; i < patchingDatas.size(); ++i)
         free(patchingDatas[i]);
       patchingDatas.clear();
       
@@ -563,14 +563,14 @@ namespace Fancy { namespace IO {
       }
 #endif  // FANCY_IMPORTER_USE_VALIDATION
 
-      uint32* indices = FANCY_NEW(uint32[aiMesh->mNumFaces * 3u], MemoryCategory::GEOMETRY);
+      uint* indices = FANCY_NEW(uint[aiMesh->mNumFaces * 3u], MemoryCategory::GEOMETRY);
 
       for (uint i = 0u; i < aiMesh->mNumFaces; ++i)
       {
         const aiFace& aFace = aiMesh->mFaces[i];
 
         ASSERT(sizeof(indices[0]) == sizeof(aFace.mIndices[0]));
-        memcpy(&indices[i * 3u], aFace.mIndices, sizeof(uint32) * 3u);
+        memcpy(&indices[i * 3u], aFace.mIndices, sizeof(uint) * 3u);
       }
 
       // indexBufParams.uNumElements = aiMesh->mNumFaces * 3u;
@@ -586,13 +586,13 @@ namespace Fancy { namespace IO {
     memcpy(&aiMeshList[0], &someMeshes[0], sizeof(aiMesh*) * aMeshCount);
     myWorkingData.localMeshCache.push_back(std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>(aiMeshList, mesh));
 
-    for (uint32 i = 0u; i < vertexDatas.size(); ++i)
+    for (uint i = 0u; i < vertexDatas.size(); ++i)
     {
       FANCY_FREE(vertexDatas[i], MemoryCategory::GEOMETRY);
     }
     vertexDatas.clear();
 
-    for (uint32 i = 0u; i < indexDatas.size(); ++i)
+    for (uint i = 0u; i < indexDatas.size(); ++i)
     {
       FANCY_DELETE_ARR(indexDatas[i], MemoryCategory::GEOMETRY);
     }
@@ -670,39 +670,39 @@ namespace Fancy { namespace IO {
 
     if (pDiffuseTex != nullptr)
     {
-      MaterialTextureDesc matTex((uint32)EMaterialTextureSemantic::BASE_COLOR, pDiffuseTex->GetDescription());
+      MaterialTextureDesc matTex((uint)EMaterialTextureSemantic::BASE_COLOR, pDiffuseTex->GetDescription());
       matDesc.myTextures.push_back(matTex);
     }
     if (pNormalTex != nullptr)
     {
-      MaterialTextureDesc matTex((uint32)EMaterialTextureSemantic::NORMAL, pNormalTex->GetDescription());
+      MaterialTextureDesc matTex((uint)EMaterialTextureSemantic::NORMAL, pNormalTex->GetDescription());
       matDesc.myTextures.push_back(matTex);
     }
     if (pSpecularTex != nullptr)
     {
-      MaterialTextureDesc matTex((uint32)EMaterialTextureSemantic::MATERIAL, pSpecularTex->GetDescription());
+      MaterialTextureDesc matTex((uint)EMaterialTextureSemantic::MATERIAL, pSpecularTex->GetDescription());
       matDesc.myTextures.push_back(matTex);
     }
 
     if (hasColor)
     {
-      MaterialParameterDesc matParam((uint32)EMaterialParameterSemantic::DIFFUSE_REFLECTIVITY, 
+      MaterialParameterDesc matParam((uint)EMaterialParameterSemantic::DIFFUSE_REFLECTIVITY, 
         (color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f));
       matDesc.myParameters.push_back(matParam);
     }
     if (hasSpecular)
     {
-      MaterialParameterDesc matParam((uint32)EMaterialParameterSemantic::SPECULAR_REFLECTIVITY,specular);
+      MaterialParameterDesc matParam((uint)EMaterialParameterSemantic::SPECULAR_REFLECTIVITY,specular);
       matDesc.myParameters.push_back(matParam);
     }
     if (hasOpacity)
     {
-      MaterialParameterDesc matParam((uint32)EMaterialParameterSemantic::OPACITY, opacity);
+      MaterialParameterDesc matParam((uint)EMaterialParameterSemantic::OPACITY, opacity);
       matDesc.myParameters.push_back(matParam);
     }
     if (hasSpecularPower)
     {
-      MaterialParameterDesc matParam((uint32)EMaterialParameterSemantic::SPECULAR_POWER, specularPower);
+      MaterialParameterDesc matParam((uint)EMaterialParameterSemantic::SPECULAR_POWER, specularPower);
       matDesc.myParameters.push_back(matParam);
     }
     
@@ -713,9 +713,9 @@ namespace Fancy { namespace IO {
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Rendering::Texture> SceneImporter::createOrRetrieveTexture(
-    const aiMaterial* _pAmaterial, uint32 _aiTextureType, uint32 _texIndex)
+    const aiMaterial* _pAmaterial, uint _aiTextureType, uint _texIndex)
   {
-    uint32 numTextures = _pAmaterial->GetTextureCount(static_cast<aiTextureType>(_aiTextureType));
+    uint numTextures = _pAmaterial->GetTextureCount(static_cast<aiTextureType>(_aiTextureType));
     if (numTextures == 0u)
     {
       return nullptr;

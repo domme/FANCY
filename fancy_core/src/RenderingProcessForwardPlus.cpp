@@ -98,11 +98,11 @@ namespace Fancy { namespace Rendering {
   {
     // Create constant buffers
     GpuBufferCreationParams bufferParams;
-    bufferParams.myUsageFlags = static_cast<uint32>(GpuBufferUsage::CONSTANT_BUFFER);
-    bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::WRITE
-                              | (uint32)GpuResourceAccessFlags::COHERENT
-                              | (uint32)GpuResourceAccessFlags::DYNAMIC
-                              | (uint32)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+    bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
+    bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
+                              | (uint)GpuResourceAccessFlags::COHERENT
+                              | (uint)GpuResourceAccessFlags::DYNAMIC
+                              | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
     bufferParams.uElementSizeBytes = sizeof(float);
 
     // Per frame
@@ -188,14 +188,14 @@ namespace Fancy { namespace Rendering {
       GpuBufferCreationParams bufferParams;
       bufferParams.uNumElements = 4u;
       bufferParams.uElementSizeBytes = sizeof(Vertex);
-      bufferParams.myUsageFlags = (uint32)GpuBufferUsage::VERTEX_BUFFER;
-      bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
+      bufferParams.myUsageFlags = (uint)GpuBufferUsage::VERTEX_BUFFER;
+      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::NONE;
       SharedPtr<GpuBuffer> vertexBuffer = RenderCore::CreateBuffer(bufferParams, quadVertices);
 
       bufferParams.uNumElements = 6u;
       bufferParams.uElementSizeBytes = sizeof(uint16);
-      bufferParams.myUsageFlags = (uint32)GpuBufferUsage::INDEX_BUFFER;
-      bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
+      bufferParams.myUsageFlags = (uint)GpuBufferUsage::INDEX_BUFFER;
+      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::NONE;
       SharedPtr<GpuBuffer> indexBuffer = RenderCore::CreateBuffer(bufferParams, quadIndices);
 
       myFullscreenQuad = std::make_shared<Geometry::GeometryData>();
@@ -206,12 +206,12 @@ namespace Fancy { namespace Rendering {
     // Depth prepass shader state
     {
       GpuProgramPipelineDesc pipelineDesc;
-      GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
-      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
+      GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
+      programDesc->myShaderStage = static_cast<uint>(ShaderStage::VERTEX);
       programDesc->myShaderFileName = "Forwardplus/DepthPrepass";
 
-      programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
-      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
+      programDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
+      programDesc->myShaderStage = static_cast<uint>(ShaderStage::FRAGMENT);
       programDesc->myShaderFileName = "ForwardPlus/DepthPrepass";
 
       myDepthPrepassObjectShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
@@ -222,9 +222,9 @@ namespace Fancy { namespace Rendering {
     {
       BlendStateDesc blendStateDesc;
       blendStateDesc.myBlendEnabled[0] = true;
-      blendStateDesc.mySrcBlend[0] = static_cast<uint32>(BlendInput::ONE);
-      blendStateDesc.myDestBlend[0] = static_cast<uint32>(BlendInput::ONE);
-      blendStateDesc.myBlendOp[0] = static_cast<uint32>(BlendOp::ADD);
+      blendStateDesc.mySrcBlend[0] = static_cast<uint>(BlendInput::ONE);
+      blendStateDesc.myDestBlend[0] = static_cast<uint>(BlendInput::ONE);
+      blendStateDesc.myBlendOp[0] = static_cast<uint>(BlendOp::ADD);
       myBlendStateAdd = RenderCore::CreateBlendState(blendStateDesc);
       ASSERT(myBlendStateAdd != nullptr);
     }
@@ -253,11 +253,11 @@ namespace Fancy { namespace Rendering {
   void RenderingProcessForwardPlus::StartupDebug()
   {
     GpuBufferCreationParams bufferParams;
-    bufferParams.myUsageFlags = static_cast<uint32>(GpuBufferUsage::CONSTANT_BUFFER);
-    bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::WRITE
-                                | (uint32)GpuResourceAccessFlags::COHERENT
-                                | (uint32)GpuResourceAccessFlags::DYNAMIC
-                                | (uint32)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+    bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
+    bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
+                                | (uint)GpuResourceAccessFlags::COHERENT
+                                | (uint)GpuResourceAccessFlags::DYNAMIC
+                                | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
     bufferParams.uElementSizeBytes = sizeof(float);
 
     // Debug texture params
@@ -288,14 +288,14 @@ namespace Fancy { namespace Rendering {
     }
 
     GpuProgramPipelineDesc pipelineDesc;
-    GpuProgramDesc* vertexShaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
-    GpuProgramDesc* fragmentShaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
+    GpuProgramDesc* vertexShaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
+    GpuProgramDesc* fragmentShaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
     vertexShaderDesc->myShaderFileName = "Forwardplus/DebugTexture";
     vertexShaderDesc->myMainFunction = "main";
-    vertexShaderDesc->myShaderStage = (uint32)ShaderStage::VERTEX;
+    vertexShaderDesc->myShaderStage = (uint)ShaderStage::VERTEX;
 
     fragmentShaderDesc->myShaderFileName = "Forwardplus/DebugTexture";
-    fragmentShaderDesc->myShaderStage = (uint32)ShaderStage::FRAGMENT;
+    fragmentShaderDesc->myShaderStage = (uint)ShaderStage::FRAGMENT;
     fragmentShaderDesc->myMainFunction = "main";
     myDefaultTextureDebugShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
     ASSERT(myDefaultTextureDebugShader != nullptr, "Failed creating fullscreen texture shader state");
@@ -527,7 +527,7 @@ namespace Fancy { namespace Rendering {
     context->BindResource(myPerDrawData.get(), DescriptorType::CONSTANT_BUFFER, 0);
         
     const auto& renderQueueItems = myRenderQueueFromCamera.GetItems();
-    for (uint32 iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
+    for (uint iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
     {
       const RenderQueueItem& item = renderQueueItems[iItem];
       UpdatePerDrawData(camera, item.myWorldMat);
@@ -542,7 +542,7 @@ namespace Fancy { namespace Rendering {
   {
   }
 //---------------------------------------------------------------------------//
-  static uint32 locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)
+  static uint locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)
   {
     switch (aSemantic)
     {

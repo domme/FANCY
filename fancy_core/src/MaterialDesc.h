@@ -34,20 +34,20 @@ namespace Fancy { namespace Rendering {
   struct MaterialTextureDesc
   {
     MaterialTextureDesc() : mySemantic(~0u) {}
-    MaterialTextureDesc(uint32 aSemantic, const TextureDesc& aTextureDesc) : mySemantic(aSemantic), myTexture(aTextureDesc) {}
+    MaterialTextureDesc(uint aSemantic, const TextureDesc& aTextureDesc) : mySemantic(aSemantic), myTexture(aTextureDesc) {}
     void Serialize(IO::Serializer* aSerializer);
 
-    uint32 mySemantic;
+    uint mySemantic;
     TextureDesc myTexture;
   };
 //---------------------------------------------------------------------------//
   struct MaterialParameterDesc
   {
     MaterialParameterDesc() : mySemantic(~0u), myValue(0.0f) {}
-    MaterialParameterDesc(uint32 aSemantic, float aValue) : mySemantic(aSemantic), myValue(aValue) {}
+    MaterialParameterDesc(uint aSemantic, float aValue) : mySemantic(aSemantic), myValue(aValue) {}
     void Serialize(IO::Serializer* aSerializer);
 
-    uint32 mySemantic;
+    uint mySemantic;
     float myValue;
   };
 //---------------------------------------------------------------------------//

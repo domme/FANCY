@@ -45,10 +45,13 @@ namespace Fancy { namespace IO {
     String GetWorkingDirectory()
     {
       TCHAR buf[MAX_PATH];
-      if (GetCurrentDirectory(MAX_PATH, buf))
-        return String(buf);
+      if (!GetCurrentDirectory(MAX_PATH, buf))
+        return "";
 
-      return "";
+      String workingDir(buf);
+      UnifySlashes(workingDir);
+
+      return workingDir;
     }
 //---------------------------------------------------------------------------//
     String GetAbsolutePath(const String& aWorkingDirPath)
@@ -128,7 +131,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
     void UnifySlashes(String& aPath)
     {
-      for (uint32 i = 0; i < aPath.size(); ++i)
+      for (uint i = 0; i < aPath.size(); ++i)
         if (aPath[i] == '\\')
           aPath[i] = '/';
     }
@@ -140,7 +143,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
     void CreateDirectoryTreeForPath(const String& aPath)
     {
-      String aDirectoryTree = GetContainingFolder(aPath);
+      String aDirectoryTree = GetContainingFolder(aPath) + "/";
 
       size_t posSlash = aDirectoryTree.find('/');
       if (posSlash != String::npos && IsPathAbsolute(aDirectoryTree))
@@ -163,12 +166,12 @@ namespace Fancy { namespace IO {
       UnifySlashes(aPath);
 
       const String kSearchKey = "/../";
-      const uint32 kSearchKeyLen = kSearchKey.length();
+      const size_t kSearchKeyLen = kSearchKey.length();
 
       size_t posDots = aPath.find(kSearchKey);
       while (posDots != String::npos)
       {
-        int posSlashBefore = aPath.rfind('/', posDots - 1u);
+        size_t posSlashBefore = aPath.rfind('/', posDots - 1u);
         if ((size_t)posSlashBefore == String::npos)
           posSlashBefore = -1;
 

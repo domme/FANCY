@@ -36,7 +36,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class Texture;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT RenderCore
+  class RenderCore
   {
   public:
     /// Init platform-independent stuff
@@ -64,12 +64,12 @@ namespace Fancy { namespace Rendering {
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureDesc &aTextureDesc);
     static SharedPtr<Texture> CreateTexture(const String& aTexturePath);
-    static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint32 aNumUploadDatas = 0u);
+    static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
 
     static void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr);
-    static void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteSize, uint32 aByteOffsetFromBuffer = 0u);
-    static void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas);
+    static void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteSize, uint aByteOffsetFromBuffer = 0u);
+    static void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas);
 
     static SharedPtr<BlendState> CreateBlendState(const Rendering::BlendStateDesc& aDesc);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc);

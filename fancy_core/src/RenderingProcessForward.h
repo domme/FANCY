@@ -18,7 +18,7 @@ class BlendState;
 class DepthStencilState;
 class CommandContext;
 
-class DLLEXPORT RenderingProcessForward : public RenderingProcess
+class RenderingProcessForward : public RenderingProcess
 {
 public:
   RenderingProcessForward();

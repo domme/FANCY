@@ -6,19 +6,17 @@
 
 #include "ModelComponent.h"
 #include "CameraComponent.h"
-#include "CameraControllerComponent.h"
 #include "PathService.h"
 #include "SceneImporter.h"
 #include "TimeManager.h"
 #include "LightComponent.h"
-#include "ScopedPtr.h"
 #include "RenderView.h"
 #include "GraphicsWorld.h"
 #include "EngineParameters.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  DLLEXPORT FancyRuntime* FancyRuntime::ourInstance = nullptr;
+  FancyRuntime* FancyRuntime::ourInstance = nullptr;
 //---------------------------------------------------------------------------//
   FancyRuntime::FancyRuntime(HINSTANCE anAppInstanceHandle)
     : myAppInstanceHandle(anAppInstanceHandle)
@@ -41,7 +39,7 @@ namespace Fancy {
   void FancyRuntime::Internal_Init(const EngineParameters& someParams)
   {
     myMainWorld = std::make_shared<GraphicsWorld>();
-    myMainView = std::make_unique<RenderView>(myAppInstanceHandle, static_cast<uint32>(someParams.myRenderingTechnique), myMainWorld);
+    myMainView = std::make_unique<RenderView>(myAppInstanceHandle, static_cast<uint>(someParams.myRenderingTechnique), myMainWorld);
     myViews.push_back(myMainView.get());
   }
 //---------------------------------------------------------------------------//
@@ -65,7 +63,6 @@ namespace Fancy {
     Scene::SceneNodeComponentFactory::RegisterFactory(_N(ModelComponent), Scene::ModelComponent::create);
     Scene::SceneNodeComponentFactory::RegisterFactory(_N(CameraComponent), Scene::CameraComponent::create);
     Scene::SceneNodeComponentFactory::RegisterFactory(_N(LightComponent), Scene::LightComponent::create);
-    // Scene::SceneNodeComponentFactory::RegisterFactory(_N(CameraControllerComponent), Scene::CameraControllerComponent::create);
 
     ourInstance = new FancyRuntime(anAppInstanceHandle);
 
@@ -107,7 +104,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void FancyRuntime::Update(double _dt)
   {
-    myRealTimeClock.Update(_dt);
+    myRealTimeClock.Update(static_cast<float>(_dt));
    
     for (RenderView* view : myViews)
       view->Tick(myRealTimeClock);

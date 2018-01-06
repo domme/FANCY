@@ -3,7 +3,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  static float locUpdateFrequencies[(uint32) TimedUpdateInterval::NUM] =
+  static float locUpdateFrequencies[(uint) TimedUpdateInterval::NUM] =
   {
     0.0f,
     1.0f,
@@ -27,7 +27,7 @@ namespace Fancy {
     myDerivedDeltaTime = fDt * myTimeScale;
     myElapsedTime += myDerivedDeltaTime;
 
-    for (uint32 i = 0u; i < (uint32)TimedUpdateInterval::NUM; ++i)
+    for (uint i = 0u; i < (uint)TimedUpdateInterval::NUM; ++i)
     {
       if (myElapsedTime - myLastUpdateTimes[i] >= locUpdateFrequencies[i] - FLT_MIN)
       {

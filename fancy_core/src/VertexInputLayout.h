@@ -28,18 +28,18 @@ namespace Fancy { namespace Rendering {
     /// Semantic of the attribute as reported by shader-reflection
     VertexSemantics mySemantics;
     /// Index of the sementic for multi-semantic types
-    uint32 mySemanticIndex;
+    uint mySemanticIndex;
     /// Register-index in the shader
-    uint32 myRegisterIndex;
+    uint myRegisterIndex;
     /// Size of the attribute in bytes
-    uint32 mySizeBytes;
+    uint mySizeBytes;
     /// The format of the element
     DataFormat myFormat;
     /// Multiplier for eFormat. Used for multi-component elements (e.g. Matrices)
     uint8 myFormatComponentCount;
   };
 //---------------------------------------------------------------------------//
-  const uint32 kMaxNumInputVertexAttributes = 16;
+  const uint kMaxNumInputVertexAttributes = 16;
   typedef FixedArray<ShaderVertexInputElement, kMaxNumInputVertexAttributes> ShaderVertexInputElementList;
 //---------------------------------------------------------------------------//
   class ShaderVertexInputLayout
@@ -56,8 +56,8 @@ namespace Fancy { namespace Rendering {
     void clear() {myVertexInputElements.clear();}
     void addVertexInputElement(const ShaderVertexInputElement& clVertexElement);
     ShaderVertexInputElement& addVertexInputElement();
-    const ShaderVertexInputElement& getVertexInputElement(uint32 u32Index) const { ASSERT(u32Index < myVertexInputElements.size()); return myVertexInputElements[u32Index]; }
-    uint32 getNumVertexInputElements() const { return myVertexInputElements.size(); }
+    const ShaderVertexInputElement& getVertexInputElement(uint u32Index) const { ASSERT(u32Index < myVertexInputElements.size()); return myVertexInputElements[u32Index]; }
+    uint getNumVertexInputElements() const { return myVertexInputElements.size(); }
     const ShaderVertexInputElementList& getVertexElementList() const { return myVertexInputElements; }
 
     static ShaderVertexInputLayout ourDefaultModelLayout;

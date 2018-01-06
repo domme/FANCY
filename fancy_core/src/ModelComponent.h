@@ -10,7 +10,7 @@ namespace Fancy { namespace Geometry {
 
 namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
-  class DLLEXPORT ModelComponent : 
+  class ModelComponent : 
     public SceneNodeComponent, public BaseCreator<ModelComponent>
   {
     public:

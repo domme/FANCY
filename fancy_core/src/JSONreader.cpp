@@ -13,7 +13,7 @@ namespace Fancy { namespace IO {
     : Serializer(ESerializationMode::LOAD)
     , myGraphicsWorld(aGraphicsWorld)
   {
-    uint32 archiveFlags = 0u;
+    uint archiveFlags = 0u;
 
     archiveFlags |= std::ios::in;
 
@@ -50,7 +50,7 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   Json::Value* JSONreader::GetResourceVal(const ObjectName& aTypeName, uint64 aHash) const
   {
-    for (int i = 0; i < myHeader.myResources->size(); ++i)
+    for (int i = 0; i < (int) myHeader.myResources->size(); ++i)
     {
       Json::ArrayIndex index(i);
       Json::Value& val = (*myHeader.myResources)[index];
@@ -158,24 +158,25 @@ namespace Fancy { namespace IO {
 
     case EBaseDataType::Uint:
     {
-      *static_cast<uint*>(anObject) = currJsonVal.asUInt64();
-    } break;
-
-    case EBaseDataType::Uint32:
-    {
-      *static_cast<uint32*>(anObject) = currJsonVal.asUInt();
+      *static_cast<uint*>(anObject) = currJsonVal.asUInt();
     } break;
 
     case EBaseDataType::Uint8:
     {
-      uint32 val32 = currJsonVal.asUInt();
+      uint val32 = currJsonVal.asUInt();
       *static_cast<uint8*>(anObject) = static_cast<uint8>(val32);
     } break;
 
     case EBaseDataType::Uint16:
     {
-      uint32 val32 = currJsonVal.asUInt();
+      uint val32 = currJsonVal.asUInt();
       *static_cast<uint16*>(anObject) = static_cast<uint16>(val32);
+    } break;
+
+    case EBaseDataType::Uint64:
+    {
+      uint64 val = currJsonVal.asUInt64();
+      *static_cast<uint64*>(anObject) = static_cast<uint64>(val);
     } break;
 
     case EBaseDataType::Float:
@@ -223,37 +224,37 @@ namespace Fancy { namespace IO {
     case EBaseDataType::Vector3:
     {
       glm::vec3& val = *static_cast<glm::vec3*>(anObject);
-      for (Json::ArrayIndex i = 0u; i < val.length(); ++i)
+      for (Json::ArrayIndex i = 0u; i < (uint) val.length(); ++i)
         val[i] = currJsonVal[i].asFloat();
     } break;
 
     case EBaseDataType::Vector4:
     {
       glm::vec4& val = *static_cast<glm::vec4*>(anObject);
-      for (Json::ArrayIndex i = 0u; i < val.length(); ++i)
+      for (Json::ArrayIndex i = 0u; i < (uint) val.length(); ++i)
         val[i] = currJsonVal[i].asFloat();
     } break;
 
     case EBaseDataType::Quaternion:
     {
       glm::quat& val = *static_cast<glm::quat*>(anObject);
-      for (Json::ArrayIndex i = 0u; i < val.length(); ++i)
+      for (Json::ArrayIndex i = 0u; i < (uint) val.length(); ++i)
         val[i] = currJsonVal[i].asFloat();
     } break;
 
     case EBaseDataType::Matrix3x3:
     {
       glm::mat3& val = *static_cast<glm::mat3*>(anObject);
-      for (Json::ArrayIndex y = 0u; y < val.length(); ++y)
-        for (Json::ArrayIndex x = 0u; x < val[y].length(); ++x)
+      for (Json::ArrayIndex y = 0u; y < (uint) val.length(); ++y)
+        for (Json::ArrayIndex x = 0u; x < (uint) val[y].length(); ++x)
           val[x][y] = currJsonVal[y * val[y].length() + x].asFloat();
     } break;
 
     case EBaseDataType::Matrix4x4:
     {
       glm::mat4& val = *static_cast<glm::mat4*>(anObject);
-      for (Json::ArrayIndex y = 0u; y < val.length(); ++y)
-        for (Json::ArrayIndex x = 0u; x < val[y].length(); ++x)
+      for (Json::ArrayIndex y = 0u; y < (uint) val.length(); ++y)
+        for (Json::ArrayIndex x = 0u; x < (uint) val[y].length(); ++x)
           val[x][y] = currJsonVal[y * val[y].length() + x].asFloat();
     } break;
 

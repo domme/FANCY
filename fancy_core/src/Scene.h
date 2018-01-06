@@ -16,13 +16,13 @@ namespace Fancy { namespace Scene {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  const uint32 kMaxNumLights = 512;
-  const uint32 kMaxNumModels = 2048;
+  const uint kMaxNumLights = 512;
+  const uint kMaxNumModels = 2048;
 
   typedef FixedArray<const LightComponent*, kMaxNumLights> LightList;
   typedef FixedArray<const ModelComponent*, kMaxNumModels> ModelList;
 
-  class DLLEXPORT Scene
+  class Scene
   {
     public:
       Scene();

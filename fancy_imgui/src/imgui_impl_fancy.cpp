@@ -25,8 +25,8 @@ namespace Fancy { namespace ImGui {
     glm::float4x4 myProjectionMatrix;
   };
 
-  const uint32 kVertexNumIncrease = 2048u;
-  const uint32 kIndexNumIncrease = kVertexNumIncrease * 3u;
+  const uint kVertexNumIncrease = 2048u;
+  const uint kIndexNumIncrease = kVertexNumIncrease * 3u;
 
   SharedPtr<Rendering::GpuBuffer> ourCBuffer;
   SharedPtr<Rendering::GpuBuffer> ourVertexBuffer;
@@ -93,27 +93,27 @@ namespace Fancy { namespace ImGui {
   }
   
   namespace {
-    SharedPtr<Rendering::GpuBuffer> locCreateVertexBuffer(uint32 aNumRequiredVertices)
+    SharedPtr<Rendering::GpuBuffer> locCreateVertexBuffer(uint aNumRequiredVertices)
     {
       Rendering::GpuBufferCreationParams bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
-      bufferParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::WRITE
-                                | (uint32)Rendering::GpuResourceAccessFlags::COHERENT
-                                | (uint32)Rendering::GpuResourceAccessFlags::DYNAMIC
-                                | (uint32)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+      bufferParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
+      bufferParams.uAccessFlags = (uint)Rendering::GpuResourceAccessFlags::WRITE
+                                | (uint)Rendering::GpuResourceAccessFlags::COHERENT
+                                | (uint)Rendering::GpuResourceAccessFlags::DYNAMIC
+                                | (uint)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
       bufferParams.uElementSizeBytes = sizeof(ImDrawVert);
       bufferParams.uNumElements = aNumRequiredVertices;
       return Rendering::RenderCore::CreateBuffer(bufferParams);
     }
 
-    SharedPtr<Rendering::GpuBuffer> locCreateIndexBuffer(uint32 aNumRequiredIndices)
+    SharedPtr<Rendering::GpuBuffer> locCreateIndexBuffer(uint aNumRequiredIndices)
     {
       Rendering::GpuBufferCreationParams bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::INDEX_BUFFER);
-      bufferParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::WRITE
-        | (uint32)Rendering::GpuResourceAccessFlags::COHERENT
-        | (uint32)Rendering::GpuResourceAccessFlags::DYNAMIC
-        | (uint32)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+      bufferParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::INDEX_BUFFER);
+      bufferParams.uAccessFlags = (uint)Rendering::GpuResourceAccessFlags::WRITE
+        | (uint)Rendering::GpuResourceAccessFlags::COHERENT
+        | (uint)Rendering::GpuResourceAccessFlags::DYNAMIC
+        | (uint)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
       bufferParams.uElementSizeBytes = sizeof(ImDrawIdx);
       bufferParams.uNumElements = aNumRequiredIndices;
       return Rendering::RenderCore::CreateBuffer(bufferParams);
@@ -161,13 +161,13 @@ namespace Fancy { namespace ImGui {
     // Load the imgui-shader state
     {
       Rendering::GpuProgramPipelineDesc pipelineDesc;
-      Rendering::GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)Rendering::ShaderStage::VERTEX];
+      Rendering::GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)Rendering::ShaderStage::VERTEX];
       shaderDesc->myShaderFileName = "Imgui";
       shaderDesc->myMainFunction = "main";
-      shaderDesc->myShaderStage = (uint32)Rendering::ShaderStage::VERTEX;
-      shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)Rendering::ShaderStage::FRAGMENT];
+      shaderDesc->myShaderStage = (uint)Rendering::ShaderStage::VERTEX;
+      shaderDesc = &pipelineDesc.myGpuPrograms[(uint)Rendering::ShaderStage::FRAGMENT];
       shaderDesc->myShaderFileName = "Imgui";
-      shaderDesc->myShaderStage = (uint32)Rendering::ShaderStage::FRAGMENT;
+      shaderDesc->myShaderStage = (uint)Rendering::ShaderStage::FRAGMENT;
       shaderDesc->myMainFunction = "main";
       ourProgramPipeline = Rendering::RenderCore::CreateGpuProgramPipeline(pipelineDesc);
       ASSERT(ourProgramPipeline != nullptr);
@@ -176,11 +176,11 @@ namespace Fancy { namespace ImGui {
     // Create the cbuffer
     {
       Rendering::GpuBufferCreationParams bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint32>(Rendering::GpuBufferUsage::CONSTANT_BUFFER);
-      bufferParams.uAccessFlags = (uint32)Rendering::GpuResourceAccessFlags::WRITE
-                                 | (uint32)Rendering::GpuResourceAccessFlags::COHERENT
-                                 | (uint32)Rendering::GpuResourceAccessFlags::DYNAMIC
-                                 | (uint32)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+      bufferParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::CONSTANT_BUFFER);
+      bufferParams.uAccessFlags = (uint)Rendering::GpuResourceAccessFlags::WRITE
+                                 | (uint)Rendering::GpuResourceAccessFlags::COHERENT
+                                 | (uint)Rendering::GpuResourceAccessFlags::DYNAMIC
+                                 | (uint)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
       bufferParams.uElementSizeBytes = sizeof(CBufferData);
       bufferParams.uNumElements = 1u;
 
@@ -226,9 +226,9 @@ namespace Fancy { namespace ImGui {
     {
       Rendering::BlendStateDesc desc;
       desc.myBlendEnabled[0] = true;
-      desc.mySrcBlend[0] = static_cast<uint32>(Rendering::BlendInput::SRC_ALPHA);
-      desc.myDestBlend[0] = static_cast<uint32>(Rendering::BlendInput::INV_SRC_ALPHA);
-      desc.myBlendOp[0] = static_cast<uint32>(Rendering::BlendOp::ADD);
+      desc.mySrcBlend[0] = static_cast<uint>(Rendering::BlendInput::SRC_ALPHA);
+      desc.myDestBlend[0] = static_cast<uint>(Rendering::BlendInput::INV_SRC_ALPHA);
+      desc.myBlendOp[0] = static_cast<uint>(Rendering::BlendOp::ADD);
       ourBlendState = Rendering::RenderCore::CreateBlendState(desc);
       ASSERT(ourBlendState != nullptr);
     }
@@ -312,14 +312,14 @@ namespace Fancy { namespace ImGui {
 
       if (numRequiredVertices > ourVertexBuffer->GetNumElements())
       {
-        const uint newBufferSize = Fancy::MathUtil::Align(numRequiredVertices, kVertexNumIncrease);
+        const uint newBufferSize = static_cast<uint>(Fancy::MathUtil::Align(numRequiredVertices, kVertexNumIncrease));
         ourVertexBuffer = locCreateVertexBuffer(newBufferSize);
         ASSERT(ourVertexBuffer != nullptr);
       }
 
       if (numRequiredIndices > ourIndexBuffer->GetNumElements())
       {
-        const uint newBufferSize = Fancy::MathUtil::Align(numRequiredIndices, kIndexNumIncrease);
+        const uint newBufferSize = (uint) Fancy::MathUtil::Align(numRequiredIndices, kIndexNumIncrease);
         ourIndexBuffer = locCreateIndexBuffer(newBufferSize);
         ASSERT(ourIndexBuffer != nullptr);
       }

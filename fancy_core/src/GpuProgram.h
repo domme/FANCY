@@ -19,7 +19,7 @@ namespace Fancy { namespace Rendering {
   struct GpuProgramCompilerOutput;
   class ShaderResourceInterface;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT GpuProgram
+  class GpuProgram
   {
     friend class IO::ObjectFactory;
 

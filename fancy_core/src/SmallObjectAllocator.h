@@ -9,7 +9,7 @@ namespace Fancy {
   class SmallObjectAllocator
   {
   public:
-    SmallObjectAllocator(uint32 aPageSize)
+    SmallObjectAllocator(uint aPageSize)
       : myPageSize(aPageSize)
       , myNextFreeEntry(nullptr)
       , myLastAllocatedPage(nullptr)
@@ -67,7 +67,7 @@ namespace Fancy {
       Entry* myNext;
     };
   //---------------------------------------------------------------------------//
-    uint32 myPageSize;
+    uint myPageSize;
     Entry* myNextFreeEntry;
     AllocatedPage* myLastAllocatedPage;
   //---------------------------------------------------------------------------//
@@ -78,7 +78,7 @@ namespace Fancy {
       myLastAllocatedPage = newPage;
 
       Entry* newEntries = (Entry*) ((uint8)newPage + sizeof(AllocatedPage));
-      for (uint32 i = 0u; i < myPageSize - 1u; ++i)
+      for (uint i = 0u; i < myPageSize - 1u; ++i)
       {
         newEntries[i].myNext = &newEntries[i + 1];
       }

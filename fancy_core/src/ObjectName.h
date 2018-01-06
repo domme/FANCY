@@ -5,14 +5,14 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class DLLEXPORT ObjectName 
+  class ObjectName 
   {
   //---------------------------------------------------------------------------//
     public:
       ObjectName();
       ObjectName(const std::string& szString);
       ObjectName(const char* aString);
-      ObjectName(uint32 aHash);
+      ObjectName(uint aHash);
       ~ObjectName();
       static const ObjectName blank;
     //---------------------------------------------------------------------------//

@@ -36,10 +36,10 @@ namespace Fancy { namespace Geometry {
 
       uint64 GetHash() const { return GetDescription().GetHash(); }
 
-      uint32 getNumSubModels() const {return m_vSubModels.size();}
+      uint getNumSubModels() const {return static_cast<uint>(m_vSubModels.size());}
     //---------------------------------------------------------------------------//
-      SubModel* getSubModel(uint32 u32Index) {return m_vSubModels[u32Index].get();}
-      const SubModel* getSubModel(uint32 u32Index) const {return m_vSubModels[u32Index].get();}
+      SubModel* getSubModel(uint u32Index) {return m_vSubModels[u32Index].get();}
+      const SubModel* getSubModel(uint u32Index) const {return m_vSubModels[u32Index].get();}
     //---------------------------------------------------------------------------//
       std::vector<SharedPtr<SubModel>>& getSubModelList() {return m_vSubModels;}
       const std::vector<SharedPtr<SubModel>>& getSubModelList() const {return m_vSubModels;}

@@ -9,7 +9,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  RenderView::RenderView(HINSTANCE anAppInstanceHandle, uint32 aRenderingTechnique, const SharedPtr<GraphicsWorld>& aWorld)
+  RenderView::RenderView(HINSTANCE anAppInstanceHandle, uint aRenderingTechnique, const SharedPtr<GraphicsWorld>& aWorld)
     : myGraphicsWorld(aWorld)
   {
     myRenderOutput = Rendering::RenderCore::CreateRenderOutput(anAppInstanceHandle);
@@ -18,10 +18,10 @@ namespace Fancy {
     // Init Rendering process
     switch (aRenderingTechnique)
     {
-      case static_cast<uint32>(RenderingTechnique::FORWARD):
+      case static_cast<uint>(RenderingTechnique::FORWARD):
         myRenderingProcess = FANCY_NEW(Rendering::RenderingProcessForward, MemoryCategory::General);
         break;
-      case static_cast<uint32>(RenderingTechnique::FORWARD_PLUS):
+      case static_cast<uint>(RenderingTechnique::FORWARD_PLUS):
         myRenderingProcess = FANCY_NEW(Rendering::RenderingProcessForwardPlus, MemoryCategory::General);
         break;
       default:

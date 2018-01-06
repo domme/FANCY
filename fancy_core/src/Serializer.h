@@ -24,7 +24,7 @@ namespace Fancy { namespace IO {
     struct TocEntry
     {
       TypeInfo myTypeInfo;
-      uint32 myArchivePosition;
+      uint myArchivePosition;
     };
   //---------------------------------------------------------------------------//
   //---------------------------------------------------------------------------//

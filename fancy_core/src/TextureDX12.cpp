@@ -16,7 +16,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
   }
 //---------------------------------------------------------------------------//
-  void TextureDX12::Create(const TextureParams& someParameters, const TextureUploadData* someInitialDatas /* = nullptr */, uint32 aNumInitialDatas /*= 0u*/)
+  void TextureDX12::Create(const TextureParams& someParameters, const TextureUploadData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
   {
     Destroy();
 
@@ -36,13 +36,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     DataFormat actualFormat = RenderCore::ResolveFormat(someParameters.eFormat);
     
     DataFormatInfo formatInfo = DataFormatInfo::GetFormatInfo(actualFormat);
-    const uint32 pixelSizeBytes = formatInfo.mySizeBytes;
-    uint32 maxNumMipLevels = 0;
+    const uint pixelSizeBytes = formatInfo.mySizeBytes;
+    uint maxNumMipLevels = 0;
 
     switch(dimension)
     {
       case D3D12_RESOURCE_DIMENSION_TEXTURE1D: 
-        maxNumMipLevels = static_cast<uint32>(glm::log2(someParameters.u16Width));
+        maxNumMipLevels = static_cast<uint>(glm::log2(someParameters.u16Width));
         break;
       case D3D12_RESOURCE_DIMENSION_TEXTURE2D: 
         maxNumMipLevels = glm::min(glm::log2(someParameters.u16Width), glm::log2(someParameters.u16Height));
@@ -56,7 +56,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     maxNumMipLevels = glm::max(1u, maxNumMipLevels);
 
-    uint32 depthOrArraySize = glm::max(1u, static_cast<uint32>(someParameters.u16Depth));
+    uint depthOrArraySize = glm::max(1u, static_cast<uint>(someParameters.u16Depth));
     myState.isCubemap = false;  // TODO: Implement cubemap textures
     myState.isArrayTexture = false;  // TODO: Implement array textures
     myState.isSRGB = formatInfo.mySRGB;
@@ -67,8 +67,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     else
       myState.numDimensions = 3u;
 
-    //uint32 actualNumMipLevels = glm::min(glm::max(1u, static_cast<uint32>(someParameters.u8NumMipLevels)), maxNumMipLevels);
-    uint32 actualNumMipLevels = 1u; // TODO: Support mipmapping (need a custom compute shader for downsampling)  actualNumMipLevels;
+    //uint actualNumMipLevels = glm::min(glm::max(1u, static_cast<uint>(someParameters.u8NumMipLevels)), maxNumMipLevels);
+    uint actualNumMipLevels = 1u; // TODO: Support mipmapping (need a custom compute shader for downsampling)  actualNumMipLevels;
     
     D3D12_HEAP_PROPERTIES heapProps;
     heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
@@ -80,8 +80,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = dimension;
     resourceDesc.Alignment = 0;
-    resourceDesc.Width = glm::max(1u, static_cast<uint32>(someParameters.u16Width));
-    resourceDesc.Height = glm::max(1u, static_cast<uint32>(someParameters.u16Height));
+    resourceDesc.Width = glm::max(1u, static_cast<uint>(someParameters.u16Width));
+    resourceDesc.Height = glm::max(1u, static_cast<uint>(someParameters.u16Height));
     resourceDesc.DepthOrArraySize = depthOrArraySize;
     resourceDesc.MipLevels = actualNumMipLevels;
     resourceDesc.SampleDesc.Count = 1;
@@ -326,11 +326,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         // In this case, we need to manually add some padding per pixel so the upload works
 
         TextureUploadData* newDatas = static_cast<TextureUploadData*>(malloc(sizeof(TextureUploadData) * aNumInitialDatas));
-        for (uint32 i = 0u; i < aNumInitialDatas; ++i)
+        for (uint i = 0u; i < aNumInitialDatas; ++i)
         {
-          const uint32 width = someInitialDatas[i].myRowSizeBytes / someInitialDatas[i].myPixelSizeBytes;
-          const uint32 height = someInitialDatas[i].mySliceSizeBytes / someInitialDatas[i].myRowSizeBytes;
-          const uint32 depth = someInitialDatas[i].myTotalSizeBytes / someInitialDatas[i].mySliceSizeBytes;
+          const uint64 width = someInitialDatas[i].myRowSizeBytes / someInitialDatas[i].myPixelSizeBytes;
+          const uint64 height = someInitialDatas[i].mySliceSizeBytes / someInitialDatas[i].myRowSizeBytes;
+          const uint64 depth = someInitialDatas[i].myTotalSizeBytes / someInitialDatas[i].mySliceSizeBytes;
 
           const uint64 requiredSizeBytes = width * height * depth * pixelSizeBytes;
           newDatas[i].myData = (uint8*)malloc(requiredSizeBytes);
@@ -356,7 +356,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
         RenderCore::InitTextureData(this, newDatas, aNumInitialDatas);
 
-        for (uint32 i = 0u; i < aNumInitialDatas; ++i)
+        for (uint i = 0u; i < aNumInitialDatas; ++i)
           free(newDatas[i].myData);
 
         free(newDatas);

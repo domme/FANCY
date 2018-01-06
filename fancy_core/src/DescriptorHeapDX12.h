@@ -21,7 +21,7 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     void Reset() { myNextFreeHandleIndex = 0u; }
 
     DescriptorDX12 AllocateDescriptor();
-    DescriptorDX12 GetDescriptor(uint32 anIndex) const;
+    DescriptorDX12 GetDescriptor(uint anIndex) const;
     uint GetNumAllocatedDescriptors() const { return myNextFreeHandleIndex; }
     
   private:

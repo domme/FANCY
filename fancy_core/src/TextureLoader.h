@@ -7,10 +7,10 @@ namespace Fancy { namespace IO {
 //---------------------------------------------------------------------------//
   struct TextureLoadInfo
   {
-    uint32 bitsPerPixel;
-    uint32 numChannels;
-    uint32 width;
-    uint32 height;
+    uint bitsPerPixel;
+    uint numChannels;
+    uint width;
+    uint height;
   };
 //---------------------------------------------------------------------------//
   class TextureLoader

@@ -14,7 +14,7 @@ namespace Fancy { namespace Rendering {
   struct GraphicsPipelineState
   {
     GraphicsPipelineState();
-    uint GetHash() const;
+    uint64 GetHash() const;
 
     FillMode myFillMode;
     CullMode myCullMode;
@@ -32,7 +32,7 @@ namespace Fancy { namespace Rendering {
   struct ComputePipelineState
   {
     ComputePipelineState();
-    uint GetHash() const;
+    uint64 GetHash() const;
 
     const GpuProgram* myGpuProgram;
     bool myIsDirty;
@@ -47,12 +47,12 @@ namespace Fancy { namespace Rendering {
     CommandListType GetType() const { return myCommandListType; }
 
     virtual void ClearRenderTarget(Texture* aTexture, const float* aColor) = 0;
-    virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) = 0;
+    virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) = 0;
     virtual uint64 ExecuteAndReset(bool aWaitForCompletion = false) = 0;
-    virtual void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) = 0;
-    virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const = 0;
-    virtual void BindDescriptorSet(const Descriptor** someDescriptors, uint32 aResourceCount, uint32 aRegisterIndex) = 0;
+    virtual void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) = 0;
+    virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex) const = 0;
+    virtual void BindDescriptorSet(const Descriptor** someDescriptors, uint aResourceCount, uint aRegisterIndex) = 0;
     virtual void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) = 0;
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) = 0;
     virtual void RenderGeometry(const Geometry::GeometryData* pGeometry) = 0;

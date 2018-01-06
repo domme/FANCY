@@ -15,7 +15,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ~TextureDX12() override;
     bool IsValid() const override { return myResource != nullptr; }
 
-    void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint32 aNumInitialDatas = 0u) override;
+    void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) override;
 
     const DescriptorDX12* GetSrv() const { return &mySrvDescriptor; }
     const DescriptorDX12* GetUav() const { return &myUavDescriptor; }

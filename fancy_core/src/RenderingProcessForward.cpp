@@ -103,11 +103,11 @@ namespace Fancy { namespace Rendering {
   {
     // Create constant buffers
     GpuBufferCreationParams bufferParams;
-    bufferParams.myUsageFlags = static_cast<uint32>(GpuBufferUsage::CONSTANT_BUFFER);
-    bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::WRITE
-                              | (uint32)GpuResourceAccessFlags::COHERENT
-                              | (uint32)GpuResourceAccessFlags::DYNAMIC
-                              | (uint32)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+    bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
+    bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
+                              | (uint)GpuResourceAccessFlags::COHERENT
+                              | (uint)GpuResourceAccessFlags::DYNAMIC
+                              | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
     bufferParams.uElementSizeBytes = sizeof(float);
 
     // Per frame
@@ -193,14 +193,14 @@ namespace Fancy { namespace Rendering {
       GpuBufferCreationParams bufferParams;
       bufferParams.uNumElements = 4u;
       bufferParams.uElementSizeBytes = sizeof(Vertex);
-      bufferParams.myUsageFlags = (uint32)GpuBufferUsage::VERTEX_BUFFER;
-      bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
+      bufferParams.myUsageFlags = (uint)GpuBufferUsage::VERTEX_BUFFER;
+      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::NONE;
       SharedPtr<GpuBuffer> vertexBuffer = RenderCore::CreateBuffer(bufferParams, quadVertices);
 
       bufferParams.uNumElements = 6u;
       bufferParams.uElementSizeBytes = sizeof(uint16);
-      bufferParams.myUsageFlags = (uint32)GpuBufferUsage::INDEX_BUFFER;
-      bufferParams.uAccessFlags = (uint32)GpuResourceAccessFlags::NONE;
+      bufferParams.myUsageFlags = (uint)GpuBufferUsage::INDEX_BUFFER;
+      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::NONE;
       SharedPtr<GpuBuffer> indexBuffer = RenderCore::CreateBuffer(bufferParams, quadIndices);
 
       myFullscreenQuad = std::make_shared<Geometry::GeometryData>();
@@ -208,13 +208,13 @@ namespace Fancy { namespace Rendering {
       myFullscreenQuad->setIndexBuffer(indexBuffer);
 
       GpuProgramPipelineDesc pipelineDesc;
-      GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::VERTEX];
+      GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
       shaderDesc->myShaderFileName = "FullscreenQuad";
       shaderDesc->myMainFunction = "main";
-      shaderDesc->myShaderStage = (uint32)ShaderStage::VERTEX;
-      shaderDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
+      shaderDesc->myShaderStage = (uint)ShaderStage::VERTEX;
+      shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
       shaderDesc->myShaderFileName = "FullscreenQuad";
-      shaderDesc->myShaderStage = (uint32)ShaderStage::FRAGMENT;
+      shaderDesc->myShaderStage = (uint)ShaderStage::FRAGMENT;
       shaderDesc->myMainFunction = "main_textured";
       myFsTextureShaderState = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
       ASSERT(myFsTextureShaderState != nullptr, "Failed creating fullscreen texture shader state");
@@ -224,12 +224,12 @@ namespace Fancy { namespace Rendering {
     // Create default object shader state
     {
       GpuProgramPipelineDesc pipelineDesc;
-      GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint32) ShaderStage::VERTEX];
-      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::VERTEX);
+      GpuProgramDesc* programDesc = &pipelineDesc.myGpuPrograms[(uint) ShaderStage::VERTEX];
+      programDesc->myShaderStage = static_cast<uint>(ShaderStage::VERTEX);
       programDesc->myShaderFileName = "MaterialForward";
 
-      programDesc = &pipelineDesc.myGpuPrograms[(uint32)ShaderStage::FRAGMENT];
-      programDesc->myShaderStage = static_cast<uint32>(ShaderStage::FRAGMENT);
+      programDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
+      programDesc->myShaderStage = static_cast<uint>(ShaderStage::FRAGMENT);
       programDesc->myShaderFileName = "MaterialForward";
 
       myDefaultObjectShaderState = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
@@ -240,9 +240,9 @@ namespace Fancy { namespace Rendering {
     {
       BlendStateDesc blendAddDesc;
       blendAddDesc.myBlendEnabled[0] = true;
-      blendAddDesc.mySrcBlend[0] = static_cast<uint32>(BlendInput::ONE);
-      blendAddDesc.myDestBlend[0] = static_cast<uint32>(BlendInput::ONE);
-      blendAddDesc.myBlendOp[0] = static_cast<uint32>(BlendOp::ADD);
+      blendAddDesc.mySrcBlend[0] = static_cast<uint>(BlendInput::ONE);
+      blendAddDesc.myDestBlend[0] = static_cast<uint>(BlendInput::ONE);
+      blendAddDesc.myBlendOp[0] = static_cast<uint>(BlendOp::ADD);
       myBlendStateAdd = RenderCore::CreateBlendState(blendAddDesc);
     }
 
@@ -449,13 +449,13 @@ namespace Fancy { namespace Rendering {
     context->BindResource(myPerDrawData.get(), DescriptorType::CONSTANT_BUFFER, 1);
 
     const Scene::LightList& aLightList = scene->getCachedLights();
-    for (uint32 iLight = 0u; iLight < aLightList.size(); ++iLight)
+    for (uint iLight = 0u; iLight < aLightList.size(); ++iLight)
     {
       const Scene::LightComponent* lightComp = aLightList[iLight];
       UpdatePerLightData(lightComp, camera);
 
       const auto& renderQueueItems = myRenderQueueFromCamera.GetItems();
-      for (uint32 iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
+      for (uint iItem = 0u, num = renderQueueItems.size(); iItem < num; ++iItem)
       {
         const RenderQueueItem& item = renderQueueItems[iItem];
 
@@ -471,7 +471,7 @@ namespace Fancy { namespace Rendering {
     RenderCore::FreeContext(context);
   }
 //---------------------------------------------------------------------------//
-  static uint32 locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)
+  static uint locTexSemanticToRegIndex_MaterialDefault(EMaterialTextureSemantic aSemantic)
   {
     switch (aSemantic)
     {
@@ -484,7 +484,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void RenderingProcessForward::BindResources_ForwardColorPass(CommandContext* aContext, const Material* aMaterial)
   {
-    const uint32 kNumTextures = 3u;
+    const uint kNumTextures = 3u;
     const Descriptor* descriptorsToBind[kNumTextures];
 
     descriptorsToBind[0] = RenderCore::GetDefaultDiffuseTexture()->GetDescriptor(DescriptorType::DEFAULT_READ);
@@ -493,7 +493,7 @@ namespace Fancy { namespace Rendering {
 
     for (const MaterialTexture& matTexture : aMaterial->myTextures)
     {
-      const uint32 regIndex = locTexSemanticToRegIndex_MaterialDefault(matTexture.mySemantic);
+      const uint regIndex = locTexSemanticToRegIndex_MaterialDefault(matTexture.mySemantic);
       if (regIndex != ~0)
       {
         ASSERT(regIndex < kNumTextures);

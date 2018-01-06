@@ -38,7 +38,7 @@ namespace Fancy { namespace Rendering {
     myDefaultDepthStencil = RenderCore::CreateTexture(dsTexParams);
     ASSERT(myDefaultDepthStencil != nullptr);
 
-    for (uint32 i = 0u; i < kBackbufferCount; i++)
+    for (uint i = 0u; i < kBackbufferCount; i++)
     {
       TextureParams backbufferParams;
       backbufferParams.myIsRenderTarget = true;

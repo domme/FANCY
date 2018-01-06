@@ -82,7 +82,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
 
-    for (uint32 i = 0u; i < kBackbufferCount; i++)
+    for (uint i = 0u; i < kBackbufferCount; i++)
     {
       Texture* backbuffer = myBackbuffers[i].get();
       TextureDX12* backbufferResource = static_cast<TextureDX12*>(backbuffer);

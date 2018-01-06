@@ -238,7 +238,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return DataFormat::NONE;
   }
 //---------------------------------------------------------------------------//
-  uint32 locResolveSizeBytes(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
+  uint locResolveSizeBytes(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
   {
     switch (aParamDesc.ComponentType)
     {
@@ -258,7 +258,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return 0u;
   }
 //---------------------------------------------------------------------------//
-  uint32 locResolveComponentCount(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
+  uint locResolveComponentCount(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
   {
     if (aParamDesc.Mask <= 1) return 1u;
     else if (aParamDesc.Mask <= 3) return 2u;
@@ -269,16 +269,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return 0u;
   }
 //---------------------------------------------------------------------------//
-  void locResolveFormat(const char* aTypeName, uint32& aSizeBytesOut, DataFormat& aDataFormatOut)
+  void locResolveFormat(const char* aTypeName, uint& aSizeBytesOut, DataFormat& aDataFormatOut)
   {
-    uint32 sizeBytes = 0u;
+    uint sizeBytes = 0u;
     DataFormat format = DataFormat::NONE;
 
 #define CHECK(str) strcmp(aTypeName, str) == 0
     
-    const uint32 kFloatSize = 4u;
-    const uint32 kUintSize = 4u;
-    const uint32 kIntSize = 4u;
+    const uint kFloatSize = 4u;
+    const uint kUintSize = 4u;
+    const uint kIntSize = 4u;
 
     if (CHECK("float")) 
     {
@@ -402,15 +402,15 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     aCompilerOutput->myConstantBufferElements.clear();
 
-    for (uint32 i = 0u; i < aShaderDesc.ConstantBuffers; ++i)
+    for (uint i = 0u; i < aShaderDesc.ConstantBuffers; ++i)
     {
       ID3D12ShaderReflectionConstantBuffer* cb = aReflector->GetConstantBufferByIndex(i);
       
       D3D12_SHADER_BUFFER_DESC cbDesc;
       cb->GetDesc(&cbDesc);
 
-      uint32 currOffsetInCbuffer = 0u;
-      for (uint32 iCBvar = 0u; iCBvar < cbDesc.Variables; ++iCBvar)
+      uint currOffsetInCbuffer = 0u;
+      for (uint iCBvar = 0u; iCBvar < cbDesc.Variables; ++iCBvar)
       {
         ID3D12ShaderReflectionVariable* cbVar = cb->GetVariableByIndex(iCBvar);
 
@@ -425,7 +425,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
         if (cbVarTypeDesc.Members > 0u)  // This is a struct
         {
-          for (uint32 iMember = 0u; iMember < cbVarTypeDesc.Members; ++iMember)
+          for (uint iMember = 0u; iMember < cbVarTypeDesc.Members; ++iMember)
           {
             ID3D12ShaderReflectionType* cbVarMemberType = cbVarType->GetMemberTypeByIndex(iMember);
             D3D12_SHADER_TYPE_DESC cbVarMemberTypeDesc;
@@ -435,7 +435,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
             cbElem.uOffsetBytes = currOffsetInCbuffer + cbVarMemberTypeDesc.Offset;
             cbElem.name = cbVarType->GetMemberTypeName(iMember);
 
-            uint32 sizeBytes;
+            uint sizeBytes;
             DataFormat format;
             locResolveFormat(cbVarMemberTypeDesc.Name, sizeBytes, format);
             cbElem.eFormat = format;
@@ -451,7 +451,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
           cbElem.uOffsetBytes = cbVarTypeDesc.Offset;
           cbElem.uSizeBytes = cbVarDesc.Size;
 
-          uint32 sizeBytes;
+          uint sizeBytes;
           DataFormat format;
           locResolveFormat(cbVarTypeDesc.Name, sizeBytes, format);
           cbElem.eFormat = format;
@@ -610,7 +610,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       return false;
     }
 
-    if (aDesc.myShaderStage == static_cast<uint32>(ShaderStage::VERTEX))
+    if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::VERTEX))
     {
       if (!locReflectVertexInputLayout(reflector, shaderDesc, aProgram))
       {

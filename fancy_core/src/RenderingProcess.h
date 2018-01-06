@@ -14,7 +14,7 @@ namespace Fancy { namespace Rendering {
 class RenderOutput;
 class RenderContext;
 
-class DLLEXPORT RenderingProcess
+class RenderingProcess
 {
   public:
     RenderingProcess() = default;

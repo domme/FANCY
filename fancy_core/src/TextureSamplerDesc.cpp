@@ -15,13 +15,13 @@ namespace Fancy { namespace Rendering {
     fMinLod(0.0f),
     fMaxLod(FLT_MAX),
     fLodBias(0.0f),
-    fMaxAnisotropy(1.0f)
+    myMaxAnisotropy(1u)
   {
   }
 //---------------------------------------------------------------------------//
   uint64 TextureSamplerDesc::GetHash() const
   {
-    return MathUtil::hashFromGeneric(*this);
+    return MathUtil::ByteHash(*this);
   }
 //---------------------------------------------------------------------------//
   bool TextureSamplerDesc::operator==(const TextureSamplerDesc& anOther) const
@@ -40,7 +40,7 @@ namespace Fancy { namespace Rendering {
     aSerializer->Serialize(&fMinLod, "fMinLod");
     aSerializer->Serialize(&fMaxLod, "fMaxLod");
     aSerializer->Serialize(&fLodBias, "fLodBias");
-    aSerializer->Serialize(&fMaxAnisotropy, "fMaxAnisotropy");
+    aSerializer->Serialize(&myMaxAnisotropy, "myMaxAnisotropy");
   }
 //---------------------------------------------------------------------------//
 } }

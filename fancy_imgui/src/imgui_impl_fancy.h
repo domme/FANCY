@@ -1,10 +1,11 @@
 #pragma once
 
-class ImDrawData;
+struct ImDrawData;
 
-namespace Fancy {
-    class FancyRuntime;
-    class RenderWindow;
+namespace Fancy 
+{
+  class FancyRuntime;
+  class RenderWindow;
 }
 
 namespace Fancy { namespace ImGui {

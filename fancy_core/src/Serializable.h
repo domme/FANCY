@@ -53,9 +53,9 @@ namespace IO {
 
     Int,
     Uint,
-    Uint32,
     Uint8,
     Uint16,
+    Uint64,
     Float,
     Char,
     Bool,
@@ -145,7 +145,7 @@ namespace IO {
   {
     static IO::DataType get()
     {
-      return IO::DataType(IO::EBaseDataType::Uint32);
+      return IO::DataType(IO::EBaseDataType::Uint);
     }
   };
 //---------------------------------------------------------------------------//
@@ -213,9 +213,9 @@ namespace IO {
   // Base types (without meta-table)
   DECLARE_DATATYPE(int, Int);
   DECLARE_DATATYPE(uint, Uint);
-  DECLARE_DATATYPE(uint32, Uint32);
   DECLARE_DATATYPE(uint8, Uint8);
   DECLARE_DATATYPE(uint16, Uint16);
+  DECLARE_DATATYPE(uint64, Uint64);
   DECLARE_DATATYPE(float, Float);
   DECLARE_DATATYPE(char, Char);
   DECLARE_DATATYPE(const char*, CString);
@@ -523,7 +523,7 @@ namespace IO {
       virtual uint getSize(void* anObject) override
       {
         std::vector<T>* array = reinterpret_cast<std::vector<T>*>(anObject);
-        return array->size();
+        return (uint) array->size();
       }
 
       virtual void resize(void* anObject, uint aNewSize) override
@@ -543,7 +543,7 @@ namespace IO {
     MetaTableArrayImpl<std::vector<T>> MetaTableArrayImpl<std::vector<T>>::ourVTable;
 //---------------------------------------------------------------------------//
     // Specialization for FixedArray
-    template<class T, uint32 Capacity>
+    template<class T, uint Capacity>
     struct MetaTableArrayImpl<FixedArray<T, Capacity>> : public MetaTableArray
     {
       using FixedArrayT = FixedArray < T, Capacity > ;
@@ -573,11 +573,11 @@ namespace IO {
 
       static MetaTableArrayImpl<FixedArray<T, Capacity>> ourVTable;
     };
-    template<class T, uint32 Capacity>
+    template<class T, uint Capacity>
     MetaTableArrayImpl<FixedArray<T, Capacity>> MetaTableArrayImpl<FixedArray<T, Capacity>>::ourVTable;
 //---------------------------------------------------------------------------//
     // Specialization for C-Arrays
-    template<class T, uint32 Capacity>
+    template<class T, uint Capacity>
     struct MetaTableArrayImpl<T[Capacity]> : public MetaTableArray
     {
       using BuitinArrayT = T[Capacity];
@@ -605,7 +605,7 @@ namespace IO {
 
       static MetaTableArrayImpl<T[Capacity]> ourVTable;
     };
-    template<class T, uint32 Capacity>
+    template<class T, uint Capacity>
     MetaTableArrayImpl<T[Capacity]> MetaTableArrayImpl<T[Capacity]>::ourVTable;
 //---------------------------------------------------------------------------//
   }  // end of namespace Internal
@@ -621,7 +621,7 @@ namespace IO {
     }
   };
 //---------------------------------------------------------------------------//
-  template<class T, uint32 Capacity>
+  template<class T, uint Capacity>
   struct Get_DataType<FixedArray<T, Capacity>>
   {
     static IO::DataType get()

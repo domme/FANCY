@@ -1,6 +1,5 @@
 #include "LightComponent.h"
 #include "SceneNode.h"
-#include "InputManager.h"
 #include "Serializer.h"
 
 namespace Fancy { namespace Scene {

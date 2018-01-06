@@ -10,7 +10,7 @@ namespace Fancy { namespace Rendering {
   {
     uint64 hash;
     MathUtil::hash_combine(hash, myIsExternalTexture);
-    MathUtil::hash_combine(hash, MathUtil::hashFromString(mySourcePath));
+    MathUtil::hash_combine(hash, MathUtil::Hash(mySourcePath));
     MathUtil::hash_combine(hash, myInternalRefIndex);
     return hash;
   }

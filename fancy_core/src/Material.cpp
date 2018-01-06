@@ -31,7 +31,7 @@ namespace Fancy { namespace Rendering {
     for (const MaterialTexture& tex : myTextures)
     {
       MaterialTextureDesc texDesc;
-      texDesc.mySemantic = static_cast<uint32>(tex.mySemantic);
+      texDesc.mySemantic = static_cast<uint>(tex.mySemantic);
       texDesc.myTexture = tex.myTexture->GetDescription();
       desc.myTextures.push_back(texDesc);
     }
@@ -40,7 +40,7 @@ namespace Fancy { namespace Rendering {
     for (const MaterialParameter& param : myParameters)
     {
       MaterialParameterDesc paramDesc;
-      paramDesc.mySemantic = static_cast<uint32>(param.mySemantic);
+      paramDesc.mySemantic = static_cast<uint>(param.mySemantic);
       paramDesc.myValue = param.myValue;
       desc.myParameters.push_back(paramDesc);
     }
@@ -54,7 +54,7 @@ namespace Fancy { namespace Rendering {
       return;
 
     myTextures.resize(aDesc.myTextures.size());
-    for (uint32 i = 0u; i < aDesc.myTextures.size(); ++i)
+    for (uint i = 0u; i < aDesc.myTextures.size(); ++i)
     {
       const MaterialTextureDesc& texDesc = aDesc.myTextures[i];
       myTextures[i].mySemantic = static_cast<EMaterialTextureSemantic>(texDesc.mySemantic);
@@ -62,7 +62,7 @@ namespace Fancy { namespace Rendering {
     }
 
     myParameters.resize(aDesc.myParameters.size());
-    for (uint32 i = 0u; i < aDesc.myParameters.size(); ++i)
+    for (uint i = 0u; i < aDesc.myParameters.size(); ++i)
     {
       const MaterialParameterDesc& paramDesc = aDesc.myParameters[i];
       myParameters[i].mySemantic = static_cast<EMaterialParameterSemantic>(paramDesc.mySemantic);

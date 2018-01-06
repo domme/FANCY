@@ -3,11 +3,14 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(SolutionDir)/bin/$(Platform)/$(Configuration)</OutDir>
-    <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(TargetName)</IntDir>
-    <TargetExt />
+    <OutDir>$(SolutionDir)bin/$(Platform)/$(Configuration)/</OutDir>
+    <IntDir>$(SolutionDir)_build_temp/$(Platform)/$(Configuration)/$(TargetName)/</IntDir>
+    <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup>
+    <Link>
+      <AdditionalOptions>/nodefaultlib:msvcrtd</AdditionalOptions>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

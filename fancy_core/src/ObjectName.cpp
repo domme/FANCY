@@ -7,16 +7,12 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace internal 
   {
-    uint hashFromName(const std::string& szName) 
+    uint hashFromName(const std::string& szName)
     {
-      if (szName != "0x0") {
-        return MathUtil::hashFromString(szName);
-      }
-      else {
-        
-        return 0;
-
-      }
+      if (szName != "0x0") 
+        return static_cast<uint>(MathUtil::Hash(szName));
+  
+      return 0;
     }
   }
 //---------------------------------------------------------------------------//
@@ -51,7 +47,7 @@ namespace Fancy {
 #endif  // FANCY_COMMON_USE_OBJECTNAME_STRINGS
   }
 //---------------------------------------------------------------------------//
-  ObjectName::ObjectName(uint32 aHash)
+  ObjectName::ObjectName(uint aHash)
   {
     m_uNameHash = aHash;
 #if defined (FANCY_COMMON_USE_OBJECTNAME_STRINGS)

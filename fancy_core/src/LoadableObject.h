@@ -3,7 +3,7 @@
 
 #include "FancyCorePrerequisites.h"
 
-class DLLEXPORT LoadableObject
+class LoadableObject
 {
   public:
     LoadableObject() : m_bIsInitialized(false) {}

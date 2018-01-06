@@ -13,7 +13,7 @@ namespace Fancy { namespace Rendering {
   class BlendState;
   class DepthStencilState;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT RenderOutput
+  class RenderOutput
   {
   public:
     explicit RenderOutput(void* aNativeInstanceHandle);

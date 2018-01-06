@@ -6,7 +6,7 @@
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  class DLLEXPORT GpuBuffer : public GpuResource
+  class GpuBuffer : public GpuResource
   {
   public:
     GpuBuffer();
@@ -18,7 +18,7 @@ namespace Fancy { namespace Rendering {
     uint GetSizeBytes() const { return myParameters.uNumElements * myParameters.uElementSizeBytes; }
     uint GetNumElements() const { return myParameters.uNumElements; }
     GpuBufferCreationParams GetParameters() const { return myParameters; }
-    uint32 GetAlignment() const { return myAlignment; }
+    uint GetAlignment() const { return myAlignment; }
 
     virtual void Create(const GpuBufferCreationParams& clParameters, void* pInitialData = nullptr) = 0;
     virtual void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) = 0;
@@ -32,7 +32,7 @@ namespace Fancy { namespace Rendering {
         , myLockedRange_End(0u)
         , myCachedLockDataPtr(nullptr)
       {}
-
+      
       bool isLocked;
       uint64 myLockedRange_Begin;
       uint64 myLockedRange_End;
@@ -40,7 +40,7 @@ namespace Fancy { namespace Rendering {
     };
 
     LockState myState;
-    uint32 myAlignment;
+    uint myAlignment;
     GpuBufferCreationParams myParameters;
 
   };

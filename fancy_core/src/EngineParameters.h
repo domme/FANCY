@@ -22,7 +22,7 @@ namespace Fancy {
     NUM
   };
 //---------------------------------------------------------------------------//
-  struct DLLEXPORT EngineParameters
+  struct EngineParameters
   {
     EngineParameters()
       : myRenderingTechnique(RenderingTechnique::FORWARD)

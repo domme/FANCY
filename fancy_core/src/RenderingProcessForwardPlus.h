@@ -16,7 +16,7 @@ class Material;
 class BlendState;
 class DepthStencilState;
 
-class DLLEXPORT RenderingProcessForwardPlus : public RenderingProcess
+class RenderingProcessForwardPlus : public RenderingProcess
 {
 public:
   RenderingProcessForwardPlus();

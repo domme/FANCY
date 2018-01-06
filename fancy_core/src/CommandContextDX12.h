@@ -17,17 +17,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     friend class RenderCore_PlatformDX12;
 
   public:
-    static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint32 aDescriptorTypeMask);
+    static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
     CommandContextDX12(CommandListType aType);
     ~CommandContextDX12() override;
 
-    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint32 aFirstSubresourceIndex, uint32 aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const;
+    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const;
     
     void ClearRenderTarget(Texture* aTexture, const float* aColor) override;
-    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint32 someClearFlags = (uint32)DepthStencilClearFlags::CLEAR_ALL) override;
+    void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) override;
     void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) override;
     void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) override;
     uint64 ExecuteAndReset(bool aWaitForCompletion) override;
@@ -36,11 +36,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) override;
     void RenderGeometry(const Geometry::GeometryData* pGeometry) override;
-    void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint32 aRegisterIndex) const override;
-    void BindDescriptorSet(const Descriptor** someDescriptors, uint32 aResourceCount, uint32 aRegisterIndex) override;
+    void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex) const override;
+    void BindDescriptorSet(const Descriptor** someDescriptors, uint aResourceCount, uint aRegisterIndex) override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;
-    void Dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupCountZ) override;
+    void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) override;
 
   protected:
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
@@ -56,9 +56,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static const GpuResourceDX12* CastGpuResourceDX12(const GpuResource* aResource);
     static GpuResourceDX12* CastGpuResourceDX12(GpuResource* aResource);
     
-    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12** someResources, uint32 aResourceCount);
+    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12** someResources, uint aResourceCount);
 
-    static std::unordered_map<uint, ID3D12PipelineState*> ourPSOcache;
+    static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
   
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12GraphicsCommandList* myCommandList;

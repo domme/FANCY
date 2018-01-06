@@ -7,7 +7,7 @@ namespace Fancy { namespace Rendering {
   class CommandContext;
   enum class CommandListType;
 //---------------------------------------------------------------------------//  
-  class DLLEXPORT RenderCore_Platform
+  class RenderCore_Platform
   {
   public:
     virtual ~RenderCore_Platform() = default;
@@ -22,8 +22,8 @@ namespace Fancy { namespace Rendering {
     virtual GpuBuffer* CreateGpuBuffer() = 0;
     virtual CommandContext* CreateContext(CommandListType aType) = 0;
     virtual void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext) = 0;
-    virtual void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint32 aByteOffset, uint32 aByteSize, CommandContext* aContext) = 0;
-    virtual void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint32 aNumUploadDatas, CommandContext* aContext) = 0;
+    virtual void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext) = 0;
+    virtual void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext) = 0;
     virtual DataFormat ResolveFormat(DataFormat aFormat) = 0;
   };
   //---------------------------------------------------------------------------//

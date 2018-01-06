@@ -39,6 +39,13 @@ Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for
 
 #define VERSION_STRING "20121216"
 
+
+#if defined(_MSC_VER)
+  #pragma warning (push)
+  #pragma warning (disable: 4267) // '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+  #pragma warning (disable: 4334) // '<<': result of 32-bit shift implicitly converted to 64 bits
+#endif
+
 /*
 This source file is built up in the following large parts. The code sections
 with the "LODEPNG_COMPILE_" #defines divide this up further in an intermixed way.
@@ -6206,3 +6213,7 @@ unsigned encode(const std::string& filename,
 #endif //LODEPNG_COMPILE_PNG
 } //namespace lodepng
 #endif /*LODEPNG_COMPILE_CPP*/
+
+#if defined(_MSC_VER)
+  #pragma warning (pop)
+#endif

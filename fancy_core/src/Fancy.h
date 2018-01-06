@@ -1,7 +1,6 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "ScopedPtr.h"
 #include "TimeManager.h"
 
 namespace Fancy { namespace Scene {
@@ -25,7 +24,7 @@ namespace Fancy {
 
 namespace Fancy {   
 //---------------------------------------------------------------------------//
-  class DLLEXPORT FancyRuntime
+  class FancyRuntime
   {
   public:
     static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams);

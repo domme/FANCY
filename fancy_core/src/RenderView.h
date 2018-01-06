@@ -16,10 +16,10 @@ namespace Fancy {
   class Time;
   class RenderWindow;
 //---------------------------------------------------------------------------//
-  class DLLEXPORT RenderView
+  class RenderView
   {
   public:
-    RenderView(HINSTANCE anAppInstanceHandle, uint32 aRenderingTechnique, const SharedPtr<GraphicsWorld>& aWorld);
+    RenderView(HINSTANCE anAppInstanceHandle, uint aRenderingTechnique, const SharedPtr<GraphicsWorld>& aWorld);
     ~RenderView();
 
     GraphicsWorld* GetWorld() const { return myGraphicsWorld.get(); }

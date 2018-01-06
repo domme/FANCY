@@ -11,7 +11,7 @@ namespace Fancy { namespace Rendering {
       std::sort(_vFeatures.begin(), _vFeatures.end());
       
       uint64 hash = 0u;
-      for (uint32 i = 0u; i < _vFeatures.size(); ++i)
+      for (uint i = 0u; i < _vFeatures.size(); ++i)
       {
         MathUtil::hash_combine(hash, static_cast<uint>(_vFeatures[i]));
       }
@@ -48,7 +48,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   bool GpuProgramPermutation::hasFeature( GpuProgramFeature _eFeature ) const
   {
-    for (uint32 i = 0u; i < m_vFeatures.size(); ++i)
+    for (uint i = 0u; i < m_vFeatures.size(); ++i)
     {
       if (m_vFeatures[i] == _eFeature)
       {

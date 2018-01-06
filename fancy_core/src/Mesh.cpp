@@ -10,7 +10,7 @@ namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
   Mesh::~Mesh()
   {
-    for (uint32 i = 0u; i < m_vGeometries.size(); ++i)
+    for (uint i = 0u; i < m_vGeometries.size(); ++i)
     {
       FANCY_DELETE(m_vGeometries[i], MemoryCategory::Geometry);
     }

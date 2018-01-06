@@ -23,10 +23,10 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
 	  const DescriptorDX12* GetDescriptor(DescriptorType aType, uint anIndex = 0u) const override;
     
     const D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView() const 
-    { ASSERT(myParameters.myUsageFlags & (uint32)GpuBufferUsage::VERTEX_BUFFER); return myVertexBufferView; }
+    { ASSERT(myParameters.myUsageFlags & (uint)GpuBufferUsage::VERTEX_BUFFER); return myVertexBufferView; }
 
     const D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() const
-    { ASSERT(myParameters.myUsageFlags & (uint32)GpuBufferUsage::INDEX_BUFFER); return myIndexBufferView; }
+    { ASSERT(myParameters.myUsageFlags & (uint)GpuBufferUsage::INDEX_BUFFER); return myIndexBufferView; }
 
   protected:
     void Destroy();

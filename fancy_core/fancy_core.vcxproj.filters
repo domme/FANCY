@@ -58,9 +58,6 @@
     <ClInclude Include="src\PathService.h">
       <Filter>src\IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderOperation.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\Texture.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -162,12 +159,6 @@
     </ClInclude>
     <ClInclude Include="src\DebugOutStream.h">
       <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\InputManager.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CameraControllerComponent.h">
-      <Filter>src\Scene\Components</Filter>
     </ClInclude>
     <ClInclude Include="src\LightComponent.h">
       <Filter>src\Scene\Components</Filter>
@@ -277,9 +268,6 @@
     <ClInclude Include="src\FC_String.h">
       <Filter>src\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\ResourceBinding.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\Descriptor.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -370,6 +358,12 @@
     <ClInclude Include="src\DescriptorHeapDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="src\ShaderResourceInterface.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\shaderresourceinterfacedesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -386,9 +380,6 @@
     </ClCompile>
     <ClCompile Include="src\PathService.cpp">
       <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderOperation.cpp">
-      <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\SceneNode.cpp">
       <Filter>src\Scene</Filter>
@@ -450,20 +441,11 @@
     <ClCompile Include="src\GpuProgramFeatures.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderingProcess.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\RenderingProcessForward.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\DebugOutStream.cpp">
       <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\InputManager.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CameraControllerComponent.cpp">
-      <Filter>src\Scene\Components</Filter>
     </ClCompile>
     <ClCompile Include="src\LightComponent.cpp">
       <Filter>src\Scene\Components</Filter>
@@ -476,9 +458,6 @@
     </ClCompile>
     <ClCompile Include="src\jsoncpp.cpp">
       <Filter>src\IO\JSON</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Serializable.cpp">
-      <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\JSONwriter.cpp">
       <Filter>src\IO</Filter>
@@ -494,9 +473,6 @@
     </ClCompile>
     <ClCompile Include="src\Material.cpp">
       <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RendererDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="src\TextureDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
@@ -539,9 +515,6 @@
     </ClCompile>
     <ClCompile Include="src\FC_String.cpp">
       <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ResourceBinding.cpp">
-      <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\DataFormat.cpp">
       <Filter>src\Rendering</Filter>

@@ -11,7 +11,7 @@
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  class DLLEXPORT GeometryData {
+  class GeometryData {
     public:
       GeometryData();
       ~GeometryData();
@@ -19,9 +19,9 @@ namespace Fancy { namespace Geometry {
       const Rendering::GeometryVertexLayout& getGeometryVertexLayout() const {return m_vertexLayout;}
       const Rendering::GpuBuffer* getVertexBuffer() const {return m_pVertexBuffer.get();}
       const Rendering::GpuBuffer* getIndexBuffer() const {return m_pIndexBuffer.get();}
-      uint32 getNumVertices() const {return m_pVertexBuffer ? m_pVertexBuffer->GetNumElements() : 0u; }
-      uint32 getNumIndices() const {return m_pIndexBuffer ? m_pIndexBuffer->GetNumElements() : 0u; }
-      uint32 getVertexStrideBytes() const {return m_vertexLayout.getStrideBytes();}
+      uint getNumVertices() const {return m_pVertexBuffer ? m_pVertexBuffer->GetNumElements() : 0u; }
+      uint getNumIndices() const {return m_pIndexBuffer ? m_pIndexBuffer->GetNumElements() : 0u; }
+      uint getVertexStrideBytes() const {return m_vertexLayout.getStrideBytes();}
       
       void setVertexBuffer(const SharedPtr<Rendering::GpuBuffer>& _pVertexBuffer) {m_pVertexBuffer = _pVertexBuffer;}
       void setIndexBuffer(const SharedPtr<Rendering::GpuBuffer>& _pIndexBuffer) {m_pIndexBuffer = _pIndexBuffer;}

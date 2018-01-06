@@ -15,8 +15,8 @@ namespace Fancy { namespace Rendering {
   struct GpuResSignatureEntry
   {
     GpuResSignatureEntryType myType;
-    uint32 myNumElements;
-    uint32 myRegisterIndex;
+    uint myNumElements;
+    uint myRegisterIndex;
   };
 //---------------------------------------------------------------------------//
   /// Platform-independent abstraction of the "RootSignature" concept in DX12. Not used in GL4 currently

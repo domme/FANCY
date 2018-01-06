@@ -107,16 +107,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return sri;
   }
   //---------------------------------------------------------------------------//
-  uint ShaderResourceInterfaceDX12::ComputeHash(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc)
+  uint64 ShaderResourceInterfaceDX12::ComputeHash(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc)
   {
-    uint hash = 0u;
+    uint64 hash = 0u;
     MathUtil::hash_combine(hash, anRSdesc.NumParameters);
     for (uint i = 0u; i < anRSdesc.NumParameters; ++i)
-      MathUtil::hash_combine(hash, MathUtil::hashFromGeneric(anRSdesc.pParameters[i]));
+      MathUtil::hash_combine(hash, MathUtil::ByteHash(anRSdesc.pParameters[i]));
 
     MathUtil::hash_combine(hash, anRSdesc.NumStaticSamplers);
     for (uint i = 0u; i < anRSdesc.NumStaticSamplers; ++i)
-      MathUtil::hash_combine(hash, MathUtil::hashFromGeneric(anRSdesc.pStaticSamplers[i]));
+      MathUtil::hash_combine(hash, MathUtil::ByteHash(anRSdesc.pStaticSamplers[i]));
 
     MathUtil::hash_combine(hash, anRSdesc.Flags);
 

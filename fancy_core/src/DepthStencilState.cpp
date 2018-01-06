@@ -13,7 +13,7 @@ namespace Fancy { namespace Rendering {
   DepthStencilStateDesc::DepthStencilStateDesc() 
     : myDepthTestEnabled(true)
     , myDepthWriteEnabled(true)
-    , myDepthCompFunc(static_cast<uint32>(CompFunc::LESS))
+    , myDepthCompFunc(static_cast<uint>(CompFunc::LESS))
     , myStencilEnabled(false)
     , myTwoSidedStencil(false)
     , myStencilRef(0)
@@ -50,22 +50,22 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   uint64 DepthStencilStateDesc::GetHash() const
   {
-    uint hash = 0x0;
+    uint64 hash = 0x0;
     MathUtil::hash_combine(hash, myDepthTestEnabled ? 1u : 0u);
     MathUtil::hash_combine(hash, myDepthWriteEnabled ? 1u : 0u);
-    MathUtil::hash_combine(hash, (uint32)myDepthCompFunc);
+    MathUtil::hash_combine(hash, (uint)myDepthCompFunc);
     MathUtil::hash_combine(hash, myStencilEnabled ? 1u : 0u);
     MathUtil::hash_combine(hash, myTwoSidedStencil ? 1u : 0u);
     MathUtil::hash_combine(hash, myStencilRef);
     MathUtil::hash_combine(hash, myStencilReadMask);
 
-    for (uint32 i = 0u; i < (uint32)FaceType::NUM; ++i)
+    for (uint i = 0u; i < (uint)FaceType::NUM; ++i)
     {
-      MathUtil::hash_combine(hash, (uint32)myStencilCompFunc[i]);
+      MathUtil::hash_combine(hash, (uint)myStencilCompFunc[i]);
       MathUtil::hash_combine(hash, myStencilWriteMask[i]);
-      MathUtil::hash_combine(hash, (uint32)myStencilFailOp[i]);
-      MathUtil::hash_combine(hash, (uint32)myStencilDepthFailOp[i]);
-      MathUtil::hash_combine(hash, (uint32)myStencilPassOp[i]);
+      MathUtil::hash_combine(hash, (uint)myStencilFailOp[i]);
+      MathUtil::hash_combine(hash, (uint)myStencilDepthFailOp[i]);
+      MathUtil::hash_combine(hash, (uint)myStencilPassOp[i]);
     }
 
     return hash;
@@ -80,14 +80,14 @@ namespace Fancy { namespace Rendering {
     , myStencilEnabled(true)
     , myTwoSidedStencil(false)
     , myStencilRef(1)
-    , myStencilReadMask((Fancy::uint32)-1)
+    , myStencilReadMask((Fancy::uint)-1)
     , myCachedHash(0u)
     , myIsDirty(true)
   {
     myStencilCompFunc[(uint) FaceType::FRONT] = CompFunc::EQUAL;
     myStencilCompFunc[(uint) FaceType::BACK] = CompFunc::EQUAL;
-    myStencilWriteMask[(uint) FaceType::FRONT] = (uint32)-1;
-    myStencilWriteMask[(uint) FaceType::BACK] = (uint32)-1;
+    myStencilWriteMask[(uint) FaceType::FRONT] = (uint)-1;
+    myStencilWriteMask[(uint) FaceType::BACK] = (uint)-1;
     myStencilFailOp[(uint) FaceType::FRONT]  = StencilOp::KEEP;
     myStencilFailOp[(uint) FaceType::BACK]   = StencilOp::KEEP;
     myStencilDepthFailOp[(uint) FaceType::FRONT]  = StencilOp::KEEP;
@@ -112,19 +112,19 @@ namespace Fancy { namespace Rendering {
     DepthStencilStateDesc desc;
     desc.myDepthTestEnabled = myDepthTestEnabled;
     desc.myDepthWriteEnabled = myDepthWriteEnabled;
-    desc.myDepthCompFunc = static_cast<uint32>(myDepthCompFunc);
+    desc.myDepthCompFunc = static_cast<uint>(myDepthCompFunc);
     desc.myStencilEnabled = myStencilEnabled;
     desc.myTwoSidedStencil = myTwoSidedStencil;
     desc.myStencilRef = myStencilRef;
     desc.myStencilReadMask = myStencilReadMask;
 
-    for (uint32 i = 0u; i < static_cast<uint32>(FaceType::NUM); ++i)
+    for (uint i = 0u; i < static_cast<uint>(FaceType::NUM); ++i)
     {
-      desc.myStencilCompFunc[i] = static_cast<uint32>(myStencilCompFunc[i]);
+      desc.myStencilCompFunc[i] = static_cast<uint>(myStencilCompFunc[i]);
       desc.myStencilWriteMask[i] = myStencilWriteMask[i];
-      desc.myStencilFailOp[i] = static_cast<uint32>(myStencilFailOp[i]);
-      desc.myStencilDepthFailOp[i] = static_cast<uint32>(myStencilDepthFailOp[i]);
-      desc.myStencilPassOp[i] = static_cast<uint32>(myStencilPassOp[i]);
+      desc.myStencilFailOp[i] = static_cast<uint>(myStencilFailOp[i]);
+      desc.myStencilDepthFailOp[i] = static_cast<uint>(myStencilDepthFailOp[i]);
+      desc.myStencilPassOp[i] = static_cast<uint>(myStencilPassOp[i]);
     }
 
     return desc;
@@ -140,7 +140,7 @@ namespace Fancy { namespace Rendering {
     myStencilRef = aDesc.myStencilRef;
     myStencilReadMask = aDesc.myStencilReadMask;
 
-    for (uint32 i = 0u; i < static_cast<uint32>(FaceType::NUM); ++i)
+    for (uint i = 0u; i < static_cast<uint>(FaceType::NUM); ++i)
     {
       myStencilCompFunc[i] = static_cast<CompFunc>(aDesc.myStencilCompFunc[i]);
       myStencilWriteMask[i] = aDesc.myStencilWriteMask[i];

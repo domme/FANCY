@@ -31,14 +31,14 @@ namespace Fancy { namespace Rendering {
     
     for (const MaterialTextureDesc& textureDesc : myTextures)
     {
-      MathUtil::hash_combine(hash, static_cast<uint32>(textureDesc.mySemantic));
+      MathUtil::hash_combine(hash, static_cast<uint>(textureDesc.mySemantic));
       MathUtil::hash_combine(hash, textureDesc.myTexture.GetHash());
     }
 
     for (const MaterialParameterDesc& paramDesc : myParameters)
     {
-      MathUtil::hash_combine(hash, static_cast<uint32>(paramDesc.mySemantic));
-      MathUtil::hash_combine(hash, paramDesc.myValue);
+      MathUtil::hash_combine(hash, static_cast<uint>(paramDesc.mySemantic));
+      MathUtil::hash_combine(hash, MathUtil::Hash(paramDesc.myValue));
     }
 
     return hash;

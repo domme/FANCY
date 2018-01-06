@@ -30,7 +30,7 @@ namespace Fancy { namespace Rendering {
     float              fMinLod;
     float              fMaxLod;
     float              fLodBias;
-    float              fMaxAnisotropy;
+    uint               myMaxAnisotropy;
   };
 //---------------------------------------------------------------------------//
 } }
