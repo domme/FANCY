@@ -12,6 +12,7 @@
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "GeometryData.h"
+#include "GpuResourceStorageDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -88,26 +89,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myDynamicShaderVisibleHeaps[aHeapType] = aDescriptorHeap;
     ApplyDescriptorHeaps();
-  }
-//---------------------------------------------------------------------------//
-  const GpuResourceDX12* CommandContextDX12::CastGpuResourceDX12(const GpuResource* aResource)
-  {
-      switch (aResource->myCategory)
-      {
-        case GpuResourceCategory::TEXTURE: return static_cast<const TextureDX12*>(aResource);
-        case GpuResourceCategory::BUFFER: return static_cast<const GpuBufferDX12*>(aResource);
-        default: return nullptr;
-      }
-  }
-//---------------------------------------------------------------------------//
-  GpuResourceDX12* CommandContextDX12::CastGpuResourceDX12(GpuResource* aResource)
-  {
-    switch (aResource->myCategory)
-    {
-      case GpuResourceCategory::TEXTURE: return static_cast<TextureDX12*>(aResource);
-      case GpuResourceCategory::BUFFER: return static_cast<GpuBufferDX12*>(aResource);
-      default: return nullptr;
-    }
   }
 //---------------------------------------------------------------------------//
   static void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint aNumRows, uint aNumSlices)
@@ -278,10 +259,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     TransitionResource(aDestResource, GpuResourceState::RESOURCE_STATE_COPY_DEST,
                        aSrcResource, GpuResourceState::RESOURCE_STATE_COPY_SRC);
 
-    GpuResourceDX12* destResourceDX12 = CastGpuResourceDX12(aDestResource);
-    GpuResourceDX12* srcResourceDX12 = CastGpuResourceDX12(aSrcResource);
-
-    myCommandList->CopyResource(destResourceDX12->GetResource(), srcResourceDX12->GetResource());
+    GpuResourceStorageDX12* destStorage = (GpuResourceStorageDX12*)aDestResource->myStorage.Get();
+    GpuResourceStorageDX12* srcStorage = (GpuResourceStorageDX12*)aSrcResource->myStorage.Get();
+    
+    myCommandList->CopyResource(destStorage->myResource.Get(), srcStorage->myResource.Get());
 
     TransitionResource(aDestResource, oldDestState,
                        aSrcResource, oldSrcState);
@@ -301,10 +282,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
       D3D12_RESOURCE_BARRIER& barrier = barriers[numBarriers++];
 
-      GpuResourceDX12* dxResource = CastGpuResourceDX12(resource);
+      GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)resource->myStorage.Get();
       barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
       barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-      barrier.Transition.pResource = dxResource->GetResource();
+      barrier.Transition.pResource = storage->myResource.Get();
       barrier.Transition.StateBefore = Adapter::toNativeType(resource->myUsageState);
       barrier.Transition.StateAfter = Adapter::toNativeType(destState);
       barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
@@ -531,10 +512,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     ASSERT(myRootSignature != nullptr);
 
-    const GpuResourceDX12* resource = CastGpuResourceDX12(aResource);
-    ASSERT(resource != nullptr);
-
-    const uint64 gpuVirtualAddress = resource->GetGpuVirtualAddress();
+    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aResource->myStorage.Get();
+    ASSERT(storage->myResource != nullptr);
+    
+    const uint64 gpuVirtualAddress = storage->myResource->GetGPUVirtualAddress();
     
     switch (myCommandListType)
     {
@@ -609,20 +590,20 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
     {
-      const GpuBufferDX12* buffer = static_cast<const GpuBufferDX12*>(aVertexBuffer);
-      const GpuBufferCreationParams bufferParams = buffer->GetParameters();
+      GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aVertexBuffer->myStorage.Get();
+      const GpuBufferCreationParams bufferParams = aVertexBuffer->GetParameters();
 
-      vertexBufferView.BufferLocation = buffer->GetGpuVirtualAddress() + aVertexOffset * bufferParams.uElementSizeBytes;
+      vertexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + aVertexOffset * bufferParams.uElementSizeBytes;
       vertexBufferView.SizeInBytes = glm::min(aNumVertices, bufferParams.uNumElements) * bufferParams.uElementSizeBytes;
       vertexBufferView.StrideInBytes = bufferParams.uElementSizeBytes;
     }
 
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
     {
-      const GpuBufferDX12* buffer = static_cast<const GpuBufferDX12*>(anIndexBuffer);
-      const GpuBufferCreationParams bufferParams = buffer->GetParameters();
+      GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)anIndexBuffer->myStorage.Get();
+      const GpuBufferCreationParams bufferParams = anIndexBuffer->GetParameters();
 
-      indexBufferView.BufferLocation = buffer->GetGpuVirtualAddress() + anIndexOffset * bufferParams.uElementSizeBytes;
+      indexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + anIndexOffset * bufferParams.uElementSizeBytes;
       indexBufferView.Format = bufferParams.uElementSizeBytes == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
       indexBufferView.SizeInBytes = glm::min(aNumIndices, bufferParams.uNumElements) * bufferParams.uElementSizeBytes;
     }

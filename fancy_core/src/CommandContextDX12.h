@@ -53,9 +53,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void ApplyComputePipelineState();
     void ApplyRenderTargets();
     
-    static const GpuResourceDX12* CastGpuResourceDX12(const GpuResource* aResource);
-    static GpuResourceDX12* CastGpuResourceDX12(GpuResource* aResource);
-    
     DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12** someResources, uint aResourceCount);
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;

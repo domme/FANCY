@@ -5,6 +5,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
+#include "GpuResourceStorageDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -20,8 +21,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     Destroy();
 
-    myParameters = someParameters;
+    GpuResourceStorageDX12* storageDx12 = new GpuResourceStorageDX12();
+    myStorage = storageDx12;
 
+    myParameters = someParameters;
     const bool wantsGpuWriteAccess = someParameters.myIsShaderWritable;
 
     ASSERT(someParameters.u16Width > 0u, "Invalid texture dimension specified");
@@ -156,7 +159,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       &resourceDesc,
       usageStateDx12,
       useOptimizeClearValue ? &clearValue : nullptr,
-      IID_PPV_ARGS(&myResource)));
+      IID_PPV_ARGS(&storageDx12->myResource)));
 
     // Create derived views
     if (someParameters.bIsDepthStencil)
@@ -182,11 +185,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       }
 
       myDsvDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-      platformDx12->GetDevice()->CreateDepthStencilView(myResource.Get(), &dsvDesc, myDsvDescriptor.myCpuHandle);
+      platformDx12->GetDevice()->CreateDepthStencilView(storageDx12->myResource.Get(), &dsvDesc, myDsvDescriptor.myCpuHandle);
 
       dsvDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH | D3D12_DSV_FLAG_READ_ONLY_STENCIL;
       myDsvDescriptorReadOnly = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-      platformDx12->GetDevice()->CreateDepthStencilView(myResource.Get(), &dsvDesc, myDsvDescriptorReadOnly.myCpuHandle);
+      platformDx12->GetDevice()->CreateDepthStencilView(storageDx12->myResource.Get(), &dsvDesc, myDsvDescriptorReadOnly.myCpuHandle);
 
       D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
       srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -198,12 +201,12 @@ namespace Fancy { namespace Rendering { namespace DX12 {
             
       srvDesc.Format = RenderCore_PlatformDX12::GetDepthFormat(resourceDesc.Format);
       mySrvDescriptorDepth = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      platformDx12->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptorDepth.myCpuHandle);
+      platformDx12->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, mySrvDescriptorDepth.myCpuHandle);
 
       srvDesc.Texture2D.PlaneSlice = 1u;
       srvDesc.Format = RenderCore_PlatformDX12::GetStencilFormat(resourceDesc.Format);
       mySrvDescriptorStencil = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      platformDx12->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptorStencil.myCpuHandle);
+      platformDx12->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, mySrvDescriptorStencil.myCpuHandle);
       
       // Depth-srv is the default srv for DSV textures
       mySrvDescriptor = mySrvDescriptorDepth;
@@ -245,7 +248,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       }
 
       mySrvDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      platformDx12->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
+      platformDx12->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
 
       if (wantsGpuWriteAccess)
       {
@@ -278,7 +281,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         }
 
         myUavDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        platformDx12->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
+        platformDx12->GetDevice()->CreateUnorderedAccessView(storageDx12->myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
       }
 
       if (someParameters.myIsRenderTarget)
@@ -312,7 +315,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
         }
 
         myRtvDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        platformDx12->GetDevice()->CreateRenderTargetView(myResource.Get(), &rtvDesc, myRtvDescriptor.myCpuHandle);
+        platformDx12->GetDevice()->CreateRenderTargetView(storageDx12->myResource.Get(), &rtvDesc, myRtvDescriptor.myCpuHandle);
       }
     }
 
@@ -393,7 +396,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void TextureDX12::Destroy()
   {
-    GpuResourceDX12::Reset();
+    myStorage = nullptr;
   }
 //---------------------------------------------------------------------------//
 } } }

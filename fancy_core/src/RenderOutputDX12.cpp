@@ -5,6 +5,7 @@
 #include "TextureDX12.h"
 #include "BlendState.h"
 #include "CommandContextDX12.h"
+#include "GpuResourceStorageDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -86,14 +87,16 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       Texture* backbuffer = myBackbuffers[i].get();
       TextureDX12* backbufferResource = static_cast<TextureDX12*>(backbuffer);
+      GpuResourceStorageDX12* backbufferResourceStorage = (GpuResourceStorageDX12*)backbuffer->myStorage.Get();
+
       backbuffer->myUsageState = GpuResourceState::RESOURCE_STATE_PRESENT;
 
       // TODO: Sync this better with swap chain properties
       backbufferResource->myParameters.myIsRenderTarget = true;
       
-      CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&backbufferResource->myResource)));
+      CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&backbufferResourceStorage->myResource)));
       backbufferResource->myRtvDescriptor = coreDX12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-      coreDX12->GetDevice()->CreateRenderTargetView(backbufferResource->myResource.Get(), nullptr, backbufferResource->myRtvDescriptor.myCpuHandle);
+      coreDX12->GetDevice()->CreateRenderTargetView(backbufferResourceStorage->myResource.Get(), nullptr, backbufferResource->myRtvDescriptor.myCpuHandle);
     }
   }
   //---------------------------------------------------------------------------//

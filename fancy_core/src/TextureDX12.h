@@ -1,19 +1,16 @@
 #pragma once
-#include "GpuResourceDX12.h"
-
 #include "DescriptorDX12.h"
 #include "Texture.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
-  class TextureDX12 : public Texture, public GpuResourceDX12
+  class TextureDX12 : public Texture
   {
     friend class RenderOutputDX12;  // Remove after backbuffers are handled through the texture class
 
   public:
     TextureDX12();
     ~TextureDX12() override;
-    bool IsValid() const override { return myResource != nullptr; }
 
     void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) override;
 

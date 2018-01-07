@@ -2,6 +2,8 @@
 
 #include "RendererPrerequisites.h"
 #include "Descriptor.h"
+#include "GpuResourceStorage.h"
+#include "ScopedPtr.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -20,11 +22,13 @@ namespace Fancy { namespace Rendering {
     {}
 
     virtual ~GpuResource() = default;
-    virtual bool IsValid() const = 0;
     virtual const Descriptor* GetDescriptor(DescriptorType aType, uint anIndex = 0u) const = 0;
+
+    bool IsValid() const { return myStorage != nullptr; }
 
     GpuResourceCategory myCategory;
     GpuResourceState myUsageState;
+    ScopedPtr<GpuResourceStorage> myStorage;
   };
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

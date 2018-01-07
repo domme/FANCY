@@ -241,9 +241,6 @@
     <ClInclude Include="src\d3dx12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuResourceDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="src\CommandAllocatorPoolDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
@@ -363,6 +360,12 @@
     </ClInclude>
     <ClInclude Include="src\shaderresourceinterfacedesc.h">
       <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuResourceStorage.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GpuResourceStorageDX12.h">
+      <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -503,9 +506,6 @@
     </ClCompile>
     <ClCompile Include="src\MaterialDesc.cpp">
       <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GpuResourceDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="src\CommandAllocatorPoolDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>

@@ -4,6 +4,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
+#include "GpuResourceStorageDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -20,6 +21,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   void GpuBufferDX12::Create(const GpuBufferCreationParams& someParameters, void* pInitialData)
   {
     Destroy();
+
+    GpuResourceStorageDX12* storageDx12 = new GpuResourceStorageDX12();
+    myStorage = storageDx12;
 
     ASSERT(someParameters.uElementSizeBytes > 0 && someParameters.uNumElements > 0,
       "Invalid buffer size specified");
@@ -110,7 +114,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       D3D12_HEAP_FLAG_NONE, 
       &resourceDesc, 
       usageStateDX12,
-      nullptr, IID_PPV_ARGS(&myResource)));
+      nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
 
     // Create derived views
     if (wantsShaderResourceView)
@@ -125,7 +129,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
       mySrvDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      dx12Platform->GetDevice()->CreateShaderResourceView(myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
+      dx12Platform->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
     }
 
     if (wantsUnorderedAccess)
@@ -139,7 +143,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
       myUavDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      dx12Platform->GetDevice()->CreateUnorderedAccessView(myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
+      dx12Platform->GetDevice()->CreateUnorderedAccessView(storageDx12->myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
     }
 
     if (wantsConstantBufferView)
@@ -147,7 +151,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
       ASSERT(actualWidthBytesWithAlignment <= UINT_MAX);
       cbvDesc.SizeInBytes = static_cast<uint>(actualWidthBytesWithAlignment);
-      cbvDesc.BufferLocation = GetGpuVirtualAddress();
+      cbvDesc.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress();
 
       myCbvDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
       dx12Platform->GetDevice()->CreateConstantBufferView(&cbvDesc, myCbvDescriptor.myCpuHandle);
@@ -155,7 +159,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     if (wantsVboView)
     {
-      myVertexBufferView.BufferLocation = GetGpuVirtualAddress();
+      myVertexBufferView.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress();
       myVertexBufferView.SizeInBytes = myParameters.uNumElements * myParameters.uElementSizeBytes;
       myVertexBufferView.StrideInBytes = myParameters.uElementSizeBytes;
     }
@@ -169,7 +173,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       else
         ASSERT(false, "Unsupported Index buffer stride");
 
-      myIndexBufferView.BufferLocation = GetGpuVirtualAddress();
+      myIndexBufferView.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress();
       myIndexBufferView.SizeInBytes = myParameters.uNumElements * myParameters.uElementSizeBytes;
     }
         
@@ -191,7 +195,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::Destroy()
   {
-    GpuResourceDX12::Reset();
+    myStorage = nullptr;
     memset(&myVertexBufferView, 0, sizeof(myVertexBufferView));
     memset(&myIndexBufferView, 0, sizeof(myIndexBufferView));
   }
@@ -255,8 +259,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // TODO: Do something with the current usage type? Transition it into something correct? Early-out?
 
+    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.Get());
+
     void* mappedData;
-    CheckD3Dcall(myResource->Map(0, &range, &mappedData));
+    CheckD3Dcall(storageDx12->myResource->Map(0, &range, &mappedData));
 
     if (mappedData != nullptr)
     {
@@ -278,7 +284,8 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     range.Begin = myState.myLockedRange_Begin;
     range.End = myState.myLockedRange_End;
 
-    myResource->Unmap(0u, &range);
+    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.Get());
+    storageDx12->myResource->Unmap(0u, &range);
 
     myState.isLocked = false;
     myState.myLockedRange_Begin = 0u;
@@ -302,4 +309,5 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     return nullptr;
   }
+//---------------------------------------------------------------------------//
 } } }

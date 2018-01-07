@@ -101,8 +101,9 @@
     <ClInclude Include="src\GpuProgramPipelineDesc.h" />
     <ClInclude Include="src\GpuProgramResource.h" />
     <ClInclude Include="src\GpuResource.h" />
-    <ClInclude Include="src\GpuResourceDX12.h" />
     <ClInclude Include="src\GpuResourceSignature.h" />
+    <ClInclude Include="src\GpuResourceStorage.h" />
+    <ClInclude Include="src\GpuResourceStorageDX12.h" />
     <ClInclude Include="src\GraphicsWorld.h" />
     <ClInclude Include="src\JSONreader.h" />
     <ClInclude Include="src\JSONwriter.h" />
@@ -194,7 +195,6 @@
     <ClCompile Include="src\GpuProgramFeatures.cpp" />
     <ClCompile Include="src\GpuProgramPipeline.cpp" />
     <ClCompile Include="src\GpuProgramResource.cpp" />
-    <ClCompile Include="src\GpuResourceDX12.cpp" />
     <ClCompile Include="src\GraphicsWorld.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
     <ClCompile Include="src\JSONreader.cpp" />

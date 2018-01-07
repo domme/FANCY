@@ -1,18 +1,17 @@
 #pragma once
 
+#include "DX12Prerequisites.h"
 #include "GpuBuffer.h"
-#include "GpuResourceDX12.h"
 #include "DescriptorDX12.h"
 
 namespace Fancy { namespace Rendering {	namespace DX12 {
 //---------------------------------------------------------------------------//
-	class GpuBufferDX12 : public GpuBuffer, public GpuResourceDX12
+	class GpuBufferDX12 : public GpuBuffer
 	{
 	public:
     GpuBufferDX12();
     ~GpuBufferDX12() override;
-    bool IsValid() const override { return myResource != nullptr; }
-    
+        
     void Create(const GpuBufferCreationParams& clParameters, void* pInitialData = nullptr) override;
     void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) override;
     void Unlock() override;

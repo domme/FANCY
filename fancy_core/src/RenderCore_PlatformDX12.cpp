@@ -16,6 +16,7 @@
 #include <malloc.h>
 #include "RenderCore.h"
 #include "CommandContextDX12.h"
+#include "GpuResourceStorageDX12.h"
 
 namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
@@ -275,9 +276,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapProps.CreationNodeMask = 1;
     heapProps.VisibleNodeMask = 1;
 
-    GpuBufferDX12* bufferDx12 = static_cast<GpuBufferDX12*>(aBuffer);
+    GpuResourceStorageDX12* bufferStorageDX12 = static_cast<GpuResourceStorageDX12*>(aBuffer->myStorage.Get());
 
-    const D3D12_RESOURCE_DESC& resourceDesc = bufferDx12->GetResource()->GetDesc();
+    const D3D12_RESOURCE_DESC& resourceDesc = bufferStorageDX12->myResource->GetDesc();
 
     Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
     CheckD3Dcall(GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
@@ -290,7 +291,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     CommandContextDX12* context = static_cast<CommandContextDX12*>(aContext);
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST);
-    context->myCommandList->CopyResource(bufferDx12->GetResource(), uploadResource.Get());
+    context->myCommandList->CopyResource(bufferStorageDX12->myResource.Get(), uploadResource.Get());
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
     context->ExecuteAndReset(true);
   }
@@ -304,9 +305,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapProps.CreationNodeMask = 1;
     heapProps.VisibleNodeMask = 1;
 
-    GpuBufferDX12* bufferDx12 = static_cast<GpuBufferDX12*>(aBuffer);
+    GpuResourceStorageDX12* bufferStorageDX12 = static_cast<GpuResourceStorageDX12*>(aBuffer->myStorage.Get());
 
-    D3D12_RESOURCE_DESC uploadResourceDesc = bufferDx12->GetResource()->GetDesc();
+    D3D12_RESOURCE_DESC uploadResourceDesc = bufferStorageDX12->myResource->GetDesc();
     uploadResourceDesc.Width = MathUtil::Align(aByteSize, aBuffer->GetAlignment());
 
     Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
@@ -320,17 +321,17 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     CommandContextDX12* context = static_cast<CommandContextDX12*>(aContext);
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST);
-    context->myCommandList->CopyBufferRegion(bufferDx12->GetResource(), aByteOffset, uploadResource.Get(), 0u, aByteSize);
+    context->myCommandList->CopyBufferRegion(bufferStorageDX12->myResource.Get(), aByteOffset, uploadResource.Get(), 0u, aByteSize);
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
     context->ExecuteAndReset(true);
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext)
   {
-    TextureDX12* textureDx12 = static_cast<TextureDX12*>(aTexture);
+    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(aTexture->myStorage.Get());
 
     ID3D12Device* device = GetDevice();
-    const D3D12_RESOURCE_DESC& resourceDesc = textureDx12->GetResource()->GetDesc();
+    const D3D12_RESOURCE_DESC& resourceDesc = storageDx12->myResource->GetDesc();
 
     // DEBUG: layouts and row-infos not needed here yet
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT* destLayouts = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * aNumUploadDatas));
@@ -382,7 +383,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     GpuResourceState oldUsageState = aTexture->myUsageState;
     context->TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_COPY_DEST);
-    context->UpdateSubresources(textureDx12->GetResource(), stagingBuffer.Get(), 0u, aNumUploadDatas, subDatas);
+    context->UpdateSubresources(storageDx12->myResource.Get(), stagingBuffer.Get(), 0u, aNumUploadDatas, subDatas);
     context->TransitionResource(aTexture, oldUsageState);
     context->ExecuteAndReset(true);
   }
