@@ -11,9 +11,6 @@
     <Filter Include="src\Rendering">
       <UniqueIdentifier>{da98f0a5-f47c-4aa9-aee2-adaacecdc0ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Debug">
-      <UniqueIdentifier>{af5f6d52-a9aa-498f-b526-b079c9326059}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Geometry">
       <UniqueIdentifier>{00c69bda-1f86-44fb-95ef-39fe0da5594e}</UniqueIdentifier>
     </Filter>
@@ -28,9 +25,6 @@
     </Filter>
     <Filter Include="src\Scene\Components">
       <UniqueIdentifier>{131c4f4c-8958-405c-927c-0411df5432bb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\IO\JSON">
-      <UniqueIdentifier>{11798b84-0a9c-403c-a1fc-12a43cdd91af}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Rendering\DX12">
       <UniqueIdentifier>{c3bd7ac1-c48d-47ba-b876-50bee9d32391}</UniqueIdentifier>
@@ -48,9 +42,6 @@
     </ClInclude>
     <ClInclude Include="src\FileReader.h">
       <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\LoadableObject.h">
-      <Filter>src\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\lodepng.h">
       <Filter>src\IO</Filter>
@@ -78,12 +69,6 @@
     </ClInclude>
     <ClInclude Include="src\SubModel.h">
       <Filter>src\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ObjectName.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FixedArray.h">
-      <Filter>src\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\GpuBuffer.h">
       <Filter>src\Rendering</Filter>
@@ -136,9 +121,6 @@
     <ClInclude Include="src\BlendState.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\StaticManagedObject.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
     <ClInclude Include="src\SceneImporter.h">
       <Filter>src\IO</Filter>
     </ClInclude>
@@ -163,28 +145,7 @@
     <ClInclude Include="src\LightComponent.h">
       <Filter>src\Scene\Components</Filter>
     </ClInclude>
-    <ClInclude Include="src\Serializer.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
     <ClInclude Include="src\BinaryCache.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\json\json.h">
-      <Filter>src\IO\JSON</Filter>
-    </ClInclude>
-    <ClInclude Include="src\json\json-forwards.h">
-      <Filter>src\IO\JSON</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Serializable.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\JSONwriter.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\JSONreader.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ObjectFactory.h">
       <Filter>src\IO</Filter>
     </ClInclude>
     <ClInclude Include="src\Material.h">
@@ -256,9 +217,6 @@
     <ClInclude Include="src\AlignedStorage.h">
       <Filter>src\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\ObjectPool.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
     <ClInclude Include="src\Log.h">
       <Filter>src\Common</Filter>
     </ClInclude>
@@ -295,23 +253,11 @@
     <ClInclude Include="src\Callback.h">
       <Filter>src\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\Resource.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DescriptionBase.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
     <ClInclude Include="src\GpuProgramPipelineDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\GraphicsWorld.h">
       <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MeshDesc.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ModelDesc.h">
-      <Filter>src\Geometry</Filter>
     </ClInclude>
     <ClInclude Include="src\RenderView.h">
       <Filter>src\Common</Filter>
@@ -375,9 +321,6 @@
     <ClCompile Include="src\FileReader.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
-    <ClCompile Include="src\LoadableObject.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
     <ClCompile Include="src\lodepng.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
@@ -395,9 +338,6 @@
     </ClCompile>
     <ClCompile Include="src\SubModel.cpp">
       <Filter>src\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ObjectName.cpp">
-      <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\RendererPrerequisites.cpp">
       <Filter>src\Rendering</Filter>
@@ -453,22 +393,7 @@
     <ClCompile Include="src\LightComponent.cpp">
       <Filter>src\Scene\Components</Filter>
     </ClCompile>
-    <ClCompile Include="src\Serializer.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
     <ClCompile Include="src\BinaryCache.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\jsoncpp.cpp">
-      <Filter>src\IO\JSON</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JSONwriter.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JSONreader.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ObjectFactory.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\GpuProgramResource.cpp">
@@ -533,12 +458,6 @@
     </ClCompile>
     <ClCompile Include="src\GraphicsWorld.cpp">
       <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ModelDesc.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MeshDesc.cpp">
-      <Filter>src\Geometry</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderView.cpp">
       <Filter>src\Common</Filter>

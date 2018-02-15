@@ -1,10 +1,6 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "ObjectName.h"
-#include "FixedArray.h"
-#include "StaticManagedObject.h"
-#include "Serializable.h"
 #include "ModelDesc.h"
 
 namespace Fancy {
@@ -24,15 +20,11 @@ namespace Fancy { namespace Geometry {
   class Model
   {
     public:
-      SERIALIZABLE_RESOURCE(Model)
 
       Model();
       ~Model();
       bool operator==(const Model& anOther) const;
       bool operator==(const ModelDesc& aDesc) const;
-
-      ModelDesc GetDescription() const;
-      void SetFromDescription(const ModelDesc& aDesc, GraphicsWorld* aWorld);
 
       uint64 GetHash() const { return GetDescription().GetHash(); }
 
