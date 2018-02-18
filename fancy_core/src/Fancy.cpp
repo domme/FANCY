@@ -12,7 +12,7 @@
 #include "LightComponent.h"
 #include "RenderView.h"
 #include "GraphicsWorld.h"
-#include "EngineParameters.h"
+#include "RenderingStartupParameters.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -36,7 +36,7 @@ namespace Fancy {
     Rendering::RenderCore::Shutdown();
   }
 //---------------------------------------------------------------------------//
-  void FancyRuntime::Internal_Init(const EngineParameters& someParams)
+  void FancyRuntime::Internal_Init(const RenderingStartupParameters& someParams)
   {
     myMainWorld = std::make_shared<GraphicsWorld>();
     myMainView = std::make_unique<RenderView>(myAppInstanceHandle, static_cast<uint>(someParams.myRenderingTechnique), myMainWorld);
@@ -49,7 +49,7 @@ namespace Fancy {
       view->Startup();
   }
 //---------------------------------------------------------------------------//
-  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams)
+  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams)
   {
     ASSERT(ourInstance == nullptr);
     if (ourInstance != nullptr)

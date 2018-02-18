@@ -2,6 +2,8 @@
 
 #include "RendererPrerequisites.h"
 
+// TODO: Fix this mirror-madness
+
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct BlendStateDesc

@@ -2,7 +2,6 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "Serializable.h"
 #include "GpuResource.h"
 #include "TextureDesc.h"
 
@@ -23,8 +22,6 @@ namespace Fancy { namespace Rendering {
   class Texture : public GpuResource
   {
   public:
-    SERIALIZABLE_RESOURCE(Texture)
-    
     Texture();
     virtual ~Texture();
 

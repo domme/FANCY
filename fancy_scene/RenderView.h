@@ -1,5 +1,4 @@
 #pragma once
-#include "ScopedPtr.h"
 
 namespace Fancy { namespace Scene {
   class Scene;

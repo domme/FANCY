@@ -3,10 +3,6 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-#include "ObjectName.h"
-#include "FixedArray.h"
-#include "Serializable.h"
-
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class GpuResourceAccessType {
@@ -32,15 +28,12 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct ConstantBufferElement
   {
-    SERIALIZABLE(ConstantBufferElement)
-    void Serialize(IO::Serializer* aSerializer);
     uint64 GetHash() const { return 0u; }
-    ObjectName getTypeName() const { return _N(ConstantBufferElement); }
 
     ConstantBufferElement() :
       uOffsetBytes(0u), uSizeBytes(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
 
-    ObjectName name;
+    String name;
     uint uOffsetBytes;  // Byte-offset from the start of the buffer
     uint uSizeBytes;  // Overall size of the element (==sizeof(eFormat) * uFormatComponentCount)
     DataFormat eFormat;
@@ -54,22 +47,10 @@ namespace Fancy { namespace Rendering {
         eAccessType(GpuResourceAccessType::READ_ONLY), 
         eResourceType(GpuResourceType::NONE) {}
 
-    SERIALIZABLE(GpuProgramResourceInfo)
-    void Serialize(IO::Serializer* aSerializer);
-    uint64 GetHash() const { return 0u; }
-    ObjectName getTypeName() const { return _N(GpuProgramResourceInfo); }
-
     uint u32RegisterIndex;
-    ObjectName name;
+    String name;
     GpuResourceAccessType eAccessType;
     GpuResourceType eResourceType;
   };
-//---------------------------------------------------------------------------//
-  
-//---------------------------------------------------------------------------//
- typedef std::vector<ConstantBufferElement> ConstantBufferElementList;
- typedef FixedArray<GpuProgramResourceInfo, Constants::kMaxNumGpuProgramResources> GpuResourceInfoList;
- typedef FixedArray<Texture*, Constants::kMaxNumGpuProgramResources> GpuTextureResourceList;
- typedef FixedArray<GpuBuffer*, Constants::kMaxNumGpuProgramResources> GpuBufferResourceList;
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

@@ -1,6 +1,5 @@
 #include "DepthStencilState.h"
 #include "MathUtil.h"
-#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -24,23 +23,6 @@ namespace Fancy { namespace Rendering {
     memset(myStencilFailOp, 0u, sizeof(myStencilFailOp));
     memset(myStencilDepthFailOp, 0u, sizeof(myStencilDepthFailOp));
     memset(myStencilPassOp, 0u, sizeof(myStencilPassOp));
-  }
-//---------------------------------------------------------------------------//
-  void DepthStencilStateDesc::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->Serialize(&myDepthTestEnabled, "myDepthTestEnabled");
-    aSerializer->Serialize(&myDepthWriteEnabled, "myDepthWriteEnabled");
-    aSerializer->Serialize(&myDepthCompFunc, "myDepthCompFunc");
-    aSerializer->Serialize(&myStencilEnabled, "myStencilEnabled");
-    aSerializer->Serialize(&myTwoSidedStencil, "myTwoSidedStencil");
-    aSerializer->Serialize(&myStencilRef, "myStencilRef");
-    aSerializer->Serialize(&myStencilReadMask, "myStencilReadMask");
-
-    aSerializer->serializeArray(myStencilCompFunc, "myStencilCompFunc");
-    aSerializer->serializeArray(myStencilWriteMask, "myStencilWriteMask");
-    aSerializer->serializeArray(myStencilFailOp, "myStencilFailOp");
-    aSerializer->serializeArray(myStencilDepthFailOp, "myStencilDepthFailOp");
-    aSerializer->serializeArray(myStencilPassOp, "myStencilPassOp");
   }
 //---------------------------------------------------------------------------//
   bool DepthStencilStateDesc::operator==(const DepthStencilStateDesc& anOther) const
@@ -73,7 +55,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  DepthStencilState::DepthStencilState() 
+  DepthStencilState::DepthStencilState()
     : myDepthTestEnabled(true)
     , myDepthWriteEnabled(true)
     , myDepthCompFunc(CompFunc::LESS)
@@ -81,8 +63,6 @@ namespace Fancy { namespace Rendering {
     , myTwoSidedStencil(false)
     , myStencilRef(1)
     , myStencilReadMask((Fancy::uint)-1)
-    , myCachedHash(0u)
-    , myIsDirty(true)
   {
     myStencilCompFunc[(uint) FaceType::FRONT] = CompFunc::EQUAL;
     myStencilCompFunc[(uint) FaceType::BACK] = CompFunc::EQUAL;
@@ -148,19 +128,11 @@ namespace Fancy { namespace Rendering {
       myStencilDepthFailOp[i] = static_cast<StencilOp>(aDesc.myStencilDepthFailOp[i]);
       myStencilPassOp[i] = static_cast<StencilOp>(aDesc.myStencilPassOp[i]);
     }
-
-    myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
   uint64 DepthStencilState::GetHash() const
   {
-    if (!myIsDirty)
-      return myCachedHash;
-
-    myIsDirty = false;
-    myCachedHash = GetDescription().GetHash();
-
-    return myCachedHash;
+    return GetDescription().GetHash();
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

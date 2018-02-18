@@ -1,12 +1,7 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-
-namespace Fancy { namespace IO {
-//---------------------------------------------------------------------------//
-  class Serializer;
-//---------------------------------------------------------------------------//
-} }
+#include "GeometryVertexLayout.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -18,6 +13,7 @@ namespace Fancy { namespace Geometry {
     bool operator==(const MeshDesc& anOther) const { return myVertexAndIndexHash == anOther.myVertexAndIndexHash; }
 
     uint64 myVertexAndIndexHash;
+    DynamicArray<Rendering::GeometryVertexLayout> myVertexLayouts;
   };
 //---------------------------------------------------------------------------//
 } }

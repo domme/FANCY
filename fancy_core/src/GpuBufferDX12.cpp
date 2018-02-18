@@ -23,7 +23,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Destroy();
 
     GpuResourceStorageDX12* storageDx12 = new GpuResourceStorageDX12();
-    myStorage = storageDx12;
+    myStorage.reset(storageDx12);
 
     ASSERT(someParameters.uElementSizeBytes > 0 && someParameters.uNumElements > 0,
       "Invalid buffer size specified");
@@ -259,7 +259,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     // TODO: Do something with the current usage type? Transition it into something correct? Early-out?
 
-    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.Get());
+    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
 
     void* mappedData;
     CheckD3Dcall(storageDx12->myResource->Map(0, &range, &mappedData));
@@ -284,7 +284,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     range.Begin = myState.myLockedRange_Begin;
     range.End = myState.myLockedRange_End;
 
-    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.Get());
+    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
     storageDx12->myResource->Unmap(0u, &range);
 
     myState.isLocked = false;

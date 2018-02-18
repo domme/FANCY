@@ -28,7 +28,7 @@ namespace Fancy { namespace Rendering {
     // In order to simply load the signature from a compiled HLSL-header that contains the rootSignature-string
     // This would avoid having to maintain code-side signature definitions.
 
-    std::vector<GpuResSignatureEntry> myEntries;
+    DynamicArray<GpuResSignatureEntry> myEntries;
     uint myHash;
   };
 //---------------------------------------------------------------------------//

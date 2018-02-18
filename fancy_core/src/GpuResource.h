@@ -3,7 +3,6 @@
 #include "RendererPrerequisites.h"
 #include "Descriptor.h"
 #include "GpuResourceStorage.h"
-#include "ScopedPtr.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -28,7 +27,7 @@ namespace Fancy { namespace Rendering {
 
     GpuResourceCategory myCategory;
     GpuResourceState myUsageState;
-    ScopedPtr<GpuResourceStorage> myStorage;
+    UniquePtr<GpuResourceStorage> myStorage;
   };
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

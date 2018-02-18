@@ -22,7 +22,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Destroy();
 
     GpuResourceStorageDX12* storageDx12 = new GpuResourceStorageDX12();
-    myStorage = storageDx12;
+    myStorage.reset(storageDx12);
 
     myParameters = someParameters;
     const bool wantsGpuWriteAccess = someParameters.myIsShaderWritable;

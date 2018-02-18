@@ -1,5 +1,4 @@
 #include "GeometryVertexLayout.h"
-#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -12,20 +11,10 @@ namespace Fancy { namespace Rendering {
 
   }
 //---------------------------------------------------------------------------//
-  void GeometryVertexElement::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->Serialize(&name, "myName");
-    aSerializer->Serialize(&eSemantics, "mySemenatics");
-    aSerializer->Serialize(&mySemanticIndex, "mySemanticIndex");
-    aSerializer->Serialize(&u32OffsetBytes, "myOffsetBytes");
-    aSerializer->Serialize(&u32SizeBytes, "mySizeBytes");
-    aSerializer->Serialize(&eFormat, "myFormat");
-  }
-//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   GeometryVertexLayout::GeometryVertexLayout() :
-    m_u32StrideBytes(0u)
+    myStride(0u)
   {
 
   }
@@ -33,12 +22,6 @@ namespace Fancy { namespace Rendering {
   GeometryVertexLayout::~GeometryVertexLayout()
   {
 
-  }
-//---------------------------------------------------------------------------//
-  void GeometryVertexLayout::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->Serialize(&m_u32StrideBytes, "m_u32StrideBytes");
-    aSerializer->Serialize(&m_vVertexElements, "m_vVertexElements");
   }
 //---------------------------------------------------------------------------//
   void GeometryVertexLayout::addVertexElement( const GeometryVertexElement& clVertexElement )
@@ -53,7 +36,7 @@ namespace Fancy { namespace Rendering {
                 "Vertex-elements must be added in order");
 
     m_vVertexElements.push_back(clVertexElement);
-    m_u32StrideBytes += clVertexElement.u32SizeBytes;
+    myStride += clVertexElement.u32SizeBytes;
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

@@ -1,5 +1,4 @@
 #include "TextureSamplerDesc.h"
-#include "Serializer.h"
 #include "MathUtil.h"
 
 namespace Fancy { namespace Rendering {
@@ -27,20 +26,6 @@ namespace Fancy { namespace Rendering {
   bool TextureSamplerDesc::operator==(const TextureSamplerDesc& anOther) const
   {
     return GetHash() == anOther.GetHash();
-  }
-//---------------------------------------------------------------------------//
-  void TextureSamplerDesc::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->Serialize(&minFiltering, "minFiltering");
-    aSerializer->Serialize(&magFiltering, "magFiltering");
-    aSerializer->Serialize(&addressModeX, "addressModeX");
-    aSerializer->Serialize(&addressModeY, "addressModeY");
-    aSerializer->Serialize(&addressModeZ, "addressModeZ");
-    aSerializer->Serialize(&borderColor, "borderColor");
-    aSerializer->Serialize(&fMinLod, "fMinLod");
-    aSerializer->Serialize(&fMaxLod, "fMaxLod");
-    aSerializer->Serialize(&fLodBias, "fLodBias");
-    aSerializer->Serialize(&myMaxAnisotropy, "myMaxAnisotropy");
   }
 //---------------------------------------------------------------------------//
 } }

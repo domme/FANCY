@@ -2,7 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "DataFormat.h"
-#include "EngineParameters.h"
+#include "RenderingStartupParameters.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "RendererPrerequisites.h"
-
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class DescriptorType

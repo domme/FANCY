@@ -8,7 +8,7 @@ namespace Fancy { namespace Rendering {
     : myCurrBackbufferIndex(0u)
   {
     Fancy::WindowParameters params;
-    params.myTitle = "Fancy Engine";
+    params.myTitle = "Fancy";
     params.myWidth = 800u;
     params.myHeight = 600u;
 

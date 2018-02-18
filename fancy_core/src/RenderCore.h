@@ -1,7 +1,6 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include "ScopedPtr.h"
 #include <list>
 
 namespace Fancy {
@@ -83,7 +82,7 @@ namespace Fancy { namespace Rendering {
     static void FreeContext(CommandContext* aContext);
 
   protected:
-    RenderCore() {}
+    RenderCore() = default;
 
     static void Init_0_Platform(RenderingApi aRenderingApi);
     static void Init_1_Services();

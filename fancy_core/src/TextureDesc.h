@@ -1,16 +1,12 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "DescriptionBase.h"
-#include "ObjectName.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
-  struct TextureDesc : public DescriptionBase
+  struct TextureDesc
   {
-    
     TextureDesc() : myIsExternalTexture(false), myInternalRefIndex(~0u) {}
-    ~TextureDesc() override {}
     
     bool operator==(const TextureDesc& anOther) const 
     {
@@ -19,10 +15,8 @@ namespace Fancy { namespace Rendering {
         &&    myInternalRefIndex == anOther.myInternalRefIndex;
     }
 
-    ObjectName GetTypeName() const override { return _N(Texture); }
-    uint64 GetHash() const override;
-    void Serialize(IO::Serializer* aSerializer) override;
-    bool IsEmpty() const override { return mySourcePath.empty() && (myIsExternalTexture || myInternalRefIndex == ~0u); }
+    uint64 GetHash() const;
+    bool IsEmpty() const { return mySourcePath.empty() && (myIsExternalTexture || myInternalRefIndex == ~0u); }
 
     bool myIsExternalTexture;
     String mySourcePath; // The path to the original texture file (before caching - e.g. textures/barrel.jpg). Only valid for external textures

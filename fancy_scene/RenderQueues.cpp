@@ -4,6 +4,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   RenderQueue::RenderQueue()
   //  : myAllocator(128u)
+    : myNumItems(0u)
   {
   }
 //---------------------------------------------------------------------------//
@@ -13,19 +14,20 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   RenderQueueItem* RenderQueue::AddItem()
   {
-    ASSERT(!myItems.IsFull());
+    ASSERT(myNumItems < kMaxNumRenderQueueItems);
 
     // RenderQueueItem* item = myAllocator.Allocate();
     // myItems.push_back(item);
     // return item;
-
-    myItems.push_back(RenderQueueItem());
-    return &myItems[myItems.size() - 1u];
+    
+    RenderQueueItem* item = &myItems[myNumItems++];
+    memset(item, 0u, sizeof(RenderQueueItem));
+    return item;
   }
 //---------------------------------------------------------------------------//
   void RenderQueue::Clear()
   {
-    myItems.clear();
+    myNumItems = 0u;
     // myAllocator.FreeAll();
   }
 //---------------------------------------------------------------------------// 

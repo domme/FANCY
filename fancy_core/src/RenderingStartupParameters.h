@@ -1,7 +1,5 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   enum class RenderingApi
@@ -22,9 +20,9 @@ namespace Fancy {
     NUM
   };
 //---------------------------------------------------------------------------//
-  struct EngineParameters
+  struct RenderingStartupParameters
   {
-    EngineParameters()
+    RenderingStartupParameters()
       : myRenderingTechnique(RenderingTechnique::FORWARD)
       , myRenderingApi(Rendering::RenderingApi::DX12)
     { }

@@ -11,17 +11,11 @@
     <Filter Include="src\Rendering">
       <UniqueIdentifier>{da98f0a5-f47c-4aa9-aee2-adaacecdc0ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Scene">
-      <UniqueIdentifier>{0643b0af-b26f-4449-898c-4a9c91556345}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Common">
       <UniqueIdentifier>{3bbf5b5b-c9b6-4fb6-a957-965e0ce00c59}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Math">
       <UniqueIdentifier>{df3b2819-40ab-4734-9789-c9d138468e7c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Scene\Components">
-      <UniqueIdentifier>{131c4f4c-8958-405c-927c-0411df5432bb}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Rendering\DX12">
       <UniqueIdentifier>{c3bd7ac1-c48d-47ba-b876-50bee9d32391}</UniqueIdentifier>
@@ -85,18 +79,6 @@
     <ClInclude Include="src\TextureSampler.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\SceneNodeComponent.h">
-      <Filter>src\Scene\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ModelComponent.h">
-      <Filter>src\Scene\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CameraComponent.h">
-      <Filter>src\Scene\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SceneNodeComponentFactory.h">
-      <Filter>src\Scene\Components</Filter>
-    </ClInclude>
     <ClInclude Include="src\DepthStencilState.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -115,14 +97,8 @@
     <ClInclude Include="src\RenderingProcess.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\LightComponent.h">
-      <Filter>src\Scene\Components</Filter>
-    </ClInclude>
     <ClInclude Include="src\BinaryCache.h">
       <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Material.h">
-      <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\DX12Prerequisites.h">
       <Filter>src\Rendering\DX12</Filter>
@@ -196,9 +172,6 @@
     <ClInclude Include="src\TextureRefs.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\ScopedPtr.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\CommandListType.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
@@ -218,12 +191,6 @@
       <Filter>src\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\GpuProgramPipelineDesc.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RenderView.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RenderQueues.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\RenderCore.h">
@@ -250,9 +217,6 @@
     <ClInclude Include="src\ShaderResourceInterfaceDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\EngineParameters.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\Fancy_Include.h">
       <Filter>src\Common</Filter>
     </ClInclude>
@@ -260,9 +224,6 @@
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="src\ShaderResourceInterface.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\shaderresourceinterfacedesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\GpuResourceStorage.h">
@@ -282,6 +243,12 @@
     </ClInclude>
     <ClInclude Include="src\MeshDesc.h">
       <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderingStartupParameters.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderResourceInterfaceDesc.h">
+      <Filter>src\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -309,18 +276,6 @@
     <ClCompile Include="src\TimeManager.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\SceneNodeComponent.cpp">
-      <Filter>src\Scene\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ModelComponent.cpp">
-      <Filter>src\Scene\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CameraComponent.cpp">
-      <Filter>src\Scene\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SceneNodeComponentFactory.cpp">
-      <Filter>src\Scene\Components</Filter>
-    </ClCompile>
     <ClCompile Include="src\DepthStencilState.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
@@ -333,17 +288,8 @@
     <ClCompile Include="src\GpuProgramFeatures.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\LightComponent.cpp">
-      <Filter>src\Scene\Components</Filter>
-    </ClCompile>
     <ClCompile Include="src\BinaryCache.cpp">
       <Filter>src\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GpuProgramResource.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Material.cpp">
-      <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\TextureDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
@@ -396,12 +342,6 @@
     <ClCompile Include="src\TextureDesc.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderView.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderQueues.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\RenderCore.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
@@ -439,9 +379,6 @@
       <Filter>src\Geometry</Filter>
     </ClCompile>
     <ClCompile Include="src\Mesh.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MeshDesc.cpp">
       <Filter>src\Geometry</Filter>
     </ClCompile>
   </ItemGroup>

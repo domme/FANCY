@@ -16,10 +16,9 @@ namespace Fancy { namespace Rendering {
 
 namespace Fancy {
   class RenderWindow;
-  class RenderView;
   class Time;
   class GraphicsWorld;
-  struct EngineParameters;
+  struct RenderingStartupParameters;
 }
 
 namespace Fancy {   
@@ -27,7 +26,7 @@ namespace Fancy {
   class FancyRuntime
   {
   public:
-    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const EngineParameters& someParams);
+    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams);
     static void Shutdown();
     static FancyRuntime* GetInstance();
 
@@ -48,7 +47,7 @@ namespace Fancy {
     explicit FancyRuntime(HINSTANCE anAppInstanceHandle);
     ~FancyRuntime();
 
-    void Internal_Init(const EngineParameters& someParams);
+    void Internal_Init(const RenderingStartupParameters& someParams);
 
     void DoFirstFrameTasks();
 

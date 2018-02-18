@@ -55,6 +55,9 @@
 //---------------------------------------------------------------------------//
   template<class T>
   using SharedPtr = std::shared_ptr<T>;
+
+  template<class T>
+  using UniquePtr = std::unique_ptr<T>;
 //---------------------------------------------------------------------------//
 #define DECLARE_SMART_PTRS(class) \
   typedef std::shared_ptr<##class> ##class##Ptr; \
@@ -98,9 +101,11 @@ namespace Fancy {
     typedef unsigned int	uint;
     typedef double        float64;
 
-    // TODO: This seems to give compile-errors on VS 2012
-    //template<class T>
-    //using DynamicArray = std::vector<T>;
+    template<class T>
+    using DynamicArray = std::vector<T>;
+
+    template<class T, size_t N>
+    using FixedArray = std::array<T, N>;
   }  // end of namespace Fancy
 //---------------------------------------------------------------------------//
   #include "FC_String.h"

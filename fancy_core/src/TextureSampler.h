@@ -1,8 +1,6 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "ObjectName.h"
-#include "Serializable.h"
 #include "TextureSamplerDesc.h"
 
 namespace Fancy { namespace Rendering {
@@ -10,9 +8,6 @@ namespace Fancy { namespace Rendering {
   class TextureSampler
   {
   public:
-    SERIALIZABLE_RESOURCE(TextureSampler)
-
-    TextureSampler() = default;
     virtual ~TextureSampler() = default;
 
     TextureSamplerDesc GetDescription() const { return myDescription; }

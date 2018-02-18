@@ -1,6 +1,5 @@
 #include "BlendState.h"
 #include "MathUtil.h"
-#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -55,28 +54,10 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-  void BlendStateDesc::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->Serialize(&myAlphaToCoverageEnabled, "myAlphaToCoverageEnabled");
-    aSerializer->Serialize(&myBlendStatePerRT, "myBlendStatePerRT");
-    aSerializer->serializeArray(myAlphaSeparateBlend, "myAlphaSeparateBlend");
-    aSerializer->serializeArray(myBlendEnabled, "myBlendEnabled");
-    aSerializer->serializeArray(mySrcBlend, "mySrcBlend");
-    aSerializer->serializeArray(myDestBlend, "myDestBlend");
-    aSerializer->serializeArray(myBlendOp, "myBlendOp");
-    aSerializer->serializeArray(mySrcBlendAlpha, "mySrcBlendAlpha");
-    aSerializer->serializeArray(myDestBlendAlpha, "myDestBlendAlpha");
-    aSerializer->serializeArray(myBlendOpAlpha, "myBlendOpAlpha");
-    aSerializer->serializeArray(myRTwriteMask, "myRTwriteMask");
-  }
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
   BlendState::BlendState() 
     : myAlphaToCoverageEnabled(false)
     , myBlendStatePerRT(false)
-    , myCachedHash(0u)
-    , myIsDirty(true)
   {
     memset(myAlphaSeparateBlend, false, sizeof(myAlphaSeparateBlend));
     memset(myBlendEnabled, false, sizeof(myBlendEnabled));
@@ -144,20 +125,11 @@ namespace Fancy { namespace Rendering {
       myRTwriteMask[i] = aDesc.myRTwriteMask[i];
     }
 
-    myIsDirty = true;
   } 
 //---------------------------------------------------------------------------//
 	uint64 BlendState::GetHash() const
 	{
-    if (!myIsDirty)
-      return myCachedHash;
-
-    myIsDirty = false;
-
-    myCachedHash = GetDescription().GetHash();
-    return myCachedHash;
+    return GetDescription().GetHash();
 	}
-//---------------------------------------------------------------------------//
-  
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering

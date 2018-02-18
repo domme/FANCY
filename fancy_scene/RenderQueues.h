@@ -1,10 +1,7 @@
-#ifndef INCLUDE_SCENERENDERDESCRIPTION_H
-#define INCLUDE_SCENERENDERDESCRIPTION_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "FixedArray.h"
-#include "SmallObjectAllocator.h"
 #include <array>
 
 // Forward declarations:
@@ -42,9 +39,7 @@ namespace Fancy { namespace Rendering {
   private:
     // SmallObjectAllocator<RenderQueueItem> myAllocator;
     FixedArray<RenderQueueItem, kMaxNumRenderQueueItems> myItems;
+    uint myNumItems;
   };
 //---------------------------------------------------------------------------//
-
 } }  // end of namespace Fancy::Rendering
-
-#endif // INCLUDE_SCENERENDERDESCRIPTION_H
