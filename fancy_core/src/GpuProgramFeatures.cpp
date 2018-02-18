@@ -1,12 +1,11 @@
 #include "GpuProgramFeatures.h"
 #include "MathUtil.h"
-#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   namespace Internal 
   {
-    uint64 sortAndGetHash(GpuProgramFeatureList& _vFeatures)
+    uint64 sortAndGetHash(std::vector<GpuProgramFeature>& _vFeatures)
     {
       std::sort(_vFeatures.begin(), _vFeatures.end());
       
@@ -18,14 +17,6 @@ namespace Fancy { namespace Rendering {
 
       return hash;
     }
-  }
-//---------------------------------------------------------------------------//
-  void GpuProgramPermutation::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->Serialize(&m_vFeatures, "myFeatures");
-     
-    if (aSerializer->getMode() == IO::ESerializationMode::LOAD)
-      m_uHash = Internal::sortAndGetHash(m_vFeatures);
   }
 //---------------------------------------------------------------------------//
   String GpuProgramPermutation::featureToDefineString(GpuProgramFeature _eFeature)
@@ -68,7 +59,7 @@ namespace Fancy { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPermutation::setFeatures(const GpuProgramFeatureList& _vFeatures)
+  void GpuProgramPermutation::setFeatures(const std::vector<GpuProgramFeature>& _vFeatures)
   {
     m_vFeatures = _vFeatures;
     m_uHash = Internal::sortAndGetHash(m_vFeatures);

@@ -6,7 +6,6 @@
 
 #include "Scene.h"
 #include "SceneNode.h"
-#include "ObjectName.h"
 #include "LightComponent.h"
 #include "RenderWindow.h"
 #include "GraphicsWorld.h"

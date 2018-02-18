@@ -11,9 +11,6 @@
     <Filter Include="src\Rendering">
       <UniqueIdentifier>{da98f0a5-f47c-4aa9-aee2-adaacecdc0ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Geometry">
-      <UniqueIdentifier>{00c69bda-1f86-44fb-95ef-39fe0da5594e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Scene">
       <UniqueIdentifier>{0643b0af-b26f-4449-898c-4a9c91556345}</UniqueIdentifier>
     </Filter>
@@ -28,6 +25,9 @@
     </Filter>
     <Filter Include="src\Rendering\DX12">
       <UniqueIdentifier>{c3bd7ac1-c48d-47ba-b876-50bee9d32391}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Geometry">
+      <UniqueIdentifier>{01d22804-1db2-4c70-8c91-60afbf5b3cdb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -52,29 +52,14 @@
     <ClInclude Include="src\Texture.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\SceneNode.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\RendererPrerequisites.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\MathUtil.h">
       <Filter>src\Math</Filter>
     </ClInclude>
-    <ClInclude Include="src\Mesh.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Model.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SubModel.h">
-      <Filter>src\Geometry</Filter>
-    </ClInclude>
     <ClInclude Include="src\GpuBuffer.h">
       <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GeometryData.h">
-      <Filter>src\Geometry</Filter>
     </ClInclude>
     <ClInclude Include="src\VertexInputLayout.h">
       <Filter>src\Rendering</Filter>
@@ -112,17 +97,11 @@
     <ClInclude Include="src\SceneNodeComponentFactory.h">
       <Filter>src\Scene\Components</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene.h">
-      <Filter>src\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\DepthStencilState.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\BlendState.h">
       <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SceneImporter.h">
-      <Filter>src\IO</Filter>
     </ClInclude>
     <ClInclude Include="src\StringUtil.h">
       <Filter>src\Common</Filter>
@@ -135,12 +114,6 @@
     </ClInclude>
     <ClInclude Include="src\RenderingProcess.h">
       <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RenderingProcessForward.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DebugOutStream.h">
-      <Filter>src\Common</Filter>
     </ClInclude>
     <ClInclude Include="src\LightComponent.h">
       <Filter>src\Scene\Components</Filter>
@@ -184,16 +157,7 @@
     <ClInclude Include="src\GpuProgramCompilerUtils.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuProgramDesc.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MaterialDesc.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\TextureDesc.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuBufferDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="src\TextureSamplerDesc.h">
@@ -256,9 +220,6 @@
     <ClInclude Include="src\GpuProgramPipelineDesc.h">
       <Filter>src\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\GraphicsWorld.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
     <ClInclude Include="src\RenderView.h">
       <Filter>src\Common</Filter>
     </ClInclude>
@@ -295,9 +256,6 @@
     <ClInclude Include="src\Fancy_Include.h">
       <Filter>src\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderingProcessForwardPlus.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="src\DescriptorHeapDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
@@ -313,6 +271,18 @@
     <ClInclude Include="src\GpuResourceStorageDX12.h">
       <Filter>src\Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="src\GpuProgramDesc.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GeometryData.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshDesc.h">
+      <Filter>src\Geometry</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\StdAfx.cpp">
@@ -327,23 +297,8 @@
     <ClCompile Include="src\PathService.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
-    <ClCompile Include="src\SceneNode.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Mesh.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Model.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SubModel.cpp">
-      <Filter>src\Geometry</Filter>
-    </ClCompile>
     <ClCompile Include="src\RendererPrerequisites.cpp">
       <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GeometryData.cpp">
-      <Filter>src\Geometry</Filter>
     </ClCompile>
     <ClCompile Include="src\VertexInputLayout.cpp">
       <Filter>src\Rendering</Filter>
@@ -366,29 +321,17 @@
     <ClCompile Include="src\SceneNodeComponentFactory.cpp">
       <Filter>src\Scene\Components</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\DepthStencilState.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="src\BlendState.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\SceneImporter.cpp">
-      <Filter>src\IO</Filter>
-    </ClCompile>
     <ClCompile Include="src\TextureLoader.cpp">
       <Filter>src\IO</Filter>
     </ClCompile>
     <ClCompile Include="src\GpuProgramFeatures.cpp">
       <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderingProcessForward.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DebugOutStream.cpp">
-      <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\LightComponent.cpp">
       <Filter>src\Scene\Components</Filter>
@@ -429,9 +372,6 @@
     <ClCompile Include="src\GpuProgram.cpp">
       <Filter>src\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\MaterialDesc.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\CommandAllocatorPoolDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
@@ -455,9 +395,6 @@
     </ClCompile>
     <ClCompile Include="src\TextureDesc.cpp">
       <Filter>src\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GraphicsWorld.cpp">
-      <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderView.cpp">
       <Filter>src\Common</Filter>
@@ -495,11 +432,17 @@
     <ClCompile Include="src\ShaderResourceInterfaceDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderingProcessForwardPlus.cpp">
-      <Filter>src\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="src\DescriptorHeapDX12.cpp">
       <Filter>src\Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GeometryData.cpp">
+      <Filter>src\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>src\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshDesc.cpp">
+      <Filter>src\Geometry</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

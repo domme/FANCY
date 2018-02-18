@@ -3,20 +3,13 @@
 #include "FancyCorePrerequisites.h"
 #include "GpuProgramFeatures.h"
 #include "MathUtil.h"
-#include "DescriptionBase.h"
-#include "GpuProgramDesc.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
-  struct GpuProgramPipelineDesc : public DescriptionBase
+  struct GpuProgramPipelineDesc
   {
     bool operator==(const GpuProgramPipelineDesc& anOther) const;
-    uint64 GetHash() const override;
-
-    ~GpuProgramPipelineDesc() override {}
-    ObjectName GetTypeName() const override { return _N(GpuProgramPipeline); }
-    void Serialize(IO::Serializer* aSerializer) override;
-    bool IsEmpty() const override;
+    uint64 GetHash() const;
 
     GpuProgramDesc myGpuPrograms[(uint)ShaderStage::NUM];
   };

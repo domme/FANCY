@@ -4,7 +4,6 @@
 #include <list>
 
 #include "FileReader.h"
-#include "PathService.h"
 
 namespace Fancy { namespace IO {
 

@@ -1,7 +1,6 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 #include "MathUtil.h"
-#include "Serializer.h"
 #include "ShaderResourceInterface.h"
 
 #include "GpuProgramPipeline.h"

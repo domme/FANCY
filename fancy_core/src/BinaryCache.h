@@ -1,11 +1,7 @@
-#ifndef INCLUDE_BINARYCACHE_H
-#define INCLUDE_BINARYCACHE_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "PathService.h"
 #include "Texture.h"
-#include "Serializer.h"
-#include "StringUtil.h"
 
 namespace Fancy{ namespace Rendering{
 struct TextureDesc;
@@ -30,5 +26,3 @@ namespace Fancy { namespace IO {
   //---------------------------------------------------------------------------//      
 };
 } }  // end of namespace Fancy::IO 
-
-#endif  // INCLUDE_BINARYCACHE_H

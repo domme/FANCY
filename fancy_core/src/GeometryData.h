@@ -1,13 +1,8 @@
-#ifndef INCLUDE_GEOMETRYDATA_H
-#define INCLUDE_GEOMETRYDATA_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
-#include "OpenGLprerequisites.h"
 #include "GeometryVertexLayout.h"
 #include "GpuBuffer.h"
-#include "StaticManagedObject.h"
-#include "ObjectName.h"
 
 namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
@@ -34,5 +29,3 @@ namespace Fancy { namespace Geometry {
   };
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Geometry::
-
-#endif  // INCLUDE_GEOMETRYDATA_H

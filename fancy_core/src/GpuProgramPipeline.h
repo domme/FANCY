@@ -4,8 +4,6 @@
 #include "RendererPrerequisites.h"
 #include "GpuProgramPipelineDesc.h"
 
-#include "Serializable.h"
-
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   class ShaderResourceInterface;
@@ -13,8 +11,6 @@ namespace Fancy { namespace Rendering {
   class GpuProgramPipeline
   {
     public:
-      SERIALIZABLE_RESOURCE(GpuProgramPipeline);
-
       GpuProgramPipeline();
       virtual ~GpuProgramPipeline();
 

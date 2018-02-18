@@ -59,11 +59,6 @@ namespace Fancy {
     IO::Resources::InitResourceFolders();
     IO::SceneImporter::initLogger();
 
-    // Init Component subsystem
-    Scene::SceneNodeComponentFactory::RegisterFactory(_N(ModelComponent), Scene::ModelComponent::create);
-    Scene::SceneNodeComponentFactory::RegisterFactory(_N(CameraComponent), Scene::CameraComponent::create);
-    Scene::SceneNodeComponentFactory::RegisterFactory(_N(LightComponent), Scene::LightComponent::create);
-
     ourInstance = new FancyRuntime(anAppInstanceHandle);
 
     // Init rendering subsystem

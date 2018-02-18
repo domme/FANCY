@@ -8,7 +8,6 @@
 #include "SceneNode.h"
 #include "TimeManager.h"
 #include "SubModel.h"
-#include "ModelDesc.h"
 #include "Model.h"
 
 namespace Fancy {

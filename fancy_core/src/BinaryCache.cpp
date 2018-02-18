@@ -3,6 +3,9 @@
 #include "Mesh.h"
 #include "TextureDesc.h"
 #include "RenderCore.h"
+#include <fstream>
+#include "PathService.h"
+#include "StringUtil.h"
 
 namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//

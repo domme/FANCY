@@ -1,10 +1,7 @@
-#ifndef INCLUDE_GPUPROGRAMFEATURES_H
-#define INCLUDE_GPUPROGRAMFEATURES_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "FixedArray.h"
-#include "Serializable.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
@@ -22,16 +19,12 @@ namespace Fancy { namespace Rendering {
     NUM
   };
 //---------------------------------------------------------------------------//
-  typedef FixedArray<GpuProgramFeature, 128u> GpuProgramFeatureList;
+  
 //---------------------------------------------------------------------------//
   class GpuProgramPermutation
   {
     public:
-      SERIALIZABLE(GpuProgramPermutation)
-        
-      static ObjectName getTypeName() { return _N(GpuProgramPermutation); }
       uint64 GetHash() const { return m_uHash; }
-      void Serialize(IO::Serializer* aSerializer);
 
       bool operator==(const GpuProgramPermutation& anOtherPermutation) const {
         return m_uHash == anOtherPermutation.m_uHash;
@@ -42,20 +35,16 @@ namespace Fancy { namespace Rendering {
 
       static String featureToDefineString(GpuProgramFeature _eFeature);
       
-
       void addFeature(GpuProgramFeature _eFeature);
       bool hasFeature(GpuProgramFeature _eFeature) const;
-      void setFeatures(const GpuProgramFeatureList& _vFeatures);
-      const GpuProgramFeatureList& getFeatureList() const {return m_vFeatures;}
+      void setFeatures(const std::vector<GpuProgramFeature>& _vFeatures);
+      const std::vector<GpuProgramFeature>& getFeatureList() const {return m_vFeatures;}
 
     private:
-      GpuProgramFeatureList m_vFeatures;
+      std::vector<GpuProgramFeature> m_vFeatures;
       uint64 m_uHash;
   };
 //---------------------------------------------------------------------------//
 } } // end of namespace Fancy::Rendering
-
-#endif  // INCLUDE_GPUPROGRAMCOMPILER_H
-
 
 
