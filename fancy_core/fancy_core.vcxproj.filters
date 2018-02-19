@@ -5,381 +5,381 @@
       <UniqueIdentifier>{119cc715-1dea-4811-898b-fe3023e1235c}</UniqueIdentifier>
       <Extensions>cpp;h;hpp</Extensions>
     </Filter>
-    <Filter Include="src\IO">
+    <Filter Include="IO">
       <UniqueIdentifier>{cf808716-0597-492b-83ce-d3521a9641d7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Rendering">
+    <Filter Include="Rendering">
       <UniqueIdentifier>{da98f0a5-f47c-4aa9-aee2-adaacecdc0ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Common">
+    <Filter Include="Common">
       <UniqueIdentifier>{3bbf5b5b-c9b6-4fb6-a957-965e0ce00c59}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Math">
+    <Filter Include="Math">
       <UniqueIdentifier>{df3b2819-40ab-4734-9789-c9d138468e7c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Rendering\DX12">
+    <Filter Include="Rendering\DX12">
       <UniqueIdentifier>{c3bd7ac1-c48d-47ba-b876-50bee9d32391}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Geometry">
+    <Filter Include="Geometry">
       <UniqueIdentifier>{01d22804-1db2-4c70-8c91-60afbf5b3cdb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\StdAfx.h">
+    <ClInclude Include="StdAfx.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Events.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FancyCorePrerequisites.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FileReader.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\lodepng.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PathService.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Texture.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RendererPrerequisites.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MathUtil.h">
-      <Filter>src\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuBuffer.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\VertexInputLayout.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgram.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramResource.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramCompiler.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GeometryVertexLayout.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramPipeline.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TimeManager.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureSampler.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DepthStencilState.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\BlendState.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\StringUtil.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureLoader.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramFeatures.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RenderingProcess.h">
-      <Filter>src\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="src\BinaryCache.h">
-      <Filter>src\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DX12Prerequisites.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextureSamplerDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramCompilerDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuProgramDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FenceDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuBufferDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AdapterDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GpuResourceSignature.h">
-      <Filter>src\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuProgramCompilerUtils.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="AdapterDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\TextureDesc.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="AlignedStorage.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\TextureSamplerDesc.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="BlendState.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\d3dx12.h">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClInclude Include="Callback.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\CommandAllocatorPoolDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClInclude Include="CommandAllocatorPoolDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\Fancy.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="CommandContextDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\DescriptorDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClInclude Include="d3dx12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\SmallObjectAllocator.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="DescriptorDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\AlignedStorage.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="DescriptorHeapDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\Log.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="DX12Prerequisites.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\FC_String.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="FenceDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\Descriptor.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="GpuBufferDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\DataFormat.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="GpuProgramCompilerDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\TextureRefs.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="GpuProgramDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\CommandListType.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="GpuResourceStorageDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderWindow.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="RenderCore_PlatformDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\Slot.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="RenderOutputDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\CommandContext.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="ShaderResourceInterfaceDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\FileWatcher.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="TextureDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\Callback.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="TextureSamplerDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuProgramPipelineDesc.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="CommandContext.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderCore.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="CommandListType.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderOutput.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="DataFormat.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderCore_Platform.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="DepthStencilState.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderCore_PlatformDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClInclude Include="Descriptor.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuResource.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="BinaryCache.h">
+      <Filter>IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\CommandContextDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClInclude Include="Events.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderOutputDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClInclude Include="Fancy.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\ShaderResourceInterfaceDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClInclude Include="Fancy_Include.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\Fancy_Include.h">
-      <Filter>src\Common</Filter>
+    <ClInclude Include="FancyCorePrerequisites.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\DescriptorHeapDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClInclude Include="FC_String.h">
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\ShaderResourceInterface.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="FileWatcher.h">
+      <Filter>IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuResourceStorage.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="FileReader.h">
+      <Filter>IO</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuResourceStorageDX12.h">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClInclude Include="GeometryData.h">
+      <Filter>Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GpuProgramDesc.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="GeometryVertexLayout.h">
+      <Filter>Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryData.h">
-      <Filter>src\Geometry</Filter>
+    <ClInclude Include="GpuBuffer.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\Mesh.h">
-      <Filter>src\Geometry</Filter>
+    <ClInclude Include="GpuProgram.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\MeshDesc.h">
-      <Filter>src\Geometry</Filter>
+    <ClInclude Include="GpuProgramCompiler.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderingStartupParameters.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="GpuProgramCompilerUtils.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="src\ShaderResourceInterfaceDesc.h">
-      <Filter>src\Rendering</Filter>
+    <ClInclude Include="GpuProgramDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuProgramFeatures.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuProgramPipeline.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuProgramPipelineDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuProgramResource.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResource.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceSignature.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceStorage.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="MathUtil.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshDesc.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="PathService.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderCore.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderCore_Platform.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererPrerequisites.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderingProcess.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderingStartupParameters.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderOutput.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderWindow.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderResourceInterface.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderResourceInterfaceDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Slot.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SmallObjectAllocator.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureLoader.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="lodepng.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureSampler.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureSamplerDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureRefs.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexInputLayout.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeManager.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="StringUtil.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\StdAfx.cpp">
+    <ClCompile Include="StdAfx.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\FileReader.cpp">
-      <Filter>src\IO</Filter>
+    <ClCompile Include="AdapterDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\lodepng.cpp">
-      <Filter>src\IO</Filter>
+    <ClCompile Include="BlendState.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\PathService.cpp">
-      <Filter>src\IO</Filter>
+    <ClCompile Include="CommandAllocatorPoolDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\RendererPrerequisites.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="CommandContextDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\VertexInputLayout.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="DescriptorHeapDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\GeometryVertexLayout.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="FenceDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\TimeManager.cpp">
-      <Filter>src\Common</Filter>
+    <ClCompile Include="GpuBufferDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\DepthStencilState.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="GpuProgramCompilerDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\BlendState.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="GpuProgramDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextureLoader.cpp">
-      <Filter>src\IO</Filter>
+    <ClCompile Include="RenderCore_PlatformDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgramFeatures.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="RenderOutputDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\BinaryCache.cpp">
-      <Filter>src\IO</Filter>
+    <ClCompile Include="ShaderResourceInterfaceDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextureDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="TextureDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextureSamplerDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="TextureSamplerDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgramCompilerDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="CommandContext.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgramDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="DataFormat.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\FenceDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="DepthStencilState.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuBufferDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="BinaryCache.cpp">
+      <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="src\AdapterDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="Fancy.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgramCompilerUtils.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="FC_String.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgram.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="FileReader.cpp">
+      <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="src\CommandAllocatorPoolDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="FileWatcher.cpp">
+      <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="src\Fancy.cpp">
-      <Filter>src\Common</Filter>
+    <ClCompile Include="GeometryData.cpp">
+      <Filter>Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\FC_String.cpp">
-      <Filter>src\Common</Filter>
+    <ClCompile Include="GeometryVertexLayout.cpp">
+      <Filter>Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\DataFormat.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="GpuBuffer.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderWindow.cpp">
-      <Filter>src\Common</Filter>
+    <ClCompile Include="GpuProgram.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\CommandContext.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="GpuProgramCompilerUtils.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\FileWatcher.cpp">
-      <Filter>src\Common</Filter>
+    <ClCompile Include="GpuProgramFeatures.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextureDesc.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="GpuProgramPipeline.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderCore.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderOutput.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="PathService.cpp">
+      <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderCore_PlatformDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="RenderCore.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\Texture.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="RendererPrerequisites.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuBuffer.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="RenderOutput.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\GpuProgramPipeline.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="RenderWindow.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextureSamplerDesc.cpp">
-      <Filter>src\Rendering</Filter>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\CommandContextDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="TextureDesc.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderOutputDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="TextureLoader.cpp">
+      <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="src\ShaderResourceInterfaceDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="lodepng.cpp">
+      <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="src\DescriptorHeapDX12.cpp">
-      <Filter>src\Rendering\DX12</Filter>
+    <ClCompile Include="TextureSamplerDesc.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\GeometryData.cpp">
-      <Filter>src\Geometry</Filter>
+    <ClCompile Include="VertexInputLayout.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="src\Mesh.cpp">
-      <Filter>src\Geometry</Filter>
+    <ClCompile Include="TimeManager.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

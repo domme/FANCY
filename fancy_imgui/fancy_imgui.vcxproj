@@ -50,12 +50,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\imgui.cpp" />
-    <ClCompile Include="src\imgui_demo.cpp" />
-    <ClCompile Include="src\imgui_draw.cpp" />
-    <ClCompile Include="src\imgui_impl_fancy.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\fancy_core\fancy_core.vcxproj">
       <Project>{0562febf-6fa8-4abd-8ff9-d7b3b8a889fd}</Project>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
@@ -63,13 +57,20 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\imconfig.h" />
-    <ClInclude Include="src\imgui.h" />
-    <ClInclude Include="src\imgui_impl_fancy.h" />
-    <ClInclude Include="src\imgui_internal.h" />
-    <ClInclude Include="src\stb_rect_pack.h" />
-    <ClInclude Include="src\stb_textedit.h" />
-    <ClInclude Include="src\stb_truetype.h" />
+    <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="imgui_demo.cpp" />
+    <ClCompile Include="imgui_draw.cpp" />
+    <ClCompile Include="imgui_impl_fancy.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="imconfig.h" />
+    <ClInclude Include="imgui.h" />
+    <ClInclude Include="imgui_impl_fancy.h" />
+    <ClInclude Include="imgui_internal.h" />
+    <ClInclude Include="Prerequisites.h" />
+    <ClInclude Include="stb_rect_pack.h" />
+    <ClInclude Include="stb_textedit.h" />
+    <ClInclude Include="stb_truetype.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
