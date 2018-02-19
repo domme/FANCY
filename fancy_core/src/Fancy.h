@@ -3,12 +3,6 @@
 #include "FancyCorePrerequisites.h"
 #include "TimeManager.h"
 
-namespace Fancy { namespace Scene {
-class SceneNode;
-class Scene;
-  typedef std::shared_ptr<Scene> ScenePtr;
-} }
-
 namespace Fancy { namespace Rendering {
   class RenderingProcess;
   class RenderOutput;
@@ -17,7 +11,6 @@ namespace Fancy { namespace Rendering {
 namespace Fancy {
   class RenderWindow;
   class Time;
-  class GraphicsWorld;
   struct RenderingStartupParameters;
 }
 
@@ -38,30 +31,19 @@ namespace Fancy {
 
     Time& GetRealTimeClock() { return myRealTimeClock; }
     uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
-
-    RenderWindow* GetMainRenderWindow() const;
-    RenderView* GetMainView() const { return myMainView.get(); }
-    GraphicsWorld* GetMainWorld() const { return myMainWorld.get(); }
-
+    
   private:
     explicit FancyRuntime(HINSTANCE anAppInstanceHandle);
     ~FancyRuntime();
 
     void Internal_Init(const RenderingStartupParameters& someParams);
-
     void DoFirstFrameTasks();
 
     static FancyRuntime* ourInstance;
 
     HINSTANCE myAppInstanceHandle;
     uint64 myFrameIndex;
-
-    // TODO: Add support for secondary views
-    SharedPtr<GraphicsWorld> myMainWorld;
-    std::unique_ptr<RenderView> myMainView;
-
     Time myRealTimeClock;
-    std::vector<RenderView*> myViews;
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy
