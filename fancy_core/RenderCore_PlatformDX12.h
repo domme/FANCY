@@ -12,7 +12,7 @@
 #include <queue>
 
 namespace Fancy {
-  class RenderWindow;
+  class Window;
 }
 
 namespace Fancy { namespace Rendering {

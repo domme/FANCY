@@ -19,7 +19,7 @@
 namespace Fancy { namespace ImGui {
 //---------------------------------------------------------------------------//
   Fancy::FancyRuntime* ourFancyRuntime = nullptr;
-  Fancy::RenderWindow* ourRenderWindow = nullptr;
+  Fancy::Window* ourWindow = nullptr;
 
   struct CBufferData
   {
@@ -121,14 +121,14 @@ namespace Fancy { namespace ImGui {
     }
   }
 
-  bool Init(Fancy::RenderWindow* aRenderWindow, Fancy::FancyRuntime* aRuntime)
+  bool Init(Fancy::Window* aWindow, Fancy::FancyRuntime* aRuntime)
   {
-    ourRenderWindow = aRenderWindow;
+    ourWindow = aWindow;
     std::function<void(UINT, WPARAM, LPARAM, bool*)> fnWindowHandler = &HandleWindowEvent;
-    ourRenderWindow->myWindowEventHandler.Connect(fnWindowHandler);
+    ourWindow->myWindowEventHandler.Connect(fnWindowHandler);
 
     ourFancyRuntime = aRuntime;
-    ourHwnd = aRenderWindow->GetWindowHandle();
+    ourHwnd = aWindow->GetWindowHandle();
 
     ImGuiIO& io = ::ImGui::GetIO();
     io.KeyMap[ImGuiKey_Tab] = VK_TAB;                              // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
@@ -418,7 +418,7 @@ namespace Fancy { namespace ImGui {
     ourRenderContext = nullptr;
 
     ourFancyRuntime = nullptr;
-    ourRenderWindow = nullptr;
+    ourWindow = nullptr;
     
     ourCBuffer.reset();
     ourVertexBuffer.reset();

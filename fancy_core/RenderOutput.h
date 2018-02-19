@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Fancy {
-  class RenderWindow;
+  class Window;
 }
 
 namespace Fancy { namespace Rendering {
@@ -25,7 +25,7 @@ namespace Fancy { namespace Rendering {
 
     Texture* GetBackbuffer() const { return myBackbuffers[myCurrBackbufferIndex].get(); }
     Texture* GetDefaultDepthStencilBuffer() const { return myDefaultDepthStencil.get(); }
-    RenderWindow* GetWindow() const { return myWindow.get(); }
+    Window* GetWindow() const { return myWindow.get(); }
 
   protected:
     virtual void OnWindowResized(uint aWidth, uint aHeight) = 0;
@@ -35,7 +35,7 @@ namespace Fancy { namespace Rendering {
     static const uint kBackbufferCount = 2u;
 
     uint myCurrBackbufferIndex;
-    SharedPtr<RenderWindow> myWindow;
+    SharedPtr<Window> myWindow;
     SharedPtr<Texture> myBackbuffers[kBackbufferCount];
     SharedPtr<Texture> myDefaultDepthStencil;
   };

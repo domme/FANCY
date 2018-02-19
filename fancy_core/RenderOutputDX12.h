@@ -4,7 +4,7 @@
 #include "RenderOutput.h"
 
 namespace Fancy {
-  class RenderWindow;
+  class Window;
 }
 
 namespace Fancy { namespace Rendering { namespace DX12 {

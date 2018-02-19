@@ -9,7 +9,7 @@ namespace Fancy { namespace Rendering {
 } }
 
 namespace Fancy {
-  class RenderWindow;
+  class Window;
   class Time;
   struct RenderingStartupParameters;
 }

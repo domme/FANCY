@@ -205,9 +205,6 @@
     <ClInclude Include="RenderOutput.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="RenderWindow.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderResourceInterface.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -248,6 +245,9 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="StringUtil.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
@@ -357,9 +357,6 @@
     <ClCompile Include="RenderOutput.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="RenderWindow.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="Texture.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -379,6 +376,9 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="TimeManager.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>

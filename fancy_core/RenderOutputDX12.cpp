@@ -1,7 +1,7 @@
 #include "RenderOutputDX12.h"
 #include "RenderCore_PlatformDX12.h"
 #include "RenderCore.h"
-#include "RenderWindow.h"
+#include "Window.h"
 #include "TextureDX12.h"
 #include "BlendState.h"
 #include "CommandContextDX12.h"

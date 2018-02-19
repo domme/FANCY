@@ -133,7 +133,7 @@
     <ClInclude Include="TimeManager.h" />
     <ClInclude Include="VertexInputLayout.h" />
     <ClInclude Include="GeometryVertexLayout.h" />
-    <ClInclude Include="RenderWindow.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp" />
@@ -180,7 +180,7 @@
     <ClCompile Include="TimeManager.cpp" />
     <ClCompile Include="VertexInputLayout.cpp" />
     <ClCompile Include="GeometryVertexLayout.cpp" />
-    <ClCompile Include="RenderWindow.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

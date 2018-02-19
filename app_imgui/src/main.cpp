@@ -24,7 +24,7 @@ void StartupEngine(HINSTANCE anAppInstanceHandle)
 
   pRuntime = Fancy::FancyRuntime::Init(anAppInstanceHandle, params);
 
-  Fancy::RenderWindow* window = pRuntime->GetMainRenderWindow();
+  Fancy::Window* window = pRuntime->GetMainWindow();
   std::function<void(Fancy::uint, Fancy::uint)> onResizeCallback = &OnWindowResized;
   window->myOnResize.Connect(onResizeCallback);
   
@@ -45,7 +45,7 @@ _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
   StartupEngine(hInstance);
-  Fancy::ImGui::Init(pRuntime->GetMainRenderWindow(), pRuntime);
+  Fancy::ImGui::Init(pRuntime->GetMainWindow(), pRuntime);
 
   bool show_test_window = true;
   bool show_another_window = false;

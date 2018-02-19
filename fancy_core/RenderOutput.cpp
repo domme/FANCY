@@ -1,5 +1,5 @@
 #include "RenderOutput.h"
-#include "RenderWindow.h"
+#include "Window.h"
 #include "RenderCore.h"
 
 namespace Fancy { namespace Rendering {
@@ -14,7 +14,7 @@ namespace Fancy { namespace Rendering {
 
     HINSTANCE instanceHandle = static_cast<HINSTANCE>(aNativeInstanceHandle);
 
-    myWindow = RenderWindow::Create(instanceHandle, params);
+    myWindow = Window::Create(instanceHandle, params);
     myWindow->myOnResize.Connect(this, &RenderOutput::OnWindowResized);
   }
 //---------------------------------------------------------------------------//

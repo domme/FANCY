@@ -1,9 +1,8 @@
-#include "RenderWindow.h"
-#include "Fancy.h"
+#include "Window.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  std::vector<RenderWindow*> ourCreatedWindows;
+  std::vector<Window*> ourCreatedWindows;
 //---------------------------------------------------------------------------//
   LRESULT CALLBACK locOnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   {
@@ -23,7 +22,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
-  RenderWindow::RenderWindow(HWND aHandle)
+  Window::Window(HWND aHandle)
     : myWindowHandle(aHandle)
     , myWidth(1)
     , myHeight(1)
@@ -31,7 +30,7 @@ namespace Fancy {
     
   }
 //---------------------------------------------------------------------------//
-  RenderWindow::~RenderWindow()
+  Window::~Window()
   {
     auto it = std::find_if(ourCreatedWindows.begin(), ourCreatedWindows.end(),
       [=](auto wndIt) { return wndIt->GetWindowHandle() == myWindowHandle; });
@@ -42,7 +41,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  LRESULT RenderWindow::HandleWindowEvent(UINT message, WPARAM wParam, LPARAM lParam)
+  LRESULT Window::HandleWindowEvent(UINT message, WPARAM wParam, LPARAM lParam)
   {
     bool handledExternally = false;
     myWindowEventHandler(message, wParam, lParam, &handledExternally);
@@ -69,7 +68,7 @@ namespace Fancy {
     return S_FALSE; // This window doesn't handle this message
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<RenderWindow> RenderWindow::Create(HINSTANCE anInstanceHandle, const WindowParameters& someParams)
+  SharedPtr<Window> Window::Create(HINSTANCE anInstanceHandle, const WindowParameters& someParams)
   {
     ASSERT(anInstanceHandle != nullptr);
 
@@ -101,7 +100,7 @@ namespace Fancy {
 
     ASSERT(windowHandle != nullptr);
 
-    SharedPtr<RenderWindow> window(new RenderWindow(windowHandle));
+    SharedPtr<Window> window(new Window(windowHandle));
     window->myWidth = someParams.myWidth;
     window->myHeight = someParams.myHeight;
     ourCreatedWindows.push_back(window.get());
@@ -111,7 +110,7 @@ namespace Fancy {
     return window;
   }
 //---------------------------------------------------------------------------//
-  void RenderWindow::SetSize(uint aWidth, uint aHeight)
+  void Window::SetSize(uint aWidth, uint aHeight)
   {
     if (myWidth == aWidth && myHeight == aHeight)
       return;

@@ -12,12 +12,12 @@ namespace Fancy {
     uint myHeight;
   };
 //---------------------------------------------------------------------------//
-  class RenderWindow
+  class Window
   {
     public:
-      static SharedPtr<RenderWindow> Create(HINSTANCE anInstanceHandle, const WindowParameters& someParams);
+      static SharedPtr<Window> Create(HINSTANCE anInstanceHandle, const WindowParameters& someParams);
       
-      ~RenderWindow();
+      ~Window();
 
       HWND GetWindowHandle() const { return myWindowHandle; }
       uint GetWidth() const { return myWidth; }
@@ -30,7 +30,7 @@ namespace Fancy {
       LRESULT HandleWindowEvent(UINT message, WPARAM wParam, LPARAM lParam);
 
     private:
-      explicit RenderWindow(HWND aHandle);
+      explicit Window(HWND aHandle);
 
       HWND myWindowHandle;
       uint myHeight;

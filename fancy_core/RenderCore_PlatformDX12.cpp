@@ -11,7 +11,7 @@
 #include "ShaderResourceInterfaceDX12.h"
 #include "GpuProgramCompiler.h"
 #include "DescriptorHeapDX12.h"
-#include "RenderWindow.h"
+#include "Window.h"
 #include "RenderOutputDX12.h"
 #include <malloc.h>
 #include "RenderCore.h"
