@@ -15,7 +15,7 @@
 #include "fancy_core/GpuProgramDesc.h"
 #include "fancy_core/GpuProgramPipelineDesc.h"
 
-namespace Fancy { namespace ImGui {
+namespace Fancy { namespace ImGuiRendering {
 //---------------------------------------------------------------------------//
   FancyRuntime* ourFancyRuntime = nullptr;
   Rendering::RenderOutput* ourRenderOutput = nullptr;

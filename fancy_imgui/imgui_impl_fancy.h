@@ -12,7 +12,7 @@ namespace Fancy { namespace Rendering
   class RenderOutput;
 } }
 
-namespace Fancy { namespace ImGui {
+namespace Fancy { namespace ImGuiRendering {
   bool Init(Fancy::Rendering::RenderOutput* aRenderOutput, Fancy::FancyRuntime* aRuntime);
   void NewFrame();
   void RenderDrawLists(ImDrawData* _draw_data);

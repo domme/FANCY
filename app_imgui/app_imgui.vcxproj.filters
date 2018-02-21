@@ -2,5 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ImguiDemo.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ImguiDemo.h" />
   </ItemGroup>
 </Project>
