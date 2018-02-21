@@ -23,6 +23,5 @@ private:
   void OnWindowResized(Fancy::uint aWidth, Fancy::uint aHeight);
 
   Fancy::FancyRuntime* myRuntime;
-  UniquePtr<Fancy::Rendering::RenderOutput> myRenderOutput;
 };
 

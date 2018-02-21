@@ -31,12 +31,12 @@ namespace Fancy {
 
     Time& GetRealTimeClock() { return myRealTimeClock; }
     uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
+    Rendering::RenderOutput* GetRenderOutput() { return myRenderOutput.get(); }
     
   private:
     explicit FancyRuntime(HINSTANCE anAppInstanceHandle);
     ~FancyRuntime();
 
-    void Internal_Init(const RenderingStartupParameters& someParams);
     void DoFirstFrameTasks();
 
     static FancyRuntime* ourInstance;
@@ -44,6 +44,7 @@ namespace Fancy {
     HINSTANCE myAppInstanceHandle;
     uint64 myFrameIndex;
     Time myRealTimeClock;
+    SharedPtr<Rendering::RenderOutput> myRenderOutput;
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy

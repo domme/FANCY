@@ -1,5 +1,9 @@
 #include "ImguiDemo.h"
 
+#include <fancy_core/RendererPrerequisites.h>
+#include <fancy_core/CommandListType.h>
+#include "fancy_core/CommandContext.h"
+
 using namespace Fancy;
 
 bool show_test_window = true;
@@ -12,10 +16,7 @@ ImguiDemo::ImguiDemo(HINSTANCE anInstanceHandle)
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   myRuntime = FancyRuntime::Init(anInstanceHandle, params);
-  myRenderOutput = Rendering::RenderCore::CreateRenderOutput(anInstanceHandle);
-
-  std::function<void(Fancy::uint, Fancy::uint)> onResizeCallback = std::bind(&OnWindowResized, this);
-  myRenderOutput->GetWindow()->myOnResize.Connect(onResizeCallback);
+  myRuntime->GetRenderOutput()->GetWindow()->myOnResize.Connect(this, &ImguiDemo::OnWindowResized);
 }
 
 ImguiDemo::~ImguiDemo()
@@ -24,7 +25,7 @@ ImguiDemo::~ImguiDemo()
 
 void ImguiDemo::Init()
 {
-  ImGuiRendering::Init(myRenderOutput.get(), myRuntime);
+  ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 }
 
 void ImguiDemo::Update()
@@ -64,6 +65,14 @@ void ImguiDemo::Update()
 
 void ImguiDemo::Render()
 {
+  Rendering::CommandContext* ctx = Rendering::RenderCore::AllocateContext(Rendering::CommandListType::Graphics);
+  
+  float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+  ctx->ClearRenderTarget(myRuntime->GetRenderOutput()->GetBackbuffer(), clearColor);
+  
+  ctx->ExecuteAndReset();
+  Rendering::RenderCore::FreeContext(ctx);
+
   ImGui::Render();
   myRuntime->EndFrame();
 }
@@ -72,7 +81,6 @@ void ImguiDemo::Shutdown()
 {
   ImGuiRendering::Shutdown();
   FancyRuntime::Shutdown();
-  myRenderOutput = nullptr;
   myRuntime = nullptr;
 }
 

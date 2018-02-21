@@ -267,10 +267,11 @@ namespace Fancy { namespace Rendering {
     ourPlatformImpl.reset();
   }
 //---------------------------------------------------------------------------//
-  std::unique_ptr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle)
+  SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle)
   {
-    RenderOutput* output = ourPlatformImpl->CreateRenderOutput(aNativeInstanceHandle);
-    return std::unique_ptr<RenderOutput>(output);
+    SharedPtr<RenderOutput> output;
+    output.reset(ourPlatformImpl->CreateRenderOutput(aNativeInstanceHandle));
+    return output;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuProgram> RenderCore::CreateGpuProgram(const GpuProgramDesc& aDesc)

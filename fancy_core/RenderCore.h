@@ -58,7 +58,7 @@ namespace Fancy { namespace Rendering {
       const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
       const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices);
 
-    static std::unique_ptr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle);
+    static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle);
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureDesc &aTextureDesc);

@@ -28,9 +28,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::BeginFrame()
   {
-    if (!myBackbuffers[0])
-      PrepareForFirstFrame();
-
     RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
     coreDX12->WaitForFence(CommandListType::Graphics);  // Needed?
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();

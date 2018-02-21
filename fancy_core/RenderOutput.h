@@ -19,6 +19,7 @@ namespace Fancy { namespace Rendering {
     explicit RenderOutput(void* aNativeInstanceHandle);
     virtual ~RenderOutput();
 
+    virtual void PrepareForFirstFrame() = 0;
     virtual void BeginFrame() = 0;
     virtual void EndFrame()= 0;
 
@@ -27,7 +28,6 @@ namespace Fancy { namespace Rendering {
     Window* GetWindow() const { return myWindow.get(); }
 
   protected:
-    virtual void PrepareForFirstFrame() = 0;
     virtual void OnWindowResized(uint aWidth, uint aHeight) = 0;
     virtual void CreateBackbufferResources();
 

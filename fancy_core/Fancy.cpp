@@ -5,6 +5,7 @@
 #include "PathService.h"
 #include "TimeManager.h"
 #include "RenderingStartupParameters.h"
+#include "RenderOutput.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -20,14 +21,6 @@ namespace Fancy {
   FancyRuntime::~FancyRuntime()
   {
     Rendering::RenderCore::Shutdown();
-  }
-//---------------------------------------------------------------------------//
-  void FancyRuntime::Internal_Init(const RenderingStartupParameters& someParams)
-  {
-  }
-//---------------------------------------------------------------------------//
-  void FancyRuntime::DoFirstFrameTasks()
-  {
   }
 //---------------------------------------------------------------------------//
   FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams)
@@ -47,8 +40,9 @@ namespace Fancy {
 
     ASSERT(Rendering::RenderCore::IsInitialized());
 
-    ourInstance->Internal_Init(someParams);
-
+    // Create the output
+    ourInstance->myRenderOutput = Rendering::RenderCore::CreateRenderOutput(anAppInstanceHandle);
+    
     return ourInstance;
   }
 //---------------------------------------------------------------------------//
@@ -63,10 +57,17 @@ namespace Fancy {
     return ourInstance;
   }
 //---------------------------------------------------------------------------//
+  void FancyRuntime::DoFirstFrameTasks()
+  {
+    myRenderOutput->PrepareForFirstFrame();
+  }
+  //---------------------------------------------------------------------------//
   void FancyRuntime::BeginFrame()
   {
     if (myRealTimeClock.GetElapsed() == 0.0f)
       DoFirstFrameTasks();
+
+    myRenderOutput->BeginFrame();
   }
 //---------------------------------------------------------------------------//
   void FancyRuntime::Update(double _dt)
@@ -76,6 +77,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void FancyRuntime::EndFrame()
   {
+    myRenderOutput->EndFrame();
+
     ++myFrameIndex;
   }
 //---------------------------------------------------------------------------//
