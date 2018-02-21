@@ -1,6 +1,5 @@
 #pragma once
 
-#include "FixedArray.h"
 #include "CommandContext.h"
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"

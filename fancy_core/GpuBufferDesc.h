@@ -2,7 +2,6 @@
 
 #include "FancyCorePrerequisites.h"
 #include "MathUtil.h"
-#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
@@ -21,11 +20,6 @@ namespace Fancy { namespace Rendering {
       uint64 hash;
       MathUtil::hash_combine(hash, myInternalRefIndex);
       return hash;
-    }
-
-    void Serialize(IO::Serializer* aSerializer)
-    {
-      aSerializer->Serialize(&myInternalRefIndex, "myInternalRefIndex");
     }
   };
 //---------------------------------------------------------------------------//

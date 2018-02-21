@@ -1,51 +1,41 @@
 #include <windows.h>
 
-#include <Fancy_Include.h>
+#include "fancy_core/Fancy_Include.h"
+#include <fancy_core/RenderCore.h>
+#include "fancy_imgui/imgui.h"
+#include "fancy_imgui/imgui_impl_fancy.h"
+#include <fancy_core/RenderOutput.h>
 
-#include "imgui.h"
-#include "imgui_impl_fancy.h"
-
-Fancy::Scene::CameraComponent* pCameraComponent;
-Fancy::Scene::SceneNode* pModelNode;
-Fancy::FancyRuntime* pRuntime = nullptr;
+Fancy::FancyRuntime* myRuntime = nullptr;
+UniquePtr<Fancy::Rendering::RenderOutput> myRenderOutput;
+Fancy::Window* myWindow = nullptr;
 
 void OnWindowResized(Fancy::uint aWidth, Fancy::uint aHeight)
 {
-  pCameraComponent->setProjectionPersp(45.0f, (float) aWidth, (float) aHeight, 1.0f, 1000.0f);
+  // pCameraComponent->setProjectionPersp(45.0f, (float) aWidth, (float) aHeight, 1.0f, 1000.0f);
 }
 
 void StartupEngine(HINSTANCE anAppInstanceHandle)
 {
-  if (pRuntime != nullptr)
+  if (myRuntime != nullptr)
     return;
 
   Fancy::RenderingStartupParameters params;
   params.myRenderingTechnique = Fancy::RenderingTechnique::FORWARD;
 
-  pRuntime = Fancy::FancyRuntime::Init(anAppInstanceHandle, params);
-
-  Fancy::Window* window = pRuntime->GetMainWindow();
-  std::function<void(Fancy::uint, Fancy::uint)> onResizeCallback = &OnWindowResized;
-  window->myOnResize.Connect(onResizeCallback);
+  myRuntime = Fancy::FancyRuntime::Init(anAppInstanceHandle, params);
+  myRenderOutput = Fancy::Rendering::RenderCore::CreateRenderOutput(anAppInstanceHandle);
+  myWindow = myRenderOutput->GetWindow();
   
-  Fancy::Scene::Scene* pScene = pRuntime->GetMainWorld()->GetScene();
-  Fancy::Scene::SceneNode* pCameraNode = pScene->getRootNode()->createChildNode(_N(CameraNode));
-  pCameraComponent = static_cast<Fancy::Scene::CameraComponent*>(pCameraNode->addOrRetrieveComponent(_N(CameraComponent)));
-  pCameraComponent->setProjectionPersp(45.0f, (float) window->GetWidth(), (float) window->GetHeight(), 1.0f, 1000.0f);
-  pScene->setActiveCamera(pCameraComponent);
-
-  pModelNode = pRuntime->GetMainWorld()->Import("Models/cube.obj");
-  pModelNode->getTransform().setPositionLocal(glm::vec3(0.0f, 0.0f, 10.0f));
-
-  Fancy::Scene::SceneNode* pLightNode = pScene->getRootNode()->createChildNode(_N(LightNode));
-  Fancy::Scene::LightComponent* pLight = static_cast<Fancy::Scene::LightComponent*>(pLightNode->addOrRetrieveComponent(_N(LightComponent)));
+  std::function<void(Fancy::uint, Fancy::uint)> onResizeCallback = &OnWindowResized;
+  myWindow->myOnResize.Connect(onResizeCallback);
 }
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
   StartupEngine(hInstance);
-  Fancy::ImGui::Init(pRuntime->GetMainWindow(), pRuntime);
+  Fancy::ImGui::Init(myRenderOutput.get(), myRuntime);
 
   bool show_test_window = true;
   bool show_another_window = false;
@@ -64,11 +54,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
   			break;
   	}
   
-    pRuntime->BeginFrame();
+    myRuntime->BeginFrame();
     Fancy::ImGui::NewFrame();
 
-    pModelNode->getTransform().rotate(glm::vec3(1.0f, 1.0f, 0.0f), 20.0f);
-    pRuntime->Update(0.016f);
+    
+    myRuntime->Update(0.016f);
     
     // 1. Show a simple window
     // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
@@ -99,13 +89,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     }
     
     // ImGui::Render();
-
-    pRuntime->EndFrame();
+    myRuntime->EndFrame();
   }
   
   Fancy::ImGui::Shutdown();
   Fancy::FancyRuntime::Shutdown();
-  pRuntime = nullptr;
+  myRenderOutput = nullptr;
+  myWindow = nullptr;
+  myRuntime = nullptr;
 
   return 0;
 }

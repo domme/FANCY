@@ -151,17 +151,17 @@ namespace Fancy {  namespace IO {
 //---------------------------------------------------------------------------//  
   bool BinaryCache::write(const SharedPtr<Geometry::Mesh>& aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas)
   {
-    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aMesh->GetDescription().GetHash()));
+    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aMesh->GetGeometryHash()));
     Path::CreateDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
     ASSERT(archive.good(), "Failed to open cache file");
 
     archive.write(reinterpret_cast<const char*>(&kMeshVersion), sizeof(uint));
-    uint64 hash = aMesh->GetDescription().GetHash();
+    uint64 hash = aMesh->GetGeometryHash();
     archive.write((const char*)&hash, sizeof(hash));
 
-    const Geometry::GeometryDataList& vGeoData = aMesh->getGeometryDataList();
+    const DynamicArray<Geometry::GeometryData*>& vGeoData = aMesh->getGeometryDataList();
     const uint numGeoDatas = vGeoData.size();
     archive.write(reinterpret_cast<const char*>(&numGeoDatas), sizeof(uint));
 
@@ -171,7 +171,7 @@ namespace Fancy {  namespace IO {
 
       // Vertex-Layout begin
       const Rendering::GeometryVertexLayout& vertexLayout = geoData->getGeometryVertexLayout();
-      const Rendering::VertexElementList& vVertexElements = vertexLayout.getVertexElementList();
+      const DynamicArray<Rendering::GeometryVertexElement>& vVertexElements = vertexLayout.myElements;
       const uint numVertexElements = vVertexElements.size();
       archive.write(reinterpret_cast<const char*>(&numVertexElements), sizeof(uint));
 
@@ -185,7 +185,7 @@ namespace Fancy {  namespace IO {
         const uint format = static_cast<uint>(vertexElement.eFormat);
         archive.write(reinterpret_cast<const char*>(&format), sizeof(uint));
       }
-      const uint stride = vertexLayout.getStrideBytes();
+      const uint stride = vertexLayout.myStride;
       archive.write(reinterpret_cast<const char*>(&stride), sizeof(uint));
       // Vertex-Layout end
 
@@ -233,7 +233,7 @@ namespace Fancy {  namespace IO {
     uint numGeometryDatas;
     archive.read(reinterpret_cast<char*>(&numGeometryDatas), sizeof(uint));
 
-    Geometry::GeometryDataList vGeoDatas;
+    DynamicArray<Geometry::GeometryData*> vGeoDatas;
     vGeoDatas.resize(numGeometryDatas);
 
     for (uint i = 0u; i < vGeoDatas.size(); ++i)

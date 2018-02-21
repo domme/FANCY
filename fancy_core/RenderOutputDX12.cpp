@@ -28,6 +28,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::BeginFrame()
   {
+    if (!myBackbuffers[0])
+      PrepareForFirstFrame();
+
     RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
     coreDX12->WaitForFence(CommandListType::Graphics);  // Needed?
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
@@ -87,7 +90,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     {
       Texture* backbuffer = myBackbuffers[i].get();
       TextureDX12* backbufferResource = static_cast<TextureDX12*>(backbuffer);
-      GpuResourceStorageDX12* backbufferResourceStorage = (GpuResourceStorageDX12*)backbuffer->myStorage.Get();
+      GpuResourceStorageDX12* backbufferResourceStorage = (GpuResourceStorageDX12*)backbuffer->myStorage.get();
 
       backbuffer->myUsageState = GpuResourceState::RESOURCE_STATE_PRESENT;
 

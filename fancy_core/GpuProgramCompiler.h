@@ -15,11 +15,11 @@ namespace Fancy { namespace Rendering {
   struct GpuProgramCompilerOutput
   {
     ShaderVertexInputLayout clVertexInputLayout;
-    GpuResourceInfoList vReadTextureInfos;
-    GpuResourceInfoList vReadBufferInfos;
-    GpuResourceInfoList vWriteTextureInfos;
-    GpuResourceInfoList vWriteBufferInfos;
-    ConstantBufferElementList myConstantBufferElements;
+    DynamicArray<GpuProgramResourceInfo> vReadTextureInfos;
+    DynamicArray<GpuProgramResourceInfo> vReadBufferInfos;
+    DynamicArray<GpuProgramResourceInfo> vWriteTextureInfos;
+    DynamicArray<GpuProgramResourceInfo> vWriteBufferInfos;
+    DynamicArray<ConstantBufferElement> myConstantBufferElements;
     ShaderStage eShaderStage;
     String myShaderCode;
     String myShaderFilename;  /// Platform-independent shader filename (e.g. "MaterialForward")

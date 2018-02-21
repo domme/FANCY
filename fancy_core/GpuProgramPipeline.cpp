@@ -48,7 +48,7 @@ namespace Fancy { namespace Rendering {
     myResourceInterface = nullptr;
     if (GpuProgram* vertexShader = myGpuPrograms[(uint)ShaderStage::VERTEX].get())
     {
-      myResourceInterface = vertexShader->GetResourceInterface();
+      myResourceInterface = vertexShader->myResourceInterface;
     }
   }
 //---------------------------------------------------------------------------//

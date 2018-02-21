@@ -59,14 +59,6 @@
   template<class T>
   using UniquePtr = std::unique_ptr<T>;
 //---------------------------------------------------------------------------//
-#define DECLARE_SMART_PTRS(class) \
-  typedef std::shared_ptr<##class> ##class##Ptr; \
-  typedef std::weak_ptr<##class> ##class##WeakPtr;
-//---------------------------------------------------------------------------//
-//DLL-Export MACROS
-#define DLLEXPORT __declspec(dllexport)
-
-//-----------------------------------------------------------------------//
 // Functional defines
 //-----------------------------------------------------------------------//
 /// Enables various sanity-checks and validations

@@ -250,6 +250,9 @@
     <ClInclude Include="Window.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="GpuBufferDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StdAfx.cpp">

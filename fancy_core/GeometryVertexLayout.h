@@ -31,7 +31,7 @@ namespace Fancy { namespace Rendering {
       void addVertexElement(const GeometryVertexElement& clVertexElement);
       
       uint myStride;
-      DynamicArray<GeometryVertexElement> m_vVertexElements;
+      DynamicArray<GeometryVertexElement> myElements;
   };
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

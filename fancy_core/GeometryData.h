@@ -16,7 +16,7 @@ namespace Fancy { namespace Geometry {
       const Rendering::GpuBuffer* getIndexBuffer() const {return m_pIndexBuffer.get();}
       uint getNumVertices() const {return m_pVertexBuffer ? m_pVertexBuffer->GetNumElements() : 0u; }
       uint getNumIndices() const {return m_pIndexBuffer ? m_pIndexBuffer->GetNumElements() : 0u; }
-      uint getVertexStrideBytes() const {return m_vertexLayout.getStrideBytes();}
+      uint getVertexStrideBytes() const {return m_vertexLayout.myStride;}
       
       void setVertexBuffer(const SharedPtr<Rendering::GpuBuffer>& _pVertexBuffer) {m_pVertexBuffer = _pVertexBuffer;}
       void setIndexBuffer(const SharedPtr<Rendering::GpuBuffer>& _pIndexBuffer) {m_pIndexBuffer = _pIndexBuffer;}

@@ -4,9 +4,8 @@
 #include "fancy_core/Fancy_Include.h"
 #include "fancy_core/GpuProgramPipeline.h"
 #include "fancy_core/RenderCore.h"
-#include "fancy_core/GeometryVertexLayout.h"
+#include "fancy_core/Window.h"
 #include "fancy_core/GeometryData.h"
-// #include "fancy_core/RenderView.h"
 #include "fancy_core/RenderOutput.h"
 #include "fancy_core/Texture.h"
 #include "fancy_core/BlendState.h"
@@ -18,8 +17,8 @@
 
 namespace Fancy { namespace ImGui {
 //---------------------------------------------------------------------------//
-  Fancy::FancyRuntime* ourFancyRuntime = nullptr;
-  Fancy::Window* ourWindow = nullptr;
+  FancyRuntime* ourFancyRuntime = nullptr;
+  Rendering::RenderOutput* ourRenderOutput = nullptr;
 
   struct CBufferData
   {
@@ -121,14 +120,14 @@ namespace Fancy { namespace ImGui {
     }
   }
 
-  bool Init(Fancy::Window* aWindow, Fancy::FancyRuntime* aRuntime)
+  bool Init(Fancy::Rendering::RenderOutput* aRenderOutput, Fancy::FancyRuntime* aRuntime)
   {
-    ourWindow = aWindow;
+    ourRenderOutput = aRenderOutput;
     std::function<void(UINT, WPARAM, LPARAM, bool*)> fnWindowHandler = &HandleWindowEvent;
-    ourWindow->myWindowEventHandler.Connect(fnWindowHandler);
+    ourRenderOutput->GetWindow()->myWindowEventHandler.Connect(fnWindowHandler);
 
     ourFancyRuntime = aRuntime;
-    ourHwnd = aWindow->GetWindowHandle();
+    ourHwnd = ourRenderOutput->GetWindow()->GetWindowHandle();
 
     ImGuiIO& io = ::ImGui::GetIO();
     io.KeyMap[ImGuiKey_Tab] = VK_TAB;                              // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
@@ -353,8 +352,7 @@ namespace Fancy { namespace ImGui {
       ourIndexBuffer->Unlock();
     }
 
-    // TODO: Don't hardcode which renderOutput to use...
-    Rendering::RenderOutput* renderOutput = ourFancyRuntime->GetMainView()->GetRenderOutput();
+    Rendering::RenderOutput* renderOutput = ourRenderOutput;
 
     ourRenderContext->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
     ourRenderContext->SetRenderTarget(renderOutput->GetBackbuffer(), 0u);
@@ -418,7 +416,7 @@ namespace Fancy { namespace ImGui {
     ourRenderContext = nullptr;
 
     ourFancyRuntime = nullptr;
-    ourWindow = nullptr;
+    ourRenderOutput = nullptr;
     
     ourCBuffer.reset();
     ourVertexBuffer.reset();

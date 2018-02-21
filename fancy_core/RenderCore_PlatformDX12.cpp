@@ -276,7 +276,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapProps.CreationNodeMask = 1;
     heapProps.VisibleNodeMask = 1;
 
-    GpuResourceStorageDX12* bufferStorageDX12 = static_cast<GpuResourceStorageDX12*>(aBuffer->myStorage.Get());
+    GpuResourceStorageDX12* bufferStorageDX12 = static_cast<GpuResourceStorageDX12*>(aBuffer->myStorage.get());
 
     const D3D12_RESOURCE_DESC& resourceDesc = bufferStorageDX12->myResource->GetDesc();
 
@@ -305,7 +305,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     heapProps.CreationNodeMask = 1;
     heapProps.VisibleNodeMask = 1;
 
-    GpuResourceStorageDX12* bufferStorageDX12 = static_cast<GpuResourceStorageDX12*>(aBuffer->myStorage.Get());
+    GpuResourceStorageDX12* bufferStorageDX12 = static_cast<GpuResourceStorageDX12*>(aBuffer->myStorage.get());
 
     D3D12_RESOURCE_DESC uploadResourceDesc = bufferStorageDX12->myResource->GetDesc();
     uploadResourceDesc.Width = MathUtil::Align(aByteSize, aBuffer->GetAlignment());
@@ -328,7 +328,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext)
   {
-    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(aTexture->myStorage.Get());
+    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(aTexture->myStorage.get());
 
     ID3D12Device* device = GetDevice();
     const D3D12_RESOURCE_DESC& resourceDesc = storageDx12->myResource->GetDesc();

@@ -471,7 +471,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     if (aShaderDesc.InputParameters == 0u)
       return false;
 
-    aCompilerOutput->clVertexInputLayout.clear();
+    aCompilerOutput->clVertexInputLayout.myVertexInputElements.clear();
 
     D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
     for (uint i = 0u; i < aShaderDesc.InputParameters; ++i)
@@ -504,7 +504,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const String actualShaderPath = "shader/DX12/" + aDesc.myShaderFileName + ".hlsl";
     std::wstring shaderPathAbs = StringUtil::ToWideString(IO::Resources::FindPath(actualShaderPath));
 
-    const GpuProgramFeatureList& permuationFeatures = aDesc.myPermutation.getFeatureList();
+    const DynamicArray<GpuProgramFeature>& permuationFeatures = aDesc.myPermutation.getFeatureList();
 
     std::vector<D3D_SHADER_MACRO> defines;
     defines.resize(permuationFeatures.size() + 1u + 1u); // All permutation-defines + the stage define + termination macro

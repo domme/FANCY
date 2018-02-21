@@ -1,8 +1,8 @@
 #pragma once
 
 #include "FancyCorePrerequisites.h"
-#include "GpuProgramFeatures.h"
 #include "MathUtil.h"
+#include "GpuProgramDesc.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//  
@@ -10,7 +10,6 @@ namespace Fancy { namespace Rendering {
   {
     bool operator==(const GpuProgramPipelineDesc& anOther) const;
     uint64 GetHash() const;
-
     GpuProgramDesc myGpuPrograms[(uint)ShaderStage::NUM];
   };
 //---------------------------------------------------------------------------//
@@ -32,19 +31,4 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-  inline void GpuProgramPipelineDesc::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->serializeArray(myGpuPrograms, "myGpuPrograms");
-  }
-//---------------------------------------------------------------------------//
-  inline bool GpuProgramPipelineDesc::IsEmpty() const
-  {
-    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
-      if (!myGpuPrograms[i].IsEmpty())
-        return false;
-
-    return true;
-  }
-//---------------------------------------------------------------------------//
 } }
-

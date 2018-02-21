@@ -122,7 +122,7 @@ namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   void CommandContext::SetComputeProgram(const GpuProgram* aProgram)
   {
-    ASSERT(aProgram->getShaderStage() == ShaderStage::COMPUTE);
+    ASSERT(aProgram->myStage == ShaderStage::COMPUTE);
 
     if (myComputePipelineState.myGpuProgram != aProgram)
     {

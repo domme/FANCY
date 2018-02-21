@@ -30,12 +30,12 @@ namespace Fancy { namespace Rendering {
 
     // Adjacency-check. Currently we require all vertex elements to be specified in order to
     // avoid a sorting-step afterwards
-    ASSERT((m_vVertexElements.size() == 0 && clVertexElement.u32OffsetBytes == 0) ||
-              (m_vVertexElements.size() > 0 && m_vVertexElements.back().u32OffsetBytes
-                + m_vVertexElements.back().u32SizeBytes == clVertexElement.u32OffsetBytes), 
+    ASSERT((myElements.size() == 0 && clVertexElement.u32OffsetBytes == 0) ||
+              (myElements.size() > 0 && myElements.back().u32OffsetBytes
+                + myElements.back().u32SizeBytes == clVertexElement.u32OffsetBytes), 
                 "Vertex-elements must be added in order");
 
-    m_vVertexElements.push_back(clVertexElement);
+    myElements.push_back(clVertexElement);
     myStride += clVertexElement.u32SizeBytes;
   }
 //---------------------------------------------------------------------------//

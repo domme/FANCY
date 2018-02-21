@@ -2,22 +2,15 @@
 #include "FancyCorePrerequisites.h"
 #include "GpuProgramFeatures.h"
 #include "MathUtil.h"
-#include "DescriptionBase.h"
-#include "Serializer.h"
 
 namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
-  struct GpuProgramDesc : public DescriptionBase
+  struct GpuProgramDesc
   {
     GpuProgramDesc() : myShaderFileName(""), myShaderStage(0u), myMainFunction("main") {}
     bool operator==(const GpuProgramDesc& anOther) const;
+    uint64 GetHash() const;
     
-    uint64 GetHash() const override;
-    ~GpuProgramDesc() override {}
-    ObjectName GetTypeName() const override { return _N(GpuProgram); }
-    bool IsEmpty() const override { return myShaderFileName.empty(); }
-
-    void Serialize(IO::Serializer* aSerializer) override;
     String myShaderFileName;
     String myMainFunction;
     uint myShaderStage;
@@ -40,14 +33,6 @@ namespace Fancy { namespace Rendering {
     MathUtil::hash_combine(hash, myPermutation.GetHash());
     MathUtil::hash_combine(hash, MathUtil::Hash(myMainFunction));
     return hash;
-  }
-//---------------------------------------------------------------------------//
-  inline void GpuProgramDesc::Serialize(IO::Serializer* aSerializer)
-  {
-    aSerializer->Serialize(&myShaderFileName, "myShaderFileName");
-    aSerializer->Serialize(&myMainFunction, "myMainFunction");
-    aSerializer->Serialize(&myShaderStage, "myShaderStage");
-    aSerializer->Serialize(&myPermutation, "myPermutation");
   }
 //---------------------------------------------------------------------------//
 } }

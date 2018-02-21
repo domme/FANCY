@@ -12,7 +12,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   {
     someNativeInputElements.clear();
 
-    const ShaderVertexInputElementList& inputElements = anInputLayout.getVertexElementList();
+    const DynamicArray<ShaderVertexInputElement>& inputElements = anInputLayout.myVertexInputElements;
 
     uint offsetByte = 0u;
     for (uint i = 0u; i < inputElements.size(); ++i)
