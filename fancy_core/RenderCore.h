@@ -3,6 +3,7 @@
 #include "RendererPrerequisites.h"
 #include "RenderingStartupParameters.h"
 #include <list>
+#include "RenderPlatformCaps.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -63,6 +64,7 @@ namespace Fancy {
     static const SharedPtr<BlendState>& GetDefaultBlendState();
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState();
 
+    static const RenderPlatformCaps& GetPlatformCaps();
     static RenderCore_Platform* GetPlatform();
     static RenderCore_PlatformDX12* GetPlatformDX12();
 

@@ -416,10 +416,10 @@ namespace Fancy { namespace ModelLoader {
     for (auto it = materialMeshMap.begin(); it != materialMeshMap.end(); ++it)
     {
       const uint materialIndex = it->first;
-      auto& meshList = it->second;
+      auto& materialMeshSet = it->second;
 
-      meshList.
-      SharedPtr<Mesh> mesh = CreateMesh(aNode, aProcessData, &meshList[0], meshList.size());
+      DynamicArray<aiMesh*> meshList(materialMeshSet.begin(), materialMeshSet.end());
+      SharedPtr<Mesh> mesh = CreateMesh(aNode, aProcessData, )
         constructOrRetrieveMesh(_pAnode, &vAssimpMeshes[0], vAssimpMeshes.size());
 
       // Create or retrieve the material

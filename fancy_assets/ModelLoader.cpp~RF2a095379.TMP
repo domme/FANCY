@@ -129,11 +129,11 @@ namespace Fancy { namespace ModelLoader {
     // return outputMesh;
 
     // Mesh already created during this import-process?
-    uint64 assimpMeshListHash = 0u;
+    uint64 hash = 0u;
     for (uint i = 0u; i < aMeshCount; ++i)
-      MathUtil::hash_combine(assimpMeshListHash, reinterpret_cast<uint64>(someMeshes[i]));
+      MathUtil::hash_combine(hash, reinterpret_cast<uint64>(someMeshes[i]));
 
-    auto it = aProcessData.myMeshCache.find(assimpMeshListHash);
+    auto it = aProcessData.myMeshCache.find(hash);
     if (it != aProcessData.myMeshCache.end())
       return it->second;
 
@@ -145,6 +145,7 @@ namespace Fancy { namespace ModelLoader {
 
     // We don't have the mesh in any cache and have to create it.
     mesh.reset(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
+
     
     MeshDesc meshDesc;
     meshDesc.myVertexAndIndexHash = vertexIndexHash;
@@ -375,10 +376,13 @@ namespace Fancy { namespace ModelLoader {
       numIndices.push_back(aiMesh->mNumFaces * 3u);
     }
 
-    mesh = RenderCore::CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
+    mesh = Rendering::RenderCore::CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
     ASSERT(mesh != nullptr);
 
-    aProcessData.myMeshCache[assimpMeshListHash] = mesh;
+    AiMeshList aiMeshList;
+    aiMeshList.resize(aMeshCount);
+    memcpy(&aiMeshList[0], &someMeshes[0], sizeof(aiMesh*) * aMeshCount);
+    myWorkingData.localMeshCache.push_back(std::pair<AiMeshList, SharedPtr<Geometry::Mesh>>(aiMeshList, mesh));
 
     for (uint i = 0u; i < vertexDatas.size(); ++i)
     {
@@ -400,14 +404,11 @@ namespace Fancy { namespace ModelLoader {
     if (aNode->mNumMeshes == 0)
       return true;
 
-    std::unordered_map<uint, DynamicArray<aiMesh*>> materialMeshMap;
+    std::unordered_map<uint, std::unordered_set<aiMesh*>> materialMeshMap;
     for (uint i = 0u; i < aNode->mNumMeshes; ++i)
     {
       aiMesh* mesh = aProcessData.myScene->mMeshes[aNode->mMeshes[i]];
-
-      DynamicArray<aiMesh*>& meshList = materialMeshMap[mesh->mMaterialIndex];
-      if (std::find(meshList.begin(), meshList.end(), mesh) == meshList.end())
-        meshList.push_back(mesh);
+      materialMeshMap[mesh->mMaterialIndex].insert(mesh);
     }
 
     // Construct or retrieve Fancy Meshes and Submodels
@@ -416,10 +417,9 @@ namespace Fancy { namespace ModelLoader {
     for (auto it = materialMeshMap.begin(); it != materialMeshMap.end(); ++it)
     {
       const uint materialIndex = it->first;
-      auto& meshList = it->second;
+      auto& materialMeshSet = it->second;
 
-      meshList.
-      SharedPtr<Mesh> mesh = CreateMesh(aNode, aProcessData, &meshList[0], meshList.size());
+      SharedPtr<Geometry::Mesh> pMesh =
         constructOrRetrieveMesh(_pAnode, &vAssimpMeshes[0], vAssimpMeshes.size());
 
       // Create or retrieve the material

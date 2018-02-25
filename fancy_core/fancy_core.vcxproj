@@ -114,6 +114,7 @@
     <ClInclude Include="RenderingProcess.h" />
     <ClInclude Include="RenderOutput.h" />
     <ClInclude Include="RenderOutputDX12.h" />
+    <ClInclude Include="RenderPlatformCaps.h" />
     <ClInclude Include="ShaderResourceInterface.h" />
     <ClInclude Include="ShaderResourceInterfaceDesc.h" />
     <ClInclude Include="ShaderResourceInterfaceDX12.h" />

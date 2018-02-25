@@ -17,7 +17,7 @@ namespace Fancy {
   class ShaderResourceInterface;
   class GeometryVertexLayout;
 //---------------------------------------------------------------------------//  
-  class RenderCore_PlatformDX12 : public RenderCore_Platform
+  class RenderCore_PlatformDX12 final : public RenderCore_Platform
   {
   public:
     RenderCore_PlatformDX12();
@@ -86,6 +86,8 @@ namespace Fancy {
     std::queue<std::pair<FenceInfo, DescriptorHeapDX12*>> myUsedDynamicHeaps;
     
     DescriptorHeapDX12 ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+
+    void InitCaps() override;
   };
 //---------------------------------------------------------------------------//
 }
