@@ -1,19 +1,15 @@
-#include "Mesh.h"
-#include "GeometryData.h"
+#pragma once
+
+#include <fancy_core/FancyCorePrerequisites.h>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  Mesh::Mesh() : myVertexAndIndexHash(0u)
-  {
-
-  }
+  class SubModel;
 //---------------------------------------------------------------------------//
-  Mesh::~Mesh()
+  class Model
   {
-    for (uint i = 0u; i < m_vGeometries.size(); ++i)
-    {
-      FANCY_DELETE(m_vGeometries[i], MemoryCategory::Geometry);
-    }
-  }
+    public:
+      DynamicArray<SharedPtr<SubModel>> mySubModels;
+  };
 //---------------------------------------------------------------------------//
 }

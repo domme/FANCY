@@ -19,9 +19,6 @@
     <Filter Include="Geometry">
       <UniqueIdentifier>{01d22804-1db2-4c70-8c91-60afbf5b3cdb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="IO\lodepng">
-      <UniqueIdentifier>{0912a11c-c62c-4fab-a4ea-7c7033d82853}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdapterDX12.h">
@@ -213,9 +210,6 @@
     <ClInclude Include="TextureDesc.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="TextureLoader.h">
-      <Filter>IO</Filter>
-    </ClInclude>
     <ClInclude Include="TextureSampler.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -239,9 +233,6 @@
     </ClInclude>
     <ClInclude Include="GpuBufferDesc.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="lodepng.h">
-      <Filter>IO\lodepng</Filter>
     </ClInclude>
     <ClInclude Include="MathUtil.h">
       <Filter>Math</Filter>
@@ -360,9 +351,6 @@
     <ClCompile Include="TextureDesc.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="TextureLoader.cpp">
-      <Filter>IO</Filter>
-    </ClCompile>
     <ClCompile Include="TextureSamplerDesc.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -374,9 +362,6 @@
     </ClCompile>
     <ClCompile Include="Window.cpp">
       <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="lodepng.cpp">
-      <Filter>IO\lodepng</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp" />
   </ItemGroup>

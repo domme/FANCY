@@ -1,9 +1,8 @@
 #include "TextureLoader.h"
+#include "lodepng/lodepng.h"
 
-#include "PathService.h"
-
-#include "lodepng.h"
-#include "Log.h"
+#include <fancy_core/PathService.h>
+#include <fancy_core/Log.h>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

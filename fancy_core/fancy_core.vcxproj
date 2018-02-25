@@ -102,7 +102,6 @@
     <ClInclude Include="GpuResourceSignature.h" />
     <ClInclude Include="GpuResourceStorage.h" />
     <ClInclude Include="GpuResourceStorageDX12.h" />
-    <ClInclude Include="lodepng.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="Mesh.h" />
@@ -126,7 +125,6 @@
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureDesc.h" />
     <ClInclude Include="TextureDX12.h" />
-    <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="TextureRefs.h" />
     <ClInclude Include="TextureSampler.h" />
     <ClInclude Include="TextureSamplerDesc.h" />
@@ -159,7 +157,6 @@
     <ClCompile Include="GpuProgramDX12.cpp" />
     <ClCompile Include="GpuProgramFeatures.cpp" />
     <ClCompile Include="GpuProgramPipeline.cpp" />
-    <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="PathService.cpp" />
     <ClCompile Include="RenderCore.cpp" />
@@ -175,7 +172,6 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureDesc.cpp" />
     <ClCompile Include="TextureDX12.cpp" />
-    <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="TextureSamplerDesc.cpp" />
     <ClCompile Include="TextureSamplerDX12.cpp" />
     <ClCompile Include="TimeManager.cpp" />

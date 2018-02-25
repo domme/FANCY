@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="lodepng">
+      <UniqueIdentifier>{e4b57e67-18d4-49ef-b557-c542865cc664}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lodepng\lodepng.h">
+      <Filter>lodepng</Filter>
+    </ClInclude>
+    <ClInclude Include="SubModel.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="ModelLoader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="lodepng\lodepng.cpp">
+      <Filter>lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="SubModel.cpp" />
+    <ClCompile Include="ModelLoader.cpp" />
+  </ItemGroup>
+</Project>
