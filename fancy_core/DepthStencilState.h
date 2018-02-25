@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   struct DepthStencilStateDesc
   {
@@ -52,4 +52,4 @@ namespace Fancy { namespace Rendering {
       StencilOp myStencilPassOp[(uint)FaceType::NUM];
   };
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}

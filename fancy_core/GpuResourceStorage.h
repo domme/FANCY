@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class GpuResourceStorage
   {
@@ -9,4 +9,4 @@ namespace Fancy { namespace Rendering {
     virtual ~GpuResourceStorage() = default;
   };
 //---------------------------------------------------------------------------//
-} }
+}

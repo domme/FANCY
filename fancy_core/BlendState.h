@@ -4,7 +4,7 @@
 
 // TODO: Fix this mirror-madness
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   struct BlendStateDesc
   {
@@ -55,4 +55,4 @@ public:
 //---------------------------------------------------------------------------//
 };
 
-} }  // end of namespace Fancy::Rendering
+}

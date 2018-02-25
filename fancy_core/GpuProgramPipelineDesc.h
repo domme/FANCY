@@ -4,7 +4,7 @@
 #include "MathUtil.h"
 #include "GpuProgramDesc.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//  
   struct GpuProgramPipelineDesc
   {
@@ -31,4 +31,4 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-} }
+}

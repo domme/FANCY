@@ -3,16 +3,13 @@
 #include "DX12Prerequisites.h"
 #include "GpuProgram.h"
 
-namespace Fancy { namespace Rendering {
-  class ShaderResourceInterface;
-} }
-
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class GpuProgramDX12 : public GpuProgram
   {
     friend class GpuProgramCompilerDX12;
     friend class RenderOutputDX12;
+    class ShaderResourceInterface;
     
   public:
     GpuProgramDX12();
@@ -42,4 +39,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_SHADER_BYTECODE myNativeByteCode;
   };
 //---------------------------------------------------------------------------//
-}}}
+}

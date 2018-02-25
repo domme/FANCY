@@ -15,7 +15,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   String locShaderStageToProfileString(ShaderStage aStage)
   {
@@ -502,7 +502,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     const String& shaderProfileStr = locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage));
 
     const String actualShaderPath = "shader/DX12/" + aDesc.myShaderFileName + ".hlsl";
-    std::wstring shaderPathAbs = StringUtil::ToWideString(IO::Resources::FindPath(actualShaderPath));
+    std::wstring shaderPathAbs = StringUtil::ToWideString(Resources::FindPath(actualShaderPath));
 
     const DynamicArray<GpuProgramFeature>& permuationFeatures = aDesc.myPermutation.getFeatureList();
 
@@ -629,4 +629,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return "shader/DX12/" + aPath + ".hlsl";
   }
 //---------------------------------------------------------------------------//
-} } }
+}

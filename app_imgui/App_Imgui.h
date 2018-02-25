@@ -8,11 +8,11 @@
 #include <fancy_imgui/imgui_impl_fancy.h>
 #include <fancy_core/RenderOutput.h>
 
-class ImguiDemo
+class App_Imgui
 {
 public:
-  ImguiDemo(HINSTANCE anInstanceHandle);
-  ~ImguiDemo();
+  App_Imgui(HINSTANCE anInstanceHandle);
+  ~App_Imgui();
 
   void Init();
   void Update();

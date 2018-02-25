@@ -2,7 +2,7 @@
 
 #include "DX12Prerequisites.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class FenceDX12
   {
@@ -27,5 +27,5 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     String myName;
   };
 //---------------------------------------------------------------------------//
-} } }
+}
 

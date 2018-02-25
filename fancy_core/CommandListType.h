@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//  
   enum class CommandListType
   {
@@ -11,4 +11,4 @@ namespace Fancy { namespace Rendering {
     NUM
   };
 //---------------------------------------------------------------------------//
-} }
+}

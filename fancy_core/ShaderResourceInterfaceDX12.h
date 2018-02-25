@@ -3,7 +3,7 @@
 #include "ShaderResourceInterface.h"
 #include "DX12Prerequisites.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class ShaderResourceInterfaceDX12 : public ShaderResourceInterface
   {
@@ -18,4 +18,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
   };
   //---------------------------------------------------------------------------//
-} } }
+}

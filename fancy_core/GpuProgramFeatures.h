@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class GpuProgramFeature
   {
@@ -45,6 +45,6 @@ namespace Fancy { namespace Rendering {
       uint64 m_uHash;
   };
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Rendering
+}
 
 

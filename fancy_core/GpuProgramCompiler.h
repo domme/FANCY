@@ -5,12 +5,10 @@
 #include "VertexInputLayout.h"
 #include "GpuProgramDesc.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
+//---------------------------------------------------------------------------//
   struct GpuProgramDesc;
   class ShaderResourceInterface;
-} }
-
-namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct GpuProgramCompilerOutput
   {
@@ -36,4 +34,4 @@ namespace Fancy { namespace Rendering {
       virtual String ResolvePlatformShaderPath(const String& aPath) const = 0;
   };
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Rendering
+}

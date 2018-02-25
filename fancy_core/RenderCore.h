@@ -1,24 +1,11 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
+#include "RenderingStartupParameters.h"
 #include <list>
 
 namespace Fancy {
-  class FileWatcher;
-}
-
-namespace Fancy { namespace Geometry {
 //---------------------------------------------------------------------------//
-  class Mesh;
-  struct MeshDesc;
-//---------------------------------------------------------------------------//
-} }
-
-namespace Fancy { namespace Rendering { namespace DX12 {
-  class RenderCore_PlatformDX12;
-} } }
-
-namespace Fancy { namespace Rendering {
   enum class CommandListType;
   struct TextureDesc;
   struct GpuProgramDesc;
@@ -30,9 +17,10 @@ namespace Fancy { namespace Rendering {
   class RenderCore_Platform;
   class CommandContext;
   class RenderOutput;
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
+  class RenderCore_PlatformDX12;
+  class Mesh;
+  struct MeshDesc;
+  class FileWatcher;
   class Texture;
 //---------------------------------------------------------------------------//
   class RenderCore
@@ -53,8 +41,8 @@ namespace Fancy { namespace Rendering {
     static SharedPtr<Texture> GetTexture(uint64 aDescHash);
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
-    static SharedPtr<Geometry::Mesh> GetMesh(uint64 aVertexIndexHash);
-    static SharedPtr<Geometry::Mesh> CreateMesh(const Geometry::MeshDesc& aDesc,
+    static SharedPtr<Mesh> GetMesh(uint64 aVertexIndexHash);
+    static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc,
       const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
       const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices);
 
@@ -70,13 +58,13 @@ namespace Fancy { namespace Rendering {
     static void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteSize, uint aByteOffsetFromBuffer = 0u);
     static void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas);
 
-    static SharedPtr<BlendState> CreateBlendState(const Rendering::BlendStateDesc& aDesc);
-    static SharedPtr<DepthStencilState> CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc);
+    static SharedPtr<BlendState> CreateBlendState(const BlendStateDesc& aDesc);
+    static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateDesc& aDesc);
     static const SharedPtr<BlendState>& GetDefaultBlendState();
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState();
 
     static RenderCore_Platform* GetPlatform();
-    static DX12::RenderCore_PlatformDX12* GetPlatformDX12();
+    static RenderCore_PlatformDX12* GetPlatformDX12();
 
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
@@ -97,9 +85,9 @@ namespace Fancy { namespace Rendering {
     static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
     static std::map<uint64, SharedPtr<Texture>> ourTextureCache;
-    static std::map<uint64, SharedPtr<Geometry::Mesh>> ourMeshCache;
-    static std::map<uint64, SharedPtr<Rendering::BlendState>> ourBlendStateCache;
-    static std::map<uint64, SharedPtr<Rendering::DepthStencilState>> ourDepthStencilStateCache;
+    static std::map<uint64, SharedPtr<Mesh>> ourMeshCache;
+    static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
+    static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
 
     static std::vector<std::unique_ptr<CommandContext>> ourRenderContextPool;
     static std::vector<std::unique_ptr<CommandContext>> ourComputeContextPool;
@@ -119,5 +107,5 @@ namespace Fancy { namespace Rendering {
     static void OnShaderFileDeletedMoved(const String& aShaderFile);
   };
 //---------------------------------------------------------------------------//
-  } } // end of namespace Fancy::Rendering
+}
 

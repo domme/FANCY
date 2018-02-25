@@ -5,7 +5,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "ShaderResourceInterfaceDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   void GpuProgramDX12::CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout,
     std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements)
@@ -101,4 +101,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return reinterpret_cast<uint64>(getNativeData().Get());
   }
 //---------------------------------------------------------------------------//
-} } }
+}

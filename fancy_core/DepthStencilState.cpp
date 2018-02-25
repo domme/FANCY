@@ -1,7 +1,7 @@
 #include "DepthStencilState.h"
 #include "MathUtil.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   DepthStencilStateDesc DepthStencilStateDesc::GetDefaultDepthNoStencil()
   {
@@ -135,4 +135,4 @@ namespace Fancy { namespace Rendering {
     return GetDescription().GetHash();
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}

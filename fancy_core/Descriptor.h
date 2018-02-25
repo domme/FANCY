@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class DescriptorType
   {
@@ -19,4 +19,4 @@ namespace Fancy { namespace Rendering {
     
   };
 //---------------------------------------------------------------------------//
-} } // Fancy::Rendering
+}

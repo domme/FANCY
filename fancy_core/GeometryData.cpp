@@ -1,6 +1,6 @@
 #include "GeometryData.h"
 
-namespace Fancy { namespace Geometry {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   GeometryData::GeometryData()
   {
@@ -12,5 +12,5 @@ namespace Fancy { namespace Geometry {
 
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}
 

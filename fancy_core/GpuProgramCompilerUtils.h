@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-namespace Fancy {namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class GpuProgramCompilerUtils
   {
@@ -11,4 +11,4 @@ namespace Fancy {namespace Rendering {
     static String ShaderStageToDefineString(ShaderStage aShaderStage);
   };
 //---------------------------------------------------------------------------//
-} }
+}

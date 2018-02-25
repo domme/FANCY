@@ -14,7 +14,7 @@
 #include "GeometryData.h"
 #include "GpuResourceStorageDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy { 
 //---------------------------------------------------------------------------//
   namespace {
   //---------------------------------------------------------------------------//
@@ -41,6 +41,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     , myRootSignature(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
+    , myCommandListIsClosed(false)
   {
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
 
@@ -293,13 +294,14 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       resource->myUsageState = destState;
     }
 
-    myCommandList->ResourceBarrier(numBarriers, barriers);
+    if (numBarriers > 0u)
+      myCommandList->ResourceBarrier(numBarriers, barriers);
   }
 //---------------------------------------------------------------------------//
   uint64 CommandContextDX12::ExecuteAndReset(bool aWaitForCompletion)
   {
     ASSERT(myCommandAllocator != nullptr && myCommandList != nullptr);
-    CheckD3Dcall(myCommandList->Close());
+    CloseCommandList();
 
     uint64 fenceVal = RenderCore::GetPlatformDX12()->ExecuteCommandList(myCommandList);
 
@@ -321,8 +323,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
     
-    myCommandList->Close();
+    CloseCommandList();
     CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
+    myCommandListIsClosed = false;
 
     myRootSignature = nullptr;
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
@@ -581,7 +584,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer, uint aVertexOffset, uint aNumVertices, uint anIndexOffset, uint aNumIndices)
+  void CommandContextDX12::SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset, uint aNumVertices, uint anIndexOffset, uint aNumIndices)
   {
     // TODO: Check again if we need to apply all this stuff here or rather only before drawing
     ApplyViewportAndClipRect();
@@ -622,7 +625,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCommandList->DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, anIndexOffset, aVertexOffset, anInstanceOffset);
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::RenderGeometry(const Geometry::GeometryData* pGeometry)
+  void CommandContextDX12::RenderGeometry(const GeometryData* pGeometry)
   {
     const GpuBufferDX12* vertexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getVertexBuffer());
     const GpuBufferDX12* indexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getIndexBuffer());
@@ -670,11 +673,11 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     myRenderTargetsDirty = false;
 
-    D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Rendering::Constants::kMaxNumRenderTargets];
-    TextureDX12* rtResources[Rendering::Constants::kMaxNumRenderTargets];
+    D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Constants::kMaxNumRenderTargets];
+    TextureDX12* rtResources[Constants::kMaxNumRenderTargets];
     uint numRtsToSet = 0u;
 
-    for (uint i = 0u; i < Rendering::Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
     {
       TextureDX12* rt = static_cast<TextureDX12*>(myRenderTargets[i]);
 
@@ -793,4 +796,13 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myCommandList->Dispatch(aThreadGroupCountX, aThreadGroupCountY, aThreadGroupCountZ);
   }
 //---------------------------------------------------------------------------//
-} } }
+  void CommandContextDX12::CloseCommandList()
+  {
+    if (!myCommandListIsClosed)
+    {
+      CheckD3Dcall(myCommandList->Close());
+      myCommandListIsClosed = true;
+    }
+  }
+//---------------------------------------------------------------------------//
+}

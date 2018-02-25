@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class TextureRef
   {
@@ -17,4 +17,4 @@ namespace Fancy { namespace Rendering {
   };
 
 //---------------------------------------------------------------------------//
-} }
+}

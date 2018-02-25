@@ -4,7 +4,7 @@
 #include "GpuResource.h"
 #include "GpuBufferDesc.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class GpuBuffer : public GpuResource
   {
@@ -45,4 +45,4 @@ namespace Fancy { namespace Rendering {
 
   };
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Rendering
+}

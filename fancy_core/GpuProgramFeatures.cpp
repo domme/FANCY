@@ -1,7 +1,7 @@
 #include "GpuProgramFeatures.h"
 #include "MathUtil.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Internal 
   {
@@ -65,4 +65,4 @@ namespace Fancy { namespace Rendering {
     m_uHash = Internal::sortAndGetHash(m_vFeatures);
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}

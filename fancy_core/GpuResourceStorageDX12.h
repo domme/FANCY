@@ -3,7 +3,7 @@
 #include "DX12Prerequisites.h"
 #include "GpuResourceStorage.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class GpuResourceStorageDX12 : public GpuResourceStorage
   {
@@ -13,4 +13,4 @@ namespace Fancy { namespace Rendering {
     Microsoft::WRL::ComPtr<ID3D12Resource> myResource;
   };
 //---------------------------------------------------------------------------//
-} }
+}

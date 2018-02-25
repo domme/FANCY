@@ -18,7 +18,7 @@
 namespace Fancy { namespace ImGuiRendering {
 //---------------------------------------------------------------------------//
   FancyRuntime* ourFancyRuntime = nullptr;
-  Rendering::RenderOutput* ourRenderOutput = nullptr;
+  RenderOutput* ourRenderOutput = nullptr;
 
   struct CBufferData
   {
@@ -28,14 +28,14 @@ namespace Fancy { namespace ImGuiRendering {
   const uint kVertexNumIncrease = 2048u;
   const uint kIndexNumIncrease = kVertexNumIncrease * 3u;
 
-  SharedPtr<Rendering::GpuBuffer> ourCBuffer;
-  SharedPtr<Rendering::GpuBuffer> ourVertexBuffer;
-  SharedPtr<Rendering::GpuBuffer> ourIndexBuffer;
-  SharedPtr<Rendering::Texture> ourFontTexture;
-  SharedPtr<Rendering::GpuProgramPipeline> ourProgramPipeline;
-  SharedPtr<Rendering::BlendState> ourBlendState;
-  SharedPtr<Rendering::DepthStencilState> ourDepthStencilState;
-  Rendering::CommandContext* ourRenderContext;
+  SharedPtr<GpuBuffer> ourCBuffer;
+  SharedPtr<GpuBuffer> ourVertexBuffer;
+  SharedPtr<GpuBuffer> ourIndexBuffer;
+  SharedPtr<Texture> ourFontTexture;
+  SharedPtr<GpuProgramPipeline> ourProgramPipeline;
+  SharedPtr<BlendState> ourBlendState;
+  SharedPtr<DepthStencilState> ourDepthStencilState;
+  CommandContext* ourRenderContext;
     
   HWND ourHwnd = nullptr;
   INT64 ourTicksPerSecond = 0;
@@ -93,34 +93,34 @@ namespace Fancy { namespace ImGuiRendering {
   }
   
   namespace {
-    SharedPtr<Rendering::GpuBuffer> locCreateVertexBuffer(uint aNumRequiredVertices)
+    SharedPtr<GpuBuffer> locCreateVertexBuffer(uint aNumRequiredVertices)
     {
-      Rendering::GpuBufferCreationParams bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
-      bufferParams.uAccessFlags = (uint)Rendering::GpuResourceAccessFlags::WRITE
-                                | (uint)Rendering::GpuResourceAccessFlags::COHERENT
-                                | (uint)Rendering::GpuResourceAccessFlags::DYNAMIC
-                                | (uint)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+      GpuBufferCreationParams bufferParams;
+      bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
+      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
+                                | (uint)GpuResourceAccessFlags::COHERENT
+                                | (uint)GpuResourceAccessFlags::DYNAMIC
+                                | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
       bufferParams.uElementSizeBytes = sizeof(ImDrawVert);
       bufferParams.uNumElements = aNumRequiredVertices;
-      return Rendering::RenderCore::CreateBuffer(bufferParams);
+      return RenderCore::CreateBuffer(bufferParams);
     }
 
-    SharedPtr<Rendering::GpuBuffer> locCreateIndexBuffer(uint aNumRequiredIndices)
+    SharedPtr<GpuBuffer> locCreateIndexBuffer(uint aNumRequiredIndices)
     {
-      Rendering::GpuBufferCreationParams bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::INDEX_BUFFER);
-      bufferParams.uAccessFlags = (uint)Rendering::GpuResourceAccessFlags::WRITE
-        | (uint)Rendering::GpuResourceAccessFlags::COHERENT
-        | (uint)Rendering::GpuResourceAccessFlags::DYNAMIC
-        | (uint)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+      GpuBufferCreationParams bufferParams;
+      bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
+      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
+        | (uint)GpuResourceAccessFlags::COHERENT
+        | (uint)GpuResourceAccessFlags::DYNAMIC
+        | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
       bufferParams.uElementSizeBytes = sizeof(ImDrawIdx);
       bufferParams.uNumElements = aNumRequiredIndices;
-      return Rendering::RenderCore::CreateBuffer(bufferParams);
+      return RenderCore::CreateBuffer(bufferParams);
     }
   }
 
-  bool Init(Fancy::Rendering::RenderOutput* aRenderOutput, Fancy::FancyRuntime* aRuntime)
+  bool Init(Fancy::RenderOutput* aRenderOutput, Fancy::FancyRuntime* aRuntime)
   {
     ourRenderOutput = aRenderOutput;
     std::function<void(UINT, WPARAM, LPARAM, bool*)> fnWindowHandler = &HandleWindowEvent;
@@ -160,33 +160,33 @@ namespace Fancy { namespace ImGuiRendering {
 
     // Load the imgui-shader state
     {
-      Rendering::GpuProgramPipelineDesc pipelineDesc;
-      Rendering::GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)Rendering::ShaderStage::VERTEX];
+      GpuProgramPipelineDesc pipelineDesc;
+      GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
       shaderDesc->myShaderFileName = "Imgui";
       shaderDesc->myMainFunction = "main";
-      shaderDesc->myShaderStage = (uint)Rendering::ShaderStage::VERTEX;
-      shaderDesc = &pipelineDesc.myGpuPrograms[(uint)Rendering::ShaderStage::FRAGMENT];
+      shaderDesc->myShaderStage = (uint)ShaderStage::VERTEX;
+      shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
       shaderDesc->myShaderFileName = "Imgui";
-      shaderDesc->myShaderStage = (uint)Rendering::ShaderStage::FRAGMENT;
+      shaderDesc->myShaderStage = (uint)ShaderStage::FRAGMENT;
       shaderDesc->myMainFunction = "main";
-      ourProgramPipeline = Rendering::RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+      ourProgramPipeline = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
       ASSERT(ourProgramPipeline != nullptr);
     }
 
     // Create the cbuffer
     {
-      Rendering::GpuBufferCreationParams bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::CONSTANT_BUFFER);
-      bufferParams.uAccessFlags = (uint)Rendering::GpuResourceAccessFlags::WRITE
-                                 | (uint)Rendering::GpuResourceAccessFlags::COHERENT
-                                 | (uint)Rendering::GpuResourceAccessFlags::DYNAMIC
-                                 | (uint)Rendering::GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+      GpuBufferCreationParams bufferParams;
+      bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
+      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
+                                 | (uint)GpuResourceAccessFlags::COHERENT
+                                 | (uint)GpuResourceAccessFlags::DYNAMIC
+                                 | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
       bufferParams.uElementSizeBytes = sizeof(CBufferData);
       bufferParams.uNumElements = 1u;
 
       CBufferData initialData;
       memset(&initialData, 0, sizeof(initialData));
-      ourCBuffer = Rendering::RenderCore::CreateBuffer(bufferParams, &initialData);
+      ourCBuffer = RenderCore::CreateBuffer(bufferParams, &initialData);
       ASSERT(ourCBuffer != nullptr);
     }
   
@@ -204,46 +204,46 @@ namespace Fancy { namespace ImGuiRendering {
       io.Fonts->GetTexDataAsRGBA32(&fontPixelData, &width, &height, &pixelSizeBytes);
       ASSERT(fontPixelData != nullptr);
 
-      Rendering::TextureParams params;
+      TextureParams params;
       params.u16Width = width;
       params.u16Height = height;
-      params.eFormat = Rendering::DataFormat::RGBA_8;
-      const Rendering::DataFormatInfo& formatInfo = Rendering::DataFormatInfo::GetFormatInfo(params.eFormat);
+      params.eFormat = DataFormat::RGBA_8;
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(params.eFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
       
-      Rendering::TextureUploadData uploadData;
+      TextureUploadData uploadData;
       uploadData.myData = fontPixelData;
       uploadData.myPixelSizeBytes = pixelSizeBytes;
       uploadData.myRowSizeBytes = width * uploadData.myPixelSizeBytes;
       uploadData.mySliceSizeBytes = height * uploadData.myRowSizeBytes;
       uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
       
-      ourFontTexture = Rendering::RenderCore::CreateTexture(params, &uploadData, 1u);
+      ourFontTexture = RenderCore::CreateTexture(params, &uploadData, 1u);
       ASSERT(ourFontTexture != nullptr);
     }
 
     // Blend state (alpha blending)
     {
-      Rendering::BlendStateDesc desc;
+      BlendStateDesc desc;
       desc.myBlendEnabled[0] = true;
-      desc.mySrcBlend[0] = static_cast<uint>(Rendering::BlendInput::SRC_ALPHA);
-      desc.myDestBlend[0] = static_cast<uint>(Rendering::BlendInput::INV_SRC_ALPHA);
-      desc.myBlendOp[0] = static_cast<uint>(Rendering::BlendOp::ADD);
-      ourBlendState = Rendering::RenderCore::CreateBlendState(desc);
+      desc.mySrcBlend[0] = static_cast<uint>(BlendInput::SRC_ALPHA);
+      desc.myDestBlend[0] = static_cast<uint>(BlendInput::INV_SRC_ALPHA);
+      desc.myBlendOp[0] = static_cast<uint>(BlendOp::ADD);
+      ourBlendState = RenderCore::CreateBlendState(desc);
       ASSERT(ourBlendState != nullptr);
     }
 
     // Depth-stencil state (no depth testing)
     {
-      Rendering::DepthStencilStateDesc desc;
+      DepthStencilStateDesc desc;
       desc.myStencilEnabled = false;
       desc.myDepthTestEnabled = false;
       desc.myDepthWriteEnabled = false;
-      ourDepthStencilState = Rendering::RenderCore::CreateDepthStencilState(desc);
+      ourDepthStencilState = RenderCore::CreateDepthStencilState(desc);
       ASSERT(ourDepthStencilState != nullptr);
     }
 
-    ourRenderContext = Rendering::RenderCore::AllocateContext(Rendering::CommandListType::Graphics);
+    ourRenderContext = RenderCore::AllocateContext(CommandListType::Graphics);
     
     return true;
   }
@@ -296,7 +296,7 @@ namespace Fancy { namespace ImGuiRendering {
         0.0f,               0.0f,               0.5f,       0.0f,
         (R + L) / (L - R),  (T + B) / (B - T),  0.5f,       1.0f);
       
-      Rendering::RenderCore::UpdateBufferData(ourCBuffer.get(), &cbuffer, sizeof(cbuffer));
+      RenderCore::UpdateBufferData(ourCBuffer.get(), &cbuffer, sizeof(cbuffer));
     }
 
     // Calculate the required number of vertices and indices and grow the buffers if neccessary
@@ -327,10 +327,10 @@ namespace Fancy { namespace ImGuiRendering {
 
     // Copy all vertex- and index data
     {
-      uint8* mappedVertexData = static_cast<uint8*>(ourVertexBuffer->Lock(Rendering::GpuResoruceLockOption::WRITE));
+      uint8* mappedVertexData = static_cast<uint8*>(ourVertexBuffer->Lock(GpuResoruceLockOption::WRITE));
       ASSERT(mappedVertexData != nullptr);
 
-      uint8* mappedIndexData = static_cast<uint8*>(ourIndexBuffer->Lock(Rendering::GpuResoruceLockOption::WRITE));
+      uint8* mappedIndexData = static_cast<uint8*>(ourIndexBuffer->Lock(GpuResoruceLockOption::WRITE));
       ASSERT(mappedIndexData != nullptr);
 
       for (int n = 0; n < _draw_data->CmdListsCount; n++)
@@ -352,7 +352,7 @@ namespace Fancy { namespace ImGuiRendering {
       ourIndexBuffer->Unlock();
     }
 
-    Rendering::RenderOutput* renderOutput = ourRenderOutput;
+    RenderOutput* renderOutput = ourRenderOutput;
 
     ourRenderContext->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
     ourRenderContext->SetRenderTarget(renderOutput->GetBackbuffer(), 0u);
@@ -360,12 +360,12 @@ namespace Fancy { namespace ImGuiRendering {
     
     ourRenderContext->SetDepthStencilState(ourDepthStencilState);
     ourRenderContext->SetBlendState(ourBlendState);
-    ourRenderContext->SetCullMode(Rendering::CullMode::NONE);
-    ourRenderContext->SetFillMode(Rendering::FillMode::SOLID);
-    ourRenderContext->SetWindingOrder(Rendering::WindingOrder::CCW);
+    ourRenderContext->SetCullMode(CullMode::NONE);
+    ourRenderContext->SetFillMode(FillMode::SOLID);
+    ourRenderContext->SetWindingOrder(WindingOrder::CCW);
 
     ourRenderContext->SetGpuProgramPipeline(ourProgramPipeline);
-    ourRenderContext->BindResource(ourCBuffer.get(), Rendering::DescriptorType::CONSTANT_BUFFER, 0u);
+    ourRenderContext->BindResource(ourCBuffer.get(), DescriptorType::CONSTANT_BUFFER, 0u);
 
     uint cmdListVertexOffset = 0u;
     uint cmdListIndexOffset = 0u;
@@ -390,11 +390,11 @@ namespace Fancy { namespace ImGuiRendering {
         }
         else
         {
-          const Rendering::Descriptor* descriptors[] = { ourFontTexture->GetDescriptor(Rendering::DescriptorType::DEFAULT_READ) };
+          const Descriptor* descriptors[] = { ourFontTexture->GetDescriptor(DescriptorType::DEFAULT_READ) };
 
           ImTextureID textureId = pcmd->TextureId;
           if (textureId != nullptr)
-            descriptors[0] = static_cast<const Rendering::Descriptor*>(textureId);
+            descriptors[0] = static_cast<const Descriptor*>(textureId);
 
           ourRenderContext->BindDescriptorSet(descriptors, 1u, 1u);
 
@@ -412,7 +412,7 @@ namespace Fancy { namespace ImGuiRendering {
 
   void Shutdown()
   {
-    Rendering::RenderCore::FreeContext(ourRenderContext);
+    RenderCore::FreeContext(ourRenderContext);
     ourRenderContext = nullptr;
 
     ourFancyRuntime = nullptr;

@@ -3,7 +3,7 @@
 #include "TextureDesc.h"
 #include "MathUtil.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//  
   uint64 TextureDesc::GetHash() const
   {
@@ -14,5 +14,5 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-} }
+}
  

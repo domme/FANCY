@@ -2,7 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//  
   struct TextureDesc
   {
@@ -23,4 +23,4 @@ namespace Fancy { namespace Rendering {
     uint myInternalRefIndex;  // The internal index of a texture used by the engine. Can be some semantics-enum defined by the renderingprocess (e.g. GBUFFER)
   };
 //---------------------------------------------------------------------------//
-} }  
+}

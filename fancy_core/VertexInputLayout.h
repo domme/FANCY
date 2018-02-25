@@ -2,7 +2,7 @@
 
 #include "RendererPrerequisites.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderVertexInputElement 
   {
@@ -40,4 +40,4 @@ namespace Fancy { namespace Rendering {
     DynamicArray<ShaderVertexInputElement> myVertexInputElements;
   };
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}

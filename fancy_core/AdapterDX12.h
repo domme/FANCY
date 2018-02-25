@@ -2,7 +2,7 @@
 
 #include "DX12Prerequisites.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
 	class Adapter
 	{
@@ -16,4 +16,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     static D3D12_RESOURCE_STATES toNativeType(const GpuResourceState& aGeneralType);
 	};
 //---------------------------------------------------------------------------//
-} } }
+}

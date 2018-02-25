@@ -1,4 +1,4 @@
-#include "ImguiDemo.h"
+#include "App_Imgui.h"
 
 #include <fancy_core/RendererPrerequisites.h>
 #include <fancy_core/CommandListType.h>
@@ -10,25 +10,25 @@ bool show_test_window = true;
 bool show_another_window = false;
 ImVec4 clear_col = ImColor(114, 144, 154);
 
-ImguiDemo::ImguiDemo(HINSTANCE anInstanceHandle)
+App_Imgui::App_Imgui(HINSTANCE anInstanceHandle)
 {
   RenderingStartupParameters params;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   myRuntime = FancyRuntime::Init(anInstanceHandle, params);
-  myRuntime->GetRenderOutput()->GetWindow()->myOnResize.Connect(this, &ImguiDemo::OnWindowResized);
+  myRuntime->GetRenderOutput()->GetWindow()->myOnResize.Connect(this, &App_Imgui::OnWindowResized);
 }
 
-ImguiDemo::~ImguiDemo()
+App_Imgui::~App_Imgui()
 {
 }
 
-void ImguiDemo::Init()
+void App_Imgui::Init()
 {
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 }
 
-void ImguiDemo::Update()
+void App_Imgui::Update()
 {
   myRuntime->BeginFrame();
   ImGuiRendering::NewFrame();
@@ -63,28 +63,28 @@ void ImguiDemo::Update()
   }
 }
 
-void ImguiDemo::Render()
+void App_Imgui::Render()
 {
-  Rendering::CommandContext* ctx = Rendering::RenderCore::AllocateContext(Rendering::CommandListType::Graphics);
+  CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRuntime->GetRenderOutput()->GetBackbuffer(), clearColor);
   
   ctx->ExecuteAndReset();
-  Rendering::RenderCore::FreeContext(ctx);
+  RenderCore::FreeContext(ctx);
 
   ImGui::Render();
   myRuntime->EndFrame();
 }
 
-void ImguiDemo::Shutdown()
+void App_Imgui::Shutdown()
 {
   ImGuiRendering::Shutdown();
   FancyRuntime::Shutdown();
   myRuntime = nullptr;
 }
 
-void ImguiDemo::OnWindowResized(Fancy::uint aWidth, Fancy::uint aHeight)
+void App_Imgui::OnWindowResized(Fancy::uint aWidth, Fancy::uint aHeight)
 {
 
 }

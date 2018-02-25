@@ -1,9 +1,10 @@
 #pragma once
+
 #include "FancyCorePrerequisites.h"
 #include "GpuProgramFeatures.h"
 #include "MathUtil.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GpuProgramDesc
   {
@@ -35,5 +36,5 @@ namespace Fancy { namespace Rendering {
     return hash;
   }
 //---------------------------------------------------------------------------//
-} }
+}
 

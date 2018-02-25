@@ -1,10 +1,6 @@
 #pragma once
 
 namespace Fancy {
-  class Window;
-}
-
-namespace Fancy { namespace Rendering {
 //---------------------------------------------------------------------------//
   struct GpuProgramDesc;
   struct GpuProgramPipelineDesc;
@@ -12,6 +8,7 @@ namespace Fancy { namespace Rendering {
   struct BlendStateDesc;
   class BlendState;
   class DepthStencilState;
+  class Window;
 //---------------------------------------------------------------------------//
   class RenderOutput
   {
@@ -38,4 +35,4 @@ namespace Fancy { namespace Rendering {
     SharedPtr<Texture> myDefaultDepthStencil;
   };
 //---------------------------------------------------------------------------//
-} }
+}

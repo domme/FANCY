@@ -2,7 +2,7 @@
 
 #include "RendererPrerequisites.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GeometryVertexElement 
   {
@@ -34,4 +34,4 @@ namespace Fancy { namespace Rendering {
       DynamicArray<GeometryVertexElement> myElements;
   };
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}

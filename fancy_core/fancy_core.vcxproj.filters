@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="src">
-      <UniqueIdentifier>{119cc715-1dea-4811-898b-fe3023e1235c}</UniqueIdentifier>
-      <Extensions>cpp;h;hpp</Extensions>
-    </Filter>
     <Filter Include="IO">
       <UniqueIdentifier>{cf808716-0597-492b-83ce-d3521a9641d7}</UniqueIdentifier>
     </Filter>
@@ -23,14 +19,11 @@
     <Filter Include="Geometry">
       <UniqueIdentifier>{01d22804-1db2-4c70-8c91-60afbf5b3cdb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IO\lodepng">
+      <UniqueIdentifier>{0912a11c-c62c-4fab-a4ea-7c7033d82853}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="StdAfx.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="AdapterDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
@@ -175,9 +168,6 @@
     <ClInclude Include="Log.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="MathUtil.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Geometry</Filter>
     </ClInclude>
@@ -226,9 +216,6 @@
     <ClInclude Include="TextureLoader.h">
       <Filter>IO</Filter>
     </ClInclude>
-    <ClInclude Include="lodepng.h">
-      <Filter>IO</Filter>
-    </ClInclude>
     <ClInclude Include="TextureSampler.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -253,11 +240,18 @@
     <ClInclude Include="GpuBufferDesc.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="lodepng.h">
+      <Filter>IO\lodepng</Filter>
+    </ClInclude>
+    <ClInclude Include="MathUtil.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="StdAfx.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="AdapterDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
@@ -369,9 +363,6 @@
     <ClCompile Include="TextureLoader.cpp">
       <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="lodepng.cpp">
-      <Filter>IO</Filter>
-    </ClCompile>
     <ClCompile Include="TextureSamplerDesc.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -384,5 +375,9 @@
     <ClCompile Include="Window.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="lodepng.cpp">
+      <Filter>IO\lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp" />
   </ItemGroup>
 </Project>

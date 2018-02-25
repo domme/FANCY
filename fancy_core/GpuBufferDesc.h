@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "MathUtil.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//  
   struct GpuBufferDesc
   {
@@ -23,4 +23,4 @@ namespace Fancy { namespace Rendering {
     }
   };
 //---------------------------------------------------------------------------//
-} }
+}

@@ -2,26 +2,20 @@
 
 #include "FancyCorePrerequisites.h"
 #include "DataFormat.h"
-#include "RenderingStartupParameters.h"
 
-//---------------------------------------------------------------------------//
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  namespace Geometry {
-    class GeometryData;
-  }
-//---------------------------------------------------------------------------//
-  namespace Rendering {
-//---------------------------------------------------------------------------//
-    namespace MultiBuffering {
-      enum { kGpuMultiBufferingCount = 2u };
-      
+    namespace MultiBuffering 
+    {
+      enum { kGpuMultiBufferingCount = 2u };  
       uint getCurrentBufferIndex();
     }
 //---------------------------------------------------------------------------//
-    namespace Constants {
-      enum {
-        kMaxNumRenderTargets = 7u, // (-1 for depth-stencil target)
+    namespace Constants 
+    {
+      enum 
+      {
+        kMaxNumRenderTargets = 7u, // (8 color-rts -1 for depth-stencil target)
         kMaxNumTextureSamplers = 32u,
         kMaxNumReadBuffers = 32u,
         kMaxNumWriteBuffers = 8u,
@@ -36,7 +30,6 @@ namespace Fancy {
       };
     }
 //---------------------------------------------------------------------------//
-  // Forward-declarations of common rendering classes
     class Material;
     class Texture;
     class TextureSampler;
@@ -44,8 +37,10 @@ namespace Fancy {
     class GpuProgram;
     class GpuProgramPipeline;
     class GpuProgramCompiler;
+    class GeometryData;
   //---------------------------------------------------------------------------//
-    enum class CompFunc {
+    enum class CompFunc 
+    {
       NEVER = 0,
       LESS,
       EQUAL,
@@ -58,7 +53,8 @@ namespace Fancy {
       NUM
     };
   //-----------------------------------------------------------------------//
-    enum class StencilOp {
+    enum class StencilOp 
+    {
       KEEP = 0,
       ZERO,
       REPLACE,
@@ -71,14 +67,16 @@ namespace Fancy {
       NUM
     };
   //-----------------------------------------------------------------------//
-    enum class FillMode {
+    enum class FillMode 
+    {
       WIREFRAME = 0,
       SOLID,
 
       NUM
     };
   //-----------------------------------------------------------------------//
-    enum class CullMode { 
+    enum class CullMode 
+    { 
       NONE = 0,
       FRONT,
       BACK,
@@ -86,14 +84,16 @@ namespace Fancy {
       NUM
     };
   //-----------------------------------------------------------------------//
-    enum class WindingOrder {
+    enum class WindingOrder 
+    {
       CCW = 0,
       CW,
 
       NUM
     };
   //-----------------------------------------------------------------------//    
-    enum class BlendInput {
+    enum class BlendInput 
+    {
       ZERO = 0,
       ONE,
       SRC_COLOR,
@@ -121,7 +121,8 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    enum class BlendOp {
+    enum class BlendOp 
+    {
       ADD = 0,
       SUBTRACT,
       REV_SUBTRACT,
@@ -131,7 +132,8 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    enum class ShaderStage {
+    enum class ShaderStage 
+    {
       VERTEX        = 0,
       FRAGMENT,      
       GEOMETRY,      
@@ -144,7 +146,8 @@ namespace Fancy {
       NONE
     };
   //---------------------------------------------------------------------------//
-    enum class ShaderStageFlag {
+    enum class ShaderStageFlag 
+    {
       VERTEX        = 0x01,
       FRAGMENT      = 0x02,      
       GEOMETRY      = 0x04,      
@@ -155,14 +158,16 @@ namespace Fancy {
       ALL           = 0xFF
     };
   //-----------------------------------------------------------------------//
-    enum class FaceType {
+    enum class FaceType 
+    {
       FRONT = 0,
       BACK,
 
       NUM
     };
 //---------------------------------------------------------------------------//
-    enum class GpuResourceState {
+    enum class GpuResourceState 
+    {
       RESOURCE_STATE_COMMON = 0,
       RESOURCE_STATE_GENERIC_READ,
       RESOURCE_STATE_DEPTH_WRITE,
@@ -175,7 +180,8 @@ namespace Fancy {
       NONE
     };
   //---------------------------------------------------------------------------//
-    enum class GpuResourceAccessFlags {
+    enum class GpuResourceAccessFlags 
+    {
       /// No special access flags
       NONE                = 0x00000000,
       /// Allow CPU read-access only
@@ -194,7 +200,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     // Note: Could make bitfield-flags instead, but this would suggest that each field
     // can be combined - even in DX11. Instead TODO: Reduce/expand this set of options during experiments
-    enum class GpuResoruceLockOption {
+    enum class GpuResoruceLockOption 
+    {
       READ = 0,
       WRITE,
       READ_WRITE,
@@ -213,7 +220,8 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    struct TextureParams {
+    struct TextureParams 
+    {
       TextureParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
         eFormat(DataFormat::NONE), uAccessFlags(0u), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u), 
         myIsShaderWritable(false), myIsRenderTarget(false) {}
@@ -249,7 +257,8 @@ namespace Fancy {
       uint64 myTotalSizeBytes;
     };
 //---------------------------------------------------------------------------//
-    enum class GpuBufferUsage {
+    enum class GpuBufferUsage 
+    {
       CONSTANT_BUFFER = (1 << 0),
       VERTEX_BUFFER = (1 << 1),
       INDEX_BUFFER = (1 << 2),
@@ -261,7 +270,8 @@ namespace Fancy {
       RESOURCE_BUFFER_LARGE_RW = (1 << 8),
     };
  //---------------------------------------------------------------------------//
-    struct GpuBufferCreationParams {
+    struct GpuBufferCreationParams 
+    {
       GpuBufferCreationParams() : uNumElements(0u), myInternalRefIndex(~0u), bIsMultiBuffered(false), 
         uElementSizeBytes(0u), myUsageFlags(0u), uAccessFlags(0u) {}
 
@@ -273,7 +283,8 @@ namespace Fancy {
       bool bIsMultiBuffered;
     };
  //---------------------------------------------------------------------------//
-    enum class VertexSemantics {
+    enum class VertexSemantics 
+    {
       NONE = 0,
 
       POSITION,
@@ -286,7 +297,8 @@ namespace Fancy {
       NUM
     };
 //---------------------------------------------------------------------------//
-    enum class SamplerFilterMode {
+    enum class SamplerFilterMode 
+    {
       NEAREST = 0,
       BILINEAR,
       TRILINEAR,
@@ -295,7 +307,8 @@ namespace Fancy {
       NUM
     };
 //---------------------------------------------------------------------------//
-    enum class SamplerAddressMode {
+    enum class SamplerAddressMode 
+    {
       WRAP = 0,
       CLAMP_EDGE,
       MIRROR_CLAMP_EDGE,
@@ -328,6 +341,4 @@ namespace Fancy {
       DEPTH_STENCIL_TEXTURE = (1 << 9)
     };
 //---------------------------------------------------------------------------//
-  } // end of namespace Rendering 
-  }  // end of namespace Fancy
-//---------------------------------------------------------------------------//
+}  // end of namespace Fancy

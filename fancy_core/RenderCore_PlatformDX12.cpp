@@ -18,7 +18,7 @@
 #include "CommandContextDX12.h"
 #include "GpuResourceStorageDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace {
     //---------------------------------------------------------------------------//
@@ -117,7 +117,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ourDevice.Reset();
   }
 //---------------------------------------------------------------------------//
-  Rendering::ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const
+  ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const
   {
     const uint64 requestedHash = ShaderResourceInterfaceDX12::ComputeHash(anRSdesc);
 
@@ -710,4 +710,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     }
   }
 //---------------------------------------------------------------------------//
-} } }  // end of namespace Fancy::Rendering::DX12
+}

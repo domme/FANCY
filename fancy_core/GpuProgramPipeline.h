@@ -4,7 +4,7 @@
 #include "RendererPrerequisites.h"
 #include "GpuProgramPipelineDesc.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class ShaderResourceInterface;
 //---------------------------------------------------------------------------//
@@ -28,4 +28,4 @@ namespace Fancy { namespace Rendering {
       const ShaderResourceInterface* myResourceInterface;
   };
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Rendering
+}

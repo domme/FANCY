@@ -1,13 +1,13 @@
 #include <windows.h>
 
-#include "ImguiDemo.h"
+#include "App_Imgui.h"
 
-std::unique_ptr<ImguiDemo> myApp;
+std::unique_ptr<App_Imgui> myApp;
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-  myApp.reset(new ImguiDemo(hInstance));
+  myApp.reset(new App_Imgui(hInstance));
 
   myApp->Init();
 

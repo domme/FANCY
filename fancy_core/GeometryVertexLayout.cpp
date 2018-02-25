@@ -1,6 +1,6 @@
 #include "GeometryVertexLayout.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   GeometryVertexElement::GeometryVertexElement() :
     mySemanticIndex(0u),
@@ -39,4 +39,4 @@ namespace Fancy { namespace Rendering {
     myStride += clVertexElement.u32SizeBytes;
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}

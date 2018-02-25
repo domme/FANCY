@@ -7,7 +7,7 @@
 #include "Texture.h"
 #include "GpuProgram.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   GraphicsPipelineState::GraphicsPipelineState()
     : myFillMode(FillMode::SOLID)
@@ -259,16 +259,4 @@ namespace Fancy { namespace Rendering {
     myGraphicsPipelineState.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-// Compute Context
-//---------------------------------------------------------------------------//
-
-
-
-
-
-
-
-
-} }
+} 

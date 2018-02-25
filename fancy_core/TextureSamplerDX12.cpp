@@ -6,7 +6,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   TextureSamplerDX12::TextureSamplerDX12()
   {
@@ -102,4 +102,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return myDescriptor.myCpuHandle.ptr != 0u;
   }
 //---------------------------------------------------------------------------//
-} } }
+}

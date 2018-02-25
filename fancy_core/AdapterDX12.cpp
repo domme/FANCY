@@ -1,7 +1,6 @@
 #include "AdapterDX12.h"
 
-
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
 	D3D12_COMPARISON_FUNC Adapter::toNativeType(const CompFunc& generalType) 
 	{	
@@ -114,6 +113,6 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 		}
 	}
 //---------------------------------------------------------------------------//
-} } }
+}
 
 

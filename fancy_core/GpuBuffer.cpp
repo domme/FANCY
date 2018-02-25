@@ -1,6 +1,6 @@
 #include "GpuBuffer.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBuffer::GpuBuffer()
     : GpuResource(GpuResourceCategory::BUFFER)
@@ -24,4 +24,4 @@ namespace Fancy { namespace Rendering {
     return desc;
   }
 //---------------------------------------------------------------------------//
-} }
+}

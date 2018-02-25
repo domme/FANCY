@@ -1,9 +1,8 @@
-#ifndef INCLUDE_TEXTURELOADER_H
-#define INCLUDE_TEXTURELOADER_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
 
-namespace Fancy { namespace IO {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   struct TextureLoadInfo
   {
@@ -19,6 +18,4 @@ namespace Fancy { namespace IO {
     static bool loadTexture(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo);
   };
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::IO
-
-#endif INCLUDE_TEXTURELOADER_H
+}

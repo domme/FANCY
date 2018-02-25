@@ -4,10 +4,8 @@
 #include "RenderOutput.h"
 
 namespace Fancy {
+//---------------------------------------------------------------------------//
   class Window;
-}
-
-namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//
   class RenderOutputDX12 : public RenderOutput
   {
@@ -29,4 +27,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     Microsoft::WRL::ComPtr<IDXGISwapChain3> mySwapChain;
   };
 //---------------------------------------------------------------------------//
-} } }
+}

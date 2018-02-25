@@ -4,7 +4,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "RenderCore.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   static SriResourceType locGetResourceType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
   {
@@ -123,5 +123,5 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return hash;
   }
 //---------------------------------------------------------------------------//
-} } }
+}
 

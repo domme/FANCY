@@ -5,7 +5,7 @@
 
 #include "FileReader.h"
 
-namespace Fancy { namespace IO {
+namespace Fancy {
 
   namespace FileReader 
   {
@@ -52,5 +52,5 @@ namespace Fancy { namespace IO {
     }
 //---------------------------------------------------------------------------//
   }
-} } // end of namespace Fancy::IO
+}
 

@@ -2,7 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 
-namespace Fancy { namespace IO {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Path
   {
@@ -33,4 +33,4 @@ namespace Fancy { namespace IO {
     String FindName(const String& anAbsoluteResourcePath, bool* aWasFound = nullptr);
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::IO
+}

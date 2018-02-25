@@ -1,7 +1,7 @@
 #include "GpuProgram.h"
 #include "GpuProgramCompiler.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuProgram::GpuProgram()
     : myStage(ShaderStage::NONE)
@@ -49,5 +49,4 @@ namespace Fancy { namespace Rendering {
     myResourceInterface = aCompilerOutput.myRootSignature;
   }
 //---------------------------------------------------------------------------//
-
-} }
+}

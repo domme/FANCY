@@ -5,11 +5,7 @@
 #include "CommandListType.h"
 #include "DX12Prerequisites.h"
 
-namespace Fancy { namespace Rendering {
-  class RenderOutput;
-} }
-
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy { 
 //---------------------------------------------------------------------------//
   class CommandAllocatorPoolDX12
   {
@@ -27,4 +23,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     std::deque<std::pair<uint64, ID3D12CommandAllocator*>> myReleasedWaitingAllocators;
   };  
 //---------------------------------------------------------------------------//  
-} } }
+}

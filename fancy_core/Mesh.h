@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "MeshDesc.h"
 
-namespace Fancy { namespace Geometry { 
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class GeometryData;
 //---------------------------------------------------------------------------//
@@ -38,4 +38,4 @@ namespace Fancy { namespace Geometry {
     uint64 myVertexAndIndexHash;
   };
   //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Geometry
+}

@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "GeometryVertexLayout.h"
 
-namespace Fancy { namespace Geometry {
+namespace Fancy {
 //---------------------------------------------------------------------------//
 // Because of the high amount of data involved in meshes, we'll completely rely on the BinaryCache to store the actual geometric
 // data for meshes. The VertexAndIndexHash is just used to identify the requested mesh for Serialization
@@ -13,7 +13,7 @@ namespace Fancy { namespace Geometry {
     bool operator==(const MeshDesc& anOther) const { return myVertexAndIndexHash == anOther.myVertexAndIndexHash; }
 
     uint64 myVertexAndIndexHash;
-    DynamicArray<Rendering::GeometryVertexLayout> myVertexLayouts;
+    DynamicArray<GeometryVertexLayout> myVertexLayouts;
   };
 //---------------------------------------------------------------------------//
-} }
+}

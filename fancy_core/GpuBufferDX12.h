@@ -4,7 +4,7 @@
 #include "GpuBuffer.h"
 #include "DescriptorDX12.h"
 
-namespace Fancy { namespace Rendering {	namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
 	class GpuBufferDX12 : public GpuBuffer
 	{
@@ -37,4 +37,4 @@ namespace Fancy { namespace Rendering {	namespace DX12 {
     D3D12_INDEX_BUFFER_VIEW myIndexBufferView;
 	};
 //---------------------------------------------------------------------------//
-} } }
+}

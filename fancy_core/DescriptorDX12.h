@@ -4,7 +4,7 @@
 #include "DX12Prerequisites.h"
 #include "Descriptor.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy { 
 //---------------------------------------------------------------------------//
   class DescriptorDX12 : public Descriptor
   {
@@ -23,4 +23,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     D3D12_DESCRIPTOR_HEAP_TYPE myHeapType;
   };
 //---------------------------------------------------------------------------//
-} } }
+}

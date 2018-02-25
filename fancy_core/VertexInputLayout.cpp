@@ -1,7 +1,7 @@
 #include "VertexInputLayout.h"
 #include "MathUtil.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Validation 
   {
@@ -66,4 +66,4 @@ namespace Fancy { namespace Rendering {
     return myVertexInputElements.back();
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}

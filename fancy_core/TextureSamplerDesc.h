@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   struct TextureSamplerDesc
   {
@@ -25,4 +25,4 @@ namespace Fancy { namespace Rendering {
     uint               myMaxAnisotropy;
   };
 //---------------------------------------------------------------------------//
-} }
+}

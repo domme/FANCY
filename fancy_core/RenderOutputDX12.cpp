@@ -7,7 +7,7 @@
 #include "CommandContextDX12.h"
 #include "GpuResourceStorageDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderOutputDX12::RenderOutputDX12(void* aNativeInstanceHandle)
     : RenderOutput(aNativeInstanceHandle)
@@ -107,4 +107,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     CreateBackbufferResources();
   }
   //---------------------------------------------------------------------------//
-} } }
+}

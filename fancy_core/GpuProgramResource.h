@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class GpuResourceAccessType {
     READ_ONLY = 0,
@@ -53,4 +53,4 @@ namespace Fancy { namespace Rendering {
     GpuResourceType eResourceType;
   };
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Rendering
+}

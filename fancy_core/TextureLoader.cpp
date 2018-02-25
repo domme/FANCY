@@ -5,7 +5,7 @@
 #include "lodepng.h"
 #include "Log.h"
 
-namespace Fancy { namespace IO {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Internal {
     bool loadPNG(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo);
@@ -52,4 +52,4 @@ namespace Fancy { namespace IO {
     return false;
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::IO
+}

@@ -1,7 +1,7 @@
 #include "TextureSamplerDesc.h"
 #include "MathUtil.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   TextureSamplerDesc::TextureSamplerDesc():
     minFiltering(SamplerFilterMode::NEAREST),
@@ -28,4 +28,4 @@ namespace Fancy { namespace Rendering {
     return GetHash() == anOther.GetHash();
   }
 //---------------------------------------------------------------------------//
-} }
+}

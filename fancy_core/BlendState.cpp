@@ -1,7 +1,7 @@
 #include "BlendState.h"
 #include "MathUtil.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   BlendStateDesc BlendStateDesc::GetDefaultSolid()
   {
@@ -132,4 +132,4 @@ namespace Fancy { namespace Rendering {
     return GetDescription().GetHash();
 	}
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Rendering
+}

@@ -3,26 +3,21 @@
 #include "FancyCorePrerequisites.h"
 #include "Texture.h"
 
-namespace Fancy{ namespace Rendering{
-struct TextureDesc;
-} }
-
-namespace Fancy { namespace Geometry {
-struct MeshDesc;
-class Mesh;
-} }
-
-namespace Fancy { namespace IO {
+namespace Fancy {
+//---------------------------------------------------------------------------//
+  struct TextureDesc;
+  struct MeshDesc;
+  class Mesh;
 //---------------------------------------------------------------------------//
   class BinaryCache
   {
     public:
   //---------------------------------------------------------------------------//
     static String getCacheFilePathAbs(const String& aPathInResources);
-    static bool write(const SharedPtr<Rendering::Texture>& aTexture, const Rendering::TextureUploadData& someData);
-    static bool write(const SharedPtr<Geometry::Mesh>& aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas);
-    static bool read(SharedPtr<Rendering::Texture>* aTexture, uint64 aDescHash, uint aTimeStamp);
-    static bool read(SharedPtr<Geometry::Mesh>& aMesh, uint64 aDescHash, uint aTimeStamp);
+    static bool write(const SharedPtr<Texture>& aTexture, const TextureUploadData& someData);
+    static bool write(const SharedPtr<Mesh>& aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas);
+    static bool read(SharedPtr<Texture>* aTexture, uint64 aDescHash, uint aTimeStamp);
+    static bool read(SharedPtr<Mesh>& aMesh, uint64 aDescHash, uint aTimeStamp);
   //---------------------------------------------------------------------------//      
 };
-} }  // end of namespace Fancy::IO 
+}

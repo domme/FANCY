@@ -5,7 +5,7 @@
 #include "DescriptorDX12.h"
 #include <unordered_map>
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class DescriptorDX12;
   class DescriptorHeapDX12;
@@ -32,9 +32,9 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     uint64 ExecuteAndReset(bool aWaitForCompletion) override;
     void Reset() override;
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
-    void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) override;
+    void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) override;
-    void RenderGeometry(const Geometry::GeometryData* pGeometry) override;
+    void RenderGeometry(const GeometryData* pGeometry) override;
     void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex) const override;
     void BindDescriptorSet(const Descriptor** someDescriptors, uint aResourceCount, uint aRegisterIndex) override;
 
@@ -42,6 +42,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) override;
 
   protected:
+    void CloseCommandList();
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
     void ApplyDescriptorHeaps();
     void ReleaseAllocator(uint64 aFenceVal);
@@ -59,9 +60,10 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12GraphicsCommandList* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
+    bool myCommandListIsClosed;
 
     DescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     std::vector<DescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
   };
 //---------------------------------------------------------------------------//
-} } }
+}

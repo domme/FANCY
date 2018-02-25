@@ -2,7 +2,7 @@
 #include "Window.h"
 #include "RenderCore.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderOutput::RenderOutput(void* aNativeInstanceHandle)
     : myCurrBackbufferIndex(0u)
@@ -51,4 +51,4 @@ namespace Fancy { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//  
-} }
+}

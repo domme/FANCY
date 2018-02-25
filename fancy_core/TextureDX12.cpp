@@ -7,7 +7,7 @@
 #include "AdapterDX12.h"
 #include "GpuResourceStorageDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   TextureDX12::TextureDX12()
   {
@@ -399,4 +399,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myStorage = nullptr;
   }
 //---------------------------------------------------------------------------//
-} } }
+}

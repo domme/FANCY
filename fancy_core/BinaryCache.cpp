@@ -7,7 +7,7 @@
 #include "PathService.h"
 #include "StringUtil.h"
 
-namespace Fancy {  namespace IO {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   const uint kMeshVersion = 0;
   const uint kTextureVersion = 0;
@@ -50,9 +50,9 @@ namespace Fancy {  namespace IO {
     return Path::GetAbsolutePath(resourceName);
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::write(const SharedPtr<Rendering::Texture>& aTexture, const Rendering::TextureUploadData& someData)
+  bool BinaryCache::write(const SharedPtr<Texture>& aTexture, const TextureUploadData& someData)
   {
-    const Rendering::TextureDesc& texDesc = aTexture->GetDescription();
+    const TextureDesc& texDesc = aTexture->GetDescription();
     const uint64 texDescHash = texDesc.GetHash();
 
     const String cacheFilePath = getCacheFilePathAbs(texDesc.mySourcePath);
@@ -63,7 +63,7 @@ namespace Fancy {  namespace IO {
 
     archive.write(reinterpret_cast<const char*>(&kTextureVersion), sizeof(uint));
 
-    const Rendering::TextureParams& texParams = aTexture->GetParameters();
+    const TextureParams& texParams = aTexture->GetParameters();
 
     // Write the hash first the be able to "peek ahead" without reading in the whole stuff later on
     archive.write(reinterpret_cast<const char*>(&texDescHash), sizeof(texDescHash));
@@ -91,7 +91,7 @@ namespace Fancy {  namespace IO {
     return archive.good();
   }  
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::read(SharedPtr<Rendering::Texture>* aTexture, uint64 aDescHash, uint aTimeStamp)
+  bool BinaryCache::read(SharedPtr<Texture>* aTexture, uint64 aDescHash, uint aTimeStamp)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
@@ -105,14 +105,14 @@ namespace Fancy {  namespace IO {
     if (textureVersion != kTextureVersion)
       return false;
 
-    Rendering::TextureDesc texDesc;
+    TextureDesc texDesc;
 
     // Read the desc
     texDesc.mySourcePath = locReadString(archive);
     archive.read((char*)&texDesc.myIsExternalTexture, sizeof(texDesc.myIsExternalTexture));
     archive.read((char*)&texDesc.myInternalRefIndex, sizeof(texDesc.myInternalRefIndex));
 
-    SharedPtr<Rendering::Texture> texture = Rendering::RenderCore::GetTexture(texDesc.GetHash());
+    SharedPtr<Texture> texture = RenderCore::GetTexture(texDesc.GetHash());
     if (texture != nullptr)
     {
       *aTexture = texture;
@@ -120,7 +120,7 @@ namespace Fancy {  namespace IO {
     }
 
     // Read the texture
-    Rendering::TextureParams texParams;
+    TextureParams texParams;
     texParams.myIsExternalTexture = texDesc.myIsExternalTexture;
     texParams.path = texDesc.mySourcePath;
     texParams.myInternalRefIndex = texDesc.myInternalRefIndex;
@@ -130,10 +130,10 @@ namespace Fancy {  namespace IO {
     archive.read((char*)&texParams.uAccessFlags, sizeof(uint));
     uint format = 0;
     archive.read((char*)&format, sizeof(uint));
-    texParams.eFormat = static_cast<Rendering::DataFormat>(format);
+    texParams.eFormat = static_cast<DataFormat>(format);
     archive.read((char*)&texParams.u8NumMipLevels, sizeof(uint8));
 
-    Rendering::TextureUploadData texData;
+    TextureUploadData texData;
     archive.read((char*)(&texData.myPixelSizeBytes), sizeof(uint64));
     archive.read((char*)(&texData.myRowSizeBytes), sizeof(uint64));
     archive.read((char*)(&texData.mySliceSizeBytes), sizeof(uint64));
@@ -141,7 +141,7 @@ namespace Fancy {  namespace IO {
     texData.myData = static_cast<uint8*>(FANCY_ALLOCATE(texData.myTotalSizeBytes, MemoryCategory::TEXTURES));
     archive.read((char*)&texData.myData, texData.myTotalSizeBytes);
 
-    texture = Rendering::RenderCore::CreateTexture(texParams, &texData, 1u);
+    texture = RenderCore::CreateTexture(texParams, &texData, 1u);
     FANCY_FREE(texData.myData, MemoryCategory::TEXTURES);
 
     (*aTexture) = texture;
@@ -149,7 +149,7 @@ namespace Fancy {  namespace IO {
     return false;
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::write(const SharedPtr<Geometry::Mesh>& aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas)
+  bool BinaryCache::write(const SharedPtr<Mesh>& aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aMesh->GetGeometryHash()));
     Path::CreateDirectoryTreeForPath(cacheFilePath);
@@ -161,23 +161,23 @@ namespace Fancy {  namespace IO {
     uint64 hash = aMesh->GetGeometryHash();
     archive.write((const char*)&hash, sizeof(hash));
 
-    const DynamicArray<Geometry::GeometryData*>& vGeoData = aMesh->getGeometryDataList();
+    const DynamicArray<GeometryData*>& vGeoData = aMesh->getGeometryDataList();
     const uint numGeoDatas = vGeoData.size();
     archive.write(reinterpret_cast<const char*>(&numGeoDatas), sizeof(uint));
 
     for (uint i = 0u; i < vGeoData.size(); ++i)
     {
-      const Geometry::GeometryData* geoData = vGeoData[i];
+      const GeometryData* geoData = vGeoData[i];
 
       // Vertex-Layout begin
-      const Rendering::GeometryVertexLayout& vertexLayout = geoData->getGeometryVertexLayout();
-      const DynamicArray<Rendering::GeometryVertexElement>& vVertexElements = vertexLayout.myElements;
+      const GeometryVertexLayout& vertexLayout = geoData->getGeometryVertexLayout();
+      const DynamicArray<GeometryVertexElement>& vVertexElements = vertexLayout.myElements;
       const uint numVertexElements = vVertexElements.size();
       archive.write(reinterpret_cast<const char*>(&numVertexElements), sizeof(uint));
 
       for (uint iVertexElem = 0u; iVertexElem < vVertexElements.size(); ++iVertexElem)
       {
-        const Rendering::GeometryVertexElement& vertexElement = vVertexElements[iVertexElem];
+        const GeometryVertexElement& vertexElement = vVertexElements[iVertexElem];
         const uint semantics = static_cast<uint>(vertexElement.eSemantics);
         archive.write(reinterpret_cast<const char*>(&semantics), sizeof(uint));
         archive.write(reinterpret_cast<const char*>(&vertexElement.u32OffsetBytes), sizeof(uint));
@@ -191,9 +191,9 @@ namespace Fancy {  namespace IO {
 
       // Vertex data
       {
-        const Rendering::GpuBuffer* buffer = geoData->getVertexBuffer();
-        const Rendering::GpuBufferCreationParams& bufferParams = buffer->GetParameters();
-        archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
+        const GpuBuffer* buffer = geoData->getVertexBuffer();
+        const GpuBufferCreationParams& bufferParams = buffer->GetParameters();
+        archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferCreationParams));
         const uint buffersize = buffer->GetSizeBytes();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
         archive.write(reinterpret_cast<const char*>(someVertexDatas[i]), buffer->GetSizeBytes());
@@ -201,9 +201,9 @@ namespace Fancy {  namespace IO {
 
       // Index data
       {
-        const Rendering::GpuBuffer* buffer = geoData->getIndexBuffer();
-        const Rendering::GpuBufferCreationParams& bufferParams = buffer->GetParameters();
-        archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
+        const GpuBuffer* buffer = geoData->getIndexBuffer();
+        const GpuBufferCreationParams& bufferParams = buffer->GetParameters();
+        archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferCreationParams));
         const uint buffersize = buffer->GetSizeBytes();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
         archive.write(reinterpret_cast<const char*>(someIndexDatas[i]), buffer->GetSizeBytes());
@@ -213,7 +213,7 @@ namespace Fancy {  namespace IO {
     return archive.good();
   }
 //---------------------------------------------------------------------------//
-  bool BinaryCache::read(SharedPtr<Geometry::Mesh>& aMesh, uint64 aDescHash, uint aTimeStamp)
+  bool BinaryCache::read(SharedPtr<Mesh>& aMesh, uint64 aDescHash, uint aTimeStamp)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
@@ -233,29 +233,29 @@ namespace Fancy {  namespace IO {
     uint numGeometryDatas;
     archive.read(reinterpret_cast<char*>(&numGeometryDatas), sizeof(uint));
 
-    DynamicArray<Geometry::GeometryData*> vGeoDatas;
+    DynamicArray<GeometryData*> vGeoDatas;
     vGeoDatas.resize(numGeometryDatas);
 
     for (uint i = 0u; i < vGeoDatas.size(); ++i)
     {
-      Geometry::GeometryData* geoData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::Geometry);
+      GeometryData* geoData = FANCY_NEW(GeometryData, MemoryCategory::Geometry);
       vGeoDatas[i] = geoData;
 
-      Rendering::GeometryVertexLayout vertexLayout;
+      GeometryVertexLayout vertexLayout;
       uint numVertexElements;
       archive.read(reinterpret_cast<char*>(&numVertexElements), sizeof(uint));
 
       for (uint iVertexElem = 0u; iVertexElem < numVertexElements; ++iVertexElem)
       {
-        Rendering::GeometryVertexElement elem;
+        GeometryVertexElement elem;
         uint semantics;
         archive.read(reinterpret_cast<char*>(&semantics), sizeof(uint));
-        elem.eSemantics = static_cast<Rendering::VertexSemantics>(semantics);
+        elem.eSemantics = static_cast<VertexSemantics>(semantics);
         archive.read(reinterpret_cast<char*>(&elem.u32OffsetBytes), sizeof(uint));
         archive.read(reinterpret_cast<char*>(&elem.u32SizeBytes), sizeof(uint));
         uint format;
         archive.read(reinterpret_cast<char*>(&format), sizeof(uint));
-        elem.eFormat = static_cast<Rendering::DataFormat>(format);
+        elem.eFormat = static_cast<DataFormat>(format);
         vertexLayout.addVertexElement(elem);
       }
       uint strideBytes;
@@ -265,15 +265,15 @@ namespace Fancy {  namespace IO {
 
       // Vertex data
       {
-        Rendering::GpuBufferCreationParams bufferParams;
-        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
+        GpuBufferCreationParams bufferParams;
+        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(GpuBufferCreationParams));
         uint totalBufferBytes;
         archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint));
 
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         archive.read((char*)(bufferData), totalBufferBytes);
 
-        SharedPtr<Rendering::GpuBuffer> buffer = Rendering::RenderCore::CreateBuffer(bufferParams, bufferData);
+        SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, bufferData);
         geoData->setVertexBuffer(buffer);
 
         FANCY_FREE(bufferData, MemoryCategory::Geometry);
@@ -281,15 +281,15 @@ namespace Fancy {  namespace IO {
 
       // Index data
       {
-        Rendering::GpuBufferCreationParams bufferParams;
-        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(Rendering::GpuBufferCreationParams));
+        GpuBufferCreationParams bufferParams;
+        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(GpuBufferCreationParams));
         uint totalBufferBytes;
         archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint));
 
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         archive.read(static_cast<char*>(bufferData), totalBufferBytes);
 
-        SharedPtr<Rendering::GpuBuffer> buffer = Rendering::RenderCore::CreateBuffer(bufferParams, bufferData);
+        SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, bufferData);
         geoData->setIndexBuffer(buffer);
 
         FANCY_FREE(bufferData, MemoryCategory::Geometry);
@@ -304,4 +304,4 @@ namespace Fancy {  namespace IO {
     return true;
   }
 //---------------------------------------------------------------------------//
-} }
+}

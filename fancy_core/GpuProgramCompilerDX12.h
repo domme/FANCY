@@ -4,7 +4,7 @@
 #include "FileWatcher.h"
 #include "GpuProgramCompiler.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class GpuProgramCompilerDX12 : public GpuProgramCompiler, public FileWatcher
   {
@@ -15,5 +15,5 @@ namespace Fancy { namespace Rendering { namespace DX12 {
       String ResolvePlatformShaderPath(const String& aPath) const override;
   };
 //---------------------------------------------------------------------------//
-} } }
+} 
 

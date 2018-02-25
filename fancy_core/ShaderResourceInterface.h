@@ -1,9 +1,8 @@
 #pragma once
 
-#include "RendererPrerequisites.h"
 #include "ShaderResourceInterfaceDesc.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class ShaderResourceInterface
   {
@@ -18,4 +17,4 @@ namespace Fancy { namespace Rendering {
     ShaderResourceInterfaceDesc myInterfaceDesc;
   };
 //---------------------------------------------------------------------------//
-} }  // Fancy::Rendering
+}

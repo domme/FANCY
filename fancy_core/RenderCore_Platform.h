@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
+//---------------------------------------------------------------------------//
   class RenderOutput;
-  //---------------------------------------------------------------------------//
   class GpuProgramCompiler;
   class CommandContext;
   enum class CommandListType;
@@ -26,5 +26,5 @@ namespace Fancy { namespace Rendering {
     virtual void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext) = 0;
     virtual DataFormat ResolveFormat(DataFormat aFormat) = 0;
   };
-  //---------------------------------------------------------------------------//
-} }
+//---------------------------------------------------------------------------//
+}

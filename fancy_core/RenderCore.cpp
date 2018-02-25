@@ -21,18 +21,19 @@
 #include "TextureDesc.h"
 #include "RenderOutput.h"
 #include "CommandContext.h"
+#include "RenderingStartupParameters.h"
 
 //---------------------------------------------------------------------------//
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   std::unique_ptr<RenderCore_Platform> RenderCore::ourPlatformImpl;
 
   std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
   std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
   std::map<uint64, SharedPtr<Texture>> RenderCore::ourTextureCache;
-  std::map<uint64, SharedPtr<Geometry::Mesh>> RenderCore::ourMeshCache;
-  std::map<uint64, SharedPtr<Rendering::BlendState>> RenderCore::ourBlendStateCache;
-  std::map<uint64, SharedPtr<Rendering::DepthStencilState>> RenderCore::ourDepthStencilStateCache;
+  std::map<uint64, SharedPtr<Mesh>> RenderCore::ourMeshCache;
+  std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
+  std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
 
   std::vector<std::unique_ptr<CommandContext>> RenderCore::ourRenderContextPool;
   std::vector<std::unique_ptr<CommandContext>> RenderCore::ourComputeContextPool;
@@ -88,9 +89,9 @@ namespace Fancy { namespace Rendering {
     Shutdown_2_Platform();
   }
 //---------------------------------------------------------------------------//
-  DX12::RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
+  RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
   {
-    return static_cast<DX12::RenderCore_PlatformDX12*>(ourPlatformImpl.get());
+    return static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get());
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
@@ -100,7 +101,7 @@ namespace Fancy { namespace Rendering {
     switch (aRenderingApi)
     {
       case RenderingApi::DX12:
-        ourPlatformImpl = std::make_unique<DX12::RenderCore_PlatformDX12>();
+        ourPlatformImpl = std::make_unique<RenderCore_PlatformDX12>();
         break;
       case RenderingApi::VULKAN: break;
       default:;
@@ -288,7 +289,7 @@ namespace Fancy { namespace Rendering {
       ourShaderCache.insert(std::make_pair(hash, program));
 
       const String actualShaderPath =
-        IO::Resources::FindPath(ourShaderCompiler->ResolvePlatformShaderPath(aDesc.myShaderFileName));
+        Resources::FindPath(ourShaderCompiler->ResolvePlatformShaderPath(aDesc.myShaderFileName));
 
       ourShaderFileWatcher->AddFileWatch(actualShaderPath);
 
@@ -353,26 +354,26 @@ namespace Fancy { namespace Rendering {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<BlendState> RenderCore::CreateBlendState(const Rendering::BlendStateDesc& aDesc)
+  SharedPtr<BlendState> RenderCore::CreateBlendState(const BlendStateDesc& aDesc)
   {
     auto it = ourBlendStateCache.find(aDesc.GetHash());
     if (it != ourBlendStateCache.end())
       return it->second;
 
-    SharedPtr<BlendState> blendState(FANCY_NEW(Rendering::BlendState, MemoryCategory::GENERAL));
+    SharedPtr<BlendState> blendState(FANCY_NEW(BlendState, MemoryCategory::GENERAL));
     blendState->SetFromDescription(aDesc);
 
     ourBlendStateCache.insert(std::make_pair(aDesc.GetHash(), blendState));
     return blendState;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Rendering::DepthStencilState> RenderCore::CreateDepthStencilState(const Rendering::DepthStencilStateDesc& aDesc)
+  SharedPtr<DepthStencilState> RenderCore::CreateDepthStencilState(const DepthStencilStateDesc& aDesc)
   {
     auto it = ourDepthStencilStateCache.find(aDesc.GetHash());
     if (it != ourDepthStencilStateCache.end())
       return it->second;
 
-    SharedPtr<Rendering::DepthStencilState> depthStencilState(FANCY_NEW(Rendering::DepthStencilState, MemoryCategory::GENERAL));
+    SharedPtr<DepthStencilState> depthStencilState(FANCY_NEW(DepthStencilState, MemoryCategory::GENERAL));
     depthStencilState->SetFromDescription(aDesc);
 
     ourDepthStencilStateCache.insert(std::make_pair(aDesc.GetHash(), depthStencilState));
@@ -394,14 +395,14 @@ namespace Fancy { namespace Rendering {
     return ourPlatformImpl.get();
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Geometry::Mesh> RenderCore::GetMesh(uint64 aVertexIndexHash)
+  SharedPtr<Mesh> RenderCore::GetMesh(uint64 aVertexIndexHash)
   {
     auto it = ourMeshCache.find(aVertexIndexHash);
     if (it != ourMeshCache.end())
       return it->second;
 
-    SharedPtr<Geometry::Mesh> mesh(FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY));
-    if (IO::BinaryCache::read(mesh, aVertexIndexHash, 0u))
+    SharedPtr<Mesh> mesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
+    if (BinaryCache::read(mesh, aVertexIndexHash, 0u))
     {
       ourMeshCache.insert(std::make_pair(aVertexIndexHash, mesh));
       return mesh;
@@ -410,35 +411,35 @@ namespace Fancy { namespace Rendering {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Geometry::Mesh> RenderCore::CreateMesh(const Geometry::MeshDesc& aDesc,
+  SharedPtr<Mesh> RenderCore::CreateMesh(const MeshDesc& aDesc,
     const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
     const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices)
   {
-    SharedPtr<Geometry::Mesh> mesh = GetMesh(aDesc.myVertexAndIndexHash);
+    SharedPtr<Mesh> mesh = GetMesh(aDesc.myVertexAndIndexHash);
     if (mesh != nullptr)
       return mesh;
 
     const uint numSubMeshes = (uint) aDesc.myVertexLayouts.size();
     ASSERT(numSubMeshes == someVertexDatas.size() && numSubMeshes == someIndexDatas.size());
 
-    DynamicArray<Geometry::GeometryData*> vGeometryDatas;
+    DynamicArray<GeometryData*> vGeometryDatas;
 
     for (uint iSubMesh = 0u; iSubMesh < numSubMeshes; ++iSubMesh)
     {
-      Geometry::GeometryData* pGeometryData = FANCY_NEW(Geometry::GeometryData, MemoryCategory::GEOMETRY);
+      GeometryData* pGeometryData = FANCY_NEW(GeometryData, MemoryCategory::GEOMETRY);
 
-      const Rendering::GeometryVertexLayout& vertexLayout = aDesc.myVertexLayouts[iSubMesh];
+      const GeometryVertexLayout& vertexLayout = aDesc.myVertexLayouts[iSubMesh];
 
       // Construct the vertex buffer
       void* ptrToVertexData = someVertexDatas[iSubMesh];
       uint numVertices = someNumVertices[iSubMesh];
 
-      SharedPtr<Rendering::GpuBuffer> vertexBuffer(ourPlatformImpl->CreateGpuBuffer());
+      SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
-      Rendering::GpuBufferCreationParams bufferParams;
+      GpuBufferCreationParams bufferParams;
       bufferParams.bIsMultiBuffered = false;
-      bufferParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::VERTEX_BUFFER);
-      bufferParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
+      bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
+      bufferParams.uAccessFlags = static_cast<uint>(GpuResourceAccessFlags::NONE);
       bufferParams.uNumElements = numVertices;
       bufferParams.uElementSizeBytes = vertexLayout.myStride;
 
@@ -450,12 +451,12 @@ namespace Fancy { namespace Rendering {
       void* ptrToIndexData = someIndexDatas[iSubMesh];
       uint numIndices = someNumIndices[iSubMesh];
 
-      SharedPtr<Rendering::GpuBuffer> indexBuffer(ourPlatformImpl->CreateGpuBuffer());
+      SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
-      Rendering::GpuBufferCreationParams indexBufParams;
+      GpuBufferCreationParams indexBufParams;
       indexBufParams.bIsMultiBuffered = false;
-      indexBufParams.myUsageFlags = static_cast<uint>(Rendering::GpuBufferUsage::INDEX_BUFFER);
-      indexBufParams.uAccessFlags = static_cast<uint>(Rendering::GpuResourceAccessFlags::NONE);
+      indexBufParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
+      indexBufParams.uAccessFlags = static_cast<uint>(GpuResourceAccessFlags::NONE);
       indexBufParams.uNumElements = numIndices;
       indexBufParams.uElementSizeBytes = sizeof(uint);
 
@@ -465,12 +466,12 @@ namespace Fancy { namespace Rendering {
       vGeometryDatas.push_back(pGeometryData);
     }
 
-    mesh = SharedPtr<Geometry::Mesh>(FANCY_NEW(Geometry::Mesh, MemoryCategory::GEOMETRY));
+    mesh = SharedPtr<Mesh>(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
     mesh->setGeometryDataList(vGeometryDatas);
     mesh->SetVertexIndexHash(aDesc.myVertexAndIndexHash);
 
     ourMeshCache.insert(std::make_pair(aDesc.myVertexAndIndexHash, mesh));
-    IO::BinaryCache::write(mesh, someVertexDatas, someIndexDatas);
+    BinaryCache::write(mesh, someVertexDatas, someIndexDatas);
 
     return mesh;
   }
@@ -486,10 +487,10 @@ namespace Fancy { namespace Rendering {
     {
       String texPathAbs = aTextureDesc.mySourcePath;
       String texPathRel = aTextureDesc.mySourcePath;
-      if (!IO::Path::IsPathAbsolute(texPathAbs))
-        texPathAbs = IO::Resources::FindPath(texPathAbs);
+      if (!Path::IsPathAbsolute(texPathAbs))
+        texPathAbs = Resources::FindPath(texPathAbs);
       else
-        texPathRel = IO::Resources::FindName(texPathAbs);
+        texPathRel = Resources::FindName(texPathAbs);
 
       desc.mySourcePath = texPathAbs;
     }
@@ -509,10 +510,10 @@ namespace Fancy { namespace Rendering {
   {
     String texPathAbs = aTexturePath;
     String texPathRel = aTexturePath;
-    if (!IO::Path::IsPathAbsolute(aTexturePath))
-      texPathAbs = IO::Resources::FindPath(texPathAbs);
+    if (!Path::IsPathAbsolute(aTexturePath))
+      texPathAbs = Resources::FindPath(texPathAbs);
     else
-      texPathRel = IO::Resources::FindName(texPathAbs);
+      texPathRel = Resources::FindName(texPathAbs);
 
     TextureDesc desc;
     desc.mySourcePath = texPathAbs;
@@ -524,8 +525,8 @@ namespace Fancy { namespace Rendering {
       return it->second;
 
     std::vector<uint8> textureBytes;
-    IO::TextureLoadInfo textureInfo;
-    if (!IO::TextureLoader::loadTexture(texPathAbs, textureBytes, textureInfo))
+    TextureLoadInfo textureInfo;
+    if (!TextureLoader::loadTexture(texPathAbs, textureBytes, textureInfo))
     {
       LOG_ERROR("Failed to load texture at path %", texPathAbs);
       return nullptr;
@@ -564,7 +565,7 @@ namespace Fancy { namespace Rendering {
       return nullptr;
     }
 
-    IO::BinaryCache::write(texture, uploadData);
+    BinaryCache::write(texture, uploadData);
     ourTextureCache.insert(std::make_pair(hash, texture));
 
     return texture;
@@ -671,7 +672,7 @@ namespace Fancy { namespace Rendering {
 
       const GpuProgramDesc& desc = program->GetDescription();
       String actualShaderPath =
-        IO::Resources::FindPath(ourShaderCompiler->ResolvePlatformShaderPath(desc.myShaderFileName));
+        Resources::FindPath(ourShaderCompiler->ResolvePlatformShaderPath(desc.myShaderFileName));
 
       if (actualShaderPath == aShaderFile)
         programsToRecompile.push_back(program);
@@ -709,5 +710,5 @@ namespace Fancy { namespace Rendering {
   {
   }
 //---------------------------------------------------------------------------//
-} }
+}
 

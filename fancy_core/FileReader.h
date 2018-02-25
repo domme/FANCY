@@ -1,11 +1,9 @@
-#ifndef INCLUDE_FILEREADER_H
-#define INCLUDE_FILEREADER_H
+#pragma once
 
 #include "FancyCorePrerequisites.h"
-
 #include <list>
 
-namespace Fancy { namespace IO {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace FileReader
   {
@@ -14,6 +12,4 @@ namespace Fancy { namespace IO {
     void ReadTextFileLines( const std::string& aPathAbs, std::list<std::string>& someLinesOut);
   };
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::IO 
-
-#endif  // INCLUDE_FILEREADER_H
+}

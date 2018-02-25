@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class RenderContext;
   class MaterialPassInstance;
@@ -68,4 +68,4 @@ namespace Fancy { namespace Rendering {
     uint64 myHash;
   };
 //---------------------------------------------------------------------------//
-} }  // Fancy::Rendering
+}

@@ -3,18 +3,13 @@
 #include "FancyCorePrerequisites.h"
 #include "TimeManager.h"
 
-namespace Fancy { namespace Rendering {
-  class RenderingProcess;
-  class RenderOutput;
-} }
-
-namespace Fancy {
+namespace Fancy {   
+//---------------------------------------------------------------------------//
   class Window;
   class Time;
   struct RenderingStartupParameters;
-}
-
-namespace Fancy {   
+  class RenderingProcess;
+  class RenderOutput;
 //---------------------------------------------------------------------------//
   class FancyRuntime
   {
@@ -31,7 +26,7 @@ namespace Fancy {
 
     Time& GetRealTimeClock() { return myRealTimeClock; }
     uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
-    Rendering::RenderOutput* GetRenderOutput() { return myRenderOutput.get(); }
+    RenderOutput* GetRenderOutput() const { return myRenderOutput.get(); }
     
   private:
     explicit FancyRuntime(HINSTANCE anAppInstanceHandle);
@@ -44,7 +39,7 @@ namespace Fancy {
     HINSTANCE myAppInstanceHandle;
     uint64 myFrameIndex;
     Time myRealTimeClock;
-    SharedPtr<Rendering::RenderOutput> myRenderOutput;
+    SharedPtr<RenderOutput> myRenderOutput;
   };
 //---------------------------------------------------------------------------//
 } // end of namespace Fancy

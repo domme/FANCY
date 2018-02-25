@@ -4,7 +4,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   FenceDX12::FenceDX12()
     : myGpuFence(nullptr)
@@ -71,4 +71,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   
   }
 //---------------------------------------------------------------------------//
-} } }
+}

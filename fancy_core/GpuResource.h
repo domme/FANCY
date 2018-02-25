@@ -4,7 +4,7 @@
 #include "Descriptor.h"
 #include "GpuResourceStorage.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class GpuResourceCategory
   {
@@ -30,4 +30,4 @@ namespace Fancy { namespace Rendering {
     UniquePtr<GpuResourceStorage> myStorage;
   };
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}

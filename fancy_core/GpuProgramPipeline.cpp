@@ -6,7 +6,7 @@
 #include "GpuProgramPipeline.h"
 #include "GpuProgram.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuProgramPipeline::GpuProgramPipeline()
     : myShaderByteCodeHash(0u)
@@ -64,4 +64,4 @@ namespace Fancy { namespace Rendering {
     }
   }
 //---------------------------------------------------------------------------//
-} }
+}

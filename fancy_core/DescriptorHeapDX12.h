@@ -4,7 +4,7 @@
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 
-namespace Fancy {namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class DescriptorHeapDX12
   {
@@ -37,4 +37,4 @@ namespace Fancy {namespace Rendering { namespace DX12 {
     D3D12_GPU_DESCRIPTOR_HANDLE myGpuHeapStart;
   };
 //---------------------------------------------------------------------------//
-} } }
+}

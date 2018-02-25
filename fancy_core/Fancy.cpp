@@ -20,7 +20,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   FancyRuntime::~FancyRuntime()
   {
-    Rendering::RenderCore::Shutdown();
+    RenderCore::Shutdown();
   }
 //---------------------------------------------------------------------------//
   FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams)
@@ -30,18 +30,18 @@ namespace Fancy {
       return ourInstance;
 
     // Init IO-subsystem
-    IO::Resources::InitResourceFolders();
+    Resources::InitResourceFolders();
 
     ourInstance = new FancyRuntime(anAppInstanceHandle);
 
     // Init rendering subsystem
-    if (!Rendering::RenderCore::IsInitialized())
-      Rendering::RenderCore::Init(someParams.myRenderingApi);
+    if (!RenderCore::IsInitialized())
+      RenderCore::Init(someParams.myRenderingApi);
 
-    ASSERT(Rendering::RenderCore::IsInitialized());
+    ASSERT(RenderCore::IsInitialized());
 
     // Create the output
-    ourInstance->myRenderOutput = Rendering::RenderCore::CreateRenderOutput(anAppInstanceHandle);
+    ourInstance->myRenderOutput = RenderCore::CreateRenderOutput(anAppInstanceHandle);
     
     return ourInstance;
   }

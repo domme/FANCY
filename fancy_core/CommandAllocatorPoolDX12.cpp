@@ -3,7 +3,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//  
   CommandAllocatorPoolDX12::CommandAllocatorPoolDX12(CommandListType aType)
     : myCommandListType(aType)
@@ -60,4 +60,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     myReleasedWaitingAllocators.push_back(std::make_pair(anAllocatorDoneFenceVal, anAllocator));
   }
 //---------------------------------------------------------------------------//
-} } }
+}

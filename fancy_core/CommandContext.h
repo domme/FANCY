@@ -4,7 +4,7 @@
 #include "CommandListType.h"
 #include "Descriptor.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class Descriptor;
   class GpuResource;  
@@ -53,9 +53,9 @@ namespace Fancy { namespace Rendering {
     virtual void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) = 0;
     virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex) const = 0;
     virtual void BindDescriptorSet(const Descriptor** someDescriptors, uint aResourceCount, uint aRegisterIndex) = 0;
-    virtual void SetVertexIndexBuffers(const Rendering::GpuBuffer* aVertexBuffer, const Rendering::GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) = 0;
+    virtual void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) = 0;
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) = 0;
-    virtual void RenderGeometry(const Geometry::GeometryData* pGeometry) = 0;
+    virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
     virtual void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) = 0;
     
     virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
@@ -95,9 +95,9 @@ namespace Fancy { namespace Rendering {
     glm::uvec4 myClipRect;
     bool myViewportDirty;
     bool myClipRectDirty;
-    Texture* myRenderTargets[Rendering::Constants::kMaxNumRenderTargets];
+    Texture* myRenderTargets[Constants::kMaxNumRenderTargets];
     Texture* myDepthStencilTarget;
     bool myRenderTargetsDirty;
   };
 //---------------------------------------------------------------------------//
-} }
+}

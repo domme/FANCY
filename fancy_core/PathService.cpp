@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <Windows.h>
 
-namespace Fancy { namespace IO {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Path
   {
@@ -260,4 +260,4 @@ namespace Fancy { namespace IO {
     }
 //---------------------------------------------------------------------------//
   }
-} }  // end of namespace Fancy::IO
+}

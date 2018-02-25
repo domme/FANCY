@@ -1,7 +1,7 @@
 #include "FancyCorePrerequisites.h"
 #include "DataFormat.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   DataFormatInfo::DataFormatInfo(DataFormat aFormat)
   {
@@ -58,4 +58,4 @@ namespace Fancy { namespace Rendering {
     return locOurDataFormats[static_cast<uint>(aFormat)];
   }
 //---------------------------------------------------------------------------//
-} }
+}

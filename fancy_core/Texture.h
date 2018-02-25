@@ -5,7 +5,7 @@
 #include "GpuResource.h"
 #include "TextureDesc.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   struct TextureInfos {
     TextureInfos() : isSRGB(0), isLocked(0), isArrayTexture(0), isCubemap(0),
@@ -39,4 +39,4 @@ namespace Fancy { namespace Rendering {
     TextureInfos myState;
   };
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Rendering
+}

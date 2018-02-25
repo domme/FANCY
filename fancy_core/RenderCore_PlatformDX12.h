@@ -12,15 +12,10 @@
 #include <queue>
 
 namespace Fancy {
+//---------------------------------------------------------------------------//
   class Window;
-}
-
-namespace Fancy { namespace Rendering {
   class ShaderResourceInterface;
   class GeometryVertexLayout;
-} }
-
-namespace Fancy { namespace Rendering { namespace DX12 {
 //---------------------------------------------------------------------------//  
   class RenderCore_PlatformDX12 : public RenderCore_Platform
   {
@@ -43,7 +38,7 @@ namespace Fancy { namespace Rendering { namespace DX12 {
 
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
 
-    Rendering::ShaderResourceInterface*
+    ShaderResourceInterface*
       GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS = nullptr) const;
 
     void WaitForFence(CommandListType aType);
@@ -93,4 +88,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     DescriptorHeapDX12 ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
   };
 //---------------------------------------------------------------------------//
-} } }
+}

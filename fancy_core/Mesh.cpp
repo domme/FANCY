@@ -1,7 +1,7 @@
 #include "Mesh.h"
 #include "GeometryData.h"
 
-namespace Fancy { namespace Geometry {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   Mesh::Mesh() : myVertexAndIndexHash(0u)
   {
@@ -33,4 +33,4 @@ namespace Fancy { namespace Geometry {
     return myVertexAndIndexHash == aDesc.myVertexAndIndexHash;
   }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Geometry
+}

@@ -3,7 +3,7 @@
 #include "FancyCorePrerequisites.h"
 #include "TextureSamplerDesc.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class TextureSampler
   {
@@ -28,4 +28,4 @@ namespace Fancy { namespace Rendering {
     virtual bool IsCreated() = 0;
   };
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Rendering
+}

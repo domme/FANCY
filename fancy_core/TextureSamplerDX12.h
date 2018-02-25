@@ -3,7 +3,7 @@
 #include "TextureSampler.h"
 #include "DescriptorDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class TextureSamplerDX12 : public TextureSampler
   {
@@ -18,5 +18,5 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     bool IsCreated() override;
   };
 //---------------------------------------------------------------------------//
-} } }
+}
 

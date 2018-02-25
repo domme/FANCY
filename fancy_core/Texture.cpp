@@ -1,6 +1,6 @@
 #include "Texture.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   Texture::Texture()
     : GpuResource(GpuResourceCategory::TEXTURE)
@@ -34,4 +34,4 @@ namespace Fancy { namespace Rendering {
     myParameters.path = aDesc.mySourcePath;
   }
 //---------------------------------------------------------------------------//
-} }
+}

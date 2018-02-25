@@ -2,7 +2,7 @@
 #include "DescriptorDX12.h"
 #include "Texture.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   class TextureDX12 : public Texture
   {
@@ -34,4 +34,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
   };
 
 //---------------------------------------------------------------------------//
-} } }
+}

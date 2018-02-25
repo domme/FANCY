@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   enum DataFormat {
     NONE = 0,
@@ -85,4 +85,4 @@ namespace Fancy { namespace Rendering {
     static const DataFormatInfo& GetFormatInfo(DataFormat aFormat);
   };
 //---------------------------------------------------------------------------//
-} }  // Fancy::Rendering
+}

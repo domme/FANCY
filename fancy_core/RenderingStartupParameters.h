@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class RenderingApi
   {
@@ -8,7 +8,7 @@ namespace Fancy { namespace Rendering {
     VULKAN,
   };
 //---------------------------------------------------------------------------//
-} }
+}
 
 namespace Fancy {
 //---------------------------------------------------------------------------//  
@@ -24,11 +24,11 @@ namespace Fancy {
   {
     RenderingStartupParameters()
       : myRenderingTechnique(RenderingTechnique::FORWARD)
-      , myRenderingApi(Rendering::RenderingApi::DX12)
+      , myRenderingApi(RenderingApi::DX12)
     { }
 
     RenderingTechnique myRenderingTechnique;
-    Rendering::RenderingApi myRenderingApi;
+    RenderingApi myRenderingApi;
   };
 //---------------------------------------------------------------------------//
 }

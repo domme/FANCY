@@ -6,7 +6,7 @@
 #include "AdapterDX12.h"
 #include "GpuResourceStorageDX12.h"
 
-namespace Fancy { namespace Rendering { namespace DX12 {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBufferDX12::GpuBufferDX12()
   {
@@ -310,4 +310,4 @@ namespace Fancy { namespace Rendering { namespace DX12 {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-} } }
+}

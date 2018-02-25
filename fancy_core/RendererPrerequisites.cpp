@@ -2,8 +2,7 @@
 #include "Fancy.h"
 #include "RenderCore.h"
 
-namespace Fancy { namespace Rendering {
-//---------------------------------------------------------------------------//
+namespace Fancy {
 //---------------------------------------------------------------------------//
   uint MultiBuffering::getCurrentBufferIndex()
   {
@@ -28,4 +27,4 @@ TextureUploadData::TextureUploadData(const TextureParams& someParams)
   myRowSizeBytes = myPixelSizeBytes * width;
 }
 //---------------------------------------------------------------------------//
-} }  // end of namespace Fancy::Rendering
+}

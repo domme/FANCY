@@ -7,7 +7,7 @@
 #include "VertexInputLayout.h"
 #include "GpuProgramResource.h"
 
-namespace Fancy { namespace Rendering {
+namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GpuProgramCompilerOutput;
   class ShaderResourceInterface;
@@ -39,4 +39,4 @@ namespace Fancy { namespace Rendering {
     ShaderResourceInterface* myResourceInterface;
   };
 //---------------------------------------------------------------------------//
-} } // end of namespace Fancy::Rendering
+}
