@@ -1,11 +1,16 @@
 #pragma once
 #include <fancy_core/FancyCorePrerequisites.h>
+#include "MaterialDesc.h"
+#include <fancy_core/Callback.h>
+#include "Model.h"
+#include "ModelDesc.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class Model;
+  class Mesh;
+  class Material;
 //---------------------------------------------------------------------------//
-  namespace ModelLoader 
+  namespace ModelLoader
   {
     enum ImportOptions
     {
@@ -20,6 +25,7 @@ namespace Fancy {
 
     struct LoadResult
     {
+      DynamicArray<glm::mat4> myTransforms;
       DynamicArray<SharedPtr<Model>> myModels;
     };
 

@@ -9,40 +9,41 @@ namespace Fancy {
   class Material
   {
   public:
-    enum class ParameterSemantic
+    
+    struct Tex
     {
-      DIFFUSE_REFLECTIVITY = 0,
-      SPECULAR_REFLECTIVITY,
-      SPECULAR_POWER,
-      OPACITY,
+      enum Semantic
+      {
+        BASE_COLOR = 0,
+        NORMAL,
+        MATERIAL,
 
-      NUM
-    };
-  
-    enum class TextureSemantic
-    {
-      BASE_COLOR = 0,
-      NORMAL,
-      MATERIAL,
+        NUM,
+        NONE = ~0
+      };
 
-      NUM,
-      NONE = ~0
-    };
-
-    struct MaterialTexture
-    {
-      TextureSemantic mySemantic;
+      Semantic mySemantic;
       SharedPtr<Texture> myTexture;
     };
   
-    struct MaterialParameter
+    struct Param
     {
-      ParameterSemantic mySemantic;
+      enum Semantic
+      {
+        DIFFUSE_REFLECTIVITY = 0,
+        SPECULAR_REFLECTIVITY,
+        SPECULAR_POWER,
+        OPACITY,
+
+        NUM
+      };
+
+      Semantic mySemantic;
       float myValue;
     };
 
-    DynamicArray<MaterialParameter> myParameters;
-    DynamicArray<MaterialTexture> myTextures;
+    DynamicArray<Param> myParameters;
+    DynamicArray<Tex> myTextures;
   };
 //---------------------------------------------------------------------------//
 }

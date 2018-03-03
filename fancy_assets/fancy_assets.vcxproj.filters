@@ -9,10 +9,13 @@
     <ClInclude Include="lodepng\lodepng.h">
       <Filter>lodepng</Filter>
     </ClInclude>
-    <ClInclude Include="SubModel.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelLoader.h" />
+    <ClInclude Include="SceneImporter.h" />
+    <ClInclude Include="TextureLoader.h" />
+    <ClInclude Include="MaterialDesc.h" />
+    <ClInclude Include="ModelDesc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lodepng\lodepng.cpp">
@@ -20,7 +23,10 @@
     </ClCompile>
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Model.cpp" />
-    <ClCompile Include="SubModel.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
+    <ClCompile Include="SceneImporter.cpp" />
+    <ClCompile Include="TextureLoader.cpp" />
+    <ClCompile Include="MaterialDesc.cpp" />
+    <ClCompile Include="ModelDesc.cpp" />
   </ItemGroup>
 </Project>

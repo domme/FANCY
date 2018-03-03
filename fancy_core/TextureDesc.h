@@ -6,7 +6,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//  
   struct TextureDesc
   {
-    TextureDesc() : myIsExternalTexture(false), myInternalRefIndex(~0u) {}
+    TextureDesc() 
+      : myIsExternalTexture(true)
+      , mySourcePath("")
+      , myInternalRefIndex(~0u)
+    {}
     
     bool operator==(const TextureDesc& anOther) const 
     {
@@ -16,7 +20,7 @@ namespace Fancy {
     }
 
     uint64 GetHash() const;
-    bool IsEmpty() const { return mySourcePath.empty() && (myIsExternalTexture || myInternalRefIndex == ~0u); }
+    bool IsValid() const { myIsExternalTexture ? !mySourcePath.empty() : myInternalRefIndex != ~0u; }
 
     bool myIsExternalTexture;
     String mySourcePath; // The path to the original texture file (before caching - e.g. textures/barrel.jpg). Only valid for external textures

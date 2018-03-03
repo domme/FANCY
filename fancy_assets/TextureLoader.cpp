@@ -37,7 +37,13 @@ namespace Fancy {
 
     return true;
   }
-//---------------------------------------------------------------------------//
+
+  SharedPtr<Texture> TextureLoader::CreateTexture(const TextureDesc& aDesc)
+  {
+
+  }
+
+  //---------------------------------------------------------------------------//
   bool TextureLoader::loadTexture(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
   {
     const String& extension = Path::GetFileExtension(_szPathAbs);
