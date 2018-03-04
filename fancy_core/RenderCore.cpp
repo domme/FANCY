@@ -29,7 +29,7 @@ namespace Fancy {
 
   std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
   std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
-  std::map<uint64, SharedPtr<Texture>> RenderCore::ourTextureCache;
+  std::map<uint64, SharedPtr<Texture>> RenderCore::ourInternalTextures;
   std::map<uint64, SharedPtr<Mesh>> RenderCore::ourMeshCache;
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
   std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
@@ -206,9 +206,9 @@ namespace Fancy {
       ourDefaultNormalTexture = CreateTexture(params, &data, 1);
     }
 
-    ourTextureCache.insert(std::make_pair(ourDefaultDiffuseTexture->GetDescription().GetHash(), ourDefaultDiffuseTexture));
-    ourTextureCache.insert(std::make_pair(ourDefaultSpecularTexture->GetDescription().GetHash(), ourDefaultSpecularTexture));
-    ourTextureCache.insert(std::make_pair(ourDefaultNormalTexture->GetDescription().GetHash(), ourDefaultNormalTexture));
+    ourInternalTextures.insert(std::make_pair(ourDefaultDiffuseTexture->GetDescription().GetHash(), ourDefaultDiffuseTexture));
+    ourInternalTextures.insert(std::make_pair(ourDefaultSpecularTexture->GetDescription().GetHash(), ourDefaultSpecularTexture));
+    ourInternalTextures.insert(std::make_pair(ourDefaultNormalTexture->GetDescription().GetHash(), ourDefaultNormalTexture));
 
     ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
     ASSERT(ourDefaultDepthStencilState != nullptr);
@@ -244,8 +244,8 @@ namespace Fancy {
     CHECK_UNIQUE_PTRS(ourShaderCache,  "Shader");
     ourShaderCache.clear();
 
-    CHECK_UNIQUE_PTRS(ourTextureCache, "Texture");
-    ourTextureCache.clear();
+    CHECK_UNIQUE_PTRS(ourInternalTextures, "Texture");
+    ourInternalTextures.clear();
 
     CHECK_UNIQUE_PTRS(ourMeshCache, "Mesh");
     ourMeshCache.clear();
@@ -328,11 +328,11 @@ namespace Fancy {
     return ourPlatformImpl->ResolveFormat(aFormat);
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> RenderCore::GetTexture(uint64 aDescHash)
+  Texture* RenderCore::GetTexture(uint64 aDescHash)
   {
-    auto it = ourTextureCache.find(aDescHash);
-    if (it != ourTextureCache.end())
-      return it->second;
+    auto it = ourInternalTextures.find(aDescHash);
+    if (it != ourInternalTextures.end())
+      return it->second.get();
 
     return nullptr;
   }
@@ -396,7 +396,7 @@ namespace Fancy {
     return ourPlatformImpl.get();
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> RenderCore::GetMesh(uint64 aVertexIndexHash)
+  Mesh* RenderCore::GetMesh(uint64 aVertexIndexHash)
   {
     auto it = ourMeshCache.find(aVertexIndexHash);
     if (it != ourMeshCache.end())
@@ -477,107 +477,12 @@ namespace Fancy {
     return mesh;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> RenderCore::CreateTexture(const TextureDesc& aTextureDesc)
+  UniquePtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint aNumUploadDatas)
   {
-    if (aTextureDesc.IsEmpty())
-      return nullptr;
-
-    TextureDesc desc = aTextureDesc;
-
-    if (aTextureDesc.myIsExternalTexture)
-    {
-      String texPathAbs = aTextureDesc.mySourcePath;
-      String texPathRel = aTextureDesc.mySourcePath;
-      if (!Path::IsPathAbsolute(texPathAbs))
-        texPathAbs = Resources::FindPath(texPathAbs);
-      else
-        texPathRel = Resources::FindName(texPathAbs);
-
-      desc.mySourcePath = texPathAbs;
-    }
-
-    auto it = ourTextureCache.find(desc.GetHash());
-    if (it != ourTextureCache.end())
-      return it->second;
-
-    ASSERT(aTextureDesc.myIsExternalTexture,
-      "Couldn't find internal texture with refIndex %",
-      aTextureDesc.myInternalRefIndex);
-
-    return CreateTexture(desc.mySourcePath);
-  }
-//---------------------------------------------------------------------------//
-  SharedPtr<Texture> RenderCore::CreateTexture(const String& aTexturePath)
-  {
-    String texPathAbs = aTexturePath;
-    String texPathRel = aTexturePath;
-    if (!Path::IsPathAbsolute(aTexturePath))
-      texPathAbs = Resources::FindPath(texPathAbs);
-    else
-      texPathRel = Resources::FindName(texPathAbs);
-
-    TextureDesc desc;
-    desc.mySourcePath = texPathAbs;
-    desc.myIsExternalTexture = true;
-    uint64 hash = desc.GetHash();
-
-    auto it = ourTextureCache.find(hash);
-    if (it != ourTextureCache.end())
-      return it->second;
-
-    std::vector<uint8> textureBytes;
-    TextureLoadInfo textureInfo;
-    if (!TextureLoader::loadTexture(texPathAbs, textureBytes, textureInfo))
-    {
-      LOG_ERROR("Failed to load texture at path %", texPathAbs);
-      return nullptr;
-    }
-
-    if (textureInfo.bitsPerPixel / textureInfo.numChannels != 8u)
-    {
-      LOG_ERROR("Unsupported texture format: %", texPathAbs);
-      return nullptr;
-    }
-
-    SharedPtr<Texture> texture(ourPlatformImpl->CreateTexture());
-
-    TextureParams texParams;
-    texParams.myIsExternalTexture = true;
-    texParams.path = texPathRel;
-    texParams.bIsDepthStencil = false;
-    texParams.eFormat = textureInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
-    texParams.u16Width = textureInfo.width;
-    texParams.u16Height = textureInfo.height;
-    texParams.u16Depth = 0u;
-    texParams.uAccessFlags = (uint)GpuResourceAccessFlags::NONE;
-
-    TextureUploadData uploadData;
-    uploadData.myData = &textureBytes[0];
-    uploadData.myPixelSizeBytes = textureInfo.bitsPerPixel / 8u;
-    uploadData.myRowSizeBytes = textureInfo.width * uploadData.myPixelSizeBytes;
-    uploadData.mySliceSizeBytes = textureInfo.width * textureInfo.height * uploadData.myPixelSizeBytes;
-    uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
-
-    texture->Create(texParams, &uploadData, 1u);
-
-    if (!texture->IsValid())
-    {
-      LOG_ERROR("Failed to upload pixel data of texture %", texPathAbs);
-      return nullptr;
-    }
-
-    BinaryCache::write(texture, uploadData);
-    ourTextureCache.insert(std::make_pair(hash, texture));
-
-    return texture;
-  }
-//---------------------------------------------------------------------------//
-  SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint aNumUploadDatas)
-  {
-    SharedPtr<Texture> texture(ourPlatformImpl->CreateTexture());
+    UniquePtr<Texture> texture(ourPlatformImpl->CreateTexture());
     texture->Create(someParams, someUploadDatas, aNumUploadDatas);
 
-    return texture->IsValid() ? texture : nullptr;
+    return texture->IsValid() ? std::move(texture) : nullptr;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData /* = nullptr */)

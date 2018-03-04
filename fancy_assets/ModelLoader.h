@@ -26,7 +26,7 @@ namespace Fancy {
     struct LoadResult
     {
       DynamicArray<glm::mat4> myTransforms;
-      DynamicArray<SharedPtr<Model>> myModels;
+      DynamicArray<Model*> myModels;
     };
 
     bool LoadFromFile(const char* aPath, LoadResult& aResultOut, ImportOptions someImportOptions = ALL);

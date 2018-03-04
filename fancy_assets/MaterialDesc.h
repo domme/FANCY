@@ -2,25 +2,20 @@
 
 #include <fancy_core/FancyCorePrerequisites.h>
 #include <fancy_core/TextureDesc.h>
+#include "MaterialSemantics.h"
 
 namespace Fancy
 {
   struct MaterialDesc
   {
-    struct TexDesc
-    {
-      uint mySemantic;
-      TextureDesc myTexture;
-    };
+    uint64 GetHash() const;
+    bool operator==(const MaterialDesc& anOther) const;
 
-    struct ParamDesc
-    {
-      uint mySemantic;
-      float myValue;
-    };
-        
-    DynamicArray<TexDesc> myTextures;
-    DynamicArray<ParamDesc> myParams;
+    FixedArray<TextureDesc, (uint)TextureSemantic::NUM> mySemanticTextures;
+    DynamicArray<TextureDesc> myExtraTextures;
+
+    FixedArray<float, (uint)ParameterSemantic::NUM> mySemanticParameters;
+    DynamicArray<float> myExtraParameters;
   };
 }
 

@@ -39,20 +39,18 @@ namespace Fancy {
     static const GpuProgramCompiler* GetGpuProgramCompiler();
     static DataFormat ResolveFormat(DataFormat aFormat);
 
-    static SharedPtr<Texture> GetTexture(uint64 aDescHash);
+    static Texture* GetTexture(uint64 aDescHash);
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
-    static SharedPtr<Mesh> GetMesh(uint64 aVertexIndexHash);
-    static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc,
+    static Mesh* GetMesh(uint64 aVertexIndexHash);
+    static Mesh* CreateMesh(const MeshDesc& aDesc,
       const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
       const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices);
 
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle);
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
-    static SharedPtr<Texture> CreateTexture(const TextureDesc &aTextureDesc);
-    static SharedPtr<Texture> CreateTexture(const String& aTexturePath);
-    static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
+    static UniquePtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
 
     static void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr);
@@ -86,7 +84,7 @@ namespace Fancy {
 
     static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
-    static std::map<uint64, SharedPtr<Texture>> ourTextureCache;
+    static std::map<uint64, SharedPtr<Texture>> ourInternalTextures;
     static std::map<uint64, SharedPtr<Mesh>> ourMeshCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;

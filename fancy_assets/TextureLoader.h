@@ -15,14 +15,9 @@ namespace Fancy {
     uint height;
   };
 //---------------------------------------------------------------------------//
-  class TextureLoader
+  namespace TextureLoader
   {
-  public:
-    static SharedPtr<Texture> CreateTexture(const TextureDesc& aDesc);
-
-  private:
-    static std::map<uint64, SharedPtr<Texture>> ourTextureCache;
-    static bool loadTexture(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo);
+    static bool Load(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo);
   };
 //---------------------------------------------------------------------------//
 }

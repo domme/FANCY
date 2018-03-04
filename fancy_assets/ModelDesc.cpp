@@ -1,12 +1,12 @@
 #include "ModelDesc.h"
+#include "fancy_core/MathUtil.h"
 
+using namespace Fancy;
 
-
-ModelDesc::ModelDesc()
+uint64 ModelDesc::GetHash() const
 {
-}
-
-
-ModelDesc::~ModelDesc()
-{
+  uint64 hash;
+  MathUtil::hash_combine(hash, myMaterial.GetHash());
+  MathUtil::hash_combine(hash, myMesh.GetHash());
+  return hash;
 }

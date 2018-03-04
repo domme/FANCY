@@ -1,15 +1,20 @@
 #pragma once
 
 #include <fancy_core/FancyCorePrerequisites.h>
+#include "ModelDesc.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  class SubModel;
-//---------------------------------------------------------------------------//
-  class Model
+  class Material;
+  class Mesh;
+
+  //---------------------------------------------------------------------------//
+  struct Model
   {
-    public:
-      DynamicArray<SharedPtr<SubModel>> mySubModels;
+    Model();
+    ModelDesc GetDescription() const;
+
+    Mesh* myMesh;
+    Material* myMaterial;
   };
 //---------------------------------------------------------------------------//
 }

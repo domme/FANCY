@@ -21,6 +21,7 @@
 
 #include "Material.h"
 #include "TextureLoader.h"
+#include "AssetManager.h"
 
 namespace Fancy { namespace ModelLoader {
 //---------------------------------------------------------------------------//
@@ -122,11 +123,11 @@ namespace Fancy { namespace ModelLoader {
     uint myNumCreatedModels;
     uint myNumCreatedGeometryDatas;
     uint myNumCreatedSubModels;
-    std::unordered_map<const aiMaterial*, Material> myMaterialCache;
-    std::unordered_map<uint, SharedPtr<Mesh>> myMeshCache;
+    std::unordered_map<const aiMaterial*, Material*> myMaterialCache;
+    std::unordered_map<uint, Mesh*> myMeshCache;
   };
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> CreateMesh(const aiNode* aNode, ProcessData& aProcessData, aiMesh** someMeshes, uint aMeshCount)
+  Mesh* CreateMesh(const aiNode* aNode, ProcessData& aProcessData, aiMesh** someMeshes, uint aMeshCount)
   {
     // String meshName = GetCachePathForMesh();
     // if (BinaryCache::read(&outputMesh, meshName, 0u))
@@ -145,7 +146,7 @@ namespace Fancy { namespace ModelLoader {
     uint64 vertexIndexHash = ComputeHashFromVertexData(someMeshes, aMeshCount);
     SharedPtr<Mesh> mesh = RenderCore::GetMesh(vertexIndexHash);
     if (mesh != nullptr)
-      return mesh;
+      return mesh.get();
 
     // We don't have the mesh in any cache and have to create it.
     mesh.reset(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
@@ -382,7 +383,7 @@ namespace Fancy { namespace ModelLoader {
     mesh = RenderCore::CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
     ASSERT(mesh != nullptr);
 
-    aProcessData.myMeshCache[assimpMeshListHash] = mesh;
+    aProcessData.myMeshCache[assimpMeshListHash] = mesh.get();
 
     for (uint i = 0u; i < vertexDatas.size(); ++i)
     {
@@ -396,7 +397,7 @@ namespace Fancy { namespace ModelLoader {
     }
     indexDatas.clear();
 
-    return mesh;
+    return mesh.get();
   }
 //---------------------------------------------------------------------------//
   TextureDesc CreateTextureDesc(const aiMaterial* _pAmaterial, uint _aiTextureType, uint _texIndex, ProcessData& aProcessData)
@@ -430,11 +431,11 @@ namespace Fancy { namespace ModelLoader {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  Material CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData)
+  Material* CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData)
   {
     // Did we already import this material?
     {
-      auto cacheIt = aProcessData.myMaterialCache.find(_pAmaterial);
+      const auto cacheIt = aProcessData.myMaterialCache.find(_pAmaterial);
       if (cacheIt != aProcessData.myMaterialCache.end())
         return cacheIt->second;
     }
@@ -470,37 +471,22 @@ namespace Fancy { namespace ModelLoader {
     float specular;
     const bool hasSpecular = _pAmaterial->Get(AI_MATKEY_SHININESS_STRENGTH, specular) == AI_SUCCESS;
 
-    TextureDesc diffuseTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_DIFFUSE, 0u, aProcessData);
-    TextureDesc normalTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_NORMALS, 0u, aProcessData);
-    TextureDesc specularTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_SPECULAR, 0u, aProcessData);
-    TextureDesc specPowerTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_SHININESS, 0u, aProcessData);
-    TextureDesc opacityTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_OPACITY, 0u, aProcessData);
+    const TextureDesc& diffuseTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_DIFFUSE, 0u, aProcessData);
+    const TextureDesc& normalTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_NORMALS, 0u, aProcessData);
+    const TextureDesc& specularTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_SPECULAR, 0u, aProcessData);
+    const TextureDesc& specPowerTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_SHININESS, 0u, aProcessData);
+    const TextureDesc& opacityTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_OPACITY, 0u, aProcessData);
 
     MaterialDesc matDesc;
-    if (diffuseTexDesc.IsValid())
-      matDesc.myTextures.push_back(MaterialDesc::TexDesc{ Material::Tex::BASE_COLOR, diffuseTexDesc });
-    if (normalTexDesc.IsValid())
-      matDesc.myTextures.push_back(MaterialDesc::TexDesc{ Material::Tex::NORMAL, normalTexDesc }); 
-    if (specularTexDesc.IsValid())
-      matDesc.myTextures.push_back(MaterialDesc::TexDesc{ Material::Tex::MATERIAL, diffuseTexDesc });
+    matDesc.mySemanticTextures[(uint)TextureSemantic::BASE_COLOR] = diffuseTexDesc;
+    matDesc.mySemanticTextures[(uint)TextureSemantic::NORMAL] = normalTexDesc;
+    matDesc.mySemanticTextures[(uint)TextureSemantic::MATERIAL] = specPowerTexDesc;
+    matDesc.mySemanticParameters[(uint)ParameterSemantic::DIFFUSE_REFLECTIVITY] = (color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f);
+    matDesc.mySemanticParameters[(uint)ParameterSemantic::SPECULAR_REFLECTIVITY] = specular;
+    matDesc.mySemanticParameters[(uint)ParameterSemantic::SPECULAR_POWER] = specularPower;
+    matDesc.mySemanticParameters[(uint)ParameterSemantic::OPACITY] = opacity;
 
-    if (hasColor)
-      matDesc.myParams.push_back(MaterialDesc::ParamDesc{Material::Param::DIFFUSE_REFLECTIVITY, (color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f)});
-    if (hasSpecular)
-      matDesc.myParams.push_back(MaterialDesc::ParamDesc{ Material::Param::SPECULAR_REFLECTIVITY, specular });
-    if (hasOpacity)
-      matDesc.myParams.push_back(MaterialDesc::ParamDesc{ Material::Param::OPACITY, opacity});
-    if (hasSpecularPower)
-      matDesc.myParams.push_back(MaterialDesc::ParamDesc{ Material::Param::SPECULAR_POWER, specularPower});
-
-    // TODO: Asset-manager to retrieve existing materials?
-
-    Material mat;
-    for (const MaterialDesc::TexDesc& texDesc : matDesc.myTextures)
-      mat.myTextures.push_back(Material::Tex{(Material::Tex::Semantic) texDesc.mySemantic, TextureLoader::CreateTexture(texDesc.myTexture)});
-    for (const MaterialDesc::ParamDesc& paramDesc : matDesc.myParams)
-      mat.myParameters.push_back(Material::Param{ (Material::Param::Semantic) paramDesc.mySemantic, paramDesc.myValue });
-    return mat;
+    return AssetManager::CreateMaterial(matDesc);
   }
 //---------------------------------------------------------------------------//
   bool ProcessMeshes(const aiNode* aNode, ProcessData& aProcessData, LoadResult& aResultOut)
@@ -518,18 +504,27 @@ namespace Fancy { namespace ModelLoader {
         meshList.push_back(mesh);
     }
 
-    // Construct or retrieve Fancy Meshes and Submodels
-    // Each mesh-list with the same material becomes a submodel
-    DynamicArray<SharedPtr<SubModel>> submodels;
+    // Construct or retrieve Fancy Meshes and models
+    // Each mesh-list with the same material becomes a model
+    DynamicArray<Model*> submodels;
     for (auto it = materialMeshMap.begin(); it != materialMeshMap.end(); ++it)
     {
       DynamicArray<aiMesh*>& meshList = it->second;
-      SharedPtr<Mesh> mesh = CreateMesh(aNode, aProcessData, &meshList[0], meshList.size());
-      
-      // Create or retrieve the material
       const uint materialIndex = it->first;
+
+      Mesh* mesh = CreateMesh(aNode, aProcessData, &meshList[0], meshList.size());
+
       aiMaterial* pAmaterial = aProcessData.myScene->mMaterials[materialIndex];
-      Material material = CreateMaterial(pAmaterial, aProcessData);
+      Material* material = CreateMaterial(pAmaterial, aProcessData);
+
+      if (!mesh || !material)
+        continue;
+
+      ModelDesc modelDesc;
+      modelDesc.myMaterial = material->GetDescription();
+      modelDesc.myMesh = mesh->GetDescription();
+
+
 
       // Do we already have a Submodel with this mesh and material?
       Geometry::SubModelDesc submodelDesc;
