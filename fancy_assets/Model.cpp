@@ -4,13 +4,6 @@
 
 using namespace Fancy;
 
-Model::Model()
-  : myMesh(nullptr)
-  , myMaterial(nullptr)
-{
-
-}
-
 ModelDesc Model::GetDescription() const
 {
   ModelDesc desc;

@@ -92,7 +92,7 @@ namespace Fancy {
     return archive.good();
   }  
 //---------------------------------------------------------------------------//  
-  UniquePtr<Texture> BinaryCache::ReadTexture(uint64 aDescHash, uint aTimeStamp)
+  SharedPtr<Texture> BinaryCache::ReadTexture(uint64 aDescHash, uint aTimeStamp)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
@@ -135,7 +135,7 @@ namespace Fancy {
     texData.myData = static_cast<uint8*>(FANCY_ALLOCATE(texData.myTotalSizeBytes, MemoryCategory::TEXTURES));
     archive.read((char*)&texData.myData, texData.myTotalSizeBytes);
 
-    UniquePtr<Texture> newTex(RenderCore::GetPlatform()->CreateTexture());
+    SharedPtr<Texture> newTex(RenderCore::GetPlatform()->CreateTexture());
     newTex->Create(texParams, &texData, 1u);
     FANCY_FREE(texData.myData, MemoryCategory::TEXTURES);
     return newTex;
@@ -205,7 +205,7 @@ namespace Fancy {
     return archive.good();
   }
 //---------------------------------------------------------------------------//
-  UniquePtr<Mesh> BinaryCache::ReadMesh(uint64 aDescHash, uint aTimeStamp)
+  SharedPtr<Mesh> BinaryCache::ReadMesh(uint64 aDescHash, uint aTimeStamp)
   {
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
@@ -291,7 +291,7 @@ namespace Fancy {
     if (vGeoDatas.empty())
       return nullptr;
 
-    UniquePtr<Mesh> newMesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
+    SharedPtr<Mesh> newMesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
     newMesh->myVertexAndIndexHash = aDescHash;
     newMesh->m_vGeometries = vGeoDatas;
     return newMesh;

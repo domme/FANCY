@@ -13,9 +13,9 @@ namespace Fancy {
     Material();
     MaterialDesc GetDescription() const;
 
-    FixedArray<Texture*, (uint)TextureSemantic::NUM> mySemanticTextures;
-    DynamicArray<Texture*> myExtraTextures;
-        
+    FixedArray<SharedPtr<Texture>, (uint)TextureSemantic::NUM> mySemanticTextures;
+    DynamicArray<SharedPtr<Texture>> myExtraTextures;
+
     FixedArray<float, (uint)ParameterSemantic::NUM> mySemanticParameters;
     DynamicArray<float> myExtraParameters;
   };

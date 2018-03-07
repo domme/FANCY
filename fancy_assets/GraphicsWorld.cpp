@@ -6,6 +6,7 @@
 #include "fancy_core/PathService.h"
 #include "ModelDesc.h"
 #include "Model.h"
+#include "fancy_core/BinaryCache.h"
 
 using namespace Fancy;
 
@@ -17,21 +18,25 @@ using namespace Fancy;
   GraphicsWorld::~GraphicsWorld()
   {
   }
-
-Texture* GraphicsWorld::GetTexture(uint64 aDescHash, bool aUseDiskCache)
-{
-}
-
 //---------------------------------------------------------------------------//
-  Material* GraphicsWorld::CreateMaterial(const MaterialDesc& aDesc)
+  SharedPtr<Texture> GraphicsWorld::GetTexture(uint64 aDescHash)
+  {
+    auto it = std::find(myTextures.begin(), myTextures.end(), aDescHash);
+    if (it != myTextures.end())
+      return it->second;
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<Material> GraphicsWorld::CreateMaterial(const MaterialDesc& aDesc)
   {
     const uint64 descHash = aDesc.GetHash();
 
     auto it = std::find(myMaterials.begin(), myMaterials.end(), descHash);
     if (it != myMaterials.end())
-      return it->second.get();
+      return it->second;
 
-    UniquePtr<Material> mat(new Material);
+    SharedPtr<Material> mat(new Material);
     for (uint i = 0u; i < aDesc.mySemanticTextures.size(); ++i)
       mat->mySemanticTextures[i] = CreateTexture(aDesc.mySemanticTextures[i]);
 
@@ -43,21 +48,20 @@ Texture* GraphicsWorld::GetTexture(uint64 aDescHash, bool aUseDiskCache)
 
     for (float param : aDesc.myExtraParameters)
       mat->myExtraParameters.push_back(param);
-      
-    Material* returnMat = mat.get();
-    myMaterials[descHash] = std::move(mat);
-    return returnMat;
+    
+    myMaterials[descHash] = mat;
+    return mat;
   }
 //---------------------------------------------------------------------------//
-  Texture* GraphicsWorld::CreateTexture(const TextureDesc& aDesc)
+  SharedPtr<Texture> GraphicsWorld::CreateTexture(const TextureDesc& aDesc)
   {
     if (!aDesc.myIsExternalTexture)
-      return RenderCore::GetTexture(aDesc.GetHash());
+      return RenderCore::GetInternalTexture(aDesc);
 
     return CreateTexture(aDesc.mySourcePath.c_str());
   }
 //---------------------------------------------------------------------------//
-  Texture* GraphicsWorld::CreateTexture(const char* aPath)
+  SharedPtr<Texture> GraphicsWorld::CreateTexture(const char* aPath)
   {
     String texPathAbs = aPath;
     String texPathRel = aPath;
@@ -71,8 +75,14 @@ Texture* GraphicsWorld::GetTexture(uint64 aDescHash, bool aUseDiskCache)
     desc.myIsExternalTexture = true;
     uint64 hash = desc.GetHash();
 
-    if (Texture* tex = RenderCore::GetTexture(hash))
-      return tex;
+    if (SharedPtr<Texture> texFromMemCache = GetTexture(hash))
+      return texFromMemCache;
+    
+    if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTexture(hash, 0u))
+    {
+      myTextures[hash] = texFromDiskCache;
+      return texFromDiskCache;
+    }
 
     std::vector<uint8> textureBytes;
     TextureLoadInfo textureInfo;
@@ -105,32 +115,65 @@ Texture* GraphicsWorld::GetTexture(uint64 aDescHash, bool aUseDiskCache)
     uploadData.mySliceSizeBytes = textureInfo.width * textureInfo.height * uploadData.myPixelSizeBytes;
     uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
 
-    return RenderCore::CreateTexture(texParams, &uploadData, 1u);
+    SharedPtr<Texture> tex = RenderCore::CreateTexture(texParams, &uploadData, 1u);
+
+    if (tex != nullptr)
+    {
+      BinaryCache::WriteTexture(tex.get(), uploadData);
+
+      myTextures[hash] = tex;
+      return tex;
+    }
+
+    return nullptr;
   }
 //---------------------------------------------------------------------------//
-  Model* GraphicsWorld::CreateModel(const ModelDesc& aDesc)
+  SharedPtr<Model> GraphicsWorld::CreateModel(const ModelDesc& aDesc)
   {
     uint64 hash = aDesc.GetHash();
 
     auto it = std::find(myModels.begin(), myModels.end(), hash);
     if (it != myModels.end())
-      return it->second.get();
+      return it->second;
 
-    UniquePtr<Model> model(new Model);
+    SharedPtr<Model> model(new Model);
     model->myMaterial = CreateMaterial(aDesc.myMaterial);
-    model->myMesh = RenderCore::GetMesh(aDesc.myMesh.myVertexAndIndexHash);
-      
-    Model* modelPtr = model.get();
-    myModels[hash] = std::move(model);
-    return modelPtr;
+    model->myMesh = GetMesh(aDesc.myMesh.myVertexAndIndexHash);
+    
+    myModels[hash] = model;
+    return model;
   }
+//---------------------------------------------------------------------------//
+  SharedPtr<Mesh> GraphicsWorld::GetMesh(uint64 aDescHash)
+  {
+    auto it = std::find(myMeshes.begin(), myMeshes.end(), aDescHash);
+    if (it != myMeshes.end())
+      return it->second;
 
-Mesh* GraphicsWorld::GetMesh(uint64 aDescHash, bool aUseDiskCache)
-{
-}
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<Mesh> GraphicsWorld::CreateMesh(const MeshDesc& aDesc, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas, const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices)
+  {
+    if (!aDesc.myIsExternalMesh)
+      return RenderCore::GetInternalMesh(aDesc);
 
-Mesh* GraphicsWorld::CreateMesh(const MeshDesc& aDesc, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas, const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices)
-{
-}
+    SharedPtr<Mesh> meshFromDiskCache = BinaryCache::ReadMesh(aDesc.GetHash(), 0u);
+    if (meshFromDiskCache)
+    {
+      myMeshes[aDesc.GetHash()] = meshFromDiskCache;
+      return meshFromDiskCache;
+    }
 
+    SharedPtr<Mesh> mesh = RenderCore::CreateMesh(aDesc, someVertexDatas, someIndexDatas, someNumVertices, someNumIndices);
+    if (mesh)
+    {
+      BinaryCache::WriteMesh(mesh.get(), someVertexDatas, someIndexDatas);
+
+      myMeshes[aDesc.GetHash()] = mesh;
+      return mesh;
+    }
+
+
+  }
 //---------------------------------------------------------------------------//

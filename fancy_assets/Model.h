@@ -10,11 +10,10 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   struct Model
   {
-    Model();
     ModelDesc GetDescription() const;
 
-    Mesh* myMesh;
-    Material* myMaterial;
+    SharedPtr<Mesh> myMesh;
+    SharedPtr<Material> myMaterial;
   };
 //---------------------------------------------------------------------------//
 }

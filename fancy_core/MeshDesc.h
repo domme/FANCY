@@ -9,10 +9,17 @@ namespace Fancy {
 // data for meshes. The VertexAndIndexHash is just used to identify the requested mesh for Serialization
   struct MeshDesc
   {
-    MeshDesc() : myVertexAndIndexHash(0u) {}
+    MeshDesc() 
+      : myIsExternalMesh(true)
+      , myInternalRefIdx(~0u)
+      , myVertexAndIndexHash(0u)
+    { }
+
     bool operator==(const MeshDesc& anOther) const { return myVertexAndIndexHash == anOther.myVertexAndIndexHash; }
     uint64 GetHash() const { return myVertexAndIndexHash; }
-
+    
+    bool myIsExternalMesh;
+    uint myInternalRefIdx;
     uint64 myVertexAndIndexHash;
     DynamicArray<GeometryVertexLayout> myVertexLayouts;
   };

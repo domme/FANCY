@@ -15,6 +15,11 @@ namespace Fancy {
   {
     NUM
   };
-
 //---------------------------------------------------------------------------//
+  enum class MeshRef
+  {
+    UNIT_CUBE,
+    UNIT_SPHERE,
+    NUM
+  };
 }

@@ -5,7 +5,6 @@ using namespace Fancy;
 
 Material::Material()
 {
-  mySemanticTextures.fill(nullptr);
   mySemanticParameters.fill(FLT_MAX);
 }
 
@@ -16,7 +15,7 @@ MaterialDesc Material::GetDescription() const
     if (mySemanticTextures[i])
       desc.mySemanticTextures[i] = mySemanticTextures[i]->GetDescription();
 
-  for (const Texture* tex : myExtraTextures)
+  for (const SharedPtr<Texture>& tex : myExtraTextures)
     desc.myExtraTextures.push_back(tex->GetDescription());
 
   for (int i = 0; i < mySemanticParameters.size(); ++i)

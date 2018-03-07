@@ -27,6 +27,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   std::unique_ptr<RenderCore_Platform> RenderCore::ourPlatformImpl;
 
+  std::map<uint64, SharedPtr<Texture>> RenderCore::ourInternalTextures;
+  std::map<uint64, SharedPtr<Mesh>> RenderCore::ourInternalMeshes;
   std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
   std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
@@ -37,9 +39,9 @@ namespace Fancy {
   std::list<CommandContext*> RenderCore::ourAvailableRenderContexts;
   std::list<CommandContext*> RenderCore::ourAvailableComputeContexts;
   
-  UniquePtr<Texture> RenderCore::ourDefaultDiffuseTexture;
-  UniquePtr<Texture> RenderCore::ourDefaultNormalTexture;
-  UniquePtr<Texture> RenderCore::ourDefaultSpecularTexture;
+  SharedPtr<Texture> RenderCore::ourDefaultDiffuseTexture;
+  SharedPtr<Texture> RenderCore::ourDefaultNormalTexture;
+  SharedPtr<Texture> RenderCore::ourDefaultSpecularTexture;
   SharedPtr<DepthStencilState> RenderCore::ourDefaultDepthStencilState;
   SharedPtr<BlendState> RenderCore::ourDefaultBlendState;
   
@@ -311,29 +313,18 @@ namespace Fancy {
     return pipeline;
   }
 //---------------------------------------------------------------------------//
+  SharedPtr<Texture> RenderCore::GetInternalTexture(const TextureDesc& aDesc)
+  {
+    auto it = ourInternalTextures.find(aDesc.GetHash());
+    if (it != ourInternalTextures.end())
+      return it->second;
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
   DataFormat RenderCore::ResolveFormat(DataFormat aFormat)
   {
     return ourPlatformImpl->ResolveFormat(aFormat);
-  }
-//---------------------------------------------------------------------------//
-  UniquePtr<Texture> RenderCore::GetTexture(uint64 aDescHash, bool aUseDiskCache /*=true*/)
-  {
-    auto it = ourTextureCache.find(aDescHash);
-    if (it != ourTextureCache.end())
-      return it->second.get();
-
-    if (aUseDiskCache)
-    {
-      UniquePtr<Texture> texFromDiskCache = BinaryCache::ReadTexture(aDescHash, 0u);
-      if (texFromDiskCache != nullptr)
-      {
-        Texture* tex = texFromDiskCache.get();
-        ourTextureCache[aDescHash] = std::move(texFromDiskCache);
-        return tex;
-      }
-    }
-
-    return nullptr;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuProgram> RenderCore::GetGpuProgram(uint64 aDescHash)
@@ -349,6 +340,15 @@ namespace Fancy {
   {
     auto it = ourGpuProgramPipelineCache.find(aDescHash);
     if (it != ourGpuProgramPipelineCache.end())
+      return it->second;
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<Mesh> RenderCore::GetInternalMesh(const MeshDesc& aDesc)
+  {
+    auto it = ourInternalMeshes.find(aDesc.GetHash());
+    if (it != ourInternalMeshes.end())
       return it->second;
 
     return nullptr;
@@ -395,33 +395,16 @@ namespace Fancy {
     return ourPlatformImpl.get();
   }
 //---------------------------------------------------------------------------//
-  Mesh* RenderCore::GetMesh(uint64 aVertexIndexHash, bool aUseDiskCache /*=true*/)
-  {
-    auto it = ourMeshCache.find(aVertexIndexHash);
-    if (it != ourMeshCache.end())
-      return it->second.get();
-
-    if (aUseDiskCache)
-    {
-      UniquePtr<Mesh> meshFromDiskCache = BinaryCache::ReadMesh(aVertexIndexHash, 0u);
-      if (meshFromDiskCache != nullptr)
-      {
-        Mesh* mesh = meshFromDiskCache.get();
-        ourMeshCache[aVertexIndexHash] = std::move(meshFromDiskCache);
-        return mesh;
-      }
-    }
-    
-    return nullptr;
-  }
-//---------------------------------------------------------------------------//
-  Mesh* RenderCore::CreateMesh(const MeshDesc& aDesc,
+  SharedPtr<Mesh> RenderCore::CreateMesh(const MeshDesc& aDesc,
     const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
     const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices)
   {
-    Mesh* mesh = GetMesh(aDesc.myVertexAndIndexHash);
-    if (mesh != nullptr)
-      return mesh;
+    if (!aDesc.myIsExternalMesh)
+    {
+      SharedPtr<Mesh> internalMesh = GetInternalMesh(aDesc);
+      if (internalMesh)
+        return internalMesh;
+    }
 
     const uint numSubMeshes = (uint) aDesc.myVertexLayouts.size();
     ASSERT(numSubMeshes == someVertexDatas.size() && numSubMeshes == someIndexDatas.size());
@@ -470,38 +453,41 @@ namespace Fancy {
       vGeometryDatas.push_back(pGeometryData);
     }
 
-    UniquePtr<Mesh> newMesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
-    newMesh->m_vGeometries = vGeometryDatas;
-    newMesh->myVertexAndIndexHash = aDesc.myVertexAndIndexHash;
-    mesh = newMesh.get();
-    BinaryCache::WriteMesh(mesh, someVertexDatas, someIndexDatas);
+    SharedPtr<Mesh> mesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
+    mesh->m_vGeometries = vGeometryDatas;
+    mesh->myVertexAndIndexHash = aDesc.myVertexAndIndexHash;
 
-    ourMeshCache[aDesc.myVertexAndIndexHash] = std::move(newMesh);
+    if (!aDesc.myIsExternalMesh)
+      ourInternalMeshes[aDesc.myVertexAndIndexHash] = mesh;
 
+    BinaryCache::WriteMesh(mesh.get(), someVertexDatas, someIndexDatas);
     return mesh;
   }
 //---------------------------------------------------------------------------//
-  Texture* RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint aNumUploadDatas)
+  SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint aNumUploadDatas)
   {
     TextureDesc desc;
     desc.myIsExternalTexture = someParams.myIsExternalTexture;
     desc.mySourcePath = someParams.path;
     desc.myInternalRefIndex = someParams.myInternalRefIndex;
 
-    const uint64 hash = desc.GetHash();
-
-    Texture* tex = GetTexture(hash);
-    if (tex != nullptr)
-      return tex;
-    
-    UniquePtr<Texture> newTex(ourPlatformImpl->CreateTexture());
-    newTex->Create(someParams, someUploadDatas, aNumUploadDatas);
-
-    if (newTex->IsValid())
+    if (!desc.myIsExternalTexture)
     {
-      tex = newTex.get();
-      ourTextureCache[hash] = std::move(newTex);
+      SharedPtr<Texture> internalTex = GetInternalTexture(desc);
+      if (internalTex)
+        return internalTex;
     }
+        
+    SharedPtr<Texture> tex(ourPlatformImpl->CreateTexture());
+    tex->Create(someParams, someUploadDatas, aNumUploadDatas);
+
+    if (!desc.myIsExternalTexture && tex->IsValid())
+    {
+      const uint64 hash = desc.GetHash();
+      ourInternalTextures[hash] = tex;
+    }
+
+    BinaryCache::WriteTexture(tex.get(), *someUploadDatas);
 
     return tex;
   }

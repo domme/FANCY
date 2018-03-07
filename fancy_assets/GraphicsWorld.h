@@ -18,24 +18,23 @@ namespace Fancy {
     GraphicsWorld();
     ~GraphicsWorld();
 
-    Texture* GetTexture(uint64 aDescHash, bool aUseDiskCache = true);
-    Texture* CreateTexture(const TextureDesc& aDesc);
-    Texture* CreateTexture(const char* aPath);
+    SharedPtr<Texture> GetTexture(uint64 aDescHash);
+    SharedPtr<Texture> CreateTexture(const char* aPath);
+    SharedPtr<Texture> CreateTexture(const TextureDesc& aDesc);
 
-    Material* CreateMaterial(const MaterialDesc& aDesc);
-    Model* CreateModel(const ModelDesc& aDesc);
+    SharedPtr<Material> CreateMaterial(const MaterialDesc& aDesc);
+    SharedPtr<Model> CreateModel(const ModelDesc& aDesc);
 
-    Mesh* GetMesh(uint64 aDescHash, bool aUseDiskCache = true);
-    Mesh* CreateMesh(const MeshDesc& aDesc,
+    SharedPtr<Mesh> GetMesh(uint64 aDescHash);
+    SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc,
       const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
       const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices);
 
-
   private:
-    std::map<uint64, UniquePtr<Material>> myMaterials;
-    std::map<uint64, UniquePtr<Model>> myModels;
-    std::map<uint64, UniquePtr<Texture>> myTextures;
-    std::map<uint64, UniquePtr<Mesh>> myMeshes;
+    std::map<uint64, SharedPtr<Material>> myMaterials;
+    std::map<uint64, SharedPtr<Model>> myModels;
+    std::map<uint64, SharedPtr<Texture>> myTextures;
+    std::map<uint64, SharedPtr<Mesh>> myMeshes;
   };
 //---------------------------------------------------------------------------//
 }
