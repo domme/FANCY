@@ -39,11 +39,9 @@ namespace Fancy {
     static const GpuProgramCompiler* GetGpuProgramCompiler();
     static DataFormat ResolveFormat(DataFormat aFormat);
 
-    static Texture* GetTexture(uint64 aDescHash);
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
-    static Mesh* GetMesh(uint64 aVertexIndexHash);
-    static Mesh* CreateMesh(const MeshDesc& aDesc,
+    static UniquePtr<Mesh> CreateMesh(const MeshDesc& aDesc,
       const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
       const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices);
 
@@ -84,8 +82,6 @@ namespace Fancy {
 
     static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
-    static std::map<uint64, SharedPtr<Texture>> ourInternalTextures;
-    static std::map<uint64, SharedPtr<Mesh>> ourMeshCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
 
@@ -96,9 +92,9 @@ namespace Fancy {
 
     static SharedPtr<DepthStencilState> ourDefaultDepthStencilState;
     static SharedPtr<BlendState> ourDefaultBlendState;
-    static SharedPtr<Texture> ourDefaultDiffuseTexture;
-    static SharedPtr<Texture> ourDefaultNormalTexture;
-    static SharedPtr<Texture> ourDefaultSpecularTexture;
+    static UniquePtr<Texture> ourDefaultDiffuseTexture;
+    static UniquePtr<Texture> ourDefaultNormalTexture;
+    static UniquePtr<Texture> ourDefaultSpecularTexture;
 
     static std::unique_ptr<GpuProgramCompiler> ourShaderCompiler;
     static std::unique_ptr<FileWatcher> ourShaderFileWatcher;

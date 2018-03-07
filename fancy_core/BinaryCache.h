@@ -14,10 +14,11 @@ namespace Fancy {
     public:
   //---------------------------------------------------------------------------//
     static String getCacheFilePathAbs(const String& aPathInResources);
-    static bool write(const SharedPtr<Texture>& aTexture, const TextureUploadData& someData);
-    static bool write(const SharedPtr<Mesh>& aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas);
-    static bool read(SharedPtr<Texture>* aTexture, uint64 aDescHash, uint aTimeStamp);
-    static bool read(SharedPtr<Mesh>& aMesh, uint64 aDescHash, uint aTimeStamp);
+    static bool WriteTexture(const Texture* aTexture, const TextureUploadData& someData);
+    static bool WriteMesh(const Mesh* aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas);
+
+    static UniquePtr<Texture> ReadTexture(uint64 aDescHash, uint aTimeStamp);
+    static UniquePtr<Mesh> ReadMesh(uint64 aDescHash, uint aTimeStamp);
   //---------------------------------------------------------------------------//      
 };
 }

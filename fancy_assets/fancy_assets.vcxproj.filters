@@ -12,12 +12,11 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelLoader.h" />
-    <ClInclude Include="SceneImporter.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="MaterialDesc.h" />
     <ClInclude Include="ModelDesc.h" />
-    <ClInclude Include="AssetManager.h" />
     <ClInclude Include="MaterialSemantics.h" />
+    <ClInclude Include="GraphicsWorld.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lodepng\lodepng.cpp">
@@ -26,10 +25,9 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
-    <ClCompile Include="SceneImporter.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="MaterialDesc.cpp" />
     <ClCompile Include="ModelDesc.cpp" />
-    <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="GraphicsWorld.cpp" />
   </ItemGroup>
 </Project>

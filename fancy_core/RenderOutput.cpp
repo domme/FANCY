@@ -6,7 +6,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderOutput::RenderOutput(void* aNativeInstanceHandle)
     : myCurrBackbufferIndex(0u)
+    , myDefaultDepthStencil(nullptr)
   {
+    memset(myBackbuffers, 0u, sizeof(myBackbuffers));
+
     Fancy::WindowParameters params;
     params.myTitle = "Fancy";
     params.myWidth = 800u;
@@ -52,3 +55,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//  
 }
+
+Internal ref-indices for multiple RenderOutputs??

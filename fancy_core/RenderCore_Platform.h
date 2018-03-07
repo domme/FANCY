@@ -1,5 +1,9 @@
 #pragma once
 
+#include "FancyCorePrerequisites.h"
+#include "RendererPrerequisites.h"
+#include "RenderPlatformCaps.h"
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class RenderOutput;

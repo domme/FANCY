@@ -20,8 +20,7 @@
 #include <fancy_core/PathService.h>
 
 #include "Material.h"
-#include "TextureLoader.h"
-#include "AssetManager.h"
+#include "GraphicsWorld.h"
 
 namespace Fancy { namespace ModelLoader {
 //---------------------------------------------------------------------------//
@@ -144,13 +143,10 @@ namespace Fancy { namespace ModelLoader {
 
     // Mesh already created in the renderer?
     uint64 vertexIndexHash = ComputeHashFromVertexData(someMeshes, aMeshCount);
-    SharedPtr<Mesh> mesh = RenderCore::GetMesh(vertexIndexHash);
+    Mesh* mesh = RenderCore::GetMesh(vertexIndexHash);
     if (mesh != nullptr)
-      return mesh.get();
+      return mesh;
 
-    // We don't have the mesh in any cache and have to create it.
-    mesh.reset(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
-    
     MeshDesc meshDesc;
     meshDesc.myVertexAndIndexHash = vertexIndexHash;
 
@@ -383,8 +379,6 @@ namespace Fancy { namespace ModelLoader {
     mesh = RenderCore::CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
     ASSERT(mesh != nullptr);
 
-    aProcessData.myMeshCache[assimpMeshListHash] = mesh.get();
-
     for (uint i = 0u; i < vertexDatas.size(); ++i)
     {
       FANCY_FREE(vertexDatas[i], MemoryCategory::GEOMETRY);
@@ -397,7 +391,8 @@ namespace Fancy { namespace ModelLoader {
     }
     indexDatas.clear();
 
-    return mesh.get();
+    aProcessData.myMeshCache[assimpMeshListHash] = mesh;
+    return mesh;
   }
 //---------------------------------------------------------------------------//
   TextureDesc CreateTextureDesc(const aiMaterial* _pAmaterial, uint _aiTextureType, uint _texIndex, ProcessData& aProcessData)
@@ -431,7 +426,7 @@ namespace Fancy { namespace ModelLoader {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  Material* CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData)
+  Material* CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData, GraphicsWorld& aWorld)
   {
     // Did we already import this material?
     {
@@ -486,10 +481,10 @@ namespace Fancy { namespace ModelLoader {
     matDesc.mySemanticParameters[(uint)ParameterSemantic::SPECULAR_POWER] = specularPower;
     matDesc.mySemanticParameters[(uint)ParameterSemantic::OPACITY] = opacity;
 
-    return AssetManager::CreateMaterial(matDesc);
+    return aWorld.CreateMaterial(matDesc);
   }
 //---------------------------------------------------------------------------//
-  bool ProcessMeshes(const aiNode* aNode, ProcessData& aProcessData, LoadResult& aResultOut)
+  bool ProcessMeshes(const aiNode* aNode, ProcessData& aProcessData, GraphicsWorld& aWorld, LoadResult& aResultOut)
   {
     if (aNode->mNumMeshes == 0)
       return true;
@@ -506,7 +501,7 @@ namespace Fancy { namespace ModelLoader {
 
     // Construct or retrieve Fancy Meshes and models
     // Each mesh-list with the same material becomes a model
-    DynamicArray<Model*> submodels;
+    uint numCreatedModels = 0u;
     for (auto it = materialMeshMap.begin(); it != materialMeshMap.end(); ++it)
     {
       DynamicArray<aiMesh*>& meshList = it->second;
@@ -515,7 +510,7 @@ namespace Fancy { namespace ModelLoader {
       Mesh* mesh = CreateMesh(aNode, aProcessData, &meshList[0], meshList.size());
 
       aiMaterial* pAmaterial = aProcessData.myScene->mMaterials[materialIndex];
-      Material* material = CreateMaterial(pAmaterial, aProcessData);
+      Material* material = CreateMaterial(pAmaterial, aProcessData, aWorld);
 
       if (!mesh || !material)
         continue;
@@ -523,41 +518,34 @@ namespace Fancy { namespace ModelLoader {
       ModelDesc modelDesc;
       modelDesc.myMaterial = material->GetDescription();
       modelDesc.myMesh = mesh->GetDescription();
+      Model* model = aWorld.CreateModel(modelDesc);
 
-
-
-      // Do we already have a Submodel with this mesh and material?
-      Geometry::SubModelDesc submodelDesc;
-      submodelDesc.myMaterial = pMaterial->GetDescription();
-      submodelDesc.myMesh = pMesh->GetDescription();
-
-      SharedPtr<Geometry::SubModel> pSubModel = myGraphicsWorld.CreateSubModel(submodelDesc);
-      if (vSubModels.end() == std::find(vSubModels.begin(), vSubModels.end(), pSubModel))
+      if (model)
       {
-        vSubModels.push_back(pSubModel);
+        ++numCreatedModels;
+        aResultOut.myModels.push_back(model);
       }
-    }  // end iteration of materialMeshList-map
+    }
 
-
-
+    return numCreatedModels > 0u;
   }
 
-  bool ProcessNodeRecursive(const aiNode* aNode, ProcessData& aProcessData, LoadResult& aResultOut)
+  bool ProcessNodeRecursive(const aiNode* aNode, ProcessData& aProcessData, GraphicsWorld& aWorld, LoadResult& aResultOut)
   {
     if (!aNode) 
       return false;
 
-    if (!ProcessMeshes(aNode, aProcessData, aResultOut))
+    if (!ProcessMeshes(aNode, aProcessData, aWorld, aResultOut))
       return false;
 
     for (uint i = 0u; i < aNode->mNumChildren; ++i)
-      if (!ProcessNodeRecursive(aNode->mChildren[i], aProcessData, aResultOut))
+      if (!ProcessNodeRecursive(aNode->mChildren[i], aProcessData, aWorld, aResultOut))
         return false;
 
     return true;
   }
 
-  bool LoadFromFile(const char* aPath, LoadResult& aResultOut, ImportOptions someImportOptions/* = ALL*/)
+  bool LoadFromFile(const char* aPath, GraphicsWorld& aWorld, LoadResult& aResultOut, ImportOptions someImportOptions/* = ALL*/)
   {
     ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
     
@@ -570,7 +558,7 @@ namespace Fancy { namespace ModelLoader {
     ProcessData data;
     data.myScene = importedScene;
     data.mySourcePath = aPath;
-    return ProcessNodeRecursive(importedScene->mRootNode, data, aResultOut);
+    return ProcessNodeRecursive(importedScene->mRootNode, data, aWorld, aResultOut);
   }
 //---------------------------------------------------------------------------//
 } }

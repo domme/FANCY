@@ -17,7 +17,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace TextureLoader
   {
-    static bool Load(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo);
+    bool Load(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo);
   };
 //---------------------------------------------------------------------------//
 }

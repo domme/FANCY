@@ -20,8 +20,8 @@ namespace Fancy {
     virtual void BeginFrame() = 0;
     virtual void EndFrame()= 0;
 
-    Texture* GetBackbuffer() const { return myBackbuffers[myCurrBackbufferIndex].get(); }
-    Texture* GetDefaultDepthStencilBuffer() const { return myDefaultDepthStencil.get(); }
+    Texture* GetBackbuffer() const { return myBackbuffers[myCurrBackbufferIndex]; }
+    Texture* GetDefaultDepthStencilBuffer() const { return myDefaultDepthStencil; }
     Window* GetWindow() const { return myWindow.get(); }
 
   protected:
@@ -31,8 +31,8 @@ namespace Fancy {
     static const uint kBackbufferCount = 2u;
     uint myCurrBackbufferIndex;
     SharedPtr<Window> myWindow;
-    SharedPtr<Texture> myBackbuffers[kBackbufferCount];
-    SharedPtr<Texture> myDefaultDepthStencil;
+    Texture* myBackbuffers[kBackbufferCount];
+    Texture* myDefaultDepthStencil;
   };
 //---------------------------------------------------------------------------//
 }

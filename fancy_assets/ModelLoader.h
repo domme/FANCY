@@ -1,14 +1,10 @@
 #pragma once
 #include <fancy_core/FancyCorePrerequisites.h>
-#include "MaterialDesc.h"
-#include <fancy_core/Callback.h>
-#include "Model.h"
-#include "ModelDesc.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  class Mesh;
-  class Material;
+  //---------------------------------------------------------------------------//
+  struct Model;
+  class GraphicsWorld;
 //---------------------------------------------------------------------------//
   namespace ModelLoader
   {
@@ -29,7 +25,8 @@ namespace Fancy {
       DynamicArray<Model*> myModels;
     };
 
-    bool LoadFromFile(const char* aPath, LoadResult& aResultOut, ImportOptions someImportOptions = ALL);
+    bool LoadFromFile(const char* aPath, GraphicsWorld& aWorld, LoadResult& aResultOut, ImportOptions someImportOptions = ALL);
   }
+//---------------------------------------------------------------------------//
 }
 

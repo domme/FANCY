@@ -58,18 +58,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="GraphicsWorld.cpp" />
     <ClCompile Include="lodepng\lodepng.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MaterialDesc.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelDesc.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
-    <ClCompile Include="SceneImporter.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AssetManager.h" />
+    <ClInclude Include="GraphicsWorld.h" />
     <ClInclude Include="lodepng\lodepng.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialDesc.h" />
@@ -77,7 +76,6 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelDesc.h" />
     <ClInclude Include="ModelLoader.h" />
-    <ClInclude Include="SceneImporter.h" />
     <ClInclude Include="TextureLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
