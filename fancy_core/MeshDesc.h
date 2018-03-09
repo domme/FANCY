@@ -15,13 +15,21 @@ namespace Fancy {
       , myVertexAndIndexHash(0u)
     { }
 
-    bool operator==(const MeshDesc& anOther) const { return myVertexAndIndexHash == anOther.myVertexAndIndexHash; }
-    uint64 GetHash() const { return myVertexAndIndexHash; }
+    uint64 GetResourceHash() const
+    {
+      uint64 hash = 0u;
+      MathUtil::hash_combine(hash, myIsExternalMesh);
+      MathUtil::hash_combine(hash, myInternalRefIdx);
+      MathUtil::hash_combine(hash, myUniqueName);
+      return hash;
+    }
+
+    uint64 GetGeometryHash() const { return myVertexAndIndexHash; }
     
     bool myIsExternalMesh;
     uint myInternalRefIdx;
     uint64 myVertexAndIndexHash;
-    DynamicArray<GeometryVertexLayout> myVertexLayouts;
+    String myUniqueName;
   };
 //---------------------------------------------------------------------------//
 }

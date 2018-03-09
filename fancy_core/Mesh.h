@@ -14,10 +14,9 @@ namespace Fancy {
   public:
     Mesh();
     ~Mesh();
-    MeshDesc GetDescription() const;
 
-    DynamicArray<GeometryData*> m_vGeometries;
     uint64 myVertexAndIndexHash;
+    DynamicArray<GeometryData*> m_vGeometries;
   };
   //---------------------------------------------------------------------------//
 }

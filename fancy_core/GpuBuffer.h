@@ -20,7 +20,7 @@ namespace Fancy {
     GpuBufferCreationParams GetParameters() const { return myParameters; }
     uint GetAlignment() const { return myAlignment; }
 
-    virtual void Create(const GpuBufferCreationParams& clParameters, void* pInitialData = nullptr) = 0;
+    virtual void Create(const GpuBufferCreationParams& clParameters,const void* pInitialData = nullptr) = 0;
     virtual void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) = 0;
     virtual void Unlock() = 0;
     

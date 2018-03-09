@@ -15,10 +15,10 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     static String getCacheFilePathAbs(const String& aPathInResources);
     static bool WriteTexture(const Texture* aTexture, const TextureUploadData& someData);
-    static bool WriteMesh(const Mesh* aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas);
+    static bool WriteMesh(const Mesh* aMesh, const MeshDesc& aDesc, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas);
 
-    static SharedPtr<Texture> ReadTexture(uint64 aDescHash, uint aTimeStamp);
-    static SharedPtr<Mesh> ReadMesh(uint64 aDescHash, uint aTimeStamp);
+    static SharedPtr<Texture> ReadTexture(const TextureDesc& aDesc, uint64 aTimeStamp);
+    static SharedPtr<Mesh> ReadMesh(const MeshDesc& aDesc, uint64 aTimeStamp);
   //---------------------------------------------------------------------------//      
 };
 }

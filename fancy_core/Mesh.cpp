@@ -16,14 +16,4 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  MeshDesc Mesh::GetDescription() const
-  {
-    MeshDesc desc;
-    for (GeometryData* geometry : m_vGeometries)
-      desc.myVertexLayouts.push_back(geometry->getGeometryVertexLayout());
-
-    desc.myVertexAndIndexHash = myVertexAndIndexHash;
-    return desc;
-  }
-//---------------------------------------------------------------------------//
 }

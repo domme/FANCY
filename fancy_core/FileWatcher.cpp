@@ -2,10 +2,7 @@
 #include "FancyCorePrerequisites.h"
 #include "TimeManager.h"
 #include "Fancy.h"
-
-#if __WINDOWS
-  #include "Windows.h"
-#endif // __WINDOWS
+#include "PathService.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//  
@@ -35,7 +32,7 @@ namespace Fancy {
     if (std::find_if(myWatchEntries.begin(), myWatchEntries.end(), [=](const auto& entry){ return entry.myPath == aPath; }) != myWatchEntries.end())
       return;
 
-    uint64 currWriteTime = GetFileWriteTime(aPath);
+    uint64 currWriteTime = Path::GetFileWriteTime(aPath);
 
     ASSERT(currWriteTime > 0u, "Could not read file write time");
     if (currWriteTime == 0u)
@@ -61,7 +58,7 @@ namespace Fancy {
   {
     for(FileWatchEntry& entry : myWatchEntries)
     {
-      uint64 currWriteTime = GetFileWriteTime(entry.myPath);
+      uint64 currWriteTime = Path::GetFileWriteTime(entry.myPath);
 
       if (entry.myLastWriteTime < currWriteTime)
         myOnFileUpdated(entry.myPath);
@@ -70,28 +67,6 @@ namespace Fancy {
 
       entry.myLastWriteTime = currWriteTime;
     }
-  }
-//---------------------------------------------------------------------------//
-  uint64 FileWatcher::GetFileWriteTime(const String& aFile)
-  {
-    uint64 lastWriteTimeStamp = 0u;
-
-#if __WINDOWS
-    HANDLE hFile = CreateFile(aFile.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
-
-    if (hFile == INVALID_HANDLE_VALUE)
-      return 0u;
-
-    FILETIME lastWriteTime;
-    const bool success = GetFileTime(hFile, nullptr, nullptr, &lastWriteTime) != 0;
-    ASSERT(success, "File % exists with a valid handle but failed to read its file time", aFile);
-
-    CloseHandle(hFile);
-
-    lastWriteTimeStamp = (static_cast<uint64>(lastWriteTime.dwHighDateTime) << 32) | lastWriteTime.dwLowDateTime;
-#endif
-
-    return lastWriteTimeStamp;
   }
 //---------------------------------------------------------------------------//
 }

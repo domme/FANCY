@@ -2,6 +2,7 @@
 #include "fancy_core/FancyCorePrerequisites.h"
 
 namespace Fancy {
+  struct MeshData;
   //---------------------------------------------------------------------------//
   class Mesh;
   struct MeshDesc;
@@ -18,17 +19,15 @@ namespace Fancy {
     GraphicsWorld();
     ~GraphicsWorld();
 
-    SharedPtr<Texture> GetTexture(uint64 aDescHash);
+    SharedPtr<Texture> GetTexture(const TextureDesc& aDesc);
     SharedPtr<Texture> CreateTexture(const char* aPath);
     SharedPtr<Texture> CreateTexture(const TextureDesc& aDesc);
 
     SharedPtr<Material> CreateMaterial(const MaterialDesc& aDesc);
     SharedPtr<Model> CreateModel(const ModelDesc& aDesc);
 
-    SharedPtr<Mesh> GetMesh(uint64 aDescHash);
-    SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc,
-      const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
-      const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices);
+    SharedPtr<Mesh> GetMesh(const MeshDesc& aDesc);
+    SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, MeshData* someMeshDatas, uint aNumMeshDatas, uint64 aMeshFileTimestamp = 0u);
 
   private:
     std::map<uint64, SharedPtr<Material>> myMaterials;

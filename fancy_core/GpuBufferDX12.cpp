@@ -18,7 +18,7 @@ namespace Fancy {
   {
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Create(const GpuBufferCreationParams& someParameters, void* pInitialData)
+  void GpuBufferDX12::Create(const GpuBufferCreationParams& someParameters, const void* pInitialData)
   {
     Destroy();
 

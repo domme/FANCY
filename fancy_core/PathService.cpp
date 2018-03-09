@@ -185,7 +185,29 @@ namespace Fancy {
           break;
       }
     }
-    //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+    uint64 GetFileWriteTime(const String& aFile)
+    {
+      uint64 lastWriteTimeStamp = 0u;
+
+#if __WINDOWS
+      HANDLE hFile = CreateFile(aFile.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+
+      if (hFile == INVALID_HANDLE_VALUE)
+        return 0u;
+
+      FILETIME lastWriteTime;
+      const bool success = GetFileTime(hFile, nullptr, nullptr, &lastWriteTime) != 0;
+      ASSERT(success, "File % exists with a valid handle but failed to read its file time", aFile);
+
+      CloseHandle(hFile);
+
+      lastWriteTimeStamp = (static_cast<uint64>(lastWriteTime.dwHighDateTime) << 32) | lastWriteTime.dwLowDateTime;
+#endif
+
+      return lastWriteTimeStamp;
+    }
+ //---------------------------------------------------------------------------//
   }
   
   namespace Resources 

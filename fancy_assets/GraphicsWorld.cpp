@@ -7,8 +7,14 @@
 #include "ModelDesc.h"
 #include "Model.h"
 #include "fancy_core/BinaryCache.h"
+#include <fancy_core/Mesh.h>
 
 using namespace Fancy;
+  
+namespace Private
+{
+  
+}
 
 //---------------------------------------------------------------------------//
   GraphicsWorld::GraphicsWorld()
@@ -19,9 +25,9 @@ using namespace Fancy;
   {
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> GraphicsWorld::GetTexture(uint64 aDescHash)
+  SharedPtr<Texture> GraphicsWorld::GetTexture(const TextureDesc& aDesc)
   {
-    auto it = std::find(myTextures.begin(), myTextures.end(), aDescHash);
+    auto it = std::find(myTextures.begin(), myTextures.end(), aDesc.GetHash());
     if (it != myTextures.end())
       return it->second;
 
@@ -75,10 +81,11 @@ using namespace Fancy;
     desc.myIsExternalTexture = true;
     uint64 hash = desc.GetHash();
 
-    if (SharedPtr<Texture> texFromMemCache = GetTexture(hash))
+    if (SharedPtr<Texture> texFromMemCache = GetTexture(desc))
       return texFromMemCache;
-    
-    if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTexture(hash, 0u))
+
+    uint64 timestamp = Path::GetFileWriteTime(texPathAbs);
+    if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTexture(desc, timestamp))
     {
       myTextures[hash] = texFromDiskCache;
       return texFromDiskCache;
@@ -138,42 +145,43 @@ using namespace Fancy;
 
     SharedPtr<Model> model(new Model);
     model->myMaterial = CreateMaterial(aDesc.myMaterial);
-    model->myMesh = GetMesh(aDesc.myMesh.myVertexAndIndexHash);
+    model->myMesh = GetMesh(aDesc.myMesh);
     
     myModels[hash] = model;
     return model;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> GraphicsWorld::GetMesh(uint64 aDescHash)
+  SharedPtr<Mesh> GraphicsWorld::GetMesh(const MeshDesc& aDesc)
   {
-    auto it = std::find(myMeshes.begin(), myMeshes.end(), aDescHash);
+    auto it = std::find(myMeshes.begin(), myMeshes.end(), aDesc.GetGeometryHash());
     if (it != myMeshes.end())
       return it->second;
 
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> GraphicsWorld::CreateMesh(const MeshDesc& aDesc, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas, const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices)
+  SharedPtr<Mesh> GraphicsWorld::CreateMesh(const MeshDesc& aDesc, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas, const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices, uint64 aMeshFileTimestamp /* = 0u */)
   {
     if (!aDesc.myIsExternalMesh)
       return RenderCore::GetInternalMesh(aDesc);
 
-    SharedPtr<Mesh> meshFromDiskCache = BinaryCache::ReadMesh(aDesc.GetHash(), 0u);
-    if (meshFromDiskCache)
+    if (aMeshFileTimestamp != 0u)
     {
-      myMeshes[aDesc.GetHash()] = meshFromDiskCache;
-      return meshFromDiskCache;
+      SharedPtr<Mesh> meshFromDiskCache = BinaryCache::ReadMesh(aDesc, aMeshFileTimestamp);
+      if (meshFromDiskCache)
+      {
+        myMeshes[meshFromDiskCache->myVertexAndIndexHash] = meshFromDiskCache;
+        return meshFromDiskCache;
+      }
     }
-
+    
     SharedPtr<Mesh> mesh = RenderCore::CreateMesh(aDesc, someVertexDatas, someIndexDatas, someNumVertices, someNumIndices);
     if (mesh)
     {
-      BinaryCache::WriteMesh(mesh.get(), someVertexDatas, someIndexDatas);
+      BinaryCache::WriteMesh(mesh.get(), aDesc, someVertexDatas, someIndexDatas);
 
       myMeshes[aDesc.GetHash()] = mesh;
       return mesh;
     }
-
-
   }
 //---------------------------------------------------------------------------//

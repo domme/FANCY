@@ -17,8 +17,6 @@ namespace Fancy {
     FileWatcher();
     virtual ~FileWatcher();
 
-    static uint64 GetFileWriteTime(const String& aFile);
-
     void AddFileWatch(const String& aPath) const;
     void RemoveFileWatch(const String& aPath);
 

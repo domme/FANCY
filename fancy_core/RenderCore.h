@@ -6,7 +6,8 @@
 #include "RenderPlatformCaps.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  struct MeshData;
+  //---------------------------------------------------------------------------//
   enum class CommandListType;
   struct TextureDesc;
   struct GpuProgramDesc;
@@ -42,9 +43,7 @@ namespace Fancy {
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
     static SharedPtr<Mesh> GetInternalMesh(const MeshDesc& aDesc);
-    static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc,
-      const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
-      const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices);
+    static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas);
 
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle);
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);

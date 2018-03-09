@@ -92,12 +92,16 @@ namespace Fancy {
     return archive.good();
   }  
 //---------------------------------------------------------------------------//  
-  SharedPtr<Texture> BinaryCache::ReadTexture(uint64 aDescHash, uint aTimeStamp)
+  SharedPtr<Texture> BinaryCache::ReadTexture(const TextureDesc& aDesc, uint64 aTimeStamp)
   {
-    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
+    uint64 descHash = aDesc.GetHash();
+    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(descHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
     if (!archive.good())
+      return nullptr;
+
+    if (Path::GetFileWriteTime(cacheFilePath) < aTimeStamp)
       return nullptr;
 
     uint textureVersion;
@@ -141,17 +145,19 @@ namespace Fancy {
     return newTex;
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::WriteMesh(const Mesh* aMesh, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas)
+  bool BinaryCache::WriteMesh(const Mesh* aMesh, const MeshDesc& aDesc, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas)
   {
-    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aMesh->myVertexAndIndexHash));
+    uint64 descHash = aDesc.GetResourceHash();
+
+    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(descHash));
     Path::CreateDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
     ASSERT(archive.good(), "Failed to open cache file");
 
     archive.write(reinterpret_cast<const char*>(&kMeshVersion), sizeof(uint));
-    uint64 hash = aMesh->myVertexAndIndexHash;
-    archive.write((const char*)&hash, sizeof(hash));
+    uint64 geometryHash = aMesh->myVertexAndIndexHash;
+    archive.write((const char*)&geometryHash, sizeof(geometryHash));
 
     const DynamicArray<GeometryData*>& vGeoData = aMesh->m_vGeometries;
     const uint numGeoDatas = static_cast<uint>(vGeoData.size());
@@ -205,12 +211,16 @@ namespace Fancy {
     return archive.good();
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> BinaryCache::ReadMesh(uint64 aDescHash, uint aTimeStamp)
+  SharedPtr<Mesh> BinaryCache::ReadMesh(const MeshDesc& aDesc, uint64 aTimeStamp)
   {
-    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(aDescHash));
+    uint64 descHash = aDesc.GetResourceHash();
+    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(descHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
     if (!archive.good())
+      return nullptr;
+
+    if (Path::GetFileWriteTime(cacheFilePath) < aTimeStamp)
       return nullptr;
 
     uint meshVersion;
@@ -219,8 +229,8 @@ namespace Fancy {
     if (meshVersion != kMeshVersion)
       return nullptr;
 
-    uint64 hash = 0u;
-    archive.read((char*)&hash, sizeof(hash));
+    uint64 geometryHash = 0u;
+    archive.read((char*)&geometryHash, sizeof(geometryHash));
 
     uint numGeometryDatas;
     archive.read(reinterpret_cast<char*>(&numGeometryDatas), sizeof(uint));
@@ -292,7 +302,7 @@ namespace Fancy {
       return nullptr;
 
     SharedPtr<Mesh> newMesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
-    newMesh->myVertexAndIndexHash = aDescHash;
+    newMesh->myVertexAndIndexHash = geometryHash;
     newMesh->m_vGeometries = vGeoDatas;
     return newMesh;
   }

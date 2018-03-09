@@ -10,7 +10,6 @@
 #include "FileWatcher.h"
 #include "PathService.h"
 #include "GpuProgramPipeline.h"
-#include "BinaryCache.h"
 #include "Mesh.h"
 #include "GeometryData.h"
 #include "BlendState.h"
@@ -21,6 +20,7 @@
 #include "RenderOutput.h"
 #include "CommandContext.h"
 #include "RenderingStartupParameters.h"
+#include "MeshData.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -395,9 +395,7 @@ namespace Fancy {
     return ourPlatformImpl.get();
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> RenderCore::CreateMesh(const MeshDesc& aDesc,
-    const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas,
-    const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices)
+  SharedPtr<Mesh> RenderCore::CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas)
   {
     if (!aDesc.myIsExternalMesh)
     {
@@ -406,20 +404,18 @@ namespace Fancy {
         return internalMesh;
     }
 
-    const uint numSubMeshes = (uint) aDesc.myVertexLayouts.size();
-    ASSERT(numSubMeshes == someVertexDatas.size() && numSubMeshes == someIndexDatas.size());
-
     DynamicArray<GeometryData*> vGeometryDatas;
 
-    for (uint iSubMesh = 0u; iSubMesh < numSubMeshes; ++iSubMesh)
+    for (uint i = 0u; i < aNumMeshDatas; ++i)
     {
+      const MeshData& meshData = someMeshDatas[i];
+      const GeometryVertexLayout& vertexLayout = meshData.myLayout;
+
       GeometryData* pGeometryData = FANCY_NEW(GeometryData, MemoryCategory::GEOMETRY);
 
-      const GeometryVertexLayout& vertexLayout = aDesc.myVertexLayouts[iSubMesh];
-
       // Construct the vertex buffer
-      void* ptrToVertexData = someVertexDatas[iSubMesh];
-      uint numVertices = someNumVertices[iSubMesh];
+      const uint8* ptrToVertexData = meshData.myVertexData.data();
+      uint numVertices = (meshData.myVertexData.size() * sizeof(uint8)) / vertexLayout.myStride;
 
       SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
@@ -460,7 +456,6 @@ namespace Fancy {
     if (!aDesc.myIsExternalMesh)
       ourInternalMeshes[aDesc.myVertexAndIndexHash] = mesh;
 
-    BinaryCache::WriteMesh(mesh.get(), someVertexDatas, someIndexDatas);
     return mesh;
   }
 //---------------------------------------------------------------------------//
@@ -486,8 +481,6 @@ namespace Fancy {
       const uint64 hash = desc.GetHash();
       ourInternalTextures[hash] = tex;
     }
-
-    BinaryCache::WriteTexture(tex.get(), *someUploadDatas);
 
     return tex;
   }

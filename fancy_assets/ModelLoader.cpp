@@ -110,6 +110,7 @@ namespace Fancy { namespace ModelLoader {
     ProcessData() 
       : mySourcePath("") 
       , myScene(nullptr)
+      , mySceneFileTimeStamp(0u)
       , myNumCreatedMeshes(0u)
       , myNumCreatedModels(0u)
       , myNumCreatedGeometryDatas(0u)
@@ -118,6 +119,7 @@ namespace Fancy { namespace ModelLoader {
 
     const char* mySourcePath;
     const aiScene* myScene;
+    uint mySceneFileTimeStamp;
     uint myNumCreatedMeshes;
     uint myNumCreatedModels;
     uint myNumCreatedGeometryDatas;
@@ -126,12 +128,15 @@ namespace Fancy { namespace ModelLoader {
     std::unordered_map<uint, Mesh*> myMeshCache;
   };
 //---------------------------------------------------------------------------//
-  Mesh* CreateMesh(const aiNode* aNode, ProcessData& aProcessData, aiMesh** someMeshes, uint aMeshCount)
+  String CreateUniqueMeshName(uint64 anAssimpMeshListHash, ProcessData& aProcessData)
   {
-    // String meshName = GetCachePathForMesh();
-    // if (BinaryCache::read(&outputMesh, meshName, 0u))
-    // return outputMesh;
+    String name;
+    name.Format("%_Mesh_%", aProcessData.mySourcePath, anAssimpMeshListHash);
+    return name;
+  }
 
+  Mesh* CreateMesh(const aiNode* aNode, ProcessData& aProcessData, GraphicsWorld& aWorld, aiMesh** someMeshes, uint aMeshCount)
+  {
     // Mesh already created during this import-process?
     uint64 assimpMeshListHash = 0u;
     for (uint i = 0u; i < aMeshCount; ++i)
@@ -140,16 +145,13 @@ namespace Fancy { namespace ModelLoader {
     auto it = aProcessData.myMeshCache.find(assimpMeshListHash);
     if (it != aProcessData.myMeshCache.end())
       return it->second;
-
-    // Mesh already created in the renderer?
-    uint64 vertexIndexHash = ComputeHashFromVertexData(someMeshes, aMeshCount);
-    Mesh* mesh = RenderCore::GetMesh(vertexIndexHash);
-    if (mesh != nullptr)
-      return mesh;
-
+ 
     MeshDesc meshDesc;
-    meshDesc.myVertexAndIndexHash = vertexIndexHash;
+    meshDesc.myIsExternalMesh = true;
+    meshDesc.myUniqueName = CreateUniqueMeshName(assimpMeshListHash, aProcessData);
 
+    uint64 vertexIndexHash = ComputeHashFromVertexData(someMeshes, aMeshCount);
+  
     DynamicArray<void*> vertexDatas;
     DynamicArray<uint> numVertices;
     DynamicArray<void*> indexDatas;

@@ -12,7 +12,7 @@ namespace Fancy {
     GpuBufferDX12();
     ~GpuBufferDX12() override;
         
-    void Create(const GpuBufferCreationParams& clParameters, void* pInitialData = nullptr) override;
+    void Create(const GpuBufferCreationParams& clParameters, const void* pInitialData = nullptr) override;
     void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) override;
     void Unlock() override;
 
