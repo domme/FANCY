@@ -21,6 +21,9 @@
 
 #include "Material.h"
 #include "GraphicsWorld.h"
+#include "fancy_core/MeshData.h"
+#include "ModelDesc.h"
+#include "fancy_core/RenderPlatformCaps.h"
 
 namespace Fancy { namespace ModelLoader {
 //---------------------------------------------------------------------------//
@@ -55,54 +58,7 @@ namespace Fancy { namespace ModelLoader {
     return aiOptions;
   }
 //---------------------------------------------------------------------------//
-  uint64 ComputeHashFromVertexData(aiMesh** someMeshes, uint aMeshCount)
-  {
-    XXH64_state_t* xxHashState = XXH64_createState();
-    XXH64_reset(xxHashState, 0u);
-
-    for (uint iMesh = 0u; iMesh < aMeshCount; ++iMesh)
-    {
-      aiMesh* mesh = someMeshes[iMesh];
-
-      XXH64_update(xxHashState, mesh->mVertices, mesh->mNumVertices * sizeof(aiVector3D));
-
-      if (mesh->HasNormals())
-        XXH64_update(xxHashState, mesh->mNormals, mesh->mNumVertices * sizeof(aiVector3D));
-
-      if (mesh->HasTangentsAndBitangents())
-      {
-        XXH64_update(xxHashState, mesh->mTangents, mesh->mNumVertices * sizeof(aiVector3D));
-        XXH64_update(xxHashState, mesh->mBitangents, mesh->mNumVertices * sizeof(aiVector3D));
-      }
-
-      for (uint iChannel = 0u; iChannel < AI_MAX_NUMBER_OF_TEXTURECOORDS; ++iChannel)
-      {
-        if (mesh->HasTextureCoords(iChannel))
-          XXH64_update(xxHashState, mesh->mTextureCoords[iChannel], mesh->mNumVertices * sizeof(aiVector3D));
-      }
-
-      for (uint iChannel = 0u; iChannel < AI_MAX_NUMBER_OF_COLOR_SETS; ++iChannel)
-      {
-        if (mesh->HasVertexColors(iChannel))
-          XXH64_update(xxHashState, mesh->mColors[iChannel], mesh->mNumVertices * sizeof(aiColor4D));
-      }
-
-      if (mesh->HasFaces())
-      {
-        for (uint iFace = 0u; iFace < mesh->mNumFaces; ++iFace)
-        {
-          aiFace& face = mesh->mFaces[iFace];
-          XXH64_update(xxHashState, face.mIndices, face.mNumIndices * sizeof(unsigned int));
-        }
-      }
-    }
-
-    uint64 hash = XXH64_digest(xxHashState);
-
-    XXH64_freeState(xxHashState);
-
-    return hash;
-  }
+  
 //---------------------------------------------------------------------------//
   
   struct ProcessData
@@ -111,21 +67,13 @@ namespace Fancy { namespace ModelLoader {
       : mySourcePath("") 
       , myScene(nullptr)
       , mySceneFileTimeStamp(0u)
-      , myNumCreatedMeshes(0u)
-      , myNumCreatedModels(0u)
-      , myNumCreatedGeometryDatas(0u)
-      , myNumCreatedSubModels(0u) 
     {}
 
     const char* mySourcePath;
     const aiScene* myScene;
     uint mySceneFileTimeStamp;
-    uint myNumCreatedMeshes;
-    uint myNumCreatedModels;
-    uint myNumCreatedGeometryDatas;
-    uint myNumCreatedSubModels;
-    std::unordered_map<const aiMaterial*, Material*> myMaterialCache;
-    std::unordered_map<uint, Mesh*> myMeshCache;
+    std::unordered_map<const aiMaterial*, SharedPtr<Material>> myMaterialCache;
+    std::unordered_map<uint64, SharedPtr<Mesh>> myMeshCache;
   };
 //---------------------------------------------------------------------------//
   String CreateUniqueMeshName(uint64 anAssimpMeshListHash, ProcessData& aProcessData)
@@ -135,7 +83,7 @@ namespace Fancy { namespace ModelLoader {
     return name;
   }
 
-  Mesh* CreateMesh(const aiNode* aNode, ProcessData& aProcessData, GraphicsWorld& aWorld, aiMesh** someMeshes, uint aMeshCount)
+  SharedPtr<Mesh> CreateMesh(const aiNode* aNode, ProcessData& aProcessData, GraphicsWorld& aWorld, aiMesh** someMeshes, uint aMeshCount)
   {
     // Mesh already created during this import-process?
     uint64 assimpMeshListHash = 0u;
@@ -146,17 +94,8 @@ namespace Fancy { namespace ModelLoader {
     if (it != aProcessData.myMeshCache.end())
       return it->second;
  
-    MeshDesc meshDesc;
-    meshDesc.myIsExternalMesh = true;
-    meshDesc.myUniqueName = CreateUniqueMeshName(assimpMeshListHash, aProcessData);
-
-    uint64 vertexIndexHash = ComputeHashFromVertexData(someMeshes, aMeshCount);
-  
-    DynamicArray<void*> vertexDatas;
-    DynamicArray<uint> numVertices;
-    DynamicArray<void*> indexDatas;
-    DynamicArray<uint> numIndices;
-    for (uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
+    DynamicArray<MeshData> meshDatas;
+      for (uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
     {
       const aiMesh* aiMesh = someMeshes[iAiMesh];
 
@@ -321,14 +260,9 @@ namespace Fancy { namespace ModelLoader {
         vertexLayout.addVertexElement(vertexElem);
       }
 
-      const uint uSizeVertexBufferBytes = vertexLayout.myStride * aiMesh->mNumVertices;
-      void* pData = FANCY_ALLOCATE(uSizeVertexBufferBytes, MemoryCategory::GEOMETRY);
-
-      if (!pData)
-      {
-        LOG_ERROR("Failed to allocate vertex buffer");
-        return nullptr;
-      }
+      MeshData meshData;
+      meshData.myLayout = vertexLayout;
+      meshData.myVertexData.resize(vertexLayout.myStride * aiMesh->mNumVertices);
 
       // Construct an interleaved vertex array
       for (uint iVertex = 0u; iVertex < aiMesh->mNumVertices; ++iVertex)
@@ -339,16 +273,12 @@ namespace Fancy { namespace ModelLoader {
           uint destInterleavedOffset = iVertex * vertexLayout.myStride + vertexElem.u32OffsetBytes;
           uint srcOffset = iVertex * actualImportStreams[iVertexElement].mySourceDataStride;
 
-          uint8* dest = ((uint8*)pData) + destInterleavedOffset;
+          uint8* dest = (meshData.myVertexData.data()) + destInterleavedOffset;
           uint8* src = ((uint8*)actualImportStreams[iVertexElement].mySourceData) + srcOffset;
 
           memcpy(dest, src, vertexElem.u32SizeBytes);
         }
       }
-
-      vertexDatas.push_back(pData);
-      numVertices.push_back(aiMesh->mNumVertices);
-      meshDesc.myVertexLayouts.push_back(vertexLayout);
 
       for (uint i = 0u; i < patchingDatas.size(); ++i)
         free(patchingDatas[i]);
@@ -363,36 +293,25 @@ namespace Fancy { namespace ModelLoader {
       }
 #endif  // FANCY_IMPORTER_USE_VALIDATION
 
-      uint* indices = FANCY_NEW(uint[aiMesh->mNumFaces * 3u], MemoryCategory::GEOMETRY);
+      meshData.myIndexData.resize(sizeof(uint) * aiMesh->mNumFaces * 3u);
+      uint* indices = (uint*)meshData.myIndexData.data();
 
       for (uint i = 0u; i < aiMesh->mNumFaces; ++i)
       {
         const aiFace& aFace = aiMesh->mFaces[i];
-
-        ASSERT(sizeof(indices[0]) == sizeof(aFace.mIndices[0]));
         memcpy(&indices[i * 3u], aFace.mIndices, sizeof(uint) * 3u);
       }
 
-      // indexBufParams.uNumElements = aiMesh->mNumFaces * 3u;
-      indexDatas.push_back(indices);
-      numIndices.push_back(aiMesh->mNumFaces * 3u);
+      meshDatas.push_back(meshData);
     }
 
-    mesh = RenderCore::CreateMesh(meshDesc, vertexDatas, indexDatas, numVertices, numIndices);
+    MeshDesc meshDesc;
+    meshDesc.myIsExternalMesh = true;
+    meshDesc.myUniqueName = CreateUniqueMeshName(assimpMeshListHash, aProcessData);
+    
+    SharedPtr<Mesh> mesh = aWorld.CreateMesh(meshDesc, meshDatas.data(), meshDatas.size(), aProcessData.mySceneFileTimeStamp);
     ASSERT(mesh != nullptr);
-
-    for (uint i = 0u; i < vertexDatas.size(); ++i)
-    {
-      FANCY_FREE(vertexDatas[i], MemoryCategory::GEOMETRY);
-    }
-    vertexDatas.clear();
-
-    for (uint i = 0u; i < indexDatas.size(); ++i)
-    {
-      FANCY_DELETE_ARR(indexDatas[i], MemoryCategory::GEOMETRY);
-    }
-    indexDatas.clear();
-
+    
     aProcessData.myMeshCache[assimpMeshListHash] = mesh;
     return mesh;
   }
@@ -428,7 +347,7 @@ namespace Fancy { namespace ModelLoader {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  Material* CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData, GraphicsWorld& aWorld)
+  SharedPtr<Material> CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData, GraphicsWorld& aWorld)
   {
     // Did we already import this material?
     {
@@ -509,18 +428,18 @@ namespace Fancy { namespace ModelLoader {
       DynamicArray<aiMesh*>& meshList = it->second;
       const uint materialIndex = it->first;
 
-      Mesh* mesh = CreateMesh(aNode, aProcessData, &meshList[0], meshList.size());
+      SharedPtr<Mesh> mesh = CreateMesh(aNode, aProcessData, aWorld, &meshList[0], meshList.size());
 
       aiMaterial* pAmaterial = aProcessData.myScene->mMaterials[materialIndex];
-      Material* material = CreateMaterial(pAmaterial, aProcessData, aWorld);
+      SharedPtr<Material> material = CreateMaterial(pAmaterial, aProcessData, aWorld);
 
       if (!mesh || !material)
         continue;
 
       ModelDesc modelDesc;
       modelDesc.myMaterial = material->GetDescription();
-      modelDesc.myMesh = mesh->GetDescription();
-      Model* model = aWorld.CreateModel(modelDesc);
+      modelDesc.myMesh = mesh->myDesc;
+      SharedPtr<Model> model = aWorld.CreateModel(modelDesc);
 
       if (model)
       {
@@ -550,9 +469,11 @@ namespace Fancy { namespace ModelLoader {
   bool LoadFromFile(const char* aPath, GraphicsWorld& aWorld, LoadResult& aResultOut, ImportOptions someImportOptions/* = ALL*/)
   {
     ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
+
+    String pathAbs = Resources::FindPath(aPath);
     
     Assimp::Importer importer;
-    const aiScene* importedScene = importer.ReadFile(aPath, GetAiImportOptions(someImportOptions));
+    const aiScene* importedScene = importer.ReadFile(pathAbs.c_str(), GetAiImportOptions(someImportOptions));
 
     if (!importedScene)
       return false;
@@ -560,6 +481,7 @@ namespace Fancy { namespace ModelLoader {
     ProcessData data;
     data.myScene = importedScene;
     data.mySourcePath = aPath;
+    data.mySceneFileTimeStamp = Path::GetFileWriteTime(pathAbs.c_str());
     return ProcessNodeRecursive(importedScene->mRootNode, data, aWorld, aResultOut);
   }
 //---------------------------------------------------------------------------//

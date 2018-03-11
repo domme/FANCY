@@ -15,9 +15,9 @@ namespace Fancy {
     uint height;
   };
 //---------------------------------------------------------------------------//
-  namespace TextureLoader
+  struct TextureLoader
   {
-    bool Load(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo);
+    static bool Load(const char* aPath, DynamicArray<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo);
   };
 //---------------------------------------------------------------------------//
 }

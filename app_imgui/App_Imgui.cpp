@@ -3,6 +3,8 @@
 #include <fancy_core/RendererPrerequisites.h>
 #include <fancy_core/CommandListType.h>
 #include "fancy_core/CommandContext.h"
+#include "fancy_assets/ModelLoader.h"
+#include "fancy_assets/GraphicsWorld.h"
 
 using namespace Fancy;
 
@@ -26,6 +28,11 @@ App_Imgui::~App_Imgui()
 void App_Imgui::Init()
 {
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
+
+  myGraphicsWorld.reset(new GraphicsWorld());
+
+  ModelLoader::LoadResult loadResult;
+  ModelLoader::LoadFromFile("Models/cube.obj", *myGraphicsWorld.get(), loadResult);
 }
 
 void App_Imgui::Update()
@@ -86,5 +93,5 @@ void App_Imgui::Shutdown()
 
 void App_Imgui::OnWindowResized(Fancy::uint aWidth, Fancy::uint aHeight)
 {
-
+  
 }

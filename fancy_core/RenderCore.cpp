@@ -21,14 +21,34 @@
 #include "CommandContext.h"
 #include "RenderingStartupParameters.h"
 #include "MeshData.h"
+#include <xxHash/xxhash.h>
+#include <assimp/mesh.h>
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  namespace Private_RenderCore
+  {
+    uint64 ComputeHashFromVertexData(const MeshData* someMeshDatas, uint aNumMeshDatas)
+    {
+      XXH64_state_t* xxHashState = XXH64_createState();
+      XXH64_reset(xxHashState, 0u);
+
+      for (uint i = 0u; i < aNumMeshDatas; ++i)
+      {
+        const MeshData& meshData = someMeshDatas[i];
+        XXH64_update(xxHashState, meshData.myVertexData.data(), DYN_ARRAY_BYTESIZE(meshData.myVertexData));
+        XXH64_update(xxHashState, meshData.myIndexData.data(), DYN_ARRAY_BYTESIZE(meshData.myIndexData));
+      }
+
+      uint64 hash = XXH64_digest(xxHashState);
+      XXH64_freeState(xxHashState);
+      return hash;
+    }
+  }
+//---------------------------------------------------------------------------//
   std::unique_ptr<RenderCore_Platform> RenderCore::ourPlatformImpl;
 
-  std::map<uint64, SharedPtr<Texture>> RenderCore::ourInternalTextures;
-  std::map<uint64, SharedPtr<Mesh>> RenderCore::ourInternalMeshes;
   std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
   std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
@@ -313,15 +333,6 @@ namespace Fancy {
     return pipeline;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> RenderCore::GetInternalTexture(const TextureDesc& aDesc)
-  {
-    auto it = ourInternalTextures.find(aDesc.GetHash());
-    if (it != ourInternalTextures.end())
-      return it->second;
-
-    return nullptr;
-  }
-//---------------------------------------------------------------------------//
   DataFormat RenderCore::ResolveFormat(DataFormat aFormat)
   {
     return ourPlatformImpl->ResolveFormat(aFormat);
@@ -340,15 +351,6 @@ namespace Fancy {
   {
     auto it = ourGpuProgramPipelineCache.find(aDescHash);
     if (it != ourGpuProgramPipelineCache.end())
-      return it->second;
-
-    return nullptr;
-  }
-//---------------------------------------------------------------------------//
-  SharedPtr<Mesh> RenderCore::GetInternalMesh(const MeshDesc& aDesc)
-  {
-    auto it = ourInternalMeshes.find(aDesc.GetHash());
-    if (it != ourInternalMeshes.end())
       return it->second;
 
     return nullptr;
@@ -390,6 +392,11 @@ namespace Fancy {
     return ourDefaultDepthStencilState;
   }
 //---------------------------------------------------------------------------//
+  const RenderPlatformCaps& RenderCore::GetPlatformCaps()
+  {
+    return ourPlatformImpl->GetCaps();
+  }
+//---------------------------------------------------------------------------//
   RenderCore_Platform* RenderCore::GetPlatform()
   {
     return ourPlatformImpl.get();
@@ -397,25 +404,17 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<Mesh> RenderCore::CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas)
   {
-    if (!aDesc.myIsExternalMesh)
-    {
-      SharedPtr<Mesh> internalMesh = GetInternalMesh(aDesc);
-      if (internalMesh)
-        return internalMesh;
-    }
-
-    DynamicArray<GeometryData*> vGeometryDatas;
-
+    DynamicArray<SharedPtr<GeometryData>> vGeometryDatas;
     for (uint i = 0u; i < aNumMeshDatas; ++i)
     {
       const MeshData& meshData = someMeshDatas[i];
       const GeometryVertexLayout& vertexLayout = meshData.myLayout;
 
-      GeometryData* pGeometryData = FANCY_NEW(GeometryData, MemoryCategory::GEOMETRY);
+      SharedPtr<GeometryData> pGeometryData (FANCY_NEW(GeometryData, MemoryCategory::GEOMETRY));
 
       // Construct the vertex buffer
       const uint8* ptrToVertexData = meshData.myVertexData.data();
-      uint numVertices = (meshData.myVertexData.size() * sizeof(uint8)) / vertexLayout.myStride;
+      const uint numVertices = (meshData.myVertexData.size() * sizeof(uint8)) / vertexLayout.myStride;
 
       SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
@@ -431,8 +430,8 @@ namespace Fancy {
       pGeometryData->setVertexBuffer(vertexBuffer);
 
       // Construct the index buffer
-      void* ptrToIndexData = someIndexDatas[iSubMesh];
-      uint numIndices = someNumIndices[iSubMesh];
+      const uint8* ptrToIndexData = meshData.myIndexData.data();
+      const uint numIndices = (meshData.myIndexData.size() * sizeof(uint8)) / sizeof(uint);
 
       SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
@@ -450,39 +449,18 @@ namespace Fancy {
     }
 
     SharedPtr<Mesh> mesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
-    mesh->m_vGeometries = vGeometryDatas;
-    mesh->myVertexAndIndexHash = aDesc.myVertexAndIndexHash;
-
-    if (!aDesc.myIsExternalMesh)
-      ourInternalMeshes[aDesc.myVertexAndIndexHash] = mesh;
+    mesh->myGeometryDatas = vGeometryDatas;
+    mesh->myDesc = aDesc;
+    mesh->myVertexAndIndexHash = Private_RenderCore::ComputeHashFromVertexData(someMeshDatas, aNumMeshDatas);
 
     return mesh;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint aNumUploadDatas)
   {
-    TextureDesc desc;
-    desc.myIsExternalTexture = someParams.myIsExternalTexture;
-    desc.mySourcePath = someParams.path;
-    desc.myInternalRefIndex = someParams.myInternalRefIndex;
-
-    if (!desc.myIsExternalTexture)
-    {
-      SharedPtr<Texture> internalTex = GetInternalTexture(desc);
-      if (internalTex)
-        return internalTex;
-    }
-        
     SharedPtr<Texture> tex(ourPlatformImpl->CreateTexture());
     tex->Create(someParams, someUploadDatas, aNumUploadDatas);
-
-    if (!desc.myIsExternalTexture && tex->IsValid())
-    {
-      const uint64 hash = desc.GetHash();
-      ourInternalTextures[hash] = tex;
-    }
-
-    return tex;
+    return tex->IsValid() ? tex : nullptr;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData /* = nullptr */)
@@ -561,7 +539,7 @@ namespace Fancy {
     FreeContext(initContext);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::InitBufferData(GpuBuffer* aBuffer, void* aDataPtr)
+  void RenderCore::InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr)
   {
     CommandContext* initContext = AllocateContext(CommandListType::Graphics);
     ourPlatformImpl->InitBufferData(aBuffer, aDataPtr, initContext);

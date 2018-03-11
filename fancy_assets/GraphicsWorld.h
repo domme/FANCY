@@ -6,7 +6,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   class Mesh;
   struct MeshDesc;
-  class Material;
+  struct Material;
   struct Model;
   struct ModelDesc;
   struct MaterialDesc;

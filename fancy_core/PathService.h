@@ -19,6 +19,7 @@ namespace Fancy {
     String GetFilename(const String& aPath);
     String GetPathWithoutExtension(const String& aPath);
     uint64 GetFileWriteTime(const String& aFile);
+    String GetUserDataPath();
         
     void RemoveFolderUpMarkers(String& aPath);
     void UnifySlashes(String& aPath);

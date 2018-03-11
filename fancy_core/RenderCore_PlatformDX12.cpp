@@ -268,7 +268,7 @@ namespace Fancy {
     return new CommandContextDX12(aType);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext)
+  void RenderCore_PlatformDX12::InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr, CommandContext* aContext)
   {
     D3D12_HEAP_PROPERTIES heapProps;
     memset(&heapProps, 0, sizeof(heapProps));

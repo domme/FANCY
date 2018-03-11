@@ -6,10 +6,9 @@
 
 using namespace Fancy;
 
-namespace TextureLoader {
 //---------------------------------------------------------------------------//
-  namespace  {
-    bool Load_PNG(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
+  namespace Private_TextureLoader {
+    bool Load_PNG(const char* _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
     {
       std::vector<uint8> vEncodedFileBytes;
       uint uWidth, uHeight;
@@ -38,17 +37,16 @@ namespace TextureLoader {
     }
   }
 //---------------------------------------------------------------------------//
-  bool Load(const std::string& _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
+  bool TextureLoader::Load(const char* aPath, DynamicArray<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
   {
-    const String& extension = Path::GetFileExtension(_szPathAbs);
+    const String& extension = Path::GetFileExtension(aPath);
 
     if (extension == "PNG" || extension == "png")
     {
-      return Load_PNG(_szPathAbs, _vOutBytes, _outTexLoadInfo);
+      return Private_TextureLoader::Load_PNG(aPath, _vOutBytes, _outTexLoadInfo);
     }
 
     ASSERT(false, "Missing implementation to load textures of filetype %", extension);
     return false;
   }
 //---------------------------------------------------------------------------//
-}

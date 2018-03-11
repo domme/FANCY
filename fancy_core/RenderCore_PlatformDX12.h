@@ -60,7 +60,7 @@ namespace Fancy {
     Texture* CreateTexture() override;
     GpuBuffer* CreateGpuBuffer() override;
     CommandContext* CreateContext(CommandListType aType) override;
-    void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr, CommandContext* aContext) override;
+    void InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr, CommandContext* aContext) override;
     void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext) override;
     void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext) override;
     DataFormat ResolveFormat(DataFormat aFormat) override;

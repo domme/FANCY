@@ -8,6 +8,10 @@
 #include <fancy_imgui/imgui_impl_fancy.h>
 #include <fancy_core/RenderOutput.h>
 
+namespace Fancy {
+  class GraphicsWorld;
+}
+
 class App_Imgui
 {
 public:
@@ -23,5 +27,6 @@ private:
   void OnWindowResized(Fancy::uint aWidth, Fancy::uint aHeight);
 
   Fancy::FancyRuntime* myRuntime;
+  UniquePtr<Fancy::GraphicsWorld> myGraphicsWorld;
 };
 

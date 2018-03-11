@@ -1,6 +1,11 @@
 #include "PathService.h"
 #include <stdio.h>
 #include <Windows.h>
+#include <ShlObj.h>
+#include <locale>
+#include <codecvt>
+
+#pragma comment(lib, "comsuppw")
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -207,7 +212,25 @@ namespace Fancy {
 
       return lastWriteTimeStamp;
     }
- //---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
+    String GetUserDataPath()
+    {
+      LPWSTR documentsFolder = NULL;
+      if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &documentsFolder)))
+      {
+        std::wstring str(documentsFolder);
+        CoTaskMemFree(documentsFolder);
+          
+        std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+        String path = converter.to_bytes(str);
+        UnifySlashes(path);
+
+        return path + "/" + GetAppName() + "/";
+      }
+
+      return "";
+    }
+  //---------------------------------------------------------------------------//
   }
   
   namespace Resources 
@@ -220,7 +243,7 @@ namespace Fancy {
       const String& appPath = Path::GetAppPath();
 
       String appResourceFolder;
-      appResourceFolder.Format("%/../../../%/", appPath.c_str(), Path::GetAppName().c_str());
+      appResourceFolder.Format("%/../../../%/resources/", appPath.c_str(), Path::GetAppName().c_str());
       Path::RemoveFolderUpMarkers(appResourceFolder);
 
       String coreResourceFolder;

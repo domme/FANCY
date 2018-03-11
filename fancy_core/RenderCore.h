@@ -3,7 +3,6 @@
 #include "RendererPrerequisites.h"
 #include "RenderingStartupParameters.h"
 #include <list>
-#include "RenderPlatformCaps.h"
 
 namespace Fancy {
   struct MeshData;
@@ -24,6 +23,7 @@ namespace Fancy {
   struct MeshDesc;
   class FileWatcher;
   class Texture;
+  struct RenderPlatformCaps;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -42,17 +42,15 @@ namespace Fancy {
 
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
-    static SharedPtr<Mesh> GetInternalMesh(const MeshDesc& aDesc);
     static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas);
 
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle);
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
-    static SharedPtr<Texture> GetInternalTexture(const TextureDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
 
-    static void InitBufferData(GpuBuffer* aBuffer, void* aDataPtr);
+    static void InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr);
     static void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteSize, uint aByteOffsetFromBuffer = 0u);
     static void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas);
 
@@ -81,8 +79,6 @@ namespace Fancy {
 
     static std::unique_ptr<RenderCore_Platform> ourPlatformImpl;
     
-    static std::map<uint64, SharedPtr<Texture>> ourInternalTextures;
-    static std::map<uint64, SharedPtr<Mesh>> ourInternalMeshes;
     static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;

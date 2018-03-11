@@ -8,6 +8,9 @@ namespace Fancy {
     DEFAULT_NORMAL,
     DEFAULT_SPECULAR,
 
+    DEFAULT_BACKBUFFER,
+    DEFAULT_DEPTHSTENCILBUFFER,
+    
     NUM
   };
 //---------------------------------------------------------------------------//

@@ -10,11 +10,6 @@
 #include <fancy_core/Mesh.h>
 
 using namespace Fancy;
-  
-namespace Private
-{
-  
-}
 
 //---------------------------------------------------------------------------//
   GraphicsWorld::GraphicsWorld()
@@ -27,7 +22,7 @@ namespace Private
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> GraphicsWorld::GetTexture(const TextureDesc& aDesc)
   {
-    auto it = std::find(myTextures.begin(), myTextures.end(), aDesc.GetHash());
+    auto it = myTextures.find(aDesc.GetHash());
     if (it != myTextures.end())
       return it->second;
 
@@ -38,7 +33,7 @@ namespace Private
   {
     const uint64 descHash = aDesc.GetHash();
 
-    auto it = std::find(myMaterials.begin(), myMaterials.end(), descHash);
+    auto it = myMaterials.find(descHash);
     if (it != myMaterials.end())
       return it->second;
 
@@ -61,14 +56,14 @@ namespace Private
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> GraphicsWorld::CreateTexture(const TextureDesc& aDesc)
   {
-    if (!aDesc.myIsExternalTexture)
-      return RenderCore::GetInternalTexture(aDesc);
-
     return CreateTexture(aDesc.mySourcePath.c_str());
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> GraphicsWorld::CreateTexture(const char* aPath)
   {
+    if (strlen(aPath) == 0)
+      return nullptr;
+
     String texPathAbs = aPath;
     String texPathRel = aPath;
     if (!Path::IsPathAbsolute(texPathAbs))
@@ -77,7 +72,7 @@ namespace Private
       texPathRel = Resources::FindName(texPathAbs);
 
     TextureDesc desc;
-    desc.mySourcePath = texPathAbs;
+    desc.mySourcePath = texPathRel;
     desc.myIsExternalTexture = true;
     uint64 hash = desc.GetHash();
 
@@ -93,7 +88,7 @@ namespace Private
 
     std::vector<uint8> textureBytes;
     TextureLoadInfo textureInfo;
-    if (!TextureLoader::Load(texPathAbs, textureBytes, textureInfo))
+    if (!TextureLoader::Load(texPathAbs.c_str(), textureBytes, textureInfo))
     {
       LOG_ERROR("Failed to load texture at path %", texPathAbs);
       return nullptr;
@@ -137,9 +132,9 @@ namespace Private
 //---------------------------------------------------------------------------//
   SharedPtr<Model> GraphicsWorld::CreateModel(const ModelDesc& aDesc)
   {
-    uint64 hash = aDesc.GetHash();
+    const uint64 hash = aDesc.GetHash();
 
-    auto it = std::find(myModels.begin(), myModels.end(), hash);
+    auto it = myModels.find(hash);
     if (it != myModels.end())
       return it->second;
 
@@ -153,18 +148,15 @@ namespace Private
 //---------------------------------------------------------------------------//
   SharedPtr<Mesh> GraphicsWorld::GetMesh(const MeshDesc& aDesc)
   {
-    auto it = std::find(myMeshes.begin(), myMeshes.end(), aDesc.GetGeometryHash());
+    auto it = myMeshes.find(aDesc.GetHash());
     if (it != myMeshes.end())
       return it->second;
 
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> GraphicsWorld::CreateMesh(const MeshDesc& aDesc, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas, const std::vector<uint>& someNumVertices, const std::vector<uint>& someNumIndices, uint64 aMeshFileTimestamp /* = 0u */)
+  SharedPtr<Mesh> GraphicsWorld::CreateMesh(const MeshDesc& aDesc, MeshData* someMeshDatas, uint aNumMeshDatas, uint64 aMeshFileTimestamp /* = 0u */)
   {
-    if (!aDesc.myIsExternalMesh)
-      return RenderCore::GetInternalMesh(aDesc);
-
     if (aMeshFileTimestamp != 0u)
     {
       SharedPtr<Mesh> meshFromDiskCache = BinaryCache::ReadMesh(aDesc, aMeshFileTimestamp);
@@ -175,13 +167,15 @@ namespace Private
       }
     }
     
-    SharedPtr<Mesh> mesh = RenderCore::CreateMesh(aDesc, someVertexDatas, someIndexDatas, someNumVertices, someNumIndices);
+    SharedPtr<Mesh> mesh = RenderCore::CreateMesh(aDesc, someMeshDatas, aNumMeshDatas);
     if (mesh)
     {
-      BinaryCache::WriteMesh(mesh.get(), aDesc, someVertexDatas, someIndexDatas);
+      BinaryCache::WriteMesh(mesh.get(), someMeshDatas, aNumMeshDatas);
 
       myMeshes[aDesc.GetHash()] = mesh;
       return mesh;
     }
+
+    return nullptr;
   }
 //---------------------------------------------------------------------------//

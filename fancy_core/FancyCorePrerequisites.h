@@ -52,7 +52,8 @@
   }
 //---------------------------------------------------------------------------//
 #define ARRAY_LENGTH(array) GetArraySize(array)
-//---------------------------------------------------------------------------//
+#define DYN_ARRAY_BYTESIZE(array) (array.size() * sizeof(decltype(array)::value_type))
+  //---------------------------------------------------------------------------//
   template<class T>
   using SharedPtr = std::shared_ptr<T>;
 

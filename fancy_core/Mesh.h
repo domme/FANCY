@@ -7,16 +7,16 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   class GeometryData;
 //---------------------------------------------------------------------------//
-  /// Represents a collection of raw geometric pieces that can be rendered with a single material
-  /// Two GeometryDatas always have different vertex-attributes or primitive types which makes their distinction necessary.
   class Mesh
   {
   public:
     Mesh();
-    ~Mesh();
 
+    const MeshDesc& GetDescription() const { return myDesc; }
+
+    MeshDesc myDesc;
     uint64 myVertexAndIndexHash;
-    DynamicArray<GeometryData*> m_vGeometries;
+    DynamicArray<SharedPtr<GeometryData>> myGeometryDatas;
   };
   //---------------------------------------------------------------------------//
 }

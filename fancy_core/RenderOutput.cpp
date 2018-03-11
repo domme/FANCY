@@ -55,5 +55,3 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//  
 }
-
-Internal ref-indices for multiple RenderOutputs??

@@ -4,7 +4,7 @@
 #include "ModelDesc.h"
 
 namespace Fancy {
-  class Material;
+  struct Material;
   class Mesh;
 
   //---------------------------------------------------------------------------//

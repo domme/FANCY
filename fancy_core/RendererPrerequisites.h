@@ -30,7 +30,6 @@ namespace Fancy {
       };
     }
 //---------------------------------------------------------------------------//
-    class Material;
     class Texture;
     class TextureSampler;
     class GpuBuffer;

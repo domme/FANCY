@@ -7,6 +7,7 @@
 #include "PathService.h"
 #include "StringUtil.h"
 #include "RenderCore_Platform.h"
+#include "MeshData.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -42,13 +43,10 @@ namespace Fancy {
     return returnStr;
   }
 //---------------------------------------------------------------------------//
-  const String kBinaryCacheRoot = "Cache/";
-  const String kBinaryCacheExtension = ".bin";
-//---------------------------------------------------------------------------//
   String BinaryCache::getCacheFilePathAbs(const String& aPathInResources)
   {
-    const String resourceName = kBinaryCacheRoot + aPathInResources + kBinaryCacheExtension;
-    return Path::GetAbsolutePath(resourceName);
+    String basePath = Path::GetUserDataPath();
+    return basePath + "ResourceCache/" + aPathInResources + ".bin";
   }
 //---------------------------------------------------------------------------//  
   bool BinaryCache::WriteTexture(const Texture* aTexture, const TextureUploadData& someData)
@@ -145,9 +143,10 @@ namespace Fancy {
     return newTex;
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::WriteMesh(const Mesh* aMesh, const MeshDesc& aDesc, const std::vector<void*>& someVertexDatas, const std::vector<void*>& someIndexDatas)
+  bool BinaryCache::WriteMesh(const Mesh* aMesh, const MeshData* someMeshDatas, uint aNumMeshDatas)
   {
-    uint64 descHash = aDesc.GetResourceHash();
+    const MeshDesc& desc = aMesh->myDesc;
+    uint64 descHash = desc.GetHash();
 
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(descHash));
     Path::CreateDirectoryTreeForPath(cacheFilePath);
@@ -156,16 +155,19 @@ namespace Fancy {
     ASSERT(archive.good(), "Failed to open cache file");
 
     archive.write(reinterpret_cast<const char*>(&kMeshVersion), sizeof(uint));
-    uint64 geometryHash = aMesh->myVertexAndIndexHash;
-    archive.write((const char*)&geometryHash, sizeof(geometryHash));
 
-    const DynamicArray<GeometryData*>& vGeoData = aMesh->m_vGeometries;
+    archive.write(reinterpret_cast<const char*>(&aMesh->myVertexAndIndexHash), sizeof(aMesh->myVertexAndIndexHash));
+
+    const DynamicArray<SharedPtr<GeometryData>>& vGeoData = aMesh->myGeometryDatas;
     const uint numGeoDatas = static_cast<uint>(vGeoData.size());
-    archive.write(reinterpret_cast<const char*>(&numGeoDatas), sizeof(uint));
 
+    ASSERT(numGeoDatas == aNumMeshDatas);
+
+    archive.write(reinterpret_cast<const char*>(&numGeoDatas), sizeof(uint));
+    
     for (uint i = 0u; i < vGeoData.size(); ++i)
     {
-      const GeometryData* geoData = vGeoData[i];
+      const GeometryData* geoData = vGeoData[i].get();
 
       // Vertex-Layout begin
       const GeometryVertexLayout& vertexLayout = geoData->getGeometryVertexLayout();
@@ -194,7 +196,7 @@ namespace Fancy {
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferCreationParams));
         const uint buffersize = buffer->GetSizeBytes();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
-        archive.write(reinterpret_cast<const char*>(someVertexDatas[i]), buffer->GetSizeBytes());
+        archive.write(reinterpret_cast<const char*>(someMeshDatas[i].myVertexData.data()), DYN_ARRAY_BYTESIZE(someMeshDatas[i].myVertexData));
       }
 
       // Index data
@@ -204,7 +206,7 @@ namespace Fancy {
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferCreationParams));
         const uint buffersize = buffer->GetSizeBytes();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
-        archive.write(reinterpret_cast<const char*>(someIndexDatas[i]), buffer->GetSizeBytes());
+        archive.write(reinterpret_cast<const char*>(someMeshDatas[i].myIndexData.data()), DYN_ARRAY_BYTESIZE(someMeshDatas[i].myIndexData));
       }
     }
 
@@ -213,7 +215,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<Mesh> BinaryCache::ReadMesh(const MeshDesc& aDesc, uint64 aTimeStamp)
   {
-    uint64 descHash = aDesc.GetResourceHash();
+    uint64 descHash = aDesc.GetHash();
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(descHash));
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
@@ -226,21 +228,21 @@ namespace Fancy {
     uint meshVersion;
     archive.read(reinterpret_cast<char*>(&meshVersion), sizeof(uint));
 
+    uint64 vertexIndexHash;
+    archive.read(reinterpret_cast<char*>(&vertexIndexHash), sizeof(vertexIndexHash));
+
     if (meshVersion != kMeshVersion)
       return nullptr;
-
-    uint64 geometryHash = 0u;
-    archive.read((char*)&geometryHash, sizeof(geometryHash));
 
     uint numGeometryDatas;
     archive.read(reinterpret_cast<char*>(&numGeometryDatas), sizeof(uint));
 
-    DynamicArray<GeometryData*> vGeoDatas;
+    DynamicArray<SharedPtr<GeometryData>> vGeoDatas;
     vGeoDatas.resize(numGeometryDatas);
 
     for (uint i = 0u; i < vGeoDatas.size(); ++i)
     {
-      GeometryData* geoData = FANCY_NEW(GeometryData, MemoryCategory::Geometry);
+      SharedPtr<GeometryData> geoData(FANCY_NEW(GeometryData, MemoryCategory::Geometry));
       vGeoDatas[i] = geoData;
 
       GeometryVertexLayout vertexLayout;
@@ -302,8 +304,8 @@ namespace Fancy {
       return nullptr;
 
     SharedPtr<Mesh> newMesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
-    newMesh->myVertexAndIndexHash = geometryHash;
-    newMesh->m_vGeometries = vGeoDatas;
+    newMesh->myVertexAndIndexHash = vertexIndexHash;
+    newMesh->myGeometryDatas = vGeoDatas;
     return newMesh;
   }
 //---------------------------------------------------------------------------//
