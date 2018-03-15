@@ -11,6 +11,9 @@
 #include <fancy_assets/ModelLoader.h>
 #include <fancy_assets/GraphicsWorld.h>
 #include "Camera.h"
+#include "fancy_assets/Model.h"
+#include "fancy_assets/Material.h"
+#include "fancy_core/Mesh.h"
 
 using namespace Fancy;
 
@@ -30,7 +33,9 @@ struct CBuffer_PerObject
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
-
+  myCamera.myWidth = myWindow->GetWidth();
+  myCamera.myHeight = myWindow->GetHeight();
+  myCamera.UpdateProjection();
 }
 
 void Init(HINSTANCE anInstanceHandle)
@@ -69,11 +74,17 @@ void Init(HINSTANCE anInstanceHandle)
   ASSERT(myUnlitTexturedShader != nullptr);
 
   myCamera.myPosition = glm::float3(0.0f, 0.0f, -10.0f);
+  myCamera.myOrientation = glm::quat_cast(glm::lookAt(glm::float3(0.0f, 0.0f, 10.0f), glm::float3(0.0f, 0.0f, 0.0f), glm::float3(0.0f, 1.0f, 0.0f)));
+
   myCamera.myFovDeg = 60.0f;
   myCamera.myNear = 1.0f;
   myCamera.myFar = 100.0f;
   myCamera.myWidth = myWindow->GetWidth();
   myCamera.myHeight = myWindow->GetHeight();
+  myCamera.myIsOrtho = false;
+
+  myCamera.UpdateView();
+  myCamera.UpdateProjection();
 }
 
 void Update()
@@ -94,8 +105,16 @@ void Render()
     const glm::mat4& transform = myScene.myTransforms[i];
 
     CBuffer_PerObject cBuffer;
-    cBuffer.myWorldViewProj = transform;
+    cBuffer.myWorldViewProj = myCamera.myViewProj * transform;
     RenderCore::UpdateBufferData(myCbufferPerObject.get(), &cBuffer, sizeof(cBuffer));
+
+    Material* mat = model->myMaterial.get();
+    Mesh* mesh = model->myMesh.get();
+
+    
+
+    for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
+      ctx->RenderGeometry(geometry.get());
   }
 
   ctx->ExecuteAndReset();
