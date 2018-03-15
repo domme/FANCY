@@ -49,6 +49,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\app_forwardplus.cpp" />
+    <ClCompile Include="src\RenderingProcessForward.cpp" />
+    <ClCompile Include="src\RenderingProcessForwardPlus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\fancy_core\fancy_core.vcxproj">
@@ -56,6 +58,10 @@
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\RenderingProcessForward.h" />
+    <ClInclude Include="src\RenderingProcessForwardPlus.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

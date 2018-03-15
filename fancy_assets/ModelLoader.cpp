@@ -58,9 +58,6 @@ namespace Fancy { namespace ModelLoader {
     return aiOptions;
   }
 //---------------------------------------------------------------------------//
-  
-//---------------------------------------------------------------------------//
-  
   struct ProcessData
   {
     ProcessData() 
@@ -405,7 +402,7 @@ namespace Fancy { namespace ModelLoader {
     return aWorld.CreateMaterial(matDesc);
   }
 //---------------------------------------------------------------------------//
-  bool ProcessMeshes(const aiNode* aNode, ProcessData& aProcessData, GraphicsWorld& aWorld, LoadResult& aResultOut)
+  bool ProcessMeshes(const aiNode* aNode, const glm::mat4& aTransform, ProcessData& aProcessData, GraphicsWorld& aWorld, Scene& aSceneOut)
   {
     if (aNode->mNumMeshes == 0)
       return true;
@@ -444,29 +441,32 @@ namespace Fancy { namespace ModelLoader {
       if (model)
       {
         ++numCreatedModels;
-        aResultOut.myModels.push_back(model);
+        aSceneOut.myModels.push_back(model);
+        aSceneOut.myTransforms.push_back(aTransform);
       }
     }
 
     return numCreatedModels > 0u;
   }
 
-  bool ProcessNodeRecursive(const aiNode* aNode, ProcessData& aProcessData, GraphicsWorld& aWorld, LoadResult& aResultOut)
+  bool ProcessNodeRecursive(const aiNode* aNode, const glm::mat4& aParentTransform, ProcessData& aProcessData, GraphicsWorld& aWorld, Scene& aSceneOut)
   {
     if (!aNode) 
       return false;
 
-    if (!ProcessMeshes(aNode, aProcessData, aWorld, aResultOut))
+    glm::mat4 transform = matFromAiMat(aNode->mTransformation) * aParentTransform;
+
+    if (!ProcessMeshes(aNode, transform, aProcessData, aWorld, aSceneOut))
       return false;
 
     for (uint i = 0u; i < aNode->mNumChildren; ++i)
-      if (!ProcessNodeRecursive(aNode->mChildren[i], aProcessData, aWorld, aResultOut))
+      if (!ProcessNodeRecursive(aNode->mChildren[i], transform, aProcessData, aWorld, aSceneOut))
         return false;
 
     return true;
   }
 
-  bool LoadFromFile(const char* aPath, GraphicsWorld& aWorld, LoadResult& aResultOut, ImportOptions someImportOptions/* = ALL*/)
+  bool LoadFromFile(const char* aPath, GraphicsWorld& aWorld, Scene& aSceneOut, ImportOptions someImportOptions/* = ALL*/)
   {
     ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 
@@ -482,7 +482,9 @@ namespace Fancy { namespace ModelLoader {
     data.myScene = importedScene;
     data.mySourcePath = aPath;
     data.mySceneFileTimeStamp = Path::GetFileWriteTime(pathAbs.c_str());
-    return ProcessNodeRecursive(importedScene->mRootNode, data, aWorld, aResultOut);
+
+    aiNode* rootNode = importedScene->mRootNode;
+    return ProcessNodeRecursive(rootNode, matFromAiMat(rootNode->mTransformation), data, aWorld, aSceneOut);
   }
 //---------------------------------------------------------------------------//
 } }

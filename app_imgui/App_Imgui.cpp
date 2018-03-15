@@ -1,10 +1,14 @@
-#include "App_Imgui.h"
-
+#include <windows.h>
+#include <fancy_imgui/imgui.h>
+#include <fancy_imgui/imgui_impl_fancy.h>
+#include <fancy_core/RenderOutput.h>
+#include <fancy_core/RenderCore.h>
 #include <fancy_core/RendererPrerequisites.h>
 #include <fancy_core/CommandListType.h>
 #include "fancy_core/CommandContext.h"
 #include "fancy_assets/ModelLoader.h"
-#include "fancy_assets/GraphicsWorld.h"
+#include <fancy_core/Fancy.h>
+#include <fancy_core/Window.h>
 
 using namespace Fancy;
 
@@ -12,30 +16,28 @@ bool show_test_window = true;
 bool show_another_window = false;
 ImVec4 clear_col = ImColor(114, 144, 154);
 
-App_Imgui::App_Imgui(HINSTANCE anInstanceHandle)
+Fancy::FancyRuntime* myRuntime = nullptr;
+
+void OnWindowResized(uint aWidth, uint aHeight)
+{
+
+}
+
+void Init(HINSTANCE anInstanceHandle)
 {
   RenderingStartupParameters params;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   myRuntime = FancyRuntime::Init(anInstanceHandle, params);
-  myRuntime->GetRenderOutput()->GetWindow()->myOnResize.Connect(this, &App_Imgui::OnWindowResized);
-}
 
-App_Imgui::~App_Imgui()
-{
-}
+  std::function<void(uint, uint)> onWindowResized = &OnWindowResized;
+  myRuntime->GetRenderOutput()->GetWindow()->myOnResize.Connect(onWindowResized);
 
-void App_Imgui::Init()
-{
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
-
-  myGraphicsWorld.reset(new GraphicsWorld());
-
-  ModelLoader::LoadResult loadResult;
-  ModelLoader::LoadFromFile("Models/cube.obj", *myGraphicsWorld.get(), loadResult);
 }
 
-void App_Imgui::Update()
+
+void Update()
 {
   myRuntime->BeginFrame();
   ImGuiRendering::NewFrame();
@@ -70,13 +72,11 @@ void App_Imgui::Update()
   }
 }
 
-void App_Imgui::Render()
+void Render()
 {
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-  
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRuntime->GetRenderOutput()->GetBackbuffer(), clearColor);
-  
   ctx->ExecuteAndReset();
   RenderCore::FreeContext(ctx);
 
@@ -84,14 +84,36 @@ void App_Imgui::Render()
   myRuntime->EndFrame();
 }
 
-void App_Imgui::Shutdown()
+void Shutdown()
 {
   ImGuiRendering::Shutdown();
   FancyRuntime::Shutdown();
   myRuntime = nullptr;
 }
 
-void App_Imgui::OnWindowResized(Fancy::uint aWidth, Fancy::uint aHeight)
+_Use_decl_annotations_
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
+  Init(hInstance);
   
+  MSG msg = { 0 };
+  while (true)
+  {
+  	// Process any messages in the queue.
+  	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+  	{
+  		TranslateMessage(&msg);
+  		DispatchMessage(&msg);
+  
+  		if (msg.message == WM_QUIT)
+  			break;
+  	}
+  
+    Update();
+    Render();
+  }
+
+  Shutdown();
+ 
+  return 0;
 }

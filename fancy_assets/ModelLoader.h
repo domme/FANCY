@@ -19,13 +19,13 @@ namespace Fancy {
       ALL = ~0u
     };
 
-    struct LoadResult
+    struct Scene
     {
       DynamicArray<glm::mat4> myTransforms;
       DynamicArray<SharedPtr<Model>> myModels;
     };
 
-    bool LoadFromFile(const char* aPath, GraphicsWorld& aWorld, LoadResult& aResultOut, ImportOptions someImportOptions = ALL);
+    bool LoadFromFile(const char* aPath, GraphicsWorld& aWorld, Scene& aSceneOut, ImportOptions someImportOptions = ALL);
   }
 //---------------------------------------------------------------------------//
 }

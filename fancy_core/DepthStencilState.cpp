@@ -62,7 +62,7 @@ namespace Fancy {
     , myStencilEnabled(true)
     , myTwoSidedStencil(false)
     , myStencilRef(1)
-    , myStencilReadMask((Fancy::uint)-1)
+    , myStencilReadMask((uint)-1)
   {
     myStencilCompFunc[(uint) FaceType::FRONT] = CompFunc::EQUAL;
     myStencilCompFunc[(uint) FaceType::BACK] = CompFunc::EQUAL;

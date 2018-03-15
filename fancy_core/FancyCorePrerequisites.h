@@ -71,20 +71,17 @@
 //---------------------------------------------------------------------------//
 // Typedefs
 //---------------------------------------------------------------------------//
-  namespace Fancy 
-  {
-    typedef glm::uint16		uint16;
-    typedef glm::uint64		uint64;
-    typedef glm::uint8		uint8;
-    typedef unsigned int	uint;
-    typedef double        float64;
+  typedef glm::uint16		uint16;
+  typedef glm::uint64		uint64;
+  typedef glm::uint8		uint8;
+  typedef unsigned int	uint;
+  typedef double        float64;
 
-    template<class T>
-    using DynamicArray = std::vector<T>;
+  template<class T>
+  using DynamicArray = std::vector<T>;
 
-    template<class T, size_t N>
-    using FixedArray = std::array<T, N>;
-  }  // end of namespace Fancy
+  template<class T, size_t N>
+  using FixedArray = std::array<T, N>;
 //---------------------------------------------------------------------------//
   #include "FC_String.h"
   #include "Log.h"

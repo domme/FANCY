@@ -9,5 +9,19 @@
     <ClCompile Include="src\app_forwardplus.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\RenderingProcessForwardPlus.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderingProcessForward.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\RenderingProcessForward.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderingProcessForwardPlus.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

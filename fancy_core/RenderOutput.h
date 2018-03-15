@@ -1,5 +1,7 @@
 #pragma once
 
+#include "FancyCorePrerequisites.h"
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GpuProgramDesc;
@@ -9,6 +11,7 @@ namespace Fancy {
   class BlendState;
   class DepthStencilState;
   class Window;
+  class Texture;
 //---------------------------------------------------------------------------//
   class RenderOutput
   {
