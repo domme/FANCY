@@ -4,7 +4,7 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   struct Model;
-  class GraphicsWorld;
+  class AssetStorage;
 //---------------------------------------------------------------------------//
   namespace ModelLoader
   {
@@ -25,7 +25,7 @@ namespace Fancy {
       DynamicArray<SharedPtr<Model>> myModels;
     };
 
-    bool LoadFromFile(const char* aPath, GraphicsWorld& aWorld, Scene& aSceneOut, ImportOptions someImportOptions = ALL);
+    bool LoadFromFile(const char* aPath, AssetStorage& aStorage, Scene& aSceneOut, ImportOptions someImportOptions = ALL);
   }
 //---------------------------------------------------------------------------//
 }

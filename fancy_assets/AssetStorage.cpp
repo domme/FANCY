@@ -1,4 +1,4 @@
-#include "GraphicsWorld.h"
+#include "AssetStorage.h"
 #include "Material.h"
 #include "TextureLoader.h"
 #include "MaterialDesc.h"
@@ -12,15 +12,15 @@
 using namespace Fancy;
 
 //---------------------------------------------------------------------------//
-  GraphicsWorld::GraphicsWorld()
+  AssetStorage::AssetStorage()
   {
   }
 //---------------------------------------------------------------------------//
-  GraphicsWorld::~GraphicsWorld()
+  AssetStorage::~AssetStorage()
   {
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> GraphicsWorld::GetTexture(const TextureDesc& aDesc)
+  SharedPtr<Texture> AssetStorage::GetTexture(const TextureDesc& aDesc)
   {
     auto it = myTextures.find(aDesc.GetHash());
     if (it != myTextures.end())
@@ -29,7 +29,7 @@ using namespace Fancy;
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Material> GraphicsWorld::CreateMaterial(const MaterialDesc& aDesc)
+  SharedPtr<Material> AssetStorage::CreateMaterial(const MaterialDesc& aDesc)
   {
     const uint64 descHash = aDesc.GetHash();
 
@@ -54,12 +54,12 @@ using namespace Fancy;
     return mat;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> GraphicsWorld::CreateTexture(const TextureDesc& aDesc)
+  SharedPtr<Texture> AssetStorage::CreateTexture(const TextureDesc& aDesc)
   {
     return CreateTexture(aDesc.mySourcePath.c_str());
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> GraphicsWorld::CreateTexture(const char* aPath)
+  SharedPtr<Texture> AssetStorage::CreateTexture(const char* aPath)
   {
     if (strlen(aPath) == 0)
       return nullptr;
@@ -130,7 +130,7 @@ using namespace Fancy;
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Model> GraphicsWorld::CreateModel(const ModelDesc& aDesc)
+  SharedPtr<Model> AssetStorage::CreateModel(const ModelDesc& aDesc)
   {
     const uint64 hash = aDesc.GetHash();
 
@@ -146,7 +146,7 @@ using namespace Fancy;
     return model;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> GraphicsWorld::GetMesh(const MeshDesc& aDesc)
+  SharedPtr<Mesh> AssetStorage::GetMesh(const MeshDesc& aDesc)
   {
     auto it = myMeshes.find(aDesc.GetHash());
     if (it != myMeshes.end())
@@ -155,7 +155,7 @@ using namespace Fancy;
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> GraphicsWorld::CreateMesh(const MeshDesc& aDesc, MeshData* someMeshDatas, uint aNumMeshDatas, uint64 aMeshFileTimestamp /* = 0u */)
+  SharedPtr<Mesh> AssetStorage::CreateMesh(const MeshDesc& aDesc, MeshData* someMeshDatas, uint aNumMeshDatas, uint64 aMeshFileTimestamp /* = 0u */)
   {
     if (aMeshFileTimestamp != 0u)
     {

@@ -20,7 +20,7 @@
 #include <fancy_core/PathService.h>
 
 #include "Material.h"
-#include "GraphicsWorld.h"
+#include "AssetStorage.h"
 #include "fancy_core/MeshData.h"
 #include "ModelDesc.h"
 #include "fancy_core/RenderPlatformCaps.h"
@@ -80,7 +80,7 @@ namespace Fancy { namespace ModelLoader {
     return name;
   }
 
-  SharedPtr<Mesh> CreateMesh(const aiNode* aNode, ProcessData& aProcessData, GraphicsWorld& aWorld, aiMesh** someMeshes, uint aMeshCount)
+  SharedPtr<Mesh> CreateMesh(const aiNode* aNode, ProcessData& aProcessData, AssetStorage& aStorage, aiMesh** someMeshes, uint aMeshCount)
   {
     // Mesh already created during this import-process?
     uint64 assimpMeshListHash = 0u;
@@ -306,7 +306,7 @@ namespace Fancy { namespace ModelLoader {
     meshDesc.myIsExternalMesh = true;
     meshDesc.myUniqueName = CreateUniqueMeshName(assimpMeshListHash, aProcessData);
     
-    SharedPtr<Mesh> mesh = aWorld.CreateMesh(meshDesc, meshDatas.data(), meshDatas.size(), aProcessData.mySceneFileTimeStamp);
+    SharedPtr<Mesh> mesh = aStorage.CreateMesh(meshDesc, meshDatas.data(), meshDatas.size(), aProcessData.mySceneFileTimeStamp);
     ASSERT(mesh != nullptr);
     
     aProcessData.myMeshCache[assimpMeshListHash] = mesh;
@@ -344,7 +344,7 @@ namespace Fancy { namespace ModelLoader {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Material> CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData, GraphicsWorld& aWorld)
+  SharedPtr<Material> CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData, AssetStorage& aStorage)
   {
     // Did we already import this material?
     {
@@ -399,10 +399,10 @@ namespace Fancy { namespace ModelLoader {
     matDesc.mySemanticParameters[(uint)ParameterSemantic::SPECULAR_POWER] = specularPower;
     matDesc.mySemanticParameters[(uint)ParameterSemantic::OPACITY] = opacity;
 
-    return aWorld.CreateMaterial(matDesc);
+    return aStorage.CreateMaterial(matDesc);
   }
 //---------------------------------------------------------------------------//
-  bool ProcessMeshes(const aiNode* aNode, const glm::mat4& aTransform, ProcessData& aProcessData, GraphicsWorld& aWorld, Scene& aSceneOut)
+  bool ProcessMeshes(const aiNode* aNode, const glm::mat4& aTransform, ProcessData& aProcessData, AssetStorage& aStorage, Scene& aSceneOut)
   {
     if (aNode->mNumMeshes == 0)
       return true;
@@ -425,10 +425,10 @@ namespace Fancy { namespace ModelLoader {
       DynamicArray<aiMesh*>& meshList = it->second;
       const uint materialIndex = it->first;
 
-      SharedPtr<Mesh> mesh = CreateMesh(aNode, aProcessData, aWorld, &meshList[0], meshList.size());
+      SharedPtr<Mesh> mesh = CreateMesh(aNode, aProcessData, aStorage, &meshList[0], meshList.size());
 
       aiMaterial* pAmaterial = aProcessData.myScene->mMaterials[materialIndex];
-      SharedPtr<Material> material = CreateMaterial(pAmaterial, aProcessData, aWorld);
+      SharedPtr<Material> material = CreateMaterial(pAmaterial, aProcessData, aStorage);
 
       if (!mesh || !material)
         continue;
@@ -436,7 +436,7 @@ namespace Fancy { namespace ModelLoader {
       ModelDesc modelDesc;
       modelDesc.myMaterial = material->GetDescription();
       modelDesc.myMesh = mesh->myDesc;
-      SharedPtr<Model> model = aWorld.CreateModel(modelDesc);
+      SharedPtr<Model> model = aStorage.CreateModel(modelDesc);
 
       if (model)
       {
@@ -449,24 +449,24 @@ namespace Fancy { namespace ModelLoader {
     return numCreatedModels > 0u;
   }
 
-  bool ProcessNodeRecursive(const aiNode* aNode, const glm::mat4& aParentTransform, ProcessData& aProcessData, GraphicsWorld& aWorld, Scene& aSceneOut)
+  bool ProcessNodeRecursive(const aiNode* aNode, const glm::mat4& aParentTransform, ProcessData& aProcessData, AssetStorage& aStorage, Scene& aSceneOut)
   {
     if (!aNode) 
       return false;
 
     glm::mat4 transform = matFromAiMat(aNode->mTransformation) * aParentTransform;
 
-    if (!ProcessMeshes(aNode, transform, aProcessData, aWorld, aSceneOut))
+    if (!ProcessMeshes(aNode, transform, aProcessData, aStorage, aSceneOut))
       return false;
 
     for (uint i = 0u; i < aNode->mNumChildren; ++i)
-      if (!ProcessNodeRecursive(aNode->mChildren[i], transform, aProcessData, aWorld, aSceneOut))
+      if (!ProcessNodeRecursive(aNode->mChildren[i], transform, aProcessData, aStorage, aSceneOut))
         return false;
 
     return true;
   }
 
-  bool LoadFromFile(const char* aPath, GraphicsWorld& aWorld, Scene& aSceneOut, ImportOptions someImportOptions/* = ALL*/)
+  bool LoadFromFile(const char* aPath, AssetStorage& aStorage, Scene& aSceneOut, ImportOptions someImportOptions/* = ALL*/)
   {
     ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 
@@ -484,7 +484,7 @@ namespace Fancy { namespace ModelLoader {
     data.mySceneFileTimeStamp = Path::GetFileWriteTime(pathAbs.c_str());
 
     aiNode* rootNode = importedScene->mRootNode;
-    return ProcessNodeRecursive(rootNode, matFromAiMat(rootNode->mTransformation), data, aWorld, aSceneOut);
+    return ProcessNodeRecursive(rootNode, matFromAiMat(rootNode->mTransformation), data, aStorage, aSceneOut);
   }
 //---------------------------------------------------------------------------//
 } }

@@ -7,20 +7,23 @@
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/GpuProgramPipelineDesc.h>
+#include <fancy_core/GpuBuffer.h>
+#include <fancy_core/Descriptor.h>
 
 #include <fancy_assets/ModelLoader.h>
-#include <fancy_assets/GraphicsWorld.h>
+#include <fancy_assets/AssetStorage.h>
 #include "Camera.h"
 #include "fancy_assets/Model.h"
 #include "fancy_assets/Material.h"
 #include "fancy_core/Mesh.h"
+#include <fancy_core/Texture.h>
 
 using namespace Fancy;
 
 FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
 ModelLoader::Scene myScene;
-UniquePtr<GraphicsWorld> myGraphicsWorld;
+AssetStorage myAssetStorage;
 
 SharedPtr<GpuBuffer> myCbufferPerObject;
 SharedPtr<GpuProgramPipeline> myUnlitTexturedShader;
@@ -85,6 +88,9 @@ void Init(HINSTANCE anInstanceHandle)
 
   myCamera.UpdateView();
   myCamera.UpdateProjection();
+
+  bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", myAssetStorage, myScene);
+  ASSERT(importSuccess);
 }
 
 void Update()
@@ -93,11 +99,23 @@ void Update()
   myRuntime->Update(0.016f);
 }
 
+void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)
+{
+  Texture* diffuseTex = aMat->mySemanticTextures[(uint)TextureSemantic::BASE_COLOR].get();
+  if (diffuseTex)
+  {
+    const Descriptor* desc = diffuseTex->GetDescriptor(DescriptorType::DEFAULT_READ);
+    aContext->BindDescriptorSet(&desc, 1u, 1u);
+  }
+}
+
 void Render()
 {
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRuntime->GetRenderOutput()->GetBackbuffer(), clearColor);
+
+  ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
 
   for (int i = 0; i < myScene.myModels.size(); ++i)
   {
@@ -107,12 +125,12 @@ void Render()
     CBuffer_PerObject cBuffer;
     cBuffer.myWorldViewProj = myCamera.myViewProj * transform;
     RenderCore::UpdateBufferData(myCbufferPerObject.get(), &cBuffer, sizeof(cBuffer));
+    ctx->BindResource(myCbufferPerObject.get(), DescriptorType::CONSTANT_BUFFER, 0u);
 
     Material* mat = model->myMaterial.get();
-    Mesh* mesh = model->myMesh.get();
-
+    BindResources_UnlitTextured(ctx, mat);
     
-
+    Mesh* mesh = model->myMesh.get();
     for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
       ctx->RenderGeometry(geometry.get());
   }
@@ -126,7 +144,6 @@ void Render()
 void Shutdown()
 {
   myCbufferPerObject.reset();
-  myGraphicsWorld.reset();
   myUnlitTexturedShader.reset();
 
   FancyRuntime::Shutdown();

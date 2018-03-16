@@ -25,6 +25,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fancy_assets", "fancy_assets\fancy_assets.vcxproj", "{6563CF80-D62B-4FEF-AA20-B0EF4C811F85}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "app_modelviewer", "app_modelviewer\app_modelviewer.vcxproj", "{DDE10A64-93B8-4827-B1BA-FA3040B3CF63}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6563CF80-D62B-4FEF-AA20-B0EF4C811F85} = {6563CF80-D62B-4FEF-AA20-B0EF4C811F85}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

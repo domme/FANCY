@@ -13,11 +13,11 @@ namespace Fancy {
   class Texture;
   struct TextureDesc;
 //---------------------------------------------------------------------------//
-  class GraphicsWorld
+  class AssetStorage
   {
   public:
-    GraphicsWorld();
-    ~GraphicsWorld();
+    AssetStorage();
+    ~AssetStorage();
 
     SharedPtr<Texture> GetTexture(const TextureDesc& aDesc);
     SharedPtr<Texture> CreateTexture(const char* aPath);
