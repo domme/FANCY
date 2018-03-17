@@ -48,7 +48,6 @@ namespace Fancy {
       backbufferParams.eFormat = DataFormat::RGBA_8;
       backbufferParams.u16Width = myWindow->GetWidth();
       backbufferParams.u16Height = myWindow->GetHeight();
-      backbufferParams.u16Depth = 1u;
 
       myBackbuffers[i] = RenderCore::CreateTexture(backbufferParams);
     }

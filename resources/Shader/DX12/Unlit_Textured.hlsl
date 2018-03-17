@@ -52,9 +52,9 @@ ConstantBuffer<PER_OBJECT> cbPerObject : register(b0);
       albedo *= tex_diffuse.Sample(sampler_default, fs_in.uv).xyz;
 
       float3 lightIntensity = ShadeLight(cbPerLight.c_LightParameters, cbPerLight.c_LightDirWS, fs_in.posWS, normalize(fs_in.normalWS));
-
+      
       return float4(albedo, 1.0); 
-      // return float4(1.0, 1.0, 0.0, 1.0);
+      //return float4(1.0, 1.0, 0.0, 1.0);
     }
   #endif // PROGRAM_TYPE_FRAGMENT
 //---------------------------------------------------------------------------//  

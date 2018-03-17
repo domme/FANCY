@@ -22,6 +22,7 @@ using namespace Fancy;
 
 FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
+RenderOutput* myRenderOutput = nullptr;
 ModelLoader::Scene myScene;
 AssetStorage myAssetStorage;
 
@@ -48,7 +49,8 @@ void Init(HINSTANCE anInstanceHandle)
 
   myRuntime = FancyRuntime::Init(anInstanceHandle, params);
 
-  myWindow = myRuntime->GetRenderOutput()->GetWindow();
+  myRenderOutput = myRuntime->GetRenderOutput();
+  myWindow = myRenderOutput->GetWindow();
 
   std::function<void(uint, uint)> onWindowResized = &OnWindowResized;
   myWindow->myOnResize.Connect(onWindowResized);
@@ -113,7 +115,19 @@ void Render()
 {
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  ctx->ClearRenderTarget(myRuntime->GetRenderOutput()->GetBackbuffer(), clearColor);
+  ctx->ClearRenderTarget(myRenderOutput->GetBackbuffer(), clearColor);
+  ctx->ClearDepthStencilTarget(myRenderOutput->GetDefaultDepthStencilBuffer(), 1.0f, 0u);
+
+  ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
+  ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
+  ctx->SetRenderTarget(myRenderOutput->GetBackbuffer(), 0u);
+  ctx->SetDepthStencilRenderTarget(myRenderOutput->GetDefaultDepthStencilBuffer());
+  
+  ctx->SetDepthStencilState(nullptr);
+  ctx->SetBlendState(nullptr);
+  ctx->SetCullMode(CullMode::NONE);
+  ctx->SetFillMode(FillMode::SOLID);
+  ctx->SetWindingOrder(WindingOrder::CCW);
 
   ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
 
