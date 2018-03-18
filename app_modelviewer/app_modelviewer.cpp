@@ -17,6 +17,8 @@
 #include "fancy_assets/Material.h"
 #include "fancy_core/Mesh.h"
 #include <fancy_core/Texture.h>
+#include <fancy_core/Input.h>
+#include "CameraController.h"
 
 using namespace Fancy;
 
@@ -28,7 +30,9 @@ AssetStorage myAssetStorage;
 
 SharedPtr<GpuBuffer> myCbufferPerObject;
 SharedPtr<GpuProgramPipeline> myUnlitTexturedShader;
+SharedPtr<CameraController> myCameraController;
 Camera myCamera;
+InputState myInputState;
 
 struct CBuffer_PerObject
 {
@@ -54,6 +58,7 @@ void Init(HINSTANCE anInstanceHandle)
 
   std::function<void(uint, uint)> onWindowResized = &OnWindowResized;
   myWindow->myOnResize.Connect(onWindowResized);
+  myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
 
   GpuBufferCreationParams bufferParams;
   bufferParams.uNumElements = 1u;
@@ -91,6 +96,8 @@ void Init(HINSTANCE anInstanceHandle)
   myCamera.UpdateView();
   myCamera.UpdateProjection();
 
+  myCameraController.reset(new CameraController(myWindow, &myCamera));
+
   bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", myAssetStorage, myScene);
   ASSERT(importSuccess);
 }
@@ -98,7 +105,10 @@ void Init(HINSTANCE anInstanceHandle)
 void Update()
 {
   myRuntime->BeginFrame();
-  myRuntime->Update(0.016f);
+
+  const float deltaTime = 0.016f;
+  myRuntime->Update(deltaTime);
+  myCameraController->Update(deltaTime, myInputState);
 }
 
 void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)

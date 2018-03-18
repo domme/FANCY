@@ -247,6 +247,9 @@
     <ClInclude Include="MeshData.h">
       <Filter>Geometry</Filter>
     </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>IO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -370,5 +373,8 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp" />
+    <ClCompile Include="Input.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
