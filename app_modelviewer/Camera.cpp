@@ -34,7 +34,7 @@ void Camera::UpdateProjection()
 void Camera::UpdateView()
 {
   myViewInv = glm::translate(myPosition) * glm::toMat4(myOrientation);
-  myView = glm::affineInverse(myViewInv);
+  myView = glm::inverse(myViewInv);
   myViewProj = myProjection * myView;
 }
 

@@ -21,6 +21,9 @@ class Camera;
     float myMoveSpeed;
 
   private:
+    void UpdateFPSCamera(float aDeltaTime, const Fancy::InputState& anInputState);
+    void UpdateTrackballCamera(float aDeltaTime, const Fancy::InputState& anInputState);
+
     Fancy::Window* myWindow;
     Camera* myCamera;
 
