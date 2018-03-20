@@ -49,6 +49,14 @@ namespace Fancy {
       DebugBreak();
   }
 //---------------------------------------------------------------------------//
+  inline void Log_Debug(const std::string& aMessage)
+  {
+    std::string logOutput = aMessage + "\n";
+    std::cout << logOutput;
+    OutputDebugStringA(logOutput.c_str());
+  }
+//---------------------------------------------------------------------------//
+  #define LOG_DEBUG(aFormat, ...)   Log_Debug(StringFormat(aFormat, ##__VA_ARGS__))
   #define LOG_INFO(aFormat, ...)    Log("Info", __FILE__, __LINE__, false, StringFormat(aFormat, ##__VA_ARGS__))
   #define LOG_WARNING(aFormat, ...) Log("Warning", __FILE__, __LINE__, false, StringFormat(aFormat, ##__VA_ARGS__))
   #define LOG_ERROR(aFormat, ...)   Log("Error", __FILE__, __LINE__, true, StringFormat(aFormat, ##__VA_ARGS__))

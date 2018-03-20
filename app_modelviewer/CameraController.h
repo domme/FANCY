@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 namespace Fancy {
   class Window;
   struct InputState;
@@ -21,6 +23,8 @@ class Camera;
   private:
     Fancy::Window* myWindow;
     Camera* myCamera;
+
+    glm::ivec2 myLastMousePos;
   };
 //---------------------------------------------------------------------------//
 

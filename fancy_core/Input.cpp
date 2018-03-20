@@ -17,18 +17,30 @@ void InputState::OnWindowEvent(UINT message, WPARAM wParam, LPARAM lParam, bool*
 {
   switch (message)
   {
-    case WM_KEYDOWN: HandleKeyUpDownEvent(wParam, true); break;
-    case WM_KEYUP: HandleKeyUpDownEvent(wParam, false); break;
+  case WM_MBUTTONDOWN: myMouseBtnMask |= MOUSE_BTN_MIDDLE; break;
+  case WM_LBUTTONDOWN: myMouseBtnMask |= MOUSE_BTN_LEFT; break;
+  case WM_RBUTTONDOWN: myMouseBtnMask |= MOUSE_BTN_RIGHT; break;
+  case WM_KEYDOWN: HandleKeyUpDownEvent(wParam, true); break;
 
-    case WM_MOUSEWHEEL:
-      myMouseWeelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+  case WM_MBUTTONUP: myMouseBtnMask &= ~MOUSE_BTN_MIDDLE; break;
+  case WM_LBUTTONUP: myMouseBtnMask &= ~MOUSE_BTN_LEFT; break;
+  case WM_RBUTTONUP: myMouseBtnMask &= ~MOUSE_BTN_RIGHT; break;
+  case WM_KEYUP: HandleKeyUpDownEvent(wParam, false); break;
+
+  case WM_MOUSEWHEEL:
+    myMouseWeelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
     break;
-    case WM_MOUSEMOVE:
-      glm::ivec2 newMousePos;
-      newMousePos.x = GET_X_LPARAM(lParam);
-      newMousePos.y = GET_Y_LPARAM(lParam);
-      myMouseDelta = newMousePos - myMousePos;
-      myMousePos = newMousePos;
+  case WM_MOUSEMOVE:
+  {
+    glm::ivec2 newMousePos;
+    newMousePos.x = GET_X_LPARAM(lParam);
+    newMousePos.y = GET_Y_LPARAM(lParam);
+    myMouseDelta = newMousePos - myMousePos;
+    myMousePos = newMousePos;
+  }
+  break;
+  case WM_MOUSELEAVE:
+    myMouseDelta = glm::ivec2(0, 0);
     break;
   }
 }
@@ -46,13 +58,9 @@ void InputState::HandleKeyUpDownEvent(WPARAM wParam, bool aDown)
   {
     switch (wParam)
     {
-    case VK_LBUTTON: myMouseBtnMask = (myMouseBtnMask & ~MOUSE_BTN_LEFT) | (MOUSE_BTN_LEFT & (uint)aDown); break;
-    case VK_RBUTTON: myMouseBtnMask = (myMouseBtnMask & ~MOUSE_BTN_RIGHT) | (MOUSE_BTN_RIGHT & (uint)aDown); break;
-    case VK_MBUTTON: myMouseBtnMask = (myMouseBtnMask & ~MOUSE_BTN_MIDDLE) | (MOUSE_BTN_MIDDLE & (uint)aDown); break;
-    
-    case VK_SHIFT: myModifierKeyMask = (myModifierKeyMask & ~MOD_KEY_SHIFT) | (MOD_KEY_SHIFT & (uint) aDown); break;
-    case VK_MENU: myModifierKeyMask = (myModifierKeyMask & ~MOD_KEY_ALT) | (MOD_KEY_ALT & (uint)aDown); break;
-    case VK_CONTROL: myModifierKeyMask = (myModifierKeyMask & ~MOD_KEY_CTRL) | (MOD_KEY_CTRL & (uint)aDown); break;
+      case VK_SHIFT: myModifierKeyMask = aDown ? myModifierKeyMask | MOD_KEY_SHIFT : (myModifierKeyMask & ~MOD_KEY_SHIFT); break;
+      case VK_MENU: myModifierKeyMask = aDown ? myModifierKeyMask | MOD_KEY_ALT : (myModifierKeyMask & ~MOD_KEY_ALT); break;
+      case VK_CONTROL: myModifierKeyMask = aDown ? (myModifierKeyMask | MOD_KEY_CTRL) : (myModifierKeyMask & ~MOD_KEY_CTRL); break;
     }
   }
 }

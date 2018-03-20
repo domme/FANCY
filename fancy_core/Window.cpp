@@ -39,6 +39,9 @@ namespace Fancy {
     {
       ourCreatedWindows.erase(it);
     }
+
+    if (GetCapture() == myWindowHandle)
+      ReleaseCapture();
   }
 //---------------------------------------------------------------------------//
   LRESULT Window::HandleWindowEvent(UINT message, WPARAM wParam, LPARAM lParam)
@@ -99,6 +102,9 @@ namespace Fancy {
       NULL);		// We aren't using multiple windows, NULL.
 
     ASSERT(windowHandle != nullptr);
+
+    if (someParams.myCaptureMouse)
+      SetCapture(windowHandle);
 
     SharedPtr<Window> window(new Window(windowHandle));
     window->myWidth = someParams.myWidth;
