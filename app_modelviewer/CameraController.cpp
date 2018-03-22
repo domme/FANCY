@@ -9,6 +9,8 @@ CameraController::CameraController(Window* aWindow, Camera* aCamera)
   , myWindow(aWindow)
   , myCamera(aCamera)
   , myLastMousePos(0,0)
+  , myFocusPoint(0.0f)
+  , myFocusPointDistance(10.0f)
 {
   
 }
@@ -23,7 +25,7 @@ void CameraController::Update(float aDeltaTime, const Fancy::InputState& anInput
   {
     UpdateTrackballCamera(aDeltaTime, anInputState);
   }
-  else
+  else if(anInputState.myMouseBtnMask & InputState::MOUSE_BTN_RIGHT)
   {
     UpdateFPSCamera(aDeltaTime, anInputState);
   }
@@ -52,19 +54,32 @@ void CameraController::UpdateFPSCamera(float aDeltaTime, const Fancy::InputState
     myCamera->myPosition.y += movementSpeed;
 
   glm::ivec2 mouseDelta = anInputState.myMousePos - myLastMousePos;
+  float yaw = glm::radians((float)mouseDelta.x) * 0.25f;
+  float pitch = glm::radians((float)mouseDelta.y) * 0.25f;
 
-  if (anInputState.myMouseBtnMask & InputState::MOUSE_BTN_RIGHT)
-  {
-    float yaw = glm::radians((float)mouseDelta.x) * 0.25f;
-    float pitch = glm::radians((float)mouseDelta.y) * 0.25f;
+  glm::quat yawQuat(glm::float3(0.0f, yaw, 0.0f));
+  glm::quat pitchQuat(glm::float3(pitch, 0.0f, 0.0f));
+  myCamera->myOrientation = glm::normalize(pitchQuat * myCamera->myOrientation * yawQuat);
 
-    glm::quat yawQuat(glm::float3(0.0f, yaw, 0.0f));
-    glm::quat pitchQuat(glm::float3(pitch, 0.0f, 0.0f));
-    myCamera->myOrientation = glm::normalize(pitchQuat * myCamera->myOrientation * yawQuat);
-  }
+  myFocusPoint = myCamera->myPosition + myCamera->myOrientation * glm::float3(0.0f, 0.0f, myFocusPointDistance);
 }
 
 void CameraController::UpdateTrackballCamera(float aDeltaTime, const Fancy::InputState& anInputState)
 {
+  if (anInputState.myMouseBtnMask & InputState::MOUSE_BTN_RIGHT)
+  {
+    glm::ivec2 mouseDelta = anInputState.myMousePos - myLastMousePos;
+    float yaw = glm::radians((float)mouseDelta.x) * 0.25f;
+    float pitch = glm::radians((float)mouseDelta.y) * 0.25f;
+    glm::quat yawQuat(glm::float3(0.0f, yaw, 0.0f));
+    glm::quat pitchQuat(glm::float3(pitch, 0.0f, 0.0f));
 
+    myCamera->myPosition = glm::rotate(pitchQuat, glm::rotate(yawQuat, myCamera->myPosition));
+
+    glm::float3 forward = glm::normalize(myFocusPoint - myCamera->myPosition);
+    glm::float3 side = glm::normalize(glm::cross(glm::float3(0,1,0), forward));
+    glm::float3 up = glm::normalize(glm::cross(forward, side));
+    glm::float3x3 rot(side, up, forward);
+    myCamera->myOrientation = glm::quat_cast(rot);
+  }
 }

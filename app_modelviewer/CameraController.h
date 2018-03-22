@@ -28,6 +28,8 @@ class Camera;
     Camera* myCamera;
 
     glm::ivec2 myLastMousePos;
+    glm::vec3 myFocusPoint;
+    float myFocusPointDistance;
   };
 //---------------------------------------------------------------------------//
 

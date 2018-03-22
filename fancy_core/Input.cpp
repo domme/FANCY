@@ -20,11 +20,13 @@ void InputState::OnWindowEvent(UINT message, WPARAM wParam, LPARAM lParam, bool*
   case WM_MBUTTONDOWN: myMouseBtnMask |= MOUSE_BTN_MIDDLE; break;
   case WM_LBUTTONDOWN: myMouseBtnMask |= MOUSE_BTN_LEFT; break;
   case WM_RBUTTONDOWN: myMouseBtnMask |= MOUSE_BTN_RIGHT; break;
+  case WM_SYSKEYDOWN:
   case WM_KEYDOWN: HandleKeyUpDownEvent(wParam, true); break;
 
   case WM_MBUTTONUP: myMouseBtnMask &= ~MOUSE_BTN_MIDDLE; break;
   case WM_LBUTTONUP: myMouseBtnMask &= ~MOUSE_BTN_LEFT; break;
   case WM_RBUTTONUP: myMouseBtnMask &= ~MOUSE_BTN_RIGHT; break;
+  case WM_SYSKEYUP:
   case WM_KEYUP: HandleKeyUpDownEvent(wParam, false); break;
 
   case WM_MOUSEWHEEL:
