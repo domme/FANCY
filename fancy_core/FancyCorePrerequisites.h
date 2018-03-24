@@ -20,10 +20,7 @@
 #include <malloc.h>
 #include <stdio.h>
 
-//Math includes
-#define GLM_FORCE_RADIANS 1
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
+#include "MathPrerequisites.h"
 
 //Common MACRO defines
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }

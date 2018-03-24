@@ -4,10 +4,20 @@
 
 using namespace Fancy;
 
+namespace Priv_CameraController
+{
+  bool IsTrackballMode(const InputState& anInputState)
+  {
+    return anInputState.myModifierKeyMask & InputState::MOD_KEY_ALT ||
+      anInputState.myModifierKeyMask & InputState::MOD_KEY_SHIFT;
+  }
+}
+
 CameraController::CameraController(Window* aWindow, Camera* aCamera)
   : myMoveSpeed(30.0f) 
   , myWindow(aWindow)
   , myCamera(aCamera)
+  , myMouseSensitivity(0.1f, 0.1f)
   , myLastMousePos(0,0)
   , myFocusPoint(0.0f)
   , myFocusPointDistance(10.0f)
@@ -21,11 +31,11 @@ CameraController::~CameraController()
 
 void CameraController::Update(float aDeltaTime, const Fancy::InputState& anInputState)
 {
-  if (anInputState.myModifierKeyMask & InputState::MOD_KEY_ALT || anInputState.myModifierKeyMask & InputState::MOD_KEY_SHIFT)
+  if (Priv_CameraController::IsTrackballMode(anInputState))
   {
     UpdateTrackballCamera(aDeltaTime, anInputState);
   }
-  else if(anInputState.myMouseBtnMask & InputState::MOUSE_BTN_RIGHT)
+  else
   {
     UpdateFPSCamera(aDeltaTime, anInputState);
   }
@@ -36,6 +46,9 @@ void CameraController::Update(float aDeltaTime, const Fancy::InputState& anInput
 
 void CameraController::UpdateFPSCamera(float aDeltaTime, const Fancy::InputState& anInputState)
 {
+  if (!(anInputState.myMouseBtnMask & InputState::MOUSE_BTN_RIGHT))
+    return;
+
   glm::float3 camForward = myCamera->myOrientation * glm::float3(0.0f, 0.0f, 1.0f);
   glm::float3 camSide = myCamera->myOrientation * glm::float3(1.0f, 0.0f, 0.0f);
 
@@ -53,13 +66,18 @@ void CameraController::UpdateFPSCamera(float aDeltaTime, const Fancy::InputState
   if (anInputState.myKeyState['e'])
     myCamera->myPosition.y += movementSpeed;
 
-  glm::ivec2 mouseDelta = anInputState.myMousePos - myLastMousePos;
+  glm::int2 mouseDelta = anInputState.myMousePos - myLastMousePos;
 
-  glm::float3 cameraEulerAngles = glm::eulerAngles(myCamera->myOrientation);
-  cameraEulerAngles.y = glm::clamp(cameraEulerAngles.y + glm::radians((float)mouseDelta.x) * 0.25f, -glm::pi<float>(), glm::pi<float>());
-  cameraEulerAngles.x = glm::clamp(cameraEulerAngles.x + glm::radians((float)mouseDelta.y) * 0.25f, -glm::pi<float>(), glm::pi<float>());
+  glm::float3 pitchYawRoll = glm::eulerAngles(myCamera->myOrientation);
+  pitchYawRoll.x = pitchYawRoll.x + glm::radians((float)mouseDelta.y) * myMouseSensitivity.y;
+  pitchYawRoll.y = pitchYawRoll.y + glm::radians((float)mouseDelta.x) * myMouseSensitivity.x;
+  
+  // if (pitchYawRoll.y < -glm::half_pi<float>())
+  //   pitchYawRoll.y += glm::pi<float>();
 
-  myCamera->myOrientation = glm::quat(cameraEulerAngles);
+  LOG_DEBUG("PitchYawRoll: % % %", pitchYawRoll.x, pitchYawRoll.y, pitchYawRoll.z);
+
+  myCamera->myOrientation = glm::quat(pitchYawRoll);
 
   myFocusPoint = myCamera->myPosition + myCamera->myOrientation * glm::float3(0.0f, 0.0f, myFocusPointDistance);
 }

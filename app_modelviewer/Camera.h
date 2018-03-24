@@ -1,7 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtx/quaternion.hpp>
+#include <fancy_core/MathPrerequisites.h>
 
 class Camera
 {

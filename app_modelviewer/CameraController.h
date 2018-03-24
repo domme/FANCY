@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include <fancy_core/MathPrerequisites.h>
 
 namespace Fancy {
   class Window;
@@ -15,7 +15,7 @@ class Camera;
   public:
     CameraController(Fancy::Window* aWindow, Camera* aCamera);
     ~CameraController();
-
+    
     void Update(float aDeltaTime, const Fancy::InputState& anInputState);
 
     float myMoveSpeed;
@@ -27,8 +27,9 @@ class Camera;
     Fancy::Window* myWindow;
     Camera* myCamera;
 
-    glm::ivec2 myLastMousePos;
-    glm::vec3 myFocusPoint;
+    glm::float2 myMouseSensitivity;
+    glm::int2 myLastMousePos;
+    glm::float3 myFocusPoint;
     float myFocusPointDistance;
   };
 //---------------------------------------------------------------------------//

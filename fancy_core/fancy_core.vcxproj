@@ -75,6 +75,7 @@
     <ClInclude Include="DescriptorHeapDX12.h" />
     <ClInclude Include="GpuBufferDesc.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="MathPrerequisites.h" />
     <ClInclude Include="MeshData.h" />
     <ClInclude Include="RenderingStartupParameters.h" />
     <ClInclude Include="Fancy_Include.h" />

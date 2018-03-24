@@ -250,6 +250,9 @@
     <ClInclude Include="Input.h">
       <Filter>IO</Filter>
     </ClInclude>
+    <ClInclude Include="MathPrerequisites.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
