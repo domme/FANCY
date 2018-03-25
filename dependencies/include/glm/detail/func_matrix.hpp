@@ -1,29 +1,5 @@
-///////////////////////////////////////////////////////////////////////////////////
-/// OpenGL Mathematics (glm.g-truc.net)
-///
-/// Copyright (c) 2005 - 2014 G-Truc Creation (www.g-truc.net)
-/// Permission is hereby granted, free of charge, to any person obtaining a copy
-/// of this software and associated documentation files (the "Software"), to deal
-/// in the Software without restriction, including without limitation the rights
-/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-/// copies of the Software, and to permit persons to whom the Software is
-/// furnished to do so, subject to the following conditions:
-/// 
-/// The above copyright notice and this permission notice shall be included in
-/// all copies or substantial portions of the Software.
-/// 
-/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-/// THE SOFTWARE.
-///
 /// @ref core
-/// @file glm/core/func_matrix.hpp
-/// @date 2008-08-03 / 2011-06-15
-/// @author Christophe Riccio
+/// @file glm/detail/func_matrix.hpp
 ///
 /// @see <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.pdf">GLSL 4.20.8 specification, section 8.6 Matrix Functions</a>
 /// 
@@ -35,10 +11,8 @@
 /// are single precision, and a double-precision floating version, where all 
 /// arguments and return values are double precision. Only the single-precision 
 /// floating point version is shown.
-///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef GLM_CORE_func_matrix
-#define GLM_CORE_func_matrix
+#pragma once
 
 // Dependencies
 #include "../detail/precision.hpp"
@@ -69,19 +43,19 @@ namespace detail
 	template <typename T, precision P>
 	struct outerProduct_trait<T, P, tvec2, tvec3>
 	{
-		typedef tmat2x3<T, P> type;
+		typedef tmat3x2<T, P> type;
 	};
 
 	template <typename T, precision P>
 	struct outerProduct_trait<T, P, tvec2, tvec4>
 	{
-		typedef tmat2x4<T, P> type;
+		typedef tmat4x2<T, P> type;
 	};
 
 	template <typename T, precision P>
 	struct outerProduct_trait<T, P, tvec3, tvec2>
 	{
-		typedef tmat3x2<T, P> type;
+		typedef tmat2x3<T, P> type;
 	};
 
 	template <typename T, precision P>
@@ -93,19 +67,19 @@ namespace detail
 	template <typename T, precision P>
 	struct outerProduct_trait<T, P, tvec3, tvec4>
 	{
-		typedef tmat3x4<T, P> type;
+		typedef tmat4x3<T, P> type;
 	};
 
 	template <typename T, precision P>
 	struct outerProduct_trait<T, P, tvec4, tvec2>
 	{
-		typedef tmat4x2<T, P> type;
+		typedef tmat2x4<T, P> type;
 	};
 
 	template <typename T, precision P>
 	struct outerProduct_trait<T, P, tvec4, tvec3>
 	{
-		typedef tmat4x3<T, P> type;
+		typedef tmat3x4<T, P> type;
 	};
 
 	template <typename T, precision P>
@@ -137,8 +111,6 @@ namespace detail
 	///
 	/// @see <a href="http://www.opengl.org/sdk/docs/manglsl/xhtml/outerProduct.xml">GLSL outerProduct man page</a>
 	/// @see <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.pdf">GLSL 4.20.8 specification, section 8.6 Matrix Functions</a>
-	/// 
-	/// @todo Clarify the declaration to specify that matType doesn't have to be provided when used.
 	template <typename T, precision P, template <typename, precision> class vecTypeA, template <typename, precision> class vecTypeB>
 	GLM_FUNC_DECL typename detail::outerProduct_trait<T, P, vecTypeA, vecTypeB>::type outerProduct(vecTypeA<T, P> const & c, vecTypeB<T, P> const & r);
 
@@ -175,5 +147,3 @@ namespace detail
 }//namespace glm
 
 #include "func_matrix.inl"
-
-#endif//GLM_CORE_func_matrix

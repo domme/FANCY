@@ -1,40 +1,31 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// OpenGL Mathematics Copyright (c) 2005 - 2014 G-Truc Creation (www.g-truc.net)
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Created : 2007-03-05
-// Updated : 2007-03-05
-// Licence : This source is under MIT License
-// File    : glm/gtx/matrix_query.inl
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Dependency:
-// - GLM core
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/// @ref gtx_matrix_query
+/// @file glm/gtx/matrix_query.inl
 
 namespace glm
 {
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER bool isNull(detail::tmat2x2<T, P> const & m, T const & epsilon)
+	GLM_FUNC_QUALIFIER bool isNull(tmat2x2<T, P> const & m, T const & epsilon)
 	{
 		bool result = true;
-		for(length_t i = 0; result && i < 2 ; ++i)
+		for(length_t i = 0; result && i < m.length() ; ++i)
 			result = isNull(m[i], epsilon);
 		return result;
 	}
 
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER bool isNull(detail::tmat3x3<T, P> const & m, T const & epsilon)
+	GLM_FUNC_QUALIFIER bool isNull(tmat3x3<T, P> const & m, T const & epsilon)
 	{
 		bool result = true;
-		for(length_t i = 0; result && i < 3 ; ++i)
+		for(length_t i = 0; result && i < m.length() ; ++i)
 			result = isNull(m[i], epsilon);
 		return result;
 	}
 
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER bool isNull(detail::tmat4x4<T, P> const & m, T const & epsilon)
+	GLM_FUNC_QUALIFIER bool isNull(tmat4x4<T, P> const & m, T const & epsilon)
 	{
 		bool result = true;
-		for(length_t i = 0; result && i < 4 ; ++i)
+		for(length_t i = 0; result && i < m.length() ; ++i)
 			result = isNull(m[i], epsilon);
 		return result;
 	}
@@ -43,28 +34,28 @@ namespace glm
 	GLM_FUNC_QUALIFIER bool isIdentity(matType<T, P> const & m, T const & epsilon)
 	{
 		bool result = true;
-		for(length_t i(0); result && i < m[0].length(); ++i)
+		for(length_t i = 0; result && i < m[0].length() ; ++i)
 		{
-			for(length_t j(0); result && j < i ; ++j)
+			for(length_t j = 0; result && j < i ; ++j)
 				result = abs(m[i][j]) <= epsilon;
 			if(result)
 				result = abs(m[i][i] - 1) <= epsilon;
-			for(length_t j(i + 1); result && j < m.length(); ++j)
+			for(length_t j = i + 1; result && j < m.length(); ++j)
 				result = abs(m[i][j]) <= epsilon;
 		}
 		return result;
 	}
 
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER bool isNormalized(detail::tmat2x2<T, P> const & m, T const & epsilon)
+	GLM_FUNC_QUALIFIER bool isNormalized(tmat2x2<T, P> const & m, T const & epsilon)
 	{
 		bool result(true);
-		for(length_t i(0); result && i < m.length(); ++i)
+		for(length_t i = 0; result && i < m.length(); ++i)
 			result = isNormalized(m[i], epsilon);
-		for(length_t i(0); result && i < m.length(); ++i)
+		for(length_t i = 0; result && i < m.length(); ++i)
 		{
-			typename detail::tmat2x2<T, P>::col_type v;
-			for(length_t j(0); j < m.length(); ++j)
+			typename tmat2x2<T, P>::col_type v;
+			for(length_t j = 0; j < m.length(); ++j)
 				v[j] = m[j][i];
 			result = isNormalized(v, epsilon);
 		}
@@ -72,15 +63,15 @@ namespace glm
 	}
 
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER bool isNormalized(detail::tmat3x3<T, P> const & m, T const & epsilon)
+	GLM_FUNC_QUALIFIER bool isNormalized(tmat3x3<T, P> const & m, T const & epsilon)
 	{
 		bool result(true);
-		for(length_t i(0); result && i < m.length(); ++i)
+		for(length_t i = 0; result && i < m.length(); ++i)
 			result = isNormalized(m[i], epsilon);
-		for(length_t i(0); result && i < m.length(); ++i)
+		for(length_t i = 0; result && i < m.length(); ++i)
 		{
-			typename detail::tmat3x3<T, P>::col_type v;
-			for(length_t j(0); j < m.length(); ++j)
+			typename tmat3x3<T, P>::col_type v;
+			for(length_t j = 0; j < m.length(); ++j)
 				v[j] = m[j][i];
 			result = isNormalized(v, epsilon);
 		}
@@ -88,15 +79,15 @@ namespace glm
 	}
 
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER bool isNormalized(detail::tmat4x4<T, P> const & m, T const & epsilon)
+	GLM_FUNC_QUALIFIER bool isNormalized(tmat4x4<T, P> const & m, T const & epsilon)
 	{
 		bool result(true);
-		for(length_t i(0); result && i < m.length(); ++i)
+		for(length_t i = 0; result && i < m.length(); ++i)
 			result = isNormalized(m[i], epsilon);
-		for(length_t i(0); result && i < m.length(); ++i)
+		for(length_t i = 0; result && i < m.length(); ++i)
 		{
-			typename detail::tmat4x4<T, P>::col_type v;
-			for(length_t j(0); j < m.length(); ++j)
+			typename tmat4x4<T, P>::col_type v;
+			for(length_t j = 0; j < m.length(); ++j)
 				v[j] = m[j][i];
 			result = isNormalized(v, epsilon);
 		}

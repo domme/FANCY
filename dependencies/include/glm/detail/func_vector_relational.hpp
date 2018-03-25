@@ -1,29 +1,5 @@
-///////////////////////////////////////////////////////////////////////////////////
-/// OpenGL Mathematics (glm.g-truc.net)
-///
-/// Copyright (c) 2005 - 2014 G-Truc Creation (www.g-truc.net)
-/// Permission is hereby granted, free of charge, to any person obtaining a copy
-/// of this software and associated documentation files (the "Software"), to deal
-/// in the Software without restriction, including without limitation the rights
-/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-/// copies of the Software, and to permit persons to whom the Software is
-/// furnished to do so, subject to the following conditions:
-/// 
-/// The above copyright notice and this permission notice shall be included in
-/// all copies or substantial portions of the Software.
-/// 
-/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-/// THE SOFTWARE.
-///
 /// @ref core
-/// @file glm/core/func_vector_relational.hpp
-/// @date 2008-08-03 / 2011-06-15
-/// @author Christophe Riccio
+/// @file glm/detail/func_vector_relational.hpp
 ///
 /// @see <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.pdf">GLSL 4.20.8 specification, section 8.7 Vector Relational Functions</a>
 /// 
@@ -36,15 +12,11 @@
 /// 
 /// In all cases, the sizes of all the input and return vectors for any particular 
 /// call must match.
-///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef GLM_CORE_func_vector_relational
-#define GLM_CORE_func_vector_relational
+#pragma once
 
 #include "precision.hpp"
 #include "setup.hpp"
-
-#if !((GLM_COMPILER & GLM_COMPILER_VC) && (GLM_COMPILER <= GLM_COMPILER_VC10)) // Workaround a Visual C++ bug
 
 namespace glm
 {
@@ -57,9 +29,8 @@ namespace glm
 	///
 	/// @see <a href="http://www.opengl.org/sdk/docs/manglsl/xhtml/lessThan.xml">GLSL lessThan man page</a>
 	/// @see <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.pdf">GLSL 4.20.8 specification, section 8.7 Vector Relational Functions</a>
-	// TODO: Mismatched 
-	//template <typename T, precision P, template <typename, precision> class vecType>
-	//GLM_FUNC_DECL typename vecType<T, P>::bool_type lessThan(vecType<T, P> const & x, vecType<T, P> const & y);
+	template <typename T, precision P, template <typename, precision> class vecType>
+	GLM_FUNC_DECL vecType<bool, P> lessThan(vecType<T, P> const & x, vecType<T, P> const & y);
 
 	/// Returns the component-wise comparison of result x <= y.
 	///
@@ -68,7 +39,7 @@ namespace glm
 	/// @see <a href="http://www.opengl.org/sdk/docs/manglsl/xhtml/lessThanEqual.xml">GLSL lessThanEqual man page</a>
 	/// @see <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.pdf">GLSL 4.20.8 specification, section 8.7 Vector Relational Functions</a>
 	template <typename T, precision P, template <typename, precision> class vecType>
-	GLM_FUNC_DECL typename vecType<T, P>::bool_type lessThanEqual(vecType<T, P> const & x, vecType<T, P> const & y);
+	GLM_FUNC_DECL vecType<bool, P> lessThanEqual(vecType<T, P> const & x, vecType<T, P> const & y);
 
 	/// Returns the component-wise comparison of result x > y.
 	///
@@ -77,7 +48,7 @@ namespace glm
 	/// @see <a href="http://www.opengl.org/sdk/docs/manglsl/xhtml/greaterThan.xml">GLSL greaterThan man page</a>
 	/// @see <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.pdf">GLSL 4.20.8 specification, section 8.7 Vector Relational Functions</a>
 	template <typename T, precision P, template <typename, precision> class vecType>
-	GLM_FUNC_DECL typename vecType<T, P>::bool_type greaterThan(vecType<T, P> const & x, vecType<T, P> const & y);
+	GLM_FUNC_DECL vecType<bool, P> greaterThan(vecType<T, P> const & x, vecType<T, P> const & y);
 
 	/// Returns the component-wise comparison of result x >= y.
 	///
@@ -86,7 +57,7 @@ namespace glm
 	/// @see <a href="http://www.opengl.org/sdk/docs/manglsl/xhtml/greaterThanEqual.xml">GLSL greaterThanEqual man page</a>
 	/// @see <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.pdf">GLSL 4.20.8 specification, section 8.7 Vector Relational Functions</a>
 	template <typename T, precision P, template <typename, precision> class vecType>
-	GLM_FUNC_DECL typename vecType<T, P>::bool_type greaterThanEqual(vecType<T, P> const & x, vecType<T, P> const & y);
+	GLM_FUNC_DECL vecType<bool, P> greaterThanEqual(vecType<T, P> const & x, vecType<T, P> const & y);
 
 	/// Returns the component-wise comparison of result x == y.
 	///
@@ -94,9 +65,8 @@ namespace glm
 	/// 
 	/// @see <a href="http://www.opengl.org/sdk/docs/manglsl/xhtml/equal.xml">GLSL equal man page</a>
 	/// @see <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.pdf">GLSL 4.20.8 specification, section 8.7 Vector Relational Functions</a>
-	//TODO: conflicts with definision
-	//template <typename T, precision P, template <typename, precision> class vecType>
-	//GLM_FUNC_DECL typename vecType<T, P>::bool_type equal(vecType<T, P> const & x, vecType<T, P> const & y);
+	template <typename T, precision P, template <typename, precision> class vecType>
+	GLM_FUNC_DECL vecType<bool, P> equal(vecType<T, P> const & x, vecType<T, P> const & y);
 
 	/// Returns the component-wise comparison of result x != y.
 	/// 
@@ -105,7 +75,7 @@ namespace glm
 	/// @see <a href="http://www.opengl.org/sdk/docs/manglsl/xhtml/notEqual.xml">GLSL notEqual man page</a>
 	/// @see <a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.20.8.pdf">GLSL 4.20.8 specification, section 8.7 Vector Relational Functions</a>
 	template <typename T, precision P, template <typename, precision> class vecType>
-	GLM_FUNC_DECL typename vecType<T, P>::bool_type notEqual(vecType<T, P> const & x, vecType<T, P> const & y);
+	GLM_FUNC_DECL vecType<bool, P> notEqual(vecType<T, P> const & x, vecType<T, P> const & y);
 
 	/// Returns true if any component of x is true.
 	///
@@ -138,8 +108,4 @@ namespace glm
 	/// @}
 }//namespace glm
 
-#endif
-
 #include "func_vector_relational.inl"
-
-#endif//GLM_CORE_func_vector_relational

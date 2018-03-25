@@ -21,6 +21,12 @@ class Camera;
     float myMoveSpeed;
 
   private:
+    enum class Mode
+    {
+      FPS,
+      TRACKBALL
+    };
+
     void UpdateFPSCamera(float aDeltaTime, const Fancy::InputState& anInputState);
     void UpdateTrackballCamera(float aDeltaTime, const Fancy::InputState& anInputState);
 
@@ -31,6 +37,7 @@ class Camera;
     glm::int2 myLastMousePos;
     glm::float3 myFocusPoint;
     float myFocusPointDistance;
+    Mode myLastMode;
   };
 //---------------------------------------------------------------------------//
 

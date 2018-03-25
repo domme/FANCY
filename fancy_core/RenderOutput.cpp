@@ -12,8 +12,8 @@ namespace Fancy {
 
     Fancy::WindowParameters params;
     params.myTitle = "Fancy";
-    params.myWidth = 800u;
-    params.myHeight = 600u;
+    params.myWidth = 1280u;
+    params.myHeight = 720u;
 
     HINSTANCE instanceHandle = static_cast<HINSTANCE>(aNativeInstanceHandle);
 

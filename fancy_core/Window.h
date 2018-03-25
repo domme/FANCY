@@ -7,7 +7,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct WindowParameters
   {
-    WindowParameters() : myWidth(0), myHeight(0), myCaptureMouse(true) {}
+    WindowParameters() : myWidth(0), myHeight(0), myCaptureMouse(false) {}
     String myTitle;
     uint myWidth;
     uint myHeight;
