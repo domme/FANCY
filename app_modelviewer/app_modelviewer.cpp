@@ -19,6 +19,8 @@
 #include <fancy_core/Texture.h>
 #include <fancy_core/Input.h>
 #include "CameraController.h"
+#include <fancy_core/MeshData.h>
+#include <fancy_core/TextureRefs.h>
 
 using namespace Fancy;
 
@@ -28,13 +30,24 @@ RenderOutput* myRenderOutput = nullptr;
 ModelLoader::Scene myScene;
 AssetStorage myAssetStorage;
 
-SharedPtr<GpuBuffer> myCbufferPerObject;
 SharedPtr<GpuProgramPipeline> myUnlitTexturedShader;
+SharedPtr<GpuProgramPipeline> myUnlitVertexColorShader;
+SharedPtr<GpuProgramPipeline> myDebugGeoShader;
+SharedPtr<GpuBuffer> myCbufferPerObject;
+SharedPtr<GpuBuffer> myCbufferDebugGeo;
 SharedPtr<CameraController> myCameraController;
+SharedPtr<Mesh> myGridMesh;
+
 Camera myCamera;
 InputState myInputState;
 
-struct CBuffer_PerObject
+struct Cbuffer_DebugGeo
+{
+  glm::float4x4 myWorldViewProj;
+  glm::float4 myColor;
+};
+
+struct Cbuffer_PerObject
 {
   glm::float4x4 myWorldViewProj;
 };
@@ -44,6 +57,18 @@ void OnWindowResized(uint aWidth, uint aHeight)
   myCamera.myWidth = myWindow->GetWidth();
   myCamera.myHeight = myWindow->GetHeight();
   myCamera.UpdateProjection();
+}
+
+SharedPtr<GpuProgramPipeline> LoadShader(const char* aShaderPath)
+{
+  GpuProgramPipelineDesc pipelineDesc;
+  GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
+  shaderDesc->myShaderFileName = aShaderPath;
+  shaderDesc->myMainFunction = "main";
+  shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
+  shaderDesc->myShaderFileName = aShaderPath;
+  shaderDesc->myMainFunction = "main";
+  return RenderCore::CreateGpuProgramPipeline(pipelineDesc);
 }
 
 void Init(HINSTANCE anInstanceHandle)
@@ -62,26 +87,64 @@ void Init(HINSTANCE anInstanceHandle)
 
   GpuBufferCreationParams bufferParams;
   bufferParams.uNumElements = 1u;
-  bufferParams.uElementSizeBytes = sizeof(CBuffer_PerObject);
+  bufferParams.uElementSizeBytes = sizeof(Cbuffer_PerObject);
   bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
   bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
     | (uint)GpuResourceAccessFlags::COHERENT
     | (uint)GpuResourceAccessFlags::DYNAMIC
     | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
 
-  CBuffer_PerObject initialPerObjectData;
+  Cbuffer_PerObject initialPerObjectData;
   myCbufferPerObject = RenderCore::CreateBuffer(bufferParams, &initialPerObjectData);
   ASSERT(myCbufferPerObject != nullptr);
 
-  GpuProgramPipelineDesc pipelineDesc;
-  GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
-  shaderDesc->myShaderFileName = "UnlitColored";
-  shaderDesc->myMainFunction = "main";
-  shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
-  shaderDesc->myShaderFileName = "UnlitColored";
-  shaderDesc->myMainFunction = "main";
-  myUnlitTexturedShader = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+  bufferParams.uElementSizeBytes = sizeof(Cbuffer_DebugGeo);
+  Cbuffer_DebugGeo initialDebugGeoData;
+  myCbufferDebugGeo = RenderCore::CreateBuffer(bufferParams, &initialDebugGeoData);
+  ASSERT(myCbufferDebugGeo != nullptr);
+
+  myUnlitTexturedShader = LoadShader("Unlit_Textured");
   ASSERT(myUnlitTexturedShader != nullptr);
+
+  myUnlitVertexColorShader = LoadShader("Unlit_Colored");
+  ASSERT(myUnlitVertexColorShader != nullptr);
+
+  myDebugGeoShader = LoadShader("DebugGeo_Colored");
+  ASSERT(myDebugGeoShader != nullptr);
+
+  {
+     struct GridGeoVertex
+     {
+       glm::float3 myPos;
+       glm::u8vec4 myColor;
+     };
+
+     GridGeoVertex vertices[4] = {
+       { { 0.0f, 0.0f, -1.0f }, {0,0,255,255} },
+       { { 0.0f, 0.0f, 1.0f }, {0.0f, 0.0f, 1.0f, 1.0f} },
+       { { -1.0f, 0.0f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f } },
+       { { 1.0f, 0.0f, 0.0f },{1.0f, 0.0f, 0.0f, 1.0f } }
+     };
+
+     uint indices[] = {
+       0, 1, 2, 3
+     };
+
+     MeshData meshData;
+     meshData.myLayout.myTopology = TopologyType::LINES;
+     meshData.myLayout.AddVertexElement(VertexSemantics::POSITION, DataFormat::RGB_32F);
+     meshData.myLayout.AddVertexElement(VertexSemantics::COLOR, DataFormat::RGBA_8);
+     meshData.myVertexData.resize(sizeof(vertices));
+     memcpy(meshData.myVertexData.data(), vertices, sizeof(vertices));
+     meshData.myIndexData.resize(sizeof(indices));
+     memcpy(meshData.myIndexData.data(), indices, sizeof(indices));
+
+     MeshDesc meshDesc;
+     meshDesc.myIsExternalMesh = false;
+     meshDesc.myInternalRefIdx = (uint) MeshRef::COORD_GRID;
+     myGridMesh = RenderCore::CreateMesh(meshDesc, &meshData, 1u);
+     ASSERT(myGridMesh != nullptr);
+  }
 
   myCamera.myPosition = glm::float3(0.0f, 0.0f, -10.0f);
   myCamera.myOrientation = glm::quat_cast(glm::lookAt(glm::float3(0.0f, 0.0f, 10.0f), glm::float3(0.0f, 0.0f, 0.0f), glm::float3(0.0f, 1.0f, 0.0f)));
@@ -139,14 +202,22 @@ void Render()
   ctx->SetFillMode(FillMode::SOLID);
   ctx->SetWindingOrder(WindingOrder::CCW);
 
-  ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
+  ctx->SetGpuProgramPipeline(myDebugGeoShader);
+  Cbuffer_DebugGeo cBufferDebugGeo{ myCamera.myViewProj, glm::float4(1.0f, 0.0f, 0.0f, 1.0f) };
+  RenderCore::UpdateBufferData(myCbufferDebugGeo.get(), &cBufferDebugGeo, sizeof(cBufferDebugGeo));
+  ctx->BindResource(myCbufferDebugGeo.get(), DescriptorType::CONSTANT_BUFFER, 0u);
 
+  for (SharedPtr<GeometryData>& geometry : myGridMesh->myGeometryDatas)
+    ctx->RenderGeometry(geometry.get());
+
+  /*
+  ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
   for (int i = 0; i < myScene.myModels.size(); ++i)
   {
     Model* model = myScene.myModels[i].get();
     const glm::mat4& transform = myScene.myTransforms[i];
 
-    CBuffer_PerObject cBuffer;
+    Cbuffer_PerObject cBuffer;
     cBuffer.myWorldViewProj = myCamera.myViewProj * transform;
     RenderCore::UpdateBufferData(myCbufferPerObject.get(), &cBuffer, sizeof(cBuffer));
     ctx->BindResource(myCbufferPerObject.get(), DescriptorType::CONSTANT_BUFFER, 0u);
@@ -158,6 +229,7 @@ void Render()
     for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
       ctx->RenderGeometry(geometry.get());
   }
+  */
 
   ctx->ExecuteAndReset();
   RenderCore::FreeContext(ctx);

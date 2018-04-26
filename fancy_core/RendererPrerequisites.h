@@ -38,6 +38,14 @@ namespace Fancy {
     class GpuProgramCompiler;
     class GeometryData;
   //---------------------------------------------------------------------------//
+    enum class TopologyType
+    {
+      TRIANGLE_LIST,
+      LINES,
+
+      NUM
+    };
+  //---------------------------------------------------------------------------//
     enum class CompFunc 
     {
       NEVER = 0,

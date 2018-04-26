@@ -29,7 +29,9 @@ namespace Fancy {
       ~GeometryVertexLayout();
 
       void addVertexElement(const GeometryVertexElement& clVertexElement);
+      void AddVertexElement(VertexSemantics aSemantic, DataFormat aFormat, uint aSemanticIndex = 0u, const char* aName = "");
       
+      TopologyType myTopology;
       uint myStride;
       DynamicArray<GeometryVertexElement> myElements;
   };

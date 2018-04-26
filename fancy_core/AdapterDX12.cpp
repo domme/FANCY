@@ -73,6 +73,26 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  D3D12_PRIMITIVE_TOPOLOGY_TYPE Adapter::ResolveTopologyType(const TopologyType& aGeneralType)
+  {
+    switch (aGeneralType)
+    {
+    case TopologyType::TRIANGLE_LIST: return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    case TopologyType::LINES: return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+    default: ASSERT(false, "Missing native values"); return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_PRIMITIVE_TOPOLOGY Adapter::ResolveTopology(const TopologyType& aGeneralType)
+  {
+    switch (aGeneralType)
+    {
+    case TopologyType::TRIANGLE_LIST: return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    case TopologyType::LINES: return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+    default: ASSERT(false, "Missing native values"); return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    }
+  }
+//---------------------------------------------------------------------------//
 	D3D12_BLEND Adapter::toNativeType(const BlendInput& generalType) 
 	{
 		switch (generalType) {

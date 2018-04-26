@@ -14,6 +14,8 @@ namespace Fancy {
 		static D3D12_FILL_MODE toNativeType(const FillMode& generalType);
 		static D3D12_CULL_MODE toNativeType(const CullMode& generalType);
     static D3D12_RESOURCE_STATES toNativeType(const GpuResourceState& aGeneralType);
+    static D3D12_PRIMITIVE_TOPOLOGY_TYPE ResolveTopologyType(const TopologyType& aGeneralType);
+    static D3D12_PRIMITIVE_TOPOLOGY ResolveTopology(const TopologyType& aGeneralType);
 	};
 //---------------------------------------------------------------------------//
 }

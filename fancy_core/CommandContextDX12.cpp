@@ -473,7 +473,7 @@ namespace Fancy {
     psoDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
 
     // TOPOLOGY TYPE
-    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psoDesc.PrimitiveTopologyType = Adapter::ResolveTopologyType(aState.myTopologyType);
 
     // NUM RENDER TARGETS
     psoDesc.NumRenderTargets = aState.myNumRenderTargets;
@@ -611,7 +611,7 @@ namespace Fancy {
       indexBufferView.SizeInBytes = glm::min(aNumIndices, bufferParams.uNumElements) * bufferParams.uElementSizeBytes;
     }
 
-    myCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // TODO: Don't hardcode the primitive topology?
+    myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
     myCommandList->IASetVertexBuffers(0, 1, &vertexBufferView);
     myCommandList->IASetIndexBuffer(&indexBufferView);
   }
@@ -630,6 +630,7 @@ namespace Fancy {
     const GpuBufferDX12* vertexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getVertexBuffer());
     const GpuBufferDX12* indexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getIndexBuffer());
 
+    SetTopologyType(pGeometry->getGeometryVertexLayout().myTopology);
     SetVertexIndexBuffers(vertexBufferDx12, indexBufferDx12);
     Render(indexBufferDx12->GetNumElements(), 1, 0, 0, 0);
   }

@@ -25,6 +25,7 @@ namespace Fancy {
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[Constants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
+    TopologyType myTopologyType;
 
     bool myIsDirty : 1;
   };
@@ -81,6 +82,7 @@ namespace Fancy {
     void SetFillMode(const FillMode eFillMode);
     void SetCullMode(const CullMode eCullMode);
     void SetWindingOrder(const WindingOrder eWindingOrder);
+    void SetTopologyType(TopologyType aType);
     void SetDepthStencilRenderTarget(Texture* pDStexture);
     void SetRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
     void RemoveAllRenderTargets();
@@ -95,6 +97,7 @@ namespace Fancy {
     glm::uvec4 myClipRect;
     bool myViewportDirty;
     bool myClipRectDirty;
+    bool myTopologyDirty;
     Texture* myRenderTargets[Constants::kMaxNumRenderTargets];
     Texture* myDepthStencilTarget;
     bool myRenderTargetsDirty;

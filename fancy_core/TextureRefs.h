@@ -21,8 +21,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class MeshRef
   {
-    UNIT_CUBE,
+    UNIT_CUBE = 0,
     UNIT_SPHERE,
+    COORD_GRID,
+
     NUM
   };
 }

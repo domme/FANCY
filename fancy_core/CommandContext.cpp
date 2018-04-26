@@ -52,6 +52,7 @@ namespace Fancy {
     , myClipRect(0, 0, 1, 1)
     , myViewportDirty(true)
     , myClipRectDirty(true)
+    , myTopologyDirty(true)
     , myRenderTargetsDirty(true)
     , myDepthStencilTarget(nullptr)
   {
@@ -212,7 +213,14 @@ namespace Fancy {
     state.myIsDirty |= eWindingOrder != state.myWindingOrder;
     state.myWindingOrder = eWindingOrder;
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void CommandContext::SetTopologyType(TopologyType aType)
+  {
+    GraphicsPipelineState& state = myGraphicsPipelineState;
+    state.myIsDirty |= aType != state.myTopologyType;
+    state.myTopologyType = aType;
+  }
+//---------------------------------------------------------------------------//
   void CommandContext::SetDepthStencilRenderTarget(Texture* pDStexture)
   {
     if (myDepthStencilTarget == pDStexture)
@@ -244,7 +252,7 @@ namespace Fancy {
 
     myGraphicsPipelineState.myNumRenderTargets = numRenderTargets;
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandContext::RemoveAllRenderTargets()
   {
     memset(myRenderTargets, 0, sizeof(myRenderTargets));
