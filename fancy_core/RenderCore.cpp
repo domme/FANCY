@@ -113,6 +113,27 @@ namespace Fancy {
     return static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get());
   }
 //---------------------------------------------------------------------------//
+  ConstantRingBuffer* RenderCore::AllocateConstantRingBuffer()
+  {
+    std::lock_guard<std::mutex> lock(ourConstantRingBufferMutex);
+
+    if (ourAvailableConstantRingBuffers.size() == 0)
+    {
+      // Create a new ringbuffer
+      std::unique_ptr<ConstantRingBuffer> buf = std::make_unique<ConstantRingBuffer>();
+
+      GpuBufferCreationParams params;
+      params.uNumElements = 64 * 16;
+      params.uElementSizeBytes = 1u;
+      params.myUsageFlags = (uint)GpuBufferUsage::CONSTANT_BUFFER;
+      params.uAccessFlags = 
+    }
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::ReleaseConstantRingBuffer(ConstantRingBuffer* aBuffer, uint64 aFenceVal)
+  {
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
   {
     ASSERT(ourPlatformImpl == nullptr);
@@ -225,6 +246,8 @@ namespace Fancy {
 
       ourDefaultNormalTexture = CreateTexture(params, &data, 1);
     }
+
+
 
     ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
     ASSERT(ourDefaultDepthStencilState != nullptr);

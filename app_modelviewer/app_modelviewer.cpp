@@ -91,8 +91,7 @@ void Init(HINSTANCE anInstanceHandle)
   bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
   bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
     | (uint)GpuResourceAccessFlags::COHERENT
-    | (uint)GpuResourceAccessFlags::DYNAMIC
-    | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+    | (uint)GpuResourceAccessFlags::DYNAMIC;
 
   Cbuffer_PerObject initialPerObjectData;
   myCbufferPerObject = RenderCore::CreateBuffer(bufferParams, &initialPerObjectData);

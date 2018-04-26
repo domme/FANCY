@@ -197,12 +197,10 @@ namespace Fancy {
       WRITE               = 0x00000002,
       /// CPU will change data frequently
       DYNAMIC              = 0x00000008,
-      /// CPU-access may remain valid even during GPU-access
-      PERSISTENT_LOCKABLE = 0x00000010, //GL4: GL_MAP_PERSISTENT_BIT
       /// Changes from CPU/GPU are immediately visible to GPU/CPU
-      COHERENT            = 0x00000020,
+      COHERENT            = 0x00000010,
       /// Try to use CPU-RAM as backing storage
-      PREFER_CPU_STORAGE  = 0x00000040
+      PREFER_CPU_STORAGE  = 0x00000020
     };
   //---------------------------------------------------------------------------//
     // Note: Could make bitfield-flags instead, but this would suggest that each field

@@ -99,8 +99,7 @@ namespace Fancy { namespace ImGuiRendering {
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
       bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
                                 | (uint)GpuResourceAccessFlags::COHERENT
-                                | (uint)GpuResourceAccessFlags::DYNAMIC
-                                | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+                                | (uint)GpuResourceAccessFlags::DYNAMIC;
       bufferParams.uElementSizeBytes = sizeof(ImDrawVert);
       bufferParams.uNumElements = aNumRequiredVertices;
       return RenderCore::CreateBuffer(bufferParams);
@@ -112,8 +111,7 @@ namespace Fancy { namespace ImGuiRendering {
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
       bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
         | (uint)GpuResourceAccessFlags::COHERENT
-        | (uint)GpuResourceAccessFlags::DYNAMIC
-        | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+        | (uint)GpuResourceAccessFlags::DYNAMIC;
       bufferParams.uElementSizeBytes = sizeof(ImDrawIdx);
       bufferParams.uNumElements = aNumRequiredIndices;
       return RenderCore::CreateBuffer(bufferParams);
@@ -179,8 +177,7 @@ namespace Fancy { namespace ImGuiRendering {
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
       bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
                                  | (uint)GpuResourceAccessFlags::COHERENT
-                                 | (uint)GpuResourceAccessFlags::DYNAMIC
-                                 | (uint)GpuResourceAccessFlags::PERSISTENT_LOCKABLE;
+                                 | (uint)GpuResourceAccessFlags::DYNAMIC;
       bufferParams.uElementSizeBytes = sizeof(CBufferData);
       bufferParams.uNumElements = 1u;
 

@@ -94,10 +94,8 @@ namespace Fancy {
     else if (wantsCpuWrite || wantsCpuStorage)
     {
       heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
       myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
-      
-      if (wantsCpuRead)
-        heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
     }
     else if (!wantsCpuWrite && wantsCpuRead)
     {

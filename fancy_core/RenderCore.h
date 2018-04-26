@@ -3,6 +3,8 @@
 #include "RendererPrerequisites.h"
 #include "RenderingStartupParameters.h"
 #include <list>
+#include <deque>
+#include <mutex>
 
 namespace Fancy {
   struct MeshData;
@@ -24,6 +26,16 @@ namespace Fancy {
   class FileWatcher;
   class Texture;
   struct RenderPlatformCaps;
+//---------------------------------------------------------------------------//
+  struct ConstantRingBuffer
+  {
+    ConstantRingBuffer() : myAlignmentBytes(0u), mySizeBytes(0u), myUsedOffsetBytes(0u), myData(nullptr) {}
+    SharedPtr<GpuBuffer> myBuffer;
+    uint myAlignmentBytes;
+    uint64 mySizeBytes;
+    uint64 myUsedOffsetBytes;
+    uint8* myData;
+  };
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -63,6 +75,9 @@ namespace Fancy {
     static RenderCore_Platform* GetPlatform();
     static RenderCore_PlatformDX12* GetPlatformDX12();
 
+    static ConstantRingBuffer* AllocateConstantRingBuffer();
+    void ReleaseConstantRingBuffer(ConstantRingBuffer* aBuffer, uint64 aFenceVal);
+
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
 
@@ -83,7 +98,7 @@ namespace Fancy {
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
-
+    
     static std::vector<std::unique_ptr<CommandContext>> ourRenderContextPool;
     static std::vector<std::unique_ptr<CommandContext>> ourComputeContextPool;
     static std::list<CommandContext*> ourAvailableRenderContexts;
@@ -94,9 +109,14 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultDiffuseTexture;
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
-
+    
     static std::unique_ptr<GpuProgramCompiler> ourShaderCompiler;
     static std::unique_ptr<FileWatcher> ourShaderFileWatcher;
+
+    static std::mutex ourConstantRingBufferMutex;
+    static std::vector<std::unique_ptr<ConstantRingBuffer>> ourConstantRingBufferPool;
+    static std::deque<ConstantRingBuffer*> ourAvailableConstantRingBuffers;
+    static std::deque<std::pair<uint64, ConstantRingBuffer*>> ourUsedConstantRingBuffers;
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);
