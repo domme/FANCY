@@ -8,29 +8,17 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   FenceDX12::FenceDX12()
     : myGpuFence(nullptr)
-    , myIsDoneEvent(nullptr)
-    , myCurrWaitingOnVal(0u)
-    , myLastCompletedVal(0u)
-  {
-
-  }
-//---------------------------------------------------------------------------//
-  FenceDX12::FenceDX12(const String& aName) 
-    : myGpuFence(nullptr)
-    , myIsDoneEvent(nullptr)
-    , myCurrWaitingOnVal(0u)
-    , myLastCompletedVal(0u)
-  {
-    Init(aName);
-  }
-//---------------------------------------------------------------------------//
-  void FenceDX12::Init(const String& aName)
   {
     CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->
       CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myGpuFence)));
-
-    myIsDoneEvent = CreateEventEx(nullptr, nullptr, 0u, EVENT_ALL_ACCESS);
-    ASSERT(myIsDoneEvent != nullptr);
+  }
+//---------------------------------------------------------------------------//
+  FenceDX12::FenceDX12(const String& aName) 
+    : Fence(aName)
+    , myGpuFence(nullptr)
+  {
+    CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->
+      CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myGpuFence)));
   }
 //---------------------------------------------------------------------------//
   uint64 FenceDX12::signal(ID3D12CommandQueue* aCommandQueue, uint64 aFenceVal /* = ~0u */)
@@ -69,6 +57,10 @@ namespace Fancy {
   FenceDX12::~FenceDX12()
   {
   
+  }
+
+  void FenceDX12::Wait()
+  {
   }
 //---------------------------------------------------------------------------//
 }

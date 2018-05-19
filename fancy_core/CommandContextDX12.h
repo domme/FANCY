@@ -37,6 +37,7 @@ namespace Fancy {
     void RenderGeometry(const GeometryData* pGeometry) override;
     void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex) const override;
     void BindDescriptorSet(const Descriptor** someDescriptors, uint aResourceCount, uint aRegisterIndex) override;
+    uint64 SignalFence(Fence* aFence) override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;
     void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) override;

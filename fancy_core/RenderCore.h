@@ -27,14 +27,12 @@ namespace Fancy {
   class Texture;
   struct RenderPlatformCaps;
 //---------------------------------------------------------------------------//
-  struct ConstantRingBuffer
+  struct GpuDynamicBuffer
   {
-    ConstantRingBuffer() : myAlignmentBytes(0u), mySizeBytes(0u), myUsedOffsetBytes(0u), myData(nullptr) {}
+    GpuDynamicBuffer() : myData(nullptr), myOffset(0u) {}
     SharedPtr<GpuBuffer> myBuffer;
-    uint myAlignmentBytes;
-    uint64 mySizeBytes;
-    uint64 myUsedOffsetBytes;
     uint8* myData;
+    uint64 myOffset;
   };
 //---------------------------------------------------------------------------//
   class RenderCore
@@ -42,6 +40,7 @@ namespace Fancy {
   public:
     /// Init platform-independent stuff
     static void Init(RenderingApi aRenderingApi);
+    static void EndFrame();
     static void Shutdown();
 
     static bool IsInitialized();
@@ -75,8 +74,8 @@ namespace Fancy {
     static RenderCore_Platform* GetPlatform();
     static RenderCore_PlatformDX12* GetPlatformDX12();
 
-    static ConstantRingBuffer* AllocateConstantRingBuffer();
-    void ReleaseConstantRingBuffer(ConstantRingBuffer* aBuffer, uint64 aFenceVal);
+    static GpuDynamicBuffer* AllocateDynamicBuffer(uint64 aNeededByteSize);
+    static void ReleaseDynamicBuffer(GpuDynamicBuffer* aBuffer, uint64 aFenceVal);
 
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
@@ -113,14 +112,13 @@ namespace Fancy {
     static std::unique_ptr<GpuProgramCompiler> ourShaderCompiler;
     static std::unique_ptr<FileWatcher> ourShaderFileWatcher;
 
-    static std::mutex ourConstantRingBufferMutex;
-    static std::vector<std::unique_ptr<ConstantRingBuffer>> ourConstantRingBufferPool;
-    static std::deque<ConstantRingBuffer*> ourAvailableConstantRingBuffers;
-    static std::deque<std::pair<uint64, ConstantRingBuffer*>> ourUsedConstantRingBuffers;
+    static std::mutex ourDynamicBufferMutex;
+    static std::vector<std::unique_ptr<GpuDynamicBuffer>> ourDynamicBufferPool;
+    static std::deque<GpuDynamicBuffer*> ourAvailableDynamicBuffers;
+    static std::deque<std::pair<GpuDynamicBuffer*, uint64>> ourUsedDynamicBuffers;
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);
   };
 //---------------------------------------------------------------------------//
 }
-

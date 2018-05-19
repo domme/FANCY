@@ -22,24 +22,9 @@ namespace Fancy {
 
     virtual void Create(const GpuBufferCreationParams& clParameters,const void* pInitialData = nullptr) = 0;
     virtual void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) = 0;
-    virtual void Unlock() = 0;
+    virtual void Unlock(uint anOffsetElements = 0u, uint aNumElements = 0u) = 0;
     
   protected:
-    struct LockState {
-      LockState()
-        : isLocked(false)
-        , myLockedRange_Begin(0u)
-        , myLockedRange_End(0u)
-        , myCachedLockDataPtr(nullptr)
-      {}
-      
-      bool isLocked;
-      uint64 myLockedRange_Begin;
-      uint64 myLockedRange_End;
-      void* myCachedLockDataPtr;
-    };
-
-    LockState myState;
     uint myAlignment;
     GpuBufferCreationParams myParameters;
 

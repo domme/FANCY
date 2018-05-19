@@ -58,13 +58,6 @@
   template<class T>
   using UniquePtr = std::unique_ptr<T>;
 //---------------------------------------------------------------------------//
-// Functional defines
-//-----------------------------------------------------------------------//
-/// Enables various sanity-checks and validations
-#define FANCY_RENDERSYSTEM_USE_VALIDATION
-/// Enables the storage of strings in ObjectNames
-#define FANCY_COMMON_USE_OBJECTNAME_STRINGS
-//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // Typedefs

@@ -3,6 +3,9 @@
 #include "FancyCorePrerequisites.h"
 #include "DataFormat.h"
 
+/// Enables various sanity-checks and validations
+#define FANCY_RENDERER_HEAVY_VALIDATION 1
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
     namespace MultiBuffering 
@@ -189,18 +192,11 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     enum class GpuResourceAccessFlags 
     {
-      /// No special access flags
-      NONE                = 0x00000000,
-      /// Allow CPU read-access only
-      READ                = 0x00000001,
-      /// Allow CPU write-access only
-      WRITE               = 0x00000002,
-      /// CPU will change data frequently
-      DYNAMIC              = 0x00000008,
-      /// Changes from CPU/GPU are immediately visible to GPU/CPU
-      COHERENT            = 0x00000010,
-      /// Try to use CPU-RAM as backing storage
-      PREFER_CPU_STORAGE  = 0x00000020
+      NONE      = 1 << 0, // No special access flags
+      READ      = 1 << 1, // Allow CPU read-access
+      WRITE     = 1 << 2, // Allow CPU write-access
+      DYNAMIC   = 1 << 3, // CPU will change data frequently
+      COHERENT  = 1 << 4, // Changes from CPU/GPU are immediately visible to GPU/CPU
     };
   //---------------------------------------------------------------------------//
     // Note: Could make bitfield-flags instead, but this would suggest that each field

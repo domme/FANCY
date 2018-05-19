@@ -67,6 +67,11 @@ namespace Fancy {
   
   std::unique_ptr<FileWatcher> RenderCore::ourShaderFileWatcher;
   std::unique_ptr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
+
+  std::mutex RenderCore::ourDynamicBufferMutex;
+  std::vector<std::unique_ptr<GpuDynamicBuffer>> RenderCore::ourDynamicBufferPool;
+  std::deque<GpuDynamicBuffer*> RenderCore::ourAvailableDynamicBuffers;
+  std::deque<std::pair<GpuDynamicBuffer*, uint64>> RenderCore::ourUsedDynamicBuffers;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -101,6 +106,11 @@ namespace Fancy {
     Init_2_Resources();
   }
 //---------------------------------------------------------------------------//
+  void RenderCore::EndFrame()
+  {
+
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
   {
     Shutdown_0_Resources();
@@ -113,25 +123,52 @@ namespace Fancy {
     return static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get());
   }
 //---------------------------------------------------------------------------//
-  ConstantRingBuffer* RenderCore::AllocateConstantRingBuffer()
+  GpuDynamicBuffer* RenderCore::AllocateDynamicBuffer(uint64 aNeededByteSize)
   {
-    std::lock_guard<std::mutex> lock(ourConstantRingBufferMutex);
+    // TODO: Replace with a more elaborated memory manager that accomodates different sizes and also different buffer-types
+    static const uint64 kDynamicBufferSize = 256 * sizeof(glm::float4);
+    ASSERT(aNeededByteSize <= kDynamicBufferSize);
 
-    if (ourAvailableConstantRingBuffers.size() == 0)
+    std::lock_guard<std::mutex> lock(ourDynamicBufferMutex);
+
+    if (ourAvailableDynamicBuffers.size() > 0)
     {
-      // Create a new ringbuffer
-      std::unique_ptr<ConstantRingBuffer> buf = std::make_unique<ConstantRingBuffer>();
-
-      GpuBufferCreationParams params;
-      params.uNumElements = 64 * 16;
-      params.uElementSizeBytes = 1u;
-      params.myUsageFlags = (uint)GpuBufferUsage::CONSTANT_BUFFER;
-      params.uAccessFlags = 
+      GpuDynamicBuffer* buf = ourAvailableDynamicBuffers.front();
+      ourAvailableDynamicBuffers.pop_front();
+      buf->myOffset = 0u;
+      return buf;
     }
+
+    // Create a new buffer
+    std::unique_ptr<GpuDynamicBuffer> buf = std::make_unique<GpuDynamicBuffer>();
+
+    GpuBufferCreationParams params;
+    params.uNumElements = kDynamicBufferSize;
+    params.uElementSizeBytes = 1u;
+    params.myUsageFlags = (uint)GpuBufferUsage::CONSTANT_BUFFER;
+    params.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE;
+    buf->myBuffer = CreateBuffer(params);
+    ASSERT(buf->myBuffer);
+    buf->myData = (uint8*) buf->myBuffer->Lock(GpuResoruceLockOption::WRITE);
+    ASSERT(buf->myData);
+    ourDynamicBufferPool.push_back(std::move(buf));
+
+    return ourDynamicBufferPool.back().get();
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::ReleaseConstantRingBuffer(ConstantRingBuffer* aBuffer, uint64 aFenceVal)
+  void RenderCore::ReleaseDynamicBuffer(GpuDynamicBuffer* aBuffer, uint64 aFenceVal)
   {
+    std::lock_guard<std::mutex> lock(ourDynamicBufferMutex);
+
+#if FANCY_RENDERER_HEAVY_VALIDATION
+    auto predicate = [aBuffer](const std::pair<GpuDynamicBuffer*, uint64>& aPair) {
+      return aPair.first == aBuffer;
+    };
+    ASSERT(std::find_if(ourUsedDynamicBuffers.begin(), ourUsedDynamicBuffers.end(), predicate) == ourUsedDynamicBuffers.end());
+    ASSERT(std::find(ourAvailableDynamicBuffers.begin(), ourAvailableDynamicBuffers.end(), aBuffer) == ourAvailableDynamicBuffers.end());
+#endif
+
+    ourUsedDynamicBuffers.push_back(std::make_pair(aBuffer, aFenceVal));
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)

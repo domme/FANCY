@@ -76,33 +76,31 @@ namespace Fancy {
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
     resourceDesc.Flags = wantsUnorderedAccess ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-    const bool wantsCpuWrite = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
-    const bool wantsCpuRead = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::READ) > 0u;
-    const bool wantsCpuStorage = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::PREFER_CPU_STORAGE) > 0u;
-    const bool wantsCoherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
-
-    // TODO: What to do with these flags in DX12?
-    //const bool wantsDynamic = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::DYNAMIC) > 0u;
+    const bool cpu_write = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
+    const bool cpu_read = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::READ) > 0u;
+    const bool coherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
+    
+    // const bool dynamic = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::DYNAMIC) > 0u;
 
     myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
-    if (!wantsCpuWrite && !wantsCpuRead && !wantsCpuStorage)
+    if (!cpu_write && !cpu_read)  // No CPU-access
     {
-      // The default for most buffers: No Cpu-access at all required. Can be created as GPU-only visible heap
       heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
       myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
     }
-    else if (wantsCpuWrite || wantsCpuStorage)
+    else if (cpu_write && !cpu_read)  // CPU write-only
     {
       heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
       myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
     }
-    else if (!wantsCpuWrite && wantsCpuRead)
+    else if (cpu_read && !cpu_write)  // CPU read-only
     {
       heapProps.Type = D3D12_HEAP_TYPE_READBACK;
-      heapProps.CPUPageProperty = wantsCoherent ? D3D12_CPU_PAGE_PROPERTY_WRITE_BACK : D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
       myUsageState = GpuResourceState::RESOURCE_STATE_COPY_DEST;
     }
+
+    if (coherent && (cpu_write || cpu_read))
+      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     D3D12_RESOURCE_STATES usageStateDX12 = Adapter::toNativeType(myUsageState);
@@ -177,7 +175,7 @@ namespace Fancy {
         
     if (pInitialData != nullptr)
     {
-      if (wantsCpuWrite)  // The fast path: Just lock and memcpy into cpu-visible region
+      if (cpu_write)  // The fast path: Just lock and memcpy into cpu-visible region
       {
         void* dest = Lock(GpuResoruceLockOption::WRITE);
         ASSERT(dest != nullptr);
@@ -237,10 +235,12 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void* GpuBufferDX12::Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements, uint uNumElements)
+  void* GpuBufferDX12::Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements /* = 0u */, uint uNumElements /* = 0u */)
   {
-    if (myState.isLocked)
-      return nullptr;
+    ASSERT(uOffsetElements + uNumElements <= myParameters.uNumElements);
+
+    if (uNumElements == 0u)
+      uNumElements = myParameters.uNumElements - uOffsetElements;
 
     bool needsRead, needsWrite, needsRename;
     locResolveLockOptions(eLockOption, needsRead, needsWrite, needsRename);
@@ -259,36 +259,25 @@ namespace Fancy {
 
     GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
 
-    void* mappedData;
+    void* mappedData = nullptr;
     CheckD3Dcall(storageDx12->myResource->Map(0, &range, &mappedData));
 
-    if (mappedData != nullptr)
-    {
-      myState.isLocked = true;
-      myState.myLockedRange_Begin = range.Begin;
-      myState.myLockedRange_End = range.End;
-      myState.myCachedLockDataPtr = mappedData;
-    }
-    
     return mappedData;
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Unlock()
+  void GpuBufferDX12::Unlock(uint anOffsetElements /* = 0u */, uint aNumElements /* = 0u */)
   {
-    if (!myState.isLocked)
-      return;
+    if (anOffsetElements == 0u && aNumElements == 0u)
+      aNumElements = myParameters.uNumElements;
+
+    ASSERT(anOffsetElements + aNumElements <= myParameters.uNumElements);
 
     D3D12_RANGE range;
-    range.Begin = myState.myLockedRange_Begin;
-    range.End = myState.myLockedRange_End;
+    range.Begin = anOffsetElements * myParameters.uElementSizeBytes;
+    range.End = range.Begin + aNumElements * myParameters.uElementSizeBytes;
 
     GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
     storageDx12->myResource->Unmap(0u, &range);
-
-    myState.isLocked = false;
-    myState.myLockedRange_Begin = 0u;
-    myState.myLockedRange_End = 0u;
-    myState.myCachedLockDataPtr = nullptr;
   }
 //---------------------------------------------------------------------------//
   const DescriptorDX12* GpuBufferDX12::GetDescriptor(DescriptorType aType, uint anIndex) const

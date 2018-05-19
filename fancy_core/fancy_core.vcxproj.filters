@@ -253,6 +253,9 @@
     <ClInclude Include="MathPrerequisites.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="Fence.h" />
+    <ClInclude Include="CommandQueue.h" />
+    <ClInclude Include="CommandQueueDX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -379,5 +382,8 @@
     <ClCompile Include="Input.cpp">
       <Filter>IO</Filter>
     </ClCompile>
+    <ClCompile Include="Fence.cpp" />
+    <ClCompile Include="CommandQueue.cpp" />
+    <ClCompile Include="CommandQueueDX12.cpp" />
   </ItemGroup>
 </Project>

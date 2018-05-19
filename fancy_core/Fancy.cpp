@@ -78,6 +78,7 @@ namespace Fancy {
   void FancyRuntime::EndFrame()
   {
     myRenderOutput->EndFrame();
+    RenderCore::EndFrame();
 
     ++myFrameIndex;
   }
