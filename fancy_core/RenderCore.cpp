@@ -183,13 +183,14 @@ namespace Fancy {
       case RenderingApi::VULKAN: break;
       default:;
     }
-
     ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
 
     ourPlatformImpl->InitCaps();
 
     // From here, resources can be created that depend on ourPlatformImpl
     ourPlatformImpl->InitInternalResources();
+
+
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_1_Services()
@@ -570,6 +571,11 @@ namespace Fancy {
     
     availableContextList.push_back(aContext);
   }
+//---------------------------------------------------------------------------//
+	CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)
+	{
+		return ourPlatformImpl->GetCommandQueue(aType);
+	}
 //---------------------------------------------------------------------------//
   void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint aDataSizeBytes, uint aByteOffsetFromBuffer /* = 0 */)
   {

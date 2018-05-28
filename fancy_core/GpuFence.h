@@ -5,14 +5,14 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
-  class Fence
+  class GpuFence
   {
   public:
-    explicit Fence(CommandListType aCommandListType);
-    virtual ~Fence();
+    explicit GpuFence(CommandListType aCommandListType);
+    virtual ~GpuFence();
 
     virtual bool IsDone(uint64 aFenceVal) = 0;
-    virtual void Signal(uint64 aFenceVal = 0u) = 0;
+    virtual uint64 SignalAndIncrement() = 0;
     virtual void Wait(uint64 aFenceVal = 0u) = 0;
 
   protected:

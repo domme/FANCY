@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CommandListType.h"
-#include "Fence.h"
+#include "GpuFence.h"
 
 namespace Fancy
 {
@@ -13,7 +13,7 @@ namespace Fancy
 
   protected:
     CommandListType myType;
-    UniquePtr<Fence> myFence;
+    UniquePtr<GpuFence> myFence;
   };
 }
 

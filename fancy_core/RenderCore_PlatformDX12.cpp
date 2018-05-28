@@ -70,21 +70,12 @@ namespace Fancy {
 
     CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
 
-    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-    CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourCommandQueues[(uint)CommandListType::Graphics])));
-
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-    CheckD3Dcall(ourDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&ourCommandQueues[(uint)CommandListType::Compute])));
+	ourCommandQueues[(uint)CommandListType::Graphics].reset(new CommandQueueDX12(CommandListType::Graphics));
+	ourCommandQueues[(uint)CommandListType::Compute].reset(new CommandQueueDX12(CommandListType::Compute));
   }
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {
-    // Create synchronization objects.
-    ourCmdListDoneFences[(uint)CommandListType::Graphics].Init("RenderCore_PlatformDX12::GraphicsCommandListFinished");
-    ourCmdListDoneFences[(uint)CommandListType::Compute].Init("RenderCore_PlatformDX12::ComputeCommandListFinished");
-
     ourCommandAllocatorPools[(uint)CommandListType::Graphics] = new CommandAllocatorPoolDX12(CommandListType::Graphics);
     ourCommandAllocatorPools[(uint)CommandListType::Compute] = new CommandAllocatorPoolDX12(CommandListType::Compute);
 
@@ -139,13 +130,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::WaitForFence(CommandListType aType)
   {
-    FenceDX12& fence = ourCmdListDoneFences[(uint)aType];
+    GpuFenceDX12& fence = ourCmdListDoneFences[(uint)aType];
     fence.wait();
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::WaitForFence(CommandListType aType, uint64 aFenceVal)
   {
-    FenceDX12& fence = ourCmdListDoneFences[(uint)aType];
+    GpuFenceDX12& fence = ourCmdListDoneFences[(uint)aType];
     ID3D12CommandQueue* cmdQueue = ourCommandQueues[(uint)aType].Get();
 
     if (fence.IsDone(aFenceVal))
@@ -172,7 +163,7 @@ namespace Fancy {
     CommandListType type = locGetCommandListType(aCommandList->GetType());
 
     ID3D12CommandQueue* cmdQueue = ourCommandQueues[(uint)type].Get();
-    FenceDX12& cmdListDoneFence = ourCmdListDoneFences[(uint)type];
+    GpuFenceDX12& cmdListDoneFence = ourCmdListDoneFences[(uint)type];
 
     cmdListDoneFence.wait();
     cmdQueue->ExecuteCommandLists(1, &aCommandList);

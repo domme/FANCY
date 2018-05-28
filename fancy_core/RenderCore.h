@@ -5,6 +5,7 @@
 #include <list>
 #include <deque>
 #include <mutex>
+#include "CommandQueue.h"
 
 namespace Fancy {
   struct MeshData;
@@ -79,6 +80,8 @@ namespace Fancy {
 
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
+
+	static CommandQueue* GetCommandQueue(CommandListType aType);
 
   protected:
     RenderCore() = default;

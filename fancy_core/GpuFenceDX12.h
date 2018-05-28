@@ -1,23 +1,26 @@
 #pragma once
 
-#include "Fence.h"
+#include "GpuFence.h"
 #include "DX12Prerequisites.h"
+
+class CommandQueueDX12;
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class FenceDX12 final : public Fence
+  class GpuFenceDX12 final : public GpuFence
   {
   public:
-    explicit FenceDX12(CommandListType aCommandListType);
-    ~FenceDX12() override;
+    explicit GpuFenceDX12(CommandListType aCommandListType);
+    ~GpuFenceDX12() override = default;
 
     bool IsDone(uint64 aFenceVal) override;
-    void Signal(uint64 aFenceVal = 0u) override;
-    void Wait(uint64 aFenceVal = 0u) override;
-
+    uint64 SignalAndIncrement() override;
+    void Wait(uint64 aFenceVal) override;
+	
   protected:
-    ID3D12CommandQueue* myCommandQueue;
     Microsoft::WRL::ComPtr<ID3D12Fence> myFence;
+
+	ID3D12CommandQueue* GetCommandQueue() const;
   };
 //---------------------------------------------------------------------------//
 }

@@ -75,7 +75,7 @@
     <ClInclude Include="Descriptor.h" />
     <ClInclude Include="DescriptorDX12.h" />
     <ClInclude Include="DescriptorHeapDX12.h" />
-    <ClInclude Include="Fence.h" />
+    <ClInclude Include="GpuFence.h" />
     <ClInclude Include="GpuBufferDesc.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="MathPrerequisites.h" />
@@ -90,7 +90,7 @@
     <ClInclude Include="Fancy.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="FancyCorePrerequisites.h" />
-    <ClInclude Include="FenceDX12.h" />
+    <ClInclude Include="GpuFenceDX12.h" />
     <ClInclude Include="FileReader.h" />
     <ClInclude Include="GpuBuffer.h" />
     <ClInclude Include="CommandAllocatorPoolDX12.h" />
@@ -151,14 +151,14 @@
     <ClCompile Include="CommandQueueDX12.cpp" />
     <ClCompile Include="DataFormat.cpp" />
     <ClCompile Include="DescriptorHeapDX12.cpp" />
-    <ClCompile Include="Fence.cpp" />
+    <ClCompile Include="GpuFence.cpp" />
     <ClCompile Include="FileWatcher.cpp" />
     <ClCompile Include="GeometryData.cpp" />
     <ClCompile Include="GpuBuffer.cpp" />
     <ClCompile Include="GpuBufferDX12.cpp" />
     <ClCompile Include="DepthStencilState.cpp" />
     <ClCompile Include="Fancy.cpp" />
-    <ClCompile Include="FenceDX12.cpp" />
+    <ClCompile Include="GpuFenceDX12.cpp" />
     <ClCompile Include="FileReader.cpp" />
     <ClCompile Include="CommandAllocatorPoolDX12.cpp" />
     <ClCompile Include="GpuProgram.cpp" />

@@ -51,9 +51,6 @@
     <ClInclude Include="DX12Prerequisites.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="FenceDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="GpuBufferDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
@@ -253,9 +250,12 @@
     <ClInclude Include="MathPrerequisites.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Fence.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="CommandQueueDX12.h" />
+    <ClInclude Include="GpuFence.h" />
+    <ClInclude Include="GpuFenceDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -271,9 +271,6 @@
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="DescriptorHeapDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="FenceDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="GpuBufferDX12.cpp">
@@ -382,8 +379,11 @@
     <ClCompile Include="Input.cpp">
       <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="Fence.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CommandQueueDX12.cpp" />
+    <ClCompile Include="GpuFence.cpp" />
+    <ClCompile Include="GpuFenceDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

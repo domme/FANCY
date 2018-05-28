@@ -7,7 +7,9 @@ namespace Fancy
   {
   public:
     CommandQueueDX12(CommandListType aType);
-    ~CommandQueueDX12();
+    ~CommandQueueDX12() = default;
+	
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> myQueue;
   };
 }
 

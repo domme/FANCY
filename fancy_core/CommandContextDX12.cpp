@@ -570,7 +570,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  uint64 CommandContextDX12::SignalFence(Fence* aFence)
+  uint64 CommandContextDX12::SignalFence(GpuFence* aFence)
   {
     if (aFenceVal != ~0u && aFenceVal > myCurrWaitingOnVal)
       myCurrWaitingOnVal = aFenceVal;

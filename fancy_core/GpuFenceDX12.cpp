@@ -1,38 +1,41 @@
 #include "StdAfx.h"
 
-#include "FenceDX12.h"
+#include "GpuFenceDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  FenceDX12::FenceDX12(CommandListType aCommandListType)
-    : Fence(aCommandListType)
+  GpuFenceDX12::GpuFenceDX12(CommandListType aCommandListType)
+    : GpuFence(aCommandListType)
     , myFence(nullptr)
   {
-    myCommandQueue = RenderCore::GetPlatformDX12()->ourCommandQueues[(uint)myCommandListType].Get();
-
     CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->
       CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myFence)));
   }
 //---------------------------------------------------------------------------//
-  void FenceDX12::Signal(uint64 aFenceVal /* = 0u */)
+  uint64 GpuFenceDX12::SignalAndIncrement()
   {
-     aCommandQueue->Signal(myGpuFence.Get(), myCurrWaitingOnVal);
-    return myCurrWaitingOnVal;
+    GetCommandQueue()->Signal(myFence.Get(), myNextVal);
+    return myNextVal++;
   }
 //---------------------------------------------------------------------------//
-  void FenceDX12::wait()
+  void GpuFenceDX12::Wait(uint64 aFenceVal)
   {
-    if (IsDone(myCurrWaitingOnVal))
+    if (IsDone(aFenceVal))
       return;
 
-    myGpuFence->SetEventOnCompletion(myCurrWaitingOnVal, myIsDoneEvent);
-    WaitForSingleObject(myIsDoneEvent, INFINITE);
-    myLastCompletedVal = myCurrWaitingOnVal;
+    myFence->SetEventOnCompletion(aFenceVal, myEventHandle);
+    WaitForSingleObject(myEventHandle, INFINITE);
+    myLastCompletedVal = glm::max(aFenceVal, myLastCompletedVal);
   }
 //---------------------------------------------------------------------------//
-  bool FenceDX12::IsDone(uint64 anOtherFenceVal)
+	ID3D12CommandQueue* GpuFenceDX12::GetCommandQueue() const
+	{
+		return static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(myCommandListType))->myQueue.Get();
+	}
+//---------------------------------------------------------------------------//
+  bool GpuFenceDX12::IsDone(uint64 anOtherFenceVal)
   {
     // The fast path: the other fence-value is passed if the last completed val is greater/equal
     if (anOtherFenceVal <= myLastCompletedVal)
@@ -41,19 +44,6 @@ namespace Fancy {
     // Otherwise, we can't be sure and need to fetch the fence's value (potentially expensive..)
     myLastCompletedVal = glm::max(myLastCompletedVal, myFence->GetCompletedValue());
     return anOtherFenceVal <= myLastCompletedVal;
-  }
-//---------------------------------------------------------------------------//
-  FenceDX12::~FenceDX12()
-  {
-  
-  }
-
-  bool FenceDX12::IsDone()
-  {
-  }
-
-  void FenceDX12::Wait()
-  {
   }
 //---------------------------------------------------------------------------//
 }
