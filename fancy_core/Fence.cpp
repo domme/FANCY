@@ -8,18 +8,13 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   Fence::Fence(CommandListType aCommandListType)
-    : myIsDoneEvent(nullptr)
-    , myCurrWaitingOnVal(0u)
-    , myLastCompletedVal(0u)
+    : myLastCompletedVal(0)
+    , myNextVal(1)
     , myCommandListType(aCommandListType)
+    , myEventHandle(nullptr)
   {
-    myIsDoneEvent = CreateEventEx(nullptr, nullptr, 0u, EVENT_ALL_ACCESS);
-    ASSERT(myIsDoneEvent != nullptr);
-
-    myQueue = RenderCore::GetPlatformDX12()->ourCommandQueues[(uint)aCommandListType];
-
-    CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->
-      CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myGpuFence)));
+    myEventHandle = CreateEventEx(nullptr, nullptr, 0u, EVENT_ALL_ACCESS);
+    ASSERT(myEventHandle != nullptr);
   }
 //---------------------------------------------------------------------------//
   void Fence::Wait()
@@ -47,6 +42,11 @@ namespace Fancy {
   Fence::~Fence()
   {
 
+  }
+
+  bool Fence::IsDone()
+  {
+    return 
   }
 
   void Fence::SignalOnCpu(uint64 aFenceVal)

@@ -8,21 +8,18 @@ namespace Fancy {
   class Fence
   {
   public:
-    Fence(CommandListType aCommandListType);
+    explicit Fence(CommandListType aCommandListType);
     virtual ~Fence();
-    
-    virtual void SignalOnCpu(uint64 aFenceVal = UINT64_MAX);
-    virtual void SignalOnGpu(uint64 aFenceVal = UINT64_MAX);
-    virtual void WaitWithCpu(uint64 aFenceVal = UINT64_MAX);
-    virtual void WaitWithGpu(uint64 aFenceVal = UINT64_MAX);
-    virtual bool IsDone(uint64 aFenceVal = UINT64_MAX);
+
+    virtual bool IsDone(uint64 aFenceVal) = 0;
+    virtual void Signal(uint64 aFenceVal = 0u) = 0;
+    virtual void Wait(uint64 aFenceVal = 0u) = 0;
 
   protected:
-    HANDLE myIsDoneEvent;
-    uint64 myVal;  // The last completed value
+    uint64 myLastCompletedVal; 
+    uint64 myNextVal;
     CommandListType myCommandListType;
-
-    Microsoft::WRL::ComPtr<ID3D12Fence> myGpuFence;
+    HANDLE myEventHandle;
   };
   //---------------------------------------------------------------------------//
-}
+} 
