@@ -70,8 +70,8 @@ namespace Fancy {
 
     CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
 
-	ourCommandQueues[(uint)CommandListType::Graphics].reset(new CommandQueueDX12(CommandListType::Graphics));
-	ourCommandQueues[(uint)CommandListType::Compute].reset(new CommandQueueDX12(CommandListType::Compute));
+	  CreateCommandQueue(CommandListType::Graphics);
+	  CreateCommandQueue(CommandListType::Compute);
   }
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
@@ -162,8 +162,8 @@ namespace Fancy {
   {
     CommandListType type = locGetCommandListType(aCommandList->GetType());
 
-    ID3D12CommandQueue* cmdQueue = ourCommandQueues[(uint)type].Get();
-    GpuFenceDX12& cmdListDoneFence = ourCmdListDoneFences[(uint)type];
+    CommandQueueDX12* cmdQueue = ourCommandQueues[(uint)type].get();
+    ASSERT(cmdQueue != nullptr);
 
     cmdListDoneFence.wait();
     cmdQueue->ExecuteCommandLists(1, &aCommandList);
@@ -257,6 +257,14 @@ namespace Fancy {
   CommandContext* RenderCore_PlatformDX12::CreateContext(CommandListType aType)
   {
     return new CommandContextDX12(aType);
+  }
+//---------------------------------------------------------------------------//
+  CommandQueue* RenderCore_PlatformDX12::CreateCommandQueue(CommandListType aType)
+  {
+    if (ourCommandQueues[(uint)aType] == nullptr)
+      ourCommandQueues[(uint)aType].reset(new CommandQueueDX12(aType));
+
+    return ourCommandQueues[(uint)aType].get();
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr, CommandContext* aContext)
@@ -388,7 +396,7 @@ namespace Fancy {
     DXGI_SWAP_CHAIN_DESC swapChainDesc = aSwapChainDesc;
 
     Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
-    CheckD3Dcall(dxgiFactory->CreateSwapChain(ourCommandQueues[(uint)CommandListType::Graphics].Get(), &swapChainDesc, &swapChain));
+    CheckD3Dcall(dxgiFactory->CreateSwapChain(ourCommandQueues[(uint)CommandListType::Graphics]->myQueue.Get(), &swapChainDesc, &swapChain));
     return swapChain;
   }
 //---------------------------------------------------------------------------//

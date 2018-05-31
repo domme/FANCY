@@ -61,7 +61,7 @@ namespace Fancy {
     Texture* CreateTexture() override;
     GpuBuffer* CreateGpuBuffer() override;
     CommandContext* CreateContext(CommandListType aType) override;
-	CommandQueue* GetCommandQueue(CommandListType aType) override { return ourCommandQueues[(uint)aType].get(); }
+    CommandQueue* CreateCommandQueue(CommandListType aType) override;
     void InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr, CommandContext* aContext) override;
     void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext) override;
     void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext) override;
@@ -73,7 +73,7 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
 
     CommandAllocatorPoolDX12* ourCommandAllocatorPools[(uint)CommandListType::NUM];
-	std::unique_ptr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
+	  std::unique_ptr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
 
   protected:
     struct FenceInfo

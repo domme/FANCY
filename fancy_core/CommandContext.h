@@ -59,7 +59,6 @@ namespace Fancy {
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
     virtual void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) = 0;
-    virtual uint64 SignalFence(GpuFence* aFence) = 0;
     
     virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
     virtual void SetComputeProgram(const GpuProgram* aProgram);

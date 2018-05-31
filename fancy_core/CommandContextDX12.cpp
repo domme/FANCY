@@ -570,17 +570,6 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  uint64 CommandContextDX12::SignalFence(GpuFence* aFence)
-  {
-    if (aFenceVal != ~0u && aFenceVal > myCurrWaitingOnVal)
-      myCurrWaitingOnVal = aFenceVal;
-    else
-      ++myCurrWaitingOnVal;
-
-    aCommandQueue->Signal(myGpuFence.Get(), myCurrWaitingOnVal);
-    return myCurrWaitingOnVal;
-  }
-//---------------------------------------------------------------------------//
   void CommandContextDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
   {
     CommandContext::SetGpuProgramPipeline(aGpuProgramPipeline);

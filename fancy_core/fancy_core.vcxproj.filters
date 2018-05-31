@@ -252,10 +252,6 @@
     </ClInclude>
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="CommandQueueDX12.h" />
-    <ClInclude Include="GpuFence.h" />
-    <ClInclude Include="GpuFenceDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -381,9 +377,5 @@
     </ClCompile>
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CommandQueueDX12.cpp" />
-    <ClCompile Include="GpuFence.cpp" />
-    <ClCompile Include="GpuFenceDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

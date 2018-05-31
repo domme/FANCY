@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DX12Prerequisites.h"
+#include "CommandListType.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -16,6 +17,7 @@ namespace Fancy {
     static D3D12_RESOURCE_STATES toNativeType(const GpuResourceState& aGeneralType);
     static D3D12_PRIMITIVE_TOPOLOGY_TYPE ResolveTopologyType(const TopologyType& aGeneralType);
     static D3D12_PRIMITIVE_TOPOLOGY ResolveTopology(const TopologyType& aGeneralType);
+    static D3D12_COMMAND_LIST_TYPE ResolveCommandListType(const CommandListType& aGeneralType);
 	};
 //---------------------------------------------------------------------------//
 }

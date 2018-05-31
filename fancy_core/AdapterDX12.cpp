@@ -93,6 +93,17 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  D3D12_COMMAND_LIST_TYPE Adapter::ResolveCommandListType(const CommandListType& aGeneralType)
+  {
+    switch (aGeneralType)
+    {
+    case CommandListType::Graphics: return D3D12_COMMAND_LIST_TYPE_DIRECT;
+    case CommandListType::Compute: return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+    case CommandListType::DMA: return D3D12_COMMAND_LIST_TYPE_COPY;
+    default: ASSERT(false, "Missing native values"); return D3D12_COMMAND_LIST_TYPE_DIRECT;
+    }
+  }
+//---------------------------------------------------------------------------//
 	D3D12_BLEND Adapter::toNativeType(const BlendInput& generalType) 
 	{
 		switch (generalType) {
