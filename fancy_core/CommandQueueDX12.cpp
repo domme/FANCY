@@ -4,6 +4,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
+#include "CommandContextDX12.h"
 
 namespace Fancy
 {
@@ -14,7 +15,7 @@ namespace Fancy
     , myNextFenceVal(1u)
     , myFenceCompletedEvent(nullptr)
   {
-    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
+	  ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
 
 	  D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	  queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
@@ -51,6 +52,25 @@ namespace Fancy
   void CommandQueueDX12::WaitForIdle()
   {
     WaitForFence(SignalAndIncrementFence());
+  }
+//---------------------------------------------------------------------------//
+  uint64 CommandQueueDX12::ExecuteCommandContext(CommandContext* aContext, bool aWaitForCompletion /* = false */)
+  {
+    ASSERT(aContext->GetType() == myType);
+
+    CommandContextDX12* contextDx12 = (CommandContextDX12*)aContext;
+    contextDx12->CloseCommandList();
+
+    ID3D12CommandList* cmdList = contextDx12->myCommandList;
+    myQueue->ExecuteCommandLists(1, &cmdList);
+
+    const uint64 fenceVal = SignalAndIncrementFence();
+    contextDx12->Reset(fenceVal);
+
+    if (aWaitForCompletion)
+      WaitForFence(fenceVal);
+
+    return fenceVal;
   }
 //---------------------------------------------------------------------------//
 }

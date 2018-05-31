@@ -5,18 +5,17 @@ namespace Fancy
 {
   class CommandContext;
 
-  class CommandQueueDX12 : public CommandQueue
+  class CommandQueueDX12 final : public CommandQueue
   {
   public:
     CommandQueueDX12(CommandListType aType);
     ~CommandQueueDX12() = default;
 
-    bool IsFenceDone(uint64 aFenceVal);
-    uint64 SignalAndIncrementFence();
-    void WaitForFence(uint64 aFenceVal);
-    void WaitForIdle();
-
-    uint64 ExecuteCommandContext(CommandContext* aContext, bool aWaitForCompletion);
+    bool IsFenceDone(uint64 aFenceVal) override;
+    uint64 SignalAndIncrementFence() override;
+    void WaitForFence(uint64 aFenceVal) override;
+    void WaitForIdle() override;
+    uint64 ExecuteCommandContext(CommandContext* aContext, bool aWaitForCompletion = false) override;
 	
 	  Microsoft::WRL::ComPtr<ID3D12CommandQueue> myQueue;
     Microsoft::WRL::ComPtr<ID3D12Fence> myFence;

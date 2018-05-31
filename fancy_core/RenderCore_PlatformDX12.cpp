@@ -70,8 +70,8 @@ namespace Fancy {
 
     CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
 
-	  CreateCommandQueue(CommandListType::Graphics);
-	  CreateCommandQueue(CommandListType::Compute);
+	  ourCommandQueues[(uint) CommandListType::Graphics].reset(new CommandQueueDX12(CommandListType::Graphics));
+	  ourCommandQueues[(uint) CommandListType::Compute].reset(new CommandQueueDX12(CommandListType::Compute));
   }
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
@@ -98,13 +98,13 @@ namespace Fancy {
   RenderCore_PlatformDX12::~RenderCore_PlatformDX12()
   {
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      ourCmdListDoneFences[i].wait();
+      ourCommandQueues[i]->WaitForIdle();
 
     for (uint i = 0u; i < ARRAY_LENGTH(ourCommandAllocatorPools); ++i)
       SAFE_DELETE(ourCommandAllocatorPools[i]);
 
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      ourCommandQueues[i].Reset();
+      ourCommandQueues[i].reset();
 
     ourDevice.Reset();
   }
@@ -128,48 +128,6 @@ namespace Fancy {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::WaitForFence(CommandListType aType)
-  {
-    GpuFenceDX12& fence = ourCmdListDoneFences[(uint)aType];
-    fence.wait();
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::WaitForFence(CommandListType aType, uint64 aFenceVal)
-  {
-    GpuFenceDX12& fence = ourCmdListDoneFences[(uint)aType];
-    ID3D12CommandQueue* cmdQueue = ourCommandQueues[(uint)aType].Get();
-
-    if (fence.IsDone(aFenceVal))
-      return;
-
-    if (fence.GetCurrWaitingFenceVal() >= aFenceVal)
-    {
-      fence.wait();
-    }
-    else
-    {
-      fence.signal(cmdQueue, aFenceVal);
-      fence.wait();
-    }
-  }
-//---------------------------------------------------------------------------//
-  bool RenderCore_PlatformDX12::IsFenceDone(CommandListType aType, uint64 aFenceVal)
-  {
-    return ourCmdListDoneFences[(uint)aType].IsDone(aFenceVal);
-  }
-//---------------------------------------------------------------------------//
-  uint64 RenderCore_PlatformDX12::ExecuteCommandList(ID3D12CommandList* aCommandList)
-  {
-    CommandListType type = locGetCommandListType(aCommandList->GetType());
-
-    CommandQueueDX12* cmdQueue = ourCommandQueues[(uint)type].get();
-    ASSERT(cmdQueue != nullptr);
-
-    cmdListDoneFence.wait();
-    cmdQueue->ExecuteCommandLists(1, &aCommandList);
-    return cmdListDoneFence.signal(cmdQueue);
-  }
-//---------------------------------------------------------------------------//
   ID3D12CommandAllocator* RenderCore_PlatformDX12::GetCommandAllocator(CommandListType aCmdListType)
   {
     return ourCommandAllocatorPools[(uint)aCmdListType]->GetNewAllocator();
@@ -187,10 +145,14 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
-    while (!myUsedDynamicHeaps.empty()
-      && RenderCore::GetPlatformDX12()->IsFenceDone(myUsedDynamicHeaps.front().first.myType,
-        myUsedDynamicHeaps.front().first.myFenceVal))
+    while (!myUsedDynamicHeaps.empty())
     {
+      FenceInfo fenceInfo = myUsedDynamicHeaps.front().first;
+
+      CommandQueueDX12* queue = (CommandQueueDX12*)GetCommandQueue(fenceInfo.myType);
+      if (!queue->IsFenceDone(fenceInfo.myFenceVal))
+        break;
+      
       DescriptorHeapDX12* heap = myUsedDynamicHeaps.front().second;
       heap->Reset();
 
@@ -259,14 +221,6 @@ namespace Fancy {
     return new CommandContextDX12(aType);
   }
 //---------------------------------------------------------------------------//
-  CommandQueue* RenderCore_PlatformDX12::CreateCommandQueue(CommandListType aType)
-  {
-    if (ourCommandQueues[(uint)aType] == nullptr)
-      ourCommandQueues[(uint)aType].reset(new CommandQueueDX12(aType));
-
-    return ourCommandQueues[(uint)aType].get();
-  }
-//---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr, CommandContext* aContext)
   {
     D3D12_HEAP_PROPERTIES heapProps;
@@ -293,7 +247,9 @@ namespace Fancy {
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST);
     context->myCommandList->CopyResource(bufferStorageDX12->myResource.Get(), uploadResource.Get());
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
-    context->ExecuteAndReset(true);
+
+    CommandQueueDX12* queue = ourCommandQueues[(uint)aContext->GetType()].get();
+    queue->ExecuteCommandContext(context, true);
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext)
@@ -323,7 +279,9 @@ namespace Fancy {
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST);
     context->myCommandList->CopyBufferRegion(bufferStorageDX12->myResource.Get(), aByteOffset, uploadResource.Get(), 0u, aByteSize);
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
-    context->ExecuteAndReset(true);
+    
+    CommandQueueDX12* queue = ourCommandQueues[(uint)aContext->GetType()].get();
+    queue->ExecuteCommandContext(context, true);
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext)
@@ -385,7 +343,9 @@ namespace Fancy {
     context->TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_COPY_DEST);
     context->UpdateSubresources(storageDx12->myResource.Get(), stagingBuffer.Get(), 0u, aNumUploadDatas, subDatas);
     context->TransitionResource(aTexture, oldUsageState);
-    context->ExecuteAndReset(true);
+
+    CommandQueueDX12* queue = ourCommandQueues[(uint)aContext->GetType()].get();
+    queue->ExecuteCommandContext(context, true);
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)

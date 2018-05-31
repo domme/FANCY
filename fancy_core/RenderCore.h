@@ -81,6 +81,8 @@ namespace Fancy {
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
 
+    static CommandQueue* GetCommandQueue(CommandListType aType);
+
   protected:
     RenderCore() = default;
 
@@ -117,9 +119,6 @@ namespace Fancy {
     static std::vector<std::unique_ptr<GpuDynamicBuffer>> ourDynamicBufferPool;
     static std::deque<GpuDynamicBuffer*> ourAvailableDynamicBuffers;
     static std::deque<std::pair<GpuDynamicBuffer*, uint64>> ourUsedDynamicBuffers;
-
-    // Stored in the platform-impl for now because it also needs to know about them. Refactor at some point...
-    static CommandQueue* ourCommandQueues[(uint)CommandListType::NUM];  
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

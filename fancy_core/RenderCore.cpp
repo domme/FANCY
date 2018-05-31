@@ -173,10 +173,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
   {
-    // "Constructor"-like initialization stuff (Better provide an actual constructor later...
-    memset(ourCommandQueues, 0u, sizeof(ourCommandQueues));
-
-
     ASSERT(ourPlatformImpl == nullptr);
 
     switch (aRenderingApi)
@@ -188,9 +184,6 @@ namespace Fancy {
       default:;
     }
     ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
-
-    ourCommandQueues[(uint)CommandListType::Graphics] = ourPlatformImpl->CreateCommandQueue(CommandListType::Graphics);
-    ourCommandQueues[(uint)CommandListType::Compute] = ourPlatformImpl->CreateCommandQueue(CommandListType::Compute);
 
     ourPlatformImpl->InitCaps();
 
@@ -342,8 +335,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_2_Platform()
   {
-    memset(ourCommandQueues, 0, sizeof(ourCommandQueues));
-
     ourPlatformImpl.reset();
   }
 //---------------------------------------------------------------------------//
@@ -552,7 +543,7 @@ namespace Fancy {
     if (!availableContextList.empty())
     {
       CommandContext* context = availableContextList.front();
-      context->Reset();
+      context->Reset(0);
       availableContextList.pop_front();
       return context;
     }
@@ -561,7 +552,7 @@ namespace Fancy {
 
     return contextPool.back().get();
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void RenderCore::FreeContext(CommandContext* aContext)
   {
     CommandListType type = aContext->GetType();
@@ -577,6 +568,11 @@ namespace Fancy {
       return;
     
     availableContextList.push_back(aContext);
+  }
+//---------------------------------------------------------------------------//
+  CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)
+  {
+    return ourPlatformImpl->GetCommandQueue(aType);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint aDataSizeBytes, uint aByteOffsetFromBuffer /* = 0 */)

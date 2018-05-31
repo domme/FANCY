@@ -141,7 +141,7 @@ namespace Fancy {
     myClipRectDirty = true;
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::Reset()
+  void CommandContext::Reset(uint64 aFenceVal)
   {
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();

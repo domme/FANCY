@@ -14,6 +14,7 @@ namespace Fancy {
   class CommandContextDX12 : public CommandContext
   {
     friend class RenderCore_PlatformDX12;
+    friend class CommandQueueDX12;
 
   public:
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
@@ -29,8 +30,7 @@ namespace Fancy {
     void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) override;
     void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) override;
     void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) override;
-    uint64 ExecuteAndReset(bool aWaitForCompletion) override;
-    void Reset() override;
+    void Reset(uint64 aFenceVal) override;
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
     void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) override;

@@ -57,7 +57,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandContextDX12::~CommandContextDX12()
   {
-    CommandContextDX12::Reset();
+    CommandContextDX12::Reset(0);
 
     if (myCommandList != nullptr)
       myCommandList->Release();
@@ -175,8 +175,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ReleaseAllocator(uint64 aFenceVal)
   {
-    RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, myCommandListType, aFenceVal);
-    myCommandAllocator = nullptr;
+    if (myCommandAllocator != nullptr)
+    {
+      RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, myCommandListType, aFenceVal);
+      myCommandAllocator = nullptr;
+    }
   }
   //---------------------------------------------------------------------------//
   void CommandContextDX12::ReleaseDynamicHeaps(uint64 aFenceVal)
@@ -298,27 +301,12 @@ namespace Fancy {
       myCommandList->ResourceBarrier(numBarriers, barriers);
   }
 //---------------------------------------------------------------------------//
-  uint64 CommandContextDX12::ExecuteAndReset(bool aWaitForCompletion)
+  void CommandContextDX12::Reset(uint64 aFenceVal)
   {
-    ASSERT(myCommandAllocator != nullptr && myCommandList != nullptr);
-    CloseCommandList();
-
-    uint64 fenceVal = RenderCore::GetPlatformDX12()->ExecuteCommandList(myCommandList);
-
-    ReleaseDynamicHeaps(fenceVal);
-    ReleaseAllocator(fenceVal);
-
-    if (aWaitForCompletion)
-      RenderCore::GetPlatformDX12()->WaitForFence(myCommandListType, fenceVal);
+    CommandContext::Reset(aFenceVal);
     
-    Reset();
-    
-    return fenceVal;
-  }
-//---------------------------------------------------------------------------//
-  void CommandContextDX12::Reset()
-  {
-    CommandContext::Reset();
+    ReleaseDynamicHeaps(aFenceVal);
+    ReleaseAllocator(aFenceVal);
 
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);

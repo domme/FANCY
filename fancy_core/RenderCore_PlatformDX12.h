@@ -4,7 +4,6 @@
 
 #include "DX12Prerequisites.h"
 #include "Texture.h"
-#include "GpuFenceDX12.h"
 #include "CommandAllocatorPoolDX12.h"
 #include "DescriptorHeapDX12.h"
 #include "DescriptorDX12.h"
@@ -42,12 +41,6 @@ namespace Fancy {
     ShaderResourceInterface*
       GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS = nullptr) const;
 
-    void WaitForFence(CommandListType aType);
-    void WaitForFence(CommandListType aType, uint64 aFenceVal);
-    bool IsFenceDone(CommandListType aType, uint64 aFenceVal);
-
-    uint64 ExecuteCommandList(ID3D12CommandList* aCommandList);
-
     ID3D12CommandAllocator* GetCommandAllocator(CommandListType aCmdListType);
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal);
 
@@ -61,11 +54,11 @@ namespace Fancy {
     Texture* CreateTexture() override;
     GpuBuffer* CreateGpuBuffer() override;
     CommandContext* CreateContext(CommandListType aType) override;
-    CommandQueue* CreateCommandQueue(CommandListType aType) override;
     void InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr, CommandContext* aContext) override;
     void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext) override;
     void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext) override;
     DataFormat ResolveFormat(DataFormat aFormat) override;
+    CommandQueue* GetCommandQueue(CommandListType aType) override { return ourCommandQueues[(uint)aType].get(); }
 
     // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);

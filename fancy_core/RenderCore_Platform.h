@@ -9,6 +9,7 @@ namespace Fancy {
   class RenderOutput;
   class GpuProgramCompiler;
   class CommandContext;
+  class CommandQueue;
   enum class CommandListType;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
@@ -27,11 +28,11 @@ namespace Fancy {
     virtual Texture* CreateTexture() = 0;
     virtual GpuBuffer* CreateGpuBuffer() = 0;
     virtual CommandContext* CreateContext(CommandListType aType) = 0;
-    virtual CommandQueue* CreateCommandQueue(CommandListType aType) = 0;
     virtual void InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr, CommandContext* aContext) = 0;
     virtual void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext) = 0;
     virtual void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext) = 0;
     virtual DataFormat ResolveFormat(DataFormat aFormat) = 0;
+    virtual CommandQueue* GetCommandQueue(CommandListType aType) = 0;
 
   protected:
     RenderPlatformCaps myCaps;
