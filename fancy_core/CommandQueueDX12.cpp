@@ -54,7 +54,7 @@ namespace Fancy
     WaitForFence(SignalAndIncrementFence());
   }
 //---------------------------------------------------------------------------//
-  uint64 CommandQueueDX12::ExecuteCommandContext(CommandContext* aContext, bool aWaitForCompletion /* = false */)
+  uint64 CommandQueueDX12::ExecuteContext(CommandContext* aContext, bool aWaitForCompletion /* = false */)
   {
     ASSERT(aContext->GetType() == myType);
 

@@ -15,7 +15,7 @@ namespace Fancy
     uint64 SignalAndIncrementFence() override;
     void WaitForFence(uint64 aFenceVal) override;
     void WaitForIdle() override;
-    uint64 ExecuteCommandContext(CommandContext* aContext, bool aWaitForCompletion = false) override;
+    uint64 ExecuteContext(CommandContext* aContext, bool aWaitForCompletion = false) override;
 	
 	  Microsoft::WRL::ComPtr<ID3D12CommandQueue> myQueue;
     Microsoft::WRL::ComPtr<ID3D12Fence> myFence;

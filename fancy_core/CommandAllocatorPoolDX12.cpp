@@ -23,13 +23,26 @@ namespace Fancy {
   ID3D12CommandAllocator* CommandAllocatorPoolDX12::GetNewAllocator()
   {
     // Check if some of the waiting allocators can be made available again
-    while(!myReleasedWaitingAllocators.empty() 
-      && RenderCore::GetPlatformDX12()->IsFenceDone(myCommandListType, 
-                                 myReleasedWaitingAllocators.front().first))
+    ID3D12CommandAllocator* availableAllocator = nullptr;
+    for (auto it = myReleasedWaitingAllocators.begin(); it != myReleasedWaitingAllocators.end(); ++it)
     {
-      myAvailableAllocators.push_back(myReleasedWaitingAllocators.front().second);
-      myReleasedWaitingAllocators.pop_front();
+      const uint64 waitingFenceVal = it->first;
+      ID3D12CommandAllocator* allocator = it->second;
+      CommandQueueDX12* queue = (CommandQueueDX12*) RenderCore::GetCommandQueue(myCommandListType);
+
+      if (queue->IsFenceDone(waitingFenceVal))
+      {
+        it = myReleasedWaitingAllocators.erase(it);
+
+        if (availableAllocator == nullptr)
+          availableAllocator = allocator;
+        else
+          myAvailableAllocators.push_back(allocator);
+      }
     }
+
+    if (availableAllocator)
+      return availableAllocator;
 
     if (!myAvailableAllocators.empty())
     {
@@ -43,13 +56,14 @@ namespace Fancy {
 
     ID3D12CommandAllocator* allocator;
     CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandAllocator(nativeCmdListType, IID_PPV_ARGS(&allocator)));
+    myAllocatorPool.push_back(UniquePtr<ID3D12CommandAllocator>(allocator));
 
     return allocator;
   }
 //---------------------------------------------------------------------------//
   void CommandAllocatorPoolDX12::ReleaseAllocator(ID3D12CommandAllocator* anAllocator, uint64 anAllocatorDoneFenceVal)
   {
-#if defined (FANCY_RENDERSYSTEM_USE_VALIDATION)
+#if defined (FANCY_RENDERER_HEAVY_VALIDATION)
     for (ID3D12CommandAllocator* allocator : myAvailableAllocators)
       ASSERT(allocator != anAllocator);
 

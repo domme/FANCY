@@ -76,8 +76,8 @@ namespace Fancy {
     };
 
     std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
-    std::deque<DescriptorHeapDX12*> myAvailableDynamicHeaps;
-    std::queue<std::pair<FenceInfo, DescriptorHeapDX12*>> myUsedDynamicHeaps;
+    std::list<DescriptorHeapDX12*> myAvailableDynamicHeaps;
+    std::list<std::pair<FenceInfo, DescriptorHeapDX12*>> myUsedDynamicHeaps;
     
     DescriptorHeapDX12 ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 

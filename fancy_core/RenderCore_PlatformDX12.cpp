@@ -145,21 +145,24 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
-    while (!myUsedDynamicHeaps.empty())
+    DescriptorHeapDX12* availableHeap = nullptr;
+    for (auto it = myUsedDynamicHeaps.begin(); it != myUsedDynamicHeaps.end(); ++it)
     {
-      FenceInfo fenceInfo = myUsedDynamicHeaps.front().first;
+      FenceInfo fenceInfo = it->first;
+      DescriptorHeapDX12* heap = it->second;
 
       CommandQueueDX12* queue = (CommandQueueDX12*)GetCommandQueue(fenceInfo.myType);
-      if (!queue->IsFenceDone(fenceInfo.myFenceVal))
-        break;
-      
-      DescriptorHeapDX12* heap = myUsedDynamicHeaps.front().second;
-      heap->Reset();
+      if (queue->IsFenceDone(fenceInfo.myFenceVal))
+      {
+        if (availableHeap == nullptr)
+          availableHeap = heap;
+        else
+          myAvailableDynamicHeaps.push_back(heap);
 
-      myAvailableDynamicHeaps.push_back(heap);
-      myUsedDynamicHeaps.pop();
+        it = myUsedDynamicHeaps.erase(it);
+      }
     }
-
+    
     const uint kGpuDescriptorNumIncrement = 16u;
     aDescriptorCount = static_cast<uint>(MathUtil::Align(aDescriptorCount, kGpuDescriptorNumIncrement));
 
@@ -249,7 +252,7 @@ namespace Fancy {
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
 
     CommandQueueDX12* queue = ourCommandQueues[(uint)aContext->GetType()].get();
-    queue->ExecuteCommandContext(context, true);
+    queue->ExecuteContext(context, true);
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext)
@@ -281,7 +284,7 @@ namespace Fancy {
     context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
     
     CommandQueueDX12* queue = ourCommandQueues[(uint)aContext->GetType()].get();
-    queue->ExecuteCommandContext(context, true);
+    queue->ExecuteContext(context, true);
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext)
@@ -345,7 +348,7 @@ namespace Fancy {
     context->TransitionResource(aTexture, oldUsageState);
 
     CommandQueueDX12* queue = ourCommandQueues[(uint)aContext->GetType()].get();
-    queue->ExecuteCommandContext(context, true);
+    queue->ExecuteContext(context, true);
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)

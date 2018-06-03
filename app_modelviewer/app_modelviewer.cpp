@@ -9,6 +9,7 @@
 #include <fancy_core/GpuProgramPipelineDesc.h>
 #include <fancy_core/GpuBuffer.h>
 #include <fancy_core/Descriptor.h>
+#include <fancy_core/CommandQueue.h>
 
 #include <fancy_assets/ModelLoader.h>
 #include <fancy_assets/AssetStorage.h>
@@ -185,6 +186,7 @@ void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)
 
 void Render()
 {
+  CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbuffer(), clearColor);
@@ -230,7 +232,7 @@ void Render()
   }
   */
 
-  ctx->ExecuteAndReset();
+  queue->ExecuteContext(ctx);
   RenderCore::FreeContext(ctx);
 
   myRuntime->EndFrame();
