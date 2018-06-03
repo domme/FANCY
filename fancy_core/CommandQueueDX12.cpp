@@ -11,8 +11,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   CommandQueueDX12::CommandQueueDX12(CommandListType aType)
     : CommandQueue(aType)
-    , myLastCompletedFenceVal(0u)
-    , myNextFenceVal(1u)
+    , myLastCompletedFenceVal(myInitialFenceVal)
+    , myNextFenceVal(myInitialFenceVal + 1)
     , myFenceCompletedEvent(nullptr)
   {
 	  ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
@@ -74,5 +74,3 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
-
-

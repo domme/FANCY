@@ -28,8 +28,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::BeginFrame()
   {
-    RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
-    coreDX12->WaitForFence(CommandListType::Graphics);  // Needed?
+    CommandQueueDX12* graphicsQueue = static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
+    graphicsQueue->WaitForIdle();  // Wait for the last frame to finish - needed?
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
 //---------------------------------------------------------------------------//
@@ -37,10 +37,12 @@ namespace Fancy {
   {
     Texture* currBackbuffer = myBackbuffers[myCurrBackbufferIndex].get();
 
-    CommandContextDX12* context = 
-      static_cast<CommandContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
+    CommandQueueDX12* graphicsQueue = static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
+    CommandContextDX12* context = static_cast<CommandContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
+    
     context->TransitionResource(currBackbuffer, GpuResourceState::RESOURCE_STATE_PRESENT);
-    context->ExecuteAndReset(false);
+    graphicsQueue->ExecuteContext(context);
+    
     RenderCore::FreeContext(context);
 
     mySwapChain->Present(1, 0);

@@ -8,8 +8,10 @@ namespace Fancy
   {
     RenderPlatformCaps()
       : myMaxNumVertexAttributes(32)
+      , myCbufferPlacementAlignment(0)
     {}
 
     uint myMaxNumVertexAttributes;
+    uint myCbufferPlacementAlignment;
   };
 }

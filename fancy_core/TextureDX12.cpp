@@ -111,17 +111,16 @@ namespace Fancy {
 
     const bool wantsCpuWrite = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
     const bool wantsCpuRead = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::READ) > 0u;
-    const bool wantsCpuStorage = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::PREFER_CPU_STORAGE) > 0u;
     const bool wantsCoherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
 
     myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
     heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    if (!wantsCpuWrite && !wantsCpuRead && !wantsCpuStorage)
+    if (!wantsCpuWrite && !wantsCpuRead)
     {
       // The default for most textures: No Cpu-access at all required. Can be created as GPU-only visible heap
       heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
     }
-    else if (wantsCpuWrite || wantsCpuStorage)
+    else if (wantsCpuWrite)
     {
       heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 

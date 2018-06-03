@@ -272,7 +272,7 @@ namespace Fancy {
  //---------------------------------------------------------------------------//
     struct GpuBufferCreationParams 
     {
-      GpuBufferCreationParams() : uNumElements(0u), myInternalRefIndex(~0u), bIsMultiBuffered(false), 
+      GpuBufferCreationParams() : uNumElements(0u), myInternalRefIndex(~0u), myCreateDerivedViews(true), 
         uElementSizeBytes(0u), myUsageFlags(0u), uAccessFlags(0u) {}
 
       uint uNumElements;
@@ -280,7 +280,7 @@ namespace Fancy {
       uint uAccessFlags;
       uint myInternalRefIndex;
       uint myUsageFlags;
-      bool bIsMultiBuffered;
+      bool myCreateDerivedViews;
     };
  //---------------------------------------------------------------------------//
     enum class VertexSemantics 

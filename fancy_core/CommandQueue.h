@@ -9,6 +9,8 @@ namespace Fancy
   class CommandQueue
   {
   public:
+    static CommandListType GetCommandListType(uint64 aFenceVal);
+
     explicit CommandQueue(CommandListType aType);
     virtual ~CommandQueue();
 
@@ -20,6 +22,6 @@ namespace Fancy
 
   protected:
     CommandListType myType;
+    uint64 myInitialFenceVal;
   };
 }
-

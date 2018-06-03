@@ -42,11 +42,11 @@ namespace Fancy {
       GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS = nullptr) const;
 
     ID3D12CommandAllocator* GetCommandAllocator(CommandListType aCmdListType);
-    void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal);
+    void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, uint64 aFenceVal);
 
     DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal);
+    void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, uint64 aFenceVal);
 
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) override;
     GpuProgramCompiler* CreateShaderCompiler() override;
@@ -69,15 +69,9 @@ namespace Fancy {
 	  std::unique_ptr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
 
   protected:
-    struct FenceInfo
-    {
-      CommandListType myType;
-      uint64 myFenceVal;
-    };
-
     std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
     std::list<DescriptorHeapDX12*> myAvailableDynamicHeaps;
-    std::list<std::pair<FenceInfo, DescriptorHeapDX12*>> myUsedDynamicHeaps;
+    std::list<std::pair<uint64, DescriptorHeapDX12*>> myUsedDynamicHeaps;
     
     DescriptorHeapDX12 ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 

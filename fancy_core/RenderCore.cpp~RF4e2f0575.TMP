@@ -23,7 +23,6 @@
 #include "MeshData.h"
 #include <xxHash/xxhash.h>
 #include <assimp/mesh.h>
-#include "CommandContextDX12.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -71,7 +70,7 @@ namespace Fancy {
 
   std::vector<std::unique_ptr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
-  std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
+  std::list<std::pair<GpuRingBuffer*, uint64>> RenderCore::ourUsedRingBuffers;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -105,12 +104,11 @@ namespace Fancy {
     return myBuffer->GetSizeBytes() - myOffset;
   }
 //---------------------------------------------------------------------------//
-  bool GpuRingBuffer::AppendData(void* someData, uint aDataSize, uint& anOffsetOut)
+  bool GpuRingBuffer::AppendData(void* someData, uint aDataSize)
   {
     if (GetFreeDataSize() < aDataSize)
       return false;
 
-    anOffsetOut = myOffset;
     memcpy(myData + myOffset, someData, aDataSize);
     myOffset += aDataSize;
     return true;
@@ -144,44 +142,35 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuRingBuffer* RenderCore::AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aNeededByteSize)
   {
+    GpuRingBuffer* availableBuffer = nullptr;
+    
     auto it = ourUsedRingBuffers.begin();
     while (it != ourUsedRingBuffers.end())
     {
-      uint64 fence = it->first;
-      GpuRingBuffer* buffer = it->second;
+      GpuRingBuffer* buffer = it->first;
+      uint64 fence = it->second;
+
       
-      CommandQueue* queue = GetCommandQueue(fence);
-      if (queue->IsFenceDone(fence))
-      {
-        it = ourUsedRingBuffers.erase(it);
-        if (buffer->myBuffer->GetSizeBytes() >= aNeededByteSize && buffer->myBuffer->GetParameters().myUsageFlags == (uint)aUsage)
-          return buffer;
-        
-        ourAvailableRingBuffers.push_back(buffer);
-      }
-      else
-        ++it;
     }
 
-    for (auto it = ourAvailableRingBuffers.begin(); it != ourAvailableRingBuffers.end(); ++it)
+
+    
+    if (ourAvailableRingBuffers.size() > 0)
     {
-      GpuRingBuffer* buffer = *it;
-      if (buffer->myBuffer->GetSizeBytes() >= aNeededByteSize && buffer->myBuffer->GetParameters().myUsageFlags == (uint)aUsage)
-      {
-        ourAvailableRingBuffers.erase(it);
-        return buffer;
-      }
+      GpuRingBuffer* buf = ourAvailableRingBuffers.front();
+      ourAvailableRingBuffers.pop_front();
+      buf->myOffset = 0u;
+      return buf;
     }
 
     // Create a new buffer
     std::unique_ptr<GpuRingBuffer> buf = std::make_unique<GpuRingBuffer>();
 
     GpuBufferCreationParams params;
-    params.uNumElements = aNeededByteSize;
+    params.uNumElements = kDynamicBufferSize;
     params.uElementSizeBytes = 1u;
-    params.myUsageFlags = (uint) aUsage;
+    params.myUsageFlags = (uint)GpuBufferUsage::CONSTANT_BUFFER;
     params.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE;
-    params.myCreateDerivedViews = false;
     buf->myBuffer = CreateBuffer(params);
     ASSERT(buf->myBuffer);
     buf->myData = (uint8*) buf->myBuffer->Lock(GpuResoruceLockOption::WRITE);
@@ -193,16 +182,17 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal)
   {
+    std::lock_guard<std::mutex> lock(ourDynamicBufferMutex);
+
 #if FANCY_RENDERER_HEAVY_VALIDATION
-    auto predicate = [aBuffer](const std::pair<uint64, GpuRingBuffer*>& aPair) {
-      return aPair.second == aBuffer;
+    auto predicate = [aBuffer](const std::pair<GpuRingBuffer*, uint64>& aPair) {
+      return aPair.first == aBuffer;
     };
     ASSERT(std::find_if(ourUsedRingBuffers.begin(), ourUsedRingBuffers.end(), predicate) == ourUsedRingBuffers.end());
     ASSERT(std::find(ourAvailableRingBuffers.begin(), ourAvailableRingBuffers.end(), aBuffer) == ourAvailableRingBuffers.end());
 #endif
 
-    aBuffer->Reset();
-    ourUsedRingBuffers.push_back(std::make_pair(aFenceVal, aBuffer));
+    ourUsedRingBuffers.push_back(std::make_pair(aBuffer, aFenceVal));
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
@@ -512,6 +502,7 @@ namespace Fancy {
       SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
       GpuBufferCreationParams bufferParams;
+      bufferParams.bIsMultiBuffered = false;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
       bufferParams.uAccessFlags = static_cast<uint>(GpuResourceAccessFlags::NONE);
       bufferParams.uNumElements = numVertices;
@@ -528,6 +519,7 @@ namespace Fancy {
       SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
       GpuBufferCreationParams indexBufParams;
+      indexBufParams.bIsMultiBuffered = false;
       indexBufParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
       indexBufParams.uAccessFlags = static_cast<uint>(GpuResourceAccessFlags::NONE);
       indexBufParams.uNumElements = numIndices;
@@ -605,12 +597,6 @@ namespace Fancy {
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)
   {
     return ourPlatformImpl->GetCommandQueue(aType);
-  }
-//---------------------------------------------------------------------------//
-  CommandQueue* RenderCore::GetCommandQueue(uint64 aFenceVal)
-  {
-    CommandListType type = CommandQueue::GetCommandListType(aFenceVal);
-    return GetCommandQueue(type);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint aDataSizeBytes, uint aByteOffsetFromBuffer /* = 0 */)

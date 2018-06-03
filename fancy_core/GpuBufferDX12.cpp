@@ -78,8 +78,9 @@ namespace Fancy {
 
     const bool cpu_write = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
     const bool cpu_read = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::READ) > 0u;
-    const bool coherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
-    
+
+    // Unused and not needed in D3D12?
+    // const bool coherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
     // const bool dynamic = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::DYNAMIC) > 0u;
 
     myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
@@ -98,9 +99,14 @@ namespace Fancy {
       heapProps.Type = D3D12_HEAP_TYPE_READBACK;
       myUsageState = GpuResourceState::RESOURCE_STATE_COPY_DEST;
     }
-
-    if (coherent && (cpu_write || cpu_read))
+    else if (cpu_read && cpu_write) 
+    {
+      // TODO: This might be wrong and is a bad idea anyway... 
+      heapProps.Type = D3D12_HEAP_TYPE_CUSTOM;
+      myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
       heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+      heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    }
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     D3D12_RESOURCE_STATES usageStateDX12 = Adapter::toNativeType(myUsageState);
@@ -112,67 +118,6 @@ namespace Fancy {
       usageStateDX12,
       nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
 
-    // Create derived views
-    if (wantsShaderResourceView)
-    {
-      D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
-      srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-      srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-      srvDesc.Buffer.FirstElement = 0;
-      srvDesc.Buffer.NumElements = myParameters.uNumElements;
-      srvDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
-      srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-
-      mySrvDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      dx12Platform->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
-    }
-
-    if (wantsUnorderedAccess)
-    {
-      D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-      uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-      uavDesc.Buffer.FirstElement = 0;
-      uavDesc.Buffer.NumElements = myParameters.uNumElements;
-      uavDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
-      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
-
-      myUavDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      dx12Platform->GetDevice()->CreateUnorderedAccessView(storageDx12->myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
-    }
-
-    if (wantsConstantBufferView)
-    {
-      D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-      ASSERT(actualWidthBytesWithAlignment <= UINT_MAX);
-      cbvDesc.SizeInBytes = static_cast<uint>(actualWidthBytesWithAlignment);
-      cbvDesc.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress();
-
-      myCbvDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-      dx12Platform->GetDevice()->CreateConstantBufferView(&cbvDesc, myCbvDescriptor.myCpuHandle);
-    }
-
-    if (wantsVboView)
-    {
-      myVertexBufferView.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress();
-      myVertexBufferView.SizeInBytes = myParameters.uNumElements * myParameters.uElementSizeBytes;
-      myVertexBufferView.StrideInBytes = myParameters.uElementSizeBytes;
-    }
-
-    if (wantsIboView)
-    {
-      if (myParameters.uElementSizeBytes == 2u)
-        myIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-      else if (myParameters.uElementSizeBytes == 4u)
-        myIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
-      else
-        ASSERT(false, "Unsupported Index buffer stride");
-
-      myIndexBufferView.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress();
-      myIndexBufferView.SizeInBytes = myParameters.uNumElements * myParameters.uElementSizeBytes;
-    }
-        
     if (pInitialData != nullptr)
     {
       if (cpu_write)  // The fast path: Just lock and memcpy into cpu-visible region
@@ -185,6 +130,69 @@ namespace Fancy {
       else
       {
         RenderCore::InitBufferData(this, pInitialData);
+      }
+    }
+
+    if (someParameters.myCreateDerivedViews)
+    {
+      if (wantsShaderResourceView)
+      {
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+        srvDesc.Buffer.FirstElement = 0;
+        srvDesc.Buffer.NumElements = myParameters.uNumElements;
+        srvDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
+        srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+        mySrvDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        dx12Platform->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
+      }
+
+      if (wantsUnorderedAccess)
+      {
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+        uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+        uavDesc.Buffer.FirstElement = 0;
+        uavDesc.Buffer.NumElements = myParameters.uNumElements;
+        uavDesc.Buffer.StructureByteStride = myParameters.uElementSizeBytes;
+        uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+        myUavDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        dx12Platform->GetDevice()->CreateUnorderedAccessView(storageDx12->myResource.Get(), nullptr, &uavDesc, myUavDescriptor.myCpuHandle);
+      }
+
+      if (wantsConstantBufferView)
+      {
+        D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+        ASSERT(actualWidthBytesWithAlignment <= UINT_MAX);
+        cbvDesc.SizeInBytes = static_cast<uint>(actualWidthBytesWithAlignment);
+        cbvDesc.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress();
+
+        myCbvDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        dx12Platform->GetDevice()->CreateConstantBufferView(&cbvDesc, myCbvDescriptor.myCpuHandle);
+      }
+
+      if (wantsVboView)
+      {
+        myVertexBufferView.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress();
+        myVertexBufferView.SizeInBytes = myParameters.uNumElements * myParameters.uElementSizeBytes;
+        myVertexBufferView.StrideInBytes = myParameters.uElementSizeBytes;
+      }
+
+      if (wantsIboView)
+      {
+        if (myParameters.uElementSizeBytes == 2u)
+          myIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
+        else if (myParameters.uElementSizeBytes == 4u)
+          myIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+        else
+          ASSERT(false, "Unsupported Index buffer stride");
+
+        myIndexBufferView.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress();
+        myIndexBufferView.SizeInBytes = myParameters.uNumElements * myParameters.uElementSizeBytes;
       }
     }
   }

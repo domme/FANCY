@@ -24,7 +24,8 @@ namespace Fancy {
   {
     // Check if some of the waiting allocators can be made available again
     ID3D12CommandAllocator* availableAllocator = nullptr;
-    for (auto it = myReleasedWaitingAllocators.begin(); it != myReleasedWaitingAllocators.end(); ++it)
+    auto it = myReleasedWaitingAllocators.begin();
+    while(it != myReleasedWaitingAllocators.end())
     {
       const uint64 waitingFenceVal = it->first;
       ID3D12CommandAllocator* allocator = it->second;
@@ -39,6 +40,8 @@ namespace Fancy {
         else
           myAvailableAllocators.push_back(allocator);
       }
+      else
+        ++it;
     }
 
     if (availableAllocator)

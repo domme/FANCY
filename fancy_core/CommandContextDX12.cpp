@@ -177,7 +177,7 @@ namespace Fancy {
   {
     if (myCommandAllocator != nullptr)
     {
-      RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, myCommandListType, aFenceVal);
+      RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, aFenceVal);
       myCommandAllocator = nullptr;
     }
   }
@@ -187,12 +187,12 @@ namespace Fancy {
     for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
     {
       if (heap != nullptr)
-        RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, myCommandListType, aFenceVal);
+        RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
     }
 
     for (DescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
     {
-      RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, myCommandListType, aFenceVal);
+      RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
     }
 
     myRetiredDescriptorHeaps.clear();
@@ -499,14 +499,14 @@ namespace Fancy {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex) const
+  void CommandContextDX12::BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex, uint aResourceOffset /* = 0u */) const
   {
     ASSERT(myRootSignature != nullptr);
 
     GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aResource->myStorage.get();
     ASSERT(storage->myResource != nullptr);
     
-    const uint64 gpuVirtualAddress = storage->myResource->GetGPUVirtualAddress();
+    const uint64 gpuVirtualAddress = storage->myResource->GetGPUVirtualAddress() + aResourceOffset;
     
     switch (myCommandListType)
     {

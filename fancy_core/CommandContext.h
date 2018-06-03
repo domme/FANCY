@@ -3,6 +3,7 @@
 #include "RendererPrerequisites.h"
 #include "CommandListType.h"
 #include "Descriptor.h"
+#include "RenderCore.h"
 
 namespace Fancy {
   class GpuFence;
@@ -52,7 +53,7 @@ namespace Fancy {
     virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) = 0;
     virtual void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) = 0;
-    virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex) const = 0;
+    virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex, uint aResourceOffset = 0) const = 0;
     virtual void BindDescriptorSet(const Descriptor** someDescriptors, uint aResourceCount, uint aRegisterIndex) = 0;
     virtual void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) = 0;
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) = 0;
@@ -75,6 +76,7 @@ namespace Fancy {
       GpuResource* aResource3, GpuResourceState aTransitionToState3,
       GpuResource* aResource4, GpuResourceState aTransitionToState4);
     
+    void BindConstantBuffer(void* someData, uint aDataSize, uint aRegisterIndex);
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
     void SetBlendState(const SharedPtr<BlendState>& aBlendState);
@@ -101,6 +103,8 @@ namespace Fancy {
     Texture* myRenderTargets[Constants::kMaxNumRenderTargets];
     Texture* myDepthStencilTarget;
     bool myRenderTargetsDirty;
+
+    DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
   };
 //---------------------------------------------------------------------------//
 }

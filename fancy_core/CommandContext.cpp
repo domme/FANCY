@@ -6,6 +6,7 @@
 #include "GpuProgramPipeline.h"
 #include "Texture.h"
 #include "GpuProgram.h"
+#include "GpuBuffer.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -106,6 +107,23 @@ namespace Fancy {
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
+  void CommandContext::BindConstantBuffer(void* someData, uint aDataSize, uint aRegisterIndex)
+  {
+    // TODO: Replace with a more elaborated memory manager that accomodates different sizes and also different buffer-types
+    static const uint kConstantRingBufferSize = 2 * SIZE_MB;
+    ASSERT(aDataSize <= kConstantRingBufferSize);
+
+    if (myConstantRingBuffers.empty() || myConstantRingBuffers.back()->GetFreeDataSize() < aDataSize)
+      myConstantRingBuffers.push_back(RenderCore::AllocateRingBuffer(GpuBufferUsage::CONSTANT_BUFFER, kConstantRingBufferSize));
+
+    GpuRingBuffer* ringBuffer = myConstantRingBuffers.back();
+    uint offset = 0;
+    bool success = ringBuffer->AppendData(someData, aDataSize, offset);
+    ASSERT(success);
+    
+    BindResource(ringBuffer->myBuffer.get(), DescriptorType::CONSTANT_BUFFER, aRegisterIndex, offset);
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // Render Context:
@@ -143,6 +161,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContext::Reset(uint64 aFenceVal)
   {
+    for (GpuRingBuffer* buf : myConstantRingBuffers)
+      RenderCore::ReleaseRingBuffer(buf, aFenceVal);
+    myConstantRingBuffers.clear();
+
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
     

@@ -133,10 +133,9 @@ namespace Fancy {
     return ourCommandAllocatorPools[(uint)aCmdListType]->GetNewAllocator();
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, uint64 aFenceVal)
+  void RenderCore_PlatformDX12::ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, CommandListType aCmdListType, uint64 aFenceVal)
   {
-    CommandListType type = CommandQueue::GetCommandListType(aFenceVal);
-    ourCommandAllocatorPools[(uint)type]->ReleaseAllocator(anAllocator, aFenceVal);
+    ourCommandAllocatorPools[(uint)aCmdListType]->ReleaseAllocator(anAllocator, aFenceVal);
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
@@ -153,11 +152,11 @@ namespace Fancy {
     auto it = myUsedDynamicHeaps.begin();
     while(it != myUsedDynamicHeaps.end())
     {
-      uint64 fence = it->first;
+      FenceInfo fenceInfo = it->first;
       DescriptorHeapDX12* heap = it->second;
 
-      CommandQueueDX12* queue = (CommandQueueDX12*)GetCommandQueue(CommandQueue::GetCommandListType(fence));
-      if (queue->IsFenceDone(fence))
+      CommandQueueDX12* queue = (CommandQueueDX12*)GetCommandQueue(fenceInfo.myType);
+      if (queue->IsFenceDone(fenceInfo.myFenceVal))
       {
         if (availableHeap == nullptr && heap->myDesc.NumDescriptors == aDescriptorCount)
           availableHeap = heap;
@@ -192,9 +191,10 @@ namespace Fancy {
     return myDynamicHeapPool.back().get();
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, uint64 aFenceVal)
+  void RenderCore_PlatformDX12::ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, CommandListType aCmdListType, uint64 aFenceVal)
   {
-    myUsedDynamicHeaps.push_back(std::make_pair(aFenceVal, aHeap));
+    const FenceInfo info{ aCmdListType, aFenceVal };
+    myUsedDynamicHeaps.push_back(std::make_pair(info, aHeap));
   }
 //---------------------------------------------------------------------------//
   RenderOutput* RenderCore_PlatformDX12::CreateRenderOutput(void* aNativeInstanceHandle)
@@ -368,8 +368,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitCaps()
   {
-    myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;
-    myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
+    myCaps.myMaxNumVertexAttributes = 32;
   }
 //---------------------------------------------------------------------------//
   DataFormatInfo RenderCore_PlatformDX12::GetFormatInfo(DXGI_FORMAT aFormat)

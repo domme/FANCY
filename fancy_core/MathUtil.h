@@ -5,13 +5,13 @@
 namespace Fancy { namespace MathUtil {
 //---------------------------------------------------------------------------//
   template<class T>
-  static size_t Hash(const T& aValue)
+  inline size_t Hash(const T& aValue)
   {
     return std::hash<T>{}(aValue);
   }
 //---------------------------------------------------------------------------//
   template<class T>
-  static size_t ByteHash(const T& aValue)
+  inline size_t ByteHash(const T& aValue)
   {
     const size_t sizeBytes = sizeof(T);
     const uint8* byteBlock = reinterpret_cast<const uint8*>(&aValue);
@@ -25,18 +25,18 @@ namespace Fancy { namespace MathUtil {
   }
 //---------------------------------------------------------------------------//
   template<class T>
-  static void hash_combine(uint64& uCombinedSeed, const T value)
+  inline void hash_combine(uint64& uCombinedSeed, const T value)
   {
     uCombinedSeed ^= Hash<T>(value) * 2654435761 + 0x9e3779b9 +
                      (uCombinedSeed << 6) + (uCombinedSeed >> 2);
   }
 //---------------------------------------------------------------------------//
-  static constexpr uint64 Align(uint64 aVal, uint64 anAlignment)
+  inline constexpr uint64 Align(uint64 aVal, uint64 anAlignment)
   {
     return anAlignment == 0u ? aVal : ((aVal + (anAlignment - 1u)) & (~(anAlignment - 1u)));
   }
 //---------------------------------------------------------------------------//
-  static glm::mat4 perspectiveFov(float const & fov,
+  inline glm::mat4 perspectiveFov(float const & fov,
                            float const & width,
                            float const & height,
                            float const & zNear,
@@ -60,7 +60,7 @@ namespace Fancy { namespace MathUtil {
     return matResult;
   }
 //---------------------------------------------------------------------------//
-  static uint FloatBitsToUint(float aValue)
+  inline uint FloatBitsToUint(float aValue)
   {
     union UnionType
     {

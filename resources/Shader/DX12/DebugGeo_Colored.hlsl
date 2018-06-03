@@ -38,7 +38,7 @@ VS_OUT main(VS_IN v)
 [RootSignature(ROOT_SIGNATURE)]
 float4 main(VS_OUT fs_in) : SV_TARGET
 {
-  return fs_in.color * cbPerObject.c_Color;
+  return cbPerObject.c_Color;
 }
 #endif // PROGRAM_TYPE_FRAGMENT
 //---------------------------------------------------------------------------// 

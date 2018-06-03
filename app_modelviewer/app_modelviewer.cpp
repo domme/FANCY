@@ -34,24 +34,11 @@ AssetStorage myAssetStorage;
 SharedPtr<GpuProgramPipeline> myUnlitTexturedShader;
 SharedPtr<GpuProgramPipeline> myUnlitVertexColorShader;
 SharedPtr<GpuProgramPipeline> myDebugGeoShader;
-SharedPtr<GpuBuffer> myCbufferPerObject;
-SharedPtr<GpuBuffer> myCbufferDebugGeo;
 SharedPtr<CameraController> myCameraController;
 SharedPtr<Mesh> myGridMesh;
 
 Camera myCamera;
 InputState myInputState;
-
-struct Cbuffer_DebugGeo
-{
-  glm::float4x4 myWorldViewProj;
-  glm::float4 myColor;
-};
-
-struct Cbuffer_PerObject
-{
-  glm::float4x4 myWorldViewProj;
-};
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
@@ -85,23 +72,6 @@ void Init(HINSTANCE anInstanceHandle)
   std::function<void(uint, uint)> onWindowResized = &OnWindowResized;
   myWindow->myOnResize.Connect(onWindowResized);
   myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
-
-  GpuBufferCreationParams bufferParams;
-  bufferParams.uNumElements = 1u;
-  bufferParams.uElementSizeBytes = sizeof(Cbuffer_PerObject);
-  bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
-  bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
-    | (uint)GpuResourceAccessFlags::COHERENT
-    | (uint)GpuResourceAccessFlags::DYNAMIC;
-
-  Cbuffer_PerObject initialPerObjectData;
-  myCbufferPerObject = RenderCore::CreateBuffer(bufferParams, &initialPerObjectData);
-  ASSERT(myCbufferPerObject != nullptr);
-
-  bufferParams.uElementSizeBytes = sizeof(Cbuffer_DebugGeo);
-  Cbuffer_DebugGeo initialDebugGeoData;
-  myCbufferDebugGeo = RenderCore::CreateBuffer(bufferParams, &initialDebugGeoData);
-  ASSERT(myCbufferDebugGeo != nullptr);
 
   myUnlitTexturedShader = LoadShader("Unlit_Textured");
   ASSERT(myUnlitTexturedShader != nullptr);
@@ -204,24 +174,36 @@ void Render()
   ctx->SetWindingOrder(WindingOrder::CCW);
 
   ctx->SetGpuProgramPipeline(myDebugGeoShader);
-  Cbuffer_DebugGeo cBufferDebugGeo{ myCamera.myViewProj, glm::float4(1.0f, 0.0f, 0.0f, 1.0f) };
-  RenderCore::UpdateBufferData(myCbufferDebugGeo.get(), &cBufferDebugGeo, sizeof(cBufferDebugGeo));
-  ctx->BindResource(myCbufferDebugGeo.get(), DescriptorType::CONSTANT_BUFFER, 0u);
-
+  
+  struct Cbuffer_DebugGeo
+  {
+    glm::float4x4 myWorldViewProj;
+    glm::float4 myColor;
+  };
+  Cbuffer_DebugGeo cbuffer_debugGeo
+  {
+    myCamera.myViewProj,
+    glm::float4(1.0f, 0.0f, 0.0f, 1.0f),
+  };
+  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), 0u);
+  
   for (SharedPtr<GeometryData>& geometry : myGridMesh->myGeometryDatas)
     ctx->RenderGeometry(geometry.get());
 
-  /*
   ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
   for (int i = 0; i < myScene.myModels.size(); ++i)
   {
     Model* model = myScene.myModels[i].get();
-    const glm::mat4& transform = myScene.myTransforms[i];
-
-    Cbuffer_PerObject cBuffer;
-    cBuffer.myWorldViewProj = myCamera.myViewProj * transform;
-    RenderCore::UpdateBufferData(myCbufferPerObject.get(), &cBuffer, sizeof(cBuffer));
-    ctx->BindResource(myCbufferPerObject.get(), DescriptorType::CONSTANT_BUFFER, 0u);
+    
+    struct Cbuffer_PerObject
+    {
+      glm::float4x4 myWorldViewProj;
+    };
+    Cbuffer_PerObject cbuffer_perObject
+    {
+      myCamera.myViewProj * myScene.myTransforms[i],
+    };
+    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), 0u);
 
     Material* mat = model->myMaterial.get();
     BindResources_UnlitTextured(ctx, mat);
@@ -230,7 +212,6 @@ void Render()
     for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
       ctx->RenderGeometry(geometry.get());
   }
-  */
 
   queue->ExecuteContext(ctx);
   RenderCore::FreeContext(ctx);
@@ -240,7 +221,6 @@ void Render()
 
 void Shutdown()
 {
-  myCbufferPerObject.reset();
   myUnlitTexturedShader.reset();
 
   FancyRuntime::Shutdown();

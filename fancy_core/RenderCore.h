@@ -3,9 +3,9 @@
 #include "RendererPrerequisites.h"
 #include "RenderingStartupParameters.h"
 #include <list>
-#include <deque>
 #include <mutex>
 #include "CommandQueue.h"
+#include "CommandListType.h"
 
 namespace Fancy {
   struct MeshData;
@@ -28,12 +28,17 @@ namespace Fancy {
   class Texture;
   struct RenderPlatformCaps;
 //---------------------------------------------------------------------------//
-  struct GpuDynamicBuffer
+  struct GpuRingBuffer
   {
-    GpuDynamicBuffer() : myData(nullptr), myOffset(0u) {}
+    GpuRingBuffer(uint anAlignment) : myData(nullptr), myOffset(0u), myAlignment(anAlignment) {}
+    uint GetFreeDataSize() const;
+    bool AppendData(void* someData, uint aDataSize, uint& anOffsetOut);
+    void Reset() { myOffset = 0u; }
+
     SharedPtr<GpuBuffer> myBuffer;
     uint8* myData;
-    uint64 myOffset;
+    uint myOffset;
+    const uint myAlignment;
   };
 //---------------------------------------------------------------------------//
   class RenderCore
@@ -75,13 +80,14 @@ namespace Fancy {
     static RenderCore_Platform* GetPlatform();
     static RenderCore_PlatformDX12* GetPlatformDX12();
 
-    static GpuDynamicBuffer* AllocateDynamicBuffer(uint64 aNeededByteSize);
-    static void ReleaseDynamicBuffer(GpuDynamicBuffer* aBuffer, uint64 aFenceVal);
+    static GpuRingBuffer* AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aSize);
+    static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
 
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
 
     static CommandQueue* GetCommandQueue(CommandListType aType);
+    static CommandQueue* GetCommandQueue(uint64 aFenceVal);
 
   protected:
     RenderCore() = default;
@@ -112,13 +118,12 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
     
-    static std::unique_ptr<GpuProgramCompiler> ourShaderCompiler;
-    static std::unique_ptr<FileWatcher> ourShaderFileWatcher;
-
-    static std::mutex ourDynamicBufferMutex;
-    static std::vector<std::unique_ptr<GpuDynamicBuffer>> ourDynamicBufferPool;
-    static std::deque<GpuDynamicBuffer*> ourAvailableDynamicBuffers;
-    static std::deque<std::pair<GpuDynamicBuffer*, uint64>> ourUsedDynamicBuffers;
+    static UniquePtr<GpuProgramCompiler> ourShaderCompiler;
+    static UniquePtr<FileWatcher> ourShaderFileWatcher;
+    
+    static std::vector<std::unique_ptr<GpuRingBuffer>> ourRingBufferPool;
+    static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
+    static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

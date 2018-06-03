@@ -105,12 +105,11 @@ namespace Fancy {
     return myBuffer->GetSizeBytes() - myOffset;
   }
 //---------------------------------------------------------------------------//
-  bool GpuRingBuffer::AppendData(void* someData, uint aDataSize, uint& anOffsetOut)
+  bool GpuRingBuffer::AppendData(void* someData, uint aDataSize)
   {
     if (GetFreeDataSize() < aDataSize)
       return false;
 
-    anOffsetOut = myOffset;
     memcpy(myData + myOffset, someData, aDataSize);
     myOffset += aDataSize;
     return true;
@@ -150,8 +149,8 @@ namespace Fancy {
       uint64 fence = it->first;
       GpuRingBuffer* buffer = it->second;
       
-      CommandQueue* queue = GetCommandQueue(fence);
-      if (queue->IsFenceDone(fence))
+      CommandQueue* queue = GetCommandQueue(CommandQueueinfo.myType);
+      if (queue->IsFenceDone(info.myFenceVal))
       {
         it = ourUsedRingBuffers.erase(it);
         if (buffer->myBuffer->GetSizeBytes() >= aNeededByteSize && buffer->myBuffer->GetParameters().myUsageFlags == (uint)aUsage)
@@ -181,7 +180,6 @@ namespace Fancy {
     params.uElementSizeBytes = 1u;
     params.myUsageFlags = (uint) aUsage;
     params.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE;
-    params.myCreateDerivedViews = false;
     buf->myBuffer = CreateBuffer(params);
     ASSERT(buf->myBuffer);
     buf->myData = (uint8*) buf->myBuffer->Lock(GpuResoruceLockOption::WRITE);
@@ -194,15 +192,14 @@ namespace Fancy {
   void RenderCore::ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal)
   {
 #if FANCY_RENDERER_HEAVY_VALIDATION
-    auto predicate = [aBuffer](const std::pair<uint64, GpuRingBuffer*>& aPair) {
-      return aPair.second == aBuffer;
+    auto predicate = [aBuffer](const std::pair<GpuRingBuffer*, uint64>& aPair) {
+      return aPair.first == aBuffer;
     };
     ASSERT(std::find_if(ourUsedRingBuffers.begin(), ourUsedRingBuffers.end(), predicate) == ourUsedRingBuffers.end());
     ASSERT(std::find(ourAvailableRingBuffers.begin(), ourAvailableRingBuffers.end(), aBuffer) == ourAvailableRingBuffers.end());
 #endif
 
-    aBuffer->Reset();
-    ourUsedRingBuffers.push_back(std::make_pair(aFenceVal, aBuffer));
+    ourUsedRingBuffers.push_back(std::make_pair(aBuffer, aFenceVal));
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
@@ -512,6 +509,7 @@ namespace Fancy {
       SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
       GpuBufferCreationParams bufferParams;
+      bufferParams.bIsMultiBuffered = false;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
       bufferParams.uAccessFlags = static_cast<uint>(GpuResourceAccessFlags::NONE);
       bufferParams.uNumElements = numVertices;
@@ -528,6 +526,7 @@ namespace Fancy {
       SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateGpuBuffer());
 
       GpuBufferCreationParams indexBufParams;
+      indexBufParams.bIsMultiBuffered = false;
       indexBufParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
       indexBufParams.uAccessFlags = static_cast<uint>(GpuResourceAccessFlags::NONE);
       indexBufParams.uNumElements = numIndices;

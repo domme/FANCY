@@ -65,7 +65,3 @@ namespace Fancy {
   #define STATIC_ASSERT( condition, message ) { static_assert(condition, message); }
 //---------------------------------------------------------------------------//
 }
-  
-
-
-
