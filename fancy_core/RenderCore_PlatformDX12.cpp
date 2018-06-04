@@ -146,7 +146,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
-    DescriptorHeapDX12* availableHeap = nullptr;
     const uint kGpuDescriptorNumIncrement = 16u;
     aDescriptorCount = static_cast<uint>(MathUtil::Align(aDescriptorCount, kGpuDescriptorNumIncrement));
 
@@ -159,19 +158,16 @@ namespace Fancy {
       CommandQueueDX12* queue = (CommandQueueDX12*)GetCommandQueue(CommandQueue::GetCommandListType(fence));
       if (queue->IsFenceDone(fence))
       {
-        if (availableHeap == nullptr && heap->myDesc.NumDescriptors == aDescriptorCount)
-          availableHeap = heap;
+        heap->Reset();
+        it = myUsedDynamicHeaps.erase(it);
+        if (heap->myDesc.NumDescriptors == aDescriptorCount &&  heap->myDesc.Type == aHeapType)
+          return heap;
         else
           myAvailableDynamicHeaps.push_back(heap);
-
-        it = myUsedDynamicHeaps.erase(it);
       }
       else
         ++it;
     }
-
-    if (availableHeap != nullptr)
-      return availableHeap;
 
     for (auto it = myAvailableDynamicHeaps.begin(); it != myAvailableDynamicHeaps.end(); ++it)
     {

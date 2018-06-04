@@ -19,6 +19,7 @@ namespace Fancy {
     const D3D12_GPU_DESCRIPTOR_HANDLE& GetGpuHeapStart() const { return myGpuHeapStart; }
     ID3D12DescriptorHeap* GetHeap() const { return myDescriptorHeap.Get(); }
     void Reset() { myNextFreeHandleIndex = 0u; }
+    uint GetNumFreeDescriptors() const { return (uint) glm::max(0, (int)(myDesc.NumDescriptors - myNextFreeHandleIndex)); }
 
     DescriptorDX12 AllocateDescriptor();
     DescriptorDX12 GetDescriptor(uint anIndex) const;

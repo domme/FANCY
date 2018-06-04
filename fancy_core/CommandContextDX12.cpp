@@ -210,7 +210,7 @@ namespace Fancy {
 
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
 
-    if (dynamicHeap == nullptr)
+    if (dynamicHeap == nullptr || dynamicHeap->GetNumFreeDescriptors() < aResourceCount)
     {
       dynamicHeap = platformDx12->AllocateDynamicDescriptorHeap(aResourceCount, heapType);
       SetDescriptorHeap(heapType, dynamicHeap);

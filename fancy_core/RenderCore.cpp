@@ -163,7 +163,7 @@ namespace Fancy {
     params.myUsageFlags = (uint) aUsage;
     params.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE;
     params.myCreateDerivedViews = false;
-    buf->Create(params);
+    buf->Create(params, GpuResoruceLockOption::WRITE);
     ourRingBufferPool.push_back(std::move(buf));
 
     return ourRingBufferPool.back().get();

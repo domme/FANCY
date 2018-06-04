@@ -12,10 +12,10 @@ namespace Fancy
     GpuRingBuffer();
     ~GpuRingBuffer();
 
-    void Create(const GpuBufferCreationParams& clParameters, const void* pInitialData = nullptr);
+    void Create(const GpuBufferCreationParams& someParameters, GpuResoruceLockOption aLockOption, const void* pInitialData = nullptr);
 
     uint GetFreeDataSize() const;
-    bool AppendData(void* someData, uint aDataSize, uint& anOffsetOut);
+    bool Write(void* someData, uint aDataSize, uint& anOffsetOut);
     void Reset() { myOffset = 0u; }
     const GpuBuffer* GetBuffer() const { return myBuffer.get(); }
 
@@ -23,6 +23,7 @@ namespace Fancy
     SharedPtr<GpuBuffer> myBuffer;
     uint8* myData;
     uint myOffset;
+    GpuResoruceLockOption myLockType;
   };
 //---------------------------------------------------------------------------//
 }

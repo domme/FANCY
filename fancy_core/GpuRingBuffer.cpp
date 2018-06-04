@@ -8,6 +8,7 @@ namespace Fancy
   GpuRingBuffer::GpuRingBuffer() 
     : myData(nullptr)
     , myOffset(0u)
+    , myLockType(GpuResoruceLockOption::NUM)
   {
     
   }
@@ -19,7 +20,7 @@ namespace Fancy
     myData = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void GpuRingBuffer::Create(const GpuBufferCreationParams& clParameters, const void* pInitialData)
+  void GpuRingBuffer::Create(const GpuBufferCreationParams& someParameters, GpuResoruceLockOption aLockOption, const void* pInitialData)
   {
     Reset();
     
@@ -27,13 +28,13 @@ namespace Fancy
       myBuffer->Unlock();
     myData = nullptr;
 
-    myBuffer = RenderCore::CreateBuffer(clParameters, pInitialData);
+    myBuffer = RenderCore::CreateBuffer(someParameters, pInitialData);
     ASSERT(myBuffer != nullptr);
 
-    GpuResoruceLockOption lockType = (clParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) ? GpuResoruceLockOption::WRITE;
-
-    myData = (uint8*) myBuffer->Lock( );
+    myData = (uint8*) myBuffer->Lock(aLockOption);
     ASSERT(myData != nullptr);
+
+    myLockType = aLockOption;
   }
 //---------------------------------------------------------------------------//
   uint GpuRingBuffer::GetFreeDataSize() const
@@ -41,8 +42,10 @@ namespace Fancy
     return myBuffer->GetSizeBytes() - myOffset;
   }
 //---------------------------------------------------------------------------//
-  bool GpuRingBuffer::AppendData(void* someData, uint aDataSize, uint& anOffsetOut)
+  bool GpuRingBuffer::Write(void* someData, uint aDataSize, uint& anOffsetOut)
   {
+    ASSERT(myLockType == GpuResoruceLockOption::WRITE || myLockType == GpuResoruceLockOption::READ_WRITE);
+
     if (GetFreeDataSize() < aDataSize)
       return false;
 

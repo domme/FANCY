@@ -7,6 +7,7 @@
 #include "Texture.h"
 #include "GpuProgram.h"
 #include "GpuBuffer.h"
+#include "GpuRingBuffer.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -118,10 +119,10 @@ namespace Fancy {
 
     GpuRingBuffer* ringBuffer = myConstantRingBuffers.back();
     uint offset = 0;
-    bool success = ringBuffer->AppendData(someData, aDataSize, offset);
+    bool success = ringBuffer->Write(someData, aDataSize, offset);
     ASSERT(success);
     
-    BindResource(ringBuffer->myBuffer.get(), DescriptorType::CONSTANT_BUFFER, aRegisterIndex, offset);
+    BindResource(ringBuffer->GetBuffer(), DescriptorType::CONSTANT_BUFFER, aRegisterIndex, offset);
   }
 //---------------------------------------------------------------------------//
 

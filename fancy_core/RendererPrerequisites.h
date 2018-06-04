@@ -199,28 +199,15 @@ namespace Fancy {
       COHERENT  = 1 << 4, // Changes from CPU/GPU are immediately visible to GPU/CPU
     };
   //---------------------------------------------------------------------------//
-    // Note: Could make bitfield-flags instead, but this would suggest that each field
-    // can be combined - even in DX11. Instead TODO: Reduce/expand this set of options during experiments
     enum class GpuResoruceLockOption 
     {
       READ = 0,
       WRITE,
       READ_WRITE,
-      WRITE_DISCARD,
-      READ_WRITE_DISCARD,
-      READ_UNSYNCHRONIZED,  // GL4-only?
-      WRITE_UNSYNCHRONIZED,
-      READ_WRITE_UNSYNCHRONIZED,
-      READ_PERSISTENT,      // GL4-only?
-      WRITE_PERSISTENT,
-      READ_WRITE_PERSISTENT,
-      READ_PERSISTENT_COHERENT,
-      WRITE_PERSISTENT_COHERENT,
-      READ_WRITE_PERSISTENT_COHERENT,
-      
+            
       NUM
     };
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
     struct TextureParams 
     {
       TextureParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),

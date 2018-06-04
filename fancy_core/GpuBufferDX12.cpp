@@ -204,45 +204,6 @@ namespace Fancy {
     memset(&myIndexBufferView, 0, sizeof(myIndexBufferView));
   }
 //---------------------------------------------------------------------------//
-  void locResolveLockOptions(GpuResoruceLockOption aLockOption, bool& aNeedsRead, bool& aNeedsWrite, bool& aNeedsRename)
-  {
-    aNeedsRead = false;
-    aNeedsWrite = false;
-    aNeedsRename = false;
-
-    switch (aLockOption)
-    {
-      case GpuResoruceLockOption::READ: 
-      case GpuResoruceLockOption::READ_UNSYNCHRONIZED:
-      case GpuResoruceLockOption::READ_PERSISTENT:
-      case GpuResoruceLockOption::READ_PERSISTENT_COHERENT:
-        aNeedsRead = true;
-        break;
-      case GpuResoruceLockOption::WRITE: 
-      case GpuResoruceLockOption::WRITE_UNSYNCHRONIZED:
-      case GpuResoruceLockOption::WRITE_PERSISTENT:
-      case GpuResoruceLockOption::WRITE_PERSISTENT_COHERENT:
-        aNeedsWrite = true;
-        break;
-      case GpuResoruceLockOption::READ_WRITE: 
-      case GpuResoruceLockOption::READ_WRITE_UNSYNCHRONIZED:
-      case GpuResoruceLockOption::READ_WRITE_PERSISTENT:
-      case GpuResoruceLockOption::READ_WRITE_PERSISTENT_COHERENT:
-        aNeedsRead = true;
-        aNeedsWrite = true;
-        break;
-      case GpuResoruceLockOption::WRITE_DISCARD: 
-        aNeedsWrite = true;
-        aNeedsRename = true;
-        break;
-      case GpuResoruceLockOption::READ_WRITE_DISCARD: 
-        aNeedsRead = true;
-        aNeedsWrite = true;
-        aNeedsRename = true;
-        break;
-    }
-  }
-//---------------------------------------------------------------------------//
   void* GpuBufferDX12::Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements /* = 0u */, uint uNumElements /* = 0u */)
   {
     ASSERT(uOffsetElements + uNumElements <= myParameters.uNumElements);
@@ -250,9 +211,6 @@ namespace Fancy {
     if (uNumElements == 0u)
       uNumElements = myParameters.uNumElements - uOffsetElements;
 
-    bool needsRead, needsWrite, needsRename;
-    locResolveLockOptions(eLockOption, needsRead, needsWrite, needsRename);
-   
     D3D12_RANGE range;
     range.Begin = uOffsetElements * myParameters.uElementSizeBytes;
     range.End = range.Begin + uNumElements * myParameters.uElementSizeBytes;
@@ -260,7 +218,10 @@ namespace Fancy {
     const bool isCpuWritable = (myParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
     const bool isCpuReadable = (myParameters.uAccessFlags & (uint)GpuResourceAccessFlags::READ) > 0u;
 
-    if ((needsWrite && !isCpuWritable) || (needsRead && !isCpuReadable))
+    const bool wantsWrite = eLockOption == GpuResoruceLockOption::READ_WRITE || eLockOption == GpuResoruceLockOption::WRITE;
+    const bool wantsRead = eLockOption == GpuResoruceLockOption::READ_WRITE || eLockOption == GpuResoruceLockOption::READ;
+
+    if ((wantsWrite && !isCpuWritable) || (wantsRead && !isCpuReadable))
       return nullptr;
 
     // TODO: Do something with the current usage type? Transition it into something correct? Early-out?
