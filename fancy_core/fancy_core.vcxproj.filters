@@ -252,6 +252,9 @@
     </ClInclude>
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="CommandQueueDX12.h" />
+    <ClInclude Include="GpuRingBuffer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -377,5 +380,8 @@
     </ClCompile>
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CommandQueueDX12.cpp" />
+    <ClCompile Include="GpuRingBuffer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

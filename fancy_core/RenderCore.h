@@ -27,19 +27,7 @@ namespace Fancy {
   class FileWatcher;
   class Texture;
   struct RenderPlatformCaps;
-//---------------------------------------------------------------------------//
-  struct GpuRingBuffer
-  {
-    GpuRingBuffer(uint anAlignment) : myData(nullptr), myOffset(0u), myAlignment(anAlignment) {}
-    uint GetFreeDataSize() const;
-    bool AppendData(void* someData, uint aDataSize, uint& anOffsetOut);
-    void Reset() { myOffset = 0u; }
-
-    SharedPtr<GpuBuffer> myBuffer;
-    uint8* myData;
-    uint myOffset;
-    const uint myAlignment;
-  };
+  class GpuRingBuffer;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -65,7 +53,7 @@ namespace Fancy {
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
-    static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData = nullptr);
+    static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, const void* someInitialData = nullptr);
 
     static void InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr);
     static void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteSize, uint aByteOffsetFromBuffer = 0u);

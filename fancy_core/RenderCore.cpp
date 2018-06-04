@@ -6,6 +6,7 @@
 #include "DepthStencilState.h"
 #include "TextureRefs.h"
 #include "GpuBuffer.h"
+#include "GpuRingBuffer.h"
 #include "GpuProgramCompiler.h"
 #include "FileWatcher.h"
 #include "PathService.h"
@@ -98,26 +99,6 @@ namespace Fancy {
     return ourShaderCompiler.get();
   }
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  uint GpuRingBuffer::GetFreeDataSize() const
-  {
-    return myBuffer->GetSizeBytes() - myOffset;
-  }
-//---------------------------------------------------------------------------//
-  bool GpuRingBuffer::AppendData(void* someData, uint aDataSize, uint& anOffsetOut)
-  {
-    if (GetFreeDataSize() < aDataSize)
-      return false;
-
-    anOffsetOut = myOffset;
-    memcpy(myData + myOffset, someData, aDataSize);
-    myOffset += aDataSize;
-    return true;
-  }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
   void RenderCore::Init(RenderingApi aRenderingApi)
   {
     Init_0_Platform(aRenderingApi);
@@ -154,7 +135,7 @@ namespace Fancy {
       if (queue->IsFenceDone(fence))
       {
         it = ourUsedRingBuffers.erase(it);
-        if (buffer->myBuffer->GetSizeBytes() >= aNeededByteSize && buffer->myBuffer->GetParameters().myUsageFlags == (uint)aUsage)
+        if (buffer->GetBuffer()->GetSizeBytes() >= aNeededByteSize && buffer->GetBuffer()->GetParameters().myUsageFlags == (uint)aUsage)
           return buffer;
         
         ourAvailableRingBuffers.push_back(buffer);
@@ -166,7 +147,7 @@ namespace Fancy {
     for (auto it = ourAvailableRingBuffers.begin(); it != ourAvailableRingBuffers.end(); ++it)
     {
       GpuRingBuffer* buffer = *it;
-      if (buffer->myBuffer->GetSizeBytes() >= aNeededByteSize && buffer->myBuffer->GetParameters().myUsageFlags == (uint)aUsage)
+      if (buffer->GetBuffer()->GetSizeBytes() >= aNeededByteSize && buffer->GetBuffer()->GetParameters().myUsageFlags == (uint)aUsage)
       {
         ourAvailableRingBuffers.erase(it);
         return buffer;
@@ -182,10 +163,7 @@ namespace Fancy {
     params.myUsageFlags = (uint) aUsage;
     params.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE;
     params.myCreateDerivedViews = false;
-    buf->myBuffer = CreateBuffer(params);
-    ASSERT(buf->myBuffer);
-    buf->myData = (uint8*) buf->myBuffer->Lock(GpuResoruceLockOption::WRITE);
-    ASSERT(buf->myData);
+    buf->Create(params);
     ourRingBufferPool.push_back(std::move(buf));
 
     return ourRingBufferPool.back().get();
@@ -554,7 +532,7 @@ namespace Fancy {
     return tex->IsValid() ? tex : nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferCreationParams& someParams, void* someInitialData /* = nullptr */)
+  SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferCreationParams& someParams, const void* someInitialData /* = nullptr */)
   {
     SharedPtr<GpuBuffer> buffer(ourPlatformImpl->CreateGpuBuffer());
     buffer->Create(someParams, someInitialData);
