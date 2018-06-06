@@ -42,7 +42,7 @@ namespace Fancy
     return myBuffer->GetSizeBytes() - myOffset;
   }
 //---------------------------------------------------------------------------//
-  bool GpuRingBuffer::Write(void* someData, uint aDataSize, uint& anOffsetOut)
+  bool GpuRingBuffer::AllocateAndWrite(const void* someData, uint aDataSize, uint& anOffsetOut)
   {
     ASSERT(myLockType == GpuResoruceLockOption::WRITE || myLockType == GpuResoruceLockOption::READ_WRITE);
 
@@ -51,6 +51,16 @@ namespace Fancy
 
     anOffsetOut = myOffset;
     memcpy(myData + myOffset, someData, aDataSize);
+    myOffset += MathUtil::Align(aDataSize, myBuffer->GetAlignment());
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  bool GpuRingBuffer::Allocate(uint aDataSize, uint& anOffsetOut)
+  {
+    if (GetFreeDataSize() < aDataSize)
+      return false;
+
+    anOffsetOut = myOffset;
     myOffset += MathUtil::Align(aDataSize, myBuffer->GetAlignment());
     return true;
   }

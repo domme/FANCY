@@ -10,6 +10,7 @@
 
 #include <queue>
 #include "CommandQueueDX12.h"
+#include "GpuMemoryAllocatorDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -30,11 +31,12 @@ namespace Fancy {
     bool InitInternalResources() override;
     
     static DXGI_FORMAT GetFormat(DataFormat aFormat);
-    static DataFormatInfo GetFormatInfo(DXGI_FORMAT aFormat);
+    static DataFormat GetFormat(DXGI_FORMAT aFormat);
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
     static DXGI_FORMAT GetDepthStencilFormat(DXGI_FORMAT aDefaultFormat);
     static DXGI_FORMAT GetDepthFormat(DXGI_FORMAT aDefaultFormat);
     static DXGI_FORMAT GetStencilFormat(DXGI_FORMAT aDefaultFormat);
+    static D3D12_HEAP_TYPE ResolveHeapType(GpuMemoryAccessType anAccessType);
 
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
 
@@ -48,15 +50,15 @@ namespace Fancy {
     DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, uint64 aFenceVal);
 
+    GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment);
+    void FreeGpuMemory(GpuMemoryAllocationDX12& anAllocation);
+
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) override;
     GpuProgramCompiler* CreateShaderCompiler() override;
     GpuProgram* CreateGpuProgram() override;
     Texture* CreateTexture() override;
-    GpuBuffer* CreateGpuBuffer() override;
+    GpuBuffer* CreateBuffer() override;
     CommandContext* CreateContext(CommandListType aType) override;
-    void InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr, CommandContext* aContext) override;
-    void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext) override;
-    void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext) override;
     DataFormat ResolveFormat(DataFormat aFormat) override;
     CommandQueue* GetCommandQueue(CommandListType aType) override { return ourCommandQueues[(uint)aType].get(); }
 
@@ -72,8 +74,10 @@ namespace Fancy {
     std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
     std::list<DescriptorHeapDX12*> myAvailableDynamicHeaps;
     std::list<std::pair<uint64, DescriptorHeapDX12*>> myUsedDynamicHeaps;
-    
+
     DescriptorHeapDX12 ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    
+    UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)GpuMemoryAccessType::NUM];
 
     void InitCaps() override;
   };

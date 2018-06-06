@@ -97,9 +97,9 @@ namespace Fancy { namespace ImGuiRendering {
     {
       GpuBufferCreationParams bufferParams;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
-      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
-                                | (uint)GpuResourceAccessFlags::COHERENT
-                                | (uint)GpuResourceAccessFlags::DYNAMIC;
+      bufferParams.uAccessFlags = (uint)GpuMemoryAccessType::WRITE
+                                | (uint)GpuMemoryAccessType::COHERENT
+                                | (uint)GpuMemoryAccessType::DYNAMIC;
       bufferParams.uElementSizeBytes = sizeof(ImDrawVert);
       bufferParams.uNumElements = aNumRequiredVertices;
       return RenderCore::CreateBuffer(bufferParams);
@@ -109,9 +109,9 @@ namespace Fancy { namespace ImGuiRendering {
     {
       GpuBufferCreationParams bufferParams;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
-      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
-        | (uint)GpuResourceAccessFlags::COHERENT
-        | (uint)GpuResourceAccessFlags::DYNAMIC;
+      bufferParams.uAccessFlags = (uint)GpuMemoryAccessType::WRITE
+        | (uint)GpuMemoryAccessType::COHERENT
+        | (uint)GpuMemoryAccessType::DYNAMIC;
       bufferParams.uElementSizeBytes = sizeof(ImDrawIdx);
       bufferParams.uNumElements = aNumRequiredIndices;
       return RenderCore::CreateBuffer(bufferParams);
@@ -175,9 +175,9 @@ namespace Fancy { namespace ImGuiRendering {
     {
       GpuBufferCreationParams bufferParams;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
-      bufferParams.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE
-                                 | (uint)GpuResourceAccessFlags::COHERENT
-                                 | (uint)GpuResourceAccessFlags::DYNAMIC;
+      bufferParams.uAccessFlags = (uint)GpuMemoryAccessType::WRITE
+                                 | (uint)GpuMemoryAccessType::COHERENT
+                                 | (uint)GpuMemoryAccessType::DYNAMIC;
       bufferParams.uElementSizeBytes = sizeof(CBufferData);
       bufferParams.uNumElements = 1u;
 
@@ -208,7 +208,7 @@ namespace Fancy { namespace ImGuiRendering {
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(params.eFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
       
-      TextureUploadData uploadData;
+      TextureSubData uploadData;
       uploadData.myData = fontPixelData;
       uploadData.myPixelSizeBytes = pixelSizeBytes;
       uploadData.myRowSizeBytes = width * uploadData.myPixelSizeBytes;

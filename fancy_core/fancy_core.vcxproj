@@ -76,6 +76,7 @@
     <ClInclude Include="DescriptorDX12.h" />
     <ClInclude Include="DescriptorHeapDX12.h" />
     <ClInclude Include="GpuBufferDesc.h" />
+    <ClInclude Include="GpuMemoryAllocatorDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="MathPrerequisites.h" />
@@ -158,6 +159,7 @@
     <ClCompile Include="Fancy.cpp" />
     <ClCompile Include="FileReader.cpp" />
     <ClCompile Include="CommandAllocatorPoolDX12.cpp" />
+    <ClCompile Include="GpuMemoryAllocatorDX12.cpp" />
     <ClCompile Include="GpuProgram.cpp" />
     <ClCompile Include="GpuProgramCompilerDX12.cpp" />
     <ClCompile Include="GpuProgramCompilerUtils.cpp" />

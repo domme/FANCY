@@ -1426,6 +1426,27 @@ inline UINT64 UpdateSubresources(
         D3D12_MEMCPY_DEST DestData = { pData + pLayouts[i].Offset, pLayouts[i].Footprint.RowPitch, pLayouts[i].Footprint.RowPitch * pNumRows[i] };
         MemcpySubresource(&DestData, &pSrcData[i], (SIZE_T)pRowSizesInBytes[i], pNumRows[i], pLayouts[i].Footprint.Depth);
     }
+
+    /*
+    for (UINT i = 0; i < NumSubresources; ++i)
+    {
+        BYTE* pDestSubResource = pData + pLayouts[i].Offset;
+        UINT slicePitch = pLayouts[i].Footprint.RowPitch * pNumRows[i];
+
+        for (UINT z = 0; z < pLayouts[i].Footprint.Depth; ++z)
+        {
+          BYTE* pDestSlice = pDestSubResource + slicePitch * z;
+          const BYTE* pSrcSlice = reinterpret_cast<const BYTE*>(pSrcData[i].pData) + pSrcData[i].SlicePitch * z;
+          for (UINT y = 0; y < pNumRows[i]; ++y)
+          {
+            memcpy(pDestSlice + pLayouts[i].Footprint.RowPitch * y, 
+              pSrcSlice + pSrcData[i].RowPitch * y,
+              pRowSizesInBytes[i]);
+          }
+        }
+    }
+    */
+
     pIntermediate->Unmap(0, NULL);
     
     if (DestinationDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)

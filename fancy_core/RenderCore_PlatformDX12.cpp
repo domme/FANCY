@@ -18,6 +18,7 @@
 #include "CommandContextDX12.h"
 #include "GpuResourceStorageDX12.h"
 #include "RenderPlatformCaps.h"
+#include "AdapterDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -73,6 +74,18 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {
+    myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)GpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, GpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)GpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, GpuMemoryAccessType::CPU_WRITE, 64 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)GpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, GpuMemoryAccessType::CPU_READ, 64 * SIZE_MB));
+
+    myGpuMemoryAllocators[(uint)GpuMemoryType::TEXTURE][(uint)GpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::TEXTURE, GpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::TEXTURE][(uint)GpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::TEXTURE, GpuMemoryAccessType::CPU_WRITE, 16 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::TEXTURE][(uint)GpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::TEXTURE, GpuMemoryAccessType::CPU_READ, 16 * SIZE_MB));
+
+    myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)GpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, GpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)GpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, GpuMemoryAccessType::CPU_WRITE, 16 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)GpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, GpuMemoryAccessType::CPU_READ, 16 * SIZE_MB));
+    
     ourCommandQueues[(uint)CommandListType::Graphics].reset(new CommandQueueDX12(CommandListType::Graphics));
     ourCommandQueues[(uint)CommandListType::Compute].reset(new CommandQueueDX12(CommandListType::Compute));
 
@@ -193,6 +206,18 @@ namespace Fancy {
     myUsedDynamicHeaps.push_back(std::make_pair(aFenceVal, aHeap));
   }
 //---------------------------------------------------------------------------//
+  GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment)
+  {
+    return myGpuMemoryAllocators[(uint)aType][(uint)anAccessType]->Allocate(aSize, anAlignment);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformDX12::FreeGpuMemory(GpuMemoryAllocationDX12& anAllocation)
+  {
+    GpuMemoryType type = Adapter::ResolveGpuMemoryType(anAllocation.myHeap->GetDesc().Flags);
+    GpuMemoryAccessType accessType = Adapter::ResolveGpuMemoryAccessType(anAllocation.myHeap->GetDesc().Properties.Type);
+    myGpuMemoryAllocators[(uint)type][(uint) accessType]->Free(anAllocation);
+  }
+//---------------------------------------------------------------------------//
   RenderOutput* RenderCore_PlatformDX12::CreateRenderOutput(void* aNativeInstanceHandle)
   {
     return new RenderOutputDX12(aNativeInstanceHandle);
@@ -213,141 +238,14 @@ namespace Fancy {
     return new TextureDX12();
   }
 //---------------------------------------------------------------------------//
-  GpuBuffer* RenderCore_PlatformDX12::CreateGpuBuffer()
+  GpuBuffer* RenderCore_PlatformDX12::CreateBuffer()
   {
-    return new GpuBufferDX12();
+   return new GpuBufferDX12();
   }
 //---------------------------------------------------------------------------//
   CommandContext* RenderCore_PlatformDX12::CreateContext(CommandListType aType)
   {
     return new CommandContextDX12(aType);
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr, CommandContext* aContext)
-  {
-    D3D12_HEAP_PROPERTIES heapProps;
-    memset(&heapProps, 0, sizeof(heapProps));
-    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-    heapProps.CreationNodeMask = 1;
-    heapProps.VisibleNodeMask = 1;
-
-    GpuResourceStorageDX12* bufferStorageDX12 = static_cast<GpuResourceStorageDX12*>(aBuffer->myStorage.get());
-
-    const D3D12_RESOURCE_DESC& resourceDesc = bufferStorageDX12->myResource->GetDesc();
-
-    Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
-    CheckD3Dcall(GetDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
-      &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
-
-    void* mappedBufferPtr;
-    CheckD3Dcall(uploadResource->Map(0, nullptr, &mappedBufferPtr));
-    memcpy(mappedBufferPtr, aDataPtr, aBuffer->GetSizeBytes());
-    uploadResource->Unmap(0, nullptr);
-
-    CommandContextDX12* context = static_cast<CommandContextDX12*>(aContext);
-    context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST);
-    context->myCommandList->CopyResource(bufferStorageDX12->myResource.Get(), uploadResource.Get());
-    context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
-
-    CommandQueueDX12* queue = ourCommandQueues[(uint)aContext->GetType()].get();
-    queue->ExecuteContext(context, true);
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteOffset, uint aByteSize, CommandContext* aContext)
-  {
-    D3D12_HEAP_PROPERTIES heapProps;
-    memset(&heapProps, 0, sizeof(heapProps));
-    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-    heapProps.CreationNodeMask = 1;
-    heapProps.VisibleNodeMask = 1;
-
-    GpuResourceStorageDX12* bufferStorageDX12 = static_cast<GpuResourceStorageDX12*>(aBuffer->myStorage.get());
-
-    D3D12_RESOURCE_DESC uploadResourceDesc = bufferStorageDX12->myResource->GetDesc();
-    uploadResourceDesc.Width = MathUtil::Align(aByteSize, aBuffer->GetAlignment());
-
-    Microsoft::WRL::ComPtr<ID3D12Resource> uploadResource;
-    CheckD3Dcall(ourDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
-      &uploadResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadResource)));
-
-    void* uploadBufferPtr;
-    CheckD3Dcall(uploadResource->Map(0, nullptr, &uploadBufferPtr));
-    memcpy(uploadBufferPtr, aDataPtr, aByteSize);
-    uploadResource->Unmap(0, nullptr);
-
-    CommandContextDX12* context = static_cast<CommandContextDX12*>(aContext);
-    context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST);
-    context->myCommandList->CopyBufferRegion(bufferStorageDX12->myResource.Get(), aByteOffset, uploadResource.Get(), 0u, aByteSize);
-    context->TransitionResource(aBuffer, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
-    
-    CommandQueueDX12* queue = ourCommandQueues[(uint)aContext->GetType()].get();
-    queue->ExecuteContext(context, true);
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas, CommandContext* aContext)
-  {
-    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(aTexture->myStorage.get());
-
-    ID3D12Device* device = GetDevice();
-    const D3D12_RESOURCE_DESC& resourceDesc = storageDx12->myResource->GetDesc();
-
-    // DEBUG: layouts and row-infos not needed here yet
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* destLayouts = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * aNumUploadDatas));
-    uint64* destRowSizesByte = static_cast<uint64*>(alloca(sizeof(uint64) * aNumUploadDatas));
-    uint* destRowNums = static_cast<uint*>(alloca(sizeof(uint) * aNumUploadDatas));
-
-    uint64 requiredStagingBufferSize;
-    //device->GetCopyableFootprints(&resourceDesc, 0u, aNumUploadDatas, 0u, nullptr, nullptr, nullptr, &requiredStagingBufferSize);
-    device->GetCopyableFootprints(&resourceDesc, 0u, aNumUploadDatas, 0u, destLayouts, destRowNums, destRowSizesByte, &requiredStagingBufferSize);
-
-    D3D12_HEAP_PROPERTIES HeapProps;
-    HeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-    HeapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    HeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-    HeapProps.CreationNodeMask = 1;
-    HeapProps.VisibleNodeMask = 1;
-
-    D3D12_RESOURCE_DESC BufferDesc;
-    BufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-    BufferDesc.Alignment = 0;
-    BufferDesc.Width = requiredStagingBufferSize;
-    BufferDesc.Height = 1;
-    BufferDesc.DepthOrArraySize = 1;
-    BufferDesc.MipLevels = 1;
-    BufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-    BufferDesc.SampleDesc.Count = 1;
-    BufferDesc.SampleDesc.Quality = 0;
-    BufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-    BufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-    Microsoft::WRL::ComPtr<ID3D12Resource> stagingBuffer;
-
-    CheckD3Dcall(device->CreateCommittedResource(
-      &HeapProps, D3D12_HEAP_FLAG_NONE,
-      &BufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ,
-      nullptr, IID_PPV_ARGS(&stagingBuffer)));
-
-    ASSERT(aTexture->GetParameters().u16Depth <= 1u, "The code below might not work for 3D textures");
-
-    D3D12_SUBRESOURCE_DATA* subDatas = static_cast<D3D12_SUBRESOURCE_DATA*>(alloca(sizeof(D3D12_SUBRESOURCE_DATA) * aNumUploadDatas));
-    for (uint i = 0u; i < aNumUploadDatas; ++i)
-    {
-      subDatas[i].pData = someUploadDatas[i].myData;
-      subDatas[i].SlicePitch = someUploadDatas[i].mySliceSizeBytes;
-      subDatas[i].RowPitch = someUploadDatas[i].myRowSizeBytes;
-    }
-
-    CommandContextDX12* context = static_cast<CommandContextDX12*>(aContext);
-
-    GpuResourceState oldUsageState = aTexture->myUsageState;
-    context->TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_COPY_DEST);
-    context->UpdateSubresources(storageDx12->myResource.Get(), stagingBuffer.Get(), 0u, aNumUploadDatas, subDatas);
-    context->TransitionResource(aTexture, oldUsageState);
-
-    CommandQueueDX12* queue = ourCommandQueues[(uint)aContext->GetType()].get();
-    queue->ExecuteContext(context, true);
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
@@ -366,154 +264,6 @@ namespace Fancy {
   {
     myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;
     myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
-  }
-//---------------------------------------------------------------------------//
-  DataFormatInfo RenderCore_PlatformDX12::GetFormatInfo(DXGI_FORMAT aFormat)
-  {
-    DataFormatInfo format;
-    return format;
-
-    /*
-    switch (aFormat)
-    {
-    case DXGI_FORMAT_UNKNOWN:                   return DataFormatInfo(DataFormat::UNKNOWN, 0u, 0u, false, false, false);
-    case DXGI_FORMAT_R32G32B32A32_TYPELESS:     return DataFormatInfo(DataFormat::UNKNOWN, 0u, 0u, false, false, false);
-    case DXGI_FORMAT_R32G32B32A32_FLOAT:
-    case DXGI_FORMAT_R32G32B32A32_UINT:
-    case DXGI_FORMAT_R32G32B32A32_SINT:
-    return 16u;
-    case DXGI_FORMAT_R32G32B32_TYPELESS:
-    case DXGI_FORMAT_R32G32B32_FLOAT:
-    case DXGI_FORMAT_R32G32B32_UINT:
-    case DXGI_FORMAT_R32G32B32_SINT:
-    case DXGI_FORMAT_R16G16B16A16_TYPELESS:
-    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-    case DXGI_FORMAT_R16G16B16A16_UNORM:
-    case DXGI_FORMAT_R16G16B16A16_UINT:
-    case DXGI_FORMAT_R16G16B16A16_SNORM:
-    case DXGI_FORMAT_R16G16B16A16_SINT:
-    return 12u;
-    case DXGI_FORMAT_R32G32_TYPELESS:
-    case DXGI_FORMAT_R32G32_FLOAT:
-    case DXGI_FORMAT_R32G32_UINT:
-    case DXGI_FORMAT_R32G32_SINT:
-    case DXGI_FORMAT_R32G8X24_TYPELESS:
-    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-    return 8u;
-    case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-    case DXGI_FORMAT_R10G10B10A2_UNORM:
-    case DXGI_FORMAT_R10G10B10A2_UINT:
-    case DXGI_FORMAT_R11G11B10_FLOAT:
-    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-    case DXGI_FORMAT_R8G8B8A8_UNORM:
-    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-    case DXGI_FORMAT_R8G8B8A8_UINT:
-    case DXGI_FORMAT_R8G8B8A8_SNORM:
-    case DXGI_FORMAT_R8G8B8A8_SINT:
-    case DXGI_FORMAT_R16G16_TYPELESS:
-    case DXGI_FORMAT_R16G16_FLOAT:
-    case DXGI_FORMAT_R16G16_UNORM:
-    case DXGI_FORMAT_R16G16_UINT:
-    case DXGI_FORMAT_R16G16_SNORM:
-    case DXGI_FORMAT_R16G16_SINT:
-    case DXGI_FORMAT_R32_TYPELESS:
-    case DXGI_FORMAT_D32_FLOAT:
-    case DXGI_FORMAT_R32_FLOAT:
-    case DXGI_FORMAT_R32_UINT:
-    case DXGI_FORMAT_R32_SINT:
-    case DXGI_FORMAT_R24G8_TYPELESS:
-    case DXGI_FORMAT_D24_UNORM_S8_UINT:
-    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-    return 4u;
-    case DXGI_FORMAT_R8G8_TYPELESS:
-    case DXGI_FORMAT_R8G8_UNORM:
-    case DXGI_FORMAT_R8G8_UINT:
-    case DXGI_FORMAT_R8G8_SNORM:
-    case DXGI_FORMAT_R8G8_SINT:
-    case DXGI_FORMAT_R16_TYPELESS:
-    case DXGI_FORMAT_R16_FLOAT:
-    case DXGI_FORMAT_D16_UNORM:
-    case DXGI_FORMAT_R16_UNORM:
-    case DXGI_FORMAT_R16_UINT:
-    case DXGI_FORMAT_R16_SNORM:
-    case DXGI_FORMAT_R16_SINT:
-    return 2u;
-    case DXGI_FORMAT_R8_TYPELESS:
-    case DXGI_FORMAT_R8_UNORM:
-    case DXGI_FORMAT_R8_UINT:
-    case DXGI_FORMAT_R8_SNORM:
-    case DXGI_FORMAT_R8_SINT:
-    case DXGI_FORMAT_A8_UNORM:
-    return 1u;
-
-    // TODO: Check sizes of these types
-    // case DXGI_FORMAT_R1_UNORM:
-    // case DXGI_FORMAT_R9G9B9E5_SHAREDEXP:
-    // case DXGI_FORMAT_R8G8_B8G8_UNORM:
-    // case DXGI_FORMAT_G8R8_G8B8_UNORM:
-    // case DXGI_FORMAT_BC1_TYPELESS:
-    // case DXGI_FORMAT_BC1_UNORM:
-    // case DXGI_FORMAT_BC1_UNORM_SRGB:
-    // case DXGI_FORMAT_BC2_TYPELESS:
-    // case DXGI_FORMAT_BC2_UNORM:
-    // case DXGI_FORMAT_BC2_UNORM_SRGB:
-    // case DXGI_FORMAT_BC3_TYPELESS:
-    // case DXGI_FORMAT_BC3_UNORM:
-    // case DXGI_FORMAT_BC3_UNORM_SRGB:
-    // case DXGI_FORMAT_BC4_TYPELESS:
-    // case DXGI_FORMAT_BC4_UNORM:
-    // case DXGI_FORMAT_BC4_SNORM:
-    // case DXGI_FORMAT_BC5_TYPELESS:
-    //case DXGI_FORMAT_BC6H_TYPELESS:
-    //case DXGI_FORMAT_BC6H_UF16:
-    //case DXGI_FORMAT_BC6H_SF16:
-    //case DXGI_FORMAT_BC7_TYPELESS:
-    //case DXGI_FORMAT_BC7_UNORM:
-    //case DXGI_FORMAT_BC7_UNORM_SRGB:
-    //case DXGI_FORMAT_AYUV:
-    //case DXGI_FORMAT_Y410:
-    //case DXGI_FORMAT_Y416:
-    //case DXGI_FORMAT_NV12:
-    //case DXGI_FORMAT_P010:
-    //case DXGI_FORMAT_P016:
-    //case DXGI_FORMAT_420_OPAQUE:
-    //case DXGI_FORMAT_YUY2:
-    //case DXGI_FORMAT_Y210:
-    //case DXGI_FORMAT_Y216:
-    //case DXGI_FORMAT_NV11:
-    //case DXGI_FORMAT_AI44:
-    //case DXGI_FORMAT_IA44:
-    //case DXGI_FORMAT_P8:
-    //case DXGI_FORMAT_A8P8:
-    //case DXGI_FORMAT_B4G4R4A4_UNORM:
-    //case DXGI_FORMAT_P208:
-    //case DXGI_FORMAT_V208:
-    //case DXGI_FORMAT_V408:
-    //case DXGI_FORMAT_FORCE_UINT:
-
-    case DXGI_FORMAT_BC5_UNORM:
-    case DXGI_FORMAT_BC5_SNORM:
-    case DXGI_FORMAT_B5G6R5_UNORM:
-    case DXGI_FORMAT_B5G5R5A1_UNORM:
-    return 2u;
-
-    case DXGI_FORMAT_B8G8R8A8_UNORM:
-    case DXGI_FORMAT_B8G8R8X8_UNORM:
-    case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM:
-    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-    case DXGI_FORMAT_B8G8R8X8_TYPELESS:
-    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-    return 4u;
-
-    default:
-    ASSERT(false);
-    return 0u;
-    }
-    */
   }
 //---------------------------------------------------------------------------//
   D3D12_COMMAND_LIST_TYPE RenderCore_PlatformDX12::GetCommandListType(CommandListType aType)
@@ -622,6 +372,16 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  D3D12_HEAP_TYPE RenderCore_PlatformDX12::ResolveHeapType(GpuMemoryAccessType anAccessType)
+  {
+    switch (anAccessType) { 
+      case GpuMemoryAccessType::NO_CPU_ACCESS: return D3D12_HEAP_TYPE_DEFAULT;
+      case GpuMemoryAccessType::CPU_WRITE: return D3D12_HEAP_TYPE_UPLOAD;
+      case GpuMemoryAccessType::CPU_READ: return D3D12_HEAP_TYPE_READBACK;
+      default: ASSERT(false, "Missing implementation"); return D3D12_HEAP_TYPE_DEFAULT;
+    }
+  }
+//---------------------------------------------------------------------------//
   static DataFormat locDoResolveFormat(DataFormat aFormat)
   {
     switch (aFormat)
@@ -675,6 +435,36 @@ namespace Fancy {
     case DataFormat::RGB_16UI:
     case DataFormat::RGB_8UI:
     default: ASSERT(false, "Missing implementation or unsupported format"); return DXGI_FORMAT_R8G8B8A8_UNORM;
+    }
+  }
+//---------------------------------------------------------------------------//
+  DataFormat RenderCore_PlatformDX12::GetFormat(DXGI_FORMAT aFormat)
+  {
+    switch (aFormat)
+    {
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:   return DataFormat::SRGB_8_A_8;
+    case DXGI_FORMAT_R8G8B8A8_UNORM:        return DataFormat::RGBA_8;
+    case DXGI_FORMAT_R11G11B10_FLOAT:       return DataFormat::RGB_11_11_10F;
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:    return DataFormat::RGBA_16F;
+    case DXGI_FORMAT_R16G16_FLOAT:          return DataFormat::RG_16F;
+    case DXGI_FORMAT_R16_FLOAT:             return DataFormat::R_16F;
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:    return DataFormat::RGBA_32F;
+    case DXGI_FORMAT_R32G32B32_FLOAT:       return DataFormat::RGB_32F;
+    case DXGI_FORMAT_R32G32_FLOAT:          return DataFormat::RG_32F;
+    case DXGI_FORMAT_R32_FLOAT:             return DataFormat::R_32F;
+    case DXGI_FORMAT_R32G32B32A32_UINT:     return DataFormat::RGBA_32UI;
+    case DXGI_FORMAT_R32G32B32_UINT:        return DataFormat::RGB_32UI;
+    case DXGI_FORMAT_R32G32_UINT:           return DataFormat::RG_32UI;
+    case DXGI_FORMAT_R32_UINT:              return DataFormat::R_32UI;         
+    case DXGI_FORMAT_R16G16B16A16_UINT:     return DataFormat::RGBA_16UI;      
+    case DXGI_FORMAT_R16G16_UINT:           return DataFormat::RG_16UI;        
+    case DXGI_FORMAT_R16_UINT:              return DataFormat::R_16UI;         
+    case DXGI_FORMAT_R8G8B8A8_UINT:         return DataFormat::RGBA_8UI;       
+    case DXGI_FORMAT_R8G8_UINT:             return DataFormat::RG_8UI;         
+    case DXGI_FORMAT_R8_UINT:               return DataFormat::R_8UI;          
+    case DXGI_FORMAT_R24G8_TYPELESS:        return DataFormat::DS_24_8;        
+    case DXGI_FORMAT_UNKNOWN:               return DataFormat::UNKNOWN;        
+    default: ASSERT(false, "Missing implementation or unsupported format"); return DataFormat::SRGB_8_A_8;
     }
   }
 //---------------------------------------------------------------------------//

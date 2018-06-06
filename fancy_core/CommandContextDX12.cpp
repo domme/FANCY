@@ -31,8 +31,23 @@ namespace Fancy {
       }
     }
   //---------------------------------------------------------------------------//
+    bool locValidateUsageStatesCopy(const GpuResource* aDst, uint aDstSubresource, const GpuResource* aSrc, uint aSrcSubresource)
+    {
+      bool valid = (aSrc->myUsageState == GpuResourceState::RESOURCE_STATE_COPY_SRC || aSrc->myUsageState == GpuResourceState::RESOURCE_STATE_GENERIC_READ) &&
+        (aDst->myUsageState == GpuResourceState::RESOURCE_STATE_COPY_DEST);
+      ASSERT(valid);
+      return valid;
+    }
+  //---------------------------------------------------------------------------//
+    bool locValidateUsageStatesCopy(const GpuResource* aDst, const GpuResource* aSrc)
+    {
+      bool valid = (aSrc->myUsageState == GpuResourceState::RESOURCE_STATE_COPY_SRC || aSrc->myUsageState == GpuResourceState::RESOURCE_STATE_GENERIC_READ) &&
+        (aDst->myUsageState == GpuResourceState::RESOURCE_STATE_COPY_DEST);
+      ASSERT(valid);
+      return valid;
+    }
+  //---------------------------------------------------------------------------//
   }
-
 //---------------------------------------------------------------------------//
   std::unordered_map<uint64, ID3D12PipelineState*> CommandContextDX12::ourPSOcache;
 //---------------------------------------------------------------------------//
@@ -94,18 +109,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   static void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint aNumRows, uint aNumSlices)
   {
-    for (uint iSlice = 0u; iSlice < aNumSlices; ++iSlice)
-    {
-      uint8* destSliceDataPtr = static_cast<uint8*>(aDest->pData) + aDest->SlicePitch * iSlice;
-      const uint8* srcSliceDataPtr = static_cast<const uint8*>(aSrc->pData) + aSrc->SlicePitch * iSlice;
-      for (uint iRow = 0u; iRow < aNumRows; ++iRow)
-      {
-        uint8* destDataPtr = destSliceDataPtr + aDest->RowPitch * iRow;
-        const uint8* srcDataPtr = srcSliceDataPtr + aSrc->RowPitch * iRow;
-
-        memcpy(destDataPtr, srcDataPtr, aRowStrideBytes);
-      }
-    }
+    
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource,
@@ -113,7 +117,7 @@ namespace Fancy {
   {
     D3D12_RESOURCE_DESC srcDesc = aStagingResource->GetDesc();
     D3D12_RESOURCE_DESC destDesc = aDestResource->GetDesc();
-
+    
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT* destLayouts = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * aNumSubresources));
     uint64* destRowSizesByte = static_cast<uint64*>(alloca(sizeof(uint64) * aNumSubresources));
     uint* destRowNums = static_cast<uint*>(alloca(sizeof(uint) * aNumSubresources));
@@ -128,11 +132,26 @@ namespace Fancy {
 
     for (uint i = 0u; i < aNumSubresources; ++i)
     {
-      D3D12_MEMCPY_DEST dest;
-      dest.pData = tempBufferDataPtr + destLayouts[i].Offset;
-      dest.RowPitch = destLayouts[i].Footprint.RowPitch;
-      dest.SlicePitch = destLayouts[i].Footprint.RowPitch * destRowNums[i];
-      locMemcpySubresourceRows(&dest, &someSubresourceDatas[i], destRowSizesByte[i], destRowNums[i], destLayouts[i].Footprint.Depth);
+      uint8* dstSubResourceData = tempBufferDataPtr + destLayouts[i].Offset;
+      uint64 dstSubResourceRowSize = destLayouts[i].Footprint.RowPitch;
+      uint64 dstSubResourceSliceSize = dstSubResourceRowSize * destRowNums[i];
+
+      uint8* srcSubResourceData = (uint8*) someSubresourceDatas[i].pData;
+      uint64 srcSubResourceRowSize = someSubresourceDatas[i].RowPitch;
+      uint64 srcSubResourceSliceSize = someSubresourceDatas[i].SlicePitch;
+
+      for (uint iSlice = 0u; iSlice < destLayouts[i].Footprint.Depth; ++iSlice)
+      {
+        uint8* destSliceDataPtr = dstSubResourceData + dstSubResourceSliceSize * iSlice;
+        const uint8* srcSliceDataPtr = srcSubResourceData + srcSubResourceSliceSize * iSlice;
+        for (uint iRow = 0u; iRow < destRowNums[i]; ++iRow)
+        {
+          uint8* destDataPtr = destSliceDataPtr + dstSubResourceRowSize * iRow;
+          const uint8* srcDataPtr = srcSliceDataPtr + srcSubResourceRowSize * iRow;
+
+          memcpy(destDataPtr, srcDataPtr, destRowSizesByte[i]);
+        }
+      }
     }
     aStagingResource->Unmap(0, nullptr);
 
@@ -254,22 +273,92 @@ namespace Fancy {
 
     myCommandList->ClearDepthStencilView(textureDX12->GetDsv()->myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandContextDX12::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
   {
-    GpuResourceState oldDestState = aDestResource->myUsageState;
-    GpuResourceState oldSrcState = aSrcResource->myUsageState;
-
-    TransitionResource(aDestResource, GpuResourceState::RESOURCE_STATE_COPY_DEST,
-                       aSrcResource, GpuResourceState::RESOURCE_STATE_COPY_SRC);
+    locValidateUsageStatesCopy(aDestResource, aSrcResource);
 
     GpuResourceStorageDX12* destStorage = (GpuResourceStorageDX12*)aDestResource->myStorage.get();
     GpuResourceStorageDX12* srcStorage = (GpuResourceStorageDX12*)aSrcResource->myStorage.get();
     
     myCommandList->CopyResource(destStorage->myResource.Get(), srcStorage->myResource.Get());
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
+  {
+    ASSERT(aDestBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)");
+    ASSERT(aSize <= aDestBuffer->GetSizeBytes() - aDestOffset, "Invalid dst-region specified");
+    ASSERT(aSize <= aSrcBuffer->GetSizeBytes() - aSrcOffset, "Invalid src-region specified");
+    locValidateUsageStatesCopy(aDestBuffer, aSrcBuffer);
 
-    TransitionResource(aDestResource, oldDestState,
-                       aSrcResource, oldSrcState);
+    ID3D12Resource* dstResource = ((GpuResourceStorageDX12*)aDestBuffer->myStorage.get())->myResource.Get();
+    ID3D12Resource* srcResource = ((GpuResourceStorageDX12*)aSrcBuffer->myStorage.get())->myResource.Get();
+
+    myCommandList->CopyBufferRegion(dstResource, aDestOffset, srcResource, aSrcOffset, aSize);
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion& aSrcRegion)
+  {
+    const TextureParams& dstParams = aDestTexture->GetParameters();
+    const TextureParams& srcParams = aSrcTexture->GetParameters();
+
+    // TODO: asserts and validation of regions agains texture-parameters
+    
+    ID3D12Resource* dstResource = ((GpuResourceStorageDX12*)aDestTexture->myStorage.get())->myResource.Get();
+    ID3D12Resource* srcResource = ((GpuResourceStorageDX12*)aSrcTexture->myStorage.get())->myResource.Get();
+
+    D3D12_TEXTURE_COPY_LOCATION dstLocation;
+    dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+    dstLocation.SubresourceIndex = aDestTexture->GetSubresourceIndex(aDestSubLocation);
+    dstLocation.pResource = dstResource;
+
+    D3D12_TEXTURE_COPY_LOCATION srcLocation;
+    srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+    srcLocation.SubresourceIndex = aSrcTexture->GetSubresourceIndex(aSrcSubLocation);
+    srcLocation.pResource = srcResource;
+    
+    locValidateUsageStatesCopy(aDestTexture, dstLocation.SubresourceIndex, aSrcTexture, srcLocation.SubresourceIndex);
+
+    D3D12_BOX srcBox;
+    srcBox.left = aSrcRegion.myTexelPos.x;
+    srcBox.right = aSrcRegion.myTexelPos.x + aSrcRegion.myTexelSize.x;
+    srcBox.bottom = aSrcRegion.myTexelPos.y;
+    srcBox.top = aSrcRegion.myTexelPos.y + aSrcRegion.myTexelSize.y;
+    srcBox.front = aSrcRegion.myTexelPos.z;
+    srcBox.back = aSrcRegion.myTexelPos.z + aSrcRegion.myTexelSize.z;
+
+    myCommandList->CopyTextureRegion(&dstLocation, aDestRegion.myTexelPos.x, aDestRegion.myTexelPos.y, aDestRegion.myTexelPos.z, &srcLocation, &srcBox);
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  {
+    const TextureParams& dstParams = aDestTexture->GetParameters();
+
+    ID3D12Resource* dstResource = ((GpuResourceStorageDX12*)aDestTexture->myStorage.get())->myResource.Get();
+    ID3D12Resource* srcResource = ((GpuResourceStorageDX12*)aSrcBuffer->myStorage.get())->myResource.Get();
+
+    D3D12_TEXTURE_COPY_LOCATION dstLocation;
+    dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+    dstLocation.SubresourceIndex = aDestTexture->GetSubresourceIndex(aDestSubLocation);
+    dstLocation.pResource = dstResource;
+
+    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
+
+    const D3D12_RESOURCE_DESC& dstResourceDesc = dstResource->GetDesc();
+
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+    uint numRows;
+    uint64 rowSizeBytes;
+    uint64 totalSizeBytes;
+    device->GetCopyableFootprints(&dstResourceDesc, dstLocation.SubresourceIndex, 1u, 0u, &footprint, &numRows, &rowSizeBytes, &totalSizeBytes);
+    
+    D3D12_TEXTURE_COPY_LOCATION srcLocation;
+    srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+    srcLocation.pResource = srcResource;
+    srcLocation.PlacedFootprint.Footprint = footprint.Footprint;
+    srcLocation.PlacedFootprint.Offset = aSrcOffset + footprint.Offset;
+    
+    myCommandList->CopyTextureRegion(&dstLocation, aDestRegion.myTexelPos.x, aDestRegion.myTexelPos.y, aDestRegion.myTexelPos.z, &srcLocation, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources)

@@ -250,9 +250,16 @@
     <ClInclude Include="MathPrerequisites.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="CommandQueue.h" />
-    <ClInclude Include="CommandQueueDX12.h" />
     <ClInclude Include="GpuRingBuffer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuMemoryAllocatorDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueueDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
       <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
@@ -378,9 +385,16 @@
     <ClCompile Include="Input.cpp">
       <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="CommandQueue.cpp" />
-    <ClCompile Include="CommandQueueDX12.cpp" />
     <ClCompile Include="GpuRingBuffer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuMemoryAllocatorDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueueDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>

@@ -52,12 +52,11 @@ namespace Fancy {
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle);
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
-    static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
+    static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, const void* someInitialData = nullptr);
 
-    static void InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr);
-    static void UpdateBufferData(GpuBuffer* aBuffer, void* aDataPtr, uint aByteSize, uint aByteOffsetFromBuffer = 0u);
-    static void InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas);
+    static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
+    static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);
 
     static SharedPtr<BlendState> CreateBlendState(const BlendStateDesc& aDesc);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateDesc& aDesc);
@@ -111,7 +110,15 @@ namespace Fancy {
     
     static std::vector<std::unique_ptr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
-    static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
+    static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers; 
+
+    // To consider: All resource-allocations are currently managed by the context-executions. 
+    // This might be too much overhead in case of many small context-executions.
+    // Should we rather introduce per-frame liefimes for some resources (e.g. temporary buffers/textures) whose lifetime is managed on a higher level?
+    /*
+      GpuBuffer*
+      
+      /*/
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

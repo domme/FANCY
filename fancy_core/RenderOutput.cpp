@@ -36,7 +36,7 @@ namespace Fancy {
     dsTexParams.myIsShaderWritable = false;
     dsTexParams.u16Width = myWindow->GetWidth();
     dsTexParams.u16Height = myWindow->GetHeight();
-    dsTexParams.u8NumMipLevels = 1u;
+    dsTexParams.myNumMipLevels = 1u;
 
     myDefaultDepthStencil = RenderCore::CreateTexture(dsTexParams);
     ASSERT(myDefaultDepthStencil != nullptr);

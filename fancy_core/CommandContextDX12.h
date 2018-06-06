@@ -11,7 +11,7 @@ namespace Fancy {
   class DescriptorHeapDX12;
   class GpuResourceDX12;
 //---------------------------------------------------------------------------//
-  class CommandContextDX12 : public CommandContext
+  class CommandContextDX12 final : public CommandContext
   {
     friend class RenderCore_PlatformDX12;
     friend class CommandQueueDX12;
@@ -29,6 +29,10 @@ namespace Fancy {
     void ClearRenderTarget(Texture* aTexture, const float* aColor) override;
     void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) override;
     void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) override;
+    void CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) override;
+    void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion& aSrcRegion) override;
+    void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
+
     void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) override;
     void Reset(uint64 aFenceVal) override;
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;

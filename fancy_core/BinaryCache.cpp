@@ -49,7 +49,7 @@ namespace Fancy {
     return basePath + "ResourceCache/" + aPathInResources + ".bin";
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::WriteTexture(const Texture* aTexture, const TextureUploadData& someData)
+  bool BinaryCache::WriteTexture(const Texture* aTexture, const TextureSubData& someData)
   {
     const TextureDesc& texDesc = aTexture->GetDescription();
     const uint64 texDescHash = texDesc.GetHash();
@@ -75,11 +75,11 @@ namespace Fancy {
     // Write the texture
     archive.write(reinterpret_cast<const char*>(&texParams.u16Width), sizeof(uint16));
     archive.write(reinterpret_cast<const char*>(&texParams.u16Height), sizeof(uint16));
-    archive.write(reinterpret_cast<const char*>(&texParams.u16Depth), sizeof(uint16));
-    archive.write(reinterpret_cast<const char*>(&texParams.uAccessFlags), sizeof(uint));
+    archive.write(reinterpret_cast<const char*>(&texParams.myDepthOrArraySize), sizeof(uint16));
+    archive.write(reinterpret_cast<const char*>(&texParams.myAccessType), sizeof(uint));
     const uint format = static_cast<uint>(texParams.eFormat);
     archive.write(reinterpret_cast<const char*>(&format), sizeof(uint));
-    archive.write(reinterpret_cast<const char*>(&texParams.u8NumMipLevels), sizeof(uint8));
+    archive.write(reinterpret_cast<const char*>(&texParams.myNumMipLevels), sizeof(uint8));
     
     archive.write(reinterpret_cast<const char*>(&someData.myPixelSizeBytes), sizeof(uint64));
     archive.write(reinterpret_cast<const char*>(&someData.myRowSizeBytes), sizeof(uint64));
@@ -122,14 +122,14 @@ namespace Fancy {
     texParams.myInternalRefIndex = texDesc.myInternalRefIndex;
     archive.read((char*)&texParams.u16Width, sizeof(uint16));
     archive.read((char*)&texParams.u16Height, sizeof(uint16));
-    archive.read((char*)&texParams.u16Depth, sizeof(uint16));
-    archive.read((char*)&texParams.uAccessFlags, sizeof(uint));
+    archive.read((char*)&texParams.myDepthOrArraySize, sizeof(uint16));
+    archive.read((char*)&texParams.myAccessType, sizeof(uint));
     uint format = 0;
     archive.read((char*)&format, sizeof(uint));
     texParams.eFormat = static_cast<DataFormat>(format);
-    archive.read((char*)&texParams.u8NumMipLevels, sizeof(uint8));
+    archive.read((char*)&texParams.myNumMipLevels, sizeof(uint8));
 
-    TextureUploadData texData;
+    TextureSubData texData;
     archive.read((char*)(&texData.myPixelSizeBytes), sizeof(uint64));
     archive.read((char*)(&texData.myRowSizeBytes), sizeof(uint64));
     archive.read((char*)(&texData.mySliceSizeBytes), sizeof(uint64));

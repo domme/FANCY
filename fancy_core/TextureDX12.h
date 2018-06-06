@@ -4,7 +4,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class TextureDX12 : public Texture
+  class TextureDX12 final : public Texture
   {
     friend class RenderOutputDX12;  // Remove after backbuffers are handled through the texture class
 
@@ -12,7 +12,10 @@ namespace Fancy {
     TextureDX12();
     ~TextureDX12() override;
 
-    void Create(const TextureParams& clDeclaration, const TextureUploadData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) override;
+    void Create(const TextureParams& clDeclaration, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) override;
+    void GetSubresourceLayout(const TextureSubLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const override;
+    uint GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const override;
+    TextureSubLocation GetSubresourceLocation(uint aSubresourceIndex) const override;
 
     const DescriptorDX12* GetSrv() const { return &mySrvDescriptor; }
     const DescriptorDX12* GetUav() const { return &myUavDescriptor; }

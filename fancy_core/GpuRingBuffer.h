@@ -15,7 +15,8 @@ namespace Fancy
     void Create(const GpuBufferCreationParams& someParameters, GpuResoruceLockOption aLockOption, const void* pInitialData = nullptr);
 
     uint GetFreeDataSize() const;
-    bool Write(void* someData, uint aDataSize, uint& anOffsetOut);
+    bool AllocateAndWrite(const void* someData, uint aDataSize, uint& anOffsetOut);
+    bool Allocate(uint aDataSize, uint& anOffsetOut);
     void Reset() { myOffset = 0u; }
     const GpuBuffer* GetBuffer() const { return myBuffer.get(); }
 

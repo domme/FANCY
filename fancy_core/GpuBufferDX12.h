@@ -13,8 +13,8 @@ namespace Fancy {
     ~GpuBufferDX12() override;
         
     void Create(const GpuBufferCreationParams& clParameters, const void* pInitialData = nullptr) override;
-    void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) override;
-    void Unlock(uint anOffsetElements = 0u, uint aNumElements = 0u) override;
+    void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) const override;
+    void Unlock(uint anOffsetElements = 0u, uint aNumElements = 0u) const override;
 
     const DescriptorDX12* GetSrv() const { return &mySrvDescriptor; }
     const DescriptorDX12* GetUav() const { return &myUavDescriptor; }

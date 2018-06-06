@@ -158,10 +158,11 @@ namespace Fancy {
     std::unique_ptr<GpuRingBuffer> buf = std::make_unique<GpuRingBuffer>();
 
     GpuBufferCreationParams params;
+    ASSERT(aNeededByteSize <= UINT_MAX, "Buffer size overflow. Consider making numElements 64 bit wide");
     params.uNumElements = aNeededByteSize;
     params.uElementSizeBytes = 1u;
     params.myUsageFlags = (uint) aUsage;
-    params.uAccessFlags = (uint)GpuResourceAccessFlags::WRITE;
+    params.myAccessType = (uint)GpuMemoryAccessType::CPU_WRITE;
     params.myCreateDerivedViews = false;
     buf->Create(params, GpuResoruceLockOption::WRITE);
     ourRingBufferPool.push_back(std::move(buf));
@@ -270,7 +271,7 @@ namespace Fancy {
       params.u16Width = 1u;
       params.myInternalRefIndex = (uint)TextureRef::DEFAULT_DIFFUSE;
 
-      TextureUploadData data(params);
+      TextureSubData data(params);
       uint8 color[3] = { 0, 0, 0 };
       data.myData = color;
 
@@ -288,7 +289,7 @@ namespace Fancy {
       params.u16Width = 1u;
       params.myInternalRefIndex = (uint)TextureRef::DEFAULT_NORMAL;
 
-      TextureUploadData data(params);
+      TextureSubData data(params);
       uint8 color[3] = { 128, 128, 128 };
       data.myData = color;
 
@@ -487,11 +488,11 @@ namespace Fancy {
       const uint8* ptrToVertexData = meshData.myVertexData.data();
       const uint numVertices = (meshData.myVertexData.size() * sizeof(uint8)) / vertexLayout.myStride;
 
-      SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateGpuBuffer());
+      SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateBuffer());
 
       GpuBufferCreationParams bufferParams;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
-      bufferParams.uAccessFlags = static_cast<uint>(GpuResourceAccessFlags::NONE);
+      bufferParams.myAccessType = static_cast<uint>(GpuMemoryAccessType::NO_CPU_ACCESS);
       bufferParams.uNumElements = numVertices;
       bufferParams.uElementSizeBytes = vertexLayout.myStride;
 
@@ -503,11 +504,11 @@ namespace Fancy {
       const uint8* ptrToIndexData = meshData.myIndexData.data();
       const uint numIndices = (meshData.myIndexData.size() * sizeof(uint8)) / sizeof(uint);
 
-      SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateGpuBuffer());
+      SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateBuffer());
 
       GpuBufferCreationParams indexBufParams;
       indexBufParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
-      indexBufParams.uAccessFlags = static_cast<uint>(GpuResourceAccessFlags::NONE);
+      indexBufParams.myAccessType = static_cast<uint>(GpuMemoryAccessType::NO_CPU_ACCESS);
       indexBufParams.uNumElements = numIndices;
       indexBufParams.uElementSizeBytes = sizeof(uint);
 
@@ -525,7 +526,7 @@ namespace Fancy {
     return mesh;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureUploadData* someUploadDatas, uint aNumUploadDatas)
+  SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureSubData* someUploadDatas, uint aNumUploadDatas)
   {
     SharedPtr<Texture> tex(ourPlatformImpl->CreateTexture());
     tex->Create(someParams, someUploadDatas, aNumUploadDatas);
@@ -534,9 +535,47 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferCreationParams& someParams, const void* someInitialData /* = nullptr */)
   {
-    SharedPtr<GpuBuffer> buffer(ourPlatformImpl->CreateGpuBuffer());
+    SharedPtr<GpuBuffer> buffer(ourPlatformImpl->CreateBuffer());
     buffer->Create(someParams, someInitialData);
     return buffer->IsValid() ? buffer : nullptr;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
+  {
+    ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetSizeBytes());
+
+    const GpuBufferCreationParams& bufParams = aDestBuffer->GetParameters();
+
+    if (bufParams.myAccessType == (uint)GpuMemoryAccessType::CPU_WRITE)
+    {
+      uint8* dest = static_cast<uint8*>(aDestBuffer->Lock(GpuResoruceLockOption::WRITE));
+      ASSERT(dest != nullptr);
+      memcpy(dest + aDestOffset, aDataPtr, aByteSize);
+      aDestBuffer->Unlock();
+    }
+    else
+    {
+      CommandContext* context = AllocateContext(CommandListType::Graphics);
+      const GpuResourceState oldState = aDestBuffer->myUsageState;
+      context->TransitionResource(aDestBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST);
+      context->UpdateBufferData(aDestBuffer, aDestOffset, aDataPtr, aByteSize);
+      context->TransitionResource(aDestBuffer, oldState);
+      GetCommandQueue(CommandListType::Graphics)->ExecuteContext(context, true);
+      FreeContext(context);
+    }
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas)
+  {
+    CommandContext* context = AllocateContext(CommandListType::Graphics);
+
+    // TODO: Only transition the required subresources to COPY_DEST
+    const GpuResourceState oldState = aDestTexture->myUsageState;
+    context->TransitionResource(aDestTexture, GpuResourceState::RESOURCE_STATE_COPY_DEST);
+    context->UpdateTextureData(aDestTexture, aStartSubresource, someDatas, aNumDatas);
+    context->TransitionResource(aDestTexture, oldState);
+    GetCommandQueue(CommandListType::Graphics)->ExecuteContext(context, true);
+    FreeContext(context);
   }
 //---------------------------------------------------------------------------//
   CommandContext* RenderCore::AllocateContext(CommandListType aType)
@@ -589,41 +628,6 @@ namespace Fancy {
   {
     CommandListType type = CommandQueue::GetCommandListType(aFenceVal);
     return GetCommandQueue(type);
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore::UpdateBufferData(GpuBuffer* aBuffer, void* aData, uint aDataSizeBytes, uint aByteOffsetFromBuffer /* = 0 */)
-  {
-    ASSERT(aByteOffsetFromBuffer + aDataSizeBytes <= aBuffer->GetSizeBytes());
-
-    const GpuBufferCreationParams& bufParams = aBuffer->GetParameters();
-
-    if (bufParams.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE)
-    {
-      uint8* dest = static_cast<uint8*>(aBuffer->Lock(GpuResoruceLockOption::WRITE));
-      ASSERT(dest != nullptr);
-      memcpy(dest + aByteOffsetFromBuffer, aData, aDataSizeBytes);
-      aBuffer->Unlock();
-    }
-    else
-    {
-      CommandContext* updateContext = AllocateContext(CommandListType::Graphics);
-      ourPlatformImpl->UpdateBufferData(aBuffer, aData, aByteOffsetFromBuffer, aDataSizeBytes, updateContext);
-      FreeContext(updateContext);
-    }
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore::InitTextureData(Texture* aTexture, const TextureUploadData* someUploadDatas, uint aNumUploadDatas)
-  {
-    CommandContext* initContext = AllocateContext(CommandListType::Graphics);
-    ourPlatformImpl->InitTextureData(aTexture, someUploadDatas, aNumUploadDatas, initContext);
-    FreeContext(initContext);
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore::InitBufferData(GpuBuffer* aBuffer, const void* aDataPtr)
-  {
-    CommandContext* initContext = AllocateContext(CommandListType::Graphics);
-    ourPlatformImpl->InitBufferData(aBuffer, aDataPtr, initContext);
-    FreeContext(initContext);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::OnShaderFileUpdated(const String& aShaderFile)

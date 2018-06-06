@@ -190,13 +190,13 @@ namespace Fancy {
       NONE
     };
   //---------------------------------------------------------------------------//
-    enum class GpuResourceAccessFlags 
+    enum class GpuMemoryAccessType
     {
-      NONE      = 1 << 0, // No special access flags
-      READ      = 1 << 1, // Allow CPU read-access
-      WRITE     = 1 << 2, // Allow CPU write-access
-      DYNAMIC   = 1 << 3, // CPU will change data frequently
-      COHERENT  = 1 << 4, // Changes from CPU/GPU are immediately visible to GPU/CPU
+      NO_CPU_ACCESS = 0,
+      CPU_WRITE,
+      CPU_READ,
+
+      NUM
     };
   //---------------------------------------------------------------------------//
     enum class GpuResoruceLockOption 
@@ -210,15 +210,15 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
     struct TextureParams 
     {
-      TextureParams() : path(""), u16Width(0u), u16Height(0u), u16Depth(0u),
-        eFormat(DataFormat::NONE), uAccessFlags(0u), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), u8NumMipLevels(0u), 
+      TextureParams() : path(""), u16Width(0u), u16Height(0u), myDepthOrArraySize(0u),
+        eFormat(DataFormat::NONE), myAccessType(0u), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), myNumMipLevels(0u),
         myIsShaderWritable(false), myIsRenderTarget(false) {}
 
       uint16 u16Width;
       uint16 u16Height;
-      uint16 u16Depth;
+      uint16 myDepthOrArraySize;
       DataFormat eFormat;
-      uint uAccessFlags;
+      uint myAccessType;
       bool myIsShaderWritable;
       bool myIsRenderTarget;
       bool bIsDepthStencil;
@@ -226,16 +226,41 @@ namespace Fancy {
       bool myIsExternalTexture;
       uint myInternalRefIndex;
 
-      uint8 u8NumMipLevels;
+      uint8 myNumMipLevels;
+    };
+//---------------------------------------------------------------------------//
+    struct TextureSubLayout
+    {
+      DataFormat myFormat;
+      uint myWidth;
+      uint myHeight;
+      uint myDepth;
+      uint64 myAlignedRowSize;
+      uint64 myRowSize;
+      uint myNumRows;
     };
  //---------------------------------------------------------------------------//
-    struct TextureUploadData
+    struct TextureSubLocation
     {
-      TextureUploadData()
-        : myData(nullptr), myRowSizeBytes(0u), myTotalSizeBytes(0u), myPixelSizeBytes(0u), mySliceSizeBytes(0u)
+      TextureSubLocation() : myArrayIndex(0u), myMipLevel(0u), myPlaneIndex(0u) {}
+      uint myArrayIndex;
+      uint myMipLevel;
+      uint myPlaneIndex;
+    };
+  //---------------------------------------------------------------------------//
+    struct TextureRegion
+    {
+      glm::uvec3 myTexelPos;
+      glm::uvec3 myTexelSize;
+    };
+ //---------------------------------------------------------------------------//
+    struct TextureSubData
+    {
+      TextureSubData()
+        : myData(nullptr), myRowSizeBytes(0u), myPixelSizeBytes(0u), mySliceSizeBytes(0u), myTotalSizeBytes(0u)
       {}
     
-      TextureUploadData(const TextureParams& someParams);
+      TextureSubData(const TextureParams& someParams);
       
       uint8* myData;
       uint64 myPixelSizeBytes;
@@ -246,28 +271,26 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
     enum class GpuBufferUsage 
     {
-      CONSTANT_BUFFER = (1 << 0),
-      VERTEX_BUFFER = (1 << 1),
-      INDEX_BUFFER = (1 << 2),
-      DRAW_INDIRECT_BUFFER = (1 << 3),
-      DISPATCH_INDIRECT_BUFFER = (1 << 4),
-      RESOURCE_BUFFER = (1 << 5),
-      RESOURCE_BUFFER_RW = (1 << 6),
-      RESOURCE_BUFFER_LARGE = (1 << 7),
-      RESOURCE_BUFFER_LARGE_RW = (1 << 8),
+      STAGING_UPLOAD = 0,
+      STAGING_READBACK,
+      CONSTANT_BUFFER,
+      VERTEX_BUFFER,
+      INDEX_BUFFER,
+      SHADER_BUFFER
     };
  //---------------------------------------------------------------------------//
     struct GpuBufferCreationParams 
     {
       GpuBufferCreationParams() : uNumElements(0u), myInternalRefIndex(~0u), myCreateDerivedViews(true), 
-        uElementSizeBytes(0u), myUsageFlags(0u), uAccessFlags(0u) {}
+        uElementSizeBytes(0u), myUsageFlags(0u), myAccessType(0u), myIsShaderWritable(false) {}
 
       uint uNumElements;
       uint uElementSizeBytes;
-      uint uAccessFlags;
+      uint myAccessType;
       uint myInternalRefIndex;
       uint myUsageFlags;
       bool myCreateDerivedViews;
+      bool myIsShaderWritable;
     };
  //---------------------------------------------------------------------------//
     enum class VertexSemantics 
@@ -326,6 +349,15 @@ namespace Fancy {
       VERTEX_BUFFER = (1 << 7),
       INDEX_BUFFER = (1 << 8),
       DEPTH_STENCIL_TEXTURE = (1 << 9)
+    };
+//---------------------------------------------------------------------------//
+    enum class GpuMemoryType
+    {
+      BUFFER = 0,
+      TEXTURE,
+      RENDERTARGET,
+
+      NUM
     };
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

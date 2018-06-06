@@ -107,10 +107,10 @@ using namespace Fancy;
     texParams.eFormat = textureInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
     texParams.u16Width = textureInfo.width;
     texParams.u16Height = textureInfo.height;
-    texParams.u16Depth = 0u;
-    texParams.uAccessFlags = (uint)GpuResourceAccessFlags::NONE;
+    texParams.myDepthOrArraySize = 0u;
+    texParams.myAccessType = (uint)GpuMemoryAccessType::NO_CPU_ACCESS;
 
-    TextureUploadData uploadData;
+    TextureSubData uploadData;
     uploadData.myData = &textureBytes[0];
     uploadData.myPixelSizeBytes = textureInfo.bitsPerPixel / 8u;
     uploadData.myRowSizeBytes = textureInfo.width * uploadData.myPixelSizeBytes;

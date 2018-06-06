@@ -11,6 +11,7 @@ namespace Fancy {
     GpuResourceStorageDX12() = default;
    
     Microsoft::WRL::ComPtr<ID3D12Resource> myResource;
+    GpuMemoryAllocationDX12 myGpuMemory;
   };
 //---------------------------------------------------------------------------//
 }

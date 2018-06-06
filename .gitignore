@@ -25,3 +25,4 @@ lib/*
 dependencies/lib/*
 *.db
 FANCY.VC.db
+*.user

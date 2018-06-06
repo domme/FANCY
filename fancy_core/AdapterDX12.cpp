@@ -104,6 +104,42 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  D3D12_HEAP_FLAGS Adapter::ResolveHeapFlags(GpuMemoryType aType)
+  {
+    switch (aType)
+    {
+    case GpuMemoryType::BUFFER: return D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
+    case GpuMemoryType::TEXTURE: return D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
+    case GpuMemoryType::RENDERTARGET: return D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
+    default:
+      ASSERT(false, "Missing implementation"); return D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
+    }
+  }
+//---------------------------------------------------------------------------//
+  GpuMemoryType Adapter::ResolveGpuMemoryType(D3D12_HEAP_FLAGS aHeapFlags)
+  {
+    switch (aHeapFlags)
+    {
+    case D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS: return GpuMemoryType::BUFFER;
+    case D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES: return GpuMemoryType::TEXTURE;
+    case D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES: return GpuMemoryType::RENDERTARGET;
+    default:
+      ASSERT(false, "Missing implementation"); return GpuMemoryType::BUFFER;
+    }
+  }
+//---------------------------------------------------------------------------//
+  GpuMemoryAccessType Adapter::ResolveGpuMemoryAccessType(D3D12_HEAP_TYPE aHeapType)
+  {
+    switch (aHeapType)
+    {
+    case D3D12_HEAP_TYPE_DEFAULT: return GpuMemoryAccessType::NO_CPU_ACCESS;
+    case D3D12_HEAP_TYPE_UPLOAD: return GpuMemoryAccessType::CPU_WRITE;
+    case D3D12_HEAP_TYPE_READBACK: return GpuMemoryAccessType::CPU_READ;
+    default:
+      ASSERT(false, "Missing implementation"); return GpuMemoryAccessType::NO_CPU_ACCESS;
+    }
+  }
+//---------------------------------------------------------------------------//
 	D3D12_BLEND Adapter::toNativeType(const BlendInput& generalType) 
 	{
 		switch (generalType) {

@@ -52,6 +52,9 @@ namespace Fancy {
     virtual void ClearRenderTarget(Texture* aTexture, const float* aColor) = 0;
     virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) = 0;
+    virtual void CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) = 0;
+    virtual void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion& aSrcRegion) = 0;
+    virtual void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) = 0;
     virtual void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) = 0;
     virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex, uint aResourceOffset = 0) const = 0;
     virtual void BindDescriptorSet(const Descriptor** someDescriptors, uint aResourceCount, uint aRegisterIndex) = 0;
@@ -76,6 +79,7 @@ namespace Fancy {
       GpuResource* aResource3, GpuResourceState aTransitionToState3,
       GpuResource* aResource4, GpuResourceState aTransitionToState4);
     
+    const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint aDataSize);
     void BindConstantBuffer(void* someData, uint aDataSize, uint aRegisterIndex);
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
@@ -88,6 +92,9 @@ namespace Fancy {
     void SetDepthStencilRenderTarget(Texture* pDStexture);
     void SetRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
     void RemoveAllRenderTargets();
+
+    void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
+    void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
     
   protected:
     CommandListType myCommandListType;
@@ -104,6 +111,7 @@ namespace Fancy {
     Texture* myDepthStencilTarget;
     bool myRenderTargetsDirty;
 
+    DynamicArray<GpuRingBuffer*> myUploadRingBuffers;
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
   };
 //---------------------------------------------------------------------------//

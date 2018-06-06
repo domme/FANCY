@@ -26,7 +26,7 @@ namespace Fancy {
     bool IsValid() const { return myStorage != nullptr; }
 
     GpuResourceCategory myCategory;
-    GpuResourceState myUsageState;
+    GpuResourceState myUsageState;  // TODO: Support resource-states per subresource
     UniquePtr<GpuResourceStorage> myStorage;
   };
 //---------------------------------------------------------------------------//

@@ -30,15 +30,9 @@ namespace Fancy {
 
     GpuBufferCreationParams* pBaseParams = &myParameters;
     *pBaseParams = someParameters;
-    
-    const bool wantsUnorderedAccess = 
-      (someParameters.myUsageFlags & (uint)GpuBufferUsage::RESOURCE_BUFFER_RW) 
-      || (someParameters.myUsageFlags & (uint)GpuBufferUsage::RESOURCE_BUFFER_LARGE_RW);
 
-    const bool wantsShaderResourceView =
-      wantsUnorderedAccess 
-      || (someParameters.myUsageFlags & (uint)GpuBufferUsage::RESOURCE_BUFFER)
-      || (someParameters.myUsageFlags & (uint)GpuBufferUsage::RESOURCE_BUFFER_LARGE);
+    const bool wantsShaderResourceView = 
+      (someParameters.myUsageFlags & (uint)GpuBufferUsage::SHADER_BUFFER) != 0;
 
     const bool wantsVboView =
       (someParameters.myUsageFlags & (uint)GpuBufferUsage::VERTEX_BUFFER) != 0;
@@ -49,17 +43,11 @@ namespace Fancy {
     const bool wantsConstantBufferView =
       (someParameters.myUsageFlags & (uint)GpuBufferUsage::CONSTANT_BUFFER) != 0;
 
-    D3D12_HEAP_PROPERTIES heapProps;
-    heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    heapProps.CreationNodeMask = 1u;
-    heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-    heapProps.VisibleNodeMask = 1u;
-
-    myAlignment = 0u;
+    myAlignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
     if (wantsConstantBufferView)
       myAlignment = 256u;
 
-    const uint64 actualWidthBytesWithAlignment = 
+    const uint64 actualWidthBytesWithAlignment =
       MathUtil::Align(someParameters.uNumElements * someParameters.uElementSizeBytes, myAlignment);
 
     D3D12_RESOURCE_DESC resourceDesc;
@@ -74,53 +62,39 @@ namespace Fancy {
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-    resourceDesc.Flags = wantsUnorderedAccess ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
-
-    const bool cpu_write = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
-    const bool cpu_read = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::READ) > 0u;
-
-    // Unused and not needed in D3D12?
-    // const bool coherent = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::COHERENT) > 0u;
-    // const bool dynamic = (someParameters.uAccessFlags & (uint)GpuResourceAccessFlags::DYNAMIC) > 0u;
+    resourceDesc.Flags = someParameters.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
     myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
-    if (!cpu_write && !cpu_read)  // No CPU-access
-    {
-      heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-      myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
-    }
-    else if (cpu_write && !cpu_read)  // CPU write-only
-    {
-      heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-      myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
-    }
-    else if (cpu_read && !cpu_write)  // CPU read-only
-    {
-      heapProps.Type = D3D12_HEAP_TYPE_READBACK;
-      myUsageState = GpuResourceState::RESOURCE_STATE_COPY_DEST;
-    }
-    else if (cpu_read && cpu_write) 
-    {
-      // TODO: This might be wrong and is a bad idea anyway... 
-      heapProps.Type = D3D12_HEAP_TYPE_CUSTOM;
-      myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
-      heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-      heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someParameters.myAccessType;
+    switch(gpuMemAccess) 
+    { 
+      case GpuMemoryAccessType::NO_CPU_ACCESS: 
+        myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
+        break;
+      case GpuMemoryAccessType::CPU_WRITE: 
+        myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
+        break;
+      case GpuMemoryAccessType::CPU_READ: 
+        myUsageState = GpuResourceState::RESOURCE_STATE_COPY_DEST;
+        break;
     }
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     D3D12_RESOURCE_STATES usageStateDX12 = Adapter::toNativeType(myUsageState);
+    ID3D12Device* device = dx12Platform->GetDevice();
+        
+    GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(GpuMemoryType::BUFFER, gpuMemAccess, actualWidthBytesWithAlignment, myAlignment);
+    ASSERT(gpuMemory.myHeap != nullptr);
+    
+    uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, usageStateDX12, nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
 
-    CheckD3Dcall(dx12Platform->GetDevice()->CreateCommittedResource(
-      &heapProps, 
-      D3D12_HEAP_FLAG_NONE, 
-      &resourceDesc, 
-      usageStateDX12,
-      nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
+    storageDx12->myGpuMemory = gpuMemory;
 
     if (pInitialData != nullptr)
     {
-      if (cpu_write)  // The fast path: Just lock and memcpy into cpu-visible region
+      if (gpuMemAccess == GpuMemoryAccessType::CPU_WRITE)
       {
         void* dest = Lock(GpuResoruceLockOption::WRITE);
         ASSERT(dest != nullptr);
@@ -129,7 +103,7 @@ namespace Fancy {
       }
       else
       {
-        RenderCore::InitBufferData(this, pInitialData);
+        RenderCore::UpdateBufferData(this, 0u, pInitialData, someParameters.uNumElements * someParameters.uElementSizeBytes);
       }
     }
 
@@ -150,7 +124,7 @@ namespace Fancy {
         dx12Platform->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, mySrvDescriptor.myCpuHandle);
       }
 
-      if (wantsUnorderedAccess)
+      if (someParameters.myIsShaderWritable)
       {
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
         uavDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -195,16 +169,24 @@ namespace Fancy {
         myIndexBufferView.SizeInBytes = myParameters.uNumElements * myParameters.uElementSizeBytes;
       }
     }
+    
   }
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::Destroy()
   {
+    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)myStorage.get();
+    if (storageDx12 != nullptr && storageDx12->myGpuMemory.myHeap != nullptr)
+    {
+      storageDx12->myResource.Reset();
+      RenderCore::GetPlatformDX12()->FreeGpuMemory(storageDx12->myGpuMemory);
+    }
+
     myStorage = nullptr;
     memset(&myVertexBufferView, 0, sizeof(myVertexBufferView));
     memset(&myIndexBufferView, 0, sizeof(myIndexBufferView));
   }
 //---------------------------------------------------------------------------//
-  void* GpuBufferDX12::Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements /* = 0u */, uint uNumElements /* = 0u */)
+  void* GpuBufferDX12::Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements /* = 0u */, uint uNumElements /* = 0u */) const
   {
     ASSERT(uOffsetElements + uNumElements <= myParameters.uNumElements);
 
@@ -215,8 +197,8 @@ namespace Fancy {
     range.Begin = uOffsetElements * myParameters.uElementSizeBytes;
     range.End = range.Begin + uNumElements * myParameters.uElementSizeBytes;
 
-    const bool isCpuWritable = (myParameters.uAccessFlags & (uint)GpuResourceAccessFlags::WRITE) > 0u;
-    const bool isCpuReadable = (myParameters.uAccessFlags & (uint)GpuResourceAccessFlags::READ) > 0u;
+    const bool isCpuWritable = myParameters.myAccessType == (uint)GpuMemoryAccessType::CPU_WRITE;
+    const bool isCpuReadable = myParameters.myAccessType == (uint)GpuMemoryAccessType::CPU_READ;
 
     const bool wantsWrite = eLockOption == GpuResoruceLockOption::READ_WRITE || eLockOption == GpuResoruceLockOption::WRITE;
     const bool wantsRead = eLockOption == GpuResoruceLockOption::READ_WRITE || eLockOption == GpuResoruceLockOption::READ;
@@ -226,7 +208,7 @@ namespace Fancy {
 
     // TODO: Do something with the current usage type? Transition it into something correct? Early-out?
 
-    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
+    const GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
 
     void* mappedData = nullptr;
     CheckD3Dcall(storageDx12->myResource->Map(0, &range, &mappedData));
@@ -234,7 +216,7 @@ namespace Fancy {
     return mappedData;
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Unlock(uint anOffsetElements /* = 0u */, uint aNumElements /* = 0u */)
+  void GpuBufferDX12::Unlock(uint anOffsetElements /* = 0u */, uint aNumElements /* = 0u */) const
   {
     if (anOffsetElements == 0u && aNumElements == 0u)
       aNumElements = myParameters.uNumElements;
@@ -245,7 +227,7 @@ namespace Fancy {
     range.Begin = anOffsetElements * myParameters.uElementSizeBytes;
     range.End = range.Begin + aNumElements * myParameters.uElementSizeBytes;
 
-    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
+    const GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
     storageDx12->myResource->Unmap(0u, &range);
   }
 //---------------------------------------------------------------------------//

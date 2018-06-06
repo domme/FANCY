@@ -21,8 +21,8 @@ namespace Fancy {
     uint GetAlignment() const { return myAlignment; }
 
     virtual void Create(const GpuBufferCreationParams& clParameters,const void* pInitialData = nullptr) = 0;
-    virtual void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) = 0;
-    virtual void Unlock(uint anOffsetElements = 0u, uint aNumElements = 0u) = 0;
+    virtual void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) const = 0;
+    virtual void Unlock(uint anOffsetElements = 0u, uint aNumElements = 0u) const = 0;
     
   protected:
     uint myAlignment;

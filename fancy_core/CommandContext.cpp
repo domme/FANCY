@@ -8,6 +8,7 @@
 #include "GpuProgram.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
+#include "RenderPlatformCaps.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -108,21 +109,49 @@ namespace Fancy {
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::BindConstantBuffer(void* someData, uint aDataSize, uint aRegisterIndex)
+  const GpuBuffer* CommandContext::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint aDataSize)
   {
-    // TODO: Replace with a more elaborated memory manager that accomodates different sizes and also different buffer-types
-    static const uint kConstantRingBufferSize = 2 * SIZE_MB;
-    ASSERT(aDataSize <= kConstantRingBufferSize);
+    DynamicArray<GpuRingBuffer*>* ringBufferList = nullptr;
+    uint64 sizeStep = 2 * SIZE_MB;
+    
+    if (aType == GpuBufferUsage::STAGING_UPLOAD)
+    {
+      ringBufferList = &myUploadRingBuffers;
+      sizeStep = 2 * SIZE_MB;
+    }
+    else if (aType == GpuBufferUsage::CONSTANT_BUFFER)
+    {
+      ringBufferList = &myConstantRingBuffers;
+      sizeStep = 2 * SIZE_MB;
+    }
+    else
+    {
+      ASSERT(false, "Not implemented!");
+      return nullptr;
+    }
 
-    if (myConstantRingBuffers.empty() || myConstantRingBuffers.back()->GetFreeDataSize() < aDataSize)
-      myConstantRingBuffers.push_back(RenderCore::AllocateRingBuffer(GpuBufferUsage::CONSTANT_BUFFER, kConstantRingBufferSize));
+    if (ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize() < aDataSize)
+      ringBufferList->push_back(RenderCore::AllocateRingBuffer(aType, MathUtil::Align(aDataSize, sizeStep)));
 
-    GpuRingBuffer* ringBuffer = myConstantRingBuffers.back();
-    uint offset = 0;
-    bool success = ringBuffer->Write(someData, aDataSize, offset);
+    GpuRingBuffer* ringBuffer = ringBufferList->back();
+    uint offset = 0; 
+    bool success = true;
+    if (someData != nullptr)
+      success = ringBuffer->AllocateAndWrite(someData, aDataSize, offset);
+    else
+      success = ringBuffer->Allocate(aDataSize, offset);
     ASSERT(success);
     
-    BindResource(ringBuffer->GetBuffer(), DescriptorType::CONSTANT_BUFFER, aRegisterIndex, offset);
+    anOffsetOut = offset;
+    return ringBuffer->GetBuffer();
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::BindConstantBuffer(void* someData, uint aDataSize, uint aRegisterIndex)
+  {
+    uint64 offset = 0u;
+    const GpuBuffer* buffer = GetBuffer(offset, GpuBufferUsage::CONSTANT_BUFFER, someData, aDataSize);
+    
+    BindResource(buffer, DescriptorType::CONSTANT_BUFFER, aRegisterIndex, offset);
   }
 //---------------------------------------------------------------------------//
 
@@ -162,6 +191,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContext::Reset(uint64 aFenceVal)
   {
+    for (GpuRingBuffer* buf : myUploadRingBuffers)
+      RenderCore::ReleaseRingBuffer(buf, aFenceVal);
+    myUploadRingBuffers.clear();
+
     for (GpuRingBuffer* buf : myConstantRingBuffers)
       RenderCore::ReleaseRingBuffer(buf, aFenceVal);
     myConstantRingBuffers.clear();
@@ -288,6 +321,75 @@ namespace Fancy {
 
     myGraphicsPipelineState.myDSVformat = DataFormat::NONE;
     myGraphicsPipelineState.myIsDirty = true;
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
+  {
+    ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetSizeBytes());
+
+    const GpuBufferCreationParams& bufParams = aDestBuffer->GetParameters();
+
+    if (bufParams.myAccessType == (uint)GpuMemoryAccessType::CPU_WRITE)
+    {
+      uint8* dest = static_cast<uint8*>(aDestBuffer->Lock(GpuResoruceLockOption::WRITE));
+      ASSERT(dest != nullptr);
+      memcpy(dest + aDestOffset, aDataPtr, aByteSize);
+      aDestBuffer->Unlock();
+    }
+    else
+    {
+      uint64 srcOffset = 0u;
+      const GpuBuffer* uploadBuffer = GetBuffer(srcOffset, GpuBufferUsage::STAGING_UPLOAD, aDataPtr, aByteSize);
+      CopyBufferRegion(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
+    }
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions /*= nullptr*/) // TODO: Support regions
+  {
+    DynamicArray<TextureSubLayout> subresourceLayouts;
+    DynamicArray<uint64> subresourceOffsets;
+    uint64 totalSize;
+    aDestTexture->GetSubresourceLayout(aStartSubresource, aNumDatas, subresourceLayouts, subresourceOffsets, totalSize);
+
+    uint64 uploadBufferOffset;
+    const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize);
+    ASSERT(uploadBuffer);
+
+    uint8* uploadBufferData = (uint8*) uploadBuffer->Lock(GpuResoruceLockOption::WRITE) + uploadBufferOffset;
+        
+    for (int i = 0; i < subresourceLayouts.size(); ++i)
+    {
+      const TextureSubLayout& dstLayout = subresourceLayouts[i];
+      const TextureSubData& srcData = someDatas[i];
+
+      const uint64 alignedSliceSize = dstLayout.myAlignedRowSize * dstLayout.myNumRows;
+
+      uint8* dstSubresourceData = uploadBufferData + subresourceOffsets[i];
+      uint8* srcSubresourceData = srcData.myData;
+      for (int iSlice = 0; iSlice < dstLayout.myDepth; ++iSlice)
+      {
+        uint8* dstSliceData = dstSubresourceData + iSlice * alignedSliceSize;
+        uint8* srcSliceData = srcSubresourceData + iSlice * srcData.mySliceSizeBytes;
+        
+        for (int iRow = 0; iRow < dstLayout.myNumRows; ++iRow)
+        {
+          uint8* dstRowData = dstSliceData + iRow * dstLayout.myAlignedRowSize;
+          uint8* srcRowData = srcSliceData + iRow * srcData.myRowSizeBytes;
+
+          ASSERT(dstLayout.myRowSize == srcData.myRowSizeBytes);
+          memcpy(dstRowData, srcRowData, srcData.myRowSizeBytes);
+        }
+      }
+    }
+    uploadBuffer->Unlock();
+
+    const uint startDestSubresourceIndex = aDestTexture->GetSubresourceIndex(aStartSubresource);
+    for (int i = 0; i < subresourceLayouts.size(); ++i)
+    {
+      const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
+      const TextureRegion dstRegion{ glm::uvec3(0), glm::uvec3(UINT_MAX) };
+      CopyTextureRegion(aDestTexture, dstLocation, dstRegion, uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
+    }
   }
 //---------------------------------------------------------------------------//
 } 
