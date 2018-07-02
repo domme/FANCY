@@ -18,8 +18,8 @@ TextureSubData::TextureSubData(const TextureParams& someParams)
   DataFormatInfo info(actualFormat);
   myPixelSizeBytes = info.mySizeBytes;
 
-  uint width = someParams.u16Width;
-  uint height = glm::max((uint16)1, someParams.u16Height);
+  uint width = someParams.myWidth;
+  uint height = glm::max((uint16)1, someParams.myHeight);
   uint depth = glm::max((uint16)1, someParams.myDepthOrArraySize);
 
   myTotalSizeBytes = myPixelSizeBytes * width * height * depth;

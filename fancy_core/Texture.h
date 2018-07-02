@@ -4,44 +4,63 @@
 #include "RendererPrerequisites.h"
 #include "GpuResource.h"
 #include "TextureDesc.h"
+#include "MathUtil.h"
+#include <unordered_set>
+#include <unordered_map>
+
+namespace Fancy {
+  //---------------------------------------------------------------------------//
+  struct TextureViewProperties
+  {
+    TextureViewProperties()
+      : myDimension(TextureDimension::UNKONWN)
+      , myFormat(DataFormat::NONE)
+      , myIsShaderWritable(false)
+      , myIsRenderTarget(false)
+      , myNumMipLevels(1u)
+      , myPlaneIndex(0u)
+      , myArraySize(0u)
+      , myFirstArrayIndex(0u)
+      , myMinLodClamp(0.0f)
+      , myMipIndex(0u)
+      , myFirstZindex(0u)
+      , myZSize(0u)
+    { }
+
+    TextureDimension myDimension;
+    DataFormat myFormat;
+    bool myIsShaderWritable;
+    bool myIsRenderTarget;
+    uint myNumMipLevels;
+    uint myPlaneIndex;
+    uint myArraySize;        // Interpreted as NumCubes in case of cube arrays
+    uint myFirstArrayIndex;  // Interpreted as First 2D Array face in case of cube arrays
+    float myMinLodClamp;
+    uint myMipIndex; // Only rendertargets
+    uint myFirstZindex;  // Only rendertargets
+    uint myZSize; // Only rendertargets
+  };
+//---------------------------------------------------------------------------//
+}
+//---------------------------------------------------------------------------//
+namespace std
+{
+  template <> struct std::hash<Fancy::TextureViewProperties>
+  {
+    std::size_t operator() (const Fancy::TextureViewProperties& someProperties) const
+    {
+      return static_cast<size_t>(Fancy::MathUtil::ByteHash(someProperties));
+    }
+  };
+}
+//---------------------------------------------------------------------------//
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct TextureViewProperties
+  struct TextureView
   {
-    bool myIsShaderWritable;
-    uint myNumMipLevels;
-    uint myMostDetailedMip;
-    uint myPlaneIndex;
-    uint myNumDimensions;
-    uint myArraySize;
-    uint myArrayIndex;
-    
-    DataFormat myFormat;
-  };
-//---------------------------------------------------------------------------//
-  struct RenderTargetViewProperties
-  {
-    uint myNumDimensions;
-    uint myMipIndex;
-    uint myPlaneIndex;
-    uint myArraySize;
-    uint myFirstArrayIndex;
-    uint myFirstZindex;
-    uint myZSize;
-    DataFormat myFormat;
-  };
-//---------------------------------------------------------------------------//
-  struct TextureInfos {
-    TextureInfos() : isSRGB(0), isLocked(0), isArrayTexture(0), isCubemap(0),
-      cachesTextureData(0), numDimensions(0) {}
-
-    uint isSRGB : 1;
-    uint isLocked : 1;
-    uint isArrayTexture : 1;
-    uint isCubemap : 1;
-    uint cachesTextureData : 1;
-    uint numDimensions : 4;
+    TextureViewProperties myProperties;
+    Descriptor myDescriptor;
   };
 //---------------------------------------------------------------------------//
   class Texture : public GpuResource
@@ -59,13 +78,14 @@ namespace Fancy {
     virtual uint GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const = 0;
     virtual TextureSubLocation GetSubresourceLocation(uint aSubresourceIndex) const = 0;
 
-    const TextureInfos& GetStateInfos() const { return myState; }
+    TextureView* 
     const TextureParams& GetParameters() const { return myParameters; }
-    const uint GetArraySize() const { return myState.isArrayTexture ? myParameters.myDepthOrArraySize : 0u; }
+    const bool IsArray() const { return myParameters.myDimension == TextureDimension::TEXTURE_1D_ARRAY || myParameters.myDimension == TextureDimension::TEXTURE_2D_ARRAY || myParameters.myDimension == TextureDimension::TEXTURE_CUBE_ARRAY; }
+    const uint GetArraySize() const { return IsArray() ? myParameters.myDepthOrArraySize : 0u; }
     
   protected:
     TextureParams myParameters;
-    TextureInfos myState;
+    std::unordered_map<TextureViewProperties, UniquePtr<TextureView>> myViews;
   };
 //---------------------------------------------------------------------------//
 }

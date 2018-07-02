@@ -202,8 +202,8 @@ namespace Fancy { namespace ImGuiRendering {
       ASSERT(fontPixelData != nullptr);
 
       TextureParams params;
-      params.u16Width = width;
-      params.u16Height = height;
+      params.myWidth = width;
+      params.myHeight = height;
       params.eFormat = DataFormat::RGBA_8;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(params.eFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);

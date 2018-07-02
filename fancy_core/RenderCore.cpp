@@ -267,8 +267,8 @@ namespace Fancy {
       TextureParams params;
       params.myIsExternalTexture = false;
       params.eFormat = DataFormat::SRGB_8;
-      params.u16Height = 1u;
-      params.u16Width = 1u;
+      params.myHeight = 1u;
+      params.myWidth = 1u;
       params.myInternalRefIndex = (uint)TextureRef::DEFAULT_DIFFUSE;
 
       TextureSubData data(params);
@@ -285,8 +285,8 @@ namespace Fancy {
       TextureParams params;
       params.myIsExternalTexture = false;
       params.eFormat = DataFormat::RGB_8;
-      params.u16Height = 1u;
-      params.u16Width = 1u;
+      params.myHeight = 1u;
+      params.myWidth = 1u;
       params.myInternalRefIndex = (uint)TextureRef::DEFAULT_NORMAL;
 
       TextureSubData data(params);

@@ -73,8 +73,8 @@ namespace Fancy {
     archive.write((const char*)&texDesc.myInternalRefIndex, sizeof(texDesc.myInternalRefIndex));
     
     // Write the texture
-    archive.write(reinterpret_cast<const char*>(&texParams.u16Width), sizeof(uint16));
-    archive.write(reinterpret_cast<const char*>(&texParams.u16Height), sizeof(uint16));
+    archive.write(reinterpret_cast<const char*>(&texParams.myWidth), sizeof(uint16));
+    archive.write(reinterpret_cast<const char*>(&texParams.myHeight), sizeof(uint16));
     archive.write(reinterpret_cast<const char*>(&texParams.myDepthOrArraySize), sizeof(uint16));
     archive.write(reinterpret_cast<const char*>(&texParams.myAccessType), sizeof(uint));
     const uint format = static_cast<uint>(texParams.eFormat);
@@ -120,8 +120,8 @@ namespace Fancy {
     texParams.myIsExternalTexture = texDesc.myIsExternalTexture;
     texParams.path = texDesc.mySourcePath;
     texParams.myInternalRefIndex = texDesc.myInternalRefIndex;
-    archive.read((char*)&texParams.u16Width, sizeof(uint16));
-    archive.read((char*)&texParams.u16Height, sizeof(uint16));
+    archive.read((char*)&texParams.myWidth, sizeof(uint16));
+    archive.read((char*)&texParams.myHeight, sizeof(uint16));
     archive.read((char*)&texParams.myDepthOrArraySize, sizeof(uint16));
     archive.read((char*)&texParams.myAccessType, sizeof(uint));
     uint format = 0;

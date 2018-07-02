@@ -105,8 +105,8 @@ using namespace Fancy;
     texParams.path = texPathRel;
     texParams.bIsDepthStencil = false;
     texParams.eFormat = textureInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
-    texParams.u16Width = textureInfo.width;
-    texParams.u16Height = textureInfo.height;
+    texParams.myWidth = textureInfo.width;
+    texParams.myHeight = textureInfo.height;
     texParams.myDepthOrArraySize = 0u;
     texParams.myAccessType = (uint)GpuMemoryAccessType::NO_CPU_ACCESS;
 

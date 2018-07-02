@@ -28,13 +28,13 @@ namespace Fancy {
     myParameters = someParameters;
     const bool wantsGpuWriteAccess = someParameters.myIsShaderWritable;
 
-    ASSERT(someParameters.u16Width > 0u, "Invalid texture dimension specified");
-    ASSERT(someParameters.myDepthOrArraySize == 0u || someParameters.u16Height > 0u, "3D-textures also need a height. Please specify width and height for a 2D texture");
+    ASSERT(someParameters.myWidth > 0u, "Invalid texture dimension specified");
+    ASSERT(someParameters.myDepthOrArraySize == 0u || someParameters.myHeight > 0u, "3D-textures also need a height. Please specify width and height for a 2D texture");
     
     D3D12_RESOURCE_DIMENSION dimension = D3D12_RESOURCE_DIMENSION_TEXTURE1D;
-    if (someParameters.u16Height > 0u && someParameters.myDepthOrArraySize == 0u)
+    if (someParameters.myHeight > 0u && someParameters.myDepthOrArraySize == 0u)
       dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    else if (someParameters.u16Height > 0u && someParameters.myDepthOrArraySize > 0u)
+    else if (someParameters.myHeight > 0u && someParameters.myDepthOrArraySize > 0u)
       dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 
     DataFormat actualFormat = RenderCore::ResolveFormat(someParameters.eFormat);
@@ -46,13 +46,13 @@ namespace Fancy {
     switch(dimension)
     {
       case D3D12_RESOURCE_DIMENSION_TEXTURE1D: 
-        maxNumMipLevels = static_cast<uint>(glm::log2(someParameters.u16Width));
+        maxNumMipLevels = static_cast<uint>(glm::log2(someParameters.myWidth));
         break;
       case D3D12_RESOURCE_DIMENSION_TEXTURE2D: 
-        maxNumMipLevels = glm::min(glm::log2(someParameters.u16Width), glm::log2(someParameters.u16Height));
+        maxNumMipLevels = glm::min(glm::log2(someParameters.myWidth), glm::log2(someParameters.myHeight));
         break;
       case D3D12_RESOURCE_DIMENSION_TEXTURE3D: 
-        maxNumMipLevels = glm::min(glm::min(glm::log2(someParameters.u16Width), glm::log2(someParameters.u16Height)), glm::log2(someParameters.myDepthOrArraySize));
+        maxNumMipLevels = glm::min(glm::min(glm::log2(someParameters.myWidth), glm::log2(someParameters.myHeight)), glm::log2(someParameters.myDepthOrArraySize));
         break;
       default:
         ASSERT(false);
@@ -79,8 +79,8 @@ namespace Fancy {
     memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = dimension;
     resourceDesc.Alignment = 0;
-    resourceDesc.Width = glm::max(1u, static_cast<uint>(someParameters.u16Width));
-    resourceDesc.Height = glm::max(1u, static_cast<uint>(someParameters.u16Height));
+    resourceDesc.Width = glm::max(1u, static_cast<uint>(someParameters.myWidth));
+    resourceDesc.Height = glm::max(1u, static_cast<uint>(someParameters.myHeight));
     resourceDesc.DepthOrArraySize = depthOrArraySize;
     resourceDesc.MipLevels = actualNumMipLevels;
     resourceDesc.SampleDesc.Count = 1;

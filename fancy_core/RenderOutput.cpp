@@ -34,8 +34,8 @@ namespace Fancy {
     dsTexParams.myIsExternalTexture = false;
     dsTexParams.myIsRenderTarget = false;
     dsTexParams.myIsShaderWritable = false;
-    dsTexParams.u16Width = myWindow->GetWidth();
-    dsTexParams.u16Height = myWindow->GetHeight();
+    dsTexParams.myWidth = myWindow->GetWidth();
+    dsTexParams.myHeight = myWindow->GetHeight();
     dsTexParams.myNumMipLevels = 1u;
 
     myDefaultDepthStencil = RenderCore::CreateTexture(dsTexParams);
@@ -46,8 +46,8 @@ namespace Fancy {
       TextureParams backbufferParams;
       backbufferParams.myIsRenderTarget = true;
       backbufferParams.eFormat = DataFormat::RGBA_8;
-      backbufferParams.u16Width = myWindow->GetWidth();
-      backbufferParams.u16Height = myWindow->GetHeight();
+      backbufferParams.myWidth = myWindow->GetWidth();
+      backbufferParams.myHeight = myWindow->GetHeight();
 
       myBackbuffers[i] = RenderCore::CreateTexture(backbufferParams);
     }

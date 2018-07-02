@@ -2,6 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include "DataFormat.h"
+#include "GpuProgramResource.h"
 
 /// Enables various sanity-checks and validations
 #define FANCY_RENDERER_HEAVY_VALIDATION 1
@@ -208,25 +209,49 @@ namespace Fancy {
       NUM
     };
 //---------------------------------------------------------------------------//
+    enum class TextureDimension
+    {
+      UNKONWN = 0,
+      TEXTURE_1D,
+      TEXTURE_2D,
+      TEXTURE_3D,
+      TEXTURE_CUBE,
+      TEXTURE_1D_ARRAY,
+      TEXTURE_2D_ARRAY,
+      TEXTURE_CUBE_ARRAY
+    };
+//---------------------------------------------------------------------------//
     struct TextureParams 
     {
-      TextureParams() : path(""), u16Width(0u), u16Height(0u), myDepthOrArraySize(0u),
-        eFormat(DataFormat::NONE), myAccessType(0u), bIsDepthStencil(false), myIsExternalTexture(true), myInternalRefIndex(~0u), myNumMipLevels(0u),
-        myIsShaderWritable(false), myIsRenderTarget(false) {}
+      TextureParams() 
+        : myDimension(TextureDimension::UNKONWN)
+        , path("")
+        , myWidth(0u)
+        , myHeight(0u)
+        , myDepthOrArraySize(0u)
+        , eFormat(DataFormat::NONE)
+        , myAccessType(GpuMemoryAccessType::NO_CPU_ACCESS)
+        , bIsDepthStencil(false)
+        , myIsExternalTexture(true)
+        , myInternalRefIndex(~0u)
+        , myNumMipLevels(1u)
+        , myIsShaderWritable(false)
+        , myIsRenderTarget(false) 
+      {}
 
-      uint16 u16Width;
-      uint16 u16Height;
-      uint16 myDepthOrArraySize;
-      DataFormat eFormat;
-      uint myAccessType;
-      bool myIsShaderWritable;
-      bool myIsRenderTarget;
-      bool bIsDepthStencil;
+      TextureDimension myDimension;
       String path;
+      uint myWidth;
+      uint myHeight;
+      uint myDepthOrArraySize;
+      DataFormat eFormat;
+      GpuMemoryAccessType myAccessType;
+      bool bIsDepthStencil;
       bool myIsExternalTexture;
       uint myInternalRefIndex;
-
-      uint8 myNumMipLevels;
+      uint myNumMipLevels;
+      bool myIsShaderWritable;
+      bool myIsRenderTarget;
     };
 //---------------------------------------------------------------------------//
     struct TextureSubLayout
