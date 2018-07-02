@@ -7,6 +7,31 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  struct TextureViewProperties
+  {
+    bool myIsShaderWritable;
+    uint myNumMipLevels;
+    uint myMostDetailedMip;
+    uint myPlaneIndex;
+    uint myNumDimensions;
+    uint myArraySize;
+    uint myArrayIndex;
+    
+    DataFormat myFormat;
+  };
+//---------------------------------------------------------------------------//
+  struct RenderTargetViewProperties
+  {
+    uint myNumDimensions;
+    uint myMipIndex;
+    uint myPlaneIndex;
+    uint myArraySize;
+    uint myFirstArrayIndex;
+    uint myFirstZindex;
+    uint myZSize;
+    DataFormat myFormat;
+  };
+//---------------------------------------------------------------------------//
   struct TextureInfos {
     TextureInfos() : isSRGB(0), isLocked(0), isArrayTexture(0), isCubemap(0),
       cachesTextureData(0), numDimensions(0) {}
