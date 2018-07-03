@@ -150,7 +150,7 @@ void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)
   if (diffuseTex)
   {
     const Descriptor* desc = diffuseTex->GetDescriptor(DescriptorType::DEFAULT_READ);
-    aContext->BindDescriptorSet(&desc, 1u, 1u);
+    aContext->BindResourceSet(&desc, 1u, 1u);
   }
 }
 

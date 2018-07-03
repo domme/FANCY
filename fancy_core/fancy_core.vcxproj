@@ -77,6 +77,8 @@
     <ClInclude Include="DescriptorHeapDX12.h" />
     <ClInclude Include="GpuBufferDesc.h" />
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
+    <ClInclude Include="GpuResourceView.h" />
+    <ClInclude Include="GpuResourceViewDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="MathPrerequisites.h" />
@@ -166,6 +168,7 @@
     <ClCompile Include="GpuProgramDX12.cpp" />
     <ClCompile Include="GpuProgramFeatures.cpp" />
     <ClCompile Include="GpuProgramPipeline.cpp" />
+    <ClCompile Include="GpuResourceViewDX12.cpp" />
     <ClCompile Include="GpuRingBuffer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Mesh.cpp" />

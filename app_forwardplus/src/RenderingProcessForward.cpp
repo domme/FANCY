@@ -501,7 +501,7 @@ namespace Fancy { namespace Rendering {
       }
     }
 
-    aContext->BindDescriptorSet(descriptorsToBind, kNumTextures, 2);
+    aContext->BindResourceSet(descriptorsToBind, kNumTextures, 2);
   }
 //---------------------------------------------------------------------------//
 } }  // end of namespace Fancy::Rendering

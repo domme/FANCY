@@ -1,7 +1,6 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include "Descriptor.h"
 #include "GpuResourceStorage.h"
 
 namespace Fancy {
@@ -10,7 +9,7 @@ namespace Fancy {
   {
     TEXTURE = 0,
     BUFFER
-  };  
+  };
 //---------------------------------------------------------------------------//
   class GpuResource
   {
@@ -21,8 +20,7 @@ namespace Fancy {
     {}
 
     virtual ~GpuResource() = default;
-    virtual const Descriptor* GetDescriptor(DescriptorType aType, uint anIndex = 0u) const = 0;
-
+    
     bool IsValid() const { return myStorage != nullptr; }
 
     GpuResourceCategory myCategory;

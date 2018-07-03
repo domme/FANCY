@@ -2,13 +2,12 @@
 
 #include "RendererPrerequisites.h"
 #include "CommandListType.h"
-#include "Descriptor.h"
 #include "RenderCore.h"
 
 namespace Fancy {
+//---------------------------------------------------------------------------//
+  class GpuResourceView;
   class GpuFence;
-  //---------------------------------------------------------------------------//
-  class Descriptor;
   class GpuResource;  
   class DepthStencilState;
   class BlendState;
@@ -56,8 +55,8 @@ namespace Fancy {
     virtual void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion& aSrcRegion) = 0;
     virtual void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) = 0;
     virtual void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) = 0;
-    virtual void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex, uint aResourceOffset = 0) const = 0;
-    virtual void BindDescriptorSet(const Descriptor** someDescriptors, uint aResourceCount, uint aRegisterIndex) = 0;
+    virtual void BindResource(const GpuResourceView* aResource, uint aRegisterIndex, uint aResourceOffset = 0) const = 0;
+    virtual void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) = 0;
     virtual void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) = 0;
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;

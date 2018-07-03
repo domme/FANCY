@@ -393,7 +393,7 @@ namespace Fancy { namespace ImGuiRendering {
           if (textureId != nullptr)
             descriptors[0] = static_cast<const Descriptor*>(textureId);
 
-          ourRenderContext->BindDescriptorSet(descriptors, 1u, 1u);
+          ourRenderContext->BindResourceSet(descriptors, 1u, 1u);
 
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
           ourRenderContext->SetClipRect(clipRect);

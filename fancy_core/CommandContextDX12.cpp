@@ -13,6 +13,7 @@
 #include "DepthStencilState.h"
 #include "GeometryData.h"
 #include "GpuResourceStorageDX12.h"
+#include "GpuResourceViewDX12.h"
 
 namespace Fancy { 
 //---------------------------------------------------------------------------//
@@ -588,11 +589,13 @@ namespace Fancy {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex, uint aResourceOffset /* = 0u */) const
+  void CommandContextDX12::BindResource(const GpuResourceView* aResourceView, uint aRegisterIndex, uint aResourceOffset /* = 0u */) const
   {
     ASSERT(myRootSignature != nullptr);
 
-    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aResource->myStorage.get();
+    GpuResourceViewDX12* resourceViewDx12 = (GpuResourceViewDX12*)aResourceView;
+    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)resourceViewDx12->GetResource()->myStorage.get();
+
     ASSERT(storage->myResource != nullptr);
     
     const uint64 gpuVirtualAddress = storage->myResource->GetGPUVirtualAddress() + aResourceOffset;
@@ -625,7 +628,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::BindDescriptorSet(const Descriptor** someResources, uint aResourceCount, uint aRegisterIndex)
+  void CommandContextDX12::BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex)
   {
     ASSERT(myRootSignature != nullptr);
 

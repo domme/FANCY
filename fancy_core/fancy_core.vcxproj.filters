@@ -262,6 +262,12 @@
     <ClInclude Include="CommandQueue.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="GpuResourceView.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceViewDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -396,6 +402,9 @@
     </ClCompile>
     <ClCompile Include="CommandQueue.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuResourceViewDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

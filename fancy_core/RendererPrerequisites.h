@@ -209,9 +209,10 @@ namespace Fancy {
       NUM
     };
 //---------------------------------------------------------------------------//
-    enum class TextureDimension
+    enum class GpuResourceDimension
     {
       UNKONWN = 0,
+      BUFFER,
       TEXTURE_1D,
       TEXTURE_2D,
       TEXTURE_3D,
@@ -224,7 +225,7 @@ namespace Fancy {
     struct TextureParams 
     {
       TextureParams() 
-        : myDimension(TextureDimension::UNKONWN)
+        : myDimension(GpuResourceDimension::UNKONWN)
         , path("")
         , myWidth(0u)
         , myHeight(0u)
@@ -239,7 +240,7 @@ namespace Fancy {
         , myIsRenderTarget(false) 
       {}
 
-      TextureDimension myDimension;
+      GpuResourceDimension myDimension;
       String path;
       uint myWidth;
       uint myHeight;

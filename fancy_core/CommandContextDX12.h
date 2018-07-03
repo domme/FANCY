@@ -10,6 +10,7 @@ namespace Fancy {
   class DescriptorDX12;
   class DescriptorHeapDX12;
   class GpuResourceDX12;
+  class GpuResource;
 //---------------------------------------------------------------------------//
   class CommandContextDX12 final : public CommandContext
   {
@@ -39,8 +40,8 @@ namespace Fancy {
     void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) override;
     void RenderGeometry(const GeometryData* pGeometry) override;
-    void BindResource(const GpuResource* aResource, DescriptorType aBindingType, uint aRegisterIndex, uint aResourceOffset = 0u) const override;
-    void BindDescriptorSet(const Descriptor** someDescriptors, uint aResourceCount, uint aRegisterIndex) override;
+    void BindResource(const GpuResourceView* aResourceView, uint aRegisterIndex, uint aResourceOffset = 0u) const override;
+    void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;
     void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) override;
