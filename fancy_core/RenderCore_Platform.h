@@ -30,6 +30,7 @@ namespace Fancy {
     virtual CommandContext* CreateContext(CommandListType aType) = 0;
     virtual DataFormat ResolveFormat(DataFormat aFormat) = 0;
     virtual CommandQueue* GetCommandQueue(CommandListType aType) = 0;
+    virtual GpuResourceViewData* CreateTextureViewData(Texture* aTexture, const TextureViewProperties& someProperties) = 0;
 
   protected:
     RenderPlatformCaps myCaps;

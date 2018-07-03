@@ -219,13 +219,13 @@ namespace Fancy {
     memset(myDynamicShaderVisibleHeaps, 0, sizeof(myDynamicShaderVisibleHeaps));
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 CommandContextDX12::CopyDescriptorsToDynamicHeapRange(const DescriptorDX12** someResources, uint aResourceCount)
+  DescriptorDX12 CommandContextDX12::CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount)
   {
     ASSERT(aResourceCount > 0u);
 
-    const DescriptorDX12* firstDescriptor = someResources[0];
+    const DescriptorDX12& firstDescriptor = someResources[0];
 
-    D3D12_DESCRIPTOR_HEAP_TYPE heapType = firstDescriptor->myHeapType;
+    D3D12_DESCRIPTOR_HEAP_TYPE heapType = firstDescriptor.myHeapType;
     DescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
 
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
@@ -240,9 +240,9 @@ namespace Fancy {
     for (uint i = 0u; i < aResourceCount; ++i)
     {
       DescriptorDX12 destDescriptor = dynamicHeap->AllocateDescriptor();
-      platformDx12->GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle, someResources[i]->myCpuHandle, heapType);
+      platformDx12->GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle, someResources[i].myCpuHandle, heapType);
     }
-    
+
     return dynamicHeap->GetDescriptor(startOffset);
   }
 //---------------------------------------------------------------------------//
@@ -593,8 +593,8 @@ namespace Fancy {
   {
     ASSERT(myRootSignature != nullptr);
 
-    GpuResourceViewDX12* resourceViewDx12 = (GpuResourceViewDX12*)aResourceView;
-    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)resourceViewDx12->GetResource()->myStorage.get();
+    GpuResourceViewDataDX12* resourceViewData = (GpuResourceViewDataDX12*)aResourceView->GetNativeData();
+    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aResourceView->GetResource()->myStorage.get();
 
     ASSERT(storage->myResource != nullptr);
     
@@ -604,21 +604,21 @@ namespace Fancy {
     {
       case CommandListType::Graphics: 
       {
-        switch (aBindingType) 
+        switch (resourceViewData->myType)
         {
-          case DescriptorType::DEFAULT_READ: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
-          case DescriptorType::READ_WRITE: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
-          case DescriptorType::CONSTANT_BUFFER: { myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewDataDX12::SRV: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewDataDX12::UAV: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewDataDX12::CBV: { myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
           default: { ASSERT(false); break; }
         }
       } break;
       case CommandListType::Compute: 
       {
-        switch (aBindingType)
+        switch (resourceViewData->myType)
         {
-          case DescriptorType::DEFAULT_READ: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
-          case DescriptorType::READ_WRITE: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
-          case DescriptorType::CONSTANT_BUFFER: { myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewDataDX12::SRV: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewDataDX12::UAV: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewDataDX12::CBV: { myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
           default: { ASSERT(false); break; }
         }
       } break;
@@ -632,9 +632,14 @@ namespace Fancy {
   {
     ASSERT(myRootSignature != nullptr);
 
-    const DescriptorDX12** dx12Descriptors = reinterpret_cast<const DescriptorDX12**>(someResources);
+    DescriptorDX12* dx12Descriptors = (DescriptorDX12*)alloca(sizeof(DescriptorDX12) * aResourceCount);
+    for (int i = 0; i < aResourceCount; ++i)
+    {
+      GpuResourceViewDataDX12* resourceViewData = (GpuResourceViewDataDX12*)someResourceViews[i]->GetNativeData();
+      dx12Descriptors[i] = resourceViewData->myDescriptor;
+    }
 
-    DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
+    const DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
 
     switch(myCommandListType)
     {

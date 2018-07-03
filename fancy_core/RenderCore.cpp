@@ -540,6 +540,16 @@ namespace Fancy {
     return buffer->IsValid() ? buffer : nullptr;
   }
 //---------------------------------------------------------------------------//
+  SharedPtr<TextureView> RenderCore::CreateTextureView(SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
+  {
+    UniquePtr<GpuResourceViewData> viewData(ourPlatformImpl->CreateTextureViewData(aTexture.get(), someProperties));
+
+    if (viewData == nullptr)
+      return nullptr;
+
+    return std::make_shared<TextureView>(aTexture, std::move(viewData), someProperties);
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
   {
     ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetSizeBytes());

@@ -7,6 +7,7 @@
 #include "MathUtil.h"
 #include <unordered_set>
 #include <unordered_map>
+#include "GpuResourceView.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -31,6 +32,51 @@ namespace Fancy {
     
   protected:
     TextureParams myParameters;
+  };
+//---------------------------------------------------------------------------//
+  struct TextureViewProperties
+  {
+    TextureViewProperties()
+      : myDimension(GpuResourceDimension::UNKONWN)
+      , myFormat(DataFormat::NONE)
+      , myIsShaderWritable(false)
+      , myIsRenderTarget(false)
+      , myNumMipLevels(1u)
+      , myPlaneIndex(0u)
+      , myArraySize(0u)
+      , myFirstArrayIndex(0u)
+      , myMinLodClamp(0.0f)
+      , myMipIndex(0u)
+      , myFirstZindex(0u)
+      , myZSize(0u)
+    { }
+
+    GpuResourceDimension myDimension;
+    DataFormat myFormat;
+    bool myIsShaderWritable;
+    bool myIsRenderTarget;
+    uint myNumMipLevels;
+    uint myPlaneIndex;
+    uint myArraySize;        // Interpreted as NumCubes in case of cube arrays
+    uint myFirstArrayIndex;  // Interpreted as First 2D Array face in case of cube arrays
+    float myMinLodClamp;
+    uint myMipIndex; // Only rendertargets
+    uint myFirstZindex;  // Only rendertargets
+    uint myZSize; // Only rendertargets
+  };
+//---------------------------------------------------------------------------//
+  struct TextureView : public GpuResourceView
+  {
+    TextureView(SharedPtr<Texture> aTexture, UniquePtr<GpuResourceViewData> aData, const TextureViewProperties& someProperties)
+      : GpuResourceView(std::static_pointer_cast<GpuResource>(aTexture), std::move(aData))
+      , myProperties(someProperties)
+    { }
+
+    const TextureViewProperties& GetProperties() const { return myProperties; }
+    Texture* GetTexture() const { return static_cast<Texture*>(myResource.get()); }
+
+  protected:
+    TextureViewProperties myProperties;
   };
 //---------------------------------------------------------------------------//
 }

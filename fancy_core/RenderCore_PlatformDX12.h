@@ -61,6 +61,7 @@ namespace Fancy {
     CommandContext* CreateContext(CommandListType aType) override;
     DataFormat ResolveFormat(DataFormat aFormat) override;
     CommandQueue* GetCommandQueue(CommandListType aType) override { return ourCommandQueues[(uint)aType].get(); }
+    GpuResourceViewData* CreateTextureViewData(Texture* aTexture, const TextureViewProperties& someProperties) override;
 
     // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);

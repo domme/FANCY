@@ -58,7 +58,7 @@ namespace Fancy {
     void ApplyComputePipelineState();
     void ApplyRenderTargets();
     
-    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12** someResources, uint aResourceCount);
+    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount);
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
   

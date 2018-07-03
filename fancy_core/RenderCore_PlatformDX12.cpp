@@ -248,6 +248,11 @@ namespace Fancy {
     return new CommandContextDX12(aType);
   }
 //---------------------------------------------------------------------------//
+  GpuResourceViewData* RenderCore_PlatformDX12::CreateTextureViewData(Texture* aTexture, const TextureViewProperties& someProperties)
+  {
+
+  }
+//---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
   {
     Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;

@@ -6,6 +6,7 @@
 #include <mutex>
 #include "CommandQueue.h"
 #include "CommandListType.h"
+#include "GpuResourceView.h"
 
 namespace Fancy {
   struct MeshData;
@@ -26,6 +27,8 @@ namespace Fancy {
   struct MeshDesc;
   class FileWatcher;
   class Texture;
+  struct TextureViewProperties;
+  class TextureView;
   struct RenderPlatformCaps;
   class GpuRingBuffer;
 //---------------------------------------------------------------------------//
@@ -54,6 +57,7 @@ namespace Fancy {
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, const void* someInitialData = nullptr);
+    static SharedPtr<TextureView> CreateTextureView(SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties);
 
     static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);
