@@ -19,6 +19,7 @@
 #include "GpuResourceStorageDX12.h"
 #include "RenderPlatformCaps.h"
 #include "AdapterDX12.h"
+#include "GpuResourceViewDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -250,7 +251,46 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuResourceViewData* RenderCore_PlatformDX12::CreateTextureViewData(Texture* aTexture, const TextureViewProperties& someProperties)
   {
+    ASSERT(!someProperties.myIsShaderWritable || !someProperties.myIsRenderTarget, "UAV and RTV are mutually exclusive");
+    
+    DataFormat format = RenderCore::ResolveFormat(someProperties.myFormat);
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
 
+    DescriptorDX12 descriptor;
+    GpuResourceViewDataDX12::Type viewType = GpuResourceViewDataDX12::NONE;
+    if (someProperties.myIsRenderTarget)
+    {
+      if (formatInfo.myIsDepthStencil)
+      {
+        viewType = GpuResourceViewDataDX12::DSV;
+        descriptor = CreateDSV(aTexture, someProperties);
+      }
+      else
+      {
+        viewType = GpuResourceViewDataDX12::RTV;
+        descriptor = CreateRTV(aTexture, someProperties);
+      }
+    }
+    else
+    {
+      if (someProperties.myIsShaderWritable)
+      {
+        viewType = GpuResourceViewDataDX12::UAV;
+        descriptor = CreateUAV(aTexture, someProperties);
+      }
+      else
+      {
+        viewType = GpuResourceViewDataDX12::SRV;
+        descriptor = CreateSRV(aTexture, someProperties);
+      }
+    }
+
+    if (descriptor.myCpuHandle.ptr == 0u || viewType == GpuResourceViewDataDX12::NONE)
+      return nullptr;
+
+    GpuResourceViewDataDX12* viewData = new GpuResourceViewDataDX12();
+
+    return new GpuResourceViewDataDX12{}
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)

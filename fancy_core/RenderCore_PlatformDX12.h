@@ -17,6 +17,8 @@ namespace Fancy {
   class Window;
   class ShaderResourceInterface;
   class GeometryVertexLayout;
+  struct GpuResourceViewData;
+  struct TextureViewProperties;
 //---------------------------------------------------------------------------//  
   class RenderCore_PlatformDX12 final : public RenderCore_Platform
   {
@@ -72,6 +74,12 @@ namespace Fancy {
 	  std::unique_ptr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
 
   protected:
+    void InitCaps() override;
+    DescriptorDX12 CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties);
+    DescriptorDX12 CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties);
+    DescriptorDX12 CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties);
+    DescriptorDX12 CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties);
+
     std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
     std::list<DescriptorHeapDX12*> myAvailableDynamicHeaps;
     std::list<std::pair<uint64, DescriptorHeapDX12*>> myUsedDynamicHeaps;
@@ -79,8 +87,6 @@ namespace Fancy {
     DescriptorHeapDX12 ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)GpuMemoryAccessType::NUM];
-
-    void InitCaps() override;
   };
 //---------------------------------------------------------------------------//
 }

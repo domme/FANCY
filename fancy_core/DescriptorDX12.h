@@ -6,16 +6,14 @@
 
 namespace Fancy { 
 //---------------------------------------------------------------------------//
-  class DescriptorDX12 : public Descriptor
+  class DescriptorDX12
   {
   public:
     DescriptorDX12()
-      : myCpuHandle()
-      , myGpuHandle()
+      : myCpuHandle{0u}
+      , myGpuHandle{0u}
       , myHeapType(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
     {
-      myCpuHandle.ptr = static_cast<uint64>(0);
-      myGpuHandle.ptr = static_cast<uint64>(0);
     }
        
     D3D12_CPU_DESCRIPTOR_HANDLE myCpuHandle;

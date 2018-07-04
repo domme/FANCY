@@ -11,6 +11,8 @@ namespace Fancy {
   class CommandContext;
   class CommandQueue;
   enum class CommandListType;
+  struct GpuResourceViewData;
+  struct TextureViewProperties;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
   {
