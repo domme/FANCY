@@ -62,6 +62,7 @@
     <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h" />
     <ClInclude Include="AdapterDX12.h" />
     <ClInclude Include="AlignedStorage.h" />
+    <ClInclude Include="Any.h" />
     <ClInclude Include="BinaryCache.h" />
     <ClInclude Include="BlendState.h" />
     <ClInclude Include="Callback.h" />
