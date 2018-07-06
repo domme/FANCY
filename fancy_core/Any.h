@@ -1,5 +1,9 @@
 #pragma once
 
+/// A simple Any-impementation that can store any type as a typesafe alternative to void* pointers
+// TODO: Specialization for certain types (e.g. const char*)
+// TODO: Throw a compile-error for non-POD types that can't be properly stored in the DataStorage (e.g. "deep" types with internal pointers?). Maybe add specializations for the most common of such types like std::vector?
+
 namespace Fancy 
 {
 //---------------------------------------------------------------------------//
@@ -8,12 +12,26 @@ namespace Fancy
     struct VTable
     {
       static VTable* GetDummy() { static VTable ourDummy; return &ourDummy; }
+
+      virtual void Assign(void** aStorage, void* aValue) { };
+      virtual bool Equals(void* aValue, void* anOtherValue) const{ return false; }
       virtual void Delete(void** aStorage) { };
     };
 
     template<class T>
-    struct VTable_Buffer : VTable
+    struct VTable_Buffer final : VTable
     {
+      void Assign(void** aStorage, void* aValue) override
+      {
+        uint8* buf = (uint8*)*aStorage;
+        memcpy(buf, aValue, sizeof(T));
+      }
+
+      bool Equals(void* aValue, void* anOtherValue) const override
+      {
+        return memcmp(aValue, anOtherValue, sizeof(T));
+      }
+
       void Delete(void** aStorage) override
       {
         uint8* buf = (uint8*)*aStorage;
@@ -22,8 +40,22 @@ namespace Fancy
     };
 
     template <class T>
-    struct VTable_Ptr : VTable
+    struct VTable_Ptr final : VTable
     {
+      void Assign(void** aStorage, void* aValue) override
+      {
+        T** objPtr = (T**)aStorage;
+        if (*objPtr == nullptr)
+          *objPtr = new T();
+
+        **objPtr = *((T*)aValue);
+      }
+
+      bool Equals(void* aValue, void* anOtherValue) const
+      {
+        return memcmp(aValue, anOtherValue, sizeof(T));
+      }
+
       void Delete(void** aStorage) override
       {
         if (*aStorage == nullptr)
@@ -36,19 +68,28 @@ namespace Fancy
     };
     
     template<class T>
-    struct Get_VTablePtr {
-      static VTable_Ptr<T> ourVTable;
-    };
-
-    template<class T>
-    struct Get_VTableBuffer {
-      static VTable_Buffer<T> ourVTable;
+    struct Get_VTable
+    {
+      static VTable_Ptr<T> ourVTablePtr;
+      static VTable_Buffer<T> ourVTableBuffer;
+      static VTable* Get(uint aMaxBufferSize)
+      {
+        if (sizeof(T) <= aMaxBufferSize)
+          return &ourVTableBuffer;
+        else
+          return &ourVTablePtr;
+      }
     };
   }
 //---------------------------------------------------------------------------//
-  template<uint MinSize>
+  template<uint MaxBufferSize>
   class AnySized
   {
+    union DataStorage {
+      void* myPtr;
+      uint8 myBuffer[MaxBufferSize];
+    };
+
   public:
     AnySized()
       : myVTable(AnyInternal::VTable::GetDummy())
@@ -57,32 +98,73 @@ namespace Fancy
     template<class T>
     void operator=(const T& anObject)
     {
-      
+      Init<T>(anObject);
+    }
+
+    template<class T>
+    bool operator==(const T& anObject) const
+    {
+      if (HasType<T>())
+        return To<T>() == anObject;
+
+      return false;
+    }
+
+    template<uint OtherBufferSize>
+    bool operator==(const AnySized<OtherBufferSize>& anOtherAny) const
+    {
+      if (!myVTable != anOtherAny.myVTable)
+        return false;
+
+      return myVTable->Equals(myDataStorage.myPtr, anOtherAny.myDataStorage.myPtr);
+    }
+
+    template<uint OtherBufferSize>
+    void operator=(const AnySized<OtherBufferSize>& anOtherAny)
+    {
+      if (this == &anOtherAny)
+        return;
+
+      myVTable->Delete(&myDataStorage);
+
+      myVTable = anOtherAny.myVTable;
+      myVTable
+
+
+    }
+
+    template<class T>
+    bool HasType() const
+    {
+      AnyInternal::VTable* vTableForType = AnyInternal::Get_VTable<T>::Get(MaxBufferSize);
+      return myVTable == vTableForType;
+    }
+
+    template<class T>
+    const T& To()
+    {
+      ASSERT(HasType<T>(), "Invalid any-cast");
+      return *((T*)myDataStorage.myPtr);  
     }
 
   private:
-    union DataStorage {
-      void* myPtr;
-      uint8 myBuffer[MinSize];
-    };
+    template<class T>
+    bool HasBufferStorage() const
+    {
+      return myVTable == &AnyInternal::Get_VTable<T>::ourVTableBuffer;
+    }
 
     template <class T>
     void Init(const T& anObject)
     {
-      myVTable->Delete(&myDataStorage);
-
-      if (sizeof(T) <= MinSize)
+      AnyInternal::VTable* newVTable = AnyInternal::Get_VTable<T>::Get(MaxBufferSize);
+      if (newVTable != myVTable)
       {
-        myVTable = &AnyInternal::Get_VTableBuffer<T>::ourVTable;
-        memcpy(myDataStorage.myBuffer, &anObject, sizeof(T));
+        myVTable->Delete(&myDataStorage);
+        myVTable = AnyInternal::Get_VTable<T>::Get(MaxBufferSize);
       }
-      else
-      {
-        myVTable = &AnyInternal::Get_VTablePtr<T>::ourVTable;
 
-      }
-        
-
+      myVTable->Assign(&myDataStorage, &anObject);
     }
 
     AnyInternal::VTable* myVTable;
