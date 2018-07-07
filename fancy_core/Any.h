@@ -90,6 +90,39 @@ namespace Fancy
       uint8 myBuffer[MaxBufferSize];
     };
 
+    struct VTable
+    {
+      void(*Delete)(DataStorage*);
+      void(*Clone)(DataStorage*, const DataStorage*);
+      bool(*IsEqual)(const DataStorage*, const DataStorage*);
+    };
+
+    template<class T, bool UsesBuffer>
+    struct TypePolicy
+    {
+      static const T* Cast(const DataStorage& aStorage) { return reinterpret_cast<const T*>(aStorage.myBuffer); }
+      static T* Cast(DataStorage& aStorage) { return reinterpret_cast<T*>(aStorage.myBuffer); }
+
+      static void Delete(DataStorage* aStorage) { memset(aStorage->myBuffer, 0u, sizeof(T)); }
+      static void Clone(DataStorage* aDstStorage, const DataStorage* aSrcStorage) { memcpy(aDstStorage->myBuffer, aSrcStorage->myBuffer, sizeof(T)); }
+      static bool IsEqual(const DataStorage* aStorageLeft, const DataStorage* aStorageRight) { return *Cast(aStorageLeft) == *Cast(aStorageRight); }
+    };
+
+    template<class T>
+    struct TypePolicy<T, false>
+    {
+      static const T* Cast(const DataStorage& aStorage) { return reinterpret_cast<const T*>(aStorage.myPtr); }
+      static T* Cast(DataStorage& aStorage) { return reinterpret_cast<T*>(aStorage.myPtr); }
+
+      static void Delete(DataStorage* aStorage) { memset(aStorage->myBuffer, 0u, sizeof(T)); }
+      static void Clone(DataStorage* aDstStorage, const DataStorage* aSrcStorage) { memcpy(aDstStorage->myBuffer, aSrcStorage->myBuffer, sizeof(T)); }
+      static bool IsEqual(const DataStorage* aStorageLeft, const DataStorage* aStorageRight) { return *Cast(aStorageLeft) == *Cast(aStorageRight); }
+    };
+
+
+
+    
+
   public:
     AnySized()
       : myVTable(AnyInternal::VTable::GetDummy())
@@ -128,7 +161,7 @@ namespace Fancy
       myVTable->Delete(&myDataStorage);
 
       myVTable = anOtherAny.myVTable;
-      myVTable
+      
 
 
     }
