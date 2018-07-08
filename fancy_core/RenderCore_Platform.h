@@ -13,6 +13,7 @@ namespace Fancy {
   enum class CommandListType;
   struct GpuResourceViewData;
   struct TextureViewProperties;
+  struct TextureView;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
   {
@@ -32,7 +33,7 @@ namespace Fancy {
     virtual CommandContext* CreateContext(CommandListType aType) = 0;
     virtual DataFormat ResolveFormat(DataFormat aFormat) = 0;
     virtual CommandQueue* GetCommandQueue(CommandListType aType) = 0;
-    virtual GpuResourceViewData* CreateTextureViewData(Texture* aTexture, const TextureViewProperties& someProperties) = 0;
+    virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties) = 0;
 
   protected:
     RenderPlatformCaps myCaps;

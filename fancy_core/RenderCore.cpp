@@ -540,10 +540,10 @@ namespace Fancy {
     return buffer->IsValid() ? buffer : nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<TextureView> RenderCore::CreateTextureView(SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
+  SharedPtr<TextureView> RenderCore::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
   {
     UniquePtr<GpuResourceViewData> viewData(ourPlatformImpl->CreateTextureViewData(aTexture.get(), someProperties));
-
+    
     if (viewData == nullptr)
       return nullptr;
 

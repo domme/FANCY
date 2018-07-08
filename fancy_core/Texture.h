@@ -69,8 +69,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct TextureView : public GpuResourceView
   {
-    TextureView(SharedPtr<Texture> aTexture, UniquePtr<GpuResourceViewData> aData, const TextureViewProperties& someProperties)
-      : GpuResourceView(std::static_pointer_cast<GpuResource>(aTexture), std::move(aData))
+    TextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
+      : GpuResourceView(std::static_pointer_cast<GpuResource>(aTexture))
       , myProperties(someProperties)
     { }
 
