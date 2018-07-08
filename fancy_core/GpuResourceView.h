@@ -5,11 +5,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct GpuResourceViewData
-  {
-
-  };
-//---------------------------------------------------------------------------//
   struct GpuResourceView
   {
     GpuResourceView(SharedPtr<GpuResource> aResource, UniquePtr<GpuResourceViewData> aData)

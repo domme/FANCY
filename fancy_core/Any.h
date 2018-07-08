@@ -6,82 +6,15 @@
 
 namespace Fancy 
 {
-//---------------------------------------------------------------------------//
-  namespace AnyInternal
+  namespace EqualityFallback
   {
-    struct VTable
-    {
-      static VTable* GetDummy() { static VTable ourDummy; return &ourDummy; }
-
-      virtual void Assign(void** aStorage, void* aValue) { };
-      virtual bool Equals(void* aValue, void* anOtherValue) const{ return false; }
-      virtual void Delete(void** aStorage) { };
-    };
-
-    template<class T>
-    struct VTable_Buffer final : VTable
-    {
-      void Assign(void** aStorage, void* aValue) override
-      {
-        uint8* buf = (uint8*)*aStorage;
-        memcpy(buf, aValue, sizeof(T));
-      }
-
-      bool Equals(void* aValue, void* anOtherValue) const override
-      {
-        return memcmp(aValue, anOtherValue, sizeof(T));
-      }
-
-      void Delete(void** aStorage) override
-      {
-        uint8* buf = (uint8*)*aStorage;
-        memset(buf, 0u, sizeof(T));
-      }
-    };
-
     template <class T>
-    struct VTable_Ptr final : VTable
+    bool operator==(const T& aLeft, const T& aRight)
     {
-      void Assign(void** aStorage, void* aValue) override
-      {
-        T** objPtr = (T**)aStorage;
-        if (*objPtr == nullptr)
-          *objPtr = new T();
-
-        **objPtr = *((T*)aValue);
-      }
-
-      bool Equals(void* aValue, void* anOtherValue) const
-      {
-        return memcmp(aValue, anOtherValue, sizeof(T));
-      }
-
-      void Delete(void** aStorage) override
-      {
-        if (*aStorage == nullptr)
-          return;
-
-        T** objPtr = (T**)aStorage;
-        delete *objPtr;
-        *objPtr = nullptr;
-      }
-    };
-    
-    template<class T>
-    struct Get_VTable
-    {
-      static VTable_Ptr<T> ourVTablePtr;
-      static VTable_Buffer<T> ourVTableBuffer;
-      static VTable* Get(uint aMaxBufferSize)
-      {
-        if (sizeof(T) <= aMaxBufferSize)
-          return &ourVTableBuffer;
-        else
-          return &ourVTablePtr;
-      }
-    };
+      return false;
+    }
   }
-//---------------------------------------------------------------------------//
+
   template<uint MaxBufferSize>
   class AnySized
   {
@@ -93,19 +26,26 @@ namespace Fancy
     struct VTable
     {
       void(*Delete)(DataStorage*);
-      void(*Clone)(DataStorage*, const DataStorage*);
-      bool(*IsEqual)(const DataStorage*, const DataStorage*);
+      void(*Clone)(DataStorage*, const DataStorage&);
+      bool(*IsEqual)(const DataStorage&, const DataStorage&);
     };
 
-    template<class T, bool UsesBuffer>
+    template<class T>
+    static bool IsEqual_Impl(const T& aLeft, const T& aRight)
+    {
+      using namespace EqualityFallback;
+      return aLeft == aRight;
+    }
+
+    template<class T, bool UsesBuffer = true>
     struct TypePolicy
     {
       static const T* Cast(const DataStorage& aStorage) { return reinterpret_cast<const T*>(aStorage.myBuffer); }
       static T* Cast(DataStorage& aStorage) { return reinterpret_cast<T*>(aStorage.myBuffer); }
 
       static void Delete(DataStorage* aStorage) { memset(aStorage->myBuffer, 0u, sizeof(T)); }
-      static void Clone(DataStorage* aDstStorage, const DataStorage* aSrcStorage) { memcpy(aDstStorage->myBuffer, aSrcStorage->myBuffer, sizeof(T)); }
-      static bool IsEqual(const DataStorage* aStorageLeft, const DataStorage* aStorageRight) { return *Cast(aStorageLeft) == *Cast(aStorageRight); }
+      static void Clone(DataStorage* aDstStorage, const DataStorage& aSrcStorage) { memcpy(aDstStorage->myBuffer, aSrcStorage.myBuffer, sizeof(T)); }
+      static bool IsEqual(const DataStorage& aStorageLeft, const DataStorage& aStorageRight) { return IsEqual_Impl<T>(*Cast(aStorageLeft), *Cast(aStorageRight)); }
     };
 
     template<class T>
@@ -114,93 +54,115 @@ namespace Fancy
       static const T* Cast(const DataStorage& aStorage) { return reinterpret_cast<const T*>(aStorage.myPtr); }
       static T* Cast(DataStorage& aStorage) { return reinterpret_cast<T*>(aStorage.myPtr); }
 
-      static void Delete(DataStorage* aStorage) { memset(aStorage->myBuffer, 0u, sizeof(T)); }
-      static void Clone(DataStorage* aDstStorage, const DataStorage* aSrcStorage) { memcpy(aDstStorage->myBuffer, aSrcStorage->myBuffer, sizeof(T)); }
-      static bool IsEqual(const DataStorage* aStorageLeft, const DataStorage* aStorageRight) { return *Cast(aStorageLeft) == *Cast(aStorageRight); }
+      static void Delete(DataStorage* aStorage) { delete(aStorage->myPtr); aStorage->myPtr = nullptr; }
+      static void Clone(DataStorage* aDstStorage, const DataStorage& aSrcStorage) { *Cast(*aDstStorage) = *Cast(aSrcStorage); }
+      static bool IsEqual(const DataStorage& aStorageLeft, const DataStorage& aStorageRight) { return IsEqual_Impl<T>(*Cast(aStorageLeft), *Cast(aStorageRight)); }
     };
 
+    template<class T>
+    struct Get_Policy
+    {
+      static TypePolicy<T, sizeof(T) <= MaxBufferSize>& Get()
+      {
+        static TypePolicy<T, sizeof(T) <= MaxBufferSize> ourPolicy;
+        return ourPolicy;
+      };
+    };
 
+    template<class T>
+    struct Get_VTable
+    {
+      static const VTable* Get()
+      {
+        static VTable ourVTable
+        {
+          &Get_Policy<T>::Get().Delete,
+          &Get_Policy<T>::Get().Clone,
+          &Get_Policy<T>::Get().IsEqual
+        };
 
-    
+        return &ourVTable;
+      }
+    };
 
   public:
     AnySized()
-      : myVTable(AnyInternal::VTable::GetDummy())
+      : myVTable(nullptr)
       , myDataStorage{ nullptr } {}
+
+    template<class T>
+    explicit AnySized(const T& anObject)
+    {
+      typedef typename std::remove_const_t<std::remove_reference_t<T>> RawType;
+      myVTable = Get_VTable<RawType>::Get();
+
+      if (sizeof(RawType) <= MaxBufferSize)
+        new(myDataStorage.myBuffer) RawType(anObject);
+      else
+        myDataStorage.myPtr = new RawType(anObject);
+    }
 
     template<class T>
     void operator=(const T& anObject)
     {
-      Init<T>(anObject);
-    }
+      if (myVTable != nullptr)
+        myVTable->Delete(&myDataStorage);
 
-    template<class T>
-    bool operator==(const T& anObject) const
-    {
-      if (HasType<T>())
-        return To<T>() == anObject;
+      using RawType = std::remove_const_t<std::remove_reference_t<T>>;
+      myVTable = Get_VTable<RawType>::Get();
 
-      return false;
-    }
-
-    template<uint OtherBufferSize>
-    bool operator==(const AnySized<OtherBufferSize>& anOtherAny) const
-    {
-      if (!myVTable != anOtherAny.myVTable)
-        return false;
-
-      return myVTable->Equals(myDataStorage.myPtr, anOtherAny.myDataStorage.myPtr);
-    }
-
-    template<uint OtherBufferSize>
-    void operator=(const AnySized<OtherBufferSize>& anOtherAny)
-    {
-      if (this == &anOtherAny)
-        return;
-
-      myVTable->Delete(&myDataStorage);
-
-      myVTable = anOtherAny.myVTable;
-      
-
-
+      if (sizeof(RawType) <= MaxBufferSize)
+        new (myDataStorage.myBuffer) RawType(anObject);
+      else
+        myDataStorage.myPtr = new RawType(anObject);
     }
 
     template<class T>
     bool HasType() const
     {
-      AnyInternal::VTable* vTableForType = AnyInternal::Get_VTable<T>::Get(MaxBufferSize);
-      return myVTable == vTableForType;
+      using RawType = std::remove_const_t<std::remove_reference_t<T>>;
+      return myVTable == Get_VTable<RawType>::Get();
     }
 
     template<class T>
     const T& To()
     {
-      ASSERT(HasType<T>(), "Invalid any-cast");
-      return *((T*)myDataStorage.myPtr);  
+      using RawType = std::remove_const_t<std::remove_reference_t<T>>;
+      //      ASSERT(HasType<RawType>());
+      if (sizeof(RawType) <= MaxBufferSize)
+        return *reinterpret_cast<const RawType*>(myDataStorage.myBuffer);
+      else
+        return *reinterpret_cast<const RawType*>(myDataStorage.myPtr);
+    }
+
+    template<class T>
+    bool operator==(const T& anObject) const
+    {
+      return To<T>() == anObject;
+    }
+
+    bool operator==(const AnySized& anOtherAny) const
+    {
+      if (myVTable == nullptr)
+        return anOtherAny.myVTable == nullptr;
+
+      return myVTable->IsEqual(myDataStorage, anOtherAny.myDataStorage);
+    }
+
+    void operator=(const AnySized& anOtherAny)
+    {
+      if (&anOtherAny == this)
+        return;
+
+      if (myVTable != nullptr)
+        myVTable->Delete(&myDataStorage);
+
+      myVTable = anOtherAny.myVTable;
+      myVTable->Clone(&myDataStorage, anOtherAny.myDataStorage);
     }
 
   private:
-    template<class T>
-    bool HasBufferStorage() const
-    {
-      return myVTable == &AnyInternal::Get_VTable<T>::ourVTableBuffer;
-    }
-
-    template <class T>
-    void Init(const T& anObject)
-    {
-      AnyInternal::VTable* newVTable = AnyInternal::Get_VTable<T>::Get(MaxBufferSize);
-      if (newVTable != myVTable)
-      {
-        myVTable->Delete(&myDataStorage);
-        myVTable = AnyInternal::Get_VTable<T>::Get(MaxBufferSize);
-      }
-
-      myVTable->Assign(&myDataStorage, &anObject);
-    }
-
-    AnyInternal::VTable* myVTable;
+    const VTable* myVTable;
     DataStorage myDataStorage;
   };
 //---------------------------------------------------------------------------//
