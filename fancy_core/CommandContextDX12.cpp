@@ -592,9 +592,10 @@ namespace Fancy {
   void CommandContextDX12::BindResource(const GpuResourceView* aResourceView, uint aRegisterIndex, uint aResourceOffset /* = 0u */) const
   {
     ASSERT(myRootSignature != nullptr);
+    ASSERT(aResourceView->myNativeData.HasType<GpuResourceViewDataDX12>());
 
-    GpuResourceViewDataDX12* resourceViewData = (GpuResourceViewDataDX12*)aResourceView->GetNativeData();
-    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aResourceView->GetResource()->myStorage.get();
+    const GpuResourceViewDataDX12& resourceViewData = aResourceView->myNativeData.To<GpuResourceViewDataDX12>();
+    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aResourceView->myResource->myStorage.get();
 
     ASSERT(storage->myResource != nullptr);
     
@@ -604,7 +605,7 @@ namespace Fancy {
     {
       case CommandListType::Graphics: 
       {
-        switch (resourceViewData->myType)
+        switch (resourceViewData.myType)
         {
           case GpuResourceViewDataDX12::SRV: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
           case GpuResourceViewDataDX12::UAV: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
@@ -614,7 +615,7 @@ namespace Fancy {
       } break;
       case CommandListType::Compute: 
       {
-        switch (resourceViewData->myType)
+        switch (resourceViewData.myType)
         {
           case GpuResourceViewDataDX12::SRV: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
           case GpuResourceViewDataDX12::UAV: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
@@ -627,7 +628,7 @@ namespace Fancy {
       default: break;
     }
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandContextDX12::BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex)
   {
     ASSERT(myRootSignature != nullptr);
@@ -635,8 +636,9 @@ namespace Fancy {
     DescriptorDX12* dx12Descriptors = (DescriptorDX12*)alloca(sizeof(DescriptorDX12) * aResourceCount);
     for (int i = 0; i < aResourceCount; ++i)
     {
-      GpuResourceViewDataDX12* resourceViewData = (GpuResourceViewDataDX12*)someResourceViews[i]->GetNativeData();
-      dx12Descriptors[i] = resourceViewData->myDescriptor;
+      ASSERT(someResourceViews[i]->myNativeData.HasType<GpuResourceViewDataDX12>());
+      const GpuResourceViewDataDX12& resourceViewData = someResourceViews[i]->myNativeData.To<GpuResourceViewDataDX12>();
+      dx12Descriptors[i] = resourceViewData.myDescriptor;
     }
 
     const DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);

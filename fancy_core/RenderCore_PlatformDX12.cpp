@@ -249,48 +249,48 @@ namespace Fancy {
     return new CommandContextDX12(aType);
   }
 //---------------------------------------------------------------------------//
-  GpuResourceViewData* RenderCore_PlatformDX12::CreateTextureViewData(Texture* aTexture, const TextureViewProperties& someProperties)
+  TextureView* RenderCore_PlatformDX12::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
   {
     ASSERT(!someProperties.myIsShaderWritable || !someProperties.myIsRenderTarget, "UAV and RTV are mutually exclusive");
     
     DataFormat format = RenderCore::ResolveFormat(someProperties.myFormat);
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
 
-    DescriptorDX12 descriptor;
-    GpuResourceViewDataDX12::Type viewType = GpuResourceViewDataDX12::NONE;
+    GpuResourceViewDataDX12 nativeData;
+    nativeData.myType = GpuResourceViewDataDX12::NONE;
     if (someProperties.myIsRenderTarget)
     {
       if (formatInfo.myIsDepthStencil)
       {
-        viewType = GpuResourceViewDataDX12::DSV;
-        descriptor = CreateDSV(aTexture, someProperties);
+        nativeData.myType = GpuResourceViewDataDX12::DSV;
+        nativeData.myDescriptor = CreateDSV(aTexture.get(), someProperties);
       }
       else
       {
-        viewType = GpuResourceViewDataDX12::RTV;
-        descriptor = CreateRTV(aTexture, someProperties);
+        nativeData.myType = GpuResourceViewDataDX12::RTV;
+        nativeData.myDescriptor = CreateRTV(aTexture.get(), someProperties);
       }
     }
     else
     {
       if (someProperties.myIsShaderWritable)
       {
-        viewType = GpuResourceViewDataDX12::UAV;
-        descriptor = CreateUAV(aTexture, someProperties);
+        nativeData.myType = GpuResourceViewDataDX12::UAV;
+        nativeData.myDescriptor = CreateUAV(aTexture.get(), someProperties);
       }
       else
       {
-        viewType = GpuResourceViewDataDX12::SRV;
-        descriptor = CreateSRV(aTexture, someProperties);
+        nativeData.myType = GpuResourceViewDataDX12::SRV;
+        nativeData.myDescriptor = CreateSRV(aTexture.get(), someProperties);
       }
     }
 
-    if (descriptor.myCpuHandle.ptr == 0u || viewType == GpuResourceViewDataDX12::NONE)
+    if (nativeData.myDescriptor.myCpuHandle.ptr == 0u || nativeData.myType == GpuResourceViewDataDX12::NONE)
       return nullptr;
 
-    GpuResourceViewDataDX12* viewData = new GpuResourceViewDataDX12();
-
-    return new GpuResourceViewDataDX12{}
+    TextureView* textureView = new TextureView(aTexture, someProperties);
+    textureView->myNativeData = nativeData;
+    return textureView;
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
@@ -311,6 +311,79 @@ namespace Fancy {
     myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
   }
 //---------------------------------------------------------------------------//
+  DescriptorDX12 RenderCore_PlatformDX12::CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties)
+  {
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+    if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+      srvDesc.Texture1D.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture1D.MostDetailedMip = 0;
+      srvDesc.Texture1D.ResourceMinLODClamp = someProperties.myMinLodClamp;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+      srvDesc.Texture1DArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
+      srvDesc.Texture1DArray.ArraySize = someProperties.myArraySize;
+      srvDesc.Texture1DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      srvDesc.Texture1DArray.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture1DArray.MostDetailedMip = 0;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+      srvDesc.Texture2D.PlaneSlice = someProperties.myPlaneIndex;
+      srvDesc.Texture2D.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture2D.MostDetailedMip = 0;
+      srvDesc.Texture2D.ResourceMinLODClamp = someProperties.myMinLodClamp;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+      srvDesc.Texture2DArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
+      srvDesc.Texture2DArray.ArraySize = someProperties.myArraySize;
+      srvDesc.Texture2DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      srvDesc.Texture2DArray.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture2DArray.MostDetailedMip = 0;
+      srvDesc.Texture2DArray.PlaneSlice = someProperties.myPlaneIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+      srvDesc.Texture3D.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture3D.MostDetailedMip = 0;
+      srvDesc.Texture3D.ResourceMinLODClamp = someProperties.myMinLodClamp;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+      srvDesc.TextureCube.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.TextureCube.MostDetailedMip = 0;
+      srvDesc.TextureCube.ResourceMinLODClamp = someProperties.myMinLodClamp;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
+      srvDesc.TextureCubeArray.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.TextureCubeArray.MostDetailedMip = 0;
+      srvDesc.TextureCubeArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
+      srvDesc.TextureCubeArray.First2DArrayFace = someProperties.myFirstArrayIndex;
+      srvDesc.TextureCubeArray.NumCubes = someProperties.myArraySize;
+    }
+    else
+    {
+      ASSERT(false, "Invalid textureView dimension");
+    }
+
+    DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
+    ourDevice->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, descriptor.myCpuHandle);
+    return descriptor;
+  }
+  //---------------------------------------------------------------------------//
   D3D12_COMMAND_LIST_TYPE RenderCore_PlatformDX12::GetCommandListType(CommandListType aType)
   {
     switch (aType)

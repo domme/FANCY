@@ -125,7 +125,7 @@ namespace Fancy
     }
 
     template<class T>
-    const T& To()
+    const T& To() const
     {
       using RawType = std::remove_const_t<std::remove_reference_t<T>>;
       //      ASSERT(HasType<RawType>());
