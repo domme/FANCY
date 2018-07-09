@@ -3,6 +3,7 @@
 #include "RendererPrerequisites.h"
 #include "GpuResource.h"
 #include "GpuBufferDesc.h"
+#include "GpuResourceView.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -27,7 +28,15 @@ namespace Fancy {
   protected:
     uint myAlignment;
     GpuBufferCreationParams myParameters;
+  };
+//---------------------------------------------------------------------------//
+  struct GpuBufferViewProperties
+  {
 
   };
 //---------------------------------------------------------------------------//
+  struct GpuBufferView : public GpuResourceView
+  {
+
+  };
 }

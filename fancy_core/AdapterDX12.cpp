@@ -140,6 +140,27 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  D3D12_RESOURCE_DIMENSION Adapter::ResolveResourceDimension(GpuResourceDimension aDimension, bool& aCubeMapOut, bool& anArrayOut)
+  {
+    aCubeMapOut = false;
+    anArrayOut = false;
+
+    switch (aDimension) 
+    { 
+      case GpuResourceDimension::UNKONWN: return D3D12_RESOURCE_DIMENSION_UNKNOWN;
+      case GpuResourceDimension::BUFFER: return D3D12_RESOURCE_DIMENSION_BUFFER;
+      case GpuResourceDimension::TEXTURE_1D: return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
+      case GpuResourceDimension::TEXTURE_2D: return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+      case GpuResourceDimension::TEXTURE_3D: return D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+      case GpuResourceDimension::TEXTURE_CUBE:        aCubeMapOut = true; return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+      case GpuResourceDimension::TEXTURE_1D_ARRAY:    anArrayOut = true;  return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
+      case GpuResourceDimension::TEXTURE_2D_ARRAY:    anArrayOut = true;  return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+      case GpuResourceDimension::TEXTURE_CUBE_ARRAY:  aCubeMapOut = true; anArrayOut = true; return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+      default: 
+        ASSERT(false, "Missing implementation"); return D3D12_RESOURCE_DIMENSION_UNKNOWN;
+    }
+}
+//---------------------------------------------------------------------------//
 	D3D12_BLEND Adapter::toNativeType(const BlendInput& generalType) 
 	{
 		switch (generalType) {

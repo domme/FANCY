@@ -14,6 +14,8 @@ namespace Fancy {
   struct GpuResourceViewData;
   struct TextureViewProperties;
   struct TextureView;
+  struct GpuBufferView;
+  struct GpuBufferViewProperties;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
   {
@@ -34,6 +36,7 @@ namespace Fancy {
     virtual DataFormat ResolveFormat(DataFormat aFormat) = 0;
     virtual CommandQueue* GetCommandQueue(CommandListType aType) = 0;
     virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties) = 0;
+    virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties) = 0;
 
   protected:
     RenderPlatformCaps myCaps;

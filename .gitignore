@@ -26,3 +26,4 @@ dependencies/lib/*
 *.db
 FANCY.VC.db
 *.user
+*.TMP

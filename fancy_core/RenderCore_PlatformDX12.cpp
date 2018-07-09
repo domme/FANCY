@@ -293,6 +293,11 @@ namespace Fancy {
     return textureView;
   }
 //---------------------------------------------------------------------------//
+  GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
+  {
+
+  }
+//---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
   {
     Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;

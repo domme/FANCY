@@ -11,6 +11,7 @@
 #include <queue>
 #include "CommandQueueDX12.h"
 #include "GpuMemoryAllocatorDX12.h"
+#include "GpuBuffer.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -64,6 +65,7 @@ namespace Fancy {
     DataFormat ResolveFormat(DataFormat aFormat) override;
     CommandQueue* GetCommandQueue(CommandListType aType) override { return ourCommandQueues[(uint)aType].get(); }
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties) override;
+    GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties) override;
 
     // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
