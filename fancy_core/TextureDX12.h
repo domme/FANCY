@@ -17,24 +17,8 @@ namespace Fancy {
     uint GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const override;
     TextureSubLocation GetSubresourceLocation(uint aSubresourceIndex) const override;
 
-    const DescriptorDX12* GetSrv() const { return &mySrvDescriptor; }
-    const DescriptorDX12* GetUav() const { return &myUavDescriptor; }
-    const DescriptorDX12* GetRtv() const { return &myRtvDescriptor; }
-    const DescriptorDX12* GetDsv() const { return &myDsvDescriptor; }
-
-    const DescriptorDX12* GetDescriptor(DescriptorType aType, uint anIndex = 0u) const override;
-    
   protected:
     void Destroy();
-
-    DescriptorDX12 myRtvDescriptor;
-    DescriptorDX12 mySrvDescriptor;
-    DescriptorDX12 myUavDescriptor;
-    DescriptorDX12 myDsvDescriptor;
-    DescriptorDX12 myDsvDescriptorReadOnly;
-    DescriptorDX12 mySrvDescriptorDepth;
-    DescriptorDX12 mySrvDescriptorStencil;
   };
-
 //---------------------------------------------------------------------------//
 }

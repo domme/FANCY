@@ -41,7 +41,8 @@ namespace Fancy {
       , myFormat(DataFormat::NONE)
       , myIsShaderWritable(false)
       , myIsRenderTarget(false)
-      , myIsDepthStencilReadOnly(false)
+      , myIsDepthReadOnly(false)
+      , myIsStencilReadOnly(false)
       , myNumMipLevels(1u)
       , myPlaneIndex(0u)
       , myArraySize(0u)
@@ -56,7 +57,8 @@ namespace Fancy {
     DataFormat myFormat;
     bool myIsShaderWritable;
     bool myIsRenderTarget;
-    bool myIsDepthStencilReadOnly;
+    bool myIsDepthReadOnly;
+    bool myIsStencilReadOnly;
     uint myNumMipLevels;
     uint myPlaneIndex;
     uint myArraySize;        // Interpreted as NumCubes in case of cube arrays
