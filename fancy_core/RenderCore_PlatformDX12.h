@@ -78,10 +78,17 @@ namespace Fancy {
   protected:
     void InitCaps() override;
     DescriptorDX12 CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties);
+    DescriptorDX12 CreateSRV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
+
     DescriptorDX12 CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties);
+    DescriptorDX12 CreateUAV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
+
     DescriptorDX12 CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties);
+    
     DescriptorDX12 CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties);
 
+    DescriptorDX12 CreateCBV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
+    
     std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
     std::list<DescriptorHeapDX12*> myAvailableDynamicHeaps;
     std::list<std::pair<uint64, DescriptorHeapDX12*>> myUsedDynamicHeaps;

@@ -295,7 +295,35 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
   {
+    ASSERT(aBuffer->GetSizeBytes() >= someProperties.myOffset + someProperties.mySize, "Invalid buffer range");
 
+    DataFormat format = RenderCore::ResolveFormat(someProperties.myFormat);
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
+
+    GpuResourceViewDataDX12 nativeData;
+    nativeData.myType = GpuResourceViewDataDX12::NONE;
+    if (someProperties.myIsConstantBuffer)
+    {
+      nativeData.myType = GpuResourceViewDataDX12::CBV;
+      nativeData.myDescriptor = CreateCBV(aBuffer.get(), someProperties);
+    }
+    else if (someProperties.myIsShaderWritable)
+    {
+      nativeData.myType = GpuResourceViewDataDX12::UAV;
+      nativeData.myDescriptor = CreateUAV(aBuffer.get(), someProperties);
+    }
+    else
+    {
+      nativeData.myType = GpuResourceViewDataDX12::SRV;
+      nativeData.myDescriptor = CreateSRV(aBuffer.get(), someProperties);
+    }
+
+    if (nativeData.myDescriptor.myCpuHandle.ptr == 0u || nativeData.myType == GpuResourceViewDataDX12::NONE)
+      return nullptr;
+
+    GpuBufferView* textureView = new GpuBufferView(aBuffer, someProperties);
+    textureView->myNativeData = nativeData;
+    return textureView;
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
@@ -320,7 +348,8 @@ namespace Fancy {
   {
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-
+    srvDesc.Format = GetFormat(someProperties.myFormat);
+    
     if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
@@ -389,6 +418,23 @@ namespace Fancy {
     return descriptor;
   }
 //---------------------------------------------------------------------------//
+  DescriptorDX12 RenderCore_PlatformDX12::CreateSRV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties)
+  {
+    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Format = GetFormat(someProperties.myFormat);
+    srvDesc.Buffer.
+
+    cbvDesc.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress() + someProperties.myOffset;
+    cbvDesc.SizeInBytes = someProperties.mySize;
+
+    DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    ourDevice->CreateConstantBufferView(&cbvDesc, descriptor.myCpuHandle);
+    return descriptor;
+  }
+//---------------------------------------------------------------------------//
   DescriptorDX12 RenderCore_PlatformDX12::CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties)
   {
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
@@ -436,6 +482,11 @@ namespace Fancy {
     GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
     ourDevice->CreateUnorderedAccessView(storageDx12->myResource.Get(), nullptr, &uavDesc, descriptor.myCpuHandle);
     return descriptor;
+  }
+//---------------------------------------------------------------------------//
+  DescriptorDX12 RenderCore_PlatformDX12::CreateUAV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties)
+  {
+
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 RenderCore_PlatformDX12::CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties)
@@ -530,6 +581,19 @@ namespace Fancy {
     DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
     GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
     ourDevice->CreateDepthStencilView(storageDx12->myResource.Get(), &dsvDesc, descriptor.myCpuHandle);
+    return descriptor;
+  }
+//---------------------------------------------------------------------------//
+  DescriptorDX12 RenderCore_PlatformDX12::CreateCBV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties)
+  {
+    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
+
+    D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+    cbvDesc.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress() + someProperties.myOffset;
+    cbvDesc.SizeInBytes = someProperties.mySize;
+    
+    DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    ourDevice->CreateConstantBufferView(&cbvDesc, descriptor.myCpuHandle);
     return descriptor;
   }
 //---------------------------------------------------------------------------//

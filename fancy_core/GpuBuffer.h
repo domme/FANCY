@@ -32,11 +32,33 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GpuBufferViewProperties
   {
+    GpuBufferViewProperties()
+      : myFormat(DataFormat::UNKNOWN)
+      , myIsConstantBuffer(false)
+      , myIsShaderWritable(false)
+      , myOffset(0u)
+      , mySize(~0u)
+    {}
 
+    DataFormat myFormat;
+    bool myIsConstantBuffer;
+    bool myIsShaderWritable;
+    uint64 myOffset;
+    uint64 mySize;
   };
 //---------------------------------------------------------------------------//
   struct GpuBufferView : public GpuResourceView
   {
+    GpuBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
+      : GpuResourceView(std::static_pointer_cast<GpuResource>(aBuffer))
+      , myProperties(someProperties)
+    { }
 
+    const GpuBufferViewProperties& GetProperties() const { return myProperties; }
+    GpuBuffer* GetBuffer() const { return static_cast<GpuBuffer*>(myResource.get()); }
+
+  protected:
+    GpuBufferViewProperties myProperties;
   };
+//---------------------------------------------------------------------------//
 }
