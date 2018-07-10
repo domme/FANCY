@@ -295,10 +295,15 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
   {
-    ASSERT(aBuffer->GetSizeBytes() >= someProperties.myOffset + someProperties.mySize, "Invalid buffer range");
-
     DataFormat format = RenderCore::ResolveFormat(someProperties.myFormat);
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
+
+    ASSERT(aBuffer->GetSizeBytes() >= someProperties.myOffset + someProperties.mySize, "Invalid buffer range");
+    ASSERT(!someProperties.myIsStructured || someProperties.myStructureSize > 0u, "Structured buffer views need a valid structure size");
+    ASSERT(!someProperties.myIsStructured || !someProperties.myIsRaw, "Raw and structured buffer views are mutually exclusive");
+    ASSERT(!someProperties.myIsShaderWritable || aBuffer->GetParameters().myIsShaderWritable, "A shader-writable buffer view requires a shader-writable buffer");
+    ASSERT(!someProperties.myIsStructured || format == DataFormat::UNKNOWN, "Structured buffer views can't have a format");
+    ASSERT(!someProperties.myIsRaw || format == DataFormat::UNKNOWN || format == DataFormat::R_32UI, "Raw buffer views can't have a format other than R32");
 
     GpuResourceViewDataDX12 nativeData;
     nativeData.myType = GpuResourceViewDataDX12::NONE;
@@ -423,15 +428,36 @@ namespace Fancy {
     GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-    srvDesc.Format = GetFormat(someProperties.myFormat);
-    srvDesc.Buffer.
+    memset(&srvDesc, 0u, sizeof(srvDesc));
 
-    cbvDesc.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress() + someProperties.myOffset;
-    cbvDesc.SizeInBytes = someProperties.mySize;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+    if (someProperties.myIsRaw)
+    {
+      srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+      srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+      srvDesc.Buffer.FirstElement = someProperties.myOffset / 4;
+      srvDesc.Buffer.NumElements = someProperties.mySize / 4;
+    }
+    else if (someProperties.myIsStructured)
+    {
+      srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+      srvDesc.Buffer.StructureByteStride = someProperties.myStructureSize;
+      srvDesc.Buffer.FirstElement = someProperties.myOffset / someProperties.myStructureSize;
+      srvDesc.Buffer.NumElements = someProperties.mySize / someProperties.myStructureSize;
+    }
+    else
+    {
+      DataFormat format = ResolveFormat(someProperties.myFormat);
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
+      srvDesc.Format = GetFormat(format);
+      srvDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
+      srvDesc.Buffer.NumElements = someProperties.mySize / formatInfo.mySizeBytes;
+    }
 
     DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    ourDevice->CreateConstantBufferView(&cbvDesc, descriptor.myCpuHandle);
+    ourDevice->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, descriptor.myCpuHandle);
     return descriptor;
   }
 //---------------------------------------------------------------------------//
@@ -486,7 +512,39 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DescriptorDX12 RenderCore_PlatformDX12::CreateUAV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties)
   {
+    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
 
+    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+    memset(&uavDesc, 0u, sizeof(uavDesc));
+
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+
+    if (someProperties.myIsRaw)
+    {
+      uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+      uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+      uavDesc.Buffer.FirstElement = someProperties.myOffset / 4;
+      uavDesc.Buffer.NumElements = someProperties.mySize / 4;
+    }
+    else if (someProperties.myIsStructured)
+    {
+      uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+      uavDesc.Buffer.StructureByteStride = someProperties.myStructureSize;
+      uavDesc.Buffer.FirstElement = someProperties.myOffset / someProperties.myStructureSize;
+      uavDesc.Buffer.NumElements = someProperties.mySize / someProperties.myStructureSize;
+    }
+    else
+    {
+      DataFormat format = ResolveFormat(someProperties.myFormat);
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
+      uavDesc.Format = GetFormat(format);
+      uavDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
+      uavDesc.Buffer.NumElements = someProperties.mySize / formatInfo.mySizeBytes;
+    }
+
+    DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    ourDevice->CreateUnorderedAccessView(storageDx12->myResource.Get(), &uavDesc, descriptor.myCpuHandle);
+    return descriptor;
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 RenderCore_PlatformDX12::CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties)
