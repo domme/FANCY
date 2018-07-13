@@ -3,10 +3,8 @@
 #include "RendererPrerequisites.h"
 #include "RenderingStartupParameters.h"
 #include <list>
-#include <mutex>
 #include "CommandQueue.h"
 #include "CommandListType.h"
-#include "GpuResourceView.h"
 
 namespace Fancy {
   struct MeshData;
@@ -28,9 +26,12 @@ namespace Fancy {
   class FileWatcher;
   class Texture;
   struct TextureViewProperties;
-  class TextureView;
+  struct TextureView;
   struct RenderPlatformCaps;
   class GpuRingBuffer;
+  class GpuBuffer;
+  struct GpuBufferView;
+  struct GpuBufferViewProperties;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -56,8 +57,11 @@ namespace Fancy {
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureParams& someParams, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
-    static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferCreationParams& someParams, const void* someInitialData = nullptr);
+    static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferProperties& someParams, const void* someInitialData = nullptr);
     static SharedPtr<TextureView> CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties);
+    static SharedPtr<TextureView> CreateTextureView(const TextureParams& someParams, const TextureViewProperties& someViewProperties, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
+    static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
+    static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someParams, const GpuBufferViewProperties& someViewProperties, const void* someInitialData = nullptr);
 
     static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);

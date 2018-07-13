@@ -251,8 +251,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   TextureView* RenderCore_PlatformDX12::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
   {
-    ASSERT(!someProperties.myIsShaderWritable || !someProperties.myIsRenderTarget, "UAV and RTV are mutually exclusive");
-    
     DataFormat format = RenderCore::ResolveFormat(someProperties.myFormat);
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
 
@@ -295,16 +293,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
   {
-    DataFormat format = RenderCore::ResolveFormat(someProperties.myFormat);
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
-
-    ASSERT(aBuffer->GetSizeBytes() >= someProperties.myOffset + someProperties.mySize, "Invalid buffer range");
-    ASSERT(!someProperties.myIsStructured || someProperties.myStructureSize > 0u, "Structured buffer views need a valid structure size");
-    ASSERT(!someProperties.myIsStructured || !someProperties.myIsRaw, "Raw and structured buffer views are mutually exclusive");
-    ASSERT(!someProperties.myIsShaderWritable || aBuffer->GetParameters().myIsShaderWritable, "A shader-writable buffer view requires a shader-writable buffer");
-    ASSERT(!someProperties.myIsStructured || format == DataFormat::UNKNOWN, "Structured buffer views can't have a format");
-    ASSERT(!someProperties.myIsRaw || format == DataFormat::UNKNOWN || format == DataFormat::R_32UI, "Raw buffer views can't have a format other than R32");
-
     GpuResourceViewDataDX12 nativeData;
     nativeData.myType = GpuResourceViewDataDX12::NONE;
     if (someProperties.myIsConstantBuffer)
@@ -543,7 +531,7 @@ namespace Fancy {
     }
 
     DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    ourDevice->CreateUnorderedAccessView(storageDx12->myResource.Get(), &uavDesc, descriptor.myCpuHandle);
+    ourDevice->CreateUnorderedAccessView(storageDx12->myResource.Get(), nullptr, &uavDesc, descriptor.myCpuHandle);
     return descriptor;
   }
 //---------------------------------------------------------------------------//

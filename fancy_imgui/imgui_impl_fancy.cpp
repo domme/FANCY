@@ -95,25 +95,25 @@ namespace Fancy { namespace ImGuiRendering {
   namespace {
     SharedPtr<GpuBuffer> locCreateVertexBuffer(uint aNumRequiredVertices)
     {
-      GpuBufferCreationParams bufferParams;
+      GpuBufferProperties bufferParams;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
       bufferParams.uAccessFlags = (uint)GpuMemoryAccessType::WRITE
                                 | (uint)GpuMemoryAccessType::COHERENT
                                 | (uint)GpuMemoryAccessType::DYNAMIC;
-      bufferParams.uElementSizeBytes = sizeof(ImDrawVert);
-      bufferParams.uNumElements = aNumRequiredVertices;
+      bufferParams.myElementSizeBytes = sizeof(ImDrawVert);
+      bufferParams.myNumElements = aNumRequiredVertices;
       return RenderCore::CreateBuffer(bufferParams);
     }
 
     SharedPtr<GpuBuffer> locCreateIndexBuffer(uint aNumRequiredIndices)
     {
-      GpuBufferCreationParams bufferParams;
+      GpuBufferProperties bufferParams;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
       bufferParams.uAccessFlags = (uint)GpuMemoryAccessType::WRITE
         | (uint)GpuMemoryAccessType::COHERENT
         | (uint)GpuMemoryAccessType::DYNAMIC;
-      bufferParams.uElementSizeBytes = sizeof(ImDrawIdx);
-      bufferParams.uNumElements = aNumRequiredIndices;
+      bufferParams.myElementSizeBytes = sizeof(ImDrawIdx);
+      bufferParams.myNumElements = aNumRequiredIndices;
       return RenderCore::CreateBuffer(bufferParams);
     }
   }
@@ -173,13 +173,13 @@ namespace Fancy { namespace ImGuiRendering {
 
     // Create the cbuffer
     {
-      GpuBufferCreationParams bufferParams;
+      GpuBufferProperties bufferParams;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
       bufferParams.uAccessFlags = (uint)GpuMemoryAccessType::WRITE
                                  | (uint)GpuMemoryAccessType::COHERENT
                                  | (uint)GpuMemoryAccessType::DYNAMIC;
-      bufferParams.uElementSizeBytes = sizeof(CBufferData);
-      bufferParams.uNumElements = 1u;
+      bufferParams.myElementSizeBytes = sizeof(CBufferData);
+      bufferParams.myNumElements = 1u;
 
       CBufferData initialData;
       memset(&initialData, 0, sizeof(initialData));

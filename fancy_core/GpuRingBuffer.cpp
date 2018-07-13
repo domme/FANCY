@@ -20,7 +20,7 @@ namespace Fancy
     myData = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void GpuRingBuffer::Create(const GpuBufferCreationParams& someParameters, GpuResoruceLockOption aLockOption, const void* pInitialData)
+  void GpuRingBuffer::Create(const GpuBufferProperties& someParameters, GpuResoruceLockOption aLockOption, const void* pInitialData)
   {
     Reset();
     

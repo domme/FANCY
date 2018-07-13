@@ -48,8 +48,8 @@ namespace Fancy {
 
     CommandListType GetType() const { return myCommandListType; }
 
-    virtual void ClearRenderTarget(Texture* aTexture, const float* aColor) = 0;
-    virtual void ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
+    virtual void ClearRenderTarget(TextureView* aTextureView, const float* aColor) = 0;
+    virtual void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) = 0;
     virtual void CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) = 0;
     virtual void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion& aSrcRegion) = 0;
@@ -88,8 +88,8 @@ namespace Fancy {
     void SetCullMode(const CullMode eCullMode);
     void SetWindingOrder(const WindingOrder eWindingOrder);
     void SetTopologyType(TopologyType aType);
-    void SetDepthStencilRenderTarget(Texture* pDStexture);
-    void SetRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex);
+    void SetDepthStencilRenderTarget(TextureView* aTextureView);
+    void SetRenderTarget(TextureView* aTextureView, const uint8 aRenderTargetIndex);
     void RemoveAllRenderTargets();
 
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
@@ -106,8 +106,8 @@ namespace Fancy {
     bool myViewportDirty;
     bool myClipRectDirty;
     bool myTopologyDirty;
-    Texture* myRenderTargets[Constants::kMaxNumRenderTargets];
-    Texture* myDepthStencilTarget;
+    TextureView* myRenderTargets[Constants::kMaxNumRenderTargets];
+    TextureView* myDepthStencilTarget;
     bool myRenderTargetsDirty;
 
     DynamicArray<GpuRingBuffer*> myUploadRingBuffers;

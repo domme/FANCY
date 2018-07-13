@@ -305,17 +305,22 @@ namespace Fancy {
       SHADER_BUFFER
     };
  //---------------------------------------------------------------------------//
-    struct GpuBufferCreationParams 
+    struct GpuBufferProperties 
     {
-      GpuBufferCreationParams() : uNumElements(0u), myInternalRefIndex(~0u), myCreateDerivedViews(true), 
-        uElementSizeBytes(0u), myUsageFlags(0u), myAccessType(0u), myIsShaderWritable(false) {}
+      GpuBufferProperties() 
+        : myNumElements(0u)
+        , myElementSizeBytes(0u)
+        , myAccessType(0u)
+        , myInternalRefIndex(~0u)
+        , myUsageFlags(0u)
+        , myIsShaderWritable(false) 
+      { }
 
-      uint uNumElements;
-      uint uElementSizeBytes;
+      uint64 myNumElements;
+      uint64 myElementSizeBytes;
       uint myAccessType;
       uint myInternalRefIndex;
       uint myUsageFlags;
-      bool myCreateDerivedViews;
       bool myIsShaderWritable;
     };
  //---------------------------------------------------------------------------//

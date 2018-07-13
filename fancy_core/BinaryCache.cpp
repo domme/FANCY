@@ -192,8 +192,8 @@ namespace Fancy {
       // Vertex data
       {
         const GpuBuffer* buffer = geoData->getVertexBuffer();
-        const GpuBufferCreationParams& bufferParams = buffer->GetParameters();
-        archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferCreationParams));
+        const GpuBufferProperties& bufferParams = buffer->GetProperties();
+        archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferProperties));
         const uint buffersize = buffer->GetSizeBytes();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
         archive.write(reinterpret_cast<const char*>(someMeshDatas[i].myVertexData.data()), DYN_ARRAY_BYTESIZE(someMeshDatas[i].myVertexData));
@@ -202,8 +202,8 @@ namespace Fancy {
       // Index data
       {
         const GpuBuffer* buffer = geoData->getIndexBuffer();
-        const GpuBufferCreationParams& bufferParams = buffer->GetParameters();
-        archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferCreationParams));
+        const GpuBufferProperties& bufferParams = buffer->GetProperties();
+        archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferProperties));
         const uint buffersize = buffer->GetSizeBytes();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
         archive.write(reinterpret_cast<const char*>(someMeshDatas[i].myIndexData.data()), DYN_ARRAY_BYTESIZE(someMeshDatas[i].myIndexData));
@@ -269,8 +269,8 @@ namespace Fancy {
 
       // Vertex data
       {
-        GpuBufferCreationParams bufferParams;
-        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(GpuBufferCreationParams));
+        GpuBufferProperties bufferParams;
+        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(GpuBufferProperties));
         uint totalBufferBytes;
         archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint));
 
@@ -285,8 +285,8 @@ namespace Fancy {
 
       // Index data
       {
-        GpuBufferCreationParams bufferParams;
-        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(GpuBufferCreationParams));
+        GpuBufferProperties bufferParams;
+        archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(GpuBufferProperties));
         uint totalBufferBytes;
         archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint));
 

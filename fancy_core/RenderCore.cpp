@@ -135,7 +135,7 @@ namespace Fancy {
       if (queue->IsFenceDone(fence))
       {
         it = ourUsedRingBuffers.erase(it);
-        if (buffer->GetBuffer()->GetSizeBytes() >= aNeededByteSize && buffer->GetBuffer()->GetParameters().myUsageFlags == (uint)aUsage)
+        if (buffer->GetBuffer()->GetSizeBytes() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsageFlags == (uint)aUsage)
           return buffer;
         
         ourAvailableRingBuffers.push_back(buffer);
@@ -147,7 +147,7 @@ namespace Fancy {
     for (auto it = ourAvailableRingBuffers.begin(); it != ourAvailableRingBuffers.end(); ++it)
     {
       GpuRingBuffer* buffer = *it;
-      if (buffer->GetBuffer()->GetSizeBytes() >= aNeededByteSize && buffer->GetBuffer()->GetParameters().myUsageFlags == (uint)aUsage)
+      if (buffer->GetBuffer()->GetSizeBytes() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsageFlags == (uint)aUsage)
       {
         ourAvailableRingBuffers.erase(it);
         return buffer;
@@ -157,10 +157,10 @@ namespace Fancy {
     // Create a new buffer
     std::unique_ptr<GpuRingBuffer> buf = std::make_unique<GpuRingBuffer>();
 
-    GpuBufferCreationParams params;
+    GpuBufferProperties params;
     ASSERT(aNeededByteSize <= UINT_MAX, "Buffer size overflow. Consider making numElements 64 bit wide");
-    params.uNumElements = aNeededByteSize;
-    params.uElementSizeBytes = 1u;
+    params.myNumElements = aNeededByteSize;
+    params.myElementSizeBytes = 1u;
     params.myUsageFlags = (uint) aUsage;
     params.myAccessType = (uint)GpuMemoryAccessType::CPU_WRITE;
     params.myCreateDerivedViews = false;
@@ -490,11 +490,11 @@ namespace Fancy {
 
       SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateBuffer());
 
-      GpuBufferCreationParams bufferParams;
+      GpuBufferProperties bufferParams;
       bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
       bufferParams.myAccessType = static_cast<uint>(GpuMemoryAccessType::NO_CPU_ACCESS);
-      bufferParams.uNumElements = numVertices;
-      bufferParams.uElementSizeBytes = vertexLayout.myStride;
+      bufferParams.myNumElements = numVertices;
+      bufferParams.myElementSizeBytes = vertexLayout.myStride;
 
       vertexBuffer->Create(bufferParams, ptrToVertexData);
       pGeometryData->setVertexLayout(vertexLayout);
@@ -506,11 +506,11 @@ namespace Fancy {
 
       SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateBuffer());
 
-      GpuBufferCreationParams indexBufParams;
+      GpuBufferProperties indexBufParams;
       indexBufParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
       indexBufParams.myAccessType = static_cast<uint>(GpuMemoryAccessType::NO_CPU_ACCESS);
-      indexBufParams.uNumElements = numIndices;
-      indexBufParams.uElementSizeBytes = sizeof(uint);
+      indexBufParams.myNumElements = numIndices;
+      indexBufParams.myElementSizeBytes = sizeof(uint);
 
       indexBuffer->Create(indexBufParams, ptrToIndexData);
       pGeometryData->setIndexBuffer(indexBuffer);
@@ -533,7 +533,7 @@ namespace Fancy {
     return tex->IsValid() ? tex : nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferCreationParams& someParams, const void* someInitialData /* = nullptr */)
+  SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferProperties& someParams, const void* someInitialData /* = nullptr */)
   {
     SharedPtr<GpuBuffer> buffer(ourPlatformImpl->CreateBuffer());
     buffer->Create(someParams, someInitialData);
@@ -542,19 +542,49 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<TextureView> RenderCore::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
   {
-    UniquePtr<GpuResourceViewData> viewData(ourPlatformImpl->CreateTextureViewData(aTexture.get(), someProperties));
-    
-    if (viewData == nullptr)
+    ASSERT(!someProperties.myIsShaderWritable || !someProperties.myIsRenderTarget, "UAV and RTV are mutually exclusive");
+
+    return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, someProperties));
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<TextureView> RenderCore::CreateTextureView(const TextureParams& someParams, const TextureViewProperties& someViewProperties, TextureSubData* someUploadDatas, uint aNumUploadDatas)
+  {
+    SharedPtr<Texture> texture = CreateTexture(someParams, someUploadDatas, aNumUploadDatas);
+    if (texture == nullptr)
       return nullptr;
 
-    return std::make_shared<TextureView>(aTexture, std::move(viewData), someProperties);
+    return CreateTextureView(texture, someViewProperties);
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
+  {
+    DataFormat format = RenderCore::ResolveFormat(someProperties.myFormat);
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
+
+    ASSERT(aBuffer->GetSizeBytes() >= someProperties.myOffset + someProperties.mySize, "Invalid buffer range");
+    ASSERT(!someProperties.myIsStructured || someProperties.myStructureSize > 0u, "Structured buffer views need a valid structure size");
+    ASSERT(!someProperties.myIsStructured || !someProperties.myIsRaw, "Raw and structured buffer views are mutually exclusive");
+    ASSERT(!someProperties.myIsShaderWritable || aBuffer->GetProperties().myIsShaderWritable, "A shader-writable buffer view requires a shader-writable buffer");
+    ASSERT(!someProperties.myIsStructured || format == DataFormat::UNKNOWN, "Structured buffer views can't have a format");
+    ASSERT(!someProperties.myIsRaw || format == DataFormat::UNKNOWN || format == DataFormat::R_32UI, "Raw buffer views can't have a format other than R32");
+
+    return SharedPtr<GpuBufferView>(ourPlatformImpl->CreateBufferView(aBuffer, someProperties));
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const GpuBufferProperties& someParams, const GpuBufferViewProperties& someViewProperties, const void* someInitialData)
+  {
+    SharedPtr<GpuBuffer> buffer = CreateBuffer(someParams, someInitialData);
+    if (buffer == nullptr)
+      return nullptr;
+
+    return CreateBufferView(buffer, someViewProperties);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
   {
     ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetSizeBytes());
 
-    const GpuBufferCreationParams& bufParams = aDestBuffer->GetParameters();
+    const GpuBufferProperties& bufParams = aDestBuffer->GetProperties();
 
     if (bufParams.myAccessType == (uint)GpuMemoryAccessType::CPU_WRITE)
     {

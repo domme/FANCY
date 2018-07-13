@@ -246,25 +246,26 @@ namespace Fancy {
     return dynamicHeap->GetDescriptor(startOffset);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::ClearRenderTarget(Texture* aTexture, const float* aColor)
+  void CommandContextDX12::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
   {
-    ASSERT(aTexture->GetParameters().myIsRenderTarget);
+    const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
 
-    TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_RENDER_TARGET);
+    ASSERT(aTextureView->GetProperties().myIsRenderTarget);
+    ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::RTV);
 
-    TextureDX12* textureDX12 = static_cast<TextureDX12*>(aTexture);
-    ASSERT(textureDX12->GetRtv() != nullptr, "Texture doesn't appear to be a render target");
-    myCommandList->ClearRenderTargetView(textureDX12->GetRtv()->myCpuHandle, aColor, 0, nullptr);
+    // TODO: Move out to caller?
+    TransitionResource(aTextureView->GetTexture(), GpuResourceState::RESOURCE_STATE_RENDER_TARGET);
+
+    myCommandList->ClearRenderTargetView(viewDataDx12.myDescriptor.myCpuHandle, aColor, 0, nullptr);
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::ClearDepthStencilTarget(Texture* aTexture, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
+  void CommandContextDX12::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
   {
-    ASSERT(aTexture->GetParameters().bIsDepthStencil);
+    const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
+    ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::DSV);
 
-    TextureDX12* textureDX12 = static_cast<TextureDX12*>(aTexture);
-    ASSERT(textureDX12->GetDsv() != nullptr, "Texture doesn't appear to be a depth-stencil target");
-
-    TransitionResource(aTexture, GpuResourceState::RESOURCE_STATE_DEPTH_WRITE);
+    // TODO: Move out to caller?
+    TransitionResource(aTextureView->GetTexture(), GpuResourceState::RESOURCE_STATE_DEPTH_WRITE);
 
     D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS)0;
     if (someClearFlags & (uint)DepthStencilClearFlags::CLEAR_DEPTH)
@@ -272,7 +273,7 @@ namespace Fancy {
     if (someClearFlags & (uint)DepthStencilClearFlags::CLEAR_STENCIL)
       clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
 
-    myCommandList->ClearDepthStencilView(textureDX12->GetDsv()->myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
+    myCommandList->ClearDepthStencilView(viewDataDx12.myDescriptor.myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
@@ -288,8 +289,8 @@ namespace Fancy {
   void CommandContextDX12::CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
   {
     ASSERT(aDestBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)");
-    ASSERT(aSize <= aDestBuffer->GetSizeBytes() - aDestOffset, "Invalid dst-region specified");
-    ASSERT(aSize <= aSrcBuffer->GetSizeBytes() - aSrcOffset, "Invalid src-region specified");
+    ASSERT(aSize <= aDestBuffer->GetByteSize() - aDestOffset, "Invalid dst-region specified");
+    ASSERT(aSize <= aSrcBuffer->GetByteSize() - aSrcOffset, "Invalid src-region specified");
     locValidateUsageStatesCopy(aDestBuffer, aSrcBuffer);
 
     ID3D12Resource* dstResource = ((GpuResourceStorageDX12*)aDestBuffer->myStorage.get())->myResource.Get();
@@ -681,21 +682,21 @@ namespace Fancy {
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
     {
       GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aVertexBuffer->myStorage.get();
-      const GpuBufferCreationParams bufferParams = aVertexBuffer->GetParameters();
+      const GpuBufferProperties bufferParams = aVertexBuffer->GetProperties();
 
-      vertexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + aVertexOffset * bufferParams.uElementSizeBytes;
-      vertexBufferView.SizeInBytes = glm::min(aNumVertices, bufferParams.uNumElements) * bufferParams.uElementSizeBytes;
-      vertexBufferView.StrideInBytes = bufferParams.uElementSizeBytes;
+      vertexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + aVertexOffset * bufferParams.myElementSizeBytes;
+      vertexBufferView.SizeInBytes = glm::min((uint64) aNumVertices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
+      vertexBufferView.StrideInBytes = bufferParams.myElementSizeBytes;
     }
 
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
     {
       GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)anIndexBuffer->myStorage.get();
-      const GpuBufferCreationParams bufferParams = anIndexBuffer->GetParameters();
+      const GpuBufferProperties bufferParams = anIndexBuffer->GetProperties();
 
-      indexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + anIndexOffset * bufferParams.uElementSizeBytes;
-      indexBufferView.Format = bufferParams.uElementSizeBytes == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-      indexBufferView.SizeInBytes = glm::min(aNumIndices, bufferParams.uNumElements) * bufferParams.uElementSizeBytes;
+      indexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + anIndexOffset * bufferParams.myElementSizeBytes;
+      indexBufferView.Format = bufferParams.myElementSizeBytes == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+      indexBufferView.SizeInBytes = glm::min((uint64) aNumIndices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
     }
 
     myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
@@ -719,7 +720,7 @@ namespace Fancy {
 
     SetTopologyType(pGeometry->getGeometryVertexLayout().myTopology);
     SetVertexIndexBuffers(vertexBufferDx12, indexBufferDx12);
-    Render(indexBufferDx12->GetNumElements(), 1, 0, 0, 0);
+    Render(indexBufferDx12->GetProperties().myNumElements, 1, 0, 0, 0);
   }
   //---------------------------------------------------------------------------//
   void CommandContextDX12::ApplyViewportAndClipRect()

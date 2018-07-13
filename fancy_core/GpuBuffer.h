@@ -16,18 +16,19 @@ namespace Fancy {
     bool operator==(const GpuBufferDesc& aDesc) const;
     GpuBufferDesc GetDescription() const;
 
-    uint GetSizeBytes() const { return myParameters.uNumElements * myParameters.uElementSizeBytes; }
-    uint GetNumElements() const { return myParameters.uNumElements; }
-    GpuBufferCreationParams GetParameters() const { return myParameters; }
+    const GpuBufferProperties& GetProperties() const { return myProperties; }
     uint GetAlignment() const { return myAlignment; }
 
-    virtual void Create(const GpuBufferCreationParams& clParameters,const void* pInitialData = nullptr) = 0;
+    uint64 GetByteSize() const { return myProperties.myNumElements * myProperties.myElementSizeBytes; }
+    uint64 GetAllocatedByteSize() const { return MathUtil::Align(GetByteSize(), myAlignment); }
+
+    virtual void Create(const GpuBufferProperties& clParameters,const void* pInitialData = nullptr) = 0;
     virtual void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) const = 0;
     virtual void Unlock(uint anOffsetElements = 0u, uint aNumElements = 0u) const = 0;
     
   protected:
     uint myAlignment;
-    GpuBufferCreationParams myParameters;
+    GpuBufferProperties myProperties;
   };
 //---------------------------------------------------------------------------//
   struct GpuBufferViewProperties

@@ -277,32 +277,35 @@ namespace Fancy {
     state.myTopologyType = aType;
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::SetDepthStencilRenderTarget(Texture* pDStexture)
+  void CommandContext::SetDepthStencilRenderTarget(TextureView* aTextureView)
   {
-    if (myDepthStencilTarget == pDStexture)
+    if (myDepthStencilTarget == aTextureView)
       return;
 
-    myDepthStencilTarget = pDStexture;
+    ASSERT(!aTextureView || aTextureView->GetProperties().myIsRenderTarget);
+
+    myDepthStencilTarget = aTextureView;
     myRenderTargetsDirty = true;
 
-    ASSERT(pDStexture == nullptr || pDStexture->GetParameters().bIsDepthStencil);
-    myGraphicsPipelineState.myDSVformat = pDStexture != nullptr ? pDStexture->GetParameters().eFormat : DataFormat::NONE;
+    myGraphicsPipelineState.myDSVformat = aTextureView != nullptr ? aTextureView->GetProperties().myFormat : DataFormat::NONE;
     myGraphicsPipelineState.myIsDirty = true;
   }
   //---------------------------------------------------------------------------//
-  void CommandContext::SetRenderTarget(Texture* pRTTexture, const uint8 u8RenderTargetIndex)
+  void CommandContext::SetRenderTarget(TextureView* aTextureView, const uint8 aRenderTargetIndex)
   {
-    if (myRenderTargets[u8RenderTargetIndex] == pRTTexture)
+    ASSERT(aRenderTargetIndex < ARRAY_LENGTH(myRenderTargets));
+
+    if (myRenderTargets[aRenderTargetIndex] == aTextureView)
       return;
 
-    myRenderTargets[u8RenderTargetIndex] = pRTTexture;
+    myRenderTargets[aRenderTargetIndex] = aTextureView;
     myRenderTargetsDirty = true;
 
-    myGraphicsPipelineState.myRTVformats[u8RenderTargetIndex] = pRTTexture != nullptr ? pRTTexture->GetParameters().eFormat : DataFormat::NONE;
+    myGraphicsPipelineState.myRTVformats[aRenderTargetIndex] = aTextureView != nullptr ? aTextureView->GetProperties().myFormat : DataFormat::NONE;
     myGraphicsPipelineState.myIsDirty = true;
 
     uint numRenderTargets = 0u;
-    for (const Texture* rt : myRenderTargets)
+    for (const TextureView* rt : myRenderTargets)
       if (rt != nullptr)
         ++numRenderTargets;
 
@@ -325,9 +328,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContext::UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
   {
-    ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetSizeBytes());
+    ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetByteSize());
 
-    const GpuBufferCreationParams& bufParams = aDestBuffer->GetParameters();
+    const GpuBufferProperties& bufParams = aDestBuffer->GetProperties();
 
     if (bufParams.myAccessType == (uint)GpuMemoryAccessType::CPU_WRITE)
     {

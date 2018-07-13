@@ -20,7 +20,7 @@ namespace Fancy {
   GpuBufferDesc GpuBuffer::GetDescription() const
   {
     GpuBufferDesc desc;
-    desc.myInternalRefIndex = myParameters.myInternalRefIndex;
+    desc.myInternalRefIndex = myProperties.myInternalRefIndex;
     return desc;
   }
 //---------------------------------------------------------------------------//
