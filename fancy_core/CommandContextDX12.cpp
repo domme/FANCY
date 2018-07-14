@@ -590,23 +590,37 @@ namespace Fancy {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::BindResource(const GpuResourceView* aResourceView, uint aRegisterIndex, uint aResourceOffset /* = 0u */) const
+  void CommandContextDX12::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const
   {
     ASSERT(myRootSignature != nullptr);
-    ASSERT(aResourceView->myNativeData.HasType<GpuResourceViewDataDX12>());
-
-    const GpuResourceViewDataDX12& resourceViewData = aResourceView->myNativeData.To<GpuResourceViewDataDX12>();
-    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aResourceView->myResource->myStorage.get();
+    
+    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
 
     ASSERT(storage->myResource != nullptr);
     
-    const uint64 gpuVirtualAddress = storage->myResource->GetGPUVirtualAddress() + aResourceOffset;
+    const uint64 gpuVirtualAddress = storage->myResource->GetGPUVirtualAddress() + someViewProperties.myOffset;
+    
+    GpuResourceViewDataDX12::Type type = GpuResourceViewDataDX12::NONE;
+    if (someViewProperties.myIsShaderWritable)
+    {
+      ASSERT(someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor");
+      type = GpuResourceViewDataDX12::UAV;
+    }
+    else if (someViewProperties.myIsConstantBuffer)
+    {
+      type = GpuResourceViewDataDX12::CBV;
+    }
+    else
+    {
+      ASSERT(someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor");
+      type = GpuResourceViewDataDX12::SRV;
+    }
     
     switch (myCommandListType)
     {
       case CommandListType::Graphics: 
       {
-        switch (resourceViewData.myType)
+        switch (type)
         {
           case GpuResourceViewDataDX12::SRV: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
           case GpuResourceViewDataDX12::UAV: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
@@ -616,7 +630,7 @@ namespace Fancy {
       } break;
       case CommandListType::Compute: 
       {
-        switch (resourceViewData.myType)
+        switch (type)
         {
           case GpuResourceViewDataDX12::SRV: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
           case GpuResourceViewDataDX12::UAV: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
@@ -682,7 +696,7 @@ namespace Fancy {
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
     {
       GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aVertexBuffer->myStorage.get();
-      const GpuBufferProperties bufferParams = aVertexBuffer->GetProperties();
+      const GpuBufferProperties& bufferParams = aVertexBuffer->GetProperties();
 
       vertexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + aVertexOffset * bufferParams.myElementSizeBytes;
       vertexBufferView.SizeInBytes = glm::min((uint64) aNumVertices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
@@ -692,7 +706,7 @@ namespace Fancy {
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
     {
       GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)anIndexBuffer->myStorage.get();
-      const GpuBufferProperties bufferParams = anIndexBuffer->GetProperties();
+      const GpuBufferProperties& bufferParams = anIndexBuffer->GetProperties();
 
       indexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + anIndexOffset * bufferParams.myElementSizeBytes;
       indexBufferView.Format = bufferParams.myElementSizeBytes == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
@@ -763,37 +777,34 @@ namespace Fancy {
     myRenderTargetsDirty = false;
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Constants::kMaxNumRenderTargets];
-    TextureDX12* rtResources[Constants::kMaxNumRenderTargets];
+    GpuResource* rtResources[Constants::kMaxNumRenderTargets];
     uint numRtsToSet = 0u;
 
     for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
     {
-      TextureDX12* rt = static_cast<TextureDX12*>(myRenderTargets[i]);
+      const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myNativeData.To<GpuResourceViewDataDX12>();
+      ASSERT(viewData.myType == GpuResourceViewDataDX12::RTV);
 
-      if (rt != nullptr)
-      {
-        ASSERT(rt->GetRtv() != nullptr);
-        rtResources[numRtsToSet] = rt;
-        rtDescriptors[numRtsToSet] = rt->GetRtv()->myCpuHandle;
-        ++numRtsToSet;
-      }
+      rtResources[numRtsToSet] = myRenderTargets[i]->GetTexture();
+      rtDescriptors[numRtsToSet] = viewData.myDescriptor.myCpuHandle;
+      ++numRtsToSet;
     }
 
     for (uint i = 0u; i < numRtsToSet; ++i)
-    {
       TransitionResource(rtResources[i], GpuResourceState::RESOURCE_STATE_RENDER_TARGET);
+
+    if (myDepthStencilTarget != nullptr)
+    {
+      const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myNativeData.To<GpuResourceViewDataDX12>();
+      ASSERT(dsvViewData.myType == GpuResourceViewDataDX12::DSV);
+      TransitionResource(myDepthStencilTarget->GetTexture(), myDepthStencilTarget->GetProperties().myIsDepthReadOnly ? GpuResourceState::RESOURCE_STATE_DEPTH_READ : GpuResourceState::RESOURCE_STATE_DEPTH_WRITE);
+
+      myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
     }
-
-    TextureDX12* dsvTargetDx12 = static_cast<TextureDX12*>(myDepthStencilTarget);
-    ASSERT(dsvTargetDx12->GetDsv() != nullptr);
-
-    if (dsvTargetDx12)
-      TransitionResource(dsvTargetDx12, GpuResourceState::RESOURCE_STATE_DEPTH_WRITE);
-
-    if (myDepthStencilTarget)
-      myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvTargetDx12->GetDsv()->myCpuHandle);
     else
+    {
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, nullptr);
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ApplyPipelineState()

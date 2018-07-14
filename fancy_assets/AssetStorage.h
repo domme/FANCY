@@ -12,6 +12,7 @@ namespace Fancy {
   struct MaterialDesc;
   class Texture;
   struct TextureDesc;
+  struct TextureView;
 //---------------------------------------------------------------------------//
   class AssetStorage
   {
@@ -19,9 +20,9 @@ namespace Fancy {
     AssetStorage();
     ~AssetStorage();
 
-    SharedPtr<Texture> GetTexture(const TextureDesc& aDesc);
-    SharedPtr<Texture> CreateTexture(const char* aPath);
-    SharedPtr<Texture> CreateTexture(const TextureDesc& aDesc);
+    SharedPtr<TextureView> GetTexture(const TextureDesc& aDesc);
+    SharedPtr<TextureView> CreateTexture(const char* aPath);
+    SharedPtr<TextureView> CreateTexture(const TextureDesc& aDesc);
 
     SharedPtr<Material> CreateMaterial(const MaterialDesc& aDesc);
     SharedPtr<Model> CreateModel(const ModelDesc& aDesc);
@@ -32,7 +33,7 @@ namespace Fancy {
   private:
     std::map<uint64, SharedPtr<Material>> myMaterials;
     std::map<uint64, SharedPtr<Model>> myModels;
-    std::map<uint64, SharedPtr<Texture>> myTextures;
+    std::map<uint64, SharedPtr<TextureView>> myTextures;
     std::map<uint64, SharedPtr<Mesh>> myMeshes;
   };
 //---------------------------------------------------------------------------//

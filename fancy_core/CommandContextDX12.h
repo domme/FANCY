@@ -40,7 +40,7 @@ namespace Fancy {
     void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) override;
     void RenderGeometry(const GeometryData* pGeometry) override;
-    void BindResource(const GpuResourceView* aResourceView, uint aRegisterIndex, uint aResourceOffset = 0u) const override;
+    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const override;
     void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;

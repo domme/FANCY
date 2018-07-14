@@ -8,7 +8,7 @@
 #include "GpuProgram.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
-#include "RenderPlatformCaps.h"
+#include "RendererPrerequisites.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -151,7 +151,12 @@ namespace Fancy {
     uint64 offset = 0u;
     const GpuBuffer* buffer = GetBuffer(offset, GpuBufferUsage::CONSTANT_BUFFER, someData, aDataSize);
     
-    BindResource(buffer, DescriptorType::CONSTANT_BUFFER, aRegisterIndex, offset);
+    GpuBufferViewProperties viewProperties;
+    viewProperties.mySize = aDataSize;
+    viewProperties.myIsConstantBuffer = true;
+    viewProperties.myOffset = offset;
+
+    BindBuffer(buffer, viewProperties, aRegisterIndex);
   }
 //---------------------------------------------------------------------------//
 

@@ -20,7 +20,7 @@ using namespace Fancy;
   {
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> AssetStorage::GetTexture(const TextureDesc& aDesc)
+  SharedPtr<TextureView> AssetStorage::GetTexture(const TextureDesc& aDesc)
   {
     auto it = myTextures.find(aDesc.GetHash());
     if (it != myTextures.end())
