@@ -2,37 +2,31 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  enum class TextureRef
+  namespace TextureRef
   {
-    DEFAULT_DIFFUSE = 0,
-    DEFAULT_NORMAL,
-    DEFAULT_SPECULAR,
+    enum Ref
+    {
+#define TEXTURE_REF(name, id, array) name = id, LAST_##name = id + (array ? array-1 : 0),
+      #include "ResourceNameList.h"
+#undef TEXTURE_REF
+      NUM_LOCAL_TEXTURES = LAST_LOCAL_TEXTURE + 1 - LOCAL_TEXTURE,
+      NUM_GLOBAL_TEXTURES = 13 - LAST_LOCAL_TEXTURE,
+    };
 
-    DEFAULT_BACKBUFFER,
-    DEFAULT_DEPTHSTENCILBUFFER,
-    
-    NUM
-  };
-//---------------------------------------------------------------------------//
-  enum class BufferRef
-  {
-    NUM
-  };
-//---------------------------------------------------------------------------//
-  enum class MeshRef
-  {
-    UNIT_CUBE = 0,
-    UNIT_SPHERE,
-    COORD_GRID,
+    static String ToString(Ref aRef, uint anIndex = 0)
+    {
+      static const char* ourNameTable[] =
+      {
+#define TEXTURE_REF(name, ...) #name,
+        #include "ResourceNameList.h"
+#undef TEXTURE_REF
+        "__Dummy__",  // Needed for intellisense to be happy
+      };
 
-    NUM
-  };
-//---------------------------------------------------------------------------//
-  namespace ResourceRef
-  {
-     ToString(TextureRef aRef);
-     ToString(BufferRef aRef);
-     ToString(MeshRef aRef);
-  } 
+      ASSERT(aRef < ARRAY_LENGTH(ourNameTable) - 1);  // -1 for dummy
 
+      return StringFormat("%_%", ourNameTable[aRef], anIndex);
+    }
+  }
+//---------------------------------------------------------------------------//
 }

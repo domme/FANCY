@@ -271,6 +271,9 @@
     <ClInclude Include="ResourceRefs.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="ResourceNameList.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -405,9 +408,6 @@
     </ClCompile>
     <ClCompile Include="GpuResourceViewDX12.cpp">
       <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceRefs.cpp">
-      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -4,7 +4,7 @@
 #include <array>
 
 #include "DepthStencilState.h"
-#include "TextureRefs.h"
+#include "ResourceRefs.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
 #include "GpuProgramCompiler.h"
@@ -267,7 +267,7 @@ namespace Fancy {
       params.eFormat = DataFormat::SRGB_8;
       params.myHeight = 1u;
       params.myWidth = 1u;
-      params.myInternalRefIndex = (uint)TextureRef::DEFAULT_DIFFUSE;
+      params.path = TextureRef::ToString(TextureRef::DEFAULT_DIFFUSE);
 
       TextureSubData data(params);
       uint8 color[3] = { 0, 0, 0 };
@@ -275,17 +275,16 @@ namespace Fancy {
 
       ourDefaultDiffuseTexture = CreateTexture(params, &data, 1);
 
-      params.myInternalRefIndex = (uint)TextureRef::DEFAULT_SPECULAR;
+      params.path = TextureRef::ToString(TextureRef::DEFAULT_SPECULAR);
       ourDefaultSpecularTexture = CreateTexture(params, &data, 1);
     }
 
     {
       TextureParams params;
-      params.myIsExternalTexture = false;
       params.eFormat = DataFormat::RGB_8;
       params.myHeight = 1u;
       params.myWidth = 1u;
-      params.myInternalRefIndex = (uint)TextureRef::DEFAULT_NORMAL;
+      params.path = TextureRef::ToString(TextureRef::DEFAULT_NORMAL);
 
       TextureSubData data(params);
       uint8 color[3] = { 128, 128, 128 };
@@ -293,9 +292,7 @@ namespace Fancy {
 
       ourDefaultNormalTexture = CreateTexture(params, &data, 1);
     }
-
-
-
+    
     ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
     ASSERT(ourDefaultDepthStencilState != nullptr);
 
@@ -580,7 +577,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
   {
-    ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetSizeBytes());
+    ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetByteSize());
 
     const GpuBufferProperties& bufParams = aDestBuffer->GetProperties();
 

@@ -124,6 +124,7 @@
     <ClInclude Include="RenderOutput.h" />
     <ClInclude Include="RenderOutputDX12.h" />
     <ClInclude Include="RenderPlatformCaps.h" />
+    <ClInclude Include="ResourceNameList.h" />
     <ClInclude Include="ShaderResourceInterface.h" />
     <ClInclude Include="ShaderResourceInterfaceDesc.h" />
     <ClInclude Include="ShaderResourceInterfaceDX12.h" />
@@ -179,7 +180,6 @@
     <ClCompile Include="RendererPrerequisites.cpp" />
     <ClCompile Include="RenderOutput.cpp" />
     <ClCompile Include="RenderOutputDX12.cpp" />
-    <ClCompile Include="ResourceRefs.cpp" />
     <ClCompile Include="ShaderResourceInterfaceDX12.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">Create</PrecompiledHeader>
