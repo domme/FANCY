@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fancy_core/FancyCorePrerequisites.h>
-#include <fancy_core/TextureDesc.h>
 #include "MaterialSemantics.h"
 
 namespace Fancy
@@ -11,8 +10,8 @@ namespace Fancy
     uint64 GetHash() const;
     bool operator==(const MaterialDesc& anOther) const;
 
-    FixedArray<TextureDesc, (uint)TextureSemantic::NUM> mySemanticTextures;
-    DynamicArray<TextureDesc> myExtraTextures;
+    FixedArray<String, (uint)TextureSemantic::NUM> mySemanticTextures;
+    DynamicArray<String> myExtraTextures;
 
     FixedArray<float, (uint)ParameterSemantic::NUM> mySemanticParameters;
     DynamicArray<float> myExtraParameters;

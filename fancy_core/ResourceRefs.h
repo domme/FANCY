@@ -27,4 +27,12 @@ namespace Fancy {
 
     NUM
   };
+//---------------------------------------------------------------------------//
+  namespace ResourceRef
+  {
+     ToString(TextureRef aRef);
+     ToString(BufferRef aRef);
+     ToString(MeshRef aRef);
+  } 
+
 }

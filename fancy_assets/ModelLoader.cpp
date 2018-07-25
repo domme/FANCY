@@ -313,11 +313,11 @@ namespace Fancy { namespace ModelLoader {
     return mesh;
   }
 //---------------------------------------------------------------------------//
-  TextureDesc CreateTextureDesc(const aiMaterial* _pAmaterial, uint _aiTextureType, uint _texIndex, ProcessData& aProcessData)
+  String BuildTexturePath(const aiMaterial* _pAmaterial, uint _aiTextureType, uint _texIndex, ProcessData& aProcessData)
   {
     uint numTextures = _pAmaterial->GetTextureCount(static_cast<aiTextureType>(_aiTextureType));
     if (numTextures == 0u)
-      return TextureDesc();
+      return "";
 
     ASSERT(numTextures > _texIndex);
 
@@ -335,13 +335,9 @@ namespace Fancy { namespace ModelLoader {
     }
 
     Path::RemoveFolderUpMarkers(texPathAbs);
-    String texPathInResources = Resources::FindName(texPathAbs);
-
-    TextureDesc desc;
-    desc.mySourcePath = texPathInResources;
-    desc.myInternalRefIndex = ~0;
-    desc.myIsExternalTexture = true;
-    return desc;
+    const String& texPathInResources = Resources::FindName(texPathAbs);
+    
+    return texPathInResources;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Material> CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData, AssetStorage& aStorage)
@@ -384,16 +380,16 @@ namespace Fancy { namespace ModelLoader {
     float specular;
     const bool hasSpecular = _pAmaterial->Get(AI_MATKEY_SHININESS_STRENGTH, specular) == AI_SUCCESS;
 
-    const TextureDesc& diffuseTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_DIFFUSE, 0u, aProcessData);
-    const TextureDesc& normalTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_NORMALS, 0u, aProcessData);
-    const TextureDesc& specularTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_SPECULAR, 0u, aProcessData);
-    const TextureDesc& specPowerTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_SHININESS, 0u, aProcessData);
-    const TextureDesc& opacityTexDesc = CreateTextureDesc(_pAmaterial, aiTextureType_OPACITY, 0u, aProcessData);
+    const String& diffuseTexPath = BuildTexturePath(_pAmaterial, aiTextureType_DIFFUSE, 0u, aProcessData);
+    const String& normalTexPath = BuildTexturePath(_pAmaterial, aiTextureType_NORMALS, 0u, aProcessData);
+    const String& specularTexPath = BuildTexturePath(_pAmaterial, aiTextureType_SPECULAR, 0u, aProcessData);
+    const String& specPowerTexPath = BuildTexturePath(_pAmaterial, aiTextureType_SHININESS, 0u, aProcessData);
+    const String& opacityTexPath = BuildTexturePath(_pAmaterial, aiTextureType_OPACITY, 0u, aProcessData);
 
     MaterialDesc matDesc;
-    matDesc.mySemanticTextures[(uint)TextureSemantic::BASE_COLOR] = diffuseTexDesc;
-    matDesc.mySemanticTextures[(uint)TextureSemantic::NORMAL] = normalTexDesc;
-    matDesc.mySemanticTextures[(uint)TextureSemantic::MATERIAL] = specPowerTexDesc;
+    matDesc.mySemanticTextures[(uint)TextureSemantic::BASE_COLOR] = diffuseTexPath;
+    matDesc.mySemanticTextures[(uint)TextureSemantic::NORMAL] = normalTexPath;
+    matDesc.mySemanticTextures[(uint)TextureSemantic::MATERIAL] = specPowerTexPath;
     matDesc.mySemanticParameters[(uint)ParameterSemantic::DIFFUSE_REFLECTIVITY] = (color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f);
     matDesc.mySemanticParameters[(uint)ParameterSemantic::SPECULAR_REFLECTIVITY] = specular;
     matDesc.mySemanticParameters[(uint)ParameterSemantic::SPECULAR_POWER] = specularPower;

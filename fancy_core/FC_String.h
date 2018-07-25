@@ -65,7 +65,7 @@ namespace Fancy {
     template<> struct hash<Fancy::String>
     {
       size_t operator()(const Fancy::String& aValue) const
-      {
+      { 
         if (aValue.empty())
           return static_cast<size_t>(0x0);
 

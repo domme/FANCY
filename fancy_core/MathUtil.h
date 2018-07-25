@@ -4,10 +4,14 @@
 
 namespace Fancy { namespace MathUtil {
 //---------------------------------------------------------------------------//
-  template<class T>
-  inline size_t Hash(const T& aValue)
+  inline size_t ByteHash(const uint8* aValue, uint64 aSize)
   {
-    return std::hash<T>{}(aValue);
+    uint64 hash = 0x0;
+    std::hash<uint> hasher;
+    for (uint i = 0u; i < aSize; ++i)
+      hash ^= hasher(static_cast<uint>(aValue[i]) * 2654435761u) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+
+    return hash;
   }
 //---------------------------------------------------------------------------//
   template<class T>
@@ -15,13 +19,19 @@ namespace Fancy { namespace MathUtil {
   {
     const size_t sizeBytes = sizeof(T);
     const uint8* byteBlock = reinterpret_cast<const uint8*>(&aValue);
-
-    uint64 hash = 0x0;
-    std::hash<uint> hasher;
-    for (uint i = 0u; i < sizeBytes; ++i)
-      hash ^= hasher(static_cast<uint>(byteBlock[i]) * 2654435761u) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
-
-    return hash;
+    return ByteHash(byteBlock, sizeBytes);
+  }
+//---------------------------------------------------------------------------//
+  template<class T>
+  inline size_t Hash(const T& aValue)
+  {
+    return std::hash<T>{}(aValue);
+  }
+//---------------------------------------------------------------------------//
+  template<>
+  inline size_t Hash<const char*&>(const char*& aValue)
+  {
+    return ByteHash(reinterpret_cast<const uint8*>(aValue), strlen(aValue));
   }
 //---------------------------------------------------------------------------//
   template<class T>

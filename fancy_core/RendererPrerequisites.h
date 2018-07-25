@@ -233,8 +233,6 @@ namespace Fancy {
         , eFormat(DataFormat::NONE)
         , myAccessType(GpuMemoryAccessType::NO_CPU_ACCESS)
         , bIsDepthStencil(false)
-        , myIsExternalTexture(true)
-        , myInternalRefIndex(~0u)
         , myNumMipLevels(1u)
         , myIsShaderWritable(false)
         , myIsRenderTarget(false) 
@@ -248,8 +246,6 @@ namespace Fancy {
       DataFormat eFormat;
       GpuMemoryAccessType myAccessType;
       bool bIsDepthStencil;
-      bool myIsExternalTexture;
-      uint myInternalRefIndex;
       uint myNumMipLevels;
       bool myIsShaderWritable;
       bool myIsRenderTarget;

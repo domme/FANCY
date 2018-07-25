@@ -133,9 +133,9 @@
     <ClInclude Include="FC_String.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="TextureDesc.h" />
+    <ClInclude Include="TextureViewProperties.h" />
     <ClInclude Include="TextureDX12.h" />
-    <ClInclude Include="TextureRefs.h" />
+    <ClInclude Include="ResourceRefs.h" />
     <ClInclude Include="TextureSampler.h" />
     <ClInclude Include="TextureSamplerDesc.h" />
     <ClInclude Include="TextureSamplerDX12.h" />
@@ -179,13 +179,13 @@
     <ClCompile Include="RendererPrerequisites.cpp" />
     <ClCompile Include="RenderOutput.cpp" />
     <ClCompile Include="RenderOutputDX12.cpp" />
+    <ClCompile Include="ResourceRefs.cpp" />
     <ClCompile Include="ShaderResourceInterfaceDX12.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="FC_String.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="TextureDesc.cpp" />
     <ClCompile Include="TextureDX12.cpp" />
     <ClCompile Include="TextureSamplerDesc.cpp" />
     <ClCompile Include="TextureSamplerDX12.cpp" />

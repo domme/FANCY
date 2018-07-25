@@ -7,11 +7,11 @@ namespace Fancy {
   uint64 MaterialDesc::GetHash() const
   {
     uint64 hash = 0u;
-    for (const TextureDesc& tex : mySemanticTextures)
-      MathUtil::hash_combine(hash, tex.GetHash());
+    for (const String& tex : mySemanticTextures)
+      MathUtil::hash_combine(hash, tex);
 
-    for (const TextureDesc& tex : myExtraTextures)
-      MathUtil::hash_combine(hash, tex.GetHash());
+    for (const String& tex : myExtraTextures)
+      MathUtil::hash_combine(hash, tex);
 
     for (float param : mySemanticParameters)
       MathUtil::hash_combine(hash, param);

@@ -4,9 +4,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct TextureDesc;
-  class Texture;
-//---------------------------------------------------------------------------//
   struct TextureLoadInfo
   {
     uint bitsPerPixel;

@@ -1,13 +1,13 @@
 #include "BinaryCache.h"
 #include "GeometryData.h"
 #include "Mesh.h"
-#include "TextureDesc.h"
 #include "RenderCore.h"
-#include <fstream>
 #include "PathService.h"
 #include "StringUtil.h"
 #include "RenderCore_Platform.h"
 #include "MeshData.h"
+
+#include <fstream>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -51,10 +51,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//  
   bool BinaryCache::WriteTexture(const Texture* aTexture, const TextureSubData& someData)
   {
-    const TextureDesc& texDesc = aTexture->GetDescription();
-    const uint64 texDescHash = texDesc.GetHash();
-
-    const String cacheFilePath = getCacheFilePathAbs(texDesc.mySourcePath);
+    const String cacheFilePath = getCacheFilePathAbs(aTexture->GetParameters().path);
     Path::CreateDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
@@ -64,13 +61,8 @@ namespace Fancy {
 
     const TextureParams& texParams = aTexture->GetParameters();
 
-    // Write the hash first the be able to "peek ahead" without reading in the whole stuff later on
-    archive.write(reinterpret_cast<const char*>(&texDescHash), sizeof(texDescHash));
-
-    // Write the desc
-    locWriteString(archive, texDesc.mySourcePath);
-    archive.write((const char*)&texDesc.myIsExternalTexture, sizeof(texDesc.myIsExternalTexture));
-    archive.write((const char*)&texDesc.myInternalRefIndex, sizeof(texDesc.myInternalRefIndex));
+    
+    locWriteString(archive, texParams.path);
     
     // Write the texture
     archive.write(reinterpret_cast<const char*>(&texParams.myWidth), sizeof(uint16));
@@ -90,10 +82,9 @@ namespace Fancy {
     return archive.good();
   }  
 //---------------------------------------------------------------------------//  
-  SharedPtr<Texture> BinaryCache::ReadTexture(const TextureDesc& aDesc, uint64 aTimeStamp)
+  SharedPtr<Texture> BinaryCache::ReadTexture(const String& aPath, uint64 aTimeStamp)
   {
-    uint64 descHash = aDesc.GetHash();
-    const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(descHash));
+    const String cacheFilePath = getCacheFilePathAbs(aPath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
     if (!archive.good())
@@ -107,19 +98,10 @@ namespace Fancy {
 
     if (textureVersion != kTextureVersion)
       return nullptr;
-
-    TextureDesc texDesc;
-
-    // Read the desc
-    texDesc.mySourcePath = locReadString(archive);
-    archive.read((char*)&texDesc.myIsExternalTexture, sizeof(texDesc.myIsExternalTexture));
-    archive.read((char*)&texDesc.myInternalRefIndex, sizeof(texDesc.myInternalRefIndex));
     
     // Read the texture
     TextureParams texParams;
-    texParams.myIsExternalTexture = texDesc.myIsExternalTexture;
-    texParams.path = texDesc.mySourcePath;
-    texParams.myInternalRefIndex = texDesc.myInternalRefIndex;
+    texParams.path = locReadString(archive);
     archive.read((char*)&texParams.myWidth, sizeof(uint16));
     archive.read((char*)&texParams.myHeight, sizeof(uint16));
     archive.read((char*)&texParams.myDepthOrArraySize, sizeof(uint16));
@@ -194,7 +176,7 @@ namespace Fancy {
         const GpuBuffer* buffer = geoData->getVertexBuffer();
         const GpuBufferProperties& bufferParams = buffer->GetProperties();
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferProperties));
-        const uint buffersize = buffer->GetSizeBytes();
+        const uint buffersize = buffer->GetByteSize();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
         archive.write(reinterpret_cast<const char*>(someMeshDatas[i].myVertexData.data()), DYN_ARRAY_BYTESIZE(someMeshDatas[i].myVertexData));
       }
@@ -204,7 +186,7 @@ namespace Fancy {
         const GpuBuffer* buffer = geoData->getIndexBuffer();
         const GpuBufferProperties& bufferParams = buffer->GetProperties();
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferProperties));
-        const uint buffersize = buffer->GetSizeBytes();
+        const uint buffersize = buffer->GetByteSize();
         archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
         archive.write(reinterpret_cast<const char*>(someMeshDatas[i].myIndexData.data()), DYN_ARRAY_BYTESIZE(someMeshDatas[i].myIndexData));
       }

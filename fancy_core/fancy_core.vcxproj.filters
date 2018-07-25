@@ -204,16 +204,10 @@
     <ClInclude Include="Texture.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="TextureDesc.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="TextureSampler.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="TextureSamplerDesc.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureRefs.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="VertexInputLayout.h">
@@ -270,6 +264,12 @@
     </ClInclude>
     <ClInclude Include="Any.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureViewProperties.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceRefs.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -375,9 +375,6 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="TextureDesc.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="TextureSamplerDesc.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -408,6 +405,9 @@
     </ClCompile>
     <ClCompile Include="GpuResourceViewDX12.cpp">
       <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceRefs.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

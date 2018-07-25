@@ -20,9 +20,10 @@ using namespace Fancy;
   {
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<TextureView> AssetStorage::GetTexture(const TextureDesc& aDesc)
+  SharedPtr<Texture> AssetStorage::GetTexture(const char* aPath)
   {
-    auto it = myTextures.find(aDesc.GetHash());
+    const uint64 hash = MathUtil::Hash(aPath);
+    auto it = myTextures.find(hash);
     if (it != myTextures.end())
       return it->second;
 
@@ -37,12 +38,21 @@ using namespace Fancy;
     if (it != myMaterials.end())
       return it->second;
 
+    TextureViewProperties srvViewProps;
+    srvViewProps.myDimension = GpuResourceDimension::TEXTURE_2D;
+
     SharedPtr<Material> mat(new Material);
     for (uint i = 0u; i < aDesc.mySemanticTextures.size(); ++i)
-      mat->mySemanticTextures[i] = CreateTexture(aDesc.mySemanticTextures[i]);
-
-    for (const TextureDesc& texDesc : aDesc.myExtraTextures)
-      mat->myExtraTextures.push_back(CreateTexture(texDesc));
+    {
+      SharedPtr<Texture> tex = CreateTexture(aDesc.mySemanticTextures[i].c_str());
+      mat->mySemanticTextures[i] = RenderCore::CreateTextureView(tex, srvViewProps);
+    }
+    
+    for (const String& texPath : aDesc.myExtraTextures)
+    {
+      SharedPtr<Texture> tex = CreateTexture(texPath.c_str());  
+      mat->myExtraTextures.push_back(RenderCore::CreateTextureView(tex, srvViewProps));
+    }
 
     for (uint i = 0u; i < aDesc.mySemanticParameters.size(); ++i)
       mat->mySemanticParameters[i] = aDesc.mySemanticParameters[i];
@@ -52,11 +62,6 @@ using namespace Fancy;
     
     myMaterials[descHash] = mat;
     return mat;
-  }
-//---------------------------------------------------------------------------//
-  SharedPtr<Texture> AssetStorage::CreateTexture(const TextureDesc& aDesc)
-  {
-    return CreateTexture(aDesc.mySourcePath.c_str());
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> AssetStorage::CreateTexture(const char* aPath)
@@ -71,18 +76,15 @@ using namespace Fancy;
     else
       texPathRel = Resources::FindName(texPathAbs);
 
-    TextureDesc desc;
-    desc.mySourcePath = texPathRel;
-    desc.myIsExternalTexture = true;
-    uint64 hash = desc.GetHash();
-
-    if (SharedPtr<Texture> texFromMemCache = GetTexture(desc))
+    if (SharedPtr<Texture> texFromMemCache = GetTexture(texPathRel.c_str()))
       return texFromMemCache;
 
+    const uint64 texPathRelHash = MathUtil::Hash(texPathRel);
+
     uint64 timestamp = Path::GetFileWriteTime(texPathAbs);
-    if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTexture(desc, timestamp))
+    if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTexture(texPathRel.c_str(), timestamp))
     {
-      myTextures[hash] = texFromDiskCache;
+      myTextures[texPathRelHash] = texFromDiskCache;
       return texFromDiskCache;
     }
 
@@ -101,14 +103,13 @@ using namespace Fancy;
     }
 
     TextureParams texParams;
-    texParams.myIsExternalTexture = true;
     texParams.path = texPathRel;
     texParams.bIsDepthStencil = false;
     texParams.eFormat = textureInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
     texParams.myWidth = textureInfo.width;
     texParams.myHeight = textureInfo.height;
     texParams.myDepthOrArraySize = 0u;
-    texParams.myAccessType = (uint)GpuMemoryAccessType::NO_CPU_ACCESS;
+    texParams.myAccessType = GpuMemoryAccessType::NO_CPU_ACCESS;
 
     TextureSubData uploadData;
     uploadData.myData = &textureBytes[0];
@@ -123,7 +124,7 @@ using namespace Fancy;
     {
       BinaryCache::WriteTexture(tex.get(), uploadData);
 
-      myTextures[hash] = tex;
+      myTextures[texPathRelHash] = tex;
       return tex;
     }
 

@@ -17,14 +17,14 @@
 #include "GpuProgram.h"
 #include "RenderCore_PlatformDX12.h"
 #include "VertexInputLayout.h"
-#include "TextureDesc.h"
 #include "RenderOutput.h"
 #include "CommandContext.h"
 #include "RenderingStartupParameters.h"
 #include "MeshData.h"
-#include <xxHash/xxhash.h>
-#include <assimp/mesh.h>
 #include "CommandContextDX12.h"
+#include "TextureViewProperties.h"
+
+#include <xxHash/xxhash.h>
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -135,7 +135,7 @@ namespace Fancy {
       if (queue->IsFenceDone(fence))
       {
         it = ourUsedRingBuffers.erase(it);
-        if (buffer->GetBuffer()->GetSizeBytes() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsageFlags == (uint)aUsage)
+        if (buffer->GetBuffer()->GetByteSize() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsageFlags == (uint)aUsage)
           return buffer;
         
         ourAvailableRingBuffers.push_back(buffer);
@@ -147,7 +147,7 @@ namespace Fancy {
     for (auto it = ourAvailableRingBuffers.begin(); it != ourAvailableRingBuffers.end(); ++it)
     {
       GpuRingBuffer* buffer = *it;
-      if (buffer->GetBuffer()->GetSizeBytes() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsageFlags == (uint)aUsage)
+      if (buffer->GetBuffer()->GetByteSize() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsageFlags == (uint)aUsage)
       {
         ourAvailableRingBuffers.erase(it);
         return buffer;
@@ -163,7 +163,6 @@ namespace Fancy {
     params.myElementSizeBytes = 1u;
     params.myUsageFlags = (uint) aUsage;
     params.myAccessType = (uint)GpuMemoryAccessType::CPU_WRITE;
-    params.myCreateDerivedViews = false;
     buf->Create(params, GpuResoruceLockOption::WRITE);
     ourRingBufferPool.push_back(std::move(buf));
 
@@ -265,7 +264,6 @@ namespace Fancy {
 
     {
       TextureParams params;
-      params.myIsExternalTexture = false;
       params.eFormat = DataFormat::SRGB_8;
       params.myHeight = 1u;
       params.myWidth = 1u;
@@ -561,7 +559,7 @@ namespace Fancy {
     DataFormat format = RenderCore::ResolveFormat(someProperties.myFormat);
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
 
-    ASSERT(aBuffer->GetSizeBytes() >= someProperties.myOffset + someProperties.mySize, "Invalid buffer range");
+    ASSERT(aBuffer->GetByteSize() >= someProperties.myOffset + someProperties.mySize, "Invalid buffer range");
     ASSERT(!someProperties.myIsStructured || someProperties.myStructureSize > 0u, "Structured buffer views need a valid structure size");
     ASSERT(!someProperties.myIsStructured || !someProperties.myIsRaw, "Raw and structured buffer views are mutually exclusive");
     ASSERT(!someProperties.myIsShaderWritable || aBuffer->GetProperties().myIsShaderWritable, "A shader-writable buffer view requires a shader-writable buffer");

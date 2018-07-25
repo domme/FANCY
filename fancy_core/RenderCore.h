@@ -10,7 +10,6 @@ namespace Fancy {
   struct MeshData;
   //---------------------------------------------------------------------------//
   enum class CommandListType;
-  struct TextureDesc;
   struct GpuProgramDesc;
   struct GpuProgramPipelineDesc;
   struct DepthStencilStateDesc;

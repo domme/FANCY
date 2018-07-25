@@ -5,7 +5,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct TextureDesc;
   struct MeshDesc;
   class Mesh;
   struct MeshData;
@@ -18,7 +17,7 @@ namespace Fancy {
     static bool WriteTexture(const Texture* aTexture, const TextureSubData& someData);
     static bool WriteMesh(const Mesh* aMesh, const MeshData* someMeshDatas, uint aNumMeshDatas);
 
-    static SharedPtr<Texture> ReadTexture(const TextureDesc& aDesc, uint64 aTimeStamp);
+    static SharedPtr<Texture> ReadTexture(const String& aPath, uint64 aTimeStamp);
     static SharedPtr<Mesh> ReadMesh(const MeshDesc& aDesc, uint64 aTimeStamp);
   //---------------------------------------------------------------------------//      
 };

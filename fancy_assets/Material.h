@@ -6,15 +6,15 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class Texture;
+  struct TextureView;
 //---------------------------------------------------------------------------//
   struct Material
   {
     Material();
     MaterialDesc GetDescription() const;
 
-    FixedArray<SharedPtr<Texture>, (uint)TextureSemantic::NUM> mySemanticTextures;
-    DynamicArray<SharedPtr<Texture>> myExtraTextures;
+    FixedArray<SharedPtr<TextureView>, (uint)TextureSemantic::NUM> mySemanticTextures;
+    DynamicArray<SharedPtr<TextureView>> myExtraTextures;
 
     FixedArray<float, (uint)ParameterSemantic::NUM> mySemanticParameters;
     DynamicArray<float> myExtraParameters;
