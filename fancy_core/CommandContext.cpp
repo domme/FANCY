@@ -109,7 +109,7 @@ namespace Fancy {
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
-  const GpuBuffer* CommandContext::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint aDataSize)
+  const GpuBuffer* CommandContext::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
   {
     DynamicArray<GpuRingBuffer*>* ringBufferList = nullptr;
     uint64 sizeStep = 2 * SIZE_MB;
@@ -134,7 +134,7 @@ namespace Fancy {
       ringBufferList->push_back(RenderCore::AllocateRingBuffer(aType, MathUtil::Align(aDataSize, sizeStep)));
 
     GpuRingBuffer* ringBuffer = ringBufferList->back();
-    uint offset = 0; 
+    uint64 offset = 0; 
     bool success = true;
     if (someData != nullptr)
       success = ringBuffer->AllocateAndWrite(someData, aDataSize, offset);
@@ -146,7 +146,7 @@ namespace Fancy {
     return ringBuffer->GetBuffer();
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::BindConstantBuffer(void* someData, uint aDataSize, uint aRegisterIndex)
+  void CommandContext::BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex)
   {
     uint64 offset = 0u;
     const GpuBuffer* buffer = GetBuffer(offset, GpuBufferUsage::CONSTANT_BUFFER, someData, aDataSize);
@@ -374,12 +374,12 @@ namespace Fancy {
 
       uint8* dstSubresourceData = uploadBufferData + subresourceOffsets[i];
       uint8* srcSubresourceData = srcData.myData;
-      for (int iSlice = 0; iSlice < dstLayout.myDepth; ++iSlice)
+      for (uint iSlice = 0; iSlice < dstLayout.myDepth; ++iSlice)
       {
         uint8* dstSliceData = dstSubresourceData + iSlice * alignedSliceSize;
         uint8* srcSliceData = srcSubresourceData + iSlice * srcData.mySliceSizeBytes;
         
-        for (int iRow = 0; iRow < dstLayout.myNumRows; ++iRow)
+        for (uint iRow = 0; iRow < dstLayout.myNumRows; ++iRow)
         {
           uint8* dstRowData = dstSliceData + iRow * dstLayout.myAlignedRowSize;
           uint8* srcRowData = srcSliceData + iRow * srcData.myRowSizeBytes;
@@ -392,7 +392,7 @@ namespace Fancy {
     uploadBuffer->Unlock();
 
     const uint startDestSubresourceIndex = aDestTexture->GetSubresourceIndex(aStartSubresource);
-    for (int i = 0; i < subresourceLayouts.size(); ++i)
+    for (uint i = 0; i < (uint) subresourceLayouts.size(); ++i)
     {
       const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
       const TextureRegion dstRegion{ glm::uvec3(0), glm::uvec3(UINT_MAX) };

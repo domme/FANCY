@@ -159,13 +159,13 @@ void Render()
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  ctx->ClearRenderTarget(myRenderOutput->GetBackbuffer(), clearColor);
-  ctx->ClearDepthStencilTarget(myRenderOutput->GetDefaultDepthStencilBuffer(), 1.0f, 0u);
+  ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
+  ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), 1.0f, 0u);
 
   ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
   ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
-  ctx->SetRenderTarget(myRenderOutput->GetBackbuffer(), 0u);
-  ctx->SetDepthStencilRenderTarget(myRenderOutput->GetDefaultDepthStencilBuffer());
+  ctx->SetRenderTarget(myRenderOutput->GetBackbufferRtv(), 0u);
+  ctx->SetDepthStencilRenderTarget(myRenderOutput->GetDepthStencilDsv());
   
   ctx->SetDepthStencilState(nullptr);
   ctx->SetBlendState(nullptr);

@@ -37,12 +37,12 @@ namespace Fancy
     myLockType = aLockOption;
   }
 //---------------------------------------------------------------------------//
-  uint GpuRingBuffer::GetFreeDataSize() const
+  uint64 GpuRingBuffer::GetFreeDataSize() const
   {
-    return myBuffer->GetSizeBytes() - myOffset;
+    return myBuffer->GetByteSize() - myOffset;
   }
 //---------------------------------------------------------------------------//
-  bool GpuRingBuffer::AllocateAndWrite(const void* someData, uint aDataSize, uint& anOffsetOut)
+  bool GpuRingBuffer::AllocateAndWrite(const void* someData, uint64 aDataSize, uint64& anOffsetOut)
   {
     ASSERT(myLockType == GpuResoruceLockOption::WRITE || myLockType == GpuResoruceLockOption::READ_WRITE);
 
@@ -55,7 +55,7 @@ namespace Fancy
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuRingBuffer::Allocate(uint aDataSize, uint& anOffsetOut)
+  bool GpuRingBuffer::Allocate(uint64 aDataSize, uint64& anOffsetOut)
   {
     if (GetFreeDataSize() < aDataSize)
       return false;

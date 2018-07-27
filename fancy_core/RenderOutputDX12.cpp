@@ -35,7 +35,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::EndFrame()
   {
-    Texture* currBackbuffer = myBackbuffers[myCurrBackbufferIndex].get();
+    Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex].get();
 
     CommandQueueDX12* graphicsQueue = static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
     CommandContextDX12* context = static_cast<CommandContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
@@ -72,9 +72,9 @@ namespace Fancy {
   void RenderOutputDX12::DestroyBackbufferResources()
   {
     for (uint i = 0u; i < kBackbufferCount; ++i)
-      myBackbuffers[i].reset();
+      myBackbufferRtv[i].reset();
 
-    myDefaultDepthStencil.reset();
+    myDepthStencilDsv.reset();
   }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::CreateBackbufferResources()
@@ -87,7 +87,7 @@ namespace Fancy {
 
     for (uint i = 0u; i < kBackbufferCount; i++)
     {
-      Texture* backbuffer = myBackbuffers[i].get();
+      Texture* backbuffer = myBackbufferRtv[i].get();
       TextureDX12* backbufferResource = static_cast<TextureDX12*>(backbuffer);
       GpuResourceStorageDX12* backbufferResourceStorage = (GpuResourceStorageDX12*)backbuffer->myStorage.get();
 

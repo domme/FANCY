@@ -6,7 +6,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class GpuResourceView;
+  struct GpuResourceView;
   class GpuFence;
   class GpuResource;  
   class DepthStencilState;
@@ -78,8 +78,8 @@ namespace Fancy {
       GpuResource* aResource3, GpuResourceState aTransitionToState3,
       GpuResource* aResource4, GpuResourceState aTransitionToState4);
     
-    const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint aDataSize);
-    void BindConstantBuffer(void* someData, uint aDataSize, uint aRegisterIndex);
+    const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
+    void BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex);
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
     void SetBlendState(const SharedPtr<BlendState>& aBlendState);

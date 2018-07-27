@@ -352,8 +352,8 @@ namespace Fancy { namespace ImGuiRendering {
     RenderOutput* renderOutput = ourRenderOutput;
 
     ourRenderContext->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
-    ourRenderContext->SetRenderTarget(renderOutput->GetBackbuffer(), 0u);
-    ourRenderContext->SetDepthStencilRenderTarget(renderOutput->GetDefaultDepthStencilBuffer());
+    ourRenderContext->SetRenderTarget(renderOutput->GetBackbufferRtv(), 0u);
+    ourRenderContext->SetDepthStencilRenderTarget(renderOutput->GetDepthStencilDsv());
     
     ourRenderContext->SetDepthStencilState(ourDepthStencilState);
     ourRenderContext->SetBlendState(ourBlendState);

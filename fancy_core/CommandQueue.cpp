@@ -13,7 +13,7 @@ namespace Fancy
 
   CommandQueue::CommandQueue(CommandListType aType)
     : myType(aType)
-    , myInitialFenceVal((((uint) aType) << 61ULL))
+    , myInitialFenceVal((((uint64) aType) << 61ULL))
   {
   }
   

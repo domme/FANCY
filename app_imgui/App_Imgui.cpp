@@ -76,7 +76,7 @@ void Render()
 {
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  ctx->ClearRenderTarget(myRuntime->GetRenderOutput()->GetBackbuffer(), clearColor);
+  ctx->ClearRenderTarget(myRuntime->GetRenderOutput()->GetBackbufferRtv(), clearColor);
   ctx->ExecuteAndReset();
   RenderCore::FreeContext(ctx);
 

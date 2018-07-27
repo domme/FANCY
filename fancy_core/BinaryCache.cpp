@@ -154,8 +154,8 @@ namespace Fancy {
       // Vertex-Layout begin
       const GeometryVertexLayout& vertexLayout = geoData->getGeometryVertexLayout();
       const DynamicArray<GeometryVertexElement>& vVertexElements = vertexLayout.myElements;
-      const uint numVertexElements = vVertexElements.size();
-      archive.write(reinterpret_cast<const char*>(&numVertexElements), sizeof(uint));
+      const uint64 numVertexElements = vVertexElements.size();
+      archive.write(reinterpret_cast<const char*>(&numVertexElements), sizeof(uint64));
 
       for (uint iVertexElem = 0u; iVertexElem < vVertexElements.size(); ++iVertexElem)
       {
@@ -176,8 +176,8 @@ namespace Fancy {
         const GpuBuffer* buffer = geoData->getVertexBuffer();
         const GpuBufferProperties& bufferParams = buffer->GetProperties();
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferProperties));
-        const uint buffersize = buffer->GetByteSize();
-        archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
+        const uint64 buffersize = buffer->GetByteSize();
+        archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint64));
         archive.write(reinterpret_cast<const char*>(someMeshDatas[i].myVertexData.data()), DYN_ARRAY_BYTESIZE(someMeshDatas[i].myVertexData));
       }
 
@@ -186,8 +186,8 @@ namespace Fancy {
         const GpuBuffer* buffer = geoData->getIndexBuffer();
         const GpuBufferProperties& bufferParams = buffer->GetProperties();
         archive.write(reinterpret_cast<const char*>(&bufferParams), sizeof(GpuBufferProperties));
-        const uint buffersize = buffer->GetByteSize();
-        archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint));
+        const uint64 buffersize = buffer->GetByteSize();
+        archive.write(reinterpret_cast<const char*>(&buffersize), sizeof(uint64));
         archive.write(reinterpret_cast<const char*>(someMeshDatas[i].myIndexData.data()), DYN_ARRAY_BYTESIZE(someMeshDatas[i].myIndexData));
       }
     }
@@ -228,8 +228,8 @@ namespace Fancy {
       vGeoDatas[i] = geoData;
 
       GeometryVertexLayout vertexLayout;
-      uint numVertexElements;
-      archive.read(reinterpret_cast<char*>(&numVertexElements), sizeof(uint));
+      uint64 numVertexElements;
+      archive.read(reinterpret_cast<char*>(&numVertexElements), sizeof(uint64));
 
       for (uint iVertexElem = 0u; iVertexElem < numVertexElements; ++iVertexElem)
       {
@@ -253,8 +253,8 @@ namespace Fancy {
       {
         GpuBufferProperties bufferParams;
         archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(GpuBufferProperties));
-        uint totalBufferBytes;
-        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint));
+        uint64 totalBufferBytes;
+        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint64));
 
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         archive.read((char*)(bufferData), totalBufferBytes);
@@ -269,8 +269,8 @@ namespace Fancy {
       {
         GpuBufferProperties bufferParams;
         archive.read(reinterpret_cast<char*>(&bufferParams), sizeof(GpuBufferProperties));
-        uint totalBufferBytes;
-        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint));
+        uint64 totalBufferBytes;
+        archive.read(reinterpret_cast<char*>(&totalBufferBytes), sizeof(uint64));
 
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         archive.read(static_cast<char*>(bufferData), totalBufferBytes);
