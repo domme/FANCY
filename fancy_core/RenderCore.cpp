@@ -265,6 +265,7 @@ namespace Fancy {
     {
       TextureParams params;
       params.eFormat = DataFormat::SRGB_8;
+      params.myDimension = GpuResourceDimension::TEXTURE_2D;
       params.myHeight = 1u;
       params.myWidth = 1u;
       params.path = TextureRef::ToString(TextureRef::DEFAULT_DIFFUSE);
@@ -282,6 +283,7 @@ namespace Fancy {
     {
       TextureParams params;
       params.eFormat = DataFormat::RGB_8;
+      params.myDimension = GpuResourceDimension::TEXTURE_2D;
       params.myHeight = 1u;
       params.myWidth = 1u;
       params.path = TextureRef::ToString(TextureRef::DEFAULT_NORMAL);

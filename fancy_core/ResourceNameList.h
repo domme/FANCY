@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef TEXTURE_REF
   #define TEXTURE_REF(...)
 #endif

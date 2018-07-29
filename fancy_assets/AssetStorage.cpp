@@ -8,6 +8,7 @@
 #include "Model.h"
 #include "fancy_core/BinaryCache.h"
 #include <fancy_core/Mesh.h>
+#include "fancy_core/Texture.h"
 
 using namespace Fancy;
 

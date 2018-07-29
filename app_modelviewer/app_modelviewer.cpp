@@ -111,7 +111,6 @@ void Init(HINSTANCE anInstanceHandle)
 
      MeshDesc meshDesc;
      meshDesc.myIsExternalMesh = false;
-     meshDesc.myInternalRefIdx = (uint) MeshRef::COORD_GRID;
      myGridMesh = RenderCore::CreateMesh(meshDesc, &meshData, 1u);
      ASSERT(myGridMesh != nullptr);
   }
@@ -146,11 +145,10 @@ void Update()
 
 void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)
 {
-  Texture* diffuseTex = aMat->mySemanticTextures[(uint)TextureSemantic::BASE_COLOR].get();
+  const GpuResourceView* diffuseTex = aMat->mySemanticTextures[(uint)TextureSemantic::BASE_COLOR].get();
   if (diffuseTex)
   {
-    const Descriptor* desc = diffuseTex->GetDescriptor(DescriptorType::DEFAULT_READ);
-    aContext->BindResourceSet(&desc, 1u, 1u);
+    aContext->BindResourceSet(&diffuseTex, 1u, 1u);
   }
 }
 

@@ -15,17 +15,13 @@ namespace Fancy {
 
     static String ToString(Ref aRef, uint anIndex = 0)
     {
-      static const char* ourNameTable[] =
+#define TEXTURE_REF(name, ...) case name: return StringFormat("%_%", #name, anIndex);
+      switch(aRef)
       {
-#define TEXTURE_REF(name, ...) #name,
         #include "ResourceNameList.h"
-#undef TEXTURE_REF
-        "__Dummy__",  // Needed for intellisense to be happy
+        default: ASSERT(false); return "";
       };
-
-      ASSERT((uint) aRef < ARRAY_LENGTH(ourNameTable) - 1);  // -1 for dummy
-
-      return StringFormat("%_%", ourNameTable[aRef], anIndex);
+#undef TEXTURE_REF
     }
   }
 //---------------------------------------------------------------------------//

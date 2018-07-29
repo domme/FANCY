@@ -13,10 +13,10 @@ MaterialDesc Material::GetDescription() const
   MaterialDesc desc;
   for (int i = 0; i < mySemanticTextures.size(); ++i)
     if (mySemanticTextures[i])
-      desc.mySemanticTextures[i] = mySemanticTextures[i]->GetTexture()->GetDescription();
+      desc.mySemanticTextures[i] = mySemanticTextures[i]->GetTexture()->GetParameters().path;
 
   for (const SharedPtr<TextureView>& tex : myExtraTextures)
-    desc.myExtraTextures.push_back(tex->GetTexture()->GetDescription());
+    desc.myExtraTextures.push_back(tex->GetTexture()->GetParameters().path);
 
   for (int i = 0; i < mySemanticParameters.size(); ++i)
     desc.mySemanticParameters[i] = mySemanticParameters[i];
