@@ -426,14 +426,16 @@ namespace Fancy {
       srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
       srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
       srvDesc.Buffer.FirstElement = someProperties.myOffset / 4;
-      srvDesc.Buffer.NumElements = someProperties.mySize / 4;
+      ASSERT(someProperties.mySize / 4 <= UINT_MAX);
+      srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / 4);
     }
     else if (someProperties.myIsStructured)
     {
       srvDesc.Format = DXGI_FORMAT_UNKNOWN;
       srvDesc.Buffer.StructureByteStride = someProperties.myStructureSize;
       srvDesc.Buffer.FirstElement = someProperties.myOffset / someProperties.myStructureSize;
-      srvDesc.Buffer.NumElements = someProperties.mySize / someProperties.myStructureSize;
+      ASSERT(someProperties.mySize / someProperties.myStructureSize <= UINT_MAX);
+      srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / someProperties.myStructureSize);
     }
     else
     {
@@ -441,7 +443,8 @@ namespace Fancy {
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
       srvDesc.Format = GetFormat(format);
       srvDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
-      srvDesc.Buffer.NumElements = someProperties.mySize / formatInfo.mySizeBytes;
+      ASSERT(someProperties.mySize / formatInfo.mySizeBytes <= UINT_MAX);
+      srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
     }
 
     DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -512,14 +515,16 @@ namespace Fancy {
       uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
       uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
       uavDesc.Buffer.FirstElement = someProperties.myOffset / 4;
-      uavDesc.Buffer.NumElements = someProperties.mySize / 4;
+      ASSERT(someProperties.mySize / 4 <= UINT_MAX);
+      uavDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / 4);
     }
     else if (someProperties.myIsStructured)
     {
       uavDesc.Format = DXGI_FORMAT_UNKNOWN;
       uavDesc.Buffer.StructureByteStride = someProperties.myStructureSize;
       uavDesc.Buffer.FirstElement = someProperties.myOffset / someProperties.myStructureSize;
-      uavDesc.Buffer.NumElements = someProperties.mySize / someProperties.myStructureSize;
+      ASSERT(someProperties.mySize / someProperties.myStructureSize <= UINT_MAX);
+      uavDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / someProperties.myStructureSize);
     }
     else
     {
@@ -527,7 +532,8 @@ namespace Fancy {
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
       uavDesc.Format = GetFormat(format);
       uavDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
-      uavDesc.Buffer.NumElements = someProperties.mySize / formatInfo.mySizeBytes;
+      ASSERT(someProperties.mySize / formatInfo.mySizeBytes <= UINT_MAX);
+      uavDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
     }
 
     DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -804,7 +810,8 @@ namespace Fancy {
     case DataFormat::RGBA_8UI:       return DXGI_FORMAT_R8G8B8A8_UINT;
     case DataFormat::RG_8UI:         return DXGI_FORMAT_R8G8_UINT;
     case DataFormat::R_8UI:          return DXGI_FORMAT_R8_UINT;
-    case DataFormat::DS_24_8:        return DXGI_FORMAT_R24G8_TYPELESS;
+    case DataFormat::DS_24_8:        return DXGI_FORMAT_D24_UNORM_S8_UINT;
+    case DataFormat::R_24UNORM_8X:   return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
     case DataFormat::UNKNOWN:        return DXGI_FORMAT_UNKNOWN;
 
     case DataFormat::RGB_8:
@@ -839,7 +846,8 @@ namespace Fancy {
     case DXGI_FORMAT_R8G8B8A8_UINT:         return DataFormat::RGBA_8UI;       
     case DXGI_FORMAT_R8G8_UINT:             return DataFormat::RG_8UI;         
     case DXGI_FORMAT_R8_UINT:               return DataFormat::R_8UI;          
-    case DXGI_FORMAT_R24G8_TYPELESS:        return DataFormat::DS_24_8;        
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:     return DataFormat::DS_24_8;
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS: return DataFormat::R_24UNORM_8X;
     case DXGI_FORMAT_UNKNOWN:               return DataFormat::UNKNOWN;        
     default: ASSERT(false, "Missing implementation or unsupported format"); return DataFormat::SRGB_8_A_8;
     }

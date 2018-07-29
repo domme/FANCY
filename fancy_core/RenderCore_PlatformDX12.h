@@ -19,7 +19,7 @@ namespace Fancy {
   class ShaderResourceInterface;
   class GeometryVertexLayout;
   struct GpuResourceViewData;
-  struct TextureViewProperties;
+  class TextureViewProperties;
 //---------------------------------------------------------------------------//  
   class RenderCore_PlatformDX12 final : public RenderCore_Platform
   {

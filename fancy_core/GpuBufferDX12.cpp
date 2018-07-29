@@ -102,7 +102,7 @@ namespace Fancy {
     myStorage = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void* GpuBufferDX12::Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements /* = 0u */, uint uNumElements /* = 0u */) const
+  void* GpuBufferDX12::Lock(GpuResoruceLockOption eLockOption, uint64 uOffsetElements /* = 0u */, uint64 uNumElements /* = 0u */) const
   {
     ASSERT(uOffsetElements + uNumElements <= myProperties.myNumElements);
 
@@ -132,7 +132,7 @@ namespace Fancy {
     return mappedData;
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Unlock(uint anOffsetElements /* = 0u */, uint aNumElements /* = 0u */) const
+  void GpuBufferDX12::Unlock(uint64 anOffsetElements /* = 0u */, uint64 aNumElements /* = 0u */) const
   {
     if (anOffsetElements == 0u && aNumElements == 0u)
       aNumElements = myProperties.myNumElements;

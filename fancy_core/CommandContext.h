@@ -6,7 +6,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct GpuResourceView;
+  class GpuResourceView;
   class GpuFence;
   class GpuResource;  
   class DepthStencilState;

@@ -7,10 +7,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderOutput::RenderOutput(void* aNativeInstanceHandle)
     : myCurrBackbufferIndex(0u)
-    , myDepthStencilDsv(nullptr)
   {
-    memset(myBackbufferRtv, 0u, sizeof(myBackbufferRtv));
-
     Fancy::WindowParameters params;
     params.myTitle = "Fancy";
     params.myWidth = 1280u;
@@ -25,6 +22,11 @@ namespace Fancy {
   RenderOutput::~RenderOutput()
   {
     myWindow->myOnResize.DetachObserver(this);
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutput::OnWindowResized(uint aWidth, uint aHeight)
+  {
+    CreateBackbufferResources();
   }
 //---------------------------------------------------------------------------//
   void RenderOutput::CreateBackbufferResources()
@@ -60,17 +62,10 @@ namespace Fancy {
     {
       TextureViewProperties props;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
-      props.myFormat = DataFormat::R_;
+      props.myFormat = DataFormat::R_24UNORM_8X;
       myDepthStencilDsv = RenderCore::CreateTextureView(dsTexture, props);
       ASSERT(myDepthStencilDsv != nullptr);
     }
-
-    
-
-    
-
-
-
 
     for (uint i = 0u; i < kBackbufferCount; i++)
     {
@@ -80,7 +75,26 @@ namespace Fancy {
       backbufferParams.myWidth = myWindow->GetWidth();
       backbufferParams.myHeight = myWindow->GetHeight();
 
-      myBackbufferRtv[i] = RenderCore::CreateTexture(backbufferParams);
+      SharedPtr<Texture> backbuffer = RenderCore::CreateTexture(backbufferParams);
+
+      // Backbuffer RTV
+      {
+        TextureViewProperties props;
+        props.myDimension = GpuResourceDimension::TEXTURE_2D;
+        props.myFormat = DataFormat::RGBA_8;
+        props.myIsRenderTarget = true;
+        myBackbufferRtv[i] = RenderCore::CreateTextureView(backbuffer, props);
+        ASSERT(myBackbufferRtv[i] != nullptr);
+      }
+
+      // Backbuffer SRV
+      {
+        TextureViewProperties props;
+        props.myDimension = GpuResourceDimension::TEXTURE_2D;
+        props.myFormat = DataFormat::RGBA_8;
+        myBackbufferSrv[i] = RenderCore::CreateTextureView(backbuffer, props);
+        ASSERT(myBackbufferSrv[i] != nullptr);
+      }
     }
   }
 //---------------------------------------------------------------------------//  

@@ -481,7 +481,7 @@ namespace Fancy {
 
       // Construct the vertex buffer
       const uint8* ptrToVertexData = meshData.myVertexData.data();
-      const uint numVertices = (meshData.myVertexData.size() * sizeof(uint8)) / vertexLayout.myStride;
+      const uint64 numVertices = (meshData.myVertexData.size() * sizeof(uint8)) / vertexLayout.myStride;
 
       SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateBuffer());
 
@@ -497,7 +497,7 @@ namespace Fancy {
 
       // Construct the index buffer
       const uint8* ptrToIndexData = meshData.myIndexData.data();
-      const uint numIndices = (meshData.myIndexData.size() * sizeof(uint8)) / sizeof(uint);
+      const uint64 numIndices = (meshData.myIndexData.size() * sizeof(uint8)) / sizeof(uint);
 
       SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateBuffer());
 

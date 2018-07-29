@@ -52,6 +52,7 @@ namespace Fancy {
       { DataFormat::RG_8I,         2,           2,             false,       false,     false},
       { DataFormat::R_8I,          1,           1,             false,       false,     false},
       { DataFormat::DS_24_8,       4,           2,             true,        false,     false},
+      { DataFormat::R_24UNORM_8X,  4,           1,             false,       false,     false}
     };
 
     STATIC_ASSERT(ARRAY_LENGTH(locOurDataFormats) == DataFormat::NUM, "DataFormatInfos don't match with the number of DataFormats");

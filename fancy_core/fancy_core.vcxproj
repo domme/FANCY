@@ -170,7 +170,6 @@
     <ClCompile Include="GpuProgramDX12.cpp" />
     <ClCompile Include="GpuProgramFeatures.cpp" />
     <ClCompile Include="GpuProgramPipeline.cpp" />
-    <ClCompile Include="GpuResourceViewDX12.cpp" />
     <ClCompile Include="GpuRingBuffer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Mesh.cpp" />

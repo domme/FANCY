@@ -7,9 +7,9 @@
 #include "CommandListType.h"
 
 namespace Fancy {
-  struct MeshData;
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   enum class CommandListType;
+  struct MeshData;
   struct GpuProgramDesc;
   struct GpuProgramPipelineDesc;
   struct DepthStencilStateDesc;
@@ -25,11 +25,11 @@ namespace Fancy {
   class FileWatcher;
   class Texture;
   struct TextureViewProperties;
-  struct TextureView;
+  class TextureView;
   struct RenderPlatformCaps;
   class GpuRingBuffer;
   class GpuBuffer;
-  struct GpuBufferView;
+  class GpuBufferView;
   struct GpuBufferViewProperties;
 //---------------------------------------------------------------------------//
   class RenderCore

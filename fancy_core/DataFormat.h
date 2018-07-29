@@ -42,6 +42,7 @@ namespace Fancy {
     RG_8I,
     R_8I,
     DS_24_8,
+    R_24UNORM_8X,  // Depth-part of a DS_24_8 DepthStencil format
 
     // Compressed formats go here...
     // TODO: Find a way to declare compressed formats

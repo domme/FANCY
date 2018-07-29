@@ -13,8 +13,8 @@ namespace Fancy {
   enum class CommandListType;
   struct GpuResourceViewData;
   struct TextureViewProperties;
-  struct TextureView;
-  struct GpuBufferView;
+  class TextureView;
+  class GpuBufferView;
   struct GpuBufferViewProperties;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform

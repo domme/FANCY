@@ -649,7 +649,7 @@ namespace Fancy {
     ASSERT(myRootSignature != nullptr);
 
     DescriptorDX12* dx12Descriptors = (DescriptorDX12*)alloca(sizeof(DescriptorDX12) * aResourceCount);
-    for (int i = 0; i < aResourceCount; ++i)
+    for (uint i = 0; i < aResourceCount; ++i)
     {
       ASSERT(someResourceViews[i]->myNativeData.HasType<GpuResourceViewDataDX12>());
       const GpuResourceViewDataDX12& resourceViewData = someResourceViews[i]->myNativeData.To<GpuResourceViewDataDX12>();
@@ -699,8 +699,12 @@ namespace Fancy {
       const GpuBufferProperties& bufferParams = aVertexBuffer->GetProperties();
 
       vertexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + aVertexOffset * bufferParams.myElementSizeBytes;
-      vertexBufferView.SizeInBytes = glm::min((uint64) aNumVertices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
-      vertexBufferView.StrideInBytes = bufferParams.myElementSizeBytes;
+
+      const uint64 byteSize = glm::min((uint64)aNumVertices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
+      ASSERT(byteSize <= UINT_MAX);
+
+      vertexBufferView.SizeInBytes = static_cast<uint>(byteSize);
+      vertexBufferView.StrideInBytes = static_cast<uint>(bufferParams.myElementSizeBytes);
     }
 
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
@@ -710,7 +714,11 @@ namespace Fancy {
 
       indexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + anIndexOffset * bufferParams.myElementSizeBytes;
       indexBufferView.Format = bufferParams.myElementSizeBytes == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-      indexBufferView.SizeInBytes = glm::min((uint64) aNumIndices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
+
+      const uint64 byteSize = glm::min((uint64)aNumIndices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
+      ASSERT(byteSize <= UINT_MAX);
+
+      indexBufferView.SizeInBytes = static_cast<uint>(byteSize);
     }
 
     myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));

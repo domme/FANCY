@@ -41,7 +41,7 @@ namespace Fancy {
     myParameters.eFormat = actualFormat;
     
     const uint maxSide = isArray ? glm::max(someParameters.myWidth, someParameters.myHeight) : glm::max(someParameters.myWidth, someParameters.myHeight, someParameters.myDepthOrArraySize);
-    const uint maxNumMipLevels = 1 + glm::floor(glm::log2(maxSide));
+    const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(maxSide)));
     
     //uint actualNumMipLevels = glm::min(glm::max(1u, static_cast<uint>(someParameters.myNumMipLevels)), maxNumMipLevels);
     const uint actualNumMipLevels = 1u; // TODO: Support mipmapping (need a custom compute shader for downsampling)  actualNumMipLevels;
@@ -113,7 +113,7 @@ namespace Fancy {
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo(0u, 1u, &resourceDesc);
     
     const GpuMemoryType memoryType = (someParameters.myIsRenderTarget || someParameters.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
-    const GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(memoryType, gpuMemAccess, allocInfo.SizeInBytes, allocInfo.Alignment);
+    const GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(memoryType, gpuMemAccess, allocInfo.SizeInBytes, (uint) allocInfo.Alignment);
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);

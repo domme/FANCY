@@ -406,8 +406,5 @@
     <ClCompile Include="CommandQueue.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="GpuResourceViewDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

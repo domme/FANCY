@@ -32,8 +32,8 @@ namespace Fancy {
     Window* GetWindow() const { return myWindow.get(); }
 
   protected:
-    virtual void OnWindowResized(uint aWidth, uint aHeight) = 0;
-    virtual void CreateBackbufferResources();
+    virtual void OnWindowResized(uint aWidth, uint aHeight);
+    void CreateBackbufferResources();
 
     static const uint kBackbufferCount = 2u;
     uint myCurrBackbufferIndex;

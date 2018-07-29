@@ -27,8 +27,9 @@ namespace Fancy {
     TextureParams myParameters;
   };
 //---------------------------------------------------------------------------//
-  struct TextureView : public GpuResourceView
+  class TextureView : public GpuResourceView
   {
+  public:
     TextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
       : GpuResourceView(std::static_pointer_cast<GpuResource>(aTexture))
       , myProperties(someProperties)

@@ -19,10 +19,8 @@ namespace Fancy {
 
   private:
     void OnWindowResized(uint aWidth, uint aHeight) override;
-    void CreateBackbufferResources() override;
 
     void CreateSwapChain();
-    void DestroyBackbufferResources();
 
     Microsoft::WRL::ComPtr<IDXGISwapChain3> mySwapChain;
   };

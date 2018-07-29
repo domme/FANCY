@@ -5,8 +5,9 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct GpuResourceView
+  class GpuResourceView
   {
+  public:
     GpuResourceView(const SharedPtr<GpuResource>& aResource)
       : myResource(aResource) 
     { }

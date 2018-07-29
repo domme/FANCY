@@ -21,7 +21,7 @@
 #include <fancy_core/Input.h>
 #include "CameraController.h"
 #include <fancy_core/MeshData.h>
-#include <fancy_core/TextureRefs.h>
+#include <fancy_core/ResourceRefs.h>
 
 using namespace Fancy;
 

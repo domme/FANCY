@@ -23,16 +23,17 @@ namespace Fancy {
     uint64 GetAllocatedByteSize() const { return MathUtil::Align(GetByteSize(), myAlignment); }
 
     virtual void Create(const GpuBufferProperties& clParameters,const void* pInitialData = nullptr) = 0;
-    virtual void* Lock(GpuResoruceLockOption eLockOption, uint uOffsetElements = 0u, uint uNumElements = 0u) const = 0;
-    virtual void Unlock(uint anOffsetElements = 0u, uint aNumElements = 0u) const = 0;
+    virtual void* Lock(GpuResoruceLockOption eLockOption, uint64 uOffsetElements = 0u, uint64 uNumElements = 0u) const = 0;
+    virtual void Unlock(uint64 anOffsetElements = 0u, uint64 aNumElements = 0u) const = 0;
     
   protected:
     uint myAlignment;
     GpuBufferProperties myProperties;
   };
 //---------------------------------------------------------------------------//
-  struct GpuBufferView : public GpuResourceView
+  class GpuBufferView : public GpuResourceView
   {
+  public:
     GpuBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
       : GpuResourceView(std::static_pointer_cast<GpuResource>(aBuffer))
       , myProperties(someProperties)

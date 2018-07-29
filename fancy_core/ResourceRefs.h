@@ -23,7 +23,7 @@ namespace Fancy {
         "__Dummy__",  // Needed for intellisense to be happy
       };
 
-      ASSERT(aRef < ARRAY_LENGTH(ourNameTable) - 1);  // -1 for dummy
+      ASSERT((uint) aRef < ARRAY_LENGTH(ourNameTable) - 1);  // -1 for dummy
 
       return StringFormat("%_%", ourNameTable[aRef], anIndex);
     }

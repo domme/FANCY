@@ -17,7 +17,6 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   RenderOutputDX12::~RenderOutputDX12()
   {
-    DestroyBackbufferResources();
     mySwapChain.Reset();
   }
 //---------------------------------------------------------------------------//
@@ -35,7 +34,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::EndFrame()
   {
-    Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex].get();
+    Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex]->GetTexture();
 
     CommandQueueDX12* graphicsQueue = static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
     CommandContextDX12* context = static_cast<CommandContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
@@ -69,44 +68,10 @@ namespace Fancy {
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
 //---------------------------------------------------------------------------//
-  void RenderOutputDX12::DestroyBackbufferResources()
-  {
-    for (uint i = 0u; i < kBackbufferCount; ++i)
-      myBackbufferRtv[i].reset();
-
-    myDepthStencilDsv.reset();
-  }
-//---------------------------------------------------------------------------//
-  void RenderOutputDX12::CreateBackbufferResources()
-  {
-    RenderOutput::CreateBackbufferResources();
-
-    // TODO: Remove this hack and let this be handled internally by the core platform abstraction layer
-
-    RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
-
-    for (uint i = 0u; i < kBackbufferCount; i++)
-    {
-      Texture* backbuffer = myBackbufferRtv[i].get();
-      TextureDX12* backbufferResource = static_cast<TextureDX12*>(backbuffer);
-      GpuResourceStorageDX12* backbufferResourceStorage = (GpuResourceStorageDX12*)backbuffer->myStorage.get();
-
-      backbuffer->myUsageState = GpuResourceState::RESOURCE_STATE_PRESENT;
-
-      // TODO: Sync this better with swap chain properties
-      backbufferResource->myParameters.myIsRenderTarget = true;
-      
-      CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&backbufferResourceStorage->myResource)));
-      backbufferResource->myRtvDescriptor = coreDX12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-      coreDX12->GetDevice()->CreateRenderTargetView(backbufferResourceStorage->myResource.Get(), nullptr, backbufferResource->myRtvDescriptor.myCpuHandle);
-    }
-  }
-  //---------------------------------------------------------------------------//
   void RenderOutputDX12::OnWindowResized(uint aWidth, uint aHeight)
   {
-    DestroyBackbufferResources();
     CheckD3Dcall(mySwapChain->ResizeBuffers(kBackbufferCount, aWidth, aHeight, DXGI_FORMAT_UNKNOWN, 0));
-    CreateBackbufferResources();
+    RenderOutput::OnWindowResized(aWidth, aHeight);
   }
   //---------------------------------------------------------------------------//
 }
