@@ -47,6 +47,10 @@ namespace Fancy {
     const uint actualNumMipLevels = 1u; // TODO: Support mipmapping (need a custom compute shader for downsampling)  actualNumMipLevels;
     myProperties.myNumMipLevels = actualNumMipLevels;
 
+    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetFormat(actualFormat);
+    if (someProperties.bIsDepthStencil)
+      dxgiFormat = RenderCore_PlatformDX12::GetDepthStencilFormat(dxgiFormat);
+
     D3D12_RESOURCE_DESC resourceDesc;
     memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = dimension;
@@ -58,7 +62,7 @@ namespace Fancy {
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-    resourceDesc.Format = RenderCore_PlatformDX12::GetFormat(actualFormat);
+    resourceDesc.Format = dxgiFormat;
     
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     if (someProperties.bIsDepthStencil)

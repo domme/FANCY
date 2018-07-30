@@ -274,6 +274,9 @@
     <ClInclude Include="ResourceNameList.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="DataFormatList.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">

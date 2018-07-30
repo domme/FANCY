@@ -73,6 +73,7 @@
     <ClInclude Include="CommandQueueDX12.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DataFormat.h" />
+    <ClInclude Include="DataFormatList.h" />
     <ClInclude Include="Descriptor.h" />
     <ClInclude Include="DescriptorDX12.h" />
     <ClInclude Include="DescriptorHeapDX12.h" />

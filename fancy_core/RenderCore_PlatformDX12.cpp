@@ -341,7 +341,12 @@ namespace Fancy {
   {
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Format = GetFormat(someProperties.myFormat);
+
+    const DataFormatInfo& info = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
+
+    DXGI_FORMAT dxgiFormat = GetFormat(someProperties.myFormat);
+    
+    srvDesc.Format = someProperties.
     
     if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
     {
@@ -789,30 +794,30 @@ namespace Fancy {
 
     switch (supportedFormat)
     {
-    case DataFormat::SRGB_8_A_8:     return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-    // case DataFormat::SRGB_8:      (Unsupported - DX12 doesn't support 3-component 8 bit formats. Needs to be resolved & padded to 4-component)   
-    case DataFormat::RGBA_8:         return DXGI_FORMAT_R8G8B8A8_UNORM;
-    case DataFormat::RGB_11_11_10F:  return DXGI_FORMAT_R11G11B10_FLOAT;
-    case DataFormat::RGBA_16F:       return DXGI_FORMAT_R16G16B16A16_FLOAT;
-    case DataFormat::RG_16F:         return DXGI_FORMAT_R16G16_FLOAT;
-    case DataFormat::R_16F:          return DXGI_FORMAT_R16_FLOAT;
-    case DataFormat::RGBA_32F:       return DXGI_FORMAT_R32G32B32A32_FLOAT;
-    case DataFormat::RGB_32F:        return DXGI_FORMAT_R32G32B32_FLOAT;
-    case DataFormat::RG_32F:         return DXGI_FORMAT_R32G32_FLOAT;
-    case DataFormat::R_32F:          return DXGI_FORMAT_R32_FLOAT;
-    case DataFormat::RGBA_32UI:      return DXGI_FORMAT_R32G32B32A32_UINT;
-    case DataFormat::RGB_32UI:       return DXGI_FORMAT_R32G32B32_UINT;
-    case DataFormat::RG_32UI:        return DXGI_FORMAT_R32G32_UINT;
-    case DataFormat::R_32UI:         return DXGI_FORMAT_R32_UINT;
-    case DataFormat::RGBA_16UI:      return DXGI_FORMAT_R16G16B16A16_UINT;
-    case DataFormat::RG_16UI:        return DXGI_FORMAT_R16G16_UINT;
-    case DataFormat::R_16UI:         return DXGI_FORMAT_R16_UINT;
-    case DataFormat::RGBA_8UI:       return DXGI_FORMAT_R8G8B8A8_UINT;
-    case DataFormat::RG_8UI:         return DXGI_FORMAT_R8G8_UINT;
-    case DataFormat::R_8UI:          return DXGI_FORMAT_R8_UINT;
-    case DataFormat::DS_24_8:        return DXGI_FORMAT_D24_UNORM_S8_UINT;
-    case DataFormat::R_24UNORM_8X:   return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-    case DataFormat::UNKNOWN:        return DXGI_FORMAT_UNKNOWN;
+    case DataFormat::SRGB_8_A_8:        return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    // case DataFormat::SRGB_8:         (Unsupported - DX12 doesn't support 3-component 8 bit formats. Needs to be resolved & padded to 4-component)   
+    case DataFormat::RGBA_8:            return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case DataFormat::RGB_11_11_10F:     return DXGI_FORMAT_R11G11B10_FLOAT;
+    case DataFormat::RGBA_16F:          return DXGI_FORMAT_R16G16B16A16_FLOAT;
+    case DataFormat::RG_16F:            return DXGI_FORMAT_R16G16_FLOAT;
+    case DataFormat::R_16F:             return DXGI_FORMAT_R16_FLOAT;
+    case DataFormat::RGBA_32F:          return DXGI_FORMAT_R32G32B32A32_FLOAT;
+    case DataFormat::RGB_32F:           return DXGI_FORMAT_R32G32B32_FLOAT;
+    case DataFormat::RG_32F:            return DXGI_FORMAT_R32G32_FLOAT;
+    case DataFormat::R_32F:             return DXGI_FORMAT_R32_FLOAT;
+    case DataFormat::RGBA_32UI:         return DXGI_FORMAT_R32G32B32A32_UINT;
+    case DataFormat::RGB_32UI:          return DXGI_FORMAT_R32G32B32_UINT;
+    case DataFormat::RG_32UI:           return DXGI_FORMAT_R32G32_UINT;
+    case DataFormat::R_32UI:            return DXGI_FORMAT_R32_UINT;
+    case DataFormat::RGBA_16UI:         return DXGI_FORMAT_R16G16B16A16_UINT;
+    case DataFormat::RG_16UI:           return DXGI_FORMAT_R16G16_UINT;
+    case DataFormat::R_16UI:            return DXGI_FORMAT_R16_UINT;
+    case DataFormat::RGBA_8UI:          return DXGI_FORMAT_R8G8B8A8_UINT;
+    case DataFormat::RG_8UI:            return DXGI_FORMAT_R8G8_UINT;
+    case DataFormat::R_8UI:             return DXGI_FORMAT_R8_UINT;
+    case DataFormat::D_24UNORM_S_8UI:   return DXGI_FORMAT_D24_UNORM_S8_UINT;
+    case DataFormat::R_24UNORM_X_8UI:   return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+    case DataFormat::UNKNOWN:           return DXGI_FORMAT_UNKNOWN;
 
     case DataFormat::RGB_8:
     case DataFormat::RGB_16F:
@@ -846,8 +851,8 @@ namespace Fancy {
     case DXGI_FORMAT_R8G8B8A8_UINT:         return DataFormat::RGBA_8UI;       
     case DXGI_FORMAT_R8G8_UINT:             return DataFormat::RG_8UI;         
     case DXGI_FORMAT_R8_UINT:               return DataFormat::R_8UI;          
-    case DXGI_FORMAT_D24_UNORM_S8_UINT:     return DataFormat::DS_24_8;
-    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS: return DataFormat::R_24UNORM_8X;
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:     return DataFormat::D_24UNORM_S_8UI;
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS: return DataFormat::R_24UNORM_X_8UI;
     case DXGI_FORMAT_UNKNOWN:               return DataFormat::UNKNOWN;        
     default: ASSERT(false, "Missing implementation or unsupported format"); return DataFormat::SRGB_8_A_8;
     }
