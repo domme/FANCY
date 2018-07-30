@@ -31,16 +31,17 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutput::CreateBackbufferResources()
   {
-    TextureParams dsTexParams;
-    dsTexParams.bIsDepthStencil = true;
-    dsTexParams.eFormat = DataFormat::DS_24_8;
-    dsTexParams.myIsRenderTarget = false;
-    dsTexParams.myIsShaderWritable = false;
-    dsTexParams.myWidth = myWindow->GetWidth();
-    dsTexParams.myHeight = myWindow->GetHeight();
-    dsTexParams.myNumMipLevels = 1u;
+    TextureProperties dsTexProps;
+    dsTexProps.myDimension = GpuResourceDimension::TEXTURE_2D;
+    dsTexProps.bIsDepthStencil = true;
+    dsTexProps.eFormat = DataFormat::DS_24_8;
+    dsTexProps.myIsRenderTarget = false;
+    dsTexProps.myIsShaderWritable = false;
+    dsTexProps.myWidth = myWindow->GetWidth();
+    dsTexProps.myHeight = myWindow->GetHeight();
+    dsTexProps.myNumMipLevels = 1u;
 
-    SharedPtr<Texture> dsTexture = RenderCore::CreateTexture(dsTexParams);
+    SharedPtr<Texture> dsTexture = RenderCore::CreateTexture(dsTexProps);
     ASSERT(dsTexture != nullptr);
 
     // DepthStencil DSVs
@@ -69,13 +70,14 @@ namespace Fancy {
 
     for (uint i = 0u; i < kBackbufferCount; i++)
     {
-      TextureParams backbufferParams;
-      backbufferParams.myIsRenderTarget = true;
-      backbufferParams.eFormat = DataFormat::RGBA_8;
-      backbufferParams.myWidth = myWindow->GetWidth();
-      backbufferParams.myHeight = myWindow->GetHeight();
+      TextureProperties backbufferProps;
+      backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
+      backbufferProps.myIsRenderTarget = true;
+      backbufferProps.eFormat = DataFormat::RGBA_8;
+      backbufferProps.myWidth = myWindow->GetWidth();
+      backbufferProps.myHeight = myWindow->GetHeight();
 
-      SharedPtr<Texture> backbuffer = RenderCore::CreateTexture(backbufferParams);
+      SharedPtr<Texture> backbuffer = RenderCore::CreateTexture(backbufferProps);
 
       // Backbuffer RTV
       {

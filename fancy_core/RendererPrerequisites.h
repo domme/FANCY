@@ -222,9 +222,9 @@ namespace Fancy {
       TEXTURE_CUBE_ARRAY
     };
 //---------------------------------------------------------------------------//
-    struct TextureParams 
+    struct TextureProperties 
     {
-      TextureParams() 
+      TextureProperties() 
         : myDimension(GpuResourceDimension::UNKONWN)
         , path("")
         , myWidth(0u)
@@ -282,7 +282,7 @@ namespace Fancy {
         : myData(nullptr), myRowSizeBytes(0u), myPixelSizeBytes(0u), mySliceSizeBytes(0u), myTotalSizeBytes(0u)
       {}
     
-      TextureSubData(const TextureParams& someParams);
+      TextureSubData(const TextureProperties& someProperties);
       
       uint8* myData;
       uint64 myPixelSizeBytes;

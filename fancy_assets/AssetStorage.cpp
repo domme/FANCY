@@ -46,13 +46,15 @@ using namespace Fancy;
     for (uint i = 0u; i < aDesc.mySemanticTextures.size(); ++i)
     {
       SharedPtr<Texture> tex = CreateTexture(aDesc.mySemanticTextures[i].c_str());
-      mat->mySemanticTextures[i] = RenderCore::CreateTextureView(tex, srvViewProps);
+      if (tex != nullptr)
+        mat->mySemanticTextures[i] = RenderCore::CreateTextureView(tex, srvViewProps);
     }
     
     for (const String& texPath : aDesc.myExtraTextures)
     {
-      SharedPtr<Texture> tex = CreateTexture(texPath.c_str());  
-      mat->myExtraTextures.push_back(RenderCore::CreateTextureView(tex, srvViewProps));
+      SharedPtr<Texture> tex = CreateTexture(texPath.c_str());
+      if (tex != nullptr)
+        mat->myExtraTextures.push_back(RenderCore::CreateTextureView(tex, srvViewProps));
     }
 
     for (uint i = 0u; i < aDesc.mySemanticParameters.size(); ++i)
@@ -103,14 +105,15 @@ using namespace Fancy;
       return nullptr;
     }
 
-    TextureParams texParams;
-    texParams.path = texPathRel;
-    texParams.bIsDepthStencil = false;
-    texParams.eFormat = textureInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
-    texParams.myWidth = textureInfo.width;
-    texParams.myHeight = textureInfo.height;
-    texParams.myDepthOrArraySize = 0u;
-    texParams.myAccessType = GpuMemoryAccessType::NO_CPU_ACCESS;
+    TextureProperties texProps;
+    texProps.myDimension = GpuResourceDimension::TEXTURE_2D;
+    texProps.path = texPathRel;
+    texProps.bIsDepthStencil = false;
+    texProps.eFormat = textureInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
+    texProps.myWidth = textureInfo.width;
+    texProps.myHeight = textureInfo.height;
+    texProps.myDepthOrArraySize = 0u;
+    texProps.myAccessType = GpuMemoryAccessType::NO_CPU_ACCESS;
 
     TextureSubData uploadData;
     uploadData.myData = &textureBytes[0];
@@ -119,7 +122,7 @@ using namespace Fancy;
     uploadData.mySliceSizeBytes = textureInfo.width * textureInfo.height * uploadData.myPixelSizeBytes;
     uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
 
-    SharedPtr<Texture> tex = RenderCore::CreateTexture(texParams, &uploadData, 1u);
+    SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, &uploadData, 1u);
 
     if (tex != nullptr)
     {

@@ -263,36 +263,36 @@ namespace Fancy {
     ASSERT(ourPlatformImpl != nullptr);
 
     {
-      TextureParams params;
-      params.eFormat = DataFormat::SRGB_8;
-      params.myDimension = GpuResourceDimension::TEXTURE_2D;
-      params.myHeight = 1u;
-      params.myWidth = 1u;
-      params.path = TextureRef::ToString(TextureRef::DEFAULT_DIFFUSE);
+      TextureProperties props;
+      props.eFormat = DataFormat::SRGB_8;
+      props.myDimension = GpuResourceDimension::TEXTURE_2D;
+      props.myHeight = 1u;
+      props.myWidth = 1u;
+      props.path = TextureRef::ToString(TextureRef::DEFAULT_DIFFUSE);
 
-      TextureSubData data(params);
+      TextureSubData data(props);
       uint8 color[3] = { 0, 0, 0 };
       data.myData = color;
 
-      ourDefaultDiffuseTexture = CreateTexture(params, &data, 1);
+      ourDefaultDiffuseTexture = CreateTexture(props, &data, 1);
 
-      params.path = TextureRef::ToString(TextureRef::DEFAULT_SPECULAR);
-      ourDefaultSpecularTexture = CreateTexture(params, &data, 1);
+      props.path = TextureRef::ToString(TextureRef::DEFAULT_SPECULAR);
+      ourDefaultSpecularTexture = CreateTexture(props, &data, 1);
     }
 
     {
-      TextureParams params;
-      params.eFormat = DataFormat::RGB_8;
-      params.myDimension = GpuResourceDimension::TEXTURE_2D;
-      params.myHeight = 1u;
-      params.myWidth = 1u;
-      params.path = TextureRef::ToString(TextureRef::DEFAULT_NORMAL);
+      TextureProperties props;
+      props.eFormat = DataFormat::RGB_8;
+      props.myDimension = GpuResourceDimension::TEXTURE_2D;
+      props.myHeight = 1u;
+      props.myWidth = 1u;
+      props.path = TextureRef::ToString(TextureRef::DEFAULT_NORMAL);
 
-      TextureSubData data(params);
+      TextureSubData data(props);
       uint8 color[3] = { 128, 128, 128 };
       data.myData = color;
 
-      ourDefaultNormalTexture = CreateTexture(params, &data, 1);
+      ourDefaultNormalTexture = CreateTexture(props, &data, 1);
     }
     
     ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
@@ -523,17 +523,17 @@ namespace Fancy {
     return mesh;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> RenderCore::CreateTexture(const TextureParams& someParams, TextureSubData* someUploadDatas, uint aNumUploadDatas)
+  SharedPtr<Texture> RenderCore::CreateTexture(const TextureProperties& someProperties, TextureSubData* someUploadDatas, uint aNumUploadDatas)
   {
     SharedPtr<Texture> tex(ourPlatformImpl->CreateTexture());
-    tex->Create(someParams, someUploadDatas, aNumUploadDatas);
+    tex->Create(someProperties, someUploadDatas, aNumUploadDatas);
     return tex->IsValid() ? tex : nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferProperties& someParams, const void* someInitialData /* = nullptr */)
+  SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferProperties& someProperties, const void* someInitialData /* = nullptr */)
   {
     SharedPtr<GpuBuffer> buffer(ourPlatformImpl->CreateBuffer());
-    buffer->Create(someParams, someInitialData);
+    buffer->Create(someProperties, someInitialData);
     return buffer->IsValid() ? buffer : nullptr;
   }
 //---------------------------------------------------------------------------//
@@ -544,9 +544,9 @@ namespace Fancy {
     return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, someProperties));
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<TextureView> RenderCore::CreateTextureView(const TextureParams& someParams, const TextureViewProperties& someViewProperties, TextureSubData* someUploadDatas, uint aNumUploadDatas)
+  SharedPtr<TextureView> RenderCore::CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, TextureSubData* someUploadDatas, uint aNumUploadDatas)
   {
-    SharedPtr<Texture> texture = CreateTexture(someParams, someUploadDatas, aNumUploadDatas);
+    SharedPtr<Texture> texture = CreateTexture(someProperties, someUploadDatas, aNumUploadDatas);
     if (texture == nullptr)
       return nullptr;
 

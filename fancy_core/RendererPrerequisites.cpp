@@ -11,16 +11,16 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-TextureSubData::TextureSubData(const TextureParams& someParams)
+TextureSubData::TextureSubData(const TextureProperties& someProperties)
   : myData(nullptr)
 {
-  DataFormat actualFormat = RenderCore::ResolveFormat(someParams.eFormat);
+  DataFormat actualFormat = RenderCore::ResolveFormat(someProperties.eFormat);
   DataFormatInfo info(actualFormat);
   myPixelSizeBytes = info.mySizeBytes;
 
-  uint width = someParams.myWidth;
-  uint height = glm::max(1u, someParams.myHeight);
-  uint depth = glm::max(1u, someParams.myDepthOrArraySize);
+  uint width = someProperties.myWidth;
+  uint height = glm::max(1u, someProperties.myHeight);
+  uint depth = glm::max(1u, someProperties.myDepthOrArraySize);
 
   myTotalSizeBytes = myPixelSizeBytes * width * height * depth;
   mySliceSizeBytes = myPixelSizeBytes * width * height;

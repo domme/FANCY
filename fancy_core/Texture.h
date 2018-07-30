@@ -14,17 +14,17 @@ namespace Fancy {
     Texture();
     virtual ~Texture();
 
-    virtual void Create(const TextureParams& clDeclaration, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) = 0;
+    virtual void Create(const TextureProperties& someProperties, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) = 0;
     virtual void GetSubresourceLayout(const TextureSubLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const = 0;
     virtual uint GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const = 0;
     virtual TextureSubLocation GetSubresourceLocation(uint aSubresourceIndex) const = 0;
 
-    const TextureParams& GetParameters() const { return myParameters; }
-    const bool IsArray() const { return myParameters.myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY || myParameters.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY || myParameters.myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY; }
-    const uint GetArraySize() const { return IsArray() ? myParameters.myDepthOrArraySize : 0u; }
+    const TextureProperties& GetProperties() const { return myProperties; }
+    const bool IsArray() const { return myProperties.myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY || myProperties.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY || myProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY; }
+    const uint GetArraySize() const { return IsArray() ? myProperties.myDepthOrArraySize : 0u; }
     
   protected:
-    TextureParams myParameters;
+    TextureProperties myProperties;
   };
 //---------------------------------------------------------------------------//
   class TextureView : public GpuResourceView

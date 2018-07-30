@@ -12,7 +12,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   const uint kMeshVersion = 0;
-  const uint kTextureVersion = 0;
+  const uint kTextureVersion = 1;
 //---------------------------------------------------------------------------//
   void locWriteString(std::fstream& aStream, const String& aString)
   {
@@ -51,7 +51,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//  
   bool BinaryCache::WriteTexture(const Texture* aTexture, const TextureSubData& someData)
   {
-    const String cacheFilePath = getCacheFilePathAbs(aTexture->GetParameters().path);
+    const String cacheFilePath = getCacheFilePathAbs(aTexture->GetProperties().path);
     Path::CreateDirectoryTreeForPath(cacheFilePath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::out);
 
@@ -59,19 +59,19 @@ namespace Fancy {
 
     archive.write(reinterpret_cast<const char*>(&kTextureVersion), sizeof(uint));
 
-    const TextureParams& texParams = aTexture->GetParameters();
-
-    
-    locWriteString(archive, texParams.path);
+    const TextureProperties& texProps = aTexture->GetProperties();
+        
+    locWriteString(archive, texProps.path);
     
     // Write the texture
-    archive.write(reinterpret_cast<const char*>(&texParams.myWidth), sizeof(uint16));
-    archive.write(reinterpret_cast<const char*>(&texParams.myHeight), sizeof(uint16));
-    archive.write(reinterpret_cast<const char*>(&texParams.myDepthOrArraySize), sizeof(uint16));
-    archive.write(reinterpret_cast<const char*>(&texParams.myAccessType), sizeof(uint));
-    const uint format = static_cast<uint>(texParams.eFormat);
+    archive.write(reinterpret_cast<const char*>(&texProps.myDimension), sizeof(texProps.myDimension));
+    archive.write(reinterpret_cast<const char*>(&texProps.myWidth), sizeof(uint16));
+    archive.write(reinterpret_cast<const char*>(&texProps.myHeight), sizeof(uint16));
+    archive.write(reinterpret_cast<const char*>(&texProps.myDepthOrArraySize), sizeof(uint16));
+    archive.write(reinterpret_cast<const char*>(&texProps.myAccessType), sizeof(uint));
+    const uint format = static_cast<uint>(texProps.eFormat);
     archive.write(reinterpret_cast<const char*>(&format), sizeof(uint));
-    archive.write(reinterpret_cast<const char*>(&texParams.myNumMipLevels), sizeof(uint8));
+    archive.write(reinterpret_cast<const char*>(&texProps.myNumMipLevels), sizeof(uint8));
     
     archive.write(reinterpret_cast<const char*>(&someData.myPixelSizeBytes), sizeof(uint64));
     archive.write(reinterpret_cast<const char*>(&someData.myRowSizeBytes), sizeof(uint64));
@@ -84,6 +84,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//  
   SharedPtr<Texture> BinaryCache::ReadTexture(const String& aPath, uint64 aTimeStamp)
   {
+    return nullptr; // TODO:FIX
+
     const String cacheFilePath = getCacheFilePathAbs(aPath);
     std::fstream archive(cacheFilePath, std::ios::binary | std::ios::in);
 
@@ -100,16 +102,17 @@ namespace Fancy {
       return nullptr;
     
     // Read the texture
-    TextureParams texParams;
-    texParams.path = locReadString(archive);
-    archive.read((char*)&texParams.myWidth, sizeof(uint16));
-    archive.read((char*)&texParams.myHeight, sizeof(uint16));
-    archive.read((char*)&texParams.myDepthOrArraySize, sizeof(uint16));
-    archive.read((char*)&texParams.myAccessType, sizeof(uint));
+    TextureProperties texProps;
+    texProps.path = locReadString(archive);
+    archive.read((char*)&texProps.myDimension, sizeof(texProps.myDimension));
+    archive.read((char*)&texProps.myWidth, sizeof(uint16));
+    archive.read((char*)&texProps.myHeight, sizeof(uint16));
+    archive.read((char*)&texProps.myDepthOrArraySize, sizeof(uint16));
+    archive.read((char*)&texProps.myAccessType, sizeof(uint));
     uint format = 0;
     archive.read((char*)&format, sizeof(uint));
-    texParams.eFormat = static_cast<DataFormat>(format);
-    archive.read((char*)&texParams.myNumMipLevels, sizeof(uint8));
+    texProps.eFormat = static_cast<DataFormat>(format);
+    archive.read((char*)&texProps.myNumMipLevels, sizeof(uint8));
 
     TextureSubData texData;
     archive.read((char*)(&texData.myPixelSizeBytes), sizeof(uint64));
@@ -120,7 +123,7 @@ namespace Fancy {
     archive.read((char*)&texData.myData, texData.myTotalSizeBytes);
 
     SharedPtr<Texture> newTex(RenderCore::GetPlatform()->CreateTexture());
-    newTex->Create(texParams, &texData, 1u);
+    newTex->Create(texProps, &texData, 1u);
     FANCY_FREE(texData.myData, MemoryCategory::TEXTURES);
     return newTex;
   }

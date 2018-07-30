@@ -301,8 +301,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion& aSrcRegion)
   {
-    const TextureParams& dstParams = aDestTexture->GetParameters();
-    const TextureParams& srcParams = aSrcTexture->GetParameters();
+    const TextureProperties& dstProps = aDestTexture->GetProperties();
+    const TextureProperties& srcProps = aSrcTexture->GetProperties();
 
     // TODO: asserts and validation of regions agains texture-parameters
     
@@ -334,7 +334,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
-    const TextureParams& dstParams = aDestTexture->GetParameters();
+    const TextureProperties& dstProps = aDestTexture->GetProperties();
 
     ID3D12Resource* dstResource = ((GpuResourceStorageDX12*)aDestTexture->myStorage.get())->myResource.Get();
     ID3D12Resource* srcResource = ((GpuResourceStorageDX12*)aSrcBuffer->myStorage.get())->myResource.Get();

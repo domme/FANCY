@@ -19,41 +19,41 @@ namespace Fancy {
     Destroy();
   }
 //---------------------------------------------------------------------------//
-  void TextureDX12::Create(const TextureParams& someParameters, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
+  void TextureDX12::Create(const TextureProperties& someProperties, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
   {
     Destroy();
     GpuResourceStorageDX12* storageDx12 = new GpuResourceStorageDX12();
     myStorage.reset(storageDx12);
-    myParameters = someParameters;
+    myProperties = someProperties;
 
     bool isArray, isCubemap;
-    D3D12_RESOURCE_DIMENSION dimension = Adapter::ResolveResourceDimension(someParameters.myDimension, isCubemap, isArray);
+    D3D12_RESOURCE_DIMENSION dimension = Adapter::ResolveResourceDimension(someProperties.myDimension, isCubemap, isArray);
     
     ASSERT(dimension != D3D12_RESOURCE_DIMENSION_BUFFER && dimension != D3D12_RESOURCE_DIMENSION_UNKNOWN, "Invalid texture resource dimension");
-    ASSERT(!isCubemap || someParameters.myDepthOrArraySize % 6 == 0, "A cubemap needs at least 6 faces");
-    ASSERT(someParameters.myWidth > 0u, "Texture needs a nonzero width");
-    ASSERT(someParameters.myHeight > 0u || dimension == D3D12_RESOURCE_DIMENSION_TEXTURE1D, "Non-1D textures always need a nonzero height" )
-    ASSERT(someParameters.myDepthOrArraySize > 0 || (!isArray && dimension != D3D12_RESOURCE_DIMENSION_TEXTURE3D), "Array or 3D-texture need a nonzero depthOrArraySize");
-    ASSERT(!someParameters.bIsDepthStencil || !someParameters.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive");
-    ASSERT(!someParameters.bIsDepthStencil || !someParameters.myIsRenderTarget, "Render target and depthstencil are mutually exclusive");
+    ASSERT(!isCubemap || someProperties.myDepthOrArraySize % 6 == 0, "A cubemap needs at least 6 faces");
+    ASSERT(someProperties.myWidth > 0u, "Texture needs a nonzero width");
+    ASSERT(someProperties.myHeight > 0u || dimension == D3D12_RESOURCE_DIMENSION_TEXTURE1D, "Non-1D textures always need a nonzero height" )
+    ASSERT(someProperties.myDepthOrArraySize > 0 || (!isArray && dimension != D3D12_RESOURCE_DIMENSION_TEXTURE3D), "Array or 3D-texture need a nonzero depthOrArraySize");
+    ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive");
+    ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsRenderTarget, "Render target and depthstencil are mutually exclusive");
 
-    const DataFormat actualFormat = RenderCore::ResolveFormat(someParameters.eFormat);
-    myParameters.eFormat = actualFormat;
+    const DataFormat actualFormat = RenderCore::ResolveFormat(someProperties.eFormat);
+    myProperties.eFormat = actualFormat;
     
-    const uint maxSide = isArray ? glm::max(someParameters.myWidth, someParameters.myHeight) : glm::max(someParameters.myWidth, someParameters.myHeight, someParameters.myDepthOrArraySize);
+    const uint maxSide = isArray ? glm::max(someProperties.myWidth, someProperties.myHeight) : glm::max(someProperties.myWidth, someProperties.myHeight, someProperties.myDepthOrArraySize);
     const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(maxSide)));
     
-    //uint actualNumMipLevels = glm::min(glm::max(1u, static_cast<uint>(someParameters.myNumMipLevels)), maxNumMipLevels);
+    //uint actualNumMipLevels = glm::min(glm::max(1u, static_cast<uint>(someProperties.myNumMipLevels)), maxNumMipLevels);
     const uint actualNumMipLevels = 1u; // TODO: Support mipmapping (need a custom compute shader for downsampling)  actualNumMipLevels;
-    myParameters.myNumMipLevels = actualNumMipLevels;
+    myProperties.myNumMipLevels = actualNumMipLevels;
 
     D3D12_RESOURCE_DESC resourceDesc;
     memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = dimension;
     resourceDesc.Alignment = 0;
-    resourceDesc.Width = glm::max(1u, static_cast<uint>(someParameters.myWidth));
-    resourceDesc.Height = glm::max(1u, static_cast<uint>(someParameters.myHeight));
-    resourceDesc.DepthOrArraySize = glm::max(1u, static_cast<uint>(someParameters.myDepthOrArraySize));
+    resourceDesc.Width = glm::max(1u, static_cast<uint>(someProperties.myWidth));
+    resourceDesc.Height = glm::max(1u, static_cast<uint>(someProperties.myHeight));
+    resourceDesc.DepthOrArraySize = glm::max(1u, static_cast<uint>(someProperties.myDepthOrArraySize));
     resourceDesc.MipLevels = actualNumMipLevels;
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
@@ -61,22 +61,22 @@ namespace Fancy {
     resourceDesc.Format = RenderCore_PlatformDX12::GetFormat(actualFormat);
     
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-    if (someParameters.bIsDepthStencil)
+    if (someProperties.bIsDepthStencil)
     {
       resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
     }
     else
     {
-      if (someParameters.myIsShaderWritable)
+      if (someProperties.myIsShaderWritable)
           resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-      if (someParameters.myIsRenderTarget)
+      if (someProperties.myIsRenderTarget)
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
     }
 
     myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
 
-    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someParameters.myAccessType;
+    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myAccessType;
     switch (gpuMemAccess)
     {
     case GpuMemoryAccessType::NO_CPU_ACCESS:
@@ -94,7 +94,7 @@ namespace Fancy {
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
 
     D3D12_CLEAR_VALUE clearValue;
-    if (someParameters.bIsDepthStencil)
+    if (someProperties.bIsDepthStencil)
     {
       clearValue.Format = RenderCore_PlatformDX12::GetDepthStencilFormat(resourceDesc.Format);
       clearValue.DepthStencil.Depth = 1.0f;
@@ -112,7 +112,7 @@ namespace Fancy {
 
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo(0u, 1u, &resourceDesc);
     
-    const GpuMemoryType memoryType = (someParameters.myIsRenderTarget || someParameters.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
+    const GpuMemoryType memoryType = (someProperties.myIsRenderTarget || someProperties.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
     const GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(memoryType, gpuMemAccess, allocInfo.SizeInBytes, (uint) allocInfo.Alignment);
     ASSERT(gpuMemory.myHeap != nullptr);
 
@@ -123,7 +123,7 @@ namespace Fancy {
     // Initialize texture data?
     if (someInitialDatas != nullptr && aNumInitialDatas > 0u)
     {
-      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myParameters.eFormat);
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
       const uint pixelSizeBytes = formatInfo.mySizeBytes;
 
       if (pixelSizeBytes > someInitialDatas[0].myPixelSizeBytes)
@@ -179,11 +179,11 @@ namespace Fancy {
   {
     // TODO support plane-indices?
 
-    const int arraySize = IsArray() ? myParameters.myDepthOrArraySize : 0;
+    const int arraySize = IsArray() ? myProperties.myDepthOrArraySize : 0;
 
-    const int startSubresourceIndex = D3D12CalcSubresource(aStartSubLocation.myMipLevel, aStartSubLocation.myArrayIndex, 0, myParameters.myNumMipLevels, arraySize);
+    const int startSubresourceIndex = D3D12CalcSubresource(aStartSubLocation.myMipLevel, aStartSubLocation.myArrayIndex, 0, myProperties.myNumMipLevels, arraySize);
 
-    const int numOverallSubresources = myParameters.myNumMipLevels * glm::max(1, arraySize);
+    const int numOverallSubresources = myProperties.myNumMipLevels * glm::max(1, arraySize);
 
     const int numSubresources = numOverallSubresources - startSubresourceIndex;
     ASSERT(numSubresources > 0);
@@ -218,17 +218,17 @@ namespace Fancy {
   uint TextureDX12::GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const
   {
     return
-      aSubresourceLocation.myPlaneIndex * myParameters.myNumMipLevels * glm::max(1u, GetArraySize()) +
-      aSubresourceLocation.myArrayIndex * myParameters.myNumMipLevels +
+      aSubresourceLocation.myPlaneIndex * myProperties.myNumMipLevels * glm::max(1u, GetArraySize()) +
+      aSubresourceLocation.myArrayIndex * myProperties.myNumMipLevels +
       aSubresourceLocation.myMipLevel;
   }
 //---------------------------------------------------------------------------//
   TextureSubLocation TextureDX12::GetSubresourceLocation(uint aSubresourceIndex) const
   {
     TextureSubLocation location;
-    location.myMipLevel = (aSubresourceIndex % myParameters.myNumMipLevels);
-    location.myArrayIndex = ((aSubresourceIndex / myParameters.myNumMipLevels) % glm::max(1u, GetArraySize()));
-    location.myPlaneIndex = (aSubresourceIndex / (myParameters.myNumMipLevels * glm::max(1u, GetArraySize())));
+    location.myMipLevel = (aSubresourceIndex % myProperties.myNumMipLevels);
+    location.myArrayIndex = ((aSubresourceIndex / myProperties.myNumMipLevels) % glm::max(1u, GetArraySize()));
+    location.myPlaneIndex = (aSubresourceIndex / (myProperties.myNumMipLevels * glm::max(1u, GetArraySize())));
     return location;
   }
 //---------------------------------------------------------------------------//

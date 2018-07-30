@@ -201,11 +201,12 @@ namespace Fancy { namespace ImGuiRendering {
       io.Fonts->GetTexDataAsRGBA32(&fontPixelData, &width, &height, &pixelSizeBytes);
       ASSERT(fontPixelData != nullptr);
 
-      TextureParams params;
-      params.myWidth = width;
-      params.myHeight = height;
-      params.eFormat = DataFormat::RGBA_8;
-      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(params.eFormat);
+      TextureProperties props;
+      props.myDimension = GpuResourceDimension::TEXTURE_2D;
+      props.myWidth = width;
+      props.myHeight = height;
+      props.eFormat = DataFormat::RGBA_8;
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.eFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
       
       TextureSubData uploadData;
@@ -215,7 +216,7 @@ namespace Fancy { namespace ImGuiRendering {
       uploadData.mySliceSizeBytes = height * uploadData.myRowSizeBytes;
       uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
       
-      ourFontTexture = RenderCore::CreateTexture(params, &uploadData, 1u);
+      ourFontTexture = RenderCore::CreateTexture(props, &uploadData, 1u);
       ASSERT(ourFontTexture != nullptr);
     }
 
