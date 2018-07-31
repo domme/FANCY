@@ -162,8 +162,7 @@ void Render()
 
   ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
   ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
-  ctx->SetRenderTarget(myRenderOutput->GetBackbufferRtv(), 0u);
-  ctx->SetDepthStencilRenderTarget(myRenderOutput->GetDepthStencilDsv());
+  ctx->SetRenderTarget(myRenderOutput->GetBackbufferRtv(), myRenderOutput->GetDepthStencilDsv());
   
   ctx->SetDepthStencilState(nullptr);
   ctx->SetBlendState(nullptr);

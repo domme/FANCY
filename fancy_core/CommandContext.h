@@ -88,8 +88,9 @@ namespace Fancy {
     void SetCullMode(const CullMode eCullMode);
     void SetWindingOrder(const WindingOrder eWindingOrder);
     void SetTopologyType(TopologyType aType);
-    void SetDepthStencilRenderTarget(TextureView* aTextureView);
-    void SetRenderTarget(TextureView* aTextureView, const uint8 aRenderTargetIndex);
+    void SetRenderTarget(TextureView* aColorTarget, TextureView* aDepthStencil);
+    void SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil);
+
     void RemoveAllRenderTargets();
 
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);

@@ -282,39 +282,77 @@ namespace Fancy {
     state.myTopologyType = aType;
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::SetDepthStencilRenderTarget(TextureView* aTextureView)
+  void CommandContext::SetRenderTarget(TextureView* aColorTarget, TextureView* aDepthStencil)
   {
-    if (myDepthStencilTarget == aTextureView)
-      return;
+    bool renderTargetsDirty = myRenderTargets[0] != aColorTarget;
 
-    ASSERT(!aTextureView || aTextureView->GetProperties().myIsRenderTarget);
+    myRenderTargets[0] = aColorTarget;
+    for (uint i = 1; i < ARRAY_LENGTH(myRenderTargets); ++i)
+    {
+      renderTargetsDirty |= myRenderTargets[i] != nullptr;
+      myRenderTargets[i] = nullptr;
+    }
+   
+    const uint newNumRenderTargets = aColorTarget == nullptr ? 0 : 1;
+    const DataFormat colorFormat = aColorTarget != nullptr ? aColorTarget->GetProperties().myFormat : DataFormat::NONE;
+    bool pipelineStateDirty = myGraphicsPipelineState.myNumRenderTargets != newNumRenderTargets || myGraphicsPipelineState.myRTVformats[0] != colorFormat;
 
-    myDepthStencilTarget = aTextureView;
-    myRenderTargetsDirty = true;
+    myGraphicsPipelineState.myNumRenderTargets = newNumRenderTargets;
+    myGraphicsPipelineState.myRTVformats[0] = colorFormat;
+    for (uint i = 1; i < ARRAY_LENGTH(myRenderTargets); ++i)
+    {
+      pipelineStateDirty |= myGraphicsPipelineState.myRTVformats[i] != DataFormat::NONE;
+      myGraphicsPipelineState.myRTVformats[i] = DataFormat::NONE;
+    }
+    
+    renderTargetsDirty |= myDepthStencilTarget != aDepthStencil;
+    myDepthStencilTarget = aDepthStencil;
 
-    myGraphicsPipelineState.myDSVformat = aTextureView != nullptr ? aTextureView->GetProperties().myFormat : DataFormat::NONE;
-    myGraphicsPipelineState.myIsDirty = true;
+    const DataFormat dsvFormat = aDepthStencil != nullptr ? aDepthStencil->GetProperties().myFormat : DataFormat::NONE;
+    pipelineStateDirty |= myGraphicsPipelineState.myDSVformat != dsvFormat;
+    myGraphicsPipelineState.myDSVformat = dsvFormat;
+
+    myGraphicsPipelineState.myIsDirty = pipelineStateDirty;
+    myRenderTargetsDirty = renderTargetsDirty;
   }
-  //---------------------------------------------------------------------------//
-  void CommandContext::SetRenderTarget(TextureView* aTextureView, const uint8 aRenderTargetIndex)
+//---------------------------------------------------------------------------//
+  void CommandContext::SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil)
   {
-    ASSERT(aRenderTargetIndex < ARRAY_LENGTH(myRenderTargets));
+    bool renderTargetsDirty = false;
+    bool pipelineStateDirty = myGraphicsPipelineState.myNumRenderTargets != aNumColorTargets;
+    myGraphicsPipelineState.myNumRenderTargets = aNumColorTargets;
 
-    if (myRenderTargets[aRenderTargetIndex] == aTextureView)
-      return;
+    ASSERT(aNumColorTargets <= ARRAY_LENGTH(myRenderTargets));
 
-    myRenderTargets[aRenderTargetIndex] = aTextureView;
-    myRenderTargetsDirty = true;
+    for (uint i = 0u; i < aNumColorTargets; ++i)
+    {
+      TextureView* colorTarget = someColorTargets[i];
+      const DataFormat colorFormat = colorTarget != nullptr ? colorTarget->GetProperties().myFormat : DataFormat::NONE;
 
-    myGraphicsPipelineState.myRTVformats[aRenderTargetIndex] = aTextureView != nullptr ? aTextureView->GetProperties().myFormat : DataFormat::NONE;
-    myGraphicsPipelineState.myIsDirty = true;
+      pipelineStateDirty |= myGraphicsPipelineState.myRTVformats[i] != colorFormat;
+      myGraphicsPipelineState.myRTVformats[i] = colorFormat;
 
-    uint numRenderTargets = 0u;
-    for (const TextureView* rt : myRenderTargets)
-      if (rt != nullptr)
-        ++numRenderTargets;
+      renderTargetsDirty |= myRenderTargets[i] != colorTarget;
+      myRenderTargets[i] = colorTarget;
+    }
+    for (uint i = aNumColorTargets; i < ARRAY_LENGTH(myRenderTargets); ++i)
+    {
+      pipelineStateDirty |= myGraphicsPipelineState.myRTVformats[i] != DataFormat::NONE;
+      myGraphicsPipelineState.myRTVformats[i] = DataFormat::NONE;
 
-    myGraphicsPipelineState.myNumRenderTargets = numRenderTargets;
+      renderTargetsDirty |= myRenderTargets[i] != nullptr;
+      myRenderTargets[i] = nullptr;
+    }
+
+    renderTargetsDirty |= myDepthStencilTarget != aDepthStencil;
+    myDepthStencilTarget = aDepthStencil;
+
+    const DataFormat dsvFormat = aDepthStencil != nullptr ? aDepthStencil->GetProperties().myFormat : DataFormat::NONE;
+    pipelineStateDirty |= myGraphicsPipelineState.myDSVformat != dsvFormat;
+    myGraphicsPipelineState.myDSVformat = dsvFormat;
+
+    myGraphicsPipelineState.myIsDirty = pipelineStateDirty;
+    myRenderTargetsDirty = renderTargetsDirty;
   }
 //---------------------------------------------------------------------------//
   void CommandContext::RemoveAllRenderTargets()
