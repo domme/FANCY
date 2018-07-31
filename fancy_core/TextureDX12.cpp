@@ -49,7 +49,7 @@ namespace Fancy {
 
     DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetFormat(actualFormat);
     if (someProperties.bIsDepthStencil)
-      dxgiFormat = RenderCore_PlatformDX12::GetDepthStencilFormat(dxgiFormat);
+      dxgiFormat = RenderCore_PlatformDX12::GetDepthStencilTextureFormat(dxgiFormat);
 
     D3D12_RESOURCE_DESC resourceDesc;
     memset(&resourceDesc, 0, sizeof(resourceDesc));
@@ -100,7 +100,7 @@ namespace Fancy {
     D3D12_CLEAR_VALUE clearValue;
     if (someProperties.bIsDepthStencil)
     {
-      clearValue.Format = RenderCore_PlatformDX12::GetDepthStencilFormat(resourceDesc.Format);
+      clearValue.Format = RenderCore_PlatformDX12::GetDepthStencilViewFormat(resourceDesc.Format);
       clearValue.DepthStencil.Depth = 1.0f;
       clearValue.DepthStencil.Stencil = 0u;
     }

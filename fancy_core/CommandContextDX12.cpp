@@ -564,7 +564,7 @@ namespace Fancy {
     }
 
     // DSV FORMAT
-    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilFormat(RenderCore_PlatformDX12::GetFormat(aState.myDSVformat));
+    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat(RenderCore_PlatformDX12::GetFormat(aState.myDSVformat));
 
     // NODE MASK
     psoDesc.NodeMask = 0u;

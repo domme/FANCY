@@ -345,9 +345,14 @@ namespace Fancy {
     const DataFormatInfo& info = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
 
     DXGI_FORMAT dxgiFormat = GetFormat(someProperties.myFormat);
-    
-    srvDesc.Format = someProperties.
-    
+    if (info.myIsDepthStencil)
+    {
+      ASSERT(someProperties.myPlaneIndex <= 1);
+      dxgiFormat = someProperties.myPlaneIndex == 0 ? GetDepthViewFormat(dxgiFormat) : GetStencilViewFormat(dxgiFormat);
+    }
+      
+    srvDesc.Format = dxgiFormat;
+
     if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
@@ -599,7 +604,7 @@ namespace Fancy {
   {
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
     DXGI_FORMAT baseFormat = GetFormat(someProperties.myFormat);
-    dsvDesc.Format = GetDepthStencilFormat(baseFormat);
+    dsvDesc.Format = GetDepthStencilViewFormat(baseFormat);
     dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
     if (someProperties.myIsDepthReadOnly)
       dsvDesc.Flags |= D3D12_DSV_FLAG_READ_ONLY_DEPTH;
@@ -654,22 +659,44 @@ namespace Fancy {
     return descriptor;
   }
 //---------------------------------------------------------------------------//
-  D3D12_COMMAND_LIST_TYPE RenderCore_PlatformDX12::GetCommandListType(CommandListType aType)
+  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthStencilTextureFormat(DXGI_FORMAT aFormat)
   {
-    switch (aType)
+    switch (aFormat)
     {
-    case CommandListType::Graphics: return D3D12_COMMAND_LIST_TYPE_DIRECT;
-    case CommandListType::Compute: return D3D12_COMMAND_LIST_TYPE_COMPUTE;
-    case CommandListType::DMA: return D3D12_COMMAND_LIST_TYPE_COPY;
+      // 32-bit Z w/ Stencil
+    case DXGI_FORMAT_R32G8X24_TYPELESS:
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
+    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
+      return DXGI_FORMAT_R32G8X24_TYPELESS;
+
+      // No Stencil
+    case DXGI_FORMAT_R32_TYPELESS:
+    case DXGI_FORMAT_D32_FLOAT:
+    case DXGI_FORMAT_R32_FLOAT:
+      return DXGI_FORMAT_R32_TYPELESS;
+
+      // 24-bit Z
+    case DXGI_FORMAT_R24G8_TYPELESS:
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+      return DXGI_FORMAT_R24G8_TYPELESS;
+
+      // 16-bit Z w/o Stencil
+    case DXGI_FORMAT_R16_TYPELESS:
+    case DXGI_FORMAT_D16_UNORM:
+    case DXGI_FORMAT_R16_UNORM:
+      return DXGI_FORMAT_R16_TYPELESS;
+
     default:
-      ASSERT(false);
-      return D3D12_COMMAND_LIST_TYPE_DIRECT;
+      return DXGI_FORMAT_UNKNOWN;
     }
   }
 //---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthStencilFormat(DXGI_FORMAT aDefaultFormat)
+  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthStencilViewFormat(DXGI_FORMAT aFormat)
   {
-    switch (aDefaultFormat)
+    switch (aFormat)
     {
       // 32-bit Z w/ Stencil
     case DXGI_FORMAT_R32G8X24_TYPELESS:
@@ -702,9 +729,9 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthFormat(DXGI_FORMAT aDefaultFormat)
+  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthViewFormat(DXGI_FORMAT aFormat)
   {
-    switch (aDefaultFormat)
+    switch (aFormat)
     {
       // 32-bit Z w/ Stencil
     case DXGI_FORMAT_R32G8X24_TYPELESS:
@@ -737,9 +764,9 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetStencilFormat(DXGI_FORMAT aDefaultFormat)
+  DXGI_FORMAT RenderCore_PlatformDX12::GetStencilViewFormat(DXGI_FORMAT aFormat)
   {
-    switch (aDefaultFormat)
+    switch (aFormat)
     {
       // 32-bit Z w/ Stencil
     case DXGI_FORMAT_R32G8X24_TYPELESS:
@@ -757,6 +784,19 @@ namespace Fancy {
 
     default:
       return DXGI_FORMAT_UNKNOWN;
+    }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_COMMAND_LIST_TYPE RenderCore_PlatformDX12::GetCommandListType(CommandListType aType)
+  {
+    switch (aType)
+    {
+    case CommandListType::Graphics: return D3D12_COMMAND_LIST_TYPE_DIRECT;
+    case CommandListType::Compute: return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+    case CommandListType::DMA: return D3D12_COMMAND_LIST_TYPE_COPY;
+    default:
+      ASSERT(false);
+      return D3D12_COMMAND_LIST_TYPE_DIRECT;
     }
   }
 //---------------------------------------------------------------------------//
@@ -816,7 +856,6 @@ namespace Fancy {
     case DataFormat::RG_8UI:            return DXGI_FORMAT_R8G8_UINT;
     case DataFormat::R_8UI:             return DXGI_FORMAT_R8_UINT;
     case DataFormat::D_24UNORM_S_8UI:   return DXGI_FORMAT_D24_UNORM_S8_UINT;
-    case DataFormat::R_24UNORM_X_8UI:   return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
     case DataFormat::UNKNOWN:           return DXGI_FORMAT_UNKNOWN;
 
     case DataFormat::RGB_8:
@@ -852,7 +891,6 @@ namespace Fancy {
     case DXGI_FORMAT_R8G8_UINT:             return DataFormat::RG_8UI;         
     case DXGI_FORMAT_R8_UINT:               return DataFormat::R_8UI;          
     case DXGI_FORMAT_D24_UNORM_S8_UINT:     return DataFormat::D_24UNORM_S_8UI;
-    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS: return DataFormat::R_24UNORM_X_8UI;
     case DXGI_FORMAT_UNKNOWN:               return DataFormat::UNKNOWN;        
     default: ASSERT(false, "Missing implementation or unsupported format"); return DataFormat::SRGB_8_A_8;
     }

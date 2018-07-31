@@ -34,7 +34,7 @@ namespace Fancy {
     TextureProperties dsTexProps;
     dsTexProps.myDimension = GpuResourceDimension::TEXTURE_2D;
     dsTexProps.bIsDepthStencil = true;
-    dsTexProps.eFormat = DataFormat::DS_24_8;
+    dsTexProps.eFormat = DataFormat::D_24UNORM_S_8UI;
     dsTexProps.myIsRenderTarget = false;
     dsTexProps.myIsShaderWritable = false;
     dsTexProps.myWidth = myWindow->GetWidth();
@@ -49,7 +49,7 @@ namespace Fancy {
       TextureViewProperties props;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myIsRenderTarget = true;
-      props.myFormat = DataFormat::DS_24_8;
+      props.myFormat = DataFormat::D_24UNORM_S_8UI;
       myDepthStencilDsv = RenderCore::CreateTextureView(dsTexture, props);
       ASSERT(myDepthStencilDsv != nullptr);
 
@@ -63,9 +63,9 @@ namespace Fancy {
     {
       TextureViewProperties props;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
-      props.myFormat = DataFormat::R_24UNORM_8X;
-      myDepthStencilDsv = RenderCore::CreateTextureView(dsTexture, props);
-      ASSERT(myDepthStencilDsv != nullptr);
+      props.myFormat = DataFormat::D_24UNORM_S_8UI;
+      myDepthSrv = RenderCore::CreateTextureView(dsTexture, props);
+      ASSERT(myDepthSrv != nullptr);
     }
 
     for (uint i = 0u; i < kBackbufferCount; i++)

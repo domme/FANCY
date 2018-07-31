@@ -35,10 +35,12 @@ namespace Fancy {
     
     static DXGI_FORMAT GetFormat(DataFormat aFormat);
     static DataFormat GetFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetDepthStencilTextureFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetDepthStencilViewFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetStencilViewFormat(DXGI_FORMAT aFormat);
+
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
-    static DXGI_FORMAT GetDepthStencilFormat(DXGI_FORMAT aDefaultFormat);
-    static DXGI_FORMAT GetDepthFormat(DXGI_FORMAT aDefaultFormat);
-    static DXGI_FORMAT GetStencilFormat(DXGI_FORMAT aDefaultFormat);
     static D3D12_HEAP_TYPE ResolveHeapType(GpuMemoryAccessType anAccessType);
 
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
