@@ -57,8 +57,8 @@ namespace Fancy {
     virtual void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) = 0;
     virtual void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const = 0;
     virtual void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) = 0;
-    virtual void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset = 0u, uint aNumVertices = UINT_MAX, uint anIndexOffset = 0u, uint aNumIndices = UINT_MAX) = 0;
-    virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset) = 0;
+    virtual void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint64 aVertexOffset = 0u, uint64 aNumVertices = ~0ULL, uint64 anIndexOffset = ~0ULL, uint64 aNumIndices = ~0ULL) = 0;
+    virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
     virtual void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) = 0;
     
@@ -110,6 +110,7 @@ namespace Fancy {
     TextureView* myRenderTargets[Constants::kMaxNumRenderTargets];
     TextureView* myDepthStencilTarget;
     bool myRenderTargetsDirty;
+    
 
     DynamicArray<GpuRingBuffer*> myUploadRingBuffers;
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;

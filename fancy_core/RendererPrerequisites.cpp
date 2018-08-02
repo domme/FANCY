@@ -4,13 +4,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  uint MultiBuffering::getCurrentBufferIndex()
-  {
-    return Fancy::FancyRuntime::GetInstance()->GetCurrentFrameIndex() % MultiBuffering::kGpuMultiBufferingCount;
-  }
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 TextureSubData::TextureSubData(const TextureProperties& someProperties)
   : myData(nullptr)
 {

@@ -2,24 +2,17 @@
 
 #include "FancyCorePrerequisites.h"
 #include "DataFormat.h"
-#include "GpuProgramResource.h"
 
 /// Enables various sanity-checks and validations
 #define FANCY_RENDERER_HEAVY_VALIDATION 1
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-    namespace MultiBuffering 
-    {
-      enum { kGpuMultiBufferingCount = 2u };  
-      uint getCurrentBufferIndex();
-    }
-//---------------------------------------------------------------------------//
     namespace Constants 
     {
       enum 
       {
-        kMaxNumRenderTargets = 7u, // (8 color-rts -1 for depth-stencil target)
+        kMaxNumRenderTargets = 8u,
         kMaxNumTextureSamplers = 32u,
         kMaxNumReadBuffers = 32u,
         kMaxNumWriteBuffers = 8u,

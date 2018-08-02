@@ -686,7 +686,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint aVertexOffset, uint aNumVertices, uint anIndexOffset, uint aNumIndices)
+  void CommandContextDX12::SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint64 aVertexOffset /*= 0u*/, uint64 aNumVertices /*= ~0ULL*/, uint64 anIndexOffset /*= ~0ULL*/, uint64 aNumIndices /*= ~0ULL*/)
   {
     // TODO: Check again if we need to apply all this stuff here or rather only before drawing
     ApplyViewportAndClipRect();
@@ -701,9 +701,11 @@ namespace Fancy {
       vertexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + aVertexOffset * bufferParams.myElementSizeBytes;
 
       const uint64 byteSize = glm::min((uint64)aNumVertices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
+      
       ASSERT(byteSize <= UINT_MAX);
-
       vertexBufferView.SizeInBytes = static_cast<uint>(byteSize);
+
+      ASSERT(bufferParams.myElementSizeBytes <= UINT_MAX);
       vertexBufferView.StrideInBytes = static_cast<uint>(bufferParams.myElementSizeBytes);
     }
 
@@ -716,8 +718,8 @@ namespace Fancy {
       indexBufferView.Format = bufferParams.myElementSizeBytes == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 
       const uint64 byteSize = glm::min((uint64)aNumIndices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
+      
       ASSERT(byteSize <= UINT_MAX);
-
       indexBufferView.SizeInBytes = static_cast<uint>(byteSize);
     }
 
@@ -726,13 +728,13 @@ namespace Fancy {
     myCommandList->IASetIndexBuffer(&indexBufferView);
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint anIndexOffset, uint aVertexOffset, uint anInstanceOffset)
+  void CommandContextDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
   {
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
     ApplyPipelineState();
 
-    myCommandList->DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, anIndexOffset, aVertexOffset, anInstanceOffset);
+    myCommandList->DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
   }
   //---------------------------------------------------------------------------//
   void CommandContextDX12::RenderGeometry(const GeometryData* pGeometry)
@@ -782,24 +784,27 @@ namespace Fancy {
     if (!myRenderTargetsDirty)
       return;
 
-    myRenderTargetsDirty = false;
-
     D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Constants::kMaxNumRenderTargets];
     GpuResource* rtResources[Constants::kMaxNumRenderTargets];
-    uint numRtsToSet = 0u;
+    memset(rtResources, 0u, sizeof(rtResources));
 
-    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
+    for (uint i = 0u; i < numRtsToSet; ++i)
     {
+      ASSERT(myRenderTargets[i] != nullptr);
+
       const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myNativeData.To<GpuResourceViewDataDX12>();
       ASSERT(viewData.myType == GpuResourceViewDataDX12::RTV);
 
-      rtResources[numRtsToSet] = myRenderTargets[i]->GetTexture();
-      rtDescriptors[numRtsToSet] = viewData.myDescriptor.myCpuHandle;
-      ++numRtsToSet;
+      rtResources[i] = myRenderTargets[i]->GetTexture();
+      rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
     }
 
-    for (uint i = 0u; i < numRtsToSet; ++i)
-      TransitionResource(rtResources[i], GpuResourceState::RESOURCE_STATE_RENDER_TARGET);
+    GpuResourceState newStates[Constants::kMaxNumRenderTargets];
+    for (uint i = 0; i  < numRtsToSet; ++i)
+      newStates[i] = GpuResourceState::RESOURCE_STATE_RENDER_TARGET;
+
+    TransitionResourceList(rtResources, newStates, numRtsToSet);
 
     if (myDepthStencilTarget != nullptr)
     {
@@ -813,6 +818,8 @@ namespace Fancy {
     {
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, nullptr);
     }
+
+    myRenderTargetsDirty = false;
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ApplyPipelineState()
