@@ -299,17 +299,15 @@ namespace Fancy {
       GpuBufferProperties() 
         : myNumElements(0u)
         , myElementSizeBytes(0u)
-        , myAccessType(0u)
-        , myInternalRefIndex(~0u)
-        , myUsageFlags(0u)
+        , myCpuAccess(GpuMemoryAccessType::NO_CPU_ACCESS)
+        , myUsage(GpuBufferUsage::CONSTANT_BUFFER)
         , myIsShaderWritable(false) 
       { }
 
       uint64 myNumElements;
       uint64 myElementSizeBytes;
-      uint myAccessType;
-      uint myInternalRefIndex;
-      uint myUsageFlags;
+      GpuMemoryAccessType myCpuAccess;
+      GpuBufferUsage myUsage;
       bool myIsShaderWritable;
     };
  //---------------------------------------------------------------------------//

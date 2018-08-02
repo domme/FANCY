@@ -96,10 +96,8 @@ namespace Fancy { namespace ImGuiRendering {
     SharedPtr<GpuBuffer> locCreateVertexBuffer(uint aNumRequiredVertices)
     {
       GpuBufferProperties bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
-      bufferParams.uAccessFlags = (uint)GpuMemoryAccessType::WRITE
-                                | (uint)GpuMemoryAccessType::COHERENT
-                                | (uint)GpuMemoryAccessType::DYNAMIC;
+      bufferParams.myUsage = GpuBufferUsage::VERTEX_BUFFER;
+      bufferParams.myCpuAccess = GpuMemoryAccessType::CPU_WRITE;
       bufferParams.myElementSizeBytes = sizeof(ImDrawVert);
       bufferParams.myNumElements = aNumRequiredVertices;
       return RenderCore::CreateBuffer(bufferParams);
@@ -108,10 +106,8 @@ namespace Fancy { namespace ImGuiRendering {
     SharedPtr<GpuBuffer> locCreateIndexBuffer(uint aNumRequiredIndices)
     {
       GpuBufferProperties bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
-      bufferParams.uAccessFlags = (uint)GpuMemoryAccessType::WRITE
-        | (uint)GpuMemoryAccessType::COHERENT
-        | (uint)GpuMemoryAccessType::DYNAMIC;
+      bufferParams.myUsage = GpuBufferUsage::INDEX_BUFFER;
+      bufferParams.myCpuAccess = GpuMemoryAccessType::CPU_WRITE;
       bufferParams.myElementSizeBytes = sizeof(ImDrawIdx);
       bufferParams.myNumElements = aNumRequiredIndices;
       return RenderCore::CreateBuffer(bufferParams);
@@ -174,10 +170,8 @@ namespace Fancy { namespace ImGuiRendering {
     // Create the cbuffer
     {
       GpuBufferProperties bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::CONSTANT_BUFFER);
-      bufferParams.uAccessFlags = (uint)GpuMemoryAccessType::WRITE
-                                 | (uint)GpuMemoryAccessType::COHERENT
-                                 | (uint)GpuMemoryAccessType::DYNAMIC;
+      bufferParams.myUsage = GpuBufferUsage::CONSTANT_BUFFER;
+      bufferParams.myCpuAccess = GpuMemoryAccessType::CPU_WRITE;
       bufferParams.myElementSizeBytes = sizeof(CBufferData);
       bufferParams.myNumElements = 1u;
 

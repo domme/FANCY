@@ -18,8 +18,8 @@ namespace Fancy {
       uint64 getNumIndices() const {return m_pIndexBuffer ? m_pIndexBuffer->GetProperties().myNumElements : 0u; }
       uint getVertexStrideBytes() const {return m_vertexLayout.myStride;}
       
-      void setVertexBuffer(const SharedPtr<GpuBuffer>& _pVertexBuffer) {m_pVertexBuffer = _pVertexBuffer;}
-      void setIndexBuffer(const SharedPtr<GpuBuffer>& _pIndexBuffer) {m_pIndexBuffer = _pIndexBuffer;}
+      void setVertexBuffer(SharedPtr<GpuBuffer>& _pVertexBuffer) {m_pVertexBuffer = _pVertexBuffer;}
+      void setIndexBuffer(SharedPtr<GpuBuffer>& _pIndexBuffer) {m_pIndexBuffer = _pIndexBuffer;}
       void setVertexLayout(const GeometryVertexLayout& _rVertexLayout) {m_vertexLayout = _rVertexLayout;}
 
     protected:

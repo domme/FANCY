@@ -12,16 +12,4 @@ namespace Fancy {
   {
   }
 //---------------------------------------------------------------------------//
-  bool GpuBuffer::operator==(const GpuBufferDesc& aDesc) const
-  {
-    return GetDescription() == aDesc;
-  }
-//---------------------------------------------------------------------------//
-  GpuBufferDesc GpuBuffer::GetDescription() const
-  {
-    GpuBufferDesc desc;
-    desc.myInternalRefIndex = myProperties.myInternalRefIndex;
-    return desc;
-  }
-//---------------------------------------------------------------------------//
 }

@@ -13,9 +13,6 @@ namespace Fancy {
     GpuBuffer();
     virtual ~GpuBuffer();
 
-    bool operator==(const GpuBufferDesc& aDesc) const;
-    GpuBufferDesc GetDescription() const;
-
     const GpuBufferProperties& GetProperties() const { return myProperties; }
     uint GetAlignment() const { return myAlignment; }
 

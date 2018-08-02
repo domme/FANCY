@@ -27,7 +27,7 @@ namespace Fancy {
     myProperties = someProperties;
 
     myAlignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-    if ((someProperties.myUsageFlags & (uint)GpuBufferUsage::CONSTANT_BUFFER) != 0)
+    if (someProperties.myUsage == GpuBufferUsage::CONSTANT_BUFFER)
       myAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
 
     const uint64 pitch = MathUtil::Align(someProperties.myNumElements * someProperties.myElementSizeBytes, myAlignment);
@@ -48,7 +48,7 @@ namespace Fancy {
 
     myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
 
-    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myAccessType;
+    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myCpuAccess;
     switch(gpuMemAccess) 
     { 
       case GpuMemoryAccessType::NO_CPU_ACCESS: 
@@ -113,8 +113,8 @@ namespace Fancy {
     range.Begin = uOffsetElements * myProperties.myElementSizeBytes;
     range.End = range.Begin + uNumElements * myProperties.myElementSizeBytes;
 
-    const bool isCpuWritable = myProperties.myAccessType == (uint)GpuMemoryAccessType::CPU_WRITE;
-    const bool isCpuReadable = myProperties.myAccessType == (uint)GpuMemoryAccessType::CPU_READ;
+    const bool isCpuWritable = myProperties.myCpuAccess == GpuMemoryAccessType::CPU_WRITE;
+    const bool isCpuReadable = myProperties.myCpuAccess == GpuMemoryAccessType::CPU_READ;
 
     const bool wantsWrite = eLockOption == GpuResoruceLockOption::READ_WRITE || eLockOption == GpuResoruceLockOption::WRITE;
     const bool wantsRead = eLockOption == GpuResoruceLockOption::READ_WRITE || eLockOption == GpuResoruceLockOption::READ;

@@ -686,7 +686,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint64 aVertexOffset /*= 0u*/, uint64 aNumVertices /*= ~0ULL*/, uint64 anIndexOffset /*= ~0ULL*/, uint64 aNumIndices /*= ~0ULL*/)
+  void CommandContextDX12::SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint64 aVertexOffset /*= 0u*/, uint64 aNumVertices /*= ~0ULL*/, uint64 anIndexOffset /*= 0u*/, uint64 aNumIndices /*= ~0ULL*/)
   {
     // TODO: Check again if we need to apply all this stuff here or rather only before drawing
     ApplyViewportAndClipRect();
@@ -698,9 +698,10 @@ namespace Fancy {
       GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aVertexBuffer->myStorage.get();
       const GpuBufferProperties& bufferParams = aVertexBuffer->GetProperties();
 
-      vertexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + aVertexOffset * bufferParams.myElementSizeBytes;
+      uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
+      vertexBufferView.BufferLocation = resourceStartAddress + aVertexOffset * bufferParams.myElementSizeBytes;
 
-      const uint64 byteSize = glm::min((uint64)aNumVertices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
+      const uint64 byteSize = glm::min(aNumVertices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
       
       ASSERT(byteSize <= UINT_MAX);
       vertexBufferView.SizeInBytes = static_cast<uint>(byteSize);
@@ -714,10 +715,11 @@ namespace Fancy {
       GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)anIndexBuffer->myStorage.get();
       const GpuBufferProperties& bufferParams = anIndexBuffer->GetProperties();
 
-      indexBufferView.BufferLocation = storage->myResource->GetGPUVirtualAddress() + anIndexOffset * bufferParams.myElementSizeBytes;
+      uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
+      indexBufferView.BufferLocation = resourceStartAddress + anIndexOffset * bufferParams.myElementSizeBytes;
       indexBufferView.Format = bufferParams.myElementSizeBytes == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 
-      const uint64 byteSize = glm::min((uint64)aNumIndices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
+      const uint64 byteSize = glm::min(aNumIndices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
       
       ASSERT(byteSize <= UINT_MAX);
       indexBufferView.SizeInBytes = static_cast<uint>(byteSize);

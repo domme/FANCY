@@ -377,7 +377,7 @@ namespace Fancy {
 
     const GpuBufferProperties& bufParams = aDestBuffer->GetProperties();
 
-    if (bufParams.myAccessType == (uint)GpuMemoryAccessType::CPU_WRITE)
+    if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_WRITE)
     {
       uint8* dest = static_cast<uint8*>(aDestBuffer->Lock(GpuResoruceLockOption::WRITE));
       ASSERT(dest != nullptr);

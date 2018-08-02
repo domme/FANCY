@@ -135,7 +135,7 @@ namespace Fancy {
       if (queue->IsFenceDone(fence))
       {
         it = ourUsedRingBuffers.erase(it);
-        if (buffer->GetBuffer()->GetByteSize() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsageFlags == (uint)aUsage)
+        if (buffer->GetBuffer()->GetByteSize() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsage == aUsage)
           return buffer;
         
         ourAvailableRingBuffers.push_back(buffer);
@@ -147,7 +147,7 @@ namespace Fancy {
     for (auto it = ourAvailableRingBuffers.begin(); it != ourAvailableRingBuffers.end(); ++it)
     {
       GpuRingBuffer* buffer = *it;
-      if (buffer->GetBuffer()->GetByteSize() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsageFlags == (uint)aUsage)
+      if (buffer->GetBuffer()->GetByteSize() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsage == aUsage)
       {
         ourAvailableRingBuffers.erase(it);
         return buffer;
@@ -161,8 +161,8 @@ namespace Fancy {
     ASSERT(aNeededByteSize <= UINT_MAX, "Buffer size overflow. Consider making numElements 64 bit wide");
     params.myNumElements = aNeededByteSize;
     params.myElementSizeBytes = 1u;
-    params.myUsageFlags = (uint) aUsage;
-    params.myAccessType = (uint)GpuMemoryAccessType::CPU_WRITE;
+    params.myUsage = aUsage;
+    params.myCpuAccess = GpuMemoryAccessType::CPU_WRITE;
     buf->Create(params, GpuResoruceLockOption::WRITE);
     ourRingBufferPool.push_back(std::move(buf));
 
@@ -488,8 +488,8 @@ namespace Fancy {
       SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateBuffer());
 
       GpuBufferProperties bufferParams;
-      bufferParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::VERTEX_BUFFER);
-      bufferParams.myAccessType = static_cast<uint>(GpuMemoryAccessType::NO_CPU_ACCESS);
+      bufferParams.myUsage = GpuBufferUsage::VERTEX_BUFFER;
+      bufferParams.myCpuAccess = GpuMemoryAccessType::NO_CPU_ACCESS;
       bufferParams.myNumElements = numVertices;
       bufferParams.myElementSizeBytes = vertexLayout.myStride;
 
@@ -504,8 +504,8 @@ namespace Fancy {
       SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateBuffer());
 
       GpuBufferProperties indexBufParams;
-      indexBufParams.myUsageFlags = static_cast<uint>(GpuBufferUsage::INDEX_BUFFER);
-      indexBufParams.myAccessType = static_cast<uint>(GpuMemoryAccessType::NO_CPU_ACCESS);
+      indexBufParams.myUsage = GpuBufferUsage::INDEX_BUFFER;
+      indexBufParams.myCpuAccess = GpuMemoryAccessType::NO_CPU_ACCESS;
       indexBufParams.myNumElements = numIndices;
       indexBufParams.myElementSizeBytes = sizeof(uint);
 
@@ -583,7 +583,7 @@ namespace Fancy {
 
     const GpuBufferProperties& bufParams = aDestBuffer->GetProperties();
 
-    if (bufParams.myAccessType == (uint)GpuMemoryAccessType::CPU_WRITE)
+    if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_WRITE)
     {
       uint8* dest = static_cast<uint8*>(aDestBuffer->Lock(GpuResoruceLockOption::WRITE));
       ASSERT(dest != nullptr);
