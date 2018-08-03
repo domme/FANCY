@@ -33,7 +33,9 @@ namespace Fancy {
 
   protected:
     virtual void OnWindowResized(uint aWidth, uint aHeight);
-    void CreateBackbufferResources();
+    virtual void UpdateBackbufferResources(uint aWidth, uint aHeight) = 0;
+
+    void CreateViews();
 
     static const uint kBackbufferCount = 2u;
     uint myCurrBackbufferIndex;

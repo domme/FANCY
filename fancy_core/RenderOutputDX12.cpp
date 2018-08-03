@@ -27,8 +27,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::BeginFrame()
   {
-    CommandQueueDX12* graphicsQueue = static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
-    graphicsQueue->WaitForIdle();  // Wait for the last frame to finish - needed?
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
 //---------------------------------------------------------------------------//
@@ -41,9 +39,9 @@ namespace Fancy {
     
     context->TransitionResource(currBackbuffer, GpuResourceState::RESOURCE_STATE_PRESENT);
     graphicsQueue->ExecuteContext(context);
-    
     RenderCore::FreeContext(context);
 
+    graphicsQueue->WaitForIdle();
     mySwapChain->Present(1, 0);
   }
 //---------------------------------------------------------------------------//
@@ -62,6 +60,7 @@ namespace Fancy {
 
     RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
     Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain = coreDX12->CreateSwapChain(swapChainDesc);
+
     ASSERT(swapChain != nullptr);
 
     CheckD3Dcall(swapChain.As(&mySwapChain));

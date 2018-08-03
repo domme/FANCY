@@ -26,19 +26,24 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutput::OnWindowResized(uint aWidth, uint aHeight)
   {
+    const uint width = glm::max(8u, myWindow->GetWidth());
+    const uint height = glm::max(8u, myWindow->GetHeight());
+
     CreateBackbufferResources();
   }
 //---------------------------------------------------------------------------//
-  void RenderOutput::CreateBackbufferResources()
+  void RenderOutput::CreateViews()
   {
+    
+
     TextureProperties dsTexProps;
     dsTexProps.myDimension = GpuResourceDimension::TEXTURE_2D;
     dsTexProps.bIsDepthStencil = true;
     dsTexProps.eFormat = DataFormat::D_24UNORM_S_8UI;
     dsTexProps.myIsRenderTarget = false;
     dsTexProps.myIsShaderWritable = false;
-    dsTexProps.myWidth = myWindow->GetWidth();
-    dsTexProps.myHeight = myWindow->GetHeight();
+    dsTexProps.myWidth = width;
+    dsTexProps.myHeight = height;
     dsTexProps.myNumMipLevels = 1u;
 
     SharedPtr<Texture> dsTexture = RenderCore::CreateTexture(dsTexProps);
@@ -74,8 +79,8 @@ namespace Fancy {
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
       backbufferProps.myIsRenderTarget = true;
       backbufferProps.eFormat = DataFormat::RGBA_8;
-      backbufferProps.myWidth = myWindow->GetWidth();
-      backbufferProps.myHeight = myWindow->GetHeight();
+      backbufferProps.myWidth = width;
+      backbufferProps.myHeight = height;
 
       SharedPtr<Texture> backbuffer = RenderCore::CreateTexture(backbufferProps);
 
