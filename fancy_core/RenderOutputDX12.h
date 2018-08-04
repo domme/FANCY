@@ -13,14 +13,12 @@ namespace Fancy {
     explicit RenderOutputDX12(void* aNativeInstanceHandle);
     ~RenderOutputDX12() override;
     
-    void PrepareForFirstFrame() override;
     void BeginFrame() override;
     void EndFrame() override;
 
   private:
-    void OnWindowResized(uint aWidth, uint aHeight) override;
-
-    void CreateSwapChain();
+    void CreateBackbuffer(uint aWidth, uint aHeight) override;
+    void ResizeBackbuffer(uint aWidth, uint aHeight) override;
 
     Microsoft::WRL::ComPtr<IDXGISwapChain3> mySwapChain;
   };

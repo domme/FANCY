@@ -239,13 +239,16 @@ namespace Fancy {
   void TextureDX12::Destroy()
   {
     GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)myStorage.get();
-    if (storageDx12 != nullptr && storageDx12->myGpuMemory.myHeap != nullptr)
+    if (storageDx12 != nullptr)
     {
       storageDx12->myResource.Reset();
-      RenderCore::GetPlatformDX12()->FreeGpuMemory(storageDx12->myGpuMemory);
+
+      if(storageDx12->myGpuMemory.myHeap != nullptr)
+        RenderCore::GetPlatformDX12()->FreeGpuMemory(storageDx12->myGpuMemory);
     }
 
     myStorage = nullptr;
+    myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//
 }

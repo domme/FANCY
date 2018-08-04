@@ -18,7 +18,7 @@ namespace Fancy {
     TextureSubLocation GetSubresourceLocation(uint aSubresourceIndex) const override;
 
   protected:
-    void Destroy();
+    void Destroy() override;
   };
 //---------------------------------------------------------------------------//
 }

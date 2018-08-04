@@ -7,8 +7,14 @@ namespace Fancy {
   {
   }
 //---------------------------------------------------------------------------//
-  Texture::~Texture()
+  void Texture::Create(GpuResource&& aResource, const TextureProperties& someProperties)
   {
+    Destroy();
+
+    myProperties = someProperties;
+    
+    GpuResource& resource = *static_cast<GpuResource*>(this);
+    resource = std::move(aResource);
   }
 //---------------------------------------------------------------------------//
 }

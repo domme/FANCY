@@ -14,10 +14,17 @@ namespace Fancy {
   class GpuResource
   {
   public:
-    GpuResource(GpuResourceCategory aType)
+    explicit GpuResource(GpuResourceCategory aType)
       : myCategory(aType)   
       , myUsageState(GpuResourceState::RESOURCE_STATE_COMMON)
     {}
+
+    void operator=(GpuResource&& anOtherResource)
+    {
+      myCategory = anOtherResource.myCategory;
+      myUsageState = anOtherResource.myUsageState;
+      myStorage = std::move(anOtherResource.myStorage);
+    }
 
     virtual ~GpuResource() = default;
     

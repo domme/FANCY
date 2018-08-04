@@ -2,6 +2,7 @@
 #include "Window.h"
 #include "RenderCore.h"
 #include "TextureViewProperties.h"
+#include "Texture.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -24,17 +25,39 @@ namespace Fancy {
     myWindow->myOnResize.DetachObserver(this);
   }
 //---------------------------------------------------------------------------//
+  void RenderOutput::PrepareForFirstFrame()
+  {
+    uint width, height;
+    GetWindowSizeSafe(width, height);
+
+    CreateBackbuffer(width, height);
+    CreateViews();
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutput::GetWindowSizeSafe(uint& aWidthOut, uint& aHeightOut)
+  {
+    aWidthOut = glm::max(8u, myWindow->GetWidth());
+    aHeightOut = glm::max(8u, myWindow->GetHeight());
+  }
+//---------------------------------------------------------------------------//
   void RenderOutput::OnWindowResized(uint aWidth, uint aHeight)
   {
-    const uint width = glm::max(8u, myWindow->GetWidth());
-    const uint height = glm::max(8u, myWindow->GetHeight());
+    GetWindowSizeSafe(aWidth, aHeight);
+    ResizeBackbuffer(aWidth, aHeight);
 
-    CreateBackbufferResources();
+    for (uint i = 0u; i < kBackbufferCount; i++)
+    {
+      myBackbufferTextures[i]->myProperties.myWidth = aWidth;
+      myBackbufferTextures[i]->myProperties.myHeight = aHeight;
+    }
+
+    CreateViews();
   }
 //---------------------------------------------------------------------------//
   void RenderOutput::CreateViews()
   {
-    
+    uint width, height;
+    GetWindowSizeSafe(width, height);
 
     TextureProperties dsTexProps;
     dsTexProps.myDimension = GpuResourceDimension::TEXTURE_2D;
@@ -75,14 +98,7 @@ namespace Fancy {
 
     for (uint i = 0u; i < kBackbufferCount; i++)
     {
-      TextureProperties backbufferProps;
-      backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
-      backbufferProps.myIsRenderTarget = true;
-      backbufferProps.eFormat = DataFormat::RGBA_8;
-      backbufferProps.myWidth = width;
-      backbufferProps.myHeight = height;
-
-      SharedPtr<Texture> backbuffer = RenderCore::CreateTexture(backbufferProps);
+      ASSERT(myBackbufferTextures[i] != nullptr && myBackbufferTextures[i]->GetProperties().myWidth == width && myBackbufferTextures[i]->GetProperties().myHeight == height);
 
       // Backbuffer RTV
       {
@@ -90,7 +106,7 @@ namespace Fancy {
         props.myDimension = GpuResourceDimension::TEXTURE_2D;
         props.myFormat = DataFormat::RGBA_8;
         props.myIsRenderTarget = true;
-        myBackbufferRtv[i] = RenderCore::CreateTextureView(backbuffer, props);
+        myBackbufferRtv[i] = RenderCore::CreateTextureView(myBackbufferTextures[i], props);
         ASSERT(myBackbufferRtv[i] != nullptr);
       }
 
@@ -99,7 +115,7 @@ namespace Fancy {
         TextureViewProperties props;
         props.myDimension = GpuResourceDimension::TEXTURE_2D;
         props.myFormat = DataFormat::RGBA_8;
-        myBackbufferSrv[i] = RenderCore::CreateTextureView(backbuffer, props);
+        myBackbufferSrv[i] = RenderCore::CreateTextureView(myBackbufferTextures[i], props);
         ASSERT(myBackbufferSrv[i] != nullptr);
       }
     }

@@ -19,10 +19,11 @@ namespace Fancy {
   public:
     explicit RenderOutput(void* aNativeInstanceHandle);
     virtual ~RenderOutput();
-
-    virtual void PrepareForFirstFrame() = 0;
+    
     virtual void BeginFrame() = 0;
     virtual void EndFrame()= 0;
+
+    void PrepareForFirstFrame();
 
     TextureView* GetBackbufferRtv() const { return myBackbufferRtv[myCurrBackbufferIndex].get(); }
     TextureView* GetBackbufferSrv() const { return myBackbufferSrv[myCurrBackbufferIndex].get(); }
@@ -32,8 +33,11 @@ namespace Fancy {
     Window* GetWindow() const { return myWindow.get(); }
 
   protected:
-    virtual void OnWindowResized(uint aWidth, uint aHeight);
-    virtual void UpdateBackbufferResources(uint aWidth, uint aHeight) = 0;
+    void GetWindowSizeSafe(uint& aWidthOut, uint& aHeightOut);
+    void OnWindowResized(uint aWidth, uint aHeight);
+
+    virtual void CreateBackbuffer(uint aWidth, uint aHeight) = 0;
+    virtual void ResizeBackbuffer(uint aWidth, uint aHeight) = 0;
 
     void CreateViews();
 
@@ -41,6 +45,7 @@ namespace Fancy {
     uint myCurrBackbufferIndex;
     SharedPtr<Window> myWindow;
 
+    SharedPtr<Texture> myBackbufferTextures[kBackbufferCount];
     SharedPtr<TextureView> myBackbufferRtv[kBackbufferCount];
     SharedPtr<TextureView> myBackbufferSrv[kBackbufferCount];
     SharedPtr<TextureView> myDepthStencilDsv;

@@ -10,10 +10,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   class Texture : public GpuResource
   {
+    friend class RenderOutput;  // Needed to modify implicit SwapChain-texture properties
+
   public:
     Texture();
-    virtual ~Texture();
+    virtual ~Texture() = default;
 
+    void Create(GpuResource&& aResource, const TextureProperties& someProperties);
     virtual void Create(const TextureProperties& someProperties, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) = 0;
     virtual void GetSubresourceLayout(const TextureSubLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const = 0;
     virtual uint GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const = 0;
@@ -24,6 +27,8 @@ namespace Fancy {
     const uint GetArraySize() const { return IsArray() ? myProperties.myDepthOrArraySize : 0u; }
     
   protected:
+    virtual void Destroy() = 0;
+
     TextureProperties myProperties;
   };
 //---------------------------------------------------------------------------//

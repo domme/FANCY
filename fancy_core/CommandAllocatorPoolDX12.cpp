@@ -33,6 +33,7 @@ namespace Fancy {
 
       if (queue->IsFenceDone(waitingFenceVal))
       {
+        allocator->Reset();
         it = myReleasedWaitingAllocators.erase(it);
 
         if (availableAllocator == nullptr)

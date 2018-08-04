@@ -629,14 +629,15 @@ namespace Fancy {
     if (!availableContextList.empty())
     {
       CommandContext* context = availableContextList.front();
-      context->Reset(0);
       availableContextList.pop_front();
       return context;
     }
 
     contextPool.push_back(std::unique_ptr<CommandContext>(ourPlatformImpl->CreateContext(aType)));
-
-    return contextPool.back().get();
+    CommandContext* context = contextPool.back().get();
+    context->Reset(0);
+    
+    return context;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::FreeContext(CommandContext* aContext)

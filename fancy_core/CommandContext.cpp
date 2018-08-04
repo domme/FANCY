@@ -59,7 +59,6 @@ namespace Fancy {
     , myDepthStencilTarget(nullptr)
     , myRenderTargetsDirty(true)
   {
-
   }
 //---------------------------------------------------------------------------//
 
@@ -83,9 +82,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContext::TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState)
   {
-    GpuResource* resources[] = { aResource };
-    GpuResourceState states[] = { aTransitionToState };
-    TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
+    TransitionResourceList(&aResource, &aTransitionToState, 1);
   }
 //---------------------------------------------------------------------------//
   void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1, GpuResource* aResource2, GpuResourceState aTransitionToState2)

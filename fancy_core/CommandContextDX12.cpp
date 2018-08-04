@@ -365,7 +365,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources)
   {
-    D3D12_RESOURCE_BARRIER* barriers = static_cast<D3D12_RESOURCE_BARRIER*>(alloca(sizeof(D3D12_RESOURCE_BARRIER) * aNumResources));
+    const uint kMaxBarriers = 8u;
+    static D3D12_RESOURCE_BARRIER barriers[kMaxBarriers];
+
+    ASSERT(aNumResources <= kMaxBarriers);
+
     uint numBarriers = 0;
     for (uint i = 0; i < aNumResources; ++i)
     {
