@@ -689,51 +689,46 @@ namespace Fancy {
       myCommandList->SetGraphicsRootSignature(myRootSignature);
     }
   }
-  //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint64 aVertexOffset /*= 0u*/, uint64 aNumVertices /*= ~0ULL*/, uint64 anIndexOffset /*= 0u*/, uint64 aNumIndices /*= ~0ULL*/)
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset /*= 0u*/, uint64 aSize /*= ~0ULL*/)
   {
-    // TODO: Check again if we need to apply all this stuff here or rather only before drawing
-    ApplyViewportAndClipRect();
-    ApplyRenderTargets();
-    ApplyPipelineState();
-
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-    {
-      GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aVertexBuffer->myStorage.get();
-      const GpuBufferProperties& bufferParams = aVertexBuffer->GetProperties();
+    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
 
-      uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
-      vertexBufferView.BufferLocation = resourceStartAddress + aVertexOffset * bufferParams.myElementSizeBytes;
+    uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
+    vertexBufferView.BufferLocation = resourceStartAddress + anOffset;
 
-      const uint64 byteSize = glm::min(aNumVertices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
-      
-      ASSERT(byteSize <= UINT_MAX);
-      vertexBufferView.SizeInBytes = static_cast<uint>(byteSize);
+    const uint64 byteSize = glm::min(aSize, aBuffer->GetByteSize());
+    ASSERT(byteSize <= UINT_MAX);
 
-      ASSERT(bufferParams.myElementSizeBytes <= UINT_MAX);
-      vertexBufferView.StrideInBytes = static_cast<uint>(bufferParams.myElementSizeBytes);
-    }
+    vertexBufferView.SizeInBytes = static_cast<uint>(byteSize);
+    vertexBufferView.StrideInBytes = static_cast<uint>(aVertexSize);
 
-    D3D12_INDEX_BUFFER_VIEW indexBufferView;
-    {
-      GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)anIndexBuffer->myStorage.get();
-      const GpuBufferProperties& bufferParams = anIndexBuffer->GetProperties();
-
-      uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
-      indexBufferView.BufferLocation = resourceStartAddress + anIndexOffset * bufferParams.myElementSizeBytes;
-      indexBufferView.Format = bufferParams.myElementSizeBytes == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-
-      const uint64 byteSize = glm::min(aNumIndices, bufferParams.myNumElements) * bufferParams.myElementSizeBytes;
-      
-      ASSERT(byteSize <= UINT_MAX);
-      indexBufferView.SizeInBytes = static_cast<uint>(byteSize);
-    }
-
+    // TODO: Don't set the primitive topology here: Changing the topology after binding the vertex buffer won't work otherwise...
     myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
     myCommandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anIndexOffset /* = 0u */, uint64 aNumIndices /* =~0ULL*/)
+  {
+    ASSERT(anIndexSize == 2u || anIndexSize == 4u);
+
+    D3D12_INDEX_BUFFER_VIEW indexBufferView;
+    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
+
+    uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
+    indexBufferView.BufferLocation = resourceStartAddress + anIndexOffset;
+
+    indexBufferView.Format = anIndexSize == 2u ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+
+    const uint64 byteSize = glm::min(aNumIndices, aBuffer->GetByteSize());
+    
+    ASSERT(byteSize <= UINT_MAX);
+    indexBufferView.SizeInBytes = static_cast<uint>(byteSize);
+    
     myCommandList->IASetIndexBuffer(&indexBufferView);
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandContextDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
   {
     ApplyViewportAndClipRect();
@@ -749,7 +744,9 @@ namespace Fancy {
     const GpuBufferDX12* indexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getIndexBuffer());
 
     SetTopologyType(pGeometry->getGeometryVertexLayout().myTopology);
-    SetVertexIndexBuffers(vertexBufferDx12, indexBufferDx12);
+    BindVertexBuffer(pGeometry->getVertexBuffer(), vertexBufferDx12->GetProperties().myElementSizeBytes);
+    BindIndexBuffer(pGeometry->getIndexBuffer(), indexBufferDx12->GetProperties().myElementSizeBytes);
+
     Render(indexBufferDx12->GetProperties().myNumElements, 1, 0, 0, 0);
   }
   //---------------------------------------------------------------------------//
