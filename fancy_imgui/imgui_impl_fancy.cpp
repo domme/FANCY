@@ -25,18 +25,11 @@ namespace Fancy { namespace ImGuiRendering {
     glm::float4x4 myProjectionMatrix;
   };
 
-  const uint kVertexNumIncrease = 2048u;
-  const uint kIndexNumIncrease = kVertexNumIncrease * 3u;
-
-  SharedPtr<GpuBuffer> ourCBuffer;
-  SharedPtr<GpuBuffer> ourVertexBuffer;
-  SharedPtr<GpuBuffer> ourIndexBuffer;
-  SharedPtr<Texture> ourFontTexture;
+  SharedPtr<TextureView> ourFontTexture;
   SharedPtr<GpuProgramPipeline> ourProgramPipeline;
   SharedPtr<BlendState> ourBlendState;
   SharedPtr<DepthStencilState> ourDepthStencilState;
-  CommandContext* ourRenderContext;
-    
+      
   HWND ourHwnd = nullptr;
   INT64 ourTicksPerSecond = 0;
   INT64 ourTime = 0;
@@ -91,28 +84,6 @@ namespace Fancy { namespace ImGuiRendering {
 
     (*aWasHandled) = false;
   }
-  
-  namespace {
-    SharedPtr<GpuBuffer> locCreateVertexBuffer(uint aNumRequiredVertices)
-    {
-      GpuBufferProperties bufferParams;
-      bufferParams.myUsage = GpuBufferUsage::VERTEX_BUFFER;
-      bufferParams.myCpuAccess = GpuMemoryAccessType::CPU_WRITE;
-      bufferParams.myElementSizeBytes = sizeof(ImDrawVert);
-      bufferParams.myNumElements = aNumRequiredVertices;
-      return RenderCore::CreateBuffer(bufferParams);
-    }
-
-    SharedPtr<GpuBuffer> locCreateIndexBuffer(uint aNumRequiredIndices)
-    {
-      GpuBufferProperties bufferParams;
-      bufferParams.myUsage = GpuBufferUsage::INDEX_BUFFER;
-      bufferParams.myCpuAccess = GpuMemoryAccessType::CPU_WRITE;
-      bufferParams.myElementSizeBytes = sizeof(ImDrawIdx);
-      bufferParams.myNumElements = aNumRequiredIndices;
-      return RenderCore::CreateBuffer(bufferParams);
-    }
-  }
 
   bool Init(Fancy::RenderOutput* aRenderOutput, Fancy::FancyRuntime* aRuntime)
   {
@@ -166,26 +137,6 @@ namespace Fancy { namespace ImGuiRendering {
       ourProgramPipeline = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
       ASSERT(ourProgramPipeline != nullptr);
     }
-
-    // Create the cbuffer
-    {
-      GpuBufferProperties bufferParams;
-      bufferParams.myUsage = GpuBufferUsage::CONSTANT_BUFFER;
-      bufferParams.myCpuAccess = GpuMemoryAccessType::CPU_WRITE;
-      bufferParams.myElementSizeBytes = sizeof(CBufferData);
-      bufferParams.myNumElements = 1u;
-
-      CBufferData initialData;
-      memset(&initialData, 0, sizeof(initialData));
-      ourCBuffer = RenderCore::CreateBuffer(bufferParams, &initialData);
-      ASSERT(ourCBuffer != nullptr);
-    }
-  
-    ourVertexBuffer = locCreateVertexBuffer(kVertexNumIncrease);
-    ASSERT(ourVertexBuffer != nullptr);
-   
-    ourIndexBuffer = locCreateIndexBuffer(kIndexNumIncrease);
-    ASSERT(ourIndexBuffer != nullptr);
    
     // Create the font texture
     {
@@ -195,6 +146,13 @@ namespace Fancy { namespace ImGuiRendering {
       io.Fonts->GetTexDataAsRGBA32(&fontPixelData, &width, &height, &pixelSizeBytes);
       ASSERT(fontPixelData != nullptr);
 
+      TextureSubData uploadData;
+      uploadData.myData = fontPixelData;
+      uploadData.myPixelSizeBytes = pixelSizeBytes;
+      uploadData.myRowSizeBytes = width * uploadData.myPixelSizeBytes;
+      uploadData.mySliceSizeBytes = height * uploadData.myRowSizeBytes;
+      uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
+
       TextureProperties props;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myWidth = width;
@@ -202,15 +160,12 @@ namespace Fancy { namespace ImGuiRendering {
       props.eFormat = DataFormat::RGBA_8;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.eFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
+
+      TextureViewProperties viewProps;
+      viewProps.myDimension = GpuResourceDimension::TEXTURE_2D;
+      viewProps.myFormat = DataFormat::RGBA_8;
       
-      TextureSubData uploadData;
-      uploadData.myData = fontPixelData;
-      uploadData.myPixelSizeBytes = pixelSizeBytes;
-      uploadData.myRowSizeBytes = width * uploadData.myPixelSizeBytes;
-      uploadData.mySliceSizeBytes = height * uploadData.myRowSizeBytes;
-      uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
-      
-      ourFontTexture = RenderCore::CreateTexture(props, &uploadData, 1u);
+      ourFontTexture = RenderCore::CreateTextureView(props, viewProps, &uploadData, 1u);
       ASSERT(ourFontTexture != nullptr);
     }
 
@@ -234,8 +189,6 @@ namespace Fancy { namespace ImGuiRendering {
       ourDepthStencilState = RenderCore::CreateDepthStencilState(desc);
       ASSERT(ourDepthStencilState != nullptr);
     }
-
-    ourRenderContext = RenderCore::AllocateContext(CommandListType::Graphics);
     
     return true;
   }
@@ -273,6 +226,8 @@ namespace Fancy { namespace ImGuiRendering {
 //---------------------------------------------------------------------------//
   void RenderDrawLists(ImDrawData* _draw_data)
   {
+    CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+
     // Update the cbuffer data
     {
       float translate = -0.5f * 2.f;
@@ -288,89 +243,28 @@ namespace Fancy { namespace ImGuiRendering {
         0.0f,               0.0f,               0.5f,       0.0f,
         (R + L) / (L - R),  (T + B) / (B - T),  0.5f,       1.0f);
       
-      RenderCore::UpdateBufferData(ourCBuffer.get(), &cbuffer, sizeof(cbuffer));
-    }
-
-    // Calculate the required number of vertices and indices and grow the buffers if neccessary
-    {
-      uint numRequiredVertices = 0u;
-      uint numRequiredIndices = 0u;
-      for (int n = 0; n < _draw_data->CmdListsCount; n++)
-      {
-        const ImDrawList* cmd_list = _draw_data->CmdLists[n];
-        numRequiredVertices += cmd_list->VtxBuffer.size();
-        numRequiredIndices += cmd_list->IdxBuffer.size();
-      }
-
-      if (numRequiredVertices > ourVertexBuffer->GetNumElements())
-      {
-        const uint newBufferSize = static_cast<uint>(Fancy::MathUtil::Align(numRequiredVertices, kVertexNumIncrease));
-        ourVertexBuffer = locCreateVertexBuffer(newBufferSize);
-        ASSERT(ourVertexBuffer != nullptr);
-      }
-
-      if (numRequiredIndices > ourIndexBuffer->GetNumElements())
-      {
-        const uint newBufferSize = (uint) Fancy::MathUtil::Align(numRequiredIndices, kIndexNumIncrease);
-        ourIndexBuffer = locCreateIndexBuffer(newBufferSize);
-        ASSERT(ourIndexBuffer != nullptr);
-      }
-    }
-
-    // Copy all vertex- and index data
-    {
-      uint8* mappedVertexData = static_cast<uint8*>(ourVertexBuffer->Lock(GpuResoruceLockOption::WRITE));
-      ASSERT(mappedVertexData != nullptr);
-
-      uint8* mappedIndexData = static_cast<uint8*>(ourIndexBuffer->Lock(GpuResoruceLockOption::WRITE));
-      ASSERT(mappedIndexData != nullptr);
-
-      for (int n = 0; n < _draw_data->CmdListsCount; n++)
-      {
-        const ImDrawList* cmd_list = _draw_data->CmdLists[n];
-        uint verticesCount = cmd_list->VtxBuffer.size();
-        uint indicesCount = cmd_list->IdxBuffer.size();
-        uint verticesSize = verticesCount * sizeof(ImDrawVert);
-        uint indicesSize = indicesCount * sizeof(ImDrawIdx);
-
-        memcpy(mappedVertexData, &cmd_list->VtxBuffer[0], verticesSize);
-        mappedVertexData += verticesSize;
-
-        memcpy(mappedIndexData, &cmd_list->IdxBuffer[0], indicesSize);
-        mappedIndexData += indicesSize;
-      }
-
-      ourVertexBuffer->Unlock();
-      ourIndexBuffer->Unlock();
+      ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), 0u);
     }
 
     RenderOutput* renderOutput = ourRenderOutput;
 
-    ourRenderContext->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
-    ourRenderContext->SetRenderTarget(renderOutput->GetBackbufferRtv(), 0u);
-    ourRenderContext->SetDepthStencilRenderTarget(renderOutput->GetDepthStencilDsv());
-    
-    ourRenderContext->SetDepthStencilState(ourDepthStencilState);
-    ourRenderContext->SetBlendState(ourBlendState);
-    ourRenderContext->SetCullMode(CullMode::NONE);
-    ourRenderContext->SetFillMode(FillMode::SOLID);
-    ourRenderContext->SetWindingOrder(WindingOrder::CCW);
-
-    ourRenderContext->SetGpuProgramPipeline(ourProgramPipeline);
-    ourRenderContext->BindResource(ourCBuffer.get(), DescriptorType::CONSTANT_BUFFER, 0u);
+    ctx->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
+    ctx->SetRenderTarget(renderOutput->GetBackbufferRtv(), renderOutput->GetDepthStencilDsv());
+    ctx->SetDepthStencilState(ourDepthStencilState);
+    ctx->SetBlendState(ourBlendState);
+    ctx->SetCullMode(CullMode::NONE);
+    ctx->SetFillMode(FillMode::SOLID);
+    ctx->SetWindingOrder(WindingOrder::CCW);
+    ctx->SetGpuProgramPipeline(ourProgramPipeline);
 
     uint cmdListVertexOffset = 0u;
     uint cmdListIndexOffset = 0u;
     for (uint iCmdList = 0u; iCmdList < static_cast<uint>(_draw_data->CmdListsCount); ++iCmdList)
     {
       const ImDrawList* cmd_list = _draw_data->CmdLists[iCmdList];
-      uint verticesCount = cmd_list->VtxBuffer.size();
-      uint indicesCount = cmd_list->IdxBuffer.size();
-      
-      ourRenderContext->BindVertexIndexBuffers(ourVertexBuffer.get(), ourIndexBuffer.get(), cmdListVertexOffset, verticesCount, cmdListIndexOffset, indicesCount);
-      
-      cmdListVertexOffset += verticesCount;
-      cmdListIndexOffset += indicesCount;
+
+      ctx->BindVertexBuffer(cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), sizeof(ImDrawVert));
+      ctx->BindIndexBuffer(cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), sizeof(ImDrawIdx));
 
       uint cmdIndexOffset = 0;
       for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.size(); cmd_i++)
@@ -382,37 +276,34 @@ namespace Fancy { namespace ImGuiRendering {
         }
         else
         {
-          const Descriptor* descriptors[] = { ourFontTexture->GetDescriptor(DescriptorType::DEFAULT_READ) };
+          const GpuResourceView* textureViews[] = { ourFontTexture.get() };
 
           ImTextureID textureId = pcmd->TextureId;
           if (textureId != nullptr)
-            descriptors[0] = static_cast<const Descriptor*>(textureId);
+            textureViews[0] = static_cast<const GpuResourceView*>(textureId);
 
-          ourRenderContext->BindResourceSet(descriptors, 1u, 1u);
+          ctx->BindResourceSet(textureViews, 1u, 1u);
 
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
-          ourRenderContext->SetClipRect(clipRect);
+          ctx->SetClipRect(clipRect);
 
-          ourRenderContext->Render(pcmd->ElemCount, 1u, cmdIndexOffset, 0u, 0u);
+          ctx->Render(pcmd->ElemCount, 1u, cmdIndexOffset, 0u, 0u);
         }
         cmdIndexOffset += pcmd->ElemCount;
       }
     }
 
-    ourRenderContext->ExecuteAndReset(true);
+    CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
+    queue->ExecuteContext(ctx);
+    
+    RenderCore::FreeContext(ctx);
   }
 
   void Shutdown()
   {
-    RenderCore::FreeContext(ourRenderContext);
-    ourRenderContext = nullptr;
-
     ourFancyRuntime = nullptr;
     ourRenderOutput = nullptr;
     
-    ourCBuffer.reset();
-    ourVertexBuffer.reset();
-    ourIndexBuffer.reset();
     ourFontTexture.reset();
     ourProgramPipeline.reset();
     ourBlendState.reset();
