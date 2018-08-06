@@ -27,3 +27,4 @@ dependencies/lib/*
 FANCY.VC.db
 *.user
 *.TMP
+*.ipch
