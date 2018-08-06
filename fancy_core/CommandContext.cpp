@@ -121,6 +121,16 @@ namespace Fancy {
       ringBufferList = &myConstantRingBuffers;
       sizeStep = 2 * SIZE_MB;
     }
+    else if (aType == GpuBufferUsage::VERTEX_BUFFER)
+    {
+      ringBufferList = &myVertexRingBuffers;
+      sizeStep = 1 * SIZE_MB;
+    }
+    else if (aType == GpuBufferUsage::INDEX_BUFFER)
+    {
+      ringBufferList = &myIndexRingBuffers;
+      sizeStep = 1 * SIZE_MB;
+    }
     else
     {
       ASSERT(false, "Not implemented!");
@@ -141,6 +151,22 @@ namespace Fancy {
     
     anOffsetOut = offset;
     return ringBuffer->GetBuffer();
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize)
+  {
+    uint64 offset = 0u;
+    const GpuBuffer* buffer = GetBuffer(offset, GpuBufferUsage::VERTEX_BUFFER, someData, aDataSize);
+
+    BindVertexBuffer(buffer, aVertexSize, offset, aDataSize);
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize)
+  {
+    uint64 offset = 0u;
+    const GpuBuffer* buffer = GetBuffer(offset, GpuBufferUsage::INDEX_BUFFER, someData, aDataSize);
+
+    BindIndexBuffer(buffer, anIndexSize, offset, aDataSize);
   }
 //---------------------------------------------------------------------------//
   void CommandContext::BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex)

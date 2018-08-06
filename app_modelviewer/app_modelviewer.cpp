@@ -202,12 +202,33 @@ void Render()
     };
     ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), 0u);
 
+    struct GridGeoVertex
+    {
+      glm::float3 myPos;
+      glm::u8vec4 myColor;
+    };
+
+    GridGeoVertex vertices[4] = {
+      { { 0.0f, 0.0f, -1.0f }, {0,0,255,255} },
+      { { 0.0f, 0.0f, 1.0f }, {0.0f, 0.0f, 1.0f, 1.0f} },
+      { { -1.0f, 0.0f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f } },
+      { { 1.0f, 0.0f, 0.0f },{1.0f, 0.0f, 0.0f, 1.0f } }
+    };
+    ctx->BindVertexBuffer(vertices, sizeof(vertices), sizeof(vertices[0]));
+
+    uint indices[] = {
+      0, 1, 2, 3
+    };
+    ctx->BindIndexBuffer(indices, sizeof(indices), sizeof(indices[0]));
+    
+    /*
     Material* mat = model->myMaterial.get();
     BindResources_UnlitTextured(ctx, mat);
     
     Mesh* mesh = model->myMesh.get();
     for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
       ctx->RenderGeometry(geometry.get());
+    */
   }
 
   queue->ExecuteContext(ctx);

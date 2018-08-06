@@ -367,7 +367,7 @@ namespace Fancy { namespace ImGuiRendering {
       uint verticesCount = cmd_list->VtxBuffer.size();
       uint indicesCount = cmd_list->IdxBuffer.size();
       
-      ourRenderContext->SetVertexIndexBuffers(ourVertexBuffer.get(), ourIndexBuffer.get(), cmdListVertexOffset, verticesCount, cmdListIndexOffset, indicesCount);
+      ourRenderContext->BindVertexIndexBuffers(ourVertexBuffer.get(), ourIndexBuffer.get(), cmdListVertexOffset, verticesCount, cmdListIndexOffset, indicesCount);
       
       cmdListVertexOffset += verticesCount;
       cmdListIndexOffset += indicesCount;

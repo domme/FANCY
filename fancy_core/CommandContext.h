@@ -57,7 +57,8 @@ namespace Fancy {
     virtual void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) = 0;
     virtual void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const = 0;
     virtual void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) = 0;
-    virtual void SetVertexIndexBuffers(const GpuBuffer* aVertexBuffer, const GpuBuffer* anIndexBuffer, uint64 aVertexOffset = 0u, uint64 aNumVertices = ~0ULL, uint64 anIndexOffset = 0ULL, uint64 aNumIndices = ~0ULL) = 0;
+    virtual void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
+    virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
     virtual void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) = 0;
@@ -67,18 +68,9 @@ namespace Fancy {
     virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     virtual void Reset(uint64 aFenceVal);
 
-    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState);
-    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
-      GpuResource* aResource2, GpuResourceState aTransitionToState2);
-    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
-      GpuResource* aResource2, GpuResourceState aTransitionToState2,
-      GpuResource* aResource3, GpuResourceState aTransitionToState3);
-    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
-      GpuResource* aResource2, GpuResourceState aTransitionToState2,
-      GpuResource* aResource3, GpuResourceState aTransitionToState3,
-      GpuResource* aResource4, GpuResourceState aTransitionToState4);
-    
     const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
+    void BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize);
+    void BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize);
     void BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex);
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
@@ -95,6 +87,17 @@ namespace Fancy {
 
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
+
+    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState);
+    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
+      GpuResource* aResource2, GpuResourceState aTransitionToState2);
+    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
+      GpuResource* aResource2, GpuResourceState aTransitionToState2,
+      GpuResource* aResource3, GpuResourceState aTransitionToState3);
+    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
+      GpuResource* aResource2, GpuResourceState aTransitionToState2,
+      GpuResource* aResource3, GpuResourceState aTransitionToState3,
+      GpuResource* aResource4, GpuResourceState aTransitionToState4);
     
   protected:
     CommandListType myCommandListType;
@@ -111,9 +114,10 @@ namespace Fancy {
     TextureView* myDepthStencilTarget;
     bool myRenderTargetsDirty;
     
-
     DynamicArray<GpuRingBuffer*> myUploadRingBuffers;
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
+    DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
+    DynamicArray<GpuRingBuffer*> myIndexRingBuffers;
   };
 //---------------------------------------------------------------------------//
 }
