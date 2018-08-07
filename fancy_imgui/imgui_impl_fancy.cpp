@@ -228,6 +228,18 @@ namespace Fancy { namespace ImGuiRendering {
   {
     CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
 
+    RenderOutput* renderOutput = ourRenderOutput;
+
+    ctx->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
+    ctx->SetRenderTarget(renderOutput->GetBackbufferRtv(), renderOutput->GetDepthStencilDsv());
+    ctx->SetDepthStencilState(ourDepthStencilState);
+    ctx->SetBlendState(ourBlendState);
+    ctx->SetCullMode(CullMode::NONE);
+    ctx->SetFillMode(FillMode::SOLID);
+    ctx->SetWindingOrder(WindingOrder::CCW);
+    ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
+    ctx->SetGpuProgramPipeline(ourProgramPipeline);
+
     // Update the cbuffer data
     {
       float translate = -0.5f * 2.f;
@@ -245,17 +257,6 @@ namespace Fancy { namespace ImGuiRendering {
       
       ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), 0u);
     }
-
-    RenderOutput* renderOutput = ourRenderOutput;
-
-    ctx->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
-    ctx->SetRenderTarget(renderOutput->GetBackbufferRtv(), renderOutput->GetDepthStencilDsv());
-    ctx->SetDepthStencilState(ourDepthStencilState);
-    ctx->SetBlendState(ourBlendState);
-    ctx->SetCullMode(CullMode::NONE);
-    ctx->SetFillMode(FillMode::SOLID);
-    ctx->SetWindingOrder(WindingOrder::CCW);
-    ctx->SetGpuProgramPipeline(ourProgramPipeline);
 
     uint cmdListVertexOffset = 0u;
     uint cmdListIndexOffset = 0u;

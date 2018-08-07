@@ -18,8 +18,12 @@ namespace Fancy {
     , myWindingOrder(WindingOrder::CCW)
     , myNumRenderTargets(0u)
     , myDSVformat(DataFormat::UNKNOWN)
+    , myTopologyType(TopologyType::TRIANGLE_LIST)
     , myIsDirty(true)
   {
+    for(DataFormat& rtvFormat : myRTVformats)
+      rtvFormat = DataFormat::UNKNOWN;
+
     myDepthStencilState = RenderCore::GetDefaultDepthStencilState();
     myBlendState = RenderCore::GetDefaultBlendState();
   }
@@ -226,6 +230,14 @@ namespace Fancy {
     for (GpuRingBuffer* buf : myConstantRingBuffers)
       RenderCore::ReleaseRingBuffer(buf, aFenceVal);
     myConstantRingBuffers.clear();
+
+    for (GpuRingBuffer* buf : myVertexRingBuffers)
+      RenderCore::ReleaseRingBuffer(buf, aFenceVal);
+    myVertexRingBuffers.clear();
+
+    for (GpuRingBuffer* buf : myIndexRingBuffers)
+      RenderCore::ReleaseRingBuffer(buf, aFenceVal);
+    myIndexRingBuffers.clear();
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();

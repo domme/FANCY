@@ -32,12 +32,14 @@ void Init(HINSTANCE anInstanceHandle)
 
   myRuntime = FancyRuntime::Init(anInstanceHandle, params);
 
-  std::function<void(uint, uint)> onWindowResized = &OnWindowResized;
-  myRuntime->GetRenderOutput()->GetWindow()->myOnResize.Connect(onWindowResized);
+  myRenderOutput = myRuntime->GetRenderOutput();
+  myWindow = myRenderOutput->GetWindow();
 
+  std::function<void(uint, uint)> onWindowResized = &OnWindowResized;
+  myWindow->myOnResize.Connect(onWindowResized);
+  
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 }
-
 
 void Update()
 {
@@ -77,7 +79,6 @@ void Update()
 void Render()
 {
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-	
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
