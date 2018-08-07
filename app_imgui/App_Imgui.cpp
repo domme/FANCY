@@ -16,7 +16,9 @@ bool show_test_window = true;
 bool show_another_window = false;
 ImVec4 clear_col = ImColor(114, 144, 154);
 
-Fancy::FancyRuntime* myRuntime = nullptr;
+FancyRuntime* myRuntime = nullptr;
+Window* myWindow = nullptr;
+RenderOutput* myRenderOutput = nullptr;
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
@@ -74,10 +76,14 @@ void Update()
 
 void Render()
 {
+  CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
+	
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+  
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  ctx->ClearRenderTarget(myRuntime->GetRenderOutput()->GetBackbufferRtv(), clearColor);
-  ctx->ExecuteAndReset();
+  ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
+  queue->ExecuteContext(ctx);
+  
   RenderCore::FreeContext(ctx);
 
   ImGui::Render();
