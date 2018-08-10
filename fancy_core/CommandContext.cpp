@@ -63,16 +63,17 @@ namespace Fancy {
     , myDepthStencilTarget(nullptr)
     , myRenderTargetsDirty(true)
   {
+    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
   }
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   ComputePipelineState::ComputePipelineState()
-    : myIsDirty(true)
-    , myGpuProgram(nullptr)
+    : myGpuProgram(nullptr)
+    , myIsDirty(true)
   {
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   uint64 ComputePipelineState::GetHash() const
   {
     uint64 hash = 0u;
@@ -313,7 +314,10 @@ namespace Fancy {
   void CommandContext::SetTopologyType(TopologyType aType)
   {
     GraphicsPipelineState& state = myGraphicsPipelineState;
-    state.myIsDirty |= aType != state.myTopologyType;
+
+    const bool dirty = aType != state.myTopologyType;
+    myTopologyDirty |= dirty;
+    state.myIsDirty |= dirty;
     state.myTopologyType = aType;
   }
 //---------------------------------------------------------------------------//

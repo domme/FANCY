@@ -733,6 +733,7 @@ namespace Fancy {
   {
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
+    ApplyTopologyType();
     ApplyPipelineState();
 
     myCommandList->DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
@@ -823,6 +824,15 @@ namespace Fancy {
     }
 
     myRenderTargetsDirty = false;
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::ApplyTopologyType()
+  {
+    if (!myTopologyDirty)
+      return;
+
+    myTopologyDirty = false;
+    myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ApplyPipelineState()

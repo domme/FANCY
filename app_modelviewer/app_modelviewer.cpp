@@ -35,7 +35,6 @@ SharedPtr<GpuProgramPipeline> myUnlitTexturedShader;
 SharedPtr<GpuProgramPipeline> myUnlitVertexColorShader;
 SharedPtr<GpuProgramPipeline> myDebugGeoShader;
 SharedPtr<CameraController> myCameraController;
-SharedPtr<Mesh> myGridMesh;
 
 Camera myCamera;
 InputState myInputState;
@@ -81,40 +80,7 @@ void Init(HINSTANCE anInstanceHandle)
 
   myDebugGeoShader = LoadShader("DebugGeo_Colored");
   ASSERT(myDebugGeoShader != nullptr);
-
-  {
-     struct GridGeoVertex
-     {
-       glm::float3 myPos;
-       glm::u8vec4 myColor;
-     };
-
-     GridGeoVertex vertices[4] = {
-       { { 0.0f, 0.0f, -1.0f }, {0,0,255,255} },
-       { { 0.0f, 0.0f, 1.0f }, {0.0f, 0.0f, 1.0f, 1.0f} },
-       { { -1.0f, 0.0f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f } },
-       { { 1.0f, 0.0f, 0.0f },{1.0f, 0.0f, 0.0f, 1.0f } }
-     };
-
-     uint indices[] = {
-       0, 1, 2, 3
-     };
-
-     MeshData meshData;
-     meshData.myLayout.myTopology = TopologyType::LINES;
-     meshData.myLayout.AddVertexElement(VertexSemantics::POSITION, DataFormat::RGB_32F);
-     meshData.myLayout.AddVertexElement(VertexSemantics::COLOR, DataFormat::RGBA_8);
-     meshData.myVertexData.resize(sizeof(vertices));
-     memcpy(meshData.myVertexData.data(), vertices, sizeof(vertices));
-     meshData.myIndexData.resize(sizeof(indices));
-     memcpy(meshData.myIndexData.data(), indices, sizeof(indices));
-
-     MeshDesc meshDesc;
-     meshDesc.myIsExternalMesh = false;
-     myGridMesh = RenderCore::CreateMesh(meshDesc, &meshData, 1u);
-     ASSERT(myGridMesh != nullptr);
-  }
-
+  
   myCamera.myPosition = glm::float3(0.0f, 0.0f, -10.0f);
   myCamera.myOrientation = glm::quat_cast(glm::lookAt(glm::float3(0.0f, 0.0f, 10.0f), glm::float3(0.0f, 0.0f, 0.0f), glm::float3(0.0f, 1.0f, 0.0f)));
 
@@ -152,6 +118,45 @@ void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)
   }
 }
 
+void RenderGrid(CommandContext* ctx)
+{
+  ctx->SetGpuProgramPipeline(myDebugGeoShader);
+  
+  struct Cbuffer_DebugGeo
+  {
+    glm::float4x4 myWorldViewProj;
+    glm::float4 myColor;
+  };
+  Cbuffer_DebugGeo cbuffer_debugGeo
+  {
+    myCamera.myViewProj,
+    glm::float4(1.0f, 0.0f, 0.0f, 1.0f),
+  };
+  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), 0u);
+
+  struct GridGeoVertex
+  {
+    glm::float3 myPos;
+    glm::u8vec4 myColor;
+  };
+
+  GridGeoVertex vertices[4] = {
+    { { 0.0f, 0.0f, -1.0f }, {0,0,255,255} },
+    { { 0.0f, 0.0f, 1.0f }, {0.0f, 0.0f, 1.0f, 1.0f} },
+    { { -1.0f, 0.0f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f } },
+    { { 1.0f, 0.0f, 0.0f },{1.0f, 0.0f, 0.0f, 1.0f } }
+  };
+  ctx->BindVertexBuffer(vertices, sizeof(vertices), sizeof(vertices[0]));
+
+  uint indices[] = {
+    0, 1, 2, 3
+  };
+  ctx->BindIndexBuffer(indices, sizeof(indices), sizeof(indices[0]));
+
+  ctx->SetTopologyType(TopologyType::LINES);
+  ctx->Render(4, 1, 0, 0, 0);
+}
+
 void Render()
 {
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
@@ -170,23 +175,9 @@ void Render()
   ctx->SetFillMode(FillMode::SOLID);
   ctx->SetWindingOrder(WindingOrder::CCW);
 
-  ctx->SetGpuProgramPipeline(myDebugGeoShader);
-  
-  struct Cbuffer_DebugGeo
-  {
-    glm::float4x4 myWorldViewProj;
-    glm::float4 myColor;
-  };
-  Cbuffer_DebugGeo cbuffer_debugGeo
-  {
-    myCamera.myViewProj,
-    glm::float4(1.0f, 0.0f, 0.0f, 1.0f),
-  };
-  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), 0u);
-  
-  for (SharedPtr<GeometryData>& geometry : myGridMesh->myGeometryDatas)
-    ctx->RenderGeometry(geometry.get());
+  RenderGrid(ctx);
 
+  ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
   ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
   for (int i = 0; i < myScene.myModels.size(); ++i)
   {
@@ -201,34 +192,13 @@ void Render()
       myCamera.myViewProj * myScene.myTransforms[i],
     };
     ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), 0u);
-
-    struct GridGeoVertex
-    {
-      glm::float3 myPos;
-      glm::u8vec4 myColor;
-    };
-
-    GridGeoVertex vertices[4] = {
-      { { 0.0f, 0.0f, -1.0f }, {0,0,255,255} },
-      { { 0.0f, 0.0f, 1.0f }, {0.0f, 0.0f, 1.0f, 1.0f} },
-      { { -1.0f, 0.0f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f } },
-      { { 1.0f, 0.0f, 0.0f },{1.0f, 0.0f, 0.0f, 1.0f } }
-    };
-    ctx->BindVertexBuffer(vertices, sizeof(vertices), sizeof(vertices[0]));
-
-    uint indices[] = {
-      0, 1, 2, 3
-    };
-    ctx->BindIndexBuffer(indices, sizeof(indices), sizeof(indices[0]));
     
-    /*
     Material* mat = model->myMaterial.get();
     BindResources_UnlitTextured(ctx, mat);
     
     Mesh* mesh = model->myMesh.get();
     for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
       ctx->RenderGeometry(geometry.get());
-    */
   }
 
   queue->ExecuteContext(ctx);

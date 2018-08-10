@@ -58,6 +58,7 @@ namespace Fancy {
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
     void ApplyRenderTargets();
+    void ApplyTopologyType();
     
     DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount);
 

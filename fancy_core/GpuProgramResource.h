@@ -5,12 +5,12 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  enum class GpuResourceAccessType {
+  enum class GpuProgramResourceAccess {
     READ_ONLY = 0,
     READ_WRITE
   };
 //---------------------------------------------------------------------------//
-  enum class GpuResourceType {
+  enum class GpuProgramResourceType {
     NONE = 0,
     TEXTURE_1D,
     TEXTURE_2D,
@@ -44,13 +44,13 @@ namespace Fancy {
   struct GpuProgramResourceInfo {
     GpuProgramResourceInfo()
       : u32RegisterIndex(0u),
-        eAccessType(GpuResourceAccessType::READ_ONLY), 
-        eResourceType(GpuResourceType::NONE) {}
+        eAccessType(GpuProgramResourceAccess::READ_ONLY), 
+        eResourceType(GpuProgramResourceType::NONE) {}
 
     uint u32RegisterIndex;
     String name;
-    GpuResourceAccessType eAccessType;
-    GpuResourceType eResourceType;
+    GpuProgramResourceAccess eAccessType;
+    GpuProgramResourceType eResourceType;
   };
 //---------------------------------------------------------------------------//
 }
