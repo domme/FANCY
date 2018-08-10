@@ -635,7 +635,6 @@ namespace Fancy {
 
     contextPool.push_back(std::unique_ptr<CommandContext>(ourPlatformImpl->CreateContext(aType)));
     CommandContext* context = contextPool.back().get();
-    context->Reset(0);
     
     return context;
   }
