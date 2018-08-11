@@ -11,8 +11,8 @@ cbuffer : register(b0)
 
 SamplerState sampler_linear : register(s0);
 
-#define ROOT_SIGNATURE  "DescriptorTable(SRV(t0), UAV(u0))" \
-                        "CBV(b0)" \
+#define ROOT_SIGNATURE  "DescriptorTable(SRV(t0), UAV(u0))," \
+                        "CBV(b0)," \
                         "StaticSampler(s0, " \
                         "addressU = TEXTURE_ADDRESS_CLAMP, " \
                         "addressV = TEXTURE_ADDRESS_CLAMP, " \

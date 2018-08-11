@@ -64,6 +64,7 @@ namespace Fancy {
 
     static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);
+    static void ComputeMipMaps(Texture* aDestTexture);
 
     static SharedPtr<BlendState> CreateBlendState(const BlendStateDesc& aDesc);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateDesc& aDesc);
@@ -111,6 +112,7 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultDiffuseTexture;
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
+    static SharedPtr<GpuProgram> ourComputeMipMapShader;
     
     static UniquePtr<GpuProgramCompiler> ourShaderCompiler;
     static UniquePtr<FileWatcher> ourShaderFileWatcher;

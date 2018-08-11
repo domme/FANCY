@@ -294,6 +294,15 @@ namespace Fancy {
 
       ourDefaultNormalTexture = CreateTexture(props, &data, 1);
     }
+
+    {
+      GpuProgramDesc desc;
+      desc.myMainFunction = "main";
+      desc.myShaderStage = (uint) ShaderStage::COMPUTE;
+      desc.myShaderFileName = "ComputeMipmapCS";
+      ourComputeMipMapShader = CreateGpuProgram(desc);
+      ASSERT(ourComputeMipMapShader != nullptr);
+    }
     
     ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
     ASSERT(ourDefaultDepthStencilState != nullptr);
@@ -613,6 +622,33 @@ namespace Fancy {
     context->TransitionResource(aDestTexture, oldState);
     GetCommandQueue(CommandListType::Graphics)->ExecuteContext(context, true);
     FreeContext(context);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::ComputeMipMaps(Texture* aDestTexture)
+  {
+    ASSERT(aDestTexture->GetProperties().myNumMipLevels > 1);
+
+    TextureProperties tempProps = aDestTexture->GetProperties();
+    tempProps.myIsShaderWritable = true;
+    tempProps.myNumMipLevels -= 1;
+    SharedPtr<Texture> tempTex = CreateTexture(tempProps);
+    ASSERT(tempTex != nullptr);
+
+    TextureViewProperties readProps;
+    readProps.myNumMipLevels = 1;
+    readProps.myFormat = aDestTexture->GetProperties().eFormat;
+    readProps
+
+    TextureViewProperties readProps;
+
+    SharedPtr<TextureView>
+    
+    const GpuResourceState oldState = aDestTexture->myUsageState;
+    CommandContext* ctx = AllocateContext(CommandListType::Compute);
+    
+
+
+    FreeContext(ctx);
   }
 //---------------------------------------------------------------------------//
   CommandContext* RenderCore::AllocateContext(CommandListType aType)
