@@ -47,7 +47,7 @@ namespace Fancy {
     static const Texture* GetDefaultMaterialTexture();
     static const GpuProgramCompiler* GetGpuProgramCompiler();
     static DataFormat ResolveFormat(DataFormat aFormat);
-
+    
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
     static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas);
@@ -64,7 +64,7 @@ namespace Fancy {
 
     static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);
-    static void ComputeMipMaps(Texture* aDestTexture);
+    static void ComputeMipMaps(const SharedPtr<Texture>& aDestTexture);
 
     static SharedPtr<BlendState> CreateBlendState(const BlendStateDesc& aDesc);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateDesc& aDesc);

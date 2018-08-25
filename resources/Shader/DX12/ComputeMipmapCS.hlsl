@@ -1,12 +1,11 @@
-
 Texture2D<float> ParentMipTexture : register(t0);
 RWTexture2D<float4> MipTexture: register(u0);
 
-cbuffer : register(b0)
+cbuffer CB0 : register(b0)
 {
-  float myParentTexelSizeInv;
-  int myMipLevel;
-  float2 _unused;
+  float2 mySizeOnMipInv;
+  int myMip;
+  bool myIsSRGB;   
 };
 
 SamplerState sampler_linear : register(s0);
@@ -27,6 +26,6 @@ void main(uint3 aGroupID : SV_GroupID,
 {
     uint2 targetTexel = aDispatchThreadID.xy;
     
-    float2 uv = float2(targetTexel * 2) + float2(myParentTexelSizeInv * 0.5);
-    MipTexture[targetTexel] = ParentMipTexture.SampleLevel(sampler_linear, uv, myMipLevel - 1);
+    float2 srcUv = (float2(targetTexel * 2) + 0.5) * mySizeOnMipInv;
+    MipTexture[targetTexel] = ParentMipTexture.SampleLevel(sampler_linear, srcUv, 0);
 }

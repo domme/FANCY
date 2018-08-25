@@ -2,7 +2,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  enum DataFormat 
+  enum DataFormat
   {
 #define DECLARE_DATA_FORMAT(name, ...) name,
   #include "DataFormatList.h"
@@ -14,7 +14,6 @@ namespace Fancy {
   class DataFormatInfo
   {
   public:
-    
     DataFormatInfo(DataFormat aFormat, uint aSizeBytes, uint aNumComponents, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false)
       : mySizeBytes(aSizeBytes)
       , myNumComponents(aNumComponents)
@@ -44,6 +43,8 @@ namespace Fancy {
     int __padding : 1;
 
     static const DataFormatInfo& GetFormatInfo(DataFormat aFormat);
+    static DataFormat GetSRGBformat(DataFormat aFormat);
+    static DataFormat GetNonSRGBformat(DataFormat aFormat);
   };
 //---------------------------------------------------------------------------//
 }

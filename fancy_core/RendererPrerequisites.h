@@ -225,8 +225,8 @@ namespace Fancy {
         , myDepthOrArraySize(0u)
         , eFormat(DataFormat::NONE)
         , myAccessType(GpuMemoryAccessType::NO_CPU_ACCESS)
+        , myNumMipLevels(~0u)
         , bIsDepthStencil(false)
-        , myNumMipLevels(1u)
         , myIsShaderWritable(false)
         , myIsRenderTarget(false) 
       {}
@@ -238,8 +238,8 @@ namespace Fancy {
       uint myDepthOrArraySize;
       DataFormat eFormat;
       GpuMemoryAccessType myAccessType;
-      bool bIsDepthStencil;
       uint myNumMipLevels;
+      bool bIsDepthStencil;
       bool myIsShaderWritable;
       bool myIsRenderTarget;
     };
@@ -257,9 +257,10 @@ namespace Fancy {
  //---------------------------------------------------------------------------//
     struct TextureSubLocation
     {
-      TextureSubLocation() : myArrayIndex(0u), myMipLevel(0u), myPlaneIndex(0u) {}
-      uint myArrayIndex;
+      TextureSubLocation(uint aMipLevel = 0u, uint anArrayIndex = 0u, uint aPlaneIndex = 0u) 
+      : myMipLevel(aMipLevel), myArrayIndex(anArrayIndex), myPlaneIndex(aPlaneIndex) {}
       uint myMipLevel;
+      uint myArrayIndex;
       uint myPlaneIndex;
     };
   //---------------------------------------------------------------------------//

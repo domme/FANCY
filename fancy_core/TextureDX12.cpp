@@ -37,19 +37,14 @@ namespace Fancy {
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive");
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsRenderTarget, "Render target and depthstencil are mutually exclusive");
 
-    const DataFormat actualFormat = RenderCore::ResolveFormat(someProperties.eFormat);
-    myProperties.eFormat = actualFormat;
-    
-    const uint maxSide = isArray ? glm::max(someProperties.myWidth, someProperties.myHeight) : glm::max(someProperties.myWidth, someProperties.myHeight, someProperties.myDepthOrArraySize);
-    const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(maxSide)));
-    
-    //uint actualNumMipLevels = glm::min(glm::max(1u, static_cast<uint>(someProperties.myNumMipLevels)), maxNumMipLevels);
-    const uint actualNumMipLevels = 1u; // TODO: Support mipmapping (need a custom compute shader for downsampling)  actualNumMipLevels;
-    myProperties.myNumMipLevels = actualNumMipLevels;
-
-    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetFormat(actualFormat);
+    myProperties.eFormat = RenderCore::ResolveFormat(someProperties.eFormat);
+    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetFormat(myProperties.eFormat);
     if (someProperties.bIsDepthStencil)
       dxgiFormat = RenderCore_PlatformDX12::GetDepthStencilTextureFormat(dxgiFormat);
+
+    const uint minSide = (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(someProperties.myWidth, someProperties.myHeight, someProperties.myDepthOrArraySize) : glm::min(someProperties.myWidth, someProperties.myHeight);
+    const uint maxNumMipLevels = static_cast<uint>(glm::floor(glm::log2(minSide)));
+    myProperties.myNumMipLevels = glm::max(1u, glm::min(someProperties.myNumMipLevels, maxNumMipLevels));
 
     D3D12_RESOURCE_DESC resourceDesc;
     memset(&resourceDesc, 0, sizeof(resourceDesc));
@@ -58,7 +53,7 @@ namespace Fancy {
     resourceDesc.Width = glm::max(1u, static_cast<uint>(someProperties.myWidth));
     resourceDesc.Height = glm::max(1u, static_cast<uint>(someProperties.myHeight));
     resourceDesc.DepthOrArraySize = glm::max(1u, static_cast<uint>(someProperties.myDepthOrArraySize));
-    resourceDesc.MipLevels = actualNumMipLevels;
+    resourceDesc.MipLevels = myProperties.myNumMipLevels;
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;

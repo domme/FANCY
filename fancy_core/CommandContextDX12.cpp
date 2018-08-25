@@ -299,7 +299,7 @@ namespace Fancy {
     myCommandList->CopyBufferRegion(dstResource, aDestOffset, srcResource, aSrcOffset, aSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion& aSrcRegion)
+  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, glm::uvec3 aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
     const TextureProperties& srcProps = aSrcTexture->GetProperties();
@@ -321,15 +321,21 @@ namespace Fancy {
     
     locValidateUsageStatesCopy(aDestTexture, dstLocation.SubresourceIndex, aSrcTexture, srcLocation.SubresourceIndex);
 
-    D3D12_BOX srcBox;
-    srcBox.left = aSrcRegion.myTexelPos.x;
-    srcBox.right = aSrcRegion.myTexelPos.x + aSrcRegion.myTexelSize.x;
-    srcBox.bottom = aSrcRegion.myTexelPos.y;
-    srcBox.top = aSrcRegion.myTexelPos.y + aSrcRegion.myTexelSize.y;
-    srcBox.front = aSrcRegion.myTexelPos.z;
-    srcBox.back = aSrcRegion.myTexelPos.z + aSrcRegion.myTexelSize.z;
-
-    myCommandList->CopyTextureRegion(&dstLocation, aDestRegion.myTexelPos.x, aDestRegion.myTexelPos.y, aDestRegion.myTexelPos.z, &srcLocation, &srcBox);
+    if (aSrcRegion != nullptr)
+    {
+      D3D12_BOX srcBox;
+      srcBox.left = aSrcRegion->myTexelPos.x;
+      srcBox.right = aSrcRegion->myTexelPos.x + aSrcRegion->myTexelSize.x;
+      srcBox.bottom = aSrcRegion->myTexelPos.y;
+      srcBox.top = aSrcRegion->myTexelPos.y + aSrcRegion->myTexelSize.y;
+      srcBox.front = aSrcRegion->myTexelPos.z;
+      srcBox.back = aSrcRegion->myTexelPos.z + aSrcRegion->myTexelSize.z;
+      myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, &srcBox);
+    }
+    else
+    {
+      myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)

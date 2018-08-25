@@ -443,8 +443,9 @@ namespace Fancy {
     ASSERT(uploadBuffer);
 
     uint8* uploadBufferData = (uint8*) uploadBuffer->Lock(GpuResoruceLockOption::WRITE) + uploadBufferOffset;
-        
-    for (int i = 0; i < subresourceLayouts.size(); ++i)
+
+    const uint numSubresources = glm::min(aNumDatas, (uint) subresourceLayouts.size());
+    for (int i = 0; i < numSubresources; ++i)
     {
       const TextureSubLayout& dstLayout = subresourceLayouts[i];
       const TextureSubData& srcData = someDatas[i];
