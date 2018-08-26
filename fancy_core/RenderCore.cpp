@@ -634,7 +634,6 @@ namespace Fancy {
 
     // TODO: Check if the creation of a temp-texture is neccessary (aDestTexture is already shaderWritable)
     TextureProperties tempProps = aDestTexture->GetProperties();
-    tempProps.eFormat = DataFormatInfo::GetNonSRGBformat(destTexProps.eFormat);
     tempProps.myIsShaderWritable = true;
     SharedPtr<Texture> tempTexPtr = CreateTexture(tempProps);
     Texture* tempTex = tempTexPtr.get();
@@ -646,6 +645,7 @@ namespace Fancy {
     readProps.myDimension = GpuResourceDimension::TEXTURE_2D;
 
     TextureViewProperties writeProps = readProps;
+    writeProps.myFormat = DataFormatInfo::GetNonSRGBformat(readProps.myFormat);
     writeProps.myIsShaderWritable = true;
 
     const uint numMips = destTexProps.myNumMipLevels;
@@ -668,11 +668,11 @@ namespace Fancy {
     }
     
     const GpuResourceState oldDestState = aDestTexture->myUsageState;
-    CommandQueue* queue = GetCommandQueue(CommandListType::Compute);
-    CommandContext* ctx = AllocateContext(CommandListType::Compute);
+    CommandQueue* queue = GetCommandQueue(CommandListType::Graphics);
+    CommandContext* ctx = AllocateContext(CommandListType::Graphics);
 
-    ctx->TransitionResource(tempTex, GpuResourceState::RESOURCE_STATE_GENERIC_READ,
-                            aDestTexture.get(), GpuResourceState::RESOURCE_STATE_GENERIC_READ);
+    ctx->TransitionResource(tempTex, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
+    ctx->TransitionResource(aDestTexture.get(), GpuResourceState::RESOURCE_STATE_SHADER_WRITE);
 
     ctx->SetComputeProgram(ourComputeMipMapShader.get());
 
@@ -683,13 +683,13 @@ namespace Fancy {
       {
         glm::float2 mySizeOnMipInv;
         int myMip;
-        bool myIsSRGB;
+        int myIsSRGB;
       };
       CBuffer cBuffer = 
       {
         glm::float2(1.0f / size.x, 1.0f / size.y),
         (int) mip,
-        destTexFormatInfo.mySRGB
+        destTexFormatInfo.mySRGB ? 1 : 0
       };
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0);
 

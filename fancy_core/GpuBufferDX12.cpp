@@ -63,7 +63,7 @@ namespace Fancy {
     }
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
-    D3D12_RESOURCE_STATES usageStateDX12 = Adapter::toNativeType(myUsageState);
+    D3D12_RESOURCE_STATES usageStateDX12 = Adapter::ResolveResourceState(myUsageState);
     ID3D12Device* device = dx12Platform->GetDevice();
         
     GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(GpuMemoryType::BUFFER, gpuMemAccess, pitch, myAlignment);

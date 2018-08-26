@@ -8,7 +8,7 @@ namespace Fancy {
   {
     TextureViewProperties()
       : myDimension(GpuResourceDimension::UNKONWN)
-      , myFormat(DataFormat::NONE)
+      , myFormat(DataFormat::UNKNOWN)
       , myIsShaderWritable(false)
       , myIsRenderTarget(false)
       , myIsDepthReadOnly(false)

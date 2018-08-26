@@ -33,12 +33,12 @@ namespace Fancy {
     bool IsInitialized() override { return ourDevice.Get() != nullptr; }
     bool InitInternalResources() override;
     
-    static DXGI_FORMAT GetFormat(DataFormat aFormat);
-    static DataFormat GetFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetDXGIformat(DataFormat aFormat);
     static DXGI_FORMAT GetDepthStencilTextureFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetDepthStencilViewFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetStencilViewFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetTypelessFormat(DXGI_FORMAT aFormat);
 
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
     static D3D12_HEAP_TYPE ResolveHeapType(GpuMemoryAccessType anAccessType);

@@ -180,6 +180,7 @@ namespace Fancy {
       RESOURCE_STATE_COPY_DEST,
       RESOURCE_STATE_COPY_SRC,
       RESOURCE_STATE_RENDER_TARGET,
+      RESOURCE_STATE_SHADER_WRITE,
 
       NONE
     };
@@ -229,6 +230,7 @@ namespace Fancy {
         , bIsDepthStencil(false)
         , myIsShaderWritable(false)
         , myIsRenderTarget(false) 
+        , myPreferTypedFormat(false)
       {}
 
       GpuResourceDimension myDimension;
@@ -242,11 +244,20 @@ namespace Fancy {
       bool bIsDepthStencil;
       bool myIsShaderWritable;
       bool myIsRenderTarget;
+      bool myPreferTypedFormat;
     };
 //---------------------------------------------------------------------------//
     struct TextureSubLayout
     {
-      DataFormat myFormat;
+      TextureSubLayout() 
+        : myWidth(0u)
+        , myHeight(0u)
+        , myDepth(0u)
+        , myAlignedRowSize(0u)
+        , myRowSize(0u)
+        , myNumRows(0u)
+      {}
+
       uint myWidth;
       uint myHeight;
       uint myDepth;

@@ -56,7 +56,7 @@ namespace Fancy {
 		}
 	}
 //---------------------------------------------------------------------------//
-  D3D12_RESOURCE_STATES Adapter::toNativeType(const GpuResourceState& aGeneralType)
+  D3D12_RESOURCE_STATES Adapter::ResolveResourceState(const GpuResourceState& aGeneralType)
   {
     switch (aGeneralType)
     {
@@ -68,6 +68,7 @@ namespace Fancy {
     case GpuResourceState::RESOURCE_STATE_COPY_DEST: return D3D12_RESOURCE_STATE_COPY_DEST;
     case GpuResourceState::RESOURCE_STATE_COPY_SRC: return D3D12_RESOURCE_STATE_COPY_SOURCE;
     case GpuResourceState::RESOURCE_STATE_RENDER_TARGET: return D3D12_RESOURCE_STATE_RENDER_TARGET;
+    case GpuResourceState::RESOURCE_STATE_SHADER_WRITE: return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
     case GpuResourceState::NONE: return static_cast<D3D12_RESOURCE_STATES>(~0u);
     default: ASSERT(false, "Missing native values"); return D3D12_RESOURCE_STATE_COMMON;
     }

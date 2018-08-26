@@ -27,7 +27,7 @@ namespace Fancy {
       nativeElem.AlignedByteOffset = offsetByte;
       offsetByte += elem.mySizeBytes;
 
-      nativeElem.Format = RenderCore_PlatformDX12::GetFormat(elem.myFormat);
+      nativeElem.Format = RenderCore_PlatformDX12::GetDXGIformat(elem.myFormat);
 
       // TODO: Add support for instancing
       nativeElem.InputSlot = 0;

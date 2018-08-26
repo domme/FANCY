@@ -38,12 +38,17 @@ namespace Fancy {
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsRenderTarget, "Render target and depthstencil are mutually exclusive");
 
     myProperties.eFormat = RenderCore::ResolveFormat(someProperties.eFormat);
-    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetFormat(myProperties.eFormat);
-    if (someProperties.bIsDepthStencil)
-      dxgiFormat = RenderCore_PlatformDX12::GetDepthStencilTextureFormat(dxgiFormat);
-
+    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetDXGIformat(myProperties.eFormat);
+    if (!someProperties.myPreferTypedFormat)
+    {
+      if (someProperties.bIsDepthStencil)
+        dxgiFormat = RenderCore_PlatformDX12::GetDepthStencilTextureFormat(dxgiFormat);
+      else
+        dxgiFormat = RenderCore_PlatformDX12::GetTypelessFormat(dxgiFormat);
+    }
+    
     const uint minSide = (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(someProperties.myWidth, someProperties.myHeight, someProperties.myDepthOrArraySize) : glm::min(someProperties.myWidth, someProperties.myHeight);
-    const uint maxNumMipLevels = static_cast<uint>(glm::floor(glm::log2(minSide)));
+    const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(minSide)));
     myProperties.myNumMipLevels = glm::max(1u, glm::min(someProperties.myNumMipLevels, maxNumMipLevels));
 
     D3D12_RESOURCE_DESC resourceDesc;
@@ -106,7 +111,7 @@ namespace Fancy {
     }
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
-    const D3D12_RESOURCE_STATES usageStateDX12 = Adapter::toNativeType(myUsageState);
+    const D3D12_RESOURCE_STATES usageStateDX12 = Adapter::ResolveResourceState(myUsageState);
     ID3D12Device* device = dx12Platform->GetDevice();
 
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo(0u, 1u, &resourceDesc);
@@ -210,7 +215,6 @@ namespace Fancy {
       someLayoutsOut[i].myAlignedRowSize = placedFootprints[i].Footprint.RowPitch;
       someLayoutsOut[i].myRowSize = rowSizes[i];
       someLayoutsOut[i].myNumRows = numRows[i];
-      someLayoutsOut[i].myFormat = RenderCore_PlatformDX12::GetFormat(placedFootprints[i].Footprint.Format);
     }
   }
 //---------------------------------------------------------------------------//

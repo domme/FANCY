@@ -391,8 +391,8 @@ namespace Fancy {
       barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
       barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
       barrier.Transition.pResource = storage->myResource.Get();
-      barrier.Transition.StateBefore = Adapter::toNativeType(resource->myUsageState);
-      barrier.Transition.StateAfter = Adapter::toNativeType(destState);
+      barrier.Transition.StateBefore = Adapter::ResolveResourceState(resource->myUsageState);
+      barrier.Transition.StateAfter = Adapter::ResolveResourceState(destState);
       barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
       resource->myUsageState = destState;
@@ -570,11 +570,11 @@ namespace Fancy {
     // RTV-FORMATS
     for (uint i = 0u; i < aState.myNumRenderTargets; ++i)
     {
-      psoDesc.RTVFormats[i] = RenderCore_PlatformDX12::GetFormat(aState.myRTVformats[i]);
+      psoDesc.RTVFormats[i] = RenderCore_PlatformDX12::GetDXGIformat(aState.myRTVformats[i]);
     }
 
     // DSV FORMAT
-    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat(RenderCore_PlatformDX12::GetFormat(aState.myDSVformat));
+    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat(RenderCore_PlatformDX12::GetDXGIformat(aState.myDSVformat));
 
     // NODE MASK
     psoDesc.NodeMask = 0u;

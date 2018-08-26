@@ -5,7 +5,7 @@ cbuffer CB0 : register(b0)
 {
   float2 mySizeOnMipInv;
   int myMip;
-  bool myIsSRGB;   
+  int myIsSRGB;   
 };
 
 SamplerState sampler_linear : register(s0);
