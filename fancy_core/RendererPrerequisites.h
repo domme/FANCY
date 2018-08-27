@@ -170,6 +170,22 @@ namespace Fancy {
       NUM
     };
 //---------------------------------------------------------------------------//
+    enum class GpuResourceTransition
+    {
+      TO_READ_GRAPHICS_COMPUTE,								// make a resource written by default/compute contexts readable by any default/compute context
+      TO_READ_WRITE_DMA,								// make a resource written by any context read/writable by DMA context
+      TO_WRITE_GRAPHICS,
+      TO_WRITE_COMPUTE,
+      TO_IDLE,
+      TO_READBACK,
+      TO_PRESENT,
+      TO_RENDERTARGET,
+      TO_COPY_DEST,
+      TO_COPY_SRC,
+      TO_SHADER_READ,
+      TO_SHADER_WRITE,
+    };
+
     enum class GpuResourceState 
     {
       RESOURCE_STATE_COMMON = 0,

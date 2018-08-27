@@ -16,13 +16,11 @@ namespace Fancy {
   public:
     explicit GpuResource(GpuResourceCategory aType)
       : myCategory(aType)   
-      , myUsageState(GpuResourceState::RESOURCE_STATE_COMMON)
     {}
 
     void operator=(GpuResource&& anOtherResource)
     {
       myCategory = anOtherResource.myCategory;
-      myUsageState = anOtherResource.myUsageState;
       myStorage = std::move(anOtherResource.myStorage);
     }
 
@@ -31,7 +29,6 @@ namespace Fancy {
     bool IsValid() const { return myStorage != nullptr; }
 
     GpuResourceCategory myCategory;
-    GpuResourceState myUsageState;  // TODO: Support resource-states per subresource
     UniquePtr<GpuResourceStorage> myStorage;
   };
 //---------------------------------------------------------------------------//
