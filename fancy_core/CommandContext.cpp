@@ -85,29 +85,29 @@ namespace Fancy {
     return hash;
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState)
+  void CommandContext::TransitionResource(GpuResource* aResource, GpuResourceTransition aTransition)
   {
-    TransitionResourceList(&aResource, &aTransitionToState, 1);
+    TransitionResourceList(&aResource, &aTransition, 1);
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1, GpuResource* aResource2, GpuResourceState aTransitionToState2)
+  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceTransition aTransition1, GpuResource* aResource2, GpuResourceTransition aTransition2)
   {
     GpuResource* resources[] = { aResource1, aResource2 };
-    GpuResourceState states[] = { aTransitionToState1, aTransitionToState2 };
+    GpuResourceTransition states[] = { aTransition1, aTransition2 };
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1, GpuResource* aResource2, GpuResourceState aTransitionToState2, GpuResource* aResource3, GpuResourceState aTransitionToState3)
+  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceTransition aTransition1, GpuResource* aResource2, GpuResourceTransition aTransition2, GpuResource* aResource3, GpuResourceTransition aTransition3)
   {
     GpuResource* resources[] = { aResource1, aResource2, aResource3 };
-    GpuResourceState states[] = { aTransitionToState1, aTransitionToState2, aTransitionToState3 };
+    GpuResourceTransition states[] = { aTransition1, aTransition2, aTransition3 };
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1, GpuResource* aResource2, GpuResourceState aTransitionToState2, GpuResource* aResource3, GpuResourceState aTransitionToState3, GpuResource* aResource4, GpuResourceState aTransitionToState4)
+  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceTransition aTransition1, GpuResource* aResource2, GpuResourceTransition aTransition2, GpuResource* aResource3, GpuResourceTransition aTransition3, GpuResource* aResource4, GpuResourceTransition aTransition4)
   {
     GpuResource* resources[] = { aResource1, aResource2, aResource3, aResource4 };
-    GpuResourceState states[] = { aTransitionToState1, aTransitionToState2, aTransitionToState3, aTransitionToState4 };
+    GpuResourceTransition states[] = { aTransition1, aTransition2, aTransition3, aTransition4 };
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//

@@ -46,31 +46,46 @@ namespace Fancy {
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
     resourceDesc.Flags = someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-    myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
+    D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
+    D3D12_RESOURCE_STATES readState = D3D12_RESOURCE_STATE_GENERIC_READ;
 
-    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myCpuAccess;
-    switch(gpuMemAccess) 
+    switch (someProperties.myUsage) 
     { 
-      case GpuMemoryAccessType::NO_CPU_ACCESS: 
-        myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
-        break;
-      case GpuMemoryAccessType::CPU_WRITE: 
-        myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
-        break;
-      case GpuMemoryAccessType::CPU_READ: 
-        myUsageState = GpuResourceState::RESOURCE_STATE_COPY_DEST;
-        break;
+      case GpuBufferUsage::STAGING_UPLOAD: 
+        initialState = D3D12_RESOURCE_STATE_GENERIC_READ; // Required for upload-heaps according to the D3D12-docs
+      break;
+      case GpuBufferUsage::STAGING_READBACK: 
+        initialState = D3D12_RESOURCE_STATE_GENERIC_READ; // Not sure about this one...
+      break;
+      case GpuBufferUsage::VERTEX_BUFFER:
+      case GpuBufferUsage::CONSTANT_BUFFER: 
+        initialState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+        readState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+      break;
+      case GpuBufferUsage::INDEX_BUFFER: 
+        initialState = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+        readState = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+      break;
+      case GpuBufferUsage::SHADER_BUFFER:
+        initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        readState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        if (someProperties.myIsShaderWritable)
+          initialState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+      break;
+    default: ;
     }
+    storageDx12->myState = initialState;
+    storageDx12->myReadState = readState;
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
-    D3D12_RESOURCE_STATES usageStateDX12 = Adapter::ResolveResourceState(myUsageState);
     ID3D12Device* device = dx12Platform->GetDevice();
-        
+
+    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myCpuAccess;
     GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(GpuMemoryType::BUFFER, gpuMemAccess, pitch, myAlignment);
     ASSERT(gpuMemory.myHeap != nullptr);
     
     uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, usageStateDX12, nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
 
     storageDx12->myGpuMemory = gpuMemory;
 

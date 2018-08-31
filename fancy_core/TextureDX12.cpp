@@ -73,26 +73,26 @@ namespace Fancy {
     {
       if (someProperties.myIsShaderWritable)
           resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-
-      if (someProperties.myIsRenderTarget)
+      else if (someProperties.myIsRenderTarget)
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
     }
 
-    myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
-
-    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myAccessType;
-    switch (gpuMemAccess)
+    D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
+    D3D12_RESOURCE_STATES readState = (D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    if (aNumInitialDatas == 0u)
     {
-    case GpuMemoryAccessType::NO_CPU_ACCESS:
-      myUsageState = GpuResourceState::RESOURCE_STATE_COMMON;
-      break;
-    case GpuMemoryAccessType::CPU_WRITE:
-      myUsageState = GpuResourceState::RESOURCE_STATE_GENERIC_READ;
-      break;
-    case GpuMemoryAccessType::CPU_READ:
-      myUsageState = GpuResourceState::RESOURCE_STATE_COPY_DEST;
-      break;
+      if (someProperties.myIsShaderWritable)
+        initialState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+      else if (someProperties.myIsRenderTarget)
+        initialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+      else if (someProperties.bIsDepthStencil)
+      {
+        initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        readState = D3D12_RESOURCE_STATE_DEPTH_READ;
+      }
     }
+    storageDx12->myState = initialState;
+    storageDx12->myReadState = readState;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -111,9 +111,8 @@ namespace Fancy {
     }
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
-    const D3D12_RESOURCE_STATES usageStateDX12 = Adapter::ResolveResourceState(myUsageState);
     ID3D12Device* device = dx12Platform->GetDevice();
-
+    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myAccessType;
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo(0u, 1u, &resourceDesc);
     
     const GpuMemoryType memoryType = (someProperties.myIsRenderTarget || someProperties.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
@@ -121,7 +120,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, usageStateDX12, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
     storageDx12->myGpuMemory = gpuMemory;
 
     // Initialize texture data?

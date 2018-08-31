@@ -61,7 +61,7 @@ namespace Fancy {
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
-    virtual void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) = 0;
+    virtual void TransitionResourceList(GpuResource** someResources, GpuResourceTransition* someTransitions, uint aNumResources) = 0;
     
     virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
     virtual void SetComputeProgram(const GpuProgram* aProgram);
@@ -88,16 +88,16 @@ namespace Fancy {
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
 
-    void TransitionResource(GpuResource* aResource, GpuResourceState aTransitionToState);
-    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
-      GpuResource* aResource2, GpuResourceState aTransitionToState2);
-    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
-      GpuResource* aResource2, GpuResourceState aTransitionToState2,
-      GpuResource* aResource3, GpuResourceState aTransitionToState3);
-    void TransitionResource(GpuResource* aResource1, GpuResourceState aTransitionToState1,
-      GpuResource* aResource2, GpuResourceState aTransitionToState2,
-      GpuResource* aResource3, GpuResourceState aTransitionToState3,
-      GpuResource* aResource4, GpuResourceState aTransitionToState4);
+    void TransitionResource(GpuResource* aResource, GpuResourceTransition aTransition);
+    void TransitionResource(GpuResource* aResource1, GpuResourceTransition aTransition1,
+                            GpuResource* aResource2, GpuResourceTransition aTransition2);
+    void TransitionResource(GpuResource* aResource1, GpuResourceTransition aTransition1,
+      GpuResource* aResource2, GpuResourceTransition aTransition2,
+      GpuResource* aResource3, GpuResourceTransition aTransition3);
+    void TransitionResource(GpuResource* aResource1, GpuResourceTransition aTransition1,
+      GpuResource* aResource2, GpuResourceTransition aTransition2,
+      GpuResource* aResource3, GpuResourceTransition aTransition3,
+      GpuResource* aResource4, GpuResourceTransition aTransition4);
     
   protected:
     CommandListType myCommandListType;

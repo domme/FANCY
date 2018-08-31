@@ -4,6 +4,7 @@
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 #include <unordered_map>
+#include "GpuResourceStorageDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -11,6 +12,7 @@ namespace Fancy {
   class DescriptorHeapDX12;
   class GpuResourceDX12;
   class GpuResource;
+  class GpuResourceStorageDX12;
 //---------------------------------------------------------------------------//
   class CommandContextDX12 final : public CommandContext
   {
@@ -34,7 +36,7 @@ namespace Fancy {
     void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, glm::uvec3 aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
     void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
 
-    void TransitionResourceList(GpuResource** someResources, GpuResourceState* someTransitionToStates, uint aNumResources) override;
+    void TransitionResourceList(GpuResource** someResources, GpuResourceTransition* someTransitions, uint aNumResources) override;
     void Reset(uint64 aFenceVal) override;
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
@@ -59,7 +61,9 @@ namespace Fancy {
     void ApplyComputePipelineState();
     void ApplyRenderTargets();
     void ApplyTopologyType();
-    
+
+    void SetResourceTransitionBarrier(GpuResource* aResource, uint aNewState);    
+    void SetResourceTransitionBarriers(GpuResource** someResources, uint* someNewStates, uint aNumResources);    
     DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount);
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
