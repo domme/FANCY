@@ -56,7 +56,6 @@ namespace Fancy {
     void ReleaseAllocator(uint64 aFenceVal);
     void ReleaseDynamicHeaps(uint64 aFenceVal);
     void ApplyViewportAndClipRect();
-    void ApplyPipelineState();
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
     void ApplyRenderTargets();
@@ -69,6 +68,7 @@ namespace Fancy {
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
   
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
+    ID3D12RootSignature* myComputeRootSignature;
     ID3D12GraphicsCommandList* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
     bool myCommandListIsClosed;

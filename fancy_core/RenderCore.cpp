@@ -683,10 +683,10 @@ namespace Fancy {
         (int) mip,
         destTexFormatInfo.mySRGB ? 1 : 0
       };
-      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0);
+      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
 
       const GpuResourceView* resources[] = { readViews[mip-1].get(), writeViews[mip].get()};
-      ctx->BindResourceSet(resources, 2, 0u);
+      ctx->BindResourceSet(resources, 2, 1u);
 
       ctx->Dispatch(size.x, size.y, 1);
       

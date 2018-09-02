@@ -1,6 +1,3 @@
-Texture2D<float> ParentMipTexture : register(t0);
-RWTexture2D<float4> MipTexture: register(u0);
-
 cbuffer CB0 : register(b0)
 {
   float2 mySizeOnMipInv;
@@ -8,10 +5,13 @@ cbuffer CB0 : register(b0)
   int myIsSRGB;   
 };
 
+Texture2D<float> ParentMipTexture : register(t0);
+RWTexture2D<float4> MipTexture: register(u0);
+
 SamplerState sampler_linear : register(s0);
 
-#define ROOT_SIGNATURE  "DescriptorTable(SRV(t0), UAV(u0))," \
-                        "CBV(b0)," \
+#define ROOT_SIGNATURE  "CBV(b0)," \
+                        "DescriptorTable(SRV(t0), UAV(u0))," \
                         "StaticSampler(s0, " \
                         "addressU = TEXTURE_ADDRESS_CLAMP, " \
                         "addressV = TEXTURE_ADDRESS_CLAMP, " \

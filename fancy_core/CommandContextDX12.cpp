@@ -58,6 +58,7 @@ namespace Fancy {
   CommandContextDX12::CommandContextDX12(CommandListType aCommandListType)
     : CommandContext(aCommandListType)
     , myRootSignature(nullptr)
+    , myComputeRootSignature(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
     , myCommandListIsClosed(false)
@@ -473,6 +474,7 @@ namespace Fancy {
     myCommandListIsClosed = false;
 
     myRootSignature = nullptr;
+    myComputeRootSignature = nullptr;
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
   }
 //---------------------------------------------------------------------------//
@@ -658,7 +660,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const
   {
-    ASSERT(myRootSignature != nullptr);
+    ASSERT(myCurrentContext != CommandListType::Graphics || myRootSignature != nullptr);
+    ASSERT(myCurrentContext != CommandListType::Compute || myComputeRootSignature != nullptr);
     
     GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
 
@@ -687,7 +690,7 @@ namespace Fancy {
     }
     SetResourceTransitionBarrier(aBuffer, state);
     
-    switch (myCommandListType)
+    switch (myCurrentContext)
     {
       case CommandListType::Graphics: 
       {
@@ -717,7 +720,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex)
   {
-    ASSERT(myRootSignature != nullptr);
+    ASSERT(myCurrentContext != CommandListType::Graphics || myRootSignature != nullptr);
+    ASSERT(myCurrentContext != CommandListType::Compute || myComputeRootSignature != nullptr);
 
     const GpuResource** resourcesToTransition = (const GpuResource**)alloca(sizeof(GpuResource*) * aResourceCount);
     D3D12_RESOURCE_STATES* barrierStates = (D3D12_RESOURCE_STATES*)alloca(sizeof(D3D12_RESOURCE_STATES) * aResourceCount);
@@ -741,6 +745,7 @@ namespace Fancy {
           break;
         case GpuResourceViewDataDX12::UAV: 
           barrierStates[i] = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+          break;
         default: ASSERT(false);
       }
     }
@@ -748,7 +753,7 @@ namespace Fancy {
 
     const DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
 
-    switch(myCommandListType)
+    switch(myCurrentContext)
     {
       case CommandListType::Graphics: 
         myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
@@ -824,7 +829,7 @@ namespace Fancy {
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
     ApplyTopologyType();
-    ApplyPipelineState();
+    ApplyGraphicsPipelineState();
 
     myCommandList->DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
   }
@@ -974,26 +979,11 @@ namespace Fancy {
       barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
       resource->myState = newState;
+      resource->myLastCommandListType = myCommandListType;
     }
     
     if (numBarriers > 0)
       myCommandList->ResourceBarrier(numBarriers, barriers);
-  }
-//---------------------------------------------------------------------------//
-  void CommandContextDX12::ApplyPipelineState()
-  {
-    switch (myCommandListType)
-    {
-    case CommandListType::Graphics: 
-      ApplyGraphicsPipelineState();
-      break;
-    case CommandListType::Compute: 
-      ApplyComputePipelineState();
-      break;
-    case CommandListType::DMA: break;
-    case CommandListType::NUM: break;
-    default: break;
-    }
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ApplyGraphicsPipelineState()
@@ -1056,16 +1046,16 @@ namespace Fancy {
 
     const GpuProgramDX12* programDx12 = static_cast<const GpuProgramDX12*>(aProgram);
 
-    if (myRootSignature != programDx12->GetRootSignature())
+    if (myComputeRootSignature != programDx12->GetRootSignature())
     {
-      myRootSignature = programDx12->GetRootSignature();
-      myCommandList->SetComputeRootSignature(myRootSignature);
+      myComputeRootSignature = programDx12->GetRootSignature();
+      myCommandList->SetComputeRootSignature(myComputeRootSignature);
     }
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::Dispatch(uint aThreadGroupCountX, uint aThreadGroupCountY, uint aThreadGroupCountZ)
   {
-    ApplyPipelineState();
+    ApplyComputePipelineState();
     myCommandList->Dispatch(aThreadGroupCountX, aThreadGroupCountY, aThreadGroupCountZ);
   }
 //---------------------------------------------------------------------------//

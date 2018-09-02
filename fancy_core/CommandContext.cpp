@@ -55,6 +55,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandContext::CommandContext(CommandListType aType)
     : myCommandListType(aType)
+    , myCurrentContext(aType)
     , myViewportParams(0, 0, 1, 1)
     , myClipRect(0, 0, 1, 1)
     , myViewportDirty(true)
@@ -194,7 +195,8 @@ namespace Fancy {
   void CommandContext::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
   {
     ASSERT(myCommandListType == CommandListType::Graphics);
-
+    
+    myCurrentContext = CommandListType::Graphics;
     if (myGraphicsPipelineState.myGpuProgramPipeline != aGpuProgramPipeline)
     {
       myGraphicsPipelineState.myGpuProgramPipeline = aGpuProgramPipeline;
@@ -205,7 +207,9 @@ namespace Fancy {
   void CommandContext::SetComputeProgram(const GpuProgram* aProgram)
   {
     ASSERT(aProgram->myStage == ShaderStage::COMPUTE);
+    ASSERT(myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute);
 
+    myCurrentContext = CommandListType::Compute;
     if (myComputePipelineState.myGpuProgram != aProgram)
     {
       myComputePipelineState.myGpuProgram = aProgram;

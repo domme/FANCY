@@ -101,6 +101,7 @@ namespace Fancy {
     
   protected:
     CommandListType myCommandListType;
+    CommandListType myCurrentContext;
 
     GraphicsPipelineState myGraphicsPipelineState;
     ComputePipelineState myComputePipelineState;
