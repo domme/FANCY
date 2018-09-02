@@ -85,28 +85,28 @@ namespace Fancy {
     return hash;
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::TransitionResource(GpuResource* aResource, GpuResourceTransition aTransition)
+  void CommandContext::TransitionResource(const GpuResource* aResource, GpuResourceTransition aTransition)
   {
     TransitionResourceList(&aResource, &aTransition, 1);
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceTransition aTransition1, GpuResource* aResource2, GpuResourceTransition aTransition2)
+  void CommandContext::TransitionResource(const GpuResource* aResource1, GpuResourceTransition aTransition1, const  GpuResource* aResource2, GpuResourceTransition aTransition2)
   {
-    GpuResource* resources[] = { aResource1, aResource2 };
+    const GpuResource* resources[] = { aResource1, aResource2 };
     GpuResourceTransition states[] = { aTransition1, aTransition2 };
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceTransition aTransition1, GpuResource* aResource2, GpuResourceTransition aTransition2, GpuResource* aResource3, GpuResourceTransition aTransition3)
+  void CommandContext::TransitionResource(const GpuResource* aResource1, GpuResourceTransition aTransition1, const GpuResource* aResource2, GpuResourceTransition aTransition2, const GpuResource* aResource3, GpuResourceTransition aTransition3)
   {
-    GpuResource* resources[] = { aResource1, aResource2, aResource3 };
+    const GpuResource* resources[] = { aResource1, aResource2, aResource3 };
     GpuResourceTransition states[] = { aTransition1, aTransition2, aTransition3 };
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::TransitionResource(GpuResource* aResource1, GpuResourceTransition aTransition1, GpuResource* aResource2, GpuResourceTransition aTransition2, GpuResource* aResource3, GpuResourceTransition aTransition3, GpuResource* aResource4, GpuResourceTransition aTransition4)
+  void CommandContext::TransitionResource(const GpuResource* aResource1, GpuResourceTransition aTransition1, const GpuResource* aResource2, GpuResourceTransition aTransition2, const GpuResource* aResource3, GpuResourceTransition aTransition3, const GpuResource* aResource4, GpuResourceTransition aTransition4)
   {
-    GpuResource* resources[] = { aResource1, aResource2, aResource3, aResource4 };
+    const GpuResource* resources[] = { aResource1, aResource2, aResource3, aResource4 };
     GpuResourceTransition states[] = { aTransition1, aTransition2, aTransition3, aTransition4 };
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
@@ -445,7 +445,7 @@ namespace Fancy {
     uint8* uploadBufferData = (uint8*) uploadBuffer->Lock(GpuResoruceLockOption::WRITE) + uploadBufferOffset;
 
     const uint numSubresources = glm::min(aNumDatas, (uint) subresourceLayouts.size());
-    for (int i = 0; i < numSubresources; ++i)
+    for (uint i = 0; i < numSubresources; ++i)
     {
       const TextureSubLayout& dstLayout = subresourceLayouts[i];
       const TextureSubData& srcData = someDatas[i];

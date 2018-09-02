@@ -603,10 +603,8 @@ namespace Fancy {
     else
     {
       CommandContext* context = AllocateContext(CommandListType::Graphics);
-      const GpuResourceState oldState = aDestBuffer->myUsageState;
-      context->TransitionResource(aDestBuffer, GpuResourceState::RESOURCE_STATE_COPY_DEST);
+      context->TransitionResource(aDestBuffer, GpuResourceTransition::TO_COPY_DEST);
       context->UpdateBufferData(aDestBuffer, aDestOffset, aDataPtr, aByteSize);
-      context->TransitionResource(aDestBuffer, oldState);
       GetCommandQueue(CommandListType::Graphics)->ExecuteContext(context, true);
       FreeContext(context);
     }
@@ -617,10 +615,8 @@ namespace Fancy {
     CommandContext* context = AllocateContext(CommandListType::Graphics);
 
     // TODO: Only transition the required subresources to COPY_DEST
-    const GpuResourceState oldState = aDestTexture->myUsageState;
-    context->TransitionResource(aDestTexture, GpuResourceState::RESOURCE_STATE_COPY_DEST);
+    context->TransitionResource(aDestTexture, GpuResourceTransition::TO_COPY_DEST);
     context->UpdateTextureData(aDestTexture, aStartSubresource, someDatas, aNumDatas);
-    context->TransitionResource(aDestTexture, oldState);
     GetCommandQueue(CommandListType::Graphics)->ExecuteContext(context, true);
     FreeContext(context);
   }
@@ -667,12 +663,8 @@ namespace Fancy {
       ASSERT(readViews[mip] != nullptr && writeViews[mip] != nullptr);
     }
     
-    const GpuResourceState oldDestState = aDestTexture->myUsageState;
     CommandQueue* queue = GetCommandQueue(CommandListType::Graphics);
     CommandContext* ctx = AllocateContext(CommandListType::Graphics);
-
-    ctx->TransitionResource(tempTex, GpuResourceState::RESOURCE_STATE_GENERIC_READ);
-    ctx->TransitionResource(aDestTexture.get(), GpuResourceState::RESOURCE_STATE_SHADER_WRITE);
 
     ctx->SetComputeProgram(ourComputeMipMapShader.get());
 

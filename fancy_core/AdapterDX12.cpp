@@ -56,24 +56,6 @@ namespace Fancy {
 		}
 	}
 //---------------------------------------------------------------------------//
-  D3D12_RESOURCE_STATES Adapter::ResolveResourceState(const GpuResourceState& aGeneralType)
-  {
-    switch (aGeneralType)
-    {
-    case GpuResourceState::RESOURCE_STATE_COMMON: return D3D12_RESOURCE_STATE_COMMON;
-    case GpuResourceState::RESOURCE_STATE_GENERIC_READ: return D3D12_RESOURCE_STATE_GENERIC_READ;
-    case GpuResourceState::RESOURCE_STATE_DEPTH_WRITE: return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-    case GpuResourceState::RESOURCE_STATE_DEPTH_READ: return D3D12_RESOURCE_STATE_DEPTH_READ;
-    case GpuResourceState::RESOURCE_STATE_PRESENT: return D3D12_RESOURCE_STATE_PRESENT;
-    case GpuResourceState::RESOURCE_STATE_COPY_DEST: return D3D12_RESOURCE_STATE_COPY_DEST;
-    case GpuResourceState::RESOURCE_STATE_COPY_SRC: return D3D12_RESOURCE_STATE_COPY_SOURCE;
-    case GpuResourceState::RESOURCE_STATE_RENDER_TARGET: return D3D12_RESOURCE_STATE_RENDER_TARGET;
-    case GpuResourceState::RESOURCE_STATE_SHADER_WRITE: return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::NONE: return static_cast<D3D12_RESOURCE_STATES>(~0u);
-    default: ASSERT(false, "Missing native values"); return D3D12_RESOURCE_STATE_COMMON;
-    }
-  }
-//---------------------------------------------------------------------------//
   D3D12_PRIMITIVE_TOPOLOGY_TYPE Adapter::ResolveTopologyType(const TopologyType& aGeneralType)
   {
     switch (aGeneralType)

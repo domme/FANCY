@@ -42,10 +42,11 @@ namespace Fancy {
     for (uint i = 0u; i < kBackbufferCount; ++i)
     {
       UniquePtr<GpuResourceStorageDX12> resourceStorage(new GpuResourceStorageDX12);
+      resourceStorage->myState = D3D12_RESOURCE_STATE_PRESENT;
+      resourceStorage->myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
       CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&resourceStorage->myResource)));
       
       GpuResource resource(GpuResourceCategory::TEXTURE);
-      resource.myUsageState = GpuResourceState::RESOURCE_STATE_PRESENT;
       resource.myStorage = std::move(resourceStorage);
 
       TextureProperties backbufferProps;
@@ -71,8 +72,8 @@ namespace Fancy {
 
     CommandQueueDX12* graphicsQueue = static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
     CommandContextDX12* context = static_cast<CommandContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
-    
-    context->TransitionResource(currBackbuffer, GpuResourceState::RESOURCE_STATE_PRESENT);
+
+    context->TransitionResource(currBackbuffer, GpuResourceTransition::TO_PRESENT);
     graphicsQueue->ExecuteContext(context);
     RenderCore::FreeContext(context);
 
