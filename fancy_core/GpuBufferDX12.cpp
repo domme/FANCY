@@ -91,7 +91,8 @@ namespace Fancy {
       default: ASSERT(false, "Missing implementation");
       }
     }
-    storageDx12->myState = initialState;
+    storageDx12->mySubresourceStates.resize(1u);
+    storageDx12->mySubresourceStates[0] = initialState;
     storageDx12->myReadState = readState;
     storageDx12->myCanChangeStates = canChangeStates;
 

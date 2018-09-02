@@ -62,7 +62,7 @@ namespace Fancy {
     void ApplyTopologyType();
 
     void SetResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const;
-    void SetResourceTransitionBarriers(const GpuResource** someResources, D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const;
+    void SetResourceTransitionBarriers(const GpuResource** someResources, const uint* someSubresourceOffsets, const uint* someNumSubresources, D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const;
     DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount);
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;

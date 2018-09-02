@@ -12,7 +12,7 @@ namespace Fancy {
   {
     static DataFormatInfo locOurDataFormats[static_cast<uint>(DataFormat::NUM)] =
     {
-#define DECLARE_DATA_FORMAT(name, byteSize, numComponents, depthStencil, srgb, compressed) { DataFormat::name, byteSize, numComponents, depthStencil, srgb, compressed },
+#define DECLARE_DATA_FORMAT(name, byteSize, numComponents, numPlanes, depthStencil, srgb, compressed) { DataFormat::name, byteSize, numComponents, numPlanes, depthStencil, srgb, compressed },
       #include "DataFormatList.h"
 #undef DECLARE_DATA_FORMAT
     };

@@ -941,16 +941,31 @@ namespace Fancy {
     SetResourceTransitionBarriers(&aResource, &aNewState, 1u);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetResourceTransitionBarriers(const GpuResource** someResources, D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
+  void CommandContextDX12::SetResourceTransitionBarriers(const GpuResource** someResources, const uint* someSubresourceOffsets, const uint* someNumSubresources, D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
   {
     D3D12_RESOURCE_BARRIER* barriers = (D3D12_RESOURCE_BARRIER*) alloca(sizeof(D3D12_RESOURCE_BARRIER) * aNumResources);
     uint numBarriers = 0u;
 
-    for (uint i = 0u; i < aNumResources; ++i)
+    for (uint iResource = 0u; iResource < aNumResources; ++iResource)
     {
-      GpuResourceStorageDX12* resource = (GpuResourceStorageDX12*) someResources[i]->myStorage.get();
-      const D3D12_RESOURCE_STATES newState = someNewStates[i];
-      const D3D12_RESOURCE_STATES oldState = resource->myState;
+      const D3D12_RESOURCE_STATES newState = someNewStates[iResource];
+
+      GpuResourceStorageDX12* resource = (GpuResourceStorageDX12*) someResources[iResource]->myStorage.get();
+      
+      if (!resource->myCanChangeStates)
+        continue;
+
+      uint subResourceOffset = glm::min((uint) resource->mySubresourceStates.size() - 1, someSubresourceOffsets[iResource]);
+      uint numSubresources = glm::min((uint) resource->mySubresourceStates.size() - subResourceOffset, someNumSubresources[iResource]);
+
+      const bool transitionAllSubresources = numSubresources == resource->mySubresourceStates.size();
+
+      for (uint iSub = subResourceOffset; iSub < subResourceOffset + numSubresources; ++iSub)
+      {
+        const D3D12_RESOURCE_STATES oldState = resource->mySubresourceStates[iSub];
+      }
+
+      
 
       if (oldState == newState || !resource->myCanChangeStates)
         continue;

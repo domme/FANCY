@@ -14,9 +14,10 @@ namespace Fancy {
   class DataFormatInfo
   {
   public:
-    DataFormatInfo(DataFormat aFormat, uint aSizeBytes, uint aNumComponents, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false)
+    DataFormatInfo(DataFormat aFormat, uint aSizeBytes, uint aNumComponents, uint aNumPlanes, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false)
       : mySizeBytes(aSizeBytes)
       , myNumComponents(aNumComponents)
+      , myNumPlanes(aNumPlanes)
       , myFormat(aFormat)
       , myIsDepthStencil(anIsDepthStencil)
       , mySRGB(anSRGB)
@@ -26,6 +27,7 @@ namespace Fancy {
     DataFormatInfo()
       : mySizeBytes(0u)
       , myNumComponents(0u)
+      , myNumPlanes(1u)
       , myFormat(NONE)
       , mySRGB(false)
       , myIsCompressed(false)
@@ -36,6 +38,7 @@ namespace Fancy {
     
     uint mySizeBytes;
     uint myNumComponents;
+    uint myNumPlanes;
     DataFormat myFormat;
     bool myIsDepthStencil : 1;
     bool mySRGB : 1;

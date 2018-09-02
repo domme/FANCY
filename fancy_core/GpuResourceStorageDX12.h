@@ -12,18 +12,19 @@ namespace Fancy {
   public:
     GpuResourceStorageDX12()
       : myReadState((D3D12_RESOURCE_STATES) 0u)
-      , myState((D3D12_RESOURCE_STATES)0u)
+      , mySubresourceStates{ (D3D12_RESOURCE_STATES)0u }
       , myCanChangeStates(true)
+      , myAllSubresourcesInSameState(true)
       , myLastCommandListType(CommandListType::Graphics)
     { }
    
     Microsoft::WRL::ComPtr<ID3D12Resource> myResource;
     GpuMemoryAllocationDX12 myGpuMemory;
 
-    // TODO: Multi-plane and subresource state tracking
     D3D12_RESOURCE_STATES myReadState;
-    D3D12_RESOURCE_STATES myState;
+    DynamicArray<D3D12_RESOURCE_STATES> mySubresourceStates;
     bool myCanChangeStates;
+    bool myAllSubresourcesInSameState;
     CommandListType myLastCommandListType;
   };
 //---------------------------------------------------------------------------//

@@ -46,7 +46,7 @@ namespace Fancy {
       else
         dxgiFormat = RenderCore_PlatformDX12::GetTypelessFormat(dxgiFormat);
     }
-    
+
     const uint minSide = (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(someProperties.myWidth, someProperties.myHeight, someProperties.myDepthOrArraySize) : glm::min(someProperties.myWidth, someProperties.myHeight);
     const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(minSide)));
     myProperties.myNumMipLevels = glm::max(1u, glm::min(someProperties.myNumMipLevels, maxNumMipLevels));
@@ -91,7 +91,14 @@ namespace Fancy {
         readState = D3D12_RESOURCE_STATE_DEPTH_READ;
       }
     }
-    storageDx12->myState = initialState;
+
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
+    const uint numArraySlices = someProperties.myDimension != GpuResourceDimension::TEXTURE_3D ? someProperties.myDepthOrArraySize : 1u;
+    const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
+    storageDx12->mySubresourceStates.resize(numSubresources);
+    for (uint i = 0u; i < numSubresources; ++i)
+      storageDx12->mySubresourceStates[i] = initialState;
+    
     storageDx12->myReadState = readState;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
@@ -126,7 +133,6 @@ namespace Fancy {
     // Initialize texture data?
     if (someInitialDatas != nullptr && aNumInitialDatas > 0u)
     {
-      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
       const uint pixelSizeBytes = formatInfo.mySizeBytes;
 
       if (pixelSizeBytes > someInitialDatas[0].myPixelSizeBytes)
