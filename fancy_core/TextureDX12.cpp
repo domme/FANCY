@@ -19,6 +19,13 @@ namespace Fancy {
     Destroy();
   }
 //---------------------------------------------------------------------------//
+  uint TextureDX12::CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex)
+  {
+    return aPlaneIndex * aNumMips * aNumArraySlices +
+      anArrayIndex * aNumMips +
+      aMipIndex;
+  }
+//---------------------------------------------------------------------------//
   void TextureDX12::Create(const TextureProperties& someProperties, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
   {
     Destroy();
@@ -95,9 +102,14 @@ namespace Fancy {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
     const uint numArraySlices = someProperties.myDimension != GpuResourceDimension::TEXTURE_3D ? someProperties.myDepthOrArraySize : 1u;
     const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
+
     storageDx12->mySubresourceStates.resize(numSubresources);
+    storageDx12->mySubresourceContexts.resize(numSubresources);
     for (uint i = 0u; i < numSubresources; ++i)
+    {
       storageDx12->mySubresourceStates[i] = initialState;
+      storageDx12->mySubresourceContexts[i] = CommandListType::Graphics;
+    }
     
     storageDx12->myReadState = readState;
 
@@ -225,10 +237,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   uint TextureDX12::GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const
   {
-    return
-      aSubresourceLocation.myPlaneIndex * myProperties.myNumMipLevels * glm::max(1u, GetArraySize()) +
-      aSubresourceLocation.myArrayIndex * myProperties.myNumMipLevels +
-      aSubresourceLocation.myMipLevel;
+    return CalcSubresourceIndex(aSubresourceLocation.myMipLevel, myProperties.myNumMipLevels, 
+      aSubresourceLocation.myArrayIndex, glm::max(1u, GetArraySize()), 
+      aSubresourceLocation.myPlaneIndex);
   }
 //---------------------------------------------------------------------------//
   TextureSubLocation TextureDX12::GetSubresourceLocation(uint aSubresourceIndex) const

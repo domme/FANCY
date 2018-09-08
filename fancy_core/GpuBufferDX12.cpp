@@ -71,7 +71,7 @@ namespace Fancy {
         initialState = D3D12_RESOURCE_STATE_GENERIC_READ; // Required for upload-heaps according to the D3D12-docs
         break;
       case GpuBufferUsage::STAGING_READBACK:
-        initialState = D3D12_RESOURCE_STATE_GENERIC_READ; // Not sure about this one...
+        initialState = D3D12_RESOURCE_STATE_COPY_DEST;
         break;
       case GpuBufferUsage::VERTEX_BUFFER:
       case GpuBufferUsage::CONSTANT_BUFFER:
@@ -93,6 +93,8 @@ namespace Fancy {
     }
     storageDx12->mySubresourceStates.resize(1u);
     storageDx12->mySubresourceStates[0] = initialState;
+    storageDx12->mySubresourceContexts.resize(1u);
+    storageDx12->mySubresourceContexts[0] = CommandListType::Graphics;
     storageDx12->myReadState = readState;
     storageDx12->myCanChangeStates = canChangeStates;
 

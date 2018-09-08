@@ -254,6 +254,8 @@ namespace Fancy {
     const DataFormat format = someProperties.myFormat != DataFormat::UNKNOWN ? someProperties.myFormat : aTexture->GetProperties().eFormat;
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
 
+    ASSERT(someProperties.myPlaneIndex < formatInfo.myNumPlanes);
+    
     GpuResourceViewDataDX12 nativeData;
     nativeData.myType = GpuResourceViewDataDX12::NONE;
     if (someProperties.myIsRenderTarget)
@@ -288,6 +290,44 @@ namespace Fancy {
 
     TextureView* textureView = new TextureView(aTexture, someProperties);
     textureView->myNativeData = nativeData;
+    if (nativeData.myType != GpuResourceViewDataDX12::DSV)
+    {
+      TextureSubLocation firstSubresource;
+      firstSubresource.myMipLevel = someProperties.myMipIndex;
+      firstSubresource.myArrayIndex = someProperties.myFirstArrayIndex;
+      firstSubresource.myPlaneIndex = someProperties.myPlaneIndex;
+      const uint firstSubresourceIndex = aTexture->GetSubresourceIndex(firstSubresource);
+
+      TextureSubLocation endSubresource;
+      endSubresource.myMipLevel = someProperties.myMipIndex + someProperties.myNumMipLevels;
+      endSubresource.myArrayIndex = someProperties.myFirstArrayIndex + someProperties.myArraySize;
+      endSubresource.myPlaneIndex = someProperties.myPlaneIndex;
+      const uint endSubresourceIndex = aTexture->GetSubresourceIndex(endSubresource);
+
+      textureView->mySubresourceOffsets[0] = firstSubresourceIndex;
+      textureView->myNumSubresources[0] = endSubresourceIndex - firstSubresourceIndex;
+    }
+    else // DSV
+    {
+      for (int i = 0; i < 2; ++i)
+      {
+        TextureSubLocation firstSubresource;
+        firstSubresource.myMipLevel = someProperties.myMipIndex;
+        firstSubresource.myArrayIndex = someProperties.myFirstArrayIndex;
+        firstSubresource.myPlaneIndex = i;
+        const uint firstSubresourceIndex = aTexture->GetSubresourceIndex(firstSubresource);
+
+        TextureSubLocation endSubresource;
+        endSubresource.myMipLevel = someProperties.myMipIndex + someProperties.myNumMipLevels;
+        endSubresource.myArrayIndex = someProperties.myFirstArrayIndex + someProperties.myArraySize;
+        endSubresource.myPlaneIndex = i;
+        const uint endSubresourceIndex = aTexture->GetSubresourceIndex(endSubresource);
+
+        textureView->mySubresourceOffsets[i] = firstSubresourceIndex;
+        textureView->myNumSubresources[i] = endSubresourceIndex - firstSubresourceIndex;
+      }
+    }
+    
     return textureView;
   }
 //---------------------------------------------------------------------------//
@@ -314,9 +354,12 @@ namespace Fancy {
     if (nativeData.myDescriptor.myCpuHandle.ptr == 0u || nativeData.myType == GpuResourceViewDataDX12::NONE)
       return nullptr;
 
-    GpuBufferView* textureView = new GpuBufferView(aBuffer, someProperties);
-    textureView->myNativeData = nativeData;
-    return textureView;
+    GpuBufferView* bufferView = new GpuBufferView(aBuffer, someProperties);
+    bufferView->myNativeData = nativeData;
+    bufferView->mySubresourceOffsets[0] = 0u;
+    bufferView->myNumSubresources[0] = 1u;
+    bufferView->myCoversAllSubresources = true;
+    return bufferView;
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
@@ -358,7 +401,7 @@ namespace Fancy {
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
       srvDesc.Texture1D.MipLevels = someProperties.myNumMipLevels;
-      srvDesc.Texture1D.MostDetailedMip = 0;
+      srvDesc.Texture1D.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.Texture1D.ResourceMinLODClamp = someProperties.myMinLodClamp;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY)
@@ -368,14 +411,14 @@ namespace Fancy {
       srvDesc.Texture1DArray.ArraySize = someProperties.myArraySize;
       srvDesc.Texture1DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
       srvDesc.Texture1DArray.MipLevels = someProperties.myNumMipLevels;
-      srvDesc.Texture1DArray.MostDetailedMip = 0;
+      srvDesc.Texture1DArray.MostDetailedMip = someProperties.myMipIndex;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
       srvDesc.Texture2D.PlaneSlice = someProperties.myPlaneIndex;
       srvDesc.Texture2D.MipLevels = someProperties.myNumMipLevels;
-      srvDesc.Texture2D.MostDetailedMip = 0;
+      srvDesc.Texture2D.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.Texture2D.ResourceMinLODClamp = someProperties.myMinLodClamp;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY)
@@ -385,28 +428,28 @@ namespace Fancy {
       srvDesc.Texture2DArray.ArraySize = someProperties.myArraySize;
       srvDesc.Texture2DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
       srvDesc.Texture2DArray.MipLevels = someProperties.myNumMipLevels;
-      srvDesc.Texture2DArray.MostDetailedMip = 0;
+      srvDesc.Texture2DArray.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.Texture2DArray.PlaneSlice = someProperties.myPlaneIndex;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
       srvDesc.Texture3D.MipLevels = someProperties.myNumMipLevels;
-      srvDesc.Texture3D.MostDetailedMip = 0;
+      srvDesc.Texture3D.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.Texture3D.ResourceMinLODClamp = someProperties.myMinLodClamp;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
       srvDesc.TextureCube.MipLevels = someProperties.myNumMipLevels;
-      srvDesc.TextureCube.MostDetailedMip = 0;
+      srvDesc.TextureCube.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.TextureCube.ResourceMinLODClamp = someProperties.myMinLodClamp;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
       srvDesc.TextureCubeArray.MipLevels = someProperties.myNumMipLevels;
-      srvDesc.TextureCubeArray.MostDetailedMip = 0;
+      srvDesc.TextureCubeArray.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.TextureCubeArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
       srvDesc.TextureCubeArray.First2DArrayFace = someProperties.myFirstArrayIndex;
       srvDesc.TextureCubeArray.NumCubes = someProperties.myArraySize;

@@ -550,6 +550,7 @@ namespace Fancy {
   SharedPtr<TextureView> RenderCore::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
   {
     ASSERT(!someProperties.myIsShaderWritable || !someProperties.myIsRenderTarget, "UAV and RTV are mutually exclusive");
+    ASSERT(someProperties.myPlaneIndex < GpuResourceView::ourNumSupportedPlanes);
 
     return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, someProperties));
   }
