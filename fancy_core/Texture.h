@@ -20,6 +20,8 @@ namespace Fancy {
     virtual void Create(const TextureProperties& someProperties, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) = 0;
     virtual void GetSubresourceLayout(const TextureSubLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const = 0;
     virtual uint GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const = 0;
+    virtual uint GetNumSubresources() const = 0;
+    virtual uint GetNumSubresourcesPerPlane() const = 0;
     virtual TextureSubLocation GetSubresourceLocation(uint aSubresourceIndex) const = 0;
 
     const TextureProperties& GetProperties() const { return myProperties; }

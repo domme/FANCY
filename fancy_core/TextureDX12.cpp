@@ -26,6 +26,11 @@ namespace Fancy {
       aMipIndex;
   }
 //---------------------------------------------------------------------------//
+  uint TextureDX12::CalcNumSubresources(uint aNumMips, uint aNumArraySlices, uint aNumPlanes)
+  {
+    return aNumMips * aNumArraySlices * aNumPlanes;
+  }
+//---------------------------------------------------------------------------//
   void TextureDX12::Create(const TextureProperties& someProperties, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
   {
     Destroy();
@@ -237,13 +242,29 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   uint TextureDX12::GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const
   {
-    return CalcSubresourceIndex(aSubresourceLocation.myMipLevel, myProperties.myNumMipLevels, 
-      aSubresourceLocation.myArrayIndex, glm::max(1u, GetArraySize()), 
+    const uint index = CalcSubresourceIndex(aSubresourceLocation.myMipLevel, myProperties.myNumMipLevels,
+      aSubresourceLocation.myArrayIndex, glm::max(1u, GetArraySize()),
       aSubresourceLocation.myPlaneIndex);
+
+    ASSERT(index < GetNumSubresources());
+    return index;
+  }
+//---------------------------------------------------------------------------//
+  uint TextureDX12::GetNumSubresources() const
+  {
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
+    return CalcNumSubresources(myProperties.myNumMipLevels, glm::max(1u, GetArraySize()), formatInfo.myNumPlanes);
+  }
+//---------------------------------------------------------------------------//
+  uint TextureDX12::GetNumSubresourcesPerPlane() const
+  {
+    return CalcNumSubresources(myProperties.myNumMipLevels, glm::max(1u, GetArraySize()), 1u);
   }
 //---------------------------------------------------------------------------//
   TextureSubLocation TextureDX12::GetSubresourceLocation(uint aSubresourceIndex) const
   {
+    ASSERT(aSubresourceIndex < GetNumSubresources());
+
     TextureSubLocation location;
     location.myMipLevel = (aSubresourceIndex % myProperties.myNumMipLevels);
     location.myArrayIndex = ((aSubresourceIndex / myProperties.myNumMipLevels) % glm::max(1u, GetArraySize()));
@@ -253,7 +274,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void TextureDX12::Destroy()
   {
-    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)myStorage.get();
+    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
     if (storageDx12 != nullptr)
     {
       storageDx12->myResource.Reset();

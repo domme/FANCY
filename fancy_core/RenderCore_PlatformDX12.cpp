@@ -304,12 +304,18 @@ namespace Fancy {
       endSubresource.myPlaneIndex = someProperties.myPlaneIndex;
       const uint endSubresourceIndex = aTexture->GetSubresourceIndex(endSubresource);
 
+      const uint maxNumSubresources = aTexture->GetNumSubresources();
+      const uint numSubresources = endSubresourceIndex - firstSubresourceIndex;
+      ASSERT(firstSubresourceIndex + numSubresources <= maxNumSubresources);
+
       textureView->mySubresourceOffsets[0] = firstSubresourceIndex;
-      textureView->myNumSubresources[0] = endSubresourceIndex - firstSubresourceIndex;
+      textureView->myNumSubresources[0] = numSubresources;
+      textureView->myCoversAllSubresources = numSubresources == maxNumSubresources;
     }
     else // DSV
     {
-      for (int i = 0; i < 2; ++i)
+      ASSERT(formatInfo.myNumPlanes <= GpuResourceView::ourNumSupportedPlanes);
+      for (int i = 0; i < formatInfo.myNumPlanes; ++i)
       {
         TextureSubLocation firstSubresource;
         firstSubresource.myMipLevel = someProperties.myMipIndex;
@@ -323,8 +329,13 @@ namespace Fancy {
         endSubresource.myPlaneIndex = i;
         const uint endSubresourceIndex = aTexture->GetSubresourceIndex(endSubresource);
 
+        const uint maxNumSubresourcesOnPlane = aTexture->GetNumSubresourcesPerPlane();
+        const uint numSubresources = endSubresourceIndex - firstSubresourceIndex;
+        ASSERT(firstSubresourceIndex + numSubresources <= maxNumSubresourcesOnPlane);
+        
         textureView->mySubresourceOffsets[i] = firstSubresourceIndex;
         textureView->myNumSubresources[i] = endSubresourceIndex - firstSubresourceIndex;
+        textureView->myCoversAllSubresources = numSubresources == maxNumSubresourcesOnPlane;
       }
     }
     

@@ -11,17 +11,16 @@ namespace Fancy {
     static const uint ourNumSupportedPlanes = 2u;
 
     explicit GpuResourceView(const SharedPtr<GpuResource>& aResource)
-      : myCoversAllSubresources(false)
+      : mySubresourceOffsets{ 0u }
+      , myNumSubresources{ UINT_MAX }
       , myResource(aResource)
-    {
-      memset(mySubresourceOffsets, 0u, sizeof(mySubresourceOffsets));
-      memset(myNumSubresources, 0u, sizeof(myNumSubresources));
-    }
+      , myCoversAllSubresources(true)
+    { }
 
-    bool myCoversAllSubresources;
     uint mySubresourceOffsets[ourNumSupportedPlanes];
     uint myNumSubresources[ourNumSupportedPlanes];
     SharedPtr<GpuResource> myResource;
+    bool myCoversAllSubresources;
     Any myNativeData;
   };
 //---------------------------------------------------------------------------//

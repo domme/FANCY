@@ -893,40 +893,46 @@ namespace Fancy {
     if (!myRenderTargetsDirty)
       return;
 
-    D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Constants::kMaxNumRenderTargets];
-    const GpuResource* rtResources[Constants::kMaxNumRenderTargets];
-    uint subresourceOffsets[Constants::kMaxNumRenderTargets];
-    uint numSubresources[Constants::kMaxNumRenderTargets];
-
-    const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
-    for (uint i = 0u; i < numRtsToSet; ++i)
+    // RenderTarget state-transitions
     {
-      ASSERT(myRenderTargets[i] != nullptr);
+      D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Constants::kMaxNumRenderTargets];
+      const GpuResource* rtResources[Constants::kMaxNumRenderTargets];
+      uint subresourceOffsets[Constants::kMaxNumRenderTargets];
+      uint numSubresources[Constants::kMaxNumRenderTargets];
 
-      const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myNativeData.To<GpuResourceViewDataDX12>();
-      ASSERT(viewData.myType == GpuResourceViewDataDX12::RTV);
+      const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
+      for (uint i = 0u; i < numRtsToSet; ++i)
+      {
+        ASSERT(myRenderTargets[i] != nullptr);
 
-      rtResources[i] = myRenderTargets[i]->GetTexture();
-      rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
-      subresourceOffsets[i] = myRenderTargets[i]->mySubresourceOffsets[0];
-      numSubresources[i] = myRenderTargets[i]->myNumSubresources[0];
+        const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myNativeData.To<GpuResourceViewDataDX12>();
+        ASSERT(viewData.myType == GpuResourceViewDataDX12::RTV);
+
+        rtResources[i] = myRenderTargets[i]->GetTexture();
+        rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
+        subresourceOffsets[i] = myRenderTargets[i]->mySubresourceOffsets[0];
+        numSubresources[i] = myRenderTargets[i]->myNumSubresources[0];
+      }
+
+      D3D12_RESOURCE_STATES newStates[Constants::kMaxNumRenderTargets];
+      for (uint i = 0; i < numRtsToSet; ++i)
+        newStates[i] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+      SetSubresourceTransitionBarriers(rtResources, subresourceOffsets, numSubresources, newStates, numRtsToSet);
     }
-
-    D3D12_RESOURCE_STATES newStates[Constants::kMaxNumRenderTargets];
-    for (uint i = 0; i  < numRtsToSet; ++i)
-      newStates[i] = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-    SetSubresourceTransitionBarriers(rtResources, subresourceOffsets, numSubresources, newStates, numRtsToSet);
-
+    
+    // DSV state-transitions
     if (myDepthStencilTarget != nullptr)
     {
       const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myNativeData.To<GpuResourceViewDataDX12>();
       ASSERT(dsvViewData.myType == GpuResourceViewDataDX12::DSV);
 
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myDepthStencilTarget->GetTexture()->GetProperties().eFormat);
+
       const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
       if (dsvProps.myIsDepthReadOnly == dsvProps.myIsStencilReadOnly)
       {
-        D3D12_RESOURCE_STATES state = dsvProps.myIsDepthReadOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        const D3D12_RESOURCE_STATES state = dsvProps.myIsDepthReadOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
         SetResourceTransitionBarrier(myDepthStencilTarget->GetTexture(), state);
       }
       else
