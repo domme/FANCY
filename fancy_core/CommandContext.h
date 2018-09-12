@@ -103,18 +103,19 @@ namespace Fancy {
     CommandListType myCommandListType;
     CommandListType myCurrentContext;
 
-    GraphicsPipelineState myGraphicsPipelineState;
-    ComputePipelineState myComputePipelineState;
-
     glm::uvec4 myViewportParams;
     glm::uvec4 myClipRect;
     bool myViewportDirty;
     bool myClipRectDirty;
     bool myTopologyDirty;
+    bool myRenderTargetsDirty;
+    bool myShaderHasUnorderedWrites;
     TextureView* myRenderTargets[Constants::kMaxNumRenderTargets];
     TextureView* myDepthStencilTarget;
-    bool myRenderTargetsDirty;
 
+    GraphicsPipelineState myGraphicsPipelineState;
+    ComputePipelineState myComputePipelineState;
+    
     DynamicArray<GpuRingBuffer*> myUploadRingBuffers;
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;

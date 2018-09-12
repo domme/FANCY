@@ -42,7 +42,9 @@ namespace Fancy {
     for (uint i = 0u; i < kBackbufferCount; ++i)
     {
       UniquePtr<GpuResourceStorageDX12> resourceStorage(new GpuResourceStorageDX12);
-      resourceStorage->myState = D3D12_RESOURCE_STATE_PRESENT;
+      resourceStorage->mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
+      resourceStorage->mySubresourceContexts.push_back(CommandListType::Graphics);
+      resourceStorage->myAllSubresourcesInSameState = true;
       resourceStorage->myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
       CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&resourceStorage->myResource)));
       

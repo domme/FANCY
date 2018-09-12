@@ -61,10 +61,11 @@ namespace Fancy {
     , myViewportDirty(true)
     , myClipRectDirty(true)
     , myTopologyDirty(true)
-    , myDepthStencilTarget(nullptr)
     , myRenderTargetsDirty(true)
+    , myShaderHasUnorderedWrites(false)
+    , myRenderTargets{ nullptr }
+    , myDepthStencilTarget(nullptr) 
   {
-    memset(myRenderTargets, 0u, sizeof(myRenderTargets));
   }
 //---------------------------------------------------------------------------//
 
@@ -201,6 +202,12 @@ namespace Fancy {
     {
       myGraphicsPipelineState.myGpuProgramPipeline = aGpuProgramPipeline;
       myGraphicsPipelineState.myIsDirty = true;
+
+      bool hasUnorderedWrites = false;
+      for (const SharedPtr<GpuProgram>& gpuProgram : aGpuProgramPipeline->myGpuPrograms)
+        hasUnorderedWrites |= gpuProgram->HasUnorderedWrites();
+
+      myShaderHasUnorderedWrites = hasUnorderedWrites;
     }
   }
 //---------------------------------------------------------------------------//
@@ -214,6 +221,7 @@ namespace Fancy {
     {
       myComputePipelineState.myGpuProgram = aProgram;
       myComputePipelineState.myIsDirty = true;
+      myShaderHasUnorderedWrites = aProgram->HasUnorderedWrites();
     }
   }
 //---------------------------------------------------------------------------//

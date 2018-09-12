@@ -105,7 +105,7 @@ namespace Fancy {
     }
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
-    const uint numArraySlices = someProperties.myDimension != GpuResourceDimension::TEXTURE_3D ? someProperties.myDepthOrArraySize : 1u;
+    const uint numArraySlices = glm::max(1u, someProperties.myDimension != GpuResourceDimension::TEXTURE_3D ? someProperties.myDepthOrArraySize : 1u);
     const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
 
     storageDx12->mySubresourceStates.resize(numSubresources);

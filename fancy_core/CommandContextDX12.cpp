@@ -47,10 +47,10 @@ namespace Fancy {
       GpuResourceStorageDX12* src = (GpuResourceStorageDX12*) aSrc->myStorage.get();
       GpuResourceStorageDX12* dst = (GpuResourceStorageDX12*) aDst->myStorage.get();
 
-      for (uint i = 0u; i < src->myAllSubresourcesInSameState ? 1u : src->mySubresourceStates.size(); ++i)
+      for (uint i = 0u; i < (src->myAllSubresourcesInSameState ? 1u : src->mySubresourceStates.size()); ++i)
          ASSERT(src->mySubresourceStates[i] & D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-      for (uint i = 0u; i < dst->myAllSubresourcesInSameState ? 1u : dst->mySubresourceStates.size(); ++i)
+      for (uint i = 0u; i < (dst->myAllSubresourcesInSameState ? 1u : dst->mySubresourceStates.size()); ++i)
          ASSERT(dst->mySubresourceStates[i] & D3D12_RESOURCE_STATE_COPY_DEST);
     }
   //---------------------------------------------------------------------------//
@@ -260,8 +260,8 @@ namespace Fancy {
     ASSERT(aTextureView->GetProperties().myIsRenderTarget);
     ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::RTV);
 
-    // TODO: Move out to caller?
-    TransitionResource(aTextureView->GetTexture(), GpuResourceTransition::TO_RENDERTARGET);
+    // TODO: Only transition subresources addressed by aTextureView
+    SetResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     myCommandList->ClearRenderTargetView(viewDataDx12.myDescriptor.myCpuHandle, aColor, 0, nullptr);
   }
@@ -271,6 +271,7 @@ namespace Fancy {
     const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
     ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::DSV);
 
+    // TODO: Only transition subresources addressed by aTextureView
     SetResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
     
     D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS)0;
@@ -736,8 +737,8 @@ namespace Fancy {
     {
       ASSERT(someResourceViews[i]->myNativeData.HasType<GpuResourceViewDataDX12>());
       const GpuResourceViewDataDX12& resourceViewData = someResourceViews[i]->myNativeData.To<GpuResourceViewDataDX12>();
-      subresourceOffsets[i] = someResourceViews[i]->mySubresourceOffsetsPerPlane;
-      numSubresources[i] = someResourceViews[i]->myNumSubresourcesPerPlane;
+      subresourceOffsets[i] = someResourceViews[i]->mySubresourceOffsets[0];
+      numSubresources[i] = someResourceViews[i]->myNumSubresources[0];
       
       dx12Descriptors[i] = resourceViewData.myDescriptor;
       resourcesToTransition[i] = someResourceViews[i]->myResource.get();
@@ -838,6 +839,9 @@ namespace Fancy {
     ApplyGraphicsPipelineState();
 
     myCommandList->DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
+
+    if (myShaderHasUnorderedWrites)
+      SetResourceUAVbarrier(nullptr);
   }
   //---------------------------------------------------------------------------//
   void CommandContextDX12::RenderGeometry(const GeometryData* pGeometry)
@@ -893,14 +897,15 @@ namespace Fancy {
     if (!myRenderTargetsDirty)
       return;
 
+    const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
+    D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Constants::kMaxNumRenderTargets];
+
     // RenderTarget state-transitions
     {
-      D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Constants::kMaxNumRenderTargets];
       const GpuResource* rtResources[Constants::kMaxNumRenderTargets];
       uint subresourceOffsets[Constants::kMaxNumRenderTargets];
       uint numSubresources[Constants::kMaxNumRenderTargets];
 
-      const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
       for (uint i = 0u; i < numRtsToSet; ++i)
       {
         ASSERT(myRenderTargets[i] != nullptr);
@@ -925,33 +930,21 @@ namespace Fancy {
     if (myDepthStencilTarget != nullptr)
     {
       const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myNativeData.To<GpuResourceViewDataDX12>();
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myDepthStencilTarget->GetTexture()->GetProperties().eFormat);
+      const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
       ASSERT(dsvViewData.myType == GpuResourceViewDataDX12::DSV);
 
-      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myDepthStencilTarget->GetTexture()->GetProperties().eFormat);
+      // TODO: Also respect stencilWriteMask per rendertarget?
+      D3D12_RESOURCE_STATES dsStates[2] = { 
+          (dsvProps.myIsDepthReadOnly || !myGraphicsPipelineState.myDepthStencilState->myDepthWriteEnabled) ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE,
+          (dsvProps.myIsStencilReadOnly || !myGraphicsPipelineState.myDepthStencilState->myStencilEnabled) ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE
+      };
 
-      const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
-      if (dsvProps.myIsDepthReadOnly == dsvProps.myIsStencilReadOnly)
-      {
-        const D3D12_RESOURCE_STATES state = dsvProps.myIsDepthReadOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
-        SetResourceTransitionBarrier(myDepthStencilTarget->GetTexture(), state);
-      }
-      else
-      {
-        const GpuResource* resources[2] = { myDepthStencilTarget->GetTexture(), myDepthStencilTarget->GetTexture() };
+      const GpuResource* resources[2] = { myDepthStencilTarget->GetTexture(), myDepthStencilTarget->GetTexture() };
+      const uint subresourceOffsets[2] = { myDepthStencilTarget->mySubresourceOffsets[0], myDepthStencilTarget->mySubresourceOffsets[1] };
+      const uint numSubresources[2] = { myDepthStencilTarget->myNumSubresources[0], myDepthStencilTarget->myNumSubresources[1] };
 
-        D3D12_RESOURCE_STATES states[2] = { 
-          dsvProps.myIsDepthReadOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE,
-          dsvProps.myIsStencilReadOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE
-        };
-
-        const uint subresourceOffsets[2] = { myDepthStencilTarget->mySubresourceOffsets[0], myDepthStencilTarget->mySubresourceOffsets[1] };
-        const uint numSubresources[2] = { myDepthStencilTarget->myNumSubresources[0], myDepthStencilTarget->myNumSubresources[1] };
-
-        SetSubresourceTransitionBarriers(resources, subresourceOffsets, numSubresources, states, 2u);
-      }
-
-      D3D12_RESOURCE_STATES state = myDepthStencilTarget->GetProperties().myIsDepthReadOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
-      
+      SetSubresourceTransitionBarriers(resources, subresourceOffsets, numSubresources, dsStates, 2u);
 
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
     }
@@ -1083,6 +1076,16 @@ namespace Fancy {
       myCommandList->ResourceBarrier(numBarriers, barriers);
   }
 //---------------------------------------------------------------------------//
+  void CommandContextDX12::SetResourceUAVbarrier(const GpuResource* aResource) const
+  {
+      ID3D12Resource* resource = aResource != nullptr ? static_cast<GpuResourceStorageDX12*>(aResource->myStorage.get())->myResource.Get() : nullptr;
+
+      D3D12_RESOURCE_BARRIER barrier;
+      barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+      barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+      barrier.UAV.pResource = resource;
+  }
+//---------------------------------------------------------------------------//
   void CommandContextDX12::ApplyGraphicsPipelineState()
   {
     if (!myGraphicsPipelineState.myIsDirty)
@@ -1154,6 +1157,9 @@ namespace Fancy {
   {
     ApplyComputePipelineState();
     myCommandList->Dispatch(aThreadGroupCountX, aThreadGroupCountY, aThreadGroupCountZ);
+
+    if (myShaderHasUnorderedWrites)
+      SetResourceUAVbarrier(nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::CloseCommandList()

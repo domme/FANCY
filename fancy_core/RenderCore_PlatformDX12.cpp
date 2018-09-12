@@ -315,7 +315,7 @@ namespace Fancy {
     else // DSV
     {
       ASSERT(formatInfo.myNumPlanes <= GpuResourceView::ourNumSupportedPlanes);
-      for (int i = 0; i < formatInfo.myNumPlanes; ++i)
+      for (int i = 0; i < (int) formatInfo.myNumPlanes; ++i)
       {
         TextureSubLocation firstSubresource;
         firstSubresource.myMipLevel = someProperties.myMipIndex;
@@ -713,7 +713,9 @@ namespace Fancy {
 
     D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
     cbvDesc.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress() + someProperties.myOffset;
-    cbvDesc.SizeInBytes = someProperties.mySize;
+
+    ASSERT(someProperties.mySize < UINT_MAX);
+    cbvDesc.SizeInBytes = (uint) someProperties.mySize;
     
     DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     ourDevice->CreateConstantBufferView(&cbvDesc, descriptor.myCpuHandle);
