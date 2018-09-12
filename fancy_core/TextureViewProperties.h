@@ -13,7 +13,7 @@ namespace Fancy {
       , myIsRenderTarget(false)
       , myIsDepthReadOnly(false)
       , myIsStencilReadOnly(false)
-      , myNumMipLevels(1u)
+      , myNumMipLevels(UINT_MAX)
       , myPlaneIndex(0u)
       , myArraySize(0u)
       , myFirstArrayIndex(0u)

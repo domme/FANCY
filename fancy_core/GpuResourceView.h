@@ -17,6 +17,7 @@ namespace Fancy {
       , myCoversAllSubresources(true)
     { }
 
+    // TODO: This design is bad since it doesn't reflect that the resource view might only access a non-continous region of subresources
     uint mySubresourceOffsets[ourNumSupportedPlanes];
     uint myNumSubresources[ourNumSupportedPlanes];
     SharedPtr<GpuResource> myResource;

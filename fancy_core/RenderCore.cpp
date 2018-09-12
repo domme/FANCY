@@ -690,11 +690,11 @@ namespace Fancy {
       ctx->BindResourceSet(resources, 2, 1u);
 
       ctx->Dispatch(size.x, size.y, 1);
-      
-      queue->ExecuteContext(ctx, true);
+     
       size /= 2u;
     }
-   
+
+    queue->ExecuteContext(ctx, true);
     FreeContext(ctx);
   }
 //---------------------------------------------------------------------------//

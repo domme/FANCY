@@ -981,25 +981,25 @@ namespace Fancy {
       SetSubresourceTransitionBarriers(&aResource, &aSubresourceIndex, &numSubresources, &aNewState, 1u);
     }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const uint* someSubresourceOffsets, const uint* someNumSubresources, D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
+  void CommandContextDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const uint* someSubresourceOffsets, const uint* someNumSubresources, D3D12_RESOURCE_STATES* someNewStates, uint aNumStates) const
   {
-    D3D12_RESOURCE_BARRIER* barriers = (D3D12_RESOURCE_BARRIER*) alloca(sizeof(D3D12_RESOURCE_BARRIER) * aNumResources);
+    D3D12_RESOURCE_BARRIER* barriers = (D3D12_RESOURCE_BARRIER*) alloca(sizeof(D3D12_RESOURCE_BARRIER) * aNumStates);
     uint numBarriers = 0u;
 
-    for (uint iResource = 0u; iResource < aNumResources; ++iResource)
+    for (uint iState = 0u; iState < aNumStates; ++iState)
     {
-      const D3D12_RESOURCE_STATES newState = someNewStates[iResource];
+      const D3D12_RESOURCE_STATES newState = someNewStates[iState];
 
-      GpuResourceStorageDX12* resource = (GpuResourceStorageDX12*) someResources[iResource]->myStorage.get();
+      GpuResourceStorageDX12* resource = (GpuResourceStorageDX12*) someResources[iState]->myStorage.get();
       
       if (!resource->myCanChangeStates)
         continue;
 
-      uint subResourceOffset = someSubresourceOffsets == nullptr ? 0u : glm::min((uint) resource->mySubresourceStates.size() - 1, someSubresourceOffsets[iResource]);
-      uint numSubresources = someNumSubresources == nullptr ? resource->mySubresourceStates.size() : glm::min((uint) resource->mySubresourceStates.size() - subResourceOffset, someNumSubresources[iResource]);
+      uint subResourceOffset = someSubresourceOffsets == nullptr ? 0u : glm::min((uint) resource->mySubresourceStates.size() - 1, someSubresourceOffsets[iState]);
+      uint numSubresources = someNumSubresources == nullptr ? resource->mySubresourceStates.size() : glm::min((uint) resource->mySubresourceStates.size() - subResourceOffset, someNumSubresources[iState]);
 
       const bool transitionAllSubresources = numSubresources == resource->mySubresourceStates.size();
-      if (resource->myAllSubresourcesInSameState)
+      if (transitionAllSubresources && resource->myAllSubresourcesInSameState)
       {
         subResourceOffset = 0u;
         numSubresources = 1u;
@@ -1084,6 +1084,8 @@ namespace Fancy {
       barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
       barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
       barrier.UAV.pResource = resource;
+
+      myCommandList->ResourceBarrier(1u, &barrier);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ApplyGraphicsPipelineState()
@@ -1158,7 +1160,8 @@ namespace Fancy {
     ApplyComputePipelineState();
     myCommandList->Dispatch(aThreadGroupCountX, aThreadGroupCountY, aThreadGroupCountZ);
 
-    if (myShaderHasUnorderedWrites)
+    // TODO: Fix missing shader-reflection for resources
+    // if (myShaderHasUnorderedWrites)
       SetResourceUAVbarrier(nullptr);
   }
 //---------------------------------------------------------------------------//

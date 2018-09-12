@@ -205,7 +205,8 @@ namespace Fancy {
 
       bool hasUnorderedWrites = false;
       for (const SharedPtr<GpuProgram>& gpuProgram : aGpuProgramPipeline->myGpuPrograms)
-        hasUnorderedWrites |= gpuProgram->HasUnorderedWrites();
+        if(gpuProgram != nullptr)
+          hasUnorderedWrites |= gpuProgram->HasUnorderedWrites();
 
       myShaderHasUnorderedWrites = hasUnorderedWrites;
     }
