@@ -728,7 +728,7 @@ namespace Fancy {
     ASSERT(myCurrentContext != CommandListType::Compute || myComputeRootSignature != nullptr);
 
     const GpuResource** resourcesToTransition = (const GpuResource**)alloca(sizeof(GpuResource*) * aResourceCount);
-    uint* subresourceOffsets = (uint*) alloca(sizeof(uint) * aResourceCount);
+    const uint16** subresourceLists = (const uint16**) alloca(sizeof(uint16*) * aResourceCount);
     uint* numSubresources = (uint*) alloca(sizeof(uint) * aResourceCount);
     D3D12_RESOURCE_STATES* barrierStates = (D3D12_RESOURCE_STATES*)alloca(sizeof(D3D12_RESOURCE_STATES) * aResourceCount);
     DescriptorDX12* dx12Descriptors = (DescriptorDX12*)alloca(sizeof(DescriptorDX12) * aResourceCount);
@@ -737,8 +737,9 @@ namespace Fancy {
     {
       ASSERT(someResourceViews[i]->myNativeData.HasType<GpuResourceViewDataDX12>());
       const GpuResourceViewDataDX12& resourceViewData = someResourceViews[i]->myNativeData.To<GpuResourceViewDataDX12>();
-      subresourceOffsets[i] = someResourceViews[i]->mySubresourceOffsets[0];
-      numSubresources[i] = someResourceViews[i]->myNumSubresources[0];
+
+      subresourceLists[i] = someResourceViews[i]->mySubresources->data();
+      numSubresources[i] = someResourceViews[i]->mySubresources->size();
       
       dx12Descriptors[i] = resourceViewData.myDescriptor;
       resourcesToTransition[i] = someResourceViews[i]->myResource.get();
@@ -756,7 +757,7 @@ namespace Fancy {
         default: ASSERT(false);
       }
     }
-    SetSubresourceTransitionBarriers(resourcesToTransition, subresourceOffsets, numSubresources, barrierStates, aResourceCount);
+    SetSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, aResourceCount);
 
     const DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
 
@@ -903,7 +904,7 @@ namespace Fancy {
     // RenderTarget state-transitions
     {
       const GpuResource* rtResources[Constants::kMaxNumRenderTargets];
-      uint subresourceOffsets[Constants::kMaxNumRenderTargets];
+      const uint16* subresourceLists[Constants::kMaxNumRenderTargets];
       uint numSubresources[Constants::kMaxNumRenderTargets];
 
       for (uint i = 0u; i < numRtsToSet; ++i)
@@ -915,15 +916,15 @@ namespace Fancy {
 
         rtResources[i] = myRenderTargets[i]->GetTexture();
         rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
-        subresourceOffsets[i] = myRenderTargets[i]->mySubresourceOffsets[0];
-        numSubresources[i] = myRenderTargets[i]->myNumSubresources[0];
+        subresourceLists[i] = myRenderTargets[i]->mySubresources[0].data();
+        numSubresources[i] = myRenderTargets[i]->mySubresources[0].size();
       }
 
       D3D12_RESOURCE_STATES newStates[Constants::kMaxNumRenderTargets];
       for (uint i = 0; i < numRtsToSet; ++i)
         newStates[i] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-      SetSubresourceTransitionBarriers(rtResources, subresourceOffsets, numSubresources, newStates, numRtsToSet);
+      SetSubresourceTransitionBarriers(rtResources, newStates, subresourceLists, numSubresources, numRtsToSet);
     }
     
     // DSV state-transitions
@@ -941,11 +942,11 @@ namespace Fancy {
       };
 
       const GpuResource* resources[2] = { myDepthStencilTarget->GetTexture(), myDepthStencilTarget->GetTexture() };
-      const uint subresourceOffsets[2] = { myDepthStencilTarget->mySubresourceOffsets[0], myDepthStencilTarget->mySubresourceOffsets[1] };
-      const uint numSubresources[2] = { myDepthStencilTarget->myNumSubresources[0], myDepthStencilTarget->myNumSubresources[1] };
-
-      SetSubresourceTransitionBarriers(resources, subresourceOffsets, numSubresources, dsStates, 2u);
-
+      const uint16* subresourceLists[2] = { myDepthStencilTarget->mySubresources[0].data(), myDepthStencilTarget->mySubresources[1].data() };
+      const uint numSubresources[2] = { myDepthStencilTarget->mySubresources[0].size(), myDepthStencilTarget->mySubresources[1].size() };
+      
+      SetSubresourceTransitionBarriers(resources, dsStates, subresourceLists, numSubresources, 2u);
+      
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
     }
     else
@@ -970,15 +971,16 @@ namespace Fancy {
       SetResourceTransitionBarriers(&aResource, &aNewState, 1u);
     }
 //---------------------------------------------------------------------------//
-    void CommandContextDX12::SetResourceTransitionBarriers(const GpuResource** someResources, D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
+    void CommandContextDX12::SetResourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
     {
-      SetSubresourceTransitionBarriers(someResources, nullptr, nullptr, someNewStates, aNumResources);
+      SetSubresourceTransitionBarriers(someResources, someNewStates, nullptr, nullptr, aNumResources);
     }
   //---------------------------------------------------------------------------//
-    void CommandContextDX12::SetSubresourceTransitionBarrier(const GpuResource* aResource, uint aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const
+    void CommandContextDX12::SetSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const
     {
       const uint numSubresources = 1u;
-      SetSubresourceTransitionBarriers(&aResource, &aSubresourceIndex, &numSubresources, &aNewState, 1u);
+      const uint16* subresourceLists[] = { &aSubresourceIndex };
+      SetSubresourceTransitionBarriers(&aResource, &aNewState, subresourceLists, &numSubresources, 1u);
     }
   //---------------------------------------------------------------------------//
   void CommandContextDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const

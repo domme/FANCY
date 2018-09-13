@@ -63,7 +63,7 @@ namespace Fancy {
 
     void SetResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const;
     void SetResourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, uint aNumStates) const;
-    void SetSubresourceTransitionBarrier(const GpuResource* aResource, uint aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const;
+    void SetSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const;
     void SetSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const;
     void SetResourceUAVbarrier(const GpuResource* aResource) const;
 

@@ -299,14 +299,8 @@ namespace Fancy {
     if (nativeData.myType != GpuResourceViewDataDX12::DSV)
     {
       for (int iArray = someProperties.myFirstArrayIndex; iArray < someProperties.myFirstArrayIndex + someProperties.myArraySize; ++iArray)
-      {
         for (int iMip = someProperties.myMipIndex; iMip < someProperties.myMipIndex + numMips; ++iMip)
-        {
-          textureView->mySubresources[0].push_back(
-            TextureDX12::CalcSubresourceIndex(iMip, numMips, iArray, numArraySlices, someProperties.myPlaneIndex)
-          ); 
-        }
-      }
+          textureView->mySubresources[0].push_back(TextureDX12::CalcSubresourceIndex(iMip, numMips, iArray, numArraySlices, someProperties.myPlaneIndex));
 
       textureView->myCoversAllSubresources = textureView->mySubresources[0].size() == aTexture->GetNumSubresources();
     }
@@ -315,17 +309,12 @@ namespace Fancy {
       ASSERT(formatInfo.myNumPlanes <= GpuResourceView::ourNumSupportedPlanes);
       for (int i = 0; i < (int) formatInfo.myNumPlanes; ++i)
       {
-        const uint firstSubresourceIndex = TextureDX12::CalcSubresourceIndex(someProperties.myMipIndex, numMips, someProperties.myFirstArrayIndex, numArraySlices, i);
-        const uint endSubresourceIndex = TextureDX12::CalcSubresourceIndex(someProperties.myMipIndex + numViewMips, numMips, someProperties.myFirstArrayIndex + someProperties.myArraySize, numArraySlices, i);
-
-        const uint maxNumSubresourcesOnPlane = aTexture->GetNumSubresourcesPerPlane();
-        const uint numSubresources = endSubresourceIndex - firstSubresourceIndex;
-        ASSERT(firstSubresourceIndex + numSubresources <= aTexture->GetNumSubresources());
-        
-        textureView->mySubresourceOffsets[i] = firstSubresourceIndex;
-        textureView->myNumSubresources[i] = endSubresourceIndex - firstSubresourceIndex;
-        textureView->myCoversAllSubresources = numSubresources == maxNumSubresourcesOnPlane;
+        for (int iArray = someProperties.myFirstArrayIndex; iArray < someProperties.myFirstArrayIndex + someProperties.myArraySize; ++iArray)
+        for (int iMip = someProperties.myMipIndex; iMip < someProperties.myMipIndex + numMips; ++iMip)
+          textureView->mySubresources[i].push_back(TextureDX12::CalcSubresourceIndex(iMip, numMips, iArray, numArraySlices, i));
       }
+
+      textureView->myCoversAllSubresources = textureView->mySubresources[0].size() == aTexture->GetNumSubresourcesPerPlane();
     }
     
     return textureView;
@@ -356,8 +345,7 @@ namespace Fancy {
 
     GpuBufferView* bufferView = new GpuBufferView(aBuffer, someProperties);
     bufferView->myNativeData = nativeData;
-    bufferView->mySubresourceOffsets[0] = 0u;
-    bufferView->myNumSubresources[0] = 1u;
+    bufferView->mySubresources->push_back(0u);
     bufferView->myCoversAllSubresources = true;
     return bufferView;
   }
