@@ -981,7 +981,7 @@ namespace Fancy {
       SetSubresourceTransitionBarriers(&aResource, &aSubresourceIndex, &numSubresources, &aNewState, 1u);
     }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const uint* someSubresourceOffsets, const uint* someNumSubresources, D3D12_RESOURCE_STATES* someNewStates, uint aNumStates) const
+  void CommandContextDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const
   {
     D3D12_RESOURCE_BARRIER* barriers = (D3D12_RESOURCE_BARRIER*) alloca(sizeof(D3D12_RESOURCE_BARRIER) * aNumStates);
     uint numBarriers = 0u;
@@ -995,17 +995,11 @@ namespace Fancy {
       if (!resource->myCanChangeStates)
         continue;
 
-      uint subResourceOffset = someSubresourceOffsets == nullptr ? 0u : glm::min((uint) resource->mySubresourceStates.size() - 1, someSubresourceOffsets[iState]);
-      uint numSubresources = someNumSubresources == nullptr ? resource->mySubresourceStates.size() : glm::min((uint) resource->mySubresourceStates.size() - subResourceOffset, someNumSubresources[iState]);
+      const uint maxNumSubresources = resource->mySubresourceStates.size();
+      const uint numSubresources = someNumSubresources == nullptr ? maxNumSubresources : someNumSubresources[iState];
+      const bool transitionAllSubresources = numSubresources == maxNumSubresources;
 
-      const bool transitionAllSubresources = numSubresources == resource->mySubresourceStates.size();
-      if (transitionAllSubresources && resource->myAllSubresourcesInSameState)
-      {
-        subResourceOffset = 0u;
-        numSubresources = 1u;
-      }
-
-      for (uint iSub = subResourceOffset; iSub < subResourceOffset + numSubresources; ++iSub)
+      auto TransitionSubresource = [&](uint iSub, bool aTransitionAllSubresources)
       {
         const D3D12_RESOURCE_STATES oldState = resource->mySubresourceStates[iSub];
         const CommandListType oldContext = resource->mySubresourceContexts[iSub];
@@ -1018,7 +1012,7 @@ namespace Fancy {
         resource->mySubresourceContexts[iSub] = myCommandListType;
 
         if (oldState == newState)
-          continue;
+          return;
 
         // Validation to ensure the current context can understand the transition
         ASSERT(myCommandListType != CommandListType::Graphics || (oldState & kResourceStateMask_GraphicsContext) == oldState);
@@ -1037,7 +1031,7 @@ namespace Fancy {
         barrier.Transition.StateBefore = oldState;
         barrier.Transition.StateAfter = newState;
         
-        if (transitionAllSubresources)
+        if (aTransitionAllSubresources)
         {
           barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         
@@ -1055,7 +1049,29 @@ namespace Fancy {
           resource->mySubresourceStates[iSub] = newState;
           resource->mySubresourceContexts[iSub] = myCommandListType;
         }
+      };
+
+      if (transitionAllSubresources)
+      {
+        if (resource->myAllSubresourcesInSameState)
+        {
+          TransitionSubresource(0, true);
+        }
+
+        for (uint iSub = 0u; iSub < maxNumSubresources; ++iSub)
+        {
+          TransitionSubresource(iSub, false);
+        }
       }
+      else
+      {
+        const uint16* subresourceList = someSubresourceLists[iState];
+        for (uint i = 0u; i < someNumSubresources[iState]; ++i)
+        {
+          const uint iSub = subresourceList[i];
+          TransitionSubresource(iSub, false);
+        }
+      }  
 
       if (!transitionAllSubresources)
       {
