@@ -221,7 +221,7 @@ namespace Fancy {
         , path("")
         , myWidth(0u)
         , myHeight(0u)
-        , myDepthOrArraySize(0u)
+        , myDepthOrArraySize(1u)
         , eFormat(DataFormat::NONE)
         , myAccessType(GpuMemoryAccessType::NO_CPU_ACCESS)
         , myNumMipLevels(~0u)
@@ -230,6 +230,10 @@ namespace Fancy {
         , myIsRenderTarget(false) 
         , myPreferTypedFormat(false)
       {}
+
+      bool IsArray() const { return myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY || myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY || myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY; }
+      uint GetArraySize() const { return IsArray() ? myDepthOrArraySize : 1u; }
+      uint GetDepthSize() const { return IsArray() ? 1u : myDepthOrArraySize; }
 
       GpuResourceDimension myDimension;
       String path;

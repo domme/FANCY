@@ -49,6 +49,8 @@ namespace Fancy {
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive");
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsRenderTarget, "Render target and depthstencil are mutually exclusive");
 
+    myProperties.myDepthOrArraySize = glm::max(1u, myProperties.myDepthOrArraySize);
+
     myProperties.eFormat = RenderCore::ResolveFormat(someProperties.eFormat);
     DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetDXGIformat(myProperties.eFormat);
     if (!someProperties.myPreferTypedFormat)
@@ -105,7 +107,7 @@ namespace Fancy {
     }
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
-    const uint numArraySlices = glm::max(1u, someProperties.myDimension != GpuResourceDimension::TEXTURE_3D ? someProperties.myDepthOrArraySize : 1u);
+    const uint numArraySlices = myProperties.GetArraySize();
     const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
 
     storageDx12->mySubresourceStates.resize(numSubresources);
@@ -205,12 +207,10 @@ namespace Fancy {
   {
     // TODO support plane-indices?
 
-    const int arraySize = IsArray() ? myProperties.myDepthOrArraySize : 0;
+    const int startSubresourceIndex = GetSubresourceIndex(aStartSubLocation);
 
-    const int startSubresourceIndex = D3D12CalcSubresource(aStartSubLocation.myMipLevel, aStartSubLocation.myArrayIndex, 0, myProperties.myNumMipLevels, arraySize);
-
-    const int numOverallSubresources = myProperties.myNumMipLevels * glm::max(1, arraySize);
-
+    const uint arraySize = myProperties.GetArraySize();
+    const int numOverallSubresources = myProperties.myNumMipLevels * arraySize;
     const int numSubresources = numOverallSubresources - startSubresourceIndex;
     ASSERT(numSubresources > 0);
 
@@ -243,7 +243,7 @@ namespace Fancy {
   uint TextureDX12::GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const
   {
     const uint index = CalcSubresourceIndex(aSubresourceLocation.myMipLevel, myProperties.myNumMipLevels,
-      aSubresourceLocation.myArrayIndex, glm::max(1u, GetArraySize()),
+      aSubresourceLocation.myArrayIndex, myProperties.GetArraySize(),
       aSubresourceLocation.myPlaneIndex);
 
     ASSERT(index < GetNumSubresources());
@@ -253,12 +253,12 @@ namespace Fancy {
   uint TextureDX12::GetNumSubresources() const
   {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
-    return CalcNumSubresources(myProperties.myNumMipLevels, glm::max(1u, GetArraySize()), formatInfo.myNumPlanes);
+    return CalcNumSubresources(myProperties.myNumMipLevels, myProperties.GetArraySize(), formatInfo.myNumPlanes);
   }
 //---------------------------------------------------------------------------//
   uint TextureDX12::GetNumSubresourcesPerPlane() const
   {
-    return CalcNumSubresources(myProperties.myNumMipLevels, glm::max(1u, GetArraySize()), 1u);
+    return CalcNumSubresources(myProperties.myNumMipLevels, myProperties.GetArraySize(), 1u);
   }
 //---------------------------------------------------------------------------//
   TextureSubLocation TextureDX12::GetSubresourceLocation(uint aSubresourceIndex) const
@@ -266,9 +266,9 @@ namespace Fancy {
     ASSERT(aSubresourceIndex < GetNumSubresources());
 
     TextureSubLocation location;
-    location.myMipLevel = (aSubresourceIndex % myProperties.myNumMipLevels);
-    location.myArrayIndex = ((aSubresourceIndex / myProperties.myNumMipLevels) % glm::max(1u, GetArraySize()));
-    location.myPlaneIndex = (aSubresourceIndex / (myProperties.myNumMipLevels * glm::max(1u, GetArraySize())));
+    location.myMipLevel = aSubresourceIndex % myProperties.myNumMipLevels;
+    location.myArrayIndex = (aSubresourceIndex / myProperties.myNumMipLevels) % myProperties.GetArraySize();
+    location.myPlaneIndex = aSubresourceIndex / (myProperties.myNumMipLevels * myProperties.GetArraySize());
     return location;
   }
 //---------------------------------------------------------------------------//

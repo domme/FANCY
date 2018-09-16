@@ -549,10 +549,19 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<TextureView> RenderCore::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
   {
-    ASSERT(!someProperties.myIsShaderWritable || !someProperties.myIsRenderTarget, "UAV and RTV are mutually exclusive");
-    ASSERT(someProperties.myPlaneIndex < GpuResourceView::ourNumSupportedPlanes);
+    const TextureProperties& texProps = aTexture->GetProperties();
+    TextureViewProperties viewProps = someProperties;
+    viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.eFormat;
+    viewProps.myNumMipLevels = glm::max(1u, glm::min(viewProps.myNumMipLevels, texProps.myNumMipLevels));
+    viewProps.myArraySize = glm::max(1u, glm::min(viewProps.myArraySize, texProps.GetArraySize() - viewProps.myFirstArrayIndex));
+    viewProps.myZSize = glm::max(1u, glm::min(viewProps.myZSize, texProps.GetDepthSize() - viewProps.myFirstZindex));
+    
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(viewProps.myFormat);
+    ASSERT(viewProps.myPlaneIndex < formatInfo.myNumPlanes);
+    ASSERT(!viewProps.myIsShaderWritable || !viewProps.myIsRenderTarget, "UAV and RTV are mutually exclusive");
+    ASSERT(viewProps.myPlaneIndex < GpuResourceView::ourNumSupportedPlanes);
 
-    return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, someProperties));
+    return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, viewProps));
   }
 //---------------------------------------------------------------------------//
   SharedPtr<TextureView> RenderCore::CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, TextureSubData* someUploadDatas, uint aNumUploadDatas)

@@ -15,12 +15,12 @@ namespace Fancy {
       , myIsStencilReadOnly(false)
       , myNumMipLevels(UINT_MAX)
       , myPlaneIndex(0u)
-      , myArraySize(0u)
+      , myArraySize(1u)
       , myFirstArrayIndex(0u)
       , myMinLodClamp(0.0f)
       , myMipIndex(0u)
       , myFirstZindex(0u)
-      , myZSize(0u)
+      , myZSize(1u)
     { }
 
     GpuResourceDimension myDimension;

@@ -57,6 +57,8 @@ namespace Fancy {
       backbufferProps.eFormat = DataFormat::RGBA_8;
       backbufferProps.myWidth = aWidth;
       backbufferProps.myHeight = aHeight;
+      backbufferProps.myDepthOrArraySize = 1u;
+      backbufferProps.myNumMipLevels = 1u;
       
       myBackbufferTextures[i].reset(new TextureDX12());
       myBackbufferTextures[i]->Create(std::move(resource), backbufferProps);

@@ -25,8 +25,6 @@ namespace Fancy {
     virtual TextureSubLocation GetSubresourceLocation(uint aSubresourceIndex) const = 0;
 
     const TextureProperties& GetProperties() const { return myProperties; }
-    const bool IsArray() const { return myProperties.myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY || myProperties.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY || myProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY; }
-    const uint GetArraySize() const { return IsArray() ? myProperties.myDepthOrArraySize : 0u; }
     
   protected:
     virtual void Destroy() = 0;

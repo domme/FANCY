@@ -250,12 +250,9 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   TextureView* RenderCore_PlatformDX12::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
-  {
-    const DataFormat format = someProperties.myFormat != DataFormat::UNKNOWN ? someProperties.myFormat : aTexture->GetProperties().eFormat;
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
+  {   
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
 
-    ASSERT(someProperties.myPlaneIndex < formatInfo.myNumPlanes);
-    
     GpuResourceViewDataDX12 nativeData;
     nativeData.myType = GpuResourceViewDataDX12::NONE;
     if (someProperties.myIsRenderTarget)
@@ -288,9 +285,9 @@ namespace Fancy {
     if (nativeData.myDescriptor.myCpuHandle.ptr == 0u || nativeData.myType == GpuResourceViewDataDX12::NONE)
       return nullptr;
 
-    const uint numMips = aTexture->GetProperties().myNumMipLevels;
-    const uint numArraySlices = glm::max(1u, aTexture->GetArraySize());
-    const uint numViewMips = glm::min(numMips, someProperties.myNumMipLevels);
+    const TextureProperties& texProps = aTexture->GetProperties();
+    const uint numTexMips = texProps.myNumMipLevels;
+    const uint numTexArraySlices = texProps.GetArraySize();
     
     TextureView* textureView = new TextureView(aTexture, someProperties);
     textureView->myNativeData = nativeData;
@@ -298,9 +295,9 @@ namespace Fancy {
 
     if (nativeData.myType != GpuResourceViewDataDX12::DSV)
     {
-      for (int iArray = someProperties.myFirstArrayIndex; iArray < someProperties.myFirstArrayIndex + someProperties.myArraySize; ++iArray)
-        for (int iMip = someProperties.myMipIndex; iMip < someProperties.myMipIndex + numMips; ++iMip)
-          textureView->mySubresources[0].push_back(TextureDX12::CalcSubresourceIndex(iMip, numMips, iArray, numArraySlices, someProperties.myPlaneIndex));
+      for (uint iArray = someProperties.myFirstArrayIndex; iArray < someProperties.myFirstArrayIndex + someProperties.myArraySize; ++iArray)
+        for (uint iMip = someProperties.myMipIndex; iMip < someProperties.myMipIndex + someProperties.myNumMipLevels; ++iMip)
+          textureView->mySubresources[0].push_back(TextureDX12::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, someProperties.myPlaneIndex));
 
       textureView->myCoversAllSubresources = textureView->mySubresources[0].size() == aTexture->GetNumSubresources();
     }
@@ -309,9 +306,9 @@ namespace Fancy {
       ASSERT(formatInfo.myNumPlanes <= GpuResourceView::ourNumSupportedPlanes);
       for (int i = 0; i < (int) formatInfo.myNumPlanes; ++i)
       {
-        for (int iArray = someProperties.myFirstArrayIndex; iArray < someProperties.myFirstArrayIndex + someProperties.myArraySize; ++iArray)
-        for (int iMip = someProperties.myMipIndex; iMip < someProperties.myMipIndex + numMips; ++iMip)
-          textureView->mySubresources[i].push_back(TextureDX12::CalcSubresourceIndex(iMip, numMips, iArray, numArraySlices, i));
+        for (uint iArray = someProperties.myFirstArrayIndex; iArray < someProperties.myFirstArrayIndex + someProperties.myArraySize; ++iArray)
+          for (uint iMip = someProperties.myMipIndex; iMip < someProperties.myMipIndex + someProperties.myNumMipLevels; ++iMip)
+            textureView->mySubresources[i].push_back(TextureDX12::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, i));
       }
 
       textureView->myCoversAllSubresources = textureView->mySubresources[0].size() == aTexture->GetNumSubresourcesPerPlane();
@@ -373,24 +370,20 @@ namespace Fancy {
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    const DataFormat format = someProperties.myFormat != DataFormat::UNKNOWN ? someProperties.myFormat : aTexture->GetProperties().eFormat;
-    const DataFormatInfo& info = DataFormatInfo::GetFormatInfo(format);
-
-    DXGI_FORMAT dxgiFormat = GetDXGIformat(format);
-    if (info.myIsDepthStencil)
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
+    DXGI_FORMAT dxgiFormat = GetDXGIformat(someProperties.myFormat);
+    if (formatInfo.myIsDepthStencil)
     {
       ASSERT(someProperties.myPlaneIndex <= 1);
       dxgiFormat = someProperties.myPlaneIndex == 0 ? GetDepthViewFormat(dxgiFormat) : GetStencilViewFormat(dxgiFormat);
     }
-      
-    srvDesc.Format = dxgiFormat;
 
-    const uint numMips = glm::min(aTexture->GetProperties().myNumMipLevels, someProperties.myNumMipLevels);
+    srvDesc.Format = dxgiFormat;
 
     if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
-      srvDesc.Texture1D.MipLevels = numMips;
+      srvDesc.Texture1D.MipLevels = someProperties.myNumMipLevels;
       srvDesc.Texture1D.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.Texture1D.ResourceMinLODClamp = someProperties.myMinLodClamp;
     }
@@ -400,14 +393,14 @@ namespace Fancy {
       srvDesc.Texture1DArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
       srvDesc.Texture1DArray.ArraySize = someProperties.myArraySize;
       srvDesc.Texture1DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
-      srvDesc.Texture1DArray.MipLevels = numMips;
+      srvDesc.Texture1DArray.MipLevels = someProperties.myNumMipLevels;
       srvDesc.Texture1DArray.MostDetailedMip = someProperties.myMipIndex;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
       srvDesc.Texture2D.PlaneSlice = someProperties.myPlaneIndex;
-      srvDesc.Texture2D.MipLevels = numMips;
+      srvDesc.Texture2D.MipLevels = someProperties.myNumMipLevels;
       srvDesc.Texture2D.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.Texture2D.ResourceMinLODClamp = someProperties.myMinLodClamp;
     }
@@ -417,28 +410,28 @@ namespace Fancy {
       srvDesc.Texture2DArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
       srvDesc.Texture2DArray.ArraySize = someProperties.myArraySize;
       srvDesc.Texture2DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
-      srvDesc.Texture2DArray.MipLevels = numMips;
+      srvDesc.Texture2DArray.MipLevels = someProperties.myNumMipLevels;
       srvDesc.Texture2DArray.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.Texture2DArray.PlaneSlice = someProperties.myPlaneIndex;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-      srvDesc.Texture3D.MipLevels = numMips;
+      srvDesc.Texture3D.MipLevels = someProperties.myNumMipLevels;
       srvDesc.Texture3D.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.Texture3D.ResourceMinLODClamp = someProperties.myMinLodClamp;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-      srvDesc.TextureCube.MipLevels = numMips;
+      srvDesc.TextureCube.MipLevels = someProperties.myNumMipLevels;
       srvDesc.TextureCube.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.TextureCube.ResourceMinLODClamp = someProperties.myMinLodClamp;
     }
     else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
-      srvDesc.TextureCubeArray.MipLevels = numMips;
+      srvDesc.TextureCubeArray.MipLevels = someProperties.myNumMipLevels;
       srvDesc.TextureCubeArray.MostDetailedMip = someProperties.myMipIndex;
       srvDesc.TextureCubeArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
       srvDesc.TextureCubeArray.First2DArrayFace = someProperties.myFirstArrayIndex;
@@ -500,8 +493,7 @@ namespace Fancy {
   DescriptorDX12 RenderCore_PlatformDX12::CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties)
   {
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-    const DataFormat format = someProperties.myFormat != DataFormat::UNKNOWN ? someProperties.myFormat : aTexture->GetProperties().eFormat;
-    uavDesc.Format = GetDXGIformat(format);
+    uavDesc.Format = GetDXGIformat(someProperties.myFormat);
 
     if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
     {
@@ -592,8 +584,7 @@ namespace Fancy {
   {
     D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 
-    const DataFormat format = someProperties.myFormat != DataFormat::UNKNOWN ? someProperties.myFormat : aTexture->GetProperties().eFormat;
-    rtvDesc.Format = GetDXGIformat(format);
+    rtvDesc.Format = GetDXGIformat(someProperties.myFormat);
 
     if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
     {
@@ -642,8 +633,8 @@ namespace Fancy {
   DescriptorDX12 RenderCore_PlatformDX12::CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties)
   {
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-    const DataFormat format = someProperties.myFormat != DataFormat::UNKNOWN ? someProperties.myFormat : aTexture->GetProperties().eFormat;
-    const DXGI_FORMAT baseFormat = GetDXGIformat(format);
+    const DXGI_FORMAT baseFormat = GetDXGIformat(someProperties.myFormat);
+
     dsvDesc.Format = GetDepthStencilViewFormat(baseFormat);
     dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
     if (someProperties.myIsDepthReadOnly)
