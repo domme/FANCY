@@ -159,6 +159,10 @@ void RenderGrid(CommandContext* ctx)
 
 void Render()
 {
+  // TODO: This will crash when allocating static descriptors when creating the temporary srv/uav views to compute the MIPs. Add a way to release static descriptors again or introduce special temp-resource views that allocate from a short-lived heap
+  // SharedPtr<Texture> tex = myAssetStorage.GetTexture("Textures/Sibenik/mramor6x6.png");
+  // RenderCore::ComputeMipMaps(tex);
+
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };

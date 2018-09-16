@@ -3,6 +3,8 @@
 #include "FancyCorePrerequisites.h"
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
+#include <list>
+#include "Any.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -22,6 +24,7 @@ namespace Fancy {
     uint GetNumFreeDescriptors() const { return (uint) glm::max(0, (int)(myDesc.NumDescriptors - myNextFreeHandleIndex)); }
 
     DescriptorDX12 AllocateDescriptor();
+    void FreeDescriptor(const DescriptorDX12& aDescriptor);
     DescriptorDX12 GetDescriptor(uint anIndex) const;
     uint GetNumAllocatedDescriptors() const { return myNextFreeHandleIndex; }
     
@@ -38,4 +41,4 @@ namespace Fancy {
     D3D12_GPU_DESCRIPTOR_HANDLE myGpuHeapStart;
   };
 //---------------------------------------------------------------------------//
-}
+  

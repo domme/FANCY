@@ -115,11 +115,6 @@ namespace Fancy {
     ApplyDescriptorHeaps();
   }
 //---------------------------------------------------------------------------//
-  static void locMemcpySubresourceRows(const D3D12_MEMCPY_DEST* aDest, const D3D12_SUBRESOURCE_DATA* aSrc, size_t aRowStrideBytes, uint aNumRows, uint aNumSlices)
-  {
-    
-  }
-//---------------------------------------------------------------------------//
   void CommandContextDX12::UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource,
     uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const
   {
@@ -985,9 +980,9 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void CommandContextDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const
   {
-    D3D12_RESOURCE_BARRIER* barriers = (D3D12_RESOURCE_BARRIER*) alloca(sizeof(D3D12_RESOURCE_BARRIER) * aNumStates);
-    uint numBarriers = 0u;
+    D3D12_RESOURCE_BARRIER barriers[256];
 
+    uint numBarriers = 0u;
     for (uint iState = 0u; iState < aNumStates; ++iState)
     {
       const D3D12_RESOURCE_STATES newState = someNewStates[iState];
@@ -1026,6 +1021,7 @@ namespace Fancy {
         ASSERT(myCommandListType != CommandListType::DMA || (oldState & kResourceStateMask_Copy) == oldState);
         ASSERT(myCommandListType != CommandListType::DMA || (newState & kResourceStateMask_Copy) == newState);
 
+        ASSERT(numBarriers < ARRAY_LENGTH(barriers), "Maximum expected number of barriers encountered. please increase the barrier array size");
         D3D12_RESOURCE_BARRIER& barrier = barriers[numBarriers++];
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;

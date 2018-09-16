@@ -34,6 +34,11 @@ namespace Fancy {
     return descr;
   }
 //---------------------------------------------------------------------------//
+  void DescriptorHeapDX12::FreeDescriptor(const DescriptorDX12& aDescriptor)
+  {
+
+  }
+  //---------------------------------------------------------------------------//
   DescriptorDX12 DescriptorHeapDX12::GetDescriptor(uint anIndex) const
   {
     ASSERT(anIndex < myNextFreeHandleIndex);

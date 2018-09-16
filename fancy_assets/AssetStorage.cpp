@@ -23,8 +23,15 @@ using namespace Fancy;
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> AssetStorage::GetTexture(const char* aPath)
   {
-    const uint64 hash = MathUtil::Hash(aPath);
-    auto it = myTextures.find(hash);
+    String texPathAbs = aPath;
+    String texPathRel = aPath;
+    if (!Path::IsPathAbsolute(texPathAbs))
+      texPathAbs = Resources::FindPath(texPathAbs);
+    else
+      texPathRel = Resources::FindName(texPathAbs);
+
+    const uint64 texPathRelHash = MathUtil::Hash(texPathRel);
+    auto it = myTextures.find(texPathRelHash);
     if (it != myTextures.end())
       return it->second;
 

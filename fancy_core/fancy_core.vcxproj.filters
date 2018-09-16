@@ -277,6 +277,9 @@
     <ClInclude Include="DataFormatList.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="FreeList.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -409,5 +412,6 @@
     <ClCompile Include="CommandQueue.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="FreeList.cpp" />
   </ItemGroup>
 </Project>

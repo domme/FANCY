@@ -85,6 +85,7 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="MathPrerequisites.h" />
     <ClInclude Include="MeshData.h" />
+    <ClInclude Include="FreeList.h" />
     <ClInclude Include="RenderingStartupParameters.h" />
     <ClInclude Include="Fancy_Include.h" />
     <ClInclude Include="FileWatcher.h" />
@@ -157,6 +158,7 @@
     <ClCompile Include="DataFormat.cpp" />
     <ClCompile Include="DescriptorHeapDX12.cpp" />
     <ClCompile Include="FileWatcher.cpp" />
+    <ClCompile Include="FreeList.cpp" />
     <ClCompile Include="GeometryData.cpp" />
     <ClCompile Include="GpuBuffer.cpp" />
     <ClCompile Include="GpuBufferDX12.cpp" />
