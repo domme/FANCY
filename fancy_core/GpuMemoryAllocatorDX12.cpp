@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "DX12Prerequisites.h"
 #include "GpuMemoryAllocatorDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
@@ -7,13 +8,13 @@
 
 namespace Fancy
 {
+  
 //---------------------------------------------------------------------------//
   GpuMemoryAllocatorDX12::GpuMemoryAllocatorDX12(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aMemBlockSize)
     : myType(aType)
     , myAccessType(anAccessType)
-    , myDefaultPageSize(aMemBlockSize)
+    , myFreeList(aMemBlockSize, Bind(this, &GpuMemoryAllocatorDX12::OnCreatePageData), Bind(this, &GpuMemoryAllocatorDX12::OnDestroyPageData))
   {
-    CreateAndAddPage(aMemBlockSize);
   }
 //---------------------------------------------------------------------------//
   GpuMemoryAllocatorDX12::~GpuMemoryAllocatorDX12()
@@ -22,43 +23,14 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate(const uint64 aSize, const uint anAlignment)
   {
-    uint64 alignedSize = MathUtil::Align(aSize, anAlignment);
-
     GpuMemoryAllocationDX12 allocResult;
+
+    uint64 virtualOffset, allocatedSize, offsetInPage;
+    myFreeList.Allocate(aSize, anAlignment, allocatedSize, virtualOffset, offsetInPage);
+
+
+
     
-    for (auto it = myFreeList.begin(); it != myFreeList.end(); ++it)
-    {
-      // Make sure to allocate enough space that the offset can be moved upwards to match the alignment in client code
-      const uint64 extraSize = MathUtil::Align(it->myVirtualOffset, anAlignment) - it->myVirtualOffset;
-      alignedSize += extraSize;
-     
-      // Simple first-fit allocation scheme for now... maybe change into something more sophisticated in the future?
-      if (it->mySize >= alignedSize)
-      {
-        const Page* page = GetPageAndOffset(it->myVirtualOffset, allocResult.myOffsetInHeap);
-        ASSERT(page != nullptr);
-          
-        if (it->mySize > alignedSize)
-        {
-          it->mySize -= alignedSize;
-          it->myVirtualOffset += alignedSize;
-        }
-        else
-        {
-          myFreeList.erase(it);
-        }
-
-        allocResult.mySize = alignedSize;
-        allocResult.myHeap = page->myHeap.Get();
-        return allocResult;
-      }
-    }
-
-    // No free chunks left to statisfy the allocation request: Add a new Page!
-    if (!CreateAndAddPage(MathUtil::Align(aSize, myDefaultPageSize)))
-      return {};
-
-    return Allocate(aSize, anAlignment);
   }
 //---------------------------------------------------------------------------//
   void GpuMemoryAllocatorDX12::Free(GpuMemoryAllocationDX12& anAllocation)
@@ -125,7 +97,7 @@ namespace Fancy
     anAllocation = {};
   }
 //---------------------------------------------------------------------------//
-  bool GpuMemoryAllocatorDX12::CreateAndAddPage(uint64 aSize)
+  void GpuMemoryAllocatorDX12::OnCreatePageData(Microsoft::WRL::ComPtr<ID3D12Heap>& aHeap, uint64 aSize)
   {
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
 
@@ -133,24 +105,18 @@ namespace Fancy
 
     D3D12_HEAP_DESC heapDesc{ 0u };
     heapDesc.SizeInBytes = alignedSize;
-    heapDesc.Flags = Adapter::ResolveHeapFlags(myType);
+    heapDesc.Flags = Adapter::ResolveHeapFlags(aMemoryType);
     heapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-    heapDesc.Properties.Type = RenderCore_PlatformDX12::ResolveHeapType(myAccessType);
+    heapDesc.Properties.Type = RenderCore_PlatformDX12::ResolveHeapType(anAccessType);
     heapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-
-    Page page { 0u, 0u, nullptr };
-    page.mySize = alignedSize;
-    if (!SUCCEEDED(device->CreateHeap(&heapDesc, IID_PPV_ARGS(&page.myHeap))))
-      return false;
-
-    if (!myPages.empty())
-      page.myVirtualOffset = myPages.back().myVirtualOffset + myPages.back().mySize;
-        
-    myFreeList.push_back(FreeElement{ page.myVirtualOffset, page.mySize });
-    myPages.push_back(page);
-    return true;
+    CheckD3Dcall(device->CreateHeap(&heapDesc, IID_PPV_ARGS(&aHeap)));
   }
-//---------------------------------------------------------------------------//
+
+  void GpuMemoryAllocatorDX12::OnDestroyPageData(Microsoft::WRL::ComPtr<ID3D12Heap>& aHeap)
+  {
+  }
+
+  //---------------------------------------------------------------------------//
   const GpuMemoryAllocatorDX12::Page* GpuMemoryAllocatorDX12::GetPageAndOffset(uint64 aVirtualOffset, uint64& aOffsetInBlock)
   {
     for (const Page& existingPage : myPages)

@@ -2,7 +2,7 @@
 
 #include "RendererPrerequisites.h"
 #include "DX12Prerequisites.h"
-#include <list>
+#include "FreeList.h"
 
 namespace Fancy
 {
@@ -23,29 +23,13 @@ namespace Fancy
 
     GpuMemoryAllocationDX12 Allocate(const uint64 aSize, const uint anAlignment);
     void Free(GpuMemoryAllocationDX12& anAllocation);
+    void OnCreatePageData(Microsoft::WRL::ComPtr<ID3D12Heap>& aHeap, uint64 aSize);
+    void OnDestroyPageData(Microsoft::WRL::ComPtr<ID3D12Heap>& aHeap);
 
   private:
-    struct Page
-    {
-      uint64 myVirtualOffset;
-      uint64 mySize;
-      Microsoft::WRL::ComPtr<ID3D12Heap> myHeap;
-    };
-
-    struct FreeElement
-    {
-      uint64 myVirtualOffset;
-      uint64 mySize;
-    };
-
-    bool CreateAndAddPage(uint64 aSize);
-    const Page* GetPageAndOffset(uint64 aVirtualOffset, uint64& aOffsetInPage);
-    
+    FreeList<Microsoft::WRL::ComPtr<ID3D12Heap>> myFreeList;
     GpuMemoryType myType;
     GpuMemoryAccessType myAccessType;
-    uint64 myDefaultPageSize;
-    std::list<FreeElement> myFreeList;
-    std::vector<Page> myPages;
   };
 //---------------------------------------------------------------------------//
 }
