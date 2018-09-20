@@ -40,5 +40,5 @@ namespace Fancy {
     D3D12_CPU_DESCRIPTOR_HANDLE myCpuHeapStart;
     D3D12_GPU_DESCRIPTOR_HANDLE myGpuHeapStart;
   };
-//---------------------------------------------------------------------------//
-  
+//---------------------------------------------------------------------------// 
+}

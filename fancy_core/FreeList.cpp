@@ -10,7 +10,7 @@ namespace Fancy
   {
   }
 //---------------------------------------------------------------------------//
-  bool FreeList::Allocate(uint64 aSize, uint anAlignment, uint64& anAllocatedSizeOut, uint64& aVirtualOffsetOut, uint64& anOffsetInPageOut)
+  bool FreeList::Allocate(uint64 aSize, uint anAlignment, Block& aBlockOut, Page& aPageOut)
   {
     uint64 alignedSize = MathUtil::Align(aSize, anAlignment);
 
@@ -26,9 +26,9 @@ namespace Fancy
         const Page* page = GetPageAndOffset(it->myVirtualOffset, offsetInPage);
         ASSERT(page != nullptr);
 
-        anAllocatedSizeOut = alignedSize;
-        aVirtualOffsetOut = it->myVirtualOffset;
-        anOffsetInPageOut = offsetInPage;
+        aBlockOut.myVirtualOffset = it->myVirtualOffset;
+        aBlockOut.mySize = alignedSize;
+        aPageOut = *page;
           
         if (it->mySize > alignedSize)
         {
@@ -46,13 +46,16 @@ namespace Fancy
 
     // No free chunks left to statisfy the allocation request: Add a new Page!
     CreateAndAddPage(MathUtil::Align(aSize, myPageSize));
-    return Allocate(aSize, anAlignment, anAllocatedSizeOut, aVirtualOffsetOut, anOffsetInPageOut);
+    return Allocate(aSize, anAlignment, aBlockOut, aPageOut);
   }
 //---------------------------------------------------------------------------//
-  void FreeList::Free(uint64 aVirtualOffset, uint64 aSize)
+  void FreeList::Free(const Block& aBlock, Page& aDestroyedPageOut)
   {
-    auto blockIt = std::find_if(myPages.begin(), myPages.end(), [aVirtualOffset, aSize](const Page& aPage)
-    { return aVirtualOffset <= aPage.myVirtualOffset && aVirtualOffset + aSize <= aPage.myVirtualOffset + aPage.mySize; });
+    const uint64 virtualOffset = aBlock.myVirtualOffset;
+    const uint64 size = aBlock.mySize;
+
+    auto blockIt = std::find_if(myPages.begin(), myPages.end(), [virtualOffset, size](const Page& aPage)
+    { return virtualOffset <= aPage.myVirtualOffset && virtualOffset + size <= aPage.myVirtualOffset + aPage.mySize; });
 
     ASSERT(blockIt != myPages.end());
 
@@ -60,9 +63,9 @@ namespace Fancy
     for (auto freeChunk = myFreeList.begin(); !inserted && freeChunk != myFreeList.end(); ++freeChunk)
     {
       // A..AX..X B..B --> A....A B..B
-      if (freeChunk->myVirtualOffset + freeChunk->mySize == aVirtualOffset)
+      if (freeChunk->myVirtualOffset + freeChunk->mySize == virtualOffset)
       {
-        freeChunk->mySize += aSize;
+        freeChunk->mySize += size;
 
         auto nextChunk = freeChunk; 
         ++nextChunk;
@@ -77,10 +80,10 @@ namespace Fancy
         inserted = true;
       }
       // A..A X..XB..B --> A..A B....B 
-      else if (freeChunk->myVirtualOffset == aVirtualOffset + aSize)
+      else if (freeChunk->myVirtualOffset == virtualOffset + size)
       {
-        freeChunk->myVirtualOffset = aVirtualOffset;
-        freeChunk->mySize += aSize;
+        freeChunk->myVirtualOffset = virtualOffset;
+        freeChunk->mySize += size;
         inserted = true;
       }
     }
@@ -97,9 +100,9 @@ namespace Fancy
         if (nextIt == myFreeList.end())
           break;
 
-        if (aVirtualOffset > it->myVirtualOffset + it->mySize && aVirtualOffset + aSize < nextIt->myVirtualOffset)
+        if (virtualOffset > it->myVirtualOffset + it->mySize && virtualOffset + size < nextIt->myVirtualOffset)
         {
-          myFreeList.insert(it, FreeElement{ aVirtualOffset, aSize });
+          myFreeList.insert(it, aBlock);
           inserted = true;
         }
       }
@@ -107,23 +110,27 @@ namespace Fancy
 
     if (!inserted)
     {
-      if (myFreeList.empty() || myFreeList.back().myVirtualOffset + myFreeList.back().mySize < aVirtualOffset)
-        myFreeList.push_back(FreeElement{ aVirtualOffset, aSize });
+      if (myFreeList.empty() || myFreeList.back().myVirtualOffset + myFreeList.back().mySize < virtualOffset)
+        myFreeList.push_back(aBlock);
       else
-        myFreeList.push_front(FreeElement{ aVirtualOffset, aSize });
+        myFreeList.push_front(aBlock);
     }
     
     // Check if we can completely remove any block beyond the first default one
+    bool hasRemovedPage = false;
     for (int i = myPages.size() - 1; i > 0; --i)
     {
-      const Page& block = myPages[i];
-      auto it = std::find_if(myFreeList.begin(), myFreeList.end(), [&block](const FreeElement& aChunk) {
-        return aChunk.myVirtualOffset == block.myVirtualOffset && aChunk.mySize == block.mySize;
+      const Page& page = myPages[i];
+      auto it = std::find_if(myFreeList.begin(), myFreeList.end(), [&page](const Block& anOtherBlock) {
+        return anOtherBlock.myVirtualOffset == page.myVirtualOffset && anOtherBlock.mySize == page.mySize;
       });
 
       if (it != myFreeList.end())
       {
-        myDestroyPageDataCallback(block.myData);
+        ASSERT(!hasRemovedPage); // Something is fishy if we find two pages to remove if we only free one block
+        hasRemovedPage = true;
+
+        aDestroyedPageOut = *(myPages.begin() + i);
         myFreeList.erase(it);
         myPages.erase(myPages.begin() + i);
       }
@@ -148,9 +155,8 @@ namespace Fancy
   {
     const uint64 alignedSize  = MathUtil::Align(aSize, myPageSize);
     const uint64 virtualPageOffset = myPages.empty() ? 0u : myPages.back().myVirtualOffset + myPages.back().mySize; 
-    Page page { alignedSize, alignedSize};
-    myCreatePageDataCallback(page.myData);
-    myFreeList.push_back(FreeElement{ page.myVirtualOffset, page.mySize });
+    const Page page{ virtualPageOffset, alignedSize};
+    myFreeList.push_back(Block{ page.myVirtualOffset, page.mySize });
     myPages.push_back(page);
   }
 //---------------------------------------------------------------------------//

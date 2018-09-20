@@ -3,6 +3,7 @@
 #include "RendererPrerequisites.h"
 #include "DX12Prerequisites.h"
 #include "FreeList.h"
+#include <unordered_map>
 
 namespace Fancy
 {
@@ -23,13 +24,15 @@ namespace Fancy
 
     GpuMemoryAllocationDX12 Allocate(const uint64 aSize, const uint anAlignment);
     void Free(GpuMemoryAllocationDX12& anAllocation);
-    void OnCreatePageData(Microsoft::WRL::ComPtr<ID3D12Heap>& aHeap, uint64 aSize);
-    void OnDestroyPageData(Microsoft::WRL::ComPtr<ID3D12Heap>& aHeap);
 
   private:
-    FreeList<Microsoft::WRL::ComPtr<ID3D12Heap>> myFreeList;
     GpuMemoryType myType;
     GpuMemoryAccessType myAccessType;
+
+    FreeList myFreeList;
+    std::unordered_map<uint64, Microsoft::WRL::ComPtr<ID3D12Heap>> myHeaps;
+
+    Microsoft::WRL::ComPtr<ID3D12Heap> CreateHeap(uint64 aSize);
   };
 //---------------------------------------------------------------------------//
 }
