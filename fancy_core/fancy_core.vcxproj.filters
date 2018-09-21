@@ -277,7 +277,7 @@
     <ClInclude Include="DataFormatList.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="FreeList.h">
+    <ClInclude Include="PagedLinearAllocator.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
@@ -412,6 +412,5 @@
     <ClCompile Include="CommandQueue.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="FreeList.cpp" />
   </ItemGroup>
 </Project>

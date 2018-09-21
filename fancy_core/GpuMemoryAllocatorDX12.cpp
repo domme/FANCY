@@ -9,6 +9,9 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
+  using Page = PagedLinearAllocator<Microsoft::WRL::ComPtr<ID3D12Heap>>::Page;
+  using Block = PagedLinearAllocator<Microsoft::WRL::ComPtr<ID3D12Heap>>::Block;
+ //---------------------------------------------------------------------------//
   bool CreateHeap(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, Microsoft::WRL::ComPtr<ID3D12Heap>& aHeapOut)
   {
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
@@ -37,68 +40,38 @@ namespace Fancy
   GpuMemoryAllocatorDX12::GpuMemoryAllocatorDX12(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aMemBlockSize)
     : myType(aType)
     , myAccessType(anAccessType)
-    , myFreeList(aMemBlockSize, 
+    , myAllocator(aMemBlockSize, 
       [aType, anAccessType](uint64 aSize, Microsoft::WRL::ComPtr<ID3D12Heap>& aHeapOut){return CreateHeap(aType, anAccessType, aSize, aHeapOut); }
       , DestroyHeap)
-  {
-  }
-//---------------------------------------------------------------------------//
-  GpuMemoryAllocatorDX12::~GpuMemoryAllocatorDX12()
   {
   }
 //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate(const uint64 aSize, const uint anAlignment)
   {
     uint64 offsetInPage;
-    auto page = myFreeList.Allocate(aSize, anAlignment, offsetInPage);
-
-
-
-    GpuMemoryAllocationDX12 allocResult;
-    allocResult.myOffsetInHeap = block.myVirtualOffset - page.myVirtualOffset;
-    allocResult.mySize = block.mySize;
+    const Page* page = myAllocator.Allocate(aSize, anAlignment, offsetInPage);
+    if (page == nullptr)
+      return GpuMemoryAllocationDX12{};
     
-    auto heapIt = myHeaps.find(page.myVirtualOffset);
-    if (heapIt == myHeaps.end())
-    {
-      Microsoft::WRL::ComPtr<ID3D12Heap> heap = CreateHeap(page.mySize);
-      allocResult.myHeap = heap.Get();
-      myHeaps.insert[page.myVirtualOffset] = heap;
-    }
-    else
-    {
-      allocResult.myHeap = heapIt->second.Get();
-    }
-
+    GpuMemoryAllocationDX12 allocResult;
+    allocResult.myOffsetInHeap = offsetInPage;
+    allocResult.mySize = aSize;
+    allocResult.myHeap = page->myData.Get();
     return allocResult;
   }
 //---------------------------------------------------------------------------//
   void GpuMemoryAllocatorDX12::Free(GpuMemoryAllocationDX12& anAllocation)
   {
-    auto heapIt = std::find_if(myHeaps.begin(), myHeaps.end(), [](auto it))
+    const Page* page = myAllocator.FindPage([&](const Page& aPage) {
+      return anAllocation.myHeap == aPage.myData.Get();
+    });
 
+    ASSERT(page != nullptr);
 
-    FreeList::Page destroyedPage{UINT64_MAX, UINT64_MAX};
-    myFreeList.Free()
-  }
-//---------------------------------------------------------------------------//
-  Microsoft::WRL::ComPtr<ID3D12Heap> GpuMemoryAllocatorDX12::CreateHeap(uint64 aSize)
-  {
-    
-  }
-//---------------------------------------------------------------------------//
-  const GpuMemoryAllocatorDX12::Page* GpuMemoryAllocatorDX12::GetPageAndOffset(uint64 aVirtualOffset, uint64& aOffsetInBlock)
-  {
-    for (const Page& existingPage : myPages)
-    {
-      if (existingPage.myVirtualOffset <= aVirtualOffset && existingPage.myVirtualOffset + existingPage.mySize > aVirtualOffset)
-      {
-        aOffsetInBlock = aVirtualOffset - existingPage.myVirtualOffset;
-        return &existingPage;
-      }
-    }
-
-    return nullptr;
+    Block block;
+    block.myVirtualOffset = page->myVirtualOffset + anAllocation.myOffsetInHeap;
+    block.mySize = anAllocation.mySize;
+    myAllocator.Free(block);
   }
 //---------------------------------------------------------------------------//
 }

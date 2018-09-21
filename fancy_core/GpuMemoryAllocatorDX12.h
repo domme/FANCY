@@ -2,7 +2,7 @@
 
 #include "RendererPrerequisites.h"
 #include "DX12Prerequisites.h"
-#include "FreeList.h"
+#include "PagedLinearAllocator.h"
 #include <unordered_map>
 
 namespace Fancy
@@ -20,7 +20,7 @@ namespace Fancy
   {
   public:
     GpuMemoryAllocatorDX12(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aMemBlockSize);
-    ~GpuMemoryAllocatorDX12();
+    ~GpuMemoryAllocatorDX12() = default;
 
     GpuMemoryAllocationDX12 Allocate(const uint64 aSize, const uint anAlignment);
     void Free(GpuMemoryAllocationDX12& anAllocation);
@@ -28,7 +28,7 @@ namespace Fancy
   private:
     GpuMemoryType myType;
     GpuMemoryAccessType myAccessType;
-    FreeList<Microsoft::WRL::ComPtr<ID3D12Heap>> myFreeList;
+    PagedLinearAllocator<Microsoft::WRL::ComPtr<ID3D12Heap>> myAllocator;
   };
 //---------------------------------------------------------------------------//
 }

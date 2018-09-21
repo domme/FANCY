@@ -8,7 +8,7 @@ namespace Fancy
 {
 //---------------------------------------------------------------------------//
   template<class T>
-  class FreeList
+  class PagedLinearAllocator
   {
   public:
     struct Page
@@ -26,12 +26,21 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
  //---------------------------------------------------------------------------//
-    FreeList(uint aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn)
+    PagedLinearAllocator(uint aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn)
       : myPageSize(aPageSize)
       , myPageDataCreateFn(aPageDataCreateFn)
       , myPageDataDestroyFn(aPageDataDestroyFn)
     {
     }
+//---------------------------------------------------------------------------//
+  const Page* FindPage(std::function<bool(const Page&)> aPredicateFn)
+  {
+    for (const Page& page : myPages)
+      if (aPredicateFn(page))
+        return &page;
+
+    return nullptr;
+  }
 //---------------------------------------------------------------------------//
     const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut)
     {
@@ -141,14 +150,14 @@ namespace Fancy
       // Check if we can completely remove any block beyond the first default one
       for (int i = myPages.size() - 1; i > 0; --i)
       {
-        const Page& page = myPages[i];
+        Page& page = myPages[i];
         auto it = std::find_if(myFreeList.begin(), myFreeList.end(), [&page](const Block& anOtherBlock) {
           return anOtherBlock.myVirtualOffset == page.myVirtualOffset && anOtherBlock.mySize == page.mySize;
         });
 
         if (it != myFreeList.end())
         {
-          myPageDataDestroyFn(*(myPages.begin() + i));
+          myPageDataDestroyFn(page.myData);
           myFreeList.erase(it);
           myPages.erase(myPages.begin() + i);
         }
