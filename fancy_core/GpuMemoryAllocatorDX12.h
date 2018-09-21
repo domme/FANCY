@@ -28,11 +28,7 @@ namespace Fancy
   private:
     GpuMemoryType myType;
     GpuMemoryAccessType myAccessType;
-
-    FreeList myFreeList;
-    std::unordered_map<uint64, Microsoft::WRL::ComPtr<ID3D12Heap>> myHeaps;
-
-    Microsoft::WRL::ComPtr<ID3D12Heap> CreateHeap(uint64 aSize);
+    FreeList<Microsoft::WRL::ComPtr<ID3D12Heap>> myFreeList;
   };
 //---------------------------------------------------------------------------//
 }

@@ -7,12 +7,39 @@
 #include "AdapterDX12.h"
 
 namespace Fancy
-{  
+{
+//---------------------------------------------------------------------------//
+  bool CreateHeap(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, Microsoft::WRL::ComPtr<ID3D12Heap>& aHeapOut)
+  {
+    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
+    const uint64 alignedSize  = MathUtil::Align(aSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+
+    D3D12_HEAP_DESC heapDesc{ 0u };
+    heapDesc.SizeInBytes = alignedSize;
+    heapDesc.Flags = Adapter::ResolveHeapFlags(aType);
+    heapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+    heapDesc.Properties.Type = RenderCore_PlatformDX12::ResolveHeapType(anAccessType);
+    heapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+
+    Microsoft::WRL::ComPtr<ID3D12Heap> heap;
+    if (!SUCCEEDED(device->CreateHeap(&heapDesc, IID_PPV_ARGS(&heap))))
+      return false;
+
+    aHeapOut = heap;
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  void DestroyHeap(Microsoft::WRL::ComPtr<ID3D12Heap>& /*aHeap*/)
+  {
+    // No special treatment needed here. Resource will be released by the smartptr
+  }
 //---------------------------------------------------------------------------//
   GpuMemoryAllocatorDX12::GpuMemoryAllocatorDX12(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aMemBlockSize)
     : myType(aType)
     , myAccessType(anAccessType)
-    , myFreeList(aMemBlockSize)
+    , myFreeList(aMemBlockSize, 
+      [aType, anAccessType](uint64 aSize, Microsoft::WRL::ComPtr<ID3D12Heap>& aHeapOut){return CreateHeap(aType, anAccessType, aSize, aHeapOut); }
+      , DestroyHeap)
   {
   }
 //---------------------------------------------------------------------------//
@@ -22,9 +49,10 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate(const uint64 aSize, const uint anAlignment)
   {
-    FreeList::Block block;
-    FreeList::Page page;
-    myFreeList.Allocate(aSize, anAlignment, block, page);
+    uint64 offsetInPage;
+    auto page = myFreeList.Allocate(aSize, anAlignment, offsetInPage);
+
+
 
     GpuMemoryAllocationDX12 allocResult;
     allocResult.myOffsetInHeap = block.myVirtualOffset - page.myVirtualOffset;
@@ -56,20 +84,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<ID3D12Heap> GpuMemoryAllocatorDX12::CreateHeap(uint64 aSize)
   {
-    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
-    const uint64 alignedSize  = MathUtil::Align(aSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
-
-    D3D12_HEAP_DESC heapDesc{ 0u };
-    heapDesc.SizeInBytes = alignedSize;
-    heapDesc.Flags = Adapter::ResolveHeapFlags(myType);
-    heapDesc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-    heapDesc.Properties.Type = RenderCore_PlatformDX12::ResolveHeapType(myAccessType);
-    heapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-
-    Microsoft::WRL::ComPtr<ID3D12Heap> heap;
-    CheckD3Dcall(device->CreateHeap(&heapDesc, IID_PPV_ARGS(&heap)));
-
-    return heap;
+    
   }
 //---------------------------------------------------------------------------//
   const GpuMemoryAllocatorDX12::Page* GpuMemoryAllocatorDX12::GetPageAndOffset(uint64 aVirtualOffset, uint64& aOffsetInBlock)
