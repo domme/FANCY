@@ -87,7 +87,7 @@ namespace Fancy
       const uint64 size = aBlock.mySize;
 
       auto blockIt = std::find_if(myPages.begin(), myPages.end(), [virtualOffset, size](const Page& aPage)
-      { return virtualOffset <= aPage.myVirtualOffset && virtualOffset + size <= aPage.myVirtualOffset + aPage.mySize; });
+      { return aPage.myVirtualOffset <= virtualOffset && aPage.myVirtualOffset + aPage.mySize >= virtualOffset + size; });
 
       ASSERT(blockIt != myPages.end());
 

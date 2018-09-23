@@ -1,6 +1,6 @@
 #pragma once
-#include "DescriptorDX12.h"
 #include "Texture.h"
+#include "GpuResourceViewDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -26,4 +26,16 @@ namespace Fancy {
     void Destroy() override;
   };
 //---------------------------------------------------------------------------//
+  class TextureViewDX12 final : public TextureView
+  {
+  public:
+    TextureViewDX12(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties);
+    ~TextureViewDX12() override;
+
+  private:
+    static bool CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
+    static bool CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
+    static bool CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
+    static bool CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
+  };
 }

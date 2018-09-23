@@ -287,4 +287,311 @@ namespace Fancy {
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  TextureViewDX12::TextureViewDX12(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
+    : TextureView::TextureView(aTexture, someProperties)
+  {
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
+
+    bool success = false;
+    GpuResourceViewDataDX12 nativeData;
+    nativeData.myType = GpuResourceViewDataDX12::NONE;
+    if (someProperties.myIsRenderTarget)
+    {
+      if (formatInfo.myIsDepthStencil)
+      {
+        nativeData.myType = GpuResourceViewDataDX12::DSV;
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        success = CreateDSV(aTexture.get(), someProperties, nativeData.myDescriptor);
+      }
+      else
+      {
+        nativeData.myType = GpuResourceViewDataDX12::RTV;
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        success = CreateRTV(aTexture.get(), someProperties, nativeData.myDescriptor);
+      }
+    }
+    else
+    {
+      if (someProperties.myIsShaderWritable)
+      {
+        nativeData.myType = GpuResourceViewDataDX12::UAV;
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        success = CreateUAV(aTexture.get(), someProperties, nativeData.myDescriptor);
+      }
+      else
+      {
+        nativeData.myType = GpuResourceViewDataDX12::SRV;
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        success = CreateSRV(aTexture.get(), someProperties, nativeData.myDescriptor);
+      }
+    }
+
+    ASSERT(success && nativeData.myDescriptor.myCpuHandle.ptr != 0u && nativeData.myType != GpuResourceViewDataDX12::NONE);
+
+    const TextureProperties& texProps = aTexture->GetProperties();
+    const uint numTexMips = texProps.myNumMipLevels;
+    const uint numTexArraySlices = texProps.GetArraySize();
+    
+    myNativeData = nativeData;
+    mySubresources->reserve(aTexture->GetNumSubresources());
+
+    if (nativeData.myType != GpuResourceViewDataDX12::DSV)
+    {
+      for (uint iArray = someProperties.myFirstArrayIndex; iArray < someProperties.myFirstArrayIndex + someProperties.myArraySize; ++iArray)
+        for (uint iMip = someProperties.myMipIndex; iMip < someProperties.myMipIndex + someProperties.myNumMipLevels; ++iMip)
+          mySubresources[0].push_back(TextureDX12::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, someProperties.myPlaneIndex));
+
+      myCoversAllSubresources = mySubresources[0].size() == aTexture->GetNumSubresources();
+    }
+    else // DSV
+    {
+      ASSERT(formatInfo.myNumPlanes <= GpuResourceView::ourNumSupportedPlanes);
+      for (int i = 0; i < (int) formatInfo.myNumPlanes; ++i)
+      {
+        for (uint iArray = someProperties.myFirstArrayIndex; iArray < someProperties.myFirstArrayIndex + someProperties.myArraySize; ++iArray)
+          for (uint iMip = someProperties.myMipIndex; iMip < someProperties.myMipIndex + someProperties.myNumMipLevels; ++iMip)
+            mySubresources[i].push_back(TextureDX12::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, i));
+      }
+
+      myCoversAllSubresources = mySubresources[0].size() == aTexture->GetNumSubresourcesPerPlane();
+    }
+  }
+//---------------------------------------------------------------------------//
+  TextureViewDX12::~TextureViewDX12()
+  {
+    const GpuResourceViewDataDX12& viewData = myNativeData.To<GpuResourceViewDataDX12>();
+    RenderCore::GetPlatformDX12()->ReleaseDescriptor(viewData.myDescriptor);
+  }
+//---------------------------------------------------------------------------//
+  bool TextureViewDX12::CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  {
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
+    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetDXGIformat(someProperties.myFormat);
+    if (formatInfo.myIsDepthStencil)
+    {
+      ASSERT(someProperties.myPlaneIndex <= 1);
+      dxgiFormat = someProperties.myPlaneIndex == 0 ? RenderCore_PlatformDX12::GetDepthViewFormat(dxgiFormat) : RenderCore_PlatformDX12::GetStencilViewFormat(dxgiFormat);
+    }
+
+    srvDesc.Format = dxgiFormat;
+
+    if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
+      srvDesc.Texture1D.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture1D.MostDetailedMip = someProperties.myMipIndex;
+      srvDesc.Texture1D.ResourceMinLODClamp = someProperties.myMinLodClamp;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+      srvDesc.Texture1DArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
+      srvDesc.Texture1DArray.ArraySize = someProperties.myArraySize;
+      srvDesc.Texture1DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      srvDesc.Texture1DArray.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture1DArray.MostDetailedMip = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+      srvDesc.Texture2D.PlaneSlice = someProperties.myPlaneIndex;
+      srvDesc.Texture2D.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture2D.MostDetailedMip = someProperties.myMipIndex;
+      srvDesc.Texture2D.ResourceMinLODClamp = someProperties.myMinLodClamp;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+      srvDesc.Texture2DArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
+      srvDesc.Texture2DArray.ArraySize = someProperties.myArraySize;
+      srvDesc.Texture2DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      srvDesc.Texture2DArray.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture2DArray.MostDetailedMip = someProperties.myMipIndex;
+      srvDesc.Texture2DArray.PlaneSlice = someProperties.myPlaneIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+      srvDesc.Texture3D.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.Texture3D.MostDetailedMip = someProperties.myMipIndex;
+      srvDesc.Texture3D.ResourceMinLODClamp = someProperties.myMinLodClamp;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+      srvDesc.TextureCube.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.TextureCube.MostDetailedMip = someProperties.myMipIndex;
+      srvDesc.TextureCube.ResourceMinLODClamp = someProperties.myMinLodClamp;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY)
+    {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
+      srvDesc.TextureCubeArray.MipLevels = someProperties.myNumMipLevels;
+      srvDesc.TextureCubeArray.MostDetailedMip = someProperties.myMipIndex;
+      srvDesc.TextureCubeArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
+      srvDesc.TextureCubeArray.First2DArrayFace = someProperties.myFirstArrayIndex;
+      srvDesc.TextureCubeArray.NumCubes = someProperties.myArraySize;
+    }
+    else
+    {
+      ASSERT(false, "Invalid textureView dimension");
+      return false;
+    }
+
+    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, aDescriptor.myCpuHandle);
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  bool TextureViewDX12::CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  {
+    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+    uavDesc.Format = RenderCore::GetPlatformDX12()->GetDXGIformat(someProperties.myFormat);
+
+    if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
+    {
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
+      uavDesc.Texture1D.MipSlice = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY)
+    {
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
+      uavDesc.Texture1DArray.ArraySize = someProperties.myArraySize;
+      uavDesc.Texture1DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      uavDesc.Texture1DArray.MipSlice = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D)
+    {
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+      uavDesc.Texture2D.MipSlice = someProperties.myMipIndex;
+      uavDesc.Texture2D.PlaneSlice = someProperties.myPlaneIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY)
+    {
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+      uavDesc.Texture2DArray.ArraySize = someProperties.myArraySize;
+      uavDesc.Texture2DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      uavDesc.Texture2DArray.PlaneSlice = someProperties.myPlaneIndex;
+      uavDesc.Texture2DArray.MipSlice = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D)
+    {
+      uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+      uavDesc.Texture3D.MipSlice = someProperties.myMipIndex;
+      uavDesc.Texture3D.FirstWSlice = someProperties.myFirstZindex;
+      uavDesc.Texture3D.WSize = someProperties.myZSize;
+    }
+    else
+    {
+      ASSERT(false, "Invalid textureView dimension");
+      return false;
+    }
+
+    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView(storageDx12->myResource.Get(), nullptr, &uavDesc, aDescriptor.myCpuHandle);
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  bool TextureViewDX12::CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  {
+    D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+
+    rtvDesc.Format = RenderCore::GetPlatformDX12()->GetDXGIformat(someProperties.myFormat);
+
+    if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
+    {
+      rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1D;
+      rtvDesc.Texture1D.MipSlice = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY)
+    {
+      rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
+      rtvDesc.Texture1DArray.ArraySize = someProperties.myArraySize;
+      rtvDesc.Texture1DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      rtvDesc.Texture1DArray.MipSlice = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D)
+    {
+      rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+      rtvDesc.Texture2D.MipSlice = someProperties.myMipIndex;
+      rtvDesc.Texture2D.PlaneSlice = someProperties.myPlaneIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY)
+    {
+      rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+      rtvDesc.Texture2DArray.ArraySize = someProperties.myArraySize;
+      rtvDesc.Texture2DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      rtvDesc.Texture2DArray.PlaneSlice = someProperties.myPlaneIndex;
+      rtvDesc.Texture2DArray.MipSlice = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D)
+    {
+      rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
+      rtvDesc.Texture3D.MipSlice = someProperties.myMipIndex;
+      rtvDesc.Texture3D.FirstWSlice = someProperties.myFirstZindex;
+      rtvDesc.Texture3D.WSize = someProperties.myZSize;
+    }
+    else
+    {
+      ASSERT(false, "Invalid textureView dimension");
+      return false;
+    }
+
+    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateRenderTargetView(storageDx12->myResource.Get(), &rtvDesc, aDescriptor.myCpuHandle);
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  bool TextureViewDX12::CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  {
+    D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+    const DXGI_FORMAT baseFormat = RenderCore_PlatformDX12::GetDXGIformat(someProperties.myFormat);
+
+    dsvDesc.Format = RenderCore_PlatformDX12::GetDepthStencilViewFormat(baseFormat);
+    dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+    if (someProperties.myIsDepthReadOnly)
+      dsvDesc.Flags |= D3D12_DSV_FLAG_READ_ONLY_DEPTH;
+    if (someProperties.myIsStencilReadOnly)
+      dsvDesc.Flags |= D3D12_DSV_FLAG_READ_ONLY_STENCIL;
+    
+    if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
+    {
+      dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1D;
+      dsvDesc.Texture1D.MipSlice = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY)
+    {
+      dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
+      dsvDesc.Texture1DArray.ArraySize = someProperties.myArraySize;
+      dsvDesc.Texture1DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      dsvDesc.Texture1DArray.MipSlice = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D)
+    {
+      dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+      dsvDesc.Texture2D.MipSlice = someProperties.myMipIndex;
+    }
+    else if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY)
+    {
+      dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+      dsvDesc.Texture2DArray.ArraySize = someProperties.myArraySize;
+      dsvDesc.Texture2DArray.FirstArraySlice = someProperties.myFirstArrayIndex;
+      dsvDesc.Texture2DArray.MipSlice = someProperties.myMipIndex;
+    }
+    else
+    {
+      ASSERT(false, "Invalid textureView dimension");
+      return false;
+    }
+
+    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateDepthStencilView(storageDx12->myResource.Get(), &dsvDesc, aDescriptor.myCpuHandle);
+    return true;
+  }
+//---------------------------------------------------------------------------//
 }

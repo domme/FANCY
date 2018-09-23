@@ -67,7 +67,7 @@ namespace Fancy {
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
     CommandContext* CreateContext(CommandListType aType) override;
-    DataFormat ResolveFormat(DataFormat aFormat) override;
+    DataFormat ResolveFormat(DataFormat aFormat) const override;
     CommandQueue* GetCommandQueue(CommandListType aType) override { return ourCommandQueues[(uint)aType].get(); }
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties) override;
@@ -82,17 +82,6 @@ namespace Fancy {
 
   protected:
     void InitCaps() override;
-    DescriptorDX12 CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties);
-    DescriptorDX12 CreateSRV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
-
-    DescriptorDX12 CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties);
-    DescriptorDX12 CreateUAV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
-
-    DescriptorDX12 CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties);
-    
-    DescriptorDX12 CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties);
-
-    DescriptorDX12 CreateCBV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
     
     std::vector<std::unique_ptr<DynamicDescriptorHeapDX12>> myDynamicHeapPool;
     std::list<DynamicDescriptorHeapDX12*> myAvailableDynamicHeaps;

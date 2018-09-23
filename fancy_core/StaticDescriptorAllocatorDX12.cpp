@@ -58,13 +58,14 @@ namespace Fancy
     descr.myCpuHandle = cpuHandle;
     descr.myGpuHandle = gpuHandle;
     descr.myHeapType = myType;
+    descr.myIsManagedByAllocator = true;
 
     return descr;
   }
 //---------------------------------------------------------------------------//
   void StaticDescriptorAllocatorDX12::FreeDescriptor(const DescriptorDX12& aDescriptor)
   {
-    ASSERT(aDescriptor.myHeapType == myType);
+    ASSERT(aDescriptor.myIsManagedByAllocator && aDescriptor.myHeapType == myType);
     const Page* page = myAllocator.FindPage([this, aDescriptor](const Page& aPage) 
     {
       const uint64 firstHeapAddess = aPage.myData.myCpuHeapStart.ptr;
