@@ -9,7 +9,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class DescriptorDX12;
-  class DescriptorHeapDX12;
+  class DynamicDescriptorHeapDX12;
   class GpuResourceDX12;
   class GpuResource;
   class GpuResourceStorageDX12;
@@ -51,7 +51,7 @@ namespace Fancy {
 
   protected:
     void CloseCommandList();
-    void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap);
+    void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DynamicDescriptorHeapDX12* aDescriptorHeap);
     void ApplyDescriptorHeaps();
     void ReleaseAllocator(uint64 aFenceVal);
     void ReleaseDynamicHeaps(uint64 aFenceVal);
@@ -77,8 +77,8 @@ namespace Fancy {
     ID3D12CommandAllocator* myCommandAllocator;
     bool myCommandListIsClosed;
 
-    DescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    std::vector<DescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
+    DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    std::vector<DynamicDescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
   };
 //---------------------------------------------------------------------------//
 }

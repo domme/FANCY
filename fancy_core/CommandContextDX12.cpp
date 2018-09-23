@@ -102,7 +102,7 @@ namespace Fancy {
     return (D3D12_DESCRIPTOR_HEAP_TYPE)-1;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DescriptorHeapDX12* aDescriptorHeap)
+  void CommandContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DynamicDescriptorHeapDX12* aDescriptorHeap)
   {
     if (myDynamicShaderVisibleHeaps[aHeapType] == aDescriptorHeap)
       return;
@@ -187,7 +187,7 @@ namespace Fancy {
     memset(heapsToBind, 0, sizeof(heapsToBind));
     uint numHeapsToBind = 0u;
 
-    for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
+    for (DynamicDescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
       if (heap != nullptr)
         heapsToBind[numHeapsToBind++] = heap->GetHeap();
 
@@ -206,13 +206,13 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void CommandContextDX12::ReleaseDynamicHeaps(uint64 aFenceVal)
   {
-    for (DescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
+    for (DynamicDescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
     {
       if (heap != nullptr)
         RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
     }
 
-    for (DescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
+    for (DynamicDescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
     {
       RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
     }
@@ -228,7 +228,7 @@ namespace Fancy {
     const DescriptorDX12& firstDescriptor = someResources[0];
 
     D3D12_DESCRIPTOR_HEAP_TYPE heapType = firstDescriptor.myHeapType;
-    DescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
+    DynamicDescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
 
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
 

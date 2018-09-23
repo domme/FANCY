@@ -10,8 +10,7 @@
 #include "ShaderResourceInterface.h"
 #include "ShaderResourceInterfaceDX12.h"
 #include "GpuProgramCompiler.h"
-#include "DescriptorHeapDX12.h"
-#include "Window.h"
+#include "DynamicDescriptorHeapDX12.h"
 #include "RenderOutputDX12.h"
 #include <malloc.h>
 #include "RenderCore.h"
@@ -93,18 +92,10 @@ namespace Fancy {
     ourCommandAllocatorPools[(uint)CommandListType::Graphics] = new CommandAllocatorPoolDX12(CommandListType::Graphics);
     ourCommandAllocatorPools[(uint)CommandListType::Compute] = new CommandAllocatorPoolDX12(CommandListType::Compute);
 
-    const uint kMaxNumStaticDescriptorsPerHeap = 1000u;
-
-    D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
-    heapDesc.NumDescriptors = kMaxNumStaticDescriptorsPerHeap;
-    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    heapDesc.NodeMask = 0u;
-
-    for (uint i = 0u; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
-    {
-      heapDesc.Type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
-      ourStaticDescriptorHeaps[i].Create(heapDesc);
-    }
+    myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1024u));
+    myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 512u));
+    myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 64u));
+    myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 64u));
 
     return true;
   }
@@ -155,10 +146,15 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
-    return ourStaticDescriptorHeaps[(uint)aHeapType].AllocateDescriptor();
+    return myStaticDescriptorAllocators[(uint)aHeapType]->AllocateDescriptor();
   }
 //---------------------------------------------------------------------------//
-  DescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
+  void RenderCore_PlatformDX12::ReleaseDescriptor(const DescriptorDX12& aDescriptor)
+  {
+    myStaticDescriptorAllocators[(uint)aDescriptor.myHeapType]->FreeDescriptor(aDescriptor);
+  }
+//---------------------------------------------------------------------------//
+  DynamicDescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
     const uint kGpuDescriptorNumIncrement = 16u;
     aDescriptorCount = static_cast<uint>(MathUtil::Align(aDescriptorCount, kGpuDescriptorNumIncrement));
@@ -167,7 +163,7 @@ namespace Fancy {
     while(it != myUsedDynamicHeaps.end())
     {
       uint64 fence = it->first;
-      DescriptorHeapDX12* heap = it->second;
+      DynamicDescriptorHeapDX12* heap = it->second;
 
       CommandQueueDX12* queue = (CommandQueueDX12*)GetCommandQueue(CommandQueue::GetCommandListType(fence));
       if (queue->IsFenceDone(fence))
@@ -185,7 +181,7 @@ namespace Fancy {
 
     for (auto it = myAvailableDynamicHeaps.begin(); it != myAvailableDynamicHeaps.end(); ++it)
     {
-      DescriptorHeapDX12* heap = (*it);
+      DynamicDescriptorHeapDX12* heap = (*it);
       if (heap->myDesc.NumDescriptors == aDescriptorCount && heap->myDesc.Type == aHeapType)
       {
         myAvailableDynamicHeaps.erase(it);
@@ -193,16 +189,12 @@ namespace Fancy {
       }
     }
 
-    D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
-    heapDesc.NumDescriptors = aDescriptorCount;
-    heapDesc.Type = aHeapType;
-    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    heapDesc.NodeMask = 0u;
-    myDynamicHeapPool.push_back(std::make_unique<DescriptorHeapDX12>(heapDesc));
+    
+    myDynamicHeapPool.push_back(std::make_unique<DynamicDescriptorHeapDX12>(aHeapType, aDescriptorCount));
     return myDynamicHeapPool.back().get();
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, uint64 aFenceVal)
+  void RenderCore_PlatformDX12::ReleaseDynamicDescriptorHeap(DynamicDescriptorHeapDX12* aHeap, uint64 aFenceVal)
   {
     myUsedDynamicHeaps.push_back(std::make_pair(aFenceVal, aHeap));
   }
@@ -212,7 +204,7 @@ namespace Fancy {
     return myGpuMemoryAllocators[(uint)aType][(uint)anAccessType]->Allocate(aSize, anAlignment);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::FreeGpuMemory(GpuMemoryAllocationDX12& anAllocation)
+  void RenderCore_PlatformDX12::ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation)
   {
     GpuMemoryType type = Adapter::ResolveGpuMemoryType(anAllocation.myHeap->GetDesc().Flags);
     GpuMemoryAccessType accessType = Adapter::ResolveGpuMemoryAccessType(anAllocation.myHeap->GetDesc().Properties.Type);

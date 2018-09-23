@@ -5,13 +5,14 @@
 #include "DX12Prerequisites.h"
 #include "Texture.h"
 #include "CommandAllocatorPoolDX12.h"
-#include "DescriptorHeapDX12.h"
+#include "DynamicDescriptorHeapDX12.h"
 #include "DescriptorDX12.h"
 
 #include <queue>
 #include "CommandQueueDX12.h"
 #include "GpuMemoryAllocatorDX12.h"
 #include "GpuBuffer.h"
+#include "StaticDescriptorAllocatorDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -52,11 +53,13 @@ namespace Fancy {
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, uint64 aFenceVal);
 
     DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    DescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    void ReleaseDynamicDescriptorHeap(DescriptorHeapDX12* aHeap, uint64 aFenceVal);
+    void ReleaseDescriptor(const DescriptorDX12& aDescriptor);
+
+    DynamicDescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
+    void ReleaseDynamicDescriptorHeap(DynamicDescriptorHeapDX12* aHeap, uint64 aFenceVal);
 
     GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment);
-    void FreeGpuMemory(GpuMemoryAllocationDX12& anAllocation);
+    void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
 
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) override;
     GpuProgramCompiler* CreateShaderCompiler() override;
@@ -91,12 +94,11 @@ namespace Fancy {
 
     DescriptorDX12 CreateCBV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
     
-    std::vector<std::unique_ptr<DescriptorHeapDX12>> myDynamicHeapPool;
-    std::list<DescriptorHeapDX12*> myAvailableDynamicHeaps;
-    std::list<std::pair<uint64, DescriptorHeapDX12*>> myUsedDynamicHeaps;
+    std::vector<std::unique_ptr<DynamicDescriptorHeapDX12>> myDynamicHeapPool;
+    std::list<DynamicDescriptorHeapDX12*> myAvailableDynamicHeaps;
+    std::list<std::pair<uint64, DynamicDescriptorHeapDX12*>> myUsedDynamicHeaps;
 
-    DescriptorHeapDX12 ourStaticDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    
+    UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)GpuMemoryAccessType::NUM];
   };
 //---------------------------------------------------------------------------//

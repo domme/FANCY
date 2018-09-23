@@ -45,9 +45,6 @@
     <ClInclude Include="DescriptorDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorHeapDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="DX12Prerequisites.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
@@ -280,6 +277,10 @@
     <ClInclude Include="PagedLinearAllocator.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="DynamicDescriptorHeapDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticDescriptorAllocatorDX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -292,9 +293,6 @@
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="CommandContextDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="DescriptorHeapDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="GpuBufferDX12.cpp">
@@ -412,5 +410,9 @@
     <ClCompile Include="CommandQueue.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="DynamicDescriptorHeapDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticDescriptorAllocatorDX12.cpp" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 #include "FancyCorePrerequisites.h"
-#include "DescriptorHeapDX12.h"
+#include "DynamicDescriptorHeapDX12.h"
 
 #include "DescriptorDX12.h"
 #include "RenderCore.h"
@@ -7,14 +7,27 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  DescriptorHeapDX12::DescriptorHeapDX12(const D3D12_DESCRIPTOR_HEAP_DESC& aDesc)
+  DynamicDescriptorHeapDX12::DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptors)
     : myNextFreeHandleIndex(0u)
     , myHandleIncrementSize(0u)
   {
-    Create(aDesc);
+    D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
+    heapDesc.NumDescriptors = aNumDescriptors;
+    heapDesc.Type = aType;
+    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    heapDesc.NodeMask = 0u;
+
+    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
+
+    CheckD3Dcall(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&myDescriptorHeap)));
+    myDesc = heapDesc;
+
+    myHandleIncrementSize = device->GetDescriptorHandleIncrementSize(aType);
+    myCpuHeapStart = myDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    myGpuHeapStart = myDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 DescriptorHeapDX12::AllocateDescriptor()
+  DescriptorDX12 DynamicDescriptorHeapDX12::AllocateDescriptor()
   {
     ASSERT(myNextFreeHandleIndex < myDesc.NumDescriptors);
 
@@ -34,12 +47,7 @@ namespace Fancy {
     return descr;
   }
 //---------------------------------------------------------------------------//
-  void DescriptorHeapDX12::FreeDescriptor(const DescriptorDX12& aDescriptor)
-  {
-
-  }
-  //---------------------------------------------------------------------------//
-  DescriptorDX12 DescriptorHeapDX12::GetDescriptor(uint anIndex) const
+  DescriptorDX12 DynamicDescriptorHeapDX12::GetDescriptor(uint anIndex) const
   {
     ASSERT(anIndex < myNextFreeHandleIndex);
 
@@ -57,22 +65,11 @@ namespace Fancy {
     return descr;
   }
 //---------------------------------------------------------------------------//
-  DescriptorHeapDX12::DescriptorHeapDX12()
+  DynamicDescriptorHeapDX12::DynamicDescriptorHeapDX12()
     : myHandleIncrementSize(0u)
     , myNextFreeHandleIndex(0u)
   {
 
-  }
-//---------------------------------------------------------------------------//
-  void DescriptorHeapDX12::Create(const D3D12_DESCRIPTOR_HEAP_DESC& aDesc)
-  {
-    CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->CreateDescriptorHeap(&aDesc, IID_PPV_ARGS(&myDescriptorHeap)));
-    myDesc = aDesc;
-
-    myHandleIncrementSize = 
-      RenderCore::GetPlatformDX12()->GetDevice()->GetDescriptorHandleIncrementSize(aDesc.Type);
-    myCpuHeapStart = myDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-    myGpuHeapStart = myDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
   }
 //---------------------------------------------------------------------------//
 }

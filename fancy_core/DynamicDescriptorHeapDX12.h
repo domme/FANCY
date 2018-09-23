@@ -8,12 +8,14 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class DescriptorHeapDX12
+  /// Shader-visible descriptor heap that can only allocate but not free descriptors. Intended to be used as a temporary staging-heap during commandlist-recording
+//---------------------------------------------------------------------------//
+  class DynamicDescriptorHeapDX12
   {
     friend class RenderCore_PlatformDX12;
 
   public:
-    explicit DescriptorHeapDX12(const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);
+    DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptors);
 
     const D3D12_DESCRIPTOR_HEAP_DESC& GetDesc() const { return myDesc; }
     const uint& GetHandleIncrementSize() const { return myHandleIncrementSize; }
@@ -24,14 +26,11 @@ namespace Fancy {
     uint GetNumFreeDescriptors() const { return (uint) glm::max(0, (int)(myDesc.NumDescriptors - myNextFreeHandleIndex)); }
 
     DescriptorDX12 AllocateDescriptor();
-    void FreeDescriptor(const DescriptorDX12& aDescriptor);
     DescriptorDX12 GetDescriptor(uint anIndex) const;
     uint GetNumAllocatedDescriptors() const { return myNextFreeHandleIndex; }
     
   private:
-    DescriptorHeapDX12();
-    void Create(const D3D12_DESCRIPTOR_HEAP_DESC& aDesc);
-
+    DynamicDescriptorHeapDX12();
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myDescriptorHeap;
     D3D12_DESCRIPTOR_HEAP_DESC myDesc;
 

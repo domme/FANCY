@@ -2,6 +2,7 @@
 
 #include "FancyCorePrerequisites.h"
 #include <list>
+#include <utility>
 #include "AlignedStorage.h"
 
 namespace Fancy
@@ -25,22 +26,22 @@ namespace Fancy
     };
 //---------------------------------------------------------------------------//
 
- //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
     PagedLinearAllocator(uint aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn)
       : myPageSize(aPageSize)
-      , myPageDataCreateFn(aPageDataCreateFn)
-      , myPageDataDestroyFn(aPageDataDestroyFn)
+      , myPageDataCreateFn(std::move(aPageDataCreateFn))
+      , myPageDataDestroyFn(std::move(aPageDataDestroyFn))
     {
     }
 //---------------------------------------------------------------------------//
-  const Page* FindPage(std::function<bool(const Page&)> aPredicateFn)
-  {
-    for (const Page& page : myPages)
-      if (aPredicateFn(page))
-        return &page;
+    const Page* FindPage(std::function<bool(const Page&)> aPredicateFn)
+    {
+      for (const Page& page : myPages)
+        if (aPredicateFn(page))
+          return &page;
 
-    return nullptr;
-  }
+      return nullptr;
+    }
 //---------------------------------------------------------------------------//
     const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut)
     {
@@ -163,7 +164,7 @@ namespace Fancy
         }
       }
     }
-    
+//---------------------------------------------------------------------------//
   private:
     bool CreateAndAddPage(uint64 aSize)
     {

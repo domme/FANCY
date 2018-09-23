@@ -131,7 +131,7 @@ namespace Fancy {
     if (storageDx12 != nullptr && storageDx12->myGpuMemory.myHeap != nullptr)
     {
       storageDx12->myResource.Reset();
-      RenderCore::GetPlatformDX12()->FreeGpuMemory(storageDx12->myGpuMemory);
+      RenderCore::GetPlatformDX12()->ReleaseGpuMemory(storageDx12->myGpuMemory);
     }
 
     myStorage = nullptr;
