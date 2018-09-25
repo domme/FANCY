@@ -36,9 +36,11 @@ namespace Fancy {
     void GetWindowSizeSafe(uint& aWidthOut, uint& aHeightOut);
     void OnWindowResized(uint aWidth, uint aHeight);
 
-    virtual void CreateBackbuffer(uint aWidth, uint aHeight) = 0;
+    virtual void CreateBackbufferResources(uint aWidth, uint aHeight) = 0;
     virtual void ResizeBackbuffer(uint aWidth, uint aHeight) = 0;
+    virtual void DestroyBackbufferResources() = 0;
 
+    void DestroyViews();
     void CreateViews();
 
     static const uint kBackbufferCount = 2u;

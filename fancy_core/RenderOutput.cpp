@@ -30,7 +30,7 @@ namespace Fancy {
     uint width, height;
     GetWindowSizeSafe(width, height);
 
-    CreateBackbuffer(width, height);
+    CreateBackbufferResources(width, height);
     CreateViews();
   }
 //---------------------------------------------------------------------------//
@@ -42,16 +42,28 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutput::OnWindowResized(uint aWidth, uint aHeight)
   {
+    RenderCore::GetCommandQueue(CommandListType::Graphics)->WaitForIdle();
+
+    DestroyViews();
+    DestroyBackbufferResources();
+
     GetWindowSizeSafe(aWidth, aHeight);
     ResizeBackbuffer(aWidth, aHeight);
 
-    for (uint i = 0u; i < kBackbufferCount; i++)
-    {
-      myBackbufferTextures[i]->myProperties.myWidth = aWidth;
-      myBackbufferTextures[i]->myProperties.myHeight = aHeight;
-    }
-
+    CreateBackbufferResources(aWidth, aHeight);
     CreateViews();
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutput::DestroyViews()
+  {
+    myDepthSrv.reset();
+    myDepthStencilDsv.reset();
+    myDepthStencilDsv_ReadOnly.reset();
+    for (uint i = 0u; i < kBackbufferCount; ++i)
+    {
+      myBackbufferSrv[i].reset();
+      myBackbufferRtv[i].reset();
+    }
   }
 //---------------------------------------------------------------------------//
   void RenderOutput::CreateViews()

@@ -634,13 +634,22 @@ namespace Fancy {
   void RenderCore::ComputeMipMaps(const SharedPtr<Texture>& aDestTexture)
   {
     const TextureProperties& destTexProps = aDestTexture->GetProperties();
-    ASSERT(destTexProps.myNumMipLevels > 1);
+    if(destTexProps.myNumMipLevels == 1)
+      return;
 
     const DataFormatInfo& destTexFormatInfo = DataFormatInfo::GetFormatInfo(destTexProps.eFormat);
 
     // TODO: Check if the creation of a temp-texture is neccessary (aDestTexture is already shaderWritable)
     TextureProperties tempProps = aDestTexture->GetProperties();
+    tempProps.myNumMipLevels = destTexProps.myNumMipLevels - 1;
     tempProps.myIsShaderWritable = true;
+    tempProps.myWidth = (uint) (destTexProps.myWidth / 2.0f);
+    tempProps.myHeight = (uint) (destTexProps.myHeight / 2.0f);
+    if (tempProps.myWidth == 0u && tempProps.myHeight == 0u)
+      return;
+    tempProps.myWidth = glm::max(1u, tempProps.myWidth);
+    tempProps.myHeight = glm::max(1u, tempProps.myHeight);
+
     SharedPtr<Texture> tempTexPtr = CreateTexture(tempProps);
     Texture* tempTex = tempTexPtr.get();
     ASSERT(tempTex != nullptr);
@@ -666,8 +675,9 @@ namespace Fancy {
 
     for (uint mip = 1u; mip < numMips; ++mip)
     {
-      readProps.myMipIndex = mip;
-      writeProps.myMipIndex = mip;
+      uint tmpTexMip = mip-1u;
+      readProps.myMipIndex = tmpTexMip;
+      writeProps.myMipIndex = tmpTexMip;
       readViews[mip] = CreateTextureView(tempTexPtr, readProps);
       writeViews[mip] = CreateTextureView(tempTexPtr, writeProps);
       ASSERT(readViews[mip] != nullptr && writeViews[mip] != nullptr);
@@ -678,8 +688,9 @@ namespace Fancy {
 
     ctx->SetComputeProgram(ourComputeMipMapShader.get());
 
-    glm::uvec2 size(destTexProps.myWidth / 2u, destTexProps.myHeight / 2u);
-    for (uint mip = 1u; mip < numMips && size.x > 0 && size.y > 0; ++mip)
+    glm::uvec2 size(tempProps.myWidth, tempProps.myHeight);
+    uint mip = 1u;
+    for (; mip < numMips && size.x > 0 && size.y > 0; ++mip)
     {
       struct CBuffer
       {
@@ -702,6 +713,13 @@ namespace Fancy {
      
       size /= 2u;
     }
+
+    ctx->TransitionResource(
+      tempTex, GpuResourceTransition::TO_COPY_SRC, 
+      aDestTexture.get(), GpuResourceTransition::TO_COPY_DEST);
+
+    for (uint i = 1u; i < mip; ++i)
+      ctx->CopyTextureRegion(aDestTexture.get(), TextureSubLocation(i), glm::uvec3(0u), tempTex, TextureSubLocation(i-1));
 
     queue->ExecuteContext(ctx, true);
     FreeContext(ctx);

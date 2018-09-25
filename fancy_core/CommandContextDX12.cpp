@@ -301,7 +301,7 @@ namespace Fancy {
     myCommandList->CopyBufferRegion(dstResource, aDestOffset, srcResource, aSrcOffset, aSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, glm::uvec3 aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
+  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
     const TextureProperties& srcProps = aSrcTexture->GetProperties();
@@ -340,7 +340,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const TextureRegion& aDestRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
 
@@ -368,7 +368,7 @@ namespace Fancy {
     srcLocation.PlacedFootprint.Footprint = footprint.Footprint;
     srcLocation.PlacedFootprint.Offset = aSrcOffset + footprint.Offset;
     
-    myCommandList->CopyTextureRegion(&dstLocation, aDestRegion.myTexelPos.x, aDestRegion.myTexelPos.y, aDestRegion.myTexelPos.z, &srcLocation, nullptr);
+    myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::TransitionResourceList(const GpuResource** someResources, GpuResourceTransition* someTransitions, uint aNumResources)

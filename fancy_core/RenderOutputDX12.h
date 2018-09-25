@@ -17,8 +17,9 @@ namespace Fancy {
     void EndFrame() override;
 
   private:
-    void CreateBackbuffer(uint aWidth, uint aHeight) override;
+    void CreateBackbufferResources(uint aWidth, uint aHeight) override;
     void ResizeBackbuffer(uint aWidth, uint aHeight) override;
+    void DestroyBackbufferResources() override;
 
     Microsoft::WRL::ComPtr<IDXGISwapChain3> mySwapChain;
   };

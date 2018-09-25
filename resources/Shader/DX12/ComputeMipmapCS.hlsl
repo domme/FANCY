@@ -26,6 +26,6 @@ void main(uint3 aGroupID : SV_GroupID,
 {
     uint2 targetTexel = aDispatchThreadID.xy;
     
-    float2 srcUv = (float2(targetTexel * 2) + 0.5) * mySizeOnMipInv;
-    MipTexture[targetTexel] = float4(1,0,0,1); // ParentMipTexture.SampleLevel(sampler_linear, srcUv, 0);
+    float2 srcUv = (float2(targetTexel * 2)) * mySizeOnMipInv;
+    MipTexture[targetTexel] = float4(1,0,0,1);//ParentMipTexture.SampleLevel(sampler_linear, srcUv, 0);
 }

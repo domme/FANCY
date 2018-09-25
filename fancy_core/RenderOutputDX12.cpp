@@ -37,7 +37,7 @@ namespace Fancy {
     mySwapChain.Reset();
   }
 //---------------------------------------------------------------------------//
-  void RenderOutputDX12::CreateBackbuffer(uint aWidth, uint aHeight)
+  void RenderOutputDX12::CreateBackbufferResources(uint aWidth, uint aHeight)
   {
     for (uint i = 0u; i < kBackbufferCount; ++i)
     {
@@ -88,6 +88,14 @@ namespace Fancy {
   void RenderOutputDX12::ResizeBackbuffer(uint aWidth, uint aHeight)
   {
     CheckD3Dcall(mySwapChain->ResizeBuffers(kBackbufferCount, aWidth, aHeight, DXGI_FORMAT_UNKNOWN, 0));
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutputDX12::DestroyBackbufferResources()
+  {
+    for (uint i = 0u; i < kBackbufferCount; ++i)
+    {
+      myBackbufferTextures[i].reset();
+    }
   }
 //---------------------------------------------------------------------------//
 }

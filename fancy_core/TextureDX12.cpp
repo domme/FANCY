@@ -211,7 +211,7 @@ namespace Fancy {
 
     const uint arraySize = myProperties.GetArraySize();
     const int numOverallSubresources = myProperties.myNumMipLevels * arraySize;
-    const int numSubresources = numOverallSubresources - startSubresourceIndex;
+    const int numSubresources = glm::min((int)aNumSubDatas, numOverallSubresources - startSubresourceIndex);
     ASSERT(numSubresources > 0);
 
     ID3D12Resource* texResource = ((GpuResourceStorageDX12*)myStorage.get())->myResource.Get();

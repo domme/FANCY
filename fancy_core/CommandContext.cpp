@@ -485,11 +485,10 @@ namespace Fancy {
     uploadBuffer->Unlock();
 
     const uint startDestSubresourceIndex = aDestTexture->GetSubresourceIndex(aStartSubresource);
-    for (uint i = 0; i < (uint) subresourceLayouts.size(); ++i)
+    for (uint i = 0; i < numSubresources; ++i)
     {
       const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
-      const TextureRegion dstRegion{ glm::uvec3(0), glm::uvec3(UINT_MAX) };
-      CopyTextureRegion(aDestTexture, dstLocation, dstRegion, uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
+      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
     }
   }
 //---------------------------------------------------------------------------//
