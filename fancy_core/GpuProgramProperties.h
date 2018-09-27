@@ -47,10 +47,20 @@ namespace Fancy {
         eAccessType(GpuProgramResourceAccess::READ_ONLY), 
         eResourceType(GpuProgramResourceType::NONE) {}
 
-    uint u32RegisterIndex;
     String name;
+    uint u32RegisterIndex;
     GpuProgramResourceAccess eAccessType;
     GpuProgramResourceType eResourceType;
   };
 //---------------------------------------------------------------------------//
+  struct GpuProgramProperties
+  {
+    ShaderVertexInputLayout myVertexInputLayout;
+    DynamicArray<GpuProgramResourceInfo> myTextureInfos;
+    DynamicArray<GpuProgramResourceInfo> myBufferInfos;;
+    DynamicArray<GpuProgramResourceInfo> myRWTextureInfos;
+    DynamicArray<GpuProgramResourceInfo> myRWBufferInfos;
+    DynamicArray<ConstantBufferElement> myConstantBufferElements;
+    ShaderStage myShaderStage;
+  };
 }

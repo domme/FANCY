@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include "GpuProgramResource.h"
+#include "GpuProgramProperties.h"
 #include "VertexInputLayout.h"
 #include "GpuProgramDesc.h"
 
@@ -11,19 +11,14 @@ namespace Fancy {
   class ShaderResourceInterface;
 //---------------------------------------------------------------------------//
   struct GpuProgramCompilerOutput
-  {
-    ShaderVertexInputLayout clVertexInputLayout;
-    DynamicArray<GpuProgramResourceInfo> vReadTextureInfos;
-    DynamicArray<GpuProgramResourceInfo> vReadBufferInfos;
-    DynamicArray<GpuProgramResourceInfo> vWriteTextureInfos;
-    DynamicArray<GpuProgramResourceInfo> vWriteBufferInfos;
-    DynamicArray<ConstantBufferElement> myConstantBufferElements;
-    ShaderStage eShaderStage;
+  { 
     String myShaderCode;
     String myShaderFilename;  /// Platform-independent shader filename (e.g. "MaterialForward")
     GpuProgramPermutation myPermutation;
     ShaderResourceInterface* myRootSignature;
     void* myNativeData;
+
+    GpuProgramProperties myProperties;
   };
 //---------------------------------------------------------------------------//
   class GpuProgramCompiler

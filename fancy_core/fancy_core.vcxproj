@@ -108,7 +108,7 @@
     <ClInclude Include="GpuProgramFeatures.h" />
     <ClInclude Include="GpuProgramPipeline.h" />
     <ClInclude Include="GpuProgramPipelineDesc.h" />
-    <ClInclude Include="GpuProgramResource.h" />
+    <ClInclude Include="GpuProgramProperties.h" />
     <ClInclude Include="GpuResource.h" />
     <ClInclude Include="GpuResourceSignature.h" />
     <ClInclude Include="GpuResourceStorage.h" />

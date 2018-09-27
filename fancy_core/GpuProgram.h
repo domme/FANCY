@@ -5,7 +5,7 @@
 #include "GpuProgramFeatures.h"
 #include "GpuProgramDesc.h"
 #include "VertexInputLayout.h"
-#include "GpuProgramResource.h"
+#include "GpuProgramProperties.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -25,20 +25,13 @@ namespace Fancy {
     uint64 GetHash() const { return GetDescription().GetHash(); }
     virtual uint64 GetNativeBytecodeHash() const = 0;
 
-    bool HasUnorderedWrites() const { return !myWriteBufferInfos.empty() || !myWriteTextureInfos.empty(); }
+    bool HasUnorderedWrites() const { return !myProperties.myRWBufferInfos.empty() || !myProperties.myRWTextureInfos.empty(); }
     
     String mySourcePath;
-     ShaderStage myStage;
     GpuProgramPermutation myPermutation;
-
-    DynamicArray<GpuProgramResourceInfo> myReadTextureInfos;
-    DynamicArray<GpuProgramResourceInfo> myReadBufferInfos;
-    DynamicArray<GpuProgramResourceInfo> myWriteTextureInfos;
-    DynamicArray<GpuProgramResourceInfo> myWriteBufferInfos;
-    DynamicArray<ConstantBufferElement> myConstantBufferElements;
-
-    ShaderVertexInputLayout myInputLayout;
     ShaderResourceInterface* myResourceInterface;
+
+    GpuProgramProperties myProperties;
   };
 //---------------------------------------------------------------------------//
 }

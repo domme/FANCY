@@ -144,9 +144,6 @@
     <ClInclude Include="GpuProgramPipelineDesc.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="GpuProgramResource.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="GpuResource.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -281,6 +278,9 @@
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="StaticDescriptorAllocatorDX12.h" />
+    <ClInclude Include="GpuProgramProperties.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">

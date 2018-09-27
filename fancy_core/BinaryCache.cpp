@@ -8,7 +8,7 @@
 #include "MeshData.h"
 
 #include <fstream>
-#include "GpuProgramResource.h"
+#include "GpuProgramProperties.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

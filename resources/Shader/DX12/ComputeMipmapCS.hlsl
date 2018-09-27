@@ -24,8 +24,12 @@ void main(uint3 aGroupID : SV_GroupID,
           uint3 aGroupThreadID : SV_GroupThreadID, 
           uint aGroupIndex : SV_GroupIndex)
 {
-    uint2 targetTexel = aDispatchThreadID.xy;
+    float2 targetTexel = float2(aDispatchThreadID.xy);
+    float2 srcUv = (targetTexel + 0.5) * mySizeOnMipInv; // Gathers the neighboring 4x4 texels
     
-    float2 srcUv = (float2(targetTexel * 2)) * mySizeOnMipInv;
-    MipTexture[targetTexel] = float4(1,0,0,1);//ParentMipTexture.SampleLevel(sampler_linear, srcUv, 0);
+    float4 avgColor = ParentMipTexture.SampleLevel(sampler_linear, srcUv, 0);
+    if (myIsSRGB)
+      avgColor = pow(avgColor, 1.0 / 2.2);
+
+    MipTexture[targetTexel] = avgColor;
 }

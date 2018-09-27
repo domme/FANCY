@@ -10,7 +10,7 @@
 #include "GpuProgramPipeline.h"
 
 #include "DX12Prerequisites.h"
-#include "GpuProgramResource.h"
+#include "GpuProgramProperties.h"
 #include "GpuProgramDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
@@ -398,9 +398,43 @@ namespace Fancy {
 #undef CHECK
   }
 //---------------------------------------------------------------------------//
-  bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramCompilerOutput* aCompilerOutput)
+  void locResolveResourceType(D3D_SHADER_INPUT_TYPE aType, GpuResourceDimension& aDimensionOut, GpuProgramResourceAccess& anAccessOut)
   {
-    aCompilerOutput->myConstantBufferElements.clear();
+    switch (aType)
+    {
+    case D3D_SIT_CBUFFER: break;
+    case D3D_SIT_TBUFFER: break;
+    case D3D_SIT_TEXTURE: break;
+    case D3D_SIT_SAMPLER: break;
+    case D3D_SIT_UAV_RWTYPED: break;
+    case D3D_SIT_STRUCTURED: break;
+    case D3D_SIT_UAV_RWSTRUCTURED: break;
+    case D3D_SIT_BYTEADDRESS: break;
+    case D3D_SIT_UAV_RWBYTEADDRESS: break;
+    case D3D_SIT_UAV_APPEND_STRUCTURED: break;
+    case D3D_SIT_UAV_CONSUME_STRUCTURED: break;
+    case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER: break;
+    default: ;
+    }
+  }
+
+
+  bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramProperties& someProps)
+  {
+    for (uint i = 0u; i < aShaderDesc.BoundResources; ++i)
+    {
+      D3D12_SHADER_INPUT_BIND_DESC desc;
+      CheckD3Dcall(aReflector->GetResourceBindingDesc(i, &desc));
+
+      GpuProgramResourceInfo resInfo;
+      resInfo.name = desc.Name;
+      resInfo.eResourceType = desc.Type;
+    }
+  }
+//---------------------------------------------------------------------------//
+  bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramProperties& someProps)
+  {
+    someProps.myConstantBufferElements.clear();
 
     for (uint i = 0u; i < aShaderDesc.ConstantBuffers; ++i)
     {
@@ -442,7 +476,7 @@ namespace Fancy {
             cbElem.uSizeBytes = sizeBytes;
             cbElem.uFormatComponentCount = cbVarMemberTypeDesc.Rows;  // Columns is already encoded in the format
 
-            aCompilerOutput->myConstantBufferElements.push_back(cbElem);
+            someProps.myConstantBufferElements.push_back(cbElem);
           }
         }
         else
@@ -458,7 +492,7 @@ namespace Fancy {
           cbElem.uFormatComponentCount = cbVarTypeDesc.Rows;
           cbElem.name = cbVarDesc.Name;
 
-          aCompilerOutput->myConstantBufferElements.push_back(cbElem);
+          someProps.myConstantBufferElements.push_back(cbElem);
         }
       }
     }
@@ -466,12 +500,12 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   bool locReflectVertexInputLayout(ID3D12ShaderReflection* aReflector, 
-    const D3D12_SHADER_DESC& aShaderDesc, GpuProgramCompilerOutput* aCompilerOutput)
+    const D3D12_SHADER_DESC& aShaderDesc, GpuProgramProperties& someProps)
   {
     if (aShaderDesc.InputParameters == 0u)
       return false;
 
-    aCompilerOutput->clVertexInputLayout.myVertexInputElements.clear();
+    someProps.myVertexInputLayout.myVertexInputElements.clear();
 
     D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
     for (uint i = 0u; i < aShaderDesc.InputParameters; ++i)
@@ -488,7 +522,7 @@ namespace Fancy {
       inputElem.myName = paramDesc.SemanticName;
       inputElem.myFormatComponentCount = locResolveComponentCount(paramDesc);
 
-      aCompilerOutput->clVertexInputLayout.addVertexInputElement(inputElem);
+      someProps.myVertexInputLayout.addVertexInputElement(inputElem);
     }
 
     return true;
@@ -586,7 +620,7 @@ namespace Fancy {
     ASSERT(nullptr != rsObject);
 
     aProgram->myPermutation = aDesc.myPermutation;
-    aProgram->eShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
+    aProgram->myProperties.myShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
     aProgram->myShaderFilename = aDesc.myShaderFileName;
     aProgram->myRootSignature = rsObject;
 
@@ -604,7 +638,7 @@ namespace Fancy {
     D3D12_SHADER_DESC shaderDesc;
     reflector->GetDesc(&shaderDesc);
 
-    if (!locReflectConstants(reflector, shaderDesc, aProgram))
+    if (!locReflectConstants(reflector, shaderDesc, aProgram->myProperties))
     {
       LOG_ERROR("Failed reflecting constants");
       return false;
@@ -612,7 +646,7 @@ namespace Fancy {
 
     if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::VERTEX))
     {
-      if (!locReflectVertexInputLayout(reflector, shaderDesc, aProgram))
+      if (!locReflectVertexInputLayout(reflector, shaderDesc, aProgram->myProperties))
       {
         LOG_ERROR("Failed reflecting vertex input layout");
         return false;
