@@ -24,13 +24,10 @@ namespace Fancy {
     virtual void SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput);
     uint64 GetHash() const { return GetDescription().GetHash(); }
     virtual uint64 GetNativeBytecodeHash() const = 0;
-
-    bool HasUnorderedWrites() const { return !myProperties.myRWBufferInfos.empty() || !myProperties.myRWTextureInfos.empty(); }
     
     String mySourcePath;
     GpuProgramPermutation myPermutation;
     ShaderResourceInterface* myResourceInterface;
-
     GpuProgramProperties myProperties;
   };
 //---------------------------------------------------------------------------//

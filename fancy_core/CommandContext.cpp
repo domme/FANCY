@@ -206,7 +206,7 @@ namespace Fancy {
       bool hasUnorderedWrites = false;
       for (const SharedPtr<GpuProgram>& gpuProgram : aGpuProgramPipeline->myGpuPrograms)
         if(gpuProgram != nullptr)
-          hasUnorderedWrites |= gpuProgram->HasUnorderedWrites();
+          hasUnorderedWrites |= gpuProgram->myProperties.myHasUnorderedWrites;
 
       myShaderHasUnorderedWrites = hasUnorderedWrites;
     }
@@ -214,7 +214,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContext::SetComputeProgram(const GpuProgram* aProgram)
   {
-    ASSERT(aProgram->myStage == ShaderStage::COMPUTE);
+    ASSERT(aProgram->myProperties.myShaderStage == ShaderStage::COMPUTE);
     ASSERT(myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute);
 
     myCurrentContext = CommandListType::Compute;
@@ -222,7 +222,7 @@ namespace Fancy {
     {
       myComputePipelineState.myGpuProgram = aProgram;
       myComputePipelineState.myIsDirty = true;
-      myShaderHasUnorderedWrites = aProgram->HasUnorderedWrites();
+      myShaderHasUnorderedWrites = aProgram->myProperties.myHasUnorderedWrites;
     }
   }
 //---------------------------------------------------------------------------//

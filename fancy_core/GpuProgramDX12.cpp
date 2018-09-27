@@ -88,7 +88,7 @@ namespace Fancy {
     myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();
     myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
 
-    CreateNativeInputLayout(myInputLayout, myNativeInputElements);
+    CreateNativeInputLayout(myProperties.myVertexInputLayout, myNativeInputElements);
   }
 //---------------------------------------------------------------------------//
   ID3D12RootSignature* GpuProgramDX12::GetRootSignature() const

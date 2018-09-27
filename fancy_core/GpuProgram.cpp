@@ -4,8 +4,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuProgram::GpuProgram()
-    : myStage(ShaderStage::NONE)
-    , myResourceInterface(nullptr)
+    : myResourceInterface(nullptr)
   {
   }
 //---------------------------------------------------------------------------//
@@ -13,7 +12,7 @@ namespace Fancy {
   {
     GpuProgramDesc desc;
     desc.myShaderFileName = mySourcePath;
-    desc.myShaderStage = static_cast<uint>(myStage);
+    desc.myShaderStage = (uint) myProperties.myShaderStage;
     desc.myPermutation = myPermutation;
     return desc;
   }
@@ -27,7 +26,6 @@ namespace Fancy {
     {
       mySourcePath = aDesc.myShaderFileName;
       myPermutation = aDesc.myPermutation;
-      myStage = static_cast<ShaderStage>(aDesc.myShaderStage);
 
       SetFromCompilerOutput(output);
     }
@@ -37,15 +35,9 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void GpuProgram::SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput)
   {
-    myReadTextureInfos = aCompilerOutput.vReadTextureInfos;
-    myReadBufferInfos = aCompilerOutput.vReadBufferInfos;
-    myWriteTextureInfos = aCompilerOutput.vWriteTextureInfos;
-    myWriteBufferInfos = aCompilerOutput.vWriteBufferInfos;
-    myConstantBufferElements = aCompilerOutput.myConstantBufferElements;
-    myStage = aCompilerOutput.eShaderStage;
+    myProperties = aCompilerOutput.myProperties;
     mySourcePath = aCompilerOutput.myShaderFilename;
     myPermutation = aCompilerOutput.myPermutation;
-    myInputLayout = aCompilerOutput.clVertexInputLayout;
     myResourceInterface = aCompilerOutput.myRootSignature;
   }
 //---------------------------------------------------------------------------//

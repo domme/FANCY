@@ -398,27 +398,40 @@ namespace Fancy {
 #undef CHECK
   }
 //---------------------------------------------------------------------------//
-  void locResolveResourceType(D3D_SHADER_INPUT_TYPE aType, GpuResourceDimension& aDimensionOut, GpuProgramResourceAccess& anAccessOut)
+  void locResolveResourceType(D3D_SHADER_INPUT_TYPE aType, D3D_SRV_DIMENSION aDimension, GpuResourceDimension& aDimensionOut, bool& isUnorderedWriteOut)
   {
-    switch (aType)
-    {
-    case D3D_SIT_CBUFFER: break;
-    case D3D_SIT_TBUFFER: break;
-    case D3D_SIT_TEXTURE: break;
-    case D3D_SIT_SAMPLER: break;
-    case D3D_SIT_UAV_RWTYPED: break;
-    case D3D_SIT_STRUCTURED: break;
-    case D3D_SIT_UAV_RWSTRUCTURED: break;
-    case D3D_SIT_BYTEADDRESS: break;
-    case D3D_SIT_UAV_RWBYTEADDRESS: break;
-    case D3D_SIT_UAV_APPEND_STRUCTURED: break;
-    case D3D_SIT_UAV_CONSUME_STRUCTURED: break;
-    case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER: break;
-    default: ;
+    switch(aDimension) 
+    { 
+      case D3D_SRV_DIMENSION_BUFFER: 
+      case D3D_SRV_DIMENSION_BUFFEREX:
+        aDimensionOut = GpuResourceDimension::BUFFER; break;
+      case D3D_SRV_DIMENSION_TEXTURE1D: 
+        aDimensionOut = GpuResourceDimension::TEXTURE_1D; break;
+      case D3D_SRV_DIMENSION_TEXTURE1DARRAY: 
+        aDimensionOut = GpuResourceDimension::TEXTURE_1D_ARRAY; break;
+      case D3D_SRV_DIMENSION_TEXTURE2DMS:
+      case D3D_SRV_DIMENSION_TEXTURE2D: 
+        aDimensionOut = GpuResourceDimension::TEXTURE_2D; break;
+      case D3D_SRV_DIMENSION_TEXTURE2DARRAY: 
+      case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY: 
+        aDimensionOut = GpuResourceDimension::TEXTURE_2D_ARRAY; break;
+      case D3D_SRV_DIMENSION_TEXTURE3D: 
+        aDimensionOut = GpuResourceDimension::TEXTURE_3D; break;
+      case D3D_SRV_DIMENSION_TEXTURECUBE: 
+        aDimensionOut = GpuResourceDimension::TEXTURE_CUBE; break;
+      case D3D_SRV_DIMENSION_TEXTURECUBEARRAY: 
+        aDimensionOut = GpuResourceDimension::TEXTURE_CUBE_ARRAY; break;
+      default: 
+        ASSERT(false, "Unsupported resource dimension in shader reflection");
+        break;
     }
+
+    isUnorderedWriteOut = (aType == D3D_SIT_UAV_RWTYPED || 
+                          aType == D3D_SIT_UAV_RWSTRUCTURED || 
+                          aType == D3D_SIT_UAV_RWBYTEADDRESS ||
+                          aType == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER);
   }
-
-
+//---------------------------------------------------------------------------//
   bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramProperties& someProps)
   {
     for (uint i = 0u; i < aShaderDesc.BoundResources; ++i)
@@ -427,9 +440,15 @@ namespace Fancy {
       CheckD3Dcall(aReflector->GetResourceBindingDesc(i, &desc));
 
       GpuProgramResourceInfo resInfo;
-      resInfo.name = desc.Name;
-      resInfo.eResourceType = desc.Type;
+      resInfo.myName = desc.Name;
+      resInfo.myRegisterIndex = desc.BindPoint;
+      locResolveResourceType(desc.Type, desc.Dimension, resInfo.myDimension, resInfo.myIsUnorderedWrite);
+      
+      someProps.myHasUnorderedWrites |= resInfo.myIsUnorderedWrite;
+      someProps.myResourceInfos.push_back(resInfo);
     }
+
+    return true;
   }
 //---------------------------------------------------------------------------//
   bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramProperties& someProps)
@@ -641,6 +660,12 @@ namespace Fancy {
     if (!locReflectConstants(reflector, shaderDesc, aProgram->myProperties))
     {
       LOG_ERROR("Failed reflecting constants");
+      return false;
+    }
+
+    if (!locReflectResources(reflector, shaderDesc, aProgram->myProperties))
+    {
+      LOG_ERROR("Failed reflecting resources");
       return false;
     }
 

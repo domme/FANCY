@@ -1174,8 +1174,7 @@ namespace Fancy {
     ApplyComputePipelineState();
     myCommandList->Dispatch(aThreadGroupCountX, aThreadGroupCountY, aThreadGroupCountZ);
 
-    // TODO: Fix missing shader-reflection for resources
-    // if (myShaderHasUnorderedWrites)
+    if (myShaderHasUnorderedWrites)
       SetResourceUAVbarrier(nullptr);
   }
 //---------------------------------------------------------------------------//

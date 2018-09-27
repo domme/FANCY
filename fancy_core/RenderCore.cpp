@@ -795,8 +795,7 @@ namespace Fancy {
 
     for (GpuProgram* program : programsToRecompile)
       program->SetFromDescription(program->GetDescription(), ourShaderCompiler.get());
-
-
+    
     // Check which pipelines need to be updated...
     std::vector<GpuProgramPipeline*> changedPipelines;
     for (auto it = ourGpuProgramPipelineCache.begin(); it != ourGpuProgramPipelineCache.end(); ++it)
@@ -805,7 +804,7 @@ namespace Fancy {
 
       for (GpuProgram* changedProgram : programsToRecompile)
       {
-        const uint stage = static_cast<uint>(changedProgram->myStage);
+        const uint stage = static_cast<uint>(changedProgram->myProperties.myShaderStage);
         if (changedProgram == pipeline->myGpuPrograms[stage].get())
         {
           changedPipelines.push_back(pipeline);

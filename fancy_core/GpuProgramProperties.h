@@ -2,34 +2,12 @@
 
 #include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
+#include "VertexInputLayout.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  enum class GpuProgramResourceAccess {
-    READ_ONLY = 0,
-    READ_WRITE
-  };
-//---------------------------------------------------------------------------//
-  enum class GpuProgramResourceType {
-    NONE = 0,
-    TEXTURE_1D,
-    TEXTURE_2D,
-    TEXTURE_3D,
-    TEXTURE_CUBE,
-    TEXTURE_1D_SHADOW,
-    TEXTURE_2D_SHADOW,
-    TEXTURE_CUBE_SHADOW,
-    BUFFER_TEXTURE,
-    BUFFER,
-    SAMPLER,
-
-    NUM
-  };
-//---------------------------------------------------------------------------//
   struct ConstantBufferElement
   {
-    uint64 GetHash() const { return 0u; }
-
     ConstantBufferElement() :
       uOffsetBytes(0u), uSizeBytes(0u), eFormat(DataFormat::NONE), uFormatComponentCount(1u) {}
 
@@ -43,24 +21,29 @@ namespace Fancy {
   /// Describes a resource (texture, buffer, ...) used in a gpuProgram as returned from reflection
   struct GpuProgramResourceInfo {
     GpuProgramResourceInfo()
-      : u32RegisterIndex(0u),
-        eAccessType(GpuProgramResourceAccess::READ_ONLY), 
-        eResourceType(GpuProgramResourceType::NONE) {}
+      : myRegisterIndex(0u)
+      , myIsUnorderedWrite(false)
+      , myDimension(GpuResourceDimension::UNKONWN)
+    {}
 
-    String name;
-    uint u32RegisterIndex;
-    GpuProgramResourceAccess eAccessType;
-    GpuProgramResourceType eResourceType;
+    String myName;
+    uint myRegisterIndex;
+    bool myIsUnorderedWrite;
+    GpuResourceDimension myDimension;
   };
 //---------------------------------------------------------------------------//
   struct GpuProgramProperties
   {
+    GpuProgramProperties()
+      : myShaderStage(ShaderStage::NONE)
+      , myHasUnorderedWrites(false)
+    {}
+
     ShaderVertexInputLayout myVertexInputLayout;
-    DynamicArray<GpuProgramResourceInfo> myTextureInfos;
-    DynamicArray<GpuProgramResourceInfo> myBufferInfos;;
-    DynamicArray<GpuProgramResourceInfo> myRWTextureInfos;
-    DynamicArray<GpuProgramResourceInfo> myRWBufferInfos;
+    DynamicArray<GpuProgramResourceInfo> myResourceInfos;
     DynamicArray<ConstantBufferElement> myConstantBufferElements;
     ShaderStage myShaderStage;
+    bool myHasUnorderedWrites;
   };
+//---------------------------------------------------------------------------//
 }
