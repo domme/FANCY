@@ -34,7 +34,6 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   RenderOutputDX12::~RenderOutputDX12()
   {
-    mySwapChain.Reset();
   }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::CreateBackbufferResources(uint aWidth, uint aHeight)

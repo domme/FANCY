@@ -89,8 +89,8 @@ namespace Fancy {
     ourCommandQueues[(uint)CommandListType::Graphics].reset(new CommandQueueDX12(CommandListType::Graphics));
     ourCommandQueues[(uint)CommandListType::Compute].reset(new CommandQueueDX12(CommandListType::Compute));
 
-    ourCommandAllocatorPools[(uint)CommandListType::Graphics] = new CommandAllocatorPoolDX12(CommandListType::Graphics);
-    ourCommandAllocatorPools[(uint)CommandListType::Compute] = new CommandAllocatorPoolDX12(CommandListType::Compute);
+    ourCommandAllocatorPools[(uint)CommandListType::Graphics].reset(new CommandAllocatorPoolDX12(CommandListType::Graphics));
+    ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
 
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1024u));
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 512u));
@@ -102,16 +102,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::~RenderCore_PlatformDX12()
   {
-    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      ourCommandQueues[i]->WaitForIdle();
 
-    for (uint i = 0u; i < ARRAY_LENGTH(ourCommandAllocatorPools); ++i)
-      SAFE_DELETE(ourCommandAllocatorPools[i]);
 
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      ourCommandQueues[i].reset();
-
-    ourDevice.Reset();
+      if (ourCommandQueues[i] != nullptr)
+        ourCommandQueues[i]->WaitForIdle();
   }
 //---------------------------------------------------------------------------//
   ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const

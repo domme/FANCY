@@ -13,12 +13,12 @@
 using namespace Fancy;
 
 //---------------------------------------------------------------------------//
-  AssetStorage::AssetStorage()
+  void AssetStorage::Clear()
   {
-  }
-//---------------------------------------------------------------------------//
-  AssetStorage::~AssetStorage()
-  {
+    myMaterials.clear();
+    myModels.clear();
+    myTextures.clear();
+    myMeshes.clear();
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> AssetStorage::GetTexture(const char* aPath)

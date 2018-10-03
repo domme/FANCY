@@ -15,8 +15,9 @@ namespace Fancy {
   class AssetStorage
   {
   public:
-    AssetStorage();
-    ~AssetStorage();
+    AssetStorage() = default;
+    ~AssetStorage() = default;
+    void Clear();
 
     SharedPtr<Texture> GetTexture(const char* aPath);
     SharedPtr<Texture> CreateTexture(const char* aPath);

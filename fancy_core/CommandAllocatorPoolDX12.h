@@ -20,7 +20,7 @@ namespace Fancy {
   private:
     CommandListType myCommandListType;
 
-    std::vector<UniquePtr<ID3D12CommandAllocator>> myAllocatorPool;
+    std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> myAllocatorPool;
     std::list<ID3D12CommandAllocator*> myAvailableAllocators;
     std::list<std::pair<uint64, ID3D12CommandAllocator*>> myReleasedWaitingAllocators;
   };  

@@ -20,14 +20,12 @@ namespace Fancy
   {
   public:
     GpuMemoryAllocatorDX12(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aMemBlockSize);
-    ~GpuMemoryAllocatorDX12() = default;
+    ~GpuMemoryAllocatorDX12();
 
     GpuMemoryAllocationDX12 Allocate(const uint64 aSize, const uint anAlignment);
     void Free(GpuMemoryAllocationDX12& anAllocation);
 
   private:
-    GpuMemoryType myType;
-    GpuMemoryAccessType myAccessType;
     PagedLinearAllocator<Microsoft::WRL::ComPtr<ID3D12Heap>> myAllocator;
   };
 //---------------------------------------------------------------------------//

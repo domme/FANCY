@@ -121,14 +121,6 @@ namespace Fancy {
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers; 
 
-    // To consider: All resource-allocations are currently managed by the context-executions. 
-    // This might be too much overhead in case of many small context-executions.
-    // Should we rather introduce per-frame liefimes for some resources (e.g. temporary buffers/textures) whose lifetime is managed on a higher level?
-    /*
-      GpuBuffer*
-      
-      /*/
-
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);
   };

@@ -38,12 +38,15 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
   GpuMemoryAllocatorDX12::GpuMemoryAllocatorDX12(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aMemBlockSize)
-    : myType(aType)
-    , myAccessType(anAccessType)
-    , myAllocator(aMemBlockSize, 
+    : myAllocator(aMemBlockSize, 
       [aType, anAccessType](uint64 aSize, Microsoft::WRL::ComPtr<ID3D12Heap>& aHeapOut){return CreateHeap(aType, anAccessType, aSize, aHeapOut); }
       , DestroyHeap)
   {
+  }
+//---------------------------------------------------------------------------//
+  GpuMemoryAllocatorDX12::~GpuMemoryAllocatorDX12()
+  {
+
   }
 //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate(const uint64 aSize, const uint anAlignment)

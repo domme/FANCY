@@ -322,9 +322,14 @@ namespace Fancy {
     ourAvailableComputeContexts.clear();
     ourComputeContextPool.clear();
 
-    ourDefaultDiffuseTexture = nullptr;
-    ourDefaultNormalTexture = nullptr;
-    ourDefaultSpecularTexture = nullptr;
+    ASSERT(ourRingBufferPool.size() == ourAvailableRingBuffers.size(), "There are still some ringbuffers in flight");
+    ourAvailableRingBuffers.clear();
+    ourRingBufferPool.clear();
+
+    ourDefaultDiffuseTexture.reset();
+    ourDefaultNormalTexture.reset();
+    ourDefaultSpecularTexture.reset();
+    ourComputeMipMapShader.reset();
 
     ourDefaultDepthStencilState.reset();
     ourDefaultBlendState.reset();
@@ -347,8 +352,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle)
   {
-    SharedPtr<RenderOutput> output;
-    output.reset(ourPlatformImpl->CreateRenderOutput(aNativeInstanceHandle));
+    SharedPtr<RenderOutput> output(ourPlatformImpl->CreateRenderOutput(aNativeInstanceHandle));
     return output;
   }
 //---------------------------------------------------------------------------//

@@ -77,8 +77,8 @@ namespace Fancy {
 
     Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
 
-    CommandAllocatorPoolDX12* ourCommandAllocatorPools[(uint)CommandListType::NUM];
-	  std::unique_ptr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
+    UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
+	  UniquePtr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
 
   protected:
     void InitCaps() override;

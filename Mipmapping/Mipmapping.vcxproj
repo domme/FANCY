@@ -7,10 +7,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B3C6A367-918F-48DF-BC25-E21285968B96}</ProjectGuid>
-    <RootNamespace>app_imgui</RootNamespace>
+    <ProjectGuid>{a687b1bb-987e-407a-833d-ba63fc843733}</ProjectGuid>
+    <RootNamespace>Mipmapping</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
-    <ProjectName>ForwardPlus_Rendering</ProjectName>
+    <ProjectName>Mipmapping</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'" Label="Configuration">
@@ -30,12 +30,13 @@
     <Import Project="..\property_sheets\inc_lib_dependencies.props" />
     <Import Project="..\property_sheets\inc_lib_fancy_core_static.props" />
     <Import Project="..\property_sheets\inc_lib_fancy_imgui_static.props" />
+    <Import Project="..\property_sheets\inc_lib_fancy_assets_static.props" />
     <Import Project="..\property_sheets\lib_dx12.props" />
     <Import Project="..\property_sheets\lib_xxhash_static_release_x64.props" />
     <Import Project="..\property_sheets\lib_assimp_debug_x64.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -45,13 +46,9 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
+      <AdditionalOptions>/nodefaultlib:msvcrt</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="src\app_forwardplus.cpp" />
-    <ClCompile Include="src\RenderingProcessForward.cpp" />
-    <ClCompile Include="src\RenderingProcessForwardPlus.cpp" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\fancy_core\fancy_core.vcxproj">
       <Project>{0562febf-6fa8-4abd-8ff9-d7b3b8a889fd}</Project>
@@ -60,8 +57,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\RenderingProcessForward.h" />
-    <ClInclude Include="src\RenderingProcessForwardPlus.h" />
+    <ClCompile Include="Mipmapping.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

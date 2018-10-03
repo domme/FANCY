@@ -48,6 +48,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void FancyRuntime::Shutdown()
   {
+    RenderCore::GetCommandQueue(CommandListType::Graphics)->WaitForIdle();
+    ourInstance->myRenderOutput.reset();
+
     ASSERT(ourInstance != nullptr);
     SAFE_DELETE(ourInstance);
   }

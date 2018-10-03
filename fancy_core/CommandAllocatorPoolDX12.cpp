@@ -13,11 +13,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandAllocatorPoolDX12::~CommandAllocatorPoolDX12()
   {
-    for (ID3D12CommandAllocator* allocator : myAvailableAllocators)
-      allocator->Release();
-
-    myAvailableAllocators.clear();
-    myReleasedWaitingAllocators.clear();
   }
 //---------------------------------------------------------------------------//
   ID3D12CommandAllocator* CommandAllocatorPoolDX12::GetNewAllocator()
@@ -59,11 +54,11 @@ namespace Fancy {
 
     D3D12_COMMAND_LIST_TYPE nativeCmdListType = RenderCore_PlatformDX12::GetCommandListType(myCommandListType);
 
-    ID3D12CommandAllocator* allocator;
+    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
     CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandAllocator(nativeCmdListType, IID_PPV_ARGS(&allocator)));
-    myAllocatorPool.push_back(UniquePtr<ID3D12CommandAllocator>(allocator));
+    myAllocatorPool.push_back(allocator);
 
-    return allocator;
+    return myAllocatorPool.back().Get();
   }
 //---------------------------------------------------------------------------//
   void CommandAllocatorPoolDX12::ReleaseAllocator(ID3D12CommandAllocator* anAllocator, uint64 anAllocatorDoneFenceVal)
