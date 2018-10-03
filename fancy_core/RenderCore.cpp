@@ -322,10 +322,6 @@ namespace Fancy {
     ourAvailableComputeContexts.clear();
     ourComputeContextPool.clear();
 
-#define CHECK_UNIQUE_PTRS(aCollection, aName) \
-    for (const auto& entry : aCollection) \
-      ASSERT(entry.second.unique(), "Dangling reference found when trying to delete % cache", aName); 
-
     ourDefaultDiffuseTexture = nullptr;
     ourDefaultNormalTexture = nullptr;
     ourDefaultSpecularTexture = nullptr;
@@ -333,19 +329,10 @@ namespace Fancy {
     ourDefaultDepthStencilState.reset();
     ourDefaultBlendState.reset();
 
-    CHECK_UNIQUE_PTRS(ourGpuProgramPipelineCache, "Gpu program pipeline");
     ourGpuProgramPipelineCache.clear();
-
-    CHECK_UNIQUE_PTRS(ourShaderCache,  "Shader");
     ourShaderCache.clear();
-
-    CHECK_UNIQUE_PTRS(ourBlendStateCache, "BlendState");
     ourBlendStateCache.clear();
-
-    CHECK_UNIQUE_PTRS(ourDepthStencilStateCache, "DepthStencilState");
     ourDepthStencilStateCache.clear();
-    
-#undef CHECK_UNIQUE_PTRS
   }
 //---------------------------------------------------------------------------//  
   void RenderCore::Shutdown_1_Services()
@@ -373,20 +360,21 @@ namespace Fancy {
     if (it != ourShaderCache.end())
       return it->second;
 
+    GpuProgramCompilerOutput compilerOutput;
+    if (!ourShaderCompiler->Compile(aDesc, &compilerOutput))
+      return nullptr;
+
     SharedPtr<GpuProgram> program(ourPlatformImpl->CreateGpuProgram());
-    if (program->SetFromDescription(aDesc, ourShaderCompiler.get()))
-    {
-      ourShaderCache.insert(std::make_pair(hash, program));
+    program->SetFromCompilerOutput(compilerOutput);
+    
+    ourShaderCache.insert(std::make_pair(hash, program));
 
-      const String actualShaderPath =
-        Resources::FindPath(ourShaderCompiler->ResolvePlatformShaderPath(aDesc.myShaderFileName));
+    const String actualShaderPath =
+      Resources::FindPath(ourShaderCompiler->ResolvePlatformShaderPath(aDesc.myShaderFileName));
 
-      ourShaderFileWatcher->AddFileWatch(actualShaderPath);
+    ourShaderFileWatcher->AddFileWatch(actualShaderPath);
 
-      return program;
-    }
-
-    return nullptr;
+    return program;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuProgramPipeline> RenderCore::CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc)
@@ -794,7 +782,13 @@ namespace Fancy {
     }
 
     for (GpuProgram* program : programsToRecompile)
-      program->SetFromDescription(program->GetDescription(), ourShaderCompiler.get());
+    {
+      GpuProgramCompilerOutput compiledOutput;
+      if (ourShaderCompiler->Compile(program->GetDescription(), &compiledOutput))
+        program->SetFromCompilerOutput(compiledOutput);
+      else
+        LOG_WARNING("Failed compiling shader %", program->GetDescription().myShaderFileName.c_str());
+    }
     
     // Check which pipelines need to be updated...
     std::vector<GpuProgramPipeline*> changedPipelines;

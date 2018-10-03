@@ -19,14 +19,19 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
   /// Describes a resource (texture, buffer, ...) used in a gpuProgram as returned from reflection
-  struct GpuProgramResourceInfo {
+  struct GpuProgramResourceInfo 
+  {
     GpuProgramResourceInfo()
-      : myRegisterIndex(0u)
+      : myFirstBindSlot(0u)
+      , myNumBindSlots(0u)
+      , myRegisterIndex(0u)
       , myIsUnorderedWrite(false)
       , myDimension(GpuResourceDimension::UNKONWN)
     {}
 
     String myName;
+    uint myFirstBindSlot;
+    uint myNumBindSlots;
     uint myRegisterIndex;
     bool myIsUnorderedWrite;
     GpuResourceDimension myDimension;

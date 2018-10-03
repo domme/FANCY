@@ -36,6 +36,12 @@ SharedPtr<GpuProgramPipeline> myUnlitVertexColorShader;
 SharedPtr<GpuProgramPipeline> myDebugGeoShader;
 SharedPtr<CameraController> myCameraController;
 
+SharedPtr<GpuProgramPipeline> myTexturedQuadShader;
+
+SharedPtr<Texture> myCheckerboardTexture;
+SharedPtr<TextureView> myCheckerboardTextureRead;
+SharedPtr<TextureView> myCheckerboardTextureWrite;
+
 Camera myCamera;
 InputState myInputState;
 
@@ -46,15 +52,15 @@ void OnWindowResized(uint aWidth, uint aHeight)
   myCamera.UpdateProjection();
 }
 
-SharedPtr<GpuProgramPipeline> LoadShader(const char* aShaderPath)
+SharedPtr<GpuProgramPipeline> LoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main")
 {
   GpuProgramPipelineDesc pipelineDesc;
   GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
   shaderDesc->myShaderFileName = aShaderPath;
-  shaderDesc->myMainFunction = "main";
+  shaderDesc->myMainFunction = aMainVtxFunction;
   shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
   shaderDesc->myShaderFileName = aShaderPath;
-  shaderDesc->myMainFunction = "main";
+  shaderDesc->myMainFunction = aMainFragmentFunction;
   return RenderCore::CreateGpuProgramPipeline(pipelineDesc);
 }
 
@@ -80,7 +86,7 @@ void Init(HINSTANCE anInstanceHandle)
 
   myDebugGeoShader = LoadShader("DebugGeo_Colored");
   ASSERT(myDebugGeoShader != nullptr);
-  
+
   myCamera.myPosition = glm::float3(0.0f, 0.0f, -10.0f);
   myCamera.myOrientation = glm::quat_cast(glm::lookAt(glm::float3(0.0f, 0.0f, 10.0f), glm::float3(0.0f, 0.0f, 0.0f), glm::float3(0.0f, 1.0f, 0.0f)));
 
@@ -98,6 +104,19 @@ void Init(HINSTANCE anInstanceHandle)
 
   bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", myAssetStorage, myScene);
   ASSERT(importSuccess);
+
+  myTexturedQuadShader = LoadShader("Unlit_Quad", "main", "main_textured");
+  ASSERT(myTexturedQuadShader != nullptr);
+
+  myCheckerboardTexture = myAssetStorage.CreateTexture("Textures/Checkerboard.png");
+
+  TextureViewProperties viewProps;
+  viewProps.myDimension = GpuResourceDimension::TEXTURE_2D;
+  myCheckerboardTextureRead = RenderCore::CreateTextureView(myCheckerboardTexture, viewProps);
+
+  viewProps.myIsShaderWritable = true;
+  viewProps.myFormat = DataFormatInfo::GetNonSRGBformat(myCheckerboardTexture->GetProperties().myfo)::GetNo
+  myCheckerboardTextureWrite = RenderCore::CreateTextureView(myCheckerboardTexture, viewProps);
 }
 
 void Update()
@@ -120,6 +139,16 @@ void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)
 
 void RenderGrid(CommandContext* ctx)
 {
+  ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
+  ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
+  ctx->SetRenderTarget(myRenderOutput->GetBackbufferRtv(), myRenderOutput->GetDepthStencilDsv());
+  
+  ctx->SetDepthStencilState(nullptr);
+  ctx->SetBlendState(nullptr);
+  ctx->SetCullMode(CullMode::NONE);
+  ctx->SetFillMode(FillMode::SOLID);
+  ctx->SetWindingOrder(WindingOrder::CCW);
+  
   ctx->SetGpuProgramPipeline(myDebugGeoShader);
   
   struct Cbuffer_DebugGeo
@@ -157,17 +186,8 @@ void RenderGrid(CommandContext* ctx)
   ctx->Render(4, 1, 0, 0, 0);
 }
 
-void Render()
+void RenderScene(CommandContext* ctx)
 {
-  SharedPtr<Texture> tex = myAssetStorage.GetTexture("Textures/Sibenik/mramor6x6.png");
-  RenderCore::ComputeMipMaps(tex);
-
-  CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-  CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-  float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
-  ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), 1.0f, 0u);
-
   ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
   ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
   ctx->SetRenderTarget(myRenderOutput->GetBackbufferRtv(), myRenderOutput->GetDepthStencilDsv());
@@ -177,8 +197,6 @@ void Render()
   ctx->SetCullMode(CullMode::NONE);
   ctx->SetFillMode(FillMode::SOLID);
   ctx->SetWindingOrder(WindingOrder::CCW);
-
-  RenderGrid(ctx);
 
   ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
   ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
@@ -203,6 +221,59 @@ void Render()
     for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
       ctx->RenderGeometry(geometry.get());
   }
+}
+
+void RenderMipmapTest(CommandContext* ctx)
+{
+  // RenderCore::ComputeMipMaps(myCheckerboardTexture);
+
+  const TextureProperties& texProps = myCheckerboardTexture->GetProperties();
+
+  ctx->SetViewport(glm::uvec4(0, 0, texProps.myWidth, texProps.myHeight));
+  ctx->SetClipRect(glm::uvec4(0, 0, texProps.myWidth, texProps.myHeight));
+  ctx->SetRenderTarget(myRenderOutput->GetBackbufferRtv(), myRenderOutput->GetDepthStencilDsv());
+  
+  ctx->SetDepthStencilState(nullptr);
+  ctx->SetBlendState(nullptr);
+  ctx->SetCullMode(CullMode::NONE);
+  ctx->SetFillMode(FillMode::SOLID);
+  ctx->SetWindingOrder(WindingOrder::CCW);
+  
+  ctx->SetGpuProgramPipeline(myTexturedQuadShader);
+
+  // 03
+  // 12
+
+  glm::float3 quadPositions[4] = {
+    { -1.0f, -1.0f, 0.0f },
+    {-1.0f, 1.0f, 0.0f},
+    {1.0f, 1.0f, 0.0f},
+    {1.0f, -1.0f, 0.0f}
+  };
+  ctx->BindVertexBuffer(quadPositions, sizeof(quadPositions), sizeof(glm::float3));
+
+  uint16 quadIndices[6] = {
+    0,1,2, 2,3,0
+  };
+  ctx->BindIndexBuffer(quadIndices, sizeof(quadIndices), sizeof(uint16));
+
+  const GpuResourceView* resourcesToBind[] = { myCheckerboardTextureRead.get() };
+  ctx->BindResourceSet(resourcesToBind, 1u, 0u);
+
+  ctx->Render(6, 1, 0, 0, 0);
+}
+
+void Render()
+{
+  CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
+  CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+  float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+  ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
+  ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), 1.0f, 0u);
+
+  // RenderGrid(ctx);
+  // RenderScene(ctx);  
+  RenderMipmapTest(ctx);
 
   queue->ExecuteContext(ctx);
   RenderCore::FreeContext(ctx);

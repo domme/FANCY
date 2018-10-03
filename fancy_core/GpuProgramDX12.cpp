@@ -72,14 +72,6 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  GpuProgramDX12::GpuProgramDX12()
-  {
-  }
-//---------------------------------------------------------------------------//
-  GpuProgramDX12::~GpuProgramDX12()
-  {
-  }
-//---------------------------------------------------------------------------//
   void GpuProgramDX12::SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput)
   {
     GpuProgram::SetFromCompilerOutput(aCompilerOutput);

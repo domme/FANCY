@@ -16,23 +16,7 @@ namespace Fancy {
     desc.myPermutation = myPermutation;
     return desc;
   }
-  //---------------------------------------------------------------------------//
-  bool GpuProgram::SetFromDescription(const GpuProgramDesc& aDesc, const GpuProgramCompiler* aCompiler)
-  {
-    GpuProgramCompilerOutput output;
-    const bool success = aCompiler->Compile(aDesc, &output);
-
-    if (success)
-    {
-      mySourcePath = aDesc.myShaderFileName;
-      myPermutation = aDesc.myPermutation;
-
-      SetFromCompilerOutput(output);
-    }
-
-    return success;
-  }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void GpuProgram::SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput)
   {
     myProperties = aCompilerOutput.myProperties;

@@ -398,40 +398,6 @@ namespace Fancy {
 #undef CHECK
   }
 //---------------------------------------------------------------------------//
-  void locResolveResourceType(D3D_SHADER_INPUT_TYPE aType, D3D_SRV_DIMENSION aDimension, GpuResourceDimension& aDimensionOut, bool& isUnorderedWriteOut)
-  {
-    switch(aDimension) 
-    { 
-      case D3D_SRV_DIMENSION_BUFFER: 
-      case D3D_SRV_DIMENSION_BUFFEREX:
-        aDimensionOut = GpuResourceDimension::BUFFER; break;
-      case D3D_SRV_DIMENSION_TEXTURE1D: 
-        aDimensionOut = GpuResourceDimension::TEXTURE_1D; break;
-      case D3D_SRV_DIMENSION_TEXTURE1DARRAY: 
-        aDimensionOut = GpuResourceDimension::TEXTURE_1D_ARRAY; break;
-      case D3D_SRV_DIMENSION_TEXTURE2DMS:
-      case D3D_SRV_DIMENSION_TEXTURE2D: 
-        aDimensionOut = GpuResourceDimension::TEXTURE_2D; break;
-      case D3D_SRV_DIMENSION_TEXTURE2DARRAY: 
-      case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY: 
-        aDimensionOut = GpuResourceDimension::TEXTURE_2D_ARRAY; break;
-      case D3D_SRV_DIMENSION_TEXTURE3D: 
-        aDimensionOut = GpuResourceDimension::TEXTURE_3D; break;
-      case D3D_SRV_DIMENSION_TEXTURECUBE: 
-        aDimensionOut = GpuResourceDimension::TEXTURE_CUBE; break;
-      case D3D_SRV_DIMENSION_TEXTURECUBEARRAY: 
-        aDimensionOut = GpuResourceDimension::TEXTURE_CUBE_ARRAY; break;
-      default: 
-        ASSERT(false, "Unsupported resource dimension in shader reflection");
-        break;
-    }
-
-    isUnorderedWriteOut = (aType == D3D_SIT_UAV_RWTYPED || 
-                          aType == D3D_SIT_UAV_RWSTRUCTURED || 
-                          aType == D3D_SIT_UAV_RWBYTEADDRESS ||
-                          aType == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER);
-  }
-//---------------------------------------------------------------------------//
   bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramProperties& someProps)
   {
     for (uint i = 0u; i < aShaderDesc.BoundResources; ++i)
@@ -440,11 +406,46 @@ namespace Fancy {
       CheckD3Dcall(aReflector->GetResourceBindingDesc(i, &desc));
 
       GpuProgramResourceInfo resInfo;
+      
+      switch(desc.Dimension) 
+      { 
+        case D3D_SRV_DIMENSION_BUFFER: 
+        case D3D_SRV_DIMENSION_BUFFEREX:
+          resInfo.myDimension = GpuResourceDimension::BUFFER; break;
+        case D3D_SRV_DIMENSION_TEXTURE1D: 
+          resInfo.myDimension = GpuResourceDimension::TEXTURE_1D; break;
+        case D3D_SRV_DIMENSION_TEXTURE1DARRAY: 
+          resInfo.myDimension = GpuResourceDimension::TEXTURE_1D_ARRAY; break;
+        case D3D_SRV_DIMENSION_TEXTURE2DMS:
+        case D3D_SRV_DIMENSION_TEXTURE2D: 
+          resInfo.myDimension = GpuResourceDimension::TEXTURE_2D; break;
+        case D3D_SRV_DIMENSION_TEXTURE2DARRAY: 
+        case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY: 
+          resInfo.myDimension = GpuResourceDimension::TEXTURE_2D_ARRAY; break;
+        case D3D_SRV_DIMENSION_TEXTURE3D: 
+          resInfo.myDimension = GpuResourceDimension::TEXTURE_3D; break;
+        case D3D_SRV_DIMENSION_TEXTURECUBE: 
+          resInfo.myDimension = GpuResourceDimension::TEXTURE_CUBE; break;
+        case D3D_SRV_DIMENSION_TEXTURECUBEARRAY: 
+          resInfo.myDimension = GpuResourceDimension::TEXTURE_CUBE_ARRAY; break;
+        case D3D_SRV_DIMENSION_UNKNOWN:
+          // We're currently only interested in texture- and buffer types. This case will hit for samplers. Skip them for now
+          continue;
+        default: 
+          ASSERT(false, "Unsupported resource dimension in shader reflection");
+          break;
+      }
+
       resInfo.myName = desc.Name;
-      resInfo.myRegisterIndex = desc.BindPoint;
-      locResolveResourceType(desc.Type, desc.Dimension, resInfo.myDimension, resInfo.myIsUnorderedWrite);
+      resInfo.myFirstBindSlot = desc.BindPoint;
+      resInfo.myNumBindSlots = desc.BindCount;
+      resInfo.myRegisterIndex = i;
+
+      resInfo.myIsUnorderedWrite = (desc.Type == D3D_SIT_UAV_RWTYPED || desc.Type == D3D_SIT_UAV_RWSTRUCTURED || 
+        desc.Type == D3D_SIT_UAV_RWBYTEADDRESS || desc.Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER);
       
       someProps.myHasUnorderedWrites |= resInfo.myIsUnorderedWrite;
+
       someProps.myResourceInfos.push_back(resInfo);
     }
 
@@ -547,7 +548,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutput* aProgram) const
+  bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutput* anOutput) const
   {
     LOG_INFO("Compiling shader %...", aDesc.myShaderFileName);
 
@@ -638,10 +639,10 @@ namespace Fancy {
     ShaderResourceInterface* rsObject = RenderCore::GetPlatformDX12()->GetShaderResourceInterface(*rsDesc, rootSignature);
     ASSERT(nullptr != rsObject);
 
-    aProgram->myPermutation = aDesc.myPermutation;
-    aProgram->myProperties.myShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
-    aProgram->myShaderFilename = aDesc.myShaderFileName;
-    aProgram->myRootSignature = rsObject;
+    anOutput->myPermutation = aDesc.myPermutation;
+    anOutput->myProperties.myShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
+    anOutput->myShaderFilename = aDesc.myShaderFileName;
+    anOutput->myRootSignature = rsObject;
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//
@@ -657,13 +658,13 @@ namespace Fancy {
     D3D12_SHADER_DESC shaderDesc;
     reflector->GetDesc(&shaderDesc);
 
-    if (!locReflectConstants(reflector, shaderDesc, aProgram->myProperties))
+    if (!locReflectConstants(reflector, shaderDesc, anOutput->myProperties))
     {
       LOG_ERROR("Failed reflecting constants");
       return false;
     }
 
-    if (!locReflectResources(reflector, shaderDesc, aProgram->myProperties))
+    if (!locReflectResources(reflector, shaderDesc, anOutput->myProperties))
     {
       LOG_ERROR("Failed reflecting resources");
       return false;
@@ -671,14 +672,14 @@ namespace Fancy {
 
     if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::VERTEX))
     {
-      if (!locReflectVertexInputLayout(reflector, shaderDesc, aProgram->myProperties))
+      if (!locReflectVertexInputLayout(reflector, shaderDesc, anOutput->myProperties))
       {
         LOG_ERROR("Failed reflecting vertex input layout");
         return false;
       }
     }
 
-    aProgram->myNativeData = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
+    anOutput->myNativeData = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
 
     return true;
   }

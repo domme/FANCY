@@ -12,8 +12,8 @@ namespace Fancy {
     class ShaderResourceInterface;
     
   public:
-    GpuProgramDX12();
-    ~GpuProgramDX12() override;
+    GpuProgramDX12() = default;
+    ~GpuProgramDX12() override = default;
 
     static VertexSemantics GetVertexSemanticFromShaderString(const char* aShaderString);
     static const char* GetShaderStringFromVertexSemantic(VertexSemantics aSemantic);

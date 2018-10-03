@@ -20,7 +20,7 @@ namespace Fancy {
         if (i == k) continue;
 
         const ShaderVertexInputElement& otherElement = vInputElements[k];
-        ASSERT(element.myRegisterIndex != otherElement.myRegisterIndex,
+        ASSERT(element.myBindPoint != otherElement.myBindPoint,
           "Invalid vertex layout");
       }
     }
