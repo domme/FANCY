@@ -13,12 +13,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandAllocatorPoolDX12::~CommandAllocatorPoolDX12()
   {
+    UpdateAvailableAllocators();
+    ASSERT(myAvailableAllocators.size() == myAllocatorPool.size(), 
+      "There are still some command allocators in flight when destroying the allocator pool");
   }
 //---------------------------------------------------------------------------//
-  ID3D12CommandAllocator* CommandAllocatorPoolDX12::GetNewAllocator()
+  void CommandAllocatorPoolDX12::UpdateAvailableAllocators(ID3D12CommandAllocator** aRequestedAllocator /* = nullptr */)
   {
-    // Check if some of the waiting allocators can be made available again
-    ID3D12CommandAllocator* availableAllocator = nullptr;
     auto it = myReleasedWaitingAllocators.begin();
     while(it != myReleasedWaitingAllocators.end())
     {
@@ -32,16 +33,25 @@ namespace Fancy {
           allocator->Reset();
         it = myReleasedWaitingAllocators.erase(it);
 
-        if (availableAllocator == nullptr)
-          availableAllocator = allocator;
+        // Avoid storing the available alloactor in the available-list if its directly needed by the caller
+        if (aRequestedAllocator != nullptr && *aRequestedAllocator == nullptr)
+          *aRequestedAllocator = allocator;
         else
           myAvailableAllocators.push_back(allocator);
       }
       else
         ++it;
     }
+  }
+//---------------------------------------------------------------------------//
+  ID3D12CommandAllocator* CommandAllocatorPoolDX12::GetNewAllocator()
+  {
+    // Check if some of the waiting allocators can be made available again
+    ID3D12CommandAllocator* availableAllocator = nullptr;
 
-    if (availableAllocator)
+    UpdateAvailableAllocators(&availableAllocator);
+
+    if (availableAllocator != nullptr)
       return availableAllocator;
 
     if (!myAvailableAllocators.empty())

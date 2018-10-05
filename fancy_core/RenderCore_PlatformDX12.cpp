@@ -74,6 +74,12 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {
+    ourCommandQueues[(uint)CommandListType::Graphics].reset(new CommandQueueDX12(CommandListType::Graphics));
+    ourCommandQueues[(uint)CommandListType::Compute].reset(new CommandQueueDX12(CommandListType::Compute));
+
+    ourCommandAllocatorPools[(uint)CommandListType::Graphics].reset(new CommandAllocatorPoolDX12(CommandListType::Graphics));
+    ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
+    
     myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)GpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, GpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
     myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)GpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, GpuMemoryAccessType::CPU_WRITE, 64 * SIZE_MB));
     myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)GpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, GpuMemoryAccessType::CPU_READ, 64 * SIZE_MB));
@@ -86,12 +92,6 @@ namespace Fancy {
     myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)GpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, GpuMemoryAccessType::CPU_WRITE, 16 * SIZE_MB));
     myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)GpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, GpuMemoryAccessType::CPU_READ, 16 * SIZE_MB));
     
-    ourCommandQueues[(uint)CommandListType::Graphics].reset(new CommandQueueDX12(CommandListType::Graphics));
-    ourCommandQueues[(uint)CommandListType::Compute].reset(new CommandQueueDX12(CommandListType::Compute));
-
-    ourCommandAllocatorPools[(uint)CommandListType::Graphics].reset(new CommandAllocatorPoolDX12(CommandListType::Graphics));
-    ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
-
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1024u));
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 512u));
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 64u));
@@ -102,11 +102,31 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::~RenderCore_PlatformDX12()
   {
-
-
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
       if (ourCommandQueues[i] != nullptr)
         ourCommandQueues[i]->WaitForIdle();
+
+    UpdateAvailableDynamicDescriptorHeaps();
+    ASSERT(myAvailableDynamicHeaps.size() == myDynamicHeapPool.size(),
+      "There are still some dynamic descriptor heaps in flight when destroying them");
+    myAvailableDynamicHeaps.clear();
+    myUsedDynamicHeaps.clear();
+    myDynamicHeapPool.clear();
+
+    for (uint i = 0u; i < ARRAY_LENGTH(myStaticDescriptorAllocators); ++i)
+      myStaticDescriptorAllocators[i].reset();
+
+    for (uint i = 0u; i < (uint)GpuMemoryType::NUM; ++i)
+      for (uint k = 0u; k < (uint) GpuMemoryAccessType::NUM; ++k)
+        myGpuMemoryAllocators[i][k].reset();
+
+    for (uint i = 0u; i < (uint) CommandListType::NUM; ++i)
+      ourCommandAllocatorPools[i].reset();
+
+    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
+        ourCommandQueues[i].reset();
+
+    ourDevice.Reset();
   }
 //---------------------------------------------------------------------------//
   ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const
@@ -149,13 +169,9 @@ namespace Fancy {
     myStaticDescriptorAllocators[(uint)aDescriptor.myHeapType]->FreeDescriptor(aDescriptor);
   }
 //---------------------------------------------------------------------------//
-  DynamicDescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
+  void RenderCore_PlatformDX12::UpdateAvailableDynamicDescriptorHeaps()
   {
-    const uint kGpuDescriptorNumIncrement = 16u;
-    aDescriptorCount = static_cast<uint>(MathUtil::Align(aDescriptorCount, kGpuDescriptorNumIncrement));
-
-    auto it = myUsedDynamicHeaps.begin();
-    while(it != myUsedDynamicHeaps.end())
+    for(auto it = myUsedDynamicHeaps.begin(); it != myUsedDynamicHeaps.end(); ++it)
     {
       uint64 fence = it->first;
       DynamicDescriptorHeapDX12* heap = it->second;
@@ -165,14 +181,17 @@ namespace Fancy {
       {
         heap->Reset();
         it = myUsedDynamicHeaps.erase(it);
-        if (heap->myDesc.NumDescriptors == aDescriptorCount &&  heap->myDesc.Type == aHeapType)
-          return heap;
-        else
-          myAvailableDynamicHeaps.push_back(heap);
+        myAvailableDynamicHeaps.push_back(heap);
       }
-      else
-        ++it;
     }
+  }
+//---------------------------------------------------------------------------//
+  DynamicDescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
+  {
+    UpdateAvailableDynamicDescriptorHeaps();
+    
+    const uint kGpuDescriptorNumIncrement = 16u;
+    aDescriptorCount = static_cast<uint>(MathUtil::Align(aDescriptorCount, kGpuDescriptorNumIncrement));
 
     for (auto it = myAvailableDynamicHeaps.begin(); it != myAvailableDynamicHeaps.end(); ++it)
     {
@@ -183,7 +202,6 @@ namespace Fancy {
         return heap;
       }
     }
-
     
     myDynamicHeapPool.push_back(std::make_unique<DynamicDescriptorHeapDX12>(aHeapType, aDescriptorCount));
     return myDynamicHeapPool.back().get();

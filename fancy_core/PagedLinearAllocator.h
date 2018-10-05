@@ -29,7 +29,7 @@ namespace Fancy
     const Page* FindPage(std::function<bool(const Page&)> aPredicateFn);
     const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut);
     void Free(const Block& aBlock);
-    void Clear();
+    bool IsEmpty() const { return myPages.size() == 0u; }
 
   private:
     bool CreateAndAddPage(uint64 aSize);
@@ -176,7 +176,7 @@ namespace Fancy
         myFreeList.push_front(aBlock);
     }
 
-    // Check if we can completely remove any page
+    // Check if we can completely remove a page
     for (int i = myPages.size() - 1; i >= 0; --i)
     {
       Page& page = myPages[i];
@@ -192,16 +192,6 @@ namespace Fancy
         myPages.erase(myPages.begin() + i);
       }
     }
-  }
-//---------------------------------------------------------------------------//
-  template <class T>
-  void PagedLinearAllocator<T>::Clear()
-  {
-    ASSERT(myPages.size() == 1 && myFreeList.size() == 1 && myFreeList.front().mySize == myPages.front().mySize, 
-      "There is still some data allocated in the PagedLinearAllocator when attempting to clear it");
-
-    myPages
-
   }
 //---------------------------------------------------------------------------//
   template <class T>

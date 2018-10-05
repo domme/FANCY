@@ -18,6 +18,8 @@ namespace Fancy {
     void ReleaseAllocator(ID3D12CommandAllocator* anAllocator, uint64 anAllocatorDoneFenceVal);
 
   private:
+    void UpdateAvailableAllocators(ID3D12CommandAllocator** aRequestedAllocator = nullptr);
+
     CommandListType myCommandListType;
 
     std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> myAllocatorPool;

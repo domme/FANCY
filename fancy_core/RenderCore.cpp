@@ -314,18 +314,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()
   {
-    ASSERT(ourRenderContextPool.size() == ourAvailableRenderContexts.size(), "There are still some rendercontexts in flight");
-    ourAvailableRenderContexts.clear();
-    ourRenderContextPool.clear();
-
-    ASSERT(ourComputeContextPool.size() == ourAvailableComputeContexts.size(), "There are still some compute contexts in flight");
-    ourAvailableComputeContexts.clear();
-    ourComputeContextPool.clear();
-
-    ASSERT(ourRingBufferPool.size() == ourAvailableRingBuffers.size(), "There are still some ringbuffers in flight");
-    ourAvailableRingBuffers.clear();
-    ourRingBufferPool.clear();
-
     ourDefaultDiffuseTexture.reset();
     ourDefaultNormalTexture.reset();
     ourDefaultSpecularTexture.reset();
@@ -338,6 +326,18 @@ namespace Fancy {
     ourShaderCache.clear();
     ourBlendStateCache.clear();
     ourDepthStencilStateCache.clear();
+
+    ASSERT(ourRenderContextPool.size() == ourAvailableRenderContexts.size(), "There are still some rendercontexts in flight");
+    ourAvailableRenderContexts.clear();
+    ourRenderContextPool.clear();
+
+    ASSERT(ourComputeContextPool.size() == ourAvailableComputeContexts.size(), "There are still some compute contexts in flight");
+    ourAvailableComputeContexts.clear();
+    ourComputeContextPool.clear();
+
+    ASSERT(ourRingBufferPool.size() == ourAvailableRingBuffers.size(), "There are still some ringbuffers in flight");
+    ourAvailableRingBuffers.clear();
+    ourRingBufferPool.clear();
   }
 //---------------------------------------------------------------------------//  
   void RenderCore::Shutdown_1_Services()

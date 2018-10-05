@@ -7,6 +7,7 @@
 
 namespace Fancy 
 {
+//---------------------------------------------------------------------------//
   class StaticDescriptorAllocatorDX12
   {
   public:
@@ -18,7 +19,7 @@ namespace Fancy
     };
 
     StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptorsPerHeap);
-    ~StaticDescriptorAllocatorDX12() = default;
+    ~StaticDescriptorAllocatorDX12();
 
     DescriptorDX12 AllocateDescriptor();
     void FreeDescriptor(const DescriptorDX12& aDescriptor);
@@ -28,6 +29,7 @@ namespace Fancy
     uint myHandleIncrementSize;
     D3D12_DESCRIPTOR_HEAP_TYPE myType;
   };
+//---------------------------------------------------------------------------//
 }
 
 

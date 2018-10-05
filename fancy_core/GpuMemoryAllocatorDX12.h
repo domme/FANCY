@@ -26,6 +26,9 @@ namespace Fancy
     void Free(GpuMemoryAllocationDX12& anAllocation);
 
   private:
+    GpuMemoryType myType;
+    GpuMemoryAccessType myAccess;
+
     PagedLinearAllocator<Microsoft::WRL::ComPtr<ID3D12Heap>> myAllocator;
   };
 //---------------------------------------------------------------------------//

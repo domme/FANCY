@@ -8,36 +8,46 @@
 namespace Fancy 
 {
 //---------------------------------------------------------------------------//
+  namespace Priv_StaticDescirptorAllocatorDX12
+  {
+    bool locCreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptors, StaticDescriptorAllocatorDX12::Heap& aHeapOut)
+    {
+      ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
+      D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
+      heapDesc.NumDescriptors = aNumDescriptors;
+      heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+      heapDesc.NodeMask = 0u;
+      heapDesc.Type = aType;
+      
+      if (!SUCCEEDED(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&aHeapOut.myHeap))))
+        return false;
+
+      aHeapOut.myCpuHeapStart = aHeapOut.myHeap->GetCPUDescriptorHandleForHeapStart();
+      aHeapOut.myGpuHeapStart = aHeapOut.myHeap->GetGPUDescriptorHandleForHeapStart();
+
+      return true;
+    }  
+  }
+//---------------------------------------------------------------------------//
   using Page = PagedLinearAllocator<StaticDescriptorAllocatorDX12::Heap>::Page;
   using Block = PagedLinearAllocator<StaticDescriptorAllocatorDX12::Heap>::Block;
 //---------------------------------------------------------------------------//
-  bool CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptors, StaticDescriptorAllocatorDX12::Heap& aHeapOut)
-  {
-    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
-    D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
-    heapDesc.NumDescriptors = aNumDescriptors;
-    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    heapDesc.NodeMask = 0u;
-    heapDesc.Type = aType;
-    
-    if (!SUCCEEDED(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&aHeapOut.myHeap))))
-      return false;
-
-    aHeapOut.myCpuHeapStart = aHeapOut.myHeap->GetCPUDescriptorHandleForHeapStart();
-    aHeapOut.myGpuHeapStart = aHeapOut.myHeap->GetGPUDescriptorHandleForHeapStart();
-
-    return true;
-  }
+  
 //---------------------------------------------------------------------------//
   StaticDescriptorAllocatorDX12::StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptorsPerHeap)
     : myAllocator(
         aNumDescriptorsPerHeap, 
-        [aType](uint64 aNumDescriptors, StaticDescriptorAllocatorDX12::Heap& aHeapOut) { return CreateDescriptorHeap(aType, aNumDescriptors, aHeapOut); }, 
+        [aType](uint64 aNumDescriptors, StaticDescriptorAllocatorDX12::Heap& aHeapOut) { return Priv_StaticDescirptorAllocatorDX12::locCreateDescriptorHeap(aType, aNumDescriptors, aHeapOut); }, 
         [](StaticDescriptorAllocatorDX12::Heap& aHeapToDestroy) { })
     , myHandleIncrementSize(RenderCore::GetPlatformDX12()->GetDevice()->GetDescriptorHandleIncrementSize(aType))
     , myType(aType)
   {
     
+  }
+//---------------------------------------------------------------------------//
+  StaticDescriptorAllocatorDX12::~StaticDescriptorAllocatorDX12()
+  {
+    ASSERT(myAllocator.IsEmpty(), "There are still static descriptors allocated when destroying the descriptor allocator");
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 StaticDescriptorAllocatorDX12::AllocateDescriptor()

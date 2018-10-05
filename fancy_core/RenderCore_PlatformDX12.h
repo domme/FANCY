@@ -75,20 +75,21 @@ namespace Fancy {
     // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
-    Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
-
-    UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
-	  UniquePtr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
-
   protected:
     void InitCaps() override;
-    
+    void UpdateAvailableDynamicDescriptorHeaps();
+
+    Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
+
+    // TODO: Move the dynamic heaps to a dedicated pool-class? (Similar to ComandAllocatorPoolDX12)
     std::vector<std::unique_ptr<DynamicDescriptorHeapDX12>> myDynamicHeapPool;
     std::list<DynamicDescriptorHeapDX12*> myAvailableDynamicHeaps;
     std::list<std::pair<uint64, DynamicDescriptorHeapDX12*>> myUsedDynamicHeaps;
 
     UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)GpuMemoryAccessType::NUM];
+    UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
+	  UniquePtr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
   };
 //---------------------------------------------------------------------------//
 }
