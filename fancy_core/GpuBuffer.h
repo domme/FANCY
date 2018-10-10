@@ -19,7 +19,7 @@ namespace Fancy {
     uint64 GetByteSize() const { return myProperties.myNumElements * myProperties.myElementSizeBytes; }
     uint64 GetAllocatedByteSize() const { return MathUtil::Align(GetByteSize(), myAlignment); }
 
-    virtual void Create(const GpuBufferProperties& clParameters,const void* pInitialData = nullptr) = 0;
+    virtual void Create(const GpuBufferProperties& clParameters, const char* aName = nullptr, const void* pInitialData = nullptr) = 0;
     virtual void* Lock(GpuResoruceLockOption eLockOption, uint64 uOffsetElements = 0u, uint64 uNumElements = 0u) const = 0;
     virtual void Unlock(uint64 anOffsetElements = 0u, uint64 aNumElements = 0u) const = 0;
     

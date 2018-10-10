@@ -4,6 +4,7 @@
 #include "AdapterDX12.h"
 #include "GpuResourceStorageDX12.h"
 #include "GpuResourceViewDX12.h"
+#include "StringUtil.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -16,7 +17,7 @@ namespace Fancy {
     Destroy();
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Create(const GpuBufferProperties& someProperties, const void* pInitialData)
+  void GpuBufferDX12::Create(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* pInitialData /*= nullptr*/)
   {
     ASSERT(someProperties.myElementSizeBytes > 0 && someProperties.myNumElements > 0, "Invalid buffer size specified");
 
@@ -26,6 +27,7 @@ namespace Fancy {
     myStorage.reset(storageDx12);
 
     myProperties = someProperties;
+    myName = aName;
 
     myAlignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
     if (someProperties.myUsage == GpuBufferUsage::CONSTANT_BUFFER)
@@ -108,6 +110,9 @@ namespace Fancy {
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
     CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
 
+    std::wstring wName = StringUtil::ToWideString(myName);
+    storageDx12->myResource->SetName(wName.c_str());
+
     storageDx12->myGpuMemory = gpuMemory;
 
     if (pInitialData != nullptr)
@@ -144,7 +149,7 @@ namespace Fancy {
     : GpuBufferView::GpuBufferView(aBuffer, someProperties)
   {
     GpuResourceViewDataDX12 nativeData;
-    nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, "GpuBufferView");
     ASSERT(nativeData.myDescriptor.myCpuHandle.ptr != 0u);
 
     bool success = false;

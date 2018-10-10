@@ -35,8 +35,8 @@ namespace Fancy {
     virtual CommandContext* CreateContext(CommandListType aType) = 0;
     virtual DataFormat ResolveFormat(DataFormat aFormat) const = 0;
     virtual CommandQueue* GetCommandQueue(CommandListType aType) = 0;
-    virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties) = 0;
-    virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties) = 0;
+    virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
+    virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
 
   protected:
     RenderPlatformCaps myCaps;

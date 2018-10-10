@@ -55,12 +55,12 @@ namespace Fancy {
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle);
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
-    static SharedPtr<Texture> CreateTexture(const TextureProperties& someProperties, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
-    static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferProperties& someProperties, const void* someInitialData = nullptr);
+    static SharedPtr<Texture> CreateTexture(const TextureProperties& someProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
+    static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferProperties& someProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
     static SharedPtr<TextureView> CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties);
-    static SharedPtr<TextureView> CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
+    static SharedPtr<TextureView> CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
-    static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, const GpuBufferViewProperties& someViewProperties, const void* someInitialData = nullptr);
+    static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, const GpuBufferViewProperties& someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
 
     static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);

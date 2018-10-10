@@ -7,6 +7,7 @@
 #include "AdapterDX12.h"
 #include "GpuResourceStorageDX12.h"
 #include "AlignedStorage.h"
+#include "StringUtil.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -31,12 +32,13 @@ namespace Fancy {
     return aNumMips * aNumArraySlices * aNumPlanes;
   }
 //---------------------------------------------------------------------------//
-  void TextureDX12::Create(const TextureProperties& someProperties, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
+  void TextureDX12::Create(const TextureProperties& someProperties, const char* aName /* = nullptr */, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
   {
     Destroy();
     GpuResourceStorageDX12* storageDx12 = new GpuResourceStorageDX12();
     myStorage.reset(storageDx12);
     myProperties = someProperties;
+    myName = aName;
 
     bool isArray, isCubemap;
     D3D12_RESOURCE_DIMENSION dimension = Adapter::ResolveResourceDimension(someProperties.myDimension, isCubemap, isArray);
@@ -148,6 +150,9 @@ namespace Fancy {
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);
     CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
     storageDx12->myGpuMemory = gpuMemory;
+
+    std::wstring wName = StringUtil::ToWideString(myName);
+    storageDx12->myResource->SetName(wName.c_str());
 
     // Initialize texture data?
     if (someInitialDatas != nullptr && aNumInitialDatas > 0u)
@@ -293,6 +298,8 @@ namespace Fancy {
     : TextureView::TextureView(aTexture, someProperties)
   {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
+    
+    String name = aTexture->myName;
 
     bool success = false;
     GpuResourceViewDataDX12 nativeData;
@@ -302,13 +309,15 @@ namespace Fancy {
       if (formatInfo.myIsDepthStencil)
       {
         nativeData.myType = GpuResourceViewDataDX12::DSV;
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        name.append(" DSV");
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, name.c_str());
         success = CreateDSV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
       else
       {
         nativeData.myType = GpuResourceViewDataDX12::RTV;
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        name.append(" RTV");
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, name.c_str());
         success = CreateRTV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
     }
@@ -317,13 +326,15 @@ namespace Fancy {
       if (someProperties.myIsShaderWritable)
       {
         nativeData.myType = GpuResourceViewDataDX12::UAV;
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        name.append(" UAV");
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str());
         success = CreateUAV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
       else
       {
         nativeData.myType = GpuResourceViewDataDX12::SRV;
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        name.append(" SRV");
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str());
         success = CreateSRV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
     }
