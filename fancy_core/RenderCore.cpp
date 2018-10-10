@@ -126,24 +126,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuRingBuffer* RenderCore::AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aNeededByteSize)
   {
-    auto it = ourUsedRingBuffers.begin();
-    while (it != ourUsedRingBuffers.end())
-    {
-      uint64 fence = it->first;
-      GpuRingBuffer* buffer = it->second;
-      
-      CommandQueue* queue = GetCommandQueue(fence);
-      if (queue->IsFenceDone(fence))
-      {
-        it = ourUsedRingBuffers.erase(it);
-        if (buffer->GetBuffer()->GetByteSize() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsage == aUsage)
-          return buffer;
-        
-        ourAvailableRingBuffers.push_back(buffer);
-      }
-      else
-        ++it;
-    }
+    UpdateAvailableRingBuffers();
 
     for (auto it = ourAvailableRingBuffers.begin(); it != ourAvailableRingBuffers.end(); ++it)
     {
@@ -314,6 +297,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()
   {
+    UpdateAvailableRingBuffers();
+    ASSERT(ourRingBufferPool.size() == ourAvailableRingBuffers.size(), "There are still some ringbuffers in flight");
+    ourAvailableRingBuffers.clear();
+    ourRingBufferPool.clear();
+
     ourDefaultDiffuseTexture.reset();
     ourDefaultNormalTexture.reset();
     ourDefaultSpecularTexture.reset();
@@ -348,6 +336,25 @@ namespace Fancy {
   void RenderCore::Shutdown_2_Platform()
   {
     ourPlatformImpl.reset();
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::UpdateAvailableRingBuffers()
+  {
+    auto it = ourUsedRingBuffers.begin();
+    while (it != ourUsedRingBuffers.end())
+    {
+      uint64 fence = it->first;
+      GpuRingBuffer* buffer = it->second;
+      
+      CommandQueue* queue = GetCommandQueue(fence);
+      if (queue->IsFenceDone(fence))
+      {
+        it = ourUsedRingBuffers.erase(it);
+        ourAvailableRingBuffers.push_back(buffer);
+      }
+      else
+        ++it;
+    }
   }
 //---------------------------------------------------------------------------//
   SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle)

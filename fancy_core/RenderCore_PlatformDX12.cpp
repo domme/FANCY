@@ -159,9 +159,9 @@ namespace Fancy {
     ourCommandAllocatorPools[(uint)type]->ReleaseAllocator(anAllocator, aFenceVal);
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
+  DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, const char* aDebugName /* = nullptr*/)
   {
-    return myStaticDescriptorAllocators[(uint)aHeapType]->AllocateDescriptor();
+    return myStaticDescriptorAllocators[(uint)aHeapType]->AllocateDescriptor(aDebugName);
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::ReleaseDescriptor(const DescriptorDX12& aDescriptor)
@@ -171,7 +171,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::UpdateAvailableDynamicDescriptorHeaps()
   {
-    for(auto it = myUsedDynamicHeaps.begin(); it != myUsedDynamicHeaps.end(); ++it)
+    for(auto it = myUsedDynamicHeaps.begin(); it != myUsedDynamicHeaps.end(); )
     {
       uint64 fence = it->first;
       DynamicDescriptorHeapDX12* heap = it->second;
@@ -183,6 +183,8 @@ namespace Fancy {
         it = myUsedDynamicHeaps.erase(it);
         myAvailableDynamicHeaps.push_back(heap);
       }
+      else
+        it++;
     }
   }
 //---------------------------------------------------------------------------//

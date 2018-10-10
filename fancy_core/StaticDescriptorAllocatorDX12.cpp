@@ -50,7 +50,7 @@ namespace Fancy
     ASSERT(myAllocator.IsEmpty(), "There are still static descriptors allocated when destroying the descriptor allocator");
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 StaticDescriptorAllocatorDX12::AllocateDescriptor()
+  DescriptorDX12 StaticDescriptorAllocatorDX12::AllocateDescriptor(const char* aDebugName /* = nullptr*/)
   {
     uint64 descriptorIndexInHeap;
     const Page* page = myAllocator.Allocate(1u, 1u, descriptorIndexInHeap);
@@ -69,6 +69,13 @@ namespace Fancy
     descr.myGpuHandle = gpuHandle;
     descr.myHeapType = myType;
     descr.myIsManagedByAllocator = true;
+
+#if FANCY_DX12_DEBUG_ALLOCS
+    AllocDebugInfo debugInfo;
+    debugInfo.myName = aDebugName;
+    debugInfo.myVirtualDescriptorIndex = descriptorIndexInHeap + page->myVirtualOffset;
+    myAllocDebugInfos.push_back(debugInfo);
+#endif
 
     return descr;
   }
@@ -91,6 +98,16 @@ namespace Fancy
     block.myVirtualOffset = addressOffset / myHandleIncrementSize;
     block.mySize = 1;
     myAllocator.Free(block);
+
+ #if FANCY_DX12_DEBUG_ALLOCS
+    auto it = std::find(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&block](const AllocDebugInfo& anInfo)
+    {
+      return anInfo.myVirtualDescriptorIndex == block.myVirtualOffset;
+    });
+
+    ASSERT(it != myAllocDebugInfos.end());
+    myAllocDebugInfos.erase(it);
+#endif
   }
 //---------------------------------------------------------------------------//
 }

@@ -6,6 +6,9 @@
 #include <wrl.h>
 #include "d3dx12.h"
 #include <dxgiformat.h>
+#include "RendererPrerequisites.h"
+
+#define FANCY_DX12_DEBUG_ALLOCS FANCY_RENDERER_DEBUG
 
 namespace {
   void CheckD3Dcall(HRESULT aResult)

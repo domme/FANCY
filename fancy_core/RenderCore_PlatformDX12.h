@@ -52,7 +52,7 @@ namespace Fancy {
     ID3D12CommandAllocator* GetCommandAllocator(CommandListType aCmdListType);
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, uint64 aFenceVal);
 
-    DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
+    DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, const char* aDebugName = nullptr);
     void ReleaseDescriptor(const DescriptorDX12& aDescriptor);
 
     DynamicDescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);

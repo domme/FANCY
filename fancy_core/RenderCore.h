@@ -95,6 +95,8 @@ namespace Fancy {
     static void Shutdown_1_Services();
     static void Shutdown_2_Platform();
 
+    static void UpdateAvailableRingBuffers();
+
     static std::unique_ptr<RenderCore_Platform> ourPlatformImpl;
     
     static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;

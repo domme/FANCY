@@ -21,13 +21,22 @@ namespace Fancy
     StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptorsPerHeap);
     ~StaticDescriptorAllocatorDX12();
 
-    DescriptorDX12 AllocateDescriptor();
+    DescriptorDX12 AllocateDescriptor(const char* aDebugName = nullptr);
     void FreeDescriptor(const DescriptorDX12& aDescriptor);
 
   private:
     PagedLinearAllocator<Heap> myAllocator;
     uint myHandleIncrementSize;
     D3D12_DESCRIPTOR_HEAP_TYPE myType;
+
+#if FANCY_DX12_DEBUG_ALLOCS
+    struct AllocDebugInfo
+    {
+      String myName;
+      uint myVirtualDescriptorIndex;
+    };
+    std::list<AllocDebugInfo> myAllocDebugInfos;
+#endif
   };
 //---------------------------------------------------------------------------//
 }

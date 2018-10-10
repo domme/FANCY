@@ -30,10 +30,10 @@ namespace Fancy
     const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut);
     void Free(const Block& aBlock);
     bool IsEmpty() const { return myPages.size() == 0u; }
+    const Page* GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage) const;
 
   private:
     bool CreateAndAddPage(uint64 aSize);
-    const Page* GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage);
 
     const uint myPageSize;
     std::function<bool(uint64, T&)> myPageDataCreateFn;
@@ -209,7 +209,7 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
   template <class T>
-  const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage)
+  const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage) const
   {
     for (const Page& existingPage : myPages)
     {
