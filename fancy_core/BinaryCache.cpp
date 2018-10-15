@@ -184,7 +184,7 @@ namespace Fancy {
     serializer.Read(texData.myData, texData.myTotalSizeBytes);
     
     SharedPtr<Texture> newTex(RenderCore::GetPlatform()->CreateTexture());
-    newTex->Create(texProps, &texData, 1u);
+    newTex->Create(texProps, texProps.path.c_str(), &texData, 1u);
     FANCY_FREE(texData.myData, MemoryCategory::TEXTURES);
     return newTex;
   }
@@ -324,7 +324,8 @@ namespace Fancy {
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         serializer.Read((uint8*)(bufferData), totalBufferBytes);
 
-        SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, bufferData);
+        String name = "VertexBuffer_Mesh_" + aDesc.myUniqueName;
+        SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, name.c_str(), bufferData);
         geoData->setVertexBuffer(buffer);
 
         FANCY_FREE(bufferData, MemoryCategory::Geometry);
@@ -340,7 +341,8 @@ namespace Fancy {
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         serializer.Read(static_cast<uint8*>(bufferData), totalBufferBytes);
 
-        SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, bufferData);
+        String name = "IndexBuffer_Mesh_" + aDesc.myUniqueName;
+        SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, name.c_str(), bufferData);
         geoData->setIndexBuffer(buffer);
 
         FANCY_FREE(bufferData, MemoryCategory::Geometry);

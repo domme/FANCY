@@ -117,24 +117,29 @@ namespace Fancy {
   {
     DynamicArray<GpuRingBuffer*>* ringBufferList = nullptr;
     uint64 sizeStep = 2 * SIZE_MB;
+    String name = "RingBuffer_";
     
     if (aType == GpuBufferUsage::STAGING_UPLOAD)
     {
+      name += "STAGING_UPLOAD";
       ringBufferList = &myUploadRingBuffers;
       sizeStep = 2 * SIZE_MB;
     }
     else if (aType == GpuBufferUsage::CONSTANT_BUFFER)
     {
+      name += "CONSTANT_BUFFER";
       ringBufferList = &myConstantRingBuffers;
       sizeStep = 2 * SIZE_MB;
     }
     else if (aType == GpuBufferUsage::VERTEX_BUFFER)
     {
+      name += "VERTEX_BUFFER";
       ringBufferList = &myVertexRingBuffers;
       sizeStep = 1 * SIZE_MB;
     }
     else if (aType == GpuBufferUsage::INDEX_BUFFER)
     {
+      name += "INDEX_BUFFER";
       ringBufferList = &myIndexRingBuffers;
       sizeStep = 1 * SIZE_MB;
     }
@@ -145,7 +150,7 @@ namespace Fancy {
     }
 
     if (ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize() < aDataSize)
-      ringBufferList->push_back(RenderCore::AllocateRingBuffer(aType, MathUtil::Align(aDataSize, sizeStep)));
+      ringBufferList->push_back(RenderCore::AllocateRingBuffer(aType, MathUtil::Align(aDataSize, sizeStep), name.c_str()));
 
     GpuRingBuffer* ringBuffer = ringBufferList->back();
     uint64 offset = 0; 

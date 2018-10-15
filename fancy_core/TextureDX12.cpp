@@ -38,7 +38,7 @@ namespace Fancy {
     GpuResourceStorageDX12* storageDx12 = new GpuResourceStorageDX12();
     myStorage.reset(storageDx12);
     myProperties = someProperties;
-    myName = aName;
+    myName = aName != nullptr ? aName : "Texture_Unnamed";
 
     bool isArray, isCubemap;
     D3D12_RESOURCE_DIMENSION dimension = Adapter::ResolveResourceDimension(someProperties.myDimension, isCubemap, isArray);

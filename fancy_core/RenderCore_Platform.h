@@ -25,6 +25,7 @@ namespace Fancy {
     virtual bool IsInitialized() = 0;
     virtual bool InitInternalResources() = 0;
     virtual void InitCaps() = 0;
+    virtual void Shutdown() = 0;
 
     const RenderPlatformCaps& GetCaps() const { return myCaps; }
     virtual RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) = 0;

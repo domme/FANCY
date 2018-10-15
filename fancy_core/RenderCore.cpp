@@ -124,7 +124,7 @@ namespace Fancy {
     return static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get());
   }
 //---------------------------------------------------------------------------//
-  GpuRingBuffer* RenderCore::AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aNeededByteSize)
+  GpuRingBuffer* RenderCore::AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aNeededByteSize, const char* aName /*= nullptr*/)
   {
     UpdateAvailableRingBuffers();
 
@@ -147,7 +147,7 @@ namespace Fancy {
     params.myElementSizeBytes = 1u;
     params.myUsage = aUsage;
     params.myCpuAccess = GpuMemoryAccessType::CPU_WRITE;
-    buf->Create(params, GpuResoruceLockOption::WRITE);
+    buf->Create(params, GpuResoruceLockOption::WRITE, aName);
     ourRingBufferPool.push_back(std::move(buf));
 
     return ourRingBufferPool.back().get();
@@ -258,10 +258,10 @@ namespace Fancy {
       uint8 color[3] = { 0, 0, 0 };
       data.myData = color;
 
-      ourDefaultDiffuseTexture = CreateTexture(props, &data, 1);
+      ourDefaultDiffuseTexture = CreateTexture(props, "Default_Diffuse", &data, 1);
 
       props.path = TextureRef::ToString(TextureRef::DEFAULT_SPECULAR);
-      ourDefaultSpecularTexture = CreateTexture(props, &data, 1);
+      ourDefaultSpecularTexture = CreateTexture(props, "Default_Specular", &data, 1);
     }
 
     {
@@ -276,7 +276,7 @@ namespace Fancy {
       uint8 color[3] = { 128, 128, 128 };
       data.myData = color;
 
-      ourDefaultNormalTexture = CreateTexture(props, &data, 1);
+      ourDefaultNormalTexture = CreateTexture(props, "Default_Normal", &data, 1);
     }
 
     {
@@ -335,6 +335,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_2_Platform()
   {
+    ourPlatformImpl->Shutdown();
     ourPlatformImpl.reset();
   }
 //---------------------------------------------------------------------------//
@@ -502,7 +503,8 @@ namespace Fancy {
       bufferParams.myNumElements = numVertices;
       bufferParams.myElementSizeBytes = vertexLayout.myStride;
 
-      vertexBuffer->Create(bufferParams, ptrToVertexData);
+      String name = "VertexBuffer_Mesh_" + aDesc.myUniqueName;
+      vertexBuffer->Create(bufferParams, name.c_str(), ptrToVertexData);
       pGeometryData->setVertexLayout(vertexLayout);
       pGeometryData->setVertexBuffer(vertexBuffer);
 
@@ -518,7 +520,8 @@ namespace Fancy {
       indexBufParams.myNumElements = numIndices;
       indexBufParams.myElementSizeBytes = sizeof(uint);
 
-      indexBuffer->Create(indexBufParams, ptrToIndexData);
+      name = "IndexBuffer_Mesh_" + aDesc.myUniqueName;
+      indexBuffer->Create(indexBufParams, name.c_str(), ptrToIndexData);
       pGeometryData->setIndexBuffer(indexBuffer);
 
       vGeometryDatas.push_back(pGeometryData);
@@ -532,17 +535,17 @@ namespace Fancy {
     return mesh;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> RenderCore::CreateTexture(const TextureProperties& someProperties, TextureSubData* someUploadDatas, uint aNumUploadDatas)
+  SharedPtr<Texture> RenderCore::CreateTexture(const TextureProperties& someProperties, const char* aName /*= nullptr*/, TextureSubData* someUploadDatas, uint aNumUploadDatas)
   {
     SharedPtr<Texture> tex(ourPlatformImpl->CreateTexture());
-    tex->Create(someProperties, someUploadDatas, aNumUploadDatas);
+    tex->Create(someProperties, aName, someUploadDatas, aNumUploadDatas);
     return tex->IsValid() ? tex : nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferProperties& someProperties, const void* someInitialData /* = nullptr */)
+  SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* someInitialData /* = nullptr */)
   {
     SharedPtr<GpuBuffer> buffer(ourPlatformImpl->CreateBuffer());
-    buffer->Create(someProperties, someInitialData);
+    buffer->Create(someProperties, aName, someInitialData);
     return buffer->IsValid() ? buffer : nullptr;
   }
 //---------------------------------------------------------------------------//
@@ -563,9 +566,9 @@ namespace Fancy {
     return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, viewProps));
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<TextureView> RenderCore::CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, TextureSubData* someUploadDatas, uint aNumUploadDatas)
+  SharedPtr<TextureView> RenderCore::CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName /*= nullptr*/, TextureSubData* someUploadDatas, uint aNumUploadDatas)
   {
-    SharedPtr<Texture> texture = CreateTexture(someProperties, someUploadDatas, aNumUploadDatas);
+    SharedPtr<Texture> texture = CreateTexture(someProperties, aName, someUploadDatas, aNumUploadDatas);
     if (texture == nullptr)
       return nullptr;
 
@@ -587,9 +590,9 @@ namespace Fancy {
     return SharedPtr<GpuBufferView>(ourPlatformImpl->CreateBufferView(aBuffer, someProperties));
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const GpuBufferProperties& someParams, const GpuBufferViewProperties& someViewProperties, const void* someInitialData)
+  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const GpuBufferProperties& someParams, const GpuBufferViewProperties& someViewProperties, const char* aName /*= nullptr*/, const void* someInitialData)
   {
-    SharedPtr<GpuBuffer> buffer = CreateBuffer(someParams, someInitialData);
+    SharedPtr<GpuBuffer> buffer = CreateBuffer(someParams, aName, someInitialData);
     if (buffer == nullptr)
       return nullptr;
 

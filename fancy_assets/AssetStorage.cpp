@@ -129,7 +129,7 @@ using namespace Fancy;
     uploadData.mySliceSizeBytes = textureInfo.width * textureInfo.height * uploadData.myPixelSizeBytes;
     uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
 
-    SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, &uploadData, 1u);
+    SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), &uploadData, 1u);
     RenderCore::ComputeMipMaps(tex);
 
     if (tex != nullptr)

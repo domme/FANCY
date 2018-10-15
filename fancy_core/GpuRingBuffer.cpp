@@ -20,7 +20,7 @@ namespace Fancy
     myData = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void GpuRingBuffer::Create(const GpuBufferProperties& someParameters, GpuResoruceLockOption aLockOption, const void* pInitialData)
+  void GpuRingBuffer::Create(const GpuBufferProperties& someParameters, GpuResoruceLockOption aLockOption, const char* aName /*= nullptr*/, const void* pInitialData)
   {
     Reset();
     
@@ -28,7 +28,7 @@ namespace Fancy
       myBuffer->Unlock();
     myData = nullptr;
 
-    myBuffer = RenderCore::CreateBuffer(someParameters, pInitialData);
+    myBuffer = RenderCore::CreateBuffer(someParameters, aName, pInitialData);
     ASSERT(myBuffer != nullptr);
 
     myData = (uint8*) myBuffer->Lock(aLockOption);

@@ -11,6 +11,7 @@ namespace Fancy {
   struct Material
   {
     Material();
+    ~Material();
     MaterialDesc GetDescription() const;
 
     FixedArray<SharedPtr<TextureView>, (uint)TextureSemantic::NUM> mySemanticTextures;

@@ -21,6 +21,7 @@ namespace Fancy {
 
     struct Scene
     {
+      void Clear() { myTransforms.clear(); myModels.clear(); }
       DynamicArray<glm::mat4> myTransforms;
       DynamicArray<SharedPtr<Model>> myModels;
     };

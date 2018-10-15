@@ -100,7 +100,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  RenderCore_PlatformDX12::~RenderCore_PlatformDX12()
+  void RenderCore_PlatformDX12::Shutdown()
   {
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
       if (ourCommandQueues[i] != nullptr)
@@ -124,9 +124,14 @@ namespace Fancy {
       ourCommandAllocatorPools[i].reset();
 
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-        ourCommandQueues[i].reset();
+      ourCommandQueues[i].reset();
 
     ourDevice.Reset();
+  }
+//---------------------------------------------------------------------------//
+  RenderCore_PlatformDX12::~RenderCore_PlatformDX12()
+  {
+    Shutdown();
   }
 //---------------------------------------------------------------------------//
   ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const

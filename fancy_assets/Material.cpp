@@ -8,6 +8,13 @@ Material::Material()
   mySemanticParameters.fill(FLT_MAX);
 }
 
+Material::~Material()
+{
+  for (int i = 0; i < mySemanticTextures.size(); ++i)
+    if (mySemanticTextures[i])
+      mySemanticTextures[i].reset();
+}
+
 MaterialDesc Material::GetDescription() const
 {
   MaterialDesc desc;

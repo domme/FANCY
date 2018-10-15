@@ -33,6 +33,7 @@ namespace Fancy {
 
     bool IsInitialized() override { return ourDevice.Get() != nullptr; }
     bool InitInternalResources() override;
+    void Shutdown() override;
     
     static DXGI_FORMAT GetDXGIformat(DataFormat aFormat);
     static DXGI_FORMAT GetDepthStencilTextureFormat(DXGI_FORMAT aFormat);

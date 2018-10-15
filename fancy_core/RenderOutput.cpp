@@ -81,7 +81,7 @@ namespace Fancy {
     dsTexProps.myHeight = height;
     dsTexProps.myNumMipLevels = 1u;
 
-    SharedPtr<Texture> dsTexture = RenderCore::CreateTexture(dsTexProps);
+    SharedPtr<Texture> dsTexture = RenderCore::CreateTexture(dsTexProps, "Backbuffer DepthStencil Texture");
     ASSERT(dsTexture != nullptr);
 
     // DepthStencil DSVs

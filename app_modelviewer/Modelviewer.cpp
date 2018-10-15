@@ -223,6 +223,7 @@ void Render()
 
 void Shutdown()
 {
+  myScene.Clear();
   myUnlitTexturedShader.reset();
   myAssetStorage.Clear();
 

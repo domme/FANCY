@@ -6,6 +6,7 @@
 #include "BlendState.h"
 #include "CommandContextDX12.h"
 #include "GpuResourceStorageDX12.h"
+#include "StringUtil.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -40,15 +41,21 @@ namespace Fancy {
   {
     for (uint i = 0u; i < kBackbufferCount; ++i)
     {
-      UniquePtr<GpuResourceStorageDX12> resourceStorage(new GpuResourceStorageDX12);
-      resourceStorage->mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
-      resourceStorage->mySubresourceContexts.push_back(CommandListType::Graphics);
-      resourceStorage->myAllSubresourcesInSameState = true;
-      resourceStorage->myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-      CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&resourceStorage->myResource)));
-      
       GpuResource resource(GpuResourceCategory::TEXTURE);
-      resource.myStorage = std::move(resourceStorage);
+      resource.myName = "Backbuffer Texture " + i;
+
+      {
+        UniquePtr<GpuResourceStorageDX12> resourceStorage(new GpuResourceStorageDX12);
+        resourceStorage->mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
+        resourceStorage->mySubresourceContexts.push_back(CommandListType::Graphics);
+        resourceStorage->myAllSubresourcesInSameState = true;
+        resourceStorage->myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&resourceStorage->myResource)));
+        std::wstring wName = StringUtil::ToWideString(resource.myName);
+        resourceStorage->myResource->SetName(wName.c_str());
+        
+        resource.myStorage = std::move(resourceStorage);  
+      }
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
@@ -58,7 +65,7 @@ namespace Fancy {
       backbufferProps.myHeight = aHeight;
       backbufferProps.myDepthOrArraySize = 1u;
       backbufferProps.myNumMipLevels = 1u;
-      
+
       myBackbufferTextures[i].reset(new TextureDX12());
       myBackbufferTextures[i]->Create(std::move(resource), backbufferProps);
     }

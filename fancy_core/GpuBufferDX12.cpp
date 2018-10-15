@@ -27,7 +27,7 @@ namespace Fancy {
     myStorage.reset(storageDx12);
 
     myProperties = someProperties;
-    myName = aName;
+    myName = aName != nullptr ? aName : "GpuBuffer_Unnamed";
 
     myAlignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
     if (someProperties.myUsage == GpuBufferUsage::CONSTANT_BUFFER)
