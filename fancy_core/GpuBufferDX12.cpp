@@ -104,7 +104,7 @@ namespace Fancy {
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();
 
-    GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(GpuMemoryType::BUFFER, gpuMemAccess, pitch, myAlignment);
+    GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(GpuMemoryType::BUFFER, gpuMemAccess, pitch, myAlignment, myName.c_str());
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);

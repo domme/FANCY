@@ -53,10 +53,15 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuMemoryAllocatorDX12::~GpuMemoryAllocatorDX12()
   {
+#if FANCY_DX12_DEBUG_ALLOCS
+    for (auto it : myAllocDebugInfos)
+      LOG_WARNING("Leaked GPU memory allocation: % at offset % and size %", it.myName.c_str(), it.myVirtualOffset, it.mySize);  
+#endif
+
     ASSERT(myAllocator.IsEmpty(), "There are still gpu-resources allocated when destroying the memory allocator");
   }
 //---------------------------------------------------------------------------//
-  GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate(const uint64 aSize, const uint anAlignment)
+  GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate(const uint64 aSize, const uint anAlignment, const char* aDebugName /*= nullptr*/)
   {
     uint64 offsetInPage;
     const Page* page = myAllocator.Allocate(aSize, anAlignment, offsetInPage);
@@ -67,6 +72,15 @@ namespace Fancy
     allocResult.myOffsetInHeap = offsetInPage;
     allocResult.mySize = aSize;
     allocResult.myHeap = page->myData.Get();
+
+#if FANCY_DX12_DEBUG_ALLOCS
+    AllocDebugInfo debugInfo;
+    debugInfo.myName = aDebugName != nullptr ? aDebugName : "Unnamed GPU memory allocation";
+    debugInfo.myVirtualOffset = page->myVirtualOffset + offsetInPage;
+    debugInfo.mySize = aSize;
+    myAllocDebugInfos.push_back(debugInfo);
+#endif
+
     return allocResult;
   }
 //---------------------------------------------------------------------------//
@@ -81,6 +95,17 @@ namespace Fancy
     Block block;
     block.myVirtualOffset = page->myVirtualOffset + anAllocation.myOffsetInHeap;
     block.mySize = anAllocation.mySize;
+
+#if FANCY_DX12_DEBUG_ALLOCS
+    auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&block](const AllocDebugInfo& anInfo)
+    {
+      return anInfo.myVirtualOffset == block.myVirtualOffset;
+    });
+
+    ASSERT(it != myAllocDebugInfos.end());
+    myAllocDebugInfos.erase(it);
+#endif
+
     myAllocator.Free(block);
   }
 //---------------------------------------------------------------------------//

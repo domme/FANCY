@@ -59,7 +59,7 @@ namespace Fancy {
     DynamicDescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicDescriptorHeap(DynamicDescriptorHeapDX12* aHeap, uint64 aFenceVal);
 
-    GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment);
+    GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName = nullptr);
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
 
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) override;
