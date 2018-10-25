@@ -30,7 +30,12 @@ void Init(HINSTANCE anInstanceHandle)
   RenderingStartupParameters params;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
-  myRuntime = FancyRuntime::Init(anInstanceHandle, params);
+  Fancy::WindowParameters windowParams;
+  windowParams.myWidth = 800;
+  windowParams.myHeight = 600;
+  windowParams.myTitle = "DearImGui Example";
+
+  myRuntime = FancyRuntime::Init(anInstanceHandle, params, windowParams);
 
   myRenderOutput = myRuntime->GetRenderOutput();
   myWindow = myRenderOutput->GetWindow();

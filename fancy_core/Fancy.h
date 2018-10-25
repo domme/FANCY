@@ -3,8 +3,9 @@
 #include "FancyCorePrerequisites.h"
 #include "TimeManager.h"
 
-namespace Fancy {   
+namespace Fancy {
 //---------------------------------------------------------------------------//
+  struct WindowParameters;
   class Window;
   class Time;
   struct RenderingStartupParameters;
@@ -14,7 +15,7 @@ namespace Fancy {
   class FancyRuntime
   {
   public:
-    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams);
+    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams, const WindowParameters& someWindowParams);
     static void Shutdown();
     static FancyRuntime* GetInstance();
 

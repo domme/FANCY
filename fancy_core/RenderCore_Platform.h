@@ -13,6 +13,7 @@ namespace Fancy {
   enum class CommandListType;
   struct GpuResourceViewData;
   struct TextureViewProperties;
+  struct WindowParameters;
   class TextureView;
   class GpuBufferView;
   struct GpuBufferViewProperties;
@@ -28,7 +29,7 @@ namespace Fancy {
     virtual void Shutdown() = 0;
 
     const RenderPlatformCaps& GetCaps() const { return myCaps; }
-    virtual RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) = 0;
+    virtual RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) = 0;
     virtual GpuProgramCompiler* CreateShaderCompiler() = 0;
     virtual GpuProgram* CreateGpuProgram() = 0;
     virtual Texture* CreateTexture() = 0;

@@ -21,6 +21,7 @@ namespace Fancy {
   class GeometryVertexLayout;
   struct GpuResourceViewData;
   struct TextureViewProperties;
+  struct WindowParameters;
 //---------------------------------------------------------------------------//  
   class RenderCore_PlatformDX12 final : public RenderCore_Platform
   {
@@ -62,7 +63,7 @@ namespace Fancy {
     GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName = nullptr);
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
 
-    RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle) override;
+    RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
     GpuProgramCompiler* CreateShaderCompiler() override;
     GpuProgram* CreateGpuProgram() override;
     Texture* CreateTexture() override;

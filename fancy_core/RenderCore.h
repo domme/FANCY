@@ -14,6 +14,7 @@ namespace Fancy {
   struct GpuProgramPipelineDesc;
   struct DepthStencilStateDesc;
   struct BlendStateDesc;
+  struct WindowParameters;
   class BlendState;
   class DepthStencilState;
   class RenderCore_Platform;
@@ -52,7 +53,7 @@ namespace Fancy {
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
     static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas);
 
-    static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle);
+    static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
     static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureProperties& someProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);

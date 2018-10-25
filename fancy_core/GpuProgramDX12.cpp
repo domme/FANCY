@@ -79,7 +79,7 @@ namespace Fancy {
     myNativeData = static_cast<ID3DBlob*>(aCompilerOutput.myNativeData);
     myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();
     myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
-
+    
     CreateNativeInputLayout(myProperties.myVertexInputLayout, myNativeInputElements);
   }
 //---------------------------------------------------------------------------//

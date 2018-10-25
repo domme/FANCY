@@ -3,15 +3,14 @@
 #include "RenderCore.h"
 #include "Window.h"
 #include "TextureDX12.h"
-#include "BlendState.h"
 #include "CommandContextDX12.h"
 #include "GpuResourceStorageDX12.h"
 #include "StringUtil.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  RenderOutputDX12::RenderOutputDX12(void* aNativeInstanceHandle)
-    : RenderOutput(aNativeInstanceHandle)
+  RenderOutputDX12::RenderOutputDX12(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
+    : RenderOutput(aNativeInstanceHandle, someWindowParams)
   {
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     swapChainDesc.BufferCount = kBackbufferCount;

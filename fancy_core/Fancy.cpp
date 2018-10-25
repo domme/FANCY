@@ -23,7 +23,7 @@ namespace Fancy {
     RenderCore::Shutdown();
   }
 //---------------------------------------------------------------------------//
-  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams)
+  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams, const WindowParameters& someWindowParams)
   {
     ASSERT(ourInstance == nullptr);
     if (ourInstance != nullptr)
@@ -41,7 +41,7 @@ namespace Fancy {
     ASSERT(RenderCore::IsInitialized());
 
     // Create the output
-    ourInstance->myRenderOutput = RenderCore::CreateRenderOutput(anAppInstanceHandle);
+    ourInstance->myRenderOutput = RenderCore::CreateRenderOutput(anAppInstanceHandle, someWindowParams);
     
     return ourInstance;
   }

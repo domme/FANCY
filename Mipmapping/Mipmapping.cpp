@@ -7,49 +7,87 @@
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/GpuProgramPipelineDesc.h>
-#include <fancy_core/GpuBuffer.h>
 #include <fancy_core/Descriptor.h>
 #include <fancy_core/CommandQueue.h>
 
-#include <fancy_assets/ModelLoader.h>
-#include <fancy_assets/AssetStorage.h>
-#include "Camera.h"
+#include <fancy_imgui/imgui.h>
+#include <fancy_imgui/imgui_impl_fancy.h>
+
 #include "fancy_assets/Model.h"
 #include "fancy_assets/Material.h"
 #include "fancy_core/Mesh.h"
 #include <fancy_core/Texture.h>
 #include <fancy_core/Input.h>
-#include "CameraController.h"
-#include <fancy_core/MeshData.h>
-#include <fancy_core/ResourceRefs.h>
+#include "fancy_assets/AssetStorage.h"
 
 using namespace Fancy;
+
+struct MipmapData
+{
+  void Create(SharedPtr<Texture> aTexture);
+  void Clear() { myTexture.reset(); myTextureView.reset(); myMipLevelReadViews.clear(); myMipLevelWriteViews.clear(); }
+  bool myIsSRGB = false;
+  SharedPtr<Texture> myTexture;
+  SharedPtr<TextureView> myTextureView;
+  DynamicArray<SharedPtr<TextureView>> myMipLevelReadViews;
+  DynamicArray<SharedPtr<TextureView>> myMipLevelWriteViews;
+};
+
+void MipmapData::Create(SharedPtr<Texture> aTexture)
+{
+  const TextureProperties& destTexProps = aTexture->GetProperties();
+  if(destTexProps.myNumMipLevels == 1)
+    return;
+
+  myTexture = aTexture;
+  TextureViewProperties readProps;
+  readProps.myFormat = aTexture->GetProperties().eFormat;
+  readProps.myDimension = GpuResourceDimension::TEXTURE_2D;
+  myTextureView = RenderCore::CreateTextureView(aTexture, readProps);
+  ASSERT(myTextureView != nullptr);
+
+  const DataFormatInfo& destTexFormatInfo = DataFormatInfo::GetFormatInfo(destTexProps.eFormat);
+  myIsSRGB = destTexFormatInfo.mySRGB;
+  
+  readProps.myNumMipLevels = 1;
+
+  TextureViewProperties writeProps = readProps;
+  writeProps.myFormat = DataFormatInfo::GetNonSRGBformat(readProps.myFormat);
+  writeProps.myIsShaderWritable = true;
+
+  const uint numMips = destTexProps.myNumMipLevels;
+  myMipLevelReadViews.resize(numMips);
+  myMipLevelWriteViews.resize(numMips);
+  
+  for (uint mip = 0u; mip < numMips; ++mip)
+  {
+    readProps.myMipIndex = mip;
+    writeProps.myMipIndex = mip;
+    myMipLevelReadViews[mip] = RenderCore::CreateTextureView(aTexture, readProps);
+    myMipLevelWriteViews[mip] = RenderCore::CreateTextureView(aTexture, writeProps);
+    ASSERT(myMipLevelReadViews[mip] != nullptr && myMipLevelWriteViews[mip] != nullptr);
+  }
+}
 
 FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
 RenderOutput* myRenderOutput = nullptr;
-ModelLoader::Scene myScene;
 AssetStorage myAssetStorage;
 
-SharedPtr<GpuProgramPipeline> myUnlitTexturedShader;
-SharedPtr<GpuProgramPipeline> myUnlitVertexColorShader;
-SharedPtr<GpuProgramPipeline> myDebugGeoShader;
-SharedPtr<CameraController> myCameraController;
-
 SharedPtr<GpuProgramPipeline> myTexturedQuadShader;
+SharedPtr<GpuProgram> myDownsampleTextureShader;
 
-SharedPtr<Texture> myCheckerboardTexture;
-SharedPtr<TextureView> myCheckerboardTextureRead;
-SharedPtr<TextureView> myCheckerboardTextureWrite;
+MipmapData myMipmapData;
 
-Camera myCamera;
 InputState myInputState;
+
+int mySelectedMipLevel = 0;
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
-  myCamera.myWidth = myWindow->GetWidth();
-  myCamera.myHeight = myWindow->GetHeight();
-  myCamera.UpdateProjection();
+  // myCamera.myWidth = myWindow->GetWidth();
+  // myCamera.myHeight = myWindow->GetHeight();
+  // myCamera.UpdateProjection();
 }
 
 SharedPtr<GpuProgramPipeline> LoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main")
@@ -69,7 +107,12 @@ void Init(HINSTANCE anInstanceHandle)
   Fancy::RenderingStartupParameters params;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
-  myRuntime = FancyRuntime::Init(anInstanceHandle, params);
+  Fancy::WindowParameters windowParams;
+  windowParams.myWidth = 800;
+  windowParams.myHeight = 600;
+  windowParams.myTitle = "Mipmapping Test";
+
+  myRuntime = FancyRuntime::Init(anInstanceHandle, params, windowParams);
 
   myRenderOutput = myRuntime->GetRenderOutput();
   myWindow = myRenderOutput->GetWindow();
@@ -78,213 +121,107 @@ void Init(HINSTANCE anInstanceHandle)
   myWindow->myOnResize.Connect(onWindowResized);
   myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
 
-  myUnlitTexturedShader = LoadShader("Unlit_Textured");
-  ASSERT(myUnlitTexturedShader != nullptr);
-
-  myUnlitVertexColorShader = LoadShader("Unlit_Colored");
-  ASSERT(myUnlitVertexColorShader != nullptr);
-
-  myDebugGeoShader = LoadShader("DebugGeo_Colored");
-  ASSERT(myDebugGeoShader != nullptr);
-
-  myCamera.myPosition = glm::float3(0.0f, 0.0f, -10.0f);
-  myCamera.myOrientation = glm::quat_cast(glm::lookAt(glm::float3(0.0f, 0.0f, 10.0f), glm::float3(0.0f, 0.0f, 0.0f), glm::float3(0.0f, 1.0f, 0.0f)));
-
-  myCamera.myFovDeg = 60.0f;
-  myCamera.myNear = 1.0f;
-  myCamera.myFar = 100.0f;
-  myCamera.myWidth = myWindow->GetWidth();
-  myCamera.myHeight = myWindow->GetHeight();
-  myCamera.myIsOrtho = false;
-
-  myCamera.UpdateView();
-  myCamera.UpdateProjection();
-
-  myCameraController.reset(new CameraController(myWindow, &myCamera));
-
-  bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", myAssetStorage, myScene);
-  ASSERT(importSuccess);
-
   myTexturedQuadShader = LoadShader("Unlit_Quad", "main", "main_textured");
   ASSERT(myTexturedQuadShader != nullptr);
 
-  myCheckerboardTexture = myAssetStorage.CreateTexture("Textures/Checkerboard.png");
+  GpuProgramDesc shaderDesc;
+  shaderDesc.myShaderFileName = "DownsampleCS";
+  shaderDesc.myShaderStage = (uint) ShaderStage::COMPUTE;
+  myDownsampleTextureShader =  RenderCore::CreateGpuProgram(shaderDesc);
+  ASSERT(myDownsampleTextureShader);
 
-  TextureViewProperties viewProps;
-  viewProps.myDimension = GpuResourceDimension::TEXTURE_2D;
-  myCheckerboardTextureRead = RenderCore::CreateTextureView(myCheckerboardTexture, viewProps);
+  SharedPtr<Texture> tex = myAssetStorage.CreateTexture("Textures/Checkerboard.png", AssetStorage::NO_DISK_CACHE | AssetStorage::NO_MEM_CACHE | AssetStorage::SHADER_WRITABLE);
+  // SharedPtr<Texture> tex = myAssetStorage.CreateTexture("Textures/Sibenik/kamen.png", AssetStorage::NO_DISK_CACHE | AssetStorage::NO_MEM_CACHE | AssetStorage::SHADER_WRITABLE);
+  myMipmapData.Create(tex);
 
-  viewProps.myIsShaderWritable = true;
-  viewProps.myFormat = DataFormatInfo::GetNonSRGBformat(myCheckerboardTexture->GetProperties().myfo)::GetNo
-  myCheckerboardTextureWrite = RenderCore::CreateTextureView(myCheckerboardTexture, viewProps);
+  ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
+}
+
+void UpdateGUI()
+{
+  const TextureProperties& texProps = myMipmapData.myTexture->GetProperties();
+  //ImGui::SliderInt("Mip Level", &mySelectedMipLevel, 0, texProps.myNumMipLevels - 1);
+  //ImGui::Image((ImTextureID) myMipmapData.myMipLevelReadViews[mySelectedMipLevel].get(), ImVec2(texProps.myWidth, texProps.myHeight));
+
+  ImGui::Image((ImTextureID) myMipmapData.myTextureView.get(), ImVec2(texProps.myWidth, texProps.myHeight));
 }
 
 void Update()
 {
   myRuntime->BeginFrame();
-
+  ImGuiRendering::NewFrame();
   const float deltaTime = 0.016f;
   myRuntime->Update(deltaTime);
-  myCameraController->Update(deltaTime, myInputState);
+
+  UpdateGUI();
 }
 
-void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)
+void ComputeMipMaps(MipmapData& aMipmapData)
 {
-  const GpuResourceView* diffuseTex = aMat->mySemanticTextures[(uint)TextureSemantic::BASE_COLOR].get();
-  if (diffuseTex)
-  {
-    aContext->BindResourceSet(&diffuseTex, 1u, 1u);
-  }
-}
+    CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
+    CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
 
-void RenderGrid(CommandContext* ctx)
-{
-  ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
-  ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
-  ctx->SetRenderTarget(myRenderOutput->GetBackbufferRtv(), myRenderOutput->GetDepthStencilDsv());
-  
-  ctx->SetDepthStencilState(nullptr);
-  ctx->SetBlendState(nullptr);
-  ctx->SetCullMode(CullMode::NONE);
-  ctx->SetFillMode(FillMode::SOLID);
-  ctx->SetWindingOrder(WindingOrder::CCW);
-  
-  ctx->SetGpuProgramPipeline(myDebugGeoShader);
-  
-  struct Cbuffer_DebugGeo
-  {
-    glm::float4x4 myWorldViewProj;
-    glm::float4 myColor;
-  };
-  Cbuffer_DebugGeo cbuffer_debugGeo
-  {
-    myCamera.myViewProj,
-    glm::float4(1.0f, 0.0f, 0.0f, 1.0f),
-  };
-  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), 0u);
+    ctx->SetComputeProgram(myDownsampleTextureShader.get());
 
-  struct GridGeoVertex
-  {
-    glm::float3 myPos;
-    glm::u8vec4 myColor;
-  };
+    uint numMips = myMipmapData.myTexture->GetProperties().myNumMipLevels;
 
-  GridGeoVertex vertices[4] = {
-    { { 0.0f, 0.0f, -1.0f }, {0,0,255,255} },
-    { { 0.0f, 0.0f, 1.0f }, {0.0f, 0.0f, 1.0f, 1.0f} },
-    { { -1.0f, 0.0f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f } },
-    { { 1.0f, 0.0f, 0.0f },{1.0f, 0.0f, 0.0f, 1.0f } }
-  };
-  ctx->BindVertexBuffer(vertices, sizeof(vertices), sizeof(vertices[0]));
+    glm::float2 size(myMipmapData.myTexture->GetProperties().myWidth, myMipmapData.myTexture->GetProperties().myHeight);
+    size = glm::ceil(size * 0.5f);
 
-  uint indices[] = {
-    0, 1, 2, 3
-  };
-  ctx->BindIndexBuffer(indices, sizeof(indices), sizeof(indices[0]));
-
-  ctx->SetTopologyType(TopologyType::LINES);
-  ctx->Render(4, 1, 0, 0, 0);
-}
-
-void RenderScene(CommandContext* ctx)
-{
-  ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
-  ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
-  ctx->SetRenderTarget(myRenderOutput->GetBackbufferRtv(), myRenderOutput->GetDepthStencilDsv());
-  
-  ctx->SetDepthStencilState(nullptr);
-  ctx->SetBlendState(nullptr);
-  ctx->SetCullMode(CullMode::NONE);
-  ctx->SetFillMode(FillMode::SOLID);
-  ctx->SetWindingOrder(WindingOrder::CCW);
-
-  ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-  ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
-  for (int i = 0; i < myScene.myModels.size(); ++i)
-  {
-    Model* model = myScene.myModels[i].get();
-    
-    struct Cbuffer_PerObject
+    uint mip = 1u;
+    for (; mip < numMips && size.x > 0 && size.y > 0; ++mip)
     {
-      glm::float4x4 myWorldViewProj;
-    };
-    Cbuffer_PerObject cbuffer_perObject
-    {
-      myCamera.myViewProj * myScene.myTransforms[i],
-    };
-    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), 0u);
-    
-    Material* mat = model->myMaterial.get();
-    BindResources_UnlitTextured(ctx, mat);
-    
-    Mesh* mesh = model->myMesh.get();
-    for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
-      ctx->RenderGeometry(geometry.get());
-  }
-}
+      struct CBuffer
+      {
+        glm::float2 mySizeOnMipInv;
+        int myMip;
+        int myIsSRGB;
+      };
+      CBuffer cBuffer = 
+      {
+        glm::float2(1.0f / size.x, 1.0f / size.y),
+        (int) mip,
+        myMipmapData.myIsSRGB ? 1 : 0
+      };
+      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
 
-void RenderMipmapTest(CommandContext* ctx)
-{
-  // RenderCore::ComputeMipMaps(myCheckerboardTexture);
+      const GpuResourceView* resources[] = { myMipmapData.myMipLevelReadViews[mip-1].get(), myMipmapData.myMipLevelWriteViews[mip].get()};
+      ctx->BindResourceSet(resources, 2, 1u);
 
-  const TextureProperties& texProps = myCheckerboardTexture->GetProperties();
+      ctx->Dispatch((uint) size.x, (uint) size.y, 1);
+     
+      size = glm::ceil(size * 0.5f);
+    }
 
-  ctx->SetViewport(glm::uvec4(0, 0, texProps.myWidth, texProps.myHeight));
-  ctx->SetClipRect(glm::uvec4(0, 0, texProps.myWidth, texProps.myHeight));
-  ctx->SetRenderTarget(myRenderOutput->GetBackbufferRtv(), myRenderOutput->GetDepthStencilDsv());
-  
-  ctx->SetDepthStencilState(nullptr);
-  ctx->SetBlendState(nullptr);
-  ctx->SetCullMode(CullMode::NONE);
-  ctx->SetFillMode(FillMode::SOLID);
-  ctx->SetWindingOrder(WindingOrder::CCW);
-  
-  ctx->SetGpuProgramPipeline(myTexturedQuadShader);
-
-  // 03
-  // 12
-
-  glm::float3 quadPositions[4] = {
-    { -1.0f, -1.0f, 0.0f },
-    {-1.0f, 1.0f, 0.0f},
-    {1.0f, 1.0f, 0.0f},
-    {1.0f, -1.0f, 0.0f}
-  };
-  ctx->BindVertexBuffer(quadPositions, sizeof(quadPositions), sizeof(glm::float3));
-
-  uint16 quadIndices[6] = {
-    0,1,2, 2,3,0
-  };
-  ctx->BindIndexBuffer(quadIndices, sizeof(quadIndices), sizeof(uint16));
-
-  const GpuResourceView* resourcesToBind[] = { myCheckerboardTextureRead.get() };
-  ctx->BindResourceSet(resourcesToBind, 1u, 0u);
-
-  ctx->Render(6, 1, 0, 0, 0);
+    queue->ExecuteContext(ctx, true);
+    RenderCore::FreeContext(ctx); 
 }
 
 void Render()
 {
+  // ComputeMipMaps(myMipmapData);
+
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-  float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+  float clearColor[] = { 0.3f, 0.3f, 0.3f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), 1.0f, 0u);
-
-  // RenderGrid(ctx);
-  // RenderScene(ctx);  
-  RenderMipmapTest(ctx);
-
   queue->ExecuteContext(ctx);
   RenderCore::FreeContext(ctx);
+  
+  ImGui::Render();
 
   myRuntime->EndFrame();
 }
 
 void Shutdown()
 {
-  myUnlitTexturedShader.reset();
+  myDownsampleTextureShader.reset();
+  myTexturedQuadShader.reset();
+  myMipmapData.Clear();
+  myAssetStorage.Clear();
 
+  ImGuiRendering::Shutdown();
   FancyRuntime::Shutdown();
   myRuntime = nullptr;
 }

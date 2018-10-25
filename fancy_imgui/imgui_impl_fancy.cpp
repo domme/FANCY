@@ -165,7 +165,7 @@ namespace Fancy { namespace ImGuiRendering {
       viewProps.myDimension = GpuResourceDimension::TEXTURE_2D;
       viewProps.myFormat = DataFormat::RGBA_8;
       
-      ourFontTexture = RenderCore::CreateTextureView(props, viewProps, &uploadData, 1u);
+      ourFontTexture = RenderCore::CreateTextureView(props, viewProps, "Imgui Font Texture", &uploadData, 1u);
       ASSERT(ourFontTexture != nullptr);
     }
 

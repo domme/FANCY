@@ -13,11 +13,10 @@ namespace Fancy {
   struct GpuProgramCompilerOutput
   { 
     String myShaderCode;
-    String myShaderFilename;  /// Platform-independent shader filename (e.g. "MaterialForward")
-    GpuProgramPermutation myPermutation;
     ShaderResourceInterface* myRootSignature;
     void* myNativeData;
 
+    GpuProgramDesc myDesc;
     GpuProgramProperties myProperties;
   };
 //---------------------------------------------------------------------------//

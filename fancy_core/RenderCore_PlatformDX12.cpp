@@ -231,9 +231,9 @@ namespace Fancy {
     myGpuMemoryAllocators[(uint)type][(uint) accessType]->Free(anAllocation);
   }
 //---------------------------------------------------------------------------//
-  RenderOutput* RenderCore_PlatformDX12::CreateRenderOutput(void* aNativeInstanceHandle)
+  RenderOutput* RenderCore_PlatformDX12::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
   {
-    return new RenderOutputDX12(aNativeInstanceHandle);
+    return new RenderOutputDX12(aNativeInstanceHandle, someWindowParams);
   }
 //---------------------------------------------------------------------------//
   GpuProgramCompiler* RenderCore_PlatformDX12::CreateShaderCompiler()
@@ -618,6 +618,8 @@ namespace Fancy {
     case DataFormat::SRGB_8_A_8:        return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     // case DataFormat::SRGB_8:         (Unsupported - DX12 doesn't support 3-component 8 bit formats. Needs to be resolved & padded to 4-component)   
     case DataFormat::RGBA_8:            return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case DataFormat::RG_8:              return DXGI_FORMAT_R8G8_UNORM;
+    case DataFormat::R_8:               return DXGI_FORMAT_R8_UNORM;
     case DataFormat::RGB_11_11_10F:     return DXGI_FORMAT_R11G11B10_FLOAT;
     case DataFormat::RGBA_16F:          return DXGI_FORMAT_R16G16B16A16_FLOAT;
     case DataFormat::RG_16F:            return DXGI_FORMAT_R16G16_FLOAT;

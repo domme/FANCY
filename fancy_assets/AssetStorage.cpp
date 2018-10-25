@@ -21,7 +21,7 @@ using namespace Fancy;
     myMeshes.clear();
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> AssetStorage::GetTexture(const char* aPath)
+  SharedPtr<Texture> AssetStorage::GetTexture(const char* aPath, uint someFlags /* = 0*/)
   {
     String texPathAbs = aPath;
     String texPathRel = aPath;
@@ -30,7 +30,9 @@ using namespace Fancy;
     else
       texPathRel = Resources::FindName(texPathAbs);
 
-    const uint64 texPathRelHash = MathUtil::Hash(texPathRel);
+    uint64 texPathRelHash = MathUtil::Hash(texPathRel);
+    MathUtil::hash_combine(texPathRelHash, ((uint64) someFlags & SHADER_WRITABLE));
+
     auto it = myTextures.find(texPathRelHash);
     if (it != myTextures.end())
       return it->second;
@@ -74,7 +76,7 @@ using namespace Fancy;
     return mat;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> AssetStorage::CreateTexture(const char* aPath)
+  SharedPtr<Texture> AssetStorage::CreateTexture(const char* aPath, uint someLoadFlags/* = 0*/)
   {
     if (strlen(aPath) == 0)
       return nullptr;
@@ -86,16 +88,21 @@ using namespace Fancy;
     else
       texPathRel = Resources::FindName(texPathAbs);
 
-    if (SharedPtr<Texture> texFromMemCache = GetTexture(texPathRel.c_str()))
-      return texFromMemCache;
+    if ((someLoadFlags & NO_MEM_CACHE) == 0)
+      if (SharedPtr<Texture> texFromMemCache = GetTexture(texPathRel.c_str()))
+        return texFromMemCache;
 
-    const uint64 texPathRelHash = MathUtil::Hash(texPathRel);
+    uint64 texPathRelHash = MathUtil::Hash(texPathRel);
+    MathUtil::hash_combine(texPathRelHash, ((uint64) someLoadFlags & SHADER_WRITABLE));
 
-    uint64 timestamp = Path::GetFileWriteTime(texPathAbs);
-    if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTexture(texPathRel.c_str(), timestamp))
+    if ((someLoadFlags & NO_DISK_CACHE) == 0)
     {
-      myTextures[texPathRelHash] = texFromDiskCache;
-      return texFromDiskCache;
+      uint64 timestamp = Path::GetFileWriteTime(texPathAbs);
+      if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTexture(texPathRel.c_str(), timestamp))
+      {
+        myTextures[texPathRelHash] = texFromDiskCache;
+        return texFromDiskCache;
+      }  
     }
 
     std::vector<uint8> textureBytes;
@@ -116,12 +123,25 @@ using namespace Fancy;
     texProps.myDimension = GpuResourceDimension::TEXTURE_2D;
     texProps.path = texPathRel;
     texProps.bIsDepthStencil = false;
-    texProps.eFormat = textureInfo.numChannels == 3u ? DataFormat::SRGB_8 : DataFormat::SRGB_8_A_8;
     texProps.myWidth = textureInfo.width;
     texProps.myHeight = textureInfo.height;
     texProps.myDepthOrArraySize = 0u;
     texProps.myAccessType = GpuMemoryAccessType::NO_CPU_ACCESS;
+    texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
 
+    switch(textureInfo.numChannels)
+    {
+      case 1: texProps.eFormat = DataFormat::R_8; break;
+      case 2: texProps.eFormat = DataFormat::RG_8; break;
+      case 3: texProps.eFormat = DataFormat::SRGB_8; break;
+      case 4: texProps.eFormat = DataFormat::SRGB_8_A_8; break;
+      default: ASSERT(false, "Unsupported channels");
+      return nullptr;
+    }
+
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.eFormat);
+    ASSERT(formatInfo.mySizeBytes == (textureInfo.bitsPerPixel / 8u), "Unsupported pixel size");
+    
     TextureSubData uploadData;
     uploadData.myData = &textureBytes[0];
     uploadData.myPixelSizeBytes = textureInfo.bitsPerPixel / 8u;
@@ -130,7 +150,7 @@ using namespace Fancy;
     uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
 
     SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), &uploadData, 1u);
-    RenderCore::ComputeMipMaps(tex);
+    // RenderCore::ComputeMipMaps(tex);
 
     if (tex != nullptr)
     {

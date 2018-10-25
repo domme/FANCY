@@ -19,8 +19,15 @@ namespace Fancy {
     ~AssetStorage() = default;
     void Clear();
 
-    SharedPtr<Texture> GetTexture(const char* aPath);
-    SharedPtr<Texture> CreateTexture(const char* aPath);
+    enum TextureLoadFlags
+    {
+      NO_DISK_CACHE = 1 << 0,
+      NO_MEM_CACHE = 1 << 1,
+      SHADER_WRITABLE = 1 << 2
+    };
+
+    SharedPtr<Texture> GetTexture(const char* aPath, uint someFlags = 0);
+    SharedPtr<Texture> CreateTexture(const char* aPath, uint someLoadFlags = 0);
 
     SharedPtr<Material> CreateMaterial(const MaterialDesc& aDesc);
     SharedPtr<Model> CreateModel(const ModelDesc& aDesc);

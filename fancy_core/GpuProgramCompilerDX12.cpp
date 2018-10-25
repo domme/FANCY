@@ -639,9 +639,8 @@ namespace Fancy {
     ShaderResourceInterface* rsObject = RenderCore::GetPlatformDX12()->GetShaderResourceInterface(*rsDesc, rootSignature);
     ASSERT(nullptr != rsObject);
 
-    anOutput->myPermutation = aDesc.myPermutation;
+    anOutput->myDesc = aDesc;
     anOutput->myProperties.myShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
-    anOutput->myShaderFilename = aDesc.myShaderFileName;
     anOutput->myRootSignature = rsObject;
 
     // Reflect the shader resources

@@ -10,7 +10,7 @@ namespace Fancy {
   class RenderOutputDX12 : public RenderOutput
   {
   public:
-    explicit RenderOutputDX12(void* aNativeInstanceHandle);
+    explicit RenderOutputDX12(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     ~RenderOutputDX12() override;
     
     void BeginFrame() override;

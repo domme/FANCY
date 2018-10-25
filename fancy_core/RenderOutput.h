@@ -8,6 +8,7 @@ namespace Fancy {
   struct GpuProgramPipelineDesc;
   struct DepthStencilStateDesc;
   struct BlendStateDesc;
+  struct WindowParameters;
   class BlendState;
   class DepthStencilState;
   class Window;
@@ -17,7 +18,7 @@ namespace Fancy {
   class RenderOutput
   {
   public:
-    explicit RenderOutput(void* aNativeInstanceHandle);
+    explicit RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     virtual ~RenderOutput();
     
     virtual void BeginFrame() = 0;

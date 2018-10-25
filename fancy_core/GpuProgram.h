@@ -17,12 +17,12 @@ namespace Fancy {
     GpuProgram();
     virtual ~GpuProgram() = default;
 
-    GpuProgramDesc GetDescription() const;
+    const GpuProgramDesc& GetDescription() const { return myDesc; }
     virtual void SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput);
     virtual uint64 GetNativeBytecodeHash() const = 0;
     
-    String mySourcePath;
-    GpuProgramPermutation myPermutation;
+    GpuProgramDesc myDesc;
+
     ShaderResourceInterface* myResourceInterface;
     GpuProgramProperties myProperties;
   };
