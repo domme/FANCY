@@ -26,7 +26,16 @@ using namespace Fancy;
         return false;
       }
 
+      if (state.info_png.color.colortype != LodePNGColorType::LCT_RGBA)
+      {
+        std::vector<uint8> tempBuf;
+
+        tempBuf.resize(uWidth * uHeight * 8 * 4);
+      }
+
       const LodePNGColorMode& color = state.info_png.color;
+
+
 
       _outTexLoadInfo.width = uWidth;
       _outTexLoadInfo.height = uHeight;

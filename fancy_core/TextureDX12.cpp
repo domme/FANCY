@@ -142,7 +142,7 @@ namespace Fancy {
     ID3D12Device* device = dx12Platform->GetDevice();
     const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myAccessType;
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo(0u, 1u, &resourceDesc);
-    
+
     const GpuMemoryType memoryType = (someProperties.myIsRenderTarget || someProperties.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
     const GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(memoryType, gpuMemAccess, allocInfo.SizeInBytes, (uint) allocInfo.Alignment, myName.c_str());
     ASSERT(gpuMemory.myHeap != nullptr);
@@ -150,6 +150,17 @@ namespace Fancy {
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);
     CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
     storageDx12->myGpuMemory = gpuMemory;
+
+    // TODO: Decide between placed and committed resources depending on size and alignment requirements (maybe also expose a preference as a flag to the caller?)
+    /*
+    D3D12_HEAP_DESC heapDesc{ 0u };
+    heapDesc.SizeInBytes = allocInfo.SizeInBytes;
+    heapDesc.Flags = D3D12_HEAP_FLAG_NONE;
+    heapDesc.Alignment = 0;
+    heapDesc.Properties.Type = RenderCore_PlatformDX12::ResolveHeapType(gpuMemAccess);
+    heapDesc.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    CheckD3Dcall(device->CreateCommittedResource(&heapDesc.Properties, heapDesc.Flags, &resourceDesc, initialState, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
+    */
 
     std::wstring wName = StringUtil::ToWideString(myName);
     storageDx12->myResource->SetName(wName.c_str());
