@@ -8,51 +8,60 @@ using namespace Fancy;
 
 //---------------------------------------------------------------------------//
   namespace Private_TextureLoader {
-    bool Load_PNG(const char* _szPathAbs, std::vector<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
+    bool Load_PNG(const char* aPathAbs, std::vector<uint8>& someTextureBytesOut, TextureLoadInfo& aLoadInfoOut)
     {
-      std::vector<uint8> vEncodedFileBytes;
-      uint uWidth, uHeight;
-      lodepng::State state;
-      state.decoder.color_convert = 0;  // Don't convert RGBA->RGB
-
-      lodepng::load_file(vEncodedFileBytes, _szPathAbs);
-      ASSERT(vEncodedFileBytes.size() > 0u, "Error loading image file %", _szPathAbs);
-
-      uint uErrorCode = lodepng::decode(_vOutBytes, uWidth, uHeight, state, vEncodedFileBytes);
-
-      if (uErrorCode != 0u)
+      std::vector<uint8> fileBuf;
+      lodepng::load_file(fileBuf, aPathAbs);
+      if (fileBuf.empty())
       {
-        LOG_ERROR("Failed decoding .png image % \n ErrorMessage: %", _szPathAbs, lodepng_error_text(uErrorCode));
+        LOG_ERROR("Error loading image file %", aPathAbs);
         return false;
       }
 
-      if (state.info_png.color.colortype != LodePNGColorType::LCT_RGBA)
+      uint width, height;
+      lodepng::State state;
+      uint error = lodepng_inspect(&width, &height, &state, fileBuf.data(), fileBuf.size());
+      if (error != 0u)
       {
-        std::vector<uint8> tempBuf;
-
-        tempBuf.resize(uWidth * uHeight * 8 * 4);
+        LOG_ERROR("Failed reading png header for image % \n ErrorMessage: %", aPathAbs, lodepng_error_text(error));
+        return false;
       }
 
-      const LodePNGColorMode& color = state.info_png.color;
+      uint numChannels = lodepng_get_channels(&state.info_png.color);
+      switch(numChannels)
+      {
+        case 1: state.info_raw.colortype = LCT_GREY; break;
+        case 2: state.info_raw.colortype = LCT_GREY_ALPHA; break;
+        case 3: state.info_raw.colortype = LCT_RGB; break;
+        default: 
+          state.info_raw.colortype = LCT_RGBA; 
+          numChannels = 4; 
+          break;
+      }
+        
+      error = lodepng::decode(someTextureBytesOut, width, height, state, fileBuf);
+      if (error != 0u)
+      {
+        LOG_ERROR("Failed decoding .png image % \n ErrorMessage: %", aPathAbs, lodepng_error_text(error));
+        return false;
+      }
 
-
-
-      _outTexLoadInfo.width = uWidth;
-      _outTexLoadInfo.height = uHeight;
-      _outTexLoadInfo.bitsPerPixel = lodepng_get_bpp(&color);
-      _outTexLoadInfo.numChannels = lodepng_get_channels(&color);
+      aLoadInfoOut.width = width;
+      aLoadInfoOut.height = height;
+      aLoadInfoOut.numChannels = numChannels;
+      aLoadInfoOut.bitsPerChannel = state.info_raw.bitdepth;
 
       return true;
     }
   }
 //---------------------------------------------------------------------------//
-  bool TextureLoader::Load(const char* aPath, DynamicArray<uint8>& _vOutBytes, TextureLoadInfo& _outTexLoadInfo)
+  bool TextureLoader::Load(const char* aPath, DynamicArray<uint8>& someTextureBytesOut, TextureLoadInfo& aLoadInfoOut)
   {
     const String& extension = Path::GetFileExtension(aPath);
 
     if (extension == "PNG" || extension == "png")
     {
-      return Private_TextureLoader::Load_PNG(aPath, _vOutBytes, _outTexLoadInfo);
+      return Private_TextureLoader::Load_PNG(aPath, someTextureBytesOut, aLoadInfoOut);
     }
 
     ASSERT(false, "Missing implementation to load textures of filetype %", extension);

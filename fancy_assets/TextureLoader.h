@@ -6,7 +6,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct TextureLoadInfo
   {
-    uint bitsPerPixel;
+    uint bitsPerChannel;
     uint numChannels;
     uint width;
     uint height;

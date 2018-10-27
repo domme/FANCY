@@ -106,16 +106,10 @@ using namespace Fancy;
     }
 
     std::vector<uint8> textureBytes;
-    TextureLoadInfo textureInfo;
-    if (!TextureLoader::Load(texPathAbs.c_str(), textureBytes, textureInfo))
+    TextureLoadInfo texLoadInfo;
+    if (!TextureLoader::Load(texPathAbs.c_str(), textureBytes, texLoadInfo))
     {
       LOG_ERROR("Failed to load texture at path %", texPathAbs);
-      return nullptr;
-    }
-
-    if (textureInfo.bitsPerPixel / textureInfo.numChannels != 8u)
-    {
-      LOG_ERROR("Unsupported texture format: %", texPathAbs);
       return nullptr;
     }
 
@@ -123,30 +117,43 @@ using namespace Fancy;
     texProps.myDimension = GpuResourceDimension::TEXTURE_2D;
     texProps.path = texPathRel;
     texProps.bIsDepthStencil = false;
-    texProps.myWidth = textureInfo.width;
-    texProps.myHeight = textureInfo.height;
+    texProps.myWidth = texLoadInfo.width;
+    texProps.myHeight = texLoadInfo.height;
     texProps.myDepthOrArraySize = 0u;
     texProps.myAccessType = GpuMemoryAccessType::NO_CPU_ACCESS;
     texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
 
-    switch(textureInfo.numChannels)
+    if (!(texLoadInfo.bitsPerChannel == 8u || texLoadInfo.bitsPerChannel == 16u))
     {
-      case 1: texProps.eFormat = DataFormat::R_8; break;
-      case 2: texProps.eFormat = DataFormat::RG_8; break;
-      case 3: texProps.eFormat = DataFormat::SRGB_8; break;
-      case 4: texProps.eFormat = DataFormat::SRGB_8_A_8; break;
+      LOG_ERROR("Unsupported bits per channel in texture % (has % bits per channel)", texPathAbs, texLoadInfo.bitsPerChannel);
+      return nullptr;
+    }
+
+    switch(texLoadInfo.numChannels)
+    {
+      case 1: texProps.eFormat = texLoadInfo.bitsPerChannel == 8 ? DataFormat::R_8 : DataFormat::R_16; break;
+      case 2: texProps.eFormat = texLoadInfo.bitsPerChannel == 8 ? DataFormat::RG_8 : DataFormat::RG_16; break;
+
+      // LodePNG assumes that 8-bit RGB or RGBA data is always SRGB. The official "sRGB" info-chunk from the PNG format is not supported
+      case 3: texProps.eFormat = texLoadInfo.bitsPerChannel == 8 ? DataFormat::SRGB_8 : DataFormat::RGB_16; break;
+      case 4: texProps.eFormat = texLoadInfo.bitsPerChannel == 8 ? DataFormat::SRGB_8_A_8 : DataFormat::RGBA_16; break;
       default: ASSERT(false, "Unsupported channels");
       return nullptr;
     }
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.eFormat);
-    ASSERT(formatInfo.mySizeBytes == (textureInfo.bitsPerPixel / 8u), "Unsupported pixel size");
+    const uint expectedDataSize = formatInfo.mySizeBytes * texProps.myWidth * texProps.myHeight;
+    if (expectedDataSize != textureBytes.size())
+    {
+      LOG_ERROR("Invalid pixel data loaded from texture %. Expected: %, Actual: %", texPathAbs, expectedDataSize, textureBytes.size());
+      return nullptr;
+    }
     
     TextureSubData uploadData;
-    uploadData.myData = &textureBytes[0];
-    uploadData.myPixelSizeBytes = textureInfo.bitsPerPixel / 8u;
-    uploadData.myRowSizeBytes = textureInfo.width * uploadData.myPixelSizeBytes;
-    uploadData.mySliceSizeBytes = textureInfo.width * textureInfo.height * uploadData.myPixelSizeBytes;
+    uploadData.myData = textureBytes.data();
+    uploadData.myPixelSizeBytes = (texLoadInfo.bitsPerChannel * texLoadInfo.numChannels) / 8u;
+    uploadData.myRowSizeBytes = texLoadInfo.width * uploadData.myPixelSizeBytes;
+    uploadData.mySliceSizeBytes = texLoadInfo.width * texLoadInfo.height * uploadData.myPixelSizeBytes;
     uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
 
     SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), &uploadData, 1u);

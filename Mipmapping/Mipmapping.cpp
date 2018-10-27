@@ -80,7 +80,6 @@ SharedPtr<GpuProgram> myDownsampleTextureShader;
 MipmapData myMipmapData;
 
 InputState myInputState;
-
 int mySelectedMipLevel = 0;
 
 void OnWindowResized(uint aWidth, uint aHeight)
