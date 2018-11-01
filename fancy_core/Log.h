@@ -39,14 +39,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  inline void Log(const char* aSeverity, const char* aFile, const int aLine, bool aBreak, const std::string& aMessage)
+  inline void Log(const char* aSeverity, const char* aFile, const int aLine, const std::string& aMessage)
   {
     const std::string& logOutput = Fancy::StringFormat("%: % \n % (%) \n", aSeverity, aMessage, aFile, aLine);
     std::cout << logOutput;
     OutputDebugStringA(logOutput.c_str());
-
-    if (aBreak)
-      DebugBreak();
   }
 //---------------------------------------------------------------------------//
   inline void Log_Debug(const std::string& aMessage)
@@ -57,11 +54,11 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   #define LOG_DEBUG(aFormat, ...)   Log_Debug(StringFormat(aFormat, ##__VA_ARGS__))
-  #define LOG_INFO(aFormat, ...)    Log("Info", __FILE__, __LINE__, false, StringFormat(aFormat, ##__VA_ARGS__))
-  #define LOG_WARNING(aFormat, ...) Log("Warning", __FILE__, __LINE__, false, StringFormat(aFormat, ##__VA_ARGS__))
-  #define LOG_ERROR(aFormat, ...)   Log("Error", __FILE__, __LINE__, true, StringFormat(aFormat, ##__VA_ARGS__))
+  #define LOG_INFO(aFormat, ...)    Log("Info", __FILE__, __LINE__,  StringFormat(aFormat, ##__VA_ARGS__))
+  #define LOG_WARNING(aFormat, ...) Log("Warning", __FILE__, __LINE__, StringFormat(aFormat, ##__VA_ARGS__))
+  #define LOG_ERROR(aFormat, ...)   Log("Error", __FILE__, __LINE__, StringFormat(aFormat, ##__VA_ARGS__))
 //---------------------------------------------------------------------------//
-  #define ASSERT(aValue, ...) { if(!(aValue)) LOG_ERROR("", ##__VA_ARGS__); }
+  #define ASSERT(aValue, ...) { if(!(aValue)) { LOG_ERROR("", ##__VA_ARGS__); assert(aValue); } }
   #define STATIC_ASSERT( condition, message ) { static_assert(condition, message); }
 //---------------------------------------------------------------------------//
 }

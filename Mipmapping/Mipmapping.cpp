@@ -230,13 +230,13 @@ void ComputeMipMaps(MipmapData& aMipmapData, const GpuProgram* aDownsampleShader
     {
       struct CBuffer
       {
-        glm::float2 mySizeOnMipInv;
+        glm::float2 myTargetSize;
         int myMip;
         int myIsSRGB;
       };
       CBuffer cBuffer = 
       {
-        glm::float2(1.0f / size.x, 1.0f / size.y),
+        size,
         (int) mip,
         aMipmapData.myIsSRGB ? 1 : 0
       };

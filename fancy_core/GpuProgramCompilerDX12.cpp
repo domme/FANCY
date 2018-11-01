@@ -598,7 +598,7 @@ namespace Fancy {
       if (errorData != nullptr)
       {
         const char* errorMsg = (const char*)errorData->GetBufferPointer();
-        LOG_ERROR(errorMsg);
+        LOG_WARNING(errorMsg);
         errorData.ReleaseAndGetAddressOf();
       }
 

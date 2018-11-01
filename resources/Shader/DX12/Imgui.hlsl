@@ -12,7 +12,7 @@ struct IMGUI_VS_CBUFFER
 
 ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
 
-#define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), CBV(b0), DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL), StaticSampler(s0, addressU = TEXTURE_ADDRESS_WRAP, addressV = TEXTURE_ADDRESS_WRAP, addressW = TEXTURE_ADDRESS_WRAP, filter = FILTER_MIN_MAG_MIP_LINEAR )"
+#define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), CBV(b0), DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL), StaticSampler(s0, addressU = TEXTURE_ADDRESS_CLAMP, addressV = TEXTURE_ADDRESS_CLAMP, addressW = TEXTURE_ADDRESS_CLAMP, filter = FILTER_MIN_MAG_MIP_LINEAR )"
 
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_VERTEX)

@@ -11,7 +11,7 @@
 
 cbuffer CB0 : register(b0)
 {
-  float2 mySizeOnMipInv;
+  float2 myTargetSize;
   int myMip;
   int myIsSRGB;   
 };
@@ -29,10 +29,20 @@ void main_linear(uint3 aGroupID : SV_GroupID,
           uint3 aGroupThreadID : SV_GroupThreadID, 
           uint aGroupIndex : SV_GroupIndex)
 {
-    float2 targetTexel = float2(aDispatchThreadID.xy);
-    float2 srcUv = (targetTexel + 0.5) * mySizeOnMipInv; // Gathers the neighboring 4x4 texels
+    int2 targetTexel = (int2) aDispatchThreadID.xy;
+    int2 srcTexel = targetTexel * 2;
+
+    float4 avgColor = float4(0,0,0,0);
+    for (int y = 0; y <= 1; ++y)
+    {
+      for (int x = 0; x <= 1; ++x)
+      {
+        int2 texelCoord = srcTexel + int2(x,y);
+        float4 col = ParentMipTexture.Load(int3(texelCoord, 0));
+        avgColor += col * 0.25;  
+      }
+    }
     
-    float4 avgColor = ParentMipTexture.SampleLevel(sampler_linear, srcUv, 0);
     if (myIsSRGB)
       avgColor = pow(avgColor, 1.0 / 2.2);
 
@@ -40,7 +50,7 @@ void main_linear(uint3 aGroupID : SV_GroupID,
 }
 
 
-float Lancozos(float x, float a)
+float Lanczos(float x, float a)
 {
   const float PI = 3.14159265359;
   
@@ -48,7 +58,7 @@ float Lancozos(float x, float a)
   {
     return 1.0;
   }
-  else if (x > -a && x < a)
+  else if (x >= -a && x <= a)
   {
     return (a* sin(PI * x) * sin((PI*x)/a)) / ((PI*PI) * (x*x));
   }
@@ -65,25 +75,34 @@ void main_lanczos(uint3 aGroupID : SV_GroupID,
           uint3 aGroupThreadID : SV_GroupThreadID, 
           uint aGroupIndex : SV_GroupIndex)
 {
-    float2 targetTexel = float2(aDispatchThreadID.xy);
-    float2 srcUv = (targetTexel + 0.5) * mySizeOnMipInv;
-    float2 srcUvStep = mySizeOnMipInv * 0.5;
+    int2 targetTexel = (int2) aDispatchThreadID.xy;
+    int2 srcTexel = targetTexel * 2;
 
     const int a = 3;
 
     float4 avgColor = float4(0,0,0,0);
-    for (int y = -a; y < a; ++y)
+    float weightSum = 0;
+    for (int y = srcTexel.y -a + 1; y <= srcTexel.y + a; ++y)
     {
-      float ly = Lancozos(y, a);
-      for (int x = -a; x < a; ++x)
-      {
-        float4 col = ParentMipTexture.SampleLevel(sampler_linear, srcUv + float2(x, y) * srcUvStep, 0);
-        float lx = Lancozos(x, a);
+      for (int x = srcTexel.x -a + 1; x <= srcTexel.x + a; ++x)
+      { 
+         int2 texelCoord = int2(x,y);
+         float2 contSrcTexelPos = float2(srcTexel) + float2(0.5, 0.5);
+         float lx = abs(float(texelCoord.x) - contSrcTexelPos.x);
+         float ly = abs(float(texelCoord.y) - contSrcTexelPos.y);
 
-        avgColor += col * lx * ly;
+         float4 col = ParentMipTexture.Load(int3(texelCoord, 0));
+         float weight = Lanczos(lx, a) * Lanczos(ly, a);
+
+        if (texelCoord.x >= 0 && texelCoord.y >= 0 && texelCoord.x < myTargetSize.x * 2 && texelCoord.y < myTargetSize.y * 2)
+        {
+          weightSum += weight;
+          avgColor += col * weight;
+        }
       }
     }
-    
+    avgColor /= weightSum;
+
     if (myIsSRGB)
       avgColor = pow(avgColor, 1.0 / 2.2);
 
