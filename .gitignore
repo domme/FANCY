@@ -30,3 +30,4 @@ FANCY.VC.db
 *.ipch
 *.db-shm
 *.db-wal
+*/imgui.ini

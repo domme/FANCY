@@ -77,7 +77,7 @@ void main_lanczos(uint3 aGroupID : SV_GroupID,
       float ly = Lancozos(y, a);
       for (int x = -a; x < a; ++x)
       {
-        float4 col = ParentMipTexture.SampleLevel(sampler_point, srcUv + float2(x, y) * srcUvStep, 0);
+        float4 col = ParentMipTexture.SampleLevel(sampler_linear, srcUv + float2(x, y) * srcUvStep, 0);
         float lx = Lancozos(x, a);
 
         avgColor += col * lx * ly;

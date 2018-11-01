@@ -24,6 +24,8 @@ using namespace Fancy;
 
 struct MipmapData
 {
+  MipmapData(SharedPtr<Texture> aTexture) { Create(aTexture); }
+  MipmapData() {}
   void Create(SharedPtr<Texture> aTexture);
   void Clear() { myTexture.reset(); myTextureView.reset(); myMipLevelReadViews.clear(); myMipLevelWriteViews.clear(); }
   bool myIsSRGB = false;
@@ -69,14 +71,23 @@ void MipmapData::Create(SharedPtr<Texture> aTexture)
   }
 }
 
+struct GUIstate
+{
+  DynamicArray<String> textureNames;
+  DynamicArray<bool> windowsOpened;
+  DynamicArray<int> selectedMipLevels;
+  DynamicArray<int> selectedFilters;
+};
+  
 FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
 RenderOutput* myRenderOutput = nullptr;
 AssetStorage myAssetStorage;
+GUIstate myGuiState;
 
 SharedPtr<GpuProgramPipeline> myTexturedQuadShader;
 
-MipmapData myMipmapData;
+DynamicArray<MipmapData> myMipmapData;
 
 InputState myInputState;
 int mySelectedMipLevel = 0;
@@ -89,7 +100,6 @@ enum DownsampleFilter
   FILTER_NUM
 };
 const char* myDownsampleFilterNames[] = { "Linear", "Lanczos" };
-int mySelectedDownsampleFilter = FILTER_LINEAR;
 SharedPtr<GpuProgram> myDownsampleTextureShader[FILTER_NUM];
 
 void OnWindowResized(uint aWidth, uint aHeight)
@@ -144,21 +154,53 @@ void Init(HINSTANCE anInstanceHandle)
   myDownsampleTextureShader[FILTER_LANCZOS] =  RenderCore::CreateGpuProgram(shaderDesc);
   ASSERT(myDownsampleTextureShader[FILTER_LANCZOS]);
 
-  SharedPtr<Texture> tex = myAssetStorage.CreateTexture("Textures/Checkerboard.png", AssetStorage::NO_DISK_CACHE | AssetStorage::NO_MEM_CACHE | AssetStorage::SHADER_WRITABLE);
-  // SharedPtr<Texture> tex = myAssetStorage.CreateTexture("Textures/Sibenik/kamen.png", AssetStorage::NO_DISK_CACHE | AssetStorage::NO_MEM_CACHE | AssetStorage::SHADER_WRITABLE);
-  myMipmapData.Create(tex);
+  const uint loadFlags = AssetStorage::NO_DISK_CACHE | AssetStorage::NO_MEM_CACHE | AssetStorage::SHADER_WRITABLE;
+  myMipmapData.push_back(myAssetStorage.CreateTexture("Textures/Checkerboard.png", loadFlags));
+  myMipmapData.push_back(myAssetStorage.CreateTexture("Textures/Sibenik/kamen.png", loadFlags));
+  myMipmapData.push_back(myAssetStorage.CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
+
+  const uint numTextures = myMipmapData.size();
+  myGuiState.textureNames.resize(numTextures);
+  myGuiState.windowsOpened.resize(numTextures);
+  myGuiState.selectedMipLevels.resize(numTextures);
+  myGuiState.selectedFilters.resize(numTextures);
+
+  for (uint i = 0u; i < numTextures; ++i)
+  {
+    String texturePath = myMipmapData[i].myTexture->GetProperties().path;
+    String texName = texturePath.substr(texturePath.find_last_of('/') + 1);
+
+    myGuiState.textureNames[i] = texName;
+    myGuiState.windowsOpened[i] = false;
+    myGuiState.selectedMipLevels[i] = 0;
+    myGuiState.selectedFilters[i] = 0;
+  }
 
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 }
 
 void UpdateGUI()
 {
-  const TextureProperties& texProps = myMipmapData.myTexture->GetProperties();
-  ImGui::SetNextWindowPos(ImVec2(100, 100));
-  ImGui::SliderInt("Mip Level", &mySelectedMipLevel, 0, texProps.myNumMipLevels - 1);
-  ImGui::ListBox("Downsample Filter", &mySelectedDownsampleFilter, myDownsampleFilterNames, ARRAY_LENGTH(myDownsampleFilterNames));
-  
-  ImGui::Image((ImTextureID) myMipmapData.myMipLevelReadViews[mySelectedMipLevel].get(), ImVec2(texProps.myWidth, texProps.myHeight));
+  const uint numTextures = myMipmapData.size();
+
+  for (uint i = 0u; i < numTextures; ++i)
+  {
+    MipmapData& data = myMipmapData[i];
+    const TextureProperties& texProps = data.myTexture->GetProperties();
+
+    bool windowOpen = myGuiState.windowsOpened[i];
+    ImGui::Checkbox(myGuiState.textureNames[i].c_str(), &windowOpen);
+    myGuiState.windowsOpened[i] = windowOpen;
+
+    if (windowOpen)
+    {
+      ImGui::Begin(myGuiState.textureNames[i].c_str());
+      ImGui::SliderInt("Mip Level", &myGuiState.selectedMipLevels[i], 0, texProps.myNumMipLevels - 1);
+      ImGui::ListBox("Downsample Filter", &myGuiState.selectedFilters[i], myDownsampleFilterNames, ARRAY_LENGTH(myDownsampleFilterNames));
+      ImGui::Image((ImTextureID) data.myMipLevelReadViews[myGuiState.selectedMipLevels[i]].get(), ImVec2(texProps.myWidth, texProps.myHeight));
+      ImGui::End();
+    }
+  }
 }
 
 void Update()
@@ -171,16 +213,16 @@ void Update()
   UpdateGUI();
 }
 
-void ComputeMipMaps(MipmapData& aMipmapData)
+void ComputeMipMaps(MipmapData& aMipmapData, const GpuProgram* aDownsampleShader)
 {
     CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
     CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
 
-    ctx->SetComputeProgram(myDownsampleTextureShader[mySelectedDownsampleFilter].get());
+    ctx->SetComputeProgram(aDownsampleShader);
 
-    uint numMips = myMipmapData.myTexture->GetProperties().myNumMipLevels;
+    uint numMips = aMipmapData.myTexture->GetProperties().myNumMipLevels;
 
-    glm::float2 size(myMipmapData.myTexture->GetProperties().myWidth, myMipmapData.myTexture->GetProperties().myHeight);
+    glm::float2 size(aMipmapData.myTexture->GetProperties().myWidth, aMipmapData.myTexture->GetProperties().myHeight);
     size = glm::ceil(size * 0.5f);
 
     uint mip = 1u;
@@ -196,11 +238,11 @@ void ComputeMipMaps(MipmapData& aMipmapData)
       {
         glm::float2(1.0f / size.x, 1.0f / size.y),
         (int) mip,
-        myMipmapData.myIsSRGB ? 1 : 0
+        aMipmapData.myIsSRGB ? 1 : 0
       };
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
 
-      const GpuResourceView* resources[] = { myMipmapData.myMipLevelReadViews[mip-1].get(), myMipmapData.myMipLevelWriteViews[mip].get()};
+      const GpuResourceView* resources[] = { aMipmapData.myMipLevelReadViews[mip-1].get(), aMipmapData.myMipLevelWriteViews[mip].get()};
       ctx->BindResourceSet(resources, 2, 1u);
 
       ctx->Dispatch((uint) size.x, (uint) size.y, 1);
@@ -214,7 +256,11 @@ void ComputeMipMaps(MipmapData& aMipmapData)
 
 void Render()
 {
-  ComputeMipMaps(myMipmapData);
+  for (uint i = 0; i < myMipmapData.size(); ++i)
+  {
+    if (myGuiState.windowsOpened[i])
+      ComputeMipMaps(myMipmapData[i], myDownsampleTextureShader[myGuiState.selectedFilters[i]].get());  
+  }
 
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
@@ -235,7 +281,7 @@ void Shutdown()
     shader.reset();
   
   myTexturedQuadShader.reset();
-  myMipmapData.Clear();
+  myMipmapData.clear();
   myAssetStorage.Clear();
 
   ImGuiRendering::Shutdown();
