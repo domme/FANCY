@@ -11,13 +11,13 @@
 
 cbuffer CB0 : register(b0)
 {
-  float2 myTargetSize;
-  int myMip;
+  float2 mySrcSize;
+  float2 myDestSize;
   int myIsSRGB;   
 };
 
-Texture2D<float4> ParentMipTexture : register(t0);
-RWTexture2D<float4> MipTexture: register(u0);
+Texture2D<float4> SrcTexture : register(t0);
+RWTexture2D<float4> DestTexture: register(u0);
 
 SamplerState sampler_linear : register(s0);
 SamplerState sampler_point : register(s1);
@@ -29,26 +29,39 @@ void main_linear(uint3 aGroupID : SV_GroupID,
           uint3 aGroupThreadID : SV_GroupThreadID, 
           uint aGroupIndex : SV_GroupIndex)
 {
-    int2 targetTexel = (int2) aDispatchThreadID.xy;
-    int2 srcTexel = targetTexel * 2;
+    int2 destTexelIndex = (int2) aDispatchThreadID.xy;
 
-    float4 avgColor = float4(0,0,0,0);
-    for (int y = 0; y <= 1; ++y)
+    float2 numSrcTexelsPerDest = float2(myDestSize) / float2(mySrcSize);
+    int2 srcTexelBase = int2(float2(destTexelIndex) * numSrcTexelsPerDest);
+
+    int2 filterSize = int2(numSrcTexelsPerDest);
+    float2 additionalTexelWeights = frac(numSrcTexelsPerDest);
+    float sampleWeight = 1.0 / float2(filterSize);
+
+    float4 filteredCol = float4(0,0,0,0);
+    float weightSum = 0;
+    for (int y = 0; y < filterSize; ++y)
     {
-      for (int x = 0; x <= 1; ++x)
+      for (int x = 0; x < filterSize; ++x)
       {
-        int2 texelCoord = srcTexel + int2(x,y);
-        float4 col = ParentMipTexture.Load(int3(texelCoord, 0));
-        avgColor += col * 0.25;  
+        int2 texelCoord = srcTexelBase + int2(x,y);
+        float4 col = SrcTexture.Load(int3(texelCoord, 0));
+
+        if (all(texelCoord >= 0) && all(texelCoord < mySrcSize))
+        {
+          weightSum += sampleWeight;
+          filteredCol += sampleWeight * col;
+        }
       }
     }
+
+    filteredCol /= max(0.0001, weightSum);
     
     if (myIsSRGB)
-      avgColor = pow(avgColor, 1.0 / 2.2);
+      filteredCol = pow(filteredCol, 1.0 / 2.2);
 
-    MipTexture[targetTexel] = avgColor;
+    DestTexture[destTexelIndex] = filteredCol;
 }
-
 
 float Lanczos(float x, float a)
 {
@@ -76,15 +89,16 @@ void main_lanczos(uint3 aGroupID : SV_GroupID,
           uint aGroupIndex : SV_GroupIndex)
 {
     int2 targetTexel = (int2) aDispatchThreadID.xy;
-    int2 srcTexel = targetTexel * 2;
+    int2 srcTexel_floor = targetTexel * 2;
+    float2 tergetTexelCenter = (float2(targetTexel) / myTargetSize) * (myTargetSize * 2);
 
     const int a = 3;
 
     float4 avgColor = float4(0,0,0,0);
     float weightSum = 0;
-    for (int y = srcTexel.y -a + 1; y <= srcTexel.y + a; ++y)
+    for (int y = -a + 1; y <= a; ++y)
     {
-      for (int x = srcTexel.x -a + 1; x <= srcTexel.x + a; ++x)
+      for (int x = -a + 1; x <= a; ++x)
       { 
          int2 texelCoord = int2(x,y);
          float2 contSrcTexelPos = float2(srcTexel) + float2(0.5, 0.5);
