@@ -74,6 +74,8 @@ namespace Fancy {
   std::vector<std::unique_ptr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
+
+  Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -794,7 +796,7 @@ namespace Fancy {
       if (actualShaderPath == aShaderFile)
         programsToRecompile.push_back(program);
     }
-
+    
     for (GpuProgram* program : programsToRecompile)
     {
       GpuProgramCompilerOutput compiledOutput;
@@ -826,6 +828,9 @@ namespace Fancy {
       pipeline->UpdateResourceInterface();
       pipeline->UpdateShaderByteCodeHash();
     }
+
+    for (GpuProgram* program : programsToRecompile)
+      ourOnShaderRecompiled(program);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::OnShaderFileDeletedMoved(const String& aShaderFile)

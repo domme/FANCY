@@ -5,6 +5,7 @@
 #include <list>
 #include "CommandQueue.h"
 #include "CommandListType.h"
+#include "Slot.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -84,6 +85,8 @@ namespace Fancy {
 
     static CommandQueue* GetCommandQueue(CommandListType aType);
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
+
+    static Slot<void(const GpuProgram*)> ourOnShaderRecompiled;
 
   protected:
     RenderCore() = default;

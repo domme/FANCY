@@ -49,6 +49,7 @@ struct ImageData
   bool myIsWindowOpen;
   bool myShowMip;
   bool myShowRescaled;
+  bool myIsDirty;
   int mySelectedMipLevel;
   int mySelectedFilter;
   float myScalingFactors[2];
@@ -94,6 +95,7 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
   myIsWindowOpen = false;
   myShowMip = true;
   myShowRescaled = false;
+  myIsDirty = true;
   mySelectedMipLevel = 0;
   mySelectedFilter = FILTER_LINEAR;
   myScalingFactors[0] = 0.5f;
@@ -112,6 +114,8 @@ int mySelectedMipLevel = 0;
 
 const char* myResampleFilterNames[] = { "Linear", "Lanczos" };
 SharedPtr<GpuProgram> myResampleShader;
+
+void OnShaderRecompiled(const GpuProgram* aShader);
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
@@ -260,10 +264,24 @@ void Init(HINSTANCE anInstanceHandle)
   myImageDatas.push_back(myAssetStorage.CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
 
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
+
+  std::function<void(const GpuProgram*)> onShaderRecompiledFn = &OnShaderRecompiled;
+  RenderCore::ourOnShaderRecompiled.Connect(onShaderRecompiledFn);
+}
+
+void OnShaderRecompiled(const GpuProgram* aShader)
+{
+  if (aShader == myResampleShader.get())
+  {
+    for (ImageData& data : myImageDatas)
+      data.myIsDirty = true;
+  }
 }
 
 void Update()
 {
+  static bool isFirstUpdate = true;
+
   myRuntime->BeginFrame();
   ImGuiRendering::NewFrame();
   const float deltaTime = 0.016f;
@@ -281,26 +299,32 @@ void Update()
       ImGui::SetNextWindowSize(ImVec2(texProps.myWidth * 2, texProps.myHeight * 2));
       ImGui::Begin(data.myName.c_str());
       ImGui::SliderInt("Mip Level", &data.mySelectedMipLevel, 0, texProps.myNumMipLevels - 1);
-      ImGui::InputFloat("Scale", &data.myScalingFactors[0]);
+      bool scaleChanged = ImGui::InputFloat("Scale", &data.myScalingFactors[0]);
       data.myScalingFactors[1] = data.myScalingFactors[0];
       //ImGui::SliderFloat2("Resize", data.myScalingFactors, 0.01f, 10.0f);
       ImGui::ListBox("Downsample Filter", &data.mySelectedFilter, myResampleFilterNames, ARRAY_LENGTH(myResampleFilterNames));
       ImGui::Checkbox("Show Mip", &data.myShowMip);
       ImGui::Checkbox("Show Rescale", &data.myShowRescaled);
-      if (data.myShowMip)
+
+      if (data.myIsDirty)
       {
-        ComputeMipMaps(data);  
-        ImGui::Image((ImTextureID) data.myMipLevelReadViews[data.mySelectedMipLevel].get(), ImVec2(texProps.myWidth, texProps.myHeight));
-      }
-      if (data.myShowRescaled)
-      {
+        ComputeMipMaps(data);
         Rescale(data, data.myScalingFactors[0], data.myScalingFactors[1]);
-        ImGui::Image((ImTextureID) data.myResampledTextureView.get(), ImVec2(texProps.myWidth, texProps.myHeight));
+        data.myIsDirty = false;
       }
+      else if (scaleChanged)
+        Rescale(data, data.myScalingFactors[0], data.myScalingFactors[1]);
+
+      if (data.myShowMip)
+        ImGui::Image((ImTextureID) data.myMipLevelReadViews[data.mySelectedMipLevel].get(), ImVec2(texProps.myWidth, texProps.myHeight));
+      if (data.myShowRescaled)
+        ImGui::Image((ImTextureID) data.myResampledTextureView.get(), ImVec2(texProps.myWidth, texProps.myHeight));
       
       ImGui::End();
     }
   }
+
+  isFirstUpdate = false;
 }
 
 void Render()

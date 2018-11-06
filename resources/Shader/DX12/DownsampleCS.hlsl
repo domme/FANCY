@@ -25,29 +25,33 @@ SamplerState sampler_point : register(s1);
 
 float Weight_Linear(float x, float width)
 {
-  return 1.0 - (abs(x) / width);
+  return max(0, (1.0 - (x / width)));
 }
 
 float4 Resample_Linear(int2 aDestTexel)
 {
-  float2 destTexelSize = mySrcSize / myDestSize;
-  float2 srcTexelSize = myDestSize / mySrcSize;
-  float2 destTexelCenter = (aDestTexel + 0.5) * destTexelSize;
-  float2 filterSize = max(destTexelSize, srcTexelSize);
+  float2 destScale = mySrcSize / myDestSize;
+  
+  float2 filterCenter = (aDestTexel + 0.5) * destScale;
+  float2 filterSize = destScale * 0.5;
+
+  int2 sampleRange = (int) ceil(filterSize);
+  int2 centerTexel = (int2) filterCenter;
 
   float4 valSum = float4(0,0,0,0);
   float norm = 0;
-  for (float y = -filterSize.y; y <= filterSize.y; y += 1.0 / filterSize.y)
+  for (int y = -sampleRange.y; y <= sampleRange.y; y++)
   {
-    for (float x = -filterSize.x; x <= filterSize.x; x += 1.0 / filterSize.x)
+    for (int x = -sampleRange.x; x <= sampleRange.x; x++)
     {
-      float2 samplePos = destTexelCenter + float2(x,y);
-      int2 texelCoord = int2(samplePos);
-
+      int2 texelCoord = centerTexel + int2(x,y);
       if(all(texelCoord >= int2(0,0) && all(texelCoord < int2(mySrcSize)))) 
       {
-        valSum += SrcTexture.SampleLevel(sampler_linear, samplePos / mySrcSize, 0);
-        norm += 1;
+        float2 sampleDist = abs(float2(texelCoord + 0.5) - filterCenter);
+        float weight = Weight_Linear(sampleDist.x, filterSize.x) * Weight_Linear(sampleDist.y, filterSize.y);
+
+        valSum += weight * SrcTexture.Load(int3(texelCoord, 0));
+        norm += weight;
       }
     }
   }
