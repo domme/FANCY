@@ -44,14 +44,14 @@ SampleParams PrecomputeSampleParams(int2 aDestTexel, float aFilterSize)
 {
   SampleParams params;
 
-  params.myFilterCenter = (aDestTexel + 0.5) * params.myDestScale;
-  params.myFilterSize = aFilterSize * max(params.mySrcScale, params.myDestScale) * 0.5;
+  params.myFilterCenter = (aDestTexel + 0.5) * myDestScale;
+  params.myFilterSize = aFilterSize * max(mySrcScale, myDestScale) * 0.5;
   params.myFilterCenterAxis = dot(myAxis, params.myFilterCenter);
   params.myFilterSizeAxis = dot(myAxis, params.myFilterSize);
   params.myCenterTexel = (int2) params.myFilterCenter;
   params.myCenterTexelAxis = (int) (dot(myAxis, params.myCenterTexel));
   params.mySampleRange = (int) ceil(params.myFilterSizeAxis);
-  params.SrcSizeOnAxis = (int) (dot(myAxis, mySrcSize));
+  params.mySrcSizeOnAxis = (int) (dot(myAxis, mySrcSize));
 
   return params;
 }
@@ -91,7 +91,7 @@ float4 Resize_Linear(int2 aDestTexel)
     if (texelPosAxis >= 0 && texelPosAxis < params.mySrcSizeOnAxis)
     {
       int2 texelPos = params.myCenterTexel + int2(myAxis * s);
-      float sampleDist = abs(float(params.myTexelPosAxis + 0.5) - params.myFilterCenter);
+      float sampleDist = abs(float(texelPosAxis + 0.5) - params.myFilterCenterAxis);
 
       float weight = Weight_Linear(sampleDist, params.myFilterSizeAxis);
       valSum += weight * SrcTexture.Load(int3(texelPos, 0));
@@ -99,7 +99,7 @@ float4 Resize_Linear(int2 aDestTexel)
     }
   }
 
-  return valSum / weight;
+  return valSum / norm;
 }
 
 float4 Resize_Lanczos(int2 aDestTexel)
@@ -115,7 +115,7 @@ float4 Resize_Lanczos(int2 aDestTexel)
     if (texelPosAxis >= 0 && texelPosAxis < params.mySrcSizeOnAxis)
     {
       int2 texelPos = params.myCenterTexel + int2(myAxis * s);
-      float sampleDist = abs(float(params.myTexelPosAxis + 0.5) - params.myFilterCenter);
+      float sampleDist = abs(float(texelPosAxis + 0.5) - params.myFilterCenterAxis);
 
       float weight = Weight_Lanczos(sampleDist, params.myFilterSizeAxis);
       valSum += weight * SrcTexture.Load(int3(texelPos, 0));
@@ -123,11 +123,11 @@ float4 Resize_Lanczos(int2 aDestTexel)
     }
   }
 
-  return valSum / weight;
+  return valSum / norm;
 }
 
 [RootSignature(ROOT_SIGNATURE)]
-[numthreads(1, 1, 1)]
+[numthreads(8, 8, 1)]
 void main(uint3 aGroupID : SV_GroupID, 
           uint3 aDispatchThreadID : SV_DispatchThreadID, 
           uint3 aGroupThreadID : SV_GroupThreadID, 
@@ -137,9 +137,9 @@ void main(uint3 aGroupID : SV_GroupID,
 
     float4 filteredCol = float4(0,0,0,0);
     if (myFilterMethod == 0)
-      filteredCol = Resample_Linear(destTexel);
+      filteredCol = Resize_Linear(destTexel);
     else if (myFilterMethod == 1)
-      filteredCol = Resample_Lanczos(destTexel);
+      filteredCol = Resize_Lanczos(destTexel);
     
     if (myIsSRGB)
       filteredCol = pow(filteredCol, 1.0 / 2.2);

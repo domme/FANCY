@@ -1,5 +1,6 @@
 #pragma once
 #include "FC_String.h"
+#include <assert.h>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

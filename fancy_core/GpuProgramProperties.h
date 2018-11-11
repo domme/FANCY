@@ -42,6 +42,7 @@ namespace Fancy {
     GpuProgramProperties()
       : myShaderStage(ShaderStage::NONE)
       , myHasUnorderedWrites(false)
+      , myNumGroupThreads(1,1,1)
     {}
 
     ShaderVertexInputLayout myVertexInputLayout;
@@ -49,6 +50,7 @@ namespace Fancy {
     DynamicArray<ConstantBufferElement> myConstantBufferElements;
     ShaderStage myShaderStage;
     bool myHasUnorderedWrites;
+    glm::int3 myNumGroupThreads;
   };
 //---------------------------------------------------------------------------//
 }

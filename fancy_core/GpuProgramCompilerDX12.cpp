@@ -677,6 +677,12 @@ namespace Fancy {
         return false;
       }
     }
+    else if(aDesc.myShaderStage == static_cast<uint>(ShaderStage::COMPUTE))
+    {
+      uint x, y, z;
+      reflector->GetThreadGroupSize(&x, &y, &z);
+      anOutput->myProperties.myNumGroupThreads = glm::int3(static_cast<int>(x), static_cast<int>(y), static_cast<int>(z));
+    }
 
     anOutput->myNativeData = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
 

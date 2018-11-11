@@ -29,7 +29,7 @@ enum ResampleFilter
 
 struct ImageData
 {
-  explicit ImageData(SharedPtr<Texture> aTexture) { Create(aTexture); }
+  ImageData(SharedPtr<Texture> aTexture) { Create(aTexture); }
   ImageData() {}
   void Create(SharedPtr<Texture> aTexture);
   void Clear() { myTexture.reset(); myTextureView.reset(); myMipLevelReadViews.clear(); myMipLevelWriteViews.clear(); }
@@ -130,7 +130,7 @@ void ComputeMipMaps(ImageData& aMipmapData)
   glm::float2 srcSize(aMipmapData.myTexture->GetProperties().myWidth, aMipmapData.myTexture->GetProperties().myHeight);
   glm::float2 destSize = glm::ceil(srcSize * 0.5f);
 
-  glm::int2 tempTexSize = (glm::int2) destSize;
+  glm::int2 tempTexSize = (glm::int2) glm::float2(glm::ceil(srcSize.x * 0.5), srcSize.y);
   TextureProperties tempTexProps = aMipmapData.myTexture->GetProperties();
   tempTexProps.myIsShaderWritable = true;
   tempTexProps.myNumMipLevels = 1;
@@ -163,34 +163,38 @@ void ComputeMipMaps(ImageData& aMipmapData)
     glm::float2 myAxis;
   };
 
+  CBuffer cBuffer;
+  cBuffer.myIsSRGB = aMipmapData.myIsSRGB ? 1 : 0;
+  cBuffer.myFilterMethod = aMipmapData.mySelectedFilter;
+
   for (uint mip = 1u; mip < numMips; ++mip)
   {
-    CBuffer cBuffer = 
-    {
-      srcSize,
-      destSize,
-      destSize / srcSize,
-      srcSize / destSize,
-      aMipmapData.myIsSRGB ? 1 : 0,
-      aMipmapData.mySelectedFilter,
-      glm::float2(1,0)
-    };
-
     const GpuResourceView* resources[] = {nullptr, nullptr};
-
+    
+    // Resize horizontal
+    glm::float2 tempDestSize(destSize.x, srcSize.y);
+    cBuffer.mySrcSize = srcSize;
+    cBuffer.myDestSize = tempDestSize;
+    cBuffer.mySrcScale = tempDestSize / srcSize;
+    cBuffer.myDestScale = srcSize / tempDestSize;
     cBuffer.myAxis = glm::float2(1.0f, 0.0f);
     ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
     resources[0] = aMipmapData.myMipLevelReadViews[mip-1].get();
     resources[1] = tempViewWrite.get();
     ctx->BindResourceSet(resources, 2, 1u);
-    ctx->Dispatch((uint) destSize.x, (uint) destSize.y, 1);
-
+    ctx->Dispatch(glm::int3((int)destSize.x, (int) srcSize.y, 1));
+    
+    // Resize vertical
+    cBuffer.mySrcSize = tempDestSize;
+    cBuffer.myDestSize = destSize;
+    cBuffer.mySrcScale = destSize / tempDestSize;
+    cBuffer.myDestScale = tempDestSize / destSize;
     cBuffer.myAxis = glm::float2(0.0f, 1.0f);
     ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-    resources[0] = tempViewRead.get(); 
-    resources[1] =aMipmapData.myMipLevelWriteViews[mip].get();
+    resources[0] = tempViewRead.get();
+    resources[1] = aMipmapData.myMipLevelWriteViews[mip].get();
     ctx->BindResourceSet(resources, 2, 1u);
-    ctx->Dispatch((uint) destSize.x, (uint) destSize.y, 1);
+    ctx->Dispatch(glm::int3((int) destSize.x, (int) destSize.y, 1));
 
     srcSize *= 0.5f;
     destSize *= 0.5f;

@@ -1169,10 +1169,14 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::Dispatch(uint aThreadGroupCountX, uint aThreadGroupCountY, uint aThreadGroupCountZ)
+  void CommandContextDX12::Dispatch(const glm::int3& aNumThreads)
   {
     ApplyComputePipelineState();
-    myCommandList->Dispatch(aThreadGroupCountX, aThreadGroupCountY, aThreadGroupCountZ);
+    ASSERT(myComputePipelineState.myGpuProgram != nullptr);
+
+    const glm::int3& numGroupThreads = myComputePipelineState.myGpuProgram->myProperties.myNumGroupThreads;
+    glm::int3 numGroups = aNumThreads / numGroupThreads;
+    myCommandList->Dispatch(static_cast<uint>(numGroups.x), static_cast<uint>(numGroups.y), static_cast<uint>(numGroups.z));
 
     if (myShaderHasUnorderedWrites)
       SetResourceUAVbarrier(nullptr);

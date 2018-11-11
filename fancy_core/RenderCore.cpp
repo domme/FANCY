@@ -713,7 +713,7 @@ namespace Fancy {
       const GpuResourceView* resources[] = { readViews[mip-1].get(), writeViews[mip].get()};
       ctx->BindResourceSet(resources, 2, 1u);
 
-      ctx->Dispatch(size.x, size.y, 1);
+      ctx->Dispatch(glm::int3((int) size.x, (int) size.y, 1));
      
       size /= 2u;
     }

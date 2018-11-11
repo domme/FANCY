@@ -47,7 +47,7 @@ namespace Fancy {
     void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;
-    void Dispatch(uint GroupCountX, uint GroupCountY, uint GroupCountZ) override;
+    void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:
     void CloseCommandList();
