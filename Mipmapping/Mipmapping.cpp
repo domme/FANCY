@@ -13,9 +13,6 @@
 #include <fancy_imgui/imgui.h>
 #include <fancy_imgui/imgui_impl_fancy.h>
 
-#include "fancy_assets/Model.h"
-#include "fancy_assets/Material.h"
-#include "fancy_core/Mesh.h"
 #include <fancy_core/Texture.h>
 #include <fancy_core/Input.h>
 #include "fancy_assets/AssetStorage.h"
@@ -32,7 +29,7 @@ enum ResampleFilter
 
 struct ImageData
 {
-  ImageData(SharedPtr<Texture> aTexture) { Create(aTexture); }
+  explicit ImageData(SharedPtr<Texture> aTexture) { Create(aTexture); }
   ImageData() {}
   void Create(SharedPtr<Texture> aTexture);
   void Clear() { myTexture.reset(); myTextureView.reset(); myMipLevelReadViews.clear(); myMipLevelWriteViews.clear(); }
@@ -40,19 +37,14 @@ struct ImageData
 
   SharedPtr<Texture> myTexture;
   SharedPtr<TextureView> myTextureView;
-  SharedPtr<Texture> myResampledTexture;
-  SharedPtr<TextureView> myResampledTextureView;
   DynamicArray<SharedPtr<TextureView>> myMipLevelReadViews;
   DynamicArray<SharedPtr<TextureView>> myMipLevelWriteViews;
 
   String myName;
   bool myIsWindowOpen;
-  bool myShowMip;
-  bool myShowRescaled;
   bool myIsDirty;
   int mySelectedMipLevel;
   int mySelectedFilter;
-  float myScalingFactors[2];
 };
 
 void ImageData::Create(SharedPtr<Texture> aTexture)
@@ -93,13 +85,9 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
   String texturePath = destTexProps.path;
   myName = texturePath.substr(texturePath.find_last_of('/') + 1);
   myIsWindowOpen = false;
-  myShowMip = true;
-  myShowRescaled = false;
   myIsDirty = true;
   mySelectedMipLevel = 0;
   mySelectedFilter = FILTER_LINEAR;
-  myScalingFactors[0] = 0.5f;
-  myScalingFactors[1] = 0.5f;
 }
 
 FancyRuntime* myRuntime = nullptr;
@@ -136,31 +124,28 @@ SharedPtr<GpuProgramPipeline> LoadShader(const char* aShaderPath, const char* aM
   return RenderCore::CreateGpuProgramPipeline(pipelineDesc);
 }
 
-void Rescale(ImageData& aMipmapData, float scaleX, float scaleY)
+void ComputeMipMaps(ImageData& aMipmapData)
 {
-  const TextureProperties& srcTexProps = aMipmapData.myTexture->GetProperties();
-  
-  TextureProperties destTexProps = srcTexProps;
-  destTexProps.myWidth = (int) glm::ceil((float) srcTexProps.myWidth * scaleX);
-  destTexProps.myHeight = (int) glm::ceil((float) srcTexProps.myHeight * scaleY);
+  const uint numMips = aMipmapData.myTexture->GetProperties().myNumMipLevels;
+  glm::float2 srcSize(aMipmapData.myTexture->GetProperties().myWidth, aMipmapData.myTexture->GetProperties().myHeight);
+  glm::float2 destSize = glm::ceil(srcSize * 0.5f);
 
-  if (destTexProps.myWidth == 0 || destTexProps.myHeight == 0)
-    return;
+  glm::int2 tempTexSize = (glm::int2) destSize;
+  TextureProperties tempTexProps = aMipmapData.myTexture->GetProperties();
+  tempTexProps.myIsShaderWritable = true;
+  tempTexProps.myNumMipLevels = 1;
+  tempTexProps.myWidth = (uint) tempTexSize.x;
+  tempTexProps.myHeight = (uint) tempTexSize.y;
+  SharedPtr<Texture> tempTexture = RenderCore::CreateTexture(tempTexProps);
+  ASSERT(tempTexture != nullptr);
 
-  TextureViewProperties destTexViewProps = aMipmapData.myTextureView->GetProperties();
+  TextureViewProperties tempViewProps = aMipmapData.myTextureView->GetProperties();
+  SharedPtr<TextureView> tempViewRead = RenderCore::CreateTextureView(tempTexture, tempViewProps);
 
-  if (aMipmapData.myResampledTexture == nullptr || aMipmapData.myResampledTexture->GetProperties().myWidth != destTexProps.myWidth || aMipmapData.myResampledTexture->GetProperties().myHeight != destTexProps.myHeight)
-  {
-    String name = aMipmapData.myTexture->myName + "_rescaled";
-    destTexProps.myNumMipLevels = 1;
-    aMipmapData.myResampledTexture = RenderCore::CreateTexture(destTexProps, name.c_str());
-    aMipmapData.myResampledTextureView = RenderCore::CreateTextureView(aMipmapData.myResampledTexture, destTexViewProps);  
-  }
-    
-  destTexViewProps.myFormat = Fancy::DataFormatInfo::GetNonSRGBformat(destTexProps.eFormat);
-  destTexViewProps.myIsShaderWritable = true;
-  SharedPtr<TextureView> resampledTexWriteView = RenderCore::CreateTextureView(aMipmapData.myResampledTexture, destTexViewProps);
-  
+  tempViewProps.myIsShaderWritable = true;
+  tempViewProps.myFormat = DataFormatInfo::GetNonSRGBformat(tempViewProps.myFormat);
+  SharedPtr<TextureView> tempViewWrite = RenderCore::CreateTextureView(tempTexture, tempViewProps);
+
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   ctx->SetComputeProgram(myResampleShader.get());
@@ -169,67 +154,50 @@ void Rescale(ImageData& aMipmapData, float scaleX, float scaleY)
   {
     glm::float2 mySrcSize;
     glm::float2 myDestSize;
+
+    glm::float2 mySrcScale;
+    glm::float2 myDestScale;
+
     int myIsSRGB;
     int myFilterMethod;
+    glm::float2 myAxis;
   };
-  CBuffer cBuffer = 
+
+  for (uint mip = 1u; mip < numMips; ++mip)
   {
-    glm::float2(srcTexProps.myWidth, srcTexProps.myHeight),
-    glm::float2(destTexProps.myWidth, destTexProps.myHeight),
-    aMipmapData.myIsSRGB ? 1 : 0,
-    aMipmapData.mySelectedFilter
-  };
-  ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
+    CBuffer cBuffer = 
+    {
+      srcSize,
+      destSize,
+      destSize / srcSize,
+      srcSize / destSize,
+      aMipmapData.myIsSRGB ? 1 : 0,
+      aMipmapData.mySelectedFilter,
+      glm::float2(1,0)
+    };
 
-  const GpuResourceView* resources[] = { aMipmapData.myTextureView.get(), resampledTexWriteView.get()};
-  ctx->BindResourceSet(resources, 2, 1u);
+    const GpuResourceView* resources[] = {nullptr, nullptr};
 
-  ctx->Dispatch((uint) destTexProps.myWidth, (uint) destTexProps.myHeight, 1);
+    cBuffer.myAxis = glm::float2(1.0f, 0.0f);
+    ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
+    resources[0] = aMipmapData.myMipLevelReadViews[mip-1].get();
+    resources[1] = tempViewWrite.get();
+    ctx->BindResourceSet(resources, 2, 1u);
+    ctx->Dispatch((uint) destSize.x, (uint) destSize.y, 1);
+
+    cBuffer.myAxis = glm::float2(0.0f, 1.0f);
+    ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
+    resources[0] = tempViewRead.get(); 
+    resources[1] =aMipmapData.myMipLevelWriteViews[mip].get();
+    ctx->BindResourceSet(resources, 2, 1u);
+    ctx->Dispatch((uint) destSize.x, (uint) destSize.y, 1);
+
+    srcSize *= 0.5f;
+    destSize *= 0.5f;
+  }
 
   queue->ExecuteContext(ctx, true);
   RenderCore::FreeContext(ctx); 
-}
-
-void ComputeMipMaps(ImageData& aMipmapData)
-{
-    CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-    CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-    ctx->SetComputeProgram(myResampleShader.get());
-
-    const uint numMips = aMipmapData.myTexture->GetProperties().myNumMipLevels;
-    glm::float2 srcSize(aMipmapData.myTexture->GetProperties().myWidth, aMipmapData.myTexture->GetProperties().myHeight);
-    glm::float2 destSize = glm::ceil(srcSize * 0.5f);
-
-    uint mip = 1u;
-    for (; mip < numMips; ++mip)
-    {
-      struct CBuffer
-      {
-        glm::float2 mySrcSize;
-        glm::float2 myDestSize;
-        int myIsSRGB;
-        int myFilterMethod;
-      };
-      CBuffer cBuffer = 
-      {
-        srcSize,
-        destSize,
-        aMipmapData.myIsSRGB ? 1 : 0,
-        aMipmapData.mySelectedFilter
-      };
-      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-
-      const GpuResourceView* resources[] = { aMipmapData.myMipLevelReadViews[mip-1].get(), aMipmapData.myMipLevelWriteViews[mip].get()};
-      ctx->BindResourceSet(resources, 2, 1u);
-
-      ctx->Dispatch((uint) destSize.x, (uint) destSize.y, 1);
-     
-      srcSize *= 0.5f;
-      destSize *= 0.5f;
-    }
-
-    queue->ExecuteContext(ctx, true);
-    RenderCore::FreeContext(ctx); 
 }
 
 void Init(HINSTANCE anInstanceHandle)
@@ -280,8 +248,6 @@ void OnShaderRecompiled(const GpuProgram* aShader)
 
 void Update()
 {
-  static bool isFirstUpdate = true;
-
   myRuntime->BeginFrame();
   ImGuiRendering::NewFrame();
   const float deltaTime = 0.016f;
@@ -299,32 +265,19 @@ void Update()
       ImGui::SetNextWindowSize(ImVec2(texProps.myWidth * 2, texProps.myHeight * 2));
       ImGui::Begin(data.myName.c_str());
       ImGui::SliderInt("Mip Level", &data.mySelectedMipLevel, 0, texProps.myNumMipLevels - 1);
-      bool scaleChanged = ImGui::InputFloat("Scale", &data.myScalingFactors[0]);
-      data.myScalingFactors[1] = data.myScalingFactors[0];
-      //ImGui::SliderFloat2("Resize", data.myScalingFactors, 0.01f, 10.0f);
-      ImGui::ListBox("Downsample Filter", &data.mySelectedFilter, myResampleFilterNames, ARRAY_LENGTH(myResampleFilterNames));
-      ImGui::Checkbox("Show Mip", &data.myShowMip);
-      ImGui::Checkbox("Show Rescale", &data.myShowRescaled);
+      data.myIsDirty |= ImGui::ListBox("Downsample Filter", &data.mySelectedFilter, myResampleFilterNames, ARRAY_LENGTH(myResampleFilterNames));
 
       if (data.myIsDirty)
       {
         ComputeMipMaps(data);
-        Rescale(data, data.myScalingFactors[0], data.myScalingFactors[1]);
         data.myIsDirty = false;
       }
-      else if (scaleChanged)
-        Rescale(data, data.myScalingFactors[0], data.myScalingFactors[1]);
 
-      if (data.myShowMip)
-        ImGui::Image((ImTextureID) data.myMipLevelReadViews[data.mySelectedMipLevel].get(), ImVec2(texProps.myWidth, texProps.myHeight));
-      if (data.myShowRescaled)
-        ImGui::Image((ImTextureID) data.myResampledTextureView.get(), ImVec2(texProps.myWidth, texProps.myHeight));
-      
+      ImGui::Image((ImTextureID) data.myMipLevelReadViews[data.mySelectedMipLevel].get(), ImVec2(texProps.myWidth, texProps.myHeight));
+
       ImGui::End();
     }
   }
-
-  isFirstUpdate = false;
 }
 
 void Render()
