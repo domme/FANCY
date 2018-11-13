@@ -258,6 +258,10 @@ void Update()
   myRuntime->Update(deltaTime);
 
   const uint numTextures = myImageDatas.size();
+
+  static bool updateAlways = false;
+  ImGui::Checkbox("Update every frame", &updateAlways);
+
   for (uint i = 0u; i < numTextures; ++i)
   {
     ImageData& data = myImageDatas[i];
@@ -271,7 +275,7 @@ void Update()
       ImGui::SliderInt("Mip Level", &data.mySelectedMipLevel, 0, texProps.myNumMipLevels - 1);
       data.myIsDirty |= ImGui::ListBox("Downsample Filter", &data.mySelectedFilter, myResampleFilterNames, ARRAY_LENGTH(myResampleFilterNames));
 
-      if (data.myIsDirty)
+      if (data.myIsDirty | updateAlways)
       {
         ComputeMipMaps(data);
         data.myIsDirty = false;

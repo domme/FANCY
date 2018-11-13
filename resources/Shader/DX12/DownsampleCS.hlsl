@@ -127,14 +127,12 @@ float4 Resize_Lanczos(int2 aDestTexel)
 }
 
 [RootSignature(ROOT_SIGNATURE)]
-[numthreads(8, 8, 1)]
+[numthreads(1, 1, 1)]
 void main(uint3 aGroupID : SV_GroupID, 
           uint3 aDispatchThreadID : SV_DispatchThreadID, 
           uint3 aGroupThreadID : SV_GroupThreadID, 
           uint aGroupIndex : SV_GroupIndex)
 {
-    int2 destTexel = (int2) aDispatchThreadID.xy;
-
     float4 filteredCol = float4(0,0,0,0);
     if (myFilterMethod == 0)
       filteredCol = Resize_Linear(destTexel);

@@ -1175,7 +1175,7 @@ namespace Fancy {
     ASSERT(myComputePipelineState.myGpuProgram != nullptr);
 
     const glm::int3& numGroupThreads = myComputePipelineState.myGpuProgram->myProperties.myNumGroupThreads;
-    glm::int3 numGroups = aNumThreads / numGroupThreads;
+    glm::int3 numGroups = glm::max(glm::int3(1), aNumThreads / numGroupThreads);
     myCommandList->Dispatch(static_cast<uint>(numGroups.x), static_cast<uint>(numGroups.y), static_cast<uint>(numGroups.z));
 
     if (myShaderHasUnorderedWrites)
