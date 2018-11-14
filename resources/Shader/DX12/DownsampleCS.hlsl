@@ -133,6 +133,8 @@ void main(uint3 aGroupID : SV_GroupID,
           uint3 aGroupThreadID : SV_GroupThreadID, 
           uint aGroupIndex : SV_GroupIndex)
 {
+    int2 destTexel = (int2) aDispatchThreadID.xy;
+
     float4 filteredCol = float4(0,0,0,0);
     if (myFilterMethod == 0)
       filteredCol = Resize_Linear(destTexel);

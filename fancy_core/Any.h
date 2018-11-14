@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 /// A simple Any-impementation that can store any type as a typesafe alternative to void* pointers
 // TODO: Specialization for certain types (e.g. const char*)
 // TODO: Throw a compile-error for non-POD types that can't be properly stored in the DataStorage (e.g. "deep" types with internal pointers?). Maybe add specializations for the most common of such types like std::vector?
@@ -27,6 +29,7 @@ namespace Fancy
     {
       void(*Delete)(DataStorage*);
       void(*Clone)(DataStorage*, const DataStorage&);
+      void(*Move)(DataStorage*, DataStorage&);
       bool(*IsEqual)(const DataStorage&, const DataStorage&);
     };
 
@@ -43,8 +46,9 @@ namespace Fancy
       static const T* Cast(const DataStorage& aStorage) { return reinterpret_cast<const T*>(aStorage.myBuffer); }
       static T* Cast(DataStorage& aStorage) { return reinterpret_cast<T*>(aStorage.myBuffer); }
 
-      static void Delete(DataStorage* aStorage) { memset(aStorage->myBuffer, 0u, sizeof(T)); }
-      static void Clone(DataStorage* aDstStorage, const DataStorage& aSrcStorage) { memcpy(aDstStorage->myBuffer, aSrcStorage.myBuffer, sizeof(T)); }
+      static void Delete(DataStorage* aStorage) { Cast(*aStorage)->~T(); memset(aStorage->myBuffer, 0u, sizeof(T)); }
+      static void Clone(DataStorage* aDstStorage, const DataStorage& aSrcStorage) { new((void*)aDstStorage->myBuffer) T(*Cast(aSrcStorage)); }
+      static void Move(DataStorage* aDstStorage, DataStorage& aSrcStorage) { new((void*)aDstStorage->myBuffer) T(std::move(*Cast(aSrcStorage))); }
       static bool IsEqual(const DataStorage& aStorageLeft, const DataStorage& aStorageRight) { return IsEqual_Impl<T>(*Cast(aStorageLeft), *Cast(aStorageRight)); }
     };
 
@@ -53,9 +57,10 @@ namespace Fancy
     {
       static const T* Cast(const DataStorage& aStorage) { return reinterpret_cast<const T*>(aStorage.myPtr); }
       static T* Cast(DataStorage& aStorage) { return reinterpret_cast<T*>(aStorage.myPtr); }
-
-      static void Delete(DataStorage* aStorage) { delete(aStorage->myPtr); aStorage->myPtr = nullptr; }
-      static void Clone(DataStorage* aDstStorage, const DataStorage& aSrcStorage) { *Cast(*aDstStorage) = *Cast(aSrcStorage); }
+      
+      static void Delete(DataStorage* aStorage) { delete(Cast(*aStorage)); aStorage->myPtr = nullptr; }
+      static void Clone(DataStorage* aDstStorage, const DataStorage& aSrcStorage) { aDstStorage->myPtr = new T(*Cast(aSrcStorage)); }
+      static void Move(DataStorage* aDstStorage, DataStorage& aSrcStorage) { aDstStorage->myPtr = aSrcStorage.myPtr; aSrcStorage.myPtr = nullptr; }
       static bool IsEqual(const DataStorage& aStorageLeft, const DataStorage& aStorageRight) { return IsEqual_Impl<T>(*Cast(aStorageLeft), *Cast(aStorageRight)); }
     };
 
@@ -78,6 +83,7 @@ namespace Fancy
         {
           &Get_Policy<T>::Get().Delete,
           &Get_Policy<T>::Get().Clone,
+          &Get_Policy<T>::Get().Move,
           &Get_Policy<T>::Get().IsEqual
         };
 
