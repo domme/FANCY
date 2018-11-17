@@ -99,28 +99,50 @@ namespace Fancy
     template<class T>
     explicit AnySized(const T& anObject)
     {
-      typedef typename std::remove_const_t<std::remove_reference_t<T>> RawType;
-      myVTable = Get_VTable<RawType>::Get();
+      using RawType = std::remove_const_t<std::remove_reference_t<T>>;
 
-      if (sizeof(RawType) <= MaxBufferSize)
-        new(myDataStorage.myBuffer) RawType(anObject);
-      else
-        myDataStorage.myPtr = new RawType(anObject);
+      myVTable = Get_VTable<RawType>::Get();
+      InitDataStorage(anObject);
     }
 
     template<class T>
     void operator=(const T& anObject)
     {
-      if (myVTable != nullptr)
+      if (!IsEmpty())
         myVTable->Delete(&myDataStorage);
 
       using RawType = std::remove_const_t<std::remove_reference_t<T>>;
       myVTable = Get_VTable<RawType>::Get();
+      InitDataStorage(anObject);
+    }
 
-      if (sizeof(RawType) <= MaxBufferSize)
-        new (myDataStorage.myBuffer) RawType(anObject);
-      else
-        myDataStorage.myPtr = new RawType(anObject);
+    void operator=(const AnySized& anOtherAny)
+    {
+      if (&anOtherAny == this)
+        return;
+
+      if (!IsEmpty())
+        myVTable->Delete(&myDataStorage);
+
+      myVTable = anOtherAny.myVTable;
+      myVTable->Clone(&myDataStorage, anOtherAny.myDataStorage);
+    }
+
+    void operator=(const AnySized&& anOtherAny)
+    {
+      if (&anOtherAny == this)
+        return;
+
+      if (!IsEmpty())
+        myVTable->Delete(&myDataStorage);
+
+      myVTable = anOtherAny.myVTable;
+      myVTable->Move(&myDataStorage, anOtherAny.myDataStorage);
+    }
+
+    bool IsEmpty() const
+    {
+      return myVTable == nullptr;
     }
 
     template<class T>
@@ -133,41 +155,42 @@ namespace Fancy
     template<class T>
     const T& To() const
     {
+      ASSERT(!IsEmpty(), "Any is empty!");
+
       using RawType = std::remove_const_t<std::remove_reference_t<T>>;
-      //      ASSERT(HasType<RawType>());
+
       if (sizeof(RawType) <= MaxBufferSize)
-        return *reinterpret_cast<const RawType*>(myDataStorage.myBuffer);
+        return *reinterpret_cast<const T*>(myDataStorage.myBuffer);
       else
-        return *reinterpret_cast<const RawType*>(myDataStorage.myPtr);
+        return *reinterpret_cast<const T*>(myDataStorage.myPtr);
     }
 
     template<class T>
     bool operator==(const T& anObject) const
     {
-      return To<T>() == anObject;
+      return !IsEmpty() && To<T>() == anObject;
     }
 
     bool operator==(const AnySized& anOtherAny) const
     {
-      if (myVTable == nullptr)
-        return anOtherAny.myVTable == nullptr;
+      if (IsEmpty())
+        return anOtherAny.IsEmpty();
 
       return myVTable->IsEqual(myDataStorage, anOtherAny.myDataStorage);
     }
 
-    void operator=(const AnySized& anOtherAny)
+  private:
+    template<class T>
+    void InitDataStorage(const T& anObject)
     {
-      if (&anOtherAny == this)
-        return;
+      using RawType = std::remove_const_t<std::remove_reference_t<T>>;
 
-      if (myVTable != nullptr)
-        myVTable->Delete(&myDataStorage);
-
-      myVTable = anOtherAny.myVTable;
-      myVTable->Clone(&myDataStorage, anOtherAny.myDataStorage);
+      if (sizeof(RawType) <= MaxBufferSize)
+        new (myDataStorage.myBuffer) RawType(anObject);
+      else
+        myDataStorage.myPtr = new RawType(anObject);
     }
 
-  private:
     const VTable* myVTable;
     DataStorage myDataStorage;
   };
