@@ -15,7 +15,7 @@
 #include <malloc.h>
 #include "RenderCore.h"
 #include "CommandContextDX12.h"
-#include "GpuResourceStorageDX12.h"
+#include "GpuResourceDataDX12.h"
 #include "RenderPlatformCaps.h"
 #include "AdapterDX12.h"
 #include "GpuResourceViewDX12.h"

@@ -2,15 +2,14 @@
 
 #include "CommandListType.h"
 #include "DX12Prerequisites.h"
-#include "GpuResourceStorage.h"
 #include "GpuMemoryAllocatorDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class GpuResourceStorageDX12 : public GpuResourceStorage
+  class GpuResourceDataDX12
   {
   public:
-    GpuResourceStorageDX12()
+    GpuResourceDataDX12()
       : myReadState((D3D12_RESOURCE_STATES) 0u)
       , myCanChangeStates(true)
       , myAllSubresourcesInSameState(true)

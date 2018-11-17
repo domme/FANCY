@@ -58,7 +58,7 @@ namespace Fancy
       static const T* Cast(const DataStorage& aStorage) { return reinterpret_cast<const T*>(aStorage.myPtr); }
       static T* Cast(DataStorage& aStorage) { return reinterpret_cast<T*>(aStorage.myPtr); }
       
-      static void Delete(DataStorage* aStorage) { delete(Cast(*aStorage)); aStorage->myPtr = nullptr; }
+      static void Delete(DataStorage* aStorage) { Cast(*aStorage)->~T(); delete(Cast(*aStorage)); aStorage->myPtr = nullptr; }
       static void Clone(DataStorage* aDstStorage, const DataStorage& aSrcStorage) { aDstStorage->myPtr = new T(*Cast(aSrcStorage)); }
       static void Move(DataStorage* aDstStorage, DataStorage& aSrcStorage) { aDstStorage->myPtr = aSrcStorage.myPtr; aSrcStorage.myPtr = nullptr; }
       static bool IsEqual(const DataStorage& aStorageLeft, const DataStorage& aStorageRight) { return IsEqual_Impl<T>(*Cast(aStorageLeft), *Cast(aStorageRight)); }
@@ -128,7 +128,7 @@ namespace Fancy
       myVTable->Clone(&myDataStorage, anOtherAny.myDataStorage);
     }
 
-    void operator=(const AnySized&& anOtherAny)
+    void operator=(AnySized&& anOtherAny)
     {
       if (&anOtherAny == this)
         return;
@@ -143,6 +143,15 @@ namespace Fancy
     bool IsEmpty() const
     {
       return myVTable == nullptr;
+    }
+
+    void Clear()
+    {
+      if (!IsEmpty())
+      {
+        myVTable->Delete(&myDataStorage);
+        myVTable = nullptr;
+      }
     }
 
     template<class T>

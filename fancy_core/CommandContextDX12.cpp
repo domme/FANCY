@@ -12,7 +12,7 @@
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "GeometryData.h"
-#include "GpuResourceStorageDX12.h"
+#include "GpuResourceDataDX12.h"
 #include "GpuResourceViewDX12.h"
 
 namespace Fancy { 
@@ -35,8 +35,8 @@ namespace Fancy {
     void locValidateUsageStatesCopy(const GpuResource* aDst, uint aDstSubresource, const GpuResource* aSrc, uint aSrcSubresource)
     {
       // TODO: Handle subresource individually
-      GpuResourceStorageDX12* src = (GpuResourceStorageDX12*) aSrc->myStorage.get();
-      GpuResourceStorageDX12* dst = (GpuResourceStorageDX12*) aDst->myStorage.get();
+      GpuResourceDataDX12* src = aSrc->myNativeData.To<GpuResourceDataDX12*>();
+      GpuResourceDataDX12* dst = aDst->myNativeData.To<GpuResourceDataDX12*>();
 
       ASSERT(src->mySubresourceStates[aSrcSubresource] & D3D12_RESOURCE_STATE_COPY_SOURCE);
       ASSERT(dst->mySubresourceStates[aDstSubresource] & D3D12_RESOURCE_STATE_COPY_DEST);
@@ -44,8 +44,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     void locValidateUsageStatesCopy(const GpuResource* aDst, const GpuResource* aSrc)
     {
-      GpuResourceStorageDX12* src = (GpuResourceStorageDX12*) aSrc->myStorage.get();
-      GpuResourceStorageDX12* dst = (GpuResourceStorageDX12*) aDst->myStorage.get();
+      GpuResourceDataDX12* src = aSrc->myNativeData.To<GpuResourceDataDX12*>();
+      GpuResourceDataDX12* dst = aDst->myNativeData.To<GpuResourceDataDX12*>();
 
       for (uint i = 0u; i < (src->myAllSubresourcesInSameState ? 1u : src->mySubresourceStates.size()); ++i)
          ASSERT(src->mySubresourceStates[i] & D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -282,10 +282,10 @@ namespace Fancy {
   {
     locValidateUsageStatesCopy(aDestResource, aSrcResource);
 
-    GpuResourceStorageDX12* destStorage = (GpuResourceStorageDX12*)aDestResource->myStorage.get();
-    GpuResourceStorageDX12* srcStorage = (GpuResourceStorageDX12*)aSrcResource->myStorage.get();
-    
-    myCommandList->CopyResource(destStorage->myResource.Get(), srcStorage->myResource.Get());
+    GpuResourceDataDX12* destData = aDestResource->myNativeData.To<GpuResourceDataDX12*>();
+    GpuResourceDataDX12* srcData = aSrcResource->myNativeData.To<GpuResourceDataDX12*>();
+
+    myCommandList->CopyResource(destData->myResource.Get(), srcData->myResource.Get());
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
@@ -295,8 +295,8 @@ namespace Fancy {
     ASSERT(aSize <= aSrcBuffer->GetByteSize() - aSrcOffset, "Invalid src-region specified");
     locValidateUsageStatesCopy(aDestBuffer, aSrcBuffer);
 
-    ID3D12Resource* dstResource = ((GpuResourceStorageDX12*)aDestBuffer->myStorage.get())->myResource.Get();
-    ID3D12Resource* srcResource = ((GpuResourceStorageDX12*)aSrcBuffer->myStorage.get())->myResource.Get();
+    ID3D12Resource* dstResource = static_cast<const GpuBufferDX12*>(aDestBuffer)->GetData()->myResource.Get();
+    ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
 
     myCommandList->CopyBufferRegion(dstResource, aDestOffset, srcResource, aSrcOffset, aSize);
   }
@@ -308,8 +308,8 @@ namespace Fancy {
 
     // TODO: asserts and validation of regions agains texture-parameters
     
-    ID3D12Resource* dstResource = ((GpuResourceStorageDX12*)aDestTexture->myStorage.get())->myResource.Get();
-    ID3D12Resource* srcResource = ((GpuResourceStorageDX12*)aSrcTexture->myStorage.get())->myResource.Get();
+    ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDestTexture)->GetData()->myResource.Get();
+    ID3D12Resource* srcResource = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
 
     D3D12_TEXTURE_COPY_LOCATION dstLocation;
     dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -344,8 +344,8 @@ namespace Fancy {
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
 
-    ID3D12Resource* dstResource = ((GpuResourceStorageDX12*)aDestTexture->myStorage.get())->myResource.Get();
-    ID3D12Resource* srcResource = ((GpuResourceStorageDX12*)aSrcBuffer->myStorage.get())->myResource.Get();
+    ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDestTexture)->GetData()->myResource.Get();
+    ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
 
     D3D12_TEXTURE_COPY_LOCATION dstLocation;
     dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -402,7 +402,7 @@ namespace Fancy {
 
     for (uint i = 0u; i < aNumResources; ++i)
     {
-      GpuResourceStorageDX12* resource = (GpuResourceStorageDX12*) someResources[i]->myStorage.get();
+      GpuResourceDataDX12* resource = someResources[i]->myNativeData.To<GpuResourceDataDX12*>();
       D3D12_RESOURCE_STATES states = D3D12_RESOURCE_STATE_COMMON;
 
       const uint shaderReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_INDEX_BUFFER;
@@ -662,7 +662,7 @@ namespace Fancy {
     ASSERT(myCurrentContext != CommandListType::Graphics || myRootSignature != nullptr);
     ASSERT(myCurrentContext != CommandListType::Compute || myComputeRootSignature != nullptr);
     
-    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
+    GpuResourceDataDX12* storage = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
     ASSERT(storage->myResource != nullptr);
     
@@ -787,7 +787,8 @@ namespace Fancy {
   void CommandContextDX12::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset /*= 0u*/, uint64 aSize /*= ~0ULL*/)
   {
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
+
+    GpuResourceDataDX12* storage = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
     uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
     vertexBufferView.BufferLocation = resourceStartAddress + anOffset;
@@ -810,7 +811,8 @@ namespace Fancy {
     ASSERT(anIndexSize == 2u || anIndexSize == 4u);
 
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
-    GpuResourceStorageDX12* storage = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
+
+    GpuResourceDataDX12* storage = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
     uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
     indexBufferView.BufferLocation = resourceStartAddress + anIndexOffset;
@@ -987,7 +989,7 @@ namespace Fancy {
     {
       const D3D12_RESOURCE_STATES newState = someNewStates[iState];
 
-      GpuResourceStorageDX12* resource = (GpuResourceStorageDX12*) someResources[iState]->myStorage.get();
+      GpuResourceDataDX12* resource = someResources[iState]->myNativeData.To<GpuResourceDataDX12*>();
       
       if (!resource->myCanChangeStates)
         continue;
@@ -1092,7 +1094,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::SetResourceUAVbarrier(const GpuResource* aResource) const
   {
-      ID3D12Resource* resource = aResource != nullptr ? static_cast<GpuResourceStorageDX12*>(aResource->myStorage.get())->myResource.Get() : nullptr;
+      ID3D12Resource* resource = aResource != nullptr ? aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get() : nullptr;
 
       D3D12_RESOURCE_BARRIER barrier;
       barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;

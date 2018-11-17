@@ -1,7 +1,6 @@
 #pragma once
 
-#include "RendererPrerequisites.h"
-#include "GpuResourceStorage.h"
+#include "Any.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -21,17 +20,16 @@ namespace Fancy {
     void operator=(GpuResource&& anOtherResource)
     {
       myCategory = anOtherResource.myCategory;
-      myStorage = std::move(anOtherResource.myStorage);
+      myNativeData = std::move(anOtherResource.myNativeData);
       myName = std::move(anOtherResource.myName);
     }
 
     virtual ~GpuResource() = default;
-    
-    bool IsValid() const { return myStorage != nullptr; }
+    virtual bool IsValid() const { return false; }
 
     String myName;
     GpuResourceCategory myCategory;
-    UniquePtr<GpuResourceStorage> myStorage;  // TODO: Use Any instead
+    Any myNativeData;
   };
 //---------------------------------------------------------------------------//
 }

@@ -4,7 +4,7 @@
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 #include <unordered_map>
-#include "GpuResourceStorageDX12.h"
+#include "GpuResourceDataDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -12,7 +12,7 @@ namespace Fancy {
   class DynamicDescriptorHeapDX12;
   class GpuResourceDX12;
   class GpuResource;
-  class GpuResourceStorageDX12;
+  class GpuResourceDataDX12;
 //---------------------------------------------------------------------------//
   class CommandContextDX12 final : public CommandContext
   {

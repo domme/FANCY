@@ -111,8 +111,7 @@
     <ClInclude Include="GpuProgramProperties.h" />
     <ClInclude Include="GpuResource.h" />
     <ClInclude Include="GpuResourceSignature.h" />
-    <ClInclude Include="GpuResourceStorage.h" />
-    <ClInclude Include="GpuResourceStorageDX12.h" />
+    <ClInclude Include="GpuResourceDataDX12.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="Mesh.h" />
