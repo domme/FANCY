@@ -1,11 +1,11 @@
 #include "stdafx.h"
-#include "TextureViewGroup.h"
+#include "TextureResource.h"
 #include "RenderCore.h"
 
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  void TextureViewGroup::Create(const TextureViewGroupProperties& someProps, const char* aName)
+  void TextureResource::Create(const TextureResourceProperties& someProps, const char* aName)
   {
     ASSERT(!someProps.myIsShaderWritable || someProps.myTextureProperties.myIsShaderWritable);
     ASSERT(!someProps.myIsRenderTarget || someProps.myTextureProperties.myIsRenderTarget);
@@ -16,8 +16,8 @@ namespace Fancy
     if (someProps.myIsTexture)
     {
       TextureViewProperties viewProps;
-      myReadTextureView = RenderCore::CreateTextureView(myTexture, viewProps);
-      ASSERT(myReadTextureView);
+      myReadView = RenderCore::CreateTextureView(myTexture, viewProps);
+      ASSERT(myReadView);
     }
 
     if (someProps.myIsRenderTarget)
@@ -37,8 +37,8 @@ namespace Fancy
       viewProps.myMipIndex = 0u;
       viewProps.myNumMipLevels = 1u;
       viewProps.myFormat = DataFormatInfo::GetNonSRGBformat(someProps.myTextureProperties.eFormat);
-      myWriteTextureView = RenderCore::CreateTextureView(myTexture, viewProps);
-      ASSERT(myWriteTextureView);
+      myWriteView = RenderCore::CreateTextureView(myTexture, viewProps);
+      ASSERT(myWriteView);
     }
   }
 //---------------------------------------------------------------------------//

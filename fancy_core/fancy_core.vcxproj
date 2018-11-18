@@ -82,7 +82,7 @@
     <ClInclude Include="GpuResourceView.h" />
     <ClInclude Include="GpuResourceViewDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />
-    <ClInclude Include="GpuTempResourcePool.h" />
+    <ClInclude Include="TempResourcePool.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="MathPrerequisites.h" />
     <ClInclude Include="MeshData.h" />
@@ -138,7 +138,7 @@
     <ClInclude Include="FC_String.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="TextureViewGroup.h" />
+    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="TextureViewProperties.h" />
     <ClInclude Include="TextureDX12.h" />
     <ClInclude Include="ResourceRefs.h" />
@@ -176,7 +176,7 @@
     <ClCompile Include="GpuProgramFeatures.cpp" />
     <ClCompile Include="GpuProgramPipeline.cpp" />
     <ClCompile Include="GpuRingBuffer.cpp" />
-    <ClCompile Include="GpuTempResourcePool.cpp" />
+    <ClCompile Include="TempResourcePool.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="PathService.cpp" />
@@ -195,7 +195,7 @@
     <ClCompile Include="TextureDX12.cpp" />
     <ClCompile Include="TextureSamplerDesc.cpp" />
     <ClCompile Include="TextureSamplerDX12.cpp" />
-    <ClCompile Include="TextureViewGroup.cpp" />
+    <ClCompile Include="TextureResource.cpp" />
     <ClCompile Include="TimeManager.cpp" />
     <ClCompile Include="VertexInputLayout.cpp" />
     <ClCompile Include="GeometryVertexLayout.cpp" />

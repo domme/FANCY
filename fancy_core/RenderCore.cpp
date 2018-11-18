@@ -111,7 +111,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
   {
-
+    ourTempResourcePool.EndFrame();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
@@ -769,6 +769,11 @@ namespace Fancy {
       return;
     
     availableContextList.push_back(aContext);
+  }
+//---------------------------------------------------------------------------//
+  TempTextureResource RenderCore::AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName)
+  {
+    return ourTempResourcePool.AllocateTexture(someProps, someFlags, aName);
   }
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)

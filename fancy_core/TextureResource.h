@@ -5,7 +5,7 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  struct TextureViewGroupProperties
+  struct TextureResourceProperties
   {
     TextureProperties myTextureProperties;
     bool myIsTexture;
@@ -13,13 +13,13 @@ namespace Fancy
     bool myIsRenderTarget;
   };
 //---------------------------------------------------------------------------//
-  struct TextureViewGroup
+  struct TextureResource
   {
-    void Create(const TextureViewGroupProperties& someProps, const char* aName = nullptr);
+    void Create(const TextureResourceProperties& someProps, const char* aName = nullptr);
 
     SharedPtr<Texture> myTexture;
-    SharedPtr<TextureView> myReadTextureView;
-    SharedPtr<TextureView> myWriteTextureView;
+    SharedPtr<TextureView> myReadView;
+    SharedPtr<TextureView> myWriteView;
     SharedPtr<TextureView> myRenderTargetView;
   };
 //---------------------------------------------------------------------------//

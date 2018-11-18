@@ -281,8 +281,8 @@
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="TextureViewGroup.h" />
-    <ClInclude Include="GpuTempResourcePool.h" />
+    <ClInclude Include="TempResourcePool.h" />
+    <ClInclude Include="TextureResource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -418,8 +418,8 @@
     <ClCompile Include="StaticDescriptorAllocatorDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="TextureViewGroup.cpp" />
-    <ClCompile Include="GpuTempResourcePool.cpp" />
+    <ClCompile Include="TempResourcePool.cpp" />
+    <ClCompile Include="TextureResource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

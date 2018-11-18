@@ -6,6 +6,7 @@
 #include "CommandQueue.h"
 #include "CommandListType.h"
 #include "Slot.h"
+#include "TempResourcePool.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -83,6 +84,8 @@ namespace Fancy {
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
 
+    static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
+
     static CommandQueue* GetCommandQueue(CommandListType aType);
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
 
@@ -126,6 +129,8 @@ namespace Fancy {
     static std::vector<std::unique_ptr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers; 
+
+    static TempResourcePool ourTempResourcePool;
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

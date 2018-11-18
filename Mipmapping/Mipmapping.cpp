@@ -131,20 +131,15 @@ void ComputeMipMaps(ImageData& aMipmapData)
   glm::float2 destSize = glm::ceil(srcSize * 0.5f);
 
   glm::int2 tempTexSize = (glm::int2) glm::float2(glm::ceil(srcSize.x * 0.5), srcSize.y);
-  TextureProperties tempTexProps = aMipmapData.myTexture->GetProperties();
+  TextureResourceProperties tempTexProps;
+  tempTexProps.myTextureProperties = aMipmapData.myTexture->GetProperties();
+  tempTexProps.myTextureProperties.myNumMipLevels = 1;
+  tempTexProps.myTextureProperties.myWidth = (uint)tempTexSize.x;
+  tempTexProps.myTextureProperties.myHeight = (uint)tempTexSize.y;
   tempTexProps.myIsShaderWritable = true;
-  tempTexProps.myNumMipLevels = 1;
-  tempTexProps.myWidth = (uint) tempTexSize.x;
-  tempTexProps.myHeight = (uint) tempTexSize.y;
-  SharedPtr<Texture> tempTexture = RenderCore::CreateTexture(tempTexProps);
-  ASSERT(tempTexture != nullptr);
-
-  TextureViewProperties tempViewProps = aMipmapData.myTextureView->GetProperties();
-  SharedPtr<TextureView> tempViewRead = RenderCore::CreateTextureView(tempTexture, tempViewProps);
-
-  tempViewProps.myIsShaderWritable = true;
-  tempViewProps.myFormat = DataFormatInfo::GetNonSRGBformat(tempViewProps.myFormat);
-  SharedPtr<TextureView> tempViewWrite = RenderCore::CreateTextureView(tempTexture, tempViewProps);
+  tempTexProps.myIsRenderTarget = false;
+  tempTexProps.myIsTexture = true;
+  TempTextureResource tempTexResource = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture");
 
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
@@ -180,7 +175,7 @@ void ComputeMipMaps(ImageData& aMipmapData)
     cBuffer.myAxis = glm::float2(1.0f, 0.0f);
     ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
     resources[0] = aMipmapData.myMipLevelReadViews[mip-1].get();
-    resources[1] = tempViewWrite.get();
+    resources[1] = tempTexResource.myWriteView;
     ctx->BindResourceSet(resources, 2, 1u);
     ctx->Dispatch(glm::int3((int)destSize.x, (int) srcSize.y, 1));
     
@@ -191,7 +186,7 @@ void ComputeMipMaps(ImageData& aMipmapData)
     cBuffer.myDestScale = tempDestSize / destSize;
     cBuffer.myAxis = glm::float2(0.0f, 1.0f);
     ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-    resources[0] = tempViewRead.get();
+    resources[0] = tempTexResource.myReadView;
     resources[1] = aMipmapData.myMipLevelWriteViews[mip].get();
     ctx->BindResourceSet(resources, 2, 1u);
     ctx->Dispatch(glm::int3((int) destSize.x, (int) destSize.y, 1));
