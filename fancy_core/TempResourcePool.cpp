@@ -30,7 +30,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   TempResourcePool::~TempResourcePool()
   {
-
+    ASSERT(myNumOpenFrameAllocs == 0, "% open temp resource allocs when destroying the temp resource pool", myNumOpenFrameAllocs);
   }
 //---------------------------------------------------------------------------//
   void TempResourcePool::EndFrame()
@@ -42,10 +42,9 @@ namespace Fancy
   {
     const uint64 key = Priv_TempResourcePool::GetHash(someProps, someFlags);
 
-    auto listIt = myAvailableTextures.find(key);
-    if (listIt != myAvailableTextures.end() && !listIt->second.empty())
+    std::list<TextureResource*>& availableList = myAvailableTextureBuckets[key];
+    if (!availableList.empty())
     {
-      std::list<TextureResource*>& availableList = listIt->second;
       auto it = availableList.begin();
       for (; it != availableList.end(); ++it)
       {
@@ -81,7 +80,7 @@ namespace Fancy
 
     // Create resource
     TextureResource res;
-    res.Create(someProps, aName);
+    res.Update(someProps, aName);
     myTexturePool[res.myTexture.get()] = res;
 
     TempTextureResource returnRes;
@@ -99,8 +98,14 @@ namespace Fancy
     auto it = myTexturePool.find(static_cast<Texture*>(aResource));
     ASSERT(it != myTexturePool.end());
 
-    auto listIt = myAvailableTextures.find(aBucketHash);
-    listIt->second.push_back(&it->second);
+    auto listIt = myAvailableTextureBuckets.find(aBucketHash);
+    ASSERT(listIt != myAvailableTextureBuckets.end());
+
+    TextureResource* res = &it->second;
+#if FANCY_RENDERER_HEAVY_VALIDATION
+    ASSERT(std::find(listIt->second.begin(), listIt->second.end(), res) == listIt->second.end());
+#endif
+    listIt->second.push_back(res);
 
     ASSERT(myNumOpenFrameAllocs > 0);
     --myNumOpenFrameAllocs;

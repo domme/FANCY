@@ -66,7 +66,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   class TempResourcePool
   {
-    friend class TempResourceKeepAlive;
+    friend struct TempResourceKeepAlive;
 
   public:
     enum Flags
@@ -85,7 +85,7 @@ namespace Fancy
   private:
     void FreeResource(void* aResource, uint64 aBucketHash);
 
-    std::unordered_map<uint64, std::list<TextureResource*>> myAvailableTextures;
+    std::unordered_map<uint64, std::list<TextureResource*>> myAvailableTextureBuckets;
     std::unordered_map<Texture*, TextureResource> myTexturePool;
     uint myNumOpenFrameAllocs = 0u;
 

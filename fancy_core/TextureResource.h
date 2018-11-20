@@ -15,7 +15,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct TextureResource
   {
-    void Create(const TextureResourceProperties& someProps, const char* aName = nullptr);
+    void Update(const TextureResourceProperties& someProps, const char* aName = nullptr);
 
     SharedPtr<Texture> myTexture;
     SharedPtr<TextureView> myReadView;

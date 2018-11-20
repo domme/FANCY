@@ -23,6 +23,17 @@ namespace Fancy {
     return GetData() != nullptr && GetData()->myResource.Get() != nullptr;
   }
 //---------------------------------------------------------------------------//
+  void GpuBufferDX12::SetName(const char* aName)
+  {
+    GpuBuffer::SetName(aName);
+
+    if (GpuResourceDataDX12* dataDx12 = GetData())
+    {
+      std::wstring wName = StringUtil::ToWideString(myName);
+      dataDx12->myResource->SetName(wName.c_str());
+    }
+  }
+//---------------------------------------------------------------------------//
   GpuResourceDataDX12* GpuBufferDX12::GetData() const
   {
     return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataDX12*>();

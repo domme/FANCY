@@ -75,6 +75,8 @@ namespace Fancy {
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
 
+  TempResourcePool RenderCore::ourTempResourcePool;
+
   Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
