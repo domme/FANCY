@@ -12,7 +12,7 @@
 #include <fancy_core/CommandQueue.h>
 
 #include <fancy_assets/ModelLoader.h>
-#include <fancy_assets/AssetStorage.h>
+#include <fancy_assets/AssetManager.h>
 #include "Camera.h"
 #include "fancy_assets/Model.h"
 #include "fancy_assets/Material.h"
@@ -29,7 +29,7 @@ FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
 RenderOutput* myRenderOutput = nullptr;
 ModelLoader::Scene myScene;
-AssetStorage myAssetStorage;
+AssetManager myAssetManager;
 
 SharedPtr<GpuProgramPipeline> myUnlitTexturedShader;
 SharedPtr<GpuProgramPipeline> myUnlitVertexColorShader;
@@ -96,7 +96,7 @@ void Init(HINSTANCE anInstanceHandle)
 
   myCameraController.reset(new CameraController(myWindow, &myCamera));
 
-  bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", myAssetStorage, myScene);
+  bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", myAssetManager, myScene);
   ASSERT(importSuccess);
 }
 
@@ -225,7 +225,7 @@ void Shutdown()
 {
   myScene.Clear();
   myUnlitTexturedShader.reset();
-  myAssetStorage.Clear();
+  myAssetManager.Clear();
 
   FancyRuntime::Shutdown();
   myRuntime = nullptr;

@@ -74,6 +74,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DataFormat.h" />
     <ClInclude Include="DataFormatList.h" />
+    <ClInclude Include="DataFormatList_Dummy.h" />
     <ClInclude Include="Descriptor.h" />
     <ClInclude Include="DescriptorDX12.h" />
     <ClInclude Include="DynamicDescriptorHeapDX12.h" />

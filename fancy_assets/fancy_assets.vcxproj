@@ -58,7 +58,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AssetStorage.cpp" />
+    <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="lodepng\lodepng.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MaterialDesc.cpp" />
@@ -68,7 +68,7 @@
     <ClCompile Include="TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AssetStorage.h" />
+    <ClInclude Include="AssetManager.h" />
     <ClInclude Include="lodepng\lodepng.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialDesc.h" />

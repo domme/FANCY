@@ -34,7 +34,6 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     void locValidateUsageStatesCopy(const GpuResource* aDst, uint aDstSubresource, const GpuResource* aSrc, uint aSrcSubresource)
     {
-      // TODO: Handle subresource individually
       GpuResourceDataDX12* src = aSrc->myNativeData.To<GpuResourceDataDX12*>();
       GpuResourceDataDX12* dst = aDst->myNativeData.To<GpuResourceDataDX12*>();
 
@@ -280,7 +279,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
   {
-    locValidateUsageStatesCopy(aDestResource, aSrcResource);
+    const GpuResource* resourcesToTransition[] = { aDestResource, aSrcResource };
+    const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
+    SetResourceTransitionBarriers(resourcesToTransition, barrierStates, 2);
 
     GpuResourceDataDX12* destData = aDestResource->myNativeData.To<GpuResourceDataDX12*>();
     GpuResourceDataDX12* srcData = aSrcResource->myNativeData.To<GpuResourceDataDX12*>();
@@ -293,7 +294,10 @@ namespace Fancy {
     ASSERT(aDestBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)");
     ASSERT(aSize <= aDestBuffer->GetByteSize() - aDestOffset, "Invalid dst-region specified");
     ASSERT(aSize <= aSrcBuffer->GetByteSize() - aSrcOffset, "Invalid src-region specified");
-    locValidateUsageStatesCopy(aDestBuffer, aSrcBuffer);
+    
+    const GpuResource* resourcesToTransition[] = { aDestBuffer, aSrcBuffer };
+    const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
+    SetResourceTransitionBarriers(resourcesToTransition, barrierStates, 2);
 
     ID3D12Resource* dstResource = static_cast<const GpuBufferDX12*>(aDestBuffer)->GetData()->myResource.Get();
     ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
@@ -311,25 +315,32 @@ namespace Fancy {
     ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDestTexture)->GetData()->myResource.Get();
     ID3D12Resource* srcResource = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
 
+    const uint16 destSubResourceIndex = static_cast<uint16>(aDestTexture->GetSubresourceIndex(aDestSubLocation));
+    const uint16 srcSubResourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubLocation));
+    
+    const GpuResource* resourcesToTransition[] = { aDestTexture, aSrcTexture };
+    const uint16* subresourceLists[] = { &destSubResourceIndex, &srcSubResourceIndex };
+    const uint numSubresources[] = { 1, 1 };
+    const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
+    SetSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, 2);
+
     D3D12_TEXTURE_COPY_LOCATION dstLocation;
     dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-    dstLocation.SubresourceIndex = aDestTexture->GetSubresourceIndex(aDestSubLocation);
+    dstLocation.SubresourceIndex = destSubResourceIndex;
     dstLocation.pResource = dstResource;
 
     D3D12_TEXTURE_COPY_LOCATION srcLocation;
     srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-    srcLocation.SubresourceIndex = aSrcTexture->GetSubresourceIndex(aSrcSubLocation);
+    srcLocation.SubresourceIndex = srcSubResourceIndex;
     srcLocation.pResource = srcResource;
-    
-    locValidateUsageStatesCopy(aDestTexture, dstLocation.SubresourceIndex, aSrcTexture, srcLocation.SubresourceIndex);
 
     if (aSrcRegion != nullptr)
     {
       D3D12_BOX srcBox;
       srcBox.left = aSrcRegion->myTexelPos.x;
       srcBox.right = aSrcRegion->myTexelPos.x + aSrcRegion->myTexelSize.x;
-      srcBox.bottom = aSrcRegion->myTexelPos.y;
-      srcBox.top = aSrcRegion->myTexelPos.y + aSrcRegion->myTexelSize.y;
+      srcBox.top = aSrcRegion->myTexelPos.y;
+      srcBox.bottom = aSrcRegion->myTexelPos.y + aSrcRegion->myTexelSize.y;
       srcBox.front = aSrcRegion->myTexelPos.z;
       srcBox.back = aSrcRegion->myTexelPos.z + aSrcRegion->myTexelSize.z;
       myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, &srcBox);
@@ -347,9 +358,18 @@ namespace Fancy {
     ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDestTexture)->GetData()->myResource.Get();
     ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
 
+    const uint16 destSubResourceIndex = static_cast<uint16>(aDestTexture->GetSubresourceIndex(aDestSubLocation));
+    const uint16 srcSubResourceIndex = 0;
+
+    const GpuResource* resourcesToTransition[] = { aDestTexture, aSrcBuffer };
+    const uint16* subresourceLists[] = { &destSubResourceIndex, &srcSubResourceIndex };
+    const uint numSubresources[] = { 1, 1 };
+    const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
+    SetSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, 2);
+    
     D3D12_TEXTURE_COPY_LOCATION dstLocation;
     dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-    dstLocation.SubresourceIndex = aDestTexture->GetSubresourceIndex(aDestSubLocation);
+    dstLocation.SubresourceIndex = destSubResourceIndex;
     dstLocation.pResource = dstResource;
 
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
@@ -963,23 +983,24 @@ namespace Fancy {
     myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
   }
 //---------------------------------------------------------------------------//
-    void CommandContextDX12::SetResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const
-    {
-      SetResourceTransitionBarriers(&aResource, &aNewState, 1u);
-    }
+  void CommandContextDX12::SetResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const
+  {
+
+    SetResourceTransitionBarriers(&aResource, &aNewState, 1u);
+  }
 //---------------------------------------------------------------------------//
-    void CommandContextDX12::SetResourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
-    {
-      SetSubresourceTransitionBarriers(someResources, someNewStates, nullptr, nullptr, aNumResources);
-    }
-  //---------------------------------------------------------------------------//
-    void CommandContextDX12::SetSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const
-    {
-      const uint numSubresources = 1u;
-      const uint16* subresourceLists[] = { &aSubresourceIndex };
-      SetSubresourceTransitionBarriers(&aResource, &aNewState, subresourceLists, &numSubresources, 1u);
-    }
-  //---------------------------------------------------------------------------//
+  void CommandContextDX12::SetResourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
+  {
+    SetSubresourceTransitionBarriers(someResources, someNewStates, nullptr, nullptr, aNumResources);
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::SetSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const
+  {
+    const uint numSubresources = 1u;
+    const uint16* subresourceLists[] = { &aSubresourceIndex };
+    SetSubresourceTransitionBarriers(&aResource, &aNewState, subresourceLists, &numSubresources, 1u);
+  }
+//---------------------------------------------------------------------------//
   void CommandContextDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const
   {
     D3D12_RESOURCE_BARRIER barriers[256];
