@@ -27,7 +27,11 @@ namespace Fancy {
     virtual ~GpuResource() = default;
     virtual bool IsValid() const { return false; }
     virtual void SetName(const char* aName) { myName = aName; }
+    virtual uint GetNumSubresources() const = 0;
 
+    // Hazard-tracking
+    virtual CommandListType GetLastContextType(uint aSubresource) const = 0;
+    
     String myName;
     GpuResourceCategory myCategory;
     Any myNativeData;

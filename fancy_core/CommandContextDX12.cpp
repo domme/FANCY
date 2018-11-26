@@ -397,6 +397,9 @@ namespace Fancy {
     D3D12_RESOURCE_STATES* transitionToStates = (D3D12_RESOURCE_STATES*) alloca(sizeof(D3D12_RESOURCE_STATES) * aNumResources);
     uint numTransitions = 0u;
 
+    uint64* fences = (uint64*)alloca(sizeof(uint64) * aNumResources);
+    uint numFences = 0u;
+
     /*
      *D3D12_RESOURCE_STATE_COMMON // DMA, textures for CPU-access
      *D3D12_RESOURCE_STATE_PRESENT // Same as COMMON
@@ -452,6 +455,10 @@ namespace Fancy {
         break;
       case GpuResourceTransition::TO_SHADER_WRITE: 
         states = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        break;
+      case GpuResourceTransition::TO_READBACK:
+        resource->
+        ++numFences;
         break;
       default: 
         ASSERT(false, "Missing implementation");

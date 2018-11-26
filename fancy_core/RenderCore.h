@@ -85,6 +85,10 @@ namespace Fancy {
 
     static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
 
+    static void WaitForFence(uint64 aFenceVal);
+    static void WaitForIdle(CommandListType aType);
+    static void WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset = 0, uint aNumSubresources = UINT_MAX);
+
     static CommandQueue* GetCommandQueue(CommandListType aType);
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
 

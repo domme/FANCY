@@ -42,6 +42,16 @@ namespace Fancy {
     return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataDX12*>();
   }
 //---------------------------------------------------------------------------//
+  CommandListType TextureDX12::GetLastContextType(uint aSubresource) const
+  {
+    GpuResourceDataDX12* data = GetData();
+    if (data == nullptr)
+      return CommandListType::Graphics;
+
+    ASSERT(aSubresource < data->mySubresourceContexts.size());
+    return data->mySubresourceContexts[aSubresource];
+  }
+//---------------------------------------------------------------------------//
   uint TextureDX12::CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex)
   {
     return aPlaneIndex * aNumMips * aNumArraySlices +

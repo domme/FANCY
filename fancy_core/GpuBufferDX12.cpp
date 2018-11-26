@@ -39,6 +39,16 @@ namespace Fancy {
     return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataDX12*>();
   }
 //---------------------------------------------------------------------------//
+  CommandListType GpuBufferDX12::GetLastContextType(uint aSubresource) const
+  {
+    GpuResourceDataDX12* data = GetData();
+    if (data == nullptr)
+      return CommandListType::Graphics;
+
+    ASSERT(aSubresource == 0);
+    return data->mySubresourceContexts[0];
+  }
+//---------------------------------------------------------------------------//
   void GpuBufferDX12::Create(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* pInitialData /*= nullptr*/)
   {
     ASSERT(someProperties.myElementSizeBytes > 0 && someProperties.myNumElements > 0, "Invalid buffer size specified");

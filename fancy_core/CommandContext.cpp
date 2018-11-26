@@ -516,6 +516,7 @@ namespace Fancy {
     if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_READ)
     {
       // Wait until the context the resource was last used on is done with it
+      RenderCore::WaitForResourceIdle(aBuffer);
       
     }
 

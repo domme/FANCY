@@ -22,6 +22,7 @@ namespace Fancy {
     virtual void Create(const GpuBufferProperties& clParameters, const char* aName = nullptr, const void* pInitialData = nullptr) = 0;
     virtual void* Lock(GpuResoruceLockOption eLockOption, uint64 uOffsetElements = 0u, uint64 uNumElements = 0u) const = 0;
     virtual void Unlock(uint64 anOffsetElements = 0u, uint64 aNumElements = 0u) const = 0;
+    uint GetNumSubresources() const override { return 1u; }
     
   protected:
     uint myAlignment;

@@ -673,6 +673,36 @@ namespace Fancy {
     return ourTempResourcePool.AllocateTexture(someProps, someFlags, aName);
   }
 //---------------------------------------------------------------------------//
+  void RenderCore::WaitForFence(uint64 aFenceVal)
+  {
+    CommandQueue* queue = GetCommandQueue(aFenceVal);
+    ASSERT(queue);
+
+    queue->WaitForFence(aFenceVal);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::WaitForIdle(CommandListType aType)
+  {
+    CommandQueue* queue = GetCommandQueue(aType);
+    queue->WaitForIdle();
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset, uint aNumSubresources)
+  {
+    FixedArray<bool, (uint)CommandListType::NUM> commandListTypes;
+    commandListTypes.fill(false);
+
+    for (uint i = aSubresourceOffset, end = aSubresourceOffset + glm::min(aResource->GetNumSubresources() - aSubresourceOffset, aNumSubresources); i < end; ++i)
+    {
+      commandListTypes[(uint)aResource->GetLastContextType(i)] |= true;
+    }
+
+    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
+      WaitForIdle((CommandListType)i);
+  }
+//---------------------------------------------------------------------------//
+  
+//---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)
   {
     return ourPlatformImpl->GetCommandQueue(aType);

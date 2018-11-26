@@ -27,7 +27,10 @@ namespace Fancy {
     uint GetNumSubresources() const override;
     uint GetNumSubresourcesPerPlane() const override;
     TextureSubLocation GetSubresourceLocation(uint aSubresourceIndex) const override;
+
     GpuResourceDataDX12* GetData() const;
+
+    CommandListType GetLastContextType(uint aSubresource) const override;
 
   protected:
     void Destroy() override;

@@ -2,6 +2,7 @@
 
 #include "DX12Prerequisites.h"
 #include "GpuBuffer.h"
+#include "CommandListType.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -22,6 +23,8 @@ namespace Fancy {
     void Unlock(uint64 anOffsetElements = 0u, uint64 aNumElements = 0u) const override;
 
     GpuResourceDataDX12* GetData() const;
+
+    CommandListType GetLastContextType(uint aSubresource) const override;
 
   protected:
     void Destroy();
