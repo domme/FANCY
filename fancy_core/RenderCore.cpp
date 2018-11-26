@@ -149,8 +149,8 @@ namespace Fancy {
     params.myNumElements = aNeededByteSize;
     params.myElementSizeBytes = 1u;
     params.myUsage = aUsage;
-    params.myCpuAccess = GpuMemoryAccessType::CPU_WRITE;
-    buf->Create(params, GpuResoruceLockOption::WRITE, aName);
+    params.myCpuAccess = aUsage == GpuBufferUsage::STAGING_READBACK ? GpuMemoryAccessType::CPU_READ : GpuMemoryAccessType::CPU_WRITE;
+    buf->Create(params, aUsage == GpuBufferUsage::STAGING_READBACK ? GpuResoruceLockOption::READ : GpuResoruceLockOption::WRITE, aName);
     ourRingBufferPool.push_back(std::move(buf));
 
     return ourRingBufferPool.back().get();

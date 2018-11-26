@@ -128,46 +128,33 @@ namespace Fancy {
       } break;
       case GpuBufferUsage::STAGING_READBACK:
       {
-
+        name += "STAGING_READBACK";
+        ringBufferList = &myReadbackRingBuffers;
       } break;
-      case GpuBufferUsage::CONSTANT_BUFFER: break;
-      case GpuBufferUsage::VERTEX_BUFFER: break;
-      case GpuBufferUsage::INDEX_BUFFER: break;
-      case GpuBufferUsage::SHADER_BUFFER: break;
-      default: ;
-    }
-
-      if (aType == GpuBufferUsage::STAGING_UPLOAD)
-    {
-      name += "STAGING_UPLOAD";
-      ringBufferList = &myUploadRingBuffers;
-    }
-    else if (aType == GpuBufferUsage::STAGING_UPLOAD)
-    {
-      name += "STAGING_UPLOAD";
-      ringBufferList = &myUploadRingBuffers;
-    }
-    else if (aType == GpuBufferUsage::CONSTANT_BUFFER)
-    {
-      name += "CONSTANT_BUFFER";
-      ringBufferList = &myConstantRingBuffers;
-    }
-    else if (aType == GpuBufferUsage::VERTEX_BUFFER)
-    {
-      name += "VERTEX_BUFFER";
-      ringBufferList = &myVertexRingBuffers;
-      sizeStep = 1 * SIZE_MB;
-    }
-    else if (aType == GpuBufferUsage::INDEX_BUFFER)
-    {
-      name += "INDEX_BUFFER";
-      ringBufferList = &myIndexRingBuffers;
-      sizeStep = 1 * SIZE_MB;
-    }
-    else
-    {
-      ASSERT(false, "Not implemented!");
-      return nullptr;
+      case GpuBufferUsage::CONSTANT_BUFFER:
+      {
+        name += "CONSTANT_BUFFER";
+        ringBufferList = &myConstantRingBuffers;
+      } break;
+      case GpuBufferUsage::VERTEX_BUFFER:
+      {
+        name += "VERTEX_BUFFER";
+        ringBufferList = &myVertexRingBuffers;
+        sizeStep = 1 * SIZE_MB;
+      }
+      break;
+      case GpuBufferUsage::INDEX_BUFFER:
+      {
+        name += "INDEX_BUFFER";
+        ringBufferList = &myIndexRingBuffers;
+        sizeStep = 1 * SIZE_MB;
+      }
+      break;
+      default:
+      {
+        ASSERT(false, "Buffertype not implemented as a ringBuffer");
+        return nullptr;
+      }
     }
 
     if (ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize() < aDataSize)
@@ -518,21 +505,25 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::ReadbackBufferData(void** aDataPtrOut, uint64& aByteSizeOut, const GpuBuffer* aBuffer, uint64 aBufferOffset)
+  DynamicArray<uint8> CommandContext::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
   {
-    ASSERT(aBufferOffset < aBuffer->GetByteSize());
+    ASSERT(anOffset + aByteSize <= aBuffer->GetByteSize());
 
-    uint64 neededStagingBufferSize = aBuffer->GetByteSize() - aBufferOffset;
+    const GpuBufferProperties& bufParams = aBuffer->GetProperties();
 
-    uint64 srcOffset = 0u;
-    const GpuBuffer* uploadBuffer = GetBuffer(srcOffset, GpuBufferUsage::STAGING_READBACK, aDataPtr, aByteSize);
+    //CommandQueueDX12* queue = static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(myCommandListType));
     
+    if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_READ)
+    {
+      // Wait until the context the resource was last used on is done with it
+      
+    }
 
-
+    uint64 readbackBufferOffset = 0u;
+    const GpuBuffer* readbackBuffer = GetBuffer(readbackBufferOffset, GpuBufferUsage::STAGING_READBACK, nullptr, neededStagingBufferSize);
+    CopyBufferRegion(readbackBuffer, readbackBufferOffset, aBuffer, aBufferOffset, neededStagingBufferSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandContext::ReadbackTextureData(DynamicArray<TextureSubData>& someSubDatasOut, const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSubResources)
-  {
-  }
+  
 //---------------------------------------------------------------------------//
 } 
