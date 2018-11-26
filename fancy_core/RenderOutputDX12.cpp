@@ -4,7 +4,7 @@
 #include "Window.h"
 #include "TextureDX12.h"
 #include "CommandContextDX12.h"
-#include "GpuResourceStorageDX12.h"
+#include "GpuResourceDataDX12.h"
 #include "StringUtil.h"
 
 namespace Fancy {
@@ -44,16 +44,16 @@ namespace Fancy {
       resource.myName = "Backbuffer Texture " + i;
 
       {
-        UniquePtr<GpuResourceStorageDX12> resourceStorage(new GpuResourceStorageDX12);
-        resourceStorage->mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
-        resourceStorage->mySubresourceContexts.push_back(CommandListType::Graphics);
-        resourceStorage->myAllSubresourcesInSameState = true;
-        resourceStorage->myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-        CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&resourceStorage->myResource)));
+        GpuResourceDataDX12* dataDx12(new GpuResourceDataDX12);
+        dataDx12->mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
+        dataDx12->mySubresourceContexts.push_back(CommandListType::Graphics);
+        dataDx12->myAllSubresourcesInSameState = true;
+        dataDx12->myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12->myResource)));
         std::wstring wName = StringUtil::ToWideString(resource.myName);
-        resourceStorage->myResource->SetName(wName.c_str());
+        dataDx12->myResource->SetName(wName.c_str());
         
-        resource.myStorage = std::move(resourceStorage);  
+        resource.myNativeData = dataDx12;
       }
 
       TextureProperties backbufferProps;

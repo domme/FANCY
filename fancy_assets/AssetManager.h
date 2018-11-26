@@ -1,5 +1,6 @@
 #pragma once
 #include "fancy_core/FancyCorePrerequisites.h"
+#include "fancy_core/GpuProgram.h"
 
 namespace Fancy {
   struct MeshData;
@@ -12,11 +13,11 @@ namespace Fancy {
   struct MaterialDesc;
   class Texture;
 //---------------------------------------------------------------------------//
-  class AssetStorage
+  class AssetManager
   {
   public:
-    AssetStorage() = default;
-    ~AssetStorage() = default;
+    AssetManager();
+    ~AssetManager() = default;
     void Clear();
 
     enum TextureLoadFlags
@@ -28,6 +29,7 @@ namespace Fancy {
 
     SharedPtr<Texture> GetTexture(const char* aPath, uint someFlags = 0);
     SharedPtr<Texture> CreateTexture(const char* aPath, uint someLoadFlags = 0);
+    void ComputeMipmaps(const SharedPtr<Texture>& aTexture);
 
     SharedPtr<Material> CreateMaterial(const MaterialDesc& aDesc);
     SharedPtr<Model> CreateModel(const ModelDesc& aDesc);
@@ -40,6 +42,8 @@ namespace Fancy {
     std::map<uint64, SharedPtr<Model>> myModels;
     std::map<uint64, SharedPtr<Texture>> myTextures;
     std::map<uint64, SharedPtr<Mesh>> myMeshes;
+
+    SharedPtr<GpuProgram> myTextureResizeShader;
   };
 //---------------------------------------------------------------------------//
 }

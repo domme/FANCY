@@ -88,6 +88,9 @@ namespace Fancy {
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
 
+    void ReadbackBufferData(void** aDataPtrOut, uint64& aByteSizeOut, const GpuBuffer* aBuffer, uint64 aBufferOffset);
+    void ReadbackTextureData(DynamicArray<TextureSubData>& someSubDatasOut, const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSubResources /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
+
     void TransitionResource(const GpuResource* aResource, GpuResourceTransition aTransition);
     void TransitionResource(const GpuResource* aResource1, GpuResourceTransition aTransition1,
                             const GpuResource* aResource2, GpuResourceTransition aTransition2);
@@ -117,6 +120,7 @@ namespace Fancy {
     ComputePipelineState myComputePipelineState;
     
     DynamicArray<GpuRingBuffer*> myUploadRingBuffers;
+    DynamicArray<GpuRingBuffer*> myReadbackRingBuffers;
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
     DynamicArray<GpuRingBuffer*> myIndexRingBuffers;

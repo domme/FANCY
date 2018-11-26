@@ -6,6 +6,7 @@
 #include "CommandQueue.h"
 #include "CommandListType.h"
 #include "Slot.h"
+#include "TempResourcePool.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -66,8 +67,7 @@ namespace Fancy {
 
     static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);
-    static void ComputeMipMaps(const SharedPtr<Texture>& aDestTexture);
-
+    
     static SharedPtr<BlendState> CreateBlendState(const BlendStateDesc& aDesc);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateDesc& aDesc);
     static const SharedPtr<BlendState>& GetDefaultBlendState();
@@ -82,6 +82,8 @@ namespace Fancy {
 
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
+
+    static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
 
     static CommandQueue* GetCommandQueue(CommandListType aType);
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
@@ -118,14 +120,15 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultDiffuseTexture;
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
-    static SharedPtr<GpuProgram> ourComputeMipMapShader;
-    
+        
     static UniquePtr<GpuProgramCompiler> ourShaderCompiler;
     static UniquePtr<FileWatcher> ourShaderFileWatcher;
     
     static std::vector<std::unique_ptr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers; 
+
+    static TempResourcePool ourTempResourcePool;
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

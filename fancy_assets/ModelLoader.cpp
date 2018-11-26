@@ -20,7 +20,7 @@
 #include <fancy_core/PathService.h>
 
 #include "Material.h"
-#include "AssetStorage.h"
+#include "AssetManager.h"
 #include "fancy_core/MeshData.h"
 #include "ModelDesc.h"
 #include "fancy_core/RenderPlatformCaps.h"
@@ -80,7 +80,7 @@ namespace Fancy { namespace ModelLoader {
     return name;
   }
 
-  SharedPtr<Mesh> CreateMesh(const aiNode* aNode, ProcessData& aProcessData, AssetStorage& aStorage, aiMesh** someMeshes, uint aMeshCount)
+  SharedPtr<Mesh> CreateMesh(const aiNode* aNode, ProcessData& aProcessData, AssetManager& aStorage, aiMesh** someMeshes, uint aMeshCount)
   {
     // Mesh already created during this import-process?
     uint64 assimpMeshListHash = 0u;
@@ -340,7 +340,7 @@ namespace Fancy { namespace ModelLoader {
     return texPathInResources;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Material> CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData, AssetStorage& aStorage)
+  SharedPtr<Material> CreateMaterial(const aiMaterial* _pAmaterial, ProcessData& aProcessData, AssetManager& aStorage)
   {
     // Did we already import this material?
     {
@@ -398,7 +398,7 @@ namespace Fancy { namespace ModelLoader {
     return aStorage.CreateMaterial(matDesc);
   }
 //---------------------------------------------------------------------------//
-  bool ProcessMeshes(const aiNode* aNode, const glm::mat4& aTransform, ProcessData& aProcessData, AssetStorage& aStorage, Scene& aSceneOut)
+  bool ProcessMeshes(const aiNode* aNode, const glm::mat4& aTransform, ProcessData& aProcessData, AssetManager& aStorage, Scene& aSceneOut)
   {
     if (aNode->mNumMeshes == 0)
       return true;
@@ -445,7 +445,7 @@ namespace Fancy { namespace ModelLoader {
     return numCreatedModels > 0u;
   }
 
-  bool ProcessNodeRecursive(const aiNode* aNode, const glm::mat4& aParentTransform, ProcessData& aProcessData, AssetStorage& aStorage, Scene& aSceneOut)
+  bool ProcessNodeRecursive(const aiNode* aNode, const glm::mat4& aParentTransform, ProcessData& aProcessData, AssetManager& aStorage, Scene& aSceneOut)
   {
     if (!aNode) 
       return false;
@@ -462,7 +462,7 @@ namespace Fancy { namespace ModelLoader {
     return true;
   }
 
-  bool LoadFromFile(const char* aPath, AssetStorage& aStorage, Scene& aSceneOut, ImportOptions someImportOptions/* = ALL*/)
+  bool LoadFromFile(const char* aPath, AssetManager& aStorage, Scene& aSceneOut, ImportOptions someImportOptions/* = ALL*/)
   {
     ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 

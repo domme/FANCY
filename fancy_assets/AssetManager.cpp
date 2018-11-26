@@ -1,4 +1,4 @@
-#include "AssetStorage.h"
+#include "AssetManager.h"
 #include "Material.h"
 #include "TextureLoader.h"
 #include "MaterialDesc.h"
@@ -9,11 +9,22 @@
 #include "fancy_core/BinaryCache.h"
 #include <fancy_core/Mesh.h>
 #include "fancy_core/Texture.h"
+#include "fancy_core/CommandContext.h"
 
 using namespace Fancy;
 
 //---------------------------------------------------------------------------//
-  void AssetStorage::Clear()
+  AssetManager::AssetManager()
+  {
+    GpuProgramDesc shaderDesc;
+    shaderDesc.myShaderFileName = "ResizeTexture2D";
+    shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
+    shaderDesc.myMainFunction = "main";
+    myTextureResizeShader = RenderCore::CreateGpuProgram(shaderDesc);
+    ASSERT(myTextureResizeShader != nullptr);
+  }
+//---------------------------------------------------------------------------//
+  void AssetManager::Clear()
   {
     myMaterials.clear();
     myModels.clear();
@@ -21,7 +32,7 @@ using namespace Fancy;
     myMeshes.clear();
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> AssetStorage::GetTexture(const char* aPath, uint someFlags /* = 0*/)
+  SharedPtr<Texture> AssetManager::GetTexture(const char* aPath, uint someFlags /* = 0*/)
   {
     String texPathAbs = aPath;
     String texPathRel = aPath;
@@ -40,7 +51,7 @@ using namespace Fancy;
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Material> AssetStorage::CreateMaterial(const MaterialDesc& aDesc)
+  SharedPtr<Material> AssetManager::CreateMaterial(const MaterialDesc& aDesc)
   {
     const uint64 descHash = aDesc.GetHash();
 
@@ -76,7 +87,7 @@ using namespace Fancy;
     return mat;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Texture> AssetStorage::CreateTexture(const char* aPath, uint someLoadFlags/* = 0*/)
+  SharedPtr<Texture> AssetManager::CreateTexture(const char* aPath, uint someLoadFlags/* = 0*/)
   {
     if (strlen(aPath) == 0)
       return nullptr;
@@ -157,7 +168,9 @@ using namespace Fancy;
     uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
 
     SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), &uploadData, 1u);
-    // RenderCore::ComputeMipMaps(tex);
+    ComputeMipmaps(tex);
+
+    // TODO: Readback mipmap pixel data and store in binary cache.
 
     if (tex != nullptr)
     {
@@ -170,7 +183,7 @@ using namespace Fancy;
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Model> AssetStorage::CreateModel(const ModelDesc& aDesc)
+  SharedPtr<Model> AssetManager::CreateModel(const ModelDesc& aDesc)
   {
     const uint64 hash = aDesc.GetHash();
 
@@ -186,7 +199,7 @@ using namespace Fancy;
     return model;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> AssetStorage::GetMesh(const MeshDesc& aDesc)
+  SharedPtr<Mesh> AssetManager::GetMesh(const MeshDesc& aDesc)
   {
     auto it = myMeshes.find(aDesc.GetHash());
     if (it != myMeshes.end())
@@ -195,7 +208,7 @@ using namespace Fancy;
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> AssetStorage::CreateMesh(const MeshDesc& aDesc, MeshData* someMeshDatas, uint aNumMeshDatas, uint64 aMeshFileTimestamp /* = 0u */)
+  SharedPtr<Mesh> AssetManager::CreateMesh(const MeshDesc& aDesc, MeshData* someMeshDatas, uint aNumMeshDatas, uint64 aMeshFileTimestamp /* = 0u */)
   {
     if (aMeshFileTimestamp != 0u)
     {
@@ -217,5 +230,104 @@ using namespace Fancy;
     }
 
     return nullptr;
+  }
+//---------------------------------------------------------------------------//
+  void AssetManager::ComputeMipmaps(const SharedPtr<Texture>& aTexture)
+  {
+    const TextureProperties& texProps = aTexture->GetProperties();
+    const uint numMips = texProps.myNumMipLevels;
+    glm::float2 srcSize(texProps.myWidth, texProps.myHeight);
+    glm::int2 tempTexSize = (glm::int2) glm::float2(glm::ceil(srcSize.x * 0.5), srcSize.y);
+
+    TempTextureResource tempTexResource[2];
+    TextureResourceProperties tempTexProps;
+    tempTexProps.myTextureProperties = texProps;
+    tempTexProps.myTextureProperties.myNumMipLevels = 1;
+    tempTexProps.myTextureProperties.myWidth = (uint)tempTexSize.x;
+    tempTexProps.myTextureProperties.myHeight = (uint)tempTexSize.y;
+    tempTexProps.myIsShaderWritable = true;
+    tempTexProps.myIsRenderTarget = false;
+    tempTexProps.myIsTexture = true;
+    tempTexResource[0] = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture 0");
+    tempTexResource[1] = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture 1");
+
+    CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
+    CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+    ctx->SetComputeProgram(myTextureResizeShader.get());
+
+    struct CBuffer
+    {
+      glm::float2 mySrcSize;
+      glm::float2 myDestSize;
+
+      glm::float2 mySrcScale;
+      glm::float2 myDestScale;
+
+      int myIsSRGB;
+      int myFilterMethod;
+      glm::float2 myAxis;
+    } cBuffer;
+
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.eFormat);
+    
+    cBuffer.myIsSRGB = formatInfo.mySRGB ? 1 : 0;
+    cBuffer.myFilterMethod = 1; // Lanczos filter
+
+    const uint kMaxNumMips = 17;
+    ASSERT(numMips <= kMaxNumMips);
+    FixedArray<SharedPtr<TextureView>, kMaxNumMips> readViews;
+
+    TextureViewProperties readProps;
+    readProps.myNumMipLevels = 1;
+    for (uint mip = 0u; mip < numMips - 1; ++mip)
+    {
+      readProps.myMipIndex = mip;
+      readViews[mip] = RenderCore::CreateTextureView(aTexture, readProps);
+    }
+
+    glm::float2 destSize = glm::ceil(srcSize * 0.5f);
+    for (uint mip = 1u; mip < numMips; ++mip)
+    {
+      const GpuResourceView* resources[] = { nullptr, nullptr };
+
+      // Resize horizontal
+      glm::float2 tempDestSize(destSize.x, srcSize.y);
+      cBuffer.mySrcSize = srcSize;
+      cBuffer.myDestSize = tempDestSize;
+      cBuffer.mySrcScale = tempDestSize / srcSize;
+      cBuffer.myDestScale = srcSize / tempDestSize;
+      cBuffer.myAxis = glm::float2(1.0f, 0.0f);
+      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
+      resources[0] = readViews[mip - 1].get();
+      resources[1] = tempTexResource[0].myWriteView;
+      ctx->BindResourceSet(resources, 2, 1u);
+      ctx->Dispatch(glm::int3((int)destSize.x, (int)srcSize.y, 1));
+
+      // Resize vertical
+      cBuffer.mySrcSize = tempDestSize;
+      cBuffer.myDestSize = destSize;
+      cBuffer.mySrcScale = destSize / tempDestSize;
+      cBuffer.myDestScale = tempDestSize / destSize;
+      cBuffer.myAxis = glm::float2(0.0f, 1.0f);
+      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
+      resources[0] = tempTexResource[0].myReadView;
+      resources[1] = tempTexResource[1].myWriteView;
+      ctx->BindResourceSet(resources, 2, 1u);
+      ctx->Dispatch(glm::int3((int)destSize.x, (int)destSize.y, 1));
+
+      TextureSubLocation destLocation;
+      destLocation.myMipLevel = mip;
+
+      TextureRegion srcRegion;
+      srcRegion.myTexelPos = glm::uvec3(0, 0, 0);
+      srcRegion.myTexelSize = glm::uvec3((uint)destSize.x, (uint)destSize.y, 1);
+      ctx->CopyTextureRegion(aTexture.get(), destLocation, glm::uvec3(0, 0, 0), tempTexResource[1].myTexture, TextureSubLocation(), &srcRegion);
+
+      srcSize = glm::ceil(srcSize * 0.5f);
+      destSize = glm::ceil(destSize * 0.5f);
+    }
+
+    queue->ExecuteContext(ctx, true);
+    RenderCore::FreeContext(ctx);
   }
 //---------------------------------------------------------------------------//

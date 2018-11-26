@@ -66,14 +66,15 @@ namespace Fancy {
   SharedPtr<Texture> RenderCore::ourDefaultSpecularTexture;
   SharedPtr<DepthStencilState> RenderCore::ourDefaultDepthStencilState;
   SharedPtr<BlendState> RenderCore::ourDefaultBlendState;
-  SharedPtr<GpuProgram> RenderCore::ourComputeMipMapShader;
-  
+    
   std::unique_ptr<FileWatcher> RenderCore::ourShaderFileWatcher;
   std::unique_ptr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
 
   std::vector<std::unique_ptr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
+
+  TempResourcePool RenderCore::ourTempResourcePool;
 
   Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
 //---------------------------------------------------------------------------//  
@@ -111,7 +112,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
   {
-
+    ourTempResourcePool.EndFrame();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
@@ -281,15 +282,6 @@ namespace Fancy {
       ourDefaultNormalTexture = CreateTexture(props, "Default_Normal", &data, 1);
     }
 
-    {
-      GpuProgramDesc desc;
-      desc.myMainFunction = "main";
-      desc.myShaderStage = (uint) ShaderStage::COMPUTE;
-      desc.myShaderFileName = "ComputeMipmapCS";
-      ourComputeMipMapShader = CreateGpuProgram(desc);
-      ASSERT(ourComputeMipMapShader != nullptr);
-    }
-    
     ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
     ASSERT(ourDefaultDepthStencilState != nullptr);
 
@@ -307,8 +299,7 @@ namespace Fancy {
     ourDefaultDiffuseTexture.reset();
     ourDefaultNormalTexture.reset();
     ourDefaultSpecularTexture.reset();
-    ourComputeMipMapShader.reset();
-
+    
     ourDefaultDepthStencilState.reset();
     ourDefaultBlendState.reset();
 
@@ -556,6 +547,7 @@ namespace Fancy {
     const TextureProperties& texProps = aTexture->GetProperties();
     TextureViewProperties viewProps = someProperties;
     viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.eFormat;
+    viewProps.myDimension = viewProps.myDimension != GpuResourceDimension::UNKONWN ? viewProps.myDimension : texProps.myDimension;
     viewProps.myNumMipLevels = glm::max(1u, glm::min(viewProps.myNumMipLevels, texProps.myNumMipLevels));
     viewProps.myArraySize = glm::max(1u, glm::min(viewProps.myArraySize, texProps.GetArraySize() - viewProps.myFirstArrayIndex));
     viewProps.myZSize = glm::max(1u, glm::min(viewProps.myZSize, texProps.GetDepthSize() - viewProps.myFirstZindex));
@@ -635,100 +627,6 @@ namespace Fancy {
     FreeContext(context);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::ComputeMipMaps(const SharedPtr<Texture>& aDestTexture)
-  {
-    const TextureProperties& destTexProps = aDestTexture->GetProperties();
-    if(destTexProps.myNumMipLevels == 1)
-      return;
-
-    const DataFormatInfo& destTexFormatInfo = DataFormatInfo::GetFormatInfo(destTexProps.eFormat);
-
-    // TODO: Check if the creation of a temp-texture is neccessary (aDestTexture is already shaderWritable)
-    TextureProperties tempProps = aDestTexture->GetProperties();
-    tempProps.myNumMipLevels = destTexProps.myNumMipLevels - 1;
-    tempProps.myIsShaderWritable = true;
-    tempProps.myWidth = (uint) (destTexProps.myWidth / 2.0f);
-    tempProps.myHeight = (uint) (destTexProps.myHeight / 2.0f);
-    if (tempProps.myWidth == 0u && tempProps.myHeight == 0u)
-      return;
-    tempProps.myWidth = glm::max(1u, tempProps.myWidth);
-    tempProps.myHeight = glm::max(1u, tempProps.myHeight);
-
-    SharedPtr<Texture> tempTexPtr = CreateTexture(tempProps);
-    Texture* tempTex = tempTexPtr.get();
-    ASSERT(tempTex != nullptr);
-
-    TextureViewProperties readProps;
-    readProps.myNumMipLevels = 1;
-    readProps.myFormat = aDestTexture->GetProperties().eFormat;
-    readProps.myDimension = GpuResourceDimension::TEXTURE_2D;
-
-    TextureViewProperties writeProps = readProps;
-    writeProps.myFormat = DataFormatInfo::GetNonSRGBformat(readProps.myFormat);
-    writeProps.myIsShaderWritable = true;
-
-    const uint numMips = destTexProps.myNumMipLevels;
-    const uint kMaxNumMips = 17u;
-    ASSERT(numMips <= kMaxNumMips);
-    FixedArray<SharedPtr<TextureView>, kMaxNumMips> readViews;
-    FixedArray<SharedPtr<TextureView>, kMaxNumMips> writeViews;
-
-    readProps.myMipIndex = 0u;
-    readViews[0] = CreateTextureView(aDestTexture, readProps);
-    ASSERT(readViews[0] != nullptr);
-
-    for (uint mip = 1u; mip < numMips; ++mip)
-    {
-      uint tmpTexMip = mip-1u;
-      readProps.myMipIndex = tmpTexMip;
-      writeProps.myMipIndex = tmpTexMip;
-      readViews[mip] = CreateTextureView(tempTexPtr, readProps);
-      writeViews[mip] = CreateTextureView(tempTexPtr, writeProps);
-      ASSERT(readViews[mip] != nullptr && writeViews[mip] != nullptr);
-    }
-    
-    CommandQueue* queue = GetCommandQueue(CommandListType::Graphics);
-    CommandContext* ctx = AllocateContext(CommandListType::Graphics);
-
-    ctx->SetComputeProgram(ourComputeMipMapShader.get());
-
-    glm::uvec2 size(tempProps.myWidth, tempProps.myHeight);
-    uint mip = 1u;
-    for (; mip < numMips && size.x > 0 && size.y > 0; ++mip)
-    {
-      struct CBuffer
-      {
-        glm::float2 mySizeOnMipInv;
-        int myMip;
-        int myIsSRGB;
-      };
-      CBuffer cBuffer = 
-      {
-        glm::float2(1.0f / size.x, 1.0f / size.y),
-        (int) mip,
-        destTexFormatInfo.mySRGB ? 1 : 0
-      };
-      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-
-      const GpuResourceView* resources[] = { readViews[mip-1].get(), writeViews[mip].get()};
-      ctx->BindResourceSet(resources, 2, 1u);
-
-      ctx->Dispatch(glm::int3((int) size.x, (int) size.y, 1));
-     
-      size /= 2u;
-    }
-
-    ctx->TransitionResource(
-      tempTex, GpuResourceTransition::TO_COPY_SRC, 
-      aDestTexture.get(), GpuResourceTransition::TO_COPY_DEST);
-
-    for (uint i = 1u; i < mip; ++i)
-      ctx->CopyTextureRegion(aDestTexture.get(), TextureSubLocation(i), glm::uvec3(0u), tempTex, TextureSubLocation(i-1));
-
-    queue->ExecuteContext(ctx, true);
-    FreeContext(ctx);
-  }
-//---------------------------------------------------------------------------//
   CommandContext* RenderCore::AllocateContext(CommandListType aType)
   {
     ASSERT(aType == CommandListType::Graphics || aType == CommandListType::Compute,
@@ -768,6 +666,11 @@ namespace Fancy {
       return;
     
     availableContextList.push_back(aContext);
+  }
+//---------------------------------------------------------------------------//
+  TempTextureResource RenderCore::AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName)
+  {
+    return ourTempResourcePool.AllocateTexture(someProps, someFlags, aName);
   }
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)

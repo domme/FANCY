@@ -15,7 +15,7 @@
 
 #include <fancy_core/Texture.h>
 #include <fancy_core/Input.h>
-#include "fancy_assets/AssetStorage.h"
+#include "fancy_assets/AssetManager.h"
 
 using namespace Fancy;
 
@@ -93,7 +93,7 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
 FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
 RenderOutput* myRenderOutput = nullptr;
-AssetStorage myAssetStorage;
+SharedPtr<AssetManager> myAssetManager;
 
 DynamicArray<ImageData> myImageDatas;
 
@@ -126,82 +126,7 @@ SharedPtr<GpuProgramPipeline> LoadShader(const char* aShaderPath, const char* aM
 
 void ComputeMipMaps(ImageData& aMipmapData)
 {
-  const uint numMips = aMipmapData.myTexture->GetProperties().myNumMipLevels;
-  glm::float2 srcSize(aMipmapData.myTexture->GetProperties().myWidth, aMipmapData.myTexture->GetProperties().myHeight);
-  glm::float2 destSize = glm::ceil(srcSize * 0.5f);
-
-  glm::int2 tempTexSize = (glm::int2) glm::float2(glm::ceil(srcSize.x * 0.5), srcSize.y);
-  TextureProperties tempTexProps = aMipmapData.myTexture->GetProperties();
-  tempTexProps.myIsShaderWritable = true;
-  tempTexProps.myNumMipLevels = 1;
-  tempTexProps.myWidth = (uint) tempTexSize.x;
-  tempTexProps.myHeight = (uint) tempTexSize.y;
-  SharedPtr<Texture> tempTexture = RenderCore::CreateTexture(tempTexProps);
-  ASSERT(tempTexture != nullptr);
-
-  TextureViewProperties tempViewProps = aMipmapData.myTextureView->GetProperties();
-  SharedPtr<TextureView> tempViewRead = RenderCore::CreateTextureView(tempTexture, tempViewProps);
-
-  tempViewProps.myIsShaderWritable = true;
-  tempViewProps.myFormat = DataFormatInfo::GetNonSRGBformat(tempViewProps.myFormat);
-  SharedPtr<TextureView> tempViewWrite = RenderCore::CreateTextureView(tempTexture, tempViewProps);
-
-  CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-  CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-  ctx->SetComputeProgram(myResampleShader.get());
-
-  struct CBuffer
-  {
-    glm::float2 mySrcSize;
-    glm::float2 myDestSize;
-
-    glm::float2 mySrcScale;
-    glm::float2 myDestScale;
-
-    int myIsSRGB;
-    int myFilterMethod;
-    glm::float2 myAxis;
-  };
-
-  CBuffer cBuffer;
-  cBuffer.myIsSRGB = aMipmapData.myIsSRGB ? 1 : 0;
-  cBuffer.myFilterMethod = aMipmapData.mySelectedFilter;
-
-  for (uint mip = 1u; mip < numMips; ++mip)
-  {
-    const GpuResourceView* resources[] = {nullptr, nullptr};
-    
-    // Resize horizontal
-    glm::float2 tempDestSize(destSize.x, srcSize.y);
-    cBuffer.mySrcSize = srcSize;
-    cBuffer.myDestSize = tempDestSize;
-    cBuffer.mySrcScale = tempDestSize / srcSize;
-    cBuffer.myDestScale = srcSize / tempDestSize;
-    cBuffer.myAxis = glm::float2(1.0f, 0.0f);
-    ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-    resources[0] = aMipmapData.myMipLevelReadViews[mip-1].get();
-    resources[1] = tempViewWrite.get();
-    ctx->BindResourceSet(resources, 2, 1u);
-    ctx->Dispatch(glm::int3((int)destSize.x, (int) srcSize.y, 1));
-    
-    // Resize vertical
-    cBuffer.mySrcSize = tempDestSize;
-    cBuffer.myDestSize = destSize;
-    cBuffer.mySrcScale = destSize / tempDestSize;
-    cBuffer.myDestScale = tempDestSize / destSize;
-    cBuffer.myAxis = glm::float2(0.0f, 1.0f);
-    ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-    resources[0] = tempViewRead.get();
-    resources[1] = aMipmapData.myMipLevelWriteViews[mip].get();
-    ctx->BindResourceSet(resources, 2, 1u);
-    ctx->Dispatch(glm::int3((int) destSize.x, (int) destSize.y, 1));
-
-    srcSize *= 0.5f;
-    destSize *= 0.5f;
-  }
-
-  queue->ExecuteContext(ctx, true);
-  RenderCore::FreeContext(ctx); 
+  myAssetManager->ComputeMipmaps(aMipmapData.myTexture);
 }
 
 void Init(HINSTANCE anInstanceHandle)
@@ -224,16 +149,18 @@ void Init(HINSTANCE anInstanceHandle)
   myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
 
   GpuProgramDesc shaderDesc;
-  shaderDesc.myShaderFileName = "DownsampleCS";
+  shaderDesc.myShaderFileName = "ResizeTexture2D";
   shaderDesc.myShaderStage = (uint) ShaderStage::COMPUTE;
   shaderDesc.myMainFunction = "main";
   myResampleShader =  RenderCore::CreateGpuProgram(shaderDesc);
   ASSERT(myResampleShader);
 
-  const uint loadFlags = AssetStorage::NO_DISK_CACHE | AssetStorage::NO_MEM_CACHE | AssetStorage::SHADER_WRITABLE;
-  myImageDatas.push_back(myAssetStorage.CreateTexture("Textures/Checkerboard.png", loadFlags));
-  myImageDatas.push_back(myAssetStorage.CreateTexture("Textures/Sibenik/kamen.png", loadFlags));
-  myImageDatas.push_back(myAssetStorage.CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
+  myAssetManager.reset(new AssetManager());
+
+  const uint loadFlags = AssetManager::NO_DISK_CACHE | AssetManager::NO_MEM_CACHE | AssetManager::SHADER_WRITABLE;
+  myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Checkerboard.png", loadFlags));
+  myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/kamen.png", loadFlags));
+  myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
 
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 
@@ -308,7 +235,7 @@ void Shutdown()
   myResampleShader.reset();
   
   myImageDatas.clear();
-  myAssetStorage.Clear();
+  myAssetManager.reset();
 
   ImGuiRendering::Shutdown();
   FancyRuntime::Shutdown();

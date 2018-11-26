@@ -57,9 +57,6 @@
     <ClInclude Include="GpuProgramDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="GpuResourceStorageDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="RenderCore_PlatformDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
@@ -148,9 +145,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="GpuResourceSignature.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuResourceStorage.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Log.h">
@@ -277,8 +271,19 @@
     <ClInclude Include="DynamicDescriptorHeapDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="StaticDescriptorAllocatorDX12.h" />
     <ClInclude Include="GpuProgramProperties.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceDataDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticDescriptorAllocatorDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="TempResourcePool.h" />
+    <ClInclude Include="TextureResource.h" />
+    <ClInclude Include="DataFormatList_Dummy.h">
       <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
@@ -413,6 +418,13 @@
     <ClCompile Include="DynamicDescriptorHeapDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="StaticDescriptorAllocatorDX12.cpp" />
+    <ClCompile Include="StaticDescriptorAllocatorDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="TempResourcePool.cpp" />
+    <ClCompile Include="TextureResource.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="fancy_core.rc" />
   </ItemGroup>
 </Project>

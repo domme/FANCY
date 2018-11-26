@@ -16,7 +16,7 @@
     <ClInclude Include="MaterialDesc.h" />
     <ClInclude Include="ModelDesc.h" />
     <ClInclude Include="MaterialSemantics.h" />
-    <ClInclude Include="AssetStorage.h" />
+    <ClInclude Include="AssetManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lodepng\lodepng.cpp">
@@ -28,6 +28,6 @@
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="MaterialDesc.cpp" />
     <ClCompile Include="ModelDesc.cpp" />
-    <ClCompile Include="AssetStorage.cpp" />
+    <ClCompile Include="AssetManager.cpp" />
   </ItemGroup>
 </Project>

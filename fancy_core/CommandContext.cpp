@@ -118,18 +118,39 @@ namespace Fancy {
     DynamicArray<GpuRingBuffer*>* ringBufferList = nullptr;
     uint64 sizeStep = 2 * SIZE_MB;
     String name = "RingBuffer_";
-    
-    if (aType == GpuBufferUsage::STAGING_UPLOAD)
+
+    switch(aType) 
+    { 
+      case GpuBufferUsage::STAGING_UPLOAD: 
+      {
+        name += "STAGING_UPLOAD";
+        ringBufferList = &myUploadRingBuffers;
+      } break;
+      case GpuBufferUsage::STAGING_READBACK:
+      {
+
+      } break;
+      case GpuBufferUsage::CONSTANT_BUFFER: break;
+      case GpuBufferUsage::VERTEX_BUFFER: break;
+      case GpuBufferUsage::INDEX_BUFFER: break;
+      case GpuBufferUsage::SHADER_BUFFER: break;
+      default: ;
+    }
+
+      if (aType == GpuBufferUsage::STAGING_UPLOAD)
     {
       name += "STAGING_UPLOAD";
       ringBufferList = &myUploadRingBuffers;
-      sizeStep = 2 * SIZE_MB;
+    }
+    else if (aType == GpuBufferUsage::STAGING_UPLOAD)
+    {
+      name += "STAGING_UPLOAD";
+      ringBufferList = &myUploadRingBuffers;
     }
     else if (aType == GpuBufferUsage::CONSTANT_BUFFER)
     {
       name += "CONSTANT_BUFFER";
       ringBufferList = &myConstantRingBuffers;
-      sizeStep = 2 * SIZE_MB;
     }
     else if (aType == GpuBufferUsage::VERTEX_BUFFER)
     {
@@ -495,6 +516,23 @@ namespace Fancy {
       const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
       CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
     }
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::ReadbackBufferData(void** aDataPtrOut, uint64& aByteSizeOut, const GpuBuffer* aBuffer, uint64 aBufferOffset)
+  {
+    ASSERT(aBufferOffset < aBuffer->GetByteSize());
+
+    uint64 neededStagingBufferSize = aBuffer->GetByteSize() - aBufferOffset;
+
+    uint64 srcOffset = 0u;
+    const GpuBuffer* uploadBuffer = GetBuffer(srcOffset, GpuBufferUsage::STAGING_READBACK, aDataPtr, aByteSize);
+    
+
+
+  }
+//---------------------------------------------------------------------------//
+  void CommandContext::ReadbackTextureData(DynamicArray<TextureSubData>& someSubDatasOut, const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSubResources)
+  {
   }
 //---------------------------------------------------------------------------//
 } 

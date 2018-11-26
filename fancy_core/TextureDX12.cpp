@@ -1,13 +1,14 @@
 #include "StdAfx.h"
+
 #include "DataFormat.h"
+#include "RenderCore.h"
+#include "StringUtil.h"
 
 #include "TextureDX12.h"
-#include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
-#include "GpuResourceStorageDX12.h"
-#include "AlignedStorage.h"
-#include "StringUtil.h"
+#include "GpuResourceDataDX12.h"
+#include "GpuResourceViewDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -18,6 +19,27 @@ namespace Fancy {
   TextureDX12::~TextureDX12()
   {
     Destroy();
+  }
+//---------------------------------------------------------------------------//
+  bool TextureDX12::IsValid() const
+  {
+    return GetData() != nullptr && GetData()->myResource.Get() != nullptr;
+  }
+//---------------------------------------------------------------------------//
+  void TextureDX12::SetName(const char* aName)
+  {
+    Texture::SetName(aName);
+
+    if (GpuResourceDataDX12* dataDx12 = GetData())
+    {
+      std::wstring wName = StringUtil::ToWideString(myName);
+      dataDx12->myResource->SetName(wName.c_str());
+    }
+  }
+//---------------------------------------------------------------------------//
+  GpuResourceDataDX12* TextureDX12::GetData() const
+  {
+    return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataDX12*>();
   }
 //---------------------------------------------------------------------------//
   uint TextureDX12::CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex)
@@ -35,8 +57,9 @@ namespace Fancy {
   void TextureDX12::Create(const TextureProperties& someProperties, const char* aName /* = nullptr */, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
   {
     Destroy();
-    GpuResourceStorageDX12* storageDx12 = new GpuResourceStorageDX12();
-    myStorage.reset(storageDx12);
+    GpuResourceDataDX12* dataDx12 = new GpuResourceDataDX12();
+    myNativeData = dataDx12;
+
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "Texture_Unnamed";
 
@@ -112,15 +135,15 @@ namespace Fancy {
     const uint numArraySlices = myProperties.GetArraySize();
     const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
 
-    storageDx12->mySubresourceStates.resize(numSubresources);
-    storageDx12->mySubresourceContexts.resize(numSubresources);
+    dataDx12->mySubresourceStates.resize(numSubresources);
+    dataDx12->mySubresourceContexts.resize(numSubresources);
     for (uint i = 0u; i < numSubresources; ++i)
     {
-      storageDx12->mySubresourceStates[i] = initialState;
-      storageDx12->mySubresourceContexts[i] = CommandListType::Graphics;
+      dataDx12->mySubresourceStates[i] = initialState;
+      dataDx12->mySubresourceContexts[i] = CommandListType::Graphics;
     }
     
-    storageDx12->myReadState = readState;
+    dataDx12->myReadState = readState;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -148,8 +171,8 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
-    storageDx12->myGpuMemory = gpuMemory;
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    dataDx12->myGpuMemory = gpuMemory;
 
     // TODO: Decide between placed and committed resources depending on size and alignment requirements (maybe also expose a preference as a flag to the caller?)
     /*
@@ -163,7 +186,7 @@ namespace Fancy {
     */
 
     std::wstring wName = StringUtil::ToWideString(myName);
-    storageDx12->myResource->SetName(wName.c_str());
+    dataDx12->myResource->SetName(wName.c_str());
 
     // Initialize texture data?
     if (someInitialDatas != nullptr && aNumInitialDatas > 0u)
@@ -222,6 +245,7 @@ namespace Fancy {
   void TextureDX12::GetSubresourceLayout(const TextureSubLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
   {
     // TODO support plane-indices?
+    ASSERT(IsValid());
 
     const int startSubresourceIndex = GetSubresourceIndex(aStartSubLocation);
 
@@ -230,7 +254,7 @@ namespace Fancy {
     const int numSubresources = glm::min((int)aNumSubDatas, numOverallSubresources - startSubresourceIndex);
     ASSERT(numSubresources > 0);
 
-    ID3D12Resource* texResource = ((GpuResourceStorageDX12*)myStorage.get())->myResource.Get();
+    ID3D12Resource* texResource = GetData()->myResource.Get();
     const D3D12_RESOURCE_DESC& texResourceDesc = texResource->GetDesc();
 
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
@@ -290,16 +314,18 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void TextureDX12::Destroy()
   {
-    GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
-    if (storageDx12 != nullptr)
+    GpuResourceDataDX12* dataDx12 = GetData();
+    if (dataDx12 != nullptr)
     {
-      storageDx12->myResource.Reset();
+      dataDx12->myResource.Reset();
 
-      if(storageDx12->myGpuMemory.myHeap != nullptr)
-        RenderCore::GetPlatformDX12()->ReleaseGpuMemory(storageDx12->myGpuMemory);
+      if(dataDx12->myGpuMemory.myHeap != nullptr)
+        RenderCore::GetPlatformDX12()->ReleaseGpuMemory(dataDx12->myGpuMemory);
+
+      delete dataDx12;
     }
 
-    myStorage = nullptr;
+    myNativeData.Clear();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//
@@ -465,8 +491,8 @@ namespace Fancy {
       return false;
     }
 
-    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, aDescriptor.myCpuHandle);
+    GpuResourceDataDX12* dataDx12 = static_cast<const TextureDX12*>(aTexture)->GetData();
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView(dataDx12->myResource.Get(), &srvDesc, aDescriptor.myCpuHandle);
     return true;
   }
 //---------------------------------------------------------------------------//
@@ -514,8 +540,8 @@ namespace Fancy {
       return false;
     }
 
-    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView(storageDx12->myResource.Get(), nullptr, &uavDesc, aDescriptor.myCpuHandle);
+    GpuResourceDataDX12* dataDx12 = static_cast<const TextureDX12*>(aTexture)->GetData();
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView(dataDx12->myResource.Get(), nullptr, &uavDesc, aDescriptor.myCpuHandle);
     return true;
   }
 //---------------------------------------------------------------------------//
@@ -564,8 +590,8 @@ namespace Fancy {
       return false;
     }
 
-    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateRenderTargetView(storageDx12->myResource.Get(), &rtvDesc, aDescriptor.myCpuHandle);
+    GpuResourceDataDX12* dataDx12 = static_cast<const TextureDX12*>(aTexture)->GetData();
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateRenderTargetView(dataDx12->myResource.Get(), &rtvDesc, aDescriptor.myCpuHandle);
     return true;
   }
 //---------------------------------------------------------------------------//
@@ -611,8 +637,8 @@ namespace Fancy {
       return false;
     }
 
-    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aTexture->myStorage.get();
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateDepthStencilView(storageDx12->myResource.Get(), &dsvDesc, aDescriptor.myCpuHandle);
+    GpuResourceDataDX12* dataDx12 = static_cast<const TextureDX12*>(aTexture)->GetData();
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateDepthStencilView(dataDx12->myResource.Get(), &dsvDesc, aDescriptor.myCpuHandle);
     return true;
   }
 //---------------------------------------------------------------------------//

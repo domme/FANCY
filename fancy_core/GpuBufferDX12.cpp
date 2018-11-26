@@ -1,10 +1,11 @@
 #include "GpuBufferDX12.h"
-#include "RenderCore.h"
-#include "RenderCore_PlatformDX12.h"
-#include "AdapterDX12.h"
-#include "GpuResourceStorageDX12.h"
-#include "GpuResourceViewDX12.h"
+
 #include "StringUtil.h"
+#include "RenderCore.h"
+
+#include "RenderCore_PlatformDX12.h"
+#include "GpuResourceDataDX12.h"
+#include "GpuResourceViewDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -17,14 +18,34 @@ namespace Fancy {
     Destroy();
   }
 //---------------------------------------------------------------------------//
+  bool GpuBufferDX12::IsValid() const
+  {
+    return GetData() != nullptr && GetData()->myResource.Get() != nullptr;
+  }
+//---------------------------------------------------------------------------//
+  void GpuBufferDX12::SetName(const char* aName)
+  {
+    GpuBuffer::SetName(aName);
+
+    if (GpuResourceDataDX12* dataDx12 = GetData())
+    {
+      std::wstring wName = StringUtil::ToWideString(myName);
+      dataDx12->myResource->SetName(wName.c_str());
+    }
+  }
+//---------------------------------------------------------------------------//
+  GpuResourceDataDX12* GpuBufferDX12::GetData() const
+  {
+    return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataDX12*>();
+  }
+//---------------------------------------------------------------------------//
   void GpuBufferDX12::Create(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* pInitialData /*= nullptr*/)
   {
     ASSERT(someProperties.myElementSizeBytes > 0 && someProperties.myNumElements > 0, "Invalid buffer size specified");
 
     Destroy();
-
-    GpuResourceStorageDX12* storageDx12 = new GpuResourceStorageDX12();
-    myStorage.reset(storageDx12);
+    GpuResourceDataDX12* dataDx12 = new GpuResourceDataDX12();
+    myNativeData = dataDx12;
 
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "GpuBuffer_Unnamed";
@@ -94,12 +115,12 @@ namespace Fancy {
       default: ASSERT(false, "Missing implementation");
       }
     }
-    storageDx12->mySubresourceStates.resize(1u);
-    storageDx12->mySubresourceStates[0] = initialState;
-    storageDx12->mySubresourceContexts.resize(1u);
-    storageDx12->mySubresourceContexts[0] = CommandListType::Graphics;
-    storageDx12->myReadState = readState;
-    storageDx12->myCanChangeStates = canChangeStates;
+    dataDx12->mySubresourceStates.resize(1u);
+    dataDx12->mySubresourceStates[0] = initialState;
+    dataDx12->mySubresourceContexts.resize(1u);
+    dataDx12->mySubresourceContexts[0] = CommandListType::Graphics;
+    dataDx12->myReadState = readState;
+    dataDx12->myCanChangeStates = canChangeStates;
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();
@@ -108,12 +129,12 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
 
     std::wstring wName = StringUtil::ToWideString(myName);
-    storageDx12->myResource->SetName(wName.c_str());
+    dataDx12->myResource->SetName(wName.c_str());
 
-    storageDx12->myGpuMemory = gpuMemory;
+    dataDx12->myGpuMemory = gpuMemory;
 
     if (pInitialData != nullptr)
     {
@@ -133,14 +154,19 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::Destroy()
   {
-    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)myStorage.get();
-    if (storageDx12 != nullptr && storageDx12->myGpuMemory.myHeap != nullptr)
+    GpuResourceDataDX12* dataDx12 = GetData();
+    if (dataDx12 != nullptr)
     {
-      storageDx12->myResource.Reset();
-      RenderCore::GetPlatformDX12()->ReleaseGpuMemory(storageDx12->myGpuMemory);
+      dataDx12->myResource.Reset();
+
+      if(dataDx12->myGpuMemory.myHeap != nullptr)
+        RenderCore::GetPlatformDX12()->ReleaseGpuMemory(dataDx12->myGpuMemory);
+
+      delete dataDx12;
     }
 
-    myStorage = nullptr;
+    myNativeData.Clear();
+    myProperties = GpuBufferProperties();
   }
 //---------------------------------------------------------------------------//
 
@@ -184,7 +210,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool GpuBufferViewDX12::CreateSRV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
-    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
+    GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
     memset(&srvDesc, 0u, sizeof(srvDesc));
@@ -219,13 +245,13 @@ namespace Fancy {
       srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
     }
 
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView(storageDx12->myResource.Get(), &srvDesc, aDescriptor.myCpuHandle);
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView(dataDx12->myResource.Get(), &srvDesc, aDescriptor.myCpuHandle);
     return true;
   }
 //---------------------------------------------------------------------------//
   bool GpuBufferViewDX12::CreateUAV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
-    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
+    GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
     memset(&uavDesc, 0u, sizeof(uavDesc));
@@ -259,16 +285,16 @@ namespace Fancy {
       uavDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
     }
 
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView(storageDx12->myResource.Get(), nullptr, &uavDesc, aDescriptor.myCpuHandle);
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView(dataDx12->myResource.Get(), nullptr, &uavDesc, aDescriptor.myCpuHandle);
     return true;
   }
 //---------------------------------------------------------------------------//
   bool GpuBufferViewDX12::CreateCBV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
-    GpuResourceStorageDX12* storageDx12 = (GpuResourceStorageDX12*)aBuffer->myStorage.get();
+    GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
     D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-    cbvDesc.BufferLocation = storageDx12->myResource->GetGPUVirtualAddress() + someProperties.myOffset;
+    cbvDesc.BufferLocation = dataDx12->myResource->GetGPUVirtualAddress() + someProperties.myOffset;
 
     ASSERT(someProperties.mySize < UINT_MAX);
     cbvDesc.SizeInBytes = (uint) someProperties.mySize;
@@ -299,10 +325,10 @@ namespace Fancy {
 
     // TODO: Do something with the current usage type? Transition it into something correct? Early-out?
 
-    const GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
+    GpuResourceDataDX12* dataDx12 = GetData();
 
     void* mappedData = nullptr;
-    CheckD3Dcall(storageDx12->myResource->Map(0, &range, &mappedData));
+    CheckD3Dcall(dataDx12->myResource->Map(0, &range, &mappedData));
 
     return mappedData;
   }
@@ -318,8 +344,8 @@ namespace Fancy {
     range.Begin = anOffsetElements * myProperties.myElementSizeBytes;
     range.End = range.Begin + aNumElements * myProperties.myElementSizeBytes;
 
-    const GpuResourceStorageDX12* storageDx12 = static_cast<GpuResourceStorageDX12*>(myStorage.get());
-    storageDx12->myResource->Unmap(0u, &range);
+    const GpuResourceDataDX12* dataDx12 = GetData();
+    dataDx12->myResource->Unmap(0u, &range);
   }
 //---------------------------------------------------------------------------//
 }
