@@ -193,11 +193,11 @@ namespace Fancy {
       NUM
     };
   //---------------------------------------------------------------------------//
-    enum class GpuResoruceLockOption 
+    enum class GpuResourceMapMode 
     {
       READ = 0,
+      WRITE_UNSYNCHRONIZED,
       WRITE,
-      READ_WRITE,
             
       NUM
     };

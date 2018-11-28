@@ -436,6 +436,7 @@ namespace Fancy {
     myGraphicsPipelineState.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
+  // TODO: Add a parameter "blocking" to decide if it needs to wait for the resource on CPU. Currently it always assumes unsynchronized access
   void CommandContext::UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
   {
     ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetByteSize());
@@ -444,10 +445,10 @@ namespace Fancy {
 
     if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_WRITE)
     {
-      uint8* dest = static_cast<uint8*>(aDestBuffer->Lock(GpuResoruceLockOption::WRITE));
+      uint8* dest = static_cast<uint8*>(aDestBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aDestOffset, aByteSize));
       ASSERT(dest != nullptr);
-      memcpy(dest + aDestOffset, aDataPtr, aByteSize);
-      aDestBuffer->Unlock();
+      memcpy(dest, aDataPtr, aByteSize);
+      aDestBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aDestOffset, aByteSize);
     }
     else
     {
@@ -468,7 +469,7 @@ namespace Fancy {
     const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize);
     ASSERT(uploadBuffer);
 
-    uint8* uploadBufferData = (uint8*) uploadBuffer->Lock(GpuResoruceLockOption::WRITE) + uploadBufferOffset;
+    uint8* uploadBufferData = (uint8*) uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
 
     const uint numSubresources = glm::min(aNumDatas, (uint) subresourceLayouts.size());
     for (uint i = 0; i < numSubresources; ++i)
@@ -495,7 +496,7 @@ namespace Fancy {
         }
       }
     }
-    uploadBuffer->Unlock();
+    uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
 
     const uint startDestSubresourceIndex = aDestTexture->GetSubresourceIndex(aStartSubresource);
     for (uint i = 0; i < numSubresources; ++i)
@@ -507,6 +508,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DynamicArray<uint8> CommandContext::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
   {
+    DynamicArray<uint8> data;
+
+
     ASSERT(anOffset + aByteSize <= aBuffer->GetByteSize());
 
     const GpuBufferProperties& bufParams = aBuffer->GetProperties();
@@ -515,14 +519,22 @@ namespace Fancy {
     
     if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_READ)
     {
-      // Wait until the context the resource was last used on is done with it
-      RenderCore::WaitForResourceIdle(aBuffer);
+      ASSERT(bufParams.myElementSizeBytes > 0);
+
+      
+      //const uint64 numElements = 
+
+      //void* mappedData = aBuffer->Lock(GpuResourceMapMode::READ, )
+      
+
       
     }
 
-    uint64 readbackBufferOffset = 0u;
-    const GpuBuffer* readbackBuffer = GetBuffer(readbackBufferOffset, GpuBufferUsage::STAGING_READBACK, nullptr, neededStagingBufferSize);
-    CopyBufferRegion(readbackBuffer, readbackBufferOffset, aBuffer, aBufferOffset, neededStagingBufferSize);
+    //uint64 readbackBufferOffset = 0u;
+    //const GpuBuffer* readbackBuffer = GetBuffer(readbackBufferOffset, GpuBufferUsage::STAGING_READBACK, nullptr, neededStagingBufferSize);
+    //CopyBufferRegion(readbackBuffer, readbackBufferOffset, aBuffer, aBufferOffset, neededStagingBufferSize);
+
+    return std::move(data);
   }
 //---------------------------------------------------------------------------//
   

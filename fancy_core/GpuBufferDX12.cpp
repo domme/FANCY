@@ -150,10 +150,10 @@ namespace Fancy {
     {
       if (gpuMemAccess == GpuMemoryAccessType::CPU_WRITE)
       {
-        void* dest = Lock(GpuResoruceLockOption::WRITE);
+        void* dest = Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
         ASSERT(dest != nullptr);
         memcpy(dest, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes);
-        Unlock();
+        Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
       }
       else
       {
@@ -313,49 +313,50 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  void* GpuBufferDX12::Lock(GpuResoruceLockOption eLockOption, uint64 uOffsetElements /* = 0u */, uint64 uNumElements /* = 0u */) const
+  void* GpuBufferDX12::Map(GpuResourceMapMode aMapMode, uint64 anOffset, uint64 aSize) const
   {
-    ASSERT(uOffsetElements + uNumElements <= myProperties.myNumElements);
-
-    if (uNumElements == 0u)
-      uNumElements = myProperties.myNumElements - uOffsetElements;
-
-    D3D12_RANGE range;
-    range.Begin = uOffsetElements * myProperties.myElementSizeBytes;
-    range.End = range.Begin + uNumElements * myProperties.myElementSizeBytes;
+    const uint64 bufferSize = myProperties.myNumElements * myProperties.myElementSizeBytes;
+    aSize = glm::min(bufferSize, aSize);
+    ASSERT(anOffset + aSize <= bufferSize);
 
     const bool isCpuWritable = myProperties.myCpuAccess == GpuMemoryAccessType::CPU_WRITE;
     const bool isCpuReadable = myProperties.myCpuAccess == GpuMemoryAccessType::CPU_READ;
 
-    const bool wantsWrite = eLockOption == GpuResoruceLockOption::READ_WRITE || eLockOption == GpuResoruceLockOption::WRITE;
-    const bool wantsRead = eLockOption == GpuResoruceLockOption::READ_WRITE || eLockOption == GpuResoruceLockOption::READ;
+    const bool wantsWrite = aMapMode == GpuResourceMapMode::WRITE_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::WRITE;
+    const bool wantsRead = aMapMode == GpuResourceMapMode::READ;
 
     if ((wantsWrite && !isCpuWritable) || (wantsRead && !isCpuReadable))
       return nullptr;
 
-    // TODO: Do something with the current usage type? Transition it into something correct? Early-out?
+    const bool needsWait = aMapMode == GpuResourceMapMode::READ || aMapMode == GpuResourceMapMode::WRITE;
+    if (needsWait)
+      RenderCore::WaitForResourceIdle(this);
 
-    GpuResourceDataDX12* dataDx12 = GetData();
+    D3D12_RANGE range;
+    range.Begin = anOffset;
+    range.End = range.Begin + aSize;
 
     void* mappedData = nullptr;
-    CheckD3Dcall(dataDx12->myResource->Map(0, &range, &mappedData));
+    CheckD3Dcall(GetData()->myResource->Map(0, &range, &mappedData));
 
     return mappedData;
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Unlock(uint64 anOffsetElements /* = 0u */, uint64 aNumElements /* = 0u */) const
+  void GpuBufferDX12::Unmap(GpuResourceMapMode aMapMode, uint64 anOffset /* = 0u */, uint64 aSize /* = UINT64_MAX */) const
   {
-    if (anOffsetElements == 0u && aNumElements == 0u)
-      aNumElements = myProperties.myNumElements;
-
-    ASSERT(anOffsetElements + aNumElements <= myProperties.myNumElements);
+    const uint64 bufferSize = myProperties.myNumElements * myProperties.myElementSizeBytes;
+    aSize = glm::min(bufferSize, aSize);
+    ASSERT(anOffset + aSize <= bufferSize);
 
     D3D12_RANGE range;
-    range.Begin = anOffsetElements * myProperties.myElementSizeBytes;
-    range.End = range.Begin + aNumElements * myProperties.myElementSizeBytes;
+    range.Begin = anOffset;
+    range.End = range.Begin + aSize;
 
-    const GpuResourceDataDX12* dataDx12 = GetData();
-    dataDx12->myResource->Unmap(0u, &range);
+    // Pass an invalid range to Unmap() if the resource hasn't been written to on CPU
+    if (aMapMode == GpuResourceMapMode::READ)
+      range.End = 0;
+
+    GetData()->myResource->Unmap(0u, &range);
   }
 //---------------------------------------------------------------------------//
 }

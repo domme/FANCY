@@ -6,6 +6,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  // TODO: Move the hazard-tracking stuff out into a hazard-tracking interface that higher-level code can interact with
   class GpuResourceDataDX12
   {
   public:

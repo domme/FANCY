@@ -12,7 +12,7 @@ namespace Fancy
     GpuRingBuffer();
     ~GpuRingBuffer();
 
-    void Create(const GpuBufferProperties& someParameters, GpuResoruceLockOption aLockOption, const char* aName = nullptr, const void* pInitialData = nullptr);
+    void Create(const GpuBufferProperties& someParameters, GpuResourceMapMode aLockOption, const char* aName = nullptr, const void* pInitialData = nullptr);
 
     uint64 GetFreeDataSize() const;
     bool AllocateAndWrite(const void* someData, uint64 aDataSize, uint64& anOffsetOut);
@@ -24,7 +24,7 @@ namespace Fancy
     SharedPtr<GpuBuffer> myBuffer;
     uint8* myData;
     uint64 myOffset;
-    GpuResoruceLockOption myLockType;
+    GpuResourceMapMode myLockType;
   };
 //---------------------------------------------------------------------------//
 }

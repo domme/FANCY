@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Any.h"
+#include "CommandListType.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -27,10 +28,10 @@ namespace Fancy {
     virtual ~GpuResource() = default;
     virtual bool IsValid() const { return false; }
     virtual void SetName(const char* aName) { myName = aName; }
-    virtual uint GetNumSubresources() const = 0;
+    virtual uint GetNumSubresources() const { return 1u; }
 
     // Hazard-tracking
-    virtual CommandListType GetLastContextType(uint aSubresource) const = 0;
+    virtual CommandListType GetLastContextType(uint aSubresource) const { return CommandListType::Graphics; }
     
     String myName;
     GpuResourceCategory myCategory;

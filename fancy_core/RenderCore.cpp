@@ -150,7 +150,7 @@ namespace Fancy {
     params.myElementSizeBytes = 1u;
     params.myUsage = aUsage;
     params.myCpuAccess = aUsage == GpuBufferUsage::STAGING_READBACK ? GpuMemoryAccessType::CPU_READ : GpuMemoryAccessType::CPU_WRITE;
-    buf->Create(params, aUsage == GpuBufferUsage::STAGING_READBACK ? GpuResoruceLockOption::READ : GpuResoruceLockOption::WRITE, aName);
+    buf->Create(params, aUsage == GpuBufferUsage::STAGING_READBACK ? GpuResourceMapMode::READ : GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aName);
     ourRingBufferPool.push_back(std::move(buf));
 
     return ourRingBufferPool.back().get();
@@ -593,6 +593,7 @@ namespace Fancy {
     return CreateBufferView(buffer, someViewProperties);
   }
 //---------------------------------------------------------------------------//
+  // TODO: Add a parameter that decides about synchronized/unsynchronized access
   void RenderCore::UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
   {
     ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetByteSize());
@@ -601,10 +602,10 @@ namespace Fancy {
 
     if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_WRITE)
     {
-      uint8* dest = static_cast<uint8*>(aDestBuffer->Lock(GpuResoruceLockOption::WRITE));
+      uint8* dest = static_cast<uint8*>(aDestBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aDestOffset, aByteSize));
       ASSERT(dest != nullptr);
-      memcpy(dest + aDestOffset, aDataPtr, aByteSize);
-      aDestBuffer->Unlock();
+      memcpy(dest, aDataPtr, aByteSize);
+      aDestBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aDestOffset, aByteSize);
     }
     else
     {

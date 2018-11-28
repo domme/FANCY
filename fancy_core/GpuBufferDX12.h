@@ -9,7 +9,7 @@ namespace Fancy {
   struct DescriptorDX12;
   struct GpuResourceDataDX12;
 //---------------------------------------------------------------------------//
-	class GpuBufferDX12 : public GpuBuffer
+	class GpuBufferDX12 final : public GpuBuffer
 	{
 	public:
     GpuBufferDX12();
@@ -19,8 +19,8 @@ namespace Fancy {
     void SetName(const char* aName) override;
 
     void Create(const GpuBufferProperties& clParameters, const char* aName = nullptr, const void* pInitialData = nullptr) override;
-    void* Lock(GpuResoruceLockOption eLockOption, uint64 uOffsetElements = 0u, uint64 uNumElements = 0u) const override;
-    void Unlock(uint64 anOffsetElements = 0u, uint64 aNumElements = 0u) const override;
+    void* Map(GpuResourceMapMode aMapMode, uint64 anOffset = 0u, uint64 aSize = UINT64_MAX) const override;
+    void Unmap(GpuResourceMapMode aMapMode, uint64 anOffset = 0u, uint64 aSize = UINT64_MAX) const override;
 
     GpuResourceDataDX12* GetData() const;
 
@@ -30,7 +30,7 @@ namespace Fancy {
     void Destroy();
 	};
 //---------------------------------------------------------------------------//
-  class GpuBufferViewDX12 : public GpuBufferView
+  class GpuBufferViewDX12 final : public GpuBufferView
   {
   public:
     GpuBufferViewDX12(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
