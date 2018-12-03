@@ -227,6 +227,16 @@ void Render()
   
   ImGui::Render();
 
+  ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+
+  uint testData[] = { 1,2,3,4 };
+
+  uint64 bufOffset;
+  const GpuBuffer* buf = ctx->GetBuffer(bufOffset, GpuBufferUsage::VERTEX_BUFFER, testData, sizeof(testData));
+  uint* testDataPtr = (uint*) ctx->ReadbackBufferData(buf, bufOffset, sizeof(testData));
+
+  RenderCore::FreeContext(ctx);
+
   myRuntime->EndFrame();
 }
 

@@ -19,7 +19,7 @@ namespace Fancy
   class GpuMemoryAllocatorDX12
   {
   public:
-    GpuMemoryAllocatorDX12(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aMemBlockSize);
+    GpuMemoryAllocatorDX12(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aMemBlockSize);
     ~GpuMemoryAllocatorDX12();
 
     GpuMemoryAllocationDX12 Allocate(const uint64 aSize, const uint anAlignment, const char* aDebugName = nullptr);
@@ -28,7 +28,7 @@ namespace Fancy
   private:
     PagedLinearAllocator<Microsoft::WRL::ComPtr<ID3D12Heap>> myAllocator;
     GpuMemoryType myType;
-    GpuMemoryAccessType myAccess;
+    CpuMemoryAccessType myAccess;
 
   #if FANCY_DX12_DEBUG_ALLOCS
     struct AllocDebugInfo

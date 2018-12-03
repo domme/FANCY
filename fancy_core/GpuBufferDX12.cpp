@@ -39,16 +39,6 @@ namespace Fancy {
     return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataDX12*>();
   }
 //---------------------------------------------------------------------------//
-  CommandListType GpuBufferDX12::GetLastContextType(uint aSubresource) const
-  {
-    GpuResourceDataDX12* data = GetData();
-    if (data == nullptr)
-      return CommandListType::Graphics;
-
-    ASSERT(aSubresource == 0);
-    return data->mySubresourceContexts[0];
-  }
-//---------------------------------------------------------------------------//
   void GpuBufferDX12::Create(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* pInitialData /*= nullptr*/)
   {
     ASSERT(someProperties.myElementSizeBytes > 0 && someProperties.myNumElements > 0, "Invalid buffer size specified");
@@ -56,6 +46,9 @@ namespace Fancy {
     Destroy();
     GpuResourceDataDX12* dataDx12 = new GpuResourceDataDX12();
     myNativeData = dataDx12;
+
+    myHazardData.reset(new GpuHazardDataDX12);
+    GpuHazardDataDX12* hazardDataDx12 = static_cast<GpuHazardDataDX12*>(myHazardData.get());
 
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "GpuBuffer_Unnamed";
@@ -80,19 +73,19 @@ namespace Fancy {
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
     resourceDesc.Flags = someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myCpuAccess;
+    const CpuMemoryAccessType cpuMemAccess = (CpuMemoryAccessType)someProperties.myCpuAccess;
 
     D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
     D3D12_RESOURCE_STATES readState = D3D12_RESOURCE_STATE_GENERIC_READ;
     bool canChangeStates = true;
 
-    if (gpuMemAccess == GpuMemoryAccessType::CPU_WRITE)  // Upload heap
+    if (cpuMemAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
     {
       initialState = D3D12_RESOURCE_STATE_GENERIC_READ;
       readState = D3D12_RESOURCE_STATE_GENERIC_READ;
       canChangeStates = false;
     }
-    else if (gpuMemAccess == GpuMemoryAccessType::CPU_READ)  // Readback heap
+    else if (cpuMemAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
     {
       initialState = D3D12_RESOURCE_STATE_COPY_DEST;
       canChangeStates = false;
@@ -125,17 +118,17 @@ namespace Fancy {
       default: ASSERT(false, "Missing implementation");
       }
     }
-    dataDx12->mySubresourceStates.resize(1u);
-    dataDx12->mySubresourceStates[0] = initialState;
-    dataDx12->mySubresourceContexts.resize(1u);
-    dataDx12->mySubresourceContexts[0] = CommandListType::Graphics;
-    dataDx12->myReadState = readState;
-    dataDx12->myCanChangeStates = canChangeStates;
+    hazardDataDx12->mySubresourceStates.resize(1u);
+    hazardDataDx12->mySubresourceStates[0] = initialState;
+    hazardDataDx12->mySubresourceContexts.resize(1u);
+    hazardDataDx12->mySubresourceContexts[0] = CommandListType::Graphics;
+    hazardDataDx12->myReadState = readState;
+    hazardDataDx12->myCanChangeStates = canChangeStates;
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();
 
-    GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(GpuMemoryType::BUFFER, gpuMemAccess, pitch, myAlignment, myName.c_str());
+    GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(GpuMemoryType::BUFFER, cpuMemAccess, pitch, myAlignment, myName.c_str());
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
@@ -148,7 +141,7 @@ namespace Fancy {
 
     if (pInitialData != nullptr)
     {
-      if (gpuMemAccess == GpuMemoryAccessType::CPU_WRITE)
+      if (cpuMemAccess == CpuMemoryAccessType::CPU_WRITE)
       {
         void* dest = Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
         ASSERT(dest != nullptr);
@@ -319,8 +312,8 @@ namespace Fancy {
     aSize = glm::min(bufferSize, aSize);
     ASSERT(anOffset + aSize <= bufferSize);
 
-    const bool isCpuWritable = myProperties.myCpuAccess == GpuMemoryAccessType::CPU_WRITE;
-    const bool isCpuReadable = myProperties.myCpuAccess == GpuMemoryAccessType::CPU_READ;
+    const bool isCpuWritable = myProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE;
+    const bool isCpuReadable = myProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ;
 
     const bool wantsWrite = aMapMode == GpuResourceMapMode::WRITE_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::WRITE;
     const bool wantsRead = aMapMode == GpuResourceMapMode::READ;
@@ -353,7 +346,7 @@ namespace Fancy {
     range.End = range.Begin + aSize;
 
     // Pass an invalid range to Unmap() if the resource hasn't been written to on CPU
-    if (aMapMode == GpuResourceMapMode::READ)
+    if (aMapMode == GpuResourceMapMode::READ || aMapMode == GpuResourceMapMode::READ_UNSYNCHRONIZED)
       range.End = 0;
 
     GetData()->myResource->Unmap(0u, &range);

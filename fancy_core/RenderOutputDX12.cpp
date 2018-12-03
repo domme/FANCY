@@ -45,16 +45,18 @@ namespace Fancy {
 
       {
         GpuResourceDataDX12* dataDx12(new GpuResourceDataDX12);
-        dataDx12->mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
-        dataDx12->mySubresourceContexts.push_back(CommandListType::Graphics);
-        dataDx12->myAllSubresourcesInSameState = true;
-        dataDx12->myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
         CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12->myResource)));
         std::wstring wName = StringUtil::ToWideString(resource.myName);
         dataDx12->myResource->SetName(wName.c_str());
-        
         resource.myNativeData = dataDx12;
       }
+
+      resource.myHazardData.reset(new GpuHazardDataDX12);
+      GpuHazardDataDX12* hazardDataDx12 = static_cast<GpuHazardDataDX12*>(resource.myHazardData.get());
+      hazardDataDx12->mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
+      hazardDataDx12->mySubresourceContexts.push_back(CommandListType::Graphics);
+      hazardDataDx12->myAllSubresourcesInSameState = true;
+      hazardDataDx12->myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

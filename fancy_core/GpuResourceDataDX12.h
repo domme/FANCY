@@ -3,29 +3,25 @@
 #include "CommandListType.h"
 #include "DX12Prerequisites.h"
 #include "GpuMemoryAllocatorDX12.h"
+#include "GpuResource.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  // TODO: Move the hazard-tracking stuff out into a hazard-tracking interface that higher-level code can interact with
-  class GpuResourceDataDX12
+  struct GpuHazardDataDX12 : GpuHazardData
   {
-  public:
-    GpuResourceDataDX12()
-      : myReadState((D3D12_RESOURCE_STATES) 0u)
-      , myCanChangeStates(true)
-      , myAllSubresourcesInSameState(true)
+    GpuHazardDataDX12()
+      : myReadState((D3D12_RESOURCE_STATES)0u)
       , mySubresourceStates{ (D3D12_RESOURCE_STATES)0u }
-      , mySubresourceContexts{ CommandListType::Graphics }
     { }
-   
-    Microsoft::WRL::ComPtr<ID3D12Resource> myResource;
-    GpuMemoryAllocationDX12 myGpuMemory;
 
     D3D12_RESOURCE_STATES myReadState;
-    bool myCanChangeStates;
-    bool myAllSubresourcesInSameState;
     DynamicArray<D3D12_RESOURCE_STATES> mySubresourceStates;
-    DynamicArray<CommandListType> mySubresourceContexts;
+  };
+//---------------------------------------------------------------------------//
+  struct GpuResourceDataDX12
+  {
+    Microsoft::WRL::ComPtr<ID3D12Resource> myResource;
+    GpuMemoryAllocationDX12 myGpuMemory;
   };
 //---------------------------------------------------------------------------//
 }

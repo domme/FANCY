@@ -14,7 +14,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   namespace Priv_GpuMemoryAllocatorDX12
   {
-    bool locCreateHeap(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, Microsoft::WRL::ComPtr<ID3D12Heap>& aHeapOut)
+    bool locCreateHeap(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, Microsoft::WRL::ComPtr<ID3D12Heap>& aHeapOut)
     {
       ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
       const uint64 alignedSize  = MathUtil::Align(aSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
@@ -42,7 +42,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//  
-  GpuMemoryAllocatorDX12::GpuMemoryAllocatorDX12(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aMemBlockSize)
+  GpuMemoryAllocatorDX12::GpuMemoryAllocatorDX12(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aMemBlockSize)
     : myType(aType)
     , myAccess(anAccessType)
     , myAllocator(aMemBlockSize, 

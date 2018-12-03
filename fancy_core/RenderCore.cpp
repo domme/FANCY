@@ -149,8 +149,18 @@ namespace Fancy {
     params.myNumElements = aNeededByteSize;
     params.myElementSizeBytes = 1u;
     params.myUsage = aUsage;
-    params.myCpuAccess = aUsage == GpuBufferUsage::STAGING_READBACK ? GpuMemoryAccessType::CPU_READ : GpuMemoryAccessType::CPU_WRITE;
-    buf->Create(params, aUsage == GpuBufferUsage::STAGING_READBACK ? GpuResourceMapMode::READ : GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aName);
+    params.myCpuAccess = aUsage == GpuBufferUsage::STAGING_READBACK ? CpuMemoryAccessType::CPU_READ : CpuMemoryAccessType::CPU_WRITE;
+
+    GpuResourceMapMode mapMode = GpuResourceMapMode::WRITE_UNSYNCHRONIZED;
+    bool keepMapped = true;
+
+    if (aUsage == GpuBufferUsage::STAGING_READBACK)
+    {
+      mapMode = GpuResourceMapMode::READ_UNSYNCHRONIZED;
+      keepMapped = false;
+    }
+
+    buf->Create(params, mapMode, keepMapped, aName);
     ourRingBufferPool.push_back(std::move(buf));
 
     return ourRingBufferPool.back().get();
@@ -492,7 +502,7 @@ namespace Fancy {
 
       GpuBufferProperties bufferParams;
       bufferParams.myUsage = GpuBufferUsage::VERTEX_BUFFER;
-      bufferParams.myCpuAccess = GpuMemoryAccessType::NO_CPU_ACCESS;
+      bufferParams.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
       bufferParams.myNumElements = numVertices;
       bufferParams.myElementSizeBytes = vertexLayout.myStride;
 
@@ -509,7 +519,7 @@ namespace Fancy {
 
       GpuBufferProperties indexBufParams;
       indexBufParams.myUsage = GpuBufferUsage::INDEX_BUFFER;
-      indexBufParams.myCpuAccess = GpuMemoryAccessType::NO_CPU_ACCESS;
+      indexBufParams.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
       indexBufParams.myNumElements = numIndices;
       indexBufParams.myElementSizeBytes = sizeof(uint);
 
@@ -600,7 +610,7 @@ namespace Fancy {
 
     const GpuBufferProperties& bufParams = aDestBuffer->GetProperties();
 
-    if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_WRITE)
+    if (bufParams.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)
     {
       uint8* dest = static_cast<uint8*>(aDestBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aDestOffset, aByteSize));
       ASSERT(dest != nullptr);
@@ -690,12 +700,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset, uint aNumSubresources)
   {
-    FixedArray<bool, (uint)CommandListType::NUM> commandListTypes;
-    commandListTypes.fill(false);
+    GpuHazardData* hazardData = aResource->myHazardData.get();
 
+    bool commandListNeedsWait[(uint)CommandListType::NUM] = { false, false, false };
     for (uint i = aSubresourceOffset, end = aSubresourceOffset + glm::min(aResource->GetNumSubresources() - aSubresourceOffset, aNumSubresources); i < end; ++i)
     {
-      commandListTypes[(uint)aResource->GetLastContextType(i)] |= true;
+      CommandListType cmdListType = hazardData->mySubresourceContexts[i];
+      commandListNeedsWait[(uint)cmdListType] |= true;
     }
 
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)

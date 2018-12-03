@@ -12,7 +12,7 @@ namespace Fancy
     GpuRingBuffer();
     ~GpuRingBuffer();
 
-    void Create(const GpuBufferProperties& someParameters, GpuResourceMapMode aLockOption, const char* aName = nullptr, const void* pInitialData = nullptr);
+    void Create(const GpuBufferProperties& someParameters, GpuResourceMapMode aLockOption, bool aKeepMapped, const char* aName = nullptr, const void* pInitialData = nullptr);
 
     uint64 GetFreeDataSize() const;
     bool AllocateAndWrite(const void* someData, uint64 aDataSize, uint64& anOffsetOut);

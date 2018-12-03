@@ -19,7 +19,7 @@ namespace Fancy {
     static D3D12_COMMAND_LIST_TYPE ResolveCommandListType(const CommandListType& aGeneralType);
 	  static D3D12_HEAP_FLAGS ResolveHeapFlags(GpuMemoryType aType);
     static GpuMemoryType ResolveGpuMemoryType(D3D12_HEAP_FLAGS aHeapFlags);
-    static GpuMemoryAccessType ResolveGpuMemoryAccessType(D3D12_HEAP_TYPE aHeapType);
+    static CpuMemoryAccessType ResolveGpuMemoryAccessType(D3D12_HEAP_TYPE aHeapType);
     static D3D12_RESOURCE_DIMENSION ResolveResourceDimension(GpuResourceDimension aDimension, bool& aCubeMapOut, bool& anArrayOut);
 	};
 //---------------------------------------------------------------------------//

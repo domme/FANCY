@@ -184,7 +184,7 @@ namespace Fancy {
       TO_SHADER_WRITE,
     };
   //---------------------------------------------------------------------------//
-    enum class GpuMemoryAccessType
+    enum class CpuMemoryAccessType
     {
       NO_CPU_ACCESS = 0,
       CPU_WRITE,
@@ -196,6 +196,7 @@ namespace Fancy {
     enum class GpuResourceMapMode 
     {
       READ = 0,
+      READ_UNSYNCHRONIZED,
       WRITE_UNSYNCHRONIZED,
       WRITE,
             
@@ -224,7 +225,7 @@ namespace Fancy {
         , myHeight(0u)
         , myDepthOrArraySize(1u)
         , eFormat(DataFormat::NONE)
-        , myAccessType(GpuMemoryAccessType::NO_CPU_ACCESS)
+        , myAccessType(CpuMemoryAccessType::NO_CPU_ACCESS)
         , myNumMipLevels(UINT_MAX)
         , bIsDepthStencil(false)
         , myIsShaderWritable(false)
@@ -242,7 +243,7 @@ namespace Fancy {
       uint myHeight;
       uint myDepthOrArraySize;
       DataFormat eFormat;
-      GpuMemoryAccessType myAccessType;
+      CpuMemoryAccessType myAccessType;
       uint myNumMipLevels;
       bool bIsDepthStencil;
       bool myIsShaderWritable;
@@ -314,14 +315,14 @@ namespace Fancy {
       GpuBufferProperties() 
         : myNumElements(0u)
         , myElementSizeBytes(0u)
-        , myCpuAccess(GpuMemoryAccessType::NO_CPU_ACCESS)
+        , myCpuAccess(CpuMemoryAccessType::NO_CPU_ACCESS)
         , myUsage(GpuBufferUsage::CONSTANT_BUFFER)
         , myIsShaderWritable(false) 
       { }
 
       uint64 myNumElements;
       uint64 myElementSizeBytes;
-      GpuMemoryAccessType myCpuAccess;
+      CpuMemoryAccessType myCpuAccess;
       GpuBufferUsage myUsage;
       bool myIsShaderWritable;
     };

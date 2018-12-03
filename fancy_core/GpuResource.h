@@ -11,6 +11,19 @@ namespace Fancy {
     BUFFER
   };
 //---------------------------------------------------------------------------//
+  struct GpuHazardData
+  {
+    GpuHazardData()
+      : myCanChangeStates(true)
+      , myAllSubresourcesInSameState(true)
+      , mySubresourceContexts{ CommandListType::Graphics }
+    {}
+
+    bool myCanChangeStates;
+    bool myAllSubresourcesInSameState;
+    DynamicArray<CommandListType> mySubresourceContexts;
+  };
+//---------------------------------------------------------------------------//
   class GpuResource
   {
   public:
@@ -18,11 +31,12 @@ namespace Fancy {
       : myCategory(aType)
     {}
 
-    void operator=(GpuResource&& anOtherResource)
+    void operator=(GpuResource&& anOtherResource) noexcept
     {
       myCategory = anOtherResource.myCategory;
       myNativeData = std::move(anOtherResource.myNativeData);
       myName = std::move(anOtherResource.myName);
+      myHazardData = std::move(anOtherResource.myHazardData);
     }
 
     virtual ~GpuResource() = default;
@@ -30,11 +44,9 @@ namespace Fancy {
     virtual void SetName(const char* aName) { myName = aName; }
     virtual uint GetNumSubresources() const { return 1u; }
 
-    // Hazard-tracking
-    virtual CommandListType GetLastContextType(uint aSubresource) const { return CommandListType::Graphics; }
-    
     String myName;
     GpuResourceCategory myCategory;
+    UniquePtr<GpuHazardData> myHazardData;
     Any myNativeData;
   };
 //---------------------------------------------------------------------------//

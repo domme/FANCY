@@ -34,8 +34,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     void locValidateUsageStatesCopy(const GpuResource* aDst, uint aDstSubresource, const GpuResource* aSrc, uint aSrcSubresource)
     {
-      GpuResourceDataDX12* src = aSrc->myNativeData.To<GpuResourceDataDX12*>();
-      GpuResourceDataDX12* dst = aDst->myNativeData.To<GpuResourceDataDX12*>();
+      GpuHazardDataDX12* src = (GpuHazardDataDX12*)aSrc->myHazardData.get();
+      GpuHazardDataDX12* dst = (GpuHazardDataDX12*)aDst->myHazardData.get();
 
       ASSERT(src->mySubresourceStates[aSrcSubresource] & D3D12_RESOURCE_STATE_COPY_SOURCE);
       ASSERT(dst->mySubresourceStates[aDstSubresource] & D3D12_RESOURCE_STATE_COPY_DEST);
@@ -43,8 +43,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     void locValidateUsageStatesCopy(const GpuResource* aDst, const GpuResource* aSrc)
     {
-      GpuResourceDataDX12* src = aSrc->myNativeData.To<GpuResourceDataDX12*>();
-      GpuResourceDataDX12* dst = aDst->myNativeData.To<GpuResourceDataDX12*>();
+      GpuHazardDataDX12* src = (GpuHazardDataDX12*)aSrc->myHazardData.get();
+      GpuHazardDataDX12* dst = (GpuHazardDataDX12*)aDst->myHazardData.get();
 
       for (uint i = 0u; i < (src->myAllSubresourcesInSameState ? 1u : src->mySubresourceStates.size()); ++i)
          ASSERT(src->mySubresourceStates[i] & D3D12_RESOURCE_STATE_COPY_SOURCE);
@@ -422,14 +422,14 @@ namespace Fancy {
 
     for (uint i = 0u; i < aNumResources; ++i)
     {
-      GpuResourceDataDX12* resource = someResources[i]->myNativeData.To<GpuResourceDataDX12*>();
+      GpuHazardDataDX12* hazardTrackingData = (GpuHazardDataDX12*)someResources[i]->myHazardData.get();
       D3D12_RESOURCE_STATES states = D3D12_RESOURCE_STATE_COMMON;
 
       const uint shaderReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_INDEX_BUFFER;
       switch(someTransitions[i]) 
       { 
         case GpuResourceTransition::TO_READ_GRAPHICS_COMPUTE: 
-          states = resource->myReadState;
+          states = hazardTrackingData->myReadState;
         break;
       case GpuResourceTransition::TO_COMMON:
       case GpuResourceTransition::TO_READ_WRITE_DMA: 
@@ -448,7 +448,7 @@ namespace Fancy {
         states = D3D12_RESOURCE_STATE_COPY_SOURCE;
         break;
       case GpuResourceTransition::TO_SHADER_READ:
-        states = (D3D12_RESOURCE_STATES) (resource->myReadState & shaderReadStates);
+        states = (D3D12_RESOURCE_STATES) (hazardTrackingData->myReadState & shaderReadStates);
         break;
       case GpuResourceTransition::TO_SHADER_WRITE: 
         states = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
@@ -1010,26 +1010,26 @@ namespace Fancy {
     {
       const D3D12_RESOURCE_STATES newState = someNewStates[iState];
 
-      GpuResourceDataDX12* resource = someResources[iState]->myNativeData.To<GpuResourceDataDX12*>();
+      GpuHazardDataDX12* hazardData = (GpuHazardDataDX12*) someResources[iState]->myHazardData.get();
       
-      if (!resource->myCanChangeStates)
+      if (!hazardData->myCanChangeStates)
         continue;
 
-      const uint maxNumSubresources = resource->mySubresourceStates.size();
+      const uint maxNumSubresources = hazardData->mySubresourceStates.size();
       const uint numSubresources = someNumSubresources == nullptr ? maxNumSubresources : someNumSubresources[iState];
       const bool transitionAllSubresources = numSubresources == maxNumSubresources;
 
       auto TransitionSubresource = [&](uint iSub, bool aTransitionAllSubresources)
       {
-        const D3D12_RESOURCE_STATES oldState = resource->mySubresourceStates[iSub];
-        const CommandListType oldContext = resource->mySubresourceContexts[iSub];
+        const D3D12_RESOURCE_STATES oldState = hazardData->mySubresourceStates[iSub];
+        const CommandListType oldContext = hazardData->mySubresourceContexts[iSub];
 
         // Transition between DMA and Graphics/Compute: Common-state required
         if ((oldContext == CommandListType::DMA && myCommandListType != CommandListType::DMA)
           || (oldContext != CommandListType::DMA && myCommandListType == CommandListType::DMA))
           ASSERT(newState == D3D12_RESOURCE_STATE_COMMON, "Resource needs to be in the COMMON-state when switching between Graphics/Compute and DMA");
 
-        resource->mySubresourceContexts[iSub] = myCommandListType;
+        hazardData->mySubresourceContexts[iSub] = myCommandListType;
 
         if (oldState == newState)
           return;
@@ -1048,6 +1048,8 @@ namespace Fancy {
         D3D12_RESOURCE_BARRIER& barrier = barriers[numBarriers++];
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+
+        GpuResourceDataDX12* resource = someResources[iState]->myNativeData.To<GpuResourceDataDX12*>();
         barrier.Transition.pResource = resource->myResource.Get();
         barrier.Transition.StateBefore = oldState;
         barrier.Transition.StateAfter = newState;
@@ -1056,25 +1058,25 @@ namespace Fancy {
         {
           barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         
-          for (uint i = 0u; i < resource->mySubresourceStates.size(); ++i)
-            resource->mySubresourceStates[i] = newState;
+          for (uint i = 0u; i < hazardData->mySubresourceStates.size(); ++i)
+            hazardData->mySubresourceStates[i] = newState;
 
-          for (uint i = 0u; i < resource->mySubresourceContexts.size(); ++i)
-            resource->mySubresourceContexts[i] = myCommandListType;
+          for (uint i = 0u; i < hazardData->mySubresourceContexts.size(); ++i)
+            hazardData->mySubresourceContexts[i] = myCommandListType;
 
-          resource->myAllSubresourcesInSameState = true;
+          hazardData->myAllSubresourcesInSameState = true;
         }
         else
         {
           barrier.Transition.Subresource = iSub;
-          resource->mySubresourceStates[iSub] = newState;
-          resource->mySubresourceContexts[iSub] = myCommandListType;
+          hazardData->mySubresourceStates[iSub] = newState;
+          hazardData->mySubresourceContexts[iSub] = myCommandListType;
         }
       };
 
       if (transitionAllSubresources)
       {
-        if (resource->myAllSubresourcesInSameState)
+        if (hazardData->myAllSubresourcesInSameState)
         {
           TransitionSubresource(0, true);
         }
@@ -1097,15 +1099,15 @@ namespace Fancy {
       if (!transitionAllSubresources)
       {
         bool sameSubresourceStates = true;
-        const D3D12_RESOURCE_STATES firstSubresourceState = resource->mySubresourceStates[0u];
-        for (D3D12_RESOURCE_STATES subState : resource->mySubresourceStates)
+        const D3D12_RESOURCE_STATES firstSubresourceState = hazardData->mySubresourceStates[0u];
+        for (D3D12_RESOURCE_STATES subState : hazardData->mySubresourceStates)
           sameSubresourceStates &= subState == firstSubresourceState;
 
-        const CommandListType firstSubresourceContext = resource->mySubresourceContexts[0u];
-        for (CommandListType subContext : resource->mySubresourceContexts)
+        const CommandListType firstSubresourceContext = hazardData->mySubresourceContexts[0u];
+        for (CommandListType subContext : hazardData->mySubresourceContexts)
           sameSubresourceStates &= subContext == firstSubresourceContext;
 
-        resource->myAllSubresourcesInSameState = sameSubresourceStates;
+        hazardData->myAllSubresourcesInSameState = sameSubresourceStates;
       }
     }
     

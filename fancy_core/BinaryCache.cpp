@@ -166,7 +166,7 @@ namespace Fancy {
 
     uint accessType;
     serializer.Read(accessType);
-    texProps.myAccessType = static_cast<GpuMemoryAccessType>(accessType);
+    texProps.myAccessType = static_cast<CpuMemoryAccessType>(accessType);
 
     uint format;
     serializer.Read(format);

@@ -24,8 +24,6 @@ namespace Fancy {
 
     GpuResourceDataDX12* GetData() const;
 
-    CommandListType GetLastContextType(uint aSubresource) const override;
-
   protected:
     void Destroy();
 	};

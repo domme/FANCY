@@ -80,17 +80,17 @@ namespace Fancy {
     ourCommandAllocatorPools[(uint)CommandListType::Graphics].reset(new CommandAllocatorPoolDX12(CommandListType::Graphics));
     ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
     
-    myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)GpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, GpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
-    myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)GpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, GpuMemoryAccessType::CPU_WRITE, 64 * SIZE_MB));
-    myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)GpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, GpuMemoryAccessType::CPU_READ, 64 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)CpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, CpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)CpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, CpuMemoryAccessType::CPU_WRITE, 64 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)CpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, CpuMemoryAccessType::CPU_READ, 64 * SIZE_MB));
 
-    myGpuMemoryAllocators[(uint)GpuMemoryType::TEXTURE][(uint)GpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::TEXTURE, GpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
-    myGpuMemoryAllocators[(uint)GpuMemoryType::TEXTURE][(uint)GpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::TEXTURE, GpuMemoryAccessType::CPU_WRITE, 16 * SIZE_MB));
-    myGpuMemoryAllocators[(uint)GpuMemoryType::TEXTURE][(uint)GpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::TEXTURE, GpuMemoryAccessType::CPU_READ, 16 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::TEXTURE][(uint)CpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::TEXTURE, CpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::TEXTURE][(uint)CpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::TEXTURE, CpuMemoryAccessType::CPU_WRITE, 16 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::TEXTURE][(uint)CpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::TEXTURE, CpuMemoryAccessType::CPU_READ, 16 * SIZE_MB));
 
-    myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)GpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, GpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
-    myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)GpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, GpuMemoryAccessType::CPU_WRITE, 16 * SIZE_MB));
-    myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)GpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, GpuMemoryAccessType::CPU_READ, 16 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)CpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, CpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)CpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, CpuMemoryAccessType::CPU_WRITE, 16 * SIZE_MB));
+    myGpuMemoryAllocators[(uint)GpuMemoryType::RENDERTARGET][(uint)CpuMemoryAccessType::CPU_READ].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::RENDERTARGET, CpuMemoryAccessType::CPU_READ, 16 * SIZE_MB));
     
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1024u));
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 512u));
@@ -117,7 +117,7 @@ namespace Fancy {
       myStaticDescriptorAllocators[i].reset();
 
     for (uint i = 0u; i < (uint)GpuMemoryType::NUM; ++i)
-      for (uint k = 0u; k < (uint) GpuMemoryAccessType::NUM; ++k)
+      for (uint k = 0u; k < (uint) CpuMemoryAccessType::NUM; ++k)
         myGpuMemoryAllocators[i][k].reset();
 
     for (uint i = 0u; i < (uint) CommandListType::NUM; ++i)
@@ -219,7 +219,7 @@ namespace Fancy {
     myUsedDynamicHeaps.push_back(std::make_pair(aFenceVal, aHeap));
   }
 //---------------------------------------------------------------------------//
-  GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName /*= nullptr*/)
+  GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName /*= nullptr*/)
   {
     return myGpuMemoryAllocators[(uint)aType][(uint)anAccessType]->Allocate(aSize, anAlignment, aDebugName);
   }
@@ -227,7 +227,7 @@ namespace Fancy {
   void RenderCore_PlatformDX12::ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation)
   {
     GpuMemoryType type = Adapter::ResolveGpuMemoryType(anAllocation.myHeap->GetDesc().Flags);
-    GpuMemoryAccessType accessType = Adapter::ResolveGpuMemoryAccessType(anAllocation.myHeap->GetDesc().Properties.Type);
+    CpuMemoryAccessType accessType = Adapter::ResolveGpuMemoryAccessType(anAllocation.myHeap->GetDesc().Properties.Type);
     myGpuMemoryAllocators[(uint)type][(uint) accessType]->Free(anAllocation);
   }
 //---------------------------------------------------------------------------//
@@ -581,12 +581,12 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  D3D12_HEAP_TYPE RenderCore_PlatformDX12::ResolveHeapType(GpuMemoryAccessType anAccessType)
+  D3D12_HEAP_TYPE RenderCore_PlatformDX12::ResolveHeapType(CpuMemoryAccessType anAccessType)
   {
     switch (anAccessType) { 
-      case GpuMemoryAccessType::NO_CPU_ACCESS: return D3D12_HEAP_TYPE_DEFAULT;
-      case GpuMemoryAccessType::CPU_WRITE: return D3D12_HEAP_TYPE_UPLOAD;
-      case GpuMemoryAccessType::CPU_READ: return D3D12_HEAP_TYPE_READBACK;
+      case CpuMemoryAccessType::NO_CPU_ACCESS: return D3D12_HEAP_TYPE_DEFAULT;
+      case CpuMemoryAccessType::CPU_WRITE: return D3D12_HEAP_TYPE_UPLOAD;
+      case CpuMemoryAccessType::CPU_READ: return D3D12_HEAP_TYPE_READBACK;
       default: ASSERT(false, "Missing implementation"); return D3D12_HEAP_TYPE_DEFAULT;
     }
   }

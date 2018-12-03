@@ -44,7 +44,7 @@ namespace Fancy {
     static DXGI_FORMAT GetTypelessFormat(DXGI_FORMAT aFormat);
 
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
-    static D3D12_HEAP_TYPE ResolveHeapType(GpuMemoryAccessType anAccessType);
+    static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
 
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
 
@@ -60,7 +60,7 @@ namespace Fancy {
     DynamicDescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
     void ReleaseDynamicDescriptorHeap(DynamicDescriptorHeapDX12* aHeap, uint64 aFenceVal);
 
-    GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, GpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName = nullptr);
+    GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName = nullptr);
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
 
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
@@ -89,7 +89,7 @@ namespace Fancy {
     std::list<std::pair<uint64, DynamicDescriptorHeapDX12*>> myUsedDynamicHeaps;
 
     UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)GpuMemoryAccessType::NUM];
+    UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)CpuMemoryAccessType::NUM];
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
 	  UniquePtr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
   };

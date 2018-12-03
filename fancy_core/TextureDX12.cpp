@@ -42,16 +42,6 @@ namespace Fancy {
     return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataDX12*>();
   }
 //---------------------------------------------------------------------------//
-  CommandListType TextureDX12::GetLastContextType(uint aSubresource) const
-  {
-    GpuResourceDataDX12* data = GetData();
-    if (data == nullptr)
-      return CommandListType::Graphics;
-
-    ASSERT(aSubresource < data->mySubresourceContexts.size());
-    return data->mySubresourceContexts[aSubresource];
-  }
-//---------------------------------------------------------------------------//
   uint TextureDX12::CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex)
   {
     return aPlaneIndex * aNumMips * aNumArraySlices +
@@ -69,6 +59,9 @@ namespace Fancy {
     Destroy();
     GpuResourceDataDX12* dataDx12 = new GpuResourceDataDX12();
     myNativeData = dataDx12;
+
+    myHazardData.reset(new GpuHazardDataDX12);
+    GpuHazardDataDX12* hazardDataDx12 = static_cast<GpuHazardDataDX12*>(myHazardData.get());
 
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "Texture_Unnamed";
@@ -145,15 +138,15 @@ namespace Fancy {
     const uint numArraySlices = myProperties.GetArraySize();
     const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
 
-    dataDx12->mySubresourceStates.resize(numSubresources);
-    dataDx12->mySubresourceContexts.resize(numSubresources);
+    hazardDataDx12->mySubresourceStates.resize(numSubresources);
+    hazardDataDx12->mySubresourceContexts.resize(numSubresources);
     for (uint i = 0u; i < numSubresources; ++i)
     {
-      dataDx12->mySubresourceStates[i] = initialState;
-      dataDx12->mySubresourceContexts[i] = CommandListType::Graphics;
+      hazardDataDx12->mySubresourceStates[i] = initialState;
+      hazardDataDx12->mySubresourceContexts[i] = CommandListType::Graphics;
     }
     
-    dataDx12->myReadState = readState;
+    hazardDataDx12->myReadState = readState;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -173,7 +166,7 @@ namespace Fancy {
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();
-    const GpuMemoryAccessType gpuMemAccess = (GpuMemoryAccessType)someProperties.myAccessType;
+    const CpuMemoryAccessType gpuMemAccess = (CpuMemoryAccessType)someProperties.myAccessType;
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo(0u, 1u, &resourceDesc);
 
     const GpuMemoryType memoryType = (someProperties.myIsRenderTarget || someProperties.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
@@ -336,6 +329,7 @@ namespace Fancy {
     }
 
     myNativeData.Clear();
+    myHazardData.reset();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//

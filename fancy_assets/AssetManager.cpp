@@ -131,7 +131,7 @@ using namespace Fancy;
     texProps.myWidth = texLoadInfo.width;
     texProps.myHeight = texLoadInfo.height;
     texProps.myDepthOrArraySize = 0u;
-    texProps.myAccessType = GpuMemoryAccessType::NO_CPU_ACCESS;
+    texProps.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
     texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
 
     if (!(texLoadInfo.bitsPerChannel == 8u || texLoadInfo.bitsPerChannel == 16u))

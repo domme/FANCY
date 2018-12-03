@@ -266,6 +266,13 @@ namespace Fancy {
       RenderCore::ReleaseRingBuffer(buf, aFenceVal);
     myIndexRingBuffers.clear();
 
+    for (GpuRingBuffer* buf : myReadbackRingBuffers)
+    {
+      buf->GetBuffer()->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+      RenderCore::ReleaseRingBuffer(buf, aFenceVal);
+    }
+    myReadbackRingBuffers.clear();
+
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
     
@@ -443,7 +450,7 @@ namespace Fancy {
 
     const GpuBufferProperties& bufParams = aDestBuffer->GetProperties();
 
-    if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_WRITE)
+    if (bufParams.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)
     {
       uint8* dest = static_cast<uint8*>(aDestBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aDestOffset, aByteSize));
       ASSERT(dest != nullptr);
@@ -506,35 +513,31 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  DynamicArray<uint8> CommandContext::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
+  void* CommandContext::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
   {
-    DynamicArray<uint8> data;
-
-
     ASSERT(anOffset + aByteSize <= aBuffer->GetByteSize());
 
+    DynamicArray<uint8> mappedData;
+    mappedData.resize(aByteSize);
+
     const GpuBufferProperties& bufParams = aBuffer->GetProperties();
-
-    //CommandQueueDX12* queue = static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(myCommandListType));
     
-    if (bufParams.myCpuAccess == GpuMemoryAccessType::CPU_READ)
+    if (bufParams.myCpuAccess == CpuMemoryAccessType::CPU_READ)
     {
-      ASSERT(bufParams.myElementSizeBytes > 0);
-
-      
-      //const uint64 numElements = 
-
-      //void* mappedData = aBuffer->Lock(GpuResourceMapMode::READ, )
-      
-
-      
+      return aBuffer->Map(GpuResourceMapMode::READ, anOffset, aByteSize);
     }
+    else
+    {
+      uint64 readbackBufferOffset = 0u;
+      const GpuBuffer* readbackBuffer = GetBuffer(readbackBufferOffset, GpuBufferUsage::STAGING_READBACK, nullptr, aByteSize);
 
-    //uint64 readbackBufferOffset = 0u;
-    //const GpuBuffer* readbackBuffer = GetBuffer(readbackBufferOffset, GpuBufferUsage::STAGING_READBACK, nullptr, neededStagingBufferSize);
-    //CopyBufferRegion(readbackBuffer, readbackBufferOffset, aBuffer, aBufferOffset, neededStagingBufferSize);
+      CommandContext* tempContext = RenderCore::AllocateContext(myCommandListType);
+      tempContext->CopyBufferRegion(readbackBuffer, readbackBufferOffset, aBuffer, anOffset, aByteSize);
+      RenderCore::GetCommandQueue(myCommandListType)->ExecuteContext(tempContext, true);
+      RenderCore::FreeContext(tempContext);
 
-    return std::move(data);
+      return readbackBuffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED, readbackBufferOffset, aByteSize);
+    }
   }
 //---------------------------------------------------------------------------//
   

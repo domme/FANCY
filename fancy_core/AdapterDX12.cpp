@@ -111,15 +111,15 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  GpuMemoryAccessType Adapter::ResolveGpuMemoryAccessType(D3D12_HEAP_TYPE aHeapType)
+  CpuMemoryAccessType Adapter::ResolveGpuMemoryAccessType(D3D12_HEAP_TYPE aHeapType)
   {
     switch (aHeapType)
     {
-    case D3D12_HEAP_TYPE_DEFAULT: return GpuMemoryAccessType::NO_CPU_ACCESS;
-    case D3D12_HEAP_TYPE_UPLOAD: return GpuMemoryAccessType::CPU_WRITE;
-    case D3D12_HEAP_TYPE_READBACK: return GpuMemoryAccessType::CPU_READ;
+    case D3D12_HEAP_TYPE_DEFAULT: return CpuMemoryAccessType::NO_CPU_ACCESS;
+    case D3D12_HEAP_TYPE_UPLOAD: return CpuMemoryAccessType::CPU_WRITE;
+    case D3D12_HEAP_TYPE_READBACK: return CpuMemoryAccessType::CPU_READ;
     default:
-      ASSERT(false, "Missing implementation"); return GpuMemoryAccessType::NO_CPU_ACCESS;
+      ASSERT(false, "Missing implementation"); return CpuMemoryAccessType::NO_CPU_ACCESS;
     }
   }
 //---------------------------------------------------------------------------//
