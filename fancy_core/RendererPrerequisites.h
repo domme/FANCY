@@ -281,6 +281,13 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
     struct TextureRegion
     {
+      TextureRegion()
+        : myTexelPos(glm::uvec3(0))
+        , myTexelSize(glm::uvec3(UINT_MAX))
+      {}
+
+      static TextureRegion ourMaxRegion;
+
       glm::uvec3 myTexelPos;
       glm::uvec3 myTexelSize;
     };

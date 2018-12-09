@@ -4,6 +4,8 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  TextureRegion TextureRegion::ourMaxRegion;
+//---------------------------------------------------------------------------//
 TextureSubData::TextureSubData(const TextureProperties& someProperties)
   : myData(nullptr)
 {

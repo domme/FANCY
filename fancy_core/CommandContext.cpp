@@ -531,4 +531,9 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  bool CommandContext::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aSubLocation, const TextureRegion& aRegion)
+  {
+
+  }
+//---------------------------------------------------------------------------//
 } 
