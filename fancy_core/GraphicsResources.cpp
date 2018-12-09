@@ -1,9 +1,66 @@
 #include "stdafx.h"
-#include "TextureResource.h"
+#include "GraphicsResources.h"
 #include "RenderCore.h"
 
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
+  void GpuBufferResource::Update(const GpuBufferResourceProperties& someProps, const char* aName)
+  {
+    const GpuBufferProperties& newProps = someProps.myBufferProperties;
+    ASSERT(!someProps.myIsShaderWritable || newProps.myIsShaderWritable);
+    
+    bool needsCreate = myBuffer == nullptr ||
+      (someProps.myIsShaderResource == (myReadView == nullptr)) ||
+      (someProps.myIsShaderWritable == (myWriteView == nullptr));
+
+    if (!needsCreate)
+    {
+      const GpuBufferProperties& currProps = myBuffer->GetProperties();
+      needsCreate =
+        newProps.myElementSizeBytes != currProps.myElementSizeBytes ||
+        newProps.myNumElements != currProps.myNumElements ||
+        newProps.myCpuAccess != currProps.myCpuAccess ||
+        newProps.myUsage != currProps.myUsage;
+
+      if (myReadView != nullptr || myWriteView != nullptr)
+      {
+        const GpuBufferViewProperties& currViewProps = myReadView != nullptr ? myReadView->GetProperties() : myWriteView->GetProperties();
+
+        needsCreate |= currViewProps.myIsRaw != someProps.myIsRaw ||
+          currViewProps.myFormat != someProps.myFormat ||
+          currViewProps.myIsStructured != someProps.myIsStructured;
+      }
+    }
+
+    if (needsCreate)
+    {
+      myBuffer = RenderCore::CreateBuffer(newProps, aName);
+      ASSERT(myBuffer);
+
+      GpuBufferViewProperties viewProps;
+      viewProps.myFormat = someProps.myFormat;
+      viewProps.myIsRaw = someProps.myIsRaw;
+      viewProps.myIsStructured = someProps.myIsStructured;
+
+      if (someProps.myIsShaderResource)
+      {
+        myReadView = RenderCore::CreateBufferView(myBuffer, viewProps);
+        ASSERT(myReadView);
+      }
+
+      if (someProps.myIsShaderWritable)
+      {
+        viewProps.myIsShaderWritable = true;
+        myWriteView = RenderCore::CreateBufferView(myBuffer, viewProps);
+        ASSERT(myWriteView);
+      }
+    }
+
+    myBuffer->SetName(aName);
+  }
+//---------------------------------------------------------------------------//
+
 //---------------------------------------------------------------------------//
   void TextureResource::Update(const TextureResourceProperties& someProps, const char* aName)
   {

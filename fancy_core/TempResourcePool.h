@@ -1,6 +1,6 @@
 #pragma once
 #include <unordered_map>
-#include "TextureResource.h"
+#include "GraphicsResources.h"
 
 namespace Fancy 
 {
@@ -19,11 +19,65 @@ namespace Fancy
     uint64 myBucketHash;
   };
 //---------------------------------------------------------------------------//
+  struct TempBufferResource
+  {
+    friend class TempResourcePool;
+
+    TempBufferResource()
+      : myBuffer(nullptr)
+      , myReadView(nullptr)
+      , myWriteView(nullptr)
+    {
+
+    }
+
+    TempBufferResource(const TempBufferResource& anOther)
+      : myBuffer(anOther.myBuffer)
+      , myReadView(anOther.myReadView)
+      , myWriteView(anOther.myWriteView)
+      , myKeepAlive(anOther.myKeepAlive)
+    {
+
+    }
+
+    TempBufferResource& operator=(const TempBufferResource& anOther)
+    {
+      myBuffer = anOther.myBuffer;
+      myReadView = anOther.myReadView;
+      myWriteView = anOther.myWriteView;
+      myKeepAlive = anOther.myKeepAlive;
+      return *this;
+    }
+
+    TempBufferResource& operator=(TempBufferResource&& anOther) noexcept
+    {
+      myBuffer = anOther.myBuffer;
+      myReadView = anOther.myReadView;
+      myWriteView = anOther.myWriteView;
+      myKeepAlive = anOther.myKeepAlive;
+      return *this;
+    }
+
+    GpuBuffer* myBuffer;
+    GpuBufferView* myReadView;
+    GpuBufferView* myWriteView;
+
+  protected:
+    SharedPtr<TempResourceKeepAlive> myKeepAlive;
+  };
+//---------------------------------------------------------------------------//
   struct TempTextureResource
   {
     friend class TempResourcePool;
 
-    TempTextureResource() = default;
+    TempTextureResource()
+      : myTexture(nullptr)
+      , myReadView(nullptr)
+      , myWriteView(nullptr)
+      , myRenderTargetView(nullptr)
+    {
+      
+    }
 
     TempTextureResource(const TempTextureResource& anOther)
       : myTexture(anOther.myTexture)
@@ -81,15 +135,17 @@ namespace Fancy
     
     void EndFrame();
     TempTextureResource AllocateTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName = nullptr);
+    TempBufferResource AllocateBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName = nullptr);
 
   private:
     void FreeResource(void* aResource, uint64 aBucketHash);
 
     std::unordered_map<uint64, std::list<TextureResource*>> myAvailableTextureBuckets;
     std::unordered_map<Texture*, TextureResource> myTexturePool;
-    uint myNumOpenFrameAllocs = 0u;
+    std::unordered_map<uint64, std::list<GpuBufferResource*>> myAvailableBufferBuckets;
+    std::unordered_map<GpuBuffer*, GpuBufferResource> myBufferPool;
 
-    // TODO: Add GpuBuffers...
+    uint myNumOpenFrameAllocs = 0u;
   };
 //---------------------------------------------------------------------------//
 }

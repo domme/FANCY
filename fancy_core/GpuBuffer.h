@@ -7,6 +7,17 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  class GpuBuffer;
+
+  struct MappedBufferData
+  {
+    GpuBuffer* myBuffer;
+    void* myData;
+    uint64 myOffset;
+    uint64 mySize;
+    GpuResourceMapMode aMapMode;
+  };
+//---------------------------------------------------------------------------//
   class GpuBuffer : public GpuResource
   {
   public:
@@ -17,7 +28,6 @@ namespace Fancy {
     uint GetAlignment() const { return myAlignment; }
 
     uint64 GetByteSize() const { return myProperties.myNumElements * myProperties.myElementSizeBytes; }
-    uint64 GetAllocatedByteSize() const { return MathUtil::Align(GetByteSize(), myAlignment); }
 
     virtual void Create(const GpuBufferProperties& clParameters, const char* aName = nullptr, const void* pInitialData = nullptr) = 0;
     virtual void* Map(GpuResourceMapMode aMapMode, uint64 anOffset = 0u, uint64 aSize = UINT64_MAX) const = 0;

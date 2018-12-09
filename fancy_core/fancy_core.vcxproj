@@ -139,7 +139,7 @@
     <ClInclude Include="FC_String.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="TextureResource.h" />
+    <ClInclude Include="GraphicsResources.h" />
     <ClInclude Include="TextureViewProperties.h" />
     <ClInclude Include="TextureDX12.h" />
     <ClInclude Include="ResourceRefs.h" />
@@ -196,7 +196,7 @@
     <ClCompile Include="TextureDX12.cpp" />
     <ClCompile Include="TextureSamplerDesc.cpp" />
     <ClCompile Include="TextureSamplerDX12.cpp" />
-    <ClCompile Include="TextureResource.cpp" />
+    <ClCompile Include="GraphicsResources.cpp" />
     <ClCompile Include="TimeManager.cpp" />
     <ClCompile Include="VertexInputLayout.cpp" />
     <ClCompile Include="GeometryVertexLayout.cpp" />

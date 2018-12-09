@@ -180,6 +180,51 @@ namespace Fancy {
     ourUsedRingBuffers.push_back(std::make_pair(aFenceVal, aBuffer));
   }
 //---------------------------------------------------------------------------//
+  GpuBuffer* RenderCore::AllocateReadbackBuffer(uint64 aSize, const char* aName)
+  {
+    aSize = MathUtil::Align(aSize, 1 * SIZE_MB);
+    ASSERT(aSize <= UINT_MAX, "Buffer size overflow. Consider making numElements 64 bit wide");
+
+    auto it = std::find_if(ourAvailableReadbackBuffers.begin(), ourAvailableReadbackBuffers.end(), [aSize](const GpuBuffer* currBuffer)
+    {
+      return currBuffer->GetProperties().myNumElements * currBuffer->GetProperties().myElementSizeBytes >= aSize;
+    });
+
+    if (it != ourAvailableReadbackBuffers.end())
+    {
+      GpuBuffer* buffer = *it;
+      it = ourAvailableReadbackBuffers.erase(it);
+
+      buffer->SetName(aName);
+      return buffer;
+    }
+
+    LOG_DEBUG("Allocating size % readback-buffer", aSize);
+
+    GpuBufferProperties params;
+    params.myNumElements = aSize;
+    params.myElementSizeBytes = 1u;
+    params.myUsage = GpuBufferUsage::STAGING_READBACK;
+    params.myCpuAccess = CpuMemoryAccessType::CPU_READ;
+    UniquePtr<GpuBuffer> buffer(ourPlatformImpl->CreateBuffer());
+    buffer->Create(params, aName);
+
+    GpuBuffer* returnBuf = buffer.get();
+    ourReadbackBufferPool.push_back(std::move(buffer));
+    return returnBuf;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::ReleaseReadbackBuffer(GpuBuffer* aBuffer)
+  {
+    if (aBuffer == nullptr)
+      return;
+
+#if FANCY_RENDERER_HEAVY_VALIDATION
+    ASSERT(std::find(ourAvailableReadbackBuffers.begin(), ourAvailableReadbackBuffers.end(), aBuffer) == ourAvailableReadbackBuffers.end());
+#endif
+    ourAvailableReadbackBuffers.push_back(aBuffer);
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
   {
     ASSERT(ourPlatformImpl == nullptr);

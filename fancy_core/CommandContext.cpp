@@ -126,11 +126,6 @@ namespace Fancy {
         name += "STAGING_UPLOAD";
         ringBufferList = &myUploadRingBuffers;
       } break;
-      case GpuBufferUsage::STAGING_READBACK:
-      {
-        name += "STAGING_READBACK";
-        ringBufferList = &myReadbackRingBuffers;
-      } break;
       case GpuBufferUsage::CONSTANT_BUFFER:
       {
         name += "CONSTANT_BUFFER";
@@ -266,12 +261,9 @@ namespace Fancy {
       RenderCore::ReleaseRingBuffer(buf, aFenceVal);
     myIndexRingBuffers.clear();
 
-    for (GpuRingBuffer* buf : myReadbackRingBuffers)
-    {
-      buf->GetBuffer()->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED);
-      RenderCore::ReleaseRingBuffer(buf, aFenceVal);
-    }
-    myReadbackRingBuffers.clear();
+    if (myReadbackBuffer != nullptr)
+      RenderCore::ReleaseReadbackBuffer(myReadbackBuffer);
+    myReadbackBuffer = nullptr;
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
@@ -516,27 +508,25 @@ namespace Fancy {
   void* CommandContext::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
   {
     ASSERT(anOffset + aByteSize <= aBuffer->GetByteSize());
-
-    DynamicArray<uint8> mappedData;
-    mappedData.resize(aByteSize);
-
-    const GpuBufferProperties& bufParams = aBuffer->GetProperties();
     
-    if (bufParams.myCpuAccess == CpuMemoryAccessType::CPU_READ)
+    if (aBuffer->GetProperties().myCpuAccess == CpuMemoryAccessType::CPU_READ)
     {
       return aBuffer->Map(GpuResourceMapMode::READ, anOffset, aByteSize);
     }
     else
     {
-      uint64 readbackBufferOffset = 0u;
-      const GpuBuffer* readbackBuffer = GetBuffer(readbackBufferOffset, GpuBufferUsage::STAGING_READBACK, nullptr, aByteSize);
+      if (myReadbackBuffer == nullptr || myReadbackBuffer->GetByteSize() < aByteSize )
+      {
+        RenderCore::ReleaseReadbackBuffer(myReadbackBuffer);
+        myReadbackBuffer = RenderCore::AllocateReadbackBuffer(aByteSize, "Readback buffer");
+      }
 
       CommandContext* tempContext = RenderCore::AllocateContext(myCommandListType);
-      tempContext->CopyBufferRegion(readbackBuffer, readbackBufferOffset, aBuffer, anOffset, aByteSize);
+      tempContext->CopyBufferRegion(myReadbackBuffer, 0u, aBuffer, anOffset, aByteSize);
       RenderCore::GetCommandQueue(myCommandListType)->ExecuteContext(tempContext, true);
       RenderCore::FreeContext(tempContext);
 
-      return readbackBuffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED, readbackBufferOffset, aByteSize);
+      return myReadbackBuffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED, 0u, aByteSize);
     }
   }
 //---------------------------------------------------------------------------//

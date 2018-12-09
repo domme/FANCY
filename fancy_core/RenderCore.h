@@ -80,6 +80,9 @@ namespace Fancy {
     static GpuRingBuffer* AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
 
+    static GpuBuffer* AllocateReadbackBuffer(uint64 aSize, const char* aName = nullptr);
+    static void ReleaseReadbackBuffer(GpuBuffer* aBuffer);
+
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
 
@@ -130,7 +133,10 @@ namespace Fancy {
     
     static std::vector<std::unique_ptr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
-    static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers; 
+    static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
+
+    static std::vector<std::unique_ptr<GpuBuffer>> ourReadbackBufferPool;
+    static std::list<GpuBuffer*> ourAvailableReadbackBuffers;
 
     static TempResourcePool ourTempResourcePool;
 

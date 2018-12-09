@@ -281,9 +281,13 @@
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="TempResourcePool.h" />
-    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="DataFormatList_Dummy.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TempResourcePool.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsResources.h">
       <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
@@ -421,8 +425,12 @@
     <ClCompile Include="StaticDescriptorAllocatorDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="TempResourcePool.cpp" />
-    <ClCompile Include="TextureResource.cpp" />
+    <ClCompile Include="GraphicsResources.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="TempResourcePool.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

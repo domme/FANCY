@@ -117,9 +117,9 @@ namespace Fancy {
 
     GraphicsPipelineState myGraphicsPipelineState;
     ComputePipelineState myComputePipelineState;
-    
+
+    GpuBuffer* myReadbackBuffer;
     DynamicArray<GpuRingBuffer*> myUploadRingBuffers;
-    DynamicArray<GpuRingBuffer*> myReadbackRingBuffers;
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
     DynamicArray<GpuRingBuffer*> myIndexRingBuffers;
