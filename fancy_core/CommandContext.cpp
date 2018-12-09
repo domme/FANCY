@@ -65,6 +65,7 @@ namespace Fancy {
     , myShaderHasUnorderedWrites(false)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr) 
+    , myReadbackBuffer(nullptr)
   {
   }
 //---------------------------------------------------------------------------//
@@ -505,13 +506,13 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void* CommandContext::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
+  bool CommandContext::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize, MappedBufferData& aMappedDataOut)
   {
     ASSERT(anOffset + aByteSize <= aBuffer->GetByteSize());
     
     if (aBuffer->GetProperties().myCpuAccess == CpuMemoryAccessType::CPU_READ)
     {
-      return aBuffer->Map(GpuResourceMapMode::READ, anOffset, aByteSize);
+      return aBuffer->Map(aMappedDataOut, false, GpuResourceMapMode::READ, anOffset, aByteSize);
     }
     else
     {
@@ -526,10 +527,8 @@ namespace Fancy {
       RenderCore::GetCommandQueue(myCommandListType)->ExecuteContext(tempContext, true);
       RenderCore::FreeContext(tempContext);
 
-      return myReadbackBuffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED, 0u, aByteSize);
+      return myReadbackBuffer->Map(aMappedDataOut, false, GpuResourceMapMode::READ_UNSYNCHRONIZED, 0u, aByteSize);
     }
   }
-//---------------------------------------------------------------------------//
-  
 //---------------------------------------------------------------------------//
 } 

@@ -74,6 +74,9 @@ namespace Fancy {
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
 
+  std::vector<std::unique_ptr<GpuBuffer>> RenderCore::ourReadbackBufferPool;
+  std::list<GpuBuffer*> RenderCore::ourAvailableReadbackBuffers;
+
   TempResourcePool RenderCore::ourTempResourcePool;
 
   Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
@@ -187,7 +190,7 @@ namespace Fancy {
 
     auto it = std::find_if(ourAvailableReadbackBuffers.begin(), ourAvailableReadbackBuffers.end(), [aSize](const GpuBuffer* currBuffer)
     {
-      return currBuffer->GetProperties().myNumElements * currBuffer->GetProperties().myElementSizeBytes >= aSize;
+      return currBuffer->GetByteSize() >= aSize;
     });
 
     if (it != ourAvailableReadbackBuffers.end())

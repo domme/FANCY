@@ -59,19 +59,17 @@ namespace Fancy
     std::list<TextureResource*>& availableList = myAvailableTextureBuckets[key];
     if (!availableList.empty())
     {
-      auto it = availableList.begin();
-      bool found = false;
-      for (; it != availableList.end() && !found; ++it)
+      auto it = std::find_if(availableList.begin(), availableList.end(), [&](const TextureResource* aResource) 
       {
-        const TextureProperties& texProps = (*it)->myTexture->GetProperties();
+        const TextureProperties& texProps = aResource->myTexture->GetProperties();
 
         if (someFlags & FORCE_SIZE)
-          found = texProps.myWidth == someProps.myTextureProperties.myWidth && texProps.myHeight == someProps.myTextureProperties.myHeight && texProps.myDepthOrArraySize == someProps.myTextureProperties.myDepthOrArraySize;
-        else
-          found = texProps.myWidth >= someProps.myTextureProperties.myWidth && texProps.myHeight >= someProps.myTextureProperties.myHeight && texProps.myDepthOrArraySize >= someProps.myTextureProperties.myDepthOrArraySize;
-      }
+          return texProps.myWidth == someProps.myTextureProperties.myWidth && texProps.myHeight == someProps.myTextureProperties.myHeight && texProps.myDepthOrArraySize == someProps.myTextureProperties.myDepthOrArraySize;
 
-      if (found)
+        return texProps.myWidth >= someProps.myTextureProperties.myWidth && texProps.myHeight >= someProps.myTextureProperties.myHeight && texProps.myDepthOrArraySize >= someProps.myTextureProperties.myDepthOrArraySize;
+      });
+
+      if (it != availableList.end())
       {
         TextureResource* res = (*it);
         availableList.erase(it);
@@ -110,17 +108,13 @@ namespace Fancy
     std::list<GpuBufferResource*>& availableList = myAvailableBufferBuckets[key];
     if (!availableList.empty())
     {
-      auto it = availableList.begin();
-      bool found = false;
-      for (; it != availableList.end() && !found; ++it)
+      auto it = std::find_if(availableList.begin(), availableList.end(), [desiredSize, someFlags](const GpuBufferResource* aResource)
       {
-        const GpuBufferProperties& currProps = (*it)->myBuffer->GetProperties();
-        const uint64 currSize = currProps.myElementSizeBytes * currProps.myElementSizeBytes;
-       
-        found = (someFlags & FORCE_SIZE) > 0 ? currSize == desiredSize : currSize >= desiredSize;
-      }
+        const uint64 currSize = aResource->myBuffer->GetByteSize();
+        return (someFlags & FORCE_SIZE) > 0 ? currSize == desiredSize : currSize >= desiredSize;
+      });
 
-      if (found)
+      if (it != availableList.end())
       {
         GpuBufferResource* res = (*it);
         availableList.erase(it);
