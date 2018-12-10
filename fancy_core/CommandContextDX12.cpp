@@ -305,12 +305,65 @@ namespace Fancy {
     myCommandList->CopyBufferRegion(dstResource, aDestOffset, srcResource, aSrcOffset, aSize);
   }
 //---------------------------------------------------------------------------//
+  void CommandContextDX12::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
+  {
+    ID3D12Resource* bufferResourceDX12 = static_cast<const GpuBufferDX12*>(aDestBuffer)->GetData()->myResource.Get();
+    ID3D12Resource* textureResourceDX12 = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
+
+    const uint16 bufferSubresourceIndex = 0;
+    const uint16 textureSubresourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubLocation));
+
+    const GpuResource* resourcesToTransition[] = { aDestBuffer, aSrcTexture };
+    const uint16* subresourceLists[] = { &bufferSubresourceIndex, &textureSubresourceIndex };
+    const uint numSubresources[] = { 1, 1 };
+    const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
+    SetSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, 2);
+
+    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
+
+    D3D12_TEXTURE_COPY_LOCATION srcLocation;
+    srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+    srcLocation.SubresourceIndex = textureSubresourceIndex;
+    srcLocation.pResource = textureResourceDX12;
+
+    const D3D12_RESOURCE_DESC& textureResourceDescDX12 = textureResourceDX12->GetDesc();
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+    uint numRows;
+    uint64 rowSizeBytes;
+    uint64 totalSizeBytes;
+    device->GetCopyableFootprints(&textureResourceDescDX12, srcLocation.SubresourceIndex, 1u, 0u, &footprint, &numRows, &rowSizeBytes, &totalSizeBytes);
+
+    ASSERT(totalSizeBytes <= aDestBuffer->GetByteSize() - aDestOffset);
+
+    D3D12_TEXTURE_COPY_LOCATION destLocation;
+    destLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+    destLocation.pResource = bufferResourceDX12;
+    destLocation.PlacedFootprint.Footprint = footprint.Footprint;
+    destLocation.PlacedFootprint.Offset = aDestOffset + footprint.Offset;
+    
+    if (aSrcRegion != nullptr)
+    {
+      D3D12_BOX srcBox;
+      srcBox.left = aSrcRegion->myTexelPos.x;
+      srcBox.right = aSrcRegion->myTexelPos.x + aSrcRegion->myTexelSize.x;
+      srcBox.top = aSrcRegion->myTexelPos.y;
+      srcBox.bottom = aSrcRegion->myTexelPos.y + aSrcRegion->myTexelSize.y;
+      srcBox.front = aSrcRegion->myTexelPos.z;
+      srcBox.back = aSrcRegion->myTexelPos.z + aSrcRegion->myTexelSize.z;
+      myCommandList->CopyTextureRegion(&destLocation, 0, 0, 0, &srcLocation, &srcBox);
+    }
+    else
+    {
+      myCommandList->CopyTextureRegion(&destLocation, 0, 0, 0, &srcLocation, nullptr);
+    }
+  }
+  //---------------------------------------------------------------------------//
   void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
     const TextureProperties& srcProps = aSrcTexture->GetProperties();
 
-    // TODO: asserts and validation of regions agains texture-parameters
+    // TODO: asserts and validation of regions against texture-parameters
     
     ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDestTexture)->GetData()->myResource.Get();
     ID3D12Resource* srcResource = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();

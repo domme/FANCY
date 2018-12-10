@@ -531,9 +531,60 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  bool CommandContext::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aSubLocation, const TextureRegion& aRegion)
+  bool CommandContext::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, TextureSubData** someDatasOut, MappedBufferData& aMappedDataOut, uint aNumDatas)
   {
+    DynamicArray<TextureSubLayout> subresourceLayouts;
+    DynamicArray<uint64> subresourceOffsets;
+    uint64 totalSize;
+    aTexture->GetSubresourceLayout(aStartSubLocation, aNumDatas, subresourceLayouts, subresourceOffsets, totalSize);
 
+    if (myReadbackBuffer == nullptr || myReadbackBuffer->GetByteSize() < totalSize)
+    {
+      RenderCore::ReleaseReadbackBuffer(myReadbackBuffer);
+      myReadbackBuffer = RenderCore::AllocateReadbackBuffer(totalSize, "Readback texture buffer");
+    }
+
+    CommandContext* tempContext = RenderCore::AllocateContext(myCommandListType);
+    for (uint i = 0; i < aNumDatas; ++i)
+    {
+
+    }
+
+    uint8* uploadBufferData = (uint8*)uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
+
+    const uint numSubresources = glm::min(aNumDatas, (uint)subresourceLayouts.size());
+    for (uint i = 0; i < numSubresources; ++i)
+    {
+      const TextureSubLayout& dstLayout = subresourceLayouts[i];
+      const TextureSubData& srcData = someDatas[i];
+
+      const uint64 alignedSliceSize = dstLayout.myAlignedRowSize * dstLayout.myNumRows;
+
+      uint8* dstSubresourceData = uploadBufferData + subresourceOffsets[i];
+      uint8* srcSubresourceData = srcData.myData;
+      for (uint iSlice = 0; iSlice < dstLayout.myDepth; ++iSlice)
+      {
+        uint8* dstSliceData = dstSubresourceData + iSlice * alignedSliceSize;
+        uint8* srcSliceData = srcSubresourceData + iSlice * srcData.mySliceSizeBytes;
+
+        for (uint iRow = 0; iRow < dstLayout.myNumRows; ++iRow)
+        {
+          uint8* dstRowData = dstSliceData + iRow * dstLayout.myAlignedRowSize;
+          uint8* srcRowData = srcSliceData + iRow * srcData.myRowSizeBytes;
+
+          ASSERT(dstLayout.myRowSize == srcData.myRowSizeBytes);
+          memcpy(dstRowData, srcRowData, srcData.myRowSizeBytes);
+        }
+      }
+    }
+    uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
+
+    const uint startDestSubresourceIndex = aDestTexture->GetSubresourceIndex(aStartSubresource);
+    for (uint i = 0; i < numSubresources; ++i)
+    {
+      const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
+      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
+    }
   }
 //---------------------------------------------------------------------------//
 } 

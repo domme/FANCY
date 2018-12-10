@@ -52,6 +52,7 @@ namespace Fancy {
     virtual void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) = 0;
     virtual void CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) = 0;
+    virtual void CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) = 0;
     virtual void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) = 0;
     virtual void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) = 0;
     virtual void Dispatch(const glm::int3& aNumThreads) = 0;
@@ -89,7 +90,7 @@ namespace Fancy {
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
 
     bool ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize, MappedBufferData& aMappedDataOut);
-    bool ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aSubLocation, const TextureRegion& aRegion = TextureRegion::ourMaxRegion);
+    bool ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, TextureSubData** someDatasOut, MappedBufferData& aMappedDataOut, uint aNumDatas);
 
     void TransitionResource(const GpuResource* aResource, GpuResourceTransition aTransition);
     void TransitionResource(const GpuResource* aResource1, GpuResourceTransition aTransition1,
@@ -120,6 +121,7 @@ namespace Fancy {
     ComputePipelineState myComputePipelineState;
 
     GpuBuffer* myReadbackBuffer;
+    Texture* myReadbackTexture;
     DynamicArray<GpuRingBuffer*> myUploadRingBuffers;
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
