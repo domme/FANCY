@@ -7,25 +7,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class GpuBuffer;
-
-  struct MappedBufferData
-  {
-    MappedBufferData() = default;
-    MappedBufferData(const MappedBufferData& anOther) = delete;
-    MappedBufferData(MappedBufferData&& anOther) = delete;
-    MappedBufferData& operator= (const MappedBufferData& anOther) = delete;
-    MappedBufferData& operator= (MappedBufferData&& anOther) = delete;
-    ~MappedBufferData();
-
-    const GpuBuffer* myBuffer = nullptr;
-    void* myData = nullptr;
-    uint64 myOffset = 0u;
-    uint64 mySize = UINT64_MAX;
-    GpuResourceMapMode myMapMode = GpuResourceMapMode::WRITE;
-    bool myIsPersistantMap = false;
-  };
-//---------------------------------------------------------------------------//
   class GpuBuffer : public GpuResource
   {
   public:
@@ -41,8 +22,6 @@ namespace Fancy {
     uint64 GetByteSize() const { return myProperties.myNumElements * myProperties.myElementSizeBytes; }
     uint GetNumSubresources() const override{ return 1u; }
 
-    bool Map(MappedBufferData& aMappedDataOut, bool aIsPersistent, GpuResourceMapMode aMapMode, uint64 anOffset = 0u, uint64 aSize = UINT64_MAX) const;
-    
   protected:
     uint myAlignment;
     GpuBufferProperties myProperties;

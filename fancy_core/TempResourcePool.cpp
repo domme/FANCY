@@ -42,6 +42,30 @@ namespace Fancy
     myPool->FreeResource(myResource, myBucketHash);
   }
 //---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  MappedTempBuffer::MappedTempBuffer(const TempBufferResource& aResource, GpuResourceMapMode aMapMode, uint64 aSize)
+    : myTempBuffer(aResource)
+    , myMapMode(aMapMode)
+    , mySize(aSize)
+  {
+    myMappedData = myTempBuffer.myBuffer->Map(myMapMode, 0u, mySize);
+  }
+//---------------------------------------------------------------------------//
+  MappedTempBuffer::~MappedTempBuffer()
+  {
+    Unmap();
+  }
+//---------------------------------------------------------------------------//
+  void MappedTempBuffer::Unmap()
+  {
+    myTempBuffer.myBuffer->Unmap(myMapMode, 0u, mySize);
+    myMappedData = nullptr;
+    mySize = 0u;
+  }
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
   TempResourcePool::~TempResourcePool()
   {
     ASSERT(myNumOpenFrameAllocs == 0, "% open temp resource allocs when destroying the temp resource pool", myNumOpenFrameAllocs);

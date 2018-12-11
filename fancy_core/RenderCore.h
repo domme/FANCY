@@ -68,6 +68,9 @@ namespace Fancy {
     static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);
     
+    static MappedTempBuffer ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize);
+    // static bool ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, TextureSubData** someDatasOut, MappedBufferData& aMappedDataOut, uint aNumDatas);
+    
     static SharedPtr<BlendState> CreateBlendState(const BlendStateDesc& aDesc);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateDesc& aDesc);
     static const SharedPtr<BlendState>& GetDefaultBlendState();
@@ -87,6 +90,7 @@ namespace Fancy {
     static void FreeContext(CommandContext* aContext);
 
     static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
+    static TempBufferResource AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName);
 
     static void WaitForFence(uint64 aFenceVal);
     static void WaitForIdle(CommandListType aType);
