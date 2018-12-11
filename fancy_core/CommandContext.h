@@ -89,9 +89,6 @@ namespace Fancy {
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
 
-    bool ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize, MappedBufferData& aMappedDataOut);
-    bool ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, TextureSubData** someDatasOut, MappedBufferData& aMappedDataOut, uint aNumDatas);
-
     void TransitionResource(const GpuResource* aResource, GpuResourceTransition aTransition);
     void TransitionResource(const GpuResource* aResource1, GpuResourceTransition aTransition1,
                             const GpuResource* aResource2, GpuResourceTransition aTransition2);
