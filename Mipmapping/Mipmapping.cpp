@@ -234,8 +234,7 @@ void Render()
   uint64 bufOffset;
   const GpuBuffer* buf = ctx->GetBuffer(bufOffset, GpuBufferUsage::VERTEX_BUFFER, testData, sizeof(testData));
 
-  MappedBufferData bufData;
-  ctx->ReadbackBufferData(buf, bufOffset, sizeof(testData), bufData);
+  MappedTempBuffer bufData = RenderCore::ReadbackBufferData(buf, bufOffset, sizeof(testData));
 
   RenderCore::FreeContext(ctx);
 

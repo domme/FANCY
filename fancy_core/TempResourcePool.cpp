@@ -66,14 +66,25 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  TempResourcePool::~TempResourcePool()
+  MappedTempTextureBuffer::MappedTempTextureBuffer(const DynamicArray<TextureSubLayout>& someLayouts, const TempBufferResource& aResource, GpuResourceMapMode aMapMode, uint64 aSize)
+    : MappedTempBuffer(aResource, aMapMode, aSize)
+    , myLayouts(someLayouts)
   {
-    ASSERT(myNumOpenFrameAllocs == 0, "% open temp resource allocs when destroying the temp resource pool", myNumOpenFrameAllocs);
+
   }
 //---------------------------------------------------------------------------//
-  void TempResourcePool::EndFrame()
+
+//---------------------------------------------------------------------------//
+  TempResourcePool::~TempResourcePool()
   {
-    ASSERT(myNumOpenFrameAllocs == 0, "% open temp resource allocs accross frame boundary", myNumOpenFrameAllocs);
+    ASSERT(myNumOpenBufferAllocs == 0, "% open temp buffer allocs when destroying the temp resource pool", myNumOpenBufferAllocs);
+    ASSERT(myNumOpenTextureAllocs == 0, "% open temp texture allocs when destroying the temp resource pool", myNumOpenTextureAllocs);
+  }
+//---------------------------------------------------------------------------//
+  void TempResourcePool::Reset()
+  {
+    ASSERT(myNumOpenBufferAllocs == 0, "% open temp buffer allocs accross frame boundary", myNumOpenBufferAllocs);
+    ASSERT(myNumOpenTextureAllocs == 0, "% open temp texture allocs accross frame boundary", myNumOpenTextureAllocs);
   }
 //---------------------------------------------------------------------------//
   TempTextureResource TempResourcePool::AllocateTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName)
@@ -104,7 +115,7 @@ namespace Fancy
         returnRes.myWriteView = res->myWriteView.get();
         returnRes.myRenderTargetView = res->myRenderTargetView.get();
         returnRes.myKeepAlive.reset(new TempResourceKeepAlive(this, returnRes.myTexture, key));
-        ++myNumOpenFrameAllocs;
+        ++myNumOpenTextureAllocs;
         return returnRes;
       }
     }
@@ -120,7 +131,7 @@ namespace Fancy
     returnRes.myWriteView = res.myWriteView.get();
     returnRes.myRenderTargetView = res.myRenderTargetView.get();
     returnRes.myKeepAlive.reset(new TempResourceKeepAlive(this, returnRes.myTexture, key));
-    ++myNumOpenFrameAllocs;
+    ++myNumOpenTextureAllocs;
     return returnRes;
   }
 //---------------------------------------------------------------------------//
@@ -148,7 +159,7 @@ namespace Fancy
         returnRes.myReadView = res->myReadView.get();
         returnRes.myWriteView = res->myWriteView.get();
         returnRes.myKeepAlive.reset(new TempResourceKeepAlive(this, returnRes.myBuffer, key));
-        ++myNumOpenFrameAllocs;
+        ++myNumOpenBufferAllocs;
         return returnRes;
       }
     }
@@ -163,26 +174,45 @@ namespace Fancy
     returnRes.myReadView = res.myReadView.get();
     returnRes.myWriteView = res.myWriteView.get();
     returnRes.myKeepAlive.reset(new TempResourceKeepAlive(this, returnRes.myBuffer, key));
-    ++myNumOpenFrameAllocs;
+    ++myNumOpenBufferAllocs;
     return returnRes;
   }
 //---------------------------------------------------------------------------//
   void TempResourcePool::FreeResource(void* aResource, uint64 aBucketHash)
   {
-    auto it = myTexturePool.find(static_cast<Texture*>(aResource));
-    ASSERT(it != myTexturePool.end());
+    GpuResource* resource = static_cast<GpuResource*>(aResource);
+    if (resource->myCategory == GpuResourceCategory::BUFFER)
+    {
+      auto it = myBufferPool.find(static_cast<GpuBuffer*>(aResource));
+      ASSERT(it != myBufferPool.end());
+      auto listIt = myAvailableBufferBuckets.find(aBucketHash);
+      ASSERT(listIt != myAvailableBufferBuckets.end());
 
-    auto listIt = myAvailableTextureBuckets.find(aBucketHash);
-    ASSERT(listIt != myAvailableTextureBuckets.end());
-
-    TextureResource* res = &it->second;
+      GpuBufferResource* res = &it->second;
 #if FANCY_RENDERER_HEAVY_VALIDATION
-    ASSERT(std::find(listIt->second.begin(), listIt->second.end(), res) == listIt->second.end());
+      ASSERT(std::find(listIt->second.begin(), listIt->second.end(), res) == listIt->second.end());
 #endif
-    listIt->second.push_back(res);
+      listIt->second.push_back(res);
 
-    ASSERT(myNumOpenFrameAllocs > 0);
-    --myNumOpenFrameAllocs;
+      ASSERT(myNumOpenBufferAllocs > 0);
+      --myNumOpenBufferAllocs;
+    }
+    else
+    {
+      auto it = myTexturePool.find(static_cast<Texture*>(aResource));
+      ASSERT(it != myTexturePool.end());
+      auto listIt = myAvailableTextureBuckets.find(aBucketHash);
+      ASSERT(listIt != myAvailableTextureBuckets.end());
+
+      TextureResource* res = &it->second;
+#if FANCY_RENDERER_HEAVY_VALIDATION
+      ASSERT(std::find(listIt->second.begin(), listIt->second.end(), res) == listIt->second.end());
+#endif
+      listIt->second.push_back(res);
+
+      ASSERT(myNumOpenTextureAllocs > 0);
+      --myNumOpenTextureAllocs;
+    }
   }
 //---------------------------------------------------------------------------//
 }

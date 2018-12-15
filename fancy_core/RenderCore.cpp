@@ -74,9 +74,6 @@ namespace Fancy {
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
 
-  std::vector<std::unique_ptr<GpuBuffer>> RenderCore::ourReadbackBufferPool;
-  std::list<GpuBuffer*> RenderCore::ourAvailableReadbackBuffers;
-
   TempResourcePool RenderCore::ourTempResourcePool;
 
   Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
@@ -113,9 +110,14 @@ namespace Fancy {
     Init_2_Resources();
   }
 //---------------------------------------------------------------------------//
+  void RenderCore::BeginFrame()
+  {
+    ourTempResourcePool.Reset();
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
   {
-    ourTempResourcePool.EndFrame();
+    
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
@@ -181,51 +183,6 @@ namespace Fancy {
 
     aBuffer->Reset();
     ourUsedRingBuffers.push_back(std::make_pair(aFenceVal, aBuffer));
-  }
-//---------------------------------------------------------------------------//
-  GpuBuffer* RenderCore::AllocateReadbackBuffer(uint64 aSize, const char* aName)
-  {
-    aSize = MathUtil::Align(aSize, 1 * SIZE_MB);
-    ASSERT(aSize <= UINT_MAX, "Buffer size overflow. Consider making numElements 64 bit wide");
-
-    auto it = std::find_if(ourAvailableReadbackBuffers.begin(), ourAvailableReadbackBuffers.end(), [aSize](const GpuBuffer* currBuffer)
-    {
-      return currBuffer->GetByteSize() >= aSize;
-    });
-
-    if (it != ourAvailableReadbackBuffers.end())
-    {
-      GpuBuffer* buffer = *it;
-      it = ourAvailableReadbackBuffers.erase(it);
-
-      buffer->SetName(aName);
-      return buffer;
-    }
-
-    LOG_DEBUG("Allocating size % readback-buffer", aSize);
-
-    GpuBufferProperties params;
-    params.myNumElements = aSize;
-    params.myElementSizeBytes = 1u;
-    params.myUsage = GpuBufferUsage::STAGING_READBACK;
-    params.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    UniquePtr<GpuBuffer> buffer(ourPlatformImpl->CreateBuffer());
-    buffer->Create(params, aName);
-
-    GpuBuffer* returnBuf = buffer.get();
-    ourReadbackBufferPool.push_back(std::move(buffer));
-    return returnBuf;
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore::ReleaseReadbackBuffer(GpuBuffer* aBuffer)
-  {
-    if (aBuffer == nullptr)
-      return;
-
-#if FANCY_RENDERER_HEAVY_VALIDATION
-    ASSERT(std::find(ourAvailableReadbackBuffers.begin(), ourAvailableReadbackBuffers.end(), aBuffer) == ourAvailableReadbackBuffers.end());
-#endif
-    ourAvailableReadbackBuffers.push_back(aBuffer);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
@@ -694,7 +651,7 @@ namespace Fancy {
       LOG_WARNING("ReadbackBufferData() called with a CPU-readable buffer. Its better to directly map the buffer to avoid uneccessary temp-copies");
 
     GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = aByteSize - anOffset;
+    props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize - anOffset, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
     props.myBufferProperties.myElementSizeBytes = 1u;
     props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
     props.myBufferProperties.myUsage = GpuBufferUsage::STAGING_READBACK;
@@ -703,75 +660,44 @@ namespace Fancy {
     TempBufferResource readbackBuffer  = AllocateTempBuffer(props, 0u, "Temp readback buffer");
     ASSERT(readbackBuffer.myBuffer != nullptr);
 
-    WaitForResourceIdle(aBuffer);
-
     CommandContext* ctx = AllocateContext(CommandListType::Graphics);
     ctx->CopyBufferRegion(readbackBuffer.myBuffer, 0u, aBuffer, anOffset, aByteSize);
     GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx, true);
     FreeContext(ctx);
 
-    return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ_UNSYNCHRONIZED, aByteSize);
+    return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ, aByteSize);
   }
 //---------------------------------------------------------------------------//
-  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, TextureSubData** someDatasOut, MappedBufferData& aMappedDataOut, uint aNumDatas)
+  MappedTempBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations)
   {
     DynamicArray<TextureSubLayout> subresourceLayouts;
     DynamicArray<uint64> subresourceOffsets;
     uint64 totalSize;
-    aTexture->GetSubresourceLayout(aStartSubLocation, aNumDatas, subresourceLayouts, subresourceOffsets, totalSize);
+    aTexture->GetSubresourceLayout(aStartSubLocation, aNumSublocations, subresourceLayouts, subresourceOffsets, totalSize);
 
-    if (myReadbackBuffer == nullptr || myReadbackBuffer->GetByteSize() < totalSize)
+    GpuBufferResourceProperties props;
+    props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
+    props.myBufferProperties.myElementSizeBytes = 1u;
+    props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
+    props.myBufferProperties.myUsage = GpuBufferUsage::STAGING_READBACK;
+    props.myIsShaderResource = false;
+    props.myIsShaderWritable = false;
+    TempBufferResource readbackBuffer = AllocateTempBuffer(props, 0u, "Temp texture readback buffer");
+    ASSERT(readbackBuffer.myBuffer != nullptr);
+
+    const uint startSubresourceIndex = aTexture->GetSubresourceIndex(aStartSubLocation);
+
+    CommandContext* ctx = AllocateContext(CommandListType::Graphics);
+    for (uint subresource = 0; subresource < aNumSublocations; ++subresource)
     {
-      RenderCore::ReleaseReadbackBuffer(myReadbackBuffer);
-      myReadbackBuffer = RenderCore::AllocateReadbackBuffer(totalSize, "Readback texture buffer");
+      TextureSubLocation subLocation = aTexture->GetSubresourceLocation(startSubresourceIndex + subresource);
+      uint64 offset = subresourceOffsets[subresource];
+      ctx->CopyTextureRegion(readbackBuffer.myBuffer, offset, aTexture, subLocation);
     }
+    GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx, true);
+    FreeContext(ctx);
 
-    CommandContext* tempContext = RenderCore::AllocateContext(myCommandListType);
-    for (uint i = 0; i < aNumDatas; ++i)
-    {
-
-    }
-
-    return true;
-
-    /*
-     *uint8* uploadBufferData = (uint8*)uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
-
-    const uint numSubresources = glm::min(aNumDatas, (uint)subresourceLayouts.size());
-    for (uint i = 0; i < numSubresources; ++i)
-    {
-      const TextureSubLayout& dstLayout = subresourceLayouts[i];
-      const TextureSubData& srcData = someDatas[i];
-
-      const uint64 alignedSliceSize = dstLayout.myAlignedRowSize * dstLayout.myNumRows;
-
-      uint8* dstSubresourceData = uploadBufferData + subresourceOffsets[i];
-      uint8* srcSubresourceData = srcData.myData;
-      for (uint iSlice = 0; iSlice < dstLayout.myDepth; ++iSlice)
-      {
-        uint8* dstSliceData = dstSubresourceData + iSlice * alignedSliceSize;
-        uint8* srcSliceData = srcSubresourceData + iSlice * srcData.mySliceSizeBytes;
-
-        for (uint iRow = 0; iRow < dstLayout.myNumRows; ++iRow)
-        {
-          uint8* dstRowData = dstSliceData + iRow * dstLayout.myAlignedRowSize;
-          uint8* srcRowData = srcSliceData + iRow * srcData.myRowSizeBytes;
-
-          ASSERT(dstLayout.myRowSize == srcData.myRowSizeBytes);
-          memcpy(dstRowData, srcRowData, srcData.myRowSizeBytes);
-        }
-      }
-    }
-    uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
-
-    const uint startDestSubresourceIndex = aDestTexture->GetSubresourceIndex(aStartSubresource);
-    for (uint i = 0; i < numSubresources; ++i)
-    {
-      const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
-      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
-    }
-     *
-     */
+    
 
     
   }
@@ -853,7 +779,8 @@ namespace Fancy {
     }
 
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      WaitForIdle((CommandListType)i);
+      if (commandListNeedsWait[i])
+        WaitForIdle((CommandListType)i);
   }
 //---------------------------------------------------------------------------//
   

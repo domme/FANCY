@@ -130,6 +130,12 @@ namespace Fancy
     void* myMappedData = nullptr;
   };
 //---------------------------------------------------------------------------//
+  struct MappedTempTextureBuffer : MappedTempBuffer
+  {
+    MappedTempTextureBuffer(const DynamicArray<TextureSubLayout>& someLayouts, const TempBufferResource& aResource, GpuResourceMapMode aMapMode, uint64 aSize);
+    DynamicArray<TextureSubLayout> myLayouts;
+  };
+//---------------------------------------------------------------------------//
   class TempResourcePool
   {
     friend struct TempResourceKeepAlive;
@@ -145,7 +151,7 @@ namespace Fancy
     TempResourcePool() = default;
     ~TempResourcePool();
     
-    void EndFrame();
+    void Reset();
     TempTextureResource AllocateTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName = nullptr);
     TempBufferResource AllocateBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName = nullptr);
 
@@ -157,7 +163,8 @@ namespace Fancy
     std::unordered_map<uint64, std::list<GpuBufferResource*>> myAvailableBufferBuckets;
     std::unordered_map<GpuBuffer*, GpuBufferResource> myBufferPool;
 
-    uint myNumOpenFrameAllocs = 0u;
+    uint myNumOpenBufferAllocs = 0u;
+    uint myNumOpenTextureAllocs = 0u;
   };
 //---------------------------------------------------------------------------//
 }

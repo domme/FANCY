@@ -65,7 +65,6 @@ namespace Fancy {
     , myShaderHasUnorderedWrites(false)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr) 
-    , myReadbackBuffer(nullptr)
   {
   }
 //---------------------------------------------------------------------------//
@@ -261,10 +260,6 @@ namespace Fancy {
     for (GpuRingBuffer* buf : myIndexRingBuffers)
       RenderCore::ReleaseRingBuffer(buf, aFenceVal);
     myIndexRingBuffers.clear();
-
-    if (myReadbackBuffer != nullptr)
-      RenderCore::ReleaseReadbackBuffer(myReadbackBuffer);
-    myReadbackBuffer = nullptr;
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();

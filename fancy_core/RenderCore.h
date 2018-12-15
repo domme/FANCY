@@ -40,6 +40,7 @@ namespace Fancy {
   public:
     /// Init platform-independent stuff
     static void Init(RenderingApi aRenderingApi);
+    static void BeginFrame();
     static void EndFrame();
     static void Shutdown();
 
@@ -69,7 +70,7 @@ namespace Fancy {
     static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);
     
     static MappedTempBuffer ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize);
-    // static bool ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, TextureSubData** someDatasOut, MappedBufferData& aMappedDataOut, uint aNumDatas);
+    static MappedTempBuffer ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations);
     
     static SharedPtr<BlendState> CreateBlendState(const BlendStateDesc& aDesc);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateDesc& aDesc);
@@ -82,9 +83,6 @@ namespace Fancy {
 
     static GpuRingBuffer* AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
-
-    static GpuBuffer* AllocateReadbackBuffer(uint64 aSize, const char* aName = nullptr);
-    static void ReleaseReadbackBuffer(GpuBuffer* aBuffer);
 
     static CommandContext* AllocateContext(CommandListType aType);
     static void FreeContext(CommandContext* aContext);
@@ -102,6 +100,11 @@ namespace Fancy {
     static Slot<void(const GpuProgram*)> ourOnShaderRecompiled;
 
   protected:
+    enum Constants
+    {
+      kReadbackBufferSizeIncrease = 2 * SIZE_MB
+    };
+
     RenderCore() = default;
 
     static void Init_0_Platform(RenderingApi aRenderingApi);
@@ -138,9 +141,6 @@ namespace Fancy {
     static std::vector<std::unique_ptr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
-
-    static std::vector<std::unique_ptr<GpuBuffer>> ourReadbackBufferPool;
-    static std::list<GpuBuffer*> ourAvailableReadbackBuffers;
 
     static TempResourcePool ourTempResourcePool;
 

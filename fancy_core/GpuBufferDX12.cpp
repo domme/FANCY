@@ -316,7 +316,7 @@ namespace Fancy {
     const bool isCpuReadable = myProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ;
 
     const bool wantsWrite = aMapMode == GpuResourceMapMode::WRITE_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::WRITE;
-    const bool wantsRead = aMapMode == GpuResourceMapMode::READ;
+    const bool wantsRead = aMapMode == GpuResourceMapMode::READ_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::READ;
 
     if ((wantsWrite && !isCpuWritable) || (wantsRead && !isCpuReadable))
       return nullptr;
