@@ -194,9 +194,9 @@ namespace Fancy {
       serializer.Read(subData.myRowSizeBytes);
       serializer.Read(subData.mySliceSizeBytes);
       serializer.Read(subData.myTotalSizeBytes);
-      subData.myData = subPixelData.data() + subPixelData.size();
 
       subPixelData.resize(subPixelData.size() + subData.myTotalSizeBytes);
+      subData.myData = subPixelData.data() + subPixelData.size();
       serializer.Read(subData.myData, subData.myTotalSizeBytes);
     }
     
