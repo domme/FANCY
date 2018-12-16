@@ -132,8 +132,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct MappedTempTextureBuffer : MappedTempBuffer
   {
-    MappedTempTextureBuffer(const DynamicArray<TextureSubLayout>& someLayouts, const TempBufferResource& aResource, GpuResourceMapMode aMapMode, uint64 aSize);
+    MappedTempTextureBuffer(DynamicArray<TextureSubLayout> someLayouts, const TempBufferResource& aResource, GpuResourceMapMode aMapMode, uint64 aSize);
     DynamicArray<TextureSubLayout> myLayouts;
+    uint64 myPixelSizeBytes = 0u;
   };
 //---------------------------------------------------------------------------//
   class TempResourcePool

@@ -85,7 +85,7 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
   String texturePath = destTexProps.path;
   myName = texturePath.substr(texturePath.find_last_of('/') + 1);
   myIsWindowOpen = false;
-  myIsDirty = true;
+  myIsDirty = false;
   mySelectedMipLevel = 0;
   mySelectedFilter = FILTER_LINEAR;
 }
@@ -157,7 +157,7 @@ void Init(HINSTANCE anInstanceHandle)
 
   myAssetManager.reset(new AssetManager());
 
-  const uint loadFlags = AssetManager::NO_DISK_CACHE | AssetManager::NO_MEM_CACHE | AssetManager::SHADER_WRITABLE;
+  const uint loadFlags = AssetManager::SHADER_WRITABLE;
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Checkerboard.png", loadFlags));
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/kamen.png", loadFlags));
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
@@ -226,17 +226,6 @@ void Render()
   RenderCore::FreeContext(ctx);
   
   ImGui::Render();
-
-  ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-
-  uint testData[] = { 1,2,3,4 };
-
-  uint64 bufOffset;
-  const GpuBuffer* buf = ctx->GetBuffer(bufOffset, GpuBufferUsage::VERTEX_BUFFER, testData, sizeof(testData));
-
-  MappedTempBuffer bufData = RenderCore::ReadbackBufferData(buf, bufOffset, sizeof(testData));
-
-  RenderCore::FreeContext(ctx);
 
   myRuntime->EndFrame();
 }

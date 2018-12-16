@@ -160,21 +160,24 @@ using namespace Fancy;
       return nullptr;
     }
     
-    TextureSubData uploadData;
-    uploadData.myData = textureBytes.data();
-    uploadData.myPixelSizeBytes = (texLoadInfo.bitsPerChannel * texLoadInfo.numChannels) / 8u;
-    uploadData.myRowSizeBytes = texLoadInfo.width * uploadData.myPixelSizeBytes;
-    uploadData.mySliceSizeBytes = texLoadInfo.width * texLoadInfo.height * uploadData.myPixelSizeBytes;
-    uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
-
-    SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), &uploadData, 1u);
-    ComputeMipmaps(tex);
-
-    // TODO: Readback mipmap pixel data and store in binary cache.
+    TextureSubData dataFirstMip;
+    dataFirstMip.myData = textureBytes.data();
+    dataFirstMip.myPixelSizeBytes = (texLoadInfo.bitsPerChannel * texLoadInfo.numChannels) / 8u;
+    dataFirstMip.myRowSizeBytes = texLoadInfo.width * dataFirstMip.myPixelSizeBytes;
+    dataFirstMip.mySliceSizeBytes = texLoadInfo.width * texLoadInfo.height * dataFirstMip.myPixelSizeBytes;
+    dataFirstMip.myTotalSizeBytes = dataFirstMip.mySliceSizeBytes;
+    SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), &dataFirstMip, 1u);
 
     if (tex != nullptr)
     {
-      BinaryCache::WriteTexture(tex.get(), uploadData);
+      ComputeMipmaps(tex);
+
+      DynamicArray<uint8> mipmapPixelData;
+      DynamicArray<TextureSubData> mipmapSubDatas;
+      RenderCore::ReadbackTextureData(tex.get(), TextureSubLocation(1), tex->GetNumSubresources() - 1, mipmapPixelData, mipmapSubDatas);
+
+      mipmapSubDatas.insert(mipmapSubDatas.begin(), dataFirstMip);
+      BinaryCache::WriteTexture(tex.get(), mipmapSubDatas.data(), mipmapSubDatas.size());
 
       myTextures[texPathRelHash] = tex;
       return tex;

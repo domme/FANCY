@@ -668,7 +668,7 @@ namespace Fancy {
     return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ, aByteSize);
   }
 //---------------------------------------------------------------------------//
-  MappedTempBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations)
+  MappedTempTextureBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations)
   {
     DynamicArray<TextureSubLayout> subresourceLayouts;
     DynamicArray<uint64> subresourceOffsets;
@@ -697,9 +697,55 @@ namespace Fancy {
     GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx, true);
     FreeContext(ctx);
 
-    
+    return MappedTempTextureBuffer(std::move(subresourceLayouts), readbackBuffer, GpuResourceMapMode::READ, totalSize);
+  }
+//---------------------------------------------------------------------------//
+  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations, DynamicArray<uint8>& somePixelDataOut, DynamicArray<TextureSubData>& someSubDatasOut)
+  {
+    MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aStartSubLocation, aNumSublocations);
+    if (readbackTex.myMappedData == nullptr)
+      return false;
 
-    
+    uint64 totalSize = 0u;
+    for (const TextureSubLayout& subLayout : readbackTex.myLayouts)
+      totalSize += subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * readbackTex.myPixelSizeBytes;
+
+    somePixelDataOut.resize(totalSize);
+    someSubDatasOut.resize(readbackTex.myLayouts.size());
+
+    uint8* dstSubResourceStart = somePixelDataOut.data();
+    const uint8* srcSubResourceStart = static_cast<const uint8*>(readbackTex.myMappedData);
+    for (uint iSubResource = 0u, e = readbackTex.myLayouts.size(); iSubResource < e; ++iSubResource)
+    {
+      const TextureSubLayout& subLayout = readbackTex.myLayouts[iSubResource];
+
+      TextureSubData& dstSubData = someSubDatasOut[iSubResource];
+      dstSubData.myData = dstSubResourceStart;
+      dstSubData.myPixelSizeBytes = readbackTex.myPixelSizeBytes;
+      dstSubData.myRowSizeBytes = subLayout.myRowSize;
+      dstSubData.mySliceSizeBytes = subLayout.myRowSize * subLayout.myHeight;
+      dstSubData.myTotalSizeBytes = dstSubData.mySliceSizeBytes * subLayout.myDepth;
+
+      for (uint iDepthSlice = 0u; iDepthSlice < subLayout.myDepth; ++iDepthSlice)
+      {
+        uint8* dstSliceStart = dstSubResourceStart + iDepthSlice * subLayout.myRowSize * subLayout.myHeight;
+        const uint8* srcSliceStart = srcSubResourceStart + iDepthSlice * subLayout.myAlignedRowSize * subLayout.myNumRows;
+        for (uint y = 0u; y < subLayout.myHeight; ++y)
+        {
+          uint8* dstRowStart = dstSliceStart + y * subLayout.myRowSize;
+          const uint8* srcRowStart = srcSliceStart + y * subLayout.myAlignedRowSize;
+          memcpy(dstRowStart, srcRowStart, subLayout.myRowSize);
+        }
+      }
+
+      const uint64 dstSubresourceSize = subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * readbackTex.myPixelSizeBytes;
+      dstSubResourceStart += dstSubresourceSize;
+
+      const uint64 srcSubresourceSize = subLayout.myAlignedRowSize * subLayout.myNumRows * subLayout.myDepth;
+      srcSubResourceStart += srcSubresourceSize;
+    }
+
+    return true;
   }
 //---------------------------------------------------------------------------//
   CommandContext* RenderCore::AllocateContext(CommandListType aType)

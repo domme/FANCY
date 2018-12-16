@@ -14,7 +14,7 @@ namespace Fancy {
     public:
   //---------------------------------------------------------------------------//
     static String getCacheFilePathAbs(const String& aPathInResources);
-    static bool WriteTexture(const Texture* aTexture, const TextureSubData& someData);
+    static bool WriteTexture(const Texture* aTexture, const TextureSubData* someSubDatas, uint aNumSubDatas);
     static bool WriteMesh(const Mesh* aMesh, const MeshData* someMeshDatas, uint aNumMeshDatas);
 
     static SharedPtr<Texture> ReadTexture(const String& aPath, uint64 aTimeStamp);

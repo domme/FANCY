@@ -66,11 +66,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  MappedTempTextureBuffer::MappedTempTextureBuffer(const DynamicArray<TextureSubLayout>& someLayouts, const TempBufferResource& aResource, GpuResourceMapMode aMapMode, uint64 aSize)
+  MappedTempTextureBuffer::MappedTempTextureBuffer(DynamicArray<TextureSubLayout> someLayouts, const TempBufferResource& aResource, GpuResourceMapMode aMapMode, uint64 aSize)
     : MappedTempBuffer(aResource, aMapMode, aSize)
-    , myLayouts(someLayouts)
+    , myLayouts(std::move(someLayouts))
   {
-
+    if (!myLayouts.empty() && myLayouts.front().myWidth > 0)
+      myPixelSizeBytes = myLayouts.front().myRowSize / myLayouts.front().myWidth;
   }
 //---------------------------------------------------------------------------//
 

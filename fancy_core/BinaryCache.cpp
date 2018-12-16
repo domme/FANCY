@@ -13,7 +13,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   const uint kMeshVersion = 0;
-  const uint kTextureVersion = 1;
+  const uint kTextureVersion = 2;
 //---------------------------------------------------------------------------//
   enum SERIALIZE_MODE
   {
@@ -101,7 +101,7 @@ namespace Fancy {
     return Path::GetUserDataPath() + "ResourceCache/" + aPathInResources + ".bin";
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::WriteTexture(const Texture* aTexture, const TextureSubData& someData)
+  bool BinaryCache::WriteTexture(const Texture* aTexture, const TextureSubData* someSubDatas, uint aNumSubDatas)
   {
     const String cacheFilePath = getCacheFilePathAbs(aTexture->GetProperties().path);
     Path::CreateDirectoryTreeForPath(cacheFilePath);
@@ -125,12 +125,17 @@ namespace Fancy {
     serializer.Write((uint)texProps.myAccessType);
     serializer.Write((uint)texProps.eFormat);
     serializer.Write(texProps.myNumMipLevels);
-    
-    serializer.Write(someData.myPixelSizeBytes);
-    serializer.Write(someData.myRowSizeBytes);
-    serializer.Write(someData.mySliceSizeBytes);
-    serializer.Write(someData.myTotalSizeBytes);
-    serializer.Write(reinterpret_cast<const uint8*>(someData.myData), someData.myTotalSizeBytes);
+
+    serializer.Write(aNumSubDatas);
+    for (uint i = 0u; i < aNumSubDatas; ++i)
+    {
+      const TextureSubData& someData = someSubDatas[i];
+      serializer.Write(someData.myPixelSizeBytes);
+      serializer.Write(someData.myRowSizeBytes);
+      serializer.Write(someData.mySliceSizeBytes);
+      serializer.Write(someData.myTotalSizeBytes);
+      serializer.Write(reinterpret_cast<const uint8*>(someData.myData), someData.myTotalSizeBytes);
+    }
 
     return serializer.IsGood();
   }  
@@ -174,18 +179,29 @@ namespace Fancy {
 
     serializer.Read(texProps.myNumMipLevels);
 
-    TextureSubData texData;
-    serializer.Read(texData.myPixelSizeBytes);
-    serializer.Read(texData.myRowSizeBytes);
-    serializer.Read(texData.mySliceSizeBytes);
-    serializer.Read(texData.myTotalSizeBytes);
-    
-    texData.myData = static_cast<uint8*>(FANCY_ALLOCATE(texData.myTotalSizeBytes, MemoryCategory::TEXTURES));
-    serializer.Read(texData.myData, texData.myTotalSizeBytes);
+    uint numSavedSubdatas = 0;
+    serializer.Read(numSavedSubdatas);
+    ASSERT(numSavedSubdatas > 0);
+
+    DynamicArray<TextureSubData> subDatas;
+    subDatas.resize(numSavedSubdatas);
+
+    DynamicArray<uint8> subPixelData;
+    for (uint i = 0u; i < numSavedSubdatas; ++i)
+    {
+      TextureSubData& subData = subDatas[i];
+      serializer.Read(subData.myPixelSizeBytes);
+      serializer.Read(subData.myRowSizeBytes);
+      serializer.Read(subData.mySliceSizeBytes);
+      serializer.Read(subData.myTotalSizeBytes);
+      subData.myData = subPixelData.data() + subPixelData.size();
+
+      subPixelData.resize(subPixelData.size() + subData.myTotalSizeBytes);
+      serializer.Read(subData.myData, subData.myTotalSizeBytes);
+    }
     
     SharedPtr<Texture> newTex(RenderCore::GetPlatform()->CreateTexture());
-    newTex->Create(texProps, texProps.path.c_str(), &texData, 1u);
-    FANCY_FREE(texData.myData, MemoryCategory::TEXTURES);
+    newTex->Create(texProps, texProps.path.c_str(), subDatas.data(), subDatas.size());
     return newTex;
   }
 //---------------------------------------------------------------------------//  
