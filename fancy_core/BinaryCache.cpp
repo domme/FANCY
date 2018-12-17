@@ -127,6 +127,13 @@ namespace Fancy {
     serializer.Write(texProps.myNumMipLevels);
 
     serializer.Write(aNumSubDatas);
+
+    uint64 totalPixelSize = 0;
+    for (uint i = 0u; i < aNumSubDatas; ++i)
+      totalPixelSize += someSubDatas[i].myTotalSizeBytes;
+
+    serializer.Write(totalPixelSize);
+
     for (uint i = 0u; i < aNumSubDatas; ++i)
     {
       const TextureSubData& someData = someSubDatas[i];
@@ -186,7 +193,14 @@ namespace Fancy {
     DynamicArray<TextureSubData> subDatas;
     subDatas.resize(numSavedSubdatas);
 
+
+    uint64 totalPixelSize = 0;
+    serializer.Read(totalPixelSize);
+
     DynamicArray<uint8> subPixelData;
+    subPixelData.resize(totalPixelSize);
+
+    uint8* subPixelDataBuf = subPixelData.data();
     for (uint i = 0u; i < numSavedSubdatas; ++i)
     {
       TextureSubData& subData = subDatas[i];
@@ -194,10 +208,9 @@ namespace Fancy {
       serializer.Read(subData.myRowSizeBytes);
       serializer.Read(subData.mySliceSizeBytes);
       serializer.Read(subData.myTotalSizeBytes);
-
-      subPixelData.resize(subPixelData.size() + subData.myTotalSizeBytes);
-      subData.myData = subPixelData.data() + subPixelData.size();
-      serializer.Read(subData.myData, subData.myTotalSizeBytes);
+      serializer.Read(subPixelDataBuf, subData.myTotalSizeBytes);
+      subData.myData = subPixelDataBuf;
+      subPixelDataBuf += subData.myTotalSizeBytes;
     }
     
     SharedPtr<Texture> newTex(RenderCore::GetPlatform()->CreateTexture());
