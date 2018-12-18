@@ -177,7 +177,7 @@ using namespace Fancy;
       RenderCore::ReadbackTextureData(tex.get(), TextureSubLocation(1), tex->GetNumSubresources() - 1, mipmapPixelData, mipmapSubDatas);
 
       mipmapSubDatas.insert(mipmapSubDatas.begin(), dataFirstMip);
-      BinaryCache::WriteTexture(tex.get(), mipmapSubDatas.data(), mipmapSubDatas.size());
+      BinaryCache::WriteTextureData(tex.get(), mipmapSubDatas.data(), mipmapSubDatas.size());
 
       myTextures[texPathRelHash] = tex;
       return tex;

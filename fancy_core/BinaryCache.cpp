@@ -101,9 +101,9 @@ namespace Fancy {
     return Path::GetUserDataPath() + "ResourceCache/" + aPathInResources + ".bin";
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::WriteTexture(const Texture* aTexture, const TextureSubData* someSubDatas, uint aNumSubDatas)
+  bool BinaryCache::WriteTextureData(const TextureProperties& someTexProps, const TextureSubData* someSubDatas, uint aNumSubDatas)
   {
-    const String cacheFilePath = getCacheFilePathAbs(aTexture->GetProperties().path);
+    const String cacheFilePath = getCacheFilePathAbs(someTexProps.path);
     Path::CreateDirectoryTreeForPath(cacheFilePath);
     BinarySerializer serializer(cacheFilePath.c_str(), WRITE);
 
@@ -112,19 +112,17 @@ namespace Fancy {
       LOG_WARNING("Failed to open texture cache file path % for write", cacheFilePath.c_str());
       return false;
     }
-    
-    const TextureProperties& texProps = aTexture->GetProperties();
 
     serializer.Write(kTextureVersion);
-    serializer.Write(texProps.path);
+    serializer.Write(someTexProps.path);
     
-    serializer.Write((uint)texProps.myDimension);
-    serializer.Write(texProps.myWidth);
-    serializer.Write(texProps.myHeight);
-    serializer.Write(texProps.myDepthOrArraySize);
-    serializer.Write((uint)texProps.myAccessType);
-    serializer.Write((uint)texProps.eFormat);
-    serializer.Write(texProps.myNumMipLevels);
+    serializer.Write((uint)someTexProps.myDimension);
+    serializer.Write(someTexProps.myWidth);
+    serializer.Write(someTexProps.myHeight);
+    serializer.Write(someTexProps.myDepthOrArraySize);
+    serializer.Write((uint)someTexProps.myAccessType);
+    serializer.Write((uint)someTexProps.eFormat);
+    serializer.Write(someTexProps.myNumMipLevels);
 
     serializer.Write(aNumSubDatas);
 
@@ -192,8 +190,7 @@ namespace Fancy {
 
     DynamicArray<TextureSubData> subDatas;
     subDatas.resize(numSavedSubdatas);
-
-
+    
     uint64 totalPixelSize = 0;
     serializer.Read(totalPixelSize);
 
