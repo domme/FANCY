@@ -307,6 +307,17 @@ namespace Fancy {
       uint64 myTotalSizeBytes;
     };
 //---------------------------------------------------------------------------//
+    struct TextureData
+    {
+      TextureData() = default;
+      TextureData(DynamicArray<uint8> someData, DynamicArray<TextureSubData> someSubDatas)
+        : myData(std::move(someData))
+        , mySubDatas(std::move(someSubDatas))
+      {}
+      DynamicArray<uint8> myData;
+      DynamicArray<TextureSubData> mySubDatas;
+    };
+//---------------------------------------------------------------------------//
     enum class GpuBufferUsage 
     {
       STAGING_UPLOAD = 0,

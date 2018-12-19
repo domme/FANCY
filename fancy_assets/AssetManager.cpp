@@ -106,10 +106,11 @@ using namespace Fancy;
     uint64 texPathRelHash = MathUtil::Hash(texPathRel);
     MathUtil::hash_combine(texPathRelHash, ((uint64) someLoadFlags & SHADER_WRITABLE));
 
+    TextureData textureData;
     if ((someLoadFlags & NO_DISK_CACHE) == 0)
     {
       uint64 timestamp = Path::GetFileWriteTime(texPathAbs);
-      if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTexture(texPathRel.c_str(), timestamp))
+      if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTextureData(texPathRel.c_str(), timestamp))
       {
         myTextures[texPathRelHash] = texFromDiskCache;
         return texFromDiskCache;

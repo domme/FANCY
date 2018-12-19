@@ -700,26 +700,29 @@ namespace Fancy {
     return MappedTempTextureBuffer(std::move(subresourceLayouts), readbackBuffer, GpuResourceMapMode::READ, totalSize);
   }
 //---------------------------------------------------------------------------//
-  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations, DynamicArray<uint8>& somePixelDataOut, DynamicArray<TextureSubData>& someSubDatasOut)
+  TextureData RenderCore::ReadbackCopyTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations)
   {
     MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aStartSubLocation, aNumSublocations);
     if (readbackTex.myMappedData == nullptr)
-      return false;
+      return TextureData();
 
     uint64 totalSize = 0u;
     for (const TextureSubLayout& subLayout : readbackTex.myLayouts)
       totalSize += subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * readbackTex.myPixelSizeBytes;
 
-    somePixelDataOut.resize(totalSize);
-    someSubDatasOut.resize(readbackTex.myLayouts.size());
+    DynamicArray<uint8> pixelData;
+    pixelData.resize(totalSize);
 
-    uint8* dstSubResourceStart = somePixelDataOut.data();
+    DynamicArray<TextureSubData> subDatas;
+    subDatas.resize(readbackTex.myLayouts.size());
+
+    uint8* dstSubResourceStart = pixelData.data();
     const uint8* srcSubResourceStart = static_cast<const uint8*>(readbackTex.myMappedData);
     for (uint iSubResource = 0u, e = readbackTex.myLayouts.size(); iSubResource < e; ++iSubResource)
     {
       const TextureSubLayout& subLayout = readbackTex.myLayouts[iSubResource];
 
-      TextureSubData& dstSubData = someSubDatasOut[iSubResource];
+      TextureSubData& dstSubData = subDatas[iSubResource];
       dstSubData.myData = dstSubResourceStart;
       dstSubData.myPixelSizeBytes = readbackTex.myPixelSizeBytes;
       dstSubData.myRowSizeBytes = subLayout.myRowSize;
@@ -745,7 +748,7 @@ namespace Fancy {
       srcSubResourceStart += srcSubresourceSize;
     }
 
-    return true;
+    return TextureData(pixelData, subDatas);
   }
 //---------------------------------------------------------------------------//
   CommandContext* RenderCore::AllocateContext(CommandListType aType)

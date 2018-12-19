@@ -145,22 +145,22 @@ namespace Fancy {
     return serializer.IsGood();
   }  
 //---------------------------------------------------------------------------//  
-  SharedPtr<Texture> BinaryCache::ReadTexture(const String& aPath, uint64 aTimeStamp)
+  bool BinaryCache::ReadTextureData(const String& aPath, uint64 aTimeStamp, TextureData& aTextureDataOut)
   {
     const String cacheFilePath = getCacheFilePathAbs(aPath);
 
     if (Path::GetFileWriteTime(cacheFilePath) < aTimeStamp)
-      return nullptr;
+      return false;
 
     BinarySerializer serializer(cacheFilePath.c_str(), READ);
     if (!serializer.IsGood())
-      return nullptr;
+      return false;
 
     uint textureVersion;
     serializer.Read(textureVersion);
 
     if (textureVersion != kTextureVersion)
-      return nullptr;
+      return false;
     
     // Read the texture
     TextureProperties texProps;
@@ -209,10 +209,10 @@ namespace Fancy {
       subData.myData = subPixelDataBuf;
       subPixelDataBuf += subData.myTotalSizeBytes;
     }
-    
-    SharedPtr<Texture> newTex(RenderCore::GetPlatform()->CreateTexture());
-    newTex->Create(texProps, texProps.path.c_str(), subDatas.data(), subDatas.size());
-    return newTex;
+
+    aTextureDataOut.myData = std::move(subPixelData);
+    aTextureDataOut.mySubDatas = std::move(subDatas);
+    return true;
   }
 //---------------------------------------------------------------------------//  
   bool BinaryCache::WriteMesh(const Mesh* aMesh, const MeshData* someMeshDatas, uint aNumMeshDatas)
