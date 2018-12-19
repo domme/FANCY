@@ -106,15 +106,22 @@ using namespace Fancy;
     uint64 texPathRelHash = MathUtil::Hash(texPathRel);
     MathUtil::hash_combine(texPathRelHash, ((uint64) someLoadFlags & SHADER_WRITABLE));
 
-    TextureData textureData;
     if ((someLoadFlags & NO_DISK_CACHE) == 0)
     {
       uint64 timestamp = Path::GetFileWriteTime(texPathAbs);
-      if (SharedPtr<Texture> texFromDiskCache = BinaryCache::ReadTextureData(texPathRel.c_str(), timestamp))
+
+      TextureData textureData;
+      TextureProperties texProps;
+      if (BinaryCache::ReadTextureData(texPathRel.c_str(), timestamp, texProps, textureData))
       {
+        texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
+        SharedPtr<Texture> texFromDiskCache = RenderCore::CreateTexture(texProps, texProps.path.c_str(), textureData.mySubDatas.data(), textureData.mySubDatas.size());
+
+        ASSERT(texFromDiskCache != nullptr);
+
         myTextures[texPathRelHash] = texFromDiskCache;
         return texFromDiskCache;
-      }  
+      }
     }
 
     std::vector<uint8> textureBytes;
@@ -173,12 +180,10 @@ using namespace Fancy;
     {
       ComputeMipmaps(tex);
 
-      DynamicArray<uint8> mipmapPixelData;
-      DynamicArray<TextureSubData> mipmapSubDatas;
-      RenderCore::ReadbackTextureData(tex.get(), TextureSubLocation(1), tex->GetNumSubresources() - 1, mipmapPixelData, mipmapSubDatas);
+      TextureData textureData = RenderCore::ReadbackCopyTextureData(tex.get(), TextureSubLocation(1), tex->GetNumSubresources() - 1);
+      textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
 
-      mipmapSubDatas.insert(mipmapSubDatas.begin(), dataFirstMip);
-      BinaryCache::WriteTextureData(tex.get(), mipmapSubDatas.data(), mipmapSubDatas.size());
+      BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), textureData.mySubDatas.size());
 
       myTextures[texPathRelHash] = tex;
       return tex;

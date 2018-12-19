@@ -145,7 +145,7 @@ namespace Fancy {
     return serializer.IsGood();
   }  
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::ReadTextureData(const String& aPath, uint64 aTimeStamp, TextureData& aTextureDataOut)
+  bool BinaryCache::ReadTextureData(const String& aPath, uint64 aTimeStamp, TextureProperties& someTexPropsOut, TextureData& aTextureDataOut)
   {
     const String cacheFilePath = getCacheFilePathAbs(aPath);
 
@@ -210,6 +210,7 @@ namespace Fancy {
       subPixelDataBuf += subData.myTotalSizeBytes;
     }
 
+    someTexPropsOut = std::move(texProps);
     aTextureDataOut.myData = std::move(subPixelData);
     aTextureDataOut.mySubDatas = std::move(subDatas);
     return true;
