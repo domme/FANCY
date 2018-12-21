@@ -697,18 +697,20 @@ namespace Fancy {
     GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx, true);
     FreeContext(ctx);
 
-    return MappedTempTextureBuffer(std::move(subresourceLayouts), readbackBuffer, GpuResourceMapMode::READ, totalSize);
+    return MappedTempTextureBuffer(subresourceLayouts, readbackBuffer, GpuResourceMapMode::READ, totalSize);
   }
 //---------------------------------------------------------------------------//
   TextureData RenderCore::ReadbackCopyTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations)
   {
     MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aStartSubLocation, aNumSublocations);
-    if (readbackTex.myMappedData == nullptr)
+    if (readbackTex.myMappedData == nullptr || readbackTex.myLayouts.empty())
       return TextureData();
+
+    const uint pixelSize = readbackTex.myLayouts.front().myRowSize / readbackTex.myLayouts.front().myWidth;
 
     uint64 totalSize = 0u;
     for (const TextureSubLayout& subLayout : readbackTex.myLayouts)
-      totalSize += subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * readbackTex.myPixelSizeBytes;
+      totalSize += subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * pixelSize;
 
     DynamicArray<uint8> pixelData;
     pixelData.resize(totalSize);
@@ -724,7 +726,7 @@ namespace Fancy {
 
       TextureSubData& dstSubData = subDatas[iSubResource];
       dstSubData.myData = dstSubResourceStart;
-      dstSubData.myPixelSizeBytes = readbackTex.myPixelSizeBytes;
+      dstSubData.myPixelSizeBytes = pixelSize;
       dstSubData.myRowSizeBytes = subLayout.myRowSize;
       dstSubData.mySliceSizeBytes = subLayout.myRowSize * subLayout.myHeight;
       dstSubData.myTotalSizeBytes = dstSubData.mySliceSizeBytes * subLayout.myDepth;
@@ -741,7 +743,7 @@ namespace Fancy {
         }
       }
 
-      const uint64 dstSubresourceSize = subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * readbackTex.myPixelSizeBytes;
+      const uint64 dstSubresourceSize = subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * pixelSize;
       dstSubResourceStart += dstSubresourceSize;
 
       const uint64 srcSubresourceSize = subLayout.myAlignedRowSize * subLayout.myNumRows * subLayout.myDepth;

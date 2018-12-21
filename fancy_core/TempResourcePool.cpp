@@ -70,8 +70,6 @@ namespace Fancy
     : MappedTempBuffer(aResource, aMapMode, aSize)
     , myLayouts(std::move(someLayouts))
   {
-    if (!myLayouts.empty() && myLayouts.front().myWidth > 0)
-      myPixelSizeBytes = myLayouts.front().myRowSize / myLayouts.front().myWidth;
   }
 //---------------------------------------------------------------------------//
 

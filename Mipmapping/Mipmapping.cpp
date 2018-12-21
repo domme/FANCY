@@ -158,8 +158,8 @@ void Init(HINSTANCE anInstanceHandle)
   myAssetManager.reset(new AssetManager());
 
   const uint loadFlags = AssetManager::SHADER_WRITABLE;
-  myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Checkerboard.png", loadFlags));
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/kamen.png", loadFlags));
+  myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Checkerboard.png", loadFlags));
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
 
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
