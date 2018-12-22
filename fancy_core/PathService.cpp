@@ -225,7 +225,7 @@ namespace Fancy {
         String path = converter.to_bytes(str);
         UnifySlashes(path);
 
-        return path + "/" + GetAppName() + "/";
+        return path + "/Fancy/" + GetAppName() + "/";
       }
 
       return "";

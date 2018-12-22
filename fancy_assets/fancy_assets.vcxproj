@@ -65,7 +65,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelDesc.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
-    <ClCompile Include="TextureLoader.cpp" />
+    <ClCompile Include="ImageLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
@@ -76,7 +76,8 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelDesc.h" />
     <ClInclude Include="ModelLoader.h" />
-    <ClInclude Include="TextureLoader.h" />
+    <ClInclude Include="stb\stb_image.h" />
+    <ClInclude Include="ImageLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,6 @@
 #include "AssetManager.h"
 #include "Material.h"
-#include "TextureLoader.h"
+#include "ImageLoader.h"
 #include "MaterialDesc.h"
 #include "fancy_core/RenderCore.h"
 #include "fancy_core/PathService.h"
@@ -124,9 +124,8 @@ using namespace Fancy;
       }
     }
 
-    std::vector<uint8> textureBytes;
-    TextureLoadInfo texLoadInfo;
-    if (!TextureLoader::Load(texPathAbs.c_str(), textureBytes, texLoadInfo))
+    Image image;
+    if (!ImageLoader::Load(texPathAbs.c_str(), image))
     {
       LOG_ERROR("Failed to load texture at path %", texPathAbs);
       return nullptr;
@@ -136,43 +135,43 @@ using namespace Fancy;
     texProps.myDimension = GpuResourceDimension::TEXTURE_2D;
     texProps.path = texPathRel;
     texProps.bIsDepthStencil = false;
-    texProps.myWidth = texLoadInfo.width;
-    texProps.myHeight = texLoadInfo.height;
+    texProps.myWidth = (uint) image.mySize.x;
+    texProps.myHeight = (uint) image.mySize.y;
     texProps.myDepthOrArraySize = 0u;
     texProps.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
     texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
 
-    if (!(texLoadInfo.bitsPerChannel == 8u || texLoadInfo.bitsPerChannel == 16u))
+    if (!(image.myBitsPerChannel == 8u || image.myBitsPerChannel == 16u))
     {
-      LOG_ERROR("Unsupported bits per channel in texture % (has % bits per channel)", texPathAbs, texLoadInfo.bitsPerChannel);
+      LOG_ERROR("Unsupported bits per channel in texture % (has % bits per channel)", texPathAbs, image.myBitsPerChannel);
       return nullptr;
     }
 
-    switch(texLoadInfo.numChannels)
+    switch(image.myNumChannels)
     {
-      case 1: texProps.eFormat = texLoadInfo.bitsPerChannel == 8 ? DataFormat::R_8 : DataFormat::R_16; break;
-      case 2: texProps.eFormat = texLoadInfo.bitsPerChannel == 8 ? DataFormat::RG_8 : DataFormat::RG_16; break;
+      case 1: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::R_8 : DataFormat::R_16; break;
+      case 2: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::RG_8 : DataFormat::RG_16; break;
 
       // LodePNG assumes that 8-bit RGB or RGBA data is always SRGB. The official "sRGB" info-chunk from the PNG format is not supported
-      case 3: texProps.eFormat = texLoadInfo.bitsPerChannel == 8 ? DataFormat::SRGB_8 : DataFormat::RGB_16; break;
-      case 4: texProps.eFormat = texLoadInfo.bitsPerChannel == 8 ? DataFormat::SRGB_8_A_8 : DataFormat::RGBA_16; break;
+      case 3: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::SRGB_8 : DataFormat::RGB_16; break;
+      case 4: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::SRGB_8_A_8 : DataFormat::RGBA_16; break;
       default: ASSERT(false, "Unsupported channels");
       return nullptr;
     }
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.eFormat);
     const uint expectedDataSize = formatInfo.mySizeBytes * texProps.myWidth * texProps.myHeight;
-    if (expectedDataSize != textureBytes.size())
+    if (expectedDataSize != image.myByteSize)
     {
-      LOG_ERROR("Invalid pixel data loaded from texture %. Expected: %, Actual: %", texPathAbs, expectedDataSize, textureBytes.size());
+      LOG_ERROR("Invalid pixel data loaded from texture %. Expected: %, Actual: %", texPathAbs, expectedDataSize, image.myByteSize);
       return nullptr;
     }
     
     TextureSubData dataFirstMip;
-    dataFirstMip.myData = textureBytes.data();
-    dataFirstMip.myPixelSizeBytes = (texLoadInfo.bitsPerChannel * texLoadInfo.numChannels) / 8u;
-    dataFirstMip.myRowSizeBytes = texLoadInfo.width * dataFirstMip.myPixelSizeBytes;
-    dataFirstMip.mySliceSizeBytes = texLoadInfo.width * texLoadInfo.height * dataFirstMip.myPixelSizeBytes;
+    dataFirstMip.myData = image.myData.get();
+    dataFirstMip.myPixelSizeBytes = (image.myBitsPerChannel * image.myNumChannels) / 8u;
+    dataFirstMip.myRowSizeBytes = image.mySize.x * dataFirstMip.myPixelSizeBytes;
+    dataFirstMip.mySliceSizeBytes = image.mySize.x * image.mySize.y * dataFirstMip.myPixelSizeBytes;
     dataFirstMip.myTotalSizeBytes = dataFirstMip.mySliceSizeBytes;
     SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), &dataFirstMip, 1u);
 
@@ -180,10 +179,14 @@ using namespace Fancy;
     {
       ComputeMipmaps(tex);
 
-      TextureData textureData = RenderCore::ReadbackCopyTextureData(tex.get(), TextureSubLocation(1), tex->GetNumSubresources() - 1);
+      TextureData textureData;
+      bool success = RenderCore::ReadbackTextureData(tex.get(), TextureSubLocation(1), tex->GetNumSubresources() - 1, textureData);
       textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
 
       BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), textureData.mySubDatas.size());
+
+      // Test:
+      //tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), textureData.mySubDatas.data(), textureData.mySubDatas.size());
 
       myTextures[texPathRelHash] = tex;
       return tex;

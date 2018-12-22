@@ -188,19 +188,17 @@ namespace Fancy {
     serializer.Read(numSavedSubdatas);
     ASSERT(numSavedSubdatas > 0);
 
-    DynamicArray<TextureSubData> subDatas;
-    subDatas.resize(numSavedSubdatas);
+    aTextureDataOut.mySubDatas.resize(numSavedSubdatas);
     
     uint64 totalPixelSize = 0;
     serializer.Read(totalPixelSize);
 
-    DynamicArray<uint8> subPixelData;
-    subPixelData.resize(totalPixelSize);
+    aTextureDataOut.myData.resize(totalPixelSize);
 
-    uint8* subPixelDataBuf = subPixelData.data();
+    uint8* subPixelDataBuf = aTextureDataOut.myData.data();
     for (uint i = 0u; i < numSavedSubdatas; ++i)
     {
-      TextureSubData& subData = subDatas[i];
+      TextureSubData& subData = aTextureDataOut.mySubDatas[i];
       serializer.Read(subData.myPixelSizeBytes);
       serializer.Read(subData.myRowSizeBytes);
       serializer.Read(subData.mySliceSizeBytes);
@@ -211,8 +209,6 @@ namespace Fancy {
     }
 
     someTexPropsOut = std::move(texProps);
-    aTextureDataOut.myData = std::move(subPixelData);
-    aTextureDataOut.mySubDatas = std::move(subDatas);
     return true;
   }
 //---------------------------------------------------------------------------//  

@@ -700,11 +700,11 @@ namespace Fancy {
     return MappedTempTextureBuffer(subresourceLayouts, readbackBuffer, GpuResourceMapMode::READ, totalSize);
   }
 //---------------------------------------------------------------------------//
-  TextureData RenderCore::ReadbackCopyTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations)
+  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations, TextureData& aTextureDataOut)
   {
     MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aStartSubLocation, aNumSublocations);
     if (readbackTex.myMappedData == nullptr || readbackTex.myLayouts.empty())
-      return TextureData();
+      return false;
 
     const uint pixelSize = readbackTex.myLayouts.front().myRowSize / readbackTex.myLayouts.front().myWidth;
 
@@ -712,19 +712,16 @@ namespace Fancy {
     for (const TextureSubLayout& subLayout : readbackTex.myLayouts)
       totalSize += subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * pixelSize;
 
-    DynamicArray<uint8> pixelData;
-    pixelData.resize(totalSize);
+    aTextureDataOut.myData.resize(totalSize);
+    aTextureDataOut.mySubDatas.resize(readbackTex.myLayouts.size());
 
-    DynamicArray<TextureSubData> subDatas;
-    subDatas.resize(readbackTex.myLayouts.size());
-
-    uint8* dstSubResourceStart = pixelData.data();
+    uint8* dstSubResourceStart = aTextureDataOut.myData.data();
     const uint8* srcSubResourceStart = static_cast<const uint8*>(readbackTex.myMappedData);
     for (uint iSubResource = 0u, e = readbackTex.myLayouts.size(); iSubResource < e; ++iSubResource)
     {
       const TextureSubLayout& subLayout = readbackTex.myLayouts[iSubResource];
 
-      TextureSubData& dstSubData = subDatas[iSubResource];
+      TextureSubData& dstSubData = aTextureDataOut.mySubDatas[iSubResource];
       dstSubData.myData = dstSubResourceStart;
       dstSubData.myPixelSizeBytes = pixelSize;
       dstSubData.myRowSizeBytes = subLayout.myRowSize;
@@ -750,7 +747,7 @@ namespace Fancy {
       srcSubResourceStart += srcSubresourceSize;
     }
 
-    return TextureData(pixelData, subDatas);
+    return true;
   }
 //---------------------------------------------------------------------------//
   CommandContext* RenderCore::AllocateContext(CommandListType aType)

@@ -4,6 +4,9 @@
     <Filter Include="lodepng">
       <UniqueIdentifier>{e4b57e67-18d4-49ef-b557-c542865cc664}</UniqueIdentifier>
     </Filter>
+    <Filter Include="stb">
+      <UniqueIdentifier>{41d42ed3-0d58-4865-94a8-61d4a687b7a9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lodepng\lodepng.h">
@@ -12,11 +15,14 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelLoader.h" />
-    <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="MaterialDesc.h" />
     <ClInclude Include="ModelDesc.h" />
     <ClInclude Include="MaterialSemantics.h" />
     <ClInclude Include="AssetManager.h" />
+    <ClInclude Include="stb\stb_image.h">
+      <Filter>stb</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lodepng\lodepng.cpp">
@@ -25,9 +31,9 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelLoader.cpp" />
-    <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="MaterialDesc.cpp" />
     <ClCompile Include="ModelDesc.cpp" />
     <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="ImageLoader.cpp" />
   </ItemGroup>
 </Project>
