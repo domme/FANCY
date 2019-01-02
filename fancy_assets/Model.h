@@ -1,7 +1,8 @@
 #pragma once
 
-#include <fancy_core/FancyCorePrerequisites.h>
 #include "ModelDesc.h"
+
+#include <fancy_core/Ptr.h>
 
 namespace Fancy {
   struct Material;

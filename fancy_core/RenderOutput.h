@@ -1,16 +1,11 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
+#include "Ptr.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct GpuProgramDesc;
-  struct GpuProgramPipelineDesc;
-  struct DepthStencilStateDesc;
-  struct BlendStateDesc;
   struct WindowParameters;
-  class BlendState;
-  class DepthStencilState;
   class Window;
   class Texture;
   class TextureView;

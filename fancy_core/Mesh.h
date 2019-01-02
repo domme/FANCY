@@ -1,6 +1,7 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
+#include "DynamicArray.h"
 #include "MeshDesc.h"
 
 namespace Fancy {

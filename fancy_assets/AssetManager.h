@@ -1,10 +1,13 @@
 #pragma once
-#include "fancy_core/FancyCorePrerequisites.h"
-#include "fancy_core/GpuProgram.h"
+#include <fancy_core/FancyCoreDefines.h>
+#include <fancy_core/GpuProgram.h>
+#include <fancy_core/Ptr.h>
 
-namespace Fancy {
+#include <map>
+
+namespace Fancy {  
+//---------------------------------------------------------------------------//
   struct MeshData;
-  //---------------------------------------------------------------------------//
   class Mesh;
   struct MeshDesc;
   struct Material;
@@ -12,6 +15,7 @@ namespace Fancy {
   struct ModelDesc;
   struct MaterialDesc;
   class Texture;
+  class GpuProgram;
 //---------------------------------------------------------------------------//
   class AssetManager
   {

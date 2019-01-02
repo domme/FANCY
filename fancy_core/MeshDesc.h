@@ -1,9 +1,8 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "MathUtil.h"
-
-using namespace Fancy;
+#include "FC_String.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

@@ -1,4 +1,7 @@
+#include "fancy_core_precompile.h"
 #include "VertexInputLayout.h"
+#include "DynamicArray.h"
+
 #include "MathUtil.h"
 
 namespace Fancy {

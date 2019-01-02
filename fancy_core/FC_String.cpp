@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "fancy_core_precompile.h"
 #include "FC_String.h"
 
 namespace Fancy {

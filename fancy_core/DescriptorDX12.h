@@ -1,8 +1,6 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
 #include "DX12Prerequisites.h"
-#include "Descriptor.h"
 
 namespace Fancy { 
 //---------------------------------------------------------------------------//

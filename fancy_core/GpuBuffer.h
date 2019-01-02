@@ -1,9 +1,9 @@
 #pragma once
 
-#include "RendererPrerequisites.h"
 #include "GpuResource.h"
-#include "GpuBufferDesc.h"
+#include "GpuBufferProperties.h"
 #include "GpuResourceView.h"
+#include "RenderEnums.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

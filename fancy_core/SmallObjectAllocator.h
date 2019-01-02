@@ -1,7 +1,9 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "AlignedStorage.h"
+
+// TODO: Test THE SmallObjectAllocator more thoroughly
 
 namespace Fancy {
   //---------------------------------------------------------------------------// 

@@ -1,26 +1,6 @@
 #pragma once
 
-// Disable some warnings...
-#pragma warning( disable : 4251 )  // "...Needs to have a dll-interface to be used by clients"
-
-//STD includes
-#include <string>
-#include <map>
-#include <vector>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-#include <Windows.h>
-#include <memory>
-#include <functional>
-#include <float.h>
-#include <stdio.h>
-#include <windef.h>
-#include <array>
-#include <malloc.h>
-#include <stdio.h>
-
-#include "MathPrerequisites.h"
+#include <cstdint>
 
 //Common MACRO defines
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }
@@ -52,29 +32,14 @@
 //---------------------------------------------------------------------------//
 #define ARRAY_LENGTH(array) GetArraySize(array)
 #define DYN_ARRAY_BYTESIZE(array) (array.size() * sizeof(decltype(array)::value_type))
-  //---------------------------------------------------------------------------//
-  template<class T>
-  using SharedPtr = std::shared_ptr<T>;
-
-  template<class T>
-  using UniquePtr = std::unique_ptr<T>;
 //---------------------------------------------------------------------------//
-
+  
 //---------------------------------------------------------------------------//
 // Typedefs
 //---------------------------------------------------------------------------//
-  typedef glm::uint16		uint16;
-  typedef glm::uint64		uint64;
-  typedef glm::uint8		uint8;
+  typedef std::uint16_t	uint16;
+  typedef std::uint64_t	uint64;
+  typedef std::uint8_t	uint8;
   typedef unsigned int	uint;
-  typedef double        float64;
-
-  template<class T>
-  using DynamicArray = std::vector<T>;
-
-  template<class T, size_t N>
-  using FixedArray = std::array<T, N>;
-//---------------------------------------------------------------------------//
-  #include "FC_String.h"
-  #include "Log.h"
+  typedef double        float64;  
 //---------------------------------------------------------------------------//

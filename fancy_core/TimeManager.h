@@ -1,8 +1,5 @@
-#ifndef INCLUDE_TIMEMANAGER_H
-#define INCLUDE_TIMEMANAGER_H
+#pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "Callback.h"
 #include "Slot.h"
 
 namespace Fancy {
@@ -20,7 +17,6 @@ namespace Fancy {
   {
     public:
       Time();
-      ~Time();
 
       void Update(float fDt);
       float GetDelta() const {return myDerivedDeltaTime; }
@@ -36,12 +32,9 @@ namespace Fancy {
       float myElapsedTime;
       float myTimeScale;
       float myDerivedDeltaTime;
+      float myLastUpdateTimes[(uint)TimedUpdateInterval::NUM];
 
       Slot<void()> myOnTimeIntervalElapsed[(uint) TimedUpdateInterval::NUM];
-      float myLastUpdateTimes[(uint)TimedUpdateInterval::NUM];
   };
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy
-
-
-#endif  // INCLUDE_TIMEMANAGER_H

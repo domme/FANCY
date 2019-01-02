@@ -1,3 +1,4 @@
+#include "fancy_core_precompile.h"
 #include "GpuBufferDX12.h"
 
 #include "StringUtil.h"
@@ -8,10 +9,6 @@
 #include "GpuResourceViewDX12.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  GpuBufferDX12::GpuBufferDX12()
-  {
-  }
 //---------------------------------------------------------------------------//
   GpuBufferDX12::~GpuBufferDX12()
   {
@@ -240,7 +237,7 @@ namespace Fancy {
     else
     {
       ASSERT(someProperties.myFormat != DataFormat::UNKNOWN, "Typed buffer-SRV needs a proper format");
-      DataFormat format = RenderCore::GetPlatformDX12()->ResolveFormat(someProperties.myFormat);
+      const DataFormat format = someProperties.myFormat;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
       srvDesc.Format = RenderCore_PlatformDX12::GetDXGIformat(format);
       srvDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
@@ -280,7 +277,7 @@ namespace Fancy {
     else
     {
       ASSERT(someProperties.myFormat != DataFormat::UNKNOWN, "Typed buffer-UAV needs a proper format");
-      DataFormat format = RenderCore::GetPlatformDX12()->ResolveFormat(someProperties.myFormat);
+      const DataFormat format = someProperties.myFormat;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
       uavDesc.Format = RenderCore_PlatformDX12::GetDXGIformat(format);
       uavDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;

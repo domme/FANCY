@@ -1,19 +1,22 @@
 #include "imgui_impl_fancy.h"
 #include "imgui.h"
 
-#include "fancy_core/Fancy_Include.h"
-#include "fancy_core/GpuProgramPipeline.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_core/Window.h"
-#include "fancy_core/GeometryData.h"
-#include "fancy_core/RenderOutput.h"
-#include "fancy_core/Texture.h"
-#include "fancy_core/BlendState.h"
-#include "fancy_core/DepthStencilState.h"
-#include "fancy_core/CommandContext.h"
-#include "fancy_core/CommandListType.h"
-#include "fancy_core/GpuProgramDesc.h"
-#include "fancy_core/GpuProgramPipelineDesc.h"
+#include <functional>
+
+#include <fancy_core/GpuProgramPipeline.h>
+#include <fancy_core/RenderCore.h>
+#include <fancy_core/Window.h>
+#include <fancy_core/RenderOutput.h>
+#include <fancy_core/Texture.h>
+#include <fancy_core/BlendState.h>
+#include <fancy_core/DepthStencilState.h>
+#include <fancy_core/CommandContext.h>
+#include <fancy_core/GpuProgramDesc.h>
+#include <fancy_core/GpuProgramPipelineDesc.h>
+#include <fancy_core/Slot.h>
+#include <fancy_core/Log.h>
+#include <fancy_core/WindowsIncludes.h>
+#include <fancy_core/CommandQueue.h>
 
 namespace Fancy { namespace ImGuiRendering {
 //---------------------------------------------------------------------------//

@@ -3,8 +3,9 @@
 #include "CommandContext.h"
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
-#include <unordered_map>
+
 #include "GpuResourceDataDX12.h"
+#include "RenderEnums.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -12,7 +13,9 @@ namespace Fancy {
   class DynamicDescriptorHeapDX12;
   class GpuResourceDX12;
   class GpuResource;
-  class GpuResourceDataDX12;
+  struct GpuResourceDataDX12;
+  class GpuProgram;
+  class GpuBuffer;
 //---------------------------------------------------------------------------//
   class CommandContextDX12 final : public CommandContext
   {

@@ -1,9 +1,8 @@
-#include "stdafx.h"
-#include "DX12Prerequisites.h"
+#include "fancy_core_precompile.h"
 #include "GpuMemoryAllocatorDX12.h"
+
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
-#include "MathUtil.h"
 #include "AdapterDX12.h"
 
 namespace Fancy

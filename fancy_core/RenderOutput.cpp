@@ -1,8 +1,11 @@
+#include "fancy_core_precompile.h"
 #include "RenderOutput.h"
+
 #include "Window.h"
 #include "RenderCore.h"
-#include "TextureViewProperties.h"
+#include "TextureProperties.h"
 #include "Texture.h"
+#include "CommandQueue.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

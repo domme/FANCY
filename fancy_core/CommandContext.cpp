@@ -1,6 +1,7 @@
+#include "fancy_core_precompile.h"
 #include "CommandContext.h"
+
 #include "RenderCore.h"
-#include "MathUtil.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "GpuProgramPipeline.h"
@@ -8,7 +9,6 @@
 #include "GpuProgram.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
-#include "RendererPrerequisites.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -43,7 +43,7 @@ namespace Fancy {
 
     MathUtil::hash_combine(hash, myNumRenderTargets);
 
-    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0u; i < RenderConstants::kMaxNumRenderTargets; ++i)
       MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myRTVformats));
 
     MathUtil::hash_combine(hash, static_cast<uint>(myDSVformat));

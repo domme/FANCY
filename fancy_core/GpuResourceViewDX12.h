@@ -1,8 +1,6 @@
 #pragma once
-#include "GpuResourceView.h"
+
 #include "DescriptorDX12.h"
-#include "RenderCore.h"
-#include "RenderCore_PlatformDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -21,7 +19,7 @@ namespace Fancy {
         myDescriptor.myGpuHandle.ptr == anOther.myDescriptor.myGpuHandle.ptr;
     }
 
-    Type myType;
+    Type myType = NONE;
     DescriptorDX12 myDescriptor;
   };
 //---------------------------------------------------------------------------//

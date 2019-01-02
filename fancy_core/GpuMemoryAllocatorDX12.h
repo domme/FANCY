@@ -1,20 +1,15 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include "DX12Prerequisites.h"
+#include "RenderEnums.h"
 #include "PagedLinearAllocator.h"
-#include <unordered_map>
+#include "GpuMemoryAllocationDX12.h"
+#include <list>
+
+struct ID3D12Heap;
 
 namespace Fancy
 {
-//---------------------------------------------------------------------------//
-  struct GpuMemoryAllocationDX12
-  {
-    GpuMemoryAllocationDX12() : myHeap(nullptr), myOffsetInHeap(0u), mySize(0u) {}
-    ID3D12Heap* myHeap;
-    uint64 myOffsetInHeap;
-    uint64 mySize;
-  };
 //---------------------------------------------------------------------------// 
   class GpuMemoryAllocatorDX12
   {
@@ -26,9 +21,9 @@ namespace Fancy
     void Free(GpuMemoryAllocationDX12& anAllocation);
 
   private:
-    PagedLinearAllocator<Microsoft::WRL::ComPtr<ID3D12Heap>> myAllocator;
     GpuMemoryType myType;
     CpuMemoryAccessType myAccess;
+    PagedLinearAllocator<Microsoft::WRL::ComPtr<ID3D12Heap>> myAllocator;
 
   #if FANCY_DX12_DEBUG_ALLOCS
     struct AllocDebugInfo

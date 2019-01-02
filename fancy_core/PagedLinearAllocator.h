@@ -1,9 +1,9 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
+
 #include <list>
-#include <utility>
-#include "AlignedStorage.h"
+#include <functional>
 
 namespace Fancy
 {
@@ -25,7 +25,7 @@ namespace Fancy
       uint64 mySize;
     };
 
-    PagedLinearAllocator(uint aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn);
+    PagedLinearAllocator(uint64 aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn);
     const Page* FindPage(std::function<bool(const Page&)> aPredicateFn);
     const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut);
     void Free(const Block& aBlock);
@@ -35,7 +35,7 @@ namespace Fancy
   private:
     bool CreateAndAddPage(uint64 aSize);
 
-    const uint myPageSize;
+    const uint64 myPageSize;
     std::function<bool(uint64, T&)> myPageDataCreateFn;
     std::function<void(T&)> myPageDataDestroyFn;
 
@@ -48,7 +48,7 @@ namespace Fancy
 // Implementation
 //---------------------------------------------------------------------------//
   template <class T>
-  PagedLinearAllocator<T>::PagedLinearAllocator(uint aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn)
+  PagedLinearAllocator<T>::PagedLinearAllocator(uint64 aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn)
     : myPageSize(aPageSize) 
     , myPageDataCreateFn(std::move(aPageDataCreateFn))
     , myPageDataDestroyFn(std::move(aPageDataDestroyFn))
@@ -177,7 +177,7 @@ namespace Fancy
     }
 
     // Check if we can completely remove a page
-    for (int i = myPages.size() - 1; i >= 0; --i)
+    for (int i = (int)myPages.size() - 1; i >= 0; --i)
     {
       Page& page = myPages[i];
       auto it = std::find_if(myFreeList.begin(), myFreeList.end(), [&page](const Block& anOtherBlock)

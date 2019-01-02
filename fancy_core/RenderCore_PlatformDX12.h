@@ -1,27 +1,27 @@
 #pragma once
 
 #include "RenderCore_Platform.h"
-
 #include "DX12Prerequisites.h"
-#include "Texture.h"
-#include "CommandAllocatorPoolDX12.h"
-#include "DynamicDescriptorHeapDX12.h"
-#include "DescriptorDX12.h"
 
-#include <queue>
-#include "CommandQueueDX12.h"
-#include "GpuMemoryAllocatorDX12.h"
-#include "GpuBuffer.h"
+#include "DataFormat.h"
+#include "Ptr.h"
+#include "DynamicDescriptorHeapDX12.h"
 #include "StaticDescriptorAllocatorDX12.h"
+#include "GpuMemoryAllocatorDX12.h"
+#include "CommandAllocatorPoolDX12.h"
+#include "CommandQueueDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class Window;
   class ShaderResourceInterface;
-  class GeometryVertexLayout;
-  struct GpuResourceViewData;
-  struct TextureViewProperties;
   struct WindowParameters;
+  class GpuProgram;
+  class Texture;
+  class TextureView;
+  struct TextureViewProperties;
+  class GpuBuffer;
+  class GpuBufferView;
+  struct GpuBufferViewProperties;
 //---------------------------------------------------------------------------//  
   class RenderCore_PlatformDX12 final : public RenderCore_Platform
   {
@@ -69,7 +69,6 @@ namespace Fancy {
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
     CommandContext* CreateContext(CommandListType aType) override;
-    DataFormat ResolveFormat(DataFormat aFormat) const override;
     CommandQueue* GetCommandQueue(CommandListType aType) override { return ourCommandQueues[(uint)aType].get(); }
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
@@ -84,7 +83,7 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
 
     // TODO: Move the dynamic heaps to a dedicated pool-class? (Similar to ComandAllocatorPoolDX12)
-    std::vector<std::unique_ptr<DynamicDescriptorHeapDX12>> myDynamicHeapPool;
+    std::vector<UniquePtr<DynamicDescriptorHeapDX12>> myDynamicHeapPool;
     std::list<DynamicDescriptorHeapDX12*> myAvailableDynamicHeaps;
     std::list<std::pair<uint64, DynamicDescriptorHeapDX12*>> myUsedDynamicHeaps;
 

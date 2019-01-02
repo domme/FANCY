@@ -1,5 +1,7 @@
+#include "fancy_assets_precompile.h"
 #include "Material.h"
-#include "fancy_core/Texture.h"
+
+#include <fancy_core/Texture.h>
 
 using namespace Fancy;
 

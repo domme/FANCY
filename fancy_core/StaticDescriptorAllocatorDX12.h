@@ -1,9 +1,10 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "PagedLinearAllocator.h"
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
+#include <list>
 
 namespace Fancy 
 {

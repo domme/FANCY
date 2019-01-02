@@ -1,9 +1,10 @@
 #pragma once
 
-#include "CommandListType.h"
 #include "DX12Prerequisites.h"
-#include "GpuMemoryAllocatorDX12.h"
+#include "GpuMemoryAllocationDX12.h"
 #include "GpuResource.h"
+
+#include "DynamicArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

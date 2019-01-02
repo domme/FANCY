@@ -75,31 +75,16 @@
     <ClInclude Include="CommandContext.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="CommandListType.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="DataFormat.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="DepthStencilState.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Descriptor.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="BinaryCache.h">
       <Filter>IO</Filter>
     </ClInclude>
-    <ClInclude Include="Events.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Fancy.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Fancy_Include.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="FancyCorePrerequisites.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="FC_String.h">
@@ -168,12 +153,6 @@
     <ClInclude Include="RendererPrerequisites.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="RenderingProcess.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderingStartupParameters.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="RenderOutput.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -210,17 +189,10 @@
     <ClInclude Include="Window.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="GpuBufferDesc.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="MathUtil.h">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="StdAfx.h" />
-    <ClInclude Include="RenderPlatformCaps.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="MeshData.h">
@@ -228,9 +200,6 @@
     </ClInclude>
     <ClInclude Include="Input.h">
       <Filter>IO</Filter>
-    </ClInclude>
-    <ClInclude Include="MathPrerequisites.h">
-      <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="GpuRingBuffer.h">
       <Filter>Rendering</Filter>
@@ -252,9 +221,6 @@
     </ClInclude>
     <ClInclude Include="Any.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureViewProperties.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="ResourceRefs.h">
       <Filter>Rendering</Filter>
@@ -288,6 +254,43 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsResources.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderEnums.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureProperties.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuBufferProperties.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="fancy_core_precompile.h" />
+    <ClInclude Include="WindowsIncludes.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FancyCoreDefines.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicArray.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FixedArray.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Ptr.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="MathIncludes.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuMemoryAllocationDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="TempResources.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureData.h">
       <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
@@ -352,9 +355,6 @@
     <ClCompile Include="FileWatcher.cpp">
       <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryData.cpp">
-      <Filter>Geometry</Filter>
-    </ClCompile>
     <ClCompile Include="GeometryVertexLayout.cpp">
       <Filter>Geometry</Filter>
     </ClCompile>
@@ -382,9 +382,6 @@
     <ClCompile Include="RenderCore.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="RendererPrerequisites.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="RenderOutput.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -403,7 +400,6 @@
     <ClCompile Include="Window.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="StdAfx.cpp" />
     <ClCompile Include="Input.cpp">
       <Filter>IO</Filter>
     </ClCompile>
@@ -429,6 +425,16 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="TempResourcePool.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="fancy_core_precompile.cpp" />
+    <ClCompile Include="StringUtil.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="TempResources.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureData.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>

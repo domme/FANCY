@@ -1,8 +1,10 @@
+#include "fancy_core_precompile.h"
 #include "FileWatcher.h"
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "TimeManager.h"
 #include "Fancy.h"
 #include "PathService.h"
+#include "FC_String.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//  
@@ -32,7 +34,7 @@ namespace Fancy {
     if (std::find_if(myWatchEntries.begin(), myWatchEntries.end(), [=](const auto& entry){ return entry.myPath == aPath; }) != myWatchEntries.end())
       return;
 
-    uint64 currWriteTime = Path::GetFileWriteTime(aPath);
+    const uint64 currWriteTime = Path::GetFileWriteTime(aPath);
 
     ASSERT(currWriteTime > 0u, "Could not read file write time");
     if (currWriteTime == 0u)
@@ -58,7 +60,7 @@ namespace Fancy {
   {
     for(FileWatchEntry& entry : myWatchEntries)
     {
-      uint64 currWriteTime = Path::GetFileWriteTime(entry.myPath);
+      const uint64 currWriteTime = Path::GetFileWriteTime(entry.myPath);
 
       if (entry.myLastWriteTime < currWriteTime)
         myOnFileUpdated(entry.myPath);

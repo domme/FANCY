@@ -1,8 +1,9 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "CommandListType.h"
+#include "FancyCoreDefines.h"
 #include "DX12Prerequisites.h"
+#include "RenderEnums.h"
+#include "DynamicArray.h"
 
 #include <list>
 
@@ -22,7 +23,7 @@ namespace Fancy {
 
     CommandListType myCommandListType;
 
-    std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> myAllocatorPool;
+    DynamicArray<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> myAllocatorPool;
     std::list<ID3D12CommandAllocator*> myAvailableAllocators;
     std::list<std::pair<uint64, ID3D12CommandAllocator*>> myReleasedWaitingAllocators;
   };  

@@ -1,5 +1,5 @@
+#include "fancy_core_precompile.h"
 #include "DepthStencilState.h"
-#include "MathUtil.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

@@ -1,5 +1,8 @@
+#include "fancy_assets_precompile.h"
 #include "ImageLoader.h"
+
 #include <fancy_core/Log.h>
+#include <fancy_core/MathIncludes.h>
 
 #define STBI_FAILURE_USERMSG  // Slightly more user-friendly error-messages
 #define STB_IMAGE_IMPLEMENTATION

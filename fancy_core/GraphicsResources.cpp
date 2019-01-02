@@ -1,5 +1,6 @@
-#include "stdafx.h"
+#include "fancy_core_precompile.h"
 #include "GraphicsResources.h"
+
 #include "RenderCore.h"
 
 namespace Fancy
@@ -93,7 +94,7 @@ namespace Fancy
 
       if (someProps.myIsTexture)
       {
-        TextureViewProperties viewProps;
+        const TextureViewProperties viewProps;
         myReadView = RenderCore::CreateTextureView(myTexture, viewProps);
         ASSERT(myReadView);
       }

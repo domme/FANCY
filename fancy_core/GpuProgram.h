@@ -1,7 +1,6 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "GpuProgramFeatures.h"
+#include "FancyCoreDefines.h"
 #include "GpuProgramDesc.h"
 #include "GpuProgramProperties.h"
 

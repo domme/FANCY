@@ -1,5 +1,8 @@
 #pragma once
 
+#include "FancyCoreDefines.h"
+#include "DynamicArray.h"
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class RenderContext;
@@ -65,7 +68,7 @@ namespace Fancy {
   struct ShaderResourceInterfaceDesc
   {
     DynamicArray<SriElement> myElements;
-    uint64 myHash;
+    uint64 myHash = 0u;
   };
 //---------------------------------------------------------------------------//
 }

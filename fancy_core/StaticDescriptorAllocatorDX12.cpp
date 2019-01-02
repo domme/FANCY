@@ -1,7 +1,6 @@
-#include "stdafx.h"
-
+#include "fancy_core_precompile.h"
 #include "StaticDescriptorAllocatorDX12.h"
-#include "DX12Prerequisites.h"
+
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
@@ -14,7 +13,8 @@ namespace Fancy
     {
       ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
       D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
-      heapDesc.NumDescriptors = aNumDescriptors;
+      ASSERT(aNumDescriptors <= UINT_MAX);
+      heapDesc.NumDescriptors = static_cast<uint>(aNumDescriptors);
       heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
       heapDesc.NodeMask = 0u;
       heapDesc.Type = aType;
@@ -78,7 +78,7 @@ namespace Fancy
 #if FANCY_DX12_DEBUG_ALLOCS
     AllocDebugInfo debugInfo;
     debugInfo.myName = aDebugName;
-    debugInfo.myVirtualDescriptorIndex = descriptorIndexInHeap + page->myVirtualOffset;
+    debugInfo.myVirtualDescriptorIndex = static_cast<uint>(descriptorIndexInHeap + page->myVirtualOffset);
     myAllocDebugInfos.push_back(debugInfo);
 #endif
 

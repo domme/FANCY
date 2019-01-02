@@ -1,18 +1,17 @@
 #pragma once
 
-#include "DX12Prerequisites.h"
 #include "GpuBuffer.h"
-#include "CommandListType.h"
+#include "RenderEnums.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct DescriptorDX12;
+  class DescriptorDX12;
   struct GpuResourceDataDX12;
 //---------------------------------------------------------------------------//
 	class GpuBufferDX12 final : public GpuBuffer
 	{
 	public:
-    GpuBufferDX12();
+    GpuBufferDX12() = default;
     ~GpuBufferDX12() override;
     
     bool IsValid() const override;

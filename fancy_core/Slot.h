@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Callback.h"
+#include "DynamicArray.h"
+
+#include <algorithm>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -53,7 +56,7 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
   private:
     using CallbackT = Callback<ReturnT(Args...)>;
-    std::vector<CallbackT> myCallbacks;
+    DynamicArray<CallbackT> myCallbacks;
   };
 //---------------------------------------------------------------------------//
 }

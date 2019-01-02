@@ -1,9 +1,9 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 
 namespace Fancy {
-
+//---------------------------------------------------------------------------//
   struct InputState
   {
     InputState();
@@ -33,5 +33,6 @@ namespace Fancy {
   private:
     void HandleKeyUpDownEvent(WPARAM wParam, bool aDown);
   };
+//---------------------------------------------------------------------------//
 }
 

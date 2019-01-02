@@ -37,6 +37,5 @@
       <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="imgui_impl_fancy.h" />
-    <ClInclude Include="Prerequisites.h" />
   </ItemGroup>
 </Project>

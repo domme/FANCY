@@ -1,4 +1,4 @@
-
+#include "fancy_core_precompile.h"
 #include "TimeManager.h"
 
 namespace Fancy {
@@ -10,16 +10,11 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
   Time::Time()
-    : myTimeScale(1.0f)
-    , myElapsedTime(0.0f)
+    : myElapsedTime(0.0f)
+    , myTimeScale(1.0f)
     , myDerivedDeltaTime(0.0f)
+    , myLastUpdateTimes{0u}
   {
-    memset(myLastUpdateTimes, sizeof(myLastUpdateTimes), 0u);
-  }
-//---------------------------------------------------------------------------//
-  Time::~Time()
-  {
-
   }
 //---------------------------------------------------------------------------//
   void Time::Update( float fDt )

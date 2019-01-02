@@ -1,6 +1,5 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
 #include "TextureSamplerDesc.h"
 
 namespace Fancy {

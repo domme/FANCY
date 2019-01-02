@@ -1,7 +1,9 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
+#include "FancyCoreDefines.h"
+#include "GpuBuffer.h"
+#include "Ptr.h"
+#include "RenderEnums.h"
 
 namespace Fancy
 {

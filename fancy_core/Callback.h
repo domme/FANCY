@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include <functional>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

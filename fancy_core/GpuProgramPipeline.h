@@ -1,8 +1,11 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "GpuProgramPipelineDesc.h"
+
+#include "FixedArray.h"
+#include "Ptr.h"
+#include "GpuProgram.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -15,7 +18,7 @@ namespace Fancy {
       virtual ~GpuProgramPipeline();
 
       GpuProgramPipelineDesc GetDescription() const;
-      void SetFromShaders(const std::array<SharedPtr<GpuProgram>, (uint)ShaderStage::NUM>& someShaders);
+      void SetFromShaders(const FixedArray<SharedPtr<GpuProgram>, (uint)ShaderStage::NUM>& someShaders);
 
       uint64 GetHash() const { return GetDescription().GetHash(); }
       uint64 GetShaderByteCodeHash() const { return myShaderByteCodeHash; }

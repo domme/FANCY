@@ -1,10 +1,10 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "GpuResource.h"
-#include "TextureViewProperties.h"
 #include "GpuResourceView.h"
+#include "TextureProperties.h"
+#include "TextureData.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

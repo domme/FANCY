@@ -1,6 +1,6 @@
 #include "Camera.h"
 #include <fancy_core/MathUtil.h>
-#include <fancy_core/FancyCorePrerequisites.h>
+#include <fancy_core/FancyCoreDefines.h>
 
 Camera::Camera()
   : myIsOrtho(false)

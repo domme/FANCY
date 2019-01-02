@@ -1,5 +1,6 @@
-#include "FancyCorePrerequisites.h"
+#include "fancy_core_precompile.h"
 #include "CommandAllocatorPoolDX12.h"
+
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
@@ -62,7 +63,7 @@ namespace Fancy {
       return allocator;
     }
 
-    D3D12_COMMAND_LIST_TYPE nativeCmdListType = RenderCore_PlatformDX12::GetCommandListType(myCommandListType);
+    const D3D12_COMMAND_LIST_TYPE nativeCmdListType = RenderCore_PlatformDX12::GetCommandListType(myCommandListType);
 
     Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
     CheckD3Dcall(RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandAllocator(nativeCmdListType, IID_PPV_ARGS(&allocator)));

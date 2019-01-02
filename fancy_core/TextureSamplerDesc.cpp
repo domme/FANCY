@@ -1,4 +1,6 @@
+#include "fancy_core_precompile.h"
 #include "TextureSamplerDesc.h"
+
 #include "MathUtil.h"
 
 namespace Fancy {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DX12Prerequisites.h"
-#include "CommandListType.h"
+#include "RenderEnums.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

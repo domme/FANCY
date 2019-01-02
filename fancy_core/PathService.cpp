@@ -1,8 +1,7 @@
+#include "fancy_core_precompile.h"
 #include "PathService.h"
-#include <stdio.h>
-#include <Windows.h>
+
 #include <ShlObj.h>
-#include <locale>
 #include <codecvt>
 
 #pragma comment(lib, "comsuppw")
@@ -40,7 +39,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
     String GetContainingFolder(const String& aPath)
     {
-      size_t slashPos = glm::min(aPath.rfind('/'), aPath.rfind('\\'));
+      size_t slashPos = (size_t) glm::min(aPath.rfind('/'), aPath.rfind('\\'));
       if (slashPos == String::npos)
         return aPath;
 

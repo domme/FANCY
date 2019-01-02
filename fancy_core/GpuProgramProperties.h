@@ -1,10 +1,12 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "VertexInputLayout.h"
+#include "DynamicArray.h"
+#include "MathIncludes.h"
 
-namespace Fancy {
+namespace Fancy 
+{
 //---------------------------------------------------------------------------//
   struct ConstantBufferElement
   {

@@ -1,8 +1,6 @@
 #pragma once
 
-#include "RendererPrerequisites.h"
 #include "GpuProgramProperties.h"
-#include "VertexInputLayout.h"
 #include "GpuProgramDesc.h"
 
 namespace Fancy {
@@ -13,8 +11,8 @@ namespace Fancy {
   struct GpuProgramCompilerOutput
   { 
     String myShaderCode;
-    ShaderResourceInterface* myRootSignature;
-    void* myNativeData;
+    ShaderResourceInterface* myRootSignature = nullptr;
+    void* myNativeData = nullptr;
 
     GpuProgramDesc myDesc;
     GpuProgramProperties myProperties;

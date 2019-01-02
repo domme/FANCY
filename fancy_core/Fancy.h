@@ -1,7 +1,9 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "TimeManager.h"
+#include "Ptr.h"
+#include "WindowsIncludes.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

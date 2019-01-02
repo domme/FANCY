@@ -1,7 +1,11 @@
 #pragma once
 
-#include <fancy_core/FancyCorePrerequisites.h>
 #include "MaterialSemantics.h"
+
+#include <fancy_core/FancyCoreDefines.h>
+#include <fancy_core/FixedArray.h>
+#include <fancy_core/FC_String.h>
+#include <fancy_core/DynamicArray.h>
 
 namespace Fancy
 {

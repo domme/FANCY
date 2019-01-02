@@ -1,4 +1,6 @@
+#include "fancy_core_precompile.h"
 #include "Window.h"
+#include "Log.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -24,8 +26,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   Window::Window(HWND aHandle)
     : myWindowHandle(aHandle)
-    , myWidth(1)
     , myHeight(1)
+    , myWidth(1)
   {
     
   }

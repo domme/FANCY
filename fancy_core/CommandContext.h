@@ -1,16 +1,20 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include "CommandListType.h"
 #include "RenderCore.h"
+#include "DynamicArray.h"
+#include "MathIncludes.h"
+#include "RenderEnums.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  class GeometryData;
   class GpuResourceView;
   class GpuFence;
   class GpuResource;  
   class DepthStencilState;
   class BlendState;
+  class GpuProgram;
 //---------------------------------------------------------------------------//
   struct GraphicsPipelineState
   {
@@ -24,7 +28,7 @@ namespace Fancy {
     SharedPtr<BlendState> myBlendState;
     SharedPtr<GpuProgramPipeline> myGpuProgramPipeline;
     uint8 myNumRenderTargets;
-    DataFormat myRTVformats[Constants::kMaxNumRenderTargets];
+    DataFormat myRTVformats[RenderConstants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
     TopologyType myTopologyType;
 
@@ -111,7 +115,7 @@ namespace Fancy {
     bool myTopologyDirty;
     bool myRenderTargetsDirty;
     bool myShaderHasUnorderedWrites;
-    TextureView* myRenderTargets[Constants::kMaxNumRenderTargets];
+    TextureView* myRenderTargets[RenderConstants::kMaxNumRenderTargets];
     TextureView* myDepthStencilTarget;
 
     GraphicsPipelineState myGraphicsPipelineState;

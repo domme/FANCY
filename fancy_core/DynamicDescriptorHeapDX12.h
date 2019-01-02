@@ -1,10 +1,8 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
-#include <list>
-#include "Any.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -15,7 +13,7 @@ namespace Fancy {
     friend class RenderCore_PlatformDX12;
 
   public:
-    DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptors);
+    DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors);
 
     const D3D12_DESCRIPTOR_HEAP_DESC& GetDesc() const { return myDesc; }
     const uint& GetHandleIncrementSize() const { return myHandleIncrementSize; }

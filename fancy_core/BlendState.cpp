@@ -1,5 +1,5 @@
+#include "fancy_core_precompile.h"
 #include "BlendState.h"
-#include "MathUtil.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -15,7 +15,7 @@ namespace Fancy {
     memset(myAlphaSeparateBlend, false, sizeof(myAlphaSeparateBlend));
     memset(myBlendEnabled, false, sizeof(myBlendEnabled));
 
-    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0u; i < RenderConstants::kMaxNumRenderTargets; ++i)
     {
       mySrcBlend[i] = static_cast<uint>(BlendInput::ONE);
       myDestBlend[i] = static_cast<uint>(BlendInput::ONE);
@@ -38,7 +38,7 @@ namespace Fancy {
     MathUtil::hash_combine(hash, myAlphaToCoverageEnabled ? 1u : 0u);
     MathUtil::hash_combine(hash, myBlendStatePerRT ? 1u : 0u);
 
-    for (uint i = 0; i < Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0; i < RenderConstants::kMaxNumRenderTargets; ++i)
     {
       MathUtil::hash_combine(hash, myAlphaSeparateBlend[i] ? 1u : 0u);
       MathUtil::hash_combine(hash, myBlendEnabled[i] ? 1u : 0u);
@@ -62,7 +62,7 @@ namespace Fancy {
     memset(myAlphaSeparateBlend, false, sizeof(myAlphaSeparateBlend));
     memset(myBlendEnabled, false, sizeof(myBlendEnabled));
 
-    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0u; i < RenderConstants::kMaxNumRenderTargets; ++i)
     {
       mySrcBlend[i] = BlendInput::ONE;
       myDestBlend[i] = BlendInput::ONE;
@@ -91,7 +91,7 @@ namespace Fancy {
     desc.myAlphaToCoverageEnabled = myAlphaToCoverageEnabled;
     desc.myBlendStatePerRT = myBlendStatePerRT;
 
-    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0u; i < RenderConstants::kMaxNumRenderTargets; ++i)
     {
       desc.myAlphaSeparateBlend[i] = myAlphaSeparateBlend[i];
       desc.myBlendEnabled[i] = myBlendEnabled[i];
@@ -112,7 +112,7 @@ namespace Fancy {
     myAlphaToCoverageEnabled = aDesc.myAlphaToCoverageEnabled;
     myBlendStatePerRT = aDesc.myBlendStatePerRT;
 
-    for (uint i = 0u; i < Constants::kMaxNumRenderTargets; ++i)
+    for (uint i = 0u; i < RenderConstants::kMaxNumRenderTargets; ++i)
     {
       myAlphaSeparateBlend[i] = aDesc.myAlphaSeparateBlend[i];
       myBlendEnabled[i] = aDesc.myBlendEnabled[i];

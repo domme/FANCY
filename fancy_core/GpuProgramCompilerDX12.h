@@ -1,6 +1,5 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
 #include "FileWatcher.h"
 #include "GpuProgramCompiler.h"
 
@@ -15,5 +14,4 @@ namespace Fancy {
       String ResolvePlatformShaderPath(const String& aPath) const override;
   };
 //---------------------------------------------------------------------------//
-} 
-
+}

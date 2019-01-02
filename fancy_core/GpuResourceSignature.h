@@ -1,7 +1,7 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
+#include "FancyCoreDefines.h"
+#include "DynamicArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

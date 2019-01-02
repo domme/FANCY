@@ -1,6 +1,9 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
+#include "MathIncludes.h"
+
+#include <type_traits>  // std::hash
 
 namespace Fancy { namespace MathUtil {
 //---------------------------------------------------------------------------//

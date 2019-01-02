@@ -1,10 +1,14 @@
+#include "fancy_core_precompile.h"
+
+#include "FancyCoreDefines.h"
 #include "Fancy.h"
 
 #include "RenderCore.h"
 
 #include "PathService.h"
 #include "TimeManager.h"
-#include "RenderingStartupParameters.h"
+#include "Log.h"
+#include "CommandQueue.h"
 #include "RenderOutput.h"
 
 namespace Fancy {

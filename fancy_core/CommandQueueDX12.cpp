@@ -1,6 +1,6 @@
-#include "stdafx.h"
-#include "DX12Prerequisites.h"
+#include "fancy_core_precompile.h"
 #include "CommandQueueDX12.h"
+
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"

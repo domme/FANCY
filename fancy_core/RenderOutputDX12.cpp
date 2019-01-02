@@ -1,11 +1,12 @@
+#include "fancy_core_precompile.h"
 #include "RenderOutputDX12.h"
+
 #include "RenderCore_PlatformDX12.h"
 #include "RenderCore.h"
 #include "Window.h"
 #include "TextureDX12.h"
 #include "CommandContextDX12.h"
 #include "GpuResourceDataDX12.h"
-#include "StringUtil.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

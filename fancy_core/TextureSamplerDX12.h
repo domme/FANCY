@@ -8,8 +8,8 @@ namespace Fancy {
   class TextureSamplerDX12 : public TextureSampler
   {
   public:
-    TextureSamplerDX12();
-    ~TextureSamplerDX12() override;
+    TextureSamplerDX12() = default;
+    ~TextureSamplerDX12() override = default;
 
   protected:
     DescriptorDX12 myDescriptor;

@@ -1,7 +1,4 @@
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <list>
+#include "fancy_core_precompile.h"
 
 #include "FileReader.h"
 

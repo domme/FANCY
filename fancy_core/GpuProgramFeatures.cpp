@@ -1,11 +1,11 @@
+#include "fancy_core_precompile.h"
 #include "GpuProgramFeatures.h"
-#include "MathUtil.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Internal 
   {
-    uint64 sortAndGetHash(std::vector<GpuProgramFeature>& _vFeatures)
+    uint64 sortAndGetHash(DynamicArray<GpuProgramFeature>& _vFeatures)
     {
       std::sort(_vFeatures.begin(), _vFeatures.end());
       
@@ -59,7 +59,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPermutation::setFeatures(const std::vector<GpuProgramFeature>& _vFeatures)
+  void GpuProgramPermutation::setFeatures(const DynamicArray<GpuProgramFeature>& _vFeatures)
   {
     m_vFeatures = _vFeatures;
     m_uHash = Internal::sortAndGetHash(m_vFeatures);

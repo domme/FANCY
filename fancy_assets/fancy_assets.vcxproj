@@ -43,6 +43,8 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)/dependencies/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>RENDERER_DX12;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>fancy_assets_precompile.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -59,7 +61,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
-    <ClCompile Include="lodepng\lodepng.cpp" />
+    <ClCompile Include="fancy_assets_precompile.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">fancy_assets_precompile.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MaterialDesc.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -69,7 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
-    <ClInclude Include="lodepng\lodepng.h" />
+    <ClInclude Include="fancy_assets_precompile.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialDesc.h" />
     <ClInclude Include="MaterialSemantics.h" />

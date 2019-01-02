@@ -1,8 +1,9 @@
 #pragma once
 
-#include "RendererPrerequisites.h"
-
 // TODO: Fix this mirror-madness
+
+#include "FancyCoreDefines.h"
+#include "RenderEnums.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -17,15 +18,15 @@ namespace Fancy {
 
     bool myAlphaToCoverageEnabled;
     bool myBlendStatePerRT;
-    bool myAlphaSeparateBlend[Constants::kMaxNumRenderTargets];
-    bool myBlendEnabled[Constants::kMaxNumRenderTargets];
-    uint mySrcBlend[Constants::kMaxNumRenderTargets];
-    uint myDestBlend[Constants::kMaxNumRenderTargets];
-    uint myBlendOp[Constants::kMaxNumRenderTargets];
-    uint mySrcBlendAlpha[Constants::kMaxNumRenderTargets];
-    uint myDestBlendAlpha[Constants::kMaxNumRenderTargets];
-    uint myBlendOpAlpha[Constants::kMaxNumRenderTargets];
-    uint myRTwriteMask[Constants::kMaxNumRenderTargets];
+    bool myAlphaSeparateBlend[RenderConstants::kMaxNumRenderTargets];
+    bool myBlendEnabled[RenderConstants::kMaxNumRenderTargets];
+    uint mySrcBlend[RenderConstants::kMaxNumRenderTargets];
+    uint myDestBlend[RenderConstants::kMaxNumRenderTargets];
+    uint myBlendOp[RenderConstants::kMaxNumRenderTargets];
+    uint mySrcBlendAlpha[RenderConstants::kMaxNumRenderTargets];
+    uint myDestBlendAlpha[RenderConstants::kMaxNumRenderTargets];
+    uint myBlendOpAlpha[RenderConstants::kMaxNumRenderTargets];
+    uint myRTwriteMask[RenderConstants::kMaxNumRenderTargets];
   };
 //---------------------------------------------------------------------------//
 class BlendState {
@@ -43,15 +44,15 @@ public:
   
   bool        myAlphaToCoverageEnabled;
   bool        myBlendStatePerRT;
-  bool        myAlphaSeparateBlend[Constants::kMaxNumRenderTargets];
-  bool        myBlendEnabled[Constants::kMaxNumRenderTargets];
-  BlendInput  mySrcBlend[Constants::kMaxNumRenderTargets];
-  BlendInput  myDestBlend[Constants::kMaxNumRenderTargets];
-  BlendOp     myBlendOp[Constants::kMaxNumRenderTargets];
-  BlendInput  mySrcBlendAlpha[Constants::kMaxNumRenderTargets];
-  BlendInput  myDestBlendAlpha[Constants::kMaxNumRenderTargets];
-  BlendOp     myBlendOpAlpha[Constants::kMaxNumRenderTargets];
-  uint        myRTwriteMask[Constants::kMaxNumRenderTargets];
+  bool        myAlphaSeparateBlend[RenderConstants::kMaxNumRenderTargets];
+  bool        myBlendEnabled[RenderConstants::kMaxNumRenderTargets];
+  BlendInput  mySrcBlend[RenderConstants::kMaxNumRenderTargets];
+  BlendInput  myDestBlend[RenderConstants::kMaxNumRenderTargets];
+  BlendOp     myBlendOp[RenderConstants::kMaxNumRenderTargets];
+  BlendInput  mySrcBlendAlpha[RenderConstants::kMaxNumRenderTargets];
+  BlendInput  myDestBlendAlpha[RenderConstants::kMaxNumRenderTargets];
+  BlendOp     myBlendOpAlpha[RenderConstants::kMaxNumRenderTargets];
+  uint        myRTwriteMask[RenderConstants::kMaxNumRenderTargets];
 //---------------------------------------------------------------------------//
 };
 

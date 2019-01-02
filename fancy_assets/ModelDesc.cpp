@@ -1,5 +1,6 @@
+#include "fancy_assets_precompile.h"
+
 #include "ModelDesc.h"
-#include "fancy_core/MathUtil.h"
 
 using namespace Fancy;
 

@@ -1,5 +1,7 @@
 #pragma once
-#include <fancy_core/FancyCorePrerequisites.h>
+
+#include <fancy_core/DynamicArray.h>
+#include <fancy_core/MathIncludes.h>
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -30,4 +32,3 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
-

@@ -1,3 +1,4 @@
+#include "fancy_core_precompile.h"
 #include "GpuBuffer.h"
 
 namespace Fancy {

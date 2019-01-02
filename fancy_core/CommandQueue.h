@@ -1,6 +1,7 @@
 #pragma once
 
-#include "CommandListType.h"
+#include "FancyCoreDefines.h"
+#include "RenderEnums.h"
 
 namespace Fancy 
 {
@@ -12,7 +13,7 @@ namespace Fancy
     static CommandListType GetCommandListType(uint64 aFenceVal);
 
     explicit CommandQueue(CommandListType aType);
-    virtual ~CommandQueue();
+    virtual ~CommandQueue() = default;
 
     virtual bool IsFenceDone(uint64 aFenceVal) = 0;
     virtual uint64 SignalAndIncrementFence() = 0;

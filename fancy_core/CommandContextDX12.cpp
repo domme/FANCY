@@ -1,10 +1,12 @@
-#include "FancyCorePrerequisites.h"
+#include "fancy_core_precompile.h"
 #include "CommandContextDX12.h"
+
+#include "FancyCoreDefines.h"
+
 #include "GpuBufferDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "TextureDX12.h"
-#include <malloc.h>
 #include "AdapterDX12.h"
 #include "GpuProgramDX12.h"
 #include "ShaderResourceInterfaceDX12.h"
@@ -581,7 +583,7 @@ namespace Fancy {
     memset(&blendDesc, 0u, sizeof(D3D12_BLEND_DESC));
     blendDesc.AlphaToCoverageEnable = aState.myBlendState->myAlphaToCoverageEnabled;
     blendDesc.IndependentBlendEnable = aState.myBlendState->myBlendStatePerRT;
-    uint rtCount = blendDesc.IndependentBlendEnable ? Constants::kMaxNumRenderTargets : 1u;
+    uint rtCount = blendDesc.IndependentBlendEnable ? RenderConstants::kMaxNumRenderTargets : 1u;
     for (uint rt = 0u; rt < rtCount; ++rt)
     {
       D3D12_RENDER_TARGET_BLEND_DESC& rtBlendDesc = blendDesc.RenderTarget[rt];
@@ -807,7 +809,7 @@ namespace Fancy {
       const GpuResourceViewDataDX12& resourceViewData = someResourceViews[i]->myNativeData.To<GpuResourceViewDataDX12>();
 
       subresourceLists[i] = someResourceViews[i]->mySubresources->data();
-      numSubresources[i] = someResourceViews[i]->mySubresources->size();
+      numSubresources[i] = static_cast<uint>(someResourceViews[i]->mySubresources->size());
       
       dx12Descriptors[i] = resourceViewData.myDescriptor;
       resourcesToTransition[i] = someResourceViews[i]->myResource.get();
@@ -969,13 +971,13 @@ namespace Fancy {
       return;
 
     const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
-    D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[Constants::kMaxNumRenderTargets];
+    D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[RenderConstants::kMaxNumRenderTargets];
 
     // RenderTarget state-transitions
     {
-      const GpuResource* rtResources[Constants::kMaxNumRenderTargets];
-      const uint16* subresourceLists[Constants::kMaxNumRenderTargets];
-      uint numSubresources[Constants::kMaxNumRenderTargets];
+      const GpuResource* rtResources[RenderConstants::kMaxNumRenderTargets];
+      const uint16* subresourceLists[RenderConstants::kMaxNumRenderTargets];
+      uint numSubresources[RenderConstants::kMaxNumRenderTargets];
 
       for (uint i = 0u; i < numRtsToSet; ++i)
       {
@@ -987,10 +989,10 @@ namespace Fancy {
         rtResources[i] = myRenderTargets[i]->GetTexture();
         rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
         subresourceLists[i] = myRenderTargets[i]->mySubresources[0].data();
-        numSubresources[i] = myRenderTargets[i]->mySubresources[0].size();
+        numSubresources[i] = static_cast<uint>(myRenderTargets[i]->mySubresources[0].size());
       }
 
-      D3D12_RESOURCE_STATES newStates[Constants::kMaxNumRenderTargets];
+      D3D12_RESOURCE_STATES newStates[RenderConstants::kMaxNumRenderTargets];
       for (uint i = 0; i < numRtsToSet; ++i)
         newStates[i] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
@@ -1013,7 +1015,7 @@ namespace Fancy {
 
       const GpuResource* resources[2] = { myDepthStencilTarget->GetTexture(), myDepthStencilTarget->GetTexture() };
       const uint16* subresourceLists[2] = { myDepthStencilTarget->mySubresources[0].data(), myDepthStencilTarget->mySubresources[1].data() };
-      const uint numSubresources[2] = { myDepthStencilTarget->mySubresources[0].size(), myDepthStencilTarget->mySubresources[1].size() };
+      const uint numSubresources[2] = { static_cast<uint>(myDepthStencilTarget->mySubresources[0].size()), static_cast<uint>(myDepthStencilTarget->mySubresources[1].size()) };
       
       SetSubresourceTransitionBarriers(resources, dsStates, subresourceLists, numSubresources, 2u);
       
@@ -1068,7 +1070,7 @@ namespace Fancy {
       if (!hazardData->myCanChangeStates)
         continue;
 
-      const uint maxNumSubresources = hazardData->mySubresourceStates.size();
+      const uint maxNumSubresources = static_cast<uint>(hazardData->mySubresourceStates.size());
       const uint numSubresources = someNumSubresources == nullptr ? maxNumSubresources : someNumSubresources[iState];
       const bool transitionAllSubresources = numSubresources == maxNumSubresources;
 
@@ -1253,7 +1255,7 @@ namespace Fancy {
     ASSERT(myComputePipelineState.myGpuProgram != nullptr);
 
     const glm::int3& numGroupThreads = myComputePipelineState.myGpuProgram->myProperties.myNumGroupThreads;
-    glm::int3 numGroups = glm::max(glm::int3(1), aNumThreads / numGroupThreads);
+    const glm::int3 numGroups = glm::max(glm::int3(1), aNumThreads / numGroupThreads);
     myCommandList->Dispatch(static_cast<uint>(numGroups.x), static_cast<uint>(numGroups.y), static_cast<uint>(numGroups.z));
 
     if (myShaderHasUnorderedWrites)

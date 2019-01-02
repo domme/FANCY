@@ -1,7 +1,11 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "Slot.h"
+#include "Ptr.h"
+#include "FC_String.h"
+
+#include "WindowsIncludes.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

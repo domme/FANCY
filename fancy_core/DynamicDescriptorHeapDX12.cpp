@@ -1,4 +1,4 @@
-#include "FancyCorePrerequisites.h"
+#include "fancy_core_precompile.h"
 #include "DynamicDescriptorHeapDX12.h"
 
 #include "DescriptorDX12.h"
@@ -7,7 +7,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  DynamicDescriptorHeapDX12::DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptors)
+  DynamicDescriptorHeapDX12::DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors)
     : myNextFreeHandleIndex(0u)
     , myHandleIncrementSize(0u)
   {

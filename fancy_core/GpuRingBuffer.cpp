@@ -1,4 +1,6 @@
+#include "fancy_core_precompile.h"
 #include "GpuRingBuffer.h"
+
 #include "GpuBuffer.h"
 #include "RenderCore.h"
 

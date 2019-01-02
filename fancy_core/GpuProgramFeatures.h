@@ -1,7 +1,8 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
+#include "FancyCoreDefines.h"
+#include "FC_String.h"
+#include "DynamicArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -31,17 +32,17 @@ namespace Fancy {
       }
 
       GpuProgramPermutation() : m_uHash(0u) {}
-      ~GpuProgramPermutation() {}
+      ~GpuProgramPermutation() = default;
 
       static String featureToDefineString(GpuProgramFeature _eFeature);
       
       void addFeature(GpuProgramFeature _eFeature);
       bool hasFeature(GpuProgramFeature _eFeature) const;
-      void setFeatures(const std::vector<GpuProgramFeature>& _vFeatures);
-      const std::vector<GpuProgramFeature>& getFeatureList() const {return m_vFeatures;}
+      void setFeatures(const DynamicArray<GpuProgramFeature>& _vFeatures);
+      const DynamicArray<GpuProgramFeature>& getFeatureList() const {return m_vFeatures;}
 
     private:
-      std::vector<GpuProgramFeature> m_vFeatures;
+      DynamicArray<GpuProgramFeature> m_vFeatures;
       uint64 m_uHash;
   };
 //---------------------------------------------------------------------------//

@@ -1,15 +1,14 @@
+#include "fancy_core_precompile.h"
+#include "GpuProgramCompilerDX12.h"
+
 #include "GpuProgramCompilerUtils.h"
-#include "StringUtil.h"
 #include "GpuProgramFeatures.h"
 #include "GpuProgram.h"
 #include "PathService.h"
 #include "ShaderResourceInterface.h"
 
-#include "GpuProgramCompilerDX12.h"
-#include "Log.h"
 #include "GpuProgramPipeline.h"
 
-#include "DX12Prerequisites.h"
 #include "GpuProgramProperties.h"
 #include "GpuProgramDX12.h"
 #include "RenderCore.h"

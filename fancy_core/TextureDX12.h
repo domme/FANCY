@@ -1,18 +1,19 @@
 #pragma once
 
 #include "Texture.h"
+#include "DynamicArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GpuResourceDataDX12;
-  struct DescriptorDX12;
+  class DescriptorDX12;
 
   class TextureDX12 final : public Texture
   {
     friend class RenderOutputDX12;  // Remove after backbuffers are handled through the texture class
 
   public:
-    TextureDX12();
+    TextureDX12() = default;
     ~TextureDX12() override;
 
     static uint CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex);

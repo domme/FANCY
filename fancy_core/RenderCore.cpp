@@ -1,7 +1,6 @@
+#include "fancy_core_precompile.h"
 #include "RenderCore.h"
 
-#include <mutex>
-#include <array>
 
 #include "DepthStencilState.h"
 #include "ResourceRefs.h"
@@ -19,10 +18,11 @@
 #include "VertexInputLayout.h"
 #include "RenderOutput.h"
 #include "CommandContext.h"
-#include "RenderingStartupParameters.h"
 #include "MeshData.h"
 #include "CommandContextDX12.h"
-#include "TextureViewProperties.h"
+#include "TextureProperties.h"
+#include "Texture.h"
+#include "TempResourcePool.h"
 
 #include <xxHash/xxhash.h>
 
@@ -49,15 +49,15 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  std::unique_ptr<RenderCore_Platform> RenderCore::ourPlatformImpl;
+  UniquePtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
 
   std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
   std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
   std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
 
-  std::vector<std::unique_ptr<CommandContext>> RenderCore::ourRenderContextPool;
-  std::vector<std::unique_ptr<CommandContext>> RenderCore::ourComputeContextPool;
+  DynamicArray<UniquePtr<CommandContext>> RenderCore::ourRenderContextPool;
+  DynamicArray<UniquePtr<CommandContext>> RenderCore::ourComputeContextPool;
   std::list<CommandContext*> RenderCore::ourAvailableRenderContexts;
   std::list<CommandContext*> RenderCore::ourAvailableComputeContexts;
   
@@ -67,14 +67,14 @@ namespace Fancy {
   SharedPtr<DepthStencilState> RenderCore::ourDefaultDepthStencilState;
   SharedPtr<BlendState> RenderCore::ourDefaultBlendState;
     
-  std::unique_ptr<FileWatcher> RenderCore::ourShaderFileWatcher;
-  std::unique_ptr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
+  UniquePtr<FileWatcher> RenderCore::ourShaderFileWatcher;
+  UniquePtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
 
-  std::vector<std::unique_ptr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
+  DynamicArray<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
 
-  TempResourcePool RenderCore::ourTempResourcePool;
+  UniquePtr<TempResourcePool> RenderCore::ourTempResourcePool;
 
   Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
 //---------------------------------------------------------------------------//  
@@ -112,7 +112,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::BeginFrame()
   {
-    ourTempResourcePool.Reset();
+    ourTempResourcePool->Reset();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
@@ -266,7 +266,7 @@ namespace Fancy {
 
     {
       TextureProperties props;
-      props.eFormat = DataFormat::SRGB_8;
+      props.eFormat = DataFormat::SRGB_8_A_8;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
@@ -284,7 +284,7 @@ namespace Fancy {
 
     {
       TextureProperties props;
-      props.eFormat = DataFormat::RGB_8;
+      props.eFormat = DataFormat::RGBA_8;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
@@ -302,6 +302,8 @@ namespace Fancy {
 
     ourDefaultBlendState = CreateBlendState(BlendStateDesc::GetDefaultSolid());
     ASSERT(ourDefaultBlendState != nullptr);
+
+    ourTempResourcePool.reset(new TempResourcePool);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()
@@ -418,11 +420,6 @@ namespace Fancy {
     ourGpuProgramPipelineCache.insert(std::make_pair(hash, pipeline));
 
     return pipeline;
-  }
-//---------------------------------------------------------------------------//
-  DataFormat RenderCore::ResolveFormat(DataFormat aFormat)
-  {
-    return ourPlatformImpl->ResolveFormat(aFormat);
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuProgram> RenderCore::GetGpuProgram(uint64 aDescHash)
@@ -586,7 +583,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
   {
-    DataFormat format = RenderCore::ResolveFormat(someProperties.myFormat);
+    const DataFormat format = someProperties.myFormat;
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
 
     ASSERT(aBuffer->GetByteSize() >= someProperties.myOffset + someProperties.mySize, "Invalid buffer range");
@@ -706,7 +703,7 @@ namespace Fancy {
     if (readbackTex.myMappedData == nullptr || readbackTex.myLayouts.empty())
       return false;
 
-    const uint pixelSize = readbackTex.myLayouts.front().myRowSize / readbackTex.myLayouts.front().myWidth;
+    const uint64 pixelSize = readbackTex.myLayouts.front().myRowSize / readbackTex.myLayouts.front().myWidth;
 
     uint64 totalSize = 0u;
     for (const TextureSubLayout& subLayout : readbackTex.myLayouts)
@@ -717,7 +714,7 @@ namespace Fancy {
 
     uint8* dstSubResourceStart = aTextureDataOut.myData.data();
     const uint8* srcSubResourceStart = static_cast<const uint8*>(readbackTex.myMappedData);
-    for (uint iSubResource = 0u, e = readbackTex.myLayouts.size(); iSubResource < e; ++iSubResource)
+    for (uint iSubResource = 0u, e = (uint) readbackTex.myLayouts.size(); iSubResource < e; ++iSubResource)
     {
       const TextureSubLayout& subLayout = readbackTex.myLayouts[iSubResource];
 
@@ -793,12 +790,12 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   TempTextureResource RenderCore::AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName)
   {
-    return ourTempResourcePool.AllocateTexture(someProps, someFlags, aName);
+    return ourTempResourcePool->AllocateTexture(someProps, someFlags, aName);
   }
 //---------------------------------------------------------------------------//
   TempBufferResource RenderCore::AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName)
   {
-    return ourTempResourcePool.AllocateBuffer(someProps, someFlags, aName);
+    return ourTempResourcePool->AllocateBuffer(someProps, someFlags, aName);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForFence(uint64 aFenceVal)

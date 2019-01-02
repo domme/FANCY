@@ -1,8 +1,4 @@
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
-#include "MathUtil.h"
-#include "ShaderResourceInterface.h"
-
+#include "fancy_core_precompile.h"
 #include "GpuProgramPipeline.h"
 #include "GpuProgram.h"
 
@@ -34,7 +30,7 @@ namespace Fancy {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipeline::SetFromShaders(const std::array<SharedPtr<GpuProgram>, (uint)ShaderStage::NUM>& someShaders)
+  void GpuProgramPipeline::SetFromShaders(const FixedArray<SharedPtr<GpuProgram>, (uint)ShaderStage::NUM>& someShaders)
   {
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
       myGpuPrograms[i] = someShaders[i];

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "fancy_core_precompile.h"
 #include "CommandQueue.h"
 
 namespace Fancy
@@ -14,10 +14,6 @@ namespace Fancy
   CommandQueue::CommandQueue(CommandListType aType)
     : myType(aType)
     , myInitialFenceVal((((uint64) aType) << 61ULL))
-  {
-  }
-  
-  CommandQueue::~CommandQueue()
   {
   }
 }

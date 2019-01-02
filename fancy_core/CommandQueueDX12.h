@@ -1,5 +1,8 @@
 #pragma once
 #include "CommandQueue.h"
+#include "WindowsIncludes.h"
+
+#include <wrl.h>
 
 namespace Fancy
 {

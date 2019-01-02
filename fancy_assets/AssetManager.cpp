@@ -1,15 +1,25 @@
+#include "fancy_assets_precompile.h"
 #include "AssetManager.h"
-#include "Material.h"
+
+#include <fancy_core/Mesh.h>
+#include <fancy_core/Texture.h>
+#include <fancy_core/CommandContext.h>
+#include <fancy_core/Log.h>
+#include <fancy_core/RenderCore.h>
+#include <fancy_core/PathService.h>
+#include <fancy_core/DataFormat.h>
+#include <fancy_core/BinaryCache.h>
+#include <fancy_core/GraphicsResources.h>
+#include <fancy_core/TempResourcePool.h>
+#include <fancy_core/FixedArray.h>
+#include <fancy_core/CommandQueue.h>
+
 #include "ImageLoader.h"
 #include "MaterialDesc.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_core/PathService.h"
 #include "ModelDesc.h"
 #include "Model.h"
-#include "fancy_core/BinaryCache.h"
-#include <fancy_core/Mesh.h>
-#include "fancy_core/Texture.h"
-#include "fancy_core/CommandContext.h"
+
+#include "Material.h"
 
 using namespace Fancy;
 
@@ -115,7 +125,7 @@ using namespace Fancy;
       if (BinaryCache::ReadTextureData(texPathRel.c_str(), timestamp, texProps, textureData))
       {
         texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
-        SharedPtr<Texture> texFromDiskCache = RenderCore::CreateTexture(texProps, texProps.path.c_str(), textureData.mySubDatas.data(), textureData.mySubDatas.size());
+        SharedPtr<Texture> texFromDiskCache = RenderCore::CreateTexture(texProps, texProps.path.c_str(), textureData.mySubDatas.data(), (uint) textureData.mySubDatas.size());
 
         ASSERT(texFromDiskCache != nullptr);
 
@@ -151,9 +161,7 @@ using namespace Fancy;
     {
       case 1: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::R_8 : DataFormat::R_16; break;
       case 2: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::RG_8 : DataFormat::RG_16; break;
-
-      // LodePNG assumes that 8-bit RGB or RGBA data is always SRGB. The official "sRGB" info-chunk from the PNG format is not supported
-      case 3: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::SRGB_8 : DataFormat::RGB_16; break;
+      // 3-channels unsupported in all modern rendering-APIs. Image-importer lib should deal with it to convert it to 4 channels      
       case 4: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::SRGB_8_A_8 : DataFormat::RGBA_16; break;
       default: ASSERT(false, "Unsupported channels");
       return nullptr;
@@ -183,7 +191,7 @@ using namespace Fancy;
       bool success = RenderCore::ReadbackTextureData(tex.get(), TextureSubLocation(1), tex->GetNumSubresources() - 1, textureData);
       textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
 
-      BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), textureData.mySubDatas.size());
+      BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), (uint) textureData.mySubDatas.size());
 
       // Test:
       //tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), textureData.mySubDatas.data(), textureData.mySubDatas.size());

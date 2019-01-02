@@ -1,8 +1,7 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
 #include "RendererPrerequisites.h"
-#include "RenderPlatformCaps.h"
+#include "Ptr.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -17,6 +16,9 @@ namespace Fancy {
   class TextureView;
   class GpuBufferView;
   struct GpuBufferViewProperties;
+  class GpuProgram;
+  class Texture;
+  class GpuBuffer;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
   {
@@ -35,7 +37,6 @@ namespace Fancy {
     virtual Texture* CreateTexture() = 0;
     virtual GpuBuffer* CreateBuffer() = 0;
     virtual CommandContext* CreateContext(CommandListType aType) = 0;
-    virtual DataFormat ResolveFormat(DataFormat aFormat) const = 0;
     virtual CommandQueue* GetCommandQueue(CommandListType aType) = 0;
     virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
     virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) = 0;

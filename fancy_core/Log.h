@@ -1,6 +1,10 @@
 #pragma once
+
 #include "FC_String.h"
-#include <assert.h>
+#include "WindowsIncludes.h"  // For OutputDebugString()
+
+#include <iostream>
+#include <cstdarg>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

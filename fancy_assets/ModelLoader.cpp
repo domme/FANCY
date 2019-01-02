@@ -1,6 +1,6 @@
+#include "fancy_assets_precompile.h"
 #include "ModelLoader.h"
 
-#include <assimp/config.h>
 #include <assimp/Importer.hpp>
 #include <assimp/LogStream.hpp>
 #include <assimp/DefaultLogger.hpp>
@@ -8,22 +8,22 @@
 #include <assimp/scene.h>
 #include <assimp/mesh.h>
 #include <assimp/material.h>
-#include <xxHash/xxhash.h>
 
 #include <unordered_map>
 #include <unordered_set>
 
-#include "fancy_core/MathUtil.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_core/Mesh.h"
-#include "fancy_core/VertexInputLayout.h"
+#include <fancy_core/MathUtil.h>
+#include <fancy_core/RenderCore.h>
+#include <fancy_core/Mesh.h>
+#include <fancy_core/VertexInputLayout.h>
 #include <fancy_core/PathService.h>
+#include <fancy_core/RendererPrerequisites.h>
+#include <fancy_core/MeshData.h>
 
 #include "Material.h"
 #include "AssetManager.h"
-#include "fancy_core/MeshData.h"
+
 #include "ModelDesc.h"
-#include "fancy_core/RenderPlatformCaps.h"
 
 namespace Fancy { namespace ModelLoader {
 //---------------------------------------------------------------------------//

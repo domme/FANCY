@@ -1,7 +1,8 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "GeometryVertexLayout.h"
+#include "DynamicArray.h"
 
 namespace Fancy
 {
@@ -12,5 +13,3 @@ namespace Fancy
     GeometryVertexLayout myLayout;
   };
 }
-
-

@@ -1,20 +1,16 @@
-#include "StdAfx.h"
+#include "fancy_core_precompile.h"
+#include "TextureDX12.h"
 
 #include "DataFormat.h"
 #include "RenderCore.h"
 #include "StringUtil.h"
 
-#include "TextureDX12.h"
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
 #include "GpuResourceDataDX12.h"
 #include "GpuResourceViewDX12.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  TextureDX12::TextureDX12()
-  {
-  }
 //---------------------------------------------------------------------------//
   TextureDX12::~TextureDX12()
   {
@@ -77,9 +73,12 @@ namespace Fancy {
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive");
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsRenderTarget, "Render target and depthstencil are mutually exclusive");
 
-    myProperties.myDepthOrArraySize = glm::max(1u, myProperties.myDepthOrArraySize);
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.eFormat);
+    ASSERT(formatInfo.myNumComponents != 3, "Texture-formats must be 1-, 2-, or 4-component");
+    myProperties.eFormat = someProperties.eFormat;
 
-    myProperties.eFormat = RenderCore::ResolveFormat(someProperties.eFormat);
+    myProperties.myDepthOrArraySize = glm::max(1u, myProperties.myDepthOrArraySize);
+    
     DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetDXGIformat(myProperties.eFormat);
     if (!someProperties.myPreferTypedFormat)
     {
@@ -134,7 +133,7 @@ namespace Fancy {
       }
     }
 
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
+    
     const uint numArraySlices = myProperties.GetArraySize();
     const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
 

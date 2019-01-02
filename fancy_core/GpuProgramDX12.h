@@ -1,7 +1,9 @@
 #pragma once
 
+#include "FancyCoreDefines.h"
 #include "DX12Prerequisites.h"
 #include "GpuProgram.h"
+#include "RenderEnums.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

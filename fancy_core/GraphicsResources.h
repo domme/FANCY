@@ -2,6 +2,7 @@
 
 #include "GpuBuffer.h"
 #include "Texture.h"
+#include "Ptr.h"
 
 namespace Fancy
 {

@@ -1,10 +1,12 @@
 #pragma once
 
-#include <utility>
-
 /// A simple Any-impementation that can store any type as a typesafe alternative to void* pointers
 // TODO: Specialization for certain types (e.g. const char*)
 // TODO: Throw a compile-error for non-POD types that can't be properly stored in the DataStorage (e.g. "deep" types with internal pointers?). Maybe add specializations for the most common of such types like std::vector?
+
+#include "FancyCoreDefines.h"
+
+#include <type_traits>
 
 namespace Fancy 
 {

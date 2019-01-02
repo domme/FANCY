@@ -1,6 +1,4 @@
-#include "FancyCorePrerequisites.h"
-#include "RendererPrerequisites.h"
-
+#include "fancy_core_precompile.h"
 #include "GpuProgramCompilerUtils.h"
 
 namespace Fancy {

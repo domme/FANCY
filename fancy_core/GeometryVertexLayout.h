@@ -1,6 +1,10 @@
 #pragma once
 
-#include "RendererPrerequisites.h"
+#include "FancyCoreDefines.h"
+#include "FC_String.h"
+#include "DataFormat.h"
+#include "RenderEnums.h"
+#include "DynamicArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -26,7 +30,6 @@ namespace Fancy {
   {
     public:
       GeometryVertexLayout();
-      ~GeometryVertexLayout();
 
       void addVertexElement(const GeometryVertexElement& clVertexElement);
       void AddVertexElement(VertexSemantics aSemantic, DataFormat aFormat, uint aSemanticIndex = 0u, const char* aName = "");

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fancy_core/FancyCorePrerequisites.h>
+#include <fancy_core/FancyCoreDefines.h>
 #include "MaterialSemantics.h"
 #include "MaterialDesc.h"
 

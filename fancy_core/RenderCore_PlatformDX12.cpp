@@ -1,3 +1,5 @@
+#include "fancy_core_precompile.h"
+
 #include "RenderCore_PlatformDX12.h"
 #include "DescriptorDX12.h"
 #include "GpuProgramCompilerDX12.h"
@@ -5,20 +7,16 @@
 #include "TextureDX12.h"
 #include "GpuBufferDX12.h"
 
-#include "MathUtil.h"
 #include "GpuProgram.h"
 #include "ShaderResourceInterface.h"
 #include "ShaderResourceInterfaceDX12.h"
 #include "GpuProgramCompiler.h"
 #include "DynamicDescriptorHeapDX12.h"
 #include "RenderOutputDX12.h"
-#include <malloc.h>
 #include "RenderCore.h"
 #include "CommandContextDX12.h"
 #include "GpuResourceDataDX12.h"
-#include "RenderPlatformCaps.h"
 #include "AdapterDX12.h"
-#include "GpuResourceViewDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -591,30 +589,9 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  static DataFormat locDoResolveFormat(DataFormat aFormat)
-  {
-    switch (aFormat)
-    {
-    case DataFormat::RGB_8: return DataFormat::RGBA_8;
-    case DataFormat::SRGB_8: return DataFormat::SRGB_8_A_8;
-    case DataFormat::RGB_16: return DataFormat::RGBA_16;
-    case DataFormat::RGB_16F: return DataFormat::RGBA_16F;
-    case DataFormat::RGB_16UI: return DataFormat::RGBA_16UI;
-    case DataFormat::RGB_8UI: return DataFormat::RGBA_8UI;
-    default: return aFormat;
-    }
-  }
-//------------------------------------ ---------------------------------------//
-  DataFormat RenderCore_PlatformDX12::ResolveFormat(DataFormat aFormat) const
-  {
-    return locDoResolveFormat(aFormat);
-  }
-//---------------------------------------------------------------------------//
   DXGI_FORMAT RenderCore_PlatformDX12::GetDXGIformat(DataFormat aFormat)
   {
-    DataFormat supportedFormat = locDoResolveFormat(aFormat);
-
-    switch (supportedFormat)
+    switch (aFormat)
     {
     case DataFormat::SRGB_8_A_8:        return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     // case DataFormat::SRGB_8:         (Unsupported - DX12 doesn't support 3-component 8 bit formats. Needs to be resolved & padded to 4-component)   
@@ -646,8 +623,6 @@ namespace Fancy {
     case DataFormat::D_24UNORM_S_8UI:   return DXGI_FORMAT_D24_UNORM_S8_UINT;
     case DataFormat::UNKNOWN:           return DXGI_FORMAT_UNKNOWN;
 
-    case DataFormat::RGB_8:
-    case DataFormat::RGB_16:
     case DataFormat::RGB_16F:
     case DataFormat::RGB_16UI:
     case DataFormat::RGB_8UI:

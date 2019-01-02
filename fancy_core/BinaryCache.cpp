@@ -1,14 +1,13 @@
+#include "fancy_core_precompile.h"
 #include "BinaryCache.h"
 #include "GeometryData.h"
 #include "Mesh.h"
 #include "RenderCore.h"
 #include "PathService.h"
 #include "StringUtil.h"
-#include "RenderCore_Platform.h"
 #include "MeshData.h"
-
-#include <fstream>
-#include "GpuProgramProperties.h"
+#include "DynamicArray.h"
+#include "TextureProperties.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

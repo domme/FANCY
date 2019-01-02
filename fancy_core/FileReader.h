@@ -1,7 +1,8 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
 #include <list>
+#include <vector>
+#include <string>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

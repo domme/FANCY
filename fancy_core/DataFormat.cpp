@@ -1,5 +1,4 @@
-#include "FancyCorePrerequisites.h"
-#include "DataFormat.h"
+#include "fancy_core_precompile.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -23,10 +22,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DataFormat DataFormatInfo::GetSRGBformat(DataFormat aFormat)
   {
-    switch (aFormat)
-    {
-      case DataFormat::RGBA_8: return DataFormat::SRGB_8_A_8;
-    }
+    if (aFormat == DataFormat::RGBA_8)
+      return DataFormat::SRGB_8_A_8;
 
     ASSERT(GetFormatInfo(aFormat).mySRGB, "Missing implementation or no SRGB format available");
     return aFormat;
@@ -34,10 +31,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DataFormat DataFormatInfo::GetNonSRGBformat(DataFormat aFormat)
   {
-    switch (aFormat)
-    {
-      case DataFormat::SRGB_8_A_8: return DataFormat::RGBA_8;
-    }
+    if (aFormat == DataFormat::SRGB_8_A_8)
+      return DataFormat::RGBA_8;
 
     ASSERT(!GetFormatInfo(aFormat).mySRGB, "Missing implementation");
     return aFormat;

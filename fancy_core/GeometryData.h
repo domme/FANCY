@@ -1,16 +1,14 @@
 #pragma once
 
-#include "FancyCorePrerequisites.h"
+#include "FancyCoreDefines.h"
 #include "GeometryVertexLayout.h"
 #include "GpuBuffer.h"
+#include "Ptr.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class GeometryData {
     public:
-      GeometryData();
-      ~GeometryData();
-
       const GeometryVertexLayout& getGeometryVertexLayout() const {return m_vertexLayout;}
       const GpuBuffer* getVertexBuffer() const {return m_pVertexBuffer.get();}
       const GpuBuffer* getIndexBuffer() const {return m_pIndexBuffer.get();}

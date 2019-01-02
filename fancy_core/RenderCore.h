@@ -1,39 +1,40 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include "RenderingStartupParameters.h"
-#include <list>
-#include "CommandQueue.h"
-#include "CommandListType.h"
+#include "RenderEnums.h"
 #include "Slot.h"
-#include "TempResourcePool.h"
+#include "RenderCore_Platform.h"
+#include "DynamicArray.h"
+#include "Ptr.h"
+#include "TempResources.h"
+
+#include <map>
+#include <list>
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  enum class CommandListType;
+  struct TextureResourceProperties;
+  class GpuResource;
+  struct GpuBufferResourceProperties;
+  struct TextureSubLocation;
+  struct GpuBufferProperties;
+  struct TextureProperties;
+  struct TextureSubData;
+  //---------------------------------------------------------------------------//
+  class Mesh;
+  struct MeshDesc;
   struct MeshData;
-  struct GpuProgramDesc;
   struct GpuProgramPipelineDesc;
   struct DepthStencilStateDesc;
   struct BlendStateDesc;
-  struct WindowParameters;
+  class RenderCore_PlatformDX12;
+  class GpuProgramPipeline;
   class BlendState;
   class DepthStencilState;
-  class RenderCore_Platform;
-  class CommandContext;
-  class RenderOutput;
-  class RenderCore_PlatformDX12;
-  class Mesh;
-  struct MeshDesc;
   class FileWatcher;
-  class Texture;
-  struct TextureViewProperties;
-  class TextureView;
-  struct RenderPlatformCaps;
   class GpuRingBuffer;
-  class GpuBuffer;
-  class GpuBufferView;
-  struct GpuBufferViewProperties;
+  class GpuProgram;
+  struct GpuProgramDesc;
+  class TempResourcePool;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -50,7 +51,6 @@ namespace Fancy {
     static const Texture* GetDefaultNormalTexture();
     static const Texture* GetDefaultMaterialTexture();
     static const GpuProgramCompiler* GetGpuProgramCompiler();
-    static DataFormat ResolveFormat(DataFormat aFormat);
     
     static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
     static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
@@ -118,15 +118,15 @@ namespace Fancy {
 
     static void UpdateAvailableRingBuffers();
 
-    static std::unique_ptr<RenderCore_Platform> ourPlatformImpl;
+    static UniquePtr<RenderCore_Platform> ourPlatformImpl;
     
     static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
     
-    static std::vector<std::unique_ptr<CommandContext>> ourRenderContextPool;
-    static std::vector<std::unique_ptr<CommandContext>> ourComputeContextPool;
+    static DynamicArray<UniquePtr<CommandContext>> ourRenderContextPool;
+    static DynamicArray<UniquePtr<CommandContext>> ourComputeContextPool;
     static std::list<CommandContext*> ourAvailableRenderContexts;
     static std::list<CommandContext*> ourAvailableComputeContexts;
 
@@ -139,11 +139,11 @@ namespace Fancy {
     static UniquePtr<GpuProgramCompiler> ourShaderCompiler;
     static UniquePtr<FileWatcher> ourShaderFileWatcher;
     
-    static std::vector<std::unique_ptr<GpuRingBuffer>> ourRingBufferPool;
+    static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
 
-    static TempResourcePool ourTempResourcePool;
+    static UniquePtr<TempResourcePool> ourTempResourcePool;
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

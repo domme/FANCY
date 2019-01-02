@@ -1,20 +1,12 @@
-#include "StdAfx.h"
-#include "Fancy.h"
+#include "fancy_core_precompile.h"
+#include "TextureSamplerDX12.h"
+
 #include "AdapterDX12.h"
 
-#include "TextureSamplerDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  TextureSamplerDX12::TextureSamplerDX12()
-  {
-  }
-//---------------------------------------------------------------------------//
-  TextureSamplerDX12::~TextureSamplerDX12()
-  {
-  }
 //---------------------------------------------------------------------------//
   static D3D12_TEXTURE_ADDRESS_MODE locResolveAddressMode(SamplerAddressMode aMode)
   {

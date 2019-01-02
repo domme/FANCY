@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Any.h"
-#include "CommandListType.h"
+#include "RenderEnums.h"
+#include "Ptr.h"
+#include "DynamicArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
