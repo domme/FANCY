@@ -23,6 +23,7 @@ namespace Fancy {
     void Reset() { myNextFreeHandleIndex = 0u; }
     uint GetNumFreeDescriptors() const { return (uint) glm::max(0, (int)(myDesc.NumDescriptors - myNextFreeHandleIndex)); }
 
+    DescriptorDX12 AllocateDescriptorRangeGetFirst(uint aNumDescriptors);
     DescriptorDX12 AllocateDescriptor();
     DescriptorDX12 GetDescriptor(uint anIndex) const;
     uint GetNumAllocatedDescriptors() const { return myNextFreeHandleIndex; }

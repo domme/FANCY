@@ -5,6 +5,7 @@
 #include "DynamicArray.h"
 #include "MathIncludes.h"
 #include "RenderEnums.h"
+#include "DataFormat.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

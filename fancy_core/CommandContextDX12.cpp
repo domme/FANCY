@@ -227,11 +227,10 @@ namespace Fancy {
     ASSERT(aResourceCount > 0u);
 
     const DescriptorDX12& firstDescriptor = someResources[0];
-
-    D3D12_DESCRIPTOR_HEAP_TYPE heapType = firstDescriptor.myHeapType;
-    DynamicDescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
-
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
+
+    const D3D12_DESCRIPTOR_HEAP_TYPE heapType = firstDescriptor.myHeapType;
+    DynamicDescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
 
     if (dynamicHeap == nullptr || dynamicHeap->GetNumFreeDescriptors() < aResourceCount)
     {
@@ -239,14 +238,22 @@ namespace Fancy {
       SetDescriptorHeap(heapType, dynamicHeap);
     }
 
-    uint startOffset = dynamicHeap->GetNumAllocatedDescriptors();
+    DescriptorDX12 destRangeStartDescriptor = dynamicHeap->AllocateDescriptorRangeGetFirst(aResourceCount);
+
+    const uint numSrcRanges = aResourceCount;
+    uint* const srcRangeSizes = static_cast<uint*>(alloca(sizeof(uint) * numSrcRanges));
+    D3D12_CPU_DESCRIPTOR_HANDLE* const srcDescriptors = static_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(alloca(sizeof(D3D12_CPU_DESCRIPTOR_HANDLE) * numSrcRanges));
     for (uint i = 0u; i < aResourceCount; ++i)
     {
-      DescriptorDX12 destDescriptor = dynamicHeap->AllocateDescriptor();
-      platformDx12->GetDevice()->CopyDescriptorsSimple(1, destDescriptor.myCpuHandle, someResources[i].myCpuHandle, heapType);
+      srcRangeSizes[i] = 1;
+      srcDescriptors[i] = someResources[i].myCpuHandle;
     }
 
-    return dynamicHeap->GetDescriptor(startOffset);
+    platformDx12->GetDevice()->CopyDescriptors(
+      1, &destRangeStartDescriptor.myCpuHandle, &aResourceCount,
+      aResourceCount, srcDescriptors, srcRangeSizes, heapType);
+
+    return destRangeStartDescriptor;
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::ClearRenderTarget(TextureView* aTextureView, const float* aColor)

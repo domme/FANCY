@@ -31,3 +31,4 @@ FANCY.VC.db
 *.db-shm
 *.db-wal
 */imgui.ini
+*.stackdump

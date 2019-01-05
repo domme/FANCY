@@ -4,11 +4,10 @@
 #include <fancy_core/RenderOutput.h>
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/RendererPrerequisites.h>
-#include <fancy_core/CommandListType.h>
 #include "fancy_core/CommandContext.h"
-#include "fancy_assets/ModelLoader.h"
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
+#include <fancy_core/CommandQueue.h>
 
 using namespace Fancy;
 

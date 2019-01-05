@@ -12,14 +12,7 @@
 #include <list>
 
 namespace Fancy {
-  struct TextureResourceProperties;
-  class GpuResource;
-  struct GpuBufferResourceProperties;
-  struct TextureSubLocation;
-  struct GpuBufferProperties;
-  struct TextureProperties;
-  struct TextureSubData;
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   class Mesh;
   struct MeshDesc;
   struct MeshData;
@@ -35,6 +28,14 @@ namespace Fancy {
   class GpuProgram;
   struct GpuProgramDesc;
   class TempResourcePool;
+  struct TextureResourceProperties;
+  class GpuResource;
+  struct GpuBufferResourceProperties;
+  struct TextureSubLocation;
+  struct GpuBufferProperties;
+  struct TextureProperties;
+  struct TextureSubData;
+  class String;
 //---------------------------------------------------------------------------//
   class RenderCore
   {

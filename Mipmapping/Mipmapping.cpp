@@ -2,12 +2,10 @@
 #include <fancy_core/RenderOutput.h>
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/RendererPrerequisites.h>
-#include <fancy_core/CommandListType.h>
 #include "fancy_core/CommandContext.h"
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/GpuProgramPipelineDesc.h>
-#include <fancy_core/Descriptor.h>
 #include <fancy_core/CommandQueue.h>
 
 #include <fancy_imgui/imgui.h>
@@ -16,6 +14,7 @@
 #include <fancy_core/Texture.h>
 #include <fancy_core/Input.h>
 #include "fancy_assets/AssetManager.h"
+#include <fancy_core/Log.h>
 
 using namespace Fancy;
 
@@ -184,7 +183,7 @@ void Update()
   const float deltaTime = 0.016f;
   myRuntime->Update(deltaTime);
 
-  const uint numTextures = myImageDatas.size();
+  const uint numTextures = (uint) myImageDatas.size();
 
   static bool updateAlways = false;
   ImGui::Checkbox("Update every frame", &updateAlways);
@@ -197,7 +196,7 @@ void Update()
     ImGui::Checkbox(data.myName.c_str(), &data.myIsWindowOpen);
     if (data.myIsWindowOpen)
     {
-      ImGui::SetNextWindowSize(ImVec2(texProps.myWidth * 2, texProps.myHeight * 2));
+      ImGui::SetNextWindowSize(ImVec2(static_cast<float>(texProps.myWidth * 2), static_cast<float>(texProps.myHeight * 2)));
       ImGui::Begin(data.myName.c_str());
       ImGui::SliderInt("Mip Level", &data.mySelectedMipLevel, 0, texProps.myNumMipLevels - 1);
       data.myIsDirty |= ImGui::ListBox("Downsample Filter", &data.mySelectedFilter, myResampleFilterNames, ARRAY_LENGTH(myResampleFilterNames));
@@ -208,7 +207,7 @@ void Update()
         data.myIsDirty = false;
       }
 
-      ImGui::Image((ImTextureID) data.myMipLevelReadViews[data.mySelectedMipLevel].get(), ImVec2(texProps.myWidth, texProps.myHeight));
+      ImGui::Image((ImTextureID) data.myMipLevelReadViews[data.mySelectedMipLevel].get(), ImVec2(static_cast<float>(texProps.myWidth), static_cast<float>(texProps.myHeight)));
 
       ImGui::End();
     }

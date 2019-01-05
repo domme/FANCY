@@ -8,8 +8,8 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   DynamicDescriptorHeapDX12::DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors)
-    : myNextFreeHandleIndex(0u)
-    , myHandleIncrementSize(0u)
+    : myHandleIncrementSize(0u)
+    , myNextFreeHandleIndex(0u)
   {
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
     heapDesc.NumDescriptors = aNumDescriptors;
@@ -27,24 +27,26 @@ namespace Fancy {
     myGpuHeapStart = myDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 DynamicDescriptorHeapDX12::AllocateDescriptor()
+  DescriptorDX12 DynamicDescriptorHeapDX12::AllocateDescriptorRangeGetFirst(uint aNumDescriptors)
   {
-    ASSERT(myNextFreeHandleIndex < myDesc.NumDescriptors);
+    ASSERT(myNextFreeHandleIndex + aNumDescriptors <= myDesc.NumDescriptors);
+
+    const size_t increment = myNextFreeHandleIndex * myHandleIncrementSize;
 
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
-    cpuHandle.ptr = myCpuHeapStart.ptr + myNextFreeHandleIndex * myHandleIncrementSize;
+    cpuHandle.ptr = myCpuHeapStart.ptr + increment;
 
     D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-    gpuHandle.ptr = myGpuHeapStart.ptr + myNextFreeHandleIndex * myHandleIncrementSize;
+    gpuHandle.ptr = myGpuHeapStart.ptr + increment;
 
-    ++myNextFreeHandleIndex;
+    myNextFreeHandleIndex += aNumDescriptors;
 
-    DescriptorDX12 descr;
-    descr.myCpuHandle = cpuHandle;
-    descr.myGpuHandle = gpuHandle;
-    descr.myHeapType = myDesc.Type;
-
-    return descr;
+    return { cpuHandle, gpuHandle, myDesc.Type, false };
+  }
+//---------------------------------------------------------------------------//
+  DescriptorDX12 DynamicDescriptorHeapDX12::AllocateDescriptor()
+  {
+    return AllocateDescriptorRangeGetFirst(1u);
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 DynamicDescriptorHeapDX12::GetDescriptor(uint anIndex) const

@@ -213,8 +213,7 @@ namespace Fancy
   {
     for (const Page& existingPage : myPages)
     {
-      if (existingPage.myVirtualOffset <= aVirtualOffset && existingPage.myVirtualOffset + existingPage.mySize >
-        aVirtualOffset)
+      if (existingPage.myVirtualOffset <= aVirtualOffset && existingPage.myVirtualOffset + existingPage.mySize > aVirtualOffset)
       {
         anOffsetInPage = aVirtualOffset - existingPage.myVirtualOffset;
         return &existingPage;
