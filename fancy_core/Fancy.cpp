@@ -10,6 +10,7 @@
 #include "Log.h"
 #include "CommandQueue.h"
 #include "RenderOutput.h"
+#include "Profiling.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -71,6 +72,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void FancyRuntime::BeginFrame()
   {
+    Profiling::Clear();
+
     if (myRealTimeClock.GetElapsed() == 0.0f)
       DoFirstFrameTasks();
 

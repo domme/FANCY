@@ -43,7 +43,7 @@ void Init(HINSTANCE anInstanceHandle)
 
   std::function<void(uint, uint)> onWindowResized = &OnWindowResized;
   myWindow->myOnResize.Connect(onWindowResized);
-  
+
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 }
 
@@ -114,11 +114,11 @@ void Render()
 
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-  
+
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   queue->ExecuteContext(ctx);
-  
+
   RenderCore::FreeContext(ctx);
 
   ImGui::Render();
@@ -136,20 +136,20 @@ _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
   Init(hInstance);
-  
+
   MSG msg = { 0 };
   while (true)
   {
-  	// Process any messages in the queue.
-  	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-  	{
-  		TranslateMessage(&msg);
-  		DispatchMessage(&msg);
-  
-  		if (msg.message == WM_QUIT)
-  			break;
-  	}
-  
+    // Process any messages in the queue.
+    if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+    {
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
+
+      if (msg.message == WM_QUIT)
+        break;
+    }
+
     Update();
     Render();
 
@@ -157,6 +157,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
   }
 
   Shutdown();
- 
+
   return 0;
 }

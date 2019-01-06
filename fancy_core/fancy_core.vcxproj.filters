@@ -293,6 +293,9 @@
     <ClInclude Include="TextureData.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Profiling.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -436,6 +439,9 @@
     </ClCompile>
     <ClCompile Include="TextureData.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Profiling.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

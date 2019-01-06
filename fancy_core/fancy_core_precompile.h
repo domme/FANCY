@@ -24,6 +24,7 @@
 #include <ostream>
 #include <ios>
 #include <climits>
+#include <chrono>
 
 #include "FancyCoreDefines.h"
 #include "MathIncludes.h"
