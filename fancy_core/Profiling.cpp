@@ -11,7 +11,10 @@ namespace Fancy
 {
 //---------------------------------------------------------------------------//
   Profiling::SampleNode* Profiling::ourCurrNode = nullptr;
-  DynamicArray<Profiling::SampleNode> Profiling::ourSampleTrees;
+  DynamicArray<Profiling::SampleNode> Profiling::ourSampleTrees[Profiling::kFrameHistorySize];
+  float64 Profiling::ourFrameStart[Profiling::kFrameHistorySize]{ 0u };
+  float64 Profiling::ourFrameDuration[Profiling::kFrameHistorySize]{ 0u };
+  uint Profiling::ourCurrIdx = 0u;
 //---------------------------------------------------------------------------//
   namespace Profiling_Priv
   {
@@ -47,8 +50,8 @@ namespace Fancy
     }
     else
     {
-      ourSampleTrees.push_back(node);
-      ourCurrNode = &ourSampleTrees.back();
+      ourSampleTrees[ourCurrIdx].push_back(node);
+      ourCurrNode = &ourSampleTrees[ourCurrIdx].back();
     }
   }
 //---------------------------------------------------------------------------//
@@ -62,53 +65,16 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void Profiling::BeginFrame()
   {
-    ourSampleTrees.clear();
+    ourSampleTrees[ourCurrIdx].clear();
     ourCurrNode = nullptr;
-    ourFrameDuration = 0u;
-    ourFrameStart = Profiling_Priv::locSampleTimeMs();
+    ourFrameDuration[ourCurrIdx] = 0u;
+    ourFrameStart[ourCurrIdx] = Profiling_Priv::locSampleTimeMs();
   }
 //---------------------------------------------------------------------------//
   void Profiling::EndFrame()
   {
-    ourFrameDuration = Profiling_Priv::locSampleTimeMs() - ourFrameStart;
-  }
-//---------------------------------------------------------------------------//
-
-  int locGetOffset(float64 aDuration)
-  {
-    return glm::clamp((int)(aDuration * 0.01), 1, 100);
-  }
-
-  void Profiling::DebugPrint()
-  {
-    for (int i = 0u, e = (int)ourSampleTrees.size(); i < e; ++i)
-    {
-      DebugPrintRecursive(&ourSampleTrees[i], 0);
-    }
-  }
-
-  void Profiling::DebugPrintRecursive(SampleNode* aNode, int anOffset)
-  {
-    std::stringstream outStr;
-
-    for (int i = 0; i < anOffset; ++i)
-      outStr << " ";
-
-    const int durationOffset = locGetOffset(aNode->myDuration);
-
-    outStr << aNode->myName << ": " << aNode->myDuration << "ms";
-    for (int i = 0u; i < durationOffset; ++i)
-      outStr << "*";
-
-    Log_Debug(outStr.str());
-
-    int childOffset = anOffset;
-    for (SampleNode& child : aNode->myChildren)
-    {
-      const int childDurationOffset = locGetOffset(child.myDuration);
-      DebugPrintRecursive(&child, childOffset);
-      childOffset += childDurationOffset;
-    }
+    ourFrameDuration[ourCurrIdx] = Profiling_Priv::locSampleTimeMs() - ourFrameStart[ourCurrIdx];
+    ourCurrIdx = (ourCurrIdx + 1) % kFrameHistorySize;
   }
 //---------------------------------------------------------------------------//
 }

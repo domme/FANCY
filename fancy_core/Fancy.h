@@ -28,7 +28,6 @@ namespace Fancy {
     HINSTANCE GetAppInstanceHandle() const { return myAppInstanceHandle; }
 
     Time& GetRealTimeClock() { return myRealTimeClock; }
-    uint64 GetCurrentFrameIndex() const { return myFrameIndex; }
     RenderOutput* GetRenderOutput() const { return myRenderOutput.get(); }
     
   private:
@@ -40,7 +39,6 @@ namespace Fancy {
     static FancyRuntime* ourInstance;
 
     HINSTANCE myAppInstanceHandle;
-    uint64 myFrameIndex;
     Time myRealTimeClock;
     SharedPtr<RenderOutput> myRenderOutput;
   };

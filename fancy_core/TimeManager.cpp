@@ -3,6 +3,8 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  uint64 Time::ourFrameIdx(0u);
+//---------------------------------------------------------------------------//
   static float locUpdateFrequencies[(uint) TimedUpdateInterval::NUM] =
   {
     0.0f,

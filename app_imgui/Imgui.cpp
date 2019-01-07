@@ -32,8 +32,8 @@ void Init(HINSTANCE anInstanceHandle)
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   Fancy::WindowParameters windowParams;
-  windowParams.myWidth = 800;
-  windowParams.myHeight = 600;
+  windowParams.myWidth = 1920;
+  windowParams.myHeight = 1080;
   windowParams.myTitle = "DearImGui Example";
 
   myRuntime = FancyRuntime::Init(anInstanceHandle, params, windowParams);
@@ -85,33 +85,8 @@ void Update()
   }
 }
 
-void LongDummyFunc2()
-{
-  PROFILE_FUNCTION();
-
-  uint64 hash = 0u;
-  int i = 0;
-  while (i < 99999)
-    MathUtil::hash_combine(hash, i++);
-}
-
-void LongDummyFunc()
-{
-  PROFILE_FUNCTION();
-
-  int i = 0;
-  while (i < 99999)
-    ++i;
-
-  LongDummyFunc2();
-}
-
 void Render()
 {
-  PROFILE_FUNCTION();
-
-  LongDummyFunc();
-
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
   
@@ -152,8 +127,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
   
     Update();
     Render();
-
-    Profiling::DebugPrint();
   }
 
   Shutdown();

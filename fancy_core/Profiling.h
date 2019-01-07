@@ -1,5 +1,9 @@
 #pragma once
 
+#include "FancyCoreDefines.h"
+#include "FC_String.h"
+#include "DynamicArray.h"
+
 namespace Fancy
 {
   class Profiling
@@ -12,7 +16,7 @@ namespace Fancy
       uint8 myTag = 0;
       String myName;
       SampleNode* myParent = nullptr;
-      std::vector<SampleNode> myChildren;
+      DynamicArray<SampleNode> myChildren;
     };
 
     struct ScopedMarker
@@ -27,20 +31,25 @@ namespace Fancy
     static void BeginFrame();
     static void EndFrame();
 
-    static const DynamicArray<SampleNode>& GetFrameSamples() { return ourSampleTrees; }
-
-    // DEBUG:
-    static void DebugPrint();
-    static void DebugPrintRecursive(SampleNode* aNode, int anOffset);
+    static const DynamicArray<SampleNode>& GetLastFrameSamples() { return ourSampleTrees[(ourCurrIdx + kFrameHistorySize - 1) % kFrameHistorySize]; }
+    static float64 GetLastFrameStart() { return ourFrameStart[(ourCurrIdx + kFrameHistorySize - 1) % kFrameHistorySize]; }
+    static float64 GetLastFrameDuration() { return ourFrameDuration[(ourCurrIdx + kFrameHistorySize - 1) % kFrameHistorySize]; }
     
   private:
     Profiling() = default;
     ~Profiling() = default;
 
+    enum
+    {
+      kFrameHistorySize = 5
+    };
+
+    static DynamicArray<SampleNode> ourSampleTrees[kFrameHistorySize];
+    static float64 ourFrameStart[kFrameHistorySize];
+    static float64 ourFrameDuration[kFrameHistorySize];
+    static uint ourCurrIdx;
+
     static SampleNode* ourCurrNode;
-    static DynamicArray<SampleNode> ourSampleTrees;
-    static float64 ourFrameStart;
-    static float64 ourFrameDuration;
   };
 
 #define PROFILE_FUNCTION(...) Profiling::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)

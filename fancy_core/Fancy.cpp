@@ -18,7 +18,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   FancyRuntime::FancyRuntime(HINSTANCE anAppInstanceHandle)
     : myAppInstanceHandle(anAppInstanceHandle)
-    , myFrameIndex(0u)
   {
     
   }
@@ -92,7 +91,7 @@ namespace Fancy {
 
     Profiling::EndFrame();
 
-    ++myFrameIndex;
+    ++Time::ourFrameIdx;
   }
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy
