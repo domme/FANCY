@@ -1,8 +1,5 @@
 #pragma once
 
-#include <chrono>
-#include <ratio>
-
 namespace Fancy
 {
   class Profiling
@@ -10,8 +7,8 @@ namespace Fancy
   public:
     struct SampleNode
     {
-      std::chrono::system_clock::time_point myStart;
-      std::chrono::system_clock::time_point myEnd;
+      float64 myStart;
+      float64 myDuration;
       uint8 myTag = 0;
       String myName;
       SampleNode* myParent = nullptr;
@@ -27,19 +24,23 @@ namespace Fancy
     static void PushMarker(const char* aName, uint8 aTag);
     static void PopMarker();
 
+    static void BeginFrame();
+    static void EndFrame();
+
     static const DynamicArray<SampleNode>& GetFrameSamples() { return ourSampleTrees; }
 
     // DEBUG:
     static void DebugPrint();
     static void DebugPrintRecursive(SampleNode* aNode, int anOffset);
-    static void Clear();
-
+    
   private:
     Profiling() = default;
     ~Profiling() = default;
 
     static SampleNode* ourCurrNode;
     static DynamicArray<SampleNode> ourSampleTrees;
+    static float64 ourFrameStart;
+    static float64 ourFrameDuration;
   };
 
 #define PROFILE_FUNCTION(...) Profiling::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)

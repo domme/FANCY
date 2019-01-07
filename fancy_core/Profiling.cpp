@@ -1,6 +1,10 @@
 #include "fancy_core_precompile.h"
 #include "Profiling.h"
 
+#include <chrono>
+#include <ratio>
+
+// DEBUG:
 #include <sstream>
 
 namespace Fancy
@@ -9,7 +13,14 @@ namespace Fancy
   Profiling::SampleNode* Profiling::ourCurrNode = nullptr;
   DynamicArray<Profiling::SampleNode> Profiling::ourSampleTrees;
 //---------------------------------------------------------------------------//
-
+  namespace Profiling_Priv
+  {
+    float64 locSampleTimeMs()
+    {
+      const std::chrono::duration<float64, std::milli> now(std::chrono::system_clock::now().time_since_epoch());
+      return now.count();
+    }
+  }
 //---------------------------------------------------------------------------//
   Profiling::ScopedMarker::ScopedMarker(const char* aName, uint8 aTag)
   {
@@ -26,8 +37,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void Profiling::PushMarker(const char* aName, uint8 aTag)
   {
-    const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-    Profiling::SampleNode node{ now, now, aTag, aName, nullptr };
+    Profiling::SampleNode node{ Profiling_Priv::locSampleTimeMs(), 0u, aTag, aName, nullptr };
 
     if (ourCurrNode != nullptr)
     {
@@ -45,14 +55,22 @@ namespace Fancy
   void Profiling::PopMarker()
   {
     ASSERT(ourCurrNode != nullptr);
-    ourCurrNode->myEnd = std::chrono::system_clock::now();
+
+    ourCurrNode->myDuration = Profiling_Priv::locSampleTimeMs() - ourCurrNode->myStart;
     ourCurrNode = ourCurrNode->myParent;
   }
 //---------------------------------------------------------------------------//
-  void Profiling::Clear()
+  void Profiling::BeginFrame()
   {
     ourSampleTrees.clear();
     ourCurrNode = nullptr;
+    ourFrameDuration = 0u;
+    ourFrameStart = Profiling_Priv::locSampleTimeMs();
+  }
+//---------------------------------------------------------------------------//
+  void Profiling::EndFrame()
+  {
+    ourFrameDuration = Profiling_Priv::locSampleTimeMs() - ourFrameStart;
   }
 //---------------------------------------------------------------------------//
 
@@ -76,11 +94,9 @@ namespace Fancy
     for (int i = 0; i < anOffset; ++i)
       outStr << " ";
 
-    const std::chrono::duration<float64, std::milli> dur(aNode->myEnd - aNode->myStart);
-    const float64 duration = dur.count();
-    const int durationOffset = locGetOffset(duration);
+    const int durationOffset = locGetOffset(aNode->myDuration);
 
-    outStr << aNode->myName << ": " << duration << "ms";
+    outStr << aNode->myName << ": " << aNode->myDuration << "ms";
     for (int i = 0u; i < durationOffset; ++i)
       outStr << "*";
 
@@ -89,8 +105,7 @@ namespace Fancy
     int childOffset = anOffset;
     for (SampleNode& child : aNode->myChildren)
     {
-      const std::chrono::duration<float64, std::milli> childDur(child.myEnd - child.myStart);
-      const int childDurationOffset = locGetOffset(childDur.count());
+      const int childDurationOffset = locGetOffset(child.myDuration);
       DebugPrintRecursive(&child, childOffset);
       childOffset += childDurationOffset;
     }

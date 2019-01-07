@@ -20,7 +20,10 @@ void ProfilerWindow::Show()
   const DynamicArray<Profiling::SampleNode>& frameSamples = Profiling::GetFrameSamples();
 
   ImGui::Begin("Profiler");
-  for ()
+  for (const Profiling::SampleNode& rootSample : frameSamples)
+  {
+    
+  }
 
 
 
