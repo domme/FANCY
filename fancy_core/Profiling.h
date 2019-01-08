@@ -6,9 +6,8 @@
 
 namespace Fancy
 {
-  class Profiling
+  namespace Profiling
   {
-  public:
     struct SampleNode
     {
       float64 myStart;
@@ -25,31 +24,16 @@ namespace Fancy
       ~ScopedMarker();
     };
   
-    static void PushMarker(const char* aName, uint8 aTag);
-    static void PopMarker();
+    void PushMarker(const char* aName, uint8 aTag);
+    void PopMarker();
 
-    static void BeginFrame();
-    static void EndFrame();
+    void BeginFrame();
+    void EndFrame();
+    void SetPause(bool aPause);
 
-    static const DynamicArray<SampleNode>& GetLastFrameSamples() { return ourSampleTrees[(ourCurrIdx + kFrameHistorySize - 1) % kFrameHistorySize]; }
-    static float64 GetLastFrameStart() { return ourFrameStart[(ourCurrIdx + kFrameHistorySize - 1) % kFrameHistorySize]; }
-    static float64 GetLastFrameDuration() { return ourFrameDuration[(ourCurrIdx + kFrameHistorySize - 1) % kFrameHistorySize]; }
-    
-  private:
-    Profiling() = default;
-    ~Profiling() = default;
-
-    enum
-    {
-      kFrameHistorySize = 5
-    };
-
-    static DynamicArray<SampleNode> ourSampleTrees[kFrameHistorySize];
-    static float64 ourFrameStart[kFrameHistorySize];
-    static float64 ourFrameDuration[kFrameHistorySize];
-    static uint ourCurrIdx;
-
-    static SampleNode* ourCurrNode;
+    const DynamicArray<SampleNode>& GetLastFrameSamples();
+    float64 GetLastFrameStart();
+    float64 GetLastFrameDuration();
   };
 
 #define PROFILE_FUNCTION(...) Profiling::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)

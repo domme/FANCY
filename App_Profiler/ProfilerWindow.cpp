@@ -32,11 +32,11 @@ const char* FormatString(const char* aFmt, ...)
   return TextBuf;
 }
 
-bool ColorButton(const ImVec4& aColor, const ImVec2& aSize, const char* aLabel)
+bool ColorButton(const char* aLabel, const ImVec2& aPos, const ImVec2& aSize, const ImVec4& aColor)
 {
+  ImGui::SetCursorPos(aPos);
   ImGui::PushStyleColor(ImGuiCol_Button, aColor);
   const bool pressed = ImGui::Button(aLabel, aSize);
-  ImGui::SetCursorPos()
   ImGui::PopStyleColor(1);
   return pressed;
 }
@@ -50,9 +50,29 @@ ImVec4 GetColorForTag(uint8 aTag)
   }
 }
 
-void RenderSampleTree(const Profiling::SampleNode& aNode, const ImVec2& aPosition, const ImVec2& aSize, float aDurationToPixelScale, const Profiling::SampleNode* aSelectedNode, const Profiling::SampleNode* aHoveredNode)
+struct RenderArgs
 {
-  
+  float64 myFrameStart = 0.0;
+  ImVec2 myStartPos = ImVec2(0,0);
+  float myElementHeight = 20.0f;
+  float myElementHeightWithPadding = 25.0f;
+  float myDurationToPixelScale = 1.0f;
+};
+
+void RenderNodeRecursive(const Profiling::SampleNode& aNode, const RenderArgs& someArgs, int aDepth)
+{
+  ImVec2 pos, size;
+  pos.x = someArgs.myStartPos.x + (aNode.myStart - someArgs.myFrameStart) * someArgs.myDurationToPixelScale;
+  pos.y = someArgs.myStartPos.y + someArgs.myElementHeightWithPadding * aDepth;
+  size.x = aNode.myDuration * someArgs.myDurationToPixelScale;
+  size.y = someArgs.myElementHeight;
+
+  ColorButton(FormatString("%s: %.3f", aNode.myName.c_str(), (float)aNode.myDuration), pos, size, GetColorForTag(aNode.myTag));
+
+  for (const Profiling::SampleNode& childNode : aNode.myChildren)
+  {
+    RenderNodeRecursive(childNode, someArgs, aDepth + 1);
+  }
 }
 
 void ProfilerWindow::Show()
@@ -61,23 +81,30 @@ void ProfilerWindow::Show()
 
   ImGui::Begin("Profiler");
 
-  const float zoom = 1.0f;
+  if (ImGui::Checkbox("Pause", &myIsPaused))
+    Profiling::SetPause(myIsPaused);
+
+  ImGui::SliderFloat("Scale", &myScale, 0.1f, 10.0f);
 
   const float64 frameDuration = Profiling::GetLastFrameDuration();
-  const float durationToPixel = (float)((float64)ImGui::GetWindowSize().x / (frameDuration * zoom));
-  const int elementHeight = (int) (20 * zoom);
 
-  ImVec2 size(0, elementHeight);
-  size.x = frameDuration * durationToPixel;
-  ColorButton(ImVec4(0.4f, 0.4f, 0.4f, 0.5f), size, FormatString("Frame: %f", (float)frameDuration));
+  RenderArgs args;
+  args.myFrameStart = Profiling::GetLastFrameStart();
+  args.myDurationToPixelScale = (float)((float64)ImGui::GetWindowSize().x / frameDuration) * myScale;
+  args.myElementHeight = (20.0f * myScale);
+  args.myElementHeightWithPadding = (25.0f * myScale);
+  args.myStartPos = ImGui::GetCursorPos();
+
+  ImVec2 pos = args.myStartPos;
+  ImVec2 size(0, args.myElementHeight);
+  size.x = frameDuration * args.myDurationToPixelScale;
+  ColorButton(FormatString("Frame: %.3f", (float)frameDuration), pos, size, ImVec4(0.4f, 0.4f, 0.4f, 0.5f));
   
-
   const DynamicArray<Profiling::SampleNode>& frameSamples = Profiling::GetLastFrameSamples();
-
-  
   for (const Profiling::SampleNode& rootSample : frameSamples)
   {
-    
+    RenderNodeRecursive(rootSample, args, 1);
   }
+    
   ImGui::End();
 }

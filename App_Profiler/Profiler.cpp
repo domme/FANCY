@@ -24,6 +24,16 @@ FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
 RenderOutput* myRenderOutput = nullptr;
 
+void DummyFunc3()
+{
+  PROFILE_FUNCTION();
+
+  uint64 hash = 0u;
+  int i = 0;
+  while (i < 999)
+    MathUtil::hash_combine(hash, i++);
+}
+
 void LongDummyFunc2()
 {
   PROFILE_FUNCTION();
@@ -32,6 +42,8 @@ void LongDummyFunc2()
   int i = 0;
   while (i < 99999)
     MathUtil::hash_combine(hash, i++);
+
+  DummyFunc3();
 }
 
 void LongDummyFunc()
