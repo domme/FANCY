@@ -26,7 +26,7 @@ const char* FormatString(const char* aFmt, ...)
 
   const int neededSize = vsnprintf(nullptr, 0u, aFmt, args) + 1;
   ASSERT(neededSize < ARRAY_LENGTH(TextBuf));
-  int offset = vsnprintf(TextBuf, ARRAY_LENGTH(TextBuf), aFmt, args);
+  const int offset = vsnprintf(TextBuf, ARRAY_LENGTH(TextBuf), aFmt, args);
   TextBuf[offset + 1] = '\0';
   va_end(args);
   return TextBuf;
@@ -35,9 +35,24 @@ const char* FormatString(const char* aFmt, ...)
 bool ColorButton(const ImVec4& aColor, const ImVec2& aSize, const char* aLabel)
 {
   ImGui::PushStyleColor(ImGuiCol_Button, aColor);
-  bool pressed = ImGui::Button(aLabel, aSize);
+  const bool pressed = ImGui::Button(aLabel, aSize);
+  ImGui::SetCursorPos()
   ImGui::PopStyleColor(1);
   return pressed;
+}
+
+ImVec4 GetColorForTag(uint8 aTag) 
+{
+  switch(aTag)
+  {
+  case 0: return ImVec4(0.7f, 0.0f, 0.0f, 0.5f);
+  default: return ImVec4(0.5f, 0.5f, 0.5f, 0.5f);
+  }
+}
+
+void RenderSampleTree(const Profiling::SampleNode& aNode, const ImVec2& aPosition, const ImVec2& aSize, float aDurationToPixelScale, const Profiling::SampleNode* aSelectedNode, const Profiling::SampleNode* aHoveredNode)
+{
+  
 }
 
 void ProfilerWindow::Show()
@@ -49,17 +64,20 @@ void ProfilerWindow::Show()
   const float zoom = 1.0f;
 
   const float64 frameDuration = Profiling::GetLastFrameDuration();
-  const float64 durationToPixel = (float64)ImGui::GetWindowSize().x / (frameDuration * zoom);
+  const float durationToPixel = (float)((float64)ImGui::GetWindowSize().x / (frameDuration * zoom));
   const int elementHeight = (int) (20 * zoom);
 
   ImVec2 size(0, elementHeight);
   size.x = frameDuration * durationToPixel;
   ColorButton(ImVec4(0.4f, 0.4f, 0.4f, 0.5f), size, FormatString("Frame: %f", (float)frameDuration));
+  
 
   const DynamicArray<Profiling::SampleNode>& frameSamples = Profiling::GetLastFrameSamples();
+
+  
   for (const Profiling::SampleNode& rootSample : frameSamples)
   {
-      
+    
   }
   ImGui::End();
 }
