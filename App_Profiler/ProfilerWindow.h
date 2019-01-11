@@ -9,6 +9,7 @@ public:
   void Show();
 
 private:
+
   int myWidth = 100;
   int myHeight = 100;
   bool myIsPaused = false;

@@ -5,6 +5,7 @@
 #include <fancy_core/DynamicArray.h>
 #include <fancy_core/FancyCoreDefines.h>
 #include <fancy_core/Log.h>
+#include "fancy_imgui/imgui_internal.h"
 
 using namespace Fancy;
 
@@ -57,6 +58,7 @@ struct RenderArgs
   float myElementHeight = 20.0f;
   float myElementHeightWithPadding = 25.0f;
   float myDurationToPixelScale = 1.0f;
+  float myScale = 1.0f;
 };
 
 void RenderNodeRecursive(const Profiling::SampleNode& aNode, const RenderArgs& someArgs, int aDepth)
@@ -75,8 +77,30 @@ void RenderNodeRecursive(const Profiling::SampleNode& aNode, const RenderArgs& s
   }
 }
 
+void RenderRuler(const RenderArgs& someArgs)
+{
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+  enum TimeUnit
+  {
+    Milliseconds,
+    Microseconds,
+    Nanoseconds
+  };
+
+  TimeUnit unit_big = TimeUnit::Milliseconds;
+  float unit_big_offset = someArgs.myScale;
+  if (unit_big_offset > 2.0f)
+    
+   
+
+  window->DrawList->AddLine()
+}
+
 void ProfilerWindow::Show()
 {
+  // TODO: Clipping of elements not on the screen
+
   ImGuiTextBuffer textBuffer;
 
   ImGui::Begin("Profiler");
@@ -87,13 +111,13 @@ void ProfilerWindow::Show()
   ImGui::SliderFloat("Scale", &myScale, 0.1f, 10.0f);
 
   const float64 frameDuration = Profiling::GetLastFrameDuration();
-
   RenderArgs args;
   args.myFrameStart = Profiling::GetLastFrameStart();
   args.myDurationToPixelScale = (float)((float64)ImGui::GetWindowSize().x / frameDuration) * myScale;
   args.myElementHeight = (20.0f * myScale);
   args.myElementHeightWithPadding = (25.0f * myScale);
   args.myStartPos = ImGui::GetCursorPos();
+  args.myScale = myScale;
 
   ImVec2 pos = args.myStartPos;
   ImVec2 size(0, args.myElementHeight);
