@@ -6,6 +6,7 @@
 #include <fancy_core/FancyCoreDefines.h>
 #include <fancy_core/Log.h>
 #include "fancy_imgui/imgui_internal.h"
+#include <list>
 
 using namespace Fancy;
 
@@ -19,6 +20,10 @@ ProfilerWindow::~ProfilerWindow()
 }
 
 char TextBuf[2048];
+const float kZoneElementHeight = 20.0f;
+const float kZoneElementHeight_WithPadding = 25.0f;
+const float kRulerMarkerVerticalSize = 40.0f;
+const float kSubRulerMarkerVerticalSize = 15.0f;
 
 const char* FormatString(const char* aFmt, ...)
 {
@@ -51,83 +56,146 @@ ImVec4 GetColorForTag(uint8 aTag)
   }
 }
 
-struct RenderArgs
+struct ScaleArgs
 {
-  float64 myFrameStart = 0.0;
-  ImVec2 myStartPos = ImVec2(0,0);
-  float myElementHeight = 20.0f;
-  float myElementHeightWithPadding = 25.0f;
-  float myDurationToPixelScale = 1.0f;
+  float myMsToPixelScale = 1.0f;
   float myScale = 1.0f;
 };
 
-void RenderNodeRecursive(const Profiling::SampleNode& aNode, const RenderArgs& someArgs, int aDepth)
+enum TimeUnit
 {
-  ImVec2 pos, size;
-  pos.x = someArgs.myStartPos.x + (aNode.myStart - someArgs.myFrameStart) * someArgs.myDurationToPixelScale;
-  pos.y = someArgs.myStartPos.y + someArgs.myElementHeightWithPadding * aDepth;
-  size.x = aNode.myDuration * someArgs.myDurationToPixelScale;
-  size.y = someArgs.myElementHeight;
+  Milliseconds,
+  Microseconds,
+  Nanoseconds,
 
-  ColorButton(FormatString("%s: %.3f", aNode.myName.c_str(), (float)aNode.myDuration), pos, size, GetColorForTag(aNode.myTag));
+  Last = Nanoseconds
+};
 
-  for (const Profiling::SampleNode& childNode : aNode.myChildren)
-  {
-    RenderNodeRecursive(childNode, someArgs, aDepth + 1);
+const char* TimeUnitToString(TimeUnit aUnit)
+{
+  switch(aUnit) 
+  { 
+    case Milliseconds: return "ms";
+    case Microseconds: return "us";
+    case Nanoseconds: return "ns";
+    default: ASSERT(false); return "";
   }
 }
 
-void RenderRuler(const RenderArgs& someArgs)
+struct NodeRenderArgs
+{
+  float64 myFrameStart;
+  ImVec2 myStartPos;
+};
+
+void RenderNodeRecursive(const Profiling::SampleNode* aNode, const ScaleArgs& someScaleArgs, const NodeRenderArgs& someRenderArgs, int aDepth)
+{
+  ImVec2 pos, size;
+  pos.x = someRenderArgs.myStartPos.x + (aNode->myStart - someRenderArgs.myFrameStart) * someScaleArgs.myMsToPixelScale;
+  pos.y = someRenderArgs.myStartPos.y + kZoneElementHeight_WithPadding * aDepth;
+  size.x = aNode->myDuration * someScaleArgs.myMsToPixelScale;
+  size.y = kZoneElementHeight;
+
+  const Profiling::SampleNodeInfo* nodeInfo = Profiling::GetSampleInfo(aNode->myNodeInfo);
+
+  ColorButton(FormatString("%s: %.3f", nodeInfo->myName, (float)aNode->myDuration), pos, size, GetColorForTag(nodeInfo->myTag));
+
+  for (uint i = 0u; i < aNode->myNumChildren; ++i)
+  {
+    const Profiling::SampleNode* childNode = Profiling::GetSample(aNode->myChildren[i]);
+    RenderNodeRecursive(childNode, someScaleArgs, someRenderArgs, aDepth + 1);
+  }
+}
+
+void RenderRuler(const ScaleArgs& someScaleArgs)
 {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-  enum TimeUnit
+  TimeUnit mainMarkerUnit = TimeUnit::Milliseconds;
+  float mainMarkerOffset = someScaleArgs.myMsToPixelScale;
+  float mainMarkerDuration = 1;  // Duration in mainMarkerUnit
+  while (mainMarkerOffset > 500 && mainMarkerUnit < TimeUnit::Last)
   {
-    Milliseconds,
-    Microseconds,
-    Nanoseconds
-  };
+    mainMarkerUnit = (TimeUnit) ((uint) mainMarkerUnit + 1);
+    const float divide = 10.0f;
+    mainMarkerOffset *= (1.0f / divide);
+    mainMarkerDuration *= (1000.0f / divide);
+  }
 
-  TimeUnit unit_big = TimeUnit::Milliseconds;
-  float unit_big_offset = someArgs.myScale;
-  if (unit_big_offset > 2.0f)
-    
-   
+  const float subMarkerOffset = mainMarkerOffset / 10.0f;
+  
+  const float subMarkerVerticalOffset = (kRulerMarkerVerticalSize - kSubRulerMarkerVerticalSize) * 0.5f;
+  const ImU32 markerColor = ImGui::ColorConvertFloat4ToU32(ImVec4(.5f, .5f, .5f, .8f));
+  const float mainMarkerThickness = 1.5f;
+  const float subMarkerThickness = 1.0f;
 
-  window->DrawList->AddLine()
+  const uint numMainMarkers = (uint)(ImGui::GetWindowSize().x / mainMarkerOffset);
+  const uint numSubMarkers = 9;
+  ImVec2 startPos = ImGui::GetCursorPos();
+  ImVec2 pos = startPos;
+  pos.x += ImGui::GetWindowPos().x;
+  pos.y += ImGui::GetWindowPos().y;
+  int currMainMarkerTime = 0;
+  for (uint iMain = 0u; iMain < numMainMarkers; ++iMain)
+  {
+    ImVec2 start = pos, end = pos;
+
+    end.y += kRulerMarkerVerticalSize;
+    window->DrawList->AddLine(start, end, markerColor, mainMarkerThickness);
+
+    ImVec2 labelPos = end;
+    labelPos.y += 5;
+    window->DrawList->AddText(labelPos, markerColor, FormatString("%d%s", currMainMarkerTime, TimeUnitToString(mainMarkerUnit)));
+
+    for (uint iSub = 0u; iSub < numSubMarkers; ++iSub)
+    {
+      start.x += subMarkerOffset;
+      end.x += subMarkerOffset;
+      start.y = pos.y + subMarkerVerticalOffset;
+      end.y = pos.y + (kRulerMarkerVerticalSize - subMarkerVerticalOffset);
+
+      window->DrawList->AddLine(start, end, markerColor, subMarkerThickness);
+    }
+  
+    pos.x += mainMarkerOffset;
+    currMainMarkerTime += mainMarkerDuration;
+  }
+
+  ImGui::SetCursorPosY(startPos.y + kRulerMarkerVerticalSize + 20);
+  ImGui::SetCursorPosX(startPos.x);
 }
 
-void ProfilerWindow::Show()
+void ProfilerWindow::Render()
 {
   // TODO: Clipping of elements not on the screen
 
-  ImGuiTextBuffer textBuffer;
+  const std::list<Profiling::FrameData>& profiledFrames = Profiling::GetFrames();
 
   ImGui::Begin("Profiler");
 
-  if (ImGui::Checkbox("Pause", &myIsPaused))
-    Profiling::SetPause(myIsPaused);
+  const float baseHorizontalScale = 1280.0f / 16.0f;
 
-  ImGui::SliderFloat("Scale", &myScale, 0.1f, 10.0f);
+  ScaleArgs scaleArgs;
+  scaleArgs.myMsToPixelScale = baseHorizontalScale * myScale;
+  scaleArgs.myScale = myScale;
 
-  const float64 frameDuration = Profiling::GetLastFrameDuration();
-  RenderArgs args;
-  args.myFrameStart = Profiling::GetLastFrameStart();
-  args.myDurationToPixelScale = (float)((float64)ImGui::GetWindowSize().x / frameDuration) * myScale;
-  args.myElementHeight = (20.0f * myScale);
-  args.myElementHeightWithPadding = (25.0f * myScale);
-  args.myStartPos = ImGui::GetCursorPos();
-  args.myScale = myScale;
+  RenderRuler(scaleArgs);
 
-  ImVec2 pos = args.myStartPos;
-  ImVec2 size(0, args.myElementHeight);
-  size.x = frameDuration * args.myDurationToPixelScale;
-  ColorButton(FormatString("Frame: %.3f", (float)frameDuration), pos, size, ImVec4(0.4f, 0.4f, 0.4f, 0.5f));
-  
-  const DynamicArray<Profiling::SampleNode>& frameSamples = Profiling::GetLastFrameSamples();
-  for (const Profiling::SampleNode& rootSample : frameSamples)
+  // TODO: Determine horizontal time-bounds of the profiler-window and figure out which frame-datas to render
+  // For now, just render the last frame data...
+  if (!profiledFrames.empty())
   {
-    RenderNodeRecursive(rootSample, args, 1);
+    const Profiling::FrameData& frame = profiledFrames.back();
+
+    NodeRenderArgs nodeRenderArgs;
+    nodeRenderArgs.myFrameStart = frame.myStart;
+    nodeRenderArgs.myStartPos = ImGui::GetCursorPos();
+
+    for (uint i = 0; i < frame.myNumSamples; ++i)
+    {
+      const Profiling::SampleNode* node = Profiling::GetSample(frame.mySamples[i]);
+      RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
+    }
   }
     
   ImGui::End();

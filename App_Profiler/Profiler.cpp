@@ -68,9 +68,9 @@ void Init(HINSTANCE anInstanceHandle)
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   Fancy::WindowParameters windowParams;
-  windowParams.myWidth = 800;
-  windowParams.myHeight = 600;
-  windowParams.myTitle = "DearImGui Example";
+  windowParams.myWidth = 1920;
+  windowParams.myHeight = 1080;
+  windowParams.myTitle = "Profiler window example";
 
   myRuntime = FancyRuntime::Init(anInstanceHandle, params, windowParams);
 
@@ -92,15 +92,19 @@ void Update()
   if (ImGui::Button("Test Window")) show_test_window ^= 1;
   if (ImGui::Button("Profiler Window")) show_profiler_window ^= 1;
 
+  // if (ImGui::Checkbox("Pause", &profilerWindow.myIsPaused))
+  //   Profiling::SetPause(profilerWindow.myIsPaused);
+
+  ImGui::SliderFloat("Scale", &profilerWindow.myScale, 0.1f, 10.0f);
+
   // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
   if (show_test_window)
   {
-    ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);     // Normally user code doesn't need/want to call it because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
     ImGui::ShowTestWindow(&show_test_window);
   }
 
   if (show_profiler_window)
-    profilerWindow.Show();
+    profilerWindow.Render();
 }
 
 void Render()

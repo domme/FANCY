@@ -33,6 +33,9 @@ namespace Fancy {
     if (ourInstance != nullptr)
       return ourInstance;
 
+    // Init profiler
+    Profiling::Init();
+
     // Init IO-subsystem
     Resources::InitResourceFolders();
 
