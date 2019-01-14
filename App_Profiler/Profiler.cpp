@@ -92,10 +92,9 @@ void Update()
   if (ImGui::Button("Test Window")) show_test_window ^= 1;
   if (ImGui::Button("Profiler Window")) show_profiler_window ^= 1;
 
-  // if (ImGui::Checkbox("Pause", &profilerWindow.myIsPaused))
-  //   Profiling::SetPause(profilerWindow.myIsPaused);
-
+  ImGui::Checkbox("Pause", &profilerWindow.myIsPaused);
   ImGui::SliderFloat("Scale", &profilerWindow.myScale, 0.1f, 10.0f);
+  ImGui::SliderFloat("Offset", &profilerWindow.myOffset, -100.0f, 100.0f);
 
   // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
   if (show_test_window)

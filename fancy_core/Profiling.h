@@ -55,6 +55,7 @@ namespace Fancy
     const SampleNode* GetSample(uint aSampleId);
     const SampleNodeInfo* GetSampleInfo(uint64 anInfoId);
     const std::list<FrameData>& GetFrames();
+    void SetPaused(bool aPause);
   };
 
 #define PROFILE_FUNCTION(...) Profiling::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)

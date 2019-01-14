@@ -7,8 +7,8 @@ public:
   ~ProfilerWindow();
 
   void Render();
-
+  
   bool myIsPaused = false;
   float myScale = 1.0f;
-
+  float myOffset = 0.0f;
 };

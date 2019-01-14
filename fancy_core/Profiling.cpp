@@ -17,6 +17,8 @@ namespace Fancy
   static uint ourNextUsedNode = ourMaxNumNodes - 1;
   static uint ourMaxNumSamplesPerFrame = 0u;
 
+  static bool ourPauseRequested = false;
+  static bool ourPaused = false;
   static std::stack<Profiling::SampleNode*> ourCurrStack;
   static Profiling::FrameData ourCurrFrame;
   static uint ourNumSamplesThisFrame = 0u;
@@ -48,6 +50,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void Profiling::PushMarker(const char* aName, uint8 aTag)
   {
+    if (ourPaused)
+      return;
+
     const uint nodeId = AllocateNode();
     Profiling::SampleNode& node = ourNodePool[nodeId];
     ++ourNumSamplesThisFrame;
@@ -86,6 +91,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void Profiling::PopMarker()
   {
+    if (ourPaused)
+      return;
+
     ASSERT(!ourCurrStack.empty());
 
     Profiling::SampleNode* node = ourCurrStack.top();
@@ -111,7 +119,7 @@ namespace Fancy
       memset(&ourCurrFrame, 0u, sizeof(ourCurrFrame));
     }
 
-    // Check if any recorded frames should be cleaned up
+    // Clean up old recorded frame data if necessary
     const uint numFreeNodesNeeded = ourMaxNumSamplesPerFrame + 100;
     if (ourNextUsedNode - ourNextFreeNode < numFreeNodesNeeded)
     {
@@ -132,7 +140,11 @@ namespace Fancy
       ASSERT(ourNextUsedNode - ourNextFreeNode >= numFreeNodesNeeded);
     }
 
-    ourCurrFrame.myStart = SampleTimeMs();
+    // Start the next frame
+    ourPaused = ourPauseRequested;
+
+    if (!ourPaused)
+      ourCurrFrame.myStart = SampleTimeMs();
   }
 //---------------------------------------------------------------------------//
   void Profiling::EndFrame()
@@ -144,7 +156,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void Profiling::Init()
   {
-    ourNodePool.resize(ourMaxNumNodes);
+    if (ourNodePool.empty())
+      ourNodePool.resize(ourMaxNumNodes);
   }
 //---------------------------------------------------------------------------//
   const Profiling::SampleNode* Profiling::GetSample(uint aSampleId)
@@ -161,6 +174,11 @@ namespace Fancy
   const std::list<Profiling::FrameData>& Profiling::GetFrames()
   {
     return ourFrameDatas;
+  }
+//---------------------------------------------------------------------------//
+  void Profiling::SetPaused(bool aPause)
+  {
+    ourPauseRequested = aPause;
   }
 //---------------------------------------------------------------------------//
 }
