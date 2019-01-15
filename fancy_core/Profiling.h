@@ -25,6 +25,7 @@ namespace Fancy
       float64 myStart = 0u;
       float64 myDuration = 0u;
       uint64 myNodeInfo = 0u;
+      uint myNumNodes = 0u;
       uint myChild = UINT_MAX;
       uint myNext = UINT_MAX;
     };
