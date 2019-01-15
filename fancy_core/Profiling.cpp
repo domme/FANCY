@@ -10,7 +10,6 @@ namespace Fancy
 {
   static std::unordered_map<uint64, Profiling::SampleNodeInfo> ourNodeInfoPool;
   static DynamicArray<Profiling::SampleNode> ourNodePool;
-  static std::list<Profiling::FrameData> ourFrameDatas;
   
   static constexpr uint64 ourMaxNumNodes = static_cast<uint>((Profiling::MAX_NODE_POOL_MB * SIZE_MB) / sizeof(Profiling::SampleNode));
   static uint ourNextFreeNode = 0u;
@@ -19,9 +18,11 @@ namespace Fancy
 
   static bool ourPauseRequested = false;
   static bool ourPaused = false;
-  static std::stack<Profiling::SampleNode*> ourCurrStack;
-  static Profiling::FrameData ourCurrFrame;
+
+  static std::stack<uint> ourCurrStack;
+  static uint ourLastSampleOnLevel = UINT_MAX;
   static uint ourNumSamplesThisFrame = 0u;
+  static uint ourDataHead = 0u;
 //---------------------------------------------------------------------------//
   Profiling::ScopedMarker::ScopedMarker(const char* aName, uint8 aTag)
   {
@@ -48,10 +49,10 @@ namespace Fancy
     return ourNextFreeNode++;
   }
 //---------------------------------------------------------------------------//
-  void Profiling::PushMarker(const char* aName, uint8 aTag)
+  uint Profiling::PushMarker(const char* aName, uint8 aTag)
   {
     if (ourPaused)
-      return;
+      return UINT_MAX;
 
     const uint nodeId = AllocateNode();
     Profiling::SampleNode& node = ourNodePool[nodeId];
@@ -71,70 +72,65 @@ namespace Fancy
 
     node.myNodeInfo = hash;
     node.myStart = SampleTimeMs();
-    node.myNumChildren = 0u;
     node.myDuration = 0u;
+    node.myNext = UINT_MAX;
+    node.myChild = UINT_MAX;
 
-    if (ourCurrStack.empty())
+    ASSERT(!ourCurrStack.empty());  // There should always be a frame-root sample
+
+    if (ourLastSampleOnLevel == UINT_MAX)  // First child of parent
     {
-      ASSERT(ourCurrFrame.myNumSamples <= MAX_NUM_FRAME_SAMPLES, "Insufficient number of allocated frame samples");
-      ourCurrFrame.mySamples[ourCurrFrame.myNumSamples++] = nodeId;
+      SampleNode* currStackNode = &ourNodePool[ourCurrStack.top()];
+      ASSERT(currStackNode->myChild == UINT_MAX);
+      currStackNode->myChild = nodeId;
     }
     else
     {
-      Profiling::SampleNode* parent = ourCurrStack.top();
-      ASSERT(parent->myNumChildren < MAX_NUM_CHILDREN);
-      parent->myChildren[parent->myNumChildren++] = nodeId;
+      ourNodePool[ourLastSampleOnLevel].myNext = nodeId;
     }
-
-    ourCurrStack.push(&node);
+    
+    ourCurrStack.push(nodeId);
+    return nodeId;
   }
 //---------------------------------------------------------------------------//
-  void Profiling::PopMarker()
+  uint Profiling::PopMarker()
   {
     if (ourPaused)
-      return;
+      return UINT_MAX;
 
     ASSERT(!ourCurrStack.empty());
 
-    Profiling::SampleNode* node = ourCurrStack.top();
-    node->myDuration = SampleTimeMs() - node->myStart;
+    const uint nodeId = ourCurrStack.top();
     ourCurrStack.pop();
+
+    Profiling::SampleNode* node = &ourNodePool[nodeId];
+    node->myDuration = SampleTimeMs() - node->myStart;
+    ourLastSampleOnLevel = nodeId;
   }
 //---------------------------------------------------------------------------//
   void Profiling::BeginFrame()
   {
-    // End frame functionality. This is done here to make it possible to also profile stuff during the endFrame() calls.
-    // conceptually, a frame begins in BeginFrame() and ends in the next BeginFrame() for the profiler
-    {
-      ASSERT(ourCurrStack.empty(), "There are still open profiling markers at the end of the frame");
+    ASSERT(ourCurrStack.empty(), "There are still open profiling markers at the end of the frame");
 
-      ourMaxNumSamplesPerFrame = glm::max(ourMaxNumSamplesPerFrame, ourNumSamplesThisFrame);
-      ourNumSamplesThisFrame = 0u;
-
-      if (ourCurrFrame.myNumSamples > 0u)
-      {
-        ourCurrFrame.myDuration = SampleTimeMs() - ourCurrFrame.myStart;
-        ourFrameDatas.push_back(ourCurrFrame);
-      }
-      memset(&ourCurrFrame, 0u, sizeof(ourCurrFrame));
-    }
+    ourMaxNumSamplesPerFrame = glm::max(ourMaxNumSamplesPerFrame, ourNumSamplesThisFrame);
+    ourNumSamplesThisFrame = 0u;
 
     // Clean up old recorded frame data if necessary
     const uint numFreeNodesNeeded = ourMaxNumSamplesPerFrame + 100;
     if (ourNextUsedNode - ourNextFreeNode < numFreeNodesNeeded)
     {
-      auto frameIt = ourFrameDatas.begin();
-      auto nextFrameIt = frameIt != ourFrameDatas.end() ? std::next(frameIt, 1) : frameIt;
-      while (ourNextUsedNode - ourNextFreeNode < numFreeNodesNeeded && frameIt != ourFrameDatas.end())
+      ASSERT(ourDataHead != UINT_MAX && ourNodePool[ourDataHead].myNext != UINT_MAX);  // Are there at least two recorded frames?
+
+      uint frameStart = ourDataHead;
+      uint nextFrameStart = ourNodePool[ourDataHead].myNext;
+      while (ourNextUsedNode - ourNextFreeNode < numFreeNodesNeeded && frameStart != UINT_MAX)
       {
-        ourNextFreeNode = glm::min(ourNextFreeNode, frameIt->mySamples[0]);
+        ourNextFreeNode = glm::min(ourNextFreeNode, frameStart);
+        ourNextUsedNode = nextFrameStart != UINT_MAX ? nextFrameStart : ourMaxNumNodes - 1;
 
-        ourNextUsedNode = nextFrameIt != ourFrameDatas.end() ? nextFrameIt->mySamples[0] : ourMaxNumNodes - 1;
-
-        frameIt = ourFrameDatas.erase(frameIt);
-
-        if (frameIt != ourFrameDatas.end())
-          nextFrameIt = std::next(frameIt, 1);
+        ourDataHead = nextFrameStart;
+        frameStart = ourDataHead;
+        nextFrameStart = ourNodePool[ourDataHead].myNext;
       }
 
       ASSERT(ourNextUsedNode - ourNextFreeNode >= numFreeNodesNeeded);
@@ -144,12 +140,18 @@ namespace Fancy
     ourPaused = ourPauseRequested;
 
     if (!ourPaused)
-      ourCurrFrame.myStart = SampleTimeMs();
+      PushMarker("Frame Root", 0u);
   }
 //---------------------------------------------------------------------------//
   void Profiling::EndFrame()
   {
-    
+    if (!ourPaused)
+      PopMarker();  // Close the frame root marker
+
+    if (ourDataHead == nullptr)
+      ourDataHead = ourLastSampleOnLevel;
+
+    ourLastSampleOnLevel = nullptr;
   }
 //---------------------------------------------------------------------------//
 
@@ -162,6 +164,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   const Profiling::SampleNode* Profiling::GetSample(uint aSampleId)
   {
+    if (aSampleId == UINT_MAX)
+      return nullptr;
+
     ASSERT(aSampleId < ourNextFreeNode);
     return &ourNodePool[aSampleId];
   }
