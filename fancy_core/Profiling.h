@@ -39,6 +39,7 @@ namespace Fancy
       uint myNext = UINT_MAX;
     };
 
+
     struct ScopedMarker
     {
       ScopedMarker(const char* aName, uint8 aTag);

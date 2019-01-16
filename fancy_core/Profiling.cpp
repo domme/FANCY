@@ -12,17 +12,16 @@ namespace Fancy
   static DynamicArray<Profiling::SampleNode> ourNodePool;
   static DynamicArray<Profiling::FrameData> ourFramePool;
   
-  static constexpr uint ourMaxNumNodes = static_cast<uint>((Profiling::MAX_NODE_POOL_MB * SIZE_MB) / sizeof(Profiling::SampleNode));
-  static constexpr uint ourMaxNumFrames = Profiling::MAX_NUM_RECORDED_FRAMES;
+  static constexpr uint ourMaxNumNodes = Profiling::MAX_NUM_RECORDED_FRAMES * Profiling::EXPECTED_MAX_NUM_SAMPLES_PER_FRAME;
   static uint ourNextFreeNode = 0u;
   static uint ourNextUsedNode = ourMaxNumNodes;
-  static uint ourMaxNumSamplesPerFrame = 0u;
 
   static bool ourPauseRequested = false;
   static bool ourPaused = false;
 
   static std::stack<uint> ourCurrStack;
   static uint ourChildrenTail = 0u;
+
   static uint ourFrameHead = 0u;
   static uint ourFrameTail = 0u;
 //---------------------------------------------------------------------------//
@@ -76,7 +75,6 @@ namespace Fancy
     node.myDuration = 0u;
     node.myNext = UINT_MAX;
     node.myChild = UINT_MAX;
-    node.myNumNodes = 0u;
 
     ourCurrStack.push(nodeId);
 
@@ -123,29 +121,34 @@ namespace Fancy
   {
     ASSERT(ourCurrStack.empty(), "There are still open profiling markers at the end of the frame");
 
-    ourMaxNumSamplesPerFrame = glm::max(ourMaxNumSamplesPerFrame, ourFrameTail != UINT_MAX ? ourNodePool[ourFrameTail].myNumNodes : 0u);
-
-    // Clean up old recorded frame data if necessary
-    const uint numFreeNodesNeeded = ourMaxNumSamplesPerFrame + 100;
-    if (ourNextUsedNode - ourNextFreeNode < numFreeNodesNeeded)
+    int numFreeFrames = (our - ourNextFreeFrame) - 10;
+    if (numSamplesToClean > 0 || numFramesToClean > 0)
     {
       ASSERT(ourFrameHead != ourFrameTail); // Are there at least two recorded frames?
 
-      while (ourNextUsedNode - ourNextFreeNode < numFreeNodesNeeded && ourFrameHead != UINT_MAX)
+      while ((numSamplesToClean > 0 || numFramesToClean > 0) && ourFrameHead != UINT_MAX)
       {
-        ourNextFreeNode = ourFrameHead;
-        ourNextUsedNode = ourFrameHead + ourNodePool[ourFrameHead].myNumNodes;
+        const FrameData& firstFrame = ourFramePool[ourFrameHead];
 
-        ourFrameHead = ourNodePool[ourFrameHead].myNext;
+        ourNextFreeNode = firstFrame.myFirstSample;
+        ourNextUsedNode = firstFrame.myLastSample + 1;
+
+        ourNextFreeFrame = ourFrameHead;
+        ourNextUsedFrame = firstFrame.myNext;
+        ourFrameHead = firstFrame.myNext;
+
+        --numFramesToClean;
+        numSamplesToClean -= (ourNextUsedNode - ourNextFreeNode);
       }
-
-      ASSERT(ourNextUsedNode - ourNextFreeNode >= numFreeNodesNeeded);
     }
 
     // Start the next frame
     ourPaused = ourPauseRequested;
 
     if (!ourPaused)
+    {
+      FrameData& frame = ourFramePool[]
+    }
       PushMarker("Frame Root", 0u);
   }
 //---------------------------------------------------------------------------//
@@ -168,8 +171,8 @@ namespace Fancy
     if (ourNodePool.empty() || ourFramePool.empty())
     {
       ourNodePool.resize(ourMaxNumNodes);
+      ourFramePool.resize(MAX_NUM_RECORDED_FRAMES);
     }
-      
   }
 //---------------------------------------------------------------------------//
   const Profiling::SampleNode* Profiling::GetSample(uint aSampleId)
