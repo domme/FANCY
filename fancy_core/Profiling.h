@@ -11,7 +11,8 @@ namespace Fancy
     enum Consts
     {
       MAX_NAME_LENGTH = 128,
-      MAX_NODE_POOL_MB = 100,
+      MAX_NUM_RECORDED_FRAMES = 1000,
+      EXPECTED_MAX_NUM_SAMPLES_PER_FRAME = 1000
     };
 
     struct SampleNodeInfo
@@ -22,11 +23,19 @@ namespace Fancy
 
     struct SampleNode
     {
-      float64 myStart = 0u;
-      float64 myDuration = 0u;
+      float64 myStart = 0.0;
+      float64 myDuration = 0.0;
       uint64 myNodeInfo = 0u;
-      uint myNumNodes = 0u;
       uint myChild = UINT_MAX;
+      uint myNext = UINT_MAX;
+    };
+
+    struct FrameData
+    {
+      float64 myStart = 0.0;
+      float64 myDuration = 0.0;
+      uint myFirstSample = UINT_MAX;
+      uint myLastSample = UINT_MAX;
       uint myNext = UINT_MAX;
     };
 
