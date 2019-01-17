@@ -35,7 +35,6 @@ namespace Fancy
       float64 myStart = 0.0;
       float64 myDuration = 0.0;
       uint myFirstSample = UINT_MAX;
-      uint myLastSample = UINT_MAX;
       uint myNext = UINT_MAX;
     };
 

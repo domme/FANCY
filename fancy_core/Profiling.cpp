@@ -10,6 +10,7 @@ namespace Fancy
 {
   static std::unordered_map<uint64, Profiling::SampleNodeInfo> ourNodeInfoPool;
   static DynamicArray<Profiling::SampleNode> ourNodePool;
+  static DynamicArray<uint> ourNodeFrameOwners;
   static DynamicArray<Profiling::FrameData> ourFramePool;
   
   static constexpr uint ourMaxNumNodes = Profiling::MAX_NUM_RECORDED_FRAMES * Profiling::EXPECTED_MAX_NUM_SAMPLES_PER_FRAME;
@@ -36,7 +37,22 @@ namespace Fancy
     Profiling::PopMarker();
   }
 //---------------------------------------------------------------------------//
+  void FreeFirstFrame()
+  {
+    const Profiling::FrameData& firstFrame = ourFramePool[ourFrameHead];
+    uint frameNode = firstFrame.myFirstSample;
+    ASSERT(frameNode != UINT_MAX && frameNode < ourMaxNumNodes);
+    ASSERT(ourNodeFrameOwners[frameNode] == ourFrameHead);
 
+    while (ourNodeFrameOwners[frameNode] == frameNode)
+    {
+      ourNodeFrameOwners[frameNode++] = UINT_MAX;
+      if (frameNode == ourMaxNumNodes)  // Wrap around
+        frameNode = 0; 
+    }
+
+    ourFrameHead = firstFrame.myNext;
+  }
 //---------------------------------------------------------------------------//
   static float64 SampleTimeMs()
   {
@@ -46,8 +62,13 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   uint AllocateNode()
   {
-    ASSERT(ourNextFreeNode < ourNextUsedNode, "Insufficient amount of free profiler nodes");
-    return ourNextFreeNode++;
+    const uint freeNode = ourNextFreeNode;
+    ourNextFreeNode = (ourNextFreeNode + 1) % ourMaxNumNodes;
+    if (ourNextFreeNode == ourNextUsedNode)
+    {
+      ourNextFreeNode = ourFramePool[ourFrameHead].myFirstSample;
+      FreeFirstFrame();
+    }
   }
 //---------------------------------------------------------------------------//
   uint Profiling::PushMarker(const char* aName, uint8 aTag)
@@ -172,6 +193,7 @@ namespace Fancy
     {
       ourNodePool.resize(ourMaxNumNodes);
       ourFramePool.resize(MAX_NUM_RECORDED_FRAMES);
+      ourNodeFrameOwners.resize(ourMaxNumNodes, UINT_MAX);
     }
   }
 //---------------------------------------------------------------------------//
