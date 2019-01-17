@@ -13,18 +13,21 @@ namespace Fancy
   static DynamicArray<uint> ourNodeFrameOwners;
   static DynamicArray<Profiling::FrameData> ourFramePool;
   
-  static constexpr uint ourMaxNumNodes = Profiling::MAX_NUM_RECORDED_FRAMES * Profiling::EXPECTED_MAX_NUM_SAMPLES_PER_FRAME;
   static uint ourNextFreeNode = 0u;
-  static uint ourNextUsedNode = ourMaxNumNodes;
+  static uint ourNextUsedNode = Profiling::SAMPLE_POOL_SIZE;
 
   static bool ourPauseRequested = false;
   static bool ourPaused = false;
 
-  static std::stack<uint> ourCurrStack;
-  static uint ourChildrenTail = 0u;
+  static uint ourNodeStack[Profiling::MAX_SAMPLE_DEPTH];
+  static uint ourTailStack[Profiling::MAX_SAMPLE_DEPTH];
+  static uint ourSampleDepth = 0u;
 
+  static uint ourNextFreeFrame = 0u;
+  static uint ourNextUsedFrame = Profiling::FRAME_POOL_SIZE;
   static uint ourFrameHead = 0u;
   static uint ourFrameTail = 0u;
+  static uint ourCurrFrame = 0u;
 //---------------------------------------------------------------------------//
   Profiling::ScopedMarker::ScopedMarker(const char* aName, uint8 aTag)
   {
@@ -41,14 +44,13 @@ namespace Fancy
   {
     const Profiling::FrameData& firstFrame = ourFramePool[ourFrameHead];
     uint frameNode = firstFrame.myFirstSample;
-    ASSERT(frameNode != UINT_MAX && frameNode < ourMaxNumNodes);
+    ASSERT(frameNode != UINT_MAX && frameNode < Profiling::SAMPLE_POOL_SIZE);
     ASSERT(ourNodeFrameOwners[frameNode] == ourFrameHead);
 
     while (ourNodeFrameOwners[frameNode] == frameNode)
     {
-      ourNodeFrameOwners[frameNode++] = UINT_MAX;
-      if (frameNode == ourMaxNumNodes)  // Wrap around
-        frameNode = 0; 
+      ourNodeFrameOwners[frameNode] = UINT_MAX;
+      frameNode = (frameNode + 1) % Profiling::SAMPLE_POOL_SIZE;
     }
 
     ourFrameHead = firstFrame.myNext;
@@ -63,17 +65,24 @@ namespace Fancy
   uint AllocateNode()
   {
     const uint freeNode = ourNextFreeNode;
-    ourNextFreeNode = (ourNextFreeNode + 1) % ourMaxNumNodes;
-    if (ourNextFreeNode == ourNextUsedNode)
+    ourNextFreeNode = (ourNextFreeNode + 1) % Profiling::SAMPLE_POOL_SIZE;
+    if (ourNextFreeNode == ourNextUsedNode % Profiling::SAMPLE_POOL_SIZE)
     {
       ourNextFreeNode = ourFramePool[ourFrameHead].myFirstSample;
       FreeFirstFrame();
     }
+    return freeNode;
+  }
+//---------------------------------------------------------------------------//
+  uint AllocateFrame()
+  {
+    const uint freeFrame = ourNextFreeFrame;
+
   }
 //---------------------------------------------------------------------------//
   uint Profiling::PushMarker(const char* aName, uint8 aTag)
   {
-    if (ourPaused)
+    if (ourPaused || ourSampleDepth == MAX_SAMPLE_DEPTH)
       return UINT_MAX;
 
     const uint nameLen = static_cast<uint>(strlen(aName));
@@ -89,15 +98,15 @@ namespace Fancy
     }
 
     const uint nodeId = AllocateNode();
-    Profiling::SampleNode& node = ourNodePool[nodeId];
     
+    Profiling::SampleNode& node = ourNodePool[nodeId];
     node.myNodeInfo = hash;
     node.myStart = SampleTimeMs();
     node.myDuration = 0u;
     node.myNext = UINT_MAX;
     node.myChild = UINT_MAX;
-
-    ourCurrStack.push(nodeId);
+    
+    ourNodeStack[ourSampleDepth++] = nodeId;
 
     return nodeId;
   }
@@ -107,61 +116,45 @@ namespace Fancy
     if (ourPaused)
       return UINT_MAX;
 
-    ASSERT(!ourCurrStack.empty());
+    ASSERT(ourSampleDepth > 0u);
 
-    const uint nodeId = ourCurrStack.top();
-    ourCurrStack.pop();
-
+    const uint nodeId = ourNodeStack[ourSampleDepth];
     Profiling::SampleNode* node = &ourNodePool[nodeId];
     node->myDuration = SampleTimeMs() - node->myStart;
 
-    if (ourCurrStack.empty())
-    {
-      // This is the frame-root
-      ourNodePool[ourFrameTail].myNext = nodeId;
-      ourFrameTail = nodeId;
-    }
-    else
-    {
-      const uint parentNodeId = ourCurrStack.top();
-      Profiling::SampleNode* parent = &ourNodePool[parentNodeId];
+    ourNodeFrameOwners[nodeId] = ourCurrFrame;
+    FrameData& frame = ourFramePool[ourCurrFrame];
 
-      ASSERT((parent->myChild == UINT_MAX) == (ourChildrenTail == UINT_MAX));
-      if (parent->myChild == UINT_MAX)
-        parent->myChild = nodeId;
+    if (ourSampleDepth == 0 && frame.myFirstSample == UINT_MAX)
+    {
+      frame.myFirstSample = nodeId;
+    }
+    else if (ourSampleDepth > 0)
+    {
+      const uint parentNodeId = ourNodeStack[ourSampleDepth - 1];
+      SampleNode& parentNode = ourNodePool[parentNodeId];
+      if (parentNode.myChild == UINT_MAX)
+      {
+        parentNode.myChild = nodeId;
+      }
       else
-        ourNodePool[ourChildrenTail].myNext = nodeId;
-
-      ourChildrenTail = nodeId;
+      {
+        const uint lastNodeOnLevel = ourTailStack[ourSampleDepth];
+        ourNodePool[lastNodeOnLevel].myNext = nodeId;
+      }
     }
+
+    ourTailStack[ourSampleDepth] = nodeId;
+    --ourSampleDepth;
 
     return nodeId;
   }
 //---------------------------------------------------------------------------//
   void Profiling::BeginFrame()
   {
-    ASSERT(ourCurrStack.empty(), "There are still open profiling markers at the end of the frame");
+    ASSERT(ourSampleDepth == 0, "There are still open profiling markers at the end of the frame");
 
-    int numFreeFrames = (our - ourNextFreeFrame) - 10;
-    if (numSamplesToClean > 0 || numFramesToClean > 0)
-    {
-      ASSERT(ourFrameHead != ourFrameTail); // Are there at least two recorded frames?
-
-      while ((numSamplesToClean > 0 || numFramesToClean > 0) && ourFrameHead != UINT_MAX)
-      {
-        const FrameData& firstFrame = ourFramePool[ourFrameHead];
-
-        ourNextFreeNode = firstFrame.myFirstSample;
-        ourNextUsedNode = firstFrame.myLastSample + 1;
-
-        ourNextFreeFrame = ourFrameHead;
-        ourNextUsedFrame = firstFrame.myNext;
-        ourFrameHead = firstFrame.myNext;
-
-        --numFramesToClean;
-        numSamplesToClean -= (ourNextUsedNode - ourNextFreeNode);
-      }
-    }
+    
 
     // Start the next frame
     ourPaused = ourPauseRequested;
@@ -192,7 +185,7 @@ namespace Fancy
     if (ourNodePool.empty() || ourFramePool.empty())
     {
       ourNodePool.resize(ourMaxNumNodes);
-      ourFramePool.resize(MAX_NUM_RECORDED_FRAMES);
+      ourFramePool.resize(FRAME_POOL_SIZE);
       ourNodeFrameOwners.resize(ourMaxNumNodes, UINT_MAX);
     }
   }

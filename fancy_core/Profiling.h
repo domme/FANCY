@@ -11,8 +11,9 @@ namespace Fancy
     enum Consts
     {
       MAX_NAME_LENGTH = 128,
-      MAX_NUM_RECORDED_FRAMES = 1000,
-      EXPECTED_MAX_NUM_SAMPLES_PER_FRAME = 1000
+      FRAME_POOL_SIZE = 1000,
+      SAMPLE_POOL_SIZE = 10000,
+      MAX_SAMPLE_DEPTH = 2048,
     };
 
     struct SampleNodeInfo
