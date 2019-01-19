@@ -27,7 +27,7 @@ namespace Fancy
   static uint ourNextUsedFrame = Profiling::FRAME_POOL_SIZE;
   static uint ourFrameHead = 0u;
   static uint ourFrameTail = 0u;
-  static uint ourCurrFrame = 0u;
+  static Profiling::FrameData ourCurrFrame;
 //---------------------------------------------------------------------------//
   Profiling::ScopedMarker::ScopedMarker(const char* aName, uint8 aTag)
   {
@@ -65,11 +65,14 @@ namespace Fancy
   uint AllocateNode()
   {
     const uint freeNode = ourNextFreeNode;
+    const uint nextUsedWrapped = ourNextUsedNode % Profiling::SAMPLE_POOL_SIZE;
     ourNextFreeNode = (ourNextFreeNode + 1) % Profiling::SAMPLE_POOL_SIZE;
-    if (ourNextFreeNode == ourNextUsedNode % Profiling::SAMPLE_POOL_SIZE)
+    if (ourNextFreeNode == nextUsedWrapped)
     {
-      ourNextFreeNode = ourFramePool[ourFrameHead].myFirstSample;
-      FreeFirstFrame();
+      const Profiling::FrameData& firstFrame = ourFramePool[ourFrameHead];
+      ASSERT(ourNextFreeNode == firstFrame.myFirstSample);
+      FreeFirstFrame(); 
+      ourNextUsedNode = ourFramePool[ourFrameHead].myFirstSample;
     }
     return freeNode;
   }
@@ -77,7 +80,16 @@ namespace Fancy
   uint AllocateFrame()
   {
     const uint freeFrame = ourNextFreeFrame;
-
+    const uint nextUsedWrapped = ourNextUsedFrame % Profiling::FRAME_POOL_SIZE;
+    ourNextFreeFrame = (ourNextFreeFrame + 1) % Profiling::FRAME_POOL_SIZE;
+    if (ourNextFreeFrame == nextUsedWrapped)
+    {
+      const Profiling::FrameData& firstFrame = ourFramePool[ourFrameHead];
+      FreeFirstFrame();
+      ourNextUsedNode = ourFramePool[ourFrameHead].myFirstSample;
+      ourNextUsedFrame = (ourNextUsedFrame + 1) % Profiling::FRAME_POOL_SIZE;
+    }
+    return freeFrame;
   }
 //---------------------------------------------------------------------------//
   uint Profiling::PushMarker(const char* aName, uint8 aTag)
@@ -154,16 +166,27 @@ namespace Fancy
   {
     ASSERT(ourSampleDepth == 0, "There are still open profiling markers at the end of the frame");
 
+    // Finalize the last frame
+    if (lastFrame.myFirstSample != UINT_MAX)  // We have samples in this frame
+    {
+      lastFrame.myDuration = SampleTimeMs() - lastFrame.myStart;
+      const uint allocatedFrame = AllocateFrame();
+      ourFramePool[allocatedFrame] = lastFrame;
+      
+      ourFramePool[ourFrameTail].myNext = allocatedFrame;
+      ourFrameTail = allocatedFrame;
+    }
     
-
     // Start the next frame
     ourPaused = ourPauseRequested;
-
     if (!ourPaused)
     {
-      FrameData& frame = ourFramePool[]
+      FrameData& currFrame = ourFramePool[ourCurrFrame];
+      currFrame.myFirstSample = UINT_MAX;
+      currFrame.myNext = UINT_MAX;
+      currFrame.myStart = SampleTimeMs();
+      currFrame.myDuration = 0u;
     }
-      PushMarker("Frame Root", 0u);
   }
 //---------------------------------------------------------------------------//
   void Profiling::EndFrame()
