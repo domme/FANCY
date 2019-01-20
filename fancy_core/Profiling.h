@@ -33,12 +33,12 @@ namespace Fancy
 
     struct FrameData
     {
+      uint myNext = UINT_MAX;
+      uint myPrev = UINT_MAX;
+      uint myFirstSample = UINT_MAX;
       float64 myStart = 0.0;
       float64 myDuration = 0.0;
-      uint myFirstSample = UINT_MAX;
-      uint myNext = UINT_MAX;
     };
-
 
     struct ScopedMarker
     {
@@ -53,9 +53,10 @@ namespace Fancy
     void BeginFrame();
     void EndFrame();
 
-    const SampleNode* GetSample(uint aSampleId);
-    const SampleNodeInfo* GetSampleInfo(uint64 anInfoId);
-    const SampleNode& GetData();
+    const void GetLastFrames(uint* someFrameIdsOut, uint* aNumFramesOut, uint aMaxNumFrames);
+    const FrameData& GetFrame(uint aFrameId);
+    const SampleNode& GetSample(uint aSampleId);
+    const SampleNodeInfo& GetSampleInfo(uint64 anInfoId);
     void SetPaused(bool aPause);
   };
 

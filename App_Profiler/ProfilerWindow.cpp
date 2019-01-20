@@ -2,11 +2,12 @@
 
 #include <fancy_imgui/imgui.h>
 #include <fancy_core/Profiling.h>
-#include <fancy_core/DynamicArray.h>
 #include <fancy_core/FancyCoreDefines.h>
 #include <fancy_core/Log.h>
+#include <fancy_core/MathIncludes.h>
 #include "fancy_imgui/imgui_internal.h"
 #include <list>
+
 
 using namespace Fancy;
 
@@ -168,34 +169,40 @@ void RenderRuler(const ScaleArgs& someScaleArgs)
 void ProfilerWindow::Render()
 {
   // TODO: Clipping of elements not on the screen
-
-  const std::list<Profiling::FrameData>& profiledFrames = Profiling::GetFrames();
-
-  ImGui::Begin("Profiler");
+  // TODO: Determine horizontal time-bounds of the profiler-window and figure out which frame-datas to render
 
   const float baseHorizontalScale = 1280.0f / 16.0f;
-
   ScaleArgs scaleArgs;
   scaleArgs.myMsToPixelScale = baseHorizontalScale * myScale;
   scaleArgs.myScale = myScale;
 
+  const uint numFramesOnScreen = glm::ceil(myScale * 2.0f);
+  mySampledFrames.resize(numFramesOnScreen);
+
+  uint numAvailableFrames = 0u;
+  Profiling::GetLastFrames(mySampledFrames.data(), &numAvailableFrames, mySampledFrames.size());
+
+  ImGui::Begin("Profiler");
+
   RenderRuler(scaleArgs);
 
-  // TODO: Determine horizontal time-bounds of the profiler-window and figure out which frame-datas to render
-  // For now, just render the last frame data...
-  if (!profiledFrames.empty())
+  if (numAvailableFrames > 0)
   {
-    const Profiling::FrameData& frame = profiledFrames.back();
-
-    NodeRenderArgs nodeRenderArgs;
-    nodeRenderArgs.myFrameStart = frame.myStart;
-    nodeRenderArgs.myStartPos = ImGui::GetCursorPos();
-
-    for (uint i = 0; i < frame.myNumSamples; ++i)
+    for (int i = 0; i < numAvailableFrames; ++i)  // Render frames from right to left
     {
-      const Profiling::SampleNode* node = Profiling::GetSample(frame.mySamples[i]);
-      RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
+      const Profiling::FrameData& frame = Profiling::GetFrame(mySampledFrames[i]);
+
+      NodeRenderArgs nodeRenderArgs;
+      nodeRenderArgs.myFrameStart = frame.myStart;
+      nodeRenderArgs.myStartPos = ImGui::GetCursorPos();
+
+      for (uint i = 0; i < frame.myNumSamples; ++i)
+      {
+        const Profiling::SampleNode* node = Profiling::GetSample(frame.mySamples[i]);
+        RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
+      }
     }
+    
   }
     
   ImGui::End();

@@ -57,6 +57,59 @@ void LongDummyFunc()
   LongDummyFunc2();
 }
 
+void Func0()
+{
+  PROFILE_FUNCTION();
+
+  uint64 hash = 0u;
+  int i = 0;
+  while (i < 999)
+    MathUtil::hash_combine(hash, i++);
+}
+
+void Func1_0()
+{
+  PROFILE_FUNCTION();
+
+  uint64 hash = 0u;
+  int i = 0;
+  while (i < 999)
+    MathUtil::hash_combine(hash, i++);
+}
+
+void Func1_1()
+{
+  PROFILE_FUNCTION();
+
+  uint64 hash = 0u;
+  int i = 0;
+  while (i < 999)
+    MathUtil::hash_combine(hash, i++);
+}
+
+void Func1()
+{
+  PROFILE_FUNCTION();
+
+  uint64 hash = 0u;
+  int i = 0;
+  while (i < 999)
+    MathUtil::hash_combine(hash, i++);
+
+  Func1_0();
+  Func1_1();
+}
+
+void Func2()
+{
+  PROFILE_FUNCTION();
+
+  uint64 hash = 0u;
+  int i = 0;
+  while (i < 999)
+    MathUtil::hash_combine(hash, i++);
+}
+
 void OnWindowResized(uint aWidth, uint aHeight)
 {
 
@@ -89,6 +142,10 @@ void Update()
   ImGuiRendering::NewFrame();
   myRuntime->Update(0.016f);
 
+  Func0();
+  Func1();
+  Func2();
+
   if (ImGui::Button("Test Window")) show_test_window ^= 1;
   if (ImGui::Button("Profiler Window")) show_profiler_window ^= 1;
 
@@ -108,9 +165,9 @@ void Update()
 
 void Render()
 {
-  PROFILE_FUNCTION();
-
-  LongDummyFunc();
+  // PROFILE_FUNCTION();
+  // 
+  // LongDummyFunc();
 
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
