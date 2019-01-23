@@ -1,5 +1,4 @@
 #pragma once
-#include <fancy_core/DynamicArray.h>
 #include <fancy_core/FancyCoreDefines.h>
 
 class ProfilerWindow
@@ -10,8 +9,8 @@ public:
 
   void Render();
   
-  Fancy::DynamicArray<uint> mySampledFrames;
   bool myIsPaused = false;
-  float myScale = 1.0f;
-  float myOffset = 0.0f;
+
+  float64 myStartTime = 0.0;
+  float64 myDuration = 0.0;
 };

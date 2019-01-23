@@ -26,6 +26,9 @@ namespace Fancy
   static uint ourFrameHead = 0u;
   static uint ourFrameTail = 0u;
   static Profiling::FrameData ourCurrFrame;
+
+//---------------------------------------------------------------------------//
+  
 //---------------------------------------------------------------------------//
   Profiling::ScopedMarker::ScopedMarker(const char* aName, uint8 aTag)
   {
@@ -43,11 +46,11 @@ namespace Fancy
     const Profiling::FrameData& firstFrame = ourFramePool[ourFrameHead];
 
     // Advance the used-markers
-    if (firstFrame.myNext != UINT_MAX)
+    if (ourFrameHead != ourFrameTail)
     {
-      ourNextUsedNode = ourFramePool[firstFrame.myNext].myFirstSample;
-      ourNextUsedFrame = firstFrame.myNext;
-      ourFramePool[firstFrame.myNext].myPrev = UINT_MAX;
+      const uint nextFrame = Profiling::GetWrappedFrameId(ourFrameHead + 1);
+      ourNextUsedNode = ourFramePool[nextFrame].myFirstSample;
+      ourNextUsedFrame = nextFrame;
     }
     else
     {
@@ -55,7 +58,7 @@ namespace Fancy
       ourNextUsedFrame = 0u;
     }
     
-    ourFrameHead = firstFrame.myNext;
+    ourFrameHead = Profiling::GetWrappedFrameId(ourFrameHead + 1);
   }
 //---------------------------------------------------------------------------//
   static float64 SampleTimeMs()
@@ -67,8 +70,8 @@ namespace Fancy
   uint AllocateNode()
   {
     const uint freeNode = ourNextFreeNode;
-    const uint nextUsedWrapped = ourNextUsedNode % Profiling::SAMPLE_POOL_SIZE;
-    ourNextFreeNode = (ourNextFreeNode + 1) % Profiling::SAMPLE_POOL_SIZE;
+    const uint nextUsedWrapped = Profiling::GetWrappedSampleId(ourNextUsedNode);
+    ourNextFreeNode = Profiling::GetWrappedSampleId(ourNextFreeNode + 1);
 
     if (ourNextFreeNode == nextUsedWrapped)
       FreeFirstFrame(); 
@@ -79,8 +82,8 @@ namespace Fancy
   uint AllocateFrame()
   {
     const uint freeFrame = ourNextFreeFrame;
-    const uint nextUsedWrapped = ourNextUsedFrame % Profiling::FRAME_POOL_SIZE;
-    ourNextFreeFrame = (ourNextFreeFrame + 1) % Profiling::FRAME_POOL_SIZE;
+    const uint nextUsedWrapped = Profiling::GetWrappedFrameId(ourNextUsedFrame);
+    ourNextFreeFrame = Profiling::GetWrappedFrameId(ourNextFreeFrame + 1);
 
     if (ourNextFreeFrame == nextUsedWrapped)
       FreeFirstFrame();
@@ -160,9 +163,6 @@ namespace Fancy
       const uint allocatedFrame = AllocateFrame();
 
       ourFramePool[allocatedFrame] = ourCurrFrame;
-
-      ourFramePool[allocatedFrame].myPrev = ourFrameTail;
-      ourFramePool[ourFrameTail].myNext = allocatedFrame;
       ourFrameTail = allocatedFrame;
     }
     
@@ -171,8 +171,6 @@ namespace Fancy
     if (!ourPaused)
     {
       ourCurrFrame.myFirstSample = UINT_MAX;
-      ourCurrFrame.myNext = UINT_MAX;
-      ourCurrFrame.myPrev = UINT_MAX;
       ourCurrFrame.myDuration = 0u;
       ourCurrFrame.myStart = SampleTimeMs();
     }
@@ -183,17 +181,17 @@ namespace Fancy
     
   }
 //---------------------------------------------------------------------------//
-  const void Profiling::GetLastFrames(uint* someFrameIdsOut, uint* aNumFramesOut, uint aMaxNumFrames)
+  void Profiling::GetLastFrames(uint* someFrameIdsOut, uint* aNumFramesOut, uint aMaxNumFrames)
   {
     uint frameId = ourFrameTail;
     uint numFrames = 0;
     aMaxNumFrames = aMaxNumFrames > FRAME_POOL_SIZE ? FRAME_POOL_SIZE : aMaxNumFrames;
-    while (frameId != UINT_MAX && numFrames < aMaxNumFrames)
+    while (frameId != ourFrameTail && numFrames < aMaxNumFrames)
     {
       *someFrameIdsOut = frameId;
       ++someFrameIdsOut;
       ++numFrames;
-      frameId = ourFramePool[frameId].myPrev;
+      frameId = frameId > 0 ? GetWrappedFrameId(frameId - 1) : FRAME_POOL_SIZE - 1;
     }
 
     *aNumFramesOut = numFrames;
@@ -209,16 +207,28 @@ namespace Fancy
       ourFramePool.resize(FRAME_POOL_SIZE);
     }
   }
+  //---------------------------------------------------------------------------//
+  uint Profiling::GetLastFrame()
+  {
+    return ourFrameTail;
+  }
+//---------------------------------------------------------------------------//
+  uint Profiling::GetFirstFrame()
+  {
+    return ourFrameHead;
+  }
 //---------------------------------------------------------------------------//
   const Profiling::FrameData& Profiling::GetFrame(uint aFrameId)
   {
-    ASSERT(aFrameId < FRAME_POOL_SIZE);
+    if (aFrameId > FRAME_POOL_SIZE - 1)
+      aFrameId = GetWrappedFrameId(aFrameId);
     return ourFramePool[aFrameId];
   }
 //---------------------------------------------------------------------------//
   const Profiling::SampleNode& Profiling::GetSample(uint aSampleId)
   {
-    ASSERT(aSampleId < SAMPLE_POOL_SIZE);
+    if (aSampleId > SAMPLE_POOL_SIZE - 1)
+      aSampleId = GetWrappedSampleId(aSampleId);
     return ourNodePool[aSampleId];
   }
 //---------------------------------------------------------------------------//
@@ -235,5 +245,3 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
-
-

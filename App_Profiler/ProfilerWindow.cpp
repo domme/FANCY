@@ -89,22 +89,28 @@ struct NodeRenderArgs
   ImVec2 myStartPos;
 };
 
-void RenderNodeRecursive(const Profiling::SampleNode* aNode, const ScaleArgs& someScaleArgs, const NodeRenderArgs& someRenderArgs, int aDepth)
+void RenderNodeRecursive(const Profiling::SampleNode& aNode, const ScaleArgs& someScaleArgs, const NodeRenderArgs& someRenderArgs, int aDepth)
 {
   ImVec2 pos, size;
-  pos.x = someRenderArgs.myStartPos.x + (aNode->myStart - someRenderArgs.myFrameStart) * someScaleArgs.myMsToPixelScale;
+  pos.x = someRenderArgs.myStartPos.x + (aNode.myStart - someRenderArgs.myFrameStart) * someScaleArgs.myMsToPixelScale;
   pos.y = someRenderArgs.myStartPos.y + kZoneElementHeight_WithPadding * aDepth;
-  size.x = aNode->myDuration * someScaleArgs.myMsToPixelScale;
+  size.x = aNode.myDuration * someScaleArgs.myMsToPixelScale;
   size.y = kZoneElementHeight;
 
-  const Profiling::SampleNodeInfo* nodeInfo = Profiling::GetSampleInfo(aNode->myNodeInfo);
+  const Profiling::SampleNodeInfo& nodeInfo = Profiling::GetSampleInfo(aNode.myNodeInfo);
 
-  ColorButton(FormatString("%s: %.3f", nodeInfo->myName, (float)aNode->myDuration), pos, size, GetColorForTag(nodeInfo->myTag));
+  ColorButton(FormatString("%s: %.3f", nodeInfo.myName, (float)aNode.myDuration), pos, size, GetColorForTag(nodeInfo.myTag));
 
-  for (uint i = 0u; i < aNode->myNumChildren; ++i)
+  if (aNode.myChild != UINT_MAX)
   {
-    const Profiling::SampleNode* childNode = Profiling::GetSample(aNode->myChildren[i]);
-    RenderNodeRecursive(childNode, someScaleArgs, someRenderArgs, aDepth + 1);
+    const Profiling::SampleNode& firstChild = Profiling::GetSample(aNode.myChild);
+    RenderNodeRecursive(firstChild, someScaleArgs, someRenderArgs, aDepth + 1);
+  }
+
+  if (aNode.myNext != UINT_MAX)
+  {
+    const Profiling::SampleNode& nextNode = Profiling::GetSample(aNode.myNext);
+    RenderNodeRecursive(nextNode, someScaleArgs, someRenderArgs, aDepth);
   }
 }
 
@@ -171,38 +177,36 @@ void ProfilerWindow::Render()
   // TODO: Clipping of elements not on the screen
   // TODO: Determine horizontal time-bounds of the profiler-window and figure out which frame-datas to render
 
-  const float baseHorizontalScale = 1280.0f / 16.0f;
+  const float baseHorizontalScale = 1280.0f / 16.0f;  // 16ms scale to 1280px
   ScaleArgs scaleArgs;
   scaleArgs.myMsToPixelScale = baseHorizontalScale * myScale;
   scaleArgs.myScale = myScale;
 
-  const uint numFramesOnScreen = glm::ceil(myScale * 2.0f);
-  mySampledFrames.resize(numFramesOnScreen);
-
-  uint numAvailableFrames = 0u;
-  Profiling::GetLastFrames(mySampledFrames.data(), &numAvailableFrames, mySampledFrames.size());
+  const Profiling::FrameData& lastFrame = Profiling::GetLastFrame();
+  const float64 maxTime = lastFrame.myStart;
+  const float64 minTime = maxTime - ImGui::GetWindowWidth() / scaleArgs.myMsToPixelScale;
 
   ImGui::Begin("Profiler");
 
-  RenderRuler(scaleArgs);
+  // RenderRuler(scaleArgs);
 
-  if (numAvailableFrames > 0)
+  // Step back in time to look for the first frame to render in the profiler window
+  const Profiling::FrameData* framePtr = &lastFrame;
+  while (framePtr->myPrev != UINT_MAX && framePtr->myStart > minTime)
+    framePtr = &Profiling::GetFrame(framePtr->myPrev);
+
+  ImVec2 frameStartPos = ImGui::GetCursorPos();
+  while(framePtr->myNext != UINT_MAX && framePtr->myStart <= maxTime)
   {
-    for (int i = 0; i < numAvailableFrames; ++i)  // Render frames from right to left
-    {
-      const Profiling::FrameData& frame = Profiling::GetFrame(mySampledFrames[i]);
+    NodeRenderArgs nodeRenderArgs;
+    nodeRenderArgs.myFrameStart = framePtr->myStart;
+    nodeRenderArgs.myStartPos = frameStartPos;
 
-      NodeRenderArgs nodeRenderArgs;
-      nodeRenderArgs.myFrameStart = frame.myStart;
-      nodeRenderArgs.myStartPos = ImGui::GetCursorPos();
+    const Profiling::SampleNode& node = Profiling::GetSample(framePtr->myFirstSample);
+    RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
 
-      for (uint i = 0; i < frame.myNumSamples; ++i)
-      {
-        const Profiling::SampleNode* node = Profiling::GetSample(frame.mySamples[i]);
-        RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
-      }
-    }
-    
+    frameStartPos.x += framePtr->myDuration * scaleArgs.myMsToPixelScale;
+    framePtr = &Profiling::GetFrame(framePtr->myNext);
   }
     
   ImGui::End();
