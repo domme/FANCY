@@ -11,22 +11,21 @@ namespace Fancy
   static DynamicArray<Profiling::SampleNode> ourNodePool;
   static DynamicArray<Profiling::FrameData> ourFramePool;
   
-  static uint ourNextFreeNode = 0u;
-  static uint ourNextUsedNode = Profiling::SAMPLE_POOL_SIZE;
+  static Profiling::SampleId ourNextFreeNode(0);
+  static Profiling::SampleId ourNextUsedNode(Profiling::SAMPLE_POOL_SIZE);
 
-  static bool ourPauseRequested = false;
-  static bool ourPaused = false;
-
-  static uint ourNodeStack[Profiling::MAX_SAMPLE_DEPTH];
-  static uint ourTailStack[Profiling::MAX_SAMPLE_DEPTH];
+  static Profiling::SampleId ourNodeStack[Profiling::MAX_SAMPLE_DEPTH];
+  static Profiling::SampleId ourTailStack[Profiling::MAX_SAMPLE_DEPTH];
   static uint ourSampleDepth = 0u;
 
-  static uint ourNextFreeFrame = 0u;
-  static uint ourNextUsedFrame = Profiling::FRAME_POOL_SIZE;
-  static uint ourFrameHead = 0u;
-  static uint ourFrameTail = 0u;
-  static Profiling::FrameData ourCurrFrame;
+  static Profiling::FrameId ourNextFreeFrame(0);
+  static Profiling::FrameId ourNextUsedFrame(Profiling::FRAME_POOL_SIZE);
+  static Profiling::FrameId ourFrameHead(0);
+  static Profiling::FrameId ourFrameTail(0);
 
+  static Profiling::FrameData ourCurrFrame;
+  static bool ourPauseRequested = false;
+  static bool ourPaused = false;
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
@@ -48,17 +47,17 @@ namespace Fancy
     // Advance the used-markers
     if (ourFrameHead != ourFrameTail)
     {
-      const uint nextFrame = Profiling::GetWrappedFrameId(ourFrameHead + 1);
+      const Profiling::FrameId nextFrame = ourFrameHead + 1;
       ourNextUsedNode = ourFramePool[nextFrame].myFirstSample;
       ourNextUsedFrame = nextFrame;
     }
     else
     {
-      ourNextUsedNode = 0u;
-      ourNextUsedFrame = 0u;
+      ourNextUsedNode = 0;
+      ourNextUsedFrame = 0;
     }
     
-    ourFrameHead = Profiling::GetWrappedFrameId(ourFrameHead + 1);
+    ++ourFrameHead;
   }
 //---------------------------------------------------------------------------//
   static float64 SampleTimeMs()
