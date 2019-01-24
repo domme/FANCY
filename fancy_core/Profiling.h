@@ -1,12 +1,47 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
+#include "MathUtil.h"
 
 namespace Fancy
 {
   template<uint POOL_SIZE>
-  struct WrappedInteger
+  struct WrappedId
   {
+    static_assert((POOL_SIZE & (POOL_SIZE - 1)) == 0, "POOL_SIZE must be power of two for cheaper modulo");
+    static constexpr uint BIT_DEPTH = MathUtil::Log2(POOL_SIZE);
+
+    explicit WrappedId(uint anId) : myValue(anId), myIsValid(anId < POOL_SIZE) {}
+    WrappedId() : myValue(0), myIsValid(false) {}
+
+    WrappedId& operator=(uint aVal) { myValue = aVal; myIsValid = aVal < POOL_SIZE;  return *this; }
+
+    operator uint() const { return myIsValid ? myValue : UINT_MAX; }
+    WrappedId operator+(const WrappedId& anOther) const { return WrappedId(myValue + anOther.myValue); }
+    WrappedId operator+(int anOtherId) const { return WrappedId(myValue + anOtherId); }
+    WrappedId operator-(const WrappedId& anOther) const { return WrappedId(myValue - anOther.myValue); }
+    WrappedId operator-(uint anOtherId) const { return WrappedId(myValue - anOtherId); }
+
+    void operator+=(uint anOtherId) { myValue += anOtherId; }
+    void operator+=(const WrappedId& anOther) { myValue += anOther.myValue; }
+    WrappedId operator++(int) { return WrappedId(myValue++); }
+    WrappedId& operator++() { ++myValue; return *this; }
+
+    void operator-=(uint aVal) { myValue -= aVal; }
+    void operator-=(const WrappedId& anOther) { myValue -= anOther.myValue; }
+    WrappedId operator--(int) { return WrappedId(myValue--); }
+    WrappedId& operator--() { --myValue; return *this; }
+
+    uint myValue : BIT_DEPTH;
+    uint myIsValid : 1;
+  };
+
+  /*
+  template<uint POOL_SIZE>
+  struct WrappedInteger2
+  {
+    static_assert((POOL_SIZE & (POOL_SIZE - 1)) == 0, "POOL_SIZE must be power of two for cheaper modulo");
+
     static int GetWrapped(int aVal)
     {
       static_assert((POOL_SIZE & (POOL_SIZE - 1)) == 0,
@@ -18,36 +53,35 @@ namespace Fancy
       return (aVal % POOL_SIZE) + POOL_SIZE;
     }
 
-    explicit WrappedInteger(int anId) : myId(GetWrapped(anId)) {}
-    WrappedInteger() : myId(0) {}
+    explicit WrappedId(int anId) : myId(GetWrapped(anId)) {}
+    WrappedId() : myId(0) {}
 
-    WrappedInteger& operator=(int anOther) { myId = anOther; return *this; }
+    WrappedId& operator=(int anOther) { myId = anOther; return *this; }
 
     operator int() const { return myId; }
-    WrappedInteger operator+(const WrappedInteger& anOther) const { return WrappedInteger(myId + anOther.myId); }
-    WrappedInteger operator+(int anOtherId) const { return WrappedInteger(myId + anOtherId); }
-    WrappedInteger operator-(const WrappedInteger& anOther) const { return WrappedInteger(myId - anOther.myId); }
-    WrappedInteger operator-(uint anOtherId) const { return WrappedInteger(myId - anOtherId); }
+    WrappedId operator+(const WrappedId& anOther) const { return WrappedId(myId + anOther.myId); }
+    WrappedId operator+(int anOtherId) const { return WrappedId(myId + anOtherId); }
+    WrappedId operator-(const WrappedId& anOther) const { return WrappedId(myId - anOther.myId); }
+    WrappedId operator-(uint anOtherId) const { return WrappedId(myId - anOtherId); }
 
     bool operator==(int aVal) const { return myId == aVal; }
     bool operator<(int aVal) const { return myId < aVal; }
     bool operator>(int aVal) const { return myId > aVal; }
     bool operator!=(int aVal) const { return myId != aVal; }
 
-    
-
     void operator+=(int anOtherId) { myId = GetWrapped(myId + anOtherId); }
-    void operator+=(const WrappedInteger& anOther) { myId = GetWrapped(myId + anOther.myId); }
-    WrappedInteger operator++(int) { WrappedInteger old(myId); myId = GetWrapped(myId + 1); return old; }
-    WrappedInteger& operator++() { myId = GetWrapped(myId + 1); return *this; }
+    void operator+=(const WrappedId& anOther) { myId = GetWrapped(myId + anOther.myId); }
+    WrappedId operator++(int) { WrappedId old(myId); myId = GetWrapped(myId + 1); return old; }
+    WrappedId& operator++() { myId = GetWrapped(myId + 1); return *this; }
 
     void operator-=(int anOtherId) { myId = GetWrapped(myId - anOtherId); }
-    void operator-=(const WrappedInteger& anOther) { myId = GetWrapped(myId - anOther.myId); }
-    WrappedInteger operator--(int) { WrappedInteger old(myId);  myId = GetWrapped(myId - 1); return old; }
-    WrappedInteger& operator--() { WrappedInteger old(myId);  myId = GetWrapped(myId - 1); return old; }
+    void operator-=(const WrappedId& anOther) { myId = GetWrapped(myId - anOther.myId); }
+    WrappedId operator--(int) { WrappedId old(myId);  myId = GetWrapped(myId - 1); return old; }
+    WrappedId& operator--() { WrappedId old(myId);  myId = GetWrapped(myId - 1); return old; }
 
     int myId;
   };
+  */
 
   namespace Profiling
   {
@@ -59,8 +93,8 @@ namespace Fancy
       MAX_SAMPLE_DEPTH = 2048,
     };
 
-    using SampleId = WrappedInteger<SAMPLE_POOL_SIZE>;
-    using FrameId = WrappedInteger<FRAME_POOL_SIZE>;
+    using SampleId = WrappedId<SAMPLE_POOL_SIZE>;
+    using FrameId = WrappedId<FRAME_POOL_SIZE>;
 
     struct SampleNodeInfo
     {
@@ -70,8 +104,8 @@ namespace Fancy
 
     struct SampleNode
     {
-      SampleId myChild = SampleId(INT_MAX);
-      SampleId myNext = SampleId(INT_MAX);
+      SampleId myChild;
+      SampleId myNext;
       float64 myStart = 0.0;
       float64 myDuration = 0.0;
       uint64 myNodeInfo = 0u;
@@ -79,7 +113,7 @@ namespace Fancy
 
     struct FrameData
     {
-      SampleId myFirstSample = SampleId(INT_MAX);
+      SampleId myFirstSample;
       float64 myStart = 0.0;
       float64 myDuration = 0.0;
     };

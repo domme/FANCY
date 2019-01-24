@@ -12,14 +12,14 @@ namespace Fancy
   static DynamicArray<Profiling::FrameData> ourFramePool;
   
   static Profiling::SampleId ourNextFreeNode(0);
-  static Profiling::SampleId ourNextUsedNode(Profiling::SAMPLE_POOL_SIZE);
+  static Profiling::SampleId ourNextUsedNode(0);
 
   static Profiling::SampleId ourNodeStack[Profiling::MAX_SAMPLE_DEPTH];
   static Profiling::SampleId ourTailStack[Profiling::MAX_SAMPLE_DEPTH];
   static uint ourSampleDepth = 0u;
 
   static Profiling::FrameId ourNextFreeFrame(0);
-  static Profiling::FrameId ourNextUsedFrame(Profiling::FRAME_POOL_SIZE);
+  static Profiling::FrameId ourNextUsedFrame(0);
   static Profiling::FrameId ourFrameHead(0);
   static Profiling::FrameId ourFrameTail(0);
 
@@ -69,10 +69,9 @@ namespace Fancy
   uint AllocateNode()
   {
     const uint freeNode = ourNextFreeNode;
-    const uint nextUsedWrapped = Profiling::GetWrappedSampleId(ourNextUsedNode);
-    ourNextFreeNode = Profiling::GetWrappedSampleId(ourNextFreeNode + 1);
+    ++ourNextFreeNode;
 
-    if (ourNextFreeNode == nextUsedWrapped)
+    if (ourNextFreeNode == ourNextUsedNode)
       FreeFirstFrame(); 
       
     return freeNode;
@@ -81,10 +80,9 @@ namespace Fancy
   uint AllocateFrame()
   {
     const uint freeFrame = ourNextFreeFrame;
-    const uint nextUsedWrapped = Profiling::GetWrappedFrameId(ourNextUsedFrame);
-    ourNextFreeFrame = Profiling::GetWrappedFrameId(ourNextFreeFrame + 1);
+    ++ourNextFreeFrame;
 
-    if (ourNextFreeFrame == nextUsedWrapped)
+    if (ourNextFreeFrame == ourNextUsedFrame)
       FreeFirstFrame();
 
     return freeFrame;
@@ -180,22 +178,6 @@ namespace Fancy
     
   }
 //---------------------------------------------------------------------------//
-  void Profiling::GetLastFrames(uint* someFrameIdsOut, uint* aNumFramesOut, uint aMaxNumFrames)
-  {
-    uint frameId = ourFrameTail;
-    uint numFrames = 0;
-    aMaxNumFrames = aMaxNumFrames > FRAME_POOL_SIZE ? FRAME_POOL_SIZE : aMaxNumFrames;
-    while (frameId != ourFrameTail && numFrames < aMaxNumFrames)
-    {
-      *someFrameIdsOut = frameId;
-      ++someFrameIdsOut;
-      ++numFrames;
-      frameId = frameId > 0 ? GetWrappedFrameId(frameId - 1) : FRAME_POOL_SIZE - 1;
-    }
-
-    *aNumFramesOut = numFrames;
-  }
-//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   void Profiling::Init()
@@ -207,27 +189,23 @@ namespace Fancy
     }
   }
   //---------------------------------------------------------------------------//
-  uint Profiling::GetLastFrame()
+  Profiling::FrameId Profiling::GetLastFrame()
   {
     return ourFrameTail;
   }
 //---------------------------------------------------------------------------//
-  uint Profiling::GetFirstFrame()
+  Profiling::FrameId Profiling::GetFirstFrame()
   {
     return ourFrameHead;
   }
 //---------------------------------------------------------------------------//
-  const Profiling::FrameData& Profiling::GetFrame(uint aFrameId)
+  const Profiling::FrameData& Profiling::GetFrameData(Profiling::FrameId aFrameId)
   {
-    if (aFrameId > FRAME_POOL_SIZE - 1)
-      aFrameId = GetWrappedFrameId(aFrameId);
     return ourFramePool[aFrameId];
   }
 //---------------------------------------------------------------------------//
-  const Profiling::SampleNode& Profiling::GetSample(uint aSampleId)
+  const Profiling::SampleNode& Profiling::GetSampleData(Profiling::SampleId aSampleId)
   {
-    if (aSampleId > SAMPLE_POOL_SIZE - 1)
-      aSampleId = GetWrappedSampleId(aSampleId);
     return ourNodePool[aSampleId];
   }
 //---------------------------------------------------------------------------//

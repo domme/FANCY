@@ -87,4 +87,10 @@ namespace Fancy { namespace MathUtil {
     return helper.uVal;
   }
 //---------------------------------------------------------------------------//
+  template<typename T>
+  inline constexpr T Log2(T n)
+  {
+    return ((n < 2) ? 1 : 1 + Log2(n / 2));
+  }
+//---------------------------------------------------------------------------//
 } } // end of namespace Fancy::MathUtil
