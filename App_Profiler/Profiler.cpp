@@ -152,18 +152,7 @@ void Update()
   if (ImGui::Checkbox("Pause", &profilerWindow.myIsPaused))
     Profiling::SetPaused(profilerWindow.myIsPaused);
 
-  float startTime = (float)profilerWindow.myStartTime;
-  float duration = (float)profilerWindow.myDuration;
-
-  if (ImGui::SliderFloat("Time Range", &duration, 0.1f, 10000.0f))
-  {
-    profilerWindow.myDuration = duration;
-  }
-  
-  if (ImGui::SliderFloat("Start Time", &startTime, -1000.0f, 1000.0f))
-  {
-    profilerWindow.myStartTime = startTime;
-  }
+  ImGui::SliderFloat("Scale", &profilerWindow.myScale, 0.1f, 10000.0f);
 
   // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
   if (show_test_window)

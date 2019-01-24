@@ -11,6 +11,5 @@ public:
   
   bool myIsPaused = false;
 
-  float64 myStartTime = 0.0;
-  float64 myDuration = 0.0;
+  float myScale = 1.0f;
 };

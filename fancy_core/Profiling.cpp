@@ -47,7 +47,7 @@ namespace Fancy
     // Advance the used-markers
     if (ourFrameHead != ourFrameTail)
     {
-      const Profiling::FrameId nextFrame = ourFrameHead + 1;
+      const Profiling::FrameId nextFrame = ourFrameHead + 1u;
       ourNextUsedNode = ourFramePool[nextFrame].myFirstSample;
       ourNextUsedFrame = nextFrame;
     }

@@ -8,7 +8,7 @@ namespace Fancy
   template<uint POOL_SIZE>
   struct WrappedId
   {
-    static_assert((POOL_SIZE & (POOL_SIZE - 1)) == 0, "POOL_SIZE must be power of two for cheaper modulo");
+    static_assert((POOL_SIZE & (POOL_SIZE - 1)) == 0, "POOL_SIZE must be power of two");
     static constexpr uint BIT_DEPTH = MathUtil::Log2(POOL_SIZE);
 
     explicit WrappedId(uint anId) : myValue(anId), myIsValid(anId < POOL_SIZE) {}
@@ -17,18 +17,14 @@ namespace Fancy
     WrappedId& operator=(uint aVal) { myValue = aVal; myIsValid = aVal < POOL_SIZE;  return *this; }
 
     operator uint() const { return myIsValid ? myValue : UINT_MAX; }
-    WrappedId operator+(const WrappedId& anOther) const { return WrappedId(myValue + anOther.myValue); }
-    WrappedId operator+(int anOtherId) const { return WrappedId(myValue + anOtherId); }
-    WrappedId operator-(const WrappedId& anOther) const { return WrappedId(myValue - anOther.myValue); }
+    WrappedId operator+(uint anOtherId) const { return WrappedId(myValue + anOtherId); }
     WrappedId operator-(uint anOtherId) const { return WrappedId(myValue - anOtherId); }
 
     void operator+=(uint anOtherId) { myValue += anOtherId; }
-    void operator+=(const WrappedId& anOther) { myValue += anOther.myValue; }
     WrappedId operator++(int) { return WrappedId(myValue++); }
     WrappedId& operator++() { ++myValue; return *this; }
 
     void operator-=(uint aVal) { myValue -= aVal; }
-    void operator-=(const WrappedId& anOther) { myValue -= anOther.myValue; }
     WrappedId operator--(int) { return WrappedId(myValue--); }
     WrappedId& operator--() { --myValue; return *this; }
 

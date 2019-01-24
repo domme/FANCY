@@ -103,13 +103,13 @@ void RenderNodeRecursive(const Profiling::SampleNode& aNode, const ScaleArgs& so
 
   if (aNode.myChild != UINT_MAX)
   {
-    const Profiling::SampleNode& firstChild = Profiling::GetSample(aNode.myChild);
+    const Profiling::SampleNode& firstChild = Profiling::GetSampleData(aNode.myChild);
     RenderNodeRecursive(firstChild, someScaleArgs, someRenderArgs, aDepth + 1);
   }
 
   if (aNode.myNext != UINT_MAX)
   {
-    const Profiling::SampleNode& nextNode = Profiling::GetSample(aNode.myNext);
+    const Profiling::SampleNode& nextNode = Profiling::GetSampleData(aNode.myNext);
     RenderNodeRecursive(nextNode, someScaleArgs, someRenderArgs, aDepth);
   }
 }
@@ -182,7 +182,7 @@ void ProfilerWindow::Render()
   scaleArgs.myMsToPixelScale = baseHorizontalScale * myScale;
   scaleArgs.myScale = myScale;
 
-  const Profiling::FrameData& lastFrame = Profiling::GetLastFrame();
+  const Profiling::FrameData& lastFrame = Profiling::GetFrameData(Profiling::GetLastFrame());
   const float64 maxTime = lastFrame.myStart;
   const float64 minTime = maxTime - ImGui::GetWindowWidth() / scaleArgs.myMsToPixelScale;
 
@@ -190,23 +190,32 @@ void ProfilerWindow::Render()
 
   // RenderRuler(scaleArgs);
 
-  // Step back in time to look for the first frame to render in the profiler window
-  const Profiling::FrameData* framePtr = &lastFrame;
-  while (framePtr->myPrev != UINT_MAX && framePtr->myStart > minTime)
-    framePtr = &Profiling::GetFrame(framePtr->myPrev);
+  const Profiling::FrameId firstFrame = Profiling::GetFirstFrame();
+  const Profiling::FrameId endFrame = Profiling::GetLastFrame() + 1u;
+  Profiling::FrameId frame = firstFrame;
 
   ImVec2 frameStartPos = ImGui::GetCursorPos();
-  while(framePtr->myNext != UINT_MAX && framePtr->myStart <= maxTime)
+  while(frame != endFrame)
   {
+    const Profiling::FrameData& frameData = Profiling::GetFrameData(frame);
+    if (frameData.myFirstSample == UINT_MAX || frameData.myStart + frameData.myDuration < minTime)
+    {
+      ++frame;
+      continue;
+    }
+    
+    if (frameData.myStart > maxTime)
+      break;
+
     NodeRenderArgs nodeRenderArgs;
-    nodeRenderArgs.myFrameStart = framePtr->myStart;
+    nodeRenderArgs.myFrameStart = frameData.myStart;
     nodeRenderArgs.myStartPos = frameStartPos;
 
-    const Profiling::SampleNode& node = Profiling::GetSample(framePtr->myFirstSample);
+    const Profiling::SampleNode& node = Profiling::GetSampleData(frameData.myFirstSample);
     RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
 
-    frameStartPos.x += framePtr->myDuration * scaleArgs.myMsToPixelScale;
-    framePtr = &Profiling::GetFrame(framePtr->myNext);
+    frameStartPos.x += frameData.myDuration * scaleArgs.myMsToPixelScale;
+    ++frame;
   }
     
   ImGui::End();
