@@ -25,6 +25,7 @@ const float kZoneElementHeight = 20.0f;
 const float kZoneElementHeight_WithPadding = 25.0f;
 const float kRulerMarkerVerticalSize = 40.0f;
 const float kSubRulerMarkerVerticalSize = 15.0f;
+const float kFrameBoundaryLineWidth = 1.5f;
 
 const char* FormatString(const char* aFmt, ...)
 {
@@ -39,9 +40,25 @@ const char* FormatString(const char* aFmt, ...)
   return TextBuf;
 }
 
+ImVec2 ToLocalPos(const ImVec2& aPos)
+{
+  ImVec2 localPos = aPos;
+  localPos.x -= ImGui::GetWindowPos().x;
+  localPos.y -= ImGui::GetWindowPos().y;
+  return localPos;
+}
+
+ImVec2 ToGlobalPos(const ImVec2& aPos)
+{
+  ImVec2 globalPos = aPos;
+  globalPos.x += ImGui::GetWindowPos().x;
+  globalPos.y += ImGui::GetWindowPos().y;
+  return globalPos;
+}
+
 bool ColorButton(const char* aLabel, const ImVec2& aPos, const ImVec2& aSize, const ImVec4& aColor)
 {
-  ImGui::SetCursorPos(aPos);
+  ImGui::SetCursorPos(ToLocalPos(aPos));
   ImGui::PushStyleColor(ImGuiCol_Button, aColor);
   const bool pressed = ImGui::Button(aLabel, aSize);
   ImGui::PopStyleColor(1);
@@ -114,6 +131,22 @@ void RenderNodeRecursive(const Profiling::SampleNode& aNode, const ScaleArgs& so
   }
 }
 
+void RenderFrameHeader(ImVec2 aPos, float aWidth)
+{
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+}
+
+void RenderFrameBoundary(ImVec2 aPos, float aHeight)
+{
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+  ImVec2 end = aPos;
+  end.y += aHeight;
+
+  const ImU32 color = 0xFFCC7722;
+  window->DrawList->AddLine(aPos, end, color, kFrameBoundaryLineWidth);
+}
+
 void RenderRuler(const ScaleArgs& someScaleArgs)
 {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -182,9 +215,11 @@ void ProfilerWindow::Render()
   scaleArgs.myMsToPixelScale = baseHorizontalScale * myScale;
   scaleArgs.myScale = myScale;
 
+  const float64 timeOffset = myHorizontalOffset / scaleArgs.myMsToPixelScale;
+
   const Profiling::FrameData& lastFrame = Profiling::GetFrameData(Profiling::GetLastFrame());
-  const float64 maxTime = lastFrame.myStart;
-  const float64 minTime = maxTime - ImGui::GetWindowWidth() / scaleArgs.myMsToPixelScale;
+  const float64 maxTime = glm::max(16.0, lastFrame.myStart + timeOffset);
+  const float64 minTime = glm::max(0.0, maxTime - ImGui::GetWindowWidth() / scaleArgs.myMsToPixelScale);
 
   ImGui::Begin("Profiler");
 
@@ -194,7 +229,11 @@ void ProfilerWindow::Render()
   const Profiling::FrameId endFrame = Profiling::GetLastFrame() + 1u;
   Profiling::FrameId frame = firstFrame;
 
-  ImVec2 frameStartPos = ImGui::GetCursorPos();
+  const float frameGraphHeight = 320.0f;
+
+  ImVec2 drawPos = ToGlobalPos(ImGui::GetCursorPos());
+  drawPos.x += myHorizontalOffset;
+  
   while(frame != endFrame)
   {
     const Profiling::FrameData& frameData = Profiling::GetFrameData(frame);
@@ -209,12 +248,15 @@ void ProfilerWindow::Render()
 
     NodeRenderArgs nodeRenderArgs;
     nodeRenderArgs.myFrameStart = frameData.myStart;
-    nodeRenderArgs.myStartPos = frameStartPos;
-
+    nodeRenderArgs.myStartPos = drawPos;
     const Profiling::SampleNode& node = Profiling::GetSampleData(frameData.myFirstSample);
     RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
+    drawPos.x += frameData.myDuration * scaleArgs.myMsToPixelScale;
 
-    frameStartPos.x += frameData.myDuration * scaleArgs.myMsToPixelScale;
+    drawPos.x += kFrameBoundaryLineWidth * 0.5f;
+    RenderFrameBoundary(drawPos, frameGraphHeight);
+    drawPos.x += kFrameBoundaryLineWidth * 1.5f;
+
     ++frame;
   }
     
