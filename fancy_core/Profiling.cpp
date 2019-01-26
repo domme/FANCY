@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <ratio>
+#include "TimeManager.h"
 
 namespace Fancy
 {
@@ -170,6 +171,7 @@ namespace Fancy
       ourCurrFrame.myFirstSample = UINT_MAX;
       ourCurrFrame.myDuration = 0u;
       ourCurrFrame.myStart = SampleTimeMs();
+      ourCurrFrame.myFrame = Time::ourFrameIdx;
     }
   }
 //---------------------------------------------------------------------------//

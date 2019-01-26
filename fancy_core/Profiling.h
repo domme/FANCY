@@ -32,53 +32,6 @@ namespace Fancy
     uint myIsValid : 1;
   };
 
-  /*
-  template<uint POOL_SIZE>
-  struct WrappedInteger2
-  {
-    static_assert((POOL_SIZE & (POOL_SIZE - 1)) == 0, "POOL_SIZE must be power of two for cheaper modulo");
-
-    static int GetWrapped(int aVal)
-    {
-      static_assert((POOL_SIZE & (POOL_SIZE - 1)) == 0,
-        "POOL_SIZE must be power of two for cheaper modulo");
-
-      if (aVal >= 0)
-        return aVal & (POOL_SIZE - 1);
-
-      return (aVal % POOL_SIZE) + POOL_SIZE;
-    }
-
-    explicit WrappedId(int anId) : myId(GetWrapped(anId)) {}
-    WrappedId() : myId(0) {}
-
-    WrappedId& operator=(int anOther) { myId = anOther; return *this; }
-
-    operator int() const { return myId; }
-    WrappedId operator+(const WrappedId& anOther) const { return WrappedId(myId + anOther.myId); }
-    WrappedId operator+(int anOtherId) const { return WrappedId(myId + anOtherId); }
-    WrappedId operator-(const WrappedId& anOther) const { return WrappedId(myId - anOther.myId); }
-    WrappedId operator-(uint anOtherId) const { return WrappedId(myId - anOtherId); }
-
-    bool operator==(int aVal) const { return myId == aVal; }
-    bool operator<(int aVal) const { return myId < aVal; }
-    bool operator>(int aVal) const { return myId > aVal; }
-    bool operator!=(int aVal) const { return myId != aVal; }
-
-    void operator+=(int anOtherId) { myId = GetWrapped(myId + anOtherId); }
-    void operator+=(const WrappedId& anOther) { myId = GetWrapped(myId + anOther.myId); }
-    WrappedId operator++(int) { WrappedId old(myId); myId = GetWrapped(myId + 1); return old; }
-    WrappedId& operator++() { myId = GetWrapped(myId + 1); return *this; }
-
-    void operator-=(int anOtherId) { myId = GetWrapped(myId - anOtherId); }
-    void operator-=(const WrappedId& anOther) { myId = GetWrapped(myId - anOther.myId); }
-    WrappedId operator--(int) { WrappedId old(myId);  myId = GetWrapped(myId - 1); return old; }
-    WrappedId& operator--() { WrappedId old(myId);  myId = GetWrapped(myId - 1); return old; }
-
-    int myId;
-  };
-  */
-
   namespace Profiling
   {
     enum Consts
@@ -110,6 +63,7 @@ namespace Fancy
     struct FrameData
     {
       SampleId myFirstSample;
+      uint64 myFrame = 0u;
       float64 myStart = 0.0;
       float64 myDuration = 0.0;
     };

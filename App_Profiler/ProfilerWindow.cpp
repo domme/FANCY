@@ -25,7 +25,10 @@ const float kZoneElementHeight = 20.0f;
 const float kZoneElementHeight_WithPadding = 25.0f;
 const float kRulerMarkerVerticalSize = 40.0f;
 const float kSubRulerMarkerVerticalSize = 15.0f;
-const float kFrameBoundaryLineWidth = 1.5f;
+const float kDefaultLineWidth = 1.0f;
+const uint kFrameBoundaryColor = 0xFFCC7722;
+const uint kFrameHeaderColor = 0xFF3A3A3A;
+const float kFrameHeaderHeight = 10.0f;
 
 const char* FormatString(const char* aFmt, ...)
 {
@@ -54,6 +57,16 @@ ImVec2 ToGlobalPos(const ImVec2& aPos)
   globalPos.x += ImGui::GetWindowPos().x;
   globalPos.y += ImGui::GetWindowPos().y;
   return globalPos;
+}
+
+ImVec4 ToVec4Color(uint aColor)
+{
+  ImVec4 col;
+  col.x = (aColor & 0xFF) / 255.0f;
+  col.y = ((aColor & 0xFF00) >> 8) / 255.0f;
+  col.z = ((aColor & 0xFF0000) >> 16) / 255.0f;
+  col.w = ((aColor & 0xFF000000) >> 24) / 255.0f;
+  return col;
 }
 
 bool ColorButton(const char* aLabel, const ImVec2& aPos, const ImVec2& aSize, const ImVec4& aColor)
@@ -131,9 +144,46 @@ void RenderNodeRecursive(const Profiling::SampleNode& aNode, const ScaleArgs& so
   }
 }
 
-void RenderFrameHeader(ImVec2 aPos, float aWidth)
+void RenderFrameHeader(ImVec2 aPos, float aWidth, uint64 aFrameNumber)
 {
+  if (aWidth < 1.0)
+    return;
+
+  ImDrawList* dl = ImGui::GetCurrentWindow()->DrawList;
+
+  bool renderText = aWidth > 10.0f;
+  ImVec2 textSize(0.0f, 0.0f);
+  const char* text = nullptr;
+  if (renderText)
+  {
+    text = FormatString("Frame %d", aFrameNumber);
+    textSize = ImGui::CalcTextSize(text);
+    renderText = aWidth - textSize.x > 20.0f;
+  }
+
   ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+  if (renderText)
+  {
+    ImVec2 subPos = aPos;
+    subPos.x += aWidth * 0.5f - textSize.x * 0.5f - 1.0f;
+    dl->AddLine(aPos, subPos, kFrameHeaderColor, kDefaultLineWidth);
+
+    subPos.x += 1.0f;
+    dl->AddText(subPos, kFrameHeaderColor, text);
+
+    subPos.x += textSize.x + 1.0f;
+    ImVec2 endPos = aPos;
+    endPos.x += aWidth;
+
+    dl->AddLine(subPos, endPos, kFrameHeaderColor, kDefaultLineWidth);
+  }
+  else
+  {
+    ImVec2 end = aPos;
+    end.x += aWidth;
+    dl->AddLine(aPos, end, kFrameHeaderColor, kDefaultLineWidth);
+  }
 }
 
 void RenderFrameBoundary(ImVec2 aPos, float aHeight)
@@ -142,9 +192,7 @@ void RenderFrameBoundary(ImVec2 aPos, float aHeight)
 
   ImVec2 end = aPos;
   end.y += aHeight;
-
-  const ImU32 color = 0xFFCC7722;
-  window->DrawList->AddLine(aPos, end, color, kFrameBoundaryLineWidth);
+  window->DrawList->AddLine(aPos, end, kFrameBoundaryColor, kDefaultLineWidth);
 }
 
 void RenderRuler(const ScaleArgs& someScaleArgs)
@@ -236,6 +284,8 @@ void ProfilerWindow::Render()
   
   while(frame != endFrame)
   {
+    ImVec2 pos = drawPos;
+
     const Profiling::FrameData& frameData = Profiling::GetFrameData(frame);
     if (frameData.myFirstSample == UINT_MAX || frameData.myStart + frameData.myDuration < minTime)
     {
@@ -246,17 +296,22 @@ void ProfilerWindow::Render()
     if (frameData.myStart > maxTime)
       break;
 
+    RenderFrameHeader(pos, frameData.myDuration * scaleArgs.myMsToPixelScale, frameData.myFrame);
+    pos.y += kFrameHeaderHeight;
+
     NodeRenderArgs nodeRenderArgs;
     nodeRenderArgs.myFrameStart = frameData.myStart;
-    nodeRenderArgs.myStartPos = drawPos;
+    nodeRenderArgs.myStartPos = pos;
     const Profiling::SampleNode& node = Profiling::GetSampleData(frameData.myFirstSample);
     RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
-    drawPos.x += frameData.myDuration * scaleArgs.myMsToPixelScale;
+    pos.x += frameData.myDuration * scaleArgs.myMsToPixelScale;
 
-    drawPos.x += kFrameBoundaryLineWidth * 0.5f;
-    RenderFrameBoundary(drawPos, frameGraphHeight);
-    drawPos.x += kFrameBoundaryLineWidth * 1.5f;
+    pos.x += kDefaultLineWidth * 0.5f;
+    pos.y = drawPos.y;
+    RenderFrameBoundary(pos, frameGraphHeight);
+    pos.x += kDefaultLineWidth * 1.5f;
 
+    drawPos.x = pos.x;
     ++frame;
   }
     
