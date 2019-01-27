@@ -27,8 +27,11 @@ const float kRulerMarkerVerticalSize = 40.0f;
 const float kSubRulerMarkerVerticalSize = 15.0f;
 const float kDefaultLineWidth = 1.0f;
 const uint kFrameBoundaryColor = 0xFFCC7722;
-const uint kFrameHeaderColor = 0xFF3A3A3A;
+const uint kFrameHeaderColor = 0xFF333333;
+const uint kWindowBgColor = 0x883A3A3A;
 const float kFrameHeaderHeight = 10.0f;
+const float kFrameGraphHeightScale = 0.77f;
+const ImGuiID kFrameId_FrameGraph = 1;
 
 const char* FormatString(const char* aFmt, ...)
 {
@@ -195,7 +198,7 @@ void RenderFrameBoundary(ImVec2 aPos, float aHeight)
   window->DrawList->AddLine(aPos, end, kFrameBoundaryColor, kDefaultLineWidth);
 }
 
-void RenderRuler(const ScaleArgs& someScaleArgs)
+float RenderRuler(const ScaleArgs& someScaleArgs)
 {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
 
@@ -249,29 +252,51 @@ void RenderRuler(const ScaleArgs& someScaleArgs)
     currMainMarkerTime += mainMarkerDuration;
   }
 
-  ImGui::SetCursorPosY(startPos.y + kRulerMarkerVerticalSize + 20);
-  ImGui::SetCursorPosX(startPos.x);
+  return kRulerMarkerVerticalSize + 20.0f;
 }
 
-void ProfilerWindow::Render()
+void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
 {
-  // TODO: Clipping of elements not on the screen
-  // TODO: Determine horizontal time-bounds of the profiler-window and figure out which frame-datas to render
+  if (ImGui::Checkbox("Pause", &myIsPaused))
+    Profiling::SetPaused(myIsPaused);
 
-  const float baseHorizontalScale = 1280.0f / 16.0f;  // 16ms scale to 1280px
+  ImGui::SetNextWindowPos(ImVec2(0, 0));
+  ImGui::SetNextWindowSize(ImVec2(aScreenSizeX, aScreendSizeY));
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, ToVec4Color(kWindowBgColor));
+  ImGui::Begin("Profiler", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+  
+  const float baseHorizontalScale = ImGui::GetWindowWidth() / 16.0f;  // 16ms scale to 1280px
   ScaleArgs scaleArgs;
   scaleArgs.myMsToPixelScale = baseHorizontalScale * myScale;
   scaleArgs.myScale = myScale;
-
   const float64 timeOffset = myHorizontalOffset / scaleArgs.myMsToPixelScale;
-
   const Profiling::FrameData& lastFrame = Profiling::GetFrameData(Profiling::GetLastFrame());
   const float64 maxTime = glm::max(16.0, lastFrame.myStart + timeOffset);
   const float64 minTime = glm::max(0.0, maxTime - ImGui::GetWindowWidth() / scaleArgs.myMsToPixelScale);
 
-  ImGui::Begin("Profiler");
+  ImVec2 drawPos = ToGlobalPos(ImGui::GetCursorPos());
+  drawPos.y += RenderRuler(scaleArgs);
 
-  // RenderRuler(scaleArgs);
+  ImVec2 frameGraphRect_min, frameGraphRect_max;
+  frameGraphRect_min.x = drawPos.x;
+  frameGraphRect_min.y = drawPos.y;
+  frameGraphRect_max.x = frameGraphRect_min.x + ImGui::GetWindowWidth();
+  frameGraphRect_max.y = frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale;
+
+  ImGui::BeginChildFrame(kFrameId_FrameGraph, ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowSize().y * kFrameGraphHeightScale));
+
+  if (ImGui::IsItemHovered())
+  {
+    if (ImGui::IsMouseDragging())
+    {
+      myHorizontalOffset += ImGui::GetMouseDragDelta().x;
+      myVerticalOffset += ImGui::GetMouseDragDelta().y;
+      myHorizontalOffset = glm::clamp(myHorizontalOffset, 0.0f, static_cast<float>((maxTime - minTime) * scaleArgs.myMsToPixelScale));
+      ImGui::ResetMouseDragDelta();
+    }
+    myScale += ImGui::GetIO().MouseWheel;
+    myScale = glm::clamp(myScale, 0.01f, 1000.0f);
+  }
 
   const Profiling::FrameId firstFrame = Profiling::GetFirstFrame();
   const Profiling::FrameId endFrame = Profiling::GetLastFrame() + 1u;
@@ -279,7 +304,7 @@ void ProfilerWindow::Render()
 
   const float frameGraphHeight = 320.0f;
 
-  ImVec2 drawPos = ToGlobalPos(ImGui::GetCursorPos());
+  
   drawPos.x += myHorizontalOffset;
   
   while(frame != endFrame)
@@ -314,6 +339,9 @@ void ProfilerWindow::Render()
     drawPos.x = pos.x;
     ++frame;
   }
+
+  ImGui::EndChildFrame();  // End frame graph area
     
   ImGui::End();
+  ImGui::PopStyleColor();
 }
