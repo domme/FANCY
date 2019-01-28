@@ -55,9 +55,14 @@ namespace Fancy
     // "0..1" and "A..Z" from https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
     if (wParam >= 0x30 && wParam <= 0x5A)
     {
+      myLastKeyState[wParam] = myKeyState[wParam];
       myKeyState[wParam] = aDown;
       if (wParam >= 'A' && wParam <= 'Z')
-        myKeyState[wParam + ('a' - 'A')] = aDown;
+      {
+        WPARAM param2 = wParam + ('a' - 'A');
+        myLastKeyState[param2] = myKeyState[param2];
+        myKeyState[param2] = aDown;
+      }
     }
     else
     {

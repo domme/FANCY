@@ -10,6 +10,7 @@
 #include <fancy_core/CommandQueue.h>
 #include <fancy_core/Profiling.h>
 #include <fancy_core/MathUtil.h>
+#include <fancy_core/Input.h>
 
 #include "ProfilerWindow.h"
 
@@ -23,6 +24,7 @@ bool show_profiler_window = true;
 FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
 RenderOutput* myRenderOutput = nullptr;
+InputState myInputState;
 
 void DummyFunc3()
 {
@@ -132,6 +134,7 @@ void Init(HINSTANCE anInstanceHandle)
 
   std::function<void(uint, uint)> onWindowResized = &OnWindowResized;
   myWindow->myOnResize.Connect(onWindowResized);
+  myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
 
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 }
@@ -146,17 +149,12 @@ void Update()
   Func1();
   Func2();
 
-  if (ImGui::Button("Test Window")) show_test_window ^= 1;
-  if (ImGui::Button("Profiler Window")) show_profiler_window ^= 1;
-
   // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-  if (show_test_window)
-  {
-    ImGui::ShowTestWindow(&show_test_window);
-  }
+  if (myInputState.myKeyState['z'] && !myInputState.myLastKeyState['z'])
+    show_profiler_window = !show_profiler_window;
 
   if (show_profiler_window)
-    profilerWindow.Render();
+    profilerWindow.Render(myWindow->GetWidth(), myWindow->GetHeight());
 }
 
 void Render()

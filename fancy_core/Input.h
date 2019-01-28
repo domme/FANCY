@@ -29,6 +29,7 @@ namespace Fancy {
     glm::ivec2 myMouseDelta;
     float myMouseWeelDelta;
     bool myKeyState[127];
+    bool myLastKeyState[127];
 
   private:
     void HandleKeyUpDownEvent(WPARAM wParam, bool aDown);
