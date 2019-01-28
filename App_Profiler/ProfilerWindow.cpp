@@ -7,6 +7,7 @@
 #include <fancy_core/MathIncludes.h>
 #include "fancy_imgui/imgui_internal.h"
 #include <list>
+#include <fancy_core/TimeManager.h>
 
 
 using namespace Fancy;
@@ -30,7 +31,7 @@ const uint kFrameBoundaryColor = 0xFFCC7722;
 const uint kFrameHeaderColor = 0xFF333333;
 const uint kWindowBgColor = 0x883A3A3A;
 const float kFrameHeaderHeight = 10.0f;
-const float kFrameGraphHeightScale = 0.77f;
+const float kFrameGraphHeightScale = 0.25f;
 const ImGuiID kFrameId_FrameGraph = 1;
 
 const char* FormatString(const char* aFmt, ...)
@@ -147,7 +148,7 @@ void RenderNodeRecursive(const Profiling::SampleNode& aNode, const ScaleArgs& so
   }
 }
 
-void RenderFrameHeader(ImVec2 aPos, float aWidth, uint64 aFrameNumber)
+void RenderFrameHeader(float aWidth, uint64 aFrameNumber)
 {
   if (aWidth < 1.0)
     return;
@@ -166,39 +167,46 @@ void RenderFrameHeader(ImVec2 aPos, float aWidth, uint64 aFrameNumber)
 
   ImGuiWindow* window = ImGui::GetCurrentWindow();
 
+  ImVec2 startPosLocal = ImGui::GetCursorPos();
+  ImVec2 pos = ToGlobalPos(startPosLocal);
   if (renderText)
   {
-    ImVec2 subPos = aPos;
+    ImVec2 subPos = pos;
     subPos.x += aWidth * 0.5f - textSize.x * 0.5f - 1.0f;
-    dl->AddLine(aPos, subPos, kFrameHeaderColor, kDefaultLineWidth);
+    dl->AddLine(pos, subPos, kFrameHeaderColor, kDefaultLineWidth);
 
     subPos.x += 1.0f;
     dl->AddText(subPos, kFrameHeaderColor, text);
 
     subPos.x += textSize.x + 1.0f;
-    ImVec2 endPos = aPos;
+    ImVec2 endPos = pos;
     endPos.x += aWidth;
 
     dl->AddLine(subPos, endPos, kFrameHeaderColor, kDefaultLineWidth);
   }
   else
   {
-    ImVec2 end = aPos;
+    ImVec2 end = pos;
     end.x += aWidth;
-    dl->AddLine(aPos, end, kFrameHeaderColor, kDefaultLineWidth);
+    dl->AddLine(pos, end, kFrameHeaderColor, kDefaultLineWidth);
   }
+
+  startPosLocal.y += textSize.y + 10.0f;
+  ImGui::SetCursorPos(startPosLocal);
 }
 
-void RenderFrameBoundary(ImVec2 aPos, float aHeight)
+void RenderFrameBoundary(float aHeight)
 {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-  ImVec2 end = aPos;
+  ImVec2 start = ToGlobalPos(ImGui::GetCursorPos());
+  ImVec2 end = ToGlobalPos(ImGui::GetCursorPos());
   end.y += aHeight;
-  window->DrawList->AddLine(aPos, end, kFrameBoundaryColor, kDefaultLineWidth);
+  window->DrawList->AddLine(start, end, kFrameBoundaryColor, kDefaultLineWidth);
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + kDefaultLineWidth * 1.5f);
 }
 
-float RenderRuler(const ScaleArgs& someScaleArgs)
+void RenderRuler(const ScaleArgs& someScaleArgs)
 {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
 
@@ -222,10 +230,8 @@ float RenderRuler(const ScaleArgs& someScaleArgs)
 
   const uint numMainMarkers = (uint)(ImGui::GetWindowSize().x / mainMarkerOffset);
   const uint numSubMarkers = 9;
-  ImVec2 startPos = ImGui::GetCursorPos();
-  ImVec2 pos = startPos;
-  pos.x += ImGui::GetWindowPos().x;
-  pos.y += ImGui::GetWindowPos().y;
+  ImVec2 startPosLocal = ImGui::GetCursorPos();
+  ImVec2 pos = ToGlobalPos(startPosLocal);
   int currMainMarkerTime = 0;
   for (uint iMain = 0u; iMain < numMainMarkers; ++iMain)
   {
@@ -252,7 +258,8 @@ float RenderRuler(const ScaleArgs& someScaleArgs)
     currMainMarkerTime += mainMarkerDuration;
   }
 
-  return kRulerMarkerVerticalSize + 20.0f;
+  startPosLocal.y += kRulerMarkerVerticalSize + 20.0f;
+  ImGui::SetCursorPos(startPosLocal);
 }
 
 void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
@@ -260,6 +267,12 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   if (ImGui::Checkbox("Pause", &myIsPaused))
     Profiling::SetPaused(myIsPaused);
 
+  if (Time::ourFrameIdx > 50)  // Hack for testing: stop collecting after 50 frames
+  {
+    myIsPaused = true;
+    Profiling::SetPaused(true);
+  }
+  
   ImGui::PushStyleColor(ImGuiCol_WindowBg, ToVec4Color(kWindowBgColor));
   ImGui::Begin("Profiler");
 
@@ -272,30 +285,22 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   const float64 maxTime = glm::max(16.0, lastFrame.myStart + timeOffset);
   const float64 minTime = glm::max(0.0, maxTime - ImGui::GetWindowWidth() / scaleArgs.myMsToPixelScale);
 
-  ImVec2 drawPos = ToGlobalPos(ImGui::GetCursorPos());
-  drawPos.y += RenderRuler(scaleArgs);
-  ImGui::SetCursorPos(ToGlobalPos(drawPos));
-
-  ImVec2 frameGraphRect_min, frameGraphRect_max;
-  frameGraphRect_min.x = drawPos.x;
-  frameGraphRect_min.y = drawPos.y;
+  RenderRuler(scaleArgs);
+  
+  const ImVec2 frameGraphRect_min = ToGlobalPos(ImGui::GetCursorPos());
+  ImVec2 frameGraphRect_max;
   frameGraphRect_max.x = (frameGraphRect_min.x + ImGui::GetWindowWidth()) - ImGui::GetCursorPosX();
   frameGraphRect_max.y = (frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale) - ImGui::GetCursorPosY();
-
-  ImGui::BeginChild(kFrameId_FrameGraph, ImVec2(frameGraphRect_max.x - frameGraphRect_min.x, frameGraphRect_max.y - frameGraphRect_min.y), true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+  const ImVec2 frameGraphSize(frameGraphRect_max.x - frameGraphRect_min.x, frameGraphRect_max.y - frameGraphRect_min.y);
+  ImGui::BeginChild(kFrameId_FrameGraph, frameGraphSize, true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
   const Profiling::FrameId firstFrame = Profiling::GetFirstFrame();
   const Profiling::FrameId endFrame = Profiling::GetLastFrame() + 1u;
   Profiling::FrameId frame = firstFrame;
-
-  const float frameGraphHeight = 320.0f;
-
-  drawPos.x += myHorizontalOffset;
   
+  const ImVec2 frameGraphStartPosLocal = ImGui::GetCursorPos();
   while(frame != endFrame)
   {
-    ImVec2 pos = drawPos;
-
     const Profiling::FrameData& frameData = Profiling::GetFrameData(frame);
     if (frameData.myFirstSample == UINT_MAX || frameData.myStart + frameData.myDuration < minTime)
     {
@@ -306,35 +311,29 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
     if (frameData.myStart > maxTime)
       break;
 
-    RenderFrameHeader(pos, frameData.myDuration * scaleArgs.myMsToPixelScale, frameData.myFrame);
-    pos.y += kFrameHeaderHeight;
+    RenderFrameHeader(frameData.myDuration * scaleArgs.myMsToPixelScale, frameData.myFrame);
 
     NodeRenderArgs nodeRenderArgs;
     nodeRenderArgs.myFrameStart = frameData.myStart;
-    nodeRenderArgs.myStartPos = pos;
+    nodeRenderArgs.myStartPos = ToGlobalPos(ImGui::GetCursorPos());
+    nodeRenderArgs.myStartPos.x -= myHorizontalOffset;
+
     const Profiling::SampleNode& node = Profiling::GetSampleData(frameData.myFirstSample);
     RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
-    pos.x += frameData.myDuration * scaleArgs.myMsToPixelScale;
+    
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + frameData.myDuration * scaleArgs.myMsToPixelScale + kDefaultLineWidth * 0.5f);
+    RenderFrameBoundary(300.0f);
 
-    pos.x += kDefaultLineWidth * 0.5f;
-    pos.y = drawPos.y;
-    RenderFrameBoundary(pos, frameGraphHeight);
-    pos.x += kDefaultLineWidth * 1.5f;
-
-    drawPos.x = pos.x;
     ++frame;
   }
 
-  if (ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
-  {
-    myScale += ImGui::GetIO().MouseWheel;
-    myScale = glm::clamp(myScale, 0.1f, 1000.0f);
-  }
+  ImGui::SetCursorPosX(frameGraphStartPosLocal.x);
+  ImGui::SetCursorPosY(frameGraphStartPosLocal.y + frameGraphSize.y);
 
-  ImGui::SetCursorPos(ToLocalPos(drawPos));
-  ImGui::SliderFloat("", &myHorizontalOffset, 0.0f, (maxTime - minTime) * scaleArgs.myMsToPixelScale, "%.0f");
-  
   ImGui::EndChild();  // End frame graph area
+
+  ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, (maxTime - minTime) * scaleArgs.myMsToPixelScale, "%.0f");
+  ImGui::SliderFloat("Scale", &myScale, 0.1f, 100.0f, "%.0f");
     
   ImGui::End();
   ImGui::PopStyleColor();
