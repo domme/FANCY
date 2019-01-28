@@ -12,17 +12,17 @@ namespace Fancy
   static DynamicArray<Profiling::SampleNode> ourNodePool;
   static DynamicArray<Profiling::FrameData> ourFramePool;
   
-  static Profiling::SampleId ourNextFreeNode(0);
-  static Profiling::SampleId ourNextUsedNode(0);
+  static Profiling::SampleId ourNextFreeNode(0u);
+  static Profiling::SampleId ourNextUsedNode(0u);
 
   static Profiling::SampleId ourNodeStack[Profiling::MAX_SAMPLE_DEPTH];
   static Profiling::SampleId ourTailStack[Profiling::MAX_SAMPLE_DEPTH];
   static uint ourSampleDepth = 0u;
 
-  static Profiling::FrameId ourNextFreeFrame(0);
-  static Profiling::FrameId ourNextUsedFrame(0);
-  static Profiling::FrameId ourFrameHead(0);
-  static Profiling::FrameId ourFrameTail(0);
+  static Profiling::FrameId ourNextFreeFrame(0u);
+  static Profiling::FrameId ourNextUsedFrame(0u);
+  static Profiling::FrameId ourFrameHead(0u);
+  static Profiling::FrameId ourFrameTail(0u);
 
   static Profiling::FrameData ourCurrFrame;
   static bool ourPauseRequested = false;

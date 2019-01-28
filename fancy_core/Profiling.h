@@ -9,27 +9,27 @@ namespace Fancy
   struct WrappedId
   {
     static_assert((POOL_SIZE & (POOL_SIZE - 1)) == 0, "POOL_SIZE must be power of two");
-    static constexpr uint BIT_DEPTH = MathUtil::Log2(POOL_SIZE);
 
-    explicit WrappedId(uint anId) : myValue(anId), myIsValid(anId < POOL_SIZE) {}
-    WrappedId() : myValue(0), myIsValid(false) {}
+    static uint GetWrapped(uint aVal) { return aVal % (POOL_SIZE - 1); }
 
-    WrappedId& operator=(uint aVal) { myValue = aVal; myIsValid = aVal < POOL_SIZE;  return *this; }
+    explicit WrappedId(uint anId) : myValue(anId) {}
+    WrappedId() : myValue(UINT_MAX) {}
 
-    operator uint() const { return myIsValid ? myValue : UINT_MAX; }
-    WrappedId operator+(uint anOtherId) const { return WrappedId(myValue + anOtherId); }
-    WrappedId operator-(uint anOtherId) const { return WrappedId(myValue - anOtherId); }
+    WrappedId& operator=(uint aVal) { myValue = aVal; return *this; }
 
-    void operator+=(uint anOtherId) { myValue += anOtherId; }
-    WrappedId operator++(int) { return WrappedId(myValue++); }
-    WrappedId& operator++() { ++myValue; return *this; }
+    operator uint() const { return myValue; }
+    WrappedId operator+(uint anOtherId) const { return WrappedId(GetWrapped(myValue + anOtherId)); }
+    WrappedId operator-(uint anOtherId) const { return WrappedId(GetWrapped(myValue - anOtherId)); }
 
-    void operator-=(uint aVal) { myValue -= aVal; }
-    WrappedId operator--(int) { return WrappedId(myValue--); }
-    WrappedId& operator--() { --myValue; return *this; }
+    void operator+=(uint anOtherId) { myValue = GetWrapped(myValue + anOtherId); }
+    WrappedId operator++(int) { WrappedId old(myValue); myValue = GetWrapped(myValue + 1u); return old; }
+    WrappedId& operator++() { myValue = GetWrapped(myValue + 1u); return *this; }
 
-    uint myValue : BIT_DEPTH;
-    uint myIsValid : 1;
+    void operator-=(uint aVal) { myValue = GetWrapped(myValue - aVal); }
+    WrappedId operator--(int) { WrappedId old(myValue); myValue = GetWrapped(myValue - 1u); return old; }
+    WrappedId& operator--() { myValue = GetWrapped(myValue - 1u); return *this; }
+
+    uint myValue;
   };
 
   namespace Profiling
@@ -37,7 +37,7 @@ namespace Fancy
     enum Consts
     {
       MAX_NAME_LENGTH = 128,
-      FRAME_POOL_SIZE = 1 << 13,
+      FRAME_POOL_SIZE = 1 << 11,
       SAMPLE_POOL_SIZE = 1 << 14,
       MAX_SAMPLE_DEPTH = 2048,
     };
