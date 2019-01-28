@@ -18,7 +18,7 @@ using namespace Fancy;
 
 ProfilerWindow profilerWindow;
 
-bool show_test_window = false;
+bool show_test_window = true;
 bool show_profiler_window = true;
 
 FancyRuntime* myRuntime = nullptr;
@@ -155,6 +155,14 @@ void Update()
 
   if (show_profiler_window)
     profilerWindow.Render(myWindow->GetWidth(), myWindow->GetHeight());
+
+  if (ImGui::Button("Test Window")) show_test_window ^= 1;
+
+  if (show_test_window)
+  {
+    ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);     // Normally user code doesn't need/want to call it because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+    ImGui::ShowTestWindow(&show_test_window);
+  }
 }
 
 void Render()

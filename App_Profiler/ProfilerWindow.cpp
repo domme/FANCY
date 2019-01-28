@@ -260,11 +260,9 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   if (ImGui::Checkbox("Pause", &myIsPaused))
     Profiling::SetPaused(myIsPaused);
 
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
-  ImGui::SetNextWindowSize(ImVec2(aScreenSizeX, aScreendSizeY));
   ImGui::PushStyleColor(ImGuiCol_WindowBg, ToVec4Color(kWindowBgColor));
-  ImGui::Begin("Profiler", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-  
+  ImGui::Begin("Profiler");
+
   const float baseHorizontalScale = ImGui::GetWindowWidth() / 16.0f;  // 16ms scale to 1280px
   ScaleArgs scaleArgs;
   scaleArgs.myMsToPixelScale = baseHorizontalScale * myScale;
@@ -276,27 +274,15 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
 
   ImVec2 drawPos = ToGlobalPos(ImGui::GetCursorPos());
   drawPos.y += RenderRuler(scaleArgs);
+  ImGui::SetCursorPos(ToGlobalPos(drawPos));
 
   ImVec2 frameGraphRect_min, frameGraphRect_max;
   frameGraphRect_min.x = drawPos.x;
   frameGraphRect_min.y = drawPos.y;
-  frameGraphRect_max.x = frameGraphRect_min.x + ImGui::GetWindowWidth();
-  frameGraphRect_max.y = frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale;
+  frameGraphRect_max.x = (frameGraphRect_min.x + ImGui::GetWindowWidth()) - ImGui::GetCursorPosX();
+  frameGraphRect_max.y = (frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale) - ImGui::GetCursorPosY();
 
-  ImGui::BeginChildFrame(kFrameId_FrameGraph, ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowSize().y * kFrameGraphHeightScale));
-
-  if (ImGui::IsItemHovered())
-  {
-    if (ImGui::IsMouseDragging())
-    {
-      myHorizontalOffset += ImGui::GetMouseDragDelta().x;
-      myVerticalOffset += ImGui::GetMouseDragDelta().y;
-      myHorizontalOffset = glm::clamp(myHorizontalOffset, 0.0f, static_cast<float>((maxTime - minTime) * scaleArgs.myMsToPixelScale));
-      ImGui::ResetMouseDragDelta();
-    }
-    myScale += ImGui::GetIO().MouseWheel;
-    myScale = glm::clamp(myScale, 0.01f, 1000.0f);
-  }
+  ImGui::BeginChild(kFrameId_FrameGraph, ImVec2(frameGraphRect_max.x - frameGraphRect_min.x, frameGraphRect_max.y - frameGraphRect_min.y), true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
   const Profiling::FrameId firstFrame = Profiling::GetFirstFrame();
   const Profiling::FrameId endFrame = Profiling::GetLastFrame() + 1u;
@@ -304,7 +290,6 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
 
   const float frameGraphHeight = 320.0f;
 
-  
   drawPos.x += myHorizontalOffset;
   
   while(frame != endFrame)
@@ -340,7 +325,16 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
     ++frame;
   }
 
-  ImGui::EndChildFrame();  // End frame graph area
+  if (ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
+  {
+    myScale += ImGui::GetIO().MouseWheel;
+    myScale = glm::clamp(myScale, 0.1f, 1000.0f);
+  }
+
+  ImGui::SetCursorPos(ToLocalPos(drawPos));
+  ImGui::SliderFloat("", &myHorizontalOffset, 0.0f, (maxTime - minTime) * scaleArgs.myMsToPixelScale, "%.0f");
+  
+  ImGui::EndChild();  // End frame graph area
     
   ImGui::End();
   ImGui::PopStyleColor();
