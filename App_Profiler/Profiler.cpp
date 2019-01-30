@@ -18,7 +18,7 @@ using namespace Fancy;
 
 ProfilerWindow profilerWindow;
 
-bool show_test_window = true;
+bool show_test_window = false;
 bool show_profiler_window = true;
 
 FancyRuntime* myRuntime = nullptr;

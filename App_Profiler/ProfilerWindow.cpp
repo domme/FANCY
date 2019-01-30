@@ -27,8 +27,8 @@ const float kZoneElementHeight_WithPadding = 25.0f;
 const float kRulerMarkerVerticalSize = 40.0f;
 const float kSubRulerMarkerVerticalSize = 15.0f;
 const float kDefaultLineWidth = 1.0f;
-const uint kFrameBoundaryColor = 0xFFCC7722;
-const uint kFrameHeaderColor = 0xFF333333;
+const uint kFrameBoundaryColor = 0xFF38ACFF;
+const uint kFrameHeaderColor = 0xFFAAAAAA;
 const uint kWindowBgColor = 0x883A3A3A;
 const float kFrameHeaderHeight = 10.0f;
 const float kFrameGraphHeightScale = 0.25f;
@@ -73,22 +73,33 @@ ImVec4 ToVec4Color(uint aColor)
   return col;
 }
 
-bool ColorButton(const char* aLabel, const ImVec2& aPos, const ImVec2& aSize, const ImVec4& aColor)
+ImVec4 GetColorForTag(uint8 aTag)
 {
-  ImGui::SetCursorPos(ToLocalPos(aPos));
-  ImGui::PushStyleColor(ImGuiCol_Button, aColor);
-  const bool pressed = ImGui::Button(aLabel, aSize);
-  ImGui::PopStyleColor(1);
-  return pressed;
-}
-
-ImVec4 GetColorForTag(uint8 aTag) 
-{
-  switch(aTag)
+  switch (aTag)
   {
   case 0: return ImVec4(0.7f, 0.0f, 0.0f, 0.5f);
   default: return ImVec4(0.5f, 0.5f, 0.5f, 0.5f);
   }
+}
+
+bool RenderSample(const Profiling::SampleNode& aNode, const ImVec2& aPos, const ImVec2& aSize)
+{
+  const Profiling::SampleNodeInfo& nodeInfo = Profiling::GetSampleInfo(aNode.myNodeInfo);
+  const char* aLabel = FormatString("%s: %.3f", nodeInfo.myName, (float)aNode.myDuration);
+
+  const ImVec2 labelSize = ImGui::CalcTextSize(aLabel);
+  if (labelSize.x > aSize.x * 0.75f)
+    aLabel = "";
+
+  ImGui::SetCursorPos(ToLocalPos(aPos));
+  ImGui::PushStyleColor(ImGuiCol_Button, GetColorForTag(nodeInfo.myTag));
+  const bool pressed = ImGui::Button(aLabel, aSize);
+  ImGui::PopStyleColor(1);
+
+  if (ImGui::IsItemHovered())
+    ImGui::SetTooltip("%s \n  \t Start: %.6fms \n  \t Duration: %.3fms \n", nodeInfo.myName, aNode.myStart, aNode.myDuration);
+
+  return pressed;
 }
 
 struct ScaleArgs
@@ -131,9 +142,7 @@ void RenderNodeRecursive(const Profiling::SampleNode& aNode, const ScaleArgs& so
   size.x = aNode.myDuration * someScaleArgs.myMsToPixelScale;
   size.y = kZoneElementHeight;
 
-  const Profiling::SampleNodeInfo& nodeInfo = Profiling::GetSampleInfo(aNode.myNodeInfo);
-
-  ColorButton(FormatString("%s: %.3f", nodeInfo.myName, (float)aNode.myDuration), pos, size, GetColorForTag(nodeInfo.myTag));
+  RenderSample(aNode, pos, size);
 
   if (aNode.myChild != UINT_MAX)
   {
@@ -203,7 +212,7 @@ void RenderFrameBoundary(float aHeight)
   ImVec2 end = ToGlobalPos(ImGui::GetCursorPos());
   end.y += aHeight;
   window->DrawList->AddLine(start, end, kFrameBoundaryColor, kDefaultLineWidth);
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + kDefaultLineWidth * 1.5f);
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + kDefaultLineWidth);
 }
 
 void RenderRuler(const ScaleArgs& someScaleArgs)
@@ -276,7 +285,7 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   ImGui::PushStyleColor(ImGuiCol_WindowBg, ToVec4Color(kWindowBgColor));
   ImGui::Begin("Profiler");
 
-  const float baseHorizontalScale = ImGui::GetWindowWidth() / 16.0f;  // 16ms scale to 1280px
+  const float baseHorizontalScale = ImGui::GetWindowWidth() / (16.0f * 4.0f);  // Fit 4 16ms-frames to the image-width
   ScaleArgs scaleArgs;
   scaleArgs.myMsToPixelScale = baseHorizontalScale * myScale;
   scaleArgs.myScale = myScale;
@@ -290,7 +299,7 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   const ImVec2 frameGraphRect_min = ToGlobalPos(ImGui::GetCursorPos());
   ImVec2 frameGraphRect_max;
   frameGraphRect_max.x = (frameGraphRect_min.x + ImGui::GetWindowWidth()) - ImGui::GetCursorPosX();
-  frameGraphRect_max.y = (frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale) - ImGui::GetCursorPosY();
+  frameGraphRect_max.y = (frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale);
   const ImVec2 frameGraphSize(frameGraphRect_max.x - frameGraphRect_min.x, frameGraphRect_max.y - frameGraphRect_min.y);
   ImGui::BeginChild(kFrameId_FrameGraph, frameGraphSize, true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
@@ -299,6 +308,9 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   Profiling::FrameId frame = firstFrame;
   
   const ImVec2 frameGraphStartPosLocal = ImGui::GetCursorPos();
+  ImVec2 firstFrameStartPosLocal = frameGraphStartPosLocal;
+  firstFrameStartPosLocal.x -= myHorizontalOffset;
+  ImGui::SetCursorPos(firstFrameStartPosLocal);
   while(frame != endFrame)
   {
     const Profiling::FrameData& frameData = Profiling::GetFrameData(frame);
@@ -307,31 +319,34 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
       ++frame;
       continue;
     }
-    
-    if (frameData.myStart > maxTime)
-      break;
+
+    //if (frameData.myStart > maxTime)
+    //  break;
 
     RenderFrameHeader(frameData.myDuration * scaleArgs.myMsToPixelScale, frameData.myFrame);
 
     NodeRenderArgs nodeRenderArgs;
     nodeRenderArgs.myFrameStart = frameData.myStart;
     nodeRenderArgs.myStartPos = ToGlobalPos(ImGui::GetCursorPos());
-    nodeRenderArgs.myStartPos.x -= myHorizontalOffset;
-
+    
     const Profiling::SampleNode& node = Profiling::GetSampleData(frameData.myFirstSample);
     RenderNodeRecursive(node, scaleArgs, nodeRenderArgs, 0);
+
+    ImGui::SetCursorPos(ImVec2(
+      firstFrameStartPosLocal.x + static_cast<float>(frameData.myDuration * scaleArgs.myMsToPixelScale),
+      firstFrameStartPosLocal.y
+    ));
     
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + frameData.myDuration * scaleArgs.myMsToPixelScale + kDefaultLineWidth * 0.5f);
     RenderFrameBoundary(300.0f);
 
     ++frame;
   }
 
-  ImGui::SetCursorPosX(frameGraphStartPosLocal.x);
-  ImGui::SetCursorPosY(frameGraphStartPosLocal.y + frameGraphSize.y);
+  ImGui::SetCursorPos(ImVec2(frameGraphStartPosLocal.x, frameGraphStartPosLocal.y + frameGraphSize.y));
 
   ImGui::EndChild();  // End frame graph area
 
+  ImGui::Separator();
   ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, (maxTime - minTime) * scaleArgs.myMsToPixelScale, "%.0f");
   ImGui::SliderFloat("Scale", &myScale, 0.1f, 100.0f, "%.0f");
     
