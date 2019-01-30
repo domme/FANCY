@@ -12,6 +12,5 @@ public:
   bool myIsPaused = false;
 
   float myHorizontalOffset = 0.0f;
-  float myVerticalOffset = 0.0f;
   float myScale = 1.0f;
 };

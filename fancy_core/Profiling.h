@@ -83,6 +83,7 @@ namespace Fancy
 
     FrameId GetLastFrame();
     FrameId GetFirstFrame();
+    uint GetNumRecordedFrames();
 
     const FrameData& GetFrameData(FrameId aFrameId);
     const SampleNode& GetSampleData(SampleId aSampleId);

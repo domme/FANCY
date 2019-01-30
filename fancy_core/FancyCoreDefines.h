@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <climits>
 
 //Common MACRO defines
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }

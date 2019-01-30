@@ -201,6 +201,13 @@ namespace Fancy
     return ourFrameHead;
   }
 //---------------------------------------------------------------------------//
+  uint Profiling::GetNumRecordedFrames()
+  {
+    return ourFrameTail.myValue > ourFrameHead.myValue ? 
+      ourFrameTail.myValue - ourFrameHead.myValue + 1 : 
+      (ourFrameTail.myValue + FRAME_POOL_SIZE-1) - ourFrameHead.myValue;
+  }
+//---------------------------------------------------------------------------//
   const Profiling::FrameData& Profiling::GetFrameData(Profiling::FrameId aFrameId)
   {
     return ourFramePool[aFrameId];
