@@ -1,5 +1,6 @@
 #pragma once
 #include <fancy_core/FancyCoreDefines.h>
+#include <cfloat>
 
 class ProfilerWindow
 {
@@ -11,6 +12,6 @@ public:
   
   bool myIsPaused = false;
 
-  float myHorizontalOffset = 0.0f;
+  float myHorizontalOffset = FLT_MAX;
   float myScale = 1.0f;
 };

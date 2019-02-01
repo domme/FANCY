@@ -155,15 +155,16 @@ namespace Fancy
     ASSERT(ourSampleDepth == 0, "There are still open profiling markers at the end of the frame");
 
     // Finalize the last frame
-    if (ourCurrFrame.myFirstSample != UINT_MAX)  // We have samples in this frame
+    if (!ourPaused && ourCurrFrame.myFirstSample != UINT_MAX)  // We have samples in this frame
     {
       ourCurrFrame.myDuration = SampleTimeMs() - ourCurrFrame.myStart;
+      LOG_INFO("Frame duration: %", ourCurrFrame.myDuration);
       const uint allocatedFrame = AllocateFrame();
 
       ourFramePool[allocatedFrame] = ourCurrFrame;
       ourFrameTail = allocatedFrame;
     }
-    
+
     // Start the next frame
     ourPaused = ourPauseRequested;
     if (!ourPaused)
