@@ -25,6 +25,7 @@ FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
 RenderOutput* myRenderOutput = nullptr;
 InputState myInputState;
+ImGuiContext* myImGuiContext = nullptr;
 
 void DummyFunc3()
 {
@@ -136,6 +137,7 @@ void Init(HINSTANCE anInstanceHandle)
   myWindow->myOnResize.Connect(onWindowResized);
   myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
 
+  myImGuiContext = ImGui::CreateContext();
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 }
 
@@ -161,7 +163,7 @@ void Update()
   if (show_test_window)
   {
     ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);     // Normally user code doesn't need/want to call it because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-    ImGui::ShowTestWindow(&show_test_window);
+    ImGui::ShowDemoWindow(&show_test_window);
   }
 }
 
@@ -186,6 +188,8 @@ void Render()
 void Shutdown()
 {
   ImGuiRendering::Shutdown();
+  ImGui::DestroyContext(myImGuiContext);
+  myImGuiContext = nullptr;
   FancyRuntime::Shutdown();
   myRuntime = nullptr;
 }
