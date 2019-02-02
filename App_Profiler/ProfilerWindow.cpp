@@ -28,7 +28,7 @@ const float kZoneElementHeight_WithPadding = 25.0f;
 const float kRulerMarkerVerticalSize = 40.0f;
 const float kSubRulerMarkerVerticalSize = 15.0f;
 const float kDefaultLineWidth = 1.0f;
-const uint kFrameBoundaryColor = 0xFF38ACFF;
+const uint kFrameBoundaryColor = 0xFFAAAAAA;
 const uint kFrameHeaderColor = 0xFFAAAAAA;
 const uint kWindowBgColor = 0xAA3A3A3A;
 const float kFrameHeaderHeight = 10.0f;
@@ -146,45 +146,46 @@ void RenderNodeRecursive(const Profiling::SampleNode& aNode, float64 aTimeToPixe
   }
 }
 
-void RenderFrameHeader(float aWidth, const FrameData& aFrameData)
+void RenderFrameHeader(float aWidth, float aWholeFrameHeight, const FrameData& aFrameData)
 {
   ImDrawList* dl = ImGui::GetCurrentWindow()->DrawList;
 
   bool renderText = aWidth > 10.0f;
   ImVec2 textSize(0.0f, 0.0f);
-  const char* text = nullptr;
+  const char* text = text = FormatString("Frame %d - %.3fms", aFrameData.myFrame, aFrameData.myDuration);
+  textSize = ImGui::CalcTextSize(text);
+
   if (renderText)
-  {
-    text = FormatString("Frame %d - %.3fms", aFrameData.myFrame, aFrameData.myDuration);
-    textSize = ImGui::CalcTextSize(text);
     renderText = aWidth - textSize.x > 20.0f;
-  }
 
   ImGuiWindow* window = ImGui::GetCurrentWindow();
 
   ImVec2 startPosLocal = ImGui::GetCursorPos();
-  ImVec2 pos = ToGlobalPos(startPosLocal);
+  const ImVec2 startPosGlobal = ToGlobalPos(startPosLocal);
   if (renderText)
   {
-    ImVec2 subPos = pos;
+    ImVec2 subPos = startPosGlobal;
     subPos.x += aWidth * 0.5f - textSize.x * 0.5f - 1.0f;
-    dl->AddLine(pos, subPos, kFrameHeaderColor, kDefaultLineWidth);
+    dl->AddLine(startPosGlobal, subPos, kFrameHeaderColor, kDefaultLineWidth);
 
     subPos.x += 1.0f;
     dl->AddText(subPos, kFrameHeaderColor, text);
 
     subPos.x += textSize.x + 1.0f;
-    ImVec2 endPos = pos;
+    ImVec2 endPos = startPosGlobal;
     endPos.x += aWidth;
 
     dl->AddLine(subPos, endPos, kFrameHeaderColor, kDefaultLineWidth);
   }
   else
   {
-    ImVec2 end = pos;
+    ImVec2 end = startPosGlobal;
     end.x += aWidth;
-    dl->AddLine(pos, end, kFrameHeaderColor, kDefaultLineWidth);
+    dl->AddLine(startPosGlobal, end, kFrameHeaderColor, kDefaultLineWidth);
   }
+  
+  if (ImGui::IsMouseHoveringRect(startPosGlobal, ImVec2(startPosGlobal.x + aWidth, startPosGlobal.y + aWholeFrameHeight)))
+    ImGui::SetTooltip(text);
 
   startPosLocal.y += textSize.y + 10.0f;
   ImGui::SetCursorPos(startPosLocal);
@@ -198,7 +199,6 @@ void RenderFrameBoundary(float aHeight)
   ImVec2 end = start;
   end.y += aHeight;
   window->DrawList->AddLine(start, end, kFrameBoundaryColor, kDefaultLineWidth);
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + kDefaultLineWidth);
 }
 
 void RenderRuler(float aTimeToPixelScale)
@@ -265,37 +265,48 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   ImGui::PushStyleColor(ImGuiCol_WindowBg, ToVec4Color(kWindowBgColor));
   ImGui::Begin("Profiler");
 
-  const float64 baseHorizontalScale = 1280.0 / (16.0 * 2.0);  // Fit 2 16ms-frames to the image-width
-  const float64 timeToPixelScale = baseHorizontalScale * myScale;
-
-  const FrameId firstFrame = GetFirstFrame();
-  const FrameId endFrame = GetLastFrame() + 1u;
-  float64 overallFrameDuration = 0.0;
-  uint numFrames = 0u;
-  for (FrameId i = firstFrame; i != endFrame; ++i)
-  {
-    overallFrameDuration += GetFrameData(i).myDuration;
-    ++numFrames;
-  }
-    
-  const float overallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
-
-  ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, glm::max(0.0f, overallFrameSize - ImGui::GetWindowWidth()), "%.3f");
-
-  if (!myIsPaused)
-    myHorizontalOffset = overallFrameSize - ImGui::GetWindowWidth();
-
-  ImGui::SliderFloat("Scale", &myScale, 0.0001f, 5.0f, "%.01f");
-   
-  ImGui::Separator();
-
-  //RenderRuler(timeToPixelScale);
-  
   const ImVec2 frameGraphRect_min = ToGlobalPos(ImGui::GetCursorPos());
   ImVec2 frameGraphRect_max;
   frameGraphRect_max.x = (frameGraphRect_min.x + ImGui::GetWindowWidth()) - ImGui::GetCursorPosX();
   frameGraphRect_max.y = (frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale);
   const ImVec2 frameGraphSize(frameGraphRect_max.x - frameGraphRect_min.x, frameGraphRect_max.y - frameGraphRect_min.y);
+
+  const FrameId firstFrame = GetFirstFrame();
+  const FrameId endFrame = GetLastFrame() + 1u;
+  float64 overallFrameDuration = 0.0;
+  for (FrameId i = firstFrame; i != endFrame; ++i)
+    overallFrameDuration += GetFrameData(i).myDuration;
+
+  const float64 baseHorizontalScale = 1280.0 / (16.0 * 4.0);  // Fit 2 16ms-frames to the image-width
+  float64 timeToPixelScale = baseHorizontalScale * myScale;
+  const float overallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
+
+  ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, overallFrameSize - ImGui::GetWindowWidth(), "%.1f");
+  if (!myIsPaused)
+    myHorizontalOffset = overallFrameSize - ImGui::GetWindowWidth();
+ 
+  ImGui::Separator();
+
+  //RenderRuler(timeToPixelScale);
+  
+  if (glm::abs(ImGui::GetIO().MouseWheel) > 0.1f && ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
+  {
+    float scaleChange = ImGui::GetIO().MouseWheel * 0.1f;
+
+    myScale = glm::clamp(myScale + scaleChange, 0.01f, 100.0f);
+    timeToPixelScale = baseHorizontalScale * myScale;
+
+    // Adjust offset so the current mouse pos stays centered
+    const float frameOrigin = -myHorizontalOffset;
+    const float mousePos_FrameSpace = glm::max(0.0f, ToLocalPos(ImGui::GetMousePos()).x - frameOrigin);
+    const float mouseAlongFrame = overallFrameSize < FLT_EPSILON ? 0.0f : mousePos_FrameSpace / overallFrameSize;
+
+    const float newOverallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
+    const float newMousePos_FrameSpace = mouseAlongFrame * newOverallFrameSize;
+
+    myHorizontalOffset += newMousePos_FrameSpace - mousePos_FrameSpace;
+  }
+
   ImGui::BeginChild(kFrameId_FrameGraph, frameGraphSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
   
   const ImVec2 frameGraphStart = ImGui::GetCursorPos();
@@ -320,7 +331,7 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
       break;
     }
 
-    RenderFrameHeader(frameSize, frameData);
+    RenderFrameHeader(frameSize, frameGraphSize.y, frameData);
 
     const Profiling::SampleNode& node = Profiling::GetSampleData(frameData.myFirstSample);
     RenderNodeRecursive(node, timeToPixelScale, frameData.myStart, ToGlobalPos(ImGui::GetCursorPos()), 0);
