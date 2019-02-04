@@ -32,7 +32,7 @@ const uint kFrameBoundaryColor = 0xFFAAAAAA;
 const uint kFrameHeaderColor = 0xFFAAAAAA;
 const uint kWindowBgColor = 0xAA3A3A3A;
 const float kFrameHeaderHeight = 10.0f;
-const float kFrameGraphHeightScale = 0.25f;
+const float kFrameGraphHeightScale = 0.33f;
 const ImGuiID kFrameId_FrameGraph = 1;
 
 const char* FormatString(const char* aFmt, ...)
@@ -98,7 +98,8 @@ bool RenderSample(const Profiling::SampleNode& aNode, const ImVec2& aPos, const 
   ImGui::PopStyleColor(1);
 
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("%s \n  \t Start: %.6fms \n  \t Duration: %.3fms \n", nodeInfo.myName, aNode.myStart, aNode.myDuration);
+    ImGui::SetTooltip("%s \n  \t Start: %.6fms \n  \t Duration: %.3fms \n", nodeInfo.myName, aNode.myStart,
+                      aNode.myDuration);
 
   return pressed;
 }
@@ -114,16 +115,18 @@ enum TimeUnit
 
 const char* TimeUnitToString(TimeUnit aUnit)
 {
-  switch(aUnit) 
-  { 
-    case Milliseconds: return "ms";
-    case Microseconds: return "us";
-    case Nanoseconds: return "ns";
-    default: ASSERT(false); return "";
+  switch (aUnit)
+  {
+  case Milliseconds: return "ms";
+  case Microseconds: return "us";
+  case Nanoseconds: return "ns";
+  default: ASSERT(false);
+    return "";
   }
 }
 
-void RenderNodeRecursive(const Profiling::SampleNode& aNode, float64 aTimeToPixelScale, float64 aFrameStartTime, const ImVec2& aFrameStartPos, int aDepth)
+void RenderNodeRecursive(const Profiling::SampleNode& aNode, float64 aTimeToPixelScale, float64 aFrameStartTime,
+                         const ImVec2& aFrameStartPos, int aDepth)
 {
   ImVec2 pos, size;
   pos.x = aFrameStartPos.x + static_cast<float>((aNode.myStart - aFrameStartTime) * aTimeToPixelScale);
@@ -183,8 +186,9 @@ void RenderFrameHeader(float aWidth, float aWholeFrameHeight, const FrameData& a
     end.x += aWidth;
     dl->AddLine(startPosGlobal, end, kFrameHeaderColor, kDefaultLineWidth);
   }
-  
-  if (ImGui::IsMouseHoveringRect(startPosGlobal, ImVec2(startPosGlobal.x + aWidth, startPosGlobal.y + aWholeFrameHeight)))
+
+  if (ImGui::IsMouseHoveringRect(startPosGlobal,
+                                 ImVec2(startPosGlobal.x + aWidth, startPosGlobal.y + aWholeFrameHeight)))
     ImGui::SetTooltip(text);
 
   startPosLocal.y += textSize.y + 10.0f;
@@ -207,17 +211,17 @@ void RenderRuler(float aTimeToPixelScale)
 
   TimeUnit mainMarkerUnit = TimeUnit::Milliseconds;
   float mainMarkerOffset = aTimeToPixelScale;
-  float mainMarkerDuration = 1;  // Duration in mainMarkerUnit
+  float mainMarkerDuration = 1; // Duration in mainMarkerUnit
   while (mainMarkerOffset > 500 && mainMarkerUnit < TimeUnit::Last)
   {
-    mainMarkerUnit = (TimeUnit) ((uint) mainMarkerUnit + 1);
+    mainMarkerUnit = (TimeUnit)((uint)mainMarkerUnit + 1);
     const float divide = 10.0f;
     mainMarkerOffset *= (1.0f / divide);
     mainMarkerDuration *= (1000.0f / divide);
   }
 
   const float subMarkerOffset = mainMarkerOffset / 10.0f;
-  
+
   const float subMarkerVerticalOffset = (kRulerMarkerVerticalSize - kSubRulerMarkerVerticalSize) * 0.5f;
   const ImU32 markerColor = ImGui::ColorConvertFloat4ToU32(ImVec4(.5f, .5f, .5f, .8f));
   const float mainMarkerThickness = 1.5f;
@@ -237,7 +241,8 @@ void RenderRuler(float aTimeToPixelScale)
 
     ImVec2 labelPos = end;
     labelPos.y += 5;
-    window->DrawList->AddText(labelPos, markerColor, FormatString("%d%s", currMainMarkerTime, TimeUnitToString(mainMarkerUnit)));
+    window->DrawList->AddText(labelPos, markerColor,
+                              FormatString("%d%s", currMainMarkerTime, TimeUnitToString(mainMarkerUnit)));
 
     for (uint iSub = 0u; iSub < numSubMarkers; ++iSub)
     {
@@ -248,13 +253,29 @@ void RenderRuler(float aTimeToPixelScale)
 
       window->DrawList->AddLine(start, end, markerColor, subMarkerThickness);
     }
-  
+
     pos.x += mainMarkerOffset;
     currMainMarkerTime += mainMarkerDuration;
   }
 
   startPosLocal.y += kRulerMarkerVerticalSize + 20.0f;
   ImGui::SetCursorPos(startPosLocal);
+}
+
+void RenderFrameTimeGraph(float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime)
+{
+  struct FrameTimeGetter
+  {
+    static float Get(void* data, int idx)
+    {
+      float scale = *static_cast<float*>(data);
+      FrameId id = Profiling::GetFirstFrame() + (uint)idx;
+      return static_cast<float>(Profiling::GetFrameData(id).myDuration * scale);
+    }
+  };
+
+  float scale = aMaxFrameTimePixelHeight / aMaxFrameTime;
+  ImGui::PlotHistogram("Frame times", FrameTimeGetter::Get, &scale, (int)Profiling::GetNumRecordedFrames(), 0, nullptr ,0.0f, aMaxFrameTimePixelHeight, ImVec2(ImGui::GetWindowWidth(), aMaxFrameTimePixelHeight));
 }
 
 void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
@@ -274,41 +295,58 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   const FrameId firstFrame = GetFirstFrame();
   const FrameId endFrame = GetLastFrame() + 1u;
   float64 overallFrameDuration = 0.0;
+  float64 maxFrameDuration = 0.0;
   for (FrameId i = firstFrame; i != endFrame; ++i)
-    overallFrameDuration += GetFrameData(i).myDuration;
-
-  const float64 baseHorizontalScale = 1280.0 / (16.0 * 4.0);  // Fit 2 16ms-frames to the image-width
-  float64 timeToPixelScale = baseHorizontalScale * myScale;
-  const float overallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
-
-  ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, overallFrameSize - ImGui::GetWindowWidth(), "%.1f");
-  if (!myIsPaused)
-    myHorizontalOffset = overallFrameSize - ImGui::GetWindowWidth();
- 
-  ImGui::Separator();
-
-  //RenderRuler(timeToPixelScale);
-  
-  if (glm::abs(ImGui::GetIO().MouseWheel) > 0.1f && ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
   {
-    float scaleChange = ImGui::GetIO().MouseWheel * 0.1f;
-
-    myScale = glm::clamp(myScale + scaleChange, 0.01f, 100.0f);
-    timeToPixelScale = baseHorizontalScale * myScale;
-
-    // Adjust offset so the current mouse pos stays centered
-    const float frameOrigin = -myHorizontalOffset;
-    const float mousePos_FrameSpace = glm::max(0.0f, ToLocalPos(ImGui::GetMousePos()).x - frameOrigin);
-    const float mouseAlongFrame = overallFrameSize < FLT_EPSILON ? 0.0f : mousePos_FrameSpace / overallFrameSize;
-
-    const float newOverallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
-    const float newMousePos_FrameSpace = mouseAlongFrame * newOverallFrameSize;
-
-    myHorizontalOffset += newMousePos_FrameSpace - mousePos_FrameSpace;
+    const float64 frameTime = GetFrameData(i).myDuration;
+    overallFrameDuration += frameTime;
+    if (i != firstFrame)
+      maxFrameDuration = glm::max(maxFrameDuration, frameTime);
   }
 
+  const float64 baseHorizontalScale = 1280.0 / (16.0 * 4.0);
+  float64 timeToPixelScale = baseHorizontalScale * myScale;
+  const float overallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
+  const float maxOffset = glm::max(0.0f, overallFrameSize - ImGui::GetWindowWidth() - 1.0f);
+
+  ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, maxOffset, "%.1f");
+
+  //RenderRuler(timeToPixelScale);
+
+  if (ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
+  {
+    // Scrolling
+    if (ImGui::IsMouseDragging(0))
+    {
+      const float scrollChange = ImGui::GetIO().MouseDelta.x;
+      myHorizontalOffset = glm::clamp(myHorizontalOffset - scrollChange, 0.0f, maxOffset);
+    }
+
+    // Scaling
+    if (glm::abs(ImGui::GetIO().MouseWheel) > 0.1f)
+    {
+      const float scaleChange = ImGui::GetIO().MouseWheel * 0.1f;
+
+      myScale = glm::clamp(myScale + scaleChange, 0.01f, 100.0f);
+      timeToPixelScale = baseHorizontalScale * myScale;
+
+      // Adjust offset so the current mouse pos stays centered
+      const float frameOrigin = -myHorizontalOffset;
+      const float mousePos_FrameSpace = glm::max(0.0f, ToLocalPos(ImGui::GetMousePos()).x - frameOrigin);
+      const float mouseAlongFrame = overallFrameSize < FLT_EPSILON ? 0.0f : mousePos_FrameSpace / overallFrameSize;
+
+      const float newOverallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
+      const float newMousePos_FrameSpace = mouseAlongFrame * newOverallFrameSize;
+
+      myHorizontalOffset += newMousePos_FrameSpace - mousePos_FrameSpace;
+    }
+  }
+
+  if (!myIsPaused)
+    myHorizontalOffset = maxOffset;
+
   ImGui::BeginChild(kFrameId_FrameGraph, frameGraphSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-  
+
   const ImVec2 frameGraphStart = ImGui::GetCursorPos();
 
   ImGui::SetCursorPosX(ImGui::GetCursorPosX() - myHorizontalOffset);
@@ -342,9 +380,13 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   }
 
   ImGui::SetCursorPos(ImVec2(frameGraphStart.x, frameGraphStart.y + frameGraphSize.y));
+  ImGui::EndChild(); // End frame graph area
 
-  ImGui::EndChild();  // End frame graph area
+  ImGui::Separator();
+
+  RenderFrameTimeGraph(300.0, maxFrameDuration);
   
+
   ImGui::End();
   ImGui::PopStyleColor();
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <fancy_core/FancyCoreDefines.h>
 #include <cfloat>
+#include "fancy_core/DynamicArray.h"
 
 class ProfilerWindow
 {
