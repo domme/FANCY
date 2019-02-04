@@ -202,11 +202,16 @@ namespace Fancy
     return ourFrameHead;
   }
 //---------------------------------------------------------------------------//
+  uint Profiling::GetNumFramesBetween(FrameId aFirstFrame, FrameId aLastFrame)
+  {
+    return aLastFrame.myValue > aFirstFrame.myValue ?
+      aLastFrame.myValue - aFirstFrame.myValue + 1 :
+      (aLastFrame.myValue + FRAME_POOL_SIZE - 1) - aFirstFrame.myValue;
+  }
+//---------------------------------------------------------------------------//
   uint Profiling::GetNumRecordedFrames()
   {
-    return ourFrameTail.myValue > ourFrameHead.myValue ? 
-      ourFrameTail.myValue - ourFrameHead.myValue + 1 : 
-      (ourFrameTail.myValue + FRAME_POOL_SIZE-1) - ourFrameHead.myValue;
+    return GetNumFramesBetween(ourFrameHead, ourFrameTail);
   }
 //---------------------------------------------------------------------------//
   const Profiling::FrameData& Profiling::GetFrameData(Profiling::FrameId aFrameId)

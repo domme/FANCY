@@ -83,6 +83,8 @@ namespace Fancy
 
     FrameId GetLastFrame();
     FrameId GetFirstFrame();
+
+    uint GetNumFramesBetween(FrameId aFirstFrame, FrameId aLastFrame);
     uint GetNumRecordedFrames();
 
     const FrameData& GetFrameData(FrameId aFrameId);

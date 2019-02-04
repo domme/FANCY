@@ -262,20 +262,28 @@ void RenderRuler(float aTimeToPixelScale)
   ImGui::SetCursorPos(startPosLocal);
 }
 
-void RenderFrameTimeGraph(float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime)
+void RenderFrameTimeGraph(uint anOffsetFromFirstFrame, uint aNumFrames, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime)
 {
+  struct FrameGetterArgs
+  {
+    float myScale = 1.0f;
+    uint myOffsetFromFirst = 0;
+  };
+
   struct FrameTimeGetter
   {
     static float Get(void* data, int idx)
     {
-      float scale = *static_cast<float*>(data);
-      FrameId id = Profiling::GetFirstFrame() + (uint)idx;
-      return static_cast<float>(Profiling::GetFrameData(id).myDuration * scale);
+      const FrameGetterArgs* args = static_cast<const FrameGetterArgs*>(data);
+      FrameId firstFrame = Profiling::GetFirstFrame() + args->myOffsetFromFirst;
+
+      FrameId id = firstFrame + (uint)idx;
+      return static_cast<float>(Profiling::GetFrameData(id).myDuration * args->myScale);
     }
   };
 
-  float scale = aMaxFrameTimePixelHeight / aMaxFrameTime;
-  ImGui::PlotHistogram("Frame times", FrameTimeGetter::Get, &scale, (int)Profiling::GetNumRecordedFrames(), 0, nullptr ,0.0f, aMaxFrameTimePixelHeight, ImVec2(ImGui::GetWindowWidth(), aMaxFrameTimePixelHeight));
+  FrameGetterArgs args{ (float)(aMaxFrameTimePixelHeight / aMaxFrameTime), anOffsetFromFirstFrame };
+  ImGui::PlotHistogram("Frame times", FrameTimeGetter::Get, &args, aNumFrames, 0, nullptr ,0.0f, aMaxFrameTimePixelHeight, ImVec2(ImGui::GetWindowWidth(), aMaxFrameTimePixelHeight));
 }
 
 void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
@@ -308,8 +316,6 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   float64 timeToPixelScale = baseHorizontalScale * myScale;
   const float overallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
   const float maxOffset = glm::max(0.0f, overallFrameSize - ImGui::GetWindowWidth() - 1.0f);
-
-  ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, maxOffset, "%.1f");
 
   //RenderRuler(timeToPixelScale);
 
@@ -345,10 +351,13 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   if (!myIsPaused)
     myHorizontalOffset = maxOffset;
 
+  ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, maxOffset, "%.1f");
+
   ImGui::BeginChild(kFrameId_FrameGraph, frameGraphSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
+  FrameId firstVisibleFrame = FrameId(UINT_MAX);
+  FrameId lastVisibleFrame = FrameId(UINT_MAX);
   const ImVec2 frameGraphStart = ImGui::GetCursorPos();
-
   ImGui::SetCursorPosX(ImGui::GetCursorPosX() - myHorizontalOffset);
   for (FrameId i = firstFrame; i != endFrame; ++i)
   {
@@ -369,6 +378,11 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
       break;
     }
 
+    if (firstVisibleFrame == UINT_MAX)
+      firstVisibleFrame = i;
+
+    lastVisibleFrame = i;
+
     RenderFrameHeader(frameSize, frameGraphSize.y, frameData);
 
     const Profiling::SampleNode& node = Profiling::GetSampleData(frameData.myFirstSample);
@@ -376,7 +390,7 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
 
     ImGui::SetCursorPos(ImVec2(framePos + frameSize + 1.0f, frameGraphStart.y));
 
-    RenderFrameBoundary(300.0f);
+    RenderFrameBoundary(100.0f);
   }
 
   ImGui::SetCursorPos(ImVec2(frameGraphStart.x, frameGraphStart.y + frameGraphSize.y));
@@ -384,9 +398,25 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
 
   ImGui::Separator();
 
-  RenderFrameTimeGraph(300.0, maxFrameDuration);
-  
+  // Determine the frame-range to display in the time-graph
+  FrameId firstVisibleFrame_timeGraph = firstVisibleFrame;
+  FrameId lastVisibleFrame_timeGraph = lastVisibleFrame;
+  uint numVisibleFrames_timeGraph = Profiling::GetNumFramesBetween(firstVisibleFrame_timeGraph, lastVisibleFrame_timeGraph);
+  const uint desiredNumVisibleFrames_timeGraph = 200;
+  while (numVisibleFrames_timeGraph < desiredNumVisibleFrames_timeGraph)
+  {
+    if (firstVisibleFrame_timeGraph == firstFrame && lastVisibleFrame_timeGraph + 1u == endFrame)
+      break;
 
+    if (firstVisibleFrame_timeGraph != firstFrame)
+      --firstVisibleFrame_timeGraph;
+    if (lastVisibleFrame_timeGraph + 1u != endFrame)
+      ++lastVisibleFrame_timeGraph;
+
+    numVisibleFrames_timeGraph = Profiling::GetNumFramesBetween(firstVisibleFrame_timeGraph, lastVisibleFrame_timeGraph);
+  }
+  RenderFrameTimeGraph(Profiling::GetNumFramesBetween(firstFrame, firstVisibleFrame_timeGraph), numVisibleFrames_timeGraph, 100.0, maxFrameDuration);
+  
   ImGui::End();
   ImGui::PopStyleColor();
 }
