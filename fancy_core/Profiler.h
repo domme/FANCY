@@ -1,46 +1,21 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
-#include "MathUtil.h"
 #include "CircularArray.h"
+
+#include <unordered_map>
 
 namespace Fancy
 {
-  /*
-  template<uint POOL_SIZE>
-  struct WrappedId
-  {
-    static_assert((POOL_SIZE & (POOL_SIZE - 1)) == 0, "POOL_SIZE must be power of two");
-
-    static uint GetWrapped(uint aVal) { return aVal % (POOL_SIZE - 1); }
-
-    explicit WrappedId(uint anId) : myValue(anId) {}
-    WrappedId() : myValue(UINT_MAX) {}
-
-    WrappedId& operator=(uint aVal) { myValue = aVal; return *this; }
-
-    operator uint() const { return myValue; }
-    WrappedId operator+(uint anOtherId) const { return WrappedId(GetWrapped(myValue + anOtherId)); }
-    WrappedId operator-(uint anOtherId) const { return WrappedId(GetWrapped(myValue - anOtherId)); }
-
-    void operator+=(uint anOtherId) { myValue = GetWrapped(myValue + anOtherId); }
-    WrappedId operator++(int) { WrappedId old(myValue); myValue = GetWrapped(myValue + 1u); return old; }
-    WrappedId& operator++() { myValue = GetWrapped(myValue + 1u); return *this; }
-
-    void operator-=(uint aVal) { myValue = GetWrapped(myValue - aVal); }
-    WrappedId operator--(int) { WrappedId old(myValue); myValue = GetWrapped(myValue - 1u); return old; }
-    WrappedId& operator--() { myValue = GetWrapped(myValue - 1u); return *this; }
-
-    uint myValue;
-  };
-  */
-
   struct Profiler
   {
+    Profiler() = delete;
+    ~Profiler() = delete;
+
     enum Consts
     {
       MAX_NAME_LENGTH = 128,
-      FRAME_POOL_SIZE = 1 << 11,
+      FRAME_POOL_SIZE = 1 << 9,
       SAMPLE_POOL_SIZE = 1 << 14,
       MAX_SAMPLE_DEPTH = 2048,
     };
@@ -53,20 +28,22 @@ namespace Fancy
 
     struct SampleNode
     {
-      uint myChild;
-      uint myNext;
       float64 myStart = 0.0;
       float64 myDuration = 0.0;
       uint64 myNodeInfo = 0u;
+      CircularArray<SampleNode>::Handle myChild;
+      CircularArray<SampleNode>::Handle myNext;
     };
 
     struct FrameData
     {
-      uint myFirstSample;
       uint64 myFrame = 0u;
       float64 myStart = 0.0;
       float64 myDuration = 0.0;
+      CircularArray<SampleNode>::Handle myFirstSample;
     };
+
+    using SampleHandle = CircularArray<SampleNode>::Handle;
 
     struct ScopedMarker
     {
@@ -74,8 +51,8 @@ namespace Fancy
       ~ScopedMarker();
     };
   
-    static uint PushMarker(const char* aName, uint8 aTag);
-    static uint PopMarker();
+    static void PushMarker(const char* aName, uint8 aTag);
+    static void PopMarker();
 
     static void Init();
     static void BeginFrame();
@@ -87,13 +64,7 @@ namespace Fancy
 
     static bool ourPauseRequested;
 
-  private: 
-    Profiler() = delete;
-    ~Profiler() = delete;
-
     static void FreeFirstFrame();
-    static uint AllocateSample();
-    static uint AllocateFrame();
 
     static CircularArray<FrameData> ourRecordedFrames;
     static CircularArray<SampleNode> ourRecordedSamples;

@@ -41,8 +41,8 @@ const char* FormatString(const char* aFmt, ...)
   va_start(args, aFmt);
 
   const int neededSize = vsnprintf(nullptr, 0u, aFmt, args) + 1;
-  ASSERT(neededSize < ARRAY_LENGTH(TextBuf));
-  const int offset = vsnprintf(TextBuf, ARRAY_LENGTH(TextBuf), aFmt, args);
+  ASSERT(neededSize < (int)ARRAY_LENGTH(TextBuf));
+  const int offset = vsnprintf(TextBuf, static_cast<size_t>(ARRAY_LENGTH(TextBuf)), aFmt, args);
   TextBuf[offset + 1] = '\0';
   va_end(args);
   return TextBuf;
@@ -140,13 +140,13 @@ void RenderNodeRecursive(const Profiler::SampleNode& aNode, float64 aTimeToPixel
 
   if (aNode.myChild != UINT_MAX)
   {
-    const Profiler::SampleNode& firstChild = recordedSamples.GetAtIndex(aNode.myChild);
+    const Profiler::SampleNode& firstChild = recordedSamples[aNode.myChild];
     RenderNodeRecursive(firstChild, aTimeToPixelScale, aFrameStartTime, aFrameStartPos, aDepth + 1);
   }
 
   if (aNode.myNext != UINT_MAX)
   {
-    const Profiler::SampleNode& nextNode = recordedSamples.GetAtIndex(aNode.myNext);
+    const Profiler::SampleNode& nextNode = recordedSamples[aNode.myNext];
     RenderNodeRecursive(nextNode, aTimeToPixelScale, aFrameStartTime, aFrameStartPos, aDepth);
   }
 }
@@ -288,7 +288,7 @@ void RenderRuler(float aTimeToPixelScale)
 //   ImGui::PlotHistogram("Frame times", FrameTimeGetter::Get, &args, aNumFrames, 0, nullptr ,0.0f, aMaxFrameTimePixelHeight, ImVec2(ImGui::GetWindowWidth(), aMaxFrameTimePixelHeight));
 // }
 
-void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aNumWindowFrames, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime)
+void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime)
 {
   if (aFirstWindowFrame == UINT_MAX)
     return;
@@ -297,17 +297,17 @@ void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aNumWindowFrames, float64
 
   // Determine the frame-range to display in the time-graph
   uint firstGraphFrame = aFirstWindowFrame;
-  uint lastGraphFrame = firstGraphFrame + (aNumWindowFrames - 1u);
-  uint numGraphFrames = aNumWindowFrames;
+  uint lastGraphFrame = aLastWindowFrame;
+  uint numGraphFrames = (aLastWindowFrame - aFirstWindowFrame) + 1u;
 
-  while (numGraphFrames < kNumGraphFrames && (firstGraphFrame != recordedFrames[0] || lastGraphFrame != lastRecordedFrame))
+  while (numGraphFrames < kNumGraphFrames && (firstGraphFrame != 0 || lastGraphFrame != recordedFrames.Size() - 1u))
   {
-    if (firstGraphFrame != firstRecordedFrame)
+    if (firstGraphFrame != 0)
     {
       --firstGraphFrame;
       ++numGraphFrames;
     }
-    if (lastGraphFrame != lastRecordedFrame)
+    if (lastGraphFrame != recordedFrames.Size() - 1u)
     {
       ++lastGraphFrame;
       ++numGraphFrames;
@@ -320,23 +320,17 @@ void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aNumWindowFrames, float64
   const ImVec4 kWindowFrameColor = ImVec4(0.6f, 0.59f, 0.98f, 0.40f);
   const ImVec4 kDefaultColor = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
   
-  FrameId selectedFrame = FrameId(UINT_MAX);
+  uint selectedFrame = UINT_MAX;
 
-  bool inWindowFrames = false;
-  uint numWindowFrames = 0u;
-  for (FrameId frame = firstGraphFrame, endFrame = firstGraphFrame + numGraphFrames; frame != endFrame; ++frame)
+  for (uint i = firstGraphFrame; i <= lastGraphFrame; ++i)
   {
-    if (!inWindowFrames)
-      inWindowFrames = frame == aFirstWindowFrame;
-    else if (numWindowFrames++ >= aNumWindowFrames)
-      inWindowFrames = false;
-
-    const ImVec4 color = inWindowFrames ? kWindowFrameColor : kDefaultColor;
+    const bool isWindowFrame = i >= aFirstWindowFrame && i <= aLastWindowFrame;
+    const ImVec4 color = isWindowFrame ? kWindowFrameColor : kDefaultColor;
     ImGui::PushStyleColor(ImGuiCol_Button, color);
 
-    const FrameData& frameData = Profiler::GetFrameData(frame);
+    const Profiler::FrameData& frameData = recordedFrames[i];
     if (ImGui::Button("", ImVec2(itemWidth, itemHeightScale * frameData.myDuration)))
-      selectedFrame = frame;
+      selectedFrame = i;
 
     ImGui::PopStyleColor();
     ImGui::SameLine(0, 0.1f);
@@ -442,7 +436,7 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
 
     RenderFrameHeader(frameSize, frameGraphSize.y, frameData);
 
-    const Profiler::SampleNode& node = recordedSamples.GetAtIndex(frameData.myFirstSample);
+    const Profiler::SampleNode& node = recordedSamples[frameData.myFirstSample];
     RenderNodeRecursive(node, timeToPixelScale, frameData.myStart, ToGlobalPos(ImGui::GetCursorPos()), 0);
 
     ImGui::SetCursorPos(ImVec2(framePos + frameSize + 1.0f, frameGraphStart.y));
@@ -455,7 +449,7 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
 
   ImGui::Separator();
 
-  RenderFrameTimeGraph(firstWindowFrame, lastWindowFrame - firstWindowFrame + 1, 100.0, maxFrameDuration);
+  RenderFrameTimeGraph(firstWindowFrame, lastWindowFrame, 100.0, maxFrameDuration);
   
   ImGui::End();
   ImGui::PopStyleColor();

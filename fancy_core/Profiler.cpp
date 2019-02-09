@@ -13,8 +13,8 @@ namespace Fancy
     uint locSampleDepth = 0u;
     Profiler::FrameData locCurrFrame;
     bool locPaused = false;
-    uint locSampleStack[Profiler::MAX_SAMPLE_DEPTH];
-    uint locTailSampleStack[Profiler::MAX_SAMPLE_DEPTH];
+    Profiler::SampleHandle locSampleStack[Profiler::MAX_SAMPLE_DEPTH];
+    Profiler::SampleHandle locTailSampleStack[Profiler::MAX_SAMPLE_DEPTH];
   }
 
   bool Profiler::ourPauseRequested = false;
@@ -43,7 +43,7 @@ namespace Fancy
     ourRecordedFrames.RemoveFirstElement();
 
     const FrameData& nextFrame = ourRecordedFrames[0];
-    while (ourRecordedSamples.GetFirstIndex() != nextFrame.myFirstSample)
+    while (ourRecordedSamples.GetHandle(0) != nextFrame.myFirstSample)
       ourRecordedSamples.RemoveFirstElement();
   }
 //---------------------------------------------------------------------------//
@@ -53,28 +53,10 @@ namespace Fancy
     return now.count();
   }
 //---------------------------------------------------------------------------//
-  uint Profiler::AllocateSample()
-  {
-    if (ourRecordedSamples.IsFull())
-      FreeFirstFrame();
-
-    ourRecordedSamples.Add();
-    return ourRecordedSamples.GetLastIndex();
-  }
-//---------------------------------------------------------------------------//
-  uint Profiler::AllocateFrame()
-  {
-    if (ourRecordedFrames.IsFull())
-      FreeFirstFrame();
-
-    ourRecordedFrames.Add();
-    return ourRecordedFrames.GetLastIndex();
-  }
-//---------------------------------------------------------------------------//
-  uint Profiler::PushMarker(const char* aName, uint8 aTag)
+  void Profiler::PushMarker(const char* aName, uint8 aTag)
   {
     if (locPaused)
-      return UINT_MAX;
+      return;
 
     ASSERT(locSampleDepth < MAX_SAMPLE_DEPTH);
 
@@ -90,47 +72,39 @@ namespace Fancy
       info.myTag = aTag;
     }
 
-    const uint sampleId = AllocateSample();
-    SampleNode& sample = ourRecordedSamples.GetAtIndex(sampleId);
-    sample.myNodeInfo = hash;
-    sample.myStart = SampleTimeMs();
-    sample.myDuration = 0u;
-    sample.myNext = UINT_MAX;
-    sample.myChild = UINT_MAX;
-    
-    locSampleStack[locSampleDepth++] = sampleId;
+    if (ourRecordedSamples.IsFull())
+      FreeFirstFrame();
 
-    return sampleId;
+    ourRecordedSamples.Add({ SampleTimeMs(), 0.0, hash });
+    locSampleStack[locSampleDepth++] = ourRecordedSamples.GetHandle(ourRecordedSamples.Size() - 1u);
   }
 //---------------------------------------------------------------------------//
-  uint Profiler::PopMarker()
+  void Profiler::PopMarker()
   {
     if (locPaused)
-      return UINT_MAX;
+      return;
 
     ASSERT(locSampleDepth > 0u);
 
-    const uint sampleId = locSampleStack[--locSampleDepth];
-    SampleNode& sample = ourRecordedSamples.GetAtIndex(sampleId);
+    const SampleHandle sampleHandle = locSampleStack[--locSampleDepth];
+    SampleNode& sample = ourRecordedSamples[sampleHandle];
     sample.myDuration = SampleTimeMs() - sample.myStart;
 
     if (locSampleDepth == 0 && locCurrFrame.myFirstSample == UINT_MAX)  // First child of frame?
     {
-      locCurrFrame.myFirstSample = sampleId;
+      locCurrFrame.myFirstSample = sampleHandle;
     }
     else if (locSampleDepth > 0 && 
-      ourRecordedSamples.GetAtIndex(locSampleStack[locSampleDepth - 1]).myChild == UINT_MAX)  // First child of parent?
+      ourRecordedSamples[locSampleStack[locSampleDepth - 1]].myChild == UINT_MAX)  // First child of parent?
     {
-      ourRecordedSamples.GetAtIndex(locSampleStack[locSampleDepth - 1]).myChild = sampleId;
+      ourRecordedSamples[locSampleStack[locSampleDepth - 1]].myChild = sampleHandle;
     }
     else
     {
-      const uint lastNodeOnLevel = locTailSampleStack[locSampleDepth];
-      ourRecordedSamples.GetAtIndex(lastNodeOnLevel).myNext = sampleId;
+      const SampleHandle lastSampleOnLevel = locTailSampleStack[locSampleDepth];
+      ourRecordedSamples[lastSampleOnLevel].myNext = sampleHandle;
     }
-    locTailSampleStack[locSampleDepth] = sampleId;
-
-    return sampleId;
+    locTailSampleStack[locSampleDepth] = sampleHandle;
   }
 //---------------------------------------------------------------------------//
   void Profiler::BeginFrame()
@@ -140,17 +114,18 @@ namespace Fancy
     // Finalize the last frame
     if (!locPaused && locCurrFrame.myFirstSample != UINT_MAX)  // We have samples in this frame
     {
+      if (ourRecordedFrames.IsFull())
+        FreeFirstFrame();
+
       locCurrFrame.myDuration = SampleTimeMs() - locCurrFrame.myStart;
-      LOG_INFO("Frame duration: %", locCurrFrame.myDuration);
-      const uint allocFrameIdx = AllocateFrame();
-      ourRecordedFrames.GetAtIndex(allocFrameIdx) = locCurrFrame;
+      ourRecordedFrames.Add(locCurrFrame);
     }
 
     // Start the next frame
     locPaused = ourPauseRequested;
     if (!locPaused)
     {
-      locCurrFrame.myFirstSample = UINT_MAX;
+      locCurrFrame.myFirstSample.myIndex = UINT_MAX;
       locCurrFrame.myDuration = 0u;
       locCurrFrame.myStart = SampleTimeMs();
       locCurrFrame.myFrame = Time::ourFrameIdx;

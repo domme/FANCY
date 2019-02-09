@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
+#include "Log.h"
 
 namespace Fancy
 {
@@ -8,10 +9,26 @@ namespace Fancy
   class CircularArray
   {
   public:
+    struct Handle
+    {
+      void operator=(const Handle& anOther) { myIndex = anOther.myIndex; }
+
+      bool operator==(const Handle& anOther) const { return myIndex == anOther.myIndex; }
+      bool operator!=(const Handle& anOther) const { return myIndex != anOther.myIndex; }
+      
+      bool operator==(uint anIndex) const { return myIndex == anIndex; }
+      bool operator!=(uint anIndex) const { return myIndex != anIndex; }
+
+      const T* Get(CircularArray<T>& anArray) const { return myIndex < anArray.myCapacity ? &anArray.myBuffer[myIndex] : nullptr; }
+
+      uint myIndex = UINT_MAX;
+    };
+
     CircularArray(uint aCapacity)
       : myBuffer(new T[aCapacity])
         , myHead(0u)
         , myTail(0u)
+        , mySize(0u)
         , myCapacity(aCapacity)
     {
     }
@@ -21,55 +38,41 @@ namespace Fancy
       delete[] myBuffer;
     }
 
-    T& GetAtIndex(uint anIndex) { ASSERT(anIndex < myCapacity); return myBuffer[anIndex]; }
-    const T& GetAtIndex(uint anIndex) const { ASSERT(anIndex < myCapacity); return myBuffer[anIndex]; }
-    bool IsFull() const { return (myTail + 1u) % myCapacity == myHead; }
-    bool IsEmpty() const { return myHead == myTail; }
+    bool IsFull() const { return mySize == myCapacity; }
+    bool IsEmpty() const { return mySize == 0u; }
     uint Capacity() const { return myCapacity; }
-    uint GetFirstIndex() const { return myHead; }
-    uint GetLastIndex() const { return myTail; }
+    uint Size() const { return mySize; }
     T* GetBuffer() { return myBuffer; }
 
-    const T& operator[](uint anIndex) const
-    {
-      const uint size = Size();
-      return myBuffer[myHead + (anIndex % size)];
-    }
+    uint GetBufferIndex(uint anElement) const { ASSERT(anElement < Size()); return (myHead + anElement) % myCapacity; }
+    Handle GetHandle(uint anElement) { return { GetBufferIndex(anElement) }; }
 
-    T& operator[](uint anIndex)
-    {
-      const uint size = Size();
-      return myBuffer[myHead + (anIndex % size)];
-    }
+    T& operator[](uint anElement) { ASSERT(anElement < Size()); return myBuffer[(myHead + anElement) % myCapacity]; }
+    const T& operator[](uint anElement) const { ASSERT(anElement < Size()); return myBuffer[(myHead + anElement) % myCapacity]; }
 
-    uint Size() const
-    {
-      const uint tailUnwrapped = myTail < myHead ? myTail + myCapacity : myTail;
-      return (tailUnwrapped - myHead) + 1u;
-    }
-
-    T& Add()
-    {
-      ASSERT(!IsFull());
-      myTail = myTail == (myCapacity - 1u) ? 0 : myTail + 1u;
-      return myBuffer[myTail];
-    }
+    T& operator[](Handle aHandle) { ASSERT(aHandle.myIndex < myCapacity); return myBuffer[aHandle.myIndex]; }
+    const T& operator[](Handle aHandle) const { ASSERT(aHandle.myIndex < myCapacity); return myBuffer[aHandle.myIndex]; }
 
     void Add(T aVal)
     {
-      T& newElement = Add();
-      newElement = std::move(aVal);
+      ASSERT(!IsFull());
+      const uint tail = myTail;
+      myTail = myTail == (myCapacity - 1u) ? 0 : myTail + 1u;
+      ++mySize;
+      myBuffer[tail] = std::move(aVal);
     }
 
     void RemoveLastElement()
     {
       ASSERT(!IsEmpty());
+      --mySize;
       myTail = myTail == 0 ? (myCapacity - 1u) : myTail - 1u;
     }
 
     void RemoveFirstElement()
     {
       ASSERT(!IsEmpty());
+      --mySize;
       myHead = myHead == myCapacity - 1u ? 0 : myHead + 1u;
     }
 
@@ -77,6 +80,7 @@ namespace Fancy
     T* myBuffer;
     uint myHead;
     uint myTail;
+    uint mySize;
     const uint myCapacity;
   };
 }
