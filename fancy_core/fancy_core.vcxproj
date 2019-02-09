@@ -69,6 +69,7 @@
     <ClInclude Include="BinaryCache.h" />
     <ClInclude Include="BlendState.h" />
     <ClInclude Include="Callback.h" />
+    <ClInclude Include="CircularArray.h" />
     <ClInclude Include="CommandContext.h" />
     <ClInclude Include="CommandContextDX12.h" />
     <ClInclude Include="CommandQueue.h" />
@@ -88,7 +89,7 @@
     <ClInclude Include="GpuResourceViewDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />
     <ClInclude Include="MathIncludes.h" />
-    <ClInclude Include="Profiling.h" />
+    <ClInclude Include="Profiler.h" />
     <ClInclude Include="Ptr.h" />
     <ClInclude Include="RenderEnums.h" />
     <ClInclude Include="TempResourcePool.h" />
@@ -181,7 +182,7 @@
     <ClCompile Include="GpuProgramFeatures.cpp" />
     <ClCompile Include="GpuProgramPipeline.cpp" />
     <ClCompile Include="GpuRingBuffer.cpp" />
-    <ClCompile Include="Profiling.cpp" />
+    <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="TempResourcePool.cpp" />
     <ClCompile Include="Input.cpp" />

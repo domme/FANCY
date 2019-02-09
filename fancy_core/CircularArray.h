@@ -21,10 +21,26 @@ namespace Fancy
       delete[] myBuffer;
     }
 
+    T& GetAtIndex(uint anIndex) { ASSERT(anIndex < myCapacity); return myBuffer[anIndex]; }
+    const T& GetAtIndex(uint anIndex) const { ASSERT(anIndex < myCapacity); return myBuffer[anIndex]; }
     bool IsFull() const { return (myTail + 1u) % myCapacity == myHead; }
     bool IsEmpty() const { return myHead == myTail; }
     uint Capacity() const { return myCapacity; }
+    uint GetFirstIndex() const { return myHead; }
+    uint GetLastIndex() const { return myTail; }
     T* GetBuffer() { return myBuffer; }
+
+    const T& operator[](uint anIndex) const
+    {
+      const uint size = Size();
+      return myBuffer[myHead + (anIndex % size)];
+    }
+
+    T& operator[](uint anIndex)
+    {
+      const uint size = Size();
+      return myBuffer[myHead + (anIndex % size)];
+    }
 
     uint Size() const
     {

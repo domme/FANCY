@@ -2,9 +2,11 @@
 
 #include "FancyCoreDefines.h"
 #include "MathUtil.h"
+#include "CircularArray.h"
 
 namespace Fancy
 {
+  /*
   template<uint POOL_SIZE>
   struct WrappedId
   {
@@ -31,8 +33,9 @@ namespace Fancy
 
     uint myValue;
   };
+  */
 
-  namespace Profiling
+  struct Profiler
   {
     enum Consts
     {
@@ -42,9 +45,6 @@ namespace Fancy
       MAX_SAMPLE_DEPTH = 2048,
     };
 
-    using SampleId = WrappedId<SAMPLE_POOL_SIZE>;
-    using FrameId = WrappedId<FRAME_POOL_SIZE>;
-
     struct SampleNodeInfo
     {
       char myName[MAX_NAME_LENGTH];
@@ -53,8 +53,8 @@ namespace Fancy
 
     struct SampleNode
     {
-      SampleId myChild;
-      SampleId myNext;
+      uint myChild;
+      uint myNext;
       float64 myStart = 0.0;
       float64 myDuration = 0.0;
       uint64 myNodeInfo = 0u;
@@ -62,7 +62,7 @@ namespace Fancy
 
     struct FrameData
     {
-      SampleId myFirstSample;
+      uint myFirstSample;
       uint64 myFrame = 0u;
       float64 myStart = 0.0;
       float64 myDuration = 0.0;
@@ -74,24 +74,31 @@ namespace Fancy
       ~ScopedMarker();
     };
   
-    uint PushMarker(const char* aName, uint8 aTag);
-    uint PopMarker();
+    static uint PushMarker(const char* aName, uint8 aTag);
+    static uint PopMarker();
 
-    void Init();
-    void BeginFrame();
-    void EndFrame();
+    static void Init();
+    static void BeginFrame();
+    static void EndFrame();
 
-    FrameId GetLastFrame();
-    FrameId GetFirstFrame();
+    static const CircularArray<FrameData>& GetRecordedFrames() { return ourRecordedFrames; }
+    static const CircularArray<SampleNode>& GetRecordedSamples() { return ourRecordedSamples; }
+    static const SampleNodeInfo& GetSampleInfo(uint64 anInfoId);
 
-    uint GetNumFramesBetween(FrameId aFirstFrame, FrameId aLastFrame);
-    uint GetNumRecordedFrames();
+    static bool ourPauseRequested;
 
-    const FrameData& GetFrameData(FrameId aFrameId);
-    const SampleNode& GetSampleData(SampleId aSampleId);
-    const SampleNodeInfo& GetSampleInfo(uint64 anInfoId);
-    void SetPaused(bool aPause);
+  private: 
+    Profiler() = delete;
+    ~Profiler() = delete;
+
+    static void FreeFirstFrame();
+    static uint AllocateSample();
+    static uint AllocateFrame();
+
+    static CircularArray<FrameData> ourRecordedFrames;
+    static CircularArray<SampleNode> ourRecordedSamples;
+    static std::unordered_map<uint64, SampleNodeInfo> ourNodeInfoPool;
   };
 
-#define PROFILE_FUNCTION(...) Profiling::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)
+#define PROFILE_FUNCTION(...) Profiler::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)
 }

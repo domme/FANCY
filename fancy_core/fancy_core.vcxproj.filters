@@ -293,7 +293,10 @@
     <ClInclude Include="TextureData.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Profiling.h">
+    <ClInclude Include="CircularArray.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Profiler.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
@@ -440,7 +443,7 @@
     <ClCompile Include="TextureData.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Profiling.cpp">
+    <ClCompile Include="Profiler.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>

@@ -10,7 +10,7 @@
 #include "Log.h"
 #include "CommandQueue.h"
 #include "RenderOutput.h"
-#include "Profiling.h"
+#include "Profiler.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -34,7 +34,7 @@ namespace Fancy {
       return ourInstance;
 
     // Init profiler
-    Profiling::Init();
+    Profiler::Init();
 
     // Init IO-subsystem
     Resources::InitResourceFolders();
@@ -74,7 +74,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void FancyRuntime::BeginFrame()
   {
-    Profiling::BeginFrame();
+    Profiler::BeginFrame();
 
     if (myRealTimeClock.GetElapsed() == 0.0f)
       DoFirstFrameTasks();
@@ -92,7 +92,7 @@ namespace Fancy {
     myRenderOutput->EndFrame();
     RenderCore::EndFrame();
 
-    Profiling::EndFrame();
+    Profiler::EndFrame();
 
     ++Time::ourFrameIdx;
   }

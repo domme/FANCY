@@ -8,7 +8,7 @@
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/CommandQueue.h>
-#include <fancy_core/Profiling.h>
+#include <fancy_core/Profiler.h>
 #include <fancy_core/MathUtil.h>
 #include <fancy_core/Input.h>
 
