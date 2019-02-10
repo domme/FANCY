@@ -15,7 +15,7 @@ namespace Fancy
     enum Consts
     {
       MAX_NAME_LENGTH = 128,
-      FRAME_POOL_SIZE = 1 << 9,
+      FRAME_POOL_SIZE = 1 << 11,
       SAMPLE_POOL_SIZE = 1 << 14,
       MAX_SAMPLE_DEPTH = 2048,
     };
