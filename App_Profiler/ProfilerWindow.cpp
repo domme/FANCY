@@ -264,30 +264,6 @@ void RenderRuler(float aTimeToPixelScale)
   ImGui::SetCursorPos(startPosLocal);
 }
 
-// void RenderFrameTimeGraph(uint anOffsetFromFirstFrame, uint aNumFrames, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime)
-// {
-//   struct FrameGetterArgs
-//   {
-//     float myScale = 1.0f;
-//     uint myOffsetFromFirst = 0;
-//   };
-// 
-//   struct FrameTimeGetter
-//   {
-//     static float Get(void* data, int idx)
-//     {
-//       const FrameGetterArgs* args = static_cast<const FrameGetterArgs*>(data);
-//       FrameId firstFrame = Profiler::GetFirstFrame() + args->myOffsetFromFirst;
-// 
-//       FrameId id = firstFrame + (uint)idx;
-//       return static_cast<float>(Profiler::GetFrameData(id).myDuration * args->myScale);
-//     }
-//   };
-// 
-//   FrameGetterArgs args{ (float)(aMaxFrameTimePixelHeight / aMaxFrameTime), anOffsetFromFirstFrame };
-//   ImGui::PlotHistogram("Frame times", FrameTimeGetter::Get, &args, aNumFrames, 0, nullptr ,0.0f, aMaxFrameTimePixelHeight, ImVec2(ImGui::GetWindowWidth(), aMaxFrameTimePixelHeight));
-// }
-
 void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime)
 {
   if (aFirstWindowFrame == UINT_MAX)
