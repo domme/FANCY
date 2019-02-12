@@ -143,7 +143,27 @@ namespace Fancy {
       default: 
         ASSERT(false, "Missing implementation"); return D3D12_RESOURCE_DIMENSION_UNKNOWN;
     }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_QUERY_TYPE Adapter::ResolveQueryType(QueryType aQueryType)
+  {
+    switch(aQueryType) { 
+      case QueryType::TIMESTAMP: return D3D12_QUERY_TYPE_TIMESTAMP;
+      case QueryType::OCCLUSION: return D3D12_QUERY_TYPE_OCCLUSION;
+      default: 
+        ASSERT(false, "Missing implementation"); return D3D12_QUERY_TYPE_TIMESTAMP;
+    }
 }
+//---------------------------------------------------------------------------//
+  D3D12_QUERY_HEAP_TYPE Adapter::ResolveQueryHeapType(QueryType aQueryType)
+  {
+    switch (aQueryType) {
+    case QueryType::TIMESTAMP: return D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+    case QueryType::OCCLUSION: return D3D12_QUERY_HEAP_TYPE_OCCLUSION;
+    default:
+      ASSERT(false, "Missing implementation"); return D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+    }
+  }
 //---------------------------------------------------------------------------//
 	D3D12_BLEND Adapter::toNativeType(const BlendInput& generalType) 
 	{

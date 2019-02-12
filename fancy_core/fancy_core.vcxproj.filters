@@ -299,6 +299,15 @@
     <ClInclude Include="Profiler.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="GpuQueryAllocator.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuQueryHeap.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuQueryHeapDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -445,6 +454,15 @@
     </ClCompile>
     <ClCompile Include="Profiler.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuQueryAllocator.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuQueryHeap.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuQueryHeapDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

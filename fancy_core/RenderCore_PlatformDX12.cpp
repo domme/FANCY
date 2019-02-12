@@ -17,6 +17,7 @@
 #include "CommandContextDX12.h"
 #include "GpuResourceDataDX12.h"
 #include "AdapterDX12.h"
+#include "GpuQueryHeapDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -271,6 +272,11 @@ namespace Fancy {
   GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName /* = nullptr */)
   {
     return new GpuBufferViewDX12(aBuffer, someProperties);
+  }
+//---------------------------------------------------------------------------//
+  GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(QueryType aType, uint aNumQueries)
+  {
+    return new GpuQueryHeapDX12(aType, aNumQueries);
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
