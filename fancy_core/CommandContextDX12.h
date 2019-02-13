@@ -51,6 +51,7 @@ namespace Fancy {
     void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
     void BeginQuery(const GpuQuery& aQuery) override;
     void EndQuery(const GpuQuery& aQuery) override;
+    void InsertTimestamp(const GpuQuery& aQuery) override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;
     void Dispatch(const glm::int3& aNumThreads) override;

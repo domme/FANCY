@@ -37,7 +37,7 @@ namespace Fancy {
   struct TextureProperties;
   struct TextureSubData;
   class String;
-  class GpuQueryAllocator;
+  class GpuQueryHeap;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -150,7 +150,7 @@ namespace Fancy {
 
     static UniquePtr<TempResourcePool> ourTempResourcePool;
 
-    static UniquePtr<GpuQueryAllocator> ourQueryAllocators[(uint)QueryType::NUM];
+    static UniquePtr<GpuQueryHeap> ourQueryHeaps[(uint)QueryType::NUM];
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

@@ -16,6 +16,8 @@
 #include "GeometryData.h"
 #include "GpuResourceDataDX12.h"
 #include "GpuResourceViewDX12.h"
+#include "TimeManager.h"
+#include "GpuQueryHeapDX12.h"
 
 namespace Fancy { 
 //---------------------------------------------------------------------------//
@@ -854,10 +856,33 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::BeginQuery(const GpuQuery& aQuery)
   {
+    ASSERT(aQuery.myFrame == Time::ourFrameIdx);
+    ASSERT(aQuery.myType != QueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
+
+    GpuQueryHeapDX12* queryHeapDx12 = (GpuQueryHeapDX12*)aQuery.myHeap;
+    D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aQuery.myType);
+
+    myCommandList->BeginQuery(queryHeapDx12->myHeap.Get(), queryTypeDx12, aQuery.myIndexInHeap);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::EndQuery(const GpuQuery& aQuery)
   {
+    ASSERT(aQuery.myFrame == Time::ourFrameIdx);
+    ASSERT(aQuery.myType != QueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
+
+    GpuQueryHeapDX12* queryHeapDx12 = (GpuQueryHeapDX12*)aQuery.myHeap;
+    D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aQuery.myType);
+
+    myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), queryTypeDx12, aQuery.myIndexInHeap);
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::InsertTimestamp(const GpuQuery& aQuery)
+  {
+    ASSERT(aQuery.myFrame == Time::ourFrameIdx);
+    ASSERT(aQuery.myType == QueryType::TIMESTAMP);
+
+    GpuQueryHeapDX12* queryHeapDx12 = (GpuQueryHeapDX12*)aQuery.myHeap;
+    myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, aQuery.myIndexInHeap);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)

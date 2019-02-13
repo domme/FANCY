@@ -10,7 +10,6 @@ namespace Fancy
     GpuQueryHeapDX12(QueryType aQueryType, uint aNumQueries);
     ~GpuQueryHeapDX12() override = default;
 
-  protected:
     Microsoft::WRL::ComPtr<ID3D12QueryHeap> myHeap;
   };
 }

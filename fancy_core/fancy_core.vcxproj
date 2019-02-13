@@ -86,7 +86,6 @@
     <ClInclude Include="GpuMemoryAllocationDX12.h" />
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
     <ClInclude Include="GpuQuery.h" />
-    <ClInclude Include="GpuQueryAllocator.h" />
     <ClInclude Include="GpuQueryHeap.h" />
     <ClInclude Include="GpuQueryHeapDX12.h" />
     <ClInclude Include="GpuResourceView.h" />
@@ -185,7 +184,6 @@
     <ClCompile Include="GpuProgramDX12.cpp" />
     <ClCompile Include="GpuProgramFeatures.cpp" />
     <ClCompile Include="GpuProgramPipeline.cpp" />
-    <ClCompile Include="GpuQueryAllocator.cpp" />
     <ClCompile Include="GpuQueryHeap.cpp" />
     <ClCompile Include="GpuQueryHeapDX12.cpp" />
     <ClCompile Include="GpuRingBuffer.cpp" />

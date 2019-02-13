@@ -19,11 +19,10 @@
 #include "RenderOutput.h"
 #include "CommandContext.h"
 #include "MeshData.h"
-#include "CommandContextDX12.h"
 #include "TextureProperties.h"
 #include "Texture.h"
 #include "TempResourcePool.h"
-#include "GpuQueryAllocator.h"
+#include "GpuQueryHeap.h"
 
 #include <xxHash/xxhash.h>
 
@@ -115,8 +114,8 @@ namespace Fancy {
   {
     ourTempResourcePool->Reset();
 
-    for (auto& queryAllocator : ourQueryAllocators)
-      queryAllocator->BeginFrame();
+    for (auto& queryHeap : ourQueryHeaps)
+      queryHeap->Reset();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
@@ -222,10 +221,8 @@ namespace Fancy {
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
 
-    ourQueryAllocators[(uint)QueryType::OCCLUSION].reset(
-      new GpuQueryAllocator(ourPlatformImpl->CreateQueryHeap(QueryType::OCCLUSION, 1024)));
-    ourQueryAllocators[(uint)QueryType::TIMESTAMP].reset(
-      new GpuQueryAllocator(ourPlatformImpl->CreateQueryHeap(QueryType::TIMESTAMP, 4096)));
+    ourQueryHeaps[(uint)QueryType::OCCLUSION].reset(ourPlatformImpl->CreateQueryHeap(QueryType::OCCLUSION, 1024));
+    ourQueryHeaps[(uint)QueryType::TIMESTAMP].reset(ourPlatformImpl->CreateQueryHeap(QueryType::TIMESTAMP, 4096));
 
     {
       ShaderVertexInputLayout& modelVertexLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
@@ -809,7 +806,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuQuery RenderCore::AllocateQuery(QueryType aType)
   {
-    return ourQueryAllocators[(uint)aType]->Allocate();
+    return ourQueryHeaps[(uint)aType]->Allocate();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForFence(uint64 aFenceVal)
