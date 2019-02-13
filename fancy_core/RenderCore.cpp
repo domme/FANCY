@@ -23,6 +23,7 @@
 #include "TextureProperties.h"
 #include "Texture.h"
 #include "TempResourcePool.h"
+#include "GpuQueryAllocator.h"
 
 #include <xxHash/xxhash.h>
 
@@ -113,6 +114,9 @@ namespace Fancy {
   void RenderCore::BeginFrame()
   {
     ourTempResourcePool->Reset();
+
+    for (auto& queryAllocator : ourQueryAllocators)
+      queryAllocator->BeginFrame();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
@@ -217,6 +221,11 @@ namespace Fancy {
     ourShaderFileWatcher->myOnFileDeletedMoved.Connect(onDeletedFn);
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
+
+    ourQueryAllocators[(uint)QueryType::OCCLUSION].reset(
+      new GpuQueryAllocator(ourPlatformImpl->CreateQueryHeap(QueryType::OCCLUSION, 1024)));
+    ourQueryAllocators[(uint)QueryType::TIMESTAMP].reset(
+      new GpuQueryAllocator(ourPlatformImpl->CreateQueryHeap(QueryType::TIMESTAMP, 4096)));
 
     {
       ShaderVertexInputLayout& modelVertexLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
@@ -796,6 +805,11 @@ namespace Fancy {
   TempBufferResource RenderCore::AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName)
   {
     return ourTempResourcePool->AllocateBuffer(someProps, someFlags, aName);
+  }
+//---------------------------------------------------------------------------//
+  GpuQuery RenderCore::AllocateQuery(QueryType aType)
+  {
+    return ourQueryAllocators[(uint)aType]->Allocate();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForFence(uint64 aFenceVal)

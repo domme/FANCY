@@ -10,7 +10,6 @@ namespace Fancy
     GpuQueryHeap(QueryType aQueryType, uint aNumQueries);
     virtual ~GpuQueryHeap() = 0;
 
-  protected:
     QueryType myType;
     uint myNumQueries;
   };

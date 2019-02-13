@@ -10,6 +10,7 @@
 
 #include <map>
 #include <list>
+#include "GpuQuery.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -36,6 +37,7 @@ namespace Fancy {
   struct TextureProperties;
   struct TextureSubData;
   class String;
+  class GpuQueryAllocator;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -92,6 +94,8 @@ namespace Fancy {
     static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
     static TempBufferResource AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName);
 
+    static GpuQuery AllocateQuery(QueryType aType);
+
     static void WaitForFence(uint64 aFenceVal);
     static void WaitForIdle(CommandListType aType);
     static void WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset = 0, uint aNumSubresources = UINT_MAX);
@@ -145,6 +149,8 @@ namespace Fancy {
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
 
     static UniquePtr<TempResourcePool> ourTempResourcePool;
+
+    static UniquePtr<GpuQueryAllocator> ourQueryAllocators[(uint)QueryType::NUM];
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);

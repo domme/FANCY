@@ -85,6 +85,7 @@
     <ClInclude Include="GpuBufferProperties.h" />
     <ClInclude Include="GpuMemoryAllocationDX12.h" />
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
+    <ClInclude Include="GpuQuery.h" />
     <ClInclude Include="GpuQueryAllocator.h" />
     <ClInclude Include="GpuQueryHeap.h" />
     <ClInclude Include="GpuQueryHeapDX12.h" />

@@ -852,6 +852,14 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  void CommandContextDX12::BeginQuery(const GpuQuery& aQuery)
+  {
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::EndQuery(const GpuQuery& aQuery)
+  {
+  }
+//---------------------------------------------------------------------------//
   void CommandContextDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
   {
     CommandContext::SetGpuProgramPipeline(aGpuProgramPipeline);
