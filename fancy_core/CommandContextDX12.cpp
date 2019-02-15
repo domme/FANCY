@@ -860,7 +860,7 @@ namespace Fancy {
     ASSERT(aQuery.myType != QueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
 
     GpuQueryHeapDX12* queryHeapDx12 = (GpuQueryHeapDX12*)aQuery.myHeap;
-    D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aQuery.myType);
+    const D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aQuery.myType);
 
     myCommandList->BeginQuery(queryHeapDx12->myHeap.Get(), queryTypeDx12, aQuery.myIndexInHeap);
   }
@@ -871,7 +871,7 @@ namespace Fancy {
     ASSERT(aQuery.myType != QueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
 
     GpuQueryHeapDX12* queryHeapDx12 = (GpuQueryHeapDX12*)aQuery.myHeap;
-    D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aQuery.myType);
+    CONST D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aQuery.myType);
 
     myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), queryTypeDx12, aQuery.myIndexInHeap);
   }
