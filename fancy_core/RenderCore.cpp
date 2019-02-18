@@ -25,6 +25,7 @@
 #include "GpuQueryHeap.h"
 
 #include <xxHash/xxhash.h>
+#include "GpuQueryStorage.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -826,8 +827,34 @@ namespace Fancy {
 
     if (!ourAvailableQueryStorages[(uint) aType].empty())
     {
-      
+      GpuQueryStorage* storage = ourAvailableQueryStorages[(uint)aType].front();
+      ourAvailableQueryStorages[(uint)aType].pop_front();
+      return storage;
     }
+
+    uint numQueries = 0;
+    switch (aType)
+    {
+      case QueryType::TIMESTAMP: numQueries = 4096; break;
+      case QueryType::OCCLUSION: numQueries = 1024; break;
+      case QueryType::NUM:
+      default: ASSERT(false);
+    }
+
+    UniquePtr<GpuQueryStorage> storage(new GpuQueryStorage());
+    storage->myQueryHeap.reset(ourPlatformImpl->CreateQueryHeap(aType, numQueries));
+
+    GpuBufferProperties bufferProps;
+    bufferProps.myUsage = GpuBufferUsage::STAGING_READBACK;
+    bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_READ;
+    bufferProps.myElementSizeBytes = sizeof(uint64);
+    bufferProps.myNumElements = numQueries;
+    storage->myReadbackBuffer = CreateBuffer(bufferProps, "Query readback buffer");
+
+    GpuQueryStorage* returnStorage = storage.get();
+    ourQueryStoragePool[(uint)aType].push_back(std::move(storage));
+
+    return returnStorage;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::ReleaseQueryStorage(GpuQueryStorage* aStorage, uint64 aFenceVal)
