@@ -88,6 +88,7 @@
     <ClInclude Include="GpuQuery.h" />
     <ClInclude Include="GpuQueryHeap.h" />
     <ClInclude Include="GpuQueryHeapDX12.h" />
+    <ClInclude Include="GpuQueryStorage.h" />
     <ClInclude Include="GpuResourceView.h" />
     <ClInclude Include="GpuResourceViewDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />

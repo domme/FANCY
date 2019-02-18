@@ -113,9 +113,6 @@ namespace Fancy {
   void RenderCore::BeginFrame()
   {
     ourTempResourcePool->Reset();
-
-    for (auto& queryHeap : ourQueryHeaps)
-      queryHeap->Reset();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
@@ -220,9 +217,6 @@ namespace Fancy {
     ourShaderFileWatcher->myOnFileDeletedMoved.Connect(onDeletedFn);
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
-
-    ourQueryHeaps[(uint)QueryType::OCCLUSION].reset(ourPlatformImpl->CreateQueryHeap(QueryType::OCCLUSION, 1024));
-    ourQueryHeaps[(uint)QueryType::TIMESTAMP].reset(ourPlatformImpl->CreateQueryHeap(QueryType::TIMESTAMP, 4096));
 
     {
       ShaderVertexInputLayout& modelVertexLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
@@ -371,6 +365,28 @@ namespace Fancy {
       }
       else
         ++it;
+    }
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::UpdateAvailableQueryStorages()
+  {
+    for (uint i = 0u; i < (uint) QueryType::NUM; ++i)
+    {
+      auto it = ourUsedQueryStoages[i].begin();
+      while (it != ourUsedQueryStoages[i].end())
+      {
+        uint64 fence = it->first;
+        GpuQueryStorage* queryStorage = it->second;
+
+        CommandQueue* queue = GetCommandQueue(fence);
+        if (queue->IsFenceDone(fence))
+        {
+          it = ourUsedQueryStoages[i].erase(it);
+          ourAvailableQueryStorages[i].push_back(queryStorage);
+        }
+        else
+          ++it;
+      }
     }
   }
 //---------------------------------------------------------------------------//
@@ -804,9 +820,18 @@ namespace Fancy {
     return ourTempResourcePool->AllocateBuffer(someProps, someFlags, aName);
   }
 //---------------------------------------------------------------------------//
-  GpuQuery RenderCore::AllocateQuery(QueryType aType)
+  GpuQueryStorage* RenderCore::AllocateQueryStorage(QueryType aType)
   {
-    return ourQueryHeaps[(uint)aType]->Allocate();
+    UpdateAvailableQueryStorages();
+
+    if (!ourAvailableQueryStorages[(uint) aType].empty())
+    {
+      
+    }
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::ReleaseQueryStorage(GpuQueryStorage* aStorage, uint64 aFenceVal)
+  {
   }
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForFence(uint64 aFenceVal)
