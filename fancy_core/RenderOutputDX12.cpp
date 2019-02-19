@@ -78,18 +78,8 @@ namespace Fancy {
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
 //---------------------------------------------------------------------------//
-  void RenderOutputDX12::EndFrame()
+  void RenderOutputDX12::Present()
   {
-    Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex]->GetTexture();
-
-    CommandQueueDX12* graphicsQueue = static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
-    CommandContextDX12* context = static_cast<CommandContextDX12*>(RenderCore::AllocateContext(CommandListType::Graphics));
-
-    context->TransitionResource(currBackbuffer, GpuResourceTransition::TO_PRESENT);
-    graphicsQueue->ExecuteContext(context);
-    RenderCore::FreeContext(context);
-
-    // graphicsQueue->WaitForIdle();
     mySwapChain->Present(1, 0);
   }
 //---------------------------------------------------------------------------//

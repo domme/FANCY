@@ -6,6 +6,8 @@
 #include "TextureProperties.h"
 #include "Texture.h"
 #include "CommandQueue.h"
+#include "CommandContext.h"
+#include "TimeManager.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -21,6 +23,28 @@ namespace Fancy {
   RenderOutput::~RenderOutput()
   {
     myWindow->myOnResize.DetachObserver(this);
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutput::EndFrame()
+  {
+    Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex]->GetTexture();
+
+    CommandQueue* graphicsQueue = RenderCore::GetCommandQueue(CommandListType::Graphics);
+    CommandContext* context = RenderCore::AllocateContext(CommandListType::Graphics);
+
+    context->TransitionResource(currBackbuffer, GpuResourceTransition::TO_PRESENT);
+    const uint64 currFrameEndFence = graphicsQueue->ExecuteContext(context);
+    RenderCore::FreeContext(context);
+
+    // const uint64 newFrameIdx = Time::ourFrameIdx + 1u;
+    // if (newFrameIdx - myLastWaitedOnFrame >= kMaxFrameDelay)
+    // {
+    //   graphicsQueue->WaitForFence(myNextWaitFence);
+    //   myLastWaitedOnFrame = Time::ourFrameIdx;
+    //   myNextWaitFence = currFrameEndFence;
+    // }
+
+    Present();
   }
 //---------------------------------------------------------------------------//
   void RenderOutput::PrepareForFirstFrame()

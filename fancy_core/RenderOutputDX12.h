@@ -7,19 +7,19 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   class Window;
 //---------------------------------------------------------------------------//
-  class RenderOutputDX12 : public RenderOutput
+  class RenderOutputDX12 final : public RenderOutput
   {
   public:
     explicit RenderOutputDX12(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     ~RenderOutputDX12() override;
     
     void BeginFrame() override;
-    void EndFrame() override;
-
+    
   private:
     void CreateBackbufferResources(uint aWidth, uint aHeight) override;
     void ResizeBackbuffer(uint aWidth, uint aHeight) override;
     void DestroyBackbufferResources() override;
+    void Present() override;
 
     Microsoft::WRL::ComPtr<IDXGISwapChain3> mySwapChain;
   };

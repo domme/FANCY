@@ -2,6 +2,7 @@
 
 #include "FancyCoreDefines.h"
 #include "Ptr.h"
+#include "CircularArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -17,9 +18,9 @@ namespace Fancy {
     virtual ~RenderOutput();
     
     virtual void BeginFrame() = 0;
-    virtual void EndFrame()= 0;
-
+    
     void PrepareForFirstFrame();
+    void EndFrame();
 
     TextureView* GetBackbufferRtv() const { return myBackbufferRtv[myCurrBackbufferIndex].get(); }
     TextureView* GetBackbufferSrv() const { return myBackbufferSrv[myCurrBackbufferIndex].get(); }
@@ -35,11 +36,17 @@ namespace Fancy {
     virtual void CreateBackbufferResources(uint aWidth, uint aHeight) = 0;
     virtual void ResizeBackbuffer(uint aWidth, uint aHeight) = 0;
     virtual void DestroyBackbufferResources() = 0;
+    virtual void Present() = 0;
 
     void DestroyViews();
     void CreateViews();
 
     static const uint kBackbufferCount = 2u;
+    static const uint kMaxFrameDelay = 3u;
+
+    uint64 myNextWaitFence = 0u;
+    uint64 myLastWaitedOnFrame = 0u;
+
     uint myCurrBackbufferIndex;
     SharedPtr<Window> myWindow;
 
