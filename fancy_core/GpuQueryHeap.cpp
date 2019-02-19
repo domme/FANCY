@@ -10,7 +10,12 @@ namespace Fancy
     , myNumQueries(aNumQueries)
   {
   }
-//---------------------------------------------------------------------------//
+
+  GpuQueryHeap::~GpuQueryHeap()
+  {
+  }
+
+  //---------------------------------------------------------------------------//
   GpuQuery GpuQueryHeap::Allocate()
   {
     ASSERT(myNextFree != myNumQueries);

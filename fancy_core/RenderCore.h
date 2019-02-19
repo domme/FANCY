@@ -95,9 +95,6 @@ namespace Fancy {
     static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
     static TempBufferResource AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName);
 
-    static GpuQueryStorage* AllocateQueryStorage(QueryType aType);
-    static void ReleaseQueryStorage(GpuQueryStorage* aStorage, uint64 aFenceVal);
-
     static void WaitForFence(uint64 aFenceVal);
     static void WaitForIdle(CommandListType aType);
     static void WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset = 0, uint aNumSubresources = UINT_MAX);
@@ -124,7 +121,6 @@ namespace Fancy {
     static void Shutdown_2_Platform();
 
     static void UpdateAvailableRingBuffers();
-    static void UpdateAvailableQueryStorages();
 
     static UniquePtr<RenderCore_Platform> ourPlatformImpl;
     
@@ -151,9 +147,15 @@ namespace Fancy {
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
 
-    static DynamicArray<UniquePtr<GpuQueryStorage>> ourQueryStoragePool[(uint)QueryType::NUM];
-    static std::list<GpuQueryStorage*> ourAvailableQueryStorages[(uint)QueryType::NUM];
-    static std::list<std::pair<uint64, GpuQueryStorage*>> ourUsedQueryStoages[(uint)QueryType::NUM];
+    /*
+    static DynamicArray<UniquePtr<GpuQueryHeap>> ourQueryHeapPool[(uint)QueryType::NUM];
+    static std::list<GpuQueryHeap*> ourAvailableQueryHeaps[(uint)QueryType::NUM];
+    static std::list<std::pair<uint64, GpuQueryHeap*>> ourUsedQueryHeaps[(uint)QueryType::NUM];
+
+    static DynamicArray<UniquePtr<GpuBuffer>> ourQueryHeapPool[(uint)QueryType::NUM];
+    static std::list<GpuQueryHeap*> ourAvailableQueryHeaps[(uint)QueryType::NUM];
+    static std::list<std::pair<uint64, GpuQueryHeap*>> ourUsedQueryHeaps[(uint)QueryType::NUM];
+    */
 
     static UniquePtr<TempResourcePool> ourTempResourcePool;
 

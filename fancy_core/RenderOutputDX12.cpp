@@ -89,7 +89,7 @@ namespace Fancy {
     graphicsQueue->ExecuteContext(context);
     RenderCore::FreeContext(context);
 
-    graphicsQueue->WaitForIdle();
+    // graphicsQueue->WaitForIdle();
     mySwapChain->Present(1, 0);
   }
 //---------------------------------------------------------------------------//

@@ -369,28 +369,6 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::UpdateAvailableQueryStorages()
-  {
-    for (uint i = 0u; i < (uint) QueryType::NUM; ++i)
-    {
-      auto it = ourUsedQueryStoages[i].begin();
-      while (it != ourUsedQueryStoages[i].end())
-      {
-        uint64 fence = it->first;
-        GpuQueryStorage* queryStorage = it->second;
-
-        CommandQueue* queue = GetCommandQueue(fence);
-        if (queue->IsFenceDone(fence))
-        {
-          it = ourUsedQueryStoages[i].erase(it);
-          ourAvailableQueryStorages[i].push_back(queryStorage);
-        }
-        else
-          ++it;
-      }
-    }
-  }
-//---------------------------------------------------------------------------//
   SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
   {
     SharedPtr<RenderOutput> output(ourPlatformImpl->CreateRenderOutput(aNativeInstanceHandle, someWindowParams));
@@ -819,46 +797,6 @@ namespace Fancy {
   TempBufferResource RenderCore::AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName)
   {
     return ourTempResourcePool->AllocateBuffer(someProps, someFlags, aName);
-  }
-//---------------------------------------------------------------------------//
-  GpuQueryStorage* RenderCore::AllocateQueryStorage(QueryType aType)
-  {
-    UpdateAvailableQueryStorages();
-
-    if (!ourAvailableQueryStorages[(uint) aType].empty())
-    {
-      GpuQueryStorage* storage = ourAvailableQueryStorages[(uint)aType].front();
-      ourAvailableQueryStorages[(uint)aType].pop_front();
-      return storage;
-    }
-
-    uint numQueries = 0;
-    switch (aType)
-    {
-      case QueryType::TIMESTAMP: numQueries = 4096; break;
-      case QueryType::OCCLUSION: numQueries = 1024; break;
-      case QueryType::NUM:
-      default: ASSERT(false);
-    }
-
-    UniquePtr<GpuQueryStorage> storage(new GpuQueryStorage());
-    storage->myQueryHeap.reset(ourPlatformImpl->CreateQueryHeap(aType, numQueries));
-
-    GpuBufferProperties bufferProps;
-    bufferProps.myUsage = GpuBufferUsage::STAGING_READBACK;
-    bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    bufferProps.myElementSizeBytes = sizeof(uint64);
-    bufferProps.myNumElements = numQueries;
-    storage->myReadbackBuffer = CreateBuffer(bufferProps, "Query readback buffer");
-
-    GpuQueryStorage* returnStorage = storage.get();
-    ourQueryStoragePool[(uint)aType].push_back(std::move(storage));
-
-    return returnStorage;
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore::ReleaseQueryStorage(GpuQueryStorage* aStorage, uint64 aFenceVal)
-  {
   }
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForFence(uint64 aFenceVal)

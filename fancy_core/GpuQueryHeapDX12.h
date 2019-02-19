@@ -8,7 +8,7 @@ namespace Fancy
   {
   public:
     GpuQueryHeapDX12(QueryType aQueryType, uint aNumQueries);
-    ~GpuQueryHeapDX12() override = default;
+    ~GpuQueryHeapDX12() override;
 
     Microsoft::WRL::ComPtr<ID3D12QueryHeap> myHeap;
   };

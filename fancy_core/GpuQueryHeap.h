@@ -9,7 +9,7 @@ namespace Fancy
   {
   public:
     GpuQueryHeap(QueryType aQueryType, uint aNumQueries);
-    virtual ~GpuQueryHeap() = 0;
+    virtual ~GpuQueryHeap();
 
     GpuQuery Allocate();
     void Reset();

@@ -16,4 +16,8 @@ namespace Fancy
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
     CheckD3Dcall(platformDx12->GetDevice()->CreateQueryHeap(&heapDesc, IID_PPV_ARGS(&myHeap)));
   }
+
+  GpuQueryHeapDX12::~GpuQueryHeapDX12()
+  {
+  }
 }
