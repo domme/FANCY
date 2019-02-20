@@ -42,11 +42,9 @@ namespace Fancy {
     void CreateViews();
 
     static const uint kBackbufferCount = 2u;
-    static const uint kMaxFrameDelay = 3u;
+    static const uint kNumQueuedFrames = 2u;
 
-    uint64 myLastPresentedFrameFence = 0u;
-    uint64 myNextWaitFence = 0u;
-    uint64 myLastWaitedOnFrame = 0u;
+    CircularArray<uint64> myFrameCompletedFences;
 
     uint myCurrBackbufferIndex;
     SharedPtr<Window> myWindow;

@@ -8,11 +8,13 @@
 #include "CommandQueue.h"
 #include "CommandContext.h"
 #include "TimeManager.h"
+#include "Profiler.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderOutput::RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
     : myCurrBackbufferIndex(0u)
+    , myFrameCompletedFences(kNumQueuedFrames)
   {
     HINSTANCE instanceHandle = static_cast<HINSTANCE>(aNativeInstanceHandle);
 
@@ -24,31 +26,38 @@ namespace Fancy {
   {
     myWindow->myOnResize.DetachObserver(this);
   }
-
+//---------------------------------------------------------------------------//
   void RenderOutput::BeginFrame()
   {
-    // const uint64 newFrameIdx = Time::ourFrameIdx + 1u;
-    // if (newFrameIdx - myLastWaitedOnFrame >= kMaxFrameDelay)
-    // {
-    //   graphicsQueue->WaitForFence(myNextWaitFence);
-    //   myLastWaitedOnFrame = Time::ourFrameIdx;
-    //   myNextWaitFence = currFrameEndFence;
-    // }
-  }
+    PROFILE_FUNCTION();
 
-  //---------------------------------------------------------------------------//
+    if (myFrameCompletedFences.IsFull())
+    {
+      CommandQueue* graphicsQueue = RenderCore::GetCommandQueue(CommandListType::Graphics);
+      graphicsQueue->WaitForFence(myFrameCompletedFences[0]);
+      myFrameCompletedFences.RemoveFirstElement();
+    }
+  }
+//---------------------------------------------------------------------------//
   void RenderOutput::EndFrame()
   {
+    PROFILE_FUNCTION();
+
     Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex]->GetTexture();
 
     CommandQueue* graphicsQueue = RenderCore::GetCommandQueue(CommandListType::Graphics);
     CommandContext* context = RenderCore::AllocateContext(CommandListType::Graphics);
 
     context->TransitionResource(currBackbuffer, GpuResourceTransition::TO_PRESENT);
-    const uint64 currFrameEndFence = graphicsQueue->ExecuteContext(context);
+    graphicsQueue->ExecuteContext(context);
     RenderCore::FreeContext(context);
 
     Present();
+
+    const uint64 completedFrameFence = graphicsQueue->SignalAndIncrementFence();
+
+    ASSERT(!myFrameCompletedFences.IsFull());
+    myFrameCompletedFences.Add(completedFrameFence);
   }
 //---------------------------------------------------------------------------//
   void RenderOutput::PrepareForFirstFrame()

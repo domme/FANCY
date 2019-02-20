@@ -75,12 +75,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::BeginFrame()
   {
+    RenderOutput::BeginFrame();
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::Present()
   {
-    mySwapChain->Present(0, 0);
+    mySwapChain->Present(1, 0);
   }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::ResizeBackbuffer(uint aWidth, uint aHeight)
