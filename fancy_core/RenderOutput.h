@@ -17,7 +17,7 @@ namespace Fancy {
     explicit RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     virtual ~RenderOutput();
     
-    virtual void BeginFrame() = 0;
+    virtual void BeginFrame();
     
     void PrepareForFirstFrame();
     void EndFrame();
@@ -44,6 +44,7 @@ namespace Fancy {
     static const uint kBackbufferCount = 2u;
     static const uint kMaxFrameDelay = 3u;
 
+    uint64 myLastPresentedFrameFence = 0u;
     uint64 myNextWaitFence = 0u;
     uint64 myLastWaitedOnFrame = 0u;
 

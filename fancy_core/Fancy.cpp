@@ -76,10 +76,11 @@ namespace Fancy {
   {
     Profiler::BeginFrame();
 
-    if (myRealTimeClock.GetElapsed() == 0.0f)
+    if (Time::ourFrameIdx == 0u)
       DoFirstFrameTasks();
 
     myRenderOutput->BeginFrame();
+    RenderCore::BeginFrame();
   }
 //---------------------------------------------------------------------------//
   void FancyRuntime::Update(double _dt)
@@ -89,9 +90,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void FancyRuntime::EndFrame()
   {
-    myRenderOutput->EndFrame();
     RenderCore::EndFrame();
-
+    myRenderOutput->EndFrame();
+    
     Profiler::EndFrame();
 
     ++Time::ourFrameIdx;

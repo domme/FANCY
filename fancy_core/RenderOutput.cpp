@@ -24,7 +24,19 @@ namespace Fancy {
   {
     myWindow->myOnResize.DetachObserver(this);
   }
-//---------------------------------------------------------------------------//
+
+  void RenderOutput::BeginFrame()
+  {
+    // const uint64 newFrameIdx = Time::ourFrameIdx + 1u;
+    // if (newFrameIdx - myLastWaitedOnFrame >= kMaxFrameDelay)
+    // {
+    //   graphicsQueue->WaitForFence(myNextWaitFence);
+    //   myLastWaitedOnFrame = Time::ourFrameIdx;
+    //   myNextWaitFence = currFrameEndFence;
+    // }
+  }
+
+  //---------------------------------------------------------------------------//
   void RenderOutput::EndFrame()
   {
     Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex]->GetTexture();
@@ -35,14 +47,6 @@ namespace Fancy {
     context->TransitionResource(currBackbuffer, GpuResourceTransition::TO_PRESENT);
     const uint64 currFrameEndFence = graphicsQueue->ExecuteContext(context);
     RenderCore::FreeContext(context);
-
-    // const uint64 newFrameIdx = Time::ourFrameIdx + 1u;
-    // if (newFrameIdx - myLastWaitedOnFrame >= kMaxFrameDelay)
-    // {
-    //   graphicsQueue->WaitForFence(myNextWaitFence);
-    //   myLastWaitedOnFrame = Time::ourFrameIdx;
-    //   myNextWaitFence = currFrameEndFence;
-    // }
 
     Present();
   }
