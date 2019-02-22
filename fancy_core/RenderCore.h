@@ -43,6 +43,8 @@ namespace Fancy {
   class RenderCore
   {
   public:
+    static const uint ourMaxNumQueuedFrames;
+
     /// Init platform-independent stuff
     static void Init(RenderingApi aRenderingApi);
     static void BeginFrame();
@@ -146,6 +148,8 @@ namespace Fancy {
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
+
+    static UniquePtr
 
     /*
     static DynamicArray<UniquePtr<GpuQueryHeap>> ourQueryHeapPool[(uint)QueryType::NUM];

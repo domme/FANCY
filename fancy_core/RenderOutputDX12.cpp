@@ -73,9 +73,8 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderOutputDX12::BeginFrame()
+  void RenderOutputDX12::OnBeginFrame()
   {
-    RenderOutput::BeginFrame();
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
 //---------------------------------------------------------------------------//

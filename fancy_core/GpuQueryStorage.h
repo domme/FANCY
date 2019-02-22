@@ -14,4 +14,3 @@ namespace Fancy
     SharedPtr<GpuQueryHeap> myQueryHeap;
   };
 }
-

@@ -13,8 +13,8 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderOutput::RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
-    : myCurrBackbufferIndex(0u)
-    , myFrameCompletedFences(kNumQueuedFrames)
+    : myFrameCompletedFences(RenderCore::ourMaxNumQueuedFrames)
+    , myCurrBackbufferIndex(0u)
   {
     HINSTANCE instanceHandle = static_cast<HINSTANCE>(aNativeInstanceHandle);
 
@@ -31,12 +31,17 @@ namespace Fancy {
   {
     PROFILE_FUNCTION();
 
+    if (Time::ourFrameIdx == 0u)
+      PrepareForFirstFrame();
+
     if (myFrameCompletedFences.IsFull())
     {
       CommandQueue* graphicsQueue = RenderCore::GetCommandQueue(CommandListType::Graphics);
       graphicsQueue->WaitForFence(myFrameCompletedFences[0]);
       myFrameCompletedFences.RemoveFirstElement();
     }
+
+    OnBeginFrame();
   }
 //---------------------------------------------------------------------------//
   void RenderOutput::EndFrame()

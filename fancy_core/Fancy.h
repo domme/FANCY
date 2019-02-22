@@ -34,8 +34,6 @@ namespace Fancy {
     explicit FancyRuntime(HINSTANCE anAppInstanceHandle);
     ~FancyRuntime();
 
-    void DoFirstFrameTasks();
-
     static FancyRuntime* ourInstance;
 
     HINSTANCE myAppInstanceHandle;

@@ -50,6 +50,8 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  const uint RenderCore::ourMaxNumQueuedFrames = 3u;
+
   UniquePtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
 
   std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;

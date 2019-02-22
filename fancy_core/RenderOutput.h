@@ -17,9 +17,7 @@ namespace Fancy {
     explicit RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     virtual ~RenderOutput();
     
-    virtual void BeginFrame();
-    
-    void PrepareForFirstFrame();
+    void BeginFrame();
     void EndFrame();
 
     TextureView* GetBackbufferRtv() const { return myBackbufferRtv[myCurrBackbufferIndex].get(); }
@@ -30,20 +28,21 @@ namespace Fancy {
     Window* GetWindow() const { return myWindow.get(); }
 
   protected:
+    void PrepareForFirstFrame();
     void GetWindowSizeSafe(uint& aWidthOut, uint& aHeightOut);
     void OnWindowResized(uint aWidth, uint aHeight);
 
     virtual void CreateBackbufferResources(uint aWidth, uint aHeight) = 0;
     virtual void ResizeBackbuffer(uint aWidth, uint aHeight) = 0;
     virtual void DestroyBackbufferResources() = 0;
+
+    virtual void OnBeginFrame() = 0;
     virtual void Present() = 0;
 
     void DestroyViews();
     void CreateViews();
 
     static const uint kBackbufferCount = 2u;
-    static const uint kNumQueuedFrames = 2u;
-
     CircularArray<uint64> myFrameCompletedFences;
 
     uint myCurrBackbufferIndex;

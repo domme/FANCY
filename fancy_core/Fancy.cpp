@@ -67,17 +67,9 @@ namespace Fancy {
     return ourInstance;
   }
 //---------------------------------------------------------------------------//
-  void FancyRuntime::DoFirstFrameTasks()
-  {
-    myRenderOutput->PrepareForFirstFrame();
-  }
-  //---------------------------------------------------------------------------//
   void FancyRuntime::BeginFrame()
   {
     Profiler::BeginFrame();
-
-    if (Time::ourFrameIdx == 0u)
-      DoFirstFrameTasks();
 
     myRenderOutput->BeginFrame();
     RenderCore::BeginFrame();
