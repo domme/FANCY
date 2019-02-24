@@ -41,7 +41,7 @@ namespace Fancy {
     virtual CommandQueue* GetCommandQueue(CommandListType aType) = 0;
     virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
     virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
-    virtual GpuQueryHeap* CreateQueryHeap(QueryType aType, uint aNumQueries) = 0;
+    virtual GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) = 0;
   protected:
     RenderPlatformCaps myCaps;
   };

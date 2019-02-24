@@ -5,7 +5,7 @@
 
 namespace Fancy
 {
-  GpuQueryHeapDX12::GpuQueryHeapDX12(QueryType aQueryType, uint aNumQueries)
+  GpuQueryHeapDX12::GpuQueryHeapDX12(GpuQueryType aQueryType, uint aNumQueries)
     : GpuQueryHeap(aQueryType, aNumQueries)
   {
     D3D12_QUERY_HEAP_DESC heapDesc;

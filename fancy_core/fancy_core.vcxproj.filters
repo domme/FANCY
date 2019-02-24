@@ -464,6 +464,9 @@
     <ClCompile Include="GpuQueryHeapDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
+    <ClCompile Include="GpuQueryStorage.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

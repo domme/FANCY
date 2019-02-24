@@ -269,7 +269,7 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class QueryType
+  enum class GpuQueryType
   {
     TIMESTAMP = 0,
     OCCLUSION,

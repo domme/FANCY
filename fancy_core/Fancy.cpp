@@ -71,8 +71,8 @@ namespace Fancy {
   {
     Profiler::BeginFrame();
 
-    myRenderOutput->BeginFrame();
     RenderCore::BeginFrame();
+    myRenderOutput->BeginFrame();
   }
 //---------------------------------------------------------------------------//
   void FancyRuntime::Update(double _dt)
@@ -82,8 +82,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void FancyRuntime::EndFrame()
   {
-    RenderCore::EndFrame();
     myRenderOutput->EndFrame();
+    RenderCore::EndFrame();
     
     Profiler::EndFrame();
 

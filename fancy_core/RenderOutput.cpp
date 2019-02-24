@@ -13,8 +13,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderOutput::RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
-    : myFrameCompletedFences(RenderCore::ourMaxNumQueuedFrames)
-    , myCurrBackbufferIndex(0u)
+    : myCurrBackbufferIndex(0u)
   {
     HINSTANCE instanceHandle = static_cast<HINSTANCE>(aNativeInstanceHandle);
 
@@ -34,13 +33,6 @@ namespace Fancy {
     if (Time::ourFrameIdx == 0u)
       PrepareForFirstFrame();
 
-    if (myFrameCompletedFences.IsFull())
-    {
-      CommandQueue* graphicsQueue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-      graphicsQueue->WaitForFence(myFrameCompletedFences[0]);
-      myFrameCompletedFences.RemoveFirstElement();
-    }
-
     OnBeginFrame();
   }
 //---------------------------------------------------------------------------//
@@ -58,11 +50,6 @@ namespace Fancy {
     RenderCore::FreeContext(context);
 
     Present();
-
-    const uint64 completedFrameFence = graphicsQueue->SignalAndIncrementFence();
-
-    ASSERT(!myFrameCompletedFences.IsFull());
-    myFrameCompletedFences.Add(completedFrameFence);
   }
 //---------------------------------------------------------------------------//
   void RenderOutput::PrepareForFirstFrame()

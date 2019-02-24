@@ -26,6 +26,7 @@
 
 #include <xxHash/xxhash.h>
 #include "GpuQueryStorage.h"
+#include "TimeManager.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -48,11 +49,22 @@ namespace Fancy {
       XXH64_freeState(xxHashState);
       return hash;
     }
+
+    const uint kReadbackBufferSizeIncrease = 2 * SIZE_MB;
   }
 //---------------------------------------------------------------------------//
-  const uint RenderCore::ourMaxNumQueuedFrames = 3u;
+  Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
 
   UniquePtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
+  UniquePtr<TempResourcePool> RenderCore::ourTempResourcePool;
+  UniquePtr<FileWatcher> RenderCore::ourShaderFileWatcher;
+  UniquePtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
+
+  SharedPtr<DepthStencilState> RenderCore::ourDefaultDepthStencilState;
+  SharedPtr<BlendState> RenderCore::ourDefaultBlendState;
+  SharedPtr<Texture> RenderCore::ourDefaultDiffuseTexture;
+  SharedPtr<Texture> RenderCore::ourDefaultNormalTexture;
+  SharedPtr<Texture> RenderCore::ourDefaultSpecularTexture;
 
   std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
   std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
@@ -64,22 +76,17 @@ namespace Fancy {
   std::list<CommandContext*> RenderCore::ourAvailableRenderContexts;
   std::list<CommandContext*> RenderCore::ourAvailableComputeContexts;
   
-  SharedPtr<Texture> RenderCore::ourDefaultDiffuseTexture;
-  SharedPtr<Texture> RenderCore::ourDefaultNormalTexture;
-  SharedPtr<Texture> RenderCore::ourDefaultSpecularTexture;
-  SharedPtr<DepthStencilState> RenderCore::ourDefaultDepthStencilState;
-  SharedPtr<BlendState> RenderCore::ourDefaultBlendState;
-    
-  UniquePtr<FileWatcher> RenderCore::ourShaderFileWatcher;
-  UniquePtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
-
   DynamicArray<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
+   
+  StaticCircularArray<uint64, RenderCore::kMaxNumQueuedFrames> RenderCore::ourQueuedFrameDoneFences;
+  StaticCircularArray<std::pair<uint64, uint64>, RenderCore::kNumLastFrameFences> RenderCore::ourLastFrameDoneFences;
 
-  UniquePtr<TempResourcePool> RenderCore::ourTempResourcePool;
-
-  Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
+  DynamicArray<GpuQueryRange> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
+  GpuQueryStorage RenderCore::ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
+  uint64 RenderCore::ourQueryStorageLastUsedFrame[kNumQueryStorages] = { 0u };
+  uint RenderCore::ourCurrQueryStorageIdx = 0u;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -115,12 +122,39 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::BeginFrame()
   {
+    if (ourQueuedFrameDoneFences.IsFull())
+    {
+      CommandQueue* graphicsQueue = GetCommandQueue(CommandListType::Graphics);
+      graphicsQueue->WaitForFence(ourQueuedFrameDoneFences[0]);
+      ourQueuedFrameDoneFences.RemoveFirstElement();
+    }
+
     ourTempResourcePool->Reset();
+
+    for (DynamicArray<GpuQueryRange>& usedQueryRange : ourUsedQueryRanges)
+      usedQueryRange.clear();
+
+    ASSERT(IsFrameDone(ourQueryStorageLastUsedFrame[ourCurrQueryStorageIdx]));
+    for (uint i = 0u; i < (uint) GpuQueryType::NUM; ++i)
+      ourQueryStorages[ourCurrQueryStorageIdx][i].FreeAllQueries();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
   {
-    
+    ResolveUsedQueryData();
+
+    CommandQueue* graphicsQueue = GetCommandQueue(CommandListType::Graphics);
+    const uint64 completedFrameFence = graphicsQueue->SignalAndIncrementFence();
+
+    ASSERT(!ourQueuedFrameDoneFences.IsFull());
+    ourQueuedFrameDoneFences.Add(completedFrameFence);
+
+    if (ourLastFrameDoneFences.IsFull())
+      ourLastFrameDoneFences.RemoveFirstElement();
+    ourLastFrameDoneFences.Add({ Time::ourFrameIdx, completedFrameFence });
+
+    ourQueryStorageLastUsedFrame[ourCurrQueryStorageIdx] = Time::ourFrameIdx;
+    ourCurrQueryStorageIdx = (ourCurrQueryStorageIdx + 1) % kNumQueryStorages;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
@@ -307,6 +341,13 @@ namespace Fancy {
     ASSERT(ourDefaultBlendState != nullptr);
 
     ourTempResourcePool.reset(new TempResourcePool);
+
+    for (uint storageIdx = 0u; storageIdx < kNumQueryStorages; ++storageIdx)
+    {
+      ourQueryStorages[storageIdx][(uint)GpuQueryType::OCCLUSION].Create(GpuQueryType::OCCLUSION, 2048);
+      ourQueryStorages[storageIdx][(uint)GpuQueryType::TIMESTAMP].Create(GpuQueryType::TIMESTAMP, 4096);
+    }
+    ourCurrQueryStorageIdx = 0u;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()
@@ -369,6 +410,15 @@ namespace Fancy {
       else
         ++it;
     }
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::ResolveUsedQueryData()
+  {
+    // Merge the query-ranges and copy them one-by-one into the readback-buffer
+    
+    
+
+    
   }
 //---------------------------------------------------------------------------//
   SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
@@ -651,7 +701,7 @@ namespace Fancy {
       LOG_WARNING("ReadbackBufferData() called with a CPU-readable buffer. Its better to directly map the buffer to avoid uneccessary temp-copies");
 
     GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize - anOffset, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
+    props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize - anOffset, Private_RenderCore::kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
     props.myBufferProperties.myElementSizeBytes = 1u;
     props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
     props.myBufferProperties.myUsage = GpuBufferUsage::STAGING_READBACK;
@@ -676,7 +726,7 @@ namespace Fancy {
     aTexture->GetSubresourceLayout(aStartSubLocation, aNumSublocations, subresourceLayouts, subresourceOffsets, totalSize);
 
     GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
+    props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, Private_RenderCore::kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
     props.myBufferProperties.myElementSizeBytes = 1u;
     props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
     props.myBufferProperties.myUsage = GpuBufferUsage::STAGING_READBACK;
@@ -799,6 +849,47 @@ namespace Fancy {
   TempBufferResource RenderCore::AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName)
   {
     return ourTempResourcePool->AllocateBuffer(someProps, someFlags, aName);
+  }
+//---------------------------------------------------------------------------//
+  GpuQueryRange RenderCore::AllocateQueryRange(GpuQueryType aType, uint aNumQueries)
+  {
+    GpuQueryStorage& storage = ourQueryStorages[ourCurrQueryStorageIdx][(uint)aType];
+
+    GpuQueryRange range;
+    bool success = storage.AllocateQueries(aNumQueries, range.myFirstQueryIndex);
+    ASSERT(success, "Not enough queries available for query type % (wants to allocate % queries, available are % queries)", (uint)aType, aNumQueries, storage.GetNumFreeQueries());
+
+    range.myNumQueries = aNumQueries;
+    range.myType = aType;
+    return range;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::FreeQueryRange(GpuQueryRange aQueryRange, uint aNumUsedQueries)
+  {
+    GpuQueryStorage& queryStorage = ourQueryStorages[ourCurrQueryStorageIdx][(uint)aQueryRange.myType];
+
+    // Is this the last query-range that was allocated? Then deallocate the range in the storage again so it can be used again
+    if (aNumUsedQueries < aQueryRange.myNumQueries && queryStorage.myNextFree == aQueryRange.myFirstQueryIndex + aQueryRange.myNumQueries)
+      queryStorage.myNextFree = aQueryRange.myFirstQueryIndex + aNumUsedQueries;
+
+    aQueryRange.myNumQueries = aNumUsedQueries;
+    ourUsedQueryRanges[(uint)aQueryRange.myType].push_back(aQueryRange);
+  }
+//---------------------------------------------------------------------------//
+  bool RenderCore::IsFrameDone(uint64 aFrameIdx)
+  {
+    if (ourLastFrameDoneFences.IsEmpty() || ourLastFrameDoneFences[ourLastFrameDoneFences.Size() - 1].first < aFrameIdx)
+      return false;
+
+    if (ourLastFrameDoneFences[0].first > aFrameIdx)
+      return true;
+
+    CommandQueue* queue = GetCommandQueue(CommandListType::Graphics);
+    for (uint i = 0u, e = ourLastFrameDoneFences.Size(); i < e; ++i)
+      if (ourLastFrameDoneFences[i].first == aFrameIdx)
+        return queue->IsFenceDone(ourLastFrameDoneFences[i].second);
+
+    return false;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForFence(uint64 aFenceVal)

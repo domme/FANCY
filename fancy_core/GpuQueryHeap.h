@@ -5,20 +5,15 @@
 
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
   class GpuQueryHeap
   {
   public:
-    GpuQueryHeap(QueryType aQueryType, uint aNumQueries);
+    GpuQueryHeap(GpuQueryType aQueryType, uint aNumQueries);
     virtual ~GpuQueryHeap();
 
-    GpuQuery Allocate();
-    void Reset();
-
-    QueryType myType;
-    uint myNumQueries = 0u;;
-    uint myNextFree = 0u;
+    GpuQueryType myType = GpuQueryType::TIMESTAMP;
+    uint myNumQueries = 0u;
   };
+//---------------------------------------------------------------------------//
 }
-
-
-

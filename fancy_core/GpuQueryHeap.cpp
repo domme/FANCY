@@ -1,30 +1,18 @@
 #include "fancy_core_precompile.h"
 #include "GpuQueryHeap.h"
-#include "TimeManager.h"
 
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  GpuQueryHeap::GpuQueryHeap(QueryType aQueryType, uint aNumQueries)
+  GpuQueryHeap::GpuQueryHeap(GpuQueryType aQueryType, uint aNumQueries)
     : myType(aQueryType)
     , myNumQueries(aNumQueries)
   {
-  }
-
-  GpuQueryHeap::~GpuQueryHeap()
-  {
-  }
-
-  //---------------------------------------------------------------------------//
-  GpuQuery GpuQueryHeap::Allocate()
-  {
-    ASSERT(myNextFree != myNumQueries);
-    return { myType, myNextFree++, Time::ourFrameIdx, this };
+    
   }
 //---------------------------------------------------------------------------//
-  void GpuQueryHeap::Reset()
+  GpuQueryHeap::~GpuQueryHeap()
   {
-    myNextFree = 0u;
   }
 //---------------------------------------------------------------------------//
 }

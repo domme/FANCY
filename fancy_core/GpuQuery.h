@@ -5,13 +5,19 @@
 
 namespace Fancy
 {
-  class GpuQueryHeap;
-
+//---------------------------------------------------------------------------//
   struct GpuQuery
   {
-    QueryType myType = QueryType::NUM;
-    uint myIndexInHeap = UINT_MAX;
-    uint64 myFrame = UINT64_MAX;
-    GpuQueryHeap* myHeap = nullptr;
+    GpuQueryType myType = GpuQueryType::NUM;
+    uint myIndexInHeap = 0u;
+    uint64 myFrame = 0u;
   };
+//---------------------------------------------------------------------------//
+  struct GpuQueryRange
+  {
+    GpuQueryType myType = GpuQueryType::NUM;
+    uint myFirstQueryIndex = 0u;
+    uint myNumQueries = 0u;
+  };
+//---------------------------------------------------------------------------//
 }

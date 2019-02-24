@@ -274,7 +274,7 @@ namespace Fancy {
     return new GpuBufferViewDX12(aBuffer, someProperties);
   }
 //---------------------------------------------------------------------------//
-  GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(QueryType aType, uint aNumQueries)
+  GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)
   {
     return new GpuQueryHeapDX12(aType, aNumQueries);
   }

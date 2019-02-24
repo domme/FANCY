@@ -5,6 +5,7 @@
 
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
   template <class T>
   class CircularArray
   {
@@ -26,16 +27,18 @@ namespace Fancy
 
     CircularArray(uint aCapacity)
       : myBuffer(new T[aCapacity])
-        , myHead(0u)
-        , myTail(0u)
-        , mySize(0u)
-        , myCapacity(aCapacity)
+      , myHead(0u)
+      , myTail(0u)
+      , mySize(0u)
+      , myCapacity(aCapacity)
+      , myHasBufferOnHeap(true)
     {
     }
 
     ~CircularArray()
     {
-      delete[] myBuffer;
+      if (myHasBufferOnHeap)
+        delete[] myBuffer;
     }
 
     bool IsFull() const { return mySize == myCapacity; }
@@ -76,11 +79,39 @@ namespace Fancy
       myHead = myHead == myCapacity - 1u ? 0 : myHead + 1u;
     }
 
-  private:
+  protected:
+    CircularArray()
+      : myBuffer(nullptr)
+      , myHead(0u)
+      , myTail(0u)
+      , mySize(0u)
+      , myCapacity(0u)
+      , myHasBufferOnHeap(false)
+    {
+
+    }
+
     T* myBuffer;
     uint myHead;
     uint myTail;
     uint mySize;
     const uint myCapacity;
+    const bool myHasBufferOnHeap;
   };
+//---------------------------------------------------------------------------//
+  template <class T, uint N>
+  class StaticCircularArray final : public CircularArray<T>
+  {
+  public:
+    StaticCircularArray()
+      : CircularArray<T>()
+    {
+      myCapacity = N;
+      myBuffer = myArray;
+    }
+
+  private:
+    T myArray[N];
+  };
+//---------------------------------------------------------------------------//
 }

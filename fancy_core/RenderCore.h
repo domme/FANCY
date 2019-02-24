@@ -7,10 +7,11 @@
 #include "DynamicArray.h"
 #include "Ptr.h"
 #include "TempResources.h"
+#include "GpuQuery.h"
+#include "CircularArray.h"
 
 #include <map>
 #include <list>
-#include "GpuQuery.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -43,7 +44,14 @@ namespace Fancy {
   class RenderCore
   {
   public:
-    static const uint ourMaxNumQueuedFrames;
+    enum Constants
+    {
+      kMaxNumQueuedFrames = 3u,
+      kFinishedQueryFrameLifetime = 3u,
+
+      kNumLastFrameFences = kMaxNumQueuedFrames * 10u,
+      kNumQueryStorages = kMaxNumQueuedFrames + kFinishedQueryFrameLifetime
+    };
 
     /// Init platform-independent stuff
     static void Init(RenderingApi aRenderingApi);
@@ -97,6 +105,10 @@ namespace Fancy {
     static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
     static TempBufferResource AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName);
 
+    static GpuQueryRange AllocateQueryRange(GpuQueryType aType, uint aNumQueries);
+    static void FreeQueryRange(GpuQueryRange aQueryRange, uint aNumUsedQueries);
+
+    static bool IsFrameDone(uint64 aFrameIdx);
     static void WaitForFence(uint64 aFenceVal);
     static void WaitForIdle(CommandListType aType);
     static void WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset = 0, uint aNumSubresources = UINT_MAX);
@@ -107,11 +119,6 @@ namespace Fancy {
     static Slot<void(const GpuProgram*)> ourOnShaderRecompiled;
 
   protected:
-    enum Constants
-    {
-      kReadbackBufferSizeIncrease = 2 * SIZE_MB
-    };
-
     RenderCore() = default;
 
     static void Init_0_Platform(RenderingApi aRenderingApi);
@@ -123,10 +130,23 @@ namespace Fancy {
     static void Shutdown_2_Platform();
 
     static void UpdateAvailableRingBuffers();
+    static void ResolveUsedQueryData();
+
+    static void OnShaderFileUpdated(const String& aShaderFile);
+    static void OnShaderFileDeletedMoved(const String& aShaderFile);
 
     static UniquePtr<RenderCore_Platform> ourPlatformImpl;
-    
-    static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;
+    static UniquePtr<TempResourcePool> ourTempResourcePool;
+    static UniquePtr<GpuProgramCompiler> ourShaderCompiler;
+    static UniquePtr<FileWatcher> ourShaderFileWatcher;
+
+    static SharedPtr<DepthStencilState> ourDefaultDepthStencilState;
+    static SharedPtr<BlendState> ourDefaultBlendState;
+    static SharedPtr<Texture> ourDefaultDiffuseTexture;
+    static SharedPtr<Texture> ourDefaultNormalTexture;
+    static SharedPtr<Texture> ourDefaultSpecularTexture;
+
+    static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;  
     static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
@@ -136,35 +156,17 @@ namespace Fancy {
     static std::list<CommandContext*> ourAvailableRenderContexts;
     static std::list<CommandContext*> ourAvailableComputeContexts;
 
-    static SharedPtr<DepthStencilState> ourDefaultDepthStencilState;
-    static SharedPtr<BlendState> ourDefaultBlendState;
-    static SharedPtr<Texture> ourDefaultDiffuseTexture;
-    static SharedPtr<Texture> ourDefaultNormalTexture;
-    static SharedPtr<Texture> ourDefaultSpecularTexture;
-        
-    static UniquePtr<GpuProgramCompiler> ourShaderCompiler;
-    static UniquePtr<FileWatcher> ourShaderFileWatcher;
-    
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
 
-    static UniquePtr
+    static StaticCircularArray<uint64, kMaxNumQueuedFrames> ourQueuedFrameDoneFences;
+    static StaticCircularArray<std::pair<uint64, uint64>, kNumLastFrameFences> ourLastFrameDoneFences;
 
-    /*
-    static DynamicArray<UniquePtr<GpuQueryHeap>> ourQueryHeapPool[(uint)QueryType::NUM];
-    static std::list<GpuQueryHeap*> ourAvailableQueryHeaps[(uint)QueryType::NUM];
-    static std::list<std::pair<uint64, GpuQueryHeap*>> ourUsedQueryHeaps[(uint)QueryType::NUM];
-
-    static DynamicArray<UniquePtr<GpuBuffer>> ourQueryHeapPool[(uint)QueryType::NUM];
-    static std::list<GpuQueryHeap*> ourAvailableQueryHeaps[(uint)QueryType::NUM];
-    static std::list<std::pair<uint64, GpuQueryHeap*>> ourUsedQueryHeaps[(uint)QueryType::NUM];
-    */
-
-    static UniquePtr<TempResourcePool> ourTempResourcePool;
-
-    static void OnShaderFileUpdated(const String& aShaderFile);
-    static void OnShaderFileDeletedMoved(const String& aShaderFile);
+    static DynamicArray<GpuQueryRange> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
+    static GpuQueryStorage ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
+    static uint64 ourQueryStorageLastUsedFrame[kNumQueryStorages];
+    static uint ourCurrQueryStorageIdx;
   };
 //---------------------------------------------------------------------------//
 }

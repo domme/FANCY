@@ -43,7 +43,6 @@ namespace Fancy {
     void CreateViews();
 
     static const uint kBackbufferCount = 2u;
-    CircularArray<uint64> myFrameCompletedFences;
 
     uint myCurrBackbufferIndex;
     SharedPtr<Window> myWindow;

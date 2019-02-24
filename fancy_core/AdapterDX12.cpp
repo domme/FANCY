@@ -145,21 +145,21 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  D3D12_QUERY_TYPE Adapter::ResolveQueryType(QueryType aQueryType)
+  D3D12_QUERY_TYPE Adapter::ResolveQueryType(GpuQueryType aQueryType)
   {
     switch(aQueryType) { 
-      case QueryType::TIMESTAMP: return D3D12_QUERY_TYPE_TIMESTAMP;
-      case QueryType::OCCLUSION: return D3D12_QUERY_TYPE_OCCLUSION;
+      case GpuQueryType::TIMESTAMP: return D3D12_QUERY_TYPE_TIMESTAMP;
+      case GpuQueryType::OCCLUSION: return D3D12_QUERY_TYPE_OCCLUSION;
       default: 
         ASSERT(false, "Missing implementation"); return D3D12_QUERY_TYPE_TIMESTAMP;
     }
 }
 //---------------------------------------------------------------------------//
-  D3D12_QUERY_HEAP_TYPE Adapter::ResolveQueryHeapType(QueryType aQueryType)
+  D3D12_QUERY_HEAP_TYPE Adapter::ResolveQueryHeapType(GpuQueryType aQueryType)
   {
     switch (aQueryType) {
-    case QueryType::TIMESTAMP: return D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
-    case QueryType::OCCLUSION: return D3D12_QUERY_HEAP_TYPE_OCCLUSION;
+    case GpuQueryType::TIMESTAMP: return D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+    case GpuQueryType::OCCLUSION: return D3D12_QUERY_HEAP_TYPE_OCCLUSION;
     default:
       ASSERT(false, "Missing implementation"); return D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
     }
