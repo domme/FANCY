@@ -49,9 +49,9 @@ namespace Fancy {
     void RenderGeometry(const GeometryData* pGeometry) override;
     void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const override;
     void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
-    void BeginQuery(const GpuQuery& aQuery) override;
+    GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
-    void InsertTimestamp(const GpuQuery& aQuery) override;
+    GpuQuery InsertTimestamp() override;
     void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;

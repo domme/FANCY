@@ -853,8 +853,8 @@ namespace Fancy {
       default: break;
     }
   }
-//---------------------------------------------------------------------------//
-  void CommandContextDX12::BeginQuery(const GpuQuery& aQuery)
+
+  GpuQuery CommandContextDX12::BeginQuery(GpuQueryType aType)
   {
     ASSERT(aQuery.myFrame == Time::ourFrameIdx);
     ASSERT(aQuery.myType != GpuQueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
@@ -863,6 +863,12 @@ namespace Fancy {
     const D3D12_QUERY_TYPE GpuQueryTypeDx12 = Adapter::ResolveGpuQueryType(aQuery.myType);
 
     myCommandList->BeginQuery(queryHeapDx12->myHeap.Get(), GpuQueryTypeDx12, aQuery.myIndexInHeap);
+  }
+
+  //---------------------------------------------------------------------------//
+  void CommandContextDX12::BeginQuery(const GpuQuery& aQuery)
+  {
+    
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::EndQuery(const GpuQuery& aQuery)
@@ -875,7 +881,12 @@ namespace Fancy {
 
     myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), GpuQueryTypeDx12, aQuery.myIndexInHeap);
   }
-//---------------------------------------------------------------------------//
+
+  GpuQuery CommandContextDX12::InsertTimestamp()
+  {
+  }
+
+  //---------------------------------------------------------------------------//
   void CommandContextDX12::InsertTimestamp(const GpuQuery& aQuery)
   {
     ASSERT(aQuery.myFrame == Time::ourFrameIdx);

@@ -113,6 +113,16 @@ namespace Fancy {
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
+  GpuQuery CommandContext::AllocateQuery(GpuQueryType aType)
+  {
+    GpuQueryRange& range = myQueryRanges[(uint)aType];
+    if (range.myNumUsedQueries == range.myNumQueries)
+    {
+      RenderCore::FreeQueryRange(range);
+    }
+      
+  }
+//---------------------------------------------------------------------------//
   const GpuBuffer* CommandContext::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
   {
     DynamicArray<GpuRingBuffer*>* ringBufferList = nullptr;

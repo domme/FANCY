@@ -18,6 +18,7 @@ namespace Fancy
     GpuQueryType myType = GpuQueryType::NUM;
     uint myFirstQueryIndex = 0u;
     uint myNumQueries = 0u;
+    uint myNumUsedQueries = 0u;
   };
 //---------------------------------------------------------------------------//
 }

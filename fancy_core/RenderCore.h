@@ -106,7 +106,7 @@ namespace Fancy {
     static TempBufferResource AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName);
 
     static GpuQueryRange AllocateQueryRange(GpuQueryType aType, uint aNumQueries);
-    static void FreeQueryRange(GpuQueryRange aQueryRange, uint aNumUsedQueries);
+    static void FreeQueryRange(GpuQueryRange aQueryRange);
 
     static bool IsFrameDone(uint64 aFrameIdx);
     static void WaitForFence(uint64 aFenceVal);
@@ -163,7 +163,7 @@ namespace Fancy {
     static StaticCircularArray<uint64, kMaxNumQueuedFrames> ourQueuedFrameDoneFences;
     static StaticCircularArray<std::pair<uint64, uint64>, kNumLastFrameFences> ourLastFrameDoneFences;
 
-    static DynamicArray<GpuQueryRange> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
+    static DynamicArray<glm::uvec2> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
     static GpuQueryStorage ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
     static uint64 ourQueryStorageLastUsedFrame[kNumQueryStorages];
     static uint ourCurrQueryStorageIdx;

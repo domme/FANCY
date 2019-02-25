@@ -83,7 +83,7 @@ namespace Fancy {
   StaticCircularArray<uint64, RenderCore::kMaxNumQueuedFrames> RenderCore::ourQueuedFrameDoneFences;
   StaticCircularArray<std::pair<uint64, uint64>, RenderCore::kNumLastFrameFences> RenderCore::ourLastFrameDoneFences;
 
-  DynamicArray<GpuQueryRange> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
+  DynamicArray<glm::uvec2> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
   GpuQueryStorage RenderCore::ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
   uint64 RenderCore::ourQueryStorageLastUsedFrame[kNumQueryStorages] = { 0u };
   uint RenderCore::ourCurrQueryStorageIdx = 0u;
@@ -415,47 +415,45 @@ namespace Fancy {
   void RenderCore::ResolveUsedQueryData()
   {
     // Merge the query-ranges and copy them one-by-one into the readback-buffer
-
-    DynamicArray<GpuQueryRange> mergedRanges;
+    CommandQueue* queueGraphics = GetCommandQueue(CommandListType::Graphics);
+    CommandContext* context = AllocateContext(CommandListType::Graphics);
+    DynamicArray<glm::uvec2> mergedRanges;
+    bool hasAnyQueryData = false;
     for (uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType)
     {
-      DynamicArray<GpuQueryRange>& ranges = ourUsedQueryRanges[queryType];
+      DynamicArray<glm::uvec2>& ranges = ourUsedQueryRanges[queryType];
       if (ranges.empty())
         continue;
 
+      hasAnyQueryData = true;
       mergedRanges.resize(0u);
       mergedRanges.reserve(ranges.size());
 
-      GpuQueryRange currMergedRange = ranges.front();
-      uint currMergedRangeEndIdx = currMergedRange.myFirstQueryIndex + currMergedRange.myNumQueries;
+      glm::uvec2 currMergedRange = ranges.front();
       for (uint i = 1u, e = (uint) ranges.size(); i < e; ++i)
       {
-        const GpuQueryRange& range = ranges[i];
-        if (range.myFirstQueryIndex == currMergedRangeEndIdx)
+        const glm::uvec2& range = ranges[i];
+        if (range.x == currMergedRange.y)
         {
-          currMergedRange.myNumQueries += range.myNumQueries;
-          currMergedRangeEndIdx += range.myNumQueries;
+          currMergedRange.y = range.y;
         }
         else
         {
           mergedRanges.push_back(currMergedRange);
           currMergedRange = range;
-          currMergedRangeEndIdx = currMergedRange.myFirstQueryIndex + currMergedRange.myNumQueries;
         }
       }
       mergedRanges.push_back(currMergedRange);
 
-      CommandContext* context = AllocateContext(CommandListType::Graphics);
-
-      for (const GpuQueryRange& mergedRange : mergedRanges)
-      {
-        
-      }
+      GpuQueryStorage& storage = ourQueryStorages[ourCurrQueryStorageIdx][queryType];
+      for (const glm::uvec2& mergedRange : mergedRanges)
+        context->CopyQueryDataToBuffer(storage.myQueryHeap.get(), storage.myReadbackBuffer.get(), mergedRange.x, mergedRange.y - mergedRange.x, 0u);  // OFFSET!!!
     }
-    
-    
 
-    
+    if (hasAnyQueryData)
+      queueGraphics->ExecuteContext(context);
+
+    FreeContext(context);
   }
 //---------------------------------------------------------------------------//
   SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
@@ -901,15 +899,14 @@ namespace Fancy {
     return range;
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::FreeQueryRange(GpuQueryRange aQueryRange, uint aNumUsedQueries)
+  void RenderCore::FreeQueryRange(GpuQueryRange aQueryRange)
   {
     GpuQueryStorage& queryStorage = ourQueryStorages[ourCurrQueryStorageIdx][(uint)aQueryRange.myType];
 
     // Is this the last query-range that was allocated? Then deallocate the range in the storage again so it can be used again
-    if (aNumUsedQueries < aQueryRange.myNumQueries && queryStorage.myNextFree == aQueryRange.myFirstQueryIndex + aQueryRange.myNumQueries)
-      queryStorage.myNextFree = aQueryRange.myFirstQueryIndex + aNumUsedQueries;
+    if (queryStorage.myNextFree == aQueryRange.myFirstQueryIndex + aQueryRange.myNumQueries)
+      queryStorage.myNextFree = aQueryRange.myFirstQueryIndex + aQueryRange.myNumUsedQueries;
 
-    aQueryRange.myNumQueries = aNumUsedQueries;
     ourUsedQueryRanges[(uint)aQueryRange.myType].push_back(aQueryRange);
   }
 //---------------------------------------------------------------------------//

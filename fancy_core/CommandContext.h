@@ -68,9 +68,9 @@ namespace Fancy {
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
     virtual void TransitionResourceList(const GpuResource** someResources, GpuResourceTransition* someTransitions, uint aNumResources) = 0;
-    virtual void BeginQuery(const GpuQuery& aQuery) = 0;
+    virtual GpuQuery BeginQuery(GpuQueryType aType) = 0;
     virtual void EndQuery(const GpuQuery& aQuery) = 0;
-    virtual void InsertTimestamp(const GpuQuery& aQuery) = 0;
+    virtual GpuQuery InsertTimestamp() = 0;
     virtual void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) = 0;
     
     virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
@@ -110,6 +110,8 @@ namespace Fancy {
       const GpuResource* aResource4, GpuResourceTransition aTransition4);
     
   protected:
+    GpuQuery AllocateQuery(GpuQueryType aType);
+
     CommandListType myCommandListType;
     CommandListType myCurrentContext;
 
@@ -130,6 +132,8 @@ namespace Fancy {
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
     DynamicArray<GpuRingBuffer*> myIndexRingBuffers;
+
+    GpuQueryRange myQueryRanges[(uint)GpuQueryType::NUM];
   };
 //---------------------------------------------------------------------------//
 }
