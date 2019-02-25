@@ -71,6 +71,7 @@ namespace Fancy {
     virtual void BeginQuery(const GpuQuery& aQuery) = 0;
     virtual void EndQuery(const GpuQuery& aQuery) = 0;
     virtual void InsertTimestamp(const GpuQuery& aQuery) = 0;
+    virtual void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) = 0;
     
     virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
     virtual void SetComputeProgram(const GpuProgram* aProgram);

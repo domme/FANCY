@@ -415,6 +415,43 @@ namespace Fancy {
   void RenderCore::ResolveUsedQueryData()
   {
     // Merge the query-ranges and copy them one-by-one into the readback-buffer
+
+    DynamicArray<GpuQueryRange> mergedRanges;
+    for (uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType)
+    {
+      DynamicArray<GpuQueryRange>& ranges = ourUsedQueryRanges[queryType];
+      if (ranges.empty())
+        continue;
+
+      mergedRanges.resize(0u);
+      mergedRanges.reserve(ranges.size());
+
+      GpuQueryRange currMergedRange = ranges.front();
+      uint currMergedRangeEndIdx = currMergedRange.myFirstQueryIndex + currMergedRange.myNumQueries;
+      for (uint i = 1u, e = (uint) ranges.size(); i < e; ++i)
+      {
+        const GpuQueryRange& range = ranges[i];
+        if (range.myFirstQueryIndex == currMergedRangeEndIdx)
+        {
+          currMergedRange.myNumQueries += range.myNumQueries;
+          currMergedRangeEndIdx += range.myNumQueries;
+        }
+        else
+        {
+          mergedRanges.push_back(currMergedRange);
+          currMergedRange = range;
+          currMergedRangeEndIdx = currMergedRange.myFirstQueryIndex + currMergedRange.myNumQueries;
+        }
+      }
+      mergedRanges.push_back(currMergedRange);
+
+      CommandContext* context = AllocateContext(CommandListType::Graphics);
+
+      for (const GpuQueryRange& mergedRange : mergedRanges)
+      {
+        
+      }
+    }
     
     
 

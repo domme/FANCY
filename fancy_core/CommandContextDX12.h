@@ -52,6 +52,7 @@ namespace Fancy {
     void BeginQuery(const GpuQuery& aQuery) override;
     void EndQuery(const GpuQuery& aQuery) override;
     void InsertTimestamp(const GpuQuery& aQuery) override;
+    void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;
     void Dispatch(const glm::int3& aNumThreads) override;

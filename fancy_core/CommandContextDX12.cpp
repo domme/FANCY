@@ -857,32 +857,48 @@ namespace Fancy {
   void CommandContextDX12::BeginQuery(const GpuQuery& aQuery)
   {
     ASSERT(aQuery.myFrame == Time::ourFrameIdx);
-    ASSERT(aQuery.myType != QueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
+    ASSERT(aQuery.myType != GpuQueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
 
     GpuQueryHeapDX12* queryHeapDx12 = (GpuQueryHeapDX12*)aQuery.myHeap;
-    const D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aQuery.myType);
+    const D3D12_QUERY_TYPE GpuQueryTypeDx12 = Adapter::ResolveGpuQueryType(aQuery.myType);
 
-    myCommandList->BeginQuery(queryHeapDx12->myHeap.Get(), queryTypeDx12, aQuery.myIndexInHeap);
+    myCommandList->BeginQuery(queryHeapDx12->myHeap.Get(), GpuQueryTypeDx12, aQuery.myIndexInHeap);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::EndQuery(const GpuQuery& aQuery)
   {
     ASSERT(aQuery.myFrame == Time::ourFrameIdx);
-    ASSERT(aQuery.myType != QueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
+    ASSERT(aQuery.myType != GpuQueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
 
     GpuQueryHeapDX12* queryHeapDx12 = (GpuQueryHeapDX12*)aQuery.myHeap;
-    CONST D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aQuery.myType);
+    CONST D3D12_QUERY_TYPE GpuQueryTypeDx12 = Adapter::ResolveGpuQueryType(aQuery.myType);
 
-    myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), queryTypeDx12, aQuery.myIndexInHeap);
+    myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), GpuQueryTypeDx12, aQuery.myIndexInHeap);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::InsertTimestamp(const GpuQuery& aQuery)
   {
     ASSERT(aQuery.myFrame == Time::ourFrameIdx);
-    ASSERT(aQuery.myType == QueryType::TIMESTAMP);
+    ASSERT(aQuery.myType == GpuQueryType::TIMESTAMP);
 
     GpuQueryHeapDX12* queryHeapDx12 = (GpuQueryHeapDX12*)aQuery.myHeap;
     myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, aQuery.myIndexInHeap);
+  }
+//---------------------------------------------------------------------------//
+  void CommandContextDX12::CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset)
+  {
+    const GpuQueryHeapDX12* queryHeapDx12 = (const GpuQueryHeapDX12*)aQueryHeap;
+    const GpuBufferDX12* bufferDx12 = (const GpuBufferDX12*)aBuffer;
+    GpuResourceDataDX12* resourceDataDx12 = bufferDx12->GetData();
+
+    SetResourceTransitionBarrier(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+
+    myCommandList->ResolveQueryData(
+      queryHeapDx12->myHeap.Get(),
+      Adapter::ResolveQueryType(aQueryHeap->myType),
+      aFirstQueryIndex,
+      aNumQueries,
+      bufferDx12->GetData()->myResource.Get(), aBufferOffset);
   }
 //---------------------------------------------------------------------------//
   void CommandContextDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
