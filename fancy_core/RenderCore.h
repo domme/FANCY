@@ -170,7 +170,10 @@ namespace Fancy {
     static DynamicArray<glm::uvec2> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
     static GpuQueryStorage ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
     static uint ourCurrQueryStorageIdx;
+    
+    static uint ourMappedQueryStorageIdx[(uint)GpuQueryType::NUM];
     static void* ourMappedQueryReadbackData[(uint)GpuQueryType::NUM];
+
   };
 //---------------------------------------------------------------------------//
 }
