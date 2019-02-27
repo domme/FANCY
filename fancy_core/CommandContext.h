@@ -16,6 +16,7 @@ namespace Fancy {
   class DepthStencilState;
   class BlendState;
   class GpuProgram;
+  class GpuQueryHeap;
 //---------------------------------------------------------------------------//
   struct GraphicsPipelineState
   {

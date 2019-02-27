@@ -131,7 +131,7 @@ namespace Fancy {
 
     ourTempResourcePool->Reset();
 
-    for (DynamicArray<GpuQueryRange>& usedQueryRange : ourUsedQueryRanges)
+    for (DynamicArray<glm::uvec2>& usedQueryRange : ourUsedQueryRanges)
       usedQueryRange.clear();
 
     ASSERT(IsFrameDone(ourQueryStorageLastUsedFrame[ourCurrQueryStorageIdx]));
@@ -414,11 +414,16 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::ResolveUsedQueryData()
   {
-    // Merge the query-ranges and copy them one-by-one into the readback-buffer
+    bool hasAnyQueryData = false;
+    for (const DynamicArray<glm::uvec2>& ranges : ourUsedQueryRanges)
+      hasAnyQueryData |= !ranges.empty();
+
+    if (!hasAnyQueryData)
+      return;
+
     CommandQueue* queueGraphics = GetCommandQueue(CommandListType::Graphics);
     CommandContext* context = AllocateContext(CommandListType::Graphics);
     DynamicArray<glm::uvec2> mergedRanges;
-    bool hasAnyQueryData = false;
     for (uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType)
     {
       DynamicArray<glm::uvec2>& ranges = ourUsedQueryRanges[queryType];
@@ -446,8 +451,16 @@ namespace Fancy {
       mergedRanges.push_back(currMergedRange);
 
       GpuQueryStorage& storage = ourQueryStorages[ourCurrQueryStorageIdx][queryType];
+      const GpuQueryHeap* heap = storage.myQueryHeap.get();
+      const GpuBuffer* readbackBuffer = storage.myReadbackBuffer.get();
+      const uint queryDataSize = GetQueryTypeDataSize((GpuQueryType)queryType);
+      uint64 bufferOffset = 0u;
       for (const glm::uvec2& mergedRange : mergedRanges)
-        context->CopyQueryDataToBuffer(storage.myQueryHeap.get(), storage.myReadbackBuffer.get(), mergedRange.x, mergedRange.y - mergedRange.x, 0u);  // OFFSET!!!
+      {
+        const uint numQueries = mergedRange.y - mergedRange.x;
+        context->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.x, numQueries, bufferOffset);
+        bufferOffset += static_cast<uint64>(numQueries * queryDataSize);
+      }
     }
 
     if (hasAnyQueryData)
@@ -693,6 +706,11 @@ namespace Fancy {
     return CreateBufferView(buffer, someViewProperties);
   }
 //---------------------------------------------------------------------------//
+  uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)
+  {
+    return ourPlatformImpl->GetQueryTypeDataSize(aType);
+  }
+//---------------------------------------------------------------------------//
   // TODO: Add a parameter that decides about synchronized/unsynchronized access
   void RenderCore::UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
   {
@@ -890,24 +908,23 @@ namespace Fancy {
   {
     GpuQueryStorage& storage = ourQueryStorages[ourCurrQueryStorageIdx][(uint)aType];
 
-    GpuQueryRange range;
-    bool success = storage.AllocateQueries(aNumQueries, range.myFirstQueryIndex);
+    uint firstQueryIndex = 0u;
+    const bool success = storage.AllocateQueries(aNumQueries, firstQueryIndex);
     ASSERT(success, "Not enough queries available for query type % (wants to allocate % queries, available are % queries)", (uint)aType, aNumQueries, storage.GetNumFreeQueries());
 
-    range.myNumQueries = aNumQueries;
-    range.myType = aType;
-    return range;
+    return GpuQueryRange(storage.myQueryHeap.get(), firstQueryIndex, aNumQueries);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::FreeQueryRange(GpuQueryRange aQueryRange)
   {
-    GpuQueryStorage& queryStorage = ourQueryStorages[ourCurrQueryStorageIdx][(uint)aQueryRange.myType];
+    const uint queryType = (uint)aQueryRange.myHeap->myType;
+    GpuQueryStorage& queryStorage = ourQueryStorages[ourCurrQueryStorageIdx][queryType];
 
     // Is this the last query-range that was allocated? Then deallocate the range in the storage again so it can be used again
     if (queryStorage.myNextFree == aQueryRange.myFirstQueryIndex + aQueryRange.myNumQueries)
       queryStorage.myNextFree = aQueryRange.myFirstQueryIndex + aQueryRange.myNumUsedQueries;
 
-    ourUsedQueryRanges[(uint)aQueryRange.myType].push_back(aQueryRange);
+    ourUsedQueryRanges[queryType].push_back(glm::uvec2(aQueryRange.myFirstQueryIndex, aQueryRange.myFirstQueryIndex + aQueryRange.myNumUsedQueries));
   }
 //---------------------------------------------------------------------------//
   bool RenderCore::IsFrameDone(uint64 aFrameIdx)

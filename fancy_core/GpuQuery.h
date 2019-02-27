@@ -8,14 +8,31 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct GpuQuery
   {
-    GpuQueryType myType = GpuQueryType::NUM;
-    uint myIndexInHeap = 0u;
-    uint64 myFrame = 0u;
+    GpuQuery(GpuQueryType aType, uint anIndex, uint64 aFrame)
+      : myFrame(aFrame)
+      , myType(aType)
+      , myIndexInHeap(anIndex)
+    {}
+
+    uint64 myFrame;
+    GpuQueryType myType;
+    uint myIndexInHeap;
+    mutable bool myIsOpen = true;
   };
 //---------------------------------------------------------------------------//
+  class GpuQueryHeap;
+
   struct GpuQueryRange
   {
-    GpuQueryType myType = GpuQueryType::NUM;
+    GpuQueryRange() {}
+
+    GpuQueryRange(GpuQueryHeap* aHeap, uint aFirstQueryIndex, uint aNumQueries)
+      : myHeap(aHeap)
+      , myFirstQueryIndex(aFirstQueryIndex)
+      , myNumQueries(aNumQueries)
+    { }
+
+    GpuQueryHeap* myHeap = nullptr;
     uint myFirstQueryIndex = 0u;
     uint myNumQueries = 0u;
     uint myNumUsedQueries = 0u;

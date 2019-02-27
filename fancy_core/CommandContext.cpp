@@ -9,6 +9,7 @@
 #include "GpuProgram.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
+#include "TimeManager.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -51,24 +52,7 @@ namespace Fancy {
     return hash;
   }
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-  CommandContext::CommandContext(CommandListType aType)
-    : myCommandListType(aType)
-    , myCurrentContext(aType)
-    , myViewportParams(0, 0, 1, 1)
-    , myClipRect(0, 0, 1, 1)
-    , myViewportDirty(true)
-    , myClipRectDirty(true)
-    , myTopologyDirty(true)
-    , myRenderTargetsDirty(true)
-    , myShaderHasUnorderedWrites(false)
-    , myRenderTargets{ nullptr }
-    , myDepthStencilTarget(nullptr) 
-  {
-  }
-//---------------------------------------------------------------------------//
-
+  
 //---------------------------------------------------------------------------//
   ComputePipelineState::ComputePipelineState()
     : myGpuProgram(nullptr)
@@ -85,6 +69,35 @@ namespace Fancy {
       MathUtil::hash_combine(hash, myGpuProgram->GetNativeBytecodeHash());
 
     return hash;
+  }
+//---------------------------------------------------------------------------//
+  namespace Private_CommandContext
+  {
+    uint GetNumAllocatedQueriesPerRange(GpuQueryType aType)
+    {
+      switch(aType) 
+      { 
+        case GpuQueryType::TIMESTAMP: return 256u;
+        case GpuQueryType::OCCLUSION: return 64u;
+        case GpuQueryType::NUM: 
+        default: ASSERT(false) return 0u;
+      }
+    }
+  }
+//---------------------------------------------------------------------------//
+  CommandContext::CommandContext(CommandListType aType)
+    : myCommandListType(aType)
+    , myCurrentContext(aType)
+    , myViewportParams(0, 0, 1, 1)
+    , myClipRect(0, 0, 1, 1)
+    , myViewportDirty(true)
+    , myClipRectDirty(true)
+    , myTopologyDirty(true)
+    , myRenderTargetsDirty(true)
+    , myShaderHasUnorderedWrites(false)
+    , myRenderTargets{ nullptr }
+    , myDepthStencilTarget(nullptr)
+  {
   }
 //---------------------------------------------------------------------------//
   void CommandContext::TransitionResource(const GpuResource* aResource, GpuResourceTransition aTransition)
@@ -119,8 +132,13 @@ namespace Fancy {
     if (range.myNumUsedQueries == range.myNumQueries)
     {
       RenderCore::FreeQueryRange(range);
+      range = RenderCore::AllocateQueryRange(aType, Private_CommandContext::GetNumAllocatedQueriesPerRange(aType));
     }
-      
+
+    const uint queryIndex = range.myFirstQueryIndex + range.myNumUsedQueries;
+    ++range.myNumUsedQueries;
+
+    return GpuQuery(aType, queryIndex, Time::ourFrameIdx);
   }
 //---------------------------------------------------------------------------//
   const GpuBuffer* CommandContext::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)

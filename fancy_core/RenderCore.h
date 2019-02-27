@@ -79,6 +79,7 @@ namespace Fancy {
     static SharedPtr<TextureView> CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, const GpuBufferViewProperties& someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
+    static uint GetQueryTypeDataSize(GpuQueryType aType);
 
     static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);
@@ -107,7 +108,7 @@ namespace Fancy {
 
     static GpuQueryRange AllocateQueryRange(GpuQueryType aType, uint aNumQueries);
     static void FreeQueryRange(GpuQueryRange aQueryRange);
-
+    
     static bool IsFrameDone(uint64 aFrameIdx);
     static void WaitForFence(uint64 aFenceVal);
     static void WaitForIdle(CommandListType aType);

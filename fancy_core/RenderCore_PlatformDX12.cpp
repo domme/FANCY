@@ -279,6 +279,17 @@ namespace Fancy {
     return new GpuQueryHeapDX12(aType, aNumQueries);
   }
 //---------------------------------------------------------------------------//
+  uint RenderCore_PlatformDX12::GetQueryTypeDataSize(GpuQueryType aType)
+  {
+    switch (aType)
+    {
+      case GpuQueryType::TIMESTAMP: return sizeof(uint64);
+      case GpuQueryType::OCCLUSION: return sizeof(uint64);
+      case GpuQueryType::NUM:
+      default: ASSERT(false); return sizeof(uint64);
+    }
+  }
+//---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
   {
     Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;

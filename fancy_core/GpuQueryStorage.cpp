@@ -9,17 +9,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   namespace
   {
-    uint locGetQueryReadbackSizeBytes(GpuQueryType aQueryType)
-    {
-      switch (aQueryType)
-      {
-      case GpuQueryType::TIMESTAMP: return sizeof(uint64);
-      case GpuQueryType::OCCLUSION: return sizeof(uint64);
-      case GpuQueryType::NUM:
-      default: ASSERT(false); return sizeof(uint64);
-      }
-    }
-//---------------------------------------------------------------------------//
+ //---------------------------------------------------------------------------//
     const char* locGetQueryTypeName(GpuQueryType aQueryType)
     {
       switch (aQueryType)
@@ -42,7 +32,7 @@ namespace Fancy
     GpuBufferProperties bufferProps;
     bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_READ;
     bufferProps.myUsage = GpuBufferUsage::STAGING_READBACK;
-    bufferProps.myElementSizeBytes = locGetQueryReadbackSizeBytes(aQueryType);
+    bufferProps.myElementSizeBytes = RenderCore::GetQueryTypeDataSize(aQueryType);
     bufferProps.myNumElements = aNumQueries;
     String name = StringFormat("QueryHeap %", locGetQueryTypeName(aQueryType));
     myReadbackBuffer = RenderCore::CreateBuffer(bufferProps, name.c_str());
