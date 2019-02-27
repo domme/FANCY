@@ -85,7 +85,6 @@ namespace Fancy {
 
   DynamicArray<glm::uvec2> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
   GpuQueryStorage RenderCore::ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
-  uint64 RenderCore::ourQueryStorageLastUsedFrame[kNumQueryStorages] = { 0u };
   uint RenderCore::ourCurrQueryStorageIdx = 0u;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
@@ -134,13 +133,20 @@ namespace Fancy {
     for (DynamicArray<glm::uvec2>& usedQueryRange : ourUsedQueryRanges)
       usedQueryRange.clear();
 
-    ASSERT(IsFrameDone(ourQueryStorageLastUsedFrame[ourCurrQueryStorageIdx]));
     for (uint i = 0u; i < (uint) GpuQueryType::NUM; ++i)
-      ourQueryStorages[ourCurrQueryStorageIdx][i].FreeAllQueries();
+    {
+      GpuQueryStorage& queryStorage = ourQueryStorages[ourCurrQueryStorageIdx][i];
+      ASSERT(Time::ourFrameIdx == 0u || IsFrameDone(queryStorage.myLastUsedFrame));
+      queryStorage.myNextFree = 0u;
+      queryStorage.myLastUsedFrame = Time::ourFrameIdx;
+    }  
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
   {
+    for (void* queryReadbackBuffer : ourMappedQueryReadbackData)
+      ASSERT(queryReadbackBuffer = nullptr, "Open query readback detected at end of frame");
+
     ResolveUsedQueryData();
 
     CommandQueue* graphicsQueue = GetCommandQueue(CommandListType::Graphics);
@@ -153,7 +159,6 @@ namespace Fancy {
       ourLastFrameDoneFences.RemoveFirstElement();
     ourLastFrameDoneFences.Add({ Time::ourFrameIdx, completedFrameFence });
 
-    ourQueryStorageLastUsedFrame[ourCurrQueryStorageIdx] = Time::ourFrameIdx;
     ourCurrQueryStorageIdx = (ourCurrQueryStorageIdx + 1) % kNumQueryStorages;
   }
 //---------------------------------------------------------------------------//
@@ -925,6 +930,50 @@ namespace Fancy {
       queryStorage.myNextFree = aQueryRange.myFirstQueryIndex + aQueryRange.myNumUsedQueries;
 
     ourUsedQueryRanges[queryType].push_back(glm::uvec2(aQueryRange.myFirstQueryIndex, aQueryRange.myFirstQueryIndex + aQueryRange.myNumUsedQueries));
+  }
+//---------------------------------------------------------------------------//
+  void* RenderCore::BeginQueryDataReadback(GpuQueryType aType, uint64 aFrameIdx)
+  {
+    ASSERT(IsFrameDone(aFrameIdx));
+    ASSERT(ourMappedQueryReadbackData[(uint)aType] == nullptr);
+
+    GpuBuffer* buffer = nullptr;
+    for (uint i = 0u; i < kNumQueryStorages; ++i)
+    {
+      GpuQueryStorage& queryStorage = ourQueryStorages[i][(uint)aType];
+      if (queryStorage.myLastUsedFrame == aFrameIdx)
+        buffer = queryStorage.myReadbackBuffer.get();
+    }
+
+    ASSERT(buffer != nullptr, "Query data for frame % is not available anymore", aFrameIdx);
+
+    void* mappedData = buffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+    ASSERT(mappedData != nullptr);
+
+    ourMappedQueryReadbackData[(uint)aType] = mappedData;
+    return mappedData;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::ReadQueryData(const GpuQuery & aQuery, uint8 * aData)
+  {
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::EndQueryDataReadback(GpuQueryType aType)
+  {
+    ASSERT(ourMappedQueryReadbackData[(uint)aType] != nullptr);
+
+  }
+//---------------------------------------------------------------------------//
+  GpuBuffer* RenderCore::GetQueryDataBuffer(GpuQueryType aType, uint64 aFrameIdx)
+  {
+    for (uint i = 0u; i < kNumQueryStorages; ++i)
+    {
+      GpuQueryStorage& queryStorage = ourQueryStorages[i][(uint)aType];
+      if (queryStorage.myLastUsedFrame == aFrameIdx)
+        return queryStorage.myReadbackBuffer.get();
+    }
+
+    return nullptr;
   }
 //---------------------------------------------------------------------------//
   bool RenderCore::IsFrameDone(uint64 aFrameIdx)

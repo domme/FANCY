@@ -13,6 +13,7 @@
 #include <fancy_core/Input.h>
 
 #include "ProfilerWindow.h"
+#include <array>
 
 using namespace Fancy;
 
@@ -26,6 +27,16 @@ Window* myWindow = nullptr;
 RenderOutput* myRenderOutput = nullptr;
 InputState myInputState;
 ImGuiContext* myImGuiContext = nullptr;
+
+struct GpuTimeFrame
+{
+  GpuQuery myStart;
+  GpuQuery myFinish;
+};
+
+const uint kNumGpuTimingFrames = RenderCore::kMaxNumQueuedFrames + 1;
+uint myCurrGpuTimingIdx = 0u;
+GpuTimeFrame myGpuTimings[kNumGpuTimingFrames];
 
 void DummyFunc3()
 {
@@ -167,22 +178,43 @@ void Update()
   }
 }
 
+void ReadbackGpuTimings()
+{
+  uint readbackIdx = (myCurrGpuTimingIdx + RenderCore::kMaxNumQueuedFrames) % kNumGpuTimingFrames;
+  GpuTimeFrame& timeFrame = myGpuTimings[readbackIdx];
+
+  uint64 frameIdx = timeFrame.myStart.myFrame;
+  if (RenderCore::IsFrameDone(frameIdx))
+  {
+    
+  }
+}
+
 void Render()
 {
   // PROFILE_FUNCTION();
   // 
   // LongDummyFunc();
 
+
+
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
 
+  GpuTimeFrame& timeFrame = myGpuTimings[myCurrGpuTimingIdx];
+
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+  timeFrame.myStart = ctx->InsertTimestamp();
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
+  timeFrame.myFinish = ctx->InsertTimestamp();
   queue->ExecuteContext(ctx);
   RenderCore::FreeContext(ctx);
 
   ImGui::Render();
   myRuntime->EndFrame();
+
+  myCurrGpuTimingIdx = (myCurrGpuTimingIdx + 1) % kNumGpuTimingFrames;
 }
 
 void Shutdown()
