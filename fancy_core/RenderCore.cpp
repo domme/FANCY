@@ -144,7 +144,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
   {
-    for (void* queryReadbackBuffer : ourMappedQueryReadbackData)
+    for (const uint8* queryReadbackBuffer : ourMappedQueryReadbackData)
       ASSERT(queryReadbackBuffer == nullptr, "Open query readback detected at end of frame");
 
     ResolveUsedQueryData();
@@ -932,10 +932,18 @@ namespace Fancy {
     ourUsedQueryRanges[queryType].push_back(glm::uvec2(aQueryRange.myFirstQueryIndex, aQueryRange.myFirstQueryIndex + aQueryRange.myNumUsedQueries));
   }
 //---------------------------------------------------------------------------//
-  void* RenderCore::BeginQueryDataReadback(GpuQueryType aType, uint64 aFrameIdx)
+  bool RenderCore::BeginQueryDataReadback(GpuQueryType aType, uint64 aFrameIdx, const uint8** aDataPtrOut /*= nullptr*/)
   {
-    ASSERT(IsFrameDone(aFrameIdx));
-    ASSERT(ourMappedQueryReadbackData[(uint)aType] == nullptr);
+    if(!IsFrameDone(aFrameIdx))
+      return false;
+
+    if(ourMappedQueryReadbackData[(uint)aType] != nullptr)
+    {
+      if (aDataPtrOut != nullptr)
+        *aDataPtrOut = ourMappedQueryReadbackData[(uint)aType];
+
+      return true;
+    }
 
     int storageIdx = -1;
     for (uint i = 0u; storageIdx < 0 && i < kNumQueryStorages; ++i)
@@ -945,26 +953,46 @@ namespace Fancy {
         storageIdx = (int) i;
     }
 
-    ASSERT(storageIdx >= 0, "Query data for frame % is not available anymore", aFrameIdx);
+    if (storageIdx < 0)
+      return false;
 
     GpuBuffer* buffer = ourQueryStorages[storageIdx][(uint)aType].myReadbackBuffer.get();
 
-    void* mappedData = buffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+    const uint8* mappedData = (const uint8*) buffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED);
     ASSERT(mappedData != nullptr);
 
-    ourMappedQueryStorageIdx[(uint)aType] = (uint) storageIdx;
+    ourMappedQueryStorageIdx = (uint) storageIdx;
     ourMappedQueryReadbackData[(uint)aType] = mappedData;
-    return mappedData;
+
+    if (aDataPtrOut != nullptr)
+      *aDataPtrOut = mappedData;
+
+    return true;
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::ReadQueryData(const GpuQuery& aQuery, uint8* aData)
+  bool RenderCore::ReadQueryData(const GpuQuery& aQuery, uint8* aData)
   {
-   
+    const GpuQueryType type = aQuery.myType;
+    const uint8* mappedData = ourMappedQueryReadbackData[(uint)type];
+    if (mappedData == nullptr)
+      return false;
+
+    GpuQueryStorage& mappedStorage = ourQueryStorages[ourMappedQueryStorageIdx][(uint)type];
+    if (aQuery.myFrame != mappedStorage.myLastUsedFrame)
+      return false;
+
+    const uint queryTypeDataSize = GetQueryTypeDataSize(type);
+    const uint8 byteOffset = aQuery.myIndexInHeap * queryTypeDataSize;
+    ASSERT(mappedStorage.myReadbackBuffer->GetByteSize() >= byteOffset + queryTypeDataSize);
+
+    memcpy(aData, mappedData + byteOffset, (size_t)queryTypeDataSize);
+    return true;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndQueryDataReadback(GpuQueryType aType)
   {
-    ASSERT(ourMappedQueryReadbackData[(uint)aType] != nullptr);
+    if (ourMappedQueryReadbackData[(uint)aType] == nullptr)
+      return;
 
   }
 //---------------------------------------------------------------------------//

@@ -108,8 +108,8 @@ namespace Fancy {
 
     static GpuQueryRange AllocateQueryRange(GpuQueryType aType, uint aNumQueries);
     static void FreeQueryRange(GpuQueryRange aQueryRange);
-    static void* BeginQueryDataReadback(GpuQueryType aType, uint64 aFrameIdx);
-    static void ReadQueryData(const GpuQuery& aQuery, uint8* aData);
+    static bool BeginQueryDataReadback(GpuQueryType aType, uint64 aFrameIdx, const uint8** aDataPtrOut = nullptr);
+    static bool ReadQueryData(const GpuQuery& aQuery, uint8* aData);
     static void EndQueryDataReadback(GpuQueryType aType);
     
     static bool IsFrameDone(uint64 aFrameIdx);
@@ -171,8 +171,8 @@ namespace Fancy {
     static GpuQueryStorage ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
     static uint ourCurrQueryStorageIdx;
     
-    static uint ourMappedQueryStorageIdx[(uint)GpuQueryType::NUM];
-    static void* ourMappedQueryReadbackData[(uint)GpuQueryType::NUM];
+    static uint ourMappedQueryStorageIdx;
+    static const uint8* ourMappedQueryReadbackData[(uint)GpuQueryType::NUM];
 
   };
 //---------------------------------------------------------------------------//
