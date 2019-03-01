@@ -86,6 +86,9 @@ namespace Fancy {
   DynamicArray<glm::uvec2> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
   GpuQueryStorage RenderCore::ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
   uint RenderCore::ourCurrQueryStorageIdx = 0u;
+
+  uint RenderCore::ourMappedQueryStorageIdx = 0u;
+  const uint8* RenderCore::ourMappedQueryReadbackData[(uint)GpuQueryType::NUM] = { nullptr };
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -994,18 +997,10 @@ namespace Fancy {
     if (ourMappedQueryReadbackData[(uint)aType] == nullptr)
       return;
 
-  }
-//---------------------------------------------------------------------------//
-  GpuBuffer* RenderCore::GetQueryDataBuffer(GpuQueryType aType, uint64 aFrameIdx)
-  {
-    for (uint i = 0u; i < kNumQueryStorages; ++i)
-    {
-      GpuQueryStorage& queryStorage = ourQueryStorages[i][(uint)aType];
-      if (queryStorage.myLastUsedFrame == aFrameIdx)
-        return queryStorage.myReadbackBuffer.get();
-    }
+    GpuQueryStorage& mappedStorage = ourQueryStorages[ourMappedQueryStorageIdx][(uint)aType];
 
-    return nullptr;
+    mappedStorage.myReadbackBuffer->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+    ourMappedQueryReadbackData[(uint)aType] = nullptr;
   }
 //---------------------------------------------------------------------------//
   bool RenderCore::IsFrameDone(uint64 aFrameIdx)
@@ -1021,7 +1016,29 @@ namespace Fancy {
       if (ourLastFrameDoneFences[i].first == aFrameIdx)
         return queue->IsFenceDone(ourLastFrameDoneFences[i].second);
 
+    ASSERT(false);  // It should never reach this point
     return false;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::WaitForFrame(uint64 aFrameIdx)
+  {
+    if (ourLastFrameDoneFences.IsEmpty() || ourLastFrameDoneFences[ourLastFrameDoneFences.Size() - 1].first < aFrameIdx)
+    {
+      WaitForIdle(CommandListType::Graphics);
+      return;
+    }
+
+    if (ourLastFrameDoneFences[0].first > aFrameIdx)
+      return;
+
+    CommandQueue* queue = GetCommandQueue(CommandListType::Graphics);
+    for (uint i = 0u, e = ourLastFrameDoneFences.Size(); i < e; ++i)
+    {
+      if (ourLastFrameDoneFences[i].first == aFrameIdx)
+      {
+        WaitForFence(ourLastFrameDoneFences[i].second);
+      }
+    }
   }
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForFence(uint64 aFenceVal)
@@ -1040,6 +1057,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset, uint aNumSubresources)
   {
+    // TODO: Fix this logic - this just waits all the time. The hazard-tracking should store a fence when the 
+    // Resource was last used for writing
+    
     GpuHazardData* hazardData = aResource->myHazardData.get();
 
     bool commandListNeedsWait[(uint)CommandListType::NUM] = { false, false, false };
@@ -1053,8 +1073,6 @@ namespace Fancy {
       if (commandListNeedsWait[i])
         WaitForIdle((CommandListType)i);
   }
-//---------------------------------------------------------------------------//
-  
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)
   {

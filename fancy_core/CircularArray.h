@@ -80,12 +80,12 @@ namespace Fancy
     }
 
   protected:
-    CircularArray()
-      : myBuffer(nullptr)
+    CircularArray(uint aCapacity, T* aBuffer)
+      : myBuffer(aBuffer)
       , myHead(0u)
       , myTail(0u)
       , mySize(0u)
-      , myCapacity(0u)
+      , myCapacity(aCapacity)
       , myHasBufferOnHeap(false)
     {
 
@@ -104,10 +104,8 @@ namespace Fancy
   {
   public:
     StaticCircularArray()
-      : CircularArray<T>()
+      : CircularArray<T>(N, myArray)
     {
-      myCapacity = N;
-      myBuffer = myArray;
     }
 
   private:

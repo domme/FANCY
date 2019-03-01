@@ -36,6 +36,7 @@ struct GpuTimeFrame
 
 const uint kNumGpuTimingFrames = RenderCore::kMaxNumQueuedFrames + 1;
 uint myCurrGpuTimingIdx = 0u;
+uint myCurReadbackIdx = 0u;
 GpuTimeFrame myGpuTimings[kNumGpuTimingFrames];
 
 void DummyFunc3()
@@ -180,13 +181,31 @@ void Update()
 
 void ReadbackGpuTimings()
 {
-  uint readbackIdx = (myCurrGpuTimingIdx + RenderCore::kMaxNumQueuedFrames) % kNumGpuTimingFrames;
-  GpuTimeFrame& timeFrame = myGpuTimings[readbackIdx];
+  GpuTimeFrame& timeFrame = myGpuTimings[myCurReadbackIdx];
 
   uint64 frameIdx = timeFrame.myStart.myFrame;
-  if (RenderCore::IsFrameDone(frameIdx))
+  bool frameDone = RenderCore::IsFrameDone(frameIdx);
+  if (!frameDone && (myCurrGpuTimingIdx + 1) % kNumGpuTimingFrames == myCurReadbackIdx)
   {
-    
+    RenderCore::WaitForFrame(frameIdx);
+    frameDone = true;
+  }
+
+  if (frameDone)
+  {
+    const bool readBackStarted = RenderCore::BeginQueryDataReadback(GpuQueryType::TIMESTAMP, frameIdx);
+    ASSERT(readBackStarted);
+
+    uint64 valStart, valEnd;
+    RenderCore::ReadQueryData(timeFrame.myStart, (uint8*)&valStart);
+    RenderCore::ReadQueryData(timeFrame.myFinish, (uint8*)&valEnd);
+
+    LOG_INFO("Start: %", valStart);
+    LOG_INFO("End: %", valEnd);
+
+    RenderCore::EndQueryDataReadback(GpuQueryType::TIMESTAMP);
+
+    myCurReadbackIdx = (myCurReadbackIdx + 1) % kNumGpuTimingFrames;
   }
 }
 
@@ -196,6 +215,7 @@ void Render()
   // 
   // LongDummyFunc();
 
+  ReadbackGpuTimings();
 
 
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);

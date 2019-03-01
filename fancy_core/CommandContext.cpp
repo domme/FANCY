@@ -129,11 +129,15 @@ namespace Fancy {
   GpuQuery CommandContext::AllocateQuery(GpuQueryType aType)
   {
     GpuQueryRange& range = myQueryRanges[(uint)aType];
-    if (range.myNumUsedQueries == range.myNumQueries)
+       
+    if (range.myNumUsedQueries == range.myNumQueries && range.myNumQueries > 0u)
     {
       RenderCore::FreeQueryRange(range);
-      range = RenderCore::AllocateQueryRange(aType, Private_CommandContext::GetNumAllocatedQueriesPerRange(aType));
+      range = GpuQueryRange();
     }
+
+    if (range.myNumUsedQueries == range.myNumQueries)
+      range = RenderCore::AllocateQueryRange(aType, Private_CommandContext::GetNumAllocatedQueriesPerRange(aType));
 
     const uint queryIndex = range.myFirstQueryIndex + range.myNumUsedQueries;
     ++range.myNumUsedQueries;
@@ -291,6 +295,13 @@ namespace Fancy {
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
+
+    for (GpuQueryRange& queryRange : myQueryRanges)
+    {
+      if (queryRange.myNumUsedQueries > 0)
+        RenderCore::FreeQueryRange(queryRange);
+      queryRange = GpuQueryRange();
+    }
     
     myViewportParams = glm::uvec4(0, 0, 1, 1);
     myClipRect = glm::uvec4(0, 0, 1, 1);

@@ -113,6 +113,7 @@ namespace Fancy {
     static void EndQueryDataReadback(GpuQueryType aType);
     
     static bool IsFrameDone(uint64 aFrameIdx);
+    static void WaitForFrame(uint64 aFrameIdx);
     static void WaitForFence(uint64 aFenceVal);
     static void WaitForIdle(CommandListType aType);
     static void WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset = 0, uint aNumSubresources = UINT_MAX);
