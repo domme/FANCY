@@ -1041,6 +1041,11 @@ namespace Fancy {
     ourMappedQueryBufferIdx[type] = 0u;
   }
 //---------------------------------------------------------------------------//
+  float64 RenderCore::GetTimestampToSecondsFactor(CommandListType aCommandListType)
+  {
+    return ourPlatformImpl->GetTimestampToSecondsFactor(aCommandListType);
+  }
+//---------------------------------------------------------------------------//
   bool RenderCore::IsFrameDone(uint64 aFrameIdx)
   {
     if (ourLastFrameDoneFences.IsEmpty() || ourLastFrameDoneFences[ourLastFrameDoneFences.Size() - 1].first < aFrameIdx)

@@ -75,6 +75,7 @@ namespace Fancy {
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
+    float64 GetTimestampToSecondsFactor(CommandListType aCommandListType) override { return myTimestampToSecondsFactor[(uint)aCommandListType]; }
     
     // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
@@ -94,6 +95,7 @@ namespace Fancy {
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)CpuMemoryAccessType::NUM];
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
 	  UniquePtr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
+    float64 myTimestampToSecondsFactor[(uint)CommandListType::NUM];
   };
 //---------------------------------------------------------------------------//
 }

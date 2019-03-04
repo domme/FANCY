@@ -43,6 +43,7 @@ namespace Fancy {
     virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
     virtual GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) = 0;
     virtual uint GetQueryTypeDataSize(GpuQueryType aType) = 0;
+    virtual float64 GetTimestampToSecondsFactor(CommandListType aCommandListType) = 0;
   protected:
     RenderPlatformCaps myCaps;
   };

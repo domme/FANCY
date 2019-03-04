@@ -202,6 +202,7 @@ void ReadbackGpuTimings()
 
     LOG_INFO("Start: %", valStart);
     LOG_INFO("End: %", valEnd);
+    LOG_INFO("Duration: %(s)", (valEnd-valStart) * RenderCore::GetTimestampToSecondsFactor(CommandListType::Graphics));
 
     RenderCore::EndQueryDataReadback(GpuQueryType::TIMESTAMP);
 

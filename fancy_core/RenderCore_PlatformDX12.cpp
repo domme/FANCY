@@ -80,6 +80,12 @@ namespace Fancy {
     ourCommandQueues[(uint)CommandListType::Graphics].reset(new CommandQueueDX12(CommandListType::Graphics));
     ourCommandQueues[(uint)CommandListType::Compute].reset(new CommandQueueDX12(CommandListType::Compute));
 
+    uint64 timestampFrequency = 1u;
+    CheckD3Dcall(ourCommandQueues[(uint)CommandListType::Graphics]->myQueue->GetTimestampFrequency(&timestampFrequency));
+    myTimestampToSecondsFactor[(uint)CommandListType::Graphics] = 1.0f / timestampFrequency;
+    CheckD3Dcall(ourCommandQueues[(uint)CommandListType::Compute]->myQueue->GetTimestampFrequency(&timestampFrequency));
+    myTimestampToSecondsFactor[(uint)CommandListType::Compute] = 1.0f / timestampFrequency;
+
     ourCommandAllocatorPools[(uint)CommandListType::Graphics].reset(new CommandAllocatorPoolDX12(CommandListType::Graphics));
     ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
     
