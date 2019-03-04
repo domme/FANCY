@@ -79,6 +79,13 @@ namespace Fancy
       myHead = myHead == myCapacity - 1u ? 0 : myHead + 1u;
     }
 
+    void IncrementHead()
+    {
+      ASSERT(!IsEmpty());
+      myHead = myHead == myCapacity - 1u ? 0 : myHead + 1u;
+      myTail = myTail == myCapacity - 1u ? 0 : myTail + 1u;
+    }
+
   protected:
     CircularArray(uint aCapacity, T* aBuffer)
       : myBuffer(aBuffer)

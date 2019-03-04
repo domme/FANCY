@@ -34,7 +34,7 @@ struct GpuTimeFrame
   GpuQuery myFinish;
 };
 
-const uint kNumGpuTimingFrames = RenderCore::kMaxNumQueuedFrames + 1;
+const uint kNumGpuTimingFrames = RenderCore::NUM_QUEUED_FRAMES + 1;
 uint myCurrGpuTimingIdx = 0u;
 uint myCurReadbackIdx = 0u;
 GpuTimeFrame myGpuTimings[kNumGpuTimingFrames];

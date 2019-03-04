@@ -1,7 +1,6 @@
 #include "fancy_core_precompile.h"
 #include "RenderCore.h"
 
-
 #include "DepthStencilState.h"
 #include "ResourceRefs.h"
 #include "GpuBuffer.h"
@@ -23,17 +22,27 @@
 #include "Texture.h"
 #include "TempResourcePool.h"
 #include "GpuQueryHeap.h"
+#include "TimeManager.h"
 
 #include <xxHash/xxhash.h>
-#include "GpuQueryStorage.h"
-#include "TimeManager.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  namespace Private_RenderCore
+  namespace
   {
-    uint64 ComputeHashFromVertexData(const MeshData* someMeshDatas, uint aNumMeshDatas)
+    const char* locGetQueryTypeName(GpuQueryType aQueryType)
+    {
+      switch (aQueryType)
+      {
+      case GpuQueryType::TIMESTAMP: return "Timestamp";
+      case GpuQueryType::OCCLUSION: return "Occlusion";
+      case GpuQueryType::NUM:
+      default: ASSERT(false); return "";
+      }
+    }
+
+    uint64 locComputeHashFromVertexData(const MeshData* someMeshDatas, uint aNumMeshDatas)
     {
       XXH64_state_t* xxHashState = XXH64_createState();
       XXH64_reset(xxHashState, 0u);
@@ -51,6 +60,11 @@ namespace Fancy {
     }
 
     const uint kReadbackBufferSizeIncrease = 2 * SIZE_MB;
+  }
+//---------------------------------------------------------------------------//
+  namespace
+  {
+    
   }
 //---------------------------------------------------------------------------//
   Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
@@ -79,16 +93,22 @@ namespace Fancy {
   DynamicArray<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
-   
-  StaticCircularArray<uint64, RenderCore::kMaxNumQueuedFrames> RenderCore::ourQueuedFrameDoneFences;
-  StaticCircularArray<std::pair<uint64, uint64>, RenderCore::kNumLastFrameFences> RenderCore::ourLastFrameDoneFences;
 
-  DynamicArray<glm::uvec2> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
-  GpuQueryStorage RenderCore::ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
-  uint RenderCore::ourCurrQueryStorageIdx = 0u;
+  StaticCircularArray<uint64, RenderCore::NUM_QUEUED_FRAMES> RenderCore::ourQueuedFrameDoneFences;
+  StaticCircularArray<std::pair<uint64, uint64>, 256> RenderCore::ourLastFrameDoneFences;
 
-  uint RenderCore::ourMappedQueryStorageIdx = 0u;
-  const uint8* RenderCore::ourMappedQueryReadbackData[(uint)GpuQueryType::NUM] = { nullptr };
+  UniquePtr<GpuQueryHeap> RenderCore::ourQueryHeaps[NUM_QUEUED_FRAMES][(uint)GpuQueryType::NUM];
+  uint RenderCore::ourCurrQueryHeapIdx = 0;
+
+  FixedArray<std::pair<uint, uint>, 512> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
+  uint RenderCore::ourNumUsedQueryRanges[(uint)GpuQueryType::NUM] = { 0u };
+
+  UniquePtr<GpuBuffer> RenderCore::ourQueryBuffers[NUM_QUERY_BUFFERS][(uint)GpuQueryType::NUM];
+  uint64 RenderCore::ourQueryBufferFrames[NUM_QUERY_BUFFERS] = { 0u };
+  uint RenderCore::ourCurrQueryBufferIdx = 0u;
+
+  const uint8* RenderCore::ourMappedQueryBufferData[(uint)GpuQueryType::NUM] = { nullptr };
+  uint RenderCore::ourMappedQueryBufferIdx[(uint)GpuQueryType::NUM] = { 0u };
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -133,22 +153,23 @@ namespace Fancy {
 
     ourTempResourcePool->Reset();
 
-    for (DynamicArray<glm::uvec2>& usedQueryRange : ourUsedQueryRanges)
-      usedQueryRange.clear();
-
-    for (uint i = 0u; i < (uint) GpuQueryType::NUM; ++i)
+    ourCurrQueryHeapIdx = (ourCurrQueryHeapIdx + 1) % NUM_QUEUED_FRAMES;
+    for (uint i = 0u; i < (uint)GpuQueryType::NUM; ++i)
     {
-      GpuQueryStorage& queryStorage = ourQueryStorages[ourCurrQueryStorageIdx][i];
-      ASSERT(Time::ourFrameIdx == 0u || IsFrameDone(queryStorage.myLastUsedFrame));
-      queryStorage.myNextFree = 0u;
-      queryStorage.myLastUsedFrame = Time::ourFrameIdx;
-    }  
+      const uint64 lastUsedFrame = ourQueryHeaps[ourCurrQueryHeapIdx][i]->myLastUsedFrame;
+      ASSERT(lastUsedFrame == UINT64_MAX || IsFrameDone(lastUsedFrame));
+      ourQueryHeaps[ourCurrQueryHeapIdx][i]->Reset(Time::ourFrameIdx);
+      ourNumUsedQueryRanges[i] = 0u;
+    }
+
+    ourCurrQueryBufferIdx = (ourCurrQueryBufferIdx + 1) % NUM_QUERY_BUFFERS;
+    ourQueryBufferFrames[ourCurrQueryBufferIdx] = Time::ourFrameIdx;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
   {
-    for (const uint8* queryReadbackBuffer : ourMappedQueryReadbackData)
-      ASSERT(queryReadbackBuffer == nullptr, "Open query readback detected at end of frame");
+    for (uint i = 0u; i < (uint)GpuQueryType::NUM; ++i)
+      ASSERT(ourMappedQueryBufferData[i] == nullptr, "Open query readback detected at end of frame");
 
     ResolveUsedQueryData();
 
@@ -161,8 +182,6 @@ namespace Fancy {
     if (ourLastFrameDoneFences.IsFull())
       ourLastFrameDoneFences.RemoveFirstElement();
     ourLastFrameDoneFences.Add({ Time::ourFrameIdx, completedFrameFence });
-
-    ourCurrQueryStorageIdx = (ourCurrQueryStorageIdx + 1) % kNumQueryStorages;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
@@ -350,12 +369,35 @@ namespace Fancy {
 
     ourTempResourcePool.reset(new TempResourcePool);
 
-    for (uint storageIdx = 0u; storageIdx < kNumQueryStorages; ++storageIdx)
+    const uint numQueriesPerType[] = 
     {
-      ourQueryStorages[storageIdx][(uint)GpuQueryType::OCCLUSION].Create(GpuQueryType::OCCLUSION, 2048);
-      ourQueryStorages[storageIdx][(uint)GpuQueryType::TIMESTAMP].Create(GpuQueryType::TIMESTAMP, 4096);
+      4096, // Timestamp
+      2048  // Occlusion
+    };
+    static_assert(ARRAYSIZE(numQueriesPerType) == (uint)GpuQueryType::NUM, "Missing values for numQueriesPerType");
+
+    for (uint i = 0u; i < NUM_QUEUED_FRAMES; ++i)
+    {
+      for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
+        ourQueryHeaps[i][queryType].reset(ourPlatformImpl->CreateQueryHeap((GpuQueryType)queryType, numQueriesPerType[queryType]));
     }
-    ourCurrQueryStorageIdx = 0u;
+
+    GpuBufferProperties bufferProps;
+    bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_READ;
+    bufferProps.myUsage = GpuBufferUsage::STAGING_READBACK;
+    for (uint i = 0u; i < NUM_QUERY_BUFFERS; ++i)
+    {
+      for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
+      {
+        bufferProps.myElementSizeBytes = GetQueryTypeDataSize((GpuQueryType)queryType);
+        bufferProps.myNumElements = numQueriesPerType[queryType];
+        String name = StringFormat("QueryHeap %", locGetQueryTypeName((GpuQueryType)queryType));
+
+        GpuBuffer* buffer = ourPlatformImpl->CreateBuffer();
+        buffer->Create(bufferProps, name.c_str());
+        ourQueryBuffers[i][queryType].reset(buffer);
+      }
+    }
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()
@@ -423,50 +465,48 @@ namespace Fancy {
   void RenderCore::ResolveUsedQueryData()
   {
     bool hasAnyQueryData = false;
-    for (const DynamicArray<glm::uvec2>& ranges : ourUsedQueryRanges)
-      hasAnyQueryData |= !ranges.empty();
+    for (uint numRanges : ourNumUsedQueryRanges)
+      hasAnyQueryData |= numRanges > 0u;
 
     if (!hasAnyQueryData)
       return;
 
     CommandQueue* queueGraphics = GetCommandQueue(CommandListType::Graphics);
     CommandContext* context = AllocateContext(CommandListType::Graphics);
-    DynamicArray<glm::uvec2> mergedRanges;
     for (uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType)
     {
-      DynamicArray<glm::uvec2>& ranges = ourUsedQueryRanges[queryType];
-      if (ranges.empty())
+      if (ourNumUsedQueryRanges[queryType] == 0u)
         continue;
 
       hasAnyQueryData = true;
-      mergedRanges.resize(0u);
-      mergedRanges.reserve(ranges.size());
+      std::pair<uint, uint>* mergedRanges = (std::pair<uint, uint>*) alloca(sizeof(std::pair<uint, uint>) * ourNumUsedQueryRanges[queryType]);
+      uint numUsedMergedRanges = 0u;
 
-      glm::uvec2 currMergedRange = ranges.front();
-      for (uint i = 1u, e = (uint) ranges.size(); i < e; ++i)
+      std::pair<uint, uint> currMergedRange = ourUsedQueryRanges[queryType][0];
+      for (uint i = 1u; i < ourNumUsedQueryRanges[queryType]; ++i)
       {
-        const glm::uvec2& range = ranges[i];
-        if (range.x == currMergedRange.y)
+        const std::pair<uint, uint>& range = ourUsedQueryRanges[queryType][i];
+        if (range.first == currMergedRange.second)
         {
-          currMergedRange.y = range.y;
+          currMergedRange.second = range.second;
         }
         else
         {
-          mergedRanges.push_back(currMergedRange);
+          mergedRanges[numUsedMergedRanges++] = currMergedRange;
           currMergedRange = range;
         }
       }
-      mergedRanges.push_back(currMergedRange);
+      mergedRanges[numUsedMergedRanges++] = currMergedRange;
 
-      GpuQueryStorage& storage = ourQueryStorages[ourCurrQueryStorageIdx][queryType];
-      const GpuQueryHeap* heap = storage.myQueryHeap.get();
-      const GpuBuffer* readbackBuffer = storage.myReadbackBuffer.get();
+      const GpuQueryHeap* heap = ourQueryHeaps[ourCurrQueryHeapIdx][queryType].get();
+      const GpuBuffer* readbackBuffer = ourQueryBuffers[ourCurrQueryBufferIdx][queryType].get();
       const uint queryDataSize = GetQueryTypeDataSize((GpuQueryType)queryType);
       uint64 bufferOffset = 0u;
-      for (const glm::uvec2& mergedRange : mergedRanges)
+      for (uint i = 0u; i < numUsedMergedRanges; ++i)
       {
-        const uint numQueries = mergedRange.y - mergedRange.x;
-        context->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.x, numQueries, bufferOffset);
+        const std::pair<uint, uint>& mergedRange = mergedRanges[i];
+        const uint numQueries = mergedRange.second - mergedRange.first;
+        context->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.first, numQueries, bufferOffset);
         bufferOffset += static_cast<uint64>(numQueries * queryDataSize);
       }
     }
@@ -644,7 +684,7 @@ namespace Fancy {
     SharedPtr<Mesh> mesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
     mesh->myGeometryDatas = vGeometryDatas;
     mesh->myDesc = aDesc;
-    mesh->myVertexAndIndexHash = Private_RenderCore::ComputeHashFromVertexData(someMeshDatas, aNumMeshDatas);
+    mesh->myVertexAndIndexHash = locComputeHashFromVertexData(someMeshDatas, aNumMeshDatas);
 
     return mesh;
   }
@@ -762,7 +802,7 @@ namespace Fancy {
       LOG_WARNING("ReadbackBufferData() called with a CPU-readable buffer. Its better to directly map the buffer to avoid uneccessary temp-copies");
 
     GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize - anOffset, Private_RenderCore::kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
+    props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize - anOffset, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
     props.myBufferProperties.myElementSizeBytes = 1u;
     props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
     props.myBufferProperties.myUsage = GpuBufferUsage::STAGING_READBACK;
@@ -787,7 +827,7 @@ namespace Fancy {
     aTexture->GetSubresourceLayout(aStartSubLocation, aNumSublocations, subresourceLayouts, subresourceOffsets, totalSize);
 
     GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, Private_RenderCore::kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
+    props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
     props.myBufferProperties.myElementSizeBytes = 1u;
     props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
     props.myBufferProperties.myUsage = GpuBufferUsage::STAGING_READBACK;
@@ -912,27 +952,26 @@ namespace Fancy {
     return ourTempResourcePool->AllocateBuffer(someProps, someFlags, aName);
   }
 //---------------------------------------------------------------------------//
-  GpuQueryRange RenderCore::AllocateQueryRange(GpuQueryType aType, uint aNumQueries)
+  uint RenderCore::AllocateQueryRange(GpuQueryType aType, uint aNumQueries)
   {
-    GpuQueryStorage& storage = ourQueryStorages[ourCurrQueryStorageIdx][(uint)aType];
-
-    uint firstQueryIndex = 0u;
-    const bool success = storage.AllocateQueries(aNumQueries, firstQueryIndex);
-    ASSERT(success, "Not enough queries available for query type % (wants to allocate % queries, available are % queries)", (uint)aType, aNumQueries, storage.GetNumFreeQueries());
-
-    return GpuQueryRange(storage.myQueryHeap.get(), firstQueryIndex, aNumQueries);
+    GpuQueryHeap* heap = ourQueryHeaps[ourCurrQueryHeapIdx][(uint)aType].get();
+    return heap->Allocate(aNumQueries);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::FreeQueryRange(GpuQueryRange aQueryRange)
+  void RenderCore::FreeQueryRange(GpuQueryType aType, uint aFirstQuery, uint aNumQueries, uint aNumUsedQueries)
   {
-    const uint queryType = (uint)aQueryRange.myHeap->myType;
-    GpuQueryStorage& queryStorage = ourQueryStorages[ourCurrQueryStorageIdx][queryType];
+    GpuQueryHeap* heap = ourQueryHeaps[ourCurrQueryHeapIdx][(uint)aType].get();
 
     // Is this the last query-range that was allocated? Then deallocate the range in the storage again so it can be used again
-    if (queryStorage.myNextFree == aQueryRange.myFirstQueryIndex + aQueryRange.myNumQueries)
-      queryStorage.myNextFree = aQueryRange.myFirstQueryIndex + aQueryRange.myNumUsedQueries;
+    if (heap->myNextFreeQuery == aFirstQuery + aNumQueries)
+      heap->myNextFreeQuery = aFirstQuery + aNumUsedQueries;
 
-    ourUsedQueryRanges[queryType].push_back(glm::uvec2(aQueryRange.myFirstQueryIndex, aQueryRange.myFirstQueryIndex + aQueryRange.myNumUsedQueries));
+    if (aNumUsedQueries > 0u)
+    {
+      uint& numUsedQueryRanges = ourNumUsedQueryRanges[(uint)aType];
+      ASSERT(numUsedQueryRanges < ourUsedQueryRanges[(uint)aType].size(), "Increase array-size of usedQueryRanges-array");
+      ourUsedQueryRanges[(uint)aType][numUsedQueryRanges++] = std::make_pair(aFirstQuery, aFirstQuery + aNumUsedQueries);
+    }
   }
 //---------------------------------------------------------------------------//
   bool RenderCore::BeginQueryDataReadback(GpuQueryType aType, uint64 aFrameIdx, const uint8** aDataPtrOut /*= nullptr*/)
@@ -940,53 +979,50 @@ namespace Fancy {
     if(!IsFrameDone(aFrameIdx))
       return false;
 
-    if(ourMappedQueryReadbackData[(uint)aType] != nullptr)
+    const uint type = (uint)aType;
+    if (ourMappedQueryBufferData[type] != nullptr && ourQueryBufferFrames[ourMappedQueryBufferIdx[type]] == aFrameIdx)
     {
       if (aDataPtrOut != nullptr)
-        *aDataPtrOut = ourMappedQueryReadbackData[(uint)aType];
+        *aDataPtrOut = ourMappedQueryBufferData[type];
 
       return true;
     }
-
-    int storageIdx = -1;
-    for (uint i = 0u; storageIdx < 0 && i < kNumQueryStorages; ++i)
+    
+    int bufferIdx = -1;
+    for (uint i = 0u; bufferIdx < 0 && i < NUM_QUERY_BUFFERS; ++i)
     {
-      GpuQueryStorage& queryStorage = ourQueryStorages[i][(uint)aType];
-      if (queryStorage.myLastUsedFrame == aFrameIdx)
-        storageIdx = (int) i;
+      if (ourQueryBufferFrames[i] == aFrameIdx)
+        bufferIdx = i;
     }
 
-    if (storageIdx < 0)
+    if (bufferIdx < 0)
       return false;
 
-    GpuBuffer* buffer = ourQueryStorages[storageIdx][(uint)aType].myReadbackBuffer.get();
-
-    const uint8* mappedData = (const uint8*) buffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED);
-    ASSERT(mappedData != nullptr);
-
-    ourMappedQueryStorageIdx = (uint) storageIdx;
-    ourMappedQueryReadbackData[(uint)aType] = mappedData;
+    GpuBuffer* buffer = ourQueryBuffers[bufferIdx][type].get();
+    ourMappedQueryBufferData[type] = (const uint8*)buffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+    ASSERT(ourMappedQueryBufferData[type] != nullptr);
+    ourMappedQueryBufferIdx[type] = (uint) bufferIdx;
 
     if (aDataPtrOut != nullptr)
-      *aDataPtrOut = mappedData;
+      *aDataPtrOut = ourMappedQueryBufferData[type];
 
     return true;
   }
 //---------------------------------------------------------------------------//
   bool RenderCore::ReadQueryData(const GpuQuery& aQuery, uint8* aData)
   {
-    const GpuQueryType type = aQuery.myType;
-    const uint8* mappedData = ourMappedQueryReadbackData[(uint)type];
+    const uint type = (uint) aQuery.myType;
+    const uint8* mappedData = ourMappedQueryBufferData[type];
     if (mappedData == nullptr)
       return false;
-
-    GpuQueryStorage& mappedStorage = ourQueryStorages[ourMappedQueryStorageIdx][(uint)type];
-    if (aQuery.myFrame != mappedStorage.myLastUsedFrame)
+    
+    const uint bufferIdx = ourMappedQueryBufferIdx[type];
+    if (aQuery.myFrame != ourQueryBufferFrames[bufferIdx])
       return false;
 
-    const uint queryTypeDataSize = GetQueryTypeDataSize(type);
+    const uint queryTypeDataSize = GetQueryTypeDataSize((GpuQueryType) type);
     const uint8 byteOffset = aQuery.myIndexInHeap * queryTypeDataSize;
-    ASSERT(mappedStorage.myReadbackBuffer->GetByteSize() >= byteOffset + queryTypeDataSize);
+    ASSERT(ourQueryBuffers[bufferIdx][type]->GetByteSize() >= byteOffset + queryTypeDataSize);
 
     memcpy(aData, mappedData + byteOffset, (size_t)queryTypeDataSize);
     return true;
@@ -994,13 +1030,15 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::EndQueryDataReadback(GpuQueryType aType)
   {
-    if (ourMappedQueryReadbackData[(uint)aType] == nullptr)
+    const uint type = (uint)aType;
+    if (ourMappedQueryBufferData[type] == nullptr)
       return;
 
-    GpuQueryStorage& mappedStorage = ourQueryStorages[ourMappedQueryStorageIdx][(uint)aType];
-
-    mappedStorage.myReadbackBuffer->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED);
-    ourMappedQueryReadbackData[(uint)aType] = nullptr;
+    const uint bufferIdx = ourMappedQueryBufferIdx[type];
+    ourQueryBuffers[bufferIdx][type]->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+    
+    ourMappedQueryBufferData[type] = nullptr;
+    ourMappedQueryBufferIdx[type] = 0u;
   }
 //---------------------------------------------------------------------------//
   bool RenderCore::IsFrameDone(uint64 aFrameIdx)
@@ -1037,6 +1075,7 @@ namespace Fancy {
       if (ourLastFrameDoneFences[i].first == aFrameIdx)
       {
         WaitForFence(ourLastFrameDoneFences[i].second);
+        break;
       }
     }
   }

@@ -128,18 +128,19 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuQuery CommandContext::AllocateQuery(GpuQueryType aType)
   {
-    GpuQueryRange& range = myQueryRanges[(uint)aType];
-       
-    if (range.myNumUsedQueries == range.myNumQueries && range.myNumQueries > 0u)
-    {
-      RenderCore::FreeQueryRange(range);
-      range = GpuQueryRange();
-    }
+    const uint type = (uint)aType;
+
+    GpuQueryRange& range = myQueryRanges[type];
+    if (range.myNumQueries > 0u && range.myNumUsedQueries == range.myNumQueries)
+      RenderCore::FreeQueryRange(aType, range.myFirstQueryIdx, range.myNumQueries, range.myNumUsedQueries);
 
     if (range.myNumUsedQueries == range.myNumQueries)
-      range = RenderCore::AllocateQueryRange(aType, Private_CommandContext::GetNumAllocatedQueriesPerRange(aType));
+    {
+      range.myFirstQueryIdx = RenderCore::AllocateQueryRange(aType, Private_CommandContext::GetNumAllocatedQueriesPerRange(aType));
+      range.myNumUsedQueries = 0u;
+    }
 
-    const uint queryIndex = range.myFirstQueryIndex + range.myNumUsedQueries;
+    const uint queryIndex = range.myFirstQueryIdx + range.myNumUsedQueries;
     ++range.myNumUsedQueries;
 
     return GpuQuery(aType, queryIndex, Time::ourFrameIdx);
@@ -296,11 +297,12 @@ namespace Fancy {
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
 
-    for (GpuQueryRange& queryRange : myQueryRanges)
+    for (uint i = 0u; i < (uint) GpuQueryType::NUM; ++i)
     {
-      if (queryRange.myNumUsedQueries > 0)
-        RenderCore::FreeQueryRange(queryRange);
-      queryRange = GpuQueryRange();
+      GpuQueryRange& range = myQueryRanges[i];
+      if (range.myNumUsedQueries > 0)
+        RenderCore::FreeQueryRange((GpuQueryType) i, range.myFirstQueryIdx, range.myNumQueries, range.myNumUsedQueries);
+      range = { 0u, 0u, 0u };
     }
     
     myViewportParams = glm::uvec4(0, 0, 1, 1);

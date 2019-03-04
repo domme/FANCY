@@ -15,4 +15,12 @@ namespace Fancy
   {
   }
 //---------------------------------------------------------------------------//
+  uint GpuQueryHeap::Allocate(uint aNumQueries)
+  {
+    ASSERT(myNextFreeQuery + aNumQueries <= myNumQueries);
+    uint firstQuery = myNextFreeQuery;
+    myNextFreeQuery += aNumQueries;
+    return firstQuery;
+  }
+//---------------------------------------------------------------------------//
 }

@@ -9,6 +9,7 @@
 #include "TempResources.h"
 #include "GpuQuery.h"
 #include "CircularArray.h"
+#include "FixedArray.h"
 
 #include <map>
 #include <list>
@@ -46,11 +47,10 @@ namespace Fancy {
   public:
     enum Constants
     {
-      kMaxNumQueuedFrames = 3u,
-      kFinishedQueryFrameLifetime = 3u,
+      NUM_QUEUED_FRAMES = 3u,
+      QUERY_BUFFER_LIFETIME = 3u,
 
-      kNumLastFrameFences = kMaxNumQueuedFrames * 10u,
-      kNumQueryStorages = kMaxNumQueuedFrames + kFinishedQueryFrameLifetime
+      NUM_QUERY_BUFFERS = NUM_QUEUED_FRAMES + QUERY_BUFFER_LIFETIME,
     };
 
     /// Init platform-independent stuff
@@ -106,8 +106,9 @@ namespace Fancy {
     static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
     static TempBufferResource AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName);
 
-    static GpuQueryRange AllocateQueryRange(GpuQueryType aType, uint aNumQueries);
-    static void FreeQueryRange(GpuQueryRange aQueryRange);
+    static GpuQueryHeap* GetQueryHeap(GpuQueryType aType) { return ourQueryHeaps[ourCurrQueryHeapIdx][(uint)aType].get(); }
+    static uint AllocateQueryRange(GpuQueryType aType, uint aNumQueries);
+    static void FreeQueryRange(GpuQueryType aType, uint aFirstQuery, uint aNumQueries, uint aNumUsedQueries);
     static bool BeginQueryDataReadback(GpuQueryType aType, uint64 aFrameIdx, const uint8** aDataPtrOut = nullptr);
     static bool ReadQueryData(const GpuQuery& aQuery, uint8* aData);
     static void EndQueryDataReadback(GpuQueryType aType);
@@ -164,17 +165,22 @@ namespace Fancy {
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
-
-    static StaticCircularArray<uint64, kMaxNumQueuedFrames> ourQueuedFrameDoneFences;
-    static StaticCircularArray<std::pair<uint64, uint64>, kNumLastFrameFences> ourLastFrameDoneFences;
-
-    static DynamicArray<glm::uvec2> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
-    static GpuQueryStorage ourQueryStorages[kNumQueryStorages][(uint)GpuQueryType::NUM];
-    static uint ourCurrQueryStorageIdx;
     
-    static uint ourMappedQueryStorageIdx;
-    static const uint8* ourMappedQueryReadbackData[(uint)GpuQueryType::NUM];
+    static StaticCircularArray<uint64, NUM_QUEUED_FRAMES> ourQueuedFrameDoneFences;
+    static StaticCircularArray<std::pair<uint64, uint64>, 256> ourLastFrameDoneFences;
+    
+    static UniquePtr<GpuQueryHeap> ourQueryHeaps[NUM_QUEUED_FRAMES][(uint)GpuQueryType::NUM];
+    static uint ourCurrQueryHeapIdx;
 
+    static FixedArray<std::pair<uint, uint>, 512> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
+    static uint ourNumUsedQueryRanges[(uint)GpuQueryType::NUM];
+
+    static UniquePtr<GpuBuffer> ourQueryBuffers[NUM_QUERY_BUFFERS][(uint)GpuQueryType::NUM];
+    static uint64 ourQueryBufferFrames[NUM_QUERY_BUFFERS];
+    static uint ourCurrQueryBufferIdx;
+
+    static const uint8* ourMappedQueryBufferData[(uint)GpuQueryType::NUM];
+    static uint ourMappedQueryBufferIdx[(uint)GpuQueryType::NUM];
   };
 //---------------------------------------------------------------------------//
 }

@@ -22,22 +22,4 @@ namespace Fancy
     mutable bool myIsOpen = true;
   };
 //---------------------------------------------------------------------------//
-  class GpuQueryHeap;
-
-  struct GpuQueryRange
-  {
-    GpuQueryRange() {}
-
-    GpuQueryRange(GpuQueryHeap* aHeap, uint aFirstQueryIndex, uint aNumQueries)
-      : myHeap(aHeap)
-      , myFirstQueryIndex(aFirstQueryIndex)
-      , myNumQueries(aNumQueries)
-    { }
-
-    GpuQueryHeap* myHeap = nullptr;
-    uint myFirstQueryIndex = 0u;
-    uint myNumQueries = 0u;
-    uint myNumUsedQueries = 0u;
-  };
-//---------------------------------------------------------------------------//
 }

@@ -88,7 +88,6 @@
     <ClInclude Include="GpuQuery.h" />
     <ClInclude Include="GpuQueryHeap.h" />
     <ClInclude Include="GpuQueryHeapDX12.h" />
-    <ClInclude Include="GpuQueryStorage.h" />
     <ClInclude Include="GpuResourceView.h" />
     <ClInclude Include="GpuResourceViewDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />
@@ -187,7 +186,6 @@
     <ClCompile Include="GpuProgramPipeline.cpp" />
     <ClCompile Include="GpuQueryHeap.cpp" />
     <ClCompile Include="GpuQueryHeapDX12.cpp" />
-    <ClCompile Include="GpuQueryStorage.cpp" />
     <ClCompile Include="GpuRingBuffer.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="StringUtil.cpp" />

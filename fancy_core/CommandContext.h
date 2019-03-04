@@ -134,6 +134,12 @@ namespace Fancy {
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
     DynamicArray<GpuRingBuffer*> myIndexRingBuffers;
 
+    struct GpuQueryRange
+    {
+      uint myFirstQueryIdx = 0u;
+      uint myNumQueries = 0u;
+      uint myNumUsedQueries = 0u;
+    };
     GpuQueryRange myQueryRanges[(uint)GpuQueryType::NUM];
   };
 //---------------------------------------------------------------------------//

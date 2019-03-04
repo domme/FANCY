@@ -308,9 +308,6 @@
     <ClInclude Include="GpuQuery.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="GpuQueryStorage.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -463,9 +460,6 @@
     </ClCompile>
     <ClCompile Include="GpuQueryHeapDX12.cpp">
       <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuQueryStorage.cpp">
-      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

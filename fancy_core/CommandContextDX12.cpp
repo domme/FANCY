@@ -859,7 +859,7 @@ namespace Fancy {
     ASSERT(aType != GpuQueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
 
     const GpuQuery query = AllocateQuery(aType);
-    GpuQueryHeap* heap = myQueryRanges[(uint)aType].myHeap;
+    GpuQueryHeap* heap = RenderCore::GetQueryHeap(aType);
 
     const GpuQueryHeapDX12* queryHeapDx12 = (const GpuQueryHeapDX12*) heap;
     const D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aType);
@@ -877,7 +877,7 @@ namespace Fancy {
     aQuery.myIsOpen = false;
 
     const GpuQueryType queryType = aQuery.myType;
-    GpuQueryHeap* heap = myQueryRanges[(uint)queryType].myHeap;
+    GpuQueryHeap* heap = RenderCore::GetQueryHeap(queryType);
 
     const GpuQueryHeapDX12* queryHeapDx12 = (const GpuQueryHeapDX12*)heap;
     const D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(queryType);
@@ -890,7 +890,7 @@ namespace Fancy {
     const GpuQuery query = AllocateQuery(GpuQueryType::TIMESTAMP);
     query.myIsOpen = false;
 
-    GpuQueryHeap* heap = myQueryRanges[(uint)GpuQueryType::TIMESTAMP].myHeap;
+    GpuQueryHeap* heap = RenderCore::GetQueryHeap(GpuQueryType::TIMESTAMP);
     const GpuQueryHeapDX12* queryHeapDx12 = (const GpuQueryHeapDX12*)heap;
 
     myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, query.myIndexInHeap);
