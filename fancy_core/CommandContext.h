@@ -109,6 +109,8 @@ namespace Fancy {
       const GpuResource* aResource2, GpuResourceTransition aTransition2,
       const GpuResource* aResource3, GpuResourceTransition aTransition3,
       const GpuResource* aResource4, GpuResourceTransition aTransition4);
+
+    bool IsOpen() const { return myIsOpen; }
     
   protected:
     GpuQuery AllocateQuery(GpuQueryType aType);
@@ -123,6 +125,7 @@ namespace Fancy {
     bool myTopologyDirty;
     bool myRenderTargetsDirty;
     bool myShaderHasUnorderedWrites;
+    bool myIsOpen;
     TextureView* myRenderTargets[RenderConstants::kMaxNumRenderTargets];
     TextureView* myDepthStencilTarget;
 

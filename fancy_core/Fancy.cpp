@@ -33,9 +33,6 @@ namespace Fancy {
     if (ourInstance != nullptr)
       return ourInstance;
 
-    // Init profiler
-    Profiler::Init();
-
     // Init IO-subsystem
     Resources::InitResourceFolders();
 
@@ -70,8 +67,8 @@ namespace Fancy {
   void FancyRuntime::BeginFrame()
   {
     Profiler::BeginFrame();
-
     RenderCore::BeginFrame();
+    Profiler::BeginGpuFrame();
     myRenderOutput->BeginFrame();
   }
 //---------------------------------------------------------------------------//
@@ -83,10 +80,9 @@ namespace Fancy {
   void FancyRuntime::EndFrame()
   {
     myRenderOutput->EndFrame();
+    Profiler::EndGpuFrame();
     RenderCore::EndFrame();
-    
     Profiler::EndFrame();
-
     ++Time::ourFrameIdx;
   }
 //---------------------------------------------------------------------------//

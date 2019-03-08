@@ -7,6 +7,8 @@
 
 namespace Fancy
 {
+  class CommandContext;
+
   struct Profiler
   {
     Profiler() = delete;
@@ -20,16 +22,30 @@ namespace Fancy
       MAX_SAMPLE_DEPTH = 2048,
     };
 
+    enum Timeline
+    {
+      TIMELINE_MAIN = 0,
+      TIMELINE_GPU,
+      TIMELINE_NUM
+    };
+
     struct SampleNodeInfo
     {
       char myName[MAX_NAME_LENGTH];
       uint8 myTag;
     };
 
+    union TimeSample
+    {
+      uint myQueryIdx;
+      float64 myTime;
+    };
+
     struct SampleNode
     {
-      float64 myStart = 0.0;
-      float64 myDuration = 0.0;
+      TimeSample myStart = { 0u };
+      TimeSample myEnd = { 0u };
+      float64 myDuration = { 0u };
       uint64 myNodeInfo = 0u;
       CircularArray<SampleNode>::Handle myChild;
       CircularArray<SampleNode>::Handle myNext;
@@ -38,38 +54,55 @@ namespace Fancy
     struct FrameData
     {
       uint64 myFrame = 0u;
-      float64 myStart = 0.0;
+      TimeSample myStart = { 0u };
+      TimeSample myEnd = { 0u };
       float64 myDuration = 0.0;
       CircularArray<SampleNode>::Handle myFirstSample;
     };
 
     using SampleHandle = CircularArray<SampleNode>::Handle;
+    using FrameHandle = CircularArray<FrameData>::Handle;
 
     struct ScopedMarker
     {
       ScopedMarker(const char* aName, uint8 aTag);
       ~ScopedMarker();
     };
+
+    static SampleNode& OpenMarker(const char* aName, uint8 aTag, Timeline aTimeline);
+    static SampleNode& CloseMarker(Timeline aTimeline);
   
     static void PushMarker(const char* aName, uint8 aTag);
     static void PopMarker();
 
-    static void Init();
+    static void PushGpuMarker(CommandContext* aContext, const char* aName, uint8 aTag);
+    static void PopGpuMarker(CommandContext* aContext);
+
     static void BeginFrame();
     static void EndFrame();
 
-    static const CircularArray<FrameData>& GetRecordedFrames() { return ourRecordedFrames; }
-    static const CircularArray<SampleNode>& GetRecordedSamples() { return ourRecordedSamples; }
+    static void BeginGpuFrame();
+    static void EndGpuFrame();
+
+    static const CircularArray<FrameData>& GetRecordedFrames(Timeline aTimeline) { return ourRecordedFrames[aTimeline]; }
+    static const CircularArray<SampleNode>& GetRecordedSamples(Timeline aTimeline) { return ourRecordedSamples[aTimeline]; }
     static const SampleNodeInfo& GetSampleInfo(uint64 anInfoId);
 
     static bool ourPauseRequested;
 
-    static void FreeFirstFrame();
+    static void FreeFirstFrame(Timeline aTimeline);
 
-    static CircularArray<FrameData> ourRecordedFrames;
-    static CircularArray<SampleNode> ourRecordedSamples;
+    static CircularArray<FrameData> ourRecordedFrames[TIMELINE_NUM];
+    static CircularArray<SampleNode> ourRecordedSamples[TIMELINE_NUM];
     static std::unordered_map<uint64, SampleNodeInfo> ourNodeInfoPool;
+
+  private:
+    void UpdateGpuDurations();
+
+    static CommandContext* ourRenderContext;
   };
 
 #define PROFILE_FUNCTION(...) Profiler::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)
+#define GPU_BEGIN_PROFILE_FUNCTION(aContext, ...) Profiler::PushGpuMarker(aContext, __FUNCTION__, 0u)
+#define GPU_END_PROFILE(aContext, ...) Profiler::PopGpuMarker(aContext)
 }

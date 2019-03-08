@@ -915,6 +915,8 @@ namespace Fancy {
     if (!availableContextList.empty())
     {
       CommandContext* context = availableContextList.front();
+      if (context->IsOpen())
+        context->Reset(0u);
       availableContextList.pop_front();
       return context;
     }

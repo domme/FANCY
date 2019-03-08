@@ -67,7 +67,6 @@ namespace Fancy {
     , myComputeRootSignature(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
-    , myCommandListIsClosed(false)
   {
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
 
@@ -554,7 +553,6 @@ namespace Fancy {
     
     CloseCommandList();
     CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
-    myCommandListIsClosed = false;
 
     myRootSignature = nullptr;
     myComputeRootSignature = nullptr;
@@ -1333,10 +1331,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::CloseCommandList()
   {
-    if (!myCommandListIsClosed)
+    if (myIsOpen)
     {
       CheckD3Dcall(myCommandList->Close());
-      myCommandListIsClosed = true;
+      myIsOpen = false;
     }
   }
 //---------------------------------------------------------------------------//

@@ -95,6 +95,7 @@ namespace Fancy {
     , myTopologyDirty(true)
     , myRenderTargetsDirty(true)
     , myShaderHasUnorderedWrites(false)
+    , myIsOpen(true)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr)
   {
@@ -310,6 +311,7 @@ namespace Fancy {
     myViewportDirty = true;
     myRenderTargetsDirty = true;
     myDepthStencilTarget = nullptr;
+    myIsOpen = true;
     memset(myRenderTargets, 0u, sizeof(myRenderTargets));
   }
 //---------------------------------------------------------------------------//
