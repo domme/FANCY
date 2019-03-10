@@ -35,18 +35,25 @@ namespace Fancy
       uint8 myTag;
     };
 
+    struct GpuQueryInfo
+    {
+      uint myIndex;
+      uint myCommandListType;
+    };
+
     union TimeSample
     {
-      uint myQueryIdx;
       float64 myTime;
+      GpuQueryInfo myQueryInfo;
     };
 
     struct SampleNode
     {
-      TimeSample myStart = { 0u };
-      TimeSample myEnd = { 0u };
+      TimeSample myStart = { 0.0 };
+      TimeSample myEnd = { 0.0 };
       float64 myDuration = { 0u };
       uint64 myNodeInfo = 0u;
+      bool myHasValidTimes = true;
       CircularArray<SampleNode>::Handle myChild;
       CircularArray<SampleNode>::Handle myNext;
     };
@@ -57,6 +64,7 @@ namespace Fancy
       TimeSample myStart = { 0u };
       TimeSample myEnd = { 0u };
       float64 myDuration = 0.0;
+      bool myHasValidTimes = true;
       CircularArray<SampleNode>::Handle myFirstSample;
     };
 
@@ -97,12 +105,11 @@ namespace Fancy
     static std::unordered_map<uint64, SampleNodeInfo> ourNodeInfoPool;
 
   private:
-    void UpdateGpuDurations();
-
-    static CommandContext* ourRenderContext;
+    static void UpdateGpuDurations();
   };
 
 #define PROFILE_FUNCTION(...) Profiler::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)
 #define GPU_BEGIN_PROFILE_FUNCTION(aContext, ...) Profiler::PushGpuMarker(aContext, __FUNCTION__, 0u)
-#define GPU_END_PROFILE(aContext, ...) Profiler::PopGpuMarker(aContext)
+#define GPU_BEGIN_PROFILE(aContext, aName, aTag) Profiler::PushGpuMarker(aContext, aName, aTag)
+#define GPU_END_PROFILE(aContext) Profiler::PopGpuMarker(aContext)
 }

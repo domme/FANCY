@@ -49,6 +49,7 @@ namespace Fancy
 
     uint GetBufferIndex(uint anElement) const { ASSERT(anElement < Size()); return (myHead + anElement) % myCapacity; }
     Handle GetHandle(uint anElement) { return { GetBufferIndex(anElement) }; }
+    uint GetElementIndex(Handle aHandle) const { ASSERT(aHandle.myIndex < myCapacity); return aHandle.myIndex >= myHead ? aHandle.myIndex - myHead : (aHandle.myIndex + myCapacity) - myHead; }
 
     T& operator[](uint anElement) { ASSERT(anElement < Size()); return myBuffer[(myHead + anElement) % myCapacity]; }
     const T& operator[](uint anElement) const { ASSERT(anElement < Size()); return myBuffer[(myHead + anElement) % myCapacity]; }

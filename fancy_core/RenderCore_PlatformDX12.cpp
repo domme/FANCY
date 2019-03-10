@@ -70,9 +70,29 @@ namespace Fancy {
 
     CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
 
-    //ComPtr<ID3D12InfoQueue> infoQueue;
-    //if (SUCCEEDED(ourDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
-    //  infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+    ComPtr<ID3D12InfoQueue> infoQueue;
+    if (SUCCEEDED(ourDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+    {
+      D3D12_MESSAGE_SEVERITY severityIds[] =
+      {
+        D3D12_MESSAGE_SEVERITY_INFO
+      };
+
+      D3D12_MESSAGE_ID denyIds[] =
+      {
+        D3D12_MESSAGE_ID_COPY_DESCRIPTORS_INVALID_RANGES
+      };
+
+      D3D12_INFO_QUEUE_FILTER filter = {};
+      filter.DenyList.NumSeverities = ARRAYSIZE(severityIds);
+      filter.DenyList.pSeverityList = severityIds;
+      filter.DenyList.NumIDs = ARRAYSIZE(denyIds);
+      filter.DenyList.pIDList = denyIds;
+
+      infoQueue->PushStorageFilter(&filter);
+    }
+
+    //infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, false);
   }
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()

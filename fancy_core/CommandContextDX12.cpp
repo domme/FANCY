@@ -543,11 +543,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandContextDX12::Reset(uint64 aFenceVal)
   {
-    CommandContext::Reset(aFenceVal);
-    
     ReleaseDynamicHeaps(aFenceVal);
     ReleaseAllocator(aFenceVal);
-
+    
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
     
@@ -557,6 +555,8 @@ namespace Fancy {
     myRootSignature = nullptr;
     myComputeRootSignature = nullptr;
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
+
+    CommandContext::Reset(aFenceVal);
   }
 //---------------------------------------------------------------------------//
   D3D12_GRAPHICS_PIPELINE_STATE_DESC CommandContextDX12::GetNativePSOdesc(const GraphicsPipelineState& aState)

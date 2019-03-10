@@ -17,6 +17,7 @@
 #include <fancy_core/Log.h>
 #include <fancy_core/WindowsIncludes.h>
 #include <fancy_core/CommandQueue.h>
+#include <fancy_core/Profiler.h>
 
 namespace Fancy { namespace ImGuiRendering {
 //---------------------------------------------------------------------------//
@@ -230,6 +231,8 @@ namespace Fancy { namespace ImGuiRendering {
   void RenderDrawLists(ImDrawData* _draw_data)
   {
     CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+    
+    GPU_BEGIN_PROFILE_FUNCTION(ctx);
 
     RenderOutput* renderOutput = ourRenderOutput;
 
@@ -297,9 +300,10 @@ namespace Fancy { namespace ImGuiRendering {
       }
     }
 
+    GPU_END_PROFILE(ctx);
     CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
     queue->ExecuteContext(ctx);
-    
+
     RenderCore::FreeContext(ctx);
   }
 

@@ -25,7 +25,6 @@ namespace Fancy
   CircularArray<Profiler::FrameData> Profiler::ourRecordedFrames[TIMELINE_NUM]{ FRAME_POOL_SIZE, FRAME_POOL_SIZE };
   CircularArray<Profiler::SampleNode> Profiler::ourRecordedSamples[TIMELINE_NUM]{ SAMPLE_POOL_SIZE, SAMPLE_POOL_SIZE };
   std::unordered_map<uint64, Profiler::SampleNodeInfo> Profiler::ourNodeInfoPool;
-  CommandContext* Profiler::ourRenderContext = nullptr;
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
@@ -63,7 +62,7 @@ namespace Fancy
     if (recordedSamples.IsFull())
       FreeFirstFrame(aTimeline);
 
-    recordedSamples.Add({ 0u, 0.0, hash });
+    recordedSamples.Add({ 0u, 0u, 0.0, hash, aTimeline != TIMELINE_GPU, UINT_MAX, UINT_MAX });
     sampleStack[sampleDepth++] = recordedSamples.GetHandle(recordedSamples.Size() - 1u);
     return recordedSamples[recordedSamples.Size() - 1u];
   }
@@ -114,14 +113,58 @@ namespace Fancy
   void Profiler::UpdateGpuDurations()
   {
     auto& recordedFrames = ourRecordedFrames[TIMELINE_GPU];
-    auto& recordedSamples = ourRecordedSamples[TIMELINE_GPU];
-
     if (recordedFrames.IsEmpty() || locNextGpuFrameToUpdate.myIndex == UINT_MAX)
       return;
 
-    FrameData& frame = recordedFrames[locNextGpuFrameToUpdate];
+    const uint timeStampDataSize = RenderCore::GetQueryTypeDataSize(GpuQueryType::TIMESTAMP);
+    ASSERT(timeStampDataSize == sizeof(uint64)); // Code below assumes this...
 
+    const float64 timeTicksToMs[] = {
+       (float64)RenderCore::GetTimestampToSecondsFactor(CommandListType::Graphics) * 1000.0,
+       (float64)RenderCore::GetTimestampToSecondsFactor(CommandListType::Compute) * 1000.0
+    };
 
+    const auto ReadQueryTime = [timeStampDataSize, &timeTicksToMs](const uint8* aQueryDataBuf, TimeSample& aSample)
+    {
+      uint64 timeStampData = 0u;
+      memcpy(&timeStampData, aQueryDataBuf + aSample.myQueryInfo.myIndex * timeStampDataSize, timeStampDataSize);
+      aSample.myTime = static_cast<float64>(timeStampData) * timeTicksToMs[aSample.myQueryInfo.myCommandListType];
+    };
+
+    const uint frameIdx = recordedFrames.GetElementIndex(locNextGpuFrameToUpdate);
+    FrameData& frame = recordedFrames[frameIdx];
+    auto& recordedSamples = ourRecordedSamples[TIMELINE_GPU];
+
+    if (RenderCore::IsFrameDone(frame.myFrame))
+    {
+      const uint8* queryData = nullptr;
+      if (RenderCore::BeginQueryDataReadback(GpuQueryType::TIMESTAMP, frame.myFrame, &queryData))
+      {
+        ASSERT(!frame.myHasValidTimes);  // There must be something wrong with locNextGpuFrameToUpdate 
+
+        ReadQueryTime(queryData, frame.myStart);
+        ReadQueryTime(queryData, frame.myEnd);
+        frame.myDuration = frame.myEnd.myTime - frame.myStart.myTime;
+        frame.myHasValidTimes = true;
+
+        const uint nextFrameFirstSample = frameIdx + 1 < recordedFrames.Size() ? recordedSamples.GetElementIndex(recordedFrames[frameIdx + 1].myFirstSample) : recordedSamples.Size();
+        const uint firstSample = recordedSamples.GetElementIndex(frame.myFirstSample);
+
+        for (uint sampleIdx = firstSample; sampleIdx < nextFrameFirstSample; ++sampleIdx)
+        {
+          SampleNode& sample = recordedSamples[sampleIdx];
+          ASSERT(!sample.myHasValidTimes);
+
+          ReadQueryTime(queryData, sample.myStart);
+          ReadQueryTime(queryData, sample.myEnd);
+          sample.myDuration = sample.myEnd.myTime - sample.myStart.myTime;
+          sample.myHasValidTimes = true;
+        }
+
+        locNextGpuFrameToUpdate = frameIdx + 1 < recordedFrames.Size() ? recordedFrames.GetHandle(frameIdx + 1) : FrameHandle();
+        RenderCore::EndQueryDataReadback(GpuQueryType::TIMESTAMP);
+      }
+    }
   }
 //---------------------------------------------------------------------------//
   static float64 SampleTimeMs()
@@ -159,7 +202,8 @@ namespace Fancy
 
     ASSERT(aContext->IsOpen());
     const GpuQuery timestamp = aContext->InsertTimestamp();
-    newSample.myStart.myQueryIdx = timestamp.myIndexInHeap;
+    newSample.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
+    newSample.myStart.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
   }
 //---------------------------------------------------------------------------//
   void Profiler::PopGpuMarker(CommandContext* aContext)
@@ -167,40 +211,27 @@ namespace Fancy
     if (locPaused)
       return;
 
-    SampleNode& closedSample = CloseMarker(TIMELINE_MAIN);
+    SampleNode& closedSample = CloseMarker(TIMELINE_GPU);
 
     ASSERT(aContext->IsOpen());
     const GpuQuery timestamp = aContext->InsertTimestamp();
-    closedSample.myEnd.myQueryIdx = timestamp.myIndexInHeap;
+    closedSample.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
+    closedSample.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
   }
 //---------------------------------------------------------------------------//
   void Profiler::BeginFrame()
   {
-    if (ourRenderContext == nullptr)
-      ourRenderContext = RenderCore::AllocateContext(CommandListType::Graphics);
-
     locPaused = ourPauseRequested;
     if (locPaused)
       return;
 
-    for (uint i = 0u; i < TIMELINE_NUM; ++i)
-    {
-      FrameData& currFrame = locCurrFrame[i];
-      currFrame.myFirstSample.myIndex = UINT_MAX;
-      currFrame.myDuration = 0u;
-      currFrame.myFrame = Time::ourFrameIdx;
-      currFrame.myEnd = { 0u };
-
-      if (i == TIMELINE_GPU)
-      {
-        const GpuQuery timestamp = ourRenderContext->InsertTimestamp();
-        currFrame.myStart.myQueryIdx = timestamp.myIndexInHeap;
-      }
-      else
-      {
-        currFrame.myStart.myTime = SampleTimeMs();
-      }
-    }
+    FrameData& currFrame = locCurrFrame[TIMELINE_MAIN];
+    currFrame.myFirstSample.myIndex = UINT_MAX;
+    currFrame.myDuration = 0u;
+    currFrame.myFrame = Time::ourFrameIdx;
+    currFrame.myEnd = { 0u };
+    currFrame.myHasValidTimes = true;
+    currFrame.myStart.myTime = SampleTimeMs();
   }
 //---------------------------------------------------------------------------//
   void Profiler::EndFrame()
@@ -224,10 +255,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void Profiler::BeginGpuFrame()
   {
-    if (ourRenderContext == nullptr)
-      ourRenderContext = RenderCore::AllocateContext(CommandListType::Graphics);
-
-    // TODO: Update the durations for the finished GPU-frames
+    UpdateGpuDurations();
 
     if (locPaused)
       return;
@@ -237,9 +265,15 @@ namespace Fancy
     currFrame.myDuration = 0u;
     currFrame.myFrame = Time::ourFrameIdx;
     currFrame.myEnd = { 0u };
+    currFrame.myHasValidTimes = false;
 
-    const GpuQuery timestamp = ourRenderContext->InsertTimestamp();
-    currFrame.myStart.myQueryIdx = timestamp.myIndexInHeap;
+    CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+    const GpuQuery timestamp = ctx->InsertTimestamp();
+    RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
+    RenderCore::FreeContext(ctx);
+
+    currFrame.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
+    currFrame.myStart.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
   }
 //---------------------------------------------------------------------------//
   void Profiler::EndGpuFrame()
@@ -258,15 +292,18 @@ namespace Fancy
       if (recordedFrames.IsFull())
         FreeFirstFrame(TIMELINE_GPU);
 
-      const GpuQuery timestamp = ourRenderContext->InsertTimestamp();
-      currFrame.myEnd.myQueryIdx = timestamp.myIndexInHeap;
-      RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ourRenderContext);
+      CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+      const GpuQuery timestamp = ctx->InsertTimestamp();
+      RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
+      RenderCore::FreeContext(ctx);
 
+      currFrame.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
+      currFrame.myEnd.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
+      
       recordedFrames.Add(currFrame);
-    }
-    else
-    {
-      ourRenderContext->Reset(0u);
+
+      if (locNextGpuFrameToUpdate.myIndex == UINT_MAX)
+        locNextGpuFrameToUpdate = recordedFrames.GetHandle(recordedFrames.Size() - 1);
     }
   }
 //---------------------------------------------------------------------------//

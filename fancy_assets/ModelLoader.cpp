@@ -68,7 +68,7 @@ namespace Fancy { namespace ModelLoader {
 
     const char* mySourcePath;
     const aiScene* myScene;
-    uint mySceneFileTimeStamp;
+    uint64 mySceneFileTimeStamp;
     std::unordered_map<const aiMaterial*, SharedPtr<Material>> myMaterialCache;
     std::unordered_map<uint64, SharedPtr<Mesh>> myMeshCache;
   };
@@ -306,7 +306,7 @@ namespace Fancy { namespace ModelLoader {
     meshDesc.myIsExternalMesh = true;
     meshDesc.myUniqueName = CreateUniqueMeshName(assimpMeshListHash, aProcessData);
     
-    SharedPtr<Mesh> mesh = aStorage.CreateMesh(meshDesc, meshDatas.data(), meshDatas.size(), aProcessData.mySceneFileTimeStamp);
+    SharedPtr<Mesh> mesh = aStorage.CreateMesh(meshDesc, meshDatas.data(), (uint) meshDatas.size(), aProcessData.mySceneFileTimeStamp);
     ASSERT(mesh != nullptr);
     
     aProcessData.myMeshCache[assimpMeshListHash] = mesh;
@@ -421,7 +421,7 @@ namespace Fancy { namespace ModelLoader {
       DynamicArray<aiMesh*>& meshList = it->second;
       const uint materialIndex = it->first;
 
-      SharedPtr<Mesh> mesh = CreateMesh(aNode, aProcessData, aStorage, &meshList[0], meshList.size());
+      SharedPtr<Mesh> mesh = CreateMesh(aNode, aProcessData, aStorage, &meshList[0], (uint) meshList.size());
 
       aiMaterial* pAmaterial = aProcessData.myScene->mMaterials[materialIndex];
       SharedPtr<Material> material = CreateMaterial(pAmaterial, aProcessData, aStorage);

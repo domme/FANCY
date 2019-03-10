@@ -501,13 +501,12 @@ namespace Fancy {
       const GpuQueryHeap* heap = ourQueryHeaps[ourCurrQueryHeapIdx][queryType].get();
       const GpuBuffer* readbackBuffer = ourQueryBuffers[ourCurrQueryBufferIdx][queryType].get();
       const uint queryDataSize = GetQueryTypeDataSize((GpuQueryType)queryType);
-      uint64 bufferOffset = 0u;
       for (uint i = 0u; i < numUsedMergedRanges; ++i)
       {
         const std::pair<uint, uint>& mergedRange = mergedRanges[i];
         const uint numQueries = mergedRange.second - mergedRange.first;
-        context->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.first, numQueries, bufferOffset);
-        bufferOffset += static_cast<uint64>(numQueries * queryDataSize);
+        const uint64 offsetInBuffer = mergedRange.first * queryDataSize;
+        context->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.first, numQueries, offsetInBuffer);
       }
     }
 

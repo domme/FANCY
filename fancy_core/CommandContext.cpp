@@ -137,14 +137,15 @@ namespace Fancy {
 
     if (range.myNumUsedQueries == range.myNumQueries)
     {
-      range.myFirstQueryIdx = RenderCore::AllocateQueryRange(aType, Private_CommandContext::GetNumAllocatedQueriesPerRange(aType));
+      range.myNumQueries = Private_CommandContext::GetNumAllocatedQueriesPerRange(aType);
+      range.myFirstQueryIdx = RenderCore::AllocateQueryRange(aType, range.myNumQueries);
       range.myNumUsedQueries = 0u;
     }
 
     const uint queryIndex = range.myFirstQueryIdx + range.myNumUsedQueries;
     ++range.myNumUsedQueries;
 
-    return GpuQuery(aType, queryIndex, Time::ourFrameIdx);
+    return GpuQuery(aType, queryIndex, Time::ourFrameIdx, myCommandListType);
   }
 //---------------------------------------------------------------------------//
   const GpuBuffer* CommandContext::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)

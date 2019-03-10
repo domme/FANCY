@@ -28,17 +28,6 @@ RenderOutput* myRenderOutput = nullptr;
 InputState myInputState;
 ImGuiContext* myImGuiContext = nullptr;
 
-struct GpuTimeFrame
-{
-  GpuQuery myStart;
-  GpuQuery myFinish;
-};
-
-const uint kNumGpuTimingFrames = RenderCore::NUM_QUEUED_FRAMES + 1;
-uint myCurrGpuTimingIdx = 0u;
-uint myCurReadbackIdx = 0u;
-GpuTimeFrame myGpuTimings[kNumGpuTimingFrames];
-
 void DummyFunc3()
 {
   PROFILE_FUNCTION();
@@ -168,7 +157,7 @@ void Update()
     show_profiler_window = !show_profiler_window;
 
   if (show_profiler_window)
-    profilerWindow.Render(myWindow->GetWidth(), myWindow->GetHeight());
+    profilerWindow.Render();
 
   if (ImGui::Button("Test Window")) show_test_window ^= 1;
 
@@ -179,63 +168,22 @@ void Update()
   }
 }
 
-void ReadbackGpuTimings()
-{
-  GpuTimeFrame& timeFrame = myGpuTimings[myCurReadbackIdx];
-
-  uint64 frameIdx = timeFrame.myStart.myFrame;
-  bool frameDone = RenderCore::IsFrameDone(frameIdx);
-  if (!frameDone && (myCurrGpuTimingIdx + 1) % kNumGpuTimingFrames == myCurReadbackIdx)
-  {
-    RenderCore::WaitForFrame(frameIdx);
-    frameDone = true;
-  }
-
-  if (frameDone)
-  {
-    const bool readBackStarted = RenderCore::BeginQueryDataReadback(GpuQueryType::TIMESTAMP, frameIdx);
-    ASSERT(readBackStarted);
-
-    uint64 valStart, valEnd;
-    RenderCore::ReadQueryData(timeFrame.myStart, (uint8*)&valStart);
-    RenderCore::ReadQueryData(timeFrame.myFinish, (uint8*)&valEnd);
-
-    LOG_INFO("Start: %", valStart);
-    LOG_INFO("End: %", valEnd);
-    LOG_INFO("Duration: %(s)", (valEnd-valStart) * RenderCore::GetTimestampToSecondsFactor(CommandListType::Graphics));
-
-    RenderCore::EndQueryDataReadback(GpuQueryType::TIMESTAMP);
-
-    myCurReadbackIdx = (myCurReadbackIdx + 1) % kNumGpuTimingFrames;
-  }
-}
-
 void Render()
 {
-  // PROFILE_FUNCTION();
-  // 
-  // LongDummyFunc();
-
-  ReadbackGpuTimings();
-
-
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
 
-  GpuTimeFrame& timeFrame = myGpuTimings[myCurrGpuTimingIdx];
-
+  GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+  for (int i = 0; i < 999; ++i)
+    ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
+  GPU_END_PROFILE(ctx);
 
-  timeFrame.myStart = ctx->InsertTimestamp();
-  ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
-  timeFrame.myFinish = ctx->InsertTimestamp();
   queue->ExecuteContext(ctx);
   RenderCore::FreeContext(ctx);
 
   ImGui::Render();
   myRuntime->EndFrame();
-
-  myCurrGpuTimingIdx = (myCurrGpuTimingIdx + 1) % kNumGpuTimingFrames;
 }
 
 void Shutdown()

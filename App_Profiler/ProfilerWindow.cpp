@@ -9,7 +9,6 @@
 #include <list>
 #include <fancy_core/TimeManager.h>
 
-
 using namespace Fancy;
 
 ProfilerWindow::ProfilerWindow()
@@ -32,8 +31,9 @@ const uint kFrameHeaderColor = 0xFFAAAAAA;
 const uint kWindowBgColor = 0xAA3A3A3A;
 const float kFrameHeaderHeight = 10.0f;
 const float kFrameGraphHeightScale = 0.33f;
-const ImGuiID kFrameId_FrameGraph = 1;
+const ImGuiID kFrameId_FrameGraph[Profiler::TIMELINE_NUM] = { 1, 2 };
 const uint kNumGraphFrames = 200;
+const float64 kBaseHorizontalScale = 1280.0 / (16.0 * 4.0);
 
 const char* FormatString(const char* aFmt, ...)
 {
@@ -126,28 +126,31 @@ const char* TimeUnitToString(TimeUnit aUnit)
 }
 
 void RenderNodeRecursive(const Profiler::SampleNode& aNode, float64 aTimeToPixelScale, float64 aFrameStartTime,
-                         const ImVec2& aFrameStartPos, int aDepth)
+                         const ImVec2& aFrameStartPos, int aDepth, Profiler::Timeline aTimeline)
 {
+  if (!aNode.myHasValidTimes)
+    return;
+
   ImVec2 pos, size;
-  pos.x = aFrameStartPos.x + static_cast<float>((aNode.myStart - aFrameStartTime) * aTimeToPixelScale);
+  pos.x = aFrameStartPos.x + static_cast<float>((aNode.myStart.myTime - aFrameStartTime) * aTimeToPixelScale);
   pos.y = aFrameStartPos.y + kZoneElementHeight_WithPadding * aDepth;
   size.x = static_cast<float>(aNode.myDuration * aTimeToPixelScale);
   size.y = kZoneElementHeight;
 
   RenderSample(aNode, pos, size);
 
-  const CircularArray<Profiler::SampleNode>& recordedSamples = Profiler::GetRecordedSamples();
+  const CircularArray<Profiler::SampleNode>& recordedSamples = Profiler::GetRecordedSamples(aTimeline);
 
   if (aNode.myChild != UINT_MAX)
   {
     const Profiler::SampleNode& firstChild = recordedSamples[aNode.myChild];
-    RenderNodeRecursive(firstChild, aTimeToPixelScale, aFrameStartTime, aFrameStartPos, aDepth + 1);
+    RenderNodeRecursive(firstChild, aTimeToPixelScale, aFrameStartTime, aFrameStartPos, aDepth + 1, aTimeline);
   }
 
   if (aNode.myNext != UINT_MAX)
   {
     const Profiler::SampleNode& nextNode = recordedSamples[aNode.myNext];
-    RenderNodeRecursive(nextNode, aTimeToPixelScale, aFrameStartTime, aFrameStartPos, aDepth);
+    RenderNodeRecursive(nextNode, aTimeToPixelScale, aFrameStartTime, aFrameStartPos, aDepth, aTimeline);
   }
 }
 
@@ -264,12 +267,12 @@ void RenderRuler(float aTimeToPixelScale)
   ImGui::SetCursorPos(startPosLocal);
 }
 
-void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime)
+void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime, Profiler::Timeline aTimeline)
 {
   if (aFirstWindowFrame == UINT_MAX)
     return;
 
-  const CircularArray<Profiler::FrameData>& recordedFrames = Profiler::GetRecordedFrames();
+  const CircularArray<Profiler::FrameData>& recordedFrames = Profiler::GetRecordedFrames(aTimeline);
 
   // Determine the frame-range to display in the time-graph
   uint firstGraphFrame = aFirstWindowFrame;
@@ -313,13 +316,22 @@ void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64
   }
 }
 
-void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
+ProfilerWindow::TimelineInfo ProfilerWindow::GetTimelineInfo(uint aTimeline)
 {
-  if (ImGui::Checkbox("Pause", &myIsPaused))
-    Profiler::ourPauseRequested = myIsPaused;
+  const CircularArray<Profiler::FrameData>& recordedFrames = Profiler::GetRecordedFrames((Profiler::Timeline) aTimeline);
+  TimelineInfo timelineInfo;
+  for (uint i = 0u, e = recordedFrames.Size(); i < e; ++i)
+  {
+    const float64 frameTime = recordedFrames[i].myDuration;
+    timelineInfo.myOverallDuration += frameTime;
+    timelineInfo.myMaxFrameDuration = glm::max(timelineInfo.myMaxFrameDuration, frameTime);
+  }
+  return timelineInfo;
+}
 
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, ToVec4Color(kWindowBgColor));
-  ImGui::Begin("Profiler");
+void ProfilerWindow::RenderTimeline(uint aTimeline, float64 aTimeToPixelScale, const TimelineInfo& aTimelineInfo, uint& aFirstRenderedFrame, uint& aLastRenderedFrame)
+{
+  const Profiler::Timeline timeline = (Profiler::Timeline) aTimeline;
 
   const ImVec2 frameGraphRect_min = ToGlobalPos(ImGui::GetCursorPos());
   ImVec2 frameGraphRect_max;
@@ -327,26 +339,16 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   frameGraphRect_max.y = (frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale);
   const ImVec2 frameGraphSize(frameGraphRect_max.x - frameGraphRect_min.x, frameGraphRect_max.y - frameGraphRect_min.y);
 
-  const CircularArray<Profiler::FrameData>& recordedFrames = Profiler::GetRecordedFrames();
-
-  float64 overallFrameDuration = 0.0;
-  float64 maxFrameDuration = 0.0;
-  for (uint i = 0u, e = recordedFrames.Size(); i < e; ++i)
-  {
-    const float64 frameTime = recordedFrames[i].myDuration;
-    overallFrameDuration += frameTime;
-    maxFrameDuration = glm::max(maxFrameDuration, frameTime);
-  }
-
-  const float64 baseHorizontalScale = 1280.0 / (16.0 * 4.0);
-  float64 timeToPixelScale = baseHorizontalScale * myScale;
-  const float overallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
+  const float overallFrameSize = static_cast<float>(aTimelineInfo.myOverallDuration * aTimeToPixelScale);
   const float maxOffset = glm::max(0.0f, overallFrameSize - ImGui::GetWindowWidth() - 1.0f);
 
   //RenderRuler(timeToPixelScale);
 
   if (ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
   {
+    if (ImGui::IsMouseDown(0))
+      myFocusedTimeline = aTimeline;
+
     // Scrolling
     if (ImGui::IsMouseDragging(0))
     {
@@ -360,14 +362,14 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
       const float scaleChange = ImGui::GetIO().MouseWheel * 0.1f;
 
       myScale = glm::clamp(myScale + scaleChange, 0.01f, 100.0f);
-      timeToPixelScale = baseHorizontalScale * myScale;
+      aTimeToPixelScale = kBaseHorizontalScale * myScale;
 
       // Adjust offset so the current mouse pos stays centered
       const float frameOrigin = -myHorizontalOffset;
       const float mousePos_FrameSpace = glm::max(0.0f, ToLocalPos(ImGui::GetMousePos()).x - frameOrigin);
       const float mouseAlongFrame = overallFrameSize < FLT_EPSILON ? 0.0f : mousePos_FrameSpace / overallFrameSize;
 
-      const float newOverallFrameSize = static_cast<float>(overallFrameDuration * timeToPixelScale);
+      const float newOverallFrameSize = static_cast<float>(aTimelineInfo.myOverallDuration * aTimeToPixelScale);
       const float newMousePos_FrameSpace = mouseAlongFrame * newOverallFrameSize;
 
       myHorizontalOffset += newMousePos_FrameSpace - mousePos_FrameSpace;
@@ -377,19 +379,21 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   if (!myIsPaused)
     myHorizontalOffset = maxOffset;
 
-  ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, maxOffset, "%.1f");
-
-  ImGui::BeginChild(kFrameId_FrameGraph, frameGraphSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+  ImGui::BeginChild(kFrameId_FrameGraph[aTimeline], frameGraphSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
   uint firstWindowFrame = UINT_MAX;
   uint lastWindowFrame = UINT_MAX;
   const ImVec2 frameGraphStart = ImGui::GetCursorPos();
   ImGui::SetCursorPosX(ImGui::GetCursorPosX() - myHorizontalOffset);
-  const CircularArray<Profiler::SampleNode>& recordedSamples = Profiler::GetRecordedSamples();
+  const CircularArray<Profiler::FrameData>& recordedFrames = Profiler::GetRecordedFrames(timeline);
+  const CircularArray<Profiler::SampleNode>& recordedSamples = Profiler::GetRecordedSamples(timeline);
   for (uint i = 0u, e = recordedFrames.Size(); i < e; ++i)
   {
     const Profiler::FrameData& frameData = recordedFrames[i];
-    const float frameSize = static_cast<float>(frameData.myDuration * timeToPixelScale);
+    if (!frameData.myHasValidTimes)
+      continue;
+
+    const float frameSize = static_cast<float>(frameData.myDuration * aTimeToPixelScale);
     const float framePos = ImGui::GetCursorPosX();
 
     if (frameData.myFirstSample == UINT_MAX)
@@ -413,7 +417,7 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
     RenderFrameHeader(frameSize, frameGraphSize.y, frameData);
 
     const Profiler::SampleNode& node = recordedSamples[frameData.myFirstSample];
-    RenderNodeRecursive(node, timeToPixelScale, frameData.myStart, ToGlobalPos(ImGui::GetCursorPos()), 0);
+    RenderNodeRecursive(node, aTimeToPixelScale, frameData.myStart.myTime, ToGlobalPos(ImGui::GetCursorPos()), 0, timeline);
 
     ImGui::SetCursorPos(ImVec2(framePos + frameSize + 1.0f, frameGraphStart.y));
 
@@ -423,9 +427,44 @@ void ProfilerWindow::Render(int aScreenSizeX, int aScreendSizeY)
   ImGui::SetCursorPos(ImVec2(frameGraphStart.x, frameGraphStart.y + frameGraphSize.y));
   ImGui::EndChild(); // End frame graph area
 
+  aFirstRenderedFrame = firstWindowFrame;
+  aLastRenderedFrame = lastWindowFrame;
+}
+
+void ProfilerWindow::Render()
+{
+  if (ImGui::Checkbox("Pause", &myIsPaused))
+    Profiler::ourPauseRequested = myIsPaused;
+
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, ToVec4Color(kWindowBgColor));
+  ImGui::Begin("Profiler");
+
+  TimelineInfo timelineInfos[Profiler::TIMELINE_NUM];
+  float maxOffsetOverall = 0.0f;
+  for (uint i = 0; i < Profiler::TIMELINE_NUM; ++i)
+  {
+    timelineInfos[i] = GetTimelineInfo(i);
+    const float timelineSize = static_cast<float>(timelineInfos[i].myOverallDuration * kBaseHorizontalScale * myScale);
+    maxOffsetOverall = glm::max(maxOffsetOverall, timelineSize - ImGui::GetWindowWidth() - 1.0f);
+  }
+  
+  uint firstRenderedFrame, lastRenderedFrame = 0u;
+  for (uint i = 0; i < Profiler::TIMELINE_NUM; ++i)
+  {
+    uint firstRenderedFrameTmp, lastRenderedFrameTmp;
+    RenderTimeline(i, kBaseHorizontalScale * myScale, timelineInfos[i], firstRenderedFrameTmp, lastRenderedFrameTmp);
+
+    if (myFocusedTimeline == i)
+    {
+      firstRenderedFrame = firstRenderedFrameTmp;
+      lastRenderedFrame = lastRenderedFrameTmp;
+    }
+  }
+  ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, maxOffsetOverall, "%.1f");
+
   ImGui::Separator();
 
-  RenderFrameTimeGraph(firstWindowFrame, lastWindowFrame, 100.0, maxFrameDuration);
+  RenderFrameTimeGraph(firstRenderedFrame, lastRenderedFrame, 100.0, timelineInfos[myFocusedTimeline].myOverallDuration, (Profiler::Timeline) myFocusedTimeline);
   
   ImGui::End();
   ImGui::PopStyleColor();
