@@ -65,6 +65,7 @@ namespace Fancy
       TimeSample myEnd = { 0u };
       float64 myDuration = 0.0;
       bool myHasValidTimes = true;
+      uint myNumSamples = 0u;
       CircularArray<SampleNode>::Handle myFirstSample;
     };
 
@@ -88,9 +89,6 @@ namespace Fancy
 
     static void BeginFrame();
     static void EndFrame();
-
-    static void BeginGpuFrame();
-    static void EndGpuFrame();
 
     static const CircularArray<FrameData>& GetRecordedFrames(Timeline aTimeline) { return ourRecordedFrames[aTimeline]; }
     static const CircularArray<SampleNode>& GetRecordedSamples(Timeline aTimeline) { return ourRecordedSamples[aTimeline]; }

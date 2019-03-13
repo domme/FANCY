@@ -11,15 +11,16 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  namespace {
+  //namespace {
     bool locPaused = false;
+    bool locAcceptsNewSamples = false;
 
     Profiler::FrameHandle locNextGpuFrameToUpdate = { 0u };
     uint locSampleDepth[Profiler::TIMELINE_NUM] = { 0u };
     Profiler::FrameData locCurrFrame[Profiler::TIMELINE_NUM];
     Profiler::SampleHandle locSampleStack[Profiler::TIMELINE_NUM][Profiler::MAX_SAMPLE_DEPTH];
     Profiler::SampleHandle locTailSampleStack[Profiler::TIMELINE_NUM][Profiler::MAX_SAMPLE_DEPTH];
-  }
+  //}
 
   bool Profiler::ourPauseRequested = false;
   CircularArray<Profiler::FrameData> Profiler::ourRecordedFrames[TIMELINE_NUM]{ FRAME_POOL_SIZE, FRAME_POOL_SIZE };
@@ -41,6 +42,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   Profiler::SampleNode& Profiler::OpenMarker(const char* aName, uint8 aTag, Timeline aTimeline)
   {
+    ASSERT(locAcceptsNewSamples, "Attempted to add a profile-sample outside of the profiler's frame scope");
+
     uint& sampleDepth = locSampleDepth[aTimeline];
     auto& recordedSamples = ourRecordedSamples[aTimeline];
     auto& sampleStack = locSampleStack[aTimeline];
@@ -79,7 +82,8 @@ namespace Fancy
 
     const SampleHandle sampleHandle = sampleStack[--sampleDepth];
     SampleNode& sample = recordedSamples[sampleHandle];
-    
+
+    ++currFrame.myNumSamples;
     if (sampleDepth == 0 && currFrame.myFirstSample == UINT_MAX)  // First child of frame?
     {
       currFrame.myFirstSample = sampleHandle;
@@ -147,18 +151,22 @@ namespace Fancy
         frame.myDuration = frame.myEnd.myTime - frame.myStart.myTime;
         frame.myHasValidTimes = true;
 
-        const uint nextFrameFirstSample = frameIdx + 1 < recordedFrames.Size() ? recordedSamples.GetElementIndex(recordedFrames[frameIdx + 1].myFirstSample) : recordedSamples.Size();
-        const uint firstSample = recordedSamples.GetElementIndex(frame.myFirstSample);
-
-        for (uint sampleIdx = firstSample; sampleIdx < nextFrameFirstSample; ++sampleIdx)
+        if (frame.myFirstSample.myIndex != UINT_MAX)
         {
-          SampleNode& sample = recordedSamples[sampleIdx];
-          ASSERT(!sample.myHasValidTimes);
+          ASSERT(frame.myNumSamples > 0);
+          const uint firstSample = recordedSamples.GetElementIndex(frame.myFirstSample);
+          const uint endSample = firstSample + frame.myNumSamples;
 
-          ReadQueryTime(queryData, sample.myStart);
-          ReadQueryTime(queryData, sample.myEnd);
-          sample.myDuration = sample.myEnd.myTime - sample.myStart.myTime;
-          sample.myHasValidTimes = true;
+          for (uint sampleIdx = firstSample; sampleIdx < endSample; ++sampleIdx)
+          {
+            SampleNode& sample = recordedSamples[sampleIdx];
+            ASSERT(!sample.myHasValidTimes);
+
+            ReadQueryTime(queryData, sample.myStart);
+            ReadQueryTime(queryData, sample.myEnd);
+            sample.myDuration = sample.myEnd.myTime - sample.myStart.myTime;
+            sample.myHasValidTimes = true;
+          }
         }
 
         locNextGpuFrameToUpdate = frameIdx + 1 < recordedFrames.Size() ? recordedFrames.GetHandle(frameIdx + 1) : FrameHandle();
@@ -221,93 +229,86 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void Profiler::BeginFrame()
   {
+    locAcceptsNewSamples = true;
+
+    UpdateGpuDurations();
+
     locPaused = ourPauseRequested;
     if (locPaused)
       return;
 
-    FrameData& currFrame = locCurrFrame[TIMELINE_MAIN];
-    currFrame.myFirstSample.myIndex = UINT_MAX;
-    currFrame.myDuration = 0u;
-    currFrame.myFrame = Time::ourFrameIdx;
-    currFrame.myEnd = { 0u };
-    currFrame.myHasValidTimes = true;
-    currFrame.myStart.myTime = SampleTimeMs();
+    for (uint i = 0; i < TIMELINE_NUM; ++i)
+    {
+      FrameData& currFrame = locCurrFrame[i];
+      currFrame.myFirstSample.myIndex = UINT_MAX;
+      currFrame.myNumSamples = 0u;
+      currFrame.myDuration = 0u;
+      currFrame.myFrame = Time::ourFrameIdx;
+      currFrame.myEnd = { 0u };
+      currFrame.myHasValidTimes = i != TIMELINE_GPU;
+
+      if (i == TIMELINE_GPU)
+      {
+        CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+        const GpuQuery timestamp = ctx->InsertTimestamp();
+        RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
+        RenderCore::FreeContext(ctx);
+
+        currFrame.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
+        currFrame.myStart.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
+      }
+      else
+      {
+        currFrame.myStart.myTime = SampleTimeMs();
+      }
+    }
   }
 //---------------------------------------------------------------------------//
   void Profiler::EndFrame()
   {
-    uint& sampleDepth = locSampleDepth[TIMELINE_MAIN];
-    auto& recordedFrames = ourRecordedFrames[TIMELINE_MAIN];
-    FrameData& currFrame = locCurrFrame[TIMELINE_MAIN];
-
-    ASSERT(sampleDepth == 0, "There are still open profiling markers at the end of the frame");
-
-    if (!locPaused && currFrame.myFirstSample != UINT_MAX)  // We have samples in this frame
-    {
-      if (recordedFrames.IsFull())
-        FreeFirstFrame(TIMELINE_MAIN);
-      
-      currFrame.myEnd.myTime = SampleTimeMs();
-      currFrame.myDuration = currFrame.myEnd.myTime - currFrame.myStart.myTime;
-      recordedFrames.Add(currFrame);
-    }
-  }
-//---------------------------------------------------------------------------//
-  void Profiler::BeginGpuFrame()
-  {
-    UpdateGpuDurations();
-
+    locAcceptsNewSamples = false;
     if (locPaused)
       return;
 
-    FrameData& currFrame = locCurrFrame[TIMELINE_GPU];
-    currFrame.myFirstSample.myIndex = UINT_MAX;
-    currFrame.myDuration = 0u;
-    currFrame.myFrame = Time::ourFrameIdx;
-    currFrame.myEnd = { 0u };
-    currFrame.myHasValidTimes = false;
+    bool hasAnySample = false;
+    for (uint i = 0u; !hasAnySample && i < TIMELINE_NUM; ++i)
+      hasAnySample |= locCurrFrame[i].myFirstSample != UINT_MAX;
 
-    CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-    const GpuQuery timestamp = ctx->InsertTimestamp();
-    RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
-    RenderCore::FreeContext(ctx);
-
-    currFrame.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
-    currFrame.myStart.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
-  }
-//---------------------------------------------------------------------------//
-  void Profiler::EndGpuFrame()
-  {
-    if (locPaused)
-      return;
-
-    uint& sampleDepth = locSampleDepth[TIMELINE_GPU];
-    auto& recordedFrames = ourRecordedFrames[TIMELINE_GPU];
-    FrameData& currFrame = locCurrFrame[TIMELINE_GPU];
-
-    ASSERT(sampleDepth == 0, "There are still open profiling markers at the end of the frame");
-
-    if (currFrame.myFirstSample != UINT_MAX)  // We have samples in this frame
+    if (hasAnySample)
     {
-      if (recordedFrames.IsFull())
-        FreeFirstFrame(TIMELINE_GPU);
+      for (uint i = 0u; i < TIMELINE_NUM; ++i)
+      {
+        uint& sampleDepth = locSampleDepth[i];
+        auto& recordedFrames = ourRecordedFrames[i];
+        FrameData& currFrame = locCurrFrame[i];
+        ASSERT(sampleDepth == 0, "There are still open profiling markers at the end of the frame");
 
-      CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-      const GpuQuery timestamp = ctx->InsertTimestamp();
-      RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
-      RenderCore::FreeContext(ctx);
+        if (recordedFrames.IsFull())
+          FreeFirstFrame((Timeline)i);
 
-      currFrame.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
-      currFrame.myEnd.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
-      
-      recordedFrames.Add(currFrame);
+        if (i == TIMELINE_GPU)
+        {
+          CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+          const GpuQuery timestamp = ctx->InsertTimestamp();
+          RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
+          RenderCore::FreeContext(ctx);
 
-      if (locNextGpuFrameToUpdate.myIndex == UINT_MAX)
-        locNextGpuFrameToUpdate = recordedFrames.GetHandle(recordedFrames.Size() - 1);
+          currFrame.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
+          currFrame.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
+        }
+        else
+        {
+          currFrame.myEnd.myTime = SampleTimeMs();
+          currFrame.myDuration = currFrame.myEnd.myTime - currFrame.myStart.myTime;
+        }
+        
+        recordedFrames.Add(currFrame);
+
+        if (i == TIMELINE_GPU && locNextGpuFrameToUpdate.myIndex == UINT_MAX)
+            locNextGpuFrameToUpdate = recordedFrames.GetHandle(recordedFrames.Size() - 1);
+      }
     }
   }
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
   const Profiler::SampleNodeInfo& Profiler::GetSampleInfo(uint64 anInfoId)
   {

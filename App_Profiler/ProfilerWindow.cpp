@@ -396,9 +396,6 @@ void ProfilerWindow::RenderTimeline(uint aTimeline, float64 aTimeToPixelScale, c
     const float frameSize = static_cast<float>(frameData.myDuration * aTimeToPixelScale);
     const float framePos = ImGui::GetCursorPosX();
 
-    if (frameData.myFirstSample == UINT_MAX)
-      continue;
-
     if (framePos + frameSize < 0)
     {
       ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + frameSize, frameGraphStart.y));
@@ -416,11 +413,14 @@ void ProfilerWindow::RenderTimeline(uint aTimeline, float64 aTimeToPixelScale, c
 
     RenderFrameHeader(frameSize, frameGraphSize.y, frameData);
 
-    const Profiler::SampleNode& node = recordedSamples[frameData.myFirstSample];
-    RenderNodeRecursive(node, aTimeToPixelScale, frameData.myStart.myTime, ToGlobalPos(ImGui::GetCursorPos()), 0, timeline);
+    if (frameData.myNumSamples > 0u)
+    {
+      ASSERT(frameData.myFirstSample != UINT_MAX);
+      const Profiler::SampleNode& node = recordedSamples[frameData.myFirstSample];
+      RenderNodeRecursive(node, aTimeToPixelScale, frameData.myStart.myTime, ToGlobalPos(ImGui::GetCursorPos()), 0, timeline);
+    }
 
     ImGui::SetCursorPos(ImVec2(framePos + frameSize + 1.0f, frameGraphStart.y));
-
     RenderFrameBoundary(100.0f);
   }
 

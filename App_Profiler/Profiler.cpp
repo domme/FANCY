@@ -175,8 +175,7 @@ void Render()
 
   GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  for (int i = 0; i < 999; ++i)
-    ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
+  ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   GPU_END_PROFILE(ctx);
 
   queue->ExecuteContext(ctx);
