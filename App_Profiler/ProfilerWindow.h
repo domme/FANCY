@@ -14,6 +14,7 @@ public:
 
   float myHorizontalOffset = FLT_MAX;
   float myScale = 1.0f;
+  float myTimeToPixelScale = 1.0f;
 
 private:
   struct TimelineInfo
@@ -23,6 +24,7 @@ private:
   };
 
   TimelineInfo GetTimelineInfo(uint aTimeline);
-  void RenderTimeline(uint aTimeline, float64 aTimeToPixelScale, const TimelineInfo& aTimelineInfo, uint& aFirstRenderedFrame, uint& aLastRenderedFrame);
+  void HandleTimelineAreaScrollZoom(float anAreaMin_x, float anAreaMin_y, float anAreaMax_x, float anAreaMax_y);
+  void RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRenderedFrame);
   uint myFocusedTimeline = 0;
 };

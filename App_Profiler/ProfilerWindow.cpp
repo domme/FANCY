@@ -329,25 +329,31 @@ ProfilerWindow::TimelineInfo ProfilerWindow::GetTimelineInfo(uint aTimeline)
   return timelineInfo;
 }
 
-void ProfilerWindow::RenderTimeline(uint aTimeline, float64 aTimeToPixelScale, const TimelineInfo& aTimelineInfo, uint& aFirstRenderedFrame, uint& aLastRenderedFrame)
+/// Handles scrolling/zooming over the whole area occupied by all timelines
+void ProfilerWindow::HandleTimelineAreaScrollZoom(float anAreaMin_x, float anAreaMin_y, float anAreaMax_x, float anAreaMax_y)
 {
-  const Profiler::Timeline timeline = (Profiler::Timeline) aTimeline;
-
-  const ImVec2 frameGraphRect_min = ToGlobalPos(ImGui::GetCursorPos());
-  ImVec2 frameGraphRect_max;
-  frameGraphRect_max.x = (frameGraphRect_min.x + ImGui::GetWindowWidth()) - ImGui::GetCursorPosX();
-  frameGraphRect_max.y = (frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale);
+  const ImVec2 frameGraphRect_min = ImVec2(anAreaMin_x, anAreaMin_y); // ToGlobalPos(ImGui::GetCursorPos());
+  const ImVec2 frameGraphRect_max = ImVec2(anAreaMax_x, anAreaMax_y);
   const ImVec2 frameGraphSize(frameGraphRect_max.x - frameGraphRect_min.x, frameGraphRect_max.y - frameGraphRect_min.y);
 
-  const float overallFrameSize = static_cast<float>(aTimelineInfo.myOverallDuration * aTimeToPixelScale);
+  float64 maxTimelineDuration = 0.0;
+  for (uint i = 0u; i < Profiler::TIMELINE_NUM; ++i)
+  {
+    TimelineInfo info = GetTimelineInfo(i);
+    maxTimelineDuration = glm::max(maxTimelineDuration, info.myOverallDuration);
+  }
+
+  const float overallFrameSize = static_cast<float>(maxTimelineDuration * myTimeToPixelScale);
   const float maxOffset = glm::max(0.0f, overallFrameSize - ImGui::GetWindowWidth() - 1.0f);
 
-  //RenderRuler(timeToPixelScale);
-
-  if (ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
+  if (!myIsPaused)
   {
-    if (ImGui::IsMouseDown(0))
-      myFocusedTimeline = aTimeline;
+    myHorizontalOffset = maxOffset;
+  }
+  else if (ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
+  {
+    //if (ImGui::IsMouseDown(0))
+    //  myFocusedTimeline = aTimeline;
 
     // Scrolling
     if (ImGui::IsMouseDragging(0))
@@ -362,22 +368,48 @@ void ProfilerWindow::RenderTimeline(uint aTimeline, float64 aTimeToPixelScale, c
       const float scaleChange = ImGui::GetIO().MouseWheel * 0.1f;
 
       myScale = glm::clamp(myScale + scaleChange, 0.01f, 100.0f);
-      aTimeToPixelScale = kBaseHorizontalScale * myScale;
+      myTimeToPixelScale = kBaseHorizontalScale * myScale;
 
       // Adjust offset so the current mouse pos stays centered
       const float frameOrigin = -myHorizontalOffset;
       const float mousePos_FrameSpace = glm::max(0.0f, ToLocalPos(ImGui::GetMousePos()).x - frameOrigin);
       const float mouseAlongFrame = overallFrameSize < FLT_EPSILON ? 0.0f : mousePos_FrameSpace / overallFrameSize;
 
-      const float newOverallFrameSize = static_cast<float>(aTimelineInfo.myOverallDuration * aTimeToPixelScale);
+      const float newOverallFrameSize = static_cast<float>(maxTimelineDuration * myTimeToPixelScale);
       const float newMousePos_FrameSpace = mouseAlongFrame * newOverallFrameSize;
 
       myHorizontalOffset += newMousePos_FrameSpace - mousePos_FrameSpace;
     }
   }
 
-  if (!myIsPaused)
-    myHorizontalOffset = maxOffset;
+  
+
+
+
+
+    
+
+
+
+}
+
+
+void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRenderedFrame)
+{
+  const Profiler::Timeline timeline = (Profiler::Timeline) aTimeline;
+
+  const ImVec2 frameGraphRect_min = ToGlobalPos(ImGui::GetCursorPos());
+  ImVec2 frameGraphRect_max;
+  frameGraphRect_max.x = (frameGraphRect_min.x + ImGui::GetWindowWidth()) - ImGui::GetCursorPosX();
+  frameGraphRect_max.y = (frameGraphRect_min.y + ImGui::GetWindowSize().y * kFrameGraphHeightScale);
+  const ImVec2 frameGraphSize(frameGraphRect_max.x - frameGraphRect_min.x, frameGraphRect_max.y - frameGraphRect_min.y);
+
+  const float overallFrameSize = static_cast<float>(aTimelineInfo.myOverallDuration * aTimeToPixelScale);
+  const float maxOffset = glm::max(0.0f, overallFrameSize - ImGui::GetWindowWidth() - 1.0f);
+
+  //RenderRuler(timeToPixelScale);
+
+  
 
   ImGui::BeginChild(kFrameId_FrameGraph[aTimeline], frameGraphSize, false, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
