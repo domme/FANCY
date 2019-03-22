@@ -24,7 +24,6 @@ private:
   };
 
   TimelineInfo GetTimelineInfo(uint aTimeline);
-  void HandleTimelineAreaScrollZoom(float anAreaMin_x, float anAreaMin_y, float anAreaMax_x, float anAreaMax_y);
-  void RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRenderedFrame);
+  void RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRenderedFrame, float& aMaxHorizontalOffset);
   uint myFocusedTimeline = 0;
 };
