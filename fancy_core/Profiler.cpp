@@ -15,6 +15,7 @@ namespace Fancy
     bool locPaused = false;
     bool locAcceptsNewSamples = false;
 
+    float64 locStartTime = 0.0;
     Profiler::FrameHandle locNextGpuFrameToUpdate = { 0u };
     uint locSampleDepth[Profiler::TIMELINE_NUM] = { 0u };
     Profiler::FrameData locCurrFrame[Profiler::TIMELINE_NUM];
@@ -177,8 +178,15 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   static float64 SampleTimeMs()
   {
+    if (locStartTime == 0.0)
+    {
+      const std::chrono::duration<float64, std::milli> now(std::chrono::system_clock::now().time_since_epoch());
+      locStartTime = now.count();
+      return 0.0;
+    }
+
     const std::chrono::duration<float64, std::milli> now(std::chrono::system_clock::now().time_since_epoch());
-    return now.count();
+    return now.count() - locStartTime;
   }
 //---------------------------------------------------------------------------//
   void Profiler::PushMarker(const char* aName, uint8 aTag)
