@@ -80,8 +80,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void FancyRuntime::EndFrame()
   {
-    myRenderOutput->EndFrame();
     Profiler::EndFrame();
+    myRenderOutput->EndFrame();
     RenderCore::EndFrame();
     ++Time::ourFrameIdx;
   }

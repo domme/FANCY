@@ -28,8 +28,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutput::BeginFrame()
   {
-    PROFILE_FUNCTION();
-
     if (Time::ourFrameIdx == 0u)
       PrepareForFirstFrame();
 
@@ -38,8 +36,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutput::EndFrame()
   {
-    PROFILE_FUNCTION();
-
     Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex]->GetTexture();
 
     CommandQueue* graphicsQueue = RenderCore::GetCommandQueue(CommandListType::Graphics);

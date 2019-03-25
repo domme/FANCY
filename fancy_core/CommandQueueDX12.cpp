@@ -46,7 +46,7 @@ namespace Fancy
 
     CheckD3Dcall(myFence->SetEventOnCompletion(aFenceVal, myFenceCompletedEvent));
     WaitForSingleObject(myFenceCompletedEvent, INFINITE);
-    myLastCompletedFenceVal = aFenceVal;
+    myLastCompletedFenceVal = glm::max(myLastCompletedFenceVal, aFenceVal);
   }
 //---------------------------------------------------------------------------//
   void CommandQueueDX12::WaitForIdle()

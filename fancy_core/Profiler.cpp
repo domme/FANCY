@@ -136,7 +136,9 @@ namespace Fancy
     {
       uint64 timeStampData = 0u;
       memcpy(&timeStampData, aQueryDataBuf + aSample.myQueryInfo.myIndex * timeStampDataSize, timeStampDataSize);
-      aSample.myTime = static_cast<float64>(timeStampData) * timeTicksToMs[aSample.myQueryInfo.myCommandListType];
+      
+      const uint commandListType = aSample.myQueryInfo.myCommandListType;
+      aSample.myTime = static_cast<float64>(timeStampData) * timeTicksToMs[commandListType] - locStartTimeGPU[commandListType];
     };
 
     const uint frameIdx = recordedFrames.GetElementIndex(locNextGpuFrameToUpdate);

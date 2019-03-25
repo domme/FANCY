@@ -104,7 +104,7 @@ namespace Fancy {
   uint RenderCore::ourNumUsedQueryRanges[(uint)GpuQueryType::NUM] = { 0u };
 
   UniquePtr<GpuBuffer> RenderCore::ourQueryBuffers[NUM_QUERY_BUFFERS][(uint)GpuQueryType::NUM];
-  uint64 RenderCore::ourQueryBufferFrames[NUM_QUERY_BUFFERS] = { 0u };
+  uint64 RenderCore::ourQueryBufferFrames[NUM_QUERY_BUFFERS] = { UINT64_MAX };
   uint RenderCore::ourCurrQueryBufferIdx = 0u;
 
   const uint8* RenderCore::ourMappedQueryBufferData[(uint)GpuQueryType::NUM] = { nullptr };
@@ -914,8 +914,8 @@ namespace Fancy {
     if (!availableContextList.empty())
     {
       CommandContext* context = availableContextList.front();
-      if (context->IsOpen())
-        context->Reset(0u);
+     // if (context->IsOpen())
+     //   context->Reset(((uint64) aType) << 61ULL);
       availableContextList.pop_front();
       return context;
     }
@@ -1051,9 +1051,6 @@ namespace Fancy {
   {
     if (ourLastFrameDoneFences.IsEmpty() || ourLastFrameDoneFences[ourLastFrameDoneFences.Size() - 1].first < aFrameIdx)
       return false;
-
-    if (ourLastFrameDoneFences[0].first > aFrameIdx)
-      return true;
 
     CommandQueue* queue = GetCommandQueue(CommandListType::Graphics);
     for (uint i = 0u, e = ourLastFrameDoneFences.Size(); i < e; ++i)
