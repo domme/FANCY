@@ -87,6 +87,7 @@ namespace Fancy
     static void PushGpuMarker(CommandContext* aContext, const char* aName, uint8 aTag);
     static void PopGpuMarker(CommandContext* aContext);
 
+    static void Init();
     static void BeginFrame();
     static void EndFrame();
 

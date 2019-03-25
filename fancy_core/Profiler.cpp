@@ -7,6 +7,7 @@
 #include <chrono>
 #include <ratio>
 #include "TimeManager.h"
+#include "GpuBuffer.h"
 
 namespace Fancy
 {
@@ -15,7 +16,9 @@ namespace Fancy
     bool locPaused = false;
     bool locAcceptsNewSamples = false;
 
-    float64 locStartTime = 0.0;
+    float64 locStartTimeCPU = 0.0;
+    float64 locStartTimeGPU[(uint)CommandListType::NUM] = { 0.0 };
+    
     Profiler::FrameHandle locNextGpuFrameToUpdate = { 0u };
     uint locSampleDepth[Profiler::TIMELINE_NUM] = { 0u };
     Profiler::FrameData locCurrFrame[Profiler::TIMELINE_NUM];
@@ -178,15 +181,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   static float64 SampleTimeMs()
   {
-    if (locStartTime == 0.0)
-    {
-      const std::chrono::duration<float64, std::milli> now(std::chrono::system_clock::now().time_since_epoch());
-      locStartTime = now.count();
-      return 0.0;
-    }
-
     const std::chrono::duration<float64, std::milli> now(std::chrono::system_clock::now().time_since_epoch());
-    return now.count() - locStartTime;
+    return now.count();
   }
 //---------------------------------------------------------------------------//
   void Profiler::PushMarker(const char* aName, uint8 aTag)
@@ -195,7 +191,7 @@ namespace Fancy
       return;
 
     SampleNode& newSample = OpenMarker(aName, aTag, TIMELINE_MAIN);
-    newSample.myStart.myTime = SampleTimeMs();
+    newSample.myStart.myTime = SampleTimeMs() - locStartTimeCPU;
   }
 //---------------------------------------------------------------------------//
   void Profiler::PopMarker()
@@ -205,7 +201,7 @@ namespace Fancy
 
     SampleNode& closedSample = CloseMarker(TIMELINE_MAIN);
 
-    closedSample.myEnd.myTime = SampleTimeMs();
+    closedSample.myEnd.myTime = SampleTimeMs() - locStartTimeCPU;
     closedSample.myDuration = closedSample.myEnd.myTime - closedSample.myStart.myTime;
   }
 //---------------------------------------------------------------------------//
@@ -233,6 +229,51 @@ namespace Fancy
     const GpuQuery timestamp = aContext->InsertTimestamp();
     closedSample.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
     closedSample.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
+  }
+//---------------------------------------------------------------------------//
+  void Profiler::Init()
+  {
+    locStartTimeCPU = SampleTimeMs();
+
+    CommandQueue* graphicsQueue = RenderCore::GetCommandQueue(CommandListType::Graphics);
+    CommandContext* graphicsContext = RenderCore::AllocateContext(CommandListType::Graphics);
+    GpuQuery graphicsQuery = graphicsContext->InsertTimestamp();
+    graphicsQueue->ExecuteContext(graphicsContext, true);
+
+    CommandQueue* computeQueue = RenderCore::GetCommandQueue(CommandListType::Compute);
+    CommandContext* computeContext = RenderCore::AllocateContext(CommandListType::Compute);
+    GpuQuery computeQuery = computeContext->InsertTimestamp(); 
+    computeQueue->ExecuteContext(computeContext, true);
+    RenderCore::FreeContext(computeContext);
+
+    const uint queryDataSize = RenderCore::GetQueryTypeDataSize(GpuQueryType::TIMESTAMP);
+
+    GpuBufferProperties bufferProps;
+    bufferProps.myElementSizeBytes = queryDataSize;
+    bufferProps.myNumElements = 2u;
+    bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_READ;
+    bufferProps.myIsShaderWritable = false;
+    bufferProps.myUsage = GpuBufferUsage::STAGING_READBACK;
+    SharedPtr<GpuBuffer> readbackBuffer = RenderCore::CreateBuffer(bufferProps);
+    ASSERT(readbackBuffer);
+
+    GpuQueryHeap* queryHeap = RenderCore::GetQueryHeap(GpuQueryType::TIMESTAMP);
+    graphicsContext->CopyQueryDataToBuffer(queryHeap, readbackBuffer.get(), graphicsQuery.myIndexInHeap, 1u, 0u);
+    graphicsContext->CopyQueryDataToBuffer(queryHeap, readbackBuffer.get(), computeQuery.myIndexInHeap, 1u, queryDataSize);
+    graphicsQueue->ExecuteContext(graphicsContext, true);
+    RenderCore::FreeContext(graphicsContext);
+
+    uint8* bufferData = (uint8*)readbackBuffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+    ASSERT(bufferData);
+
+    uint64 queryDataGraphics, queryDataCompute;
+    memcpy(&queryDataGraphics, bufferData, queryDataSize);
+    memcpy(&queryDataCompute, bufferData + queryDataSize, queryDataSize);
+
+    readbackBuffer->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+    
+    locStartTimeGPU[(uint)CommandListType::Graphics] = (float64) queryDataGraphics * (float64)RenderCore::GetTimestampToSecondsFactor(CommandListType::Graphics) * 1000.0;
+    locStartTimeGPU[(uint)CommandListType::Compute] = (float64) queryDataCompute * (float64)RenderCore::GetTimestampToSecondsFactor(CommandListType::Compute) * 1000.0;
   }
 //---------------------------------------------------------------------------//
   void Profiler::BeginFrame()
@@ -267,7 +308,7 @@ namespace Fancy
       }
       else
       {
-        currFrame.myStart.myTime = SampleTimeMs();
+        currFrame.myStart.myTime = SampleTimeMs() - locStartTimeCPU;
       }
     }
   }
@@ -306,7 +347,7 @@ namespace Fancy
         }
         else
         {
-          currFrame.myEnd.myTime = SampleTimeMs();
+          currFrame.myEnd.myTime = SampleTimeMs() - locStartTimeCPU;
           currFrame.myDuration = currFrame.myEnd.myTime - currFrame.myStart.myTime;
         }
         

@@ -46,6 +46,8 @@ namespace Fancy {
 
     // Create the output
     ourInstance->myRenderOutput = RenderCore::CreateRenderOutput(anAppInstanceHandle, someWindowParams);
+
+    Profiler::Init();
     
     return ourInstance;
   }
