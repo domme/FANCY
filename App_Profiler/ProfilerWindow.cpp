@@ -360,19 +360,6 @@ void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64
   }
 }
 
-ProfilerWindow::TimelineInfo ProfilerWindow::GetTimelineInfo(uint aTimeline)
-{
-  const CircularArray<Profiler::FrameData>& recordedFrames = Profiler::GetRecordedFrames((Profiler::Timeline) aTimeline);
-  TimelineInfo timelineInfo;
-  for (uint i = 0u, e = recordedFrames.Size(); i < e; ++i)
-  {
-    const float64 frameTime = recordedFrames[i].myDuration;
-    timelineInfo.myOverallDuration += frameTime;
-    timelineInfo.myMaxFrameDuration = glm::max(timelineInfo.myMaxFrameDuration, frameTime);
-  }
-  return timelineInfo;
-}
-
 void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRenderedFrame, float& aMaxHorizontalOffset)
 {
   // FramegraphRect: Rectangular area over all timelines
@@ -430,6 +417,9 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
     }
   }
 
+  ImGui::SetCursorPos(ToLocalPos(frameGraphRect_min));
+  ImGui::BeginChild(kFrameId_FrameGraph[0], frameGraphSize, true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
   uint firstWindowFrame = UINT_MAX;
   uint lastWindowFrame = UINT_MAX;
   for (uint iTimeline = 0u; iTimeline < Profiler::TIMELINE_NUM; ++iTimeline)
@@ -440,9 +430,7 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
       myFocusedTimeline = iTimeline;
 
     const ImVec2 timelineRectMinLocal = ToLocalPos(timelineRectMin);
-
     ImGui::SetCursorPos(timelineRectMinLocal);
-    ImGui::BeginChild(kFrameId_FrameGraph[iTimeline], timelineRectSize, true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
     const Profiler::Timeline timeline = static_cast<Profiler::Timeline>(iTimeline);
     const CircularArray<Profiler::FrameData>& recordedFrames = Profiler::GetRecordedFrames(timeline);
@@ -455,9 +443,11 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
         continue;
 
       const float frameMinX = -myHorizontalOffset + (frameData.myStart.myTime - overallStartTime) * myTimeToPixelScale;
-      const float frameSize = frameData.myDuration * myTimeToPixelScale;
+      if (frameMinX > ImGui::GetWindowWidth())
+        break;
       
-      if (frameMinX + frameSize < 0 || frameMinX > ImGui::GetWindowWidth())
+      const float frameSize = frameData.myDuration * myTimeToPixelScale;
+      if (frameMinX + frameSize < 0)
         continue;
 
       if (iTimeline == myFocusedTimeline)
@@ -485,8 +475,9 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
       RenderFrameBoundary(timelineRectSize.y);
     }
 
-    ImGui::EndChild(); // End frame graph area
   }
+
+  ImGui::EndChild(); // End frame graph area
 
   aFirstRenderedFrame = firstWindowFrame;
   aLastRenderedFrame = lastWindowFrame;

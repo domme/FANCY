@@ -23,7 +23,6 @@ private:
     float64 myOverallDuration = 0.0;
   };
 
-  TimelineInfo GetTimelineInfo(uint aTimeline);
   void RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRenderedFrame, float& aMaxHorizontalOffset);
   uint myFocusedTimeline = 0;
 };
