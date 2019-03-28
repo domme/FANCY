@@ -112,7 +112,7 @@ namespace Fancy {
     static bool BeginQueryDataReadback(GpuQueryType aType, uint64 aFrameIdx, const uint8** aDataPtrOut = nullptr);
     static bool ReadQueryData(const GpuQuery& aQuery, uint8* aData);
     static void EndQueryDataReadback(GpuQueryType aType);
-    static float64 GetTimestampToSecondsFactor(CommandListType aCommandListType);
+    static float64 GetGpuTicksToMsFactor(CommandListType aCommandListType);
     
     static bool IsFrameDone(uint64 aFrameIdx);
     static void WaitForFrame(uint64 aFrameIdx);

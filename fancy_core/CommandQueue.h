@@ -17,12 +17,17 @@ namespace Fancy
 
     virtual bool IsFenceDone(uint64 aFenceVal) = 0;
     virtual uint64 SignalAndIncrementFence() = 0;
+    // Waits for a fence-completion on CPU timeline
     virtual void WaitForFence(uint64 aFenceVal) = 0;
     virtual void WaitForIdle() = 0;
+    // Waits for a fence-completion on GPU timeline
+    virtual void StallForQueue(const CommandQueue* aCommandQueue) = 0;
+    virtual void StallForFence(uint64 aFenceVal) = 0;
     virtual uint64 ExecuteContext(CommandContext* aContext, bool aWaitForCompletion = false) = 0;
 
   protected:
     CommandListType myType;
-    uint64 myInitialFenceVal;
+    uint64 myLastCompletedFenceVal;
+    uint64 myNextFenceVal;
   };
 }

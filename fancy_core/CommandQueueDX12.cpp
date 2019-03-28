@@ -11,8 +11,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   CommandQueueDX12::CommandQueueDX12(CommandListType aType)
     : CommandQueue(aType)
-    , myLastCompletedFenceVal(myInitialFenceVal)
-    , myNextFenceVal(myInitialFenceVal + 1)
     , myFenceCompletedEvent(nullptr)
   {
 	  ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
@@ -27,6 +25,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool CommandQueueDX12::IsFenceDone(uint64 aFenceVal)
   {
+    ASSERT(GetCommandListType(aFenceVal) == myType, "Can't compare against fence-value from different timeline");
+
     if (myLastCompletedFenceVal < aFenceVal)
       myLastCompletedFenceVal = glm::max(myLastCompletedFenceVal, myFence->GetCompletedValue());
       
@@ -41,6 +41,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandQueueDX12::WaitForFence(uint64 aFenceVal)
   {
+    ASSERT(GetCommandListType(aFenceVal) == myType, "Can't compare against fence-value from different timeline");
+
     if (IsFenceDone(aFenceVal))
       return;
 
@@ -52,6 +54,22 @@ namespace Fancy
   void CommandQueueDX12::WaitForIdle()
   {
     WaitForFence(SignalAndIncrementFence());
+  }
+//---------------------------------------------------------------------------//
+  void CommandQueueDX12::StallForQueue(const CommandQueue* aCommandQueue)
+  {
+    const CommandQueueDX12* otherQueue = static_cast<const CommandQueueDX12*>(aCommandQueue);
+    ASSERT(otherQueue != this);
+
+    CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), otherQueue->myNextFenceVal - 1u));
+  }
+//---------------------------------------------------------------------------//
+  void CommandQueueDX12::StallForFence(uint64 aFenceVal)
+  {
+    const CommandQueueDX12* otherQueue = static_cast<const CommandQueueDX12*>(RenderCore::GetCommandQueue(aFenceVal));
+    ASSERT(otherQueue != this);
+
+    CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), aFenceVal));
   }
 //---------------------------------------------------------------------------//
   uint64 CommandQueueDX12::ExecuteContext(CommandContext* aContext, bool aWaitForCompletion /* = false */)

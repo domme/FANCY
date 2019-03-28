@@ -16,14 +16,16 @@ namespace Fancy
 
     bool IsFenceDone(uint64 aFenceVal) override;
     uint64 SignalAndIncrementFence() override;
+    // Waits for a fence-completion on CPU timeline
     void WaitForFence(uint64 aFenceVal) override;
     void WaitForIdle() override;
+    // Waits for a fence-completion on GPU timeline
+    void StallForQueue(const CommandQueue* aCommandQueue) override;
+    void StallForFence(uint64 aFenceVal) override;
     uint64 ExecuteContext(CommandContext* aContext, bool aWaitForCompletion = false) override;
 	
 	  Microsoft::WRL::ComPtr<ID3D12CommandQueue> myQueue;
     Microsoft::WRL::ComPtr<ID3D12Fence> myFence;
-    uint64 myLastCompletedFenceVal;
-    uint64 myNextFenceVal;
     HANDLE myFenceCompletedEvent;
   };
 }

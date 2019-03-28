@@ -17,7 +17,7 @@ namespace Fancy
     bool locAcceptsNewSamples = false;
 
     float64 locStartTimeCPU = 0.0;
-    float64 locStartTimeGPU[(uint)CommandListType::NUM] = { 0.0 };
+    float64 locStartTimeGPU = 0.0;
     
     Profiler::FrameHandle locNextGpuFrameToUpdate = { 0u };
     uint locSampleDepth[Profiler::TIMELINE_NUM] = { 0u };
@@ -128,8 +128,8 @@ namespace Fancy
     ASSERT(timeStampDataSize == sizeof(uint64)); // Code below assumes this...
 
     const float64 timeTicksToMs[] = {
-       (float64)RenderCore::GetTimestampToSecondsFactor(CommandListType::Graphics) * 1000.0,
-       (float64)RenderCore::GetTimestampToSecondsFactor(CommandListType::Compute) * 1000.0
+       (float64)RenderCore::GetGpuTicksToMsFactor(CommandListType::Graphics),
+       (float64)RenderCore::GetGpuTicksToMsFactor(CommandListType::Compute)
     };
 
     const auto ReadQueryTime = [timeStampDataSize, &timeTicksToMs](const uint8* aQueryDataBuf, TimeSample& aSample)
@@ -138,7 +138,7 @@ namespace Fancy
       memcpy(&timeStampData, aQueryDataBuf + aSample.myQueryInfo.myIndex * timeStampDataSize, timeStampDataSize);
       
       const uint commandListType = aSample.myQueryInfo.myCommandListType;
-      aSample.myTime = static_cast<float64>(timeStampData) * timeTicksToMs[commandListType] - locStartTimeGPU[commandListType];
+      aSample.myTime = static_cast<float64>(timeStampData) * timeTicksToMs[commandListType] - locStartTimeGPU;
     };
 
     const uint frameIdx = recordedFrames.GetElementIndex(locNextGpuFrameToUpdate);
@@ -153,6 +153,12 @@ namespace Fancy
         ASSERT(!frame.myHasValidTimes);  // There must be something wrong with locNextGpuFrameToUpdate 
 
         ReadQueryTime(queryData, frame.myStart);
+        if (frame.myFrame == 0)
+        {
+          locStartTimeGPU = frame.myStart.myTime;
+          frame.myStart.myTime = 0.0;
+        }
+
         ReadQueryTime(queryData, frame.myEnd);
         frame.myDuration = frame.myEnd.myTime - frame.myStart.myTime;
         frame.myHasValidTimes = true;
@@ -233,54 +239,12 @@ namespace Fancy
     closedSample.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
   }
 //---------------------------------------------------------------------------//
-  void Profiler::Init()
-  {
-    locStartTimeCPU = SampleTimeMs();
-
-    CommandQueue* graphicsQueue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-    CommandContext* graphicsContext = RenderCore::AllocateContext(CommandListType::Graphics);
-    GpuQuery graphicsQuery = graphicsContext->InsertTimestamp();
-    graphicsQueue->ExecuteContext(graphicsContext, true);
-
-    CommandQueue* computeQueue = RenderCore::GetCommandQueue(CommandListType::Compute);
-    CommandContext* computeContext = RenderCore::AllocateContext(CommandListType::Compute);
-    GpuQuery computeQuery = computeContext->InsertTimestamp(); 
-    computeQueue->ExecuteContext(computeContext, true);
-    RenderCore::FreeContext(computeContext);
-
-    const uint queryDataSize = RenderCore::GetQueryTypeDataSize(GpuQueryType::TIMESTAMP);
-
-    GpuBufferProperties bufferProps;
-    bufferProps.myElementSizeBytes = queryDataSize;
-    bufferProps.myNumElements = 2u;
-    bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    bufferProps.myIsShaderWritable = false;
-    bufferProps.myUsage = GpuBufferUsage::STAGING_READBACK;
-    SharedPtr<GpuBuffer> readbackBuffer = RenderCore::CreateBuffer(bufferProps);
-    ASSERT(readbackBuffer);
-
-    GpuQueryHeap* queryHeap = RenderCore::GetQueryHeap(GpuQueryType::TIMESTAMP);
-    graphicsContext->CopyQueryDataToBuffer(queryHeap, readbackBuffer.get(), graphicsQuery.myIndexInHeap, 1u, 0u);
-    graphicsContext->CopyQueryDataToBuffer(queryHeap, readbackBuffer.get(), computeQuery.myIndexInHeap, 1u, queryDataSize);
-    graphicsQueue->ExecuteContext(graphicsContext, true);
-    RenderCore::FreeContext(graphicsContext);
-
-    uint8* bufferData = (uint8*)readbackBuffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED);
-    ASSERT(bufferData);
-
-    uint64 queryDataGraphics, queryDataCompute;
-    memcpy(&queryDataGraphics, bufferData, queryDataSize);
-    memcpy(&queryDataCompute, bufferData + queryDataSize, queryDataSize);
-
-    readbackBuffer->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED);
-    
-    locStartTimeGPU[(uint)CommandListType::Graphics] = (float64) queryDataGraphics * (float64)RenderCore::GetTimestampToSecondsFactor(CommandListType::Graphics) * 1000.0;
-    locStartTimeGPU[(uint)CommandListType::Compute] = (float64) queryDataCompute * (float64)RenderCore::GetTimestampToSecondsFactor(CommandListType::Compute) * 1000.0;
-  }
-//---------------------------------------------------------------------------//
   void Profiler::BeginFrame()
   {
     locAcceptsNewSamples = true;
+
+    if (Time::ourFrameIdx == 0)
+      locStartTimeCPU = SampleTimeMs();
 
     UpdateGpuDurations();
 

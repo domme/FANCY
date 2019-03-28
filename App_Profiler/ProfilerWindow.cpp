@@ -455,8 +455,9 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
         continue;
 
       const float frameMinX = -myHorizontalOffset + (frameData.myStart.myTime - overallStartTime) * myTimeToPixelScale;
+      const float frameSize = frameData.myDuration * myTimeToPixelScale;
       
-      if (frameMinX < 0 || frameMinX > ImGui::GetWindowWidth())
+      if (frameMinX + frameSize < 0 || frameMinX > ImGui::GetWindowWidth())
         continue;
 
       if (iTimeline == myFocusedTimeline)
@@ -467,15 +468,11 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
         lastWindowFrame = i;
       }
 
-      const float frameSize = frameData.myDuration * myTimeToPixelScale;
-
-      ImGui::SetCursorPosX(frameMinX);
-
+      ImGui::SetCursorPos(ImVec2(frameMinX, timelineRectMinLocal.y));
       RenderFrameBoundary(timelineRectSize.y);
-      
-      /*
       RenderFrameHeader(frameSize, timelineRectSize.y, frameData);
 
+      /*
       if (frameData.myNumSamples > 0u)
       {
         ASSERT(frameData.myFirstSample != UINT_MAX);
@@ -484,7 +481,7 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
       }
       */
 
-      ImGui::SetCursorPos(ImVec2(frameMinX + frameSize + 1.0f, timelineRectMinLocal.y));
+      ImGui::SetCursorPos(ImVec2(frameMinX + frameSize, timelineRectMinLocal.y));
       RenderFrameBoundary(timelineRectSize.y);
     }
 

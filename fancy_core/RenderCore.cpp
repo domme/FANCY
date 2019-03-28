@@ -1042,9 +1042,9 @@ namespace Fancy {
     ourMappedQueryBufferIdx[type] = 0u;
   }
 //---------------------------------------------------------------------------//
-  float64 RenderCore::GetTimestampToSecondsFactor(CommandListType aCommandListType)
+  float64 RenderCore::GetGpuTicksToMsFactor(CommandListType aCommandListType)
   {
-    return ourPlatformImpl->GetTimestampToSecondsFactor(aCommandListType);
+    return ourPlatformImpl->GetGpuTicksToMsFactor(aCommandListType);
   }
 //---------------------------------------------------------------------------//
   bool RenderCore::IsFrameDone(uint64 aFrameIdx)

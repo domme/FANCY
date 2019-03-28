@@ -46,8 +46,6 @@ namespace Fancy {
 
     // Create the output
     ourInstance->myRenderOutput = RenderCore::CreateRenderOutput(anAppInstanceHandle, someWindowParams);
-
-    Profiler::Init();
     
     return ourInstance;
   }
@@ -80,8 +78,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void FancyRuntime::EndFrame()
   {
-    Profiler::EndFrame();
     myRenderOutput->EndFrame();
+    Profiler::EndFrame();
     RenderCore::EndFrame();
     ++Time::ourFrameIdx;
   }
