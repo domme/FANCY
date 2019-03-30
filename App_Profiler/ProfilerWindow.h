@@ -23,6 +23,7 @@ private:
     float64 myOverallDuration = 0.0;
   };
 
+  void ScrollAndScale(float maxOffset, float overallGraphDuration, float aRectMinX, float aRectMinY, float aRectMaxX, float aRectMaxY);;
   void RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRenderedFrame, float& aMaxHorizontalOffset);
   uint myFocusedTimeline = 0;
 };
