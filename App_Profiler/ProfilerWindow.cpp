@@ -359,11 +359,11 @@ void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64
   }
 }
 
-void ProfilerWindow::ScrollAndScale(float maxOffset, float overallGraphDuration, float aRectMinX, float aRectMinY, float aRectMaxX, float aRectMaxY)
+void ProfilerWindow::ScrollAndScale(float maxOffset, float overallTimelineDuration, float aRectMinX, float aRectMinY, float aRectMaxX, float aRectMaxY)
 {
   const ImVec2 frameGraphRect_min(aRectMinX, aRectMinY);
   const ImVec2 frameGraphRect_max(aRectMaxX, aRectMaxY);
-  const float overallGraphWidth = static_cast<float>(overallGraphDuration * myTimeToPixelScale);
+  const float overallTimelineWidth = static_cast<float>(overallTimelineDuration * myTimeToPixelScale);
 
   if (!myIsPaused)
   {
@@ -387,14 +387,14 @@ void ProfilerWindow::ScrollAndScale(float maxOffset, float overallGraphDuration,
       myTimeToPixelScale = kBaseHorizontalScale * myScale;
 
       // Adjust offset so the current mouse pos stays centered
-      const float frameOrigin = -myHorizontalOffset;
-      const float mousePos_FrameSpace = glm::max(0.0f, ToLocalPos(ImGui::GetMousePos()).x - frameOrigin);
-      const float mouseAlongFrame = overallGraphWidth < FLT_EPSILON ? 0.0f : mousePos_FrameSpace / overallGraphWidth;
+      const float timelineSpace = -myHorizontalOffset;
+      const float mousePos_TimelineSpace = glm::max(0.0f, ToLocalPos(ImGui::GetMousePos()).x - timelineSpace);
+      const float mouseAlongFrame = overallTimelineWidth < FLT_EPSILON ? 0.0f : mousePos_TimelineSpace / overallTimelineWidth;
 
-      const float newOverallFrameSize = static_cast<float>(overallGraphWidth * myTimeToPixelScale);
-      const float newMousePos_FrameSpace = mouseAlongFrame * newOverallFrameSize;
+      const float newTimelineSize = static_cast<float>(overallTimelineDuration * myTimeToPixelScale);
+      const float newMousePos_TimelineSpace = mouseAlongFrame * newTimelineSize;
 
-      myHorizontalOffset += newMousePos_FrameSpace - mousePos_FrameSpace;
+      myHorizontalOffset += newMousePos_TimelineSpace - mousePos_TimelineSpace;
     }
   }
 }
@@ -403,12 +403,12 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
 {
   const ImVec2 timelineRectSize(ImGui::GetWindowWidth(), (ImGui::GetWindowHeight() * kFrameGraphHeightScale) / Profiler::TIMELINE_NUM);
   
-  float64 overallStartTime, overallEndTime;
-  GetTimeRange(overallStartTime, overallEndTime);
+  float64 minStartTime, maxEndTime;
+  GetTimeRange(minStartTime, maxEndTime);
 
-  const float64 overallDuration = glm::max(0.0, overallEndTime - overallStartTime);
-  const float overallFrameSize = static_cast<float>(overallDuration * myTimeToPixelScale);
-  const float maxOffset = glm::max(0.0f, overallFrameSize - ImGui::GetWindowWidth() - 1.0f);
+  const float64 maxTimelineDuration = glm::max(0.0, maxEndTime - minStartTime);
+  const float maxTimelineSize = static_cast<float>(maxTimelineDuration * myTimeToPixelScale);
+  const float maxOffset = glm::max(0.0f, maxTimelineSize - ImGui::GetWindowWidth() - 1.0f);
   aMaxHorizontalOffset = maxOffset;
 
   const char* timelineNames[Profiler::TIMELINE_NUM] =
@@ -422,12 +422,13 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
   for (uint iTimeline = 0u; iTimeline < Profiler::TIMELINE_NUM; ++iTimeline)
   {
     ImGui::SetCursorPosX(0.0f);
-    const float timelineMinY = ImGui::GetCursorPosY();
+    float timelineMinY = ImGui::GetCursorPosY();
     if (ImGui::TreeNode(timelineNames[iTimeline]))
     {
+      timelineMinY = ImGui::GetCursorPosY();
       const ImVec2 timelineRectMinLocal = ImGui::GetCursorPos();
       const ImVec2 timelineRectMinGlobal = ToGlobalPos(timelineRectMinLocal);
-      ScrollAndScale(maxOffset, overallFrameSize, timelineRectMinGlobal.x, timelineRectMinGlobal.y, timelineRectMinGlobal.x + timelineRectSize.x, timelineRectMinGlobal.y + timelineRectSize.y);
+      ScrollAndScale(maxOffset, maxTimelineSize, timelineRectMinGlobal.x, timelineRectMinGlobal.y, timelineRectMinGlobal.x + timelineRectSize.x, timelineRectMinGlobal.y + timelineRectSize.y);
       
       const Profiler::Timeline timeline = static_cast<Profiler::Timeline>(iTimeline);
       const CircularArray<Profiler::FrameData>& recordedFrames = Profiler::GetRecordedFrames(timeline);
@@ -439,7 +440,7 @@ void ProfilerWindow::RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRende
         if (!frameData.myHasValidTimes)
           continue;
 
-        const float frameMinX = -myHorizontalOffset + (frameData.myStart.myTime - overallStartTime) * myTimeToPixelScale;
+        const float frameMinX = -myHorizontalOffset + (frameData.myStart.myTime - minStartTime) * myTimeToPixelScale;
         if (frameMinX > ImGui::GetWindowWidth())
           break;
 
