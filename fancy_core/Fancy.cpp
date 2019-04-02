@@ -66,8 +66,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void FancyRuntime::BeginFrame()
   {
-    RenderCore::BeginFrame();
     Profiler::BeginFrame();
+    RenderCore::BeginFrame();
+    Profiler::BeginFrameGPU();
     myRenderOutput->BeginFrame();
   }
 //---------------------------------------------------------------------------//
@@ -79,8 +80,9 @@ namespace Fancy {
   void FancyRuntime::EndFrame()
   {
     myRenderOutput->EndFrame();
-    Profiler::EndFrame();
+    Profiler::EndFrameGPU();
     RenderCore::EndFrame();
+    Profiler::EndFrame();
     ++Time::ourFrameIdx;
   }
 //---------------------------------------------------------------------------//

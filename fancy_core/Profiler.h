@@ -90,6 +90,9 @@ namespace Fancy
     static void BeginFrame();
     static void EndFrame();
 
+    static void BeginFrameGPU();
+    static void EndFrameGPU();
+
     static const CircularArray<FrameData>& GetRecordedFrames(Timeline aTimeline) { return ourRecordedFrames[aTimeline]; }
     static const CircularArray<SampleNode>& GetRecordedSamples(Timeline aTimeline) { return ourRecordedSamples[aTimeline]; }
     static const SampleNodeInfo& GetSampleInfo(uint64 anInfoId);

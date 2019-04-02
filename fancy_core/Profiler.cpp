@@ -15,6 +15,7 @@ namespace Fancy
   //namespace {
     bool locPaused = false;
     bool locAcceptsNewSamples = false;
+    bool locAcceptsNewSamplesGPU = false;
 
     float64 locStartTimeCPU = 0.0;
     float64 locStartTimeGPU = 0.0;
@@ -46,7 +47,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   Profiler::SampleNode& Profiler::OpenMarker(const char* aName, uint8 aTag, Timeline aTimeline)
   {
-    ASSERT(locAcceptsNewSamples, "Attempted to add a profile-sample outside of the profiler's frame scope");
+    ASSERT((aTimeline == TIMELINE_GPU && locAcceptsNewSamplesGPU) 
+      || (aTimeline != TIMELINE_GPU && locAcceptsNewSamples), 
+      "Attempted to add a profile-sample outside of the profiler's frame scope");
 
     uint& sampleDepth = locSampleDepth[aTimeline];
     auto& recordedSamples = ourRecordedSamples[aTimeline];
@@ -243,39 +246,26 @@ namespace Fancy
   {
     locAcceptsNewSamples = true;
 
-    if (Time::ourFrameIdx == 0)
-      locStartTimeCPU = SampleTimeMs();
-
-    UpdateGpuDurations();
-
     locPaused = ourPauseRequested;
     if (locPaused)
       return;
 
-    for (uint i = 0; i < TIMELINE_NUM; ++i)
+    FrameData& currFrame = locCurrFrame[TIMELINE_MAIN];
+    currFrame.myFirstSample.myIndex = UINT_MAX;
+    currFrame.myNumSamples = 0u;
+    currFrame.myDuration = 0u;
+    currFrame.myFrame = Time::ourFrameIdx;
+    currFrame.myEnd = { 0u };
+    currFrame.myHasValidTimes = true;
+    
+    if (Time::ourFrameIdx == 0)
     {
-      FrameData& currFrame = locCurrFrame[i];
-      currFrame.myFirstSample.myIndex = UINT_MAX;
-      currFrame.myNumSamples = 0u;
-      currFrame.myDuration = 0u;
-      currFrame.myFrame = Time::ourFrameIdx;
-      currFrame.myEnd = { 0u };
-      currFrame.myHasValidTimes = i != TIMELINE_GPU;
-
-      if (i == TIMELINE_GPU)
-      {
-        CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-        const GpuQuery timestamp = ctx->InsertTimestamp();
-        RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
-        RenderCore::FreeContext(ctx);
-
-        currFrame.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
-        currFrame.myStart.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
-      }
-      else
-      {
-        currFrame.myStart.myTime = SampleTimeMs() - locStartTimeCPU;
-      }
+      locStartTimeCPU = SampleTimeMs();
+      currFrame.myStart.myTime = 0.0;
+    }
+    else
+    {
+      currFrame.myStart.myTime = SampleTimeMs() - locStartTimeCPU;
     }
   }
 //---------------------------------------------------------------------------//
@@ -291,37 +281,79 @@ namespace Fancy
 
     if (hasAnySample)
     {
-      for (uint i = 0u; i < TIMELINE_NUM; ++i)
-      {
-        uint& sampleDepth = locSampleDepth[i];
-        auto& recordedFrames = ourRecordedFrames[i];
-        FrameData& currFrame = locCurrFrame[i];
-        ASSERT(sampleDepth == 0, "There are still open profiling markers at the end of the frame");
+      uint& sampleDepth = locSampleDepth[TIMELINE_MAIN];
+      auto& recordedFrames = ourRecordedFrames[TIMELINE_MAIN];
+      FrameData& currFrame = locCurrFrame[TIMELINE_MAIN];
+      ASSERT(sampleDepth == 0, "There are still open profiling markers at the end of the frame");
 
-        if (recordedFrames.IsFull())
-          FreeFirstFrame((Timeline)i);
+      if (recordedFrames.IsFull())
+        FreeFirstFrame(TIMELINE_MAIN);
 
-        if (i == TIMELINE_GPU)
-        {
-          CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-          const GpuQuery timestamp = ctx->InsertTimestamp();
-          RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
-          RenderCore::FreeContext(ctx);
+      currFrame.myEnd.myTime = SampleTimeMs() - locStartTimeCPU;
+      currFrame.myDuration = currFrame.myEnd.myTime - currFrame.myStart.myTime;
+      
+      recordedFrames.Add(currFrame);
+    }
+  }
+//---------------------------------------------------------------------------//
+  void Profiler::BeginFrameGPU()
+  {
+    locAcceptsNewSamplesGPU = true;
 
-          currFrame.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
-          currFrame.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
-        }
-        else
-        {
-          currFrame.myEnd.myTime = SampleTimeMs() - locStartTimeCPU;
-          currFrame.myDuration = currFrame.myEnd.myTime - currFrame.myStart.myTime;
-        }
-        
-        recordedFrames.Add(currFrame);
+    UpdateGpuDurations();
 
-        if (i == TIMELINE_GPU && locNextGpuFrameToUpdate.myIndex == UINT_MAX)
-            locNextGpuFrameToUpdate = recordedFrames.GetHandle(recordedFrames.Size() - 1);
-      }
+    if (locPaused)
+      return;
+
+    FrameData& currFrame = locCurrFrame[TIMELINE_GPU];
+    currFrame.myFirstSample.myIndex = UINT_MAX;
+    currFrame.myNumSamples = 0u;
+    currFrame.myDuration = 0u;
+    currFrame.myFrame = Time::ourFrameIdx;
+    currFrame.myEnd = { 0u };
+    currFrame.myHasValidTimes = false;
+
+    CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+    const GpuQuery timestamp = ctx->InsertTimestamp();
+    RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
+    RenderCore::FreeContext(ctx);
+
+    currFrame.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
+    currFrame.myStart.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
+  }
+//---------------------------------------------------------------------------//
+  void Profiler::EndFrameGPU()
+  {
+    locAcceptsNewSamplesGPU = false;
+    if (locPaused)
+      return;
+
+    bool hasAnySample = false;
+    for (uint i = 0u; !hasAnySample && i < TIMELINE_NUM; ++i)
+      hasAnySample |= locCurrFrame[i].myFirstSample != UINT_MAX;
+
+    if (hasAnySample)
+    {
+      uint& sampleDepth = locSampleDepth[TIMELINE_GPU];
+      auto& recordedFrames = ourRecordedFrames[TIMELINE_GPU];
+      FrameData& currFrame = locCurrFrame[TIMELINE_GPU];
+      ASSERT(sampleDepth == 0, "There are still open profiling markers at the end of the frame");
+
+      if (recordedFrames.IsFull())
+        FreeFirstFrame(TIMELINE_GPU);
+
+      CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+      const GpuQuery timestamp = ctx->InsertTimestamp();
+      RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx);
+      RenderCore::FreeContext(ctx);
+
+      currFrame.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
+      currFrame.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
+
+      recordedFrames.Add(currFrame);
+
+      if (locNextGpuFrameToUpdate.myIndex == UINT_MAX)
+        locNextGpuFrameToUpdate = recordedFrames.GetHandle(recordedFrames.Size() - 1);
     }
   }
 //---------------------------------------------------------------------------//
