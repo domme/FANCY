@@ -17,13 +17,8 @@ public:
   float myTimeToPixelScale = 1.0f;
 
 private:
-  struct TimelineInfo
-  {
-    float64 myMaxFrameDuration = 0.0;
-    float64 myOverallDuration = 0.0;
-  };
-
   void ScrollAndScale(float maxOffset, float overallGraphDuration, float aRectMinX, float aRectMinY, float aRectMaxX, float aRectMaxY);;
-  void RenderTimelines(uint& aFirstRenderedFrame, uint& aLastRenderedFrame, float& aMaxHorizontalOffset);
+  void RenderRuler(float64 aMinStartTime);
+  void RenderTimelines(float64 aMinStartTime, float64 aMaxEndTime, uint& aFirstRenderedFrame, uint& aLastRenderedFrame, float& aMaxHorizontalOffset);
   uint myFocusedTimeline = 0;
 };
