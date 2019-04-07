@@ -11,6 +11,8 @@ public:
   void Render();
   
   bool myIsPaused = false;
+  bool myIsShowingTimeline[2] = { true };
+  bool myIsShowingGpuFrames = true;
 
   float myHorizontalOffset = FLT_MAX;
   float myScale = 1.0f;

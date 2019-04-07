@@ -32,7 +32,7 @@ const float kFrameHeaderHeight = 10.0f;
 const float kFrameGraphHeightScale = 0.75f;
 const ImGuiID kFrameId_FrameGraph[Profiler::TIMELINE_NUM] = { 1, 2 };
 const uint kNumGraphFrames = 200;
-const float64 kBaseHorizontalScale = 1280.0 / (16.0 * 10.0);
+const float64 kBaseHorizontalScale = 1280.0 / (16.0 * 2.0);
 const float kRulerSubMarkerVerticalOffset = (kRulerMarkerVerticalSize - kSubRulerMarkerVerticalSize) * 0.5f;
 const ImU32 kRulerMarkerColor = ImGui::ColorConvertFloat4ToU32(ImVec4(.5f, .5f, .5f, .8f));
 const float kRulerMainMarkerThickness = 1.5f;
@@ -52,6 +52,7 @@ const char* TimeUnitToString(TimeUnit aUnit)
 {
   switch (aUnit)
   {
+  case Seconds: return "s";
   case Milliseconds: return "ms";
   case Microseconds: return "us";
   case Nanoseconds: return "ns";
@@ -152,7 +153,7 @@ void GetTimeRange(float64& aMinTimeOut, float64& aMaxTimeOut)
   aMaxTimeOut = maxEnd;
 }
 
-bool RenderSample(const Profiler::SampleNode& aNode, const ImVec2& aPos, const ImVec2& aSize)
+bool RenderSample(const Profiler::SampleNode& aNode, const ImVec2& aPosLocal, const ImVec2& aSize)
 {
   const Profiler::SampleNodeInfo& nodeInfo = Profiler::GetSampleInfo(aNode.myNodeInfo);
   const char* aLabel = FormatString("%s: %.3f", nodeInfo.myName, (float)aNode.myDuration);
@@ -161,7 +162,7 @@ bool RenderSample(const Profiler::SampleNode& aNode, const ImVec2& aPos, const I
   if (labelSize.x > aSize.x * 0.75f)
     aLabel = "";
 
-  ImGui::SetCursorPos(ToLocalPos(aPos));
+  ImGui::SetCursorPos(aPosLocal);
   ImGui::PushStyleColor(ImGuiCol_Button, GetColorForTag(nodeInfo.myTag));
   const bool pressed = ImGui::Button(aLabel, aSize);
   ImGui::PopStyleColor(1);
@@ -173,15 +174,14 @@ bool RenderSample(const Profiler::SampleNode& aNode, const ImVec2& aPos, const I
   return pressed;
 }
 
-void RenderNodeRecursive(const Profiler::SampleNode& aNode, float64 aTimeToPixelScale, float64 aFrameStartTime,
-                         const ImVec2& aFrameStartPos, int aDepth, Profiler::Timeline aTimeline)
+void RenderNodeRecursive(const Profiler::SampleNode& aNode, float64 aTimeToPixelScale, float64 aMinStartTime, float aPixelOffset, float aFramePosLocalY, int aDepth, Profiler::Timeline aTimeline)
 {
   if (!aNode.myHasValidTimes)
     return;
 
   ImVec2 pos, size;
-  pos.x = aFrameStartPos.x + static_cast<float>((aNode.myStart.myTime - aFrameStartTime) * aTimeToPixelScale);
-  pos.y = aFrameStartPos.y + kZoneElementHeight_WithPadding * aDepth;
+  pos.x = (aNode.myStart.myTime - aMinStartTime) * aTimeToPixelScale - aPixelOffset;
+  pos.y = aFramePosLocalY + kZoneElementHeight_WithPadding * aDepth;
   size.x = static_cast<float>(aNode.myDuration * aTimeToPixelScale);
   size.y = kZoneElementHeight;
 
@@ -192,13 +192,13 @@ void RenderNodeRecursive(const Profiler::SampleNode& aNode, float64 aTimeToPixel
   if (aNode.myChild != UINT_MAX)
   {
     const Profiler::SampleNode& firstChild = recordedSamples[aNode.myChild];
-    RenderNodeRecursive(firstChild, aTimeToPixelScale, aFrameStartTime, aFrameStartPos, aDepth + 1, aTimeline);
+    RenderNodeRecursive(firstChild, aTimeToPixelScale, aMinStartTime, aPixelOffset, aFramePosLocalY, aDepth + 1, aTimeline);
   }
 
   if (aNode.myNext != UINT_MAX)
   {
     const Profiler::SampleNode& nextNode = recordedSamples[aNode.myNext];
-    RenderNodeRecursive(nextNode, aTimeToPixelScale, aFrameStartTime, aFrameStartPos, aDepth, aTimeline);
+    RenderNodeRecursive(nextNode, aTimeToPixelScale, aMinStartTime, aPixelOffset, aFramePosLocalY, aDepth, aTimeline);
   }
 }
 
@@ -240,9 +240,17 @@ void RenderFrameHeader(float aWidth, float aWholeFrameHeight, const Profiler::Fr
     dl->AddLine(startPosGlobal, end, kFrameHeaderColor, kDefaultLineWidth);
   }
 
-  if (ImGui::IsMouseHoveringRect(startPosGlobal,
-                                 ImVec2(startPosGlobal.x + aWidth, startPosGlobal.y + aWholeFrameHeight)))
+  if (ImGui::IsMouseHoveringRect(startPosGlobal, ImVec2(startPosGlobal.x + aWidth, startPosGlobal.y + aWholeFrameHeight)))
+  {
+    text = FormatString("Frame %d - %.3fms\n"
+      "Start: %.3fms\n"
+      "End: %.3fms", 
+      aFrameData.myFrame, aFrameData.myDuration, 
+      (float)aFrameData.myStart.myTime, 
+      (float)aFrameData.myEnd.myTime);
+
     ImGui::SetTooltip(text);
+  }
 
   startPosLocal.y += textSize.y + 10.0f;
   ImGui::SetCursorPos(startPosLocal);
@@ -329,7 +337,7 @@ void ProfilerWindow::ScrollAndScale(float maxOffset, float overallTimelineDurati
     // Scaling
     if (glm::abs(ImGui::GetIO().MouseWheel) > 0.1f)
     {
-      const float scaleChange = ImGui::GetIO().MouseWheel * 0.01f;
+      const float scaleChange = ImGui::GetIO().MouseWheel * (ImGui::GetIO().KeyShift ? 0.5f : 0.025f);
 
       myScale = glm::clamp(myScale + scaleChange, 0.01f, 100.0f);
       myTimeToPixelScale = kBaseHorizontalScale * myScale;
@@ -352,49 +360,57 @@ void ProfilerWindow::RenderRuler(float64 aMinStartTime)
   ImGuiWindow* window = ImGui::GetCurrentWindow();
 
   TimeUnit mainMarkerUnit = TimeUnit::Seconds;
-  float mainMarkerDurationMs = 1000.0f; // Duration in milliseconds
-  while (mainMarkerDurationMs * myTimeToPixelScale > 200 && mainMarkerUnit < TimeUnit::Last)
+  float mainMarkerDurationMs = 10.0f * 1000.0f; // Duration in milliseconds
+  while (mainMarkerDurationMs * myTimeToPixelScale > 500 && mainMarkerUnit < TimeUnit::Last)
   {
     mainMarkerUnit = (TimeUnit)((uint)mainMarkerUnit + 1);
-    mainMarkerDurationMs /= 1000.0f;
+    mainMarkerDurationMs /= 100.0f;
   }
+
   const float64 timeOffset = myHorizontalOffset / myTimeToPixelScale;
   const float64 firstMarkerTime = glm::floor((aMinStartTime + timeOffset) / mainMarkerDurationMs) * mainMarkerDurationMs;
-  const float firstMarkerPosGlobal = -myHorizontalOffset + (firstMarkerTime - aMinStartTime) * myTimeToPixelScale;
   const float64 mainMarkerSize = mainMarkerDurationMs * myTimeToPixelScale;
   const float subMarkerSize = mainMarkerSize / 10.0f;
 
+  const float expectedLabelSize = 40.0f;
+  const uint labelFrequency = glm::max(1u, (uint) glm::ceil(expectedLabelSize / mainMarkerSize));
+
   ImVec2 startPosLocal = ImGui::GetCursorPos();
-  ImVec2 posGlobal = ToGlobalPos(startPosLocal);
-  posGlobal.x = firstMarkerPosGlobal;
-
-  int currMainMarkerTime = static_cast<int>(firstMarkerTime / mainMarkerDurationMs);
-  while(posGlobal.x < ImGui::GetWindowPos().x + ImGui::GetWindowWidth())
+  float64 currMainMarkerTime = firstMarkerTime;
+  float mainMarkerX = (currMainMarkerTime - aMinStartTime) * myTimeToPixelScale - myHorizontalOffset;
+  float lastLabelEndX = mainMarkerX;
+  while(mainMarkerX < ImGui::GetWindowWidth() + mainMarkerSize)
   {
-    if (posGlobal.x > ImGui::GetWindowPos().x)
+    if (mainMarkerX + mainMarkerSize > 0)
     {
-      ImVec2 lineStartGlobal = posGlobal;
-      ImVec2 lineEndGlobal (posGlobal.x, posGlobal.y + kRulerMarkerVerticalSize);
-
+      const ImVec2 lineStartGlobal(ImGui::GetWindowPos().x + mainMarkerX, ImGui::GetWindowPos().y + startPosLocal.y);
+      const ImVec2 lineEndGlobal(lineStartGlobal.x, lineStartGlobal.y + kRulerMarkerVerticalSize);
       window->DrawList->AddLine(lineStartGlobal, lineEndGlobal, kRulerMarkerColor, kRulerMainMarkerThickness);
 
-      const ImVec2 labelPos(lineEndGlobal.x, lineEndGlobal.y + 5);
-      window->DrawList->AddText(labelPos, kRulerMarkerColor,
-        FormatString("%d%s", currMainMarkerTime, TimeUnitToString(mainMarkerUnit)));
+      const char* label = FormatString("%d%s", (int)currMainMarkerTime, TimeUnitToString(mainMarkerUnit));
+      const float textWidth = ImGui::CalcTextSize(label).x;
+      const ImVec2 labelPos(lineEndGlobal.x - textWidth * 0.5f, lineEndGlobal.y + 5);
 
-      for (uint iSub = 0u; iSub < 9; ++iSub)
+      const uint mainMarkerIndex = static_cast<uint>(currMainMarkerTime / mainMarkerDurationMs);
+      if (mainMarkerIndex % labelFrequency == 0)
       {
-        lineStartGlobal.x += subMarkerSize;
-        lineEndGlobal.x += subMarkerSize;
-        lineStartGlobal.y = posGlobal.y + kRulerSubMarkerVerticalOffset;
-        lineEndGlobal.y = posGlobal.y + (kRulerMarkerVerticalSize - kRulerSubMarkerVerticalOffset);
+        window->DrawList->AddText(labelPos, kRulerMarkerColor, label);
+        lastLabelEndX = labelPos.x + textWidth;
+      }
 
-        window->DrawList->AddLine(lineStartGlobal, lineEndGlobal, kRulerMarkerColor, kRulerSubMarkerThickness);
+      if (subMarkerSize > 2)
+      {
+        for (uint iSub = 0u; iSub < 9; ++iSub)
+        {
+          const ImVec2 subLineStartGlobal(lineStartGlobal.x + (iSub + 1) * subMarkerSize, lineStartGlobal.y + kRulerSubMarkerVerticalOffset);
+          const ImVec2 subLineEndGlobal(subLineStartGlobal.x, subLineStartGlobal.y + kRulerSubMarkerVerticalOffset);
+          window->DrawList->AddLine(subLineStartGlobal, subLineEndGlobal, kRulerMarkerColor, kRulerSubMarkerThickness);
+        }
       }
     }
 
-    posGlobal.x += mainMarkerSize;
     currMainMarkerTime += mainMarkerDurationMs;
+    mainMarkerX += mainMarkerSize;
   }
 
   startPosLocal.x = 0;
@@ -423,7 +439,8 @@ void ProfilerWindow::RenderTimelines(float64 aMinStartTime, float64 aMaxEndTime,
   {
     ImGui::SetCursorPosX(0.0f);
     float timelineMinY = ImGui::GetCursorPosY();
-    if (ImGui::TreeNode(timelineNames[iTimeline]))
+    myIsShowingTimeline[iTimeline] = ImGui::TreeNode(timelineNames[iTimeline]);
+    if (myIsShowingTimeline[iTimeline])
     {
       timelineMinY = ImGui::GetCursorPosY();
       const ImVec2 timelineRectMinLocal = ImGui::GetCursorPos();
@@ -440,7 +457,7 @@ void ProfilerWindow::RenderTimelines(float64 aMinStartTime, float64 aMaxEndTime,
         if (!frameData.myHasValidTimes)
           continue;
 
-        const float frameMinX = -myHorizontalOffset + (frameData.myStart.myTime - aMinStartTime) * myTimeToPixelScale;
+        const float frameMinX = (frameData.myStart.myTime - aMinStartTime) * myTimeToPixelScale - myHorizontalOffset;
         if (frameMinX > ImGui::GetWindowWidth())
           break;
 
@@ -464,7 +481,7 @@ void ProfilerWindow::RenderTimelines(float64 aMinStartTime, float64 aMaxEndTime,
         {
           ASSERT(frameData.myFirstSample != UINT_MAX);
           const Profiler::SampleNode& node = recordedSamples[frameData.myFirstSample];
-          RenderNodeRecursive(node, myTimeToPixelScale, frameData.myStart.myTime, ToGlobalPos(ImGui::GetCursorPos()), 0, timeline);
+          RenderNodeRecursive(node, myTimeToPixelScale, aMinStartTime, myHorizontalOffset, ImGui::GetCursorPosY(), 0, timeline);
         }
 
         ImGui::SetCursorPos(ImVec2(frameMinX + frameSize, timelineMinY));
