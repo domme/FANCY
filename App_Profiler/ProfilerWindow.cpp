@@ -11,9 +11,13 @@
 using namespace Fancy;
 
 ProfilerWindow::ProfilerWindow()
+  : myIsPaused(false)
+  , myIsShowingTimeline{true, true}
+  , myFocusedTimeline(0)
+  , myHorizontalOffset(0.0f)
+  , myTimeToPixelScale(40.0f)
 {
 }
-
 
 ProfilerWindow::~ProfilerWindow()
 {
@@ -22,8 +26,8 @@ ProfilerWindow::~ProfilerWindow()
 char TextBuf[2048];
 const float kZoneElementHeight = 20.0f;
 const float kZoneElementHeight_WithPadding = 25.0f;
-const float kRulerMarkerVerticalSize = 40.0f;
-const float kSubRulerMarkerVerticalSize = 15.0f;
+const float kRulerMarkerVerticalSize = 10.0f;
+const float kSubRulerMarkerVerticalSize = 5.0f;
 const float kDefaultLineWidth = 1.0f;
 const uint kFrameBoundaryColor = 0xFFAAAAAA;
 const uint kFrameHeaderColor = 0xFFAAAAAA;
@@ -32,34 +36,36 @@ const float kFrameHeaderHeight = 10.0f;
 const float kFrameGraphHeightScale = 0.75f;
 const ImGuiID kFrameId_FrameGraph[Profiler::TIMELINE_NUM] = { 1, 2 };
 const uint kNumGraphFrames = 200;
-const float64 kBaseHorizontalScale = 1280.0 / (16.0 * 2.0);
 const float kRulerSubMarkerVerticalOffset = (kRulerMarkerVerticalSize - kSubRulerMarkerVerticalSize) * 0.5f;
 const ImU32 kRulerMarkerColor = ImGui::ColorConvertFloat4ToU32(ImVec4(.5f, .5f, .5f, .8f));
 const float kRulerMainMarkerThickness = 1.5f;
 const float kRulerSubMarkerThickness = 1.0f;
 
-enum TimeUnit
+const char* kTimeUnitLabels[] =
 {
-  Seconds,
-  Milliseconds,
-  Microseconds,
-  Nanoseconds,
-
-  Last = Nanoseconds
+  "s",
+  "ms",
+  "us",
+  "ns"
 };
 
-const char* TimeUnitToString(TimeUnit aUnit)
+const float64 kMsToTimeUnitFactors[] =
 {
-  switch (aUnit)
-  {
-  case Seconds: return "s";
-  case Milliseconds: return "ms";
-  case Microseconds: return "us";
-  case Nanoseconds: return "ns";
-  default: ASSERT(false);
-    return "";
-  }
-}
+  1.0 / 1000.0,
+  1.0,
+  1000.0,
+  1000.0 * 1000.0,
+};
+
+const float64 kTimeUnitToMsFactors[] =
+{
+  1000.0,
+  1.0,
+  1.0 / 1000.0,
+  1.0 / (1000.0 * 1000.0),
+};
+static_assert(ARRAYSIZE(kTimeUnitLabels) == ARRAYSIZE(kMsToTimeUnitFactors), "Mismatching array sizes");
+static_assert(ARRAYSIZE(kTimeUnitLabels) == ARRAYSIZE(kTimeUnitToMsFactors), "Mismatching array sizes");
 
 const char* FormatString(const char* aFmt, ...)
 {
@@ -106,20 +112,6 @@ ImVec4 GetColorForTag(uint8 aTag)
   {
   case 0: return ImVec4(0.7f, 0.0f, 0.0f, 0.5f);
   default: return ImVec4(0.5f, 0.5f, 0.5f, 0.5f);
-  }
-}
-
-void GetFrameInfoAllTimelines(uint aFrame, float64& aMinFrameStartTime, float64& aMaxFrameDuration)
-{
-  for (uint i = 0u; i < Profiler::TIMELINE_NUM; ++i)
-  {
-    const auto& frames = Profiler::GetRecordedFrames((Profiler::Timeline) i);
-    const Profiler::FrameData& frame = frames[aFrame];
-    if (frame.myHasValidTimes)
-    {
-      aMinFrameStartTime = glm::min(aMinFrameStartTime, frame.myStart.myTime);
-      aMaxFrameDuration = glm::max(aMaxFrameDuration, frame.myDuration);
-    }
   }
 }
 
@@ -315,33 +307,30 @@ void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64
   }
 }
 
-void ProfilerWindow::ScrollAndScale(float maxOffset, float overallTimelineDuration, float aRectMinX, float aRectMinY, float aRectMaxX, float aRectMaxY)
+void ProfilerWindow::ScrollAndScale(float64 aMinStartTime, float64 aMaxEndTime, float aRectMinX, float aRectMinY, float aRectMaxX, float aRectMaxY)
 {
   const ImVec2 frameGraphRect_min(aRectMinX, aRectMinY);
   const ImVec2 frameGraphRect_max(aRectMaxX, aRectMaxY);
-  const float overallTimelineWidth = static_cast<float>(overallTimelineDuration * myTimeToPixelScale);
 
-  if (!myIsPaused)
-  {
-    myHorizontalOffset = maxOffset;
-  }
-  else if (ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
+  const float64 overallTimelineDuration = glm::max(0.0, aMaxEndTime - aMinStartTime);
+  const float overallTimelineWidth = static_cast<float>(overallTimelineDuration * myTimeToPixelScale);
+  const float maxHorizontalOffset = glm::max(0.0f, overallTimelineWidth - ImGui::GetWindowWidth() - 1.0f);
+
+  if (ImGui::IsMouseHoveringRect(frameGraphRect_min, frameGraphRect_max))
   {
     // Scrolling
     if (ImGui::IsMouseDragging(0))
     {
       const float scrollChange = ImGui::GetIO().MouseDelta.x;
-      myHorizontalOffset = glm::clamp(myHorizontalOffset - scrollChange, 0.0f, maxOffset);
+      myHorizontalOffset = glm::clamp(myHorizontalOffset - scrollChange, 0.0f, maxHorizontalOffset);
     }
 
     // Scaling
     if (glm::abs(ImGui::GetIO().MouseWheel) > 0.1f)
     {
       const float scaleChange = ImGui::GetIO().MouseWheel * (ImGui::GetIO().KeyShift ? 0.5f : 0.025f);
-
-      myScale = glm::clamp(myScale + scaleChange, 0.01f, 100.0f);
-      myTimeToPixelScale = kBaseHorizontalScale * myScale;
-
+      myTimeToPixelScale = glm::clamp(myTimeToPixelScale + scaleChange, 0.01f, 100.0f);
+      
       // Adjust offset so the current mouse pos stays centered
       const float timelineSpace = -myHorizontalOffset;
       const float mousePos_TimelineSpace = glm::max(0.0f, ToLocalPos(ImGui::GetMousePos()).x - timelineSpace);
@@ -355,78 +344,113 @@ void ProfilerWindow::ScrollAndScale(float maxOffset, float overallTimelineDurati
   }
 }
 
+
+const char* GetTimeLabel(float64 aTimeMs)
+{
+  const float64 unitThreshold = 2.0 / 1000.0;
+  const char* bestTimeLabel = kTimeUnitLabels[0];
+  float64 bestTime = aTimeMs * kMsToTimeUnitFactors[0];
+
+  if (bestTime < unitThreshold)
+  {
+    for (uint i = 1; i < ARRAYSIZE(kTimeUnitLabels); ++i)
+    {
+      const float64 timeInUnit = aTimeMs * kMsToTimeUnitFactors[i];
+      if (timeInUnit < unitThreshold)
+      {
+        bestTime = timeInUnit;
+        bestTimeLabel = kTimeUnitLabels[i];
+      }
+    }
+  }
+
+  return FormatString("%.3f%s", bestTime, bestTimeLabel);
+}
+
 void ProfilerWindow::RenderRuler(float64 aMinStartTime)
 {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
+  const ImVec2 initialCursorPos = ImGui::GetCursorPos();
 
-  TimeUnit mainMarkerUnit = TimeUnit::Seconds;
-  float mainMarkerDurationMs = 10.0f * 1000.0f; // Duration in milliseconds
-  while (mainMarkerDurationMs * myTimeToPixelScale > 500 && mainMarkerUnit < TimeUnit::Last)
+  const char* mainMarkerTimeUnitLabel = kTimeUnitLabels[0];
+  float mainMarkerDurationMs = kTimeUnitToMsFactors[0];
+  int mainMarkerUnitIdx = 0;
+  while (mainMarkerDurationMs * myTimeToPixelScale > 500 && mainMarkerUnitIdx < ARRAYSIZE(kMsToTimeUnitFactors) - 1)
   {
-    mainMarkerUnit = (TimeUnit)((uint)mainMarkerUnit + 1);
-    mainMarkerDurationMs /= 100.0f;
+    mainMarkerDurationMs /= 10.0f;
+    if (mainMarkerDurationMs <= kTimeUnitToMsFactors[mainMarkerUnitIdx])
+    {
+      ++mainMarkerUnitIdx;
+      mainMarkerDurationMs = kTimeUnitToMsFactors[mainMarkerUnitIdx];
+      mainMarkerTimeUnitLabel = kTimeUnitLabels[mainMarkerUnitIdx];
+    }
   }
 
-  const float64 timeOffset = myHorizontalOffset / myTimeToPixelScale;
-  const float64 firstMarkerTime = glm::floor((aMinStartTime + timeOffset) / mainMarkerDurationMs) * mainMarkerDurationMs;
+  const float64 timeOffset = glm::max(0.0f, myHorizontalOffset / myTimeToPixelScale);
+  const int mainMarkerIndex = static_cast<int>(glm::floor((aMinStartTime + timeOffset) / mainMarkerDurationMs));
+  const float64 firstMarkerTime = static_cast<float>(mainMarkerIndex) * mainMarkerDurationMs;
   const float64 mainMarkerSize = mainMarkerDurationMs * myTimeToPixelScale;
   const float subMarkerSize = mainMarkerSize / 10.0f;
 
+  const float kLabelVerticalOffset = 5.0f;
+
+  // First time label above the ruler to show the passed time
+  ImVec2 posGlobal = ToGlobalPos(ImGui::GetCursorPos());
+  const char* firstTimeLabel = GetTimeLabel(firstMarkerTime);
+  const ImVec2 firstTimeLabelPos(posGlobal.x, posGlobal.y);
+  window->DrawList->AddText(firstTimeLabelPos, kRulerMarkerColor, firstTimeLabel);
+  posGlobal.y += kLabelVerticalOffset * 4.0f;
+
   const float expectedLabelSize = 40.0f;
-  const uint labelFrequency = glm::max(1u, (uint) glm::ceil(expectedLabelSize / mainMarkerSize));
-
-  ImVec2 startPosLocal = ImGui::GetCursorPos();
+  const int labelFrequency = glm::max(1, (int)glm::ceil(expectedLabelSize / mainMarkerSize));
+  
   float64 currMainMarkerTime = firstMarkerTime;
-  float mainMarkerX = (currMainMarkerTime - aMinStartTime) * myTimeToPixelScale - myHorizontalOffset;
-  float lastLabelEndX = mainMarkerX;
-  while(mainMarkerX < ImGui::GetWindowWidth() + mainMarkerSize)
+  posGlobal.x = ImGui::GetWindowPos().x + (currMainMarkerTime - aMinStartTime) * myTimeToPixelScale - myHorizontalOffset;
+  const float windowEndGlobalX = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() + mainMarkerSize;
+  int labelIndex = -(mainMarkerIndex % labelFrequency);
+  while(posGlobal.x < windowEndGlobalX)
   {
-    if (mainMarkerX + mainMarkerSize > 0)
+    const ImVec2 markerLineStartG = posGlobal;
+    const ImVec2 markerLineEndG(markerLineStartG.x, markerLineStartG.y + kRulerMarkerVerticalSize);
+
+    // Small submarkers
+    if (subMarkerSize > 2)
     {
-      const ImVec2 lineStartGlobal(ImGui::GetWindowPos().x + mainMarkerX, ImGui::GetWindowPos().y + startPosLocal.y);
-      const ImVec2 lineEndGlobal(lineStartGlobal.x, lineStartGlobal.y + kRulerMarkerVerticalSize);
-      window->DrawList->AddLine(lineStartGlobal, lineEndGlobal, kRulerMarkerColor, kRulerMainMarkerThickness);
-
-      const char* label = FormatString("%d%s", (int)currMainMarkerTime, TimeUnitToString(mainMarkerUnit));
-      const float textWidth = ImGui::CalcTextSize(label).x;
-      const ImVec2 labelPos(lineEndGlobal.x - textWidth * 0.5f, lineEndGlobal.y + 5);
-
-      const uint mainMarkerIndex = static_cast<uint>(currMainMarkerTime / mainMarkerDurationMs);
-      if (mainMarkerIndex % labelFrequency == 0)
+      for (uint iSub = 0u; iSub < 9; ++iSub)
       {
-        window->DrawList->AddText(labelPos, kRulerMarkerColor, label);
-        lastLabelEndX = labelPos.x + textWidth;
-      }
-
-      if (subMarkerSize > 2)
-      {
-        for (uint iSub = 0u; iSub < 9; ++iSub)
-        {
-          const ImVec2 subLineStartGlobal(lineStartGlobal.x + (iSub + 1) * subMarkerSize, lineStartGlobal.y + kRulerSubMarkerVerticalOffset);
-          const ImVec2 subLineEndGlobal(subLineStartGlobal.x, subLineStartGlobal.y + kRulerSubMarkerVerticalOffset);
-          window->DrawList->AddLine(subLineStartGlobal, subLineEndGlobal, kRulerMarkerColor, kRulerSubMarkerThickness);
-        }
+        const ImVec2 subLineStartGlobal(markerLineStartG.x + (iSub + 1) * subMarkerSize, markerLineStartG.y + kRulerSubMarkerVerticalOffset);
+        const ImVec2 subLineEndGlobal(subLineStartGlobal.x, markerLineEndG.y - 1.0f);
+        window->DrawList->AddLine(subLineStartGlobal, subLineEndGlobal, kRulerMarkerColor, kRulerSubMarkerThickness);
       }
     }
 
+    // Big main markers and label
+    if (posGlobal.x > ImGui::GetWindowPos().x)
+    {
+        window->DrawList->AddLine(markerLineStartG, markerLineEndG, kRulerMarkerColor, kRulerMainMarkerThickness);
+
+        if (labelIndex == 0)
+        {
+          labelIndex -= labelFrequency;
+          const char* label = FormatString("%d%s", (int)(currMainMarkerTime - firstMarkerTime), mainMarkerTimeUnitLabel);
+          const float textWidth = ImGui::CalcTextSize(label).x;
+          const ImVec2 labelPos(markerLineEndG.x - textWidth * 0.5f, markerLineEndG.y + kLabelVerticalOffset);
+          window->DrawList->AddText(labelPos, kRulerMarkerColor, label);
+        }
+
+        ++labelIndex;
+    }
+    
     currMainMarkerTime += mainMarkerDurationMs;
-    mainMarkerX += mainMarkerSize;
+    posGlobal.x += mainMarkerSize;
   }
 
-  startPosLocal.x = 0;
-  startPosLocal.y += kRulerMarkerVerticalSize + 20.0f;
-  ImGui::SetCursorPos(startPosLocal);
+  ImGui::SetCursorPos(ImVec2(initialCursorPos.x, (posGlobal.y - ImGui::GetWindowPos().y) + kRulerMarkerVerticalSize + 20.0f));
 }
 
-void ProfilerWindow::RenderTimelines(float64 aMinStartTime, float64 aMaxEndTime, uint& aFirstRenderedFrame, uint& aLastRenderedFrame, float& aMaxHorizontalOffset)
+void ProfilerWindow::RenderTimelines(float64 aMinStartTime, float64 aMaxEndTime, uint& aFirstRenderedFrame, uint& aLastRenderedFrame)
 {
   const ImVec2 timelineRectSize(ImGui::GetWindowWidth(), (ImGui::GetWindowHeight() * kFrameGraphHeightScale) / Profiler::TIMELINE_NUM);
-  
-  const float64 maxTimelineDuration = glm::max(0.0, aMaxEndTime - aMinStartTime);
-  const float maxTimelineSize = static_cast<float>(maxTimelineDuration * myTimeToPixelScale);
-  const float maxOffset = glm::max(0.0f, maxTimelineSize - ImGui::GetWindowWidth() - 1.0f);
-  aMaxHorizontalOffset = maxOffset;
-
   const char* timelineNames[Profiler::TIMELINE_NUM] =
   {
     "Main",
@@ -445,7 +469,7 @@ void ProfilerWindow::RenderTimelines(float64 aMinStartTime, float64 aMaxEndTime,
       timelineMinY = ImGui::GetCursorPosY();
       const ImVec2 timelineRectMinLocal = ImGui::GetCursorPos();
       const ImVec2 timelineRectMinGlobal = ToGlobalPos(timelineRectMinLocal);
-      ScrollAndScale(maxOffset, maxTimelineSize, timelineRectMinGlobal.x, timelineRectMinGlobal.y, timelineRectMinGlobal.x + timelineRectSize.x, timelineRectMinGlobal.y + timelineRectSize.y);
+      ScrollAndScale(aMinStartTime, aMaxEndTime, timelineRectMinGlobal.x, timelineRectMinGlobal.y, timelineRectMinGlobal.x + timelineRectSize.x, timelineRectMinGlobal.y + timelineRectSize.y);
       
       const Profiler::Timeline timeline = static_cast<Profiler::Timeline>(iTimeline);
       const CircularArray<Profiler::FrameData>& recordedFrames = Profiler::GetRecordedFrames(timeline);
@@ -503,8 +527,6 @@ void ProfilerWindow::Render()
   if (ImGui::Checkbox("Pause", &myIsPaused))
     Profiler::ourPauseRequested = myIsPaused;
 
-  myTimeToPixelScale = kBaseHorizontalScale * myScale;
-
   ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
   ImGui::PushStyleColor(ImGuiCol_WindowBg, ToVec4Color(kWindowBgColor));
   ImGui::Begin("Profiler");
@@ -513,12 +535,16 @@ void ProfilerWindow::Render()
   {
     float64 minStartTime, maxEndTime;
     GetTimeRange(minStartTime, maxEndTime);
+    const float maxOffset = static_cast<float>(glm::max(0.0, (maxEndTime - minStartTime) * myTimeToPixelScale - ImGui::GetWindowWidth() - 1.0f));
+
+    if (!myIsPaused)
+      myHorizontalOffset = maxOffset;
 
     RenderRuler(minStartTime);
 
     uint firstRenderedFrame, lastRenderedFrame = 0u;
-    float maxOffset = 0.0f;
-    RenderTimelines(minStartTime, maxEndTime, firstRenderedFrame, lastRenderedFrame, maxOffset);
+    
+    RenderTimelines(minStartTime, maxEndTime, firstRenderedFrame, lastRenderedFrame);
 
     ImGui::SliderFloat("Frames", &myHorizontalOffset, 0.0f, maxOffset, "%.1f");
     ImGui::Separator();
