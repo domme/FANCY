@@ -19,6 +19,9 @@
     <Filter Include="Geometry">
       <UniqueIdentifier>{01d22804-1db2-4c70-8c91-60afbf5b3cdb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Profiler">
+      <UniqueIdentifier>{20c7389f-6884-43af-9d55-b3d15924bdb3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdapterDX12.h">
@@ -296,9 +299,6 @@
     <ClInclude Include="CircularArray.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Profiler.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="GpuQueryHeap.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -307,6 +307,12 @@
     </ClInclude>
     <ClInclude Include="GpuQuery.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Profiler.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="ProfilerTags.h">
+      <Filter>Profiler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -452,14 +458,14 @@
     <ClCompile Include="TextureData.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Profiler.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="GpuQueryHeap.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="GpuQueryHeapDX12.cpp">
       <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="Profiler.cpp">
+      <Filter>Profiler</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

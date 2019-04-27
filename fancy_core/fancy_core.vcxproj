@@ -93,6 +93,7 @@
     <ClInclude Include="GpuRingBuffer.h" />
     <ClInclude Include="MathIncludes.h" />
     <ClInclude Include="Profiler.h" />
+    <ClInclude Include="ProfilerTags.h" />
     <ClInclude Include="Ptr.h" />
     <ClInclude Include="RenderEnums.h" />
     <ClInclude Include="TempResourcePool.h" />

@@ -344,7 +344,6 @@ void ProfilerWindow::ScrollAndScale(float64 aMinStartTime, float64 aMaxEndTime, 
   }
 }
 
-
 const char* GetTimeLabel(float64 aTimeMs)
 {
   const float64 unitThreshold = 2.0 / 1000.0;
