@@ -19,6 +19,7 @@
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="ProfilerWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui_impl_fancy.h" />
@@ -40,5 +41,6 @@
     <ClInclude Include="imgui_internal.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="ProfilerWindow.h" />
   </ItemGroup>
 </Project>

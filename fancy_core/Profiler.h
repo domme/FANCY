@@ -110,6 +110,8 @@ namespace Fancy
   };
 
 #define PROFILE_FUNCTION(...) Profiler::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)
+#define PROFILE_FUNCTION_TAG(aTag, ...) Profiler::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, aTag)
+#define GPU_BEGIN_PROFILE_FUNCTION_TAG(aContext, aTag, ...) Profiler::PushGpuMarker(aContext, __FUNCTION__, aTag)
 #define GPU_BEGIN_PROFILE_FUNCTION(aContext, ...) Profiler::PushGpuMarker(aContext, __FUNCTION__, 0u)
 #define GPU_BEGIN_PROFILE(aContext, aName, aTag) Profiler::PushGpuMarker(aContext, aName, aTag)
 #define GPU_END_PROFILE(aContext) Profiler::PopGpuMarker(aContext)

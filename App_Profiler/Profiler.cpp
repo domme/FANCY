@@ -11,11 +11,14 @@
 #include <fancy_core/Profiler.h>
 #include <fancy_core/MathUtil.h>
 #include <fancy_core/Input.h>
+#include <fancy_core/Annotations.h>
+#include <fancy_imgui/ProfilerWindow.h>
 
-#include "ProfilerWindow.h"
 #include <array>
 
 using namespace Fancy;
+
+ANNOTATION_CREATE_TAG(ANNTAG_PROFILER_APP, "ProfilerApp", 0xFF00FF0000);
 
 ProfilerWindow profilerWindow;
 
@@ -30,7 +33,7 @@ ImGuiContext* myImGuiContext = nullptr;
 
 void DummyFunc3()
 {
-  PROFILE_FUNCTION();
+  PROFILE_FUNCTION_TAG(ANNTAG_PROFILER_APP);
 
   uint64 hash = 0u;
   int i = 0;

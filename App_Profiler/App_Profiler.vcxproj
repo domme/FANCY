@@ -58,10 +58,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Profiler.cpp" />
-    <ClCompile Include="ProfilerWindow.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ProfilerWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
