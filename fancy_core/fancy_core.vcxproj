@@ -65,6 +65,7 @@
     <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h" />
     <ClInclude Include="AdapterDX12.h" />
     <ClInclude Include="AlignedStorage.h" />
+    <ClInclude Include="Annotations.h" />
     <ClInclude Include="Any.h" />
     <ClInclude Include="BinaryCache.h" />
     <ClInclude Include="BlendState.h" />
@@ -93,7 +94,6 @@
     <ClInclude Include="GpuRingBuffer.h" />
     <ClInclude Include="MathIncludes.h" />
     <ClInclude Include="Profiler.h" />
-    <ClInclude Include="ProfilerTags.h" />
     <ClInclude Include="Ptr.h" />
     <ClInclude Include="RenderEnums.h" />
     <ClInclude Include="TempResourcePool.h" />
@@ -163,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp" />
+    <ClCompile Include="Annotations.cpp" />
     <ClCompile Include="BinaryCache.cpp" />
     <ClCompile Include="BlendState.cpp" />
     <ClCompile Include="CommandContext.cpp" />

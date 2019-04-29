@@ -7,6 +7,7 @@
 #include <fancy_core/MathIncludes.h>
 #include "fancy_imgui/imgui_internal.h"
 #include <fancy_core/TimeManager.h>
+#include <fancy_core/Annotations.h>
 
 using namespace Fancy;
 
@@ -104,15 +105,6 @@ ImVec4 ToVec4Color(uint aColor)
   col.z = ((aColor & 0xFF0000) >> 16) / 255.0f;
   col.w = ((aColor & 0xFF000000) >> 24) / 255.0f;
   return col;
-}
-
-ImVec4 GetColorForTag(uint8 aTag)
-{
-  switch (aTag)
-  {
-  case 0: return ImVec4(0.7f, 0.0f, 0.0f, 0.5f);
-  default: return ImVec4(0.5f, 0.5f, 0.5f, 0.5f);
-  }
 }
 
 void GetTimeRange(float64& aMinTimeOut, float64& aMaxTimeOut)

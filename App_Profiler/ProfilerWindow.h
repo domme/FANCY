@@ -1,6 +1,5 @@
 #pragma once
 #include <fancy_core/FancyCoreDefines.h>
-#include <cfloat>
 
 class ProfilerWindow
 {

@@ -311,7 +311,7 @@
     <ClInclude Include="Profiler.h">
       <Filter>Profiler</Filter>
     </ClInclude>
-    <ClInclude Include="ProfilerTags.h">
+    <ClInclude Include="Annotations.h">
       <Filter>Profiler</Filter>
     </ClInclude>
   </ItemGroup>
@@ -465,6 +465,9 @@
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="Profiler.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="Annotations.cpp">
       <Filter>Profiler</Filter>
     </ClCompile>
   </ItemGroup>
