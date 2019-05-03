@@ -9,8 +9,8 @@
 #include <fancy_core/TimeManager.h>
 #include <fancy_core/Annotations.h>
 
-namespace Fancy
-{
+using namespace Fancy;
+
 //---------------------------------------------------------------------------//
   char TextBuf[2048];
   const float kZoneElementHeight = 20.0f;
@@ -549,4 +549,3 @@ namespace Fancy
     ImGui::PopStyleColor();
   }
 //---------------------------------------------------------------------------//
-}
