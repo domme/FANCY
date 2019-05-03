@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
+#include <windef.h>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

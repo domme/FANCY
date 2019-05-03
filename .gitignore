@@ -32,3 +32,6 @@ FANCY.VC.db
 *.db-wal
 */imgui.ini
 *.stackdump
+app_framework/x64/
+fancy_assets/x64/
+fancy_imgui/x64/

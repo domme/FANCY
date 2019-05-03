@@ -26,7 +26,8 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\property_sheets\output_dirs.props" />
+    <Import Project="..\property_sheets\output_exe.props" />
+    <Import Project="..\property_sheets\frameworks_inc_lib.props" />
     <Import Project="..\property_sheets\inc_lib_dependencies.props" />
     <Import Project="..\property_sheets\inc_lib_fancy_core_static.props" />
     <Import Project="..\property_sheets\inc_lib_fancy_imgui_static.props" />
