@@ -9,21 +9,14 @@
 #include <fancy_core/Window.h>
 #include <fancy_core/CommandQueue.h>
 #include <fancy_core/Profiler.h>
-#include <fancy_core/MathUtil.h>
 #include <fancy_core/Input.h>
-#include <fancy_core/Annotations.h>
-#include <fancy_imgui/ProfilerWindow.h>
 
 #include <array>
+#include "Test.h"
+#include "Test_Profiler.h"
+#include "Test_ImGui.h"
 
 using namespace Fancy;
-
-ANNOTATION_CREATE_TAG(ANNTAG_PROFILER_APP, "ProfilerApp", 0xFF00FF0000);
-
-ProfilerWindow profilerWindow;
-
-bool show_test_window = false;
-bool show_profiler_window = true;
 
 FancyRuntime* myRuntime = nullptr;
 Window* myWindow = nullptr;
@@ -31,91 +24,10 @@ RenderOutput* myRenderOutput = nullptr;
 InputState myInputState;
 ImGuiContext* myImGuiContext = nullptr;
 
-void DummyFunc3()
-{
-  PROFILE_FUNCTION_TAG(ANNTAG_PROFILER_APP);
+bool test_profiler = false;
+bool test_imgui = false;
 
-  uint64 hash = 0u;
-  int i = 0;
-  while (i < 999)
-    MathUtil::hash_combine(hash, i++);
-}
-
-void LongDummyFunc2()
-{
-  PROFILE_FUNCTION();
-
-  uint64 hash = 0u;
-  int i = 0;
-  while (i < 99999)
-    MathUtil::hash_combine(hash, i++);
-
-  DummyFunc3();
-}
-
-void LongDummyFunc()
-{
-  PROFILE_FUNCTION();
-
-  int i = 0;
-  while (i < 99999)
-    ++i;
-
-  LongDummyFunc2();
-}
-
-void Func0()
-{
-  PROFILE_FUNCTION();
-
-  uint64 hash = 0u;
-  int i = 0;
-  while (i < 999)
-    MathUtil::hash_combine(hash, i++);
-}
-
-void Func1_0()
-{
-  PROFILE_FUNCTION();
-
-  uint64 hash = 0u;
-  int i = 0;
-  while (i < 999)
-    MathUtil::hash_combine(hash, i++);
-}
-
-void Func1_1()
-{
-  PROFILE_FUNCTION();
-
-  uint64 hash = 0u;
-  int i = 0;
-  while (i < 999)
-    MathUtil::hash_combine(hash, i++);
-}
-
-void Func1()
-{
-  PROFILE_FUNCTION();
-
-  uint64 hash = 0u;
-  int i = 0;
-  while (i < 999)
-    MathUtil::hash_combine(hash, i++);
-
-  Func1_0();
-  Func1_1();
-}
-
-void Func2()
-{
-  PROFILE_FUNCTION();
-
-  uint64 hash = 0u;
-  int i = 0;
-  while (i < 999)
-    MathUtil::hash_combine(hash, i++);
-}
+DynamicArray<UniquePtr<Test>> myTests;
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
@@ -130,8 +42,7 @@ void Init(HINSTANCE anInstanceHandle)
   Fancy::WindowParameters windowParams;
   windowParams.myWidth = 1920;
   windowParams.myHeight = 1080;
-  windowParams.myTitle = "Profiler window example";
-
+  windowParams.myTitle = "Fancy Engine Tests";
   myRuntime = FancyRuntime::Init(anInstanceHandle, params, windowParams);
 
   myRenderOutput = myRuntime->GetRenderOutput();
@@ -151,23 +62,34 @@ void Update()
   ImGuiRendering::NewFrame();
   myRuntime->Update(0.016f);
 
-  Func0();
-  Func1();
-  Func2();
-
-  // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-  if (myInputState.myKeyState['z'] && !myInputState.myLastKeyState['z'])
-    show_profiler_window = !show_profiler_window;
-
-  if (show_profiler_window)
-    profilerWindow.Render();
-
-  if (ImGui::Button("Test Window")) show_test_window ^= 1;
-
-  if (show_test_window)
+  if (ImGui::Checkbox("Test Profiler", &test_profiler))
   {
-    ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);     // Normally user code doesn't need/want to call it because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-    ImGui::ShowDemoWindow(&show_test_window);
+    if (!test_profiler)
+      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Profiler*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(std::make_unique<Test_Profiler>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+  if (ImGui::Checkbox("Test ImGui", &test_imgui))
+  {
+    if (!test_imgui)
+      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ImGui*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(std::make_unique<Test_ImGui>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+
+  ImGui::Separator();
+
+  for (UniquePtr<Test>& testItem : myTests)
+  {
+    if (ImGui::TreeNode(testItem->GetName()))
+    {
+      testItem->OnUpdate(true);
+      ImGui::TreePop();
+    }
+    else
+    {
+      testItem->OnUpdate(false);
+    }
   }
 }
 
@@ -175,14 +97,15 @@ void Render()
 {
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
   CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
-
   GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   GPU_END_PROFILE(ctx);
-
   queue->ExecuteContext(ctx);
   RenderCore::FreeContext(ctx);
+
+  for (UniquePtr<Test>& testItem : myTests)
+    testItem->OnRender();
 
   ImGui::Render();
   myRuntime->EndFrame();
@@ -190,6 +113,8 @@ void Render()
 
 void Shutdown()
 {
+  myTests.clear();
+
   ImGuiRendering::Shutdown();
   ImGui::DestroyContext(myImGuiContext);
   myImGuiContext = nullptr;

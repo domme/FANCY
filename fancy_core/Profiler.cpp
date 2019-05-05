@@ -181,6 +181,11 @@ namespace Fancy
             ReadQueryTime(queryData, sample.myEnd);
             sample.myDuration = sample.myEnd.myTime - sample.myStart.myTime;
             sample.myHasValidTimes = true;
+
+#if LOG_ALL_SAMPLES
+            const SampleNodeInfo& info = GetSampleInfo(sample.myNodeInfo);
+            LOG_INFO("Frame % Duration %", frame.myFrame, sample.myDuration);
+#endif  // LOG_ALL_SAMPLES
           }
         }
 

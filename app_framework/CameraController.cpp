@@ -1,6 +1,7 @@
 #include "CameraController.h"
 #include "fancy_core/Input.h"
 #include "Camera.h"
+#include <fancy_core/MathIncludes.h>
 
 using namespace Fancy;
 
@@ -83,9 +84,9 @@ void CameraController::UpdateTrackballCamera(float aDeltaTime, const Fancy::Inpu
     
     glm::float3 centerToCamDir = glm::normalize(myCamera->myPosition - myFocusPoint);
     if (centerToCamDir.y < -0.9)
-      pitch = glm::max(pitch, 0.0f);
+      pitch = glm::max<float>(pitch, 0.0f);
     else if (centerToCamDir.y > 0.9)
-      pitch = glm::min(pitch, 0.0f);
+      pitch = glm::min<float>(pitch, 0.0f);
 
     glm::quat pitchQuat(glm::float3(pitch, 0.0f, 0.0f));
     glm::quat yawQuat(glm::float3(0.0f, yaw, 0.0f));

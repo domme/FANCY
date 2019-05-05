@@ -58,7 +58,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Tests.cpp" />
+    <ClCompile Include="Test_ImGui.cpp" />
+    <ClCompile Include="Test_Profiler.cpp" />
+    <ClCompile Include="Tests_main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Test.h" />
+    <ClInclude Include="Test_ImGui.h" />
+    <ClInclude Include="Test_Profiler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

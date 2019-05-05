@@ -4,6 +4,7 @@
 #include "RenderEnums.h"
 #include "Ptr.h"
 #include "DynamicArray.h"
+#include "FC_String.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

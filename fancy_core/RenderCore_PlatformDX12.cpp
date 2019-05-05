@@ -70,6 +70,8 @@ namespace Fancy {
 
     CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
 
+    CheckD3Dcall(ourDevice->SetStablePowerState(true));
+
     ComPtr<ID3D12InfoQueue> infoQueue;
     if (SUCCEEDED(ourDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
     {
