@@ -314,6 +314,7 @@
     <ClInclude Include="Annotations.h">
       <Filter>Profiler</Filter>
     </ClInclude>
+    <ClInclude Include="GrowingList.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">

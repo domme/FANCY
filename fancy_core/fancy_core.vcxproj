@@ -90,6 +90,7 @@
     <ClInclude Include="GpuResourceView.h" />
     <ClInclude Include="GpuResourceViewDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />
+    <ClInclude Include="GrowingList.h" />
     <ClInclude Include="MathIncludes.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="Ptr.h" />
