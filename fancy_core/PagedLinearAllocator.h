@@ -90,7 +90,7 @@ namespace Fancy
           it->mySize -= alignedSize;
           it->myVirtualOffset += alignedSize;
         }
-        else
+        else if(it->mySize == alignedSize)
         {
           myFreeList.Remove(it);
         }
@@ -110,42 +110,53 @@ namespace Fancy
   template <class T>
   void PagedLinearAllocator<T>::Free(const Block& aBlock)
   {
-    const uint64 virtualOffset = aBlock.myVirtualOffset;
-    const uint64 size = aBlock.mySize;
+    const uint64 freeBlockStart = aBlock.myVirtualOffset;
+    const uint64 freeBlockSize = aBlock.mySize;
+    const uint64 freeBlockEnd = freeBlockStart + freeBlockSize;
 
-    auto blockIt = std::find_if(myPages.begin(), myPages.end(), [virtualOffset, size](const Page& aPage)
+    auto pageIt = std::find_if(myPages.begin(), myPages.end(), [freeBlockStart, freeBlockEnd](const Page& aPage)
     {
-      return aPage.myVirtualOffset <= virtualOffset && aPage.myVirtualOffset + aPage.mySize >= virtualOffset + size;
+      return aPage.myVirtualOffset <= freeBlockStart && aPage.myVirtualOffset + aPage.mySize >= freeBlockEnd;
     });
+    ASSERT(pageIt != myPages.end(), "No page found for block (start: %, end: %)", freeBlockStart, freeBlockEnd);
+    const uint64 pageStart = pageIt->myVirtualOffset;
+    const uint64 pageEnd = pageIt->myVirtualOffset + pageIt->mySize;
 
-    ASSERT(blockIt != myPages.end());
-
+    // Step 0: Try to merge freed block with an existing chunk
     bool inserted = false;
-    for (auto freeChunk = myFreeList.Begin(); !inserted && freeChunk != myFreeList.End(); ++freeChunk)
+    for (auto currChunk = myFreeList.Begin(); !inserted && currChunk != myFreeList.End(); ++currChunk)
     {
-      // BUG: This allows free chunks to grow accross page-borders, which is problematic for cases where each page is associated with an other resource (e.g. a heap)
-      // A..AX..X B..B --> A....A B..B
-      if (freeChunk->myVirtualOffset + freeChunk->mySize == virtualOffset)
+      if (currChunk->myVirtualOffset < pageStart || (currChunk->myVirtualOffset + currChunk->mySize) > pageEnd)  // This chunk is outside of the page the freed block belongs to. Can't merge with that block
+        continue;
+      
+      if ((currChunk->myVirtualOffset + currChunk->mySize) == freeBlockStart) // New block behind existing block: [A][X] -> [ A ]
       {
-        freeChunk->mySize += size;
+        currChunk->mySize += freeBlockSize;
 
-        auto nextChunk = freeChunk;
+        // Does the new, bigger chunk touch with the following chunk? Then merge those if they belong to the same page
+        // [ A ][B] -> [  A  ]
+        auto nextChunk = currChunk;
         ++nextChunk;
 
-        // A....AB..B --> A......A
-        if (nextChunk != myFreeList.End() && nextChunk->myVirtualOffset == freeChunk->myVirtualOffset + freeChunk->mySize)
+        if (nextChunk != myFreeList.End())
         {
-          freeChunk->mySize += nextChunk->mySize;
-          myFreeList.Remove(nextChunk);
+          if ((nextChunk->myVirtualOffset + nextChunk->mySize) <= pageEnd // Next chunk in page?
+           && (currChunk->myVirtualOffset + currChunk->mySize) == nextChunk->myVirtualOffset)  // Next chunk directly follows curr chunk?
+          {
+            currChunk->mySize += nextChunk->mySize;
+            myFreeList.Remove(nextChunk);
+          }
         }
 
         inserted = true;
       }
+
+      // CONTINUE HERE!!
         // A..A X..XB..B --> A..A B....B 
-      else if (freeChunk->myVirtualOffset == virtualOffset + size)
+      else if (currChunk->myVirtualOffset == freeBlockStart + freeBlockSize)
       {
-        freeChunk->myVirtualOffset = virtualOffset;
-        freeChunk->mySize += size;
+        currChunk->myVirtualOffset = freeBlockStart;
+        currChunk->mySize += freeBlockSize;
         inserted = true;
       }
     }
@@ -162,7 +173,7 @@ namespace Fancy
         if (nextIt == myFreeList.End())
           break;
 
-        if (virtualOffset > it->myVirtualOffset + it->mySize && virtualOffset + size < nextIt->myVirtualOffset)
+        if (freeBlockStart > it->myVirtualOffset + it->mySize && freeBlockStart + freeBlockSize < nextIt->myVirtualOffset)
         {
           myFreeList.AddBefore(it, aBlock);
           inserted = true;
@@ -172,7 +183,7 @@ namespace Fancy
 
     if (!inserted)
     {
-      if (myFreeList.IsEmpty() || myFreeList.Back().myVirtualOffset + myFreeList.Back().mySize < virtualOffset)
+      if (myFreeList.IsEmpty() || myFreeList.Back().myVirtualOffset + myFreeList.Back().mySize < freeBlockStart)
         myFreeList.Add(aBlock);
       else
         myFreeList.AddBefore(myFreeList.Begin(), aBlock);
