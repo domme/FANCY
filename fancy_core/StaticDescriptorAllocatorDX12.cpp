@@ -78,7 +78,7 @@ namespace Fancy
 #if FANCY_DX12_DEBUG_ALLOCS
     AllocDebugInfo debugInfo;
     debugInfo.myName = aDebugName;
-    debugInfo.myVirtualDescriptorIndex = static_cast<uint>(descriptorIndexInHeap + page->myVirtualOffset);
+    debugInfo.myVirtualDescriptorIndex = static_cast<uint>(descriptorIndexInHeap + page->myStart);
     myAllocDebugInfos.push_back(debugInfo);
 #endif
 
@@ -100,14 +100,14 @@ namespace Fancy
     ASSERT(addressOffset % myHandleIncrementSize == 0);
 
     Block block;
-    block.myVirtualOffset = addressOffset / myHandleIncrementSize;
-    block.mySize = 1;
+    block.myStart = addressOffset / myHandleIncrementSize;
+    block.myEnd = 1;
     myAllocator.Free(block);
 
  #if FANCY_DX12_DEBUG_ALLOCS
     auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&block](const AllocDebugInfo& anInfo)
     {
-      return anInfo.myVirtualDescriptorIndex == block.myVirtualOffset;
+      return anInfo.myVirtualDescriptorIndex == block.myStart;
     });
 
     ASSERT(it != myAllocDebugInfos.end());

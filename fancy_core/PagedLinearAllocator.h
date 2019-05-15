@@ -17,15 +17,16 @@ namespace Fancy
   public:
     struct Page
     {
-      uint64 myVirtualOffset;
-      uint64 mySize;
+      uint64 myStart;
+      uint64 myEnd;
+      uint myOpenAllocs;
       T myData;
     };
 
     struct Block
     {
-      uint64 myVirtualOffset;
-      uint64 mySize;
+      uint64 myStart;
+      uint64 myEnd;
     };
 
     PagedLinearAllocator(uint64 aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn);
@@ -37,12 +38,16 @@ namespace Fancy
 
   private:
     bool CreateAndAddPage(uint64 aSize);
+    static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd <= aPage.myEnd; }
 
     const uint64 myPageSize;
     std::function<bool(uint64, T&)> myPageDataCreateFn;
     std::function<void(T&)> myPageDataDestroyFn;
 
-    GrowingList<Block, 64> myFreeList;
+    using FreeListT = GrowingList<Block, 64>;
+    using FreeListIterator = typename FreeListT::Iterator;
+    FreeListT myFreeList;
+
     std::vector<Page> myPages;
   };
 //---------------------------------------------------------------------------//
@@ -71,139 +76,101 @@ namespace Fancy
   template <class T>
   const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut)
   {
-    uint64 alignedSize = MathUtil::Align(aSize, anAlignment);
+    const uint64 sizeWithAlignment = MathUtil::Align(aSize, anAlignment);
 
     for (auto it = myFreeList.Begin(); it != myFreeList.End(); ++it)
     {
       // Make sure to allocate enough space that the offset can be moved upwards to match the alignment in client code
-      const uint64 extraSize = MathUtil::Align(it->myVirtualOffset, anAlignment) - it->myVirtualOffset;
-      alignedSize += extraSize;
+      const uint64 extraSize = MathUtil::Align(it->myStart, anAlignment) - it->myStart;
+      const uint64 sizeWithAlignmentAndPadding = sizeWithAlignment + extraSize;
+      const uint64 freeBlockSize = it->myEnd - it->myStart;
 
-      if (it->mySize >= alignedSize)
+      if (freeBlockSize >= sizeWithAlignmentAndPadding)
       {
         uint64 offsetInPage = 0u;
-        const Page* page = GetPageAndOffset(it->myVirtualOffset, offsetInPage);
+        const Page* page = GetPageAndOffset(it->myStart, offsetInPage);
         ASSERT(page != nullptr);
-
-        if (it->mySize > alignedSize)
-        {
-          it->mySize -= alignedSize;
-          it->myVirtualOffset += alignedSize;
-        }
-        else if(it->mySize == alignedSize)
-        {
+        
+        it->myStart += sizeWithAlignmentAndPadding;
+        if (freeBlockSize == sizeWithAlignmentAndPadding)
           myFreeList.Remove(it);
-        }
 
         anOffsetInPageOut = offsetInPage;
+        ++page->myOpenAllocs;
         return page;
       }
     }
 
     // No free chunks left to satisfy the allocation request: Add a new Page!
-    if (!CreateAndAddPage(MathUtil::Align(aSize, myPageSize)))
+    if (!CreateAndAddPage(MathUtil::Align(sizeWithAlignment, myPageSize)))
       return nullptr;
 
     return Allocate(aSize, anAlignment, anOffsetInPageOut);
   }
 //---------------------------------------------------------------------------//
   template <class T>
-  void PagedLinearAllocator<T>::Free(const Block& aBlock)
+  void PagedLinearAllocator<T>::Free(const Block& aBlockToFree)
   {
-    const uint64 freeBlockStart = aBlock.myVirtualOffset;
-    const uint64 freeBlockSize = aBlock.mySize;
-    const uint64 freeBlockEnd = freeBlockStart + freeBlockSize;
-
-    auto pageIt = std::find_if(myPages.begin(), myPages.end(), [freeBlockStart, freeBlockEnd](const Page& aPage)
+    auto pageIt = std::find_if(myPages.begin(), myPages.end(), [aBlockToFree](const Page& aPage)
     {
-      return aPage.myVirtualOffset <= freeBlockStart && aPage.myVirtualOffset + aPage.mySize >= freeBlockEnd;
+      return aPage.myStart >= aBlockToFree.myStart && aPage.myEnd <= aBlockToFree.myEnd;
     });
-    ASSERT(pageIt != myPages.end(), "No page found for block (start: %, end: %)", freeBlockStart, freeBlockEnd);
-    const uint64 pageStart = pageIt->myVirtualOffset;
-    const uint64 pageEnd = pageIt->myVirtualOffset + pageIt->mySize;
+    ASSERT(pageIt != myPages.end(), "No page found for block to free (start: %, end: %)", aBlockToFree.myStart, aBlockToFree.myEnd);
+    const Page& page = *pageIt;
 
-    // Step 0: Try to merge freed block with an existing chunk
-    bool inserted = false;
-    for (auto currChunk = myFreeList.Begin(); !inserted && currChunk != myFreeList.End(); ++currChunk)
+    --page.myOpenAllocs;
+
+    if (page.myOpenAllocs == 0)  // Was this the last allocation from the page -> remove the page completely
     {
-      if (currChunk->myVirtualOffset < pageStart || (currChunk->myVirtualOffset + currChunk->mySize) > pageEnd)  // This chunk is outside of the page the freed block belongs to. Can't merge with that block
-        continue;
-      
-      if ((currChunk->myVirtualOffset + currChunk->mySize) == freeBlockStart) // New block behind existing block: [A][X] -> [ A ]
+      bool freePageBlockDeleted = false;
+      for (FreeListIterator it = myFreeList.Begin(), end = myFreeList.End(); it != end; ++it)
       {
-        currChunk->mySize += freeBlockSize;
-
-        // Does the new, bigger chunk touch with the following chunk? Then merge those if they belong to the same page
-        // [ A ][B] -> [  A  ]
-        auto nextChunk = currChunk;
-        ++nextChunk;
-
-        if (nextChunk != myFreeList.End())
+        if (IsBlockInPage(*it, page))
         {
-          if ((nextChunk->myVirtualOffset + nextChunk->mySize) <= pageEnd // Next chunk in page?
-           && (currChunk->myVirtualOffset + currChunk->mySize) == nextChunk->myVirtualOffset)  // Next chunk directly follows curr chunk?
-          {
-            currChunk->mySize += nextChunk->mySize;
-            myFreeList.Remove(nextChunk);
-          }
+          ASSERT(!freePageBlockDeleted, "There should only be at least one free block remaining if the page reports 0 allocs");
+          it = myFreeList.Remove(it);
+          freePageBlockDeleted = true;
         }
 
-        inserted = true;
-      }
+        // If no free block could be deleted from that page, it must mean that the block to free covers the entire page
+        ASSERT(freePageBlockDeleted || (aBlockToFree.myStart == page.myStart && aBlockToFree.myEnd == page.myEnd));
 
-      // CONTINUE HERE!!
-        // A..A X..XB..B --> A..A B....B 
-      else if (currChunk->myVirtualOffset == freeBlockStart + freeBlockSize)
-      {
-        currChunk->myVirtualOffset = freeBlockStart;
-        currChunk->mySize += freeBlockSize;
-        inserted = true;
-      }
-    }
-
-    // A..A B..B --> A..A C..C B..B
-    if (!inserted)
-    {
-      auto it = myFreeList.Begin();
-      for (; it != myFreeList.End(); ++it)
-      {
-        auto nextIt = it;
-        ++nextIt;
-
-        if (nextIt == myFreeList.End())
-          break;
-
-        if (freeBlockStart > it->myVirtualOffset + it->mySize && freeBlockStart + freeBlockSize < nextIt->myVirtualOffset)
-        {
-          myFreeList.AddBefore(it, aBlock);
-          inserted = true;
-        }
-      }
-    }
-
-    if (!inserted)
-    {
-      if (myFreeList.IsEmpty() || myFreeList.Back().myVirtualOffset + myFreeList.Back().mySize < freeBlockStart)
-        myFreeList.Add(aBlock);
-      else
-        myFreeList.AddBefore(myFreeList.Begin(), aBlock);
-    }
-
-    // Check if we can completely remove a page
-    for (int i = (int)myPages.size() - 1; i >= 0; --i)
-    {
-      Page& page = myPages[i];
-      auto it = std::find_if(myFreeList.Begin(), myFreeList.End(), [&page](const Block& anOtherBlock)
-      {
-        // BUG: This only checks for free blocks that exactly match the page-size. Free blocks crossing page-borders will not be detected. (But crossing blocks shouldn't be allowed in the first place)
-        return anOtherBlock.myVirtualOffset == page.myVirtualOffset && anOtherBlock.mySize == page.mySize; 
-      });
-
-      if (it != myFreeList.End())
-      {
         myPageDataDestroyFn(page.myData);
-        myFreeList.Remove(it);
-        myPages.erase(myPages.begin() + i);
+        myPages.erase(pageIt);
+      }
+    }
+    else
+    {
+      FreeListIterator blockBefore = myFreeList.ReverseFind([aBlockToFree, page](const Block& aBlock) {
+        return aBlock.myEnd <= aBlockToFree.myStart;
+      });
+      FreeListIterator blockAfter = blockBefore.Next();
+
+      const bool canMergeWithBefore = blockBefore != myFreeList.End() && IsBlockInPage(*blockBefore, page) && blockBefore->myEnd == aBlockToFree.myStart;
+      const bool canMergeWithAfter = blockAfter != myFreeList.End() && IsBlockInPage(*blockAfter, page) && blockAfter->myStart == aBlockToFree.myEnd;
+      if (canMergeWithBefore && canMergeWithAfter)  // [A][X][B]
+      {
+        blockBefore->myEnd = blockAfter->myEnd;
+        myFreeList.Remove(blockAfter);
+      }
+      else if (canMergeWithBefore)  // [A][X]
+      {
+        blockBefore->myEnd = aBlockToFree.myEnd;
+      }
+      else if (canMergeWithAfter) // [X][B]
+      {
+        blockAfter->myStart = aBlockToFree.myStart;
+      }
+      else  // Not touching any free block in the page. Iterate the freelist again to find a suitable position
+      {
+        FreeListIterator it = myFreeList.ReverseFind([aBlockToFree](const Block& aBlock) {
+          return aBlock.myEnd <= aBlockToFree.myStart;
+        });
+
+        if (it != myFreeList.End())
+          myFreeList.AddAfter(it, aBlockToFree);
+        else
+          myFreeList.AddAfter(myFreeList.Begin(), aBlockToFree);
       }
     }
   }
@@ -212,12 +179,13 @@ namespace Fancy
   bool PagedLinearAllocator<T>::CreateAndAddPage(uint64 aSize)
   {
     const uint64 alignedSize = MathUtil::Align(aSize, myPageSize);
-    const uint64 virtualPageOffset = myPages.empty() ? 0u : myPages.back().myVirtualOffset + myPages.back().mySize;
-    Page page{virtualPageOffset, alignedSize};
+    const uint64 pageStart = myPages.empty() ? 0u : myPages.back().myEnd;
+    const uint64 pageEnd = pageStart + alignedSize;
+    Page page{pageStart, pageEnd, 0u};
     if (!myPageDataCreateFn(alignedSize, page.myData))
       return false;
 
-    myFreeList.Add(Block{page.myVirtualOffset, page.mySize});
+    myFreeList.Add(Block{page.myStart, page.myEnd});
     myPages.push_back(page);
     return true;
   }
@@ -227,9 +195,9 @@ namespace Fancy
   {
     for (const Page& existingPage : myPages)
     {
-      if (existingPage.myVirtualOffset <= aVirtualOffset && existingPage.myVirtualOffset + existingPage.mySize > aVirtualOffset)
+      if (existingPage.myStart <= aVirtualOffset && existingPage.myStart + existingPage.myEnd > aVirtualOffset)
       {
-        anOffsetInPage = aVirtualOffset - existingPage.myVirtualOffset;
+        anOffsetInPage = aVirtualOffset - existingPage.myStart;
         return &existingPage;
       }
     }

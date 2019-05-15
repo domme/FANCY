@@ -29,8 +29,8 @@ namespace Fancy
     struct AllocDebugInfo
     {
       String myName;
-      uint64 myVirtualOffset;
-      uint64 mySize;
+      uint64 myStart;
+      uint64 myEnd;
     };
     std::list<AllocDebugInfo> myAllocDebugInfos;
 #endif

@@ -26,7 +26,10 @@ namespace Fancy {
       T* operator->() { ASSERT(myElement != nullptr); return &myElement->myData; }
       bool operator==(const Iterator& anOther) const { return myElement == anOther.myElement; }
       bool operator!=(const Iterator& anOther) const { return myElement != anOther.myElement; }
+      Iterator Next() const { return myElement != nullptr ? myElement->myNext : nullptr; }
+      Iterator Prev() const { return myElement != nullptr ? myElement->myPrev: nullptr; }
       bool HasNext() const { return myElement && myElement->myNext; }
+      bool HasPrev() const { return myElement && myElement->myPrev; }
       Iterator operator++();
       Iterator operator--();
 
@@ -46,6 +49,8 @@ namespace Fancy {
     Iterator Remove(Iterator aPos);
     Iterator Find(const T& aData);
     Iterator Find(std::function<bool(const T&)> aPredicate);
+    Iterator ReverseFind(const T& aData);
+    Iterator ReverseFind(std::function<bool(const T&)> aPredicate);
     bool IsEmpty() const;
     void DestroyAll();
 
@@ -296,6 +301,37 @@ namespace Fancy {
     }
 
     return end;
+  }
+//---------------------------------------------------------------------------//
+  template <class T, uint64 PageSize>
+  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::ReverseFind(const T& aData)
+  {
+    Iterator it(myTailElement);
+    while(it.myElement != nullptr)
+    {
+      if ((*it) == aData)
+        return it;
+
+      --it;
+    }
+
+    return End();
+  }
+//---------------------------------------------------------------------------//
+  template <class T, uint64 PageSize>
+  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::ReverseFind(
+    std::function<bool(const T&)> aPredicate)
+  {
+    Iterator it(myTailElement);
+    while (it.myElement != nullptr)
+    {
+      if (aPredicate(*it))
+        return it;
+
+      --it;
+    }
+
+    return End();
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>

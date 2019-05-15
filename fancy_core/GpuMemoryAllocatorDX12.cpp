@@ -54,7 +54,7 @@ namespace Fancy
   {
 #if FANCY_DX12_DEBUG_ALLOCS
     for (auto it : myAllocDebugInfos)
-      LOG_WARNING("Leaked GPU memory allocation: % at offset % and size %", it.myName.c_str(), it.myVirtualOffset, it.mySize);  
+      LOG_WARNING("Leaked GPU memory allocation: % with block (start: %, end: %)", it.myName.c_str(), it.myStart, it.myEnd);  
 #endif
 
     ASSERT(myAllocator.IsEmpty(), "There are still gpu-resources allocated when destroying the memory allocator");
@@ -75,8 +75,8 @@ namespace Fancy
 #if FANCY_DX12_DEBUG_ALLOCS
     AllocDebugInfo debugInfo;
     debugInfo.myName = aDebugName != nullptr ? aDebugName : "Unnamed GPU memory allocation";
-    debugInfo.myVirtualOffset = page->myVirtualOffset + offsetInPage;
-    debugInfo.mySize = aSize;
+    debugInfo.myStart = page->myStart + offsetInPage;
+    debugInfo.myEnd = debugInfo.myStart + MathUtil::Align(aSize, anAlignment);
     myAllocDebugInfos.push_back(debugInfo);
 #endif
 
@@ -92,13 +92,13 @@ namespace Fancy
     ASSERT(page != nullptr);
 
     Block block;
-    block.myVirtualOffset = page->myVirtualOffset + anAllocation.myOffsetInHeap;
-    block.mySize = anAllocation.mySize;
+    block.myStart = page->myStart + anAllocation.myOffsetInHeap;
+    block.myEnd = block.myStart + anAllocation.mySize;
 
 #if FANCY_DX12_DEBUG_ALLOCS
     auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&block](const AllocDebugInfo& anInfo)
     {
-      return anInfo.myVirtualOffset == block.myVirtualOffset;
+      return anInfo.myStart == block.myStart;
     });
 
     ASSERT(it != myAllocDebugInfos.end());
