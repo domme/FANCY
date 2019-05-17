@@ -91,7 +91,7 @@ namespace Fancy
     const Page* page = myAllocator.FindPage([this, aDescriptor](const Page& aPage) 
     {
       const uint64 firstHeapAddess = aPage.myData.myCpuHeapStart.ptr;
-      const uint64 lastHeapAddress = aPage.myData.myCpuHeapStart.ptr + (aPage.mySize-1) * myHandleIncrementSize;
+      const uint64 lastHeapAddress = aPage.myData.myCpuHeapStart.ptr + (aPage.myEnd-aPage.myStart) * myHandleIncrementSize;
       return aDescriptor.myCpuHandle.ptr >= firstHeapAddess && aDescriptor.myCpuHandle.ptr <= lastHeapAddress;
     });
     ASSERT(page != nullptr);

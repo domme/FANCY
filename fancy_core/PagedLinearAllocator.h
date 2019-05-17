@@ -34,9 +34,9 @@ namespace Fancy
     const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut);
     void Free(const Block& aBlock);
     bool IsEmpty() const { return myPages.empty(); }
-    const Page* GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage) const;
+    Page* GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage);
 
-  private:
+  //private:
     bool CreateAndAddPage(uint64 aSize);
     static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd <= aPage.myEnd; }
 
@@ -88,7 +88,7 @@ namespace Fancy
       if (freeBlockSize >= sizeWithAlignmentAndPadding)
       {
         uint64 offsetInPage = 0u;
-        const Page* page = GetPageAndOffset(it->myStart, offsetInPage);
+        Page* page = GetPageAndOffset(it->myStart, offsetInPage);
         ASSERT(page != nullptr);
         
         it->myStart += sizeWithAlignmentAndPadding;
@@ -113,16 +113,15 @@ namespace Fancy
   {
     auto pageIt = std::find_if(myPages.begin(), myPages.end(), [aBlockToFree](const Page& aPage)
     {
-      return aPage.myStart >= aBlockToFree.myStart && aPage.myEnd <= aBlockToFree.myEnd;
+      return aBlockToFree.myStart >= aPage.myStart && aBlockToFree.myEnd <= aPage.myEnd;
     });
     ASSERT(pageIt != myPages.end(), "No page found for block to free (start: %, end: %)", aBlockToFree.myStart, aBlockToFree.myEnd);
-    const Page& page = *pageIt;
+    Page& page = *pageIt;
 
     --page.myOpenAllocs;
 
     if (page.myOpenAllocs == 0)  // Was this the last allocation from the page -> remove the page completely
     {
-      bool freePageBlockDeleted = false;
       for (FreeListIterator it = myFreeList.Begin(), end = myFreeList.End(); it != end; ++it)
       {
         if (IsBlockInPage(*it, page))
@@ -191,9 +190,9 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
   template <class T>
-  const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage) const
+  typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage)
   {
-    for (const Page& existingPage : myPages)
+    for (Page& existingPage : myPages)
     {
       if (existingPage.myStart <= aVirtualOffset && existingPage.myStart + existingPage.myEnd > aVirtualOffset)
       {

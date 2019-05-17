@@ -62,6 +62,26 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate(const uint64 aSize, const uint anAlignment, const char* aDebugName /*= nullptr*/)
   {
+    const char* allocatorTypeNames[] =
+    {
+      "Buffer", "Texture", "RenderTarget"
+    };
+
+    const char* allocatorAccessNames[] =
+    {
+      "Default", "Write", "Read"
+    };
+
+    // if (myType == GpuMemoryType::TEXTURE && myAccess == CpuMemoryAccessType::NO_CPU_ACCESS)
+    {
+      LOG_DEBUG("");
+      LOG_DEBUG("Allocate % bytes from allocator % - % (% Byte page size):", MathUtil::Align(aSize, anAlignment), allocatorTypeNames[(uint)myType], allocatorAccessNames[(uint)myAccess], myAllocator.myPageSize);
+      LOG_DEBUG("Before:");
+      DebugPrint();
+    }
+    
+
+
     uint64 offsetInPage;
     const Page* page = myAllocator.Allocate(aSize, anAlignment, offsetInPage);
     if (page == nullptr)
@@ -80,6 +100,13 @@ namespace Fancy
     myAllocDebugInfos.push_back(debugInfo);
 #endif
 
+    if (myType == GpuMemoryType::TEXTURE && myAccess == CpuMemoryAccessType::NO_CPU_ACCESS)
+    {
+      LOG_DEBUG("After:");
+      DebugPrint();
+      LOG_DEBUG("");
+    }
+
     return allocResult;
   }
 //---------------------------------------------------------------------------//
@@ -95,6 +122,26 @@ namespace Fancy
     block.myStart = page->myStart + anAllocation.myOffsetInHeap;
     block.myEnd = block.myStart + anAllocation.mySize;
 
+    const char* allocatorTypeNames[] =
+    {
+      "Buffer", "Texture", "RenderTarget"
+    };
+
+    const char* allocatorAccessNames[] =
+    {
+      "Default", "Write", "Read"
+    };
+
+    if (myType == GpuMemoryType::TEXTURE && myAccess == CpuMemoryAccessType::NO_CPU_ACCESS)
+    {
+      LOG_DEBUG("");
+      LOG_DEBUG("Free block (%, %) from allocator % - % (% Byte page size):", block.myStart, block.myEnd, allocatorTypeNames[(uint)myType], allocatorAccessNames[(uint)myAccess], myAllocator.myPageSize);
+      LOG_DEBUG("Before: ");
+      DebugPrint();
+    }
+
+    myAllocator.Free(block);
+
 #if FANCY_DX12_DEBUG_ALLOCS
     auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&block](const AllocDebugInfo& anInfo)
     {
@@ -103,9 +150,47 @@ namespace Fancy
 
     ASSERT(it != myAllocDebugInfos.end());
     myAllocDebugInfos.erase(it);
-#endif
 
-    myAllocator.Free(block);
+    // if (myType == GpuMemoryType::TEXTURE && myAccess == CpuMemoryAccessType::NO_CPU_ACCESS)
+    {
+      LOG_DEBUG("After:");
+      DebugPrint();
+      LOG_DEBUG("");
+    }
+#endif
+  }
+
+  void GpuMemoryAllocatorDX12::DebugPrint()
+  {
+    std::stringstream debugStr;
+    debugStr << "Num Pages: " << myAllocator.myPages.size() << std::endl;
+    debugStr << "Free list: " << std::endl;
+    int oldPageIdx = -2;
+    uint64 lastElementEnd = 0;
+    for (auto it = myAllocator.myFreeList.Begin(); it != myAllocator.myFreeList.End(); ++it)
+    {
+      int pageIdx = -1;
+      for (int i = 0; i < myAllocator.myPages.size(); ++i)
+      {
+        if (myAllocator.IsBlockInPage(*it, myAllocator.myPages[i]))
+        {
+          pageIdx = i;
+          break;
+        }
+      }
+
+      if (oldPageIdx != pageIdx)
+        debugStr << "|| Page " << pageIdx << ": ";
+      oldPageIdx = pageIdx;
+
+      if (lastElementEnd != it->myStart)
+        debugStr << "[X: " << (it->myStart - lastElementEnd) << "]";
+      lastElementEnd = it->myEnd;
+
+      debugStr << "[" << it->myStart << ".." << it->myEnd << "]";
+    }
+
+    LOG_DEBUG("%", debugStr.str().c_str());
   }
 //---------------------------------------------------------------------------//
 }

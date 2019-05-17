@@ -33,6 +33,8 @@ namespace Fancy
       uint64 myEnd;
     };
     std::list<AllocDebugInfo> myAllocDebugInfos;
+
+    void DebugPrint();
 #endif
   };
 //---------------------------------------------------------------------------//
