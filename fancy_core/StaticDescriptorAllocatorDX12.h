@@ -30,7 +30,7 @@ namespace Fancy
     uint myHandleIncrementSize;
     D3D12_DESCRIPTOR_HEAP_TYPE myType;
 
-#if FANCY_DX12_DEBUG_ALLOCS
+#if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
     struct AllocDebugInfo
     {
       String myName;

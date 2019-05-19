@@ -25,7 +25,7 @@ namespace Fancy
     CpuMemoryAccessType myAccess;
     PagedLinearAllocator<Microsoft::WRL::ComPtr<ID3D12Heap>> myAllocator;
 
-  #if FANCY_DX12_DEBUG_ALLOCS
+  #if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
     struct AllocDebugInfo
     {
       String myName;

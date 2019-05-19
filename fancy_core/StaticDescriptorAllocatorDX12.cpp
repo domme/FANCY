@@ -47,7 +47,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   StaticDescriptorAllocatorDX12::~StaticDescriptorAllocatorDX12()
   {
-  #if FANCY_DX12_DEBUG_ALLOCS
+  #if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
     for (auto it : myAllocDebugInfos)
       LOG_WARNING("Leaked static descriptor: % at index %", it.myName.c_str(), it.myVirtualDescriptorIndex);  
 #endif
@@ -75,7 +75,7 @@ namespace Fancy
     descr.myHeapType = myType;
     descr.myIsManagedByAllocator = true;
 
-#if FANCY_DX12_DEBUG_ALLOCS
+#if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
     AllocDebugInfo debugInfo;
     debugInfo.myName = aDebugName;
     debugInfo.myVirtualDescriptorIndex = static_cast<uint>(descriptorIndexInHeap + page->myStart);
@@ -104,7 +104,7 @@ namespace Fancy
     block.myEnd = 1;
     myAllocator.Free(block);
 
- #if FANCY_DX12_DEBUG_ALLOCS
+ #if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
     auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&block](const AllocDebugInfo& anInfo)
     {
       return anInfo.myVirtualDescriptorIndex == block.myStart;

@@ -21,9 +21,11 @@ namespace Fancy {
     {
       friend class GrowingList;
 
+      Iterator() : myElement(nullptr) {}
       Iterator(Element* anElement) : myElement(anElement) {}
       T& operator*() { ASSERT(myElement != nullptr); return myElement->myData; }
       T* operator->() { ASSERT(myElement != nullptr); return &myElement->myData; }
+      explicit operator bool() const { return myElement != nullptr; }
       bool operator==(const Iterator& anOther) const { return myElement == anOther.myElement; }
       bool operator!=(const Iterator& anOther) const { return myElement != anOther.myElement; }
       Iterator Next() const { return myElement != nullptr ? myElement->myNext : nullptr; }
@@ -42,7 +44,8 @@ namespace Fancy {
 
     Iterator Begin();
     T& Back();
-    Iterator End();
+    Iterator Last();
+    Iterator Invalid();
     Iterator Add(T aData);
     Iterator AddBefore(Iterator aPos, T aData);
     Iterator AddAfter(Iterator aPos, T aData);
@@ -142,7 +145,13 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
-  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::End()
+  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::Last()
+  {
+    return Iterator(myTailElement);
+  }
+//---------------------------------------------------------------------------//
+  template <class T, uint64 PageSize>
+  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::Invalid()
   {
     return Iterator(nullptr);
   }
@@ -275,7 +284,7 @@ namespace Fancy {
   typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::Find(const T& aData)
   {
     Iterator it = Begin();
-    Iterator end = End();
+    Iterator end = Invalid();
     while (it != end)
     {
       if ((*it) == aData)
@@ -291,7 +300,7 @@ namespace Fancy {
   typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::Find(std::function<bool(const T&)> aPredicate)
   {
     Iterator it = Begin();
-    Iterator end = End();
+    Iterator end = Invalid();
     while (it != end)
     {
       if (aPredicate(*it))
@@ -315,7 +324,7 @@ namespace Fancy {
       --it;
     }
 
-    return End();
+    return Invalid();
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
@@ -331,7 +340,7 @@ namespace Fancy {
       --it;
     }
 
-    return End();
+    return Invalid();
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>

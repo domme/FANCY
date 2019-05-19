@@ -78,7 +78,7 @@ namespace Fancy
   {
     const uint64 sizeWithAlignment = MathUtil::Align(aSize, anAlignment);
 
-    for (auto it = myFreeList.Begin(); it != myFreeList.End(); ++it)
+    for (auto it = myFreeList.Begin(); it != myFreeList.Invalid(); ++it)
     {
       // Make sure to allocate enough space that the offset can be moved upwards to match the alignment in client code
       const uint64 extraSize = MathUtil::Align(it->myStart, anAlignment) - it->myStart;
@@ -122,21 +122,49 @@ namespace Fancy
 
     if (page.myOpenAllocs == 0)  // Was this the last allocation from the page -> remove the page completely
     {
-      for (FreeListIterator it = myFreeList.Begin(), end = myFreeList.End(); it != end; ++it)
+#if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS // Validate that the only remaining allocated space is the block to free.
+      FreeListIterator firstBlockInPage = myFreeList.Find([page](const Block& aBlock) { return IsBlockInPage(aBlock, page); });
+      FreeListIterator lastBlockInPage;
+      if (firstBlockInPage)
+      {
+        for (FreeListIterator it = firstBlockInPage.Next(); it != myFreeList.Invalid(); ++it)
+        {
+          if (IsBlockInPage(*it, page))
+            lastBlockInPage = it;
+        }
+      }
+      if (!firstBlockInPage)
+      {
+        // No free blocks in the page, so the block to free must cover the whole page
+        ASSERT(page.myStart == aBlockToFree.myStart && page.myEnd == MathUtil::Align(aBlockToFree.myEnd, myPageSize));
+      }
+      else if (!lastBlockInPage)
+      {
+        // There is only one free block in this page left. It must be either at the start or at the end of the page and the remaining space must be the block being freed
+        const bool isAtStart = firstBlockInPage->myStart == page.myStart;
+        const bool isAtEnd = firstBlockInPage->myEnd == page.myEnd;
+        ASSERT(isAtStart || isAtEnd);
+        ASSERT(!isAtStart || (firstBlockInPage->myEnd == aBlockToFree.myStart) && (page.myEnd == MathUtil::Align(aBlockToFree.myEnd, myPageSize)));
+        ASSERT(!isAtEnd || (firstBlockInPage->myStart == aBlockToFree.myEnd) && (page.myStart == aBlockToFree.myStart));
+      }
+      else  // There are at least two free blocks in the page. There can only be exactly two blocks at the start and end of the page and the space between them must be the block being freed
+      {
+        ASSERT(firstBlockInPage.Next() == lastBlockInPage); // There must be exactly two free blocks, so the last block must directly follow the first
+        ASSERT(firstBlockInPage->myEnd == aBlockToFree.myStart && lastBlockInPage->myStart == aBlockToFree.myEnd);
+      }
+#endif  // FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
+      
+      // Remove all free blocks that belong to this page. Remove them in reverse order to make it more likely for myFreeList to re-use existing block-items instead of allocating new ones when adding list-items again
+      for (FreeListIterator it = myFreeList.Last(); it != myFreeList.Invalid(); )
       {
         if (IsBlockInPage(*it, page))
-        {
-          ASSERT(!freePageBlockDeleted, "There should only be at least one free block remaining if the page reports 0 allocs");
           it = myFreeList.Remove(it);
-          freePageBlockDeleted = true;
-        }
-
-        // If no free block could be deleted from that page, it must mean that the block to free covers the entire page
-        ASSERT(freePageBlockDeleted || (aBlockToFree.myStart == page.myStart && aBlockToFree.myEnd == page.myEnd));
-
-        myPageDataDestroyFn(page.myData);
-        myPages.erase(pageIt);
+        else
+          --it;
       }
+
+      myPageDataDestroyFn(page.myData);
+      myPages.erase(pageIt);
     }
     else
     {
@@ -145,8 +173,8 @@ namespace Fancy
       });
       FreeListIterator blockAfter = blockBefore.Next();
 
-      const bool canMergeWithBefore = blockBefore != myFreeList.End() && IsBlockInPage(*blockBefore, page) && blockBefore->myEnd == aBlockToFree.myStart;
-      const bool canMergeWithAfter = blockAfter != myFreeList.End() && IsBlockInPage(*blockAfter, page) && blockAfter->myStart == aBlockToFree.myEnd;
+      const bool canMergeWithBefore = blockBefore != myFreeList.Invalid() && IsBlockInPage(*blockBefore, page) && blockBefore->myEnd == aBlockToFree.myStart;
+      const bool canMergeWithAfter = blockAfter != myFreeList.Invalid() && IsBlockInPage(*blockAfter, page) && blockAfter->myStart == aBlockToFree.myEnd;
       if (canMergeWithBefore && canMergeWithAfter)  // [A][X][B]
       {
         blockBefore->myEnd = blockAfter->myEnd;
@@ -166,7 +194,7 @@ namespace Fancy
           return aBlock.myEnd <= aBlockToFree.myStart;
         });
 
-        if (it != myFreeList.End())
+        if (it != myFreeList.Invalid())
           myFreeList.AddAfter(it, aBlockToFree);
         else
           myFreeList.AddAfter(myFreeList.Begin(), aBlockToFree);
