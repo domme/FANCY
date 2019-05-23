@@ -8,6 +8,9 @@
     <ClCompile Include="Test_Profiler.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="Test_GpuMemoryAllocator.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Tests">
@@ -22,6 +25,9 @@
       <Filter>Tests</Filter>
     </ClInclude>
     <ClInclude Include="Test.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="Test_GpuMemoryAllocator.h">
       <Filter>Tests</Filter>
     </ClInclude>
   </ItemGroup>

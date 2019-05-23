@@ -80,7 +80,7 @@ namespace Fancy {
     // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
-  protected:
+  // protected:
     void InitCaps() override;
     void UpdateAvailableDynamicDescriptorHeaps();
 

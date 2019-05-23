@@ -58,12 +58,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Test_GpuMemoryAllocator.cpp" />
     <ClCompile Include="Test_ImGui.cpp" />
     <ClCompile Include="Test_Profiler.cpp" />
     <ClCompile Include="Tests_main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Test.h" />
+    <ClInclude Include="Test_GpuMemoryAllocator.h" />
     <ClInclude Include="Test_ImGui.h" />
     <ClInclude Include="Test_Profiler.h" />
   </ItemGroup>

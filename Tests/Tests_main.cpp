@@ -15,6 +15,7 @@
 #include "Test.h"
 #include "Test_Profiler.h"
 #include "Test_ImGui.h"
+#include "Test_GpuMemoryAllocator.h"
 
 using namespace Fancy;
 
@@ -26,6 +27,7 @@ ImGuiContext* myImGuiContext = nullptr;
 
 bool test_profiler = false;
 bool test_imgui = false;
+bool test_gpuMemoryAllocs = false;
 
 DynamicArray<UniquePtr<Test>> myTests;
 
@@ -75,6 +77,13 @@ void Update()
       myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ImGui*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(std::make_unique<Test_ImGui>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+  if (ImGui::Checkbox("Test Gpu Memory Allocations", &test_gpuMemoryAllocs))
+  {
+    if (!test_gpuMemoryAllocs)
+      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_GpuMemoryAllocator*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(std::make_unique<Test_GpuMemoryAllocator>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
 
   ImGui::Separator();

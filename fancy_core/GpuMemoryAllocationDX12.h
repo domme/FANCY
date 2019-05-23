@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DX12Prerequisites.h"
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//

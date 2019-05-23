@@ -135,7 +135,7 @@ namespace Fancy {
     return ourShaderCompiler.get();
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::Init(RenderingApi aRenderingApi)
+  void RenderCore::Init(RenderPlatformType aRenderingApi)
   {
     Init_0_Platform(aRenderingApi);
     Init_1_Services();
@@ -193,7 +193,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
   {
-    return static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get());
+    return GetPlatformType() == RenderPlatformType::DX12 ? static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get()) : nullptr;
   }
 //---------------------------------------------------------------------------//
   GpuRingBuffer* RenderCore::AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aNeededByteSize, const char* aName /*= nullptr*/)
@@ -249,16 +249,16 @@ namespace Fancy {
     ourUsedRingBuffers.push_back(std::make_pair(aFenceVal, aBuffer));
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::Init_0_Platform(RenderingApi aRenderingApi)
+  void RenderCore::Init_0_Platform(RenderPlatformType aRenderingApi)
   {
     ASSERT(ourPlatformImpl == nullptr);
 
     switch (aRenderingApi)
     {
-      case RenderingApi::DX12:
+      case RenderPlatformType::DX12:
         ourPlatformImpl = std::make_unique<RenderCore_PlatformDX12>();
         break;
-      case RenderingApi::VULKAN: break;
+      case RenderPlatformType::VULKAN: break;
       default:;
     }
     ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
@@ -622,6 +622,11 @@ namespace Fancy {
   const SharedPtr<DepthStencilState>& RenderCore::GetDefaultDepthStencilState()
   {
     return ourDefaultDepthStencilState;
+  }
+//---------------------------------------------------------------------------//
+  RenderPlatformType RenderCore::GetPlatformType()
+  {
+    return ourPlatformImpl->GetType();
   }
 //---------------------------------------------------------------------------//
   const RenderPlatformCaps& RenderCore::GetPlatformCaps()

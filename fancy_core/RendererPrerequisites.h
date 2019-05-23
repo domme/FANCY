@@ -26,7 +26,7 @@ namespace Fancy {
     };
   }
 //---------------------------------------------------------------------------//
-  enum class RenderingApi
+  enum class RenderPlatformType
   {
     DX12 = 0,
     VULKAN,
@@ -44,11 +44,11 @@ namespace Fancy {
   {
     RenderingStartupParameters()
       : myRenderingTechnique(RenderingTechnique::FORWARD)
-      , myRenderingApi(RenderingApi::DX12)
+      , myRenderingApi(RenderPlatformType::DX12)
     { }
 
     RenderingTechnique myRenderingTechnique;
-    RenderingApi myRenderingApi;
+    RenderPlatformType myRenderingApi;
   };
 //---------------------------------------------------------------------------//
   struct RenderPlatformCaps

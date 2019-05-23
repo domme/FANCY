@@ -54,7 +54,7 @@ namespace Fancy {
     };
 
     /// Init platform-independent stuff
-    static void Init(RenderingApi aRenderingApi);
+    static void Init(RenderPlatformType aRenderingApi);
     static void BeginFrame();
     static void EndFrame();
     static void Shutdown();
@@ -93,6 +93,7 @@ namespace Fancy {
     static const SharedPtr<BlendState>& GetDefaultBlendState();
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState();
 
+    static RenderPlatformType GetPlatformType();
     static const RenderPlatformCaps& GetPlatformCaps();
     static RenderCore_Platform* GetPlatform();
     static RenderCore_PlatformDX12* GetPlatformDX12();
@@ -128,7 +129,7 @@ namespace Fancy {
   protected:
     RenderCore() = default;
 
-    static void Init_0_Platform(RenderingApi aRenderingApi);
+    static void Init_0_Platform(RenderPlatformType aRenderingApi);
     static void Init_1_Services();
     static void Init_2_Resources();
 

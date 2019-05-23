@@ -59,6 +59,7 @@ namespace Fancy {
 
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::RenderCore_PlatformDX12()
+    : RenderCore_Platform(RenderPlatformType::DX12)
   {
     using namespace Microsoft::WRL;
 

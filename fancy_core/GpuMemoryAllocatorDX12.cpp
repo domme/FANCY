@@ -38,28 +38,6 @@ namespace Fancy
       // No special treatment needed here. Resource will be released by the smartptr
     }
 //---------------------------------------------------------------------------//
-    const char* locMemoryTypeToString(GpuMemoryType aType)
-    {
-      switch(aType) 
-      { 
-      case GpuMemoryType::BUFFER: return "buffer";
-      case GpuMemoryType::TEXTURE: return "texture";
-      case GpuMemoryType::RENDERTARGET: return "rendertarget";
-        default: return "";
-      }
-    }
-//---------------------------------------------------------------------------//
-    const char* locCpuAccessTypeToString(CpuMemoryAccessType aType)
-    {
-      switch(aType) 
-      { 
-      case CpuMemoryAccessType::NO_CPU_ACCESS: return "default";
-      case CpuMemoryAccessType::CPU_WRITE: return "write";
-      case CpuMemoryAccessType::CPU_READ: return "read";
-        default: return "";
-      }
-    }
-//---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
 
@@ -85,14 +63,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate(const uint64 aSize, const uint anAlignment, const char* aDebugName /*= nullptr*/)
   {
-    if (myType == GpuMemoryType::BUFFER && myAccess == CpuMemoryAccessType::NO_CPU_ACCESS)
-    {
-      LOG_DEBUG("");
-      LOG_DEBUG("Allocate % bytes from allocator % - % (% Byte page size):", MathUtil::Align(aSize, anAlignment), Priv_GpuMemoryAllocatorDX12::locMemoryTypeToString(myType), Priv_GpuMemoryAllocatorDX12::locCpuAccessTypeToString(myAccess), myAllocator.myPageSize);
-      LOG_DEBUG("Before:");
-      DebugPrint();
-    }
-
     uint64 offsetInPage;
     const Page* page = myAllocator.Allocate(aSize, anAlignment, offsetInPage);
     if (page == nullptr)
@@ -111,13 +81,6 @@ namespace Fancy
     myAllocDebugInfos.push_back(debugInfo);
 #endif
 
-    if (myType == GpuMemoryType::BUFFER && myAccess == CpuMemoryAccessType::NO_CPU_ACCESS)
-    {
-      LOG_DEBUG("After:");
-      DebugPrint();
-      LOG_DEBUG("");
-    }
-
     return allocResult;
   }
 //---------------------------------------------------------------------------//
@@ -132,15 +95,6 @@ namespace Fancy
     Block block;
     block.myStart = page->myStart + anAllocation.myOffsetInHeap;
     block.myEnd = block.myStart + anAllocation.mySize;
-
-    if (myType == GpuMemoryType::BUFFER && myAccess == CpuMemoryAccessType::NO_CPU_ACCESS)
-    {
-      LOG_DEBUG("");
-      LOG_DEBUG("Free block (%, %) from allocator % - % (% Byte page size):", block.myStart, block.myEnd, Priv_GpuMemoryAllocatorDX12::locMemoryTypeToString(myType), Priv_GpuMemoryAllocatorDX12::locCpuAccessTypeToString(myAccess), myAllocator.myPageSize);
-      LOG_DEBUG("Before: ");
-      DebugPrint();
-    }
-
     myAllocator.Free(block);
 
 #if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
@@ -151,47 +105,7 @@ namespace Fancy
 
     ASSERT(it != myAllocDebugInfos.end());
     myAllocDebugInfos.erase(it);
-
-    if (myType == GpuMemoryType::BUFFER && myAccess == CpuMemoryAccessType::NO_CPU_ACCESS)
-    {
-      LOG_DEBUG("After:");
-      DebugPrint();
-      LOG_DEBUG("");
-    }
 #endif
-  }
-
-  void GpuMemoryAllocatorDX12::DebugPrint()
-  {
-    std::stringstream debugStr;
-    debugStr << "Num Pages: " << myAllocator.myPages.size() << std::endl;
-    debugStr << "Free list: " << std::endl;
-    int oldPageIdx = -2;
-    uint64 lastElementEnd = 0;
-    for (auto it = myAllocator.myFreeList.Begin(); it != myAllocator.myFreeList.Invalid(); ++it)
-    {
-      int pageIdx = -1;
-      for (int i = 0; i < myAllocator.myPages.size(); ++i)
-      {
-        if (myAllocator.IsBlockInPage(*it, myAllocator.myPages[i]))
-        {
-          pageIdx = i;
-          break;
-        }
-      }
-
-      if (oldPageIdx != pageIdx)
-        debugStr << "|| Page " << pageIdx << ": ";
-      oldPageIdx = pageIdx;
-
-      if (lastElementEnd != it->myStart)
-        debugStr << "[X: " << (it->myStart - lastElementEnd) << "]";
-      lastElementEnd = it->myEnd;
-
-      debugStr << "[" << it->myStart << ".." << it->myEnd << "]";
-    }
-
-    LOG_DEBUG("%", debugStr.str().c_str());
   }
 //---------------------------------------------------------------------------//
 }

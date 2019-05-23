@@ -24,6 +24,7 @@ namespace Fancy {
   class RenderCore_Platform
   {
   public:
+    RenderCore_Platform(RenderPlatformType aType) : myType(aType) {}
     virtual ~RenderCore_Platform() = default;
 
     virtual bool IsInitialized() = 0;
@@ -31,6 +32,7 @@ namespace Fancy {
     virtual void InitCaps() = 0;
     virtual void Shutdown() = 0;
 
+    RenderPlatformType GetType() const { return myType; }
     const RenderPlatformCaps& GetCaps() const { return myCaps; }
     virtual RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) = 0;
     virtual GpuProgramCompiler* CreateShaderCompiler() = 0;
@@ -46,6 +48,7 @@ namespace Fancy {
     virtual float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) = 0;
   protected:
     RenderPlatformCaps myCaps;
+    RenderPlatformType myType;
   };
 //---------------------------------------------------------------------------//
 }

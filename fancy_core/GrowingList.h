@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include "Log.h"
 
 namespace Fancy {
