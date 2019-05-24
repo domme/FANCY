@@ -6,6 +6,8 @@
 #include "fancy_imgui/imgui.h"
 #include "fancy_core/RenderCore.h"
 #include "fancy_core/RenderCore_PlatformDX12.h"
+#include "fancy_core/StringUtil.h"
+#include "fancy_core/PagedLinearAllocator.h"
 
 using namespace Fancy;
 
@@ -86,6 +88,63 @@ const char* locCpuAccessTypeToString(CpuMemoryAccessType aType)
 
 void locDebugPrintMemoryAllocatorDx12(GpuMemoryAllocatorDX12* anAllocatorDx12)
 {
+  const float memoryToPixelScale = 1.0f / SIZE_MB;
+
+  auto& allocator = anAllocatorDx12->myAllocator;
+
+  const float elementHeight = 20.0f;
+
+  ImVec2 startPos = ImGui::GetCursorPos();
+  ImVec2 pos = startPos;
+  for (uint i = 0u; i < allocator.myPages.size(); ++i)
+  {
+    const auto& page = allocator.myPages[i];
+    const float pixelWidth = memoryToPixelScale * (float)(page.myEnd - page.myStart);
+
+    ImGui::SetCursorPos(pos);
+    ImGui::Button(StrFmt<64>("Heap %d", i), ImVec2(pixelWidth, elementHeight));
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip(StrFmt<128>("Start: %d\nEnd:%d\nSize:%d", page.myStart / SIZE_MB, page.myEnd / SIZE_MB, (page.myEnd - page.myStart) / SIZE_MB));
+
+    pos.x += pixelWidth;
+  }
+
+  pos = startPos;
+  pos.y += elementHeight + 2.0f;
+  ImGui::PushStyleColor(ImGuiCol_Button, 0xFFAAAAAA);
+  for (auto freeBlockIt = allocator.myFreeList.Begin(); freeBlockIt != allocator.myFreeList.Invalid(); ++freeBlockIt)
+  {
+    const uint64 freeMemory = freeBlockIt->myEnd - freeBlockIt->myStart;
+    const float pixelWidth = memoryToPixelScale * (float)freeMemory;
+
+    ImVec2 currPos = pos;
+    currPos.x = startPos.x + (float)(freeBlockIt->myStart * memoryToPixelScale);
+    ImGui::SetCursorPos(currPos);
+    ImGui::Button(StrFmt<64>("%d", freeMemory / SIZE_MB), ImVec2(pixelWidth, elementHeight));
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip(StrFmt<128>("Free Block\nStart: %d\nEnd: %d\n Size: %d"),
+        freeBlockIt->myStart / SIZE_MB, freeBlockIt->myEnd / SIZE_MB, freeMemory / SIZE_MB);
+  }
+  ImGui::PopStyleColor(1);
+
+  ImGui::PushStyleColor(ImGuiCol_Button, 0xFFFFAAAA);
+  for (const auto& debugInfo : anAllocatorDx12->myAllocDebugInfos)
+  {
+    const uint64 allocatedMemory = debugInfo.myEnd - debugInfo.myStart;
+    const float pixelWidth = memoryToPixelScale * (float)allocatedMemory;
+
+    ImVec2 currPos = pos;
+    currPos.x = startPos.x + (float)(debugInfo.myStart * memoryToPixelScale);
+    ImGui::SetCursorPos(currPos);
+    ImGui::Button(StrFmt<64>("%d", allocatedMemory / SIZE_MB), ImVec2(pixelWidth, elementHeight));
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip(StrFmt<256>("Allocated Block %s"),
+        debugInfo.myName.empty() ? "" : debugInfo.myName.c_str()); // , debugInfo.myStart / SIZE_MB, debugInfo.myEnd / SIZE_MB, allocatedMemory / SIZE_MB);
+  }
+  ImGui::PopStyleColor(1);
+
+  /*
+
   std::stringstream debugStr;
   debugStr << "Num Pages: " << anAllocatorDx12->myAllocator.myPages.size() << std::endl;
   debugStr << "Free list: " << std::endl;
@@ -115,6 +174,8 @@ void locDebugPrintMemoryAllocatorDx12(GpuMemoryAllocatorDX12* anAllocatorDx12)
   }
 
   ImGui::Text(debugStr.str().c_str());
+
+  */
 }
 
 void Test_GpuMemoryAllocator::RenderMemoryAllocatorLayouts()
