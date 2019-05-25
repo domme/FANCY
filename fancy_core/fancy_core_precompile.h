@@ -43,6 +43,8 @@
 #include "MathUtil.h"
 #include "DataFormat.h"
 #include "RenderEnums.h"
+#include "StaticString.h"
+#include "GrowingList.h"
 
 #include "TextureData.h"
 #include "TempResources.h"

@@ -314,7 +314,12 @@
     <ClInclude Include="Annotations.h">
       <Filter>Profiler</Filter>
     </ClInclude>
-    <ClInclude Include="GrowingList.h" />
+    <ClInclude Include="GrowingList.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticString.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">

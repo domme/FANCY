@@ -95,6 +95,7 @@
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="Ptr.h" />
     <ClInclude Include="RenderEnums.h" />
+    <ClInclude Include="StaticString.h" />
     <ClInclude Include="TempResourcePool.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="MeshData.h" />

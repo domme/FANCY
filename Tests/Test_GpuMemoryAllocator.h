@@ -17,6 +17,7 @@ private:
   bool myAllocatorTypeVisible[(uint)Fancy::GpuMemoryType::NUM][(uint)Fancy::CpuMemoryAccessType::NUM];
 
   int myBufferToAllocSizeMb;
+  float myScale;
   std::vector<Fancy::SharedPtr<Fancy::GpuBuffer>> myBuffers;
   std::vector<Fancy::SharedPtr<Fancy::Texture>> myTextures;
 };

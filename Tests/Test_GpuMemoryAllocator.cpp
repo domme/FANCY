@@ -8,12 +8,14 @@
 #include "fancy_core/RenderCore_PlatformDX12.h"
 #include "fancy_core/StringUtil.h"
 #include "fancy_core/PagedLinearAllocator.h"
+#include "fancy_core/StaticString.h"
 
 using namespace Fancy;
 
 Test_GpuMemoryAllocator::Test_GpuMemoryAllocator(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Profiler")
   , myBufferToAllocSizeMb(64)
+  , myScale(10.0f)
 {
   for (uint memType = 0; memType < (uint)Fancy::GpuMemoryType::NUM; ++memType)
     for (uint accessType = 0; accessType < (uint)Fancy::CpuMemoryAccessType::NUM; ++accessType)
@@ -57,6 +59,8 @@ void Test_GpuMemoryAllocator::OnUpdate(bool aDrawProperties)
   for (const SharedPtr<GpuBuffer>& buffer : myBuffers)
     ImGui::Text("\t%s", buffer->myName.c_str());
 
+  ImGui::NewLine();
+
   RenderMemoryAllocatorLayouts();
 }
 
@@ -86,26 +90,40 @@ const char* locCpuAccessTypeToString(CpuMemoryAccessType aType)
   }
 }
 
-void locDebugPrintMemoryAllocatorDx12(GpuMemoryAllocatorDX12* anAllocatorDx12)
+const char* locGetMemoryLabel(uint64 aMemorySize, StringPool& aStringPool)
 {
-  const float memoryToPixelScale = 1.0f / SIZE_MB;
+  if (aMemorySize >= SIZE_MB)
+    return aStringPool.Format("%d MiB", aMemorySize / SIZE_MB);
+  if (aMemorySize >= SIZE_KB)
+    return aStringPool.Format("%d KiB", aMemorySize / SIZE_KB);
 
+  return aStringPool.Format("%d Byte", aMemorySize);
+}
+
+void locDebugPrintMemoryAllocatorDx12(GpuMemoryAllocatorDX12* anAllocatorDx12, float aMemoryToPixelScale)
+{
   auto& allocator = anAllocatorDx12->myAllocator;
 
   const float elementHeight = 20.0f;
 
-  ImVec2 startPos = ImGui::GetCursorPos();
+  const ImVec2 startPos = ImGui::GetCursorPos();
   ImVec2 pos = startPos;
   for (uint i = 0u; i < allocator.myPages.size(); ++i)
   {
     const auto& page = allocator.myPages[i];
-    const float pixelWidth = memoryToPixelScale * (float)(page.myEnd - page.myStart);
-
-    ImGui::SetCursorPos(pos);
-    ImGui::Button(StrFmt<64>("Heap %d", i), ImVec2(pixelWidth, elementHeight));
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(StrFmt<128>("Start: %d\nEnd:%d\nSize:%d", page.myStart / SIZE_MB, page.myEnd / SIZE_MB, (page.myEnd - page.myStart) / SIZE_MB));
-
+    const float pixelWidth = aMemoryToPixelScale * (float)(page.myEnd - page.myStart);
+    if (pixelWidth >= 2)
+    {
+      StringPool stringPool;
+      ImGui::SetCursorPos(pos);
+      ImGui::Button(stringPool.Format("Heap %d", i), ImVec2(pixelWidth - 1, elementHeight));
+      if (ImGui::IsItemHovered())
+      {
+        StaticString<128> str("Start: %s\nEnd:%s\nSize:%s", 
+          locGetMemoryLabel(page.myStart, stringPool), locGetMemoryLabel(page.myEnd, stringPool), locGetMemoryLabel(page.myEnd - page.myStart, stringPool));
+        ImGui::SetTooltip(str);
+      }
+    }
     pos.x += pixelWidth;
   }
 
@@ -115,67 +133,39 @@ void locDebugPrintMemoryAllocatorDx12(GpuMemoryAllocatorDX12* anAllocatorDx12)
   for (auto freeBlockIt = allocator.myFreeList.Begin(); freeBlockIt != allocator.myFreeList.Invalid(); ++freeBlockIt)
   {
     const uint64 freeMemory = freeBlockIt->myEnd - freeBlockIt->myStart;
-    const float pixelWidth = memoryToPixelScale * (float)freeMemory;
+    const float pixelWidth = aMemoryToPixelScale * (float)freeMemory;
+    if (pixelWidth < 2)
+      continue;
 
+    StringPool stringPool;
     ImVec2 currPos = pos;
-    currPos.x = startPos.x + (float)(freeBlockIt->myStart * memoryToPixelScale);
+    currPos.x = startPos.x + (float)(freeBlockIt->myStart * aMemoryToPixelScale);
     ImGui::SetCursorPos(currPos);
-    ImGui::Button(StrFmt<64>("%d", freeMemory / SIZE_MB), ImVec2(pixelWidth, elementHeight));
+    ImGui::Button(stringPool.Format("%s", locGetMemoryLabel(freeMemory, stringPool)), ImVec2(pixelWidth-1, elementHeight));
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(StrFmt<128>("Free Block\nStart: %d\nEnd: %d\n Size: %d"),
-        freeBlockIt->myStart / SIZE_MB, freeBlockIt->myEnd / SIZE_MB, freeMemory / SIZE_MB);
+      ImGui::SetTooltip(stringPool.Format("Free Block\nStart: %s\nEnd: %s\n Size: %s",
+        locGetMemoryLabel(freeBlockIt->myStart, stringPool), locGetMemoryLabel(freeBlockIt->myEnd, stringPool), locGetMemoryLabel(freeMemory, stringPool)));
   }
   ImGui::PopStyleColor(1);
-
+  
   ImGui::PushStyleColor(ImGuiCol_Button, 0xFFFFAAAA);
   for (const auto& debugInfo : anAllocatorDx12->myAllocDebugInfos)
   {
     const uint64 allocatedMemory = debugInfo.myEnd - debugInfo.myStart;
-    const float pixelWidth = memoryToPixelScale * (float)allocatedMemory;
+    const float pixelWidth = aMemoryToPixelScale * (float)allocatedMemory;
+    if (pixelWidth < 2)
+      continue;
 
+    StringPool stringPool;
     ImVec2 currPos = pos;
-    currPos.x = startPos.x + (float)(debugInfo.myStart * memoryToPixelScale);
+    currPos.x = startPos.x + (float)(debugInfo.myStart * aMemoryToPixelScale);
     ImGui::SetCursorPos(currPos);
-    ImGui::Button(StrFmt<64>("%d", allocatedMemory / SIZE_MB), ImVec2(pixelWidth, elementHeight));
+    ImGui::Button(stringPool.Format("%s", locGetMemoryLabel(allocatedMemory, stringPool)), ImVec2(pixelWidth-1, elementHeight));
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(StrFmt<256>("Allocated Block %s"),
-        debugInfo.myName.empty() ? "" : debugInfo.myName.c_str()); // , debugInfo.myStart / SIZE_MB, debugInfo.myEnd / SIZE_MB, allocatedMemory / SIZE_MB);
+      ImGui::SetTooltip(stringPool.Format("Allocated Block %s\nStart: %s\nEnd: %s\nSize: %s",
+        debugInfo.myName.c_str(), locGetMemoryLabel(debugInfo.myStart, stringPool), locGetMemoryLabel(debugInfo.myEnd, stringPool), locGetMemoryLabel(allocatedMemory, stringPool)));
   }
   ImGui::PopStyleColor(1);
-
-  /*
-
-  std::stringstream debugStr;
-  debugStr << "Num Pages: " << anAllocatorDx12->myAllocator.myPages.size() << std::endl;
-  debugStr << "Free list: " << std::endl;
-  int oldPageIdx = -2;
-  uint64 lastElementEnd = 0;
-  for (auto it = anAllocatorDx12->myAllocator.myFreeList.Begin(); it != anAllocatorDx12->myAllocator.myFreeList.Invalid(); ++it)
-  {
-    int pageIdx = -1;
-    for (int i = 0; i < anAllocatorDx12->myAllocator.myPages.size(); ++i)
-    {
-      if (anAllocatorDx12->myAllocator.IsBlockInPage(*it, anAllocatorDx12->myAllocator.myPages[i]))
-      {
-        pageIdx = i;
-        break;
-      }
-    }
-
-    if (oldPageIdx != pageIdx)
-      debugStr << "|| Page " << pageIdx << ": ";
-    oldPageIdx = pageIdx;
-
-    if (lastElementEnd != it->myStart)
-      debugStr << "[X: " << (it->myStart - lastElementEnd) << "]";
-    lastElementEnd = it->myEnd;
-
-    debugStr << "[" << it->myStart << ".." << it->myEnd << "]";
-  }
-
-  ImGui::Text(debugStr.str().c_str());
-
-  */
 }
 
 void Test_GpuMemoryAllocator::RenderMemoryAllocatorLayouts()
@@ -184,20 +174,21 @@ void Test_GpuMemoryAllocator::RenderMemoryAllocatorLayouts()
   if (platformDx12 == nullptr)
     return;
 
+  ImGui::SliderFloat("Scale", &myScale, 0.1f, 2000.0f);
+
+  ImGui::BeginChildFrame(1, ImVec2(ImGui::GetWindowWidth(), 512), ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
   for (uint memType = 0; memType < (uint)Fancy::GpuMemoryType::NUM; ++memType)
   {
     if (ImGui::TreeNode(locMemoryTypeToString((GpuMemoryType) memType)))
     {
       for (uint accessType = 0; accessType < (uint)Fancy::CpuMemoryAccessType::NUM; ++accessType)
       {
-        if(ImGui::TreeNode(locCpuAccessTypeToString((CpuMemoryAccessType) accessType)))
-        {
-          GpuMemoryAllocatorDX12* allocatorDx12 = platformDx12->myGpuMemoryAllocators[memType][accessType].get();
-          locDebugPrintMemoryAllocatorDx12(allocatorDx12);
-          ImGui::TreePop();
-        }
+        ImGui::Text(locCpuAccessTypeToString((CpuMemoryAccessType)accessType));
+        GpuMemoryAllocatorDX12* allocatorDx12 = platformDx12->myGpuMemoryAllocators[memType][accessType].get();
+        locDebugPrintMemoryAllocatorDx12(allocatorDx12, myScale / SIZE_MB);
       }
       ImGui::TreePop();
     }
   }
+  ImGui::EndChildFrame();
 }

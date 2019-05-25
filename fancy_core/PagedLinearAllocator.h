@@ -222,7 +222,7 @@ namespace Fancy
   {
     for (Page& existingPage : myPages)
     {
-      if (existingPage.myStart <= aVirtualOffset && existingPage.myStart + existingPage.myEnd > aVirtualOffset)
+      if (existingPage.myStart <= aVirtualOffset && existingPage.myEnd > aVirtualOffset)
       {
         anOffsetInPage = aVirtualOffset - existingPage.myStart;
         return &existingPage;
