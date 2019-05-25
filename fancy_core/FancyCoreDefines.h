@@ -44,3 +44,11 @@
   typedef unsigned int	uint;
   typedef double        float64;  
 //---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+// Compile-switches for debugging and validation in all core- and common-files
+//---------------------------------------------------------------------------//
+#define CORE_DEBUG_MEMORY_ALLOCATIONS 1
+
+
+

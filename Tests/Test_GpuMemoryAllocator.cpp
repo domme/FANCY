@@ -149,7 +149,7 @@ void locDebugPrintMemoryAllocatorDx12(GpuMemoryAllocatorDX12* anAllocatorDx12, f
   ImGui::PopStyleColor(1);
   
   ImGui::PushStyleColor(ImGuiCol_Button, 0xFFFFAAAA);
-  for (const auto& debugInfo : anAllocatorDx12->myAllocDebugInfos)
+  for (const auto& debugInfo : allocator.myAllocDebugInfos)
   {
     const uint64 allocatedMemory = debugInfo.myEnd - debugInfo.myStart;
     const float pixelWidth = aMemoryToPixelScale * (float)allocatedMemory;

@@ -53,18 +53,13 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuMemoryAllocatorDX12::~GpuMemoryAllocatorDX12()
   {
-#if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
-    for (auto it : myAllocDebugInfos)
-      LOG_WARNING("Leaked GPU memory allocation: % with block (start: %, end: %)", it.myName.c_str(), it.myStart, it.myEnd);  
-#endif
-
     ASSERT(myAllocator.IsEmpty(), "There are still gpu-resources allocated when destroying the memory allocator");
   }
 //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate(const uint64 aSize, const uint anAlignment, const char* aDebugName /*= nullptr*/)
   {
     uint64 offsetInPage;
-    const Page* page = myAllocator.Allocate(aSize, anAlignment, offsetInPage);
+    const Page* page = myAllocator.Allocate(aSize, anAlignment, offsetInPage, aDebugName);
     if (page == nullptr)
       return GpuMemoryAllocationDX12{};
     
@@ -72,14 +67,6 @@ namespace Fancy
     allocResult.myOffsetInHeap = offsetInPage;
     allocResult.mySize = aSize;
     allocResult.myHeap = page->myData.Get();
-
-#if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
-    AllocDebugInfo debugInfo;
-    debugInfo.myName = aDebugName != nullptr ? aDebugName : "Unnamed GPU memory allocation";
-    debugInfo.myStart = page->myStart + offsetInPage;
-    debugInfo.myEnd = debugInfo.myStart + MathUtil::Align(aSize, anAlignment);
-    myAllocDebugInfos.push_back(debugInfo);
-#endif
 
     return allocResult;
   }
@@ -96,17 +83,6 @@ namespace Fancy
     block.myStart = page->myStart + anAllocation.myOffsetInHeap;
     block.myEnd = block.myStart + anAllocation.mySize;
     myAllocator.Free(block);
-
-#if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
-    auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&block](const AllocDebugInfo& anInfo)
-    {
-      return anInfo.myStart == block.myStart;
-    });
-
-    ASSERT(it != myAllocDebugInfos.end());
-    myAllocDebugInfos.erase(it);
-#endif
   }
 //---------------------------------------------------------------------------//
 }
-

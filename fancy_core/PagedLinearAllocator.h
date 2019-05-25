@@ -4,6 +4,7 @@
 #include "GrowingList.h"
 
 #include <functional>
+#include <list>
 
 namespace Fancy
 {
@@ -20,7 +21,7 @@ namespace Fancy
       uint64 myStart;
       uint64 myEnd;
       uint myOpenAllocs;
-      T myData;
+      T myData;  // TODO: Use an Any instead to avoid templatization?
     };
 
     struct Block
@@ -31,14 +32,14 @@ namespace Fancy
 
     PagedLinearAllocator(uint64 aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn);
     const Page* FindPage(std::function<bool(const Page&)> aPredicateFn);
-    const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut);
+    const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName = "");
     void Free(const Block& aBlock);
     bool IsEmpty() const { return myPages.empty(); }
     Page* GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage);
 
   //private:
     bool CreateAndAddPage(uint64 aSize);
-    static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd <= aPage.myEnd; }
+    static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd < aPage.myEnd; }
 
     const uint64 myPageSize;
     std::function<bool(uint64, T&)> myPageDataCreateFn;
@@ -47,6 +48,16 @@ namespace Fancy
     using FreeListT = GrowingList<Block, 64>;
     using FreeListIterator = typename FreeListT::Iterator;
     FreeListT myFreeList;
+
+#if CORE_DEBUG_MEMORY_ALLOCATIONS
+    struct AllocDebugInfo
+    {
+      String myName;
+      uint64 myStart;
+      uint64 myEnd;
+    };
+    std::list<AllocDebugInfo> myAllocDebugInfos;
+#endif  // CORE_DEBUG_MEMORY_ALLOCATIONS
 
     std::vector<Page> myPages;
   };
@@ -74,7 +85,7 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
   template <class T>
-  const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut)
+  const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName /*= ""*/)
   {
     const uint64 sizeWithAlignment = MathUtil::Align(aSize, anAlignment);
 
@@ -97,6 +108,14 @@ namespace Fancy
 
         anOffsetInPageOut = offsetInPage;
         ++page->myOpenAllocs;
+        
+#if CORE_DEBUG_MEMORY_ALLOCATIONS
+        AllocDebugInfo debugInfo;
+        debugInfo.myName = aDebugName != nullptr ? aDebugName : "Unnamed GPU memory allocation";
+        debugInfo.myStart = page->myStart + offsetInPage;
+        debugInfo.myEnd = debugInfo.myStart + sizeWithAlignment;
+        myAllocDebugInfos.push_back(debugInfo);
+#endif
         return page;
       }
     }
@@ -111,6 +130,16 @@ namespace Fancy
   template <class T>
   void PagedLinearAllocator<T>::Free(const Block& aBlockToFree)
   {
+#if CORE_DEBUG_MEMORY_ALLOCATIONS
+    auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&aBlockToFree](const AllocDebugInfo& anInfo)
+    {
+      return anInfo.myStart == aBlockToFree.myStart;
+    });
+
+    ASSERT(it != myAllocDebugInfos.end());
+    myAllocDebugInfos.erase(it);
+#endif
+
     auto pageIt = std::find_if(myPages.begin(), myPages.end(), [aBlockToFree](const Page& aPage)
     {
       return aBlockToFree.myStart >= aPage.myStart && aBlockToFree.myEnd <= aPage.myEnd;
@@ -122,7 +151,7 @@ namespace Fancy
 
     if (page.myOpenAllocs == 0)  // Was this the last allocation from the page -> remove the page completely
     {
-#if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS // Validate that the only remaining allocated space is the block to free.
+#if CORE_DEBUG_MEMORY_ALLOCATIONS // Validate that the only remaining allocated space is the block to free.
       FreeListIterator firstBlockInPage = myFreeList.Find([page](const Block& aBlock) { return IsBlockInPage(aBlock, page); });
       FreeListIterator lastBlockInPage;
       if (firstBlockInPage)
@@ -152,7 +181,7 @@ namespace Fancy
         ASSERT(firstBlockInPage.Next() == lastBlockInPage); // There must be exactly two free blocks, so the last block must directly follow the first
         ASSERT(firstBlockInPage->myEnd == aBlockToFree.myStart && lastBlockInPage->myStart == aBlockToFree.myEnd);
       }
-#endif  // FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
+#endif  // CORE_DEBUG_MEMORY_ALLOCATIONS
       
       // Remove all free blocks that belong to this page. Remove them in reverse order to make it more likely for myFreeList to re-use existing block-items instead of allocating new ones when adding list-items again
       for (FreeListIterator it = myFreeList.Last(); it != myFreeList.Invalid(); )

@@ -29,15 +29,6 @@ namespace Fancy
     PagedLinearAllocator<Heap> myAllocator;
     uint myHandleIncrementSize;
     D3D12_DESCRIPTOR_HEAP_TYPE myType;
-
-#if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
-    struct AllocDebugInfo
-    {
-      String myName;
-      uint myVirtualDescriptorIndex;
-    };
-    std::list<AllocDebugInfo> myAllocDebugInfos;
-#endif
   };
 //---------------------------------------------------------------------------//
 }

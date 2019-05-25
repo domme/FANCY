@@ -47,18 +47,13 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   StaticDescriptorAllocatorDX12::~StaticDescriptorAllocatorDX12()
   {
-  #if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
-    for (auto it : myAllocDebugInfos)
-      LOG_WARNING("Leaked static descriptor: % at index %", it.myName.c_str(), it.myVirtualDescriptorIndex);  
-#endif
-
     ASSERT(myAllocator.IsEmpty(), "There are still static descriptors allocated when destroying the descriptor allocator");
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 StaticDescriptorAllocatorDX12::AllocateDescriptor(const char* aDebugName /* = nullptr*/)
   {
     uint64 descriptorIndexInHeap;
-    const Page* page = myAllocator.Allocate(1u, 1u, descriptorIndexInHeap);
+    const Page* page = myAllocator.Allocate(1u, 1u, descriptorIndexInHeap, aDebugName);
 
     if (page == nullptr)
       return DescriptorDX12{};
@@ -74,13 +69,6 @@ namespace Fancy
     descr.myGpuHandle = gpuHandle;
     descr.myHeapType = myType;
     descr.myIsManagedByAllocator = true;
-
-#if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
-    AllocDebugInfo debugInfo;
-    debugInfo.myName = aDebugName;
-    debugInfo.myVirtualDescriptorIndex = static_cast<uint>(descriptorIndexInHeap + page->myStart);
-    myAllocDebugInfos.push_back(debugInfo);
-#endif
 
     return descr;
   }
@@ -101,18 +89,8 @@ namespace Fancy
 
     Block block;
     block.myStart = addressOffset / myHandleIncrementSize;
-    block.myEnd = 1;
+    block.myEnd = block.myStart + 1;
     myAllocator.Free(block);
-
- #if FANCY_RENDERER_DEBUG_MEMORY_ALLOCS
-    auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&block](const AllocDebugInfo& anInfo)
-    {
-      return anInfo.myVirtualDescriptorIndex == block.myStart;
-    });
-
-    ASSERT(it != myAllocDebugInfos.end());
-    myAllocDebugInfos.erase(it);
-#endif
   }
 //---------------------------------------------------------------------------//
 }
