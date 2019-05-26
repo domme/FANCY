@@ -32,14 +32,14 @@ namespace Fancy
 
     PagedLinearAllocator(uint64 aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn);
     const Page* FindPage(std::function<bool(const Page&)> aPredicateFn);
-    const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName = "");
+    const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName = nullptr);
     void Free(const Block& aBlock);
     bool IsEmpty() const { return myPages.empty(); }
     Page* GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage);
 
   //private:
     bool CreateAndAddPage(uint64 aSize);
-    static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd < aPage.myEnd; }
+    static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd <= aPage.myEnd; }
 
     const uint64 myPageSize;
     std::function<bool(uint64, T&)> myPageDataCreateFn;
@@ -85,7 +85,7 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
   template <class T>
-  const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName /*= ""*/)
+  const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName /*= nullptr*/)
   {
     const uint64 sizeWithAlignment = MathUtil::Align(aSize, anAlignment);
 
@@ -124,7 +124,7 @@ namespace Fancy
     if (!CreateAndAddPage(MathUtil::Align(sizeWithAlignment, myPageSize)))
       return nullptr;
 
-    return Allocate(aSize, anAlignment, anOffsetInPageOut);
+    return Allocate(aSize, anAlignment, anOffsetInPageOut, aDebugName);
   }
 //---------------------------------------------------------------------------//
   template <class T>
@@ -200,7 +200,9 @@ namespace Fancy
       FreeListIterator blockBefore = myFreeList.ReverseFind([aBlockToFree, page](const Block& aBlock) {
         return aBlock.myEnd <= aBlockToFree.myStart;
       });
-      FreeListIterator blockAfter = blockBefore.Next();
+      FreeListIterator blockAfter = blockBefore ? blockBefore.Next() : myFreeList.Find([aBlockToFree, page](const Block& aBlock) {
+        return aBlock.myStart >= aBlockToFree.myEnd;
+      });
 
       const bool canMergeWithBefore = blockBefore != myFreeList.Invalid() && IsBlockInPage(*blockBefore, page) && blockBefore->myEnd == aBlockToFree.myStart;
       const bool canMergeWithAfter = blockAfter != myFreeList.Invalid() && IsBlockInPage(*blockAfter, page) && blockAfter->myStart == aBlockToFree.myEnd;
@@ -217,16 +219,14 @@ namespace Fancy
       {
         blockAfter->myStart = aBlockToFree.myStart;
       }
-      else  // Not touching any free block in the page. Iterate the freelist again to find a suitable position
+      else  // Not touching any free block in the page. Insert new block into the freelist
       {
-        FreeListIterator it = myFreeList.ReverseFind([aBlockToFree](const Block& aBlock) {
-          return aBlock.myEnd <= aBlockToFree.myStart;
-        });
-
-        if (it != myFreeList.Invalid())
-          myFreeList.AddAfter(it, aBlockToFree);
+        if (blockBefore)
+          myFreeList.AddAfter(blockBefore, aBlockToFree);
+        else if (!myFreeList.IsEmpty())
+          myFreeList.AddBefore(myFreeList.Begin(), aBlockToFree);
         else
-          myFreeList.AddAfter(myFreeList.Begin(), aBlockToFree);
+          myFreeList.Add(aBlockToFree);
       }
     }
   }

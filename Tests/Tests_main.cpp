@@ -42,8 +42,8 @@ void Init(HINSTANCE anInstanceHandle)
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   Fancy::WindowParameters windowParams;
-  windowParams.myWidth = 1920;
-  windowParams.myHeight = 1080;
+  windowParams.myWidth = 1280;
+  windowParams.myHeight = 720;
   windowParams.myTitle = "Fancy Engine Tests";
   myRuntime = FancyRuntime::Init(anInstanceHandle, params, windowParams);
 

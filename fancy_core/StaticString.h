@@ -45,12 +45,12 @@ namespace Fancy
   };
 //---------------------------------------------------------------------------//
   template<uint PoolSize>
-  struct StringPoolSized
+  struct CircularStringBufferSized
   {
     const char* Format(const char* aFmt, ...)
     {
       if (myNextFree >= PoolSize)
-        return "[STRING POOL FULL!!!]";
+        myNextFree = 0;  // Wrap around
 
       const uint freeSize = PoolSize - myNextFree;
       char* bufferStart = myBuffer + myNextFree;
@@ -71,9 +71,8 @@ namespace Fancy
     char myBuffer[PoolSize] = {};
   };
 //---------------------------------------------------------------------------//
-  using StringPoolSmall = StringPoolSized<1024>;
-  using StringPool = StringPoolSized<4096>;
-  using StringPoolLarge = StringPoolSized<8192>;
+  using CircularStringBufferSmall = CircularStringBufferSized<1024>;
+  using CircularStringBuffer = CircularStringBufferSized<4096>;
+  using CircularStringBufferLarge = CircularStringBufferSized<8192>;
 }
-
 //---------------------------------------------------------------------------//

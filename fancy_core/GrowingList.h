@@ -183,6 +183,7 @@ namespace Fancy {
   template <class T, uint64 PageSize>
   typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::AddBefore(Iterator aPos, T aData)
   {
+    ASSERT(aPos);
     ASSERT(FindPage(aPos) != nullptr);
 
     Element* newElement = AllocateElement();
@@ -211,6 +212,7 @@ namespace Fancy {
   template <class T, uint64 PageSize>
   typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::AddAfter(Iterator aPos, T aData)
   {
+    ASSERT(aPos);
     ASSERT(FindPage(aPos) != nullptr);
 
     Element* newElement = AllocateElement();
@@ -239,6 +241,7 @@ namespace Fancy {
   template <class T, uint64 PageSize>
   typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::Remove(Iterator aPos)
   {
+    ASSERT(aPos);
     Page* page = FindPage(aPos);
     ASSERT(page != nullptr);
 

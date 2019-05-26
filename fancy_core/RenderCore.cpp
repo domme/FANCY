@@ -707,7 +707,7 @@ namespace Fancy {
     return buffer->IsValid() ? buffer : nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<TextureView> RenderCore::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
+  SharedPtr<TextureView> RenderCore::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName /*= nullptr*/)
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     TextureViewProperties viewProps = someProperties;
@@ -722,7 +722,7 @@ namespace Fancy {
     ASSERT(!viewProps.myIsShaderWritable || !viewProps.myIsRenderTarget, "UAV and RTV are mutually exclusive");
     ASSERT(viewProps.myPlaneIndex < GpuResourceView::ourNumSupportedPlanes);
 
-    return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, viewProps));
+    return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, viewProps, aName));
   }
 //---------------------------------------------------------------------------//
   SharedPtr<TextureView> RenderCore::CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName /*= nullptr*/, TextureSubData* someUploadDatas, uint aNumUploadDatas)
@@ -731,10 +731,10 @@ namespace Fancy {
     if (texture == nullptr)
       return nullptr;
 
-    return CreateTextureView(texture, someViewProperties);
+    return CreateTextureView(texture, someViewProperties, aName);
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
+  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aName /*=nullptr*/)
   {
     const DataFormat format = someProperties.myFormat;
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
@@ -746,7 +746,7 @@ namespace Fancy {
     ASSERT(!someProperties.myIsStructured || format == DataFormat::UNKNOWN, "Structured buffer views can't have a format");
     ASSERT(!someProperties.myIsRaw || format == DataFormat::UNKNOWN || format == DataFormat::R_32UI, "Raw buffer views can't have a format other than R32");
 
-    return SharedPtr<GpuBufferView>(ourPlatformImpl->CreateBufferView(aBuffer, someProperties));
+    return SharedPtr<GpuBufferView>(ourPlatformImpl->CreateBufferView(aBuffer, someProperties, aName));
   }
 //---------------------------------------------------------------------------//
   SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const GpuBufferProperties& someParams, const GpuBufferViewProperties& someViewProperties, const char* aName /*= nullptr*/, const void* someInitialData)
@@ -755,7 +755,7 @@ namespace Fancy {
     if (buffer == nullptr)
       return nullptr;
 
-    return CreateBufferView(buffer, someViewProperties);
+    return CreateBufferView(buffer, someViewProperties, aName);
   }
 //---------------------------------------------------------------------------//
   uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)
