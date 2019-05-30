@@ -56,6 +56,7 @@ namespace Fancy {
     Iterator ReverseFind(const T& aData);
     Iterator ReverseFind(std::function<bool(const T&)> aPredicate);
     bool IsEmpty() const;
+    uint Size() const { return mySize; }
     void DestroyAll();
 
   private:
@@ -73,6 +74,7 @@ namespace Fancy {
 
       Element* myElements = nullptr;
       uint myNextFreeElementIdx = 0u;
+      uint myNumUsedElements = 0u;
       Page* myNext = nullptr;
     };
 
@@ -83,9 +85,8 @@ namespace Fancy {
     Page* myTailPage = nullptr;
     Element* myHeadElement = nullptr;
     Element* myTailElement = nullptr;
-    Element** myFreeElements = nullptr;
-    uint myNextFreeFreeElement = 0u;
-    uint myMaxNumFreeElements = PageSize;
+    uint mySize = 0u;
+    uint myNumPages = 0u;
   };
 //---------------------------------------------------------------------------//
 
@@ -93,13 +94,13 @@ namespace Fancy {
   template <class T, uint64 PageSize>
   GrowingList<T, PageSize>::Page::Page()
   {
-    myElements = new Element[PageSize];
+    myElements = static_cast<Element*>(malloc(sizeof(Element) * PageSize));  // Malloc: don't call constructor for "Element", which might have a non-trivial constructor due to T
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
   GrowingList<T, PageSize>::Page::~Page()
   {
-    delete[] myElements;
+    free(myElements);
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
@@ -121,9 +122,6 @@ namespace Fancy {
   template <class T, uint64 PageSize>
   GrowingList<T, PageSize>::GrowingList()
   {
-    myMaxNumFreeElements = PageSize;
-    myFreeElements = new Element*[myMaxNumFreeElements];
-    memset(myFreeElements, 0u, sizeof(Element*) * myMaxNumFreeElements);
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
@@ -177,6 +175,7 @@ namespace Fancy {
       myTailElement = newElement;
     }
     
+    ++mySize;
     return Iterator(newElement);
   }
 //---------------------------------------------------------------------------//
@@ -206,6 +205,7 @@ namespace Fancy {
       posPrev->myNext = newElement;
     }
 
+    ++mySize;
     return Iterator(newElement);
   }
 //---------------------------------------------------------------------------//
@@ -235,6 +235,7 @@ namespace Fancy {
       posNext->myPrev = newElement;
     }
 
+    ++mySize;
     return Iterator(newElement);
   }
 //---------------------------------------------------------------------------//
@@ -257,31 +258,57 @@ namespace Fancy {
     if (myTailElement == element)
       myTailElement = prev;
 
-    // In the special case of element being the last element allocated from a page, we can free it again.
-    if (page->myNextFreeElementIdx > 0 && element == &page->myElements[page->myNextFreeElementIdx - 1])
-      --page->myNextFreeElementIdx;
-    else  // Otherwise put it in the growing free elements list
-    {
-      if (myNextFreeFreeElement == myMaxNumFreeElements)  // Realloc free elements list
-      {
-        myMaxNumFreeElements += PageSize;
-        Element** newFreeElementsList = new Element*[myMaxNumFreeElements];
-        const uint sizeOldList = sizeof(Element*) * (myNextFreeFreeElement - 1u);
-        memcpy(newFreeElementsList, myFreeElements, sizeOldList);
-        memset(newFreeElementsList + sizeOldList, 0u, (sizeof(Element*) * myMaxNumFreeElements) - sizeOldList);
-        delete[] myFreeElements;
-        myFreeElements = newFreeElementsList;
-      }
+    // In the special case of element being the last element allocated from the last page, we can free it again.
+    //if (page == myTailPage && page->myNextFreeElementIdx > 0 && element == &page->myElements[page->myNextFreeElementIdx - 1])
+    //  --page->myNextFreeElementIdx;
+    
+    ASSERT(page->myNumUsedElements > 0);
+    --page->myNumUsedElements;
 
-      myFreeElements[myNextFreeFreeElement++] = element;
+    if (myHeadPage != myTailPage)
+    {
+      // If there's more than one page, check if any page is fully allocated but not used anymore and delete it
+
+      Page* lastPage = nullptr;
+      Page* currPage = myHeadPage;
+      while (currPage != nullptr)
+      {
+        Page* nextPage = currPage->myNext;
+
+        if (currPage->myNextFreeElementIdx == PageSize && currPage->myNumUsedElements == 0)
+        {
+          if (lastPage == nullptr)
+          {
+            ASSERT(currPage == myHeadPage);
+            ASSERT(nextPage != nullptr);
+            myHeadPage = nextPage;
+          }
+          else if(nextPage == nullptr)
+          {
+            ASSERT(currPage == myTailPage);
+            ASSERT(lastPage != nullptr);
+            myTailPage = lastPage;
+          }
+          else
+          {
+            ASSERT(lastPage != nullptr);
+            lastPage->myNext = nextPage;
+          }
+          delete currPage;
+          --myNumPages;
+        }
+
+        lastPage = currPage;
+        currPage = nextPage;
+      }
     }
 
     // Destruct the element
     element->myPrev = nullptr;
     element->myNext = nullptr;
     element->myData.~T();
-
-    return Iterator(prev);
+    --mySize;
+    return Iterator(next);
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
@@ -366,19 +393,15 @@ namespace Fancy {
 
     myHeadPage = nullptr;
     myTailPage = nullptr;
-    delete[] myFreeElements;
-    myFreeElements = nullptr;
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
   typename GrowingList<T, PageSize>::Element* GrowingList<T, PageSize>::AllocateElement()
   {
-    if (myNextFreeFreeElement > 0)  // We have an element that we can re-use
-      return myFreeElements[--myNextFreeFreeElement];
-
     if (myTailPage == nullptr || myTailPage->myNextFreeElementIdx == PageSize) // A new page is needed
     {
       Page* newPage = new Page;
+      ++myNumPages;
       if (myHeadPage == nullptr)// First page ever created
       {
         myHeadPage = newPage;
@@ -391,6 +414,7 @@ namespace Fancy {
       }
     }
 
+    ++myTailPage->myNumUsedElements;
     return &myTailPage->myElements[myTailPage->myNextFreeElementIdx++];
   }
 //---------------------------------------------------------------------------//

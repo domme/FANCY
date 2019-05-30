@@ -10,10 +10,14 @@
 #include "fancy_core/CommandContext.h"
 #include "fancy_core/CommandQueue.h"
 #include "fancy_imgui/imgui_internal.h"
+#include "fancy_core/GrowingList.h"
 
 using namespace Fancy;
 
-ANNOTATION_CREATE_TAG(ANNTAG_PROFILER_TEST, "ProfilerTest", 0xFF00FF0000);
+ANNOTATION_CREATE_TAG(ANNTAG_PROFILER_TEST, "ProfilerTest", 0xFF00FF00);
+
+ANNOTATION_CREATE_TAG(ANNTAG_GROWINGLIST, "GrowingList", 0xFFf4a442);
+ANNOTATION_CREATE_TAG(ANNTAG_LIST, "List", 0xFF4153f4);
 
 void ShortFunc()
 {
@@ -61,12 +65,86 @@ void LongGpuCopy(GpuBuffer* aSrcBuffer, GpuBuffer* aDstBuffer)
   RenderCore::FreeContext(ctx);
 }
 
+struct TestStruct
+{
+  uint64 myDataA;
+  uint64 myDataB;
+  uint64 myDataC;
+};
+
+Fancy::GrowingList<TestStruct, 64> myGrowingList;
+std::list<TestStruct> myStlList;
+
+void GrowingList_Iteration()
+{
+  PROFILE_FUNCTION_TAG(ANNTAG_GROWINGLIST);
+
+  uint64 dataSum = 0;
+  for (auto it = myGrowingList.Begin(); it != myGrowingList.Invalid(); ++it)
+    dataSum += it->myDataA + it->myDataB + it->myDataC;
+}
+
+void StdList_Iteration()
+{
+  PROFILE_FUNCTION_TAG(ANNTAG_LIST);
+
+  uint64 dataSum = 0;
+  for (auto it = myStlList.begin(); it != myStlList.end(); ++it)
+    dataSum += it->myDataA + it->myDataB + it->myDataC;
+}
+
+void GrowingList_DeleteInsert()
+{
+  PROFILE_FUNCTION_TAG(ANNTAG_GROWINGLIST);
+  
+  uint numRemoved = 0;
+  auto it = myGrowingList.Begin();
+  for (; it != myGrowingList.Invalid(); )
+  {
+    if (std::rand() > (RAND_MAX / 100))
+    {
+      it = myGrowingList.Remove(it);
+      ++numRemoved;
+    }
+    else
+      ++it;
+  }
+
+  for (uint i = 0; i < numRemoved; ++i)
+  {
+    myGrowingList.Add(TestStruct());
+  }
+}
+
+void StdList_DeleteInsert()
+{
+  PROFILE_FUNCTION_TAG(ANNTAG_LIST);
+
+  uint numRemoved = 0;
+  auto it = myStlList.begin();
+  for (; it != myStlList.end();)
+  {
+    if (std::rand() > (RAND_MAX / 100))
+    {
+      it = myStlList.erase(it);
+      ++numRemoved;
+    }
+    else
+      ++it;
+  }
+
+  for (uint i = 0; i < numRemoved; ++i)
+  {
+    myStlList.push_back(TestStruct());
+  }
+}
+
 Test_Profiler::Test_Profiler(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Profiler")
 {
   GpuBufferProperties props;
   props.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
-  props.myElementSizeBytes = 200 * SIZE_MB;
+  props.myElementSizeBytes = 50 * SIZE_MB;
   props.myNumElements = 1u;
   props.myIsShaderWritable = false;
   props.myUsage = GpuBufferUsage::SHADER_BUFFER;
@@ -74,6 +152,13 @@ Test_Profiler::Test_Profiler(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWind
   ASSERT(myDummyGpuBuffer1 != nullptr, "Test Profiler failed: Unable to create gpu dummy buffer");
   myDummyGpuBuffer2 = RenderCore::CreateBuffer(props, "TestItem_Profiler_DummyBuffer1");
   ASSERT(myDummyGpuBuffer2 != nullptr, "Test Profiler failed: Unable to create gpu dummy buffer");
+
+  for (uint i = 0; i < 1000; ++i)
+  {
+    TestStruct testData{};
+    myGrowingList.Add(testData);
+    myStlList.push_back(testData);
+  }
 }
 
 Test_Profiler::~Test_Profiler()
@@ -83,8 +168,14 @@ Test_Profiler::~Test_Profiler()
 
 void Test_Profiler::OnUpdate(bool aDrawProperties)
 {
-  LongFunc();
-  LongFunc();
+  //LongFunc();
+  //LongFunc();
+
+  GrowingList_Iteration();
+  StdList_Iteration();
+
+  GrowingList_DeleteInsert();
+  StdList_DeleteInsert();
 
   if (aDrawProperties && ImGui::Button("Toggle Profiler Window"))
     myShowProfilerWindow ^= 1;
@@ -95,5 +186,5 @@ void Test_Profiler::OnUpdate(bool aDrawProperties)
 
 void Test_Profiler::OnRender()
 {
-  LongGpuCopy(myDummyGpuBuffer1.get(), myDummyGpuBuffer2.get());
+ // LongGpuCopy(myDummyGpuBuffer1.get(), myDummyGpuBuffer2.get());
 }

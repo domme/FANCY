@@ -4,29 +4,54 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  static AnnotationTagData ourAnnotationTagData[UINT8_MAX];
-  static uint ourNextFreeIdx = 1u;  // 0 is the default tag set in the constructor of AnnotationTagData
-//---------------------------------------------------------------------------//
-  uint8 Annotations::CreateTag(const char* aName, uint aColor)
+  struct AnnotationDataHolder
   {
-    for (uint i = 0u; i < ourNextFreeIdx; ++i)
-      ASSERT(strcmp(aName, ourAnnotationTagData[i].myName) != 0);
+    static AnnotationDataHolder& GetInstance()
+    {
+      static AnnotationDataHolder instance;
+      return instance;
+    }
 
-    ASSERT(ourNextFreeIdx < UINT8_MAX);
+    uint16 CreateTag(const char* aName, uint aColor)
+    {
+      for (uint i = 0u; i < myNextFreeIdx; ++i)
+        ASSERT(strcmp(aName, myData[i].myName) != 0);
 
-    AnnotationTagData& tagData = ourAnnotationTagData[ourNextFreeIdx];
-    ASSERT(strlen(aName) <= ARRAY_LENGTH(tagData.myName));
+      ASSERT(myNextFreeIdx < UINT16_MAX);
 
-    strcpy(tagData.myName, aName);
-    tagData.myColor = aColor;
-    
-    return static_cast<uint8>(ourNextFreeIdx++);
+      AnnotationTagData& tagData = myData[myNextFreeIdx];
+      ASSERT(strlen(aName) <= ARRAY_LENGTH(tagData.myName));
+
+      strcpy(tagData.myName, aName);
+      tagData.myColor = aColor;
+
+      return static_cast<uint8>(myNextFreeIdx++);
+    }
+
+    const AnnotationTagData& GetTagData(uint16 aTag)
+    {
+      ASSERT(aTag < myNextFreeIdx);
+      return myData[aTag];
+    }
+
+  private:
+    AnnotationDataHolder() = default;
+    ~AnnotationDataHolder() = default;
+
+    AnnotationTagData myData[UINT16_MAX];
+    uint myNextFreeIdx = 1u;  // 0 is the default tag set in the constructor of AnnotationTagData
+  };
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  uint16 Annotations::CreateTag(const char* aName, uint aColor)
+  {
+    return AnnotationDataHolder::GetInstance().CreateTag(aName, aColor);
   }
 //---------------------------------------------------------------------------//
-  const AnnotationTagData& Annotations::GetTagData(uint8 aTag)
+  const AnnotationTagData& Annotations::GetTagData(uint16 aTag)
   {
-    ASSERT(aTag < ourNextFreeIdx);
-    return ourAnnotationTagData[aTag];
+    return AnnotationDataHolder::GetInstance().GetTagData(aTag);
   }
 //---------------------------------------------------------------------------//
 }

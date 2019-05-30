@@ -32,7 +32,7 @@ namespace Fancy
     struct SampleNodeInfo
     {
       char myName[MAX_NAME_LENGTH];
-      uint8 myTag;
+      uint16 myTag;
     };
 
     struct GpuQueryInfo
@@ -74,17 +74,17 @@ namespace Fancy
 
     struct ScopedMarker
     {
-      ScopedMarker(const char* aName, uint8 aTag);
+      ScopedMarker(const char* aName, uint16 aTag);
       ~ScopedMarker();
     };
 
-    static SampleNode& OpenMarker(const char* aName, uint8 aTag, Timeline aTimeline);
+    static SampleNode& OpenMarker(const char* aName, uint16 aTag, Timeline aTimeline);
     static SampleNode& CloseMarker(Timeline aTimeline);
   
-    static void PushMarker(const char* aName, uint8 aTag);
+    static void PushMarker(const char* aName, uint16 aTag);
     static void PopMarker();
 
-    static void PushGpuMarker(CommandContext* aContext, const char* aName, uint8 aTag);
+    static void PushGpuMarker(CommandContext* aContext, const char* aName, uint16 aTag);
     static void PopGpuMarker(CommandContext* aContext);
 
     static void BeginFrame();

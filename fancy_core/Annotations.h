@@ -13,14 +13,14 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   namespace Annotations
   {
-    uint8 CreateTag(const char* aName, uint aColor);
-    const AnnotationTagData& GetTagData(uint8 aTag);
+    uint16 CreateTag(const char* aName, uint aColor);
+    const AnnotationTagData& GetTagData(uint16 aTag);
   }
 //---------------------------------------------------------------------------//
 }
 
 #define ANNOTATION_CREATE_TAG(anId, aName, aColor) \
-  const uint8 anId = Fancy::Annotations::CreateTag(aName, aColor);
+  const uint16 anId = Fancy::Annotations::CreateTag(aName, aColor);
 
 #define ANNOTATION_USE_TAG(anId) \
-  extern const uint8 anId;
+  extern const uint16 anId;

@@ -34,7 +34,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//
-  Profiler::ScopedMarker::ScopedMarker(const char* aName, uint8 aTag)
+  Profiler::ScopedMarker::ScopedMarker(const char* aName, uint16 aTag)
   {
     // TODO: Check if the current name is already in use on the stack (e.g. prevent multiple PROFILE_FUNCTION calls in the same function?
     Profiler::PushMarker(aName, aTag);
@@ -45,7 +45,7 @@ namespace Fancy
     PopMarker();
   }
 //---------------------------------------------------------------------------//
-  Profiler::SampleNode& Profiler::OpenMarker(const char* aName, uint8 aTag, Timeline aTimeline)
+  Profiler::SampleNode& Profiler::OpenMarker(const char* aName, uint16 aTag, Timeline aTimeline)
   {
     ASSERT((aTimeline == TIMELINE_GPU && locAcceptsNewSamplesGPU) 
       || (aTimeline != TIMELINE_GPU && locAcceptsNewSamples), 
@@ -201,7 +201,7 @@ namespace Fancy
     return now.count();
   }
 //---------------------------------------------------------------------------//
-  void Profiler::PushMarker(const char* aName, uint8 aTag)
+  void Profiler::PushMarker(const char* aName, uint16 aTag)
   {
     if (locPaused)
       return;
@@ -221,7 +221,7 @@ namespace Fancy
     closedSample.myDuration = closedSample.myEnd.myTime - closedSample.myStart.myTime;
   }
 //---------------------------------------------------------------------------//
-  void Profiler::PushGpuMarker(CommandContext* aContext, const char* aName, uint8 aTag)
+  void Profiler::PushGpuMarker(CommandContext* aContext, const char* aName, uint16 aTag)
   {
     if (locPaused)
       return;
