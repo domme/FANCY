@@ -102,8 +102,8 @@ const char* locGetMemoryLabel(uint64 aMemorySize, CircularStringBuffer& aStringP
 
 void locDebugPrintMemoryAllocatorDx12(GpuMemoryAllocatorDX12* anAllocatorDx12, float aMemoryToPixelScale)
 {
-  auto& allocator = anAllocatorDx12->myAllocator;
-
+  PagedLinearAllocator& allocator = *anAllocatorDx12;
+  
   const float elementHeight = 20.0f;
   CircularStringBuffer stringBuffer;
 

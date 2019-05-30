@@ -4,12 +4,11 @@
 #include "PagedLinearAllocator.h"
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
-#include <list>
 
 namespace Fancy 
 {
 //---------------------------------------------------------------------------//
-  class StaticDescriptorAllocatorDX12
+  class StaticDescriptorAllocatorDX12 : public PagedLinearAllocator
   {
   public:
     struct Heap
@@ -26,7 +25,9 @@ namespace Fancy
     void FreeDescriptor(const DescriptorDX12& aDescriptor);
 
   private:
-    PagedLinearAllocator<Heap> myAllocator;
+    bool CreatePageData(uint64 aSize, Any& aPageData) override;
+    void DestroyPageData(Any& aPageData) override;
+
     uint myHandleIncrementSize;
     D3D12_DESCRIPTOR_HEAP_TYPE myType;
   };

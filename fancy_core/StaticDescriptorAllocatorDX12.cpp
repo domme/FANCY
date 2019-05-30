@@ -7,38 +7,8 @@
 namespace Fancy 
 {
 //---------------------------------------------------------------------------//
-  namespace Priv_StaticDescirptorAllocatorDX12
-  {
-    bool locCreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptors, StaticDescriptorAllocatorDX12::Heap& aHeapOut)
-    {
-      ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
-      D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
-      ASSERT(aNumDescriptors <= UINT_MAX);
-      heapDesc.NumDescriptors = static_cast<uint>(aNumDescriptors);
-      heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-      heapDesc.NodeMask = 0u;
-      heapDesc.Type = aType;
-      
-      if (!SUCCEEDED(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&aHeapOut.myHeap))))
-        return false;
-
-      aHeapOut.myCpuHeapStart = aHeapOut.myHeap->GetCPUDescriptorHandleForHeapStart();
-      aHeapOut.myGpuHeapStart = aHeapOut.myHeap->GetGPUDescriptorHandleForHeapStart();
-
-      return true;
-    }  
-  }
-//---------------------------------------------------------------------------//
-  using Page = PagedLinearAllocator<StaticDescriptorAllocatorDX12::Heap>::Page;
-  using Block = PagedLinearAllocator<StaticDescriptorAllocatorDX12::Heap>::Block;
-//---------------------------------------------------------------------------//
-  
-//---------------------------------------------------------------------------//
   StaticDescriptorAllocatorDX12::StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptorsPerHeap)
-    : myAllocator(
-        aNumDescriptorsPerHeap, 
-        [aType](uint64 aNumDescriptors, StaticDescriptorAllocatorDX12::Heap& aHeapOut) { return Priv_StaticDescirptorAllocatorDX12::locCreateDescriptorHeap(aType, aNumDescriptors, aHeapOut); }, 
-        [](StaticDescriptorAllocatorDX12::Heap& aHeapToDestroy) { })
+    : PagedLinearAllocator(aNumDescriptorsPerHeap)
     , myHandleIncrementSize(RenderCore::GetPlatformDX12()->GetDevice()->GetDescriptorHandleIncrementSize(aType))
     , myType(aType)
   {
@@ -47,22 +17,24 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   StaticDescriptorAllocatorDX12::~StaticDescriptorAllocatorDX12()
   {
-    ASSERT(myAllocator.IsEmpty(), "There are still static descriptors allocated when destroying the descriptor allocator");
+    ASSERT(IsEmpty(), "There are still static descriptors allocated when destroying the descriptor allocator");
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 StaticDescriptorAllocatorDX12::AllocateDescriptor(const char* aDebugName /* = nullptr*/)
   {
     uint64 descriptorIndexInHeap;
-    const Page* page = myAllocator.Allocate(1u, 1u, descriptorIndexInHeap, aDebugName);
+    const Page* page = Allocate(1u, 1u, descriptorIndexInHeap, aDebugName);
 
     if (page == nullptr)
       return DescriptorDX12{};
 
+    const Heap& heapData = page->myData.To<Heap>();
+
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
-    cpuHandle.ptr = page->myData.myCpuHeapStart.ptr + myHandleIncrementSize * descriptorIndexInHeap;
+    cpuHandle.ptr = heapData.myCpuHeapStart.ptr + myHandleIncrementSize * descriptorIndexInHeap;
 
     D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-    gpuHandle.ptr = page->myData.myGpuHeapStart.ptr + myHandleIncrementSize * descriptorIndexInHeap;
+    gpuHandle.ptr = heapData.myGpuHeapStart.ptr + myHandleIncrementSize * descriptorIndexInHeap;
 
     DescriptorDX12 descr;
     descr.myCpuHandle = cpuHandle;
@@ -76,21 +48,49 @@ namespace Fancy
   void StaticDescriptorAllocatorDX12::FreeDescriptor(const DescriptorDX12& aDescriptor)
   {
     ASSERT(aDescriptor.myIsManagedByAllocator && aDescriptor.myHeapType == myType);
-    const Page* page = myAllocator.FindPage([this, aDescriptor](const Page& aPage) 
+    const Page* page = PagedLinearAllocator::FindPage([this, aDescriptor](const Page& aPage) 
     {
-      const uint64 firstHeapAddess = aPage.myData.myCpuHeapStart.ptr;
-      const uint64 lastHeapAddress = aPage.myData.myCpuHeapStart.ptr + (aPage.myEnd-aPage.myStart) * myHandleIncrementSize;
+      const Heap& heapData = aPage.myData.To<Heap>();
+      const uint64 firstHeapAddess = heapData.myCpuHeapStart.ptr;
+      const uint64 lastHeapAddress = heapData.myCpuHeapStart.ptr + (aPage.myEnd-aPage.myStart) * myHandleIncrementSize;
       return aDescriptor.myCpuHandle.ptr >= firstHeapAddess && aDescriptor.myCpuHandle.ptr <= lastHeapAddress;
     });
     ASSERT(page != nullptr);
+    const Heap& heapData = page->myData.To<Heap>();
 
-    const uint64 addressOffset = aDescriptor.myCpuHandle.ptr - page->myData.myCpuHeapStart.ptr;
+    const uint64 addressOffset = aDescriptor.myCpuHandle.ptr - heapData.myCpuHeapStart.ptr;
     ASSERT(addressOffset % myHandleIncrementSize == 0);
 
     Block block;
     block.myStart = addressOffset / myHandleIncrementSize;
     block.myEnd = block.myStart + 1;
-    myAllocator.Free(block);
+    Free(block);
+  }
+
+  bool StaticDescriptorAllocatorDX12::CreatePageData(uint64 aSize, Any& aPageData)
+  {
+    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
+    D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
+    ASSERT(aSize <= UINT_MAX);
+    heapDesc.NumDescriptors = static_cast<uint>(aSize);
+    heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    heapDesc.NodeMask = 0u;
+    heapDesc.Type = myType;
+
+    Heap heapData;
+
+    if (!SUCCEEDED(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heapData.myHeap))))
+      return false;
+
+    heapData.myCpuHeapStart = heapData.myHeap->GetCPUDescriptorHandleForHeapStart();
+    heapData.myGpuHeapStart = heapData.myHeap->GetGPUDescriptorHandleForHeapStart();
+
+    aPageData = heapData;
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  void StaticDescriptorAllocatorDX12::DestroyPageData(Any& aPageData)
+  {
   }
 //---------------------------------------------------------------------------//
 }

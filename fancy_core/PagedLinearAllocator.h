@@ -2,6 +2,7 @@
 
 #include "FancyCoreDefines.h"
 #include "GrowingList.h"
+#include "Any.h"
 
 #include <functional>
 #include <list>
@@ -12,7 +13,6 @@ namespace Fancy
  * A freelist-based linear allocator with custom page-data and callback-functions for reacting on creation/destruction of pages.
  * Useful for situations where custom data needs to be associated with each page (e.g. resource-heaps in DX12)
  */
-  template<class T>
   class PagedLinearAllocator
   {
   public:
@@ -21,7 +21,7 @@ namespace Fancy
       uint64 myStart;
       uint64 myEnd;
       uint myOpenAllocs;
-      T myData;  // TODO: Use an Any instead to avoid templatization?
+      Any myData;
     };
 
     struct Block
@@ -30,7 +30,9 @@ namespace Fancy
       uint64 myEnd;
     };
 
-    PagedLinearAllocator(uint64 aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn);
+    PagedLinearAllocator(uint64 aPageSize);
+    virtual ~PagedLinearAllocator();
+
     const Page* FindPage(std::function<bool(const Page&)> aPredicateFn);
     const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName = nullptr);
     void Free(const Block& aBlock);
@@ -38,13 +40,14 @@ namespace Fancy
     Page* GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage);
 
   //private:
+
+    virtual bool CreatePageData(uint64 aSize, Any& aPageData) = 0;
+    virtual void DestroyPageData(Any& aPageData) = 0;
+
     bool CreateAndAddPage(uint64 aSize);
     static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd <= aPage.myEnd; }
 
     const uint64 myPageSize;
-    std::function<bool(uint64, T&)> myPageDataCreateFn;
-    std::function<void(T&)> myPageDataDestroyFn;
-
     using FreeListT = GrowingList<Block, 64>;
     using FreeListIterator = typename FreeListT::Iterator;
     FreeListT myFreeList;
@@ -66,16 +69,16 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 // Implementation
 //---------------------------------------------------------------------------//
-  template <class T>
-  PagedLinearAllocator<T>::PagedLinearAllocator(uint64 aPageSize, std::function<bool(uint64, T&)> aPageDataCreateFn, std::function<void(T&)> aPageDataDestroyFn)
+  PagedLinearAllocator::PagedLinearAllocator(uint64 aPageSize)
     : myPageSize(aPageSize) 
-    , myPageDataCreateFn(std::move(aPageDataCreateFn))
-    , myPageDataDestroyFn(std::move(aPageDataDestroyFn))
   {
   }
 //---------------------------------------------------------------------------//
-  template <class T>
-  const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::FindPage(std::function<bool(const Page&)> aPredicateFn)
+  inline PagedLinearAllocator::~PagedLinearAllocator()
+  {
+  }
+//---------------------------------------------------------------------------//
+  const PagedLinearAllocator::Page* PagedLinearAllocator::FindPage(std::function<bool(const Page&)> aPredicateFn)
   {
     for (const Page& page : myPages)
       if (aPredicateFn(page))
@@ -84,8 +87,7 @@ namespace Fancy
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  template <class T>
-  const typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName /*= nullptr*/)
+  const typename PagedLinearAllocator::Page* PagedLinearAllocator::Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName /*= nullptr*/)
   {
     const uint64 sizeWithAlignment = MathUtil::Align(aSize, anAlignment);
 
@@ -127,8 +129,7 @@ namespace Fancy
     return Allocate(aSize, anAlignment, anOffsetInPageOut, aDebugName);
   }
 //---------------------------------------------------------------------------//
-  template <class T>
-  void PagedLinearAllocator<T>::Free(const Block& aBlockToFree)
+  void PagedLinearAllocator::Free(const Block& aBlockToFree)
   {
 #if CORE_DEBUG_MEMORY_ALLOCATIONS
     auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&aBlockToFree](const AllocDebugInfo& anInfo)
@@ -152,7 +153,7 @@ namespace Fancy
     if (page.myOpenAllocs == 0)  // Was this the last allocation from the page -> remove the page completely
     {
 #if CORE_DEBUG_MEMORY_ALLOCATIONS // Validate that the only remaining allocated space is the block to free.
-      FreeListIterator firstBlockInPage = myFreeList.Find([page](const Block& aBlock) { return IsBlockInPage(aBlock, page); });
+      FreeListIterator firstBlockInPage = myFreeList.Find([&page](const Block& aBlock) { return IsBlockInPage(aBlock, page); });
       FreeListIterator lastBlockInPage;
       if (firstBlockInPage)
       {
@@ -192,15 +193,15 @@ namespace Fancy
           --it;
       }
 
-      myPageDataDestroyFn(page.myData);
+      DestroyPageData(page.myData);
       myPages.erase(pageIt);
     }
     else
     {
-      FreeListIterator blockBefore = myFreeList.ReverseFind([aBlockToFree, page](const Block& aBlock) {
+      FreeListIterator blockBefore = myFreeList.ReverseFind([aBlockToFree](const Block& aBlock) {
         return aBlock.myEnd <= aBlockToFree.myStart;
       });
-      FreeListIterator blockAfter = blockBefore ? blockBefore.Next() : myFreeList.Find([aBlockToFree, page](const Block& aBlock) {
+      FreeListIterator blockAfter = blockBefore ? blockBefore.Next() : myFreeList.Find([aBlockToFree](const Block& aBlock) {
         return aBlock.myStart >= aBlockToFree.myEnd;
       });
 
@@ -231,14 +232,13 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  template <class T>
-  bool PagedLinearAllocator<T>::CreateAndAddPage(uint64 aSize)
+  bool PagedLinearAllocator::CreateAndAddPage(uint64 aSize)
   {
     const uint64 alignedSize = MathUtil::Align(aSize, myPageSize);
     const uint64 pageStart = myPages.empty() ? 0u : myPages.back().myEnd;
     const uint64 pageEnd = pageStart + alignedSize;
     Page page{pageStart, pageEnd, 0u};
-    if (!myPageDataCreateFn(alignedSize, page.myData))
+    if (!CreatePageData(alignedSize, page.myData))
       return false;
 
     myFreeList.Add(Block{page.myStart, page.myEnd});
@@ -246,8 +246,7 @@ namespace Fancy
     return true;
   }
 //---------------------------------------------------------------------------//
-  template <class T>
-  typename PagedLinearAllocator<T>::Page* PagedLinearAllocator<T>::GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage)
+  PagedLinearAllocator::Page* PagedLinearAllocator::GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage)
   {
     for (Page& existingPage : myPages)
     {
