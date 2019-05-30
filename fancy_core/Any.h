@@ -13,7 +13,7 @@ namespace Fancy
   namespace EqualityFallback
   {
     template <class T>
-    bool operator==(const T& aLeft, const T& aRight)
+    bool operator==(const T&, const T&)
     {
       return false;
     }
@@ -36,10 +36,10 @@ namespace Fancy
     };
 
     template<class T>
-    static bool IsEqual_Impl(const T& aLeft, const T& aRight)
+    static bool IsEqual_Impl(const T&, const T&)
     {
       using namespace EqualityFallback;
-      return aLeft == aRight;
+      return false;
     }
 
     template<class T, bool UsesBuffer = true>
@@ -107,8 +107,20 @@ namespace Fancy
       InitDataStorage(anObject);
     }
 
+    AnySized(const AnySized& anOther)
+    {
+      myVTable = anOther.myVTable;
+      myVTable->Clone(&myDataStorage, anOther.myDataStorage);
+    }
+
+    AnySized(AnySized&& anOther)
+    {
+      myVTable = anOther.myVTable;
+      myVTable->Move(&myDataStorage, anOther.myDataStorage);
+    }
+
     template<class T>
-    void operator=(const T& anObject)
+    AnySized& operator=(const T& anObject)
     {
       if (!IsEmpty())
         myVTable->Delete(&myDataStorage);
@@ -116,30 +128,33 @@ namespace Fancy
       using RawType = std::remove_const_t<std::remove_reference_t<T>>;
       myVTable = Get_VTable<RawType>::Get();
       InitDataStorage(anObject);
+      return *this;
     }
 
-    void operator=(const AnySized& anOtherAny)
+    AnySized& operator=(const AnySized& anOtherAny)
     {
       if (&anOtherAny == this)
-        return;
+        return *this;
 
       if (!IsEmpty())
         myVTable->Delete(&myDataStorage);
 
       myVTable = anOtherAny.myVTable;
       myVTable->Clone(&myDataStorage, anOtherAny.myDataStorage);
+      return *this;
     }
 
-    void operator=(AnySized&& anOtherAny)
+    AnySized& operator=(AnySized&& anOtherAny)
     {
       if (&anOtherAny == this)
-        return;
+        return *this;
 
       if (!IsEmpty())
         myVTable->Delete(&myDataStorage);
 
       myVTable = anOtherAny.myVTable;
       myVTable->Move(&myDataStorage, anOtherAny.myDataStorage);
+      return *this;
     }
 
     bool IsEmpty() const

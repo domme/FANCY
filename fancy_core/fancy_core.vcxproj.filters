@@ -476,6 +476,9 @@
     <ClCompile Include="Annotations.cpp">
       <Filter>Profiler</Filter>
     </ClCompile>
+    <ClCompile Include="PagedLinearAllocator.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />
