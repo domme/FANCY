@@ -17,7 +17,7 @@ using namespace Fancy;
 ANNOTATION_CREATE_TAG(ANNTAG_PROFILER_TEST, "ProfilerTest", 0xFF00FF00);
 
 ANNOTATION_CREATE_TAG(ANNTAG_GROWINGLIST, "GrowingList", 0xFFf4a442);
-ANNOTATION_CREATE_TAG(ANNTAG_LIST, "List", 0xFF4153f4);
+ANNOTATION_CREATE_TAG(ANNTAG_LIST, "List", 0xFF48f442);
 
 void ShortFunc()
 {
@@ -96,23 +96,25 @@ void StdList_Iteration()
 void GrowingList_DeleteInsert()
 {
   PROFILE_FUNCTION_TAG(ANNTAG_GROWINGLIST);
-  
-  uint numRemoved = 0;
-  auto it = myGrowingList.Begin();
-  for (; it != myGrowingList.Invalid(); )
+
+  const uint numElements = myGrowingList.Size();
   {
-    if (std::rand() > (RAND_MAX / 100))
+    Profiler::ScopedMarker marker("GrowingList Delete", ANNTAG_GROWINGLIST);
+    while (!myGrowingList.IsEmpty())
     {
-      it = myGrowingList.Remove(it);
-      ++numRemoved;
+      uint idx = std::rand() % myGrowingList.Size();
+      auto it = myGrowingList.FindAtIndex(idx);
+      ASSERT(it);
+      myGrowingList.Remove(it);
     }
-    else
-      ++it;
   }
 
-  for (uint i = 0; i < numRemoved; ++i)
   {
-    myGrowingList.Add(TestStruct());
+    Profiler::ScopedMarker marker("GrowingList Fill", ANNTAG_GROWINGLIST);
+    for (uint i = 0; i < numElements; ++i)
+    {
+      myGrowingList.Add(TestStruct());
+    }
   }
 }
 
@@ -120,22 +122,33 @@ void StdList_DeleteInsert()
 {
   PROFILE_FUNCTION_TAG(ANNTAG_LIST);
 
-  uint numRemoved = 0;
-  auto it = myStlList.begin();
-  for (; it != myStlList.end();)
+  auto GetIterator = [&](uint idx)
   {
-    if (std::rand() > (RAND_MAX / 100))
+    auto it = myStlList.begin();
+    while (idx != 0)
     {
-      it = myStlList.erase(it);
-      ++numRemoved;
-    }
-    else
       ++it;
+      --idx;
+    }
+    return it;
+  };
+
+  const uint numElements = myStlList.size();
+  {
+    Profiler::ScopedMarker marker("StdList Delete", ANNTAG_LIST);
+    while (!myStlList.empty())
+    {
+      const uint idx = std::rand() % myStlList.size();
+      myStlList.erase(GetIterator(idx));
+    }
   }
 
-  for (uint i = 0; i < numRemoved; ++i)
   {
-    myStlList.push_back(TestStruct());
+    Profiler::ScopedMarker marker("StdList Fill", ANNTAG_LIST);
+    for (uint i = 0; i < numElements; ++i)
+    {
+      myStlList.push_back(TestStruct());
+    }
   }
 }
 

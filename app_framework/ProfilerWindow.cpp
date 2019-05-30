@@ -125,7 +125,7 @@ using namespace Fancy;
     aMaxTimeOut = maxEnd;
   }
 //---------------------------------------------------------------------------//
-  bool RenderSample(const Profiler::SampleNode& aNode, const ImVec2& aPosLocal, const ImVec2& aSize)
+  bool RenderSample(const Profiler::SampleNode& aNode, const ImVec2& aPosLocal, ImVec2 aSize)
   {
     const Profiler::SampleNodeInfo& nodeInfo = Profiler::GetSampleInfo(aNode.myNodeInfo);
     const char* aLabel = FormatString("%s: %.3f", nodeInfo.myName, (float)aNode.myDuration);
@@ -135,6 +135,9 @@ using namespace Fancy;
       aLabel = "";
 
     const AnnotationTagData& tagData = Annotations::GetTagData(nodeInfo.myTag);
+
+    if (aSize.x > 2)
+      aSize.x -= 1;
 
     ImGui::SetCursorPos(aPosLocal);
     ImGui::PushStyleColor(ImGuiCol_Button, tagData.myColor);
@@ -324,8 +327,8 @@ using namespace Fancy;
       // Scaling
       if (glm::abs(ImGui::GetIO().MouseWheel) > 0.1f)
       {
-        const float scaleChange = ImGui::GetIO().MouseWheel * (ImGui::GetIO().KeyShift ? 0.5f : 0.025f);
-        myTimeToPixelScale = glm::clamp(myTimeToPixelScale + scaleChange, 0.01f, 100.0f);
+        const float scaleChange = ImGui::GetIO().MouseWheel * (ImGui::GetIO().KeyShift ? 2.0f : 0.25f);
+        myTimeToPixelScale = glm::clamp(myTimeToPixelScale + scaleChange, 0.001f, 1000.0f);
 
         // Adjust offset so the current mouse pos stays centered
         const float timelineSpace = -myHorizontalOffset;

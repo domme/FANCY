@@ -6,11 +6,11 @@
 namespace Fancy {
 
   /*
-   * Represents a simple double-linked list that will never deallocate memory but will only allocate if needed.
-   * Intended for lists that need high-performance removal of elements and/or only ever grow to a fixed size.
-   * Elements are allocated in groups of pages. Each page is allocated in a continuous memory region. 
-   * Adding and removing elements in random positions in the list (as opposed to at the end) will result in memory fragmentation
-   * that will degrade performance. In such use-cases, a regular std::list might be a better choice.
+   * Represents a simple double-linked list as a potentially faster alternative to std::list. 
+   * It will grow in pages of PageSize and won't re-use memory from removed elements and instead always appends new elements at the end of the pages - possibly allocating a new page.
+   * Pages are only removed if all of its elements have been removed. This is to make it more likely that linked elements are close to each other in memory, increasing cache-efficiency.
+   * Because of that, the GrowingList is intended for semi-ordered adds and removes. Completely randomized add/remove might make only one element used per page, increasing the memory-requirements to
+   * PageSize * NumberOfListElements as a worst case-scenario.
    */
   template<class T, uint64 PageSize>
   class GrowingList
@@ -53,6 +53,7 @@ namespace Fancy {
     Iterator Remove(Iterator aPos);
     Iterator Find(const T& aData);
     Iterator Find(std::function<bool(const T&)> aPredicate);
+    Iterator FindAtIndex(uint anIndex);
     Iterator ReverseFind(const T& aData);
     Iterator ReverseFind(std::function<bool(const T&)> aPredicate);
     bool IsEmpty() const;
@@ -288,6 +289,7 @@ namespace Fancy {
             ASSERT(currPage == myTailPage);
             ASSERT(lastPage != nullptr);
             myTailPage = lastPage;
+            myTailPage->myNext = nullptr;
           }
           else
           {
@@ -341,6 +343,20 @@ namespace Fancy {
     }
 
     return end;
+  }
+//---------------------------------------------------------------------------//
+  template <class T, uint64 PageSize>
+  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::FindAtIndex(uint anIndex)
+  {
+    ASSERT(anIndex < mySize);
+    Iterator it(myHeadElement);
+    while (anIndex != 0)
+    {
+      ++it;
+      --anIndex;
+    }
+
+    return it;
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
