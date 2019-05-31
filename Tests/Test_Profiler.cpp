@@ -105,7 +105,7 @@ void GrowingList_DeleteInsert()
       uint idx = std::rand() % myGrowingList.Size();
       auto it = myGrowingList.FindAtIndex(idx);
       ASSERT(it);
-      myGrowingList.Remove(it);
+      myGrowingList.RemoveGetNext(it);
     }
   }
 

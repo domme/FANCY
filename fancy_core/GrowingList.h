@@ -50,7 +50,8 @@ namespace Fancy {
     Iterator Add(T aData);
     Iterator AddBefore(Iterator aPos, T aData);
     Iterator AddAfter(Iterator aPos, T aData);
-    Iterator Remove(Iterator aPos);
+    Iterator RemoveGetNext(Iterator aPos);
+    Iterator RemoveGetPrev(Iterator aPos);
     Iterator Find(const T& aData);
     Iterator Find(std::function<bool(const T&)> aPredicate);
     Iterator FindAtIndex(uint anIndex);
@@ -81,6 +82,7 @@ namespace Fancy {
 
     Element* AllocateElement();
     Page* FindPage(Iterator aPos);
+    Iterator RemoveInternal(Iterator aPos, bool aReverse);
 
     Page* myHeadPage = nullptr;
     Page* myTailPage = nullptr;
@@ -241,7 +243,19 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
-  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::Remove(Iterator aPos)
+  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::RemoveGetNext(Iterator aPos)
+  {
+    return RemoveInternal(aPos, false);
+  }
+//---------------------------------------------------------------------------//
+  template <class T, uint64 PageSize>
+  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::RemoveGetPrev(Iterator aPos)
+  {
+    return RemoveInternal(aPos, true);
+  }
+//---------------------------------------------------------------------------//
+  template <class T, uint64 PageSize>
+  typename GrowingList<T, PageSize>::Iterator GrowingList<T, PageSize>::RemoveInternal(Iterator aPos, bool aReverse)
   {
     ASSERT(aPos);
     Page* page = FindPage(aPos);
@@ -262,7 +276,7 @@ namespace Fancy {
     // In the special case of element being the last element allocated from the last page, we can free it again.
     //if (page == myTailPage && page->myNextFreeElementIdx > 0 && element == &page->myElements[page->myNextFreeElementIdx - 1])
     //  --page->myNextFreeElementIdx;
-    
+
     ASSERT(page->myNumUsedElements > 0);
     --page->myNumUsedElements;
 
@@ -284,7 +298,7 @@ namespace Fancy {
             ASSERT(nextPage != nullptr);
             myHeadPage = nextPage;
           }
-          else if(nextPage == nullptr)
+          else if (nextPage == nullptr)
           {
             ASSERT(currPage == myTailPage);
             ASSERT(lastPage != nullptr);
@@ -310,7 +324,7 @@ namespace Fancy {
     element->myNext = nullptr;
     element->myData.~T();
     --mySize;
-    return Iterator(next);
+    return aReverse ? Iterator(prev) : Iterator(next);
   }
 //---------------------------------------------------------------------------//
   template <class T, uint64 PageSize>
@@ -448,6 +462,5 @@ namespace Fancy {
 
     return nullptr;
   }
-//---------------------------------------------------------------------------//
 }
 

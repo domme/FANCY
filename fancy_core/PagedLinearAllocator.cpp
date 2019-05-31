@@ -44,7 +44,7 @@ namespace Fancy
 
         it->myStart += sizeWithAlignmentAndPadding;
         if (freeBlockSize == sizeWithAlignmentAndPadding)
-          myFreeList.Remove(it);
+          myFreeList.RemoveGetNext(it);
 
         anOffsetInPageOut = offsetInPage;
         ++page->myOpenAllocs;
@@ -126,7 +126,7 @@ namespace Fancy
       for (FreeListIterator it = myFreeList.Last(); it != myFreeList.Invalid(); )
       {
         if (IsBlockInPage(*it, page))
-          it = myFreeList.Remove(it);
+          it = myFreeList.RemoveGetPrev(it);
         else
           --it;
       }
@@ -148,7 +148,7 @@ namespace Fancy
       if (canMergeWithBefore && canMergeWithAfter)  // [A][X][B]
       {
         blockBefore->myEnd = blockAfter->myEnd;
-        myFreeList.Remove(blockAfter);
+        myFreeList.RemoveGetNext(blockAfter);
       }
       else if (canMergeWithBefore)  // [A][X]
       {
