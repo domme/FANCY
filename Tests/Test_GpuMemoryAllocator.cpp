@@ -13,7 +13,7 @@
 using namespace Fancy;
 
 Test_GpuMemoryAllocator::Test_GpuMemoryAllocator(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Profiler")
+  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "GPU Memory Allocations")
   , myBufferToAllocSizeMb(64)
   , myScale(10.0f)
 {

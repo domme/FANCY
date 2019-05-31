@@ -15,7 +15,7 @@ namespace Fancy
   inline PagedLinearAllocator::~PagedLinearAllocator()
   {
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   const PagedLinearAllocator::Page* PagedLinearAllocator::FindPage(std::function<bool(const Page&)> aPredicateFn)
   {
     for (const Page& page : myPages)
@@ -24,7 +24,7 @@ namespace Fancy
 
     return nullptr;
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   const typename PagedLinearAllocator::Page* PagedLinearAllocator::Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName /*= nullptr*/)
   {
     const uint64 sizeWithAlignment = MathUtil::Align(aSize, anAlignment);

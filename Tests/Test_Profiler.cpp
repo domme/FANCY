@@ -16,9 +16,6 @@ using namespace Fancy;
 
 ANNOTATION_CREATE_TAG(ANNTAG_PROFILER_TEST, "ProfilerTest", 0xFF00FF00);
 
-ANNOTATION_CREATE_TAG(ANNTAG_GROWINGLIST, "GrowingList", 0xFFf4a442);
-ANNOTATION_CREATE_TAG(ANNTAG_LIST, "List", 0xFF48f442);
-
 void ShortFunc()
 {
   PROFILE_FUNCTION();
@@ -72,86 +69,6 @@ struct TestStruct
   uint64 myDataC;
 };
 
-Fancy::GrowingList<TestStruct, 64> myGrowingList;
-std::list<TestStruct> myStlList;
-
-void GrowingList_Iteration()
-{
-  PROFILE_FUNCTION_TAG(ANNTAG_GROWINGLIST);
-
-  uint64 dataSum = 0;
-  for (auto it = myGrowingList.Begin(); it != myGrowingList.Invalid(); ++it)
-    dataSum += it->myDataA + it->myDataB + it->myDataC;
-}
-
-void StdList_Iteration()
-{
-  PROFILE_FUNCTION_TAG(ANNTAG_LIST);
-
-  uint64 dataSum = 0;
-  for (auto it = myStlList.begin(); it != myStlList.end(); ++it)
-    dataSum += it->myDataA + it->myDataB + it->myDataC;
-}
-
-void GrowingList_DeleteInsert()
-{
-  PROFILE_FUNCTION_TAG(ANNTAG_GROWINGLIST);
-
-  const uint numElements = myGrowingList.Size();
-  {
-    Profiler::ScopedMarker marker("GrowingList Delete", ANNTAG_GROWINGLIST);
-    while (!myGrowingList.IsEmpty())
-    {
-      uint idx = std::rand() % myGrowingList.Size();
-      auto it = myGrowingList.FindAtIndex(idx);
-      ASSERT(it);
-      myGrowingList.RemoveGetNext(it);
-    }
-  }
-
-  {
-    Profiler::ScopedMarker marker("GrowingList Fill", ANNTAG_GROWINGLIST);
-    for (uint i = 0; i < numElements; ++i)
-    {
-      myGrowingList.Add(TestStruct());
-    }
-  }
-}
-
-void StdList_DeleteInsert()
-{
-  PROFILE_FUNCTION_TAG(ANNTAG_LIST);
-
-  auto GetIterator = [&](uint idx)
-  {
-    auto it = myStlList.begin();
-    while (idx != 0)
-    {
-      ++it;
-      --idx;
-    }
-    return it;
-  };
-
-  const uint numElements = myStlList.size();
-  {
-    Profiler::ScopedMarker marker("StdList Delete", ANNTAG_LIST);
-    while (!myStlList.empty())
-    {
-      const uint idx = std::rand() % myStlList.size();
-      myStlList.erase(GetIterator(idx));
-    }
-  }
-
-  {
-    Profiler::ScopedMarker marker("StdList Fill", ANNTAG_LIST);
-    for (uint i = 0; i < numElements; ++i)
-    {
-      myStlList.push_back(TestStruct());
-    }
-  }
-}
-
 Test_Profiler::Test_Profiler(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Profiler")
 {
@@ -165,13 +82,6 @@ Test_Profiler::Test_Profiler(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWind
   ASSERT(myDummyGpuBuffer1 != nullptr, "Test Profiler failed: Unable to create gpu dummy buffer");
   myDummyGpuBuffer2 = RenderCore::CreateBuffer(props, "TestItem_Profiler_DummyBuffer1");
   ASSERT(myDummyGpuBuffer2 != nullptr, "Test Profiler failed: Unable to create gpu dummy buffer");
-
-  for (uint i = 0; i < 1000; ++i)
-  {
-    TestStruct testData{};
-    myGrowingList.Add(testData);
-    myStlList.push_back(testData);
-  }
 }
 
 Test_Profiler::~Test_Profiler()
@@ -181,14 +91,8 @@ Test_Profiler::~Test_Profiler()
 
 void Test_Profiler::OnUpdate(bool aDrawProperties)
 {
-  //LongFunc();
-  //LongFunc();
-
-  GrowingList_Iteration();
-  StdList_Iteration();
-
-  GrowingList_DeleteInsert();
-  StdList_DeleteInsert();
+  LongFunc();
+  LongFunc();
 
   if (aDrawProperties && ImGui::Button("Toggle Profiler Window"))
     myShowProfilerWindow ^= 1;
@@ -199,5 +103,5 @@ void Test_Profiler::OnUpdate(bool aDrawProperties)
 
 void Test_Profiler::OnRender()
 {
- // LongGpuCopy(myDummyGpuBuffer1.get(), myDummyGpuBuffer2.get());
+  LongGpuCopy(myDummyGpuBuffer1.get(), myDummyGpuBuffer2.get());
 }

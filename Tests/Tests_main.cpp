@@ -16,6 +16,7 @@
 #include "Test_Profiler.h"
 #include "Test_ImGui.h"
 #include "Test_GpuMemoryAllocator.h"
+#include "Test_Synchronization.h"
 
 using namespace Fancy;
 
@@ -28,6 +29,7 @@ ImGuiContext* myImGuiContext = nullptr;
 bool test_profiler = false;
 bool test_imgui = false;
 bool test_gpuMemoryAllocs = false;
+bool test_sychronization = false;
 
 DynamicArray<UniquePtr<Test>> myTests;
 
@@ -84,6 +86,13 @@ void Update()
       myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_GpuMemoryAllocator*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(std::make_unique<Test_GpuMemoryAllocator>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+  if (ImGui::Checkbox("Test Synchronization", &test_sychronization))
+  {
+    if (!test_sychronization)
+      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Synchronization*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(std::make_unique<Test_Synchronization>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
 
   ImGui::Separator();
