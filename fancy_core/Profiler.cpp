@@ -3,6 +3,7 @@
 #include "MathUtil.h"
 #include "CommandList.h"
 #include "CommandQueue.h"
+#include "CommandContext.h"
 
 #include <chrono>
 #include <ratio>
@@ -221,28 +222,28 @@ namespace Fancy
     closedSample.myDuration = closedSample.myEnd.myTime - closedSample.myStart.myTime;
   }
 //---------------------------------------------------------------------------//
-  void Profiler::PushGpuMarker(CommandList* aContext, const char* aName, uint16 aTag)
+  void Profiler::PushGpuMarker(CommandList* aCommandList, const char* aName, uint16 aTag)
   {
     if (locPaused)
       return;
 
     SampleNode& newSample = OpenMarker(aName, aTag, TIMELINE_GPU);
 
-    ASSERT(aContext->IsOpen());
-    const GpuQuery timestamp = aContext->InsertTimestamp();
+    ASSERT(aCommandList->IsOpen());
+    const GpuQuery timestamp = aCommandList->InsertTimestamp();
     newSample.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
     newSample.myStart.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
   }
 //---------------------------------------------------------------------------//
-  void Profiler::PopGpuMarker(CommandList* aContext)
+  void Profiler::PopGpuMarker(CommandList* aCommandList)
   {
     if (locPaused)
       return;
 
     SampleNode& closedSample = CloseMarker(TIMELINE_GPU);
 
-    ASSERT(aContext->IsOpen());
-    const GpuQuery timestamp = aContext->InsertTimestamp();
+    ASSERT(aCommandList->IsOpen());
+    const GpuQuery timestamp = aCommandList->InsertTimestamp();
     closedSample.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
     closedSample.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
   }
@@ -318,10 +319,9 @@ namespace Fancy
     currFrame.myEnd = { 0u };
     currFrame.myHasValidTimes = false;
 
-    CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
+    CommandContext ctx(CommandListType::Graphics);
     const GpuQuery timestamp = ctx->InsertTimestamp();
-    RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(ctx);
-    RenderCore::FreeCommandList(ctx);
+    ctx.Execute();
 
     currFrame.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
     currFrame.myStart.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
@@ -347,10 +347,10 @@ namespace Fancy
       if (recordedFrames.IsFull())
         FreeFirstFrame(TIMELINE_GPU);
 
-      CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
+
+      CommandContext ctx(CommandListType::Graphics);
       const GpuQuery timestamp = ctx->InsertTimestamp();
-      RenderCore::GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(ctx);
-      RenderCore::FreeCommandList(ctx);
+      ctx.Execute();
 
       currFrame.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
       currFrame.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;

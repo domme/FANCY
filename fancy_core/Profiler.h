@@ -84,8 +84,8 @@ namespace Fancy
     static void PushMarker(const char* aName, uint16 aTag);
     static void PopMarker();
 
-    static void PushGpuMarker(CommandList* aContext, const char* aName, uint16 aTag);
-    static void PopGpuMarker(CommandList* aContext);
+    static void PushGpuMarker(CommandList* aCommandList, const char* aName, uint16 aTag);
+    static void PopGpuMarker(CommandList* aCommandList);
 
     static void BeginFrame();
     static void EndFrame();
@@ -111,8 +111,8 @@ namespace Fancy
 
 #define PROFILE_FUNCTION(...) Profiler::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, 0u)
 #define PROFILE_FUNCTION_TAG(aTag, ...) Profiler::ScopedMarker __marker##__FUNCTION__ (__FUNCTION__, aTag)
-#define GPU_BEGIN_PROFILE_FUNCTION_TAG(aContext, aTag, ...) Profiler::PushGpuMarker(aContext, __FUNCTION__, aTag)
-#define GPU_BEGIN_PROFILE_FUNCTION(aContext, ...) Profiler::PushGpuMarker(aContext, __FUNCTION__, 0u)
-#define GPU_BEGIN_PROFILE(aContext, aName, aTag) Profiler::PushGpuMarker(aContext, aName, aTag)
-#define GPU_END_PROFILE(aContext) Profiler::PopGpuMarker(aContext)
+#define GPU_BEGIN_PROFILE_FUNCTION_TAG(aCommandList, aTag, ...) Profiler::PushGpuMarker(aCommandList, __FUNCTION__, aTag)
+#define GPU_BEGIN_PROFILE_FUNCTION(aCommandList, ...) Profiler::PushGpuMarker(aCommandList, __FUNCTION__, 0u)
+#define GPU_BEGIN_PROFILE(aCommandList, aName, aTag) Profiler::PushGpuMarker(aCommandList, aName, aTag)
+#define GPU_END_PROFILE(aCommandList) Profiler::PopGpuMarker(aCommandList)
 }

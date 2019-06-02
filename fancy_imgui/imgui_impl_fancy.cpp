@@ -19,6 +19,7 @@
 #include <fancy_core/CommandQueue.h>
 #include <fancy_core/Profiler.h>
 #include <fancy_core/Annotations.h>
+#include "fancy_core/CommandContext.h"
 
 ANNOTATION_CREATE_TAG(ANNTAG_IMGUI, "ImGui", 0xFFC17700);
 
@@ -233,10 +234,10 @@ namespace Fancy { namespace ImGuiRendering {
 //---------------------------------------------------------------------------//
   void RenderDrawLists(ImDrawData* _draw_data)
   {
-    CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
+    CommandContext ctx(CommandListType::Graphics);
     
     PROFILE_FUNCTION_TAG(ANNTAG_IMGUI);
-    GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx, ANNTAG_IMGUI);
+    GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx.GetCommandList(), ANNTAG_IMGUI);
 
     RenderOutput* renderOutput = ourRenderOutput;
 
@@ -304,11 +305,8 @@ namespace Fancy { namespace ImGuiRendering {
       }
     }
 
-    GPU_END_PROFILE(ctx);
-    CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-    queue->ExecuteCommandList(ctx);
-
-    RenderCore::FreeCommandList(ctx);
+    GPU_END_PROFILE(ctx.GetCommandList());
+    ctx.Execute();
   }
 
   void Shutdown()

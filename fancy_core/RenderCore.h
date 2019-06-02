@@ -82,7 +82,7 @@ namespace Fancy {
     static uint GetQueryTypeDataSize(GpuQueryType aType);
 
     static uint64 UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize, SyncMode aSyncMode);
-    static uint64 UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas, SyncMode aSyncType);
+    static uint64 UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas, SyncMode aSyncMode);
     
     static MappedTempBuffer ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize);
     static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations);
@@ -115,6 +115,7 @@ namespace Fancy {
     static void EndQueryDataReadback(GpuQueryType aType);
     static float64 GetGpuTicksToMsFactor(CommandListType aCommandListType);
     
+    static bool IsFenceDone(uint64 aFenceVal);
     static bool IsFrameDone(uint64 aFrameIdx);
     static void WaitForFrame(uint64 aFrameIdx);
     static void WaitForFence(uint64 aFenceVal);

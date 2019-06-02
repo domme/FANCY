@@ -10,6 +10,7 @@
 #include "fancy_core/GrowingList.h"
 #include "fancy_core/TimeManager.h"
 #include "fancy_core/CommandContext.h"
+#include "fancy_core/StaticString.h"
 
 using namespace Fancy;
 
@@ -44,8 +45,10 @@ Test_Synchronization::~Test_Synchronization()
 
 void Test_Synchronization::OnUpdate(bool aDrawProperties)
 {
-  ImGui::Checkbox("Wait for results", &myWaitForResults);
-
+  // CPU-GPU sync test:
+  // 1) Write to A on CPU
+  // 2) Copy A->B on GPU
+  // 3) Read B on CPU -> Verify that its the content that was written into A before
   switch (myStage) 
   { 
     case Stage::IDLE: 
@@ -58,22 +61,46 @@ void Test_Synchronization::OnUpdate(bool aDrawProperties)
 
       CommandContext ctx(CommandListType::Graphics);
       ctx->CopyBufferRegion(myReadbackBuffer.get(), 0ull, myUploadBuffer.get(), 0ull, myUploadBuffer->GetByteSize());
-      ctx.Execute();
+      myBufferCopyFence = ctx.Execute();
+
+      myStage = Stage::WAITING_FOR_COPY;
     }
     break;
-    case Stage::WAITING_FOR_COPY: break;
-    case Stage::COPY_DONE: break;
-    default: ;
+    case Stage::WAITING_FOR_COPY: 
+    {
+     if (RenderCore::IsFenceDone(myBufferCopyFence))
+        myStage = Stage::COPY_DONE;
+    }
+    break;
+    case Stage::COPY_DONE: 
+    {
+      uint* bufferData = (uint*)myReadbackBuffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+      bool hasExpectedData = true;
+      uint bufferValue = 0;
+      for (uint i = 0; hasExpectedData && i < kNumBufferElements; ++i)
+      {
+        bufferValue = bufferData[i];
+        hasExpectedData &= bufferData[i] == myExpectedBufferValue;
+      }
+      myReadbackBuffer->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+      
+      if (hasExpectedData)
+      {
+        ImGui::PushStyleColor(ImGuiCol_Text, 0xFF20a300);
+        ImGui::Text("CPU-GPU sync test passed!");
+      }
+      else
+      {
+        ImGui::PushStyleColor(ImGuiCol_Text, 0xFFb22900);
+        ImGui::Text("Cpu-GPU sync test failed! Expected: %d - Actual %d", myExpectedBufferValue, bufferValue);
+      }
+
+      ImGui::PopStyleColor();
+
+      myStage = Stage::IDLE;
+    }
+    break;
   }
-
-    // Expected behavior:
-  // 1) Write to A on CPU
-  // 2) Copy A->B on GPU
-  // 3) Read B on CPU -> Verify that its the content that was written into A before
-
-  
-
-
 }
 
 void Test_Synchronization::OnRender()

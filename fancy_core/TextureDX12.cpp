@@ -230,7 +230,7 @@ namespace Fancy {
           }
         }
 
-        RenderCore::UpdateTextureData(this, TextureSubLocation(), newDatas, aNumInitialDatas);
+        RenderCore::UpdateTextureData(this, TextureSubLocation(), newDatas, aNumInitialDatas, SyncMode::BLOCKING);
 
         for (uint i = 0u; i < aNumInitialDatas; ++i)
           free(newDatas[i].myData);
@@ -239,7 +239,7 @@ namespace Fancy {
       }
       else
       {
-        RenderCore::UpdateTextureData(this, TextureSubLocation(), someInitialDatas, aNumInitialDatas);
+        RenderCore::UpdateTextureData(this, TextureSubLocation(), someInitialDatas, aNumInitialDatas, SyncMode::BLOCKING);
       }
     }
   }

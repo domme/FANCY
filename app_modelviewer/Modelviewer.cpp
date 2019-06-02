@@ -22,6 +22,7 @@
 #include "CameraController.h"
 #include <fancy_core/MeshData.h>
 #include <fancy_core/ResourceRefs.h>
+#include "fancy_core/CommandContext.h"
 
 using namespace Fancy;
 
@@ -206,17 +207,15 @@ void RenderScene(CommandList* ctx)
 
 void Render()
 {
-  CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-  CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
+  CommandContext ctx(CommandListType::Graphics);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), 1.0f, 0u);
 
-  RenderGrid(ctx);
-  RenderScene(ctx);  
+  RenderGrid(ctx.GetCommandList());
+  RenderScene(ctx.GetCommandList());  
 
-  queue->ExecuteCommandList(ctx);
-  RenderCore::FreeCommandList(ctx);
+  ctx.Execute();
 
   myRuntime->EndFrame();
 }

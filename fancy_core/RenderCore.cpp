@@ -23,6 +23,7 @@
 #include "TempResourcePool.h"
 #include "GpuQueryHeap.h"
 #include "TimeManager.h"
+#include "CommandContext.h"
 
 #include <xxHash/xxhash.h>
 
@@ -786,21 +787,19 @@ namespace Fancy {
     }
     else
     {
-      CommandList* context = AllocateCommandList(CommandListType::Graphics);
+      CommandContext context(CommandListType::Graphics);
       context->UpdateBufferData(aDestBuffer, aDestOffset, aDataPtr, aByteSize);
-      const uint64 fence = GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(context, aSyncMode);
-      FreeCommandList(context);
+      const uint64 fence = context.Execute(aSyncMode);
       return aSyncMode == SyncMode::ASYNC ? fence : 0ull;
     }
   }
 //---------------------------------------------------------------------------//
-  uint64 RenderCore::UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas, SyncMode aSyncType)
+  uint64 RenderCore::UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas, SyncMode aSyncMode)
   {
-    CommandList* context = AllocateCommandList(CommandListType::Graphics);
+    CommandContext context(CommandListType::Graphics);
     context->UpdateTextureData(aDestTexture, aStartSubresource, someDatas, aNumDatas);
-    const uint64 fence = GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(context, aSyncType);
-    FreeCommandList(context);
-    return aSyncType == SyncMode::ASYNC ? fence : 0ull;
+    const uint64 fence = context.Execute(aSyncMode);
+    return aSyncMode == SyncMode::ASYNC ? fence : 0ull;
   }
 //---------------------------------------------------------------------------//
   MappedTempBuffer RenderCore::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
@@ -820,10 +819,9 @@ namespace Fancy {
     TempBufferResource readbackBuffer  = AllocateTempBuffer(props, 0u, "Temp readback buffer");
     ASSERT(readbackBuffer.myBuffer != nullptr);
 
-    CommandList* ctx = AllocateCommandList(CommandListType::Graphics);
+    CommandContext ctx(CommandListType::Graphics);
     ctx->CopyBufferRegion(readbackBuffer.myBuffer, 0u, aBuffer, anOffset, aByteSize);
-    GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(ctx, SyncMode::BLOCKING);
-    FreeCommandList(ctx);
+    ctx.Execute(SyncMode::BLOCKING);
 
     return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ, aByteSize);
   }
@@ -847,15 +845,14 @@ namespace Fancy {
 
     const uint startSubresourceIndex = aTexture->GetSubresourceIndex(aStartSubLocation);
 
-    CommandList* ctx = AllocateCommandList(CommandListType::Graphics);
+    CommandContext ctx(CommandListType::Graphics);
     for (uint subresource = 0; subresource < aNumSublocations; ++subresource)
     {
       TextureSubLocation subLocation = aTexture->GetSubresourceLocation(startSubresourceIndex + subresource);
       uint64 offset = subresourceOffsets[subresource];
       ctx->CopyTextureRegion(readbackBuffer.myBuffer, offset, aTexture, subLocation);
     }
-    GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(ctx, SyncMode::BLOCKING);
-    FreeCommandList(ctx);
+    ctx.Execute(SyncMode::BLOCKING);
 
     return MappedTempTextureBuffer(subresourceLayouts, readbackBuffer, GpuResourceMapMode::READ, totalSize);
   }
@@ -924,7 +921,8 @@ namespace Fancy {
     if (!availableCommandListList.empty())
     {
       CommandList* commandList = availableCommandListList.front();
-      commandList->Reset();
+      if (!commandList->IsOpen())
+        commandList->Reset();
       availableCommandListList.pop_front();
       return commandList;
     }
@@ -1055,6 +1053,14 @@ namespace Fancy {
   float64 RenderCore::GetGpuTicksToMsFactor(CommandListType aCommandListType)
   {
     return ourPlatformImpl->GetGpuTicksToMsFactor(aCommandListType);
+  }
+//---------------------------------------------------------------------------//
+  bool RenderCore::IsFenceDone(uint64 aFenceVal)
+  {
+    CommandQueue* queue = GetCommandQueue(aFenceVal);
+    ASSERT(queue);
+
+    return queue->IsFenceDone(aFenceVal);
   }
 //---------------------------------------------------------------------------//
   bool RenderCore::IsFrameDone(uint64 aFrameIdx)

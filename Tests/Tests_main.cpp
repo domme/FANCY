@@ -17,6 +17,7 @@
 #include "Test_ImGui.h"
 #include "Test_GpuMemoryAllocator.h"
 #include "Test_Synchronization.h"
+#include "fancy_core/CommandContext.h"
 
 using namespace Fancy;
 
@@ -113,14 +114,12 @@ void Update()
 
 void Render()
 {
-  CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-  CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
-  GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
+  CommandContext ctx(CommandListType::Graphics);
+  GPU_BEGIN_PROFILE(ctx.GetCommandList(), "ClearRenderTarget", 0u);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
-  GPU_END_PROFILE(ctx);
-  queue->ExecuteCommandList(ctx);
-  RenderCore::FreeCommandList(ctx);
+  GPU_END_PROFILE(ctx.GetCommandList());
+  ctx.Execute();
 
   for (UniquePtr<Test>& testItem : myTests)
     testItem->OnRender();

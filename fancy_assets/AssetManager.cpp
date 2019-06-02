@@ -20,6 +20,7 @@
 #include "Model.h"
 
 #include "Material.h"
+#include "fancy_core/CommandContext.h"
 
 using namespace Fancy;
 
@@ -271,8 +272,7 @@ using namespace Fancy;
     tempTexResource[0] = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture 0");
     tempTexResource[1] = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture 1");
 
-    CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-    CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
+    CommandContext ctx(CommandListType::Graphics);
     ctx->SetComputeProgram(myTextureResizeShader.get());
 
     struct CBuffer
@@ -347,7 +347,6 @@ using namespace Fancy;
       destSize = glm::ceil(destSize * 0.5f);
     }
 
-    queue->ExecuteCommandList(ctx, SyncMode::BLOCKING);
-    RenderCore::FreeCommandList(ctx);
+    ctx.Execute(SyncMode::BLOCKING);
   }
 //---------------------------------------------------------------------------//

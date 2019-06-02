@@ -147,7 +147,7 @@ namespace Fancy {
       }
       else
       {
-        RenderCore::UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes);
+        RenderCore::UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes, SyncMode::BLOCKING);
       }
     }
   }
