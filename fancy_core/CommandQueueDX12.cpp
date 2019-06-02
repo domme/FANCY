@@ -4,7 +4,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
-#include "CommandContextDX12.h"
+#include "CommandListDX12.h"
 
 namespace Fancy
 {
@@ -72,22 +72,29 @@ namespace Fancy
     CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), aFenceVal));
   }
 //---------------------------------------------------------------------------//
-  uint64 CommandQueueDX12::ExecuteContext(CommandContext* aContext, bool aWaitForCompletion /* = false */)
+  uint64 CommandQueueDX12::ExecuteCommandList(CommandList* aCommandList, SyncMode aSyncMode/* = SyncMode::ASYNC*/)
   {
-    ASSERT(aContext->GetType() == myType);
+    ASSERT(aCommandList->GetType() == myType);
+    ASSERT(aCommandList->IsOpen());
+    aCommandList->Close();
 
-    CommandContextDX12* contextDx12 = (CommandContextDX12*)aContext;
-    contextDx12->CloseCommandList();
-
+    CommandListDX12* contextDx12 = (CommandListDX12*)aCommandList;
     ID3D12CommandList* cmdList = contextDx12->myCommandList;
     myQueue->ExecuteCommandLists(1, &cmdList);
 
     const uint64 fenceVal = SignalAndIncrementFence();
-    contextDx12->Reset(fenceVal);
+    aCommandList->ReleaseGpuResources(fenceVal);
 
-    if (aWaitForCompletion)
+    if (aSyncMode == SyncMode::BLOCKING)
       WaitForFence(fenceVal);
 
+    return fenceVal;
+  }
+//---------------------------------------------------------------------------//
+  uint64 CommandQueueDX12::ExecuteAndResetCommandList(CommandList* aContext, SyncMode aSyncMode)
+  {
+    const uint64 fenceVal = ExecuteCommandList(aContext, aSyncMode);
+    aContext->Reset();
     return fenceVal;
   }
 //---------------------------------------------------------------------------//

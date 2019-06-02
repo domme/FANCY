@@ -5,7 +5,7 @@
 #include "RenderCore.h"
 #include "Window.h"
 #include "TextureDX12.h"
-#include "CommandContextDX12.h"
+#include "CommandListDX12.h"
 #include "GpuResourceDataDX12.h"
 
 namespace Fancy {

@@ -2,7 +2,7 @@
 #include <fancy_core/RenderOutput.h>
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/RendererPrerequisites.h>
-#include "fancy_core/CommandContext.h"
+#include "fancy_core/CommandList.h"
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/GpuProgramPipelineDesc.h>
@@ -217,12 +217,12 @@ void Update()
 void Render()
 {
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-  CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+  CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
   float clearColor[] = { 0.3f, 0.3f, 0.3f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), 1.0f, 0u);
-  queue->ExecuteContext(ctx);
-  RenderCore::FreeContext(ctx);
+  queue->ExecuteCommandList(ctx);
+  RenderCore::FreeCommandList(ctx);
   
   ImGui::Render();
 

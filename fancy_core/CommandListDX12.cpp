@@ -1,5 +1,5 @@
 #include "fancy_core_precompile.h"
-#include "CommandContextDX12.h"
+#include "CommandListDX12.h"
 
 #include "FancyCoreDefines.h"
 
@@ -59,17 +59,17 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
-  std::unordered_map<uint64, ID3D12PipelineState*> CommandContextDX12::ourPSOcache;
+  std::unordered_map<uint64, ID3D12PipelineState*> CommandListDX12::ourPSOcache;
 //---------------------------------------------------------------------------//
-  CommandContextDX12::CommandContextDX12(CommandListType aCommandListType)
-    : CommandContext(aCommandListType)
+  CommandListDX12::CommandListDX12(CommandListType aCommandListType)
+    : CommandList(aCommandListType)
+    , myIsOpen(true)
     , myRootSignature(nullptr)
     , myComputeRootSignature(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
   {
     memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
-
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
 
     D3D12_COMMAND_LIST_TYPE nativeCmdListType = locResolveCommandListType(aCommandListType);
@@ -80,9 +80,9 @@ namespace Fancy {
     );
   }
 //---------------------------------------------------------------------------//
-  CommandContextDX12::~CommandContextDX12()
+  CommandListDX12::~CommandListDX12()
   {
-    CommandContextDX12::Reset(0);
+    CommandListDX12::ReleaseGpuResources(0ull);
 
     if (myCommandList != nullptr)
       myCommandList->Release();
@@ -90,10 +90,10 @@ namespace Fancy {
     myCommandList = nullptr;
 
     if (myCommandAllocator != nullptr)
-      ReleaseAllocator(0u);
+      RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, 0ull);
   }
 //---------------------------------------------------------------------------//
-  D3D12_DESCRIPTOR_HEAP_TYPE CommandContextDX12::ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask)
+  D3D12_DESCRIPTOR_HEAP_TYPE CommandListDX12::ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask)
   {
     if (aDescriptorTypeMask & (uint)GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER)
       return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -104,7 +104,7 @@ namespace Fancy {
     return (D3D12_DESCRIPTOR_HEAP_TYPE)-1;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DynamicDescriptorHeapDX12* aDescriptorHeap)
+  void CommandListDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DynamicDescriptorHeapDX12* aDescriptorHeap)
   {
     if (myDynamicShaderVisibleHeaps[aHeapType] == aDescriptorHeap)
       return;
@@ -117,7 +117,7 @@ namespace Fancy {
     ApplyDescriptorHeaps();
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource,
+  void CommandListDX12::UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource,
     uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const
   {
     D3D12_RESOURCE_DESC srcDesc = aStagingResource->GetDesc();
@@ -183,7 +183,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::ApplyDescriptorHeaps()
+  void CommandListDX12::ApplyDescriptorHeaps()
   {
     ID3D12DescriptorHeap* heapsToBind[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     memset(heapsToBind, 0, sizeof(heapsToBind));
@@ -197,33 +197,7 @@ namespace Fancy {
       myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::ReleaseAllocator(uint64 aFenceVal)
-  {
-    if (myCommandAllocator != nullptr)
-    {
-      RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, aFenceVal);
-      myCommandAllocator = nullptr;
-    }
-  }
-  //---------------------------------------------------------------------------//
-  void CommandContextDX12::ReleaseDynamicHeaps(uint64 aFenceVal)
-  {
-    for (DynamicDescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
-    {
-      if (heap != nullptr)
-        RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
-    }
-
-    for (DynamicDescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
-    {
-      RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
-    }
-
-    myRetiredDescriptorHeaps.clear();
-    memset(myDynamicShaderVisibleHeaps, 0, sizeof(myDynamicShaderVisibleHeaps));
-  }
-//---------------------------------------------------------------------------//
-  DescriptorDX12 CommandContextDX12::CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount)
+  DescriptorDX12 CommandListDX12::CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount)
   {
     ASSERT(aResourceCount > 0u);
 
@@ -257,7 +231,7 @@ namespace Fancy {
     return destRangeStartDescriptor;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
+  void CommandListDX12::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
   {
     const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
 
@@ -270,7 +244,7 @@ namespace Fancy {
     myCommandList->ClearRenderTargetView(viewDataDx12.myDescriptor.myCpuHandle, aColor, 0, nullptr);
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
+  void CommandListDX12::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
   {
     const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
     ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::DSV);
@@ -287,7 +261,7 @@ namespace Fancy {
     myCommandList->ClearDepthStencilView(viewDataDx12.myDescriptor.myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
+  void CommandListDX12::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
   {
     const GpuResource* resourcesToTransition[] = { aDestResource, aSrcResource };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
@@ -299,7 +273,7 @@ namespace Fancy {
     myCommandList->CopyResource(destData->myResource.Get(), srcData->myResource.Get());
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
+  void CommandListDX12::CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
   {
     ASSERT(aDestBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)");
     ASSERT(aSize <= aDestBuffer->GetByteSize() - aDestOffset, "Invalid dst-region specified");
@@ -315,7 +289,7 @@ namespace Fancy {
     myCommandList->CopyBufferRegion(dstResource, aDestOffset, srcResource, aSrcOffset, aSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
+  void CommandListDX12::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
   {
     ID3D12Resource* bufferResourceDX12 = static_cast<const GpuBufferDX12*>(aDestBuffer)->GetData()->myResource.Get();
     ID3D12Resource* textureResourceDX12 = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
@@ -368,7 +342,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
+  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
     const TextureProperties& srcProps = aSrcTexture->GetProperties();
@@ -414,7 +388,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
 
@@ -454,7 +428,7 @@ namespace Fancy {
     myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::TransitionResourceList(const GpuResource** someResources, GpuResourceTransition* someTransitions, uint aNumResources)
+  void CommandListDX12::TransitionResourceList(const GpuResource** someResources, GpuResourceTransition* someTransitions, uint aNumResources)
   {
     const GpuResource** resourcesToTransition = (const GpuResource**) alloca(sizeof(GpuResource*) * aNumResources);
     D3D12_RESOURCE_STATES* transitionToStates = (D3D12_RESOURCE_STATES*) alloca(sizeof(D3D12_RESOURCE_STATES) * aNumResources);
@@ -541,25 +515,39 @@ namespace Fancy {
     SetResourceTransitionBarriers(resourcesToTransition, transitionToStates, numTransitions);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::Reset(uint64 aFenceVal)
+  void CommandListDX12::ReleaseGpuResources(uint64 aFenceVal)
   {
-    ReleaseDynamicHeaps(aFenceVal);
-    ReleaseAllocator(aFenceVal);
-    
+    CommandList::ReleaseGpuResources(aFenceVal);
+
+    for (DynamicDescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
+      if (heap != nullptr)
+        RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
+    memset(myDynamicShaderVisibleHeaps, 0, sizeof(myDynamicShaderVisibleHeaps));
+
+    for (DynamicDescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
+      RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
+    myRetiredDescriptorHeaps.clear();
+
+    if (myCommandAllocator != nullptr)
+      RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, aFenceVal);
+    myCommandAllocator = nullptr;
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::Reset()
+  {
+    CommandList::Reset();
+
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
     
-    CloseCommandList();
     CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
 
     myRootSignature = nullptr;
     myComputeRootSignature = nullptr;
-    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
-
-    CommandContext::Reset(aFenceVal);
+    myIsOpen = true;
   }
 //---------------------------------------------------------------------------//
-  D3D12_GRAPHICS_PIPELINE_STATE_DESC CommandContextDX12::GetNativePSOdesc(const GraphicsPipelineState& aState)
+  D3D12_GRAPHICS_PIPELINE_STATE_DESC CommandListDX12::GetNativePSOdesc(const GraphicsPipelineState& aState)
   {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
     memset(&psoDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
@@ -721,7 +709,7 @@ namespace Fancy {
     return psoDesc;
   }
 //---------------------------------------------------------------------------//
-  D3D12_COMPUTE_PIPELINE_STATE_DESC CommandContextDX12::GetNativePSOdesc(const ComputePipelineState& aState)
+  D3D12_COMPUTE_PIPELINE_STATE_DESC CommandListDX12::GetNativePSOdesc(const ComputePipelineState& aState)
   {
     D3D12_COMPUTE_PIPELINE_STATE_DESC desc;
     memset(&desc, 0u, sizeof(desc));
@@ -739,7 +727,7 @@ namespace Fancy {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const
+  void CommandListDX12::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const
   {
     ASSERT(myCurrentContext != CommandListType::Graphics || myRootSignature != nullptr);
     ASSERT(myCurrentContext != CommandListType::Compute || myComputeRootSignature != nullptr);
@@ -799,7 +787,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex)
+  void CommandListDX12::BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex)
   {
     ASSERT(myCurrentContext != CommandListType::Graphics || myRootSignature != nullptr);
     ASSERT(myCurrentContext != CommandListType::Compute || myComputeRootSignature != nullptr);
@@ -852,7 +840,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  GpuQuery CommandContextDX12::BeginQuery(GpuQueryType aType)
+  GpuQuery CommandListDX12::BeginQuery(GpuQueryType aType)
   {
     ASSERT(aType != GpuQueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
 
@@ -866,7 +854,7 @@ namespace Fancy {
     return query;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::EndQuery(const GpuQuery& aQuery)
+  void CommandListDX12::EndQuery(const GpuQuery& aQuery)
   {
     ASSERT(aQuery.myFrame == Time::ourFrameIdx);
     ASSERT(aQuery.myType != GpuQueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
@@ -883,7 +871,7 @@ namespace Fancy {
     myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), queryTypeDx12, aQuery.myIndexInHeap);
   }
 //---------------------------------------------------------------------------//
-  GpuQuery CommandContextDX12::InsertTimestamp()
+  GpuQuery CommandListDX12::InsertTimestamp()
   {
     const GpuQuery query = AllocateQuery(GpuQueryType::TIMESTAMP);
     query.myIsOpen = false;
@@ -895,7 +883,7 @@ namespace Fancy {
     return query;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset)
+  void CommandListDX12::CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset)
   {
     const GpuQueryHeapDX12* queryHeapDx12 = (const GpuQueryHeapDX12*)aQueryHeap;
     const GpuBufferDX12* bufferDx12 = (const GpuBufferDX12*)aBuffer;
@@ -912,9 +900,9 @@ namespace Fancy {
       aBufferOffset);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
+  void CommandListDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
   {
-    CommandContext::SetGpuProgramPipeline(aGpuProgramPipeline);
+    CommandList::SetGpuProgramPipeline(aGpuProgramPipeline);
 
     const ShaderResourceInterfaceDX12* sriDx12 =
       static_cast<const ShaderResourceInterfaceDX12*>(aGpuProgramPipeline->myResourceInterface);
@@ -926,7 +914,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset /*= 0u*/, uint64 aSize /*= ~0ULL*/)
+  void CommandListDX12::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset /*= 0u*/, uint64 aSize /*= ~0ULL*/)
   {
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 
@@ -948,7 +936,7 @@ namespace Fancy {
     myCommandList->IASetVertexBuffers(0, 1, &vertexBufferView);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anIndexOffset /* = 0u */, uint64 aNumIndices /* =~0ULL*/)
+  void CommandListDX12::BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anIndexOffset /* = 0u */, uint64 aNumIndices /* =~0ULL*/)
   {
     ASSERT(anIndexSize == 2u || anIndexSize == 4u);
 
@@ -971,7 +959,7 @@ namespace Fancy {
     myCommandList->IASetIndexBuffer(&indexBufferView);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
+  void CommandListDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
   {
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
@@ -984,7 +972,7 @@ namespace Fancy {
       SetResourceUAVbarrier(nullptr);
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::RenderGeometry(const GeometryData* pGeometry)
+  void CommandListDX12::RenderGeometry(const GeometryData* pGeometry)
   {
     const GpuBufferDX12* vertexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getVertexBuffer());
     const GpuBufferDX12* indexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getIndexBuffer());
@@ -1000,7 +988,7 @@ namespace Fancy {
     Render((uint) indexBufferDx12->GetProperties().myNumElements, 1, 0, 0, 0);
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::ApplyViewportAndClipRect()
+  void CommandListDX12::ApplyViewportAndClipRect()
   {
     if (myViewportDirty)
     {
@@ -1032,7 +1020,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandContextDX12::ApplyRenderTargets()
+  void CommandListDX12::ApplyRenderTargets()
   {
     if (!myRenderTargetsDirty)
       return;
@@ -1096,7 +1084,7 @@ namespace Fancy {
     myRenderTargetsDirty = false;
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::ApplyTopologyType()
+  void CommandListDX12::ApplyTopologyType()
   {
     if (!myTopologyDirty)
       return;
@@ -1105,25 +1093,25 @@ namespace Fancy {
     myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const
+  void CommandListDX12::SetResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const
   {
 
     SetResourceTransitionBarriers(&aResource, &aNewState, 1u);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetResourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
+  void CommandListDX12::SetResourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
   {
     SetSubresourceTransitionBarriers(someResources, someNewStates, nullptr, nullptr, aNumResources);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const
+  void CommandListDX12::SetSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const
   {
     const uint numSubresources = 1u;
     const uint16* subresourceLists[] = { &aSubresourceIndex };
     SetSubresourceTransitionBarriers(&aResource, &aNewState, subresourceLists, &numSubresources, 1u);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const
+  void CommandListDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const
   {
     D3D12_RESOURCE_BARRIER barriers[256];
 
@@ -1237,7 +1225,7 @@ namespace Fancy {
       myCommandList->ResourceBarrier(numBarriers, barriers);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetResourceUAVbarrier(const GpuResource* aResource) const
+  void CommandListDX12::SetResourceUAVbarrier(const GpuResource* aResource) const
   {
       ID3D12Resource* resource = aResource != nullptr ? aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get() : nullptr;
 
@@ -1249,7 +1237,7 @@ namespace Fancy {
       myCommandList->ResourceBarrier(1u, &barrier);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::ApplyGraphicsPipelineState()
+  void CommandListDX12::ApplyGraphicsPipelineState()
   {
     if (!myGraphicsPipelineState.myIsDirty)
       return;
@@ -1276,7 +1264,7 @@ namespace Fancy {
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::ApplyComputePipelineState()
+  void CommandListDX12::ApplyComputePipelineState()
   {
     if (!myComputePipelineState.myIsDirty)
       return;
@@ -1303,9 +1291,9 @@ namespace Fancy {
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::SetComputeProgram(const GpuProgram* aProgram)
+  void CommandListDX12::SetComputeProgram(const GpuProgram* aProgram)
   {
-    CommandContext::SetComputeProgram(aProgram);
+    CommandList::SetComputeProgram(aProgram);
 
     const GpuProgramDX12* programDx12 = static_cast<const GpuProgramDX12*>(aProgram);
 
@@ -1316,7 +1304,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::Dispatch(const glm::int3& aNumThreads)
+  void CommandListDX12::Dispatch(const glm::int3& aNumThreads)
   {
     ApplyComputePipelineState();
     ASSERT(myComputePipelineState.myGpuProgram != nullptr);
@@ -1329,13 +1317,12 @@ namespace Fancy {
       SetResourceUAVbarrier(nullptr);
   }
 //---------------------------------------------------------------------------//
-  void CommandContextDX12::CloseCommandList()
+  void CommandListDX12::Close()
   {
     if (myIsOpen)
-    {
       CheckD3Dcall(myCommandList->Close());
-      myIsOpen = false;
-    }
+
+    myIsOpen = false;
   }
 //---------------------------------------------------------------------------//
 }

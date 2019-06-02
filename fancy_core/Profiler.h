@@ -7,7 +7,7 @@
 
 namespace Fancy
 {
-  class CommandContext;
+  class CommandList;
 
   struct Profiler
   {
@@ -84,8 +84,8 @@ namespace Fancy
     static void PushMarker(const char* aName, uint16 aTag);
     static void PopMarker();
 
-    static void PushGpuMarker(CommandContext* aContext, const char* aName, uint16 aTag);
-    static void PopGpuMarker(CommandContext* aContext);
+    static void PushGpuMarker(CommandList* aContext, const char* aName, uint16 aTag);
+    static void PopGpuMarker(CommandList* aContext);
 
     static void BeginFrame();
     static void EndFrame();

@@ -70,7 +70,8 @@
     <ClInclude Include="Callback.h" />
     <ClInclude Include="CircularArray.h" />
     <ClInclude Include="CommandContext.h" />
-    <ClInclude Include="CommandContextDX12.h" />
+    <ClInclude Include="CommandList.h" />
+    <ClInclude Include="CommandListDX12.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="CommandQueueDX12.h" />
     <ClInclude Include="d3dx12.h" />
@@ -167,7 +168,8 @@
     <ClCompile Include="BinaryCache.cpp" />
     <ClCompile Include="BlendState.cpp" />
     <ClCompile Include="CommandContext.cpp" />
-    <ClCompile Include="CommandContextDX12.cpp" />
+    <ClCompile Include="CommandList.cpp" />
+    <ClCompile Include="CommandListDX12.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CommandQueueDX12.cpp" />
     <ClCompile Include="DataFormat.cpp" />

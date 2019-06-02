@@ -11,8 +11,18 @@ public:
   void OnRender() override;
 
 private:
-  bool myTestCpuGpu = false;
-  bool myTestAsnycGpuGpu = false;
-  Fancy::SharedPtr<Fancy::GpuBuffer> myBufferCpuSync;
-  Fancy::SharedPtr<Fancy::GpuBuffer> myBufferAsyncGpu;
+  bool myWaitForResults = false;
+
+  enum class Stage
+  {
+    IDLE = 0,
+    WAITING_FOR_COPY,
+    COPY_DONE
+  };
+
+  Stage myStage = Stage::IDLE;
+  uint64 myExpectedBufferValue = 0ull;
+  uint64 myBufferCopyFence = 0ull;
+  Fancy::SharedPtr<Fancy::GpuBuffer> myUploadBuffer;
+  Fancy::SharedPtr<Fancy::GpuBuffer> myReadbackBuffer;
 };

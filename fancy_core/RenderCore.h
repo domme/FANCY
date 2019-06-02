@@ -81,8 +81,8 @@ namespace Fancy {
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, const GpuBufferViewProperties& someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
     static uint GetQueryTypeDataSize(GpuQueryType aType);
 
-    static void UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
-    static void UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas);
+    static uint64 UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize, SyncMode aSyncMode);
+    static uint64 UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas, SyncMode aSyncType);
     
     static MappedTempBuffer ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize);
     static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations);
@@ -101,8 +101,8 @@ namespace Fancy {
     static GpuRingBuffer* AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
 
-    static CommandContext* AllocateContext(CommandListType aType);
-    static void FreeContext(CommandContext* aContext);
+    static CommandList* AllocateCommandList(CommandListType aType);
+    static void FreeCommandList(CommandList* aCommandList);
 
     static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
     static TempBufferResource AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName);
@@ -159,10 +159,11 @@ namespace Fancy {
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
     
-    static DynamicArray<UniquePtr<CommandContext>> ourRenderContextPool;
-    static DynamicArray<UniquePtr<CommandContext>> ourComputeContextPool;
-    static std::list<CommandContext*> ourAvailableRenderContexts;
-    static std::list<CommandContext*> ourAvailableComputeContexts;
+    // TODO: Replace std::list with GrowingList
+    static DynamicArray<UniquePtr<CommandList>> ourGraphicsCommandListPool;
+    static DynamicArray<UniquePtr<CommandList>> ourComputeCommandListPool;
+    static std::list<CommandList*> ourAvailableGraphicsCommandLists;
+    static std::list<CommandList*> ourAvailableComputeCommandLists;
 
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;

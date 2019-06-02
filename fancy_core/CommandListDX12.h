@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CommandContext.h"
+#include "CommandList.h"
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 
@@ -17,7 +17,7 @@ namespace Fancy {
   class GpuProgram;
   class GpuBuffer;
 //---------------------------------------------------------------------------//
-  class CommandContextDX12 final : public CommandContext
+  class CommandListDX12 final : public CommandList
   {
     friend class RenderCore_PlatformDX12;
     friend class CommandQueueDX12;
@@ -27,8 +27,8 @@ namespace Fancy {
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
-    CommandContextDX12(CommandListType aType);
-    ~CommandContextDX12() override;
+    CommandListDX12(CommandListType aType);
+    ~CommandListDX12() override;
 
     void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const;
     
@@ -41,7 +41,8 @@ namespace Fancy {
     void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
 
     void TransitionResourceList(const GpuResource** someResources, GpuResourceTransition* someTransitions, uint aNumResources) override;
-    void Reset(uint64 aFenceVal) override;
+    void ReleaseGpuResources(uint64 aFenceVal) override;
+    void Reset() override;
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
@@ -53,16 +54,15 @@ namespace Fancy {
     void EndQuery(const GpuQuery& aQuery) override;
     GpuQuery InsertTimestamp() override;
     void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
+    bool IsOpen() const override { return myIsOpen; }
+    void Close() override;
 
     void SetComputeProgram(const GpuProgram* aProgram) override;
     void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:
-    void CloseCommandList();
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DynamicDescriptorHeapDX12* aDescriptorHeap);
     void ApplyDescriptorHeaps();
-    void ReleaseAllocator(uint64 aFenceVal);
-    void ReleaseDynamicHeaps(uint64 aFenceVal);
     void ApplyViewportAndClipRect();
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
@@ -79,6 +79,7 @@ namespace Fancy {
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
   
+    bool myIsOpen;
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12RootSignature* myComputeRootSignature;
     ID3D12GraphicsCommandList* myCommandList;

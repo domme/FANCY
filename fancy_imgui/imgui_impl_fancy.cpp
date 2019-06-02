@@ -10,7 +10,7 @@
 #include <fancy_core/Texture.h>
 #include <fancy_core/BlendState.h>
 #include <fancy_core/DepthStencilState.h>
-#include <fancy_core/CommandContext.h>
+#include <fancy_core/CommandList.h>
 #include <fancy_core/GpuProgramDesc.h>
 #include <fancy_core/GpuProgramPipelineDesc.h>
 #include <fancy_core/Slot.h>
@@ -233,7 +233,7 @@ namespace Fancy { namespace ImGuiRendering {
 //---------------------------------------------------------------------------//
   void RenderDrawLists(ImDrawData* _draw_data)
   {
-    CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+    CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
     
     PROFILE_FUNCTION_TAG(ANNTAG_IMGUI);
     GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx, ANNTAG_IMGUI);
@@ -306,9 +306,9 @@ namespace Fancy { namespace ImGuiRendering {
 
     GPU_END_PROFILE(ctx);
     CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-    queue->ExecuteContext(ctx);
+    queue->ExecuteCommandList(ctx);
 
-    RenderCore::FreeContext(ctx);
+    RenderCore::FreeCommandList(ctx);
   }
 
   void Shutdown()

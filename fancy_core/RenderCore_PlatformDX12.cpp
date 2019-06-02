@@ -14,7 +14,7 @@
 #include "DynamicDescriptorHeapDX12.h"
 #include "RenderOutputDX12.h"
 #include "RenderCore.h"
-#include "CommandContextDX12.h"
+#include "CommandListDX12.h"
 #include "GpuResourceDataDX12.h"
 #include "AdapterDX12.h"
 #include "GpuQueryHeapDX12.h"
@@ -288,9 +288,9 @@ namespace Fancy {
    return new GpuBufferDX12();
   }
 //---------------------------------------------------------------------------//
-  CommandContext* RenderCore_PlatformDX12::CreateContext(CommandListType aType)
+  CommandList* RenderCore_PlatformDX12::CreateContext(CommandListType aType)
   {
-    return new CommandContextDX12(aType);
+    return new CommandListDX12(aType);
   }
 //---------------------------------------------------------------------------//
   TextureView* RenderCore_PlatformDX12::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName /* = nullptr */)

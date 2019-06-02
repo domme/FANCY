@@ -5,7 +5,7 @@
 
 namespace Fancy 
 {
-  class CommandContext;
+  class CommandList;
 
   class CommandQueue
   {
@@ -23,7 +23,8 @@ namespace Fancy
     // Waits for a fence-completion on GPU timeline
     virtual void StallForQueue(const CommandQueue* aCommandQueue) = 0;
     virtual void StallForFence(uint64 aFenceVal) = 0;
-    virtual uint64 ExecuteContext(CommandContext* aContext, bool aWaitForCompletion = false) = 0;
+    virtual uint64 ExecuteCommandList(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
+    virtual uint64 ExecuteAndResetCommandList(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
 
   protected:
     CommandListType myType;

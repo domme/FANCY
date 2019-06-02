@@ -39,9 +39,6 @@
     <ClInclude Include="CommandAllocatorPoolDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="CommandContextDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="d3dx12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
@@ -74,9 +71,6 @@
     </ClInclude>
     <ClInclude Include="TextureSamplerDX12.h">
       <Filter>Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="CommandContext.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="DataFormat.h">
       <Filter>Rendering</Filter>
@@ -320,6 +314,13 @@
     <ClInclude Include="StaticString.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="CommandList.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandListDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandContext.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -329,9 +330,6 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="CommandAllocatorPoolDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandContextDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="GpuBufferDX12.cpp">
@@ -357,9 +355,6 @@
     </ClCompile>
     <ClCompile Include="TextureSamplerDX12.cpp">
       <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandContext.cpp">
-      <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="DataFormat.cpp">
       <Filter>Rendering</Filter>
@@ -479,6 +474,13 @@
     <ClCompile Include="PagedLinearAllocator.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="CommandList.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandListDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandContext.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

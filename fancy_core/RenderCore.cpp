@@ -16,7 +16,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "VertexInputLayout.h"
 #include "RenderOutput.h"
-#include "CommandContext.h"
+#include "CommandList.h"
 #include "MeshData.h"
 #include "TextureProperties.h"
 #include "Texture.h"
@@ -85,10 +85,10 @@ namespace Fancy {
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
   std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
 
-  DynamicArray<UniquePtr<CommandContext>> RenderCore::ourRenderContextPool;
-  DynamicArray<UniquePtr<CommandContext>> RenderCore::ourComputeContextPool;
-  std::list<CommandContext*> RenderCore::ourAvailableRenderContexts;
-  std::list<CommandContext*> RenderCore::ourAvailableComputeContexts;
+  DynamicArray<UniquePtr<CommandList>> RenderCore::ourGraphicsCommandListPool;
+  DynamicArray<UniquePtr<CommandList>> RenderCore::ourComputeCommandListPool;
+  std::list<CommandList*> RenderCore::ourAvailableGraphicsCommandLists;
+  std::list<CommandList*> RenderCore::ourAvailableComputeCommandLists;
   
   DynamicArray<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
@@ -419,13 +419,13 @@ namespace Fancy {
     ourBlendStateCache.clear();
     ourDepthStencilStateCache.clear();
 
-    ASSERT(ourRenderContextPool.size() == ourAvailableRenderContexts.size(), "There are still some rendercontexts in flight");
-    ourAvailableRenderContexts.clear();
-    ourRenderContextPool.clear();
+    ASSERT(ourGraphicsCommandListPool.size() == ourAvailableGraphicsCommandLists.size(), "There are still some rendercontexts in flight");
+    ourAvailableGraphicsCommandLists.clear();
+    ourGraphicsCommandListPool.clear();
 
-    ASSERT(ourComputeContextPool.size() == ourAvailableComputeContexts.size(), "There are still some compute contexts in flight");
-    ourAvailableComputeContexts.clear();
-    ourComputeContextPool.clear();
+    ASSERT(ourComputeCommandListPool.size() == ourAvailableComputeCommandLists.size(), "There are still some compute contexts in flight");
+    ourAvailableComputeCommandLists.clear();
+    ourComputeCommandListPool.clear();
 
     ASSERT(ourRingBufferPool.size() == ourAvailableRingBuffers.size(), "There are still some ringbuffers in flight");
     ourAvailableRingBuffers.clear();
@@ -471,49 +471,55 @@ namespace Fancy {
     if (!hasAnyQueryData)
       return;
 
-    CommandQueue* queueGraphics = GetCommandQueue(CommandListType::Graphics);
-    CommandContext* context = AllocateContext(CommandListType::Graphics);
-    for (uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType)
+    for (uint queryType = 0u; !hasAnyQueryData && queryType < (uint)GpuQueryType::NUM; ++queryType)
     {
-      if (ourNumUsedQueryRanges[queryType] == 0u)
-        continue;
-
-      hasAnyQueryData = true;
-      std::pair<uint, uint>* mergedRanges = (std::pair<uint, uint>*) alloca(sizeof(std::pair<uint, uint>) * ourNumUsedQueryRanges[queryType]);
-      uint numUsedMergedRanges = 0u;
-
-      std::pair<uint, uint> currMergedRange = ourUsedQueryRanges[queryType][0];
-      for (uint i = 1u; i < ourNumUsedQueryRanges[queryType]; ++i)
-      {
-        const std::pair<uint, uint>& range = ourUsedQueryRanges[queryType][i];
-        if (range.first == currMergedRange.second)
-        {
-          currMergedRange.second = range.second;
-        }
-        else
-        {
-          mergedRanges[numUsedMergedRanges++] = currMergedRange;
-          currMergedRange = range;
-        }
-      }
-      mergedRanges[numUsedMergedRanges++] = currMergedRange;
-
-      const GpuQueryHeap* heap = ourQueryHeaps[ourCurrQueryHeapIdx][queryType].get();
-      const GpuBuffer* readbackBuffer = ourQueryBuffers[ourCurrQueryBufferIdx][queryType].get();
-      const uint queryDataSize = GetQueryTypeDataSize((GpuQueryType)queryType);
-      for (uint i = 0u; i < numUsedMergedRanges; ++i)
-      {
-        const std::pair<uint, uint>& mergedRange = mergedRanges[i];
-        const uint numQueries = mergedRange.second - mergedRange.first;
-        const uint64 offsetInBuffer = mergedRange.first * queryDataSize;
-        context->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.first, numQueries, offsetInBuffer);
-      }
+      if (ourNumUsedQueryRanges[queryType] > 0u)
+        hasAnyQueryData = true;
     }
 
     if (hasAnyQueryData)
-      queueGraphics->ExecuteContext(context);
+    {
+      CommandQueue* queueGraphics = GetCommandQueue(CommandListType::Graphics);
+      CommandList* context = AllocateCommandList(CommandListType::Graphics);
+      for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
+      {
+        if (ourNumUsedQueryRanges[queryType] == 0u)
+          continue;
 
-    FreeContext(context);
+        std::pair<uint, uint>* mergedRanges = (std::pair<uint, uint>*) alloca(sizeof(std::pair<uint, uint>) * ourNumUsedQueryRanges[queryType]);
+        uint numUsedMergedRanges = 0u;
+
+        std::pair<uint, uint> currMergedRange = ourUsedQueryRanges[queryType][0];
+        for (uint i = 1u; i < ourNumUsedQueryRanges[queryType]; ++i)
+        {
+          const std::pair<uint, uint>& range = ourUsedQueryRanges[queryType][i];
+          if (range.first == currMergedRange.second)
+          {
+            currMergedRange.second = range.second;
+          }
+          else
+          {
+            mergedRanges[numUsedMergedRanges++] = currMergedRange;
+            currMergedRange = range;
+          }
+        }
+        mergedRanges[numUsedMergedRanges++] = currMergedRange;
+
+        const GpuQueryHeap* heap = ourQueryHeaps[ourCurrQueryHeapIdx][queryType].get();
+        const GpuBuffer* readbackBuffer = ourQueryBuffers[ourCurrQueryBufferIdx][queryType].get();
+        const uint queryDataSize = GetQueryTypeDataSize((GpuQueryType)queryType);
+        for (uint i = 0u; i < numUsedMergedRanges; ++i)
+        {
+          const std::pair<uint, uint>& mergedRange = mergedRanges[i];
+          const uint numQueries = mergedRange.second - mergedRange.first;
+          const uint64 offsetInBuffer = mergedRange.first * queryDataSize;
+          context->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.first, numQueries, offsetInBuffer);
+        }
+      }
+
+      queueGraphics->ExecuteCommandList(context);
+      FreeCommandList(context);
+    }
   }
 //---------------------------------------------------------------------------//
   SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
@@ -763,8 +769,7 @@ namespace Fancy {
     return ourPlatformImpl->GetQueryTypeDataSize(aType);
   }
 //---------------------------------------------------------------------------//
-  // TODO: Add a parameter that decides about synchronized/unsynchronized access
-  void RenderCore::UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize)
+  uint64 RenderCore::UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize, SyncMode aSyncMode)
   {
     ASSERT(aDestOffset + aByteSize <= aDestBuffer->GetByteSize());
 
@@ -772,30 +777,30 @@ namespace Fancy {
 
     if (bufParams.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)
     {
-      uint8* dest = static_cast<uint8*>(aDestBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aDestOffset, aByteSize));
+      const GpuResourceMapMode mapMode = aSyncMode == SyncMode::BLOCKING ? GpuResourceMapMode::WRITE : GpuResourceMapMode::WRITE_UNSYNCHRONIZED;
+      uint8* dest = static_cast<uint8*>(aDestBuffer->Map(mapMode, aDestOffset, aByteSize));
       ASSERT(dest != nullptr);
       memcpy(dest, aDataPtr, aByteSize);
-      aDestBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, aDestOffset, aByteSize);
+      aDestBuffer->Unmap(mapMode, aDestOffset, aByteSize);
+      return 0ull;
     }
     else
     {
-      CommandContext* context = AllocateContext(CommandListType::Graphics);
-      context->TransitionResource(aDestBuffer, GpuResourceTransition::TO_COPY_DEST);
+      CommandList* context = AllocateCommandList(CommandListType::Graphics);
       context->UpdateBufferData(aDestBuffer, aDestOffset, aDataPtr, aByteSize);
-      GetCommandQueue(CommandListType::Graphics)->ExecuteContext(context, true);
-      FreeContext(context);
+      const uint64 fence = GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(context, aSyncMode);
+      FreeCommandList(context);
+      return aSyncMode == SyncMode::ASYNC ? fence : 0ull;
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas)
+  uint64 RenderCore::UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas, SyncMode aSyncType)
   {
-    CommandContext* context = AllocateContext(CommandListType::Graphics);
-
-    // TODO: Only transition the required subresources to COPY_DEST
-    context->TransitionResource(aDestTexture, GpuResourceTransition::TO_COPY_DEST);
+    CommandList* context = AllocateCommandList(CommandListType::Graphics);
     context->UpdateTextureData(aDestTexture, aStartSubresource, someDatas, aNumDatas);
-    GetCommandQueue(CommandListType::Graphics)->ExecuteContext(context, true);
-    FreeContext(context);
+    const uint64 fence = GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(context, aSyncType);
+    FreeCommandList(context);
+    return aSyncType == SyncMode::ASYNC ? fence : 0ull;
   }
 //---------------------------------------------------------------------------//
   MappedTempBuffer RenderCore::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
@@ -806,7 +811,7 @@ namespace Fancy {
       LOG_WARNING("ReadbackBufferData() called with a CPU-readable buffer. Its better to directly map the buffer to avoid uneccessary temp-copies");
 
     GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize - anOffset, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
+    props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
     props.myBufferProperties.myElementSizeBytes = 1u;
     props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
     props.myBufferProperties.myUsage = GpuBufferUsage::STAGING_READBACK;
@@ -815,10 +820,10 @@ namespace Fancy {
     TempBufferResource readbackBuffer  = AllocateTempBuffer(props, 0u, "Temp readback buffer");
     ASSERT(readbackBuffer.myBuffer != nullptr);
 
-    CommandContext* ctx = AllocateContext(CommandListType::Graphics);
+    CommandList* ctx = AllocateCommandList(CommandListType::Graphics);
     ctx->CopyBufferRegion(readbackBuffer.myBuffer, 0u, aBuffer, anOffset, aByteSize);
-    GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx, true);
-    FreeContext(ctx);
+    GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(ctx, SyncMode::BLOCKING);
+    FreeCommandList(ctx);
 
     return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ, aByteSize);
   }
@@ -842,15 +847,15 @@ namespace Fancy {
 
     const uint startSubresourceIndex = aTexture->GetSubresourceIndex(aStartSubLocation);
 
-    CommandContext* ctx = AllocateContext(CommandListType::Graphics);
+    CommandList* ctx = AllocateCommandList(CommandListType::Graphics);
     for (uint subresource = 0; subresource < aNumSublocations; ++subresource)
     {
       TextureSubLocation subLocation = aTexture->GetSubresourceLocation(startSubresourceIndex + subresource);
       uint64 offset = subresourceOffsets[subresource];
       ctx->CopyTextureRegion(readbackBuffer.myBuffer, offset, aTexture, subLocation);
     }
-    GetCommandQueue(CommandListType::Graphics)->ExecuteContext(ctx, true);
-    FreeContext(ctx);
+    GetCommandQueue(CommandListType::Graphics)->ExecuteCommandList(ctx, SyncMode::BLOCKING);
+    FreeCommandList(ctx);
 
     return MappedTempTextureBuffer(subresourceLayouts, readbackBuffer, GpuResourceMapMode::READ, totalSize);
   }
@@ -905,47 +910,47 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  CommandContext* RenderCore::AllocateContext(CommandListType aType)
+  CommandList* RenderCore::AllocateCommandList(CommandListType aType)
   {
     ASSERT(aType == CommandListType::Graphics || aType == CommandListType::Compute,
-      "CommandContext type % not implemented", (uint)aType);
+      "CommandList type % not implemented", (uint)aType);
 
-    std::vector<std::unique_ptr<CommandContext>>& contextPool =
-      aType == CommandListType::Graphics ? ourRenderContextPool : ourComputeContextPool;
+    std::vector<std::unique_ptr<CommandList>>& commandListPool =
+      aType == CommandListType::Graphics ? ourGraphicsCommandListPool : ourComputeCommandListPool;
 
-    std::list<CommandContext*>& availableContextList =
-      aType == CommandListType::Graphics ? ourAvailableRenderContexts : ourAvailableComputeContexts;
+    std::list<CommandList*>& availableCommandListList =
+      aType == CommandListType::Graphics ? ourAvailableGraphicsCommandLists : ourAvailableComputeCommandLists;
 
-    if (!availableContextList.empty())
+    if (!availableCommandListList.empty())
     {
-      CommandContext* context = availableContextList.front();
-     // if (context->IsOpen())
-     //   context->Reset(((uint64) aType) << 61ULL);
-      availableContextList.pop_front();
-      return context;
+      CommandList* commandList = availableCommandListList.front();
+      commandList->Reset();
+      availableCommandListList.pop_front();
+      return commandList;
     }
 
-    contextPool.push_back(std::unique_ptr<CommandContext>(ourPlatformImpl->CreateContext(aType)));
-    CommandContext* context = contextPool.back().get();
+    commandListPool.push_back(std::unique_ptr<CommandList>(ourPlatformImpl->CreateContext(aType)));
+    CommandList* commandList = commandListPool.back().get();
     
-    return context;
+    return commandList;
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::FreeContext(CommandContext* aContext)
+  void RenderCore::FreeCommandList(CommandList* aCommandList)
   {
-    CommandListType type = aContext->GetType();
+    ASSERT(!aCommandList->IsOpen(), "CommandList is being freed without having been executed");
 
+    CommandListType type = aCommandList->GetType();
     ASSERT(type == CommandListType::Graphics || type == CommandListType::Compute,
-      "CommandContext type % not implemented", (uint)type);
+      "CommandList type % not implemented", (uint)type);
 
-    std::list<CommandContext*>& availableContextList =
-      type == CommandListType::Graphics ? ourAvailableRenderContexts : ourAvailableComputeContexts;
+    std::list<CommandList*>& availableContextList =
+      type == CommandListType::Graphics ? ourAvailableGraphicsCommandLists : ourAvailableComputeCommandLists;
 
-    if (std::find(availableContextList.begin(), availableContextList.end(), aContext)
+    if (std::find(availableContextList.begin(), availableContextList.end(), aCommandList)
       != availableContextList.end())
       return;
     
-    availableContextList.push_back(aContext);
+    availableContextList.push_back(aCommandList);
   }
 //---------------------------------------------------------------------------//
   TempTextureResource RenderCore::AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName)
@@ -1104,8 +1109,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset, uint aNumSubresources)
   {
-    // TODO: Fix this logic - this just waits all the time. The hazard-tracking should store a fence when the 
-    // Resource was last used for writing
+    // TODO: Fix this logic - this just waits all the time. The hazard-tracking should store a fence when the resource was last used for writing
     
     GpuHazardData* hazardData = aResource->myHazardData.get();
 

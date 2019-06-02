@@ -69,7 +69,7 @@ namespace Fancy {
     GpuProgram* CreateGpuProgram() override;
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
-    CommandContext* CreateContext(CommandListType aType) override;
+    CommandList* CreateContext(CommandListType aType) override;
     CommandQueue* GetCommandQueue(CommandListType aType) override { return ourCommandQueues[(uint)aType].get(); }
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;

@@ -6,7 +6,7 @@
 #include "TextureProperties.h"
 #include "Texture.h"
 #include "CommandQueue.h"
-#include "CommandContext.h"
+#include "CommandList.h"
 #include "TimeManager.h"
 #include "Profiler.h"
 
@@ -39,11 +39,11 @@ namespace Fancy {
     Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex]->GetTexture();
 
     CommandQueue* graphicsQueue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-    CommandContext* context = RenderCore::AllocateContext(CommandListType::Graphics);
+    CommandList* context = RenderCore::AllocateCommandList(CommandListType::Graphics);
 
     context->TransitionResource(currBackbuffer, GpuResourceTransition::TO_PRESENT);
-    graphicsQueue->ExecuteContext(context);
-    RenderCore::FreeContext(context);
+    graphicsQueue->ExecuteCommandList(context);
+    RenderCore::FreeCommandList(context);
 
     Present();
   }

@@ -4,7 +4,7 @@
 #include <fancy_core/RenderOutput.h>
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/RendererPrerequisites.h>
-#include "fancy_core/CommandContext.h"
+#include "fancy_core/CommandList.h"
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/CommandQueue.h>
@@ -114,13 +114,13 @@ void Update()
 void Render()
 {
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-  CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+  CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
   GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   GPU_END_PROFILE(ctx);
-  queue->ExecuteContext(ctx);
-  RenderCore::FreeContext(ctx);
+  queue->ExecuteCommandList(ctx);
+  RenderCore::FreeCommandList(ctx);
 
   for (UniquePtr<Test>& testItem : myTests)
     testItem->OnRender();

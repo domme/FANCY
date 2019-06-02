@@ -7,7 +7,7 @@
 #include "fancy_core/GpuBuffer.h"
 #include "fancy_imgui/imgui.h"
 #include "fancy_core/RenderCore.h"
-#include "fancy_core/CommandContext.h"
+#include "fancy_core/CommandList.h"
 #include "fancy_core/CommandQueue.h"
 #include "fancy_imgui/imgui_internal.h"
 #include "fancy_core/GrowingList.h"
@@ -52,14 +52,14 @@ void LongFunc()
 void LongGpuCopy(GpuBuffer* aSrcBuffer, GpuBuffer* aDstBuffer)
 {
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-  CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+  CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
   
   GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx, ANNTAG_PROFILER_TEST);
   ctx->CopyBufferRegion(aDstBuffer, 0u, aSrcBuffer, 0u, aSrcBuffer->GetByteSize());
   GPU_END_PROFILE(ctx);
 
-  queue->ExecuteContext(ctx);
-  RenderCore::FreeContext(ctx);
+  queue->ExecuteCommandList(ctx);
+  RenderCore::FreeCommandList(ctx);
 }
 
 struct TestStruct

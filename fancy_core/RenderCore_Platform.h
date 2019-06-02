@@ -7,7 +7,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   class RenderOutput;
   class GpuProgramCompiler;
-  class CommandContext;
+  class CommandList;
   class CommandQueue;
   enum class CommandListType;
   struct GpuResourceViewData;
@@ -39,7 +39,7 @@ namespace Fancy {
     virtual GpuProgram* CreateGpuProgram() = 0;
     virtual Texture* CreateTexture() = 0;
     virtual GpuBuffer* CreateBuffer() = 0;
-    virtual CommandContext* CreateContext(CommandListType aType) = 0;
+    virtual CommandList* CreateContext(CommandListType aType) = 0;
     virtual CommandQueue* GetCommandQueue(CommandListType aType) = 0;
     virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
     virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) = 0;

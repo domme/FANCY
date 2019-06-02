@@ -3,7 +3,7 @@
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/RendererPrerequisites.h>
 #include <fancy_core/CommandListType.h>
-#include "fancy_core/CommandContext.h"
+#include "fancy_core/CommandList.h"
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/GpuProgramPipelineDesc.h>
@@ -109,7 +109,7 @@ void Update()
   myCameraController->Update(deltaTime, myInputState);
 }
 
-void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)
+void BindResources_UnlitTextured(CommandList* aContext, Material* aMat)
 {
   const GpuResourceView* diffuseTex = aMat->mySemanticTextures[(uint)TextureSemantic::BASE_COLOR].get();
   if (diffuseTex)
@@ -118,7 +118,7 @@ void BindResources_UnlitTextured(CommandContext* aContext, Material* aMat)
   }
 }
 
-void RenderGrid(CommandContext* ctx)
+void RenderGrid(CommandList* ctx)
 {
   ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
   ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
@@ -167,7 +167,7 @@ void RenderGrid(CommandContext* ctx)
   ctx->Render(4, 1, 0, 0, 0);
 }
 
-void RenderScene(CommandContext* ctx)
+void RenderScene(CommandList* ctx)
 {
   ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
   ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
@@ -207,7 +207,7 @@ void RenderScene(CommandContext* ctx)
 void Render()
 {
   CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-  CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+  CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), 1.0f, 0u);
@@ -215,8 +215,8 @@ void Render()
   RenderGrid(ctx);
   RenderScene(ctx);  
 
-  queue->ExecuteContext(ctx);
-  RenderCore::FreeContext(ctx);
+  queue->ExecuteCommandList(ctx);
+  RenderCore::FreeCommandList(ctx);
 
   myRuntime->EndFrame();
 }

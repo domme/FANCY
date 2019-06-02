@@ -3,7 +3,7 @@
 
 #include <fancy_core/Mesh.h>
 #include <fancy_core/Texture.h>
-#include <fancy_core/CommandContext.h>
+#include <fancy_core/CommandList.h>
 #include <fancy_core/Log.h>
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/PathService.h>
@@ -272,7 +272,7 @@ using namespace Fancy;
     tempTexResource[1] = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture 1");
 
     CommandQueue* queue = RenderCore::GetCommandQueue(CommandListType::Graphics);
-    CommandContext* ctx = RenderCore::AllocateContext(CommandListType::Graphics);
+    CommandList* ctx = RenderCore::AllocateCommandList(CommandListType::Graphics);
     ctx->SetComputeProgram(myTextureResizeShader.get());
 
     struct CBuffer
@@ -347,7 +347,7 @@ using namespace Fancy;
       destSize = glm::ceil(destSize * 0.5f);
     }
 
-    queue->ExecuteContext(ctx, true);
-    RenderCore::FreeContext(ctx);
+    queue->ExecuteCommandList(ctx, SyncMode::BLOCKING);
+    RenderCore::FreeCommandList(ctx);
   }
 //---------------------------------------------------------------------------//
