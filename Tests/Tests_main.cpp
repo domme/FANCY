@@ -10,6 +10,7 @@
 #include <fancy_core/CommandQueue.h>
 #include <fancy_core/Profiler.h>
 #include <fancy_core/Input.h>
+#include "fancy_core/CommandContext.h"
 
 #include <array>
 #include "Test.h"
@@ -17,7 +18,8 @@
 #include "Test_ImGui.h"
 #include "Test_GpuMemoryAllocator.h"
 #include "Test_Synchronization.h"
-#include "fancy_core/CommandContext.h"
+#include "Test_AsyncCompute.h"
+
 
 using namespace Fancy;
 
@@ -31,6 +33,7 @@ bool test_profiler = false;
 bool test_imgui = false;
 bool test_gpuMemoryAllocs = false;
 bool test_sychronization = false;
+bool test_asyncCompute = false;
 
 DynamicArray<UniquePtr<Test>> myTests;
 
@@ -94,6 +97,13 @@ void Update()
       myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Synchronization*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(std::make_unique<Test_Synchronization>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+  if (ImGui::Checkbox("Test Async Compute", &test_asyncCompute))
+  {
+    if (!test_asyncCompute)
+      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_AsyncCompute*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(std::make_unique<Test_AsyncCompute>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
 
   ImGui::Separator();

@@ -17,7 +17,7 @@ using namespace Fancy;
 static uint kNumBufferElements = 1024;
 
 Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Synchronization")
+  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Async Compute")
 {
   GpuBufferProperties props;
   props.myElementSizeBytes = sizeof(uint);
@@ -35,8 +35,7 @@ Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Windo
   ASSERT(myBuffer);
   
   GpuBufferViewProperties viewProps;
-  viewProps.myIsStructured = true;
-  viewProps.myStructureSize = sizeof(uint);
+  viewProps.myFormat = DataFormat::R_32UI;
   viewProps.myIsShaderWritable = true;
   myBufferUAV = RenderCore::CreateBufferView(myBuffer, viewProps, "Async compute text buffer UAV");
   ASSERT(myBufferUAV);
@@ -89,20 +88,21 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
         uint _unused1;
         uint _unused2;
       };
-      CBuffer cbuf = { (uint)Time::ourFrameIdx };
+      myExpectedBufferValue = (uint)Time::ourFrameIdx;
+      CBuffer cbuf = { myExpectedBufferValue };
       graphicsContext->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
       
       const GpuResourceView* views[] = { myBufferUAV.get() };
-      graphicsContext->BindResourceSet(views, ARRAY_LENGTH(views), 0);
+      graphicsContext->BindResourceSet(views, ARRAY_LENGTH(views), 1);
       graphicsContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
       const uint64 setValueFence = graphicsContext.ExecuteAndReset();
 
       CommandContext computeContext(CommandListType::Compute);
       RenderCore::GetCommandQueue(CommandListType::Compute)->StallForFence(setValueFence);
       computeContext->SetComputeProgram(myIncrementBufferShader.get());
-      computeContext->BindResourceSet(views, ARRAY_LENGTH(views), 0);
+      computeContext->BindResourceSet(views, ARRAY_LENGTH(views), 1);
       computeContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
-      const uint64 incrementValueFence = computeContext.ExecuteAndReset();
+      const uint64 incrementValueFence = computeContext.Execute();
 
       RenderCore::GetCommandQueue(CommandListType::Graphics)->StallForFence(incrementValueFence);
       graphicsContext->CopyBufferRegion(myReadbackBuffer.get(), 0ull, myBuffer.get(), 0ull, myBuffer->GetByteSize());
@@ -111,9 +111,42 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
       myStage = Stage::WAITING_FOR_READBACK_COPY;
     }
     break;
-    case Stage::WAITING_FOR_READBACK_COPY: break;
-    case Stage::COPY_DONE: break;
-    default: ;
+    case Stage::WAITING_FOR_READBACK_COPY: 
+    {
+      if (RenderCore::IsFenceDone(myBufferCopyFence))
+        myStage = Stage::COPY_DONE;
+    }
+    break;
+    case Stage::COPY_DONE: 
+    {
+      const uint expectedValue = myExpectedBufferValue + 1;
+
+      uint* bufferData = (uint*)myReadbackBuffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+      bool hasExpectedData = true;
+      uint bufferValue = 0;
+      for (uint i = 0; hasExpectedData && i < kNumBufferElements; ++i)
+      {
+        bufferValue = bufferData[i];
+        hasExpectedData &= bufferData[i] == expectedValue;
+      }
+      myReadbackBuffer->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED);
+
+      if (hasExpectedData)
+      {
+        ImGui::PushStyleColor(ImGuiCol_Text, 0xFF20a300);
+        ImGui::Text("Async compute test passed!");
+      }
+      else
+      {
+        ImGui::PushStyleColor(ImGuiCol_Text, 0xFFb22900);
+        ImGui::Text("Async compute test failed! Expected: %d - Actual %d", expectedValue, bufferValue);
+      }
+
+      ImGui::PopStyleColor();
+
+      myStage = Stage::IDLE;
+    }
+    break;
   }
 }
 

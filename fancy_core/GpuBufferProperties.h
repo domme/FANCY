@@ -34,7 +34,7 @@ namespace Fancy {
       , myIsStructured(false)
       , myIsRaw(false)
       , myOffset(0u)
-      , mySize(~0u)
+      , mySize(UINT64_MAX)
     {}
 
     DataFormat myFormat;

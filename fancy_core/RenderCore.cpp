@@ -741,8 +741,11 @@ namespace Fancy {
     return CreateTextureView(texture, someViewProperties, aName);
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aName /*=nullptr*/)
+  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, GpuBufferViewProperties someProperties, const char* aName /*=nullptr*/)
   {
+    if (someProperties.mySize == UINT64_MAX)
+      someProperties.mySize = aBuffer->GetByteSize() - someProperties.myOffset;
+
     const DataFormat format = someProperties.myFormat;
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
 
@@ -756,7 +759,7 @@ namespace Fancy {
     return SharedPtr<GpuBufferView>(ourPlatformImpl->CreateBufferView(aBuffer, someProperties, aName));
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const GpuBufferProperties& someParams, const GpuBufferViewProperties& someViewProperties, const char* aName /*= nullptr*/, const void* someInitialData)
+  SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const GpuBufferProperties& someParams, GpuBufferViewProperties someViewProperties, const char* aName /*= nullptr*/, const void* someInitialData)
   {
     SharedPtr<GpuBuffer> buffer = CreateBuffer(someParams, aName, someInitialData);
     if (buffer == nullptr)

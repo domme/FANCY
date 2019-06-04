@@ -315,7 +315,7 @@ namespace Fancy {
       format = DataFormat::RGBA_32F;
     }
 
-    else if (CHECK("uint"))
+    else if (CHECK("uint") || CHECK("dword"))
     {
       sizeBytes = kUintSize;
       format = DataFormat::R_32UI;
