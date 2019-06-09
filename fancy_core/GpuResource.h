@@ -2,7 +2,6 @@
 
 #include "Any.h"
 #include "RenderEnums.h"
-#include "Ptr.h"
 #include "DynamicArray.h"
 #include "FC_String.h"
 
@@ -14,17 +13,19 @@ namespace Fancy {
     BUFFER
   };
 //---------------------------------------------------------------------------//
-  struct GpuHazardData
+  struct GpuResourceHazardDataDX12
   {
-    GpuHazardData()
-      : myCanChangeStates(true)
-      , myAllSubresourcesInSameState(true)
-      , mySubresourceContexts{ CommandListType::Graphics }
-    {}
-
-    bool myCanChangeStates;
-    bool myAllSubresourcesInSameState;
+    // Uints are D3D12_RESOURCE_STATES
+    uint myReadState = 0u;
+    DynamicArray<uint> mySubresourceStates;
+  };
+//---------------------------------------------------------------------------//
+  struct GpuResourceHazardData
+  {
+    bool myCanChangeStates = true;
+    bool myAllSubresourcesInSameState = true;
     DynamicArray<CommandListType> mySubresourceContexts;
+    GpuResourceHazardDataDX12 myDx12Data;  // Will become a union once other platforms are in
   };
 //---------------------------------------------------------------------------//
   class GpuResource
@@ -49,7 +50,7 @@ namespace Fancy {
 
     String myName;
     GpuResourceCategory myCategory;
-    UniquePtr<GpuHazardData> myHazardData;
+    mutable GpuResourceHazardData myHazardData;
     Any myNativeData;
   };
 //---------------------------------------------------------------------------//

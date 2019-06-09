@@ -1118,14 +1118,16 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset, uint aNumSubresources)
   {
-    // TODO: Fix this logic - this just waits all the time. The hazard-tracking should store a fence when the resource was last used for writing
-    
-    GpuHazardData* hazardData = aResource->myHazardData.get();
+    /* TODO: 
+     * This method just waits on all queues the resource has been used on, even if it hasn't been written to or has been written to a long time ago. 
+     * Instead, the hazardData should include the fences after the last write-access for all queues so this method can wait on those fences instead.
+     */
+    const GpuResourceHazardData& hazardData = aResource->myHazardData;
 
     bool commandListNeedsWait[(uint)CommandListType::NUM] = { false, false, false };
     for (uint i = aSubresourceOffset, end = aSubresourceOffset + glm::min(aResource->GetNumSubresources() - aSubresourceOffset, aNumSubresources); i < end; ++i)
     {
-      CommandListType cmdListType = hazardData->mySubresourceContexts[i];
+      CommandListType cmdListType = hazardData.mySubresourceContexts[i];
       commandListNeedsWait[(uint)cmdListType] |= true;
     }
 

@@ -52,12 +52,10 @@ namespace Fancy {
         resource.myNativeData = dataDx12;
       }
 
-      resource.myHazardData.reset(new GpuHazardDataDX12);
-      GpuHazardDataDX12* hazardDataDx12 = static_cast<GpuHazardDataDX12*>(resource.myHazardData.get());
-      hazardDataDx12->mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
-      hazardDataDx12->mySubresourceContexts.push_back(CommandListType::Graphics);
-      hazardDataDx12->myAllSubresourcesInSameState = true;
-      hazardDataDx12->myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+      resource.myHazardData = GpuResourceHazardData();
+      resource.myHazardData.myDx12Data.myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+      resource.myHazardData.myDx12Data.mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
+      resource.myHazardData.mySubresourceContexts.push_back(CommandListType::Graphics);
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

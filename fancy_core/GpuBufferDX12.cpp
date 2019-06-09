@@ -44,9 +44,6 @@ namespace Fancy {
     GpuResourceDataDX12* dataDx12 = new GpuResourceDataDX12();
     myNativeData = dataDx12;
 
-    myHazardData.reset(new GpuHazardDataDX12);
-    GpuHazardDataDX12* hazardDataDx12 = static_cast<GpuHazardDataDX12*>(myHazardData.get());
-
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "GpuBuffer_Unnamed";
 
@@ -115,12 +112,12 @@ namespace Fancy {
       default: ASSERT(false, "Missing implementation");
       }
     }
-    hazardDataDx12->mySubresourceStates.resize(1u);
-    hazardDataDx12->mySubresourceStates[0] = initialState;
-    hazardDataDx12->mySubresourceContexts.resize(1u);
-    hazardDataDx12->mySubresourceContexts[0] = CommandListType::Graphics;
-    hazardDataDx12->myReadState = readState;
-    hazardDataDx12->myCanChangeStates = canChangeStates;
+
+    myHazardData = GpuResourceHazardData();
+    myHazardData.myDx12Data.mySubresourceStates.push_back(initialState);
+    myHazardData.myDx12Data.myReadState = readState;
+    myHazardData.mySubresourceContexts.push_back(CommandListType::Graphics);
+    myHazardData.myCanChangeStates = canChangeStates;
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();

@@ -56,9 +56,6 @@ namespace Fancy {
     GpuResourceDataDX12* dataDx12 = new GpuResourceDataDX12();
     myNativeData = dataDx12;
 
-    myHazardData.reset(new GpuHazardDataDX12);
-    GpuHazardDataDX12* hazardDataDx12 = static_cast<GpuHazardDataDX12*>(myHazardData.get());
-
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "Texture_Unnamed";
 
@@ -137,15 +134,15 @@ namespace Fancy {
     const uint numArraySlices = myProperties.GetArraySize();
     const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
 
-    hazardDataDx12->mySubresourceStates.resize(numSubresources);
-    hazardDataDx12->mySubresourceContexts.resize(numSubresources);
+    myHazardData = GpuResourceHazardData();
+    myHazardData.myDx12Data.mySubresourceStates.resize(numSubresources);
+    myHazardData.mySubresourceContexts.resize(numSubresources);
     for (uint i = 0u; i < numSubresources; ++i)
     {
-      hazardDataDx12->mySubresourceStates[i] = initialState;
-      hazardDataDx12->mySubresourceContexts[i] = CommandListType::Graphics;
+      myHazardData.myDx12Data.mySubresourceStates[i] = initialState;
+      myHazardData.mySubresourceContexts[i] = CommandListType::Graphics;
     }
-    
-    hazardDataDx12->myReadState = readState;
+    myHazardData.myDx12Data.myReadState = readState;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -328,7 +325,7 @@ namespace Fancy {
     }
 
     myNativeData.Clear();
-    myHazardData.reset();
+    myHazardData = GpuResourceHazardData();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//
