@@ -40,7 +40,7 @@ namespace Fancy {
     Texture* currBackbuffer = myBackbufferRtv[myCurrBackbufferIndex]->GetTexture();
 
     CommandContext context(CommandListType::Graphics);
-    context->TransitionResource(currBackbuffer, GpuResourceTransition::TO_PRESENT);
+    context->TransitionResource(currBackbuffer, GpuResourceAccessTransition::TO_PRESENT);
     context.Execute();
 
     Present();

@@ -40,7 +40,7 @@ namespace Fancy {
     void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
     void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
 
-    void TransitionResourceList(const GpuResource** someResources, GpuResourceTransition* someTransitions, uint aNumResources) override;
+    void TransitionResourceList(const GpuResource** someResources, GpuResourceAccessTransition* someTransitions, uint aNumResources) override;
     void ReleaseGpuResources(uint64 aFenceVal) override;
     void Reset() override;
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;

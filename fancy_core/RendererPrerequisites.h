@@ -5,6 +5,9 @@
 #define FANCY_RENDERER_DEBUG 1
 #define FANCY_RENDERER_DEBUG_MEMORY_ALLOCS FANCY_RENDERER_DEBUG
 
+// Track the resource barrier-states per resource. Only works in single-threaded commandList-recording!
+#define FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES 1
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace RenderConstants 

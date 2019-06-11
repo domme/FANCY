@@ -36,6 +36,7 @@ namespace Fancy {
       }
     }
   //---------------------------------------------------------------------------//
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     void locValidateUsageStatesCopy(const GpuResource* aDst, uint aDstSubresource, const GpuResource* aSrc, uint aSrcSubresource)
     {
       const GpuResourceHazardData& src = aSrc->myHazardData;
@@ -56,6 +57,7 @@ namespace Fancy {
       for (uint i = 0u; i < (dst.myAllSubresourcesInSameState ? 1u : dst.myDx12Data.mySubresourceStates.size()); ++i)
          ASSERT(dst.myDx12Data.mySubresourceStates[i] & D3D12_RESOURCE_STATE_COPY_DEST);
     }
+#endif
   //---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
@@ -428,7 +430,7 @@ namespace Fancy {
     myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::TransitionResourceList(const GpuResource** someResources, GpuResourceTransition* someTransitions, uint aNumResources)
+  void CommandListDX12::TransitionResourceList(const GpuResource** someResources, GpuResourceAccessTransition* someTransitions, uint aNumResources)
   {
     const GpuResource** resourcesToTransition = (const GpuResource**) alloca(sizeof(GpuResource*) * aNumResources);
     D3D12_RESOURCE_STATES* transitionToStates = (D3D12_RESOURCE_STATES*) alloca(sizeof(D3D12_RESOURCE_STATES) * aNumResources);
@@ -465,29 +467,29 @@ namespace Fancy {
       const uint shaderReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_INDEX_BUFFER;
       switch(someTransitions[i]) 
       { 
-        case GpuResourceTransition::TO_READ_GRAPHICS_COMPUTE: 
+        case GpuResourceAccessTransition::TO_READ_GRAPHICS_COMPUTE: 
           states = (D3D12_RESOURCE_STATES) hazardTrackingData.myDx12Data.myReadState;
         break;
-      case GpuResourceTransition::TO_COMMON:
-      case GpuResourceTransition::TO_READ_WRITE_DMA: 
+      case GpuResourceAccessTransition::TO_COMMON:
+      case GpuResourceAccessTransition::TO_READ_WRITE_DMA: 
         states = D3D12_RESOURCE_STATE_COMMON;
         break;
-      case GpuResourceTransition::TO_PRESENT: 
+      case GpuResourceAccessTransition::TO_PRESENT: 
         states = D3D12_RESOURCE_STATE_PRESENT;
         break;
-      case GpuResourceTransition::TO_RENDERTARGET: 
+      case GpuResourceAccessTransition::TO_RENDERTARGET: 
         states = D3D12_RESOURCE_STATE_RENDER_TARGET;
         break;
-      case GpuResourceTransition::TO_COPY_DEST: 
+      case GpuResourceAccessTransition::TO_COPY_DEST: 
         states = D3D12_RESOURCE_STATE_COPY_DEST;
         break;
-      case GpuResourceTransition::TO_COPY_SRC: 
+      case GpuResourceAccessTransition::TO_COPY_SRC: 
         states = D3D12_RESOURCE_STATE_COPY_SOURCE;
         break;
-      case GpuResourceTransition::TO_SHADER_READ:
+      case GpuResourceAccessTransition::TO_SHADER_READ:
         states = (D3D12_RESOURCE_STATES) (hazardTrackingData.myDx12Data.myReadState & shaderReadStates);
         break;
-      case GpuResourceTransition::TO_SHADER_WRITE: 
+      case GpuResourceAccessTransition::TO_SHADER_WRITE: 
         states = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
         break;
       default: 

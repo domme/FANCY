@@ -17,6 +17,7 @@ namespace Fancy {
   {
     // Uints are D3D12_RESOURCE_STATES
     uint myReadState = 0u;
+    uint myWriteState = 0u;
     DynamicArray<uint> mySubresourceStates;
   };
 //---------------------------------------------------------------------------//

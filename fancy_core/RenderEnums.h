@@ -138,17 +138,22 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class GpuResourceTransition
+  enum class GpuResourceAccessTransition
   {
-    TO_READ_GRAPHICS_COMPUTE, // make a resource written by default/compute contexts readable by any default/compute context
-    TO_READ_WRITE_DMA,				// make a resource written by any context read/writable by DMA context
-    TO_COMMON,
-    TO_PRESENT,
+    TO_IDLE,  // Any form of future usage (inefficient!)
+    TO_READ,  // Use the resource's cached read-state
+    TO_WRITE, // Use the resource's cached write-state
+    TO_READWRITE, // For inserting barriers between consecutive UAV-usages. Needed if shader B needs to have
     TO_RENDERTARGET,
-    TO_COPY_DEST,
-    TO_COPY_SRC,
-    TO_SHADER_READ,
-    TO_SHADER_WRITE,
+    TO_PRESENT,
+  };
+//---------------------------------------------------------------------------//
+  enum class GpuResourceQueueTransition
+  {
+    GRAPHICS_TO_GRAPHICS,
+    GRAPHICS_TO_COMPUTE,
+    COMPUTE_TO_GRAPHICS,
+    COMPUTE_TO_COMPUTE
   };
 //---------------------------------------------------------------------------//
   enum class CpuMemoryAccessType
