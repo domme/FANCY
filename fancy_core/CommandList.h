@@ -68,7 +68,7 @@ namespace Fancy {
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
-    virtual void TransitionResourceList(const GpuResource** someResources, GpuResourceAccessTransition* someTransitions, uint aNumResources) = 0;
+    virtual void TransitionResourceList(const GpuResource** someResources, GpuResourceQueueTransition* someQueueTransitions, GpuResourceAccessTransition* someAccessTransitions, uint aNumResources) = 0;
     virtual GpuQuery BeginQuery(GpuQueryType aType) = 0;
     virtual void EndQuery(const GpuQuery& aQuery) = 0;
     virtual GpuQuery InsertTimestamp() = 0;

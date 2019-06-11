@@ -1097,7 +1097,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::SetResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const
   {
-
     SetResourceTransitionBarriers(&aResource, &aNewState, 1u);
   }
 //---------------------------------------------------------------------------//
