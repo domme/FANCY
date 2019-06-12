@@ -71,12 +71,14 @@ namespace Fancy {
 
     D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
     D3D12_RESOURCE_STATES readState = D3D12_RESOURCE_STATE_GENERIC_READ;
-    bool canChangeStates = true;
+    D3D12_RESOURCE_STATES writeState = D3D12_RESOURCE_STATE_COPY_DEST;
+    if (someProperties.myIsShaderWritable)
+      writeState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
+    bool canChangeStates = true;
     if (cpuMemAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
     {
       initialState = D3D12_RESOURCE_STATE_GENERIC_READ;
-      readState = D3D12_RESOURCE_STATE_GENERIC_READ;
       canChangeStates = false;
     }
     else if (cpuMemAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
@@ -86,6 +88,7 @@ namespace Fancy {
     }
     else
     {
+      // TODO: Rework the usage-mode and allow for multiple usages ("bindFlags") at the same time. It should be possible to make a vertexBuffer that is also a shaderBuffer
       switch (someProperties.myUsage)
       {
       case GpuBufferUsage::STAGING_UPLOAD:
@@ -96,16 +99,16 @@ namespace Fancy {
         break;
       case GpuBufferUsage::VERTEX_BUFFER:
       case GpuBufferUsage::CONSTANT_BUFFER:
-        initialState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-        readState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+        readState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_COPY_SOURCE;
+        initialState = readState;
         break;
       case GpuBufferUsage::INDEX_BUFFER:
-        initialState = D3D12_RESOURCE_STATE_INDEX_BUFFER;
-        readState = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+        readState = D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_COPY_SOURCE;
+        initialState = readState;
         break;
       case GpuBufferUsage::SHADER_BUFFER:
-        initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-        readState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        readState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+        initialState = readState;
         if (someProperties.myIsShaderWritable)
           initialState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
         break;
@@ -116,8 +119,13 @@ namespace Fancy {
     myHazardData = GpuResourceHazardData();
     myHazardData.myDx12Data.mySubresourceStates.push_back(initialState);
     myHazardData.myDx12Data.myReadState = readState;
+    myHazardData.myDx12Data.myWriteState = writeState;
     myHazardData.mySubresourceContexts.push_back(CommandListType::Graphics);
     myHazardData.myCanChangeStates = canChangeStates;
+
+    myNumSubresources = 1u;
+    myNumSubresourcesPerPlane = 1u;
+    myNumPlanes = 1u;
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();

@@ -240,8 +240,9 @@ namespace Fancy {
     ASSERT(aTextureView->GetProperties().myIsRenderTarget);
     ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::RTV);
 
-    // TODO: Only transition subresources addressed by aTextureView
-    SetResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+    SetTrackResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+#endif
 
     myCommandList->ClearRenderTargetView(viewDataDx12.myDescriptor.myCpuHandle, aColor, 0, nullptr);
   }
@@ -251,8 +252,9 @@ namespace Fancy {
     const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
     ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::DSV);
 
-    // TODO: Only transition subresources addressed by aTextureView
-    SetResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+    SetTrackResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+#endif
     
     D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS)0;
     if (someClearFlags & (uint)DepthStencilClearFlags::CLEAR_DEPTH)
@@ -265,9 +267,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
   {
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     const GpuResource* resourcesToTransition[] = { aDestResource, aSrcResource };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
-    SetResourceTransitionBarriers(resourcesToTransition, barrierStates, 2);
+    SetTrackResourceTransitionBarriers(resourcesToTransition, barrierStates, 2);
+#endif
 
     GpuResourceDataDX12* destData = aDestResource->myNativeData.To<GpuResourceDataDX12*>();
     GpuResourceDataDX12* srcData = aSrcResource->myNativeData.To<GpuResourceDataDX12*>();
@@ -280,10 +284,12 @@ namespace Fancy {
     ASSERT(aDestBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)");
     ASSERT(aSize <= aDestBuffer->GetByteSize() - aDestOffset, "Invalid dst-region specified");
     ASSERT(aSize <= aSrcBuffer->GetByteSize() - aSrcOffset, "Invalid src-region specified");
-    
+
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     const GpuResource* resourcesToTransition[] = { aDestBuffer, aSrcBuffer };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
-    SetResourceTransitionBarriers(resourcesToTransition, barrierStates, 2);
+    SetTrackResourceTransitionBarriers(resourcesToTransition, barrierStates, 2);
+#endif
 
     ID3D12Resource* dstResource = static_cast<const GpuBufferDX12*>(aDestBuffer)->GetData()->myResource.Get();
     ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
@@ -299,11 +305,13 @@ namespace Fancy {
     const uint16 bufferSubresourceIndex = 0;
     const uint16 textureSubresourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubLocation));
 
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     const GpuResource* resourcesToTransition[] = { aDestBuffer, aSrcTexture };
     const uint16* subresourceLists[] = { &bufferSubresourceIndex, &textureSubresourceIndex };
     const uint numSubresources[] = { 1, 1 };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
-    SetSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, 2);
+    SetTrackSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, 2);
+#endif
 
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
 
@@ -356,12 +364,14 @@ namespace Fancy {
 
     const uint16 destSubResourceIndex = static_cast<uint16>(aDestTexture->GetSubresourceIndex(aDestSubLocation));
     const uint16 srcSubResourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubLocation));
-    
+
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     const GpuResource* resourcesToTransition[] = { aDestTexture, aSrcTexture };
     const uint16* subresourceLists[] = { &destSubResourceIndex, &srcSubResourceIndex };
     const uint numSubresources[] = { 1, 1 };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
-    SetSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, 2);
+    SetTrackSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, 2);
+#endif
 
     D3D12_TEXTURE_COPY_LOCATION dstLocation;
     dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -400,11 +410,13 @@ namespace Fancy {
     const uint16 destSubResourceIndex = static_cast<uint16>(aDestTexture->GetSubresourceIndex(aDestSubLocation));
     const uint16 srcSubResourceIndex = 0;
 
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     const GpuResource* resourcesToTransition[] = { aDestTexture, aSrcBuffer };
     const uint16* subresourceLists[] = { &destSubResourceIndex, &srcSubResourceIndex };
     const uint numSubresources[] = { 1, 1 };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
-    SetSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, 2);
+    SetTrackSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, 2);
+#endif
     
     D3D12_TEXTURE_COPY_LOCATION dstLocation;
     dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -428,93 +440,6 @@ namespace Fancy {
     srcLocation.PlacedFootprint.Offset = aSrcOffset + footprint.Offset;
     
     myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
-  }
-//---------------------------------------------------------------------------//
-  void CommandListDX12::TransitionResourceList(const GpuResource** someResources, GpuResourceAccessTransition* someTransitions, uint aNumResources)
-  {
-    const GpuResource** resourcesToTransition = (const GpuResource**) alloca(sizeof(GpuResource*) * aNumResources);
-    D3D12_RESOURCE_STATES* transitionToStates = (D3D12_RESOURCE_STATES*) alloca(sizeof(D3D12_RESOURCE_STATES) * aNumResources);
-    uint numTransitions = 0u;
-
-    /*
-     *D3D12_RESOURCE_STATE_COMMON // DMA, textures for CPU-access
-     *D3D12_RESOURCE_STATE_PRESENT // Same as COMMON
-      
-    Read-only:
-      D3D12_RESOURCE_STATE_GENERIC_READ  // Required for upload-heaps
-        D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
-        D3D12_RESOURCE_STATE_INDEX_BUFFER
-        D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
-        D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT
-        D3D12_RESOURCE_STATE_COPY_SOURCE
-      D3D12_RESOURCE_STATE_DEPTH_READ
-
-    Write-only
-      D3D12_RESOURCE_STATE_RENDER_TARGET
-      D3D12_RESOURCE_STATE_COPY_DEST
-
-    Read/Write:
-      D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-      D3D12_RESOURCE_STATE_DEPTH_WRITE
-     */
-
-    for (uint i = 0u; i < aNumResources; ++i)
-    {
-      GpuResourceHazardData& hazardTrackingData = someResources[i]->myHazardData;
-      D3D12_RESOURCE_STATES states = D3D12_RESOURCE_STATE_COMMON;
-
-      const uint shaderReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_INDEX_BUFFER;
-      switch(someTransitions[i]) 
-      { 
-        case GpuResourceAccessTransition::TO_READ_GRAPHICS_COMPUTE: 
-          states = (D3D12_RESOURCE_STATES) hazardTrackingData.myDx12Data.myReadState;
-        break;
-      case GpuResourceAccessTransition::TO_COMMON:
-      case GpuResourceAccessTransition::TO_READ_WRITE_DMA: 
-        states = D3D12_RESOURCE_STATE_COMMON;
-        break;
-      case GpuResourceAccessTransition::TO_PRESENT: 
-        states = D3D12_RESOURCE_STATE_PRESENT;
-        break;
-      case GpuResourceAccessTransition::TO_RENDERTARGET: 
-        states = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        break;
-      case GpuResourceAccessTransition::TO_COPY_DEST: 
-        states = D3D12_RESOURCE_STATE_COPY_DEST;
-        break;
-      case GpuResourceAccessTransition::TO_COPY_SRC: 
-        states = D3D12_RESOURCE_STATE_COPY_SOURCE;
-        break;
-      case GpuResourceAccessTransition::TO_SHADER_READ:
-        states = (D3D12_RESOURCE_STATES) (hazardTrackingData.myDx12Data.myReadState & shaderReadStates);
-        break;
-      case GpuResourceAccessTransition::TO_SHADER_WRITE: 
-        states = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-        break;
-      default: 
-        ASSERT(false, "Missing implementation");
-        break;
-      }
-
-      if (states != 0)
-      {
-        uint commandListStateMask = kResourceStateMask_GraphicsContext;
-        if (myCommandListType == CommandListType::Compute)
-          commandListStateMask = kResourceStateMask_ComputeContext;
-        else if (myCommandListType == CommandListType::DMA)
-          commandListStateMask = kResourceStateMask_Copy;
-
-        states = (D3D12_RESOURCE_STATES) (states & commandListStateMask);
-        ASSERT(states != 0);
-      }
-      
-      resourcesToTransition[numTransitions] = someResources[i];
-      transitionToStates[numTransitions] = states;
-      ++numTransitions;
-    }
-
-    SetResourceTransitionBarriers(resourcesToTransition, transitionToStates, numTransitions);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::ReleaseGpuResources(uint64 aFenceVal)
@@ -735,31 +660,37 @@ namespace Fancy {
     ASSERT(myCurrentContext != CommandListType::Compute || myComputeRootSignature != nullptr);
     
     GpuResourceDataDX12* storage = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
-
     ASSERT(storage->myResource != nullptr);
     
     const uint64 gpuVirtualAddress = storage->myResource->GetGPUVirtualAddress() + someViewProperties.myOffset;
 
-    D3D12_RESOURCE_STATES state;
     GpuResourceViewDataDX12::Type type = GpuResourceViewDataDX12::NONE;
     if (someViewProperties.myIsShaderWritable)
     {
       ASSERT(someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor");
       type = GpuResourceViewDataDX12::UAV;
-      state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
     }
     else if (someViewProperties.myIsConstantBuffer)
     {
       type = GpuResourceViewDataDX12::CBV;
-      state = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
     }
     else
     {
       ASSERT(someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor");
       type = GpuResourceViewDataDX12::SRV;
-      state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
     }
-    SetResourceTransitionBarrier(aBuffer, state);
+
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+    D3D12_RESOURCE_STATES state;
+    if (someViewProperties.myIsShaderWritable)
+      state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    else if (someViewProperties.myIsConstantBuffer)
+      state = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    else
+      state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+    SetTrackResourceTransitionBarrier(aBuffer, state);
+#endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     
     switch (myCurrentContext)
     {
@@ -794,12 +725,20 @@ namespace Fancy {
     ASSERT(myCurrentContext != CommandListType::Graphics || myRootSignature != nullptr);
     ASSERT(myCurrentContext != CommandListType::Compute || myComputeRootSignature != nullptr);
 
-    const GpuResource** resourcesToTransition = (const GpuResource**)alloca(sizeof(GpuResource*) * aResourceCount);
-    const uint16** subresourceLists = (const uint16**) alloca(sizeof(uint16*) * aResourceCount);
-    uint* numSubresources = (uint*) alloca(sizeof(uint) * aResourceCount);
-    D3D12_RESOURCE_STATES* barrierStates = (D3D12_RESOURCE_STATES*)alloca(sizeof(D3D12_RESOURCE_STATES) * aResourceCount);
     DescriptorDX12* dx12Descriptors = (DescriptorDX12*)alloca(sizeof(DescriptorDX12) * aResourceCount);
+    
+    for (uint i = 0; i < aResourceCount; ++i)
+    {
+      ASSERT(someResourceViews[i]->myNativeData.HasType<GpuResourceViewDataDX12>());
+      const GpuResourceViewDataDX12& resourceViewData = someResourceViews[i]->myNativeData.To<GpuResourceViewDataDX12>();
+      dx12Descriptors[i] = resourceViewData.myDescriptor;
+    }
 
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+    const GpuResource** resourcesToTransition = (const GpuResource**)alloca(sizeof(GpuResource*) * aResourceCount);
+    const uint16** subresourceLists = (const uint16**)alloca(sizeof(uint16*) * aResourceCount);
+    uint* numSubresources = (uint*)alloca(sizeof(uint) * aResourceCount);
+    D3D12_RESOURCE_STATES* barrierStates = (D3D12_RESOURCE_STATES*)alloca(sizeof(D3D12_RESOURCE_STATES) * aResourceCount);
     for (uint i = 0; i < aResourceCount; ++i)
     {
       ASSERT(someResourceViews[i]->myNativeData.HasType<GpuResourceViewDataDX12>());
@@ -807,8 +746,6 @@ namespace Fancy {
 
       subresourceLists[i] = someResourceViews[i]->mySubresources->data();
       numSubresources[i] = static_cast<uint>(someResourceViews[i]->mySubresources->size());
-      
-      dx12Descriptors[i] = resourceViewData.myDescriptor;
       resourcesToTransition[i] = someResourceViews[i]->myResource.get();
       switch (resourceViewData.myType)
       {
@@ -824,7 +761,8 @@ namespace Fancy {
         default: ASSERT(false);
       }
     }
-    SetSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, aResourceCount);
+    SetTrackSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, aResourceCount);
+#endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
 
     const DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
 
@@ -891,7 +829,9 @@ namespace Fancy {
     const GpuBufferDX12* bufferDx12 = (const GpuBufferDX12*)aBuffer;
     GpuResourceDataDX12* resourceDataDx12 = bufferDx12->GetData();
 
-    SetResourceTransitionBarrier(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+    SetTrackResourceTransitionBarrier(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+#endif
 
     myCommandList->ResolveQueryData(
       queryHeapDx12->myHeap.Get(),
@@ -900,6 +840,12 @@ namespace Fancy {
       aNumQueries,
       bufferDx12->GetData()->myResource.Get(), 
       aBufferOffset);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::ResourceBarrier(const GpuResource** someResources, CommandListType* someFromQueues,
+    CommandListType* someToQueues, GpuResourceAccessState* someFromStates, GpuResourceAccessState* someToStates, uint aNumResources)
+  {
+    
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
@@ -931,7 +877,9 @@ namespace Fancy {
     vertexBufferView.SizeInBytes = static_cast<uint>(byteSize);
     vertexBufferView.StrideInBytes = static_cast<uint>(aVertexSize);
 
-    SetResourceTransitionBarrier(aBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+    SetTrackResourceTransitionBarrier(aBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+#endif
 
     // TODO: Don't set the primitive topology here: Changing the topology after binding the vertex buffer won't work otherwise...
     myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
@@ -956,7 +904,9 @@ namespace Fancy {
     ASSERT(byteSize <= UINT_MAX);
     indexBufferView.SizeInBytes = static_cast<uint>(byteSize);
 
-    SetResourceTransitionBarrier(aBuffer, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+    SetTrackResourceTransitionBarrier(aBuffer, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+#endif // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     
     myCommandList->IASetIndexBuffer(&indexBufferView);
   }
@@ -1049,16 +999,18 @@ namespace Fancy {
         numSubresources[i] = static_cast<uint>(myRenderTargets[i]->mySubresources[0].size());
       }
 
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
       D3D12_RESOURCE_STATES newStates[RenderConstants::kMaxNumRenderTargets];
       for (uint i = 0; i < numRtsToSet; ++i)
         newStates[i] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-      SetSubresourceTransitionBarriers(rtResources, newStates, subresourceLists, numSubresources, numRtsToSet);
+      SetTrackSubresourceTransitionBarriers(rtResources, newStates, subresourceLists, numSubresources, numRtsToSet);
+#endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     }
     
-    // DSV state-transitions
     if (myDepthStencilTarget != nullptr)
     {
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
       const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myNativeData.To<GpuResourceViewDataDX12>();
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myDepthStencilTarget->GetTexture()->GetProperties().eFormat);
       const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
@@ -1074,7 +1026,8 @@ namespace Fancy {
       const uint16* subresourceLists[2] = { myDepthStencilTarget->mySubresources[0].data(), myDepthStencilTarget->mySubresources[1].data() };
       const uint numSubresources[2] = { static_cast<uint>(myDepthStencilTarget->mySubresources[0].size()), static_cast<uint>(myDepthStencilTarget->mySubresources[1].size()) };
       
-      SetSubresourceTransitionBarriers(resources, dsStates, subresourceLists, numSubresources, 2u);
+      SetTrackSubresourceTransitionBarriers(resources, dsStates, subresourceLists, numSubresources, 2u);
+#endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
       
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
     }
@@ -1095,24 +1048,25 @@ namespace Fancy {
     myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const
+#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+  void CommandListDX12::SetTrackResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const
   {
-    SetResourceTransitionBarriers(&aResource, &aNewState, 1u);
+    SetTrackResourceTransitionBarriers(&aResource, &aNewState, 1u);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetResourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
+  void CommandListDX12::SetTrackResourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, uint aNumResources) const
   {
-    SetSubresourceTransitionBarriers(someResources, someNewStates, nullptr, nullptr, aNumResources);
+    SetTrackSubresourceTransitionBarriers(someResources, someNewStates, nullptr, nullptr, aNumResources);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const
+  void CommandListDX12::SetTrackSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const
   {
     const uint numSubresources = 1u;
     const uint16* subresourceLists[] = { &aSubresourceIndex };
-    SetSubresourceTransitionBarriers(&aResource, &aNewState, subresourceLists, &numSubresources, 1u);
+    SetTrackSubresourceTransitionBarriers(&aResource, &aNewState, subresourceLists, &numSubresources, 1u);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const
+  void CommandListDX12::SetTrackSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const
   {
     D3D12_RESOURCE_BARRIER barriers[256];
 
@@ -1225,6 +1179,7 @@ namespace Fancy {
     if (numBarriers > 0)
       myCommandList->ResourceBarrier(numBarriers, barriers);
   }
+#endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
 //---------------------------------------------------------------------------//
   void CommandListDX12::SetResourceUAVbarrier(const GpuResource* aResource) const
   {

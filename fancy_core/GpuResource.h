@@ -33,21 +33,30 @@ namespace Fancy {
   {
   public:
     explicit GpuResource(GpuResourceCategory aType)
-      : myCategory(aType)
+      : myNumSubresources(1u)
+      , myNumSubresourcesPerPlane(1u)
+      , myNumPlanes(1u)
+      , myCategory(aType)
     {}
 
     void operator=(GpuResource&& anOtherResource) noexcept
     {
-      myCategory = anOtherResource.myCategory;
+      myCategory = std::move(anOtherResource.myCategory);
       myNativeData = std::move(anOtherResource.myNativeData);
       myName = std::move(anOtherResource.myName);
       myHazardData = std::move(anOtherResource.myHazardData);
+      myNumSubresources = std::move(anOtherResource.myNumSubresources);
+      myNumSubresourcesPerPlane = std::move(anOtherResource.myNumSubresourcesPerPlane);
+      myNumPlanes = std::move(anOtherResource.myNumPlanes);
     }
 
     virtual ~GpuResource() = default;
     virtual bool IsValid() const { return false; }
     virtual void SetName(const char* aName) { myName = aName; }
-    virtual uint GetNumSubresources() const { return 1u; }
+
+    uint myNumSubresources;
+    uint myNumSubresourcesPerPlane;
+    uint myNumPlanes;
 
     String myName;
     GpuResourceCategory myCategory;

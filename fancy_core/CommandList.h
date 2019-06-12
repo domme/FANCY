@@ -68,11 +68,14 @@ namespace Fancy {
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
-    virtual void TransitionResourceList(const GpuResource** someResources, GpuResourceQueueTransition* someQueueTransitions, GpuResourceAccessTransition* someAccessTransitions, uint aNumResources) = 0;
+
     virtual GpuQuery BeginQuery(GpuQueryType aType) = 0;
     virtual void EndQuery(const GpuQuery& aQuery) = 0;
     virtual GpuQuery InsertTimestamp() = 0;
     virtual void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) = 0;
+
+    virtual void ResourceBarrier(const GpuResource** someResources, CommandListType* someFromQueues, CommandListType* someToQueues, GpuResourceAccessState* someFromStates, GpuResourceAccessState* someToStates, uint aNumResources) = 0;
+
     virtual void Close() = 0;
     virtual bool IsOpen() const = 0;
     
@@ -102,16 +105,16 @@ namespace Fancy {
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
 
-    void TransitionResource(const GpuResource* aResource, GpuResourceAccessTransition aTransition);
-    void TransitionResource(const GpuResource* aResource1, GpuResourceAccessTransition aTransition1,
-                            const GpuResource* aResource2, GpuResourceAccessTransition aTransition2);
-    void TransitionResource(const GpuResource* aResource1, GpuResourceAccessTransition aTransition1,
-      const GpuResource* aResource2, GpuResourceAccessTransition aTransition2,
-      const GpuResource* aResource3, GpuResourceAccessTransition aTransition3);
-    void TransitionResource(const GpuResource* aResource1, GpuResourceAccessTransition aTransition1,
-      const GpuResource* aResource2, GpuResourceAccessTransition aTransition2,
-      const GpuResource* aResource3, GpuResourceAccessTransition aTransition3,
-      const GpuResource* aResource4, GpuResourceAccessTransition aTransition4);
+    void TransitionResource(const GpuResource* aResource, GpuResourceAccessState aTransition);
+    void TransitionResource(const GpuResource* aResource1, GpuResourceAccessState aTransition1,
+                            const GpuResource* aResource2, GpuResourceAccessState aTransition2);
+    void TransitionResource(const GpuResource* aResource1, GpuResourceAccessState aTransition1,
+      const GpuResource* aResource2, GpuResourceAccessState aTransition2,
+      const GpuResource* aResource3, GpuResourceAccessState aTransition3);
+    void TransitionResource(const GpuResource* aResource1, GpuResourceAccessState aTransition1,
+      const GpuResource* aResource2, GpuResourceAccessState aTransition2,
+      const GpuResource* aResource3, GpuResourceAccessState aTransition3,
+      const GpuResource* aResource4, GpuResourceAccessState aTransition4);
     
   protected:
     GpuQuery AllocateQuery(GpuQueryType aType);

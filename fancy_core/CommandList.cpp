@@ -100,29 +100,29 @@ namespace Fancy {
   {
   }
 //---------------------------------------------------------------------------//
-  void CommandList::TransitionResource(const GpuResource* aResource, GpuResourceAccessTransition aTransition)
+  void CommandList::TransitionResource(const GpuResource* aResource, GpuResourceAccessState aTransition)
   {
     TransitionResourceList(&aResource, &aTransition, 1);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::TransitionResource(const GpuResource* aResource1, GpuResourceAccessTransition aTransition1, const  GpuResource* aResource2, GpuResourceAccessTransition aTransition2)
+  void CommandList::TransitionResource(const GpuResource* aResource1, GpuResourceAccessState aTransition1, const  GpuResource* aResource2, GpuResourceAccessState aTransition2)
   {
     const GpuResource* resources[] = { aResource1, aResource2 };
-    GpuResourceAccessTransition states[] = { aTransition1, aTransition2 };
+    GpuResourceAccessState states[] = { aTransition1, aTransition2 };
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
-  void CommandList::TransitionResource(const GpuResource* aResource1, GpuResourceAccessTransition aTransition1, const GpuResource* aResource2, GpuResourceAccessTransition aTransition2, const GpuResource* aResource3, GpuResourceAccessTransition aTransition3)
+  void CommandList::TransitionResource(const GpuResource* aResource1, GpuResourceAccessState aTransition1, const GpuResource* aResource2, GpuResourceAccessState aTransition2, const GpuResource* aResource3, GpuResourceAccessState aTransition3)
   {
     const GpuResource* resources[] = { aResource1, aResource2, aResource3 };
-    GpuResourceAccessTransition states[] = { aTransition1, aTransition2, aTransition3 };
+    GpuResourceAccessState states[] = { aTransition1, aTransition2, aTransition3 };
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//
-  void CommandList::TransitionResource(const GpuResource* aResource1, GpuResourceAccessTransition aTransition1, const GpuResource* aResource2, GpuResourceAccessTransition aTransition2, const GpuResource* aResource3, GpuResourceAccessTransition aTransition3, const GpuResource* aResource4, GpuResourceAccessTransition aTransition4)
+  void CommandList::TransitionResource(const GpuResource* aResource1, GpuResourceAccessState aTransition1, const GpuResource* aResource2, GpuResourceAccessState aTransition2, const GpuResource* aResource3, GpuResourceAccessState aTransition3, const GpuResource* aResource4, GpuResourceAccessState aTransition4)
   {
     const GpuResource* resources[] = { aResource1, aResource2, aResource3, aResource4 };
-    GpuResourceAccessTransition states[] = { aTransition1, aTransition2, aTransition3, aTransition4 };
+    GpuResourceAccessState states[] = { aTransition1, aTransition2, aTransition3, aTransition4 };
     TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
   }
 //---------------------------------------------------------------------------//

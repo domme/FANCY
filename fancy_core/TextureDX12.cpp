@@ -116,7 +116,17 @@ namespace Fancy {
     }
 
     D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
-    D3D12_RESOURCE_STATES readState = (D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    D3D12_RESOURCE_STATES readState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+    D3D12_RESOURCE_STATES writeState = D3D12_RESOURCE_STATE_COPY_DEST;
+    if (someProperties.myIsShaderWritable)
+      writeState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    if (someProperties.myIsRenderTarget)
+      writeState |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+    if (someProperties.bIsDepthStencil)
+    {
+      writeState |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+      readState |= D3D12_RESOURCE_STATE_DEPTH_READ;
+    }
     if (aNumInitialDatas == 0u)
     {
       if (someProperties.myIsShaderWritable)
@@ -124,15 +134,14 @@ namespace Fancy {
       else if (someProperties.myIsRenderTarget)
         initialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
       else if (someProperties.bIsDepthStencil)
-      {
         initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-        readState = D3D12_RESOURCE_STATE_DEPTH_READ;
-      }
     }
 
-    
     const uint numArraySlices = myProperties.GetArraySize();
     const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
+    myNumSubresources = numSubresources;
+    myNumSubresourcesPerPlane = numArraySlices * myProperties.myNumMipLevels;
+    myNumPlanes = formatInfo.myNumPlanes;
 
     myHazardData = GpuResourceHazardData();
     myHazardData.myDx12Data.mySubresourceStates.resize(numSubresources);
@@ -143,6 +152,7 @@ namespace Fancy {
       myHazardData.mySubresourceContexts[i] = CommandListType::Graphics;
     }
     myHazardData.myDx12Data.myReadState = readState;
+    myHazardData.myDx12Data.myWriteState = writeState;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -285,24 +295,13 @@ namespace Fancy {
       aSubresourceLocation.myArrayIndex, myProperties.GetArraySize(),
       aSubresourceLocation.myPlaneIndex);
 
-    ASSERT(index < GetNumSubresources());
+    ASSERT(index < myNumSubresources);
     return index;
-  }
-//---------------------------------------------------------------------------//
-  uint TextureDX12::GetNumSubresources() const
-  {
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.eFormat);
-    return CalcNumSubresources(myProperties.myNumMipLevels, myProperties.GetArraySize(), formatInfo.myNumPlanes);
-  }
-//---------------------------------------------------------------------------//
-  uint TextureDX12::GetNumSubresourcesPerPlane() const
-  {
-    return CalcNumSubresources(myProperties.myNumMipLevels, myProperties.GetArraySize(), 1u);
   }
 //---------------------------------------------------------------------------//
   TextureSubLocation TextureDX12::GetSubresourceLocation(uint aSubresourceIndex) const
   {
-    ASSERT(aSubresourceIndex < GetNumSubresources());
+    ASSERT(aSubresourceIndex < myNumSubresources);
 
     TextureSubLocation location;
     location.myMipLevel = aSubresourceIndex % myProperties.myNumMipLevels;
@@ -383,7 +382,7 @@ namespace Fancy {
     const uint numTexArraySlices = texProps.GetArraySize();
     
     myNativeData = nativeData;
-    mySubresources->reserve(aTexture->GetNumSubresources());
+    mySubresources->reserve(aTexture->myNumSubresources);
 
     if (nativeData.myType != GpuResourceViewDataDX12::DSV)
     {
@@ -391,7 +390,7 @@ namespace Fancy {
         for (uint iMip = someProperties.myMipIndex; iMip < someProperties.myMipIndex + someProperties.myNumMipLevels; ++iMip)
           mySubresources[0].push_back(TextureDX12::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, someProperties.myPlaneIndex));
 
-      myCoversAllSubresources = mySubresources[0].size() == aTexture->GetNumSubresources();
+      myCoversAllSubresources = mySubresources[0].size() == aTexture->myNumSubresources;
     }
     else // DSV
     {
