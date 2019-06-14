@@ -138,13 +138,15 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class GpuResourceAccessState
+  enum class GpuResourceBarrierType
   {
-    READ,  // Use the resource's cached read-state
-    WRITE, // Use the resource's cached write-state
-    READWRITE, // For inserting barriers between consecutive UAV-usages. Needed if shader B needs to have
-    RENDERTARGET,
-    PRESENT,
+    WRITE_TO_READ = 0,  // Resource write-state to resource read state
+    READ_TO_WRITE,      // Resource read-state to resource write state
+    SHADER_WRITE,       // UAV-barrier between consecutive UAV-usages where the results from the first should be visible to the second
+    WRITE_TO_PRESENT,   // Resource write-state to present - Only for backbuffer-resources
+    READ_TO_PRESENT,    // Resource read-state to present - Only for backbuffer-resources
+
+    NUM
   };
 //---------------------------------------------------------------------------//
   enum class CpuMemoryAccessType

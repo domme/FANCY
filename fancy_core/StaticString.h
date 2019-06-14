@@ -12,6 +12,7 @@ namespace Fancy
   {
     StaticString()
       : myBuffer{ 0u }
+      , myNextFree(0u)
     {
     }
 
@@ -19,15 +20,26 @@ namespace Fancy
     {
       va_list args;
       va_start(args, aFormatString);
-      FormatInternal(aFormatString, args);
+      AppendInternal(aFormatString, args);
       va_end(args);
     }
 
     const char* Format(const char* aFormatString, ...)
     {
+      myNextFree = 0u;
+
       va_list args;
       va_start(args, aFormatString);
-      FormatInternal(aFormatString, args);
+      AppendInternal(aFormatString, args);
+      va_end(args);
+      return myBuffer;
+    }
+
+    const char* Append(const char* aFormatString, ...)
+    {
+      va_list args;
+      va_start(args, aFormatString);
+      AppendInternal(aFormatString, args);
       va_end(args);
       return myBuffer;
     }
@@ -35,13 +47,17 @@ namespace Fancy
     operator const char*() const { return myBuffer; }
 
   private:
-    void FormatInternal(const char* aFormatString, va_list args)
+    void AppendInternal(const char* aFormatString, va_list args)
     {
-      const int numCharsNeeded = vsnprintf(myBuffer, static_cast<size_t>(BufferSize), aFormatString, args) + 1;
-      ASSERT(numCharsNeeded < (int)BufferSize);
+      const uint remainingSize = BufferSize - myNextFree;
+      ASSERT(remainingSize > 0);
+      const int numCharsNeeded = vsnprintf(myBuffer + myNextFree, static_cast<size_t>(remainingSize), aFormatString, args) + 1;
+      ASSERT(numCharsNeeded-1 <= (int)remainingSize);
+      myNextFree += numCharsNeeded-1;
     }
 
     char myBuffer[BufferSize];
+    uint myNextFree;
   };
 //---------------------------------------------------------------------------//
   template<uint PoolSize>

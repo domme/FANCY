@@ -35,7 +35,48 @@ namespace Fancy {
           return D3D12_COMMAND_LIST_TYPE_DIRECT;
       }
     }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+    const char* locResourceStatesToString(uint someStates, StaticString<2048>& aString)
+    {
+      if (someStates == 0)
+      {
+        aString.Format("COMMON or PRESENT");
+        return aString;
+      }
+      if (someStates & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)
+        aString.Append("VERTEX_AND_CONSTANT_BUFFER | ");
+      if (someStates & D3D12_RESOURCE_STATE_INDEX_BUFFER)
+        aString.Append("INDEX_BUFFER | ");
+      if (someStates & D3D12_RESOURCE_STATE_RENDER_TARGET)
+        aString.Append("RENDER_TARGET | ");
+      if (someStates & D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+        aString.Append("UNORDERED_ACCESS | ");
+      if (someStates & D3D12_RESOURCE_STATE_DEPTH_WRITE)
+        aString.Append("DEPTH_WRITE | ");
+      if (someStates & D3D12_RESOURCE_STATE_DEPTH_READ)
+        aString.Append("DEPTH_READ | ");
+      if (someStates & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)
+        aString.Append("NON_PIXEL_SHADER_RESOURCE | ");
+      if (someStates & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+        aString.Append("PIXEL_SHADER_RESOURCE | ");
+      if (someStates & D3D12_RESOURCE_STATE_STREAM_OUT)
+        aString.Append("STREAM_OUT | ");
+      if (someStates & D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT)
+        aString.Append("INDIRECT_ARGUMENT | ");
+      if (someStates & D3D12_RESOURCE_STATE_COPY_DEST)
+        aString.Append("COPY_DEST | ");
+      if (someStates & D3D12_RESOURCE_STATE_COPY_SOURCE)
+        aString.Append("COPY_SOURCE | ");
+      if (someStates & D3D12_RESOURCE_STATE_RESOLVE_DEST)
+        aString.Append("RESOLVE_DEST | ");
+      if (someStates & D3D12_RESOURCE_STATE_RESOLVE_SOURCE)
+        aString.Append("RESOLVE_SOURCE | ");
+      if (someStates & D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE)
+        aString.Append("RT_ACCELERATION_STRUCTURE | ");
+      
+      return aString;
+    }
+//---------------------------------------------------------------------------//
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     void locValidateUsageStatesCopy(const GpuResource* aDst, uint aDstSubresource, const GpuResource* aSrc, uint aSrcSubresource)
     {
@@ -842,10 +883,74 @@ namespace Fancy {
       aBufferOffset);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::ResourceBarrier(const GpuResource** someResources, CommandListType* someFromQueues,
-    CommandListType* someToQueues, GpuResourceAccessState* someFromStates, GpuResourceAccessState* someToStates, uint aNumResources)
+  void CommandListDX12::ResourceBarrier(const GpuResource** someResources, CommandListType* someFromQueues, 
+    CommandListType* someToQueues,  GpuResourceBarrierType* someBarriers, uint aNumResources)
   {
-    
+    D3D12_RESOURCE_BARRIER barriers[64];
+    ASSERT(aNumResources <= ARRAY_LENGTH(barriers));
+
+    for (uint i = 0u; i < aNumResources; ++i)
+    {
+      const GpuResource* resource = someResources[i];
+      ID3D12Resource* resourceDx12 = resource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
+      GpuResourceHazardData& hazardData = resource->myHazardData;
+      const CommandListType fromQueue = someFromQueues[i];
+      const CommandListType toQueue = someToQueues[i];
+      const GpuResourceBarrierType barrierType = someBarriers[i];
+      D3D12_RESOURCE_BARRIER& barrier = barriers[i];
+
+      const uint stateMaskFrom = fromQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+      const uint stateMaskTo = toQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+      const uint stateMaskCmdList = myCommandListType == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+
+      D3D12_RESOURCE_STATES statesFrom = (D3D12_RESOURCE_STATES) 0;
+      D3D12_RESOURCE_STATES statesTo = (D3D12_RESOURCE_STATES) 0;
+      if (barrierType == GpuResourceBarrierType::SHADER_WRITE)
+      {
+        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+        barrier.UAV.pResource = resourceDx12;
+
+      }
+      else
+      {
+        const D3D12_RESOURCE_STATES writeStates = (D3D12_RESOURCE_STATES)hazardData.myDx12Data.myWriteState;
+        const D3D12_RESOURCE_STATES readStates = (D3D12_RESOURCE_STATES)hazardData.myDx12Data.myReadState;
+
+        switch (barrierType)
+        {
+        case GpuResourceBarrierType::WRITE_TO_READ:
+          statesFrom = writeStates;
+          statesTo = readStates;
+          break;
+        case GpuResourceBarrierType::READ_TO_WRITE:
+          statesFrom = readStates;
+          statesTo = writeStates;
+          break;
+        case GpuResourceBarrierType::WRITE_TO_PRESENT: 
+          statesFrom = writeStates;
+          statesTo = D3D12_RESOURCE_STATE_PRESENT;
+          break;
+        case GpuResourceBarrierType::READ_TO_PRESENT:
+          statesFrom = readStates;
+          statesTo = D3D12_RESOURCE_STATE_PRESENT;
+          break;
+        default:
+          ASSERT(false);
+        }
+
+        statesFrom = (D3D12_RESOURCE_STATES)(((uint)statesFrom) & (stateMaskFrom & stateMaskCmdList));
+        statesTo = (D3D12_RESOURCE_STATES)(((uint)statesTo) & (stateMaskTo & stateMaskCmdList));
+        ASSERT(statesFrom != 0 && statesTo != 0);
+
+        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Transition.StateBefore = statesFrom;
+        barrier.Transition.StateAfter = statesTo;
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.pResource = resourceDx12;
+      }
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)

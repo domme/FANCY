@@ -8,6 +8,8 @@
 // Track the resource barrier-states per resource. Only works in single-threaded commandList-recording!
 #define FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES 1
 
+#define FANCY_RENDERER_LOG_RESOURCE_BARRIERS 1
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace RenderConstants 
