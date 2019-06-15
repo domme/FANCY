@@ -53,7 +53,8 @@ namespace Fancy {
       }
 
       resource.myHazardData = GpuResourceHazardData();
-      resource.myHazardData.myDx12Data.myReadState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+      resource.myHazardData.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+      resource.myHazardData.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
       resource.myHazardData.myDx12Data.mySubresourceStates.push_back(D3D12_RESOURCE_STATE_PRESENT);
       resource.myHazardData.mySubresourceContexts.push_back(CommandListType::Graphics);
 

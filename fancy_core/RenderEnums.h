@@ -138,13 +138,31 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class GpuResourceBarrierType
+  enum class GpuResourceUsageState
   {
-    WRITE_TO_READ = 0,  // Resource write-state to resource read state
-    READ_TO_WRITE,      // Resource read-state to resource write state
-    SHADER_WRITE,       // UAV-barrier between consecutive UAV-usages where the results from the first should be visible to the second
-    WRITE_TO_PRESENT,   // Resource write-state to present - Only for backbuffer-resources
-    READ_TO_PRESENT,    // Resource read-state to present - Only for backbuffer-resources
+    COMMON = 0, FIRST_READ_STATE = 0,
+    READ_INDIRECT_ARGUMENT,
+    READ_VERTEX_BUFFER,
+    READ_INDEX_BUFFER,
+    READ_VERTEX_SHADER_CONSTANT_BUFFER,
+    READ_VERTEX_SHADER_RESOURCE,
+    READ_PIXEL_SHADER_CONSTANT_BUFFER,
+    READ_PIXEL_SHADER_RESOURCE,
+    READ_COMPUTE_SHADER_CONSTANT_BUFFER,
+    READ_COMPUTE_SHADER_RESOURCE,
+    READ_ANY_SHADER_CONSTANT_BUFFER,
+    READ_ANY_SHADER_RESOURCE,
+    READ_COPY_SOURCE,
+    READ_DEPTH,
+    READ_PRESENT, LAST_READ_STATE = READ_PRESENT,
+
+    WRITE_VERTEX_SHADER_UAV, FIRST_WRITE_STATE = WRITE_VERTEX_SHADER_UAV,
+    WRITE_PIXEL_SHADER_UAV,
+    WRITE_COMPUTE_SHADER_UAV,
+    WRITE_ANY_SHADER_UAV,
+    WRITE_RENDER_TARGET,
+    WRITE_COPY_DEST,
+    WRITE_DEPTH, LAST_WRITE_STATE = WRITE_DEPTH,
 
     NUM
   };
@@ -264,7 +282,8 @@ namespace Fancy
     Compute,
     DMA,
 
-    NUM
+    NUM,
+    UNKNOWN,
   };
 //---------------------------------------------------------------------------//
   enum class GpuQueryType

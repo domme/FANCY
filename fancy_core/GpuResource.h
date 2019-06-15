@@ -16,8 +16,8 @@ namespace Fancy {
   struct GpuResourceHazardDataDX12
   {
     // Uints are D3D12_RESOURCE_STATES
-    uint myReadState = 0u;
-    uint myWriteState = 0u;
+    uint myReadStates = 0u;
+    uint myWriteStates = 0u;
     DynamicArray<uint> mySubresourceStates;
   };
 //---------------------------------------------------------------------------//

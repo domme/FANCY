@@ -151,8 +151,8 @@ namespace Fancy {
       myHazardData.myDx12Data.mySubresourceStates[i] = initialState;
       myHazardData.mySubresourceContexts[i] = CommandListType::Graphics;
     }
-    myHazardData.myDx12Data.myReadState = readState;
-    myHazardData.myDx12Data.myWriteState = writeState;
+    myHazardData.myDx12Data.myReadStates = readState;
+    myHazardData.myDx12Data.myWriteStates = writeState;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -402,7 +402,7 @@ namespace Fancy {
             mySubresources[i].push_back(TextureDX12::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, i));
       }
 
-      myCoversAllSubresources = mySubresources[0].size() == aTexture->GetNumSubresourcesPerPlane();
+      myCoversAllSubresources = mySubresources[0].size() == aTexture->myNumSubresourcesPerPlane;
     }
   }
 //---------------------------------------------------------------------------//

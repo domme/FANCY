@@ -20,6 +20,7 @@ namespace Fancy {
     void BeginFrame();
     void EndFrame();
 
+    Texture* GetBackbuffer() const { return myBackbufferTextures[myCurrBackbufferIndex].get(); }
     TextureView* GetBackbufferRtv() const { return myBackbufferRtv[myCurrBackbufferIndex].get(); }
     TextureView* GetBackbufferSrv() const { return myBackbufferSrv[myCurrBackbufferIndex].get(); }
     TextureView* GetDepthStencilDsv() const { return myDepthStencilDsv.get(); }

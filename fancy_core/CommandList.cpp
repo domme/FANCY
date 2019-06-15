@@ -100,32 +100,6 @@ namespace Fancy {
   {
   }
 //---------------------------------------------------------------------------//
-  void CommandList::TransitionResource(const GpuResource* aResource, GpuResourceBarrierType aTransition)
-  {
-    TransitionResourceList(&aResource, &aTransition, 1);
-  }
-//---------------------------------------------------------------------------//
-  void CommandList::TransitionResource(const GpuResource* aResource1, GpuResourceBarrierType aTransition1, const  GpuResource* aResource2, GpuResourceBarrierType aTransition2)
-  {
-    const GpuResource* resources[] = { aResource1, aResource2 };
-    GpuResourceBarrierType states[] = { aTransition1, aTransition2 };
-    TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
-  }
-//---------------------------------------------------------------------------//
-  void CommandList::TransitionResource(const GpuResource* aResource1, GpuResourceBarrierType aTransition1, const GpuResource* aResource2, GpuResourceBarrierType aTransition2, const GpuResource* aResource3, GpuResourceBarrierType aTransition3)
-  {
-    const GpuResource* resources[] = { aResource1, aResource2, aResource3 };
-    GpuResourceBarrierType states[] = { aTransition1, aTransition2, aTransition3 };
-    TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
-  }
-//---------------------------------------------------------------------------//
-  void CommandList::TransitionResource(const GpuResource* aResource1, GpuResourceBarrierType aTransition1, const GpuResource* aResource2, GpuResourceBarrierType aTransition2, const GpuResource* aResource3, GpuResourceBarrierType aTransition3, const GpuResource* aResource4, GpuResourceBarrierType aTransition4)
-  {
-    const GpuResource* resources[] = { aResource1, aResource2, aResource3, aResource4 };
-    GpuResourceBarrierType states[] = { aTransition1, aTransition2, aTransition3, aTransition4 };
-    TransitionResourceList(resources, states, ARRAY_LENGTH(resources));
-  }
-//---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
   {
     const uint type = (uint)aType;
@@ -533,6 +507,11 @@ namespace Fancy {
       const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
       CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
     }
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue)
+  {
+    ResourceBarrier(&aResource, &aSrcState, &aDstState, 1u, aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType, aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType);
   }
 //---------------------------------------------------------------------------//
 } 

@@ -189,7 +189,7 @@ using namespace Fancy;
       ComputeMipmaps(tex);
 
       TextureData textureData;
-      bool success = RenderCore::ReadbackTextureData(tex.get(), TextureSubLocation(1), tex->GetNumSubresources() - 1, textureData);
+      bool success = RenderCore::ReadbackTextureData(tex.get(), TextureSubLocation(1), tex->myNumSubresources - 1, textureData);
       textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
 
       BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), (uint) textureData.mySubDatas.size());

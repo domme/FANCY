@@ -883,74 +883,91 @@ namespace Fancy {
       aBufferOffset);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::ResourceBarrier(const GpuResource** someResources, CommandListType* someFromQueues, 
-    CommandListType* someToQueues,  GpuResourceBarrierType* someBarriers, uint aNumResources)
+  void CommandListDX12::ResourceBarrier(const GpuResource** someResources, GpuResourceUsageState* someSrcStates,
+    GpuResourceUsageState* someDstStates, uint aNumResources, CommandListType aSrcQueue, CommandListType aDstQueue)
   {
+    const uint stateMaskFrom = aSrcQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+    const uint stateMaskTo = aDstQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+    const uint stateMaskCmdList = myCommandListType == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+
+    auto ResolveUsageState = [](GpuResourceUsageState aState)
+    {
+      switch (aState)
+      {
+      case GpuResourceUsageState::COMMON:                               return D3D12_RESOURCE_STATE_COMMON;
+      case GpuResourceUsageState::READ_INDIRECT_ARGUMENT:               return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+      case GpuResourceUsageState::READ_VERTEX_BUFFER:                   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+      case GpuResourceUsageState::READ_INDEX_BUFFER:                    return D3D12_RESOURCE_STATE_INDEX_BUFFER;
+      case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER:   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+      case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE:          return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+      case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER:    return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+      case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE:           return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+      case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:  return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+      case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE:         return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+      case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER:      return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+      case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE:             return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+      case GpuResourceUsageState::READ_COPY_SOURCE:                     return D3D12_RESOURCE_STATE_COPY_SOURCE;
+      case GpuResourceUsageState::READ_DEPTH:                           return D3D12_RESOURCE_STATE_DEPTH_READ;
+      case GpuResourceUsageState::READ_PRESENT:                         return D3D12_RESOURCE_STATE_PRESENT;
+      case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV:              return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+      case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV:               return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+      case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV:             return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+      case GpuResourceUsageState::WRITE_ANY_SHADER_UAV:                 return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+      case GpuResourceUsageState::WRITE_RENDER_TARGET:                  return D3D12_RESOURCE_STATE_RENDER_TARGET;
+      case GpuResourceUsageState::WRITE_COPY_DEST:                      return D3D12_RESOURCE_STATE_COPY_DEST;
+      case GpuResourceUsageState::WRITE_DEPTH:                          return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+      case GpuResourceUsageState::NUM: break;
+      default:
+        ASSERT(false); return D3D12_RESOURCE_STATE_COMMON;
+      }
+
+      return D3D12_RESOURCE_STATE_COMMON;
+    };
+
     D3D12_RESOURCE_BARRIER barriers[64];
     ASSERT(aNumResources <= ARRAY_LENGTH(barriers));
 
+    uint numBarriers = 0;
     for (uint i = 0u; i < aNumResources; ++i)
     {
       const GpuResource* resource = someResources[i];
       ID3D12Resource* resourceDx12 = resource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
       GpuResourceHazardData& hazardData = resource->myHazardData;
-      const CommandListType fromQueue = someFromQueues[i];
-      const CommandListType toQueue = someToQueues[i];
-      const GpuResourceBarrierType barrierType = someBarriers[i];
-      D3D12_RESOURCE_BARRIER& barrier = barriers[i];
+      if (!hazardData.myCanChangeStates)
+        continue;
+      
+      D3D12_RESOURCE_BARRIER& barrier = barriers[numBarriers++];
 
-      const uint stateMaskFrom = fromQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
-      const uint stateMaskTo = toQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
-      const uint stateMaskCmdList = myCommandListType == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+      const GpuResourceUsageState srcState = someSrcStates[i];
+      const GpuResourceUsageState dstState = someDstStates[i];
+      const bool srcIsRead = srcState >= GpuResourceUsageState::FIRST_READ_STATE && srcState <= GpuResourceUsageState::LAST_READ_STATE;
+      const bool dstIsRead = dstState >= GpuResourceUsageState::FIRST_READ_STATE && dstState <= GpuResourceUsageState::LAST_READ_STATE;
+      
+      uint srcStateDx12 = ResolveUsageState(srcState);
+      uint dstStateDx12 = ResolveUsageState(dstState);
 
-      D3D12_RESOURCE_STATES statesFrom = (D3D12_RESOURCE_STATES) 0;
-      D3D12_RESOURCE_STATES statesTo = (D3D12_RESOURCE_STATES) 0;
-      if (barrierType == GpuResourceBarrierType::SHADER_WRITE)
-      {
-        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-        barrier.UAV.pResource = resourceDx12;
+      const uint resourceWriteStateMask = hazardData.myDx12Data.myWriteStates;
+      const uint resourceReadStateMask = hazardData.myDx12Data.myReadStates;
+      const bool srcWas0 = srcStateDx12 == 0;
+      const bool dstWas0 = dstStateDx12 == 0;
+      srcStateDx12 = srcStateDx12 & stateMaskFrom & stateMaskCmdList & (srcIsRead ? resourceReadStateMask : resourceWriteStateMask);
+      dstStateDx12 = dstStateDx12 & stateMaskTo & stateMaskCmdList & (dstIsRead ? resourceReadStateMask : resourceWriteStateMask);
+      ASSERT((srcWas0 || srcStateDx12 != 0) && (dstWas0 || dstStateDx12 != 0));
 
-      }
-      else
-      {
-        const D3D12_RESOURCE_STATES writeStates = (D3D12_RESOURCE_STATES)hazardData.myDx12Data.myWriteState;
-        const D3D12_RESOURCE_STATES readStates = (D3D12_RESOURCE_STATES)hazardData.myDx12Data.myReadState;
-
-        switch (barrierType)
-        {
-        case GpuResourceBarrierType::WRITE_TO_READ:
-          statesFrom = writeStates;
-          statesTo = readStates;
-          break;
-        case GpuResourceBarrierType::READ_TO_WRITE:
-          statesFrom = readStates;
-          statesTo = writeStates;
-          break;
-        case GpuResourceBarrierType::WRITE_TO_PRESENT: 
-          statesFrom = writeStates;
-          statesTo = D3D12_RESOURCE_STATE_PRESENT;
-          break;
-        case GpuResourceBarrierType::READ_TO_PRESENT:
-          statesFrom = readStates;
-          statesTo = D3D12_RESOURCE_STATE_PRESENT;
-          break;
-        default:
-          ASSERT(false);
-        }
-
-        statesFrom = (D3D12_RESOURCE_STATES)(((uint)statesFrom) & (stateMaskFrom & stateMaskCmdList));
-        statesTo = (D3D12_RESOURCE_STATES)(((uint)statesTo) & (stateMaskTo & stateMaskCmdList));
-        ASSERT(statesFrom != 0 && statesTo != 0);
-
+#if  FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        StaticString<2048> strBufFrom;
+        StaticString<2048> strBufTo;
+        LOG_INFO("Resource barrier: % from % to %", resource->myName.c_str(), locResourceStatesToString(srcStateDx12, strBufFrom), locResourceStatesToString(dstStateDx12, strBufTo));
+#endif
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Transition.StateBefore = statesFrom;
-        barrier.Transition.StateAfter = statesTo;
+        barrier.Transition.StateBefore = (D3D12_RESOURCE_STATES) srcStateDx12;
+        barrier.Transition.StateAfter = (D3D12_RESOURCE_STATES) dstStateDx12;
         barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         barrier.Transition.pResource = resourceDx12;
-      }
     }
+
+    myCommandList->ResourceBarrier(numBarriers, barriers);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
@@ -1116,10 +1133,8 @@ namespace Fancy {
     if (myDepthStencilTarget != nullptr)
     {
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-      const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myNativeData.To<GpuResourceViewDataDX12>();
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myDepthStencilTarget->GetTexture()->GetProperties().eFormat);
       const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
-      ASSERT(dsvViewData.myType == GpuResourceViewDataDX12::DSV);
 
       // TODO: Also respect stencilWriteMask per rendertarget?
       D3D12_RESOURCE_STATES dsStates[2] = { 
@@ -1134,6 +1149,8 @@ namespace Fancy {
       SetTrackSubresourceTransitionBarriers(resources, dsStates, subresourceLists, numSubresources, 2u);
 #endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
       
+      const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myNativeData.To<GpuResourceViewDataDX12>();
+      ASSERT(dsvViewData.myType == GpuResourceViewDataDX12::DSV);
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
     }
     else

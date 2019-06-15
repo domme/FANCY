@@ -127,14 +127,18 @@ void Render()
   CommandContext ctx(CommandListType::Graphics);
   GPU_BEGIN_PROFILE(ctx.GetCommandList(), "ClearRenderTarget", 0u);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceUsageState::READ_PRESENT, GpuResourceUsageState::WRITE_RENDER_TARGET);
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   GPU_END_PROFILE(ctx.GetCommandList());
-  ctx.Execute();
+  ctx.ExecuteAndReset();
 
   for (UniquePtr<Test>& testItem : myTests)
     testItem->OnRender();
 
   ImGui::Render();
+
+  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceUsageState::WRITE_RENDER_TARGET, GpuResourceUsageState::READ_PRESENT);
+  ctx.Execute();
   myRuntime->EndFrame();
 }
 

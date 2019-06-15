@@ -1125,7 +1125,7 @@ namespace Fancy {
     const GpuResourceHazardData& hazardData = aResource->myHazardData;
 
     bool commandListNeedsWait[(uint)CommandListType::NUM] = { false, false, false };
-    for (uint i = aSubresourceOffset, end = aSubresourceOffset + glm::min(aResource->GetNumSubresources() - aSubresourceOffset, aNumSubresources); i < end; ++i)
+    for (uint i = aSubresourceOffset, end = aSubresourceOffset + glm::min(aResource->myNumSubresources - aSubresourceOffset, aNumSubresources); i < end; ++i)
     {
       CommandListType cmdListType = hazardData.mySubresourceContexts[i];
       commandListNeedsWait[(uint)cmdListType] |= true;

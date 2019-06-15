@@ -55,7 +55,13 @@ namespace Fancy {
     GpuQuery InsertTimestamp() override;
     void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
 
-    void ResourceBarrier(const GpuResource** someResources, CommandListType* someFromQueues, CommandListType* someToQueues, GpuResourceBarrierType* someBarriers, uint aNumResources) override;
+    void ResourceBarrier(
+      const GpuResource** someResources,
+      GpuResourceUsageState* someSrcStates,
+      GpuResourceUsageState* someDstStates,
+      uint aNumResources,
+      CommandListType aSrcQueue,
+      CommandListType aDstQueue) override;
 
     bool IsOpen() const override { return myIsOpen; }
     void Close() override;

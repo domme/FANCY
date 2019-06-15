@@ -118,8 +118,8 @@ namespace Fancy {
 
     myHazardData = GpuResourceHazardData();
     myHazardData.myDx12Data.mySubresourceStates.push_back(initialState);
-    myHazardData.myDx12Data.myReadState = readState;
-    myHazardData.myDx12Data.myWriteState = writeState;
+    myHazardData.myDx12Data.myReadStates = readState;
+    myHazardData.myDx12Data.myWriteStates = writeState;
     myHazardData.mySubresourceContexts.push_back(CommandListType::Graphics);
     myHazardData.myCanChangeStates = canChangeStates;
 

@@ -20,7 +20,6 @@ namespace Fancy {
     const GpuBufferProperties& GetProperties() const { return myProperties; }
     uint GetAlignment() const { return myAlignment; }
     uint64 GetByteSize() const { return myProperties.myNumElements * myProperties.myElementSizeBytes; }
-    uint GetNumSubresources() const override{ return 1u; }
 
   protected:
     uint myAlignment;
