@@ -15,7 +15,6 @@
 #include <fancy_core/Input.h>
 #include "fancy_assets/AssetManager.h"
 #include <fancy_core/Log.h>
-#include "fancy_core/CommandContext.h"
 
 using namespace Fancy;
 
@@ -217,11 +216,11 @@ void Update()
 
 void Render()
 {
-  CommandContext ctx(CommandListType::Graphics);
+  CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
   float clearColor[] = { 0.3f, 0.3f, 0.3f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), 1.0f, 0u);
-  ctx.Execute();
+  RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
   
   ImGui::Render();
 

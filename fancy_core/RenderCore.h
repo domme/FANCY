@@ -80,9 +80,6 @@ namespace Fancy {
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, GpuBufferViewProperties someProperties, const char* aName = nullptr);
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, GpuBufferViewProperties someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
     static uint GetQueryTypeDataSize(GpuQueryType aType);
-
-    static uint64 UpdateBufferData(GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize, SyncMode aSyncMode);
-    static uint64 UpdateTextureData(Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas, SyncMode aSyncMode);
     
     static MappedTempBuffer ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize);
     static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations);
@@ -101,8 +98,9 @@ namespace Fancy {
     static GpuRingBuffer* AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
 
-    static CommandList* AllocateCommandList(CommandListType aType);
-    static void FreeCommandList(CommandList* aCommandList);
+    static CommandList* BeginCommandList(CommandListType aType, uint someCommandListFlags = 0);
+    static uint64 ExecuteAndFreeCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC);
+    static uint64 ExecuteAndResetCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC);
 
     static TempTextureResource AllocateTempTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName);
     static TempBufferResource AllocateTempBuffer(const GpuBufferResourceProperties& someProps, uint someFlags, const char* aName);
@@ -160,12 +158,6 @@ namespace Fancy {
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
     
-    // TODO: Replace std::list with GrowingList
-    static DynamicArray<UniquePtr<CommandList>> ourGraphicsCommandListPool;
-    static DynamicArray<UniquePtr<CommandList>> ourComputeCommandListPool;
-    static std::list<CommandList*> ourAvailableGraphicsCommandLists;
-    static std::list<CommandList*> ourAvailableComputeCommandLists;
-
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;

@@ -3,7 +3,6 @@
 #include "MathUtil.h"
 #include "CommandList.h"
 #include "CommandQueue.h"
-#include "CommandContext.h"
 
 #include <chrono>
 #include <ratio>
@@ -319,9 +318,9 @@ namespace Fancy
     currFrame.myEnd = { 0u };
     currFrame.myHasValidTimes = false;
 
-    CommandContext ctx(CommandListType::Graphics);
+    CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
     const GpuQuery timestamp = ctx->InsertTimestamp();
-    ctx.Execute();
+    RenderCore::ExecuteAndFreeCommandList(ctx);
 
     currFrame.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
     currFrame.myStart.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
@@ -347,10 +346,9 @@ namespace Fancy
       if (recordedFrames.IsFull())
         FreeFirstFrame(TIMELINE_GPU);
 
-
-      CommandContext ctx(CommandListType::Graphics);
+      CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
       const GpuQuery timestamp = ctx->InsertTimestamp();
-      ctx.Execute();
+      RenderCore::ExecuteAndFreeCommandList(ctx);
 
       currFrame.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
       currFrame.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;

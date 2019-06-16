@@ -13,7 +13,7 @@ namespace Fancy
     static CommandListType GetCommandListType(uint64 aFenceVal);
 
     explicit CommandQueue(CommandListType aType);
-    virtual ~CommandQueue() = default;
+    virtual ~CommandQueue();
 
     virtual bool IsFenceDone(uint64 aFenceVal) = 0;
     virtual uint64 SignalAndIncrementFence() = 0;
@@ -23,10 +23,22 @@ namespace Fancy
     // Waits for a fence-completion on GPU timeline
     virtual void StallForQueue(const CommandQueue* aCommandQueue) = 0;
     virtual void StallForFence(uint64 aFenceVal) = 0;
-    virtual uint64 ExecuteCommandList(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
-    virtual uint64 ExecuteAndResetCommandList(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
+    
+    CommandList* BeginCommandList(uint someCommandListFlags);
+    uint64 ExecuteAndFreeCommandList(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC);
+    uint64 ExecuteAndResetCommandList(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC);
 
   protected:
+    virtual uint64 ExecuteCommandListInternal(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
+    virtual uint64 ExecuteAndResetCommandListInternal(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
+
+    void FreeCommandList(CommandList* aCommandList);
+
+    DynamicArray<UniquePtr<CommandList>> myCommandListPool;
+    std::list<CommandList*> myAvailableCommandLists;
+    CommandList* myAllocatedCommandListStack[64];
+    uint myNextFreeCmdListStackIdx;
+
     CommandListType myType;
     uint64 myLastCompletedFenceVal;
     uint64 myNextFenceVal;

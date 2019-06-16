@@ -20,7 +20,6 @@
 #include "Model.h"
 
 #include "Material.h"
-#include "fancy_core/CommandContext.h"
 
 using namespace Fancy;
 
@@ -253,7 +252,7 @@ using namespace Fancy;
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  void AssetManager::ComputeMipmaps(const SharedPtr<Texture>& aTexture)
+  void AssetManager::ComputeMipmaps(const SharedPtr<Texture>& aTexture)  // TODO: NEW_RESOURCE_BARRIERS_FIXME
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;
@@ -272,7 +271,7 @@ using namespace Fancy;
     tempTexResource[0] = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture 0");
     tempTexResource[1] = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture 1");
 
-    CommandContext ctx(CommandListType::Graphics);
+    CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
     ctx->SetComputeProgram(myTextureResizeShader.get());
 
     struct CBuffer
@@ -347,6 +346,6 @@ using namespace Fancy;
       destSize = glm::ceil(destSize * 0.5f);
     }
 
-    ctx.Execute(SyncMode::BLOCKING);
+    RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
   }
 //---------------------------------------------------------------------------//

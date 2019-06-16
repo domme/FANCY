@@ -9,6 +9,7 @@
 #include "AdapterDX12.h"
 #include "GpuResourceDataDX12.h"
 #include "GpuResourceViewDX12.h"
+#include "CommandList.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -115,28 +116,19 @@ namespace Fancy {
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
     }
 
-    D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
-    D3D12_RESOURCE_STATES readState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
-    D3D12_RESOURCE_STATES writeState = D3D12_RESOURCE_STATE_COPY_DEST;
+    D3D12_RESOURCE_STATES defaultStates = RenderCore_PlatformDX12::ResolveResourceUsageState(someProperties.myDefaultState);
+    D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+    D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (someProperties.myIsShaderWritable)
-      writeState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+      writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
     if (someProperties.myIsRenderTarget)
-      writeState |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+      writeStateMask |= D3D12_RESOURCE_STATE_RENDER_TARGET;
     if (someProperties.bIsDepthStencil)
     {
-      writeState |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
-      readState |= D3D12_RESOURCE_STATE_DEPTH_READ;
+      writeStateMask |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+      readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
     }
-    if (aNumInitialDatas == 0u)
-    {
-      if (someProperties.myIsShaderWritable)
-        initialState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-      else if (someProperties.myIsRenderTarget)
-        initialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
-      else if (someProperties.bIsDepthStencil)
-        initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-    }
-
+    
     const uint numArraySlices = myProperties.GetArraySize();
     const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
     myNumSubresources = numSubresources;
@@ -148,11 +140,12 @@ namespace Fancy {
     myHazardData.mySubresourceContexts.resize(numSubresources);
     for (uint i = 0u; i < numSubresources; ++i)
     {
-      myHazardData.myDx12Data.mySubresourceStates[i] = initialState;
+      myHazardData.myDx12Data.mySubresourceStates[i] = defaultStates;
       myHazardData.mySubresourceContexts[i] = CommandListType::Graphics;
     }
-    myHazardData.myDx12Data.myReadStates = readState;
-    myHazardData.myDx12Data.myWriteStates = writeState;
+    myHazardData.myDx12Data.myReadStates = readStateMask;
+    myHazardData.myDx12Data.myWriteStates = writeStateMask;
+    myHazardData.myDx12Data.myDefaultStates = defaultStates;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -180,7 +173,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, defaultStates, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
     dataDx12->myGpuMemory = gpuMemory;
 
     // TODO: Decide between placed and committed resources depending on size and alignment requirements (maybe also expose a preference as a flag to the caller?)
@@ -237,7 +230,12 @@ namespace Fancy {
           }
         }
 
-        RenderCore::UpdateTextureData(this, TextureSubLocation(), newDatas, aNumInitialDatas, SyncMode::BLOCKING);
+
+        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+        ctx->ResourceBarrier(this, myProperties.myDefaultState, GpuResourceUsageState::WRITE_COPY_DEST);
+        ctx->UpdateTextureData(this, TextureSubLocation(), newDatas, aNumInitialDatas);
+        ctx->ResourceBarrier(this, GpuResourceUsageState::WRITE_COPY_DEST, myProperties.myDefaultState);
+        RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
 
         for (uint i = 0u; i < aNumInitialDatas; ++i)
           free(newDatas[i].myData);
@@ -246,7 +244,11 @@ namespace Fancy {
       }
       else
       {
-        RenderCore::UpdateTextureData(this, TextureSubLocation(), someInitialDatas, aNumInitialDatas, SyncMode::BLOCKING);
+        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+        ctx->ResourceBarrier(this, myProperties.myDefaultState, GpuResourceUsageState::WRITE_COPY_DEST);
+        ctx->UpdateTextureData(this, TextureSubLocation(), someInitialDatas, aNumInitialDatas);
+        ctx->ResourceBarrier(this, GpuResourceUsageState::WRITE_COPY_DEST, myProperties.myDefaultState);
+        RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }
   }

@@ -7,9 +7,7 @@
 #include "Texture.h"
 #include "CommandQueue.h"
 #include "CommandList.h"
-#include "CommandContext.h"
 #include "TimeManager.h"
-#include "Profiler.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

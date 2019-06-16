@@ -17,6 +17,7 @@ namespace Fancy {
       , eFormat(DataFormat::NONE)
       , myAccessType(CpuMemoryAccessType::NO_CPU_ACCESS)
       , myNumMipLevels(UINT_MAX)
+      , myDefaultState(GpuResourceUsageState::COMMON)
       , bIsDepthStencil(false)
       , myIsShaderWritable(false)
       , myIsRenderTarget(false)
@@ -35,6 +36,7 @@ namespace Fancy {
     DataFormat eFormat;
     CpuMemoryAccessType myAccessType;
     uint myNumMipLevels;
+    GpuResourceUsageState myDefaultState;
     bool bIsDepthStencil;
     bool myIsShaderWritable;
     bool myIsRenderTarget;

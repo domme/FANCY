@@ -11,7 +11,6 @@
 #include "fancy_core/CommandQueue.h"
 #include "fancy_imgui/imgui_internal.h"
 #include "fancy_core/GrowingList.h"
-#include "fancy_core/CommandContext.h"
 
 using namespace Fancy;
 
@@ -52,11 +51,11 @@ void LongFunc()
 
 void LongGpuCopy(GpuBuffer* aSrcBuffer, GpuBuffer* aDstBuffer)
 {
-  CommandContext ctx(CommandListType::Graphics);
-  GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx.GetCommandList(), ANNTAG_PROFILER_TEST);
+  CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+  GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx, ANNTAG_PROFILER_TEST);
   ctx->CopyBufferRegion(aDstBuffer, 0u, aSrcBuffer, 0u, aSrcBuffer->GetByteSize());
-  GPU_END_PROFILE(ctx.GetCommandList());
-  ctx.Execute();
+  GPU_END_PROFILE(ctx);
+  RenderCore::ExecuteAndFreeCommandList(ctx);
 }
 
 struct TestStruct

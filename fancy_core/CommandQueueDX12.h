@@ -22,8 +22,8 @@ namespace Fancy
     // Waits for a fence-completion on GPU timeline
     void StallForQueue(const CommandQueue* aCommandQueue) override;
     void StallForFence(uint64 aFenceVal) override;
-    uint64 ExecuteCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC) override;
-    uint64 ExecuteAndResetCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC) override;
+    uint64 ExecuteCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC) override;
+    uint64 ExecuteAndResetCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC) override;
 	
 	  Microsoft::WRL::ComPtr<ID3D12CommandQueue> myQueue;
     Microsoft::WRL::ComPtr<ID3D12Fence> myFence;

@@ -7,6 +7,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "GpuResourceDataDX12.h"
 #include "GpuResourceViewDX12.h"
+#include "CommandList.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -69,21 +70,25 @@ namespace Fancy {
 
     const CpuMemoryAccessType cpuMemAccess = (CpuMemoryAccessType)someProperties.myCpuAccess;
 
-    D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
-    D3D12_RESOURCE_STATES readState = D3D12_RESOURCE_STATE_GENERIC_READ;
-    D3D12_RESOURCE_STATES writeState = D3D12_RESOURCE_STATE_COPY_DEST;
+    D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_GENERIC_READ;
+    D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (someProperties.myIsShaderWritable)
-      writeState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+      writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+    ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_WRITE || someProperties.myUsage == GpuBufferUsage::STAGING_UPLOAD, "CPU-writable buffers must be upload-buffers");
+    ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_READ || someProperties.myUsage == GpuBufferUsage::STAGING_READBACK, "CPU-readable buffers must be readback-buffers");
 
     bool canChangeStates = true;
     if (cpuMemAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
     {
-      initialState = D3D12_RESOURCE_STATE_GENERIC_READ;
+      ASSERT(myProperties.myDefaultState == GpuResourceUsageState::COMMON || myProperties.myDefaultState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH);
+      myProperties.myDefaultState = GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
       canChangeStates = false;
     }
     else if (cpuMemAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
     {
-      initialState = D3D12_RESOURCE_STATE_COPY_DEST;
+      ASSERT(myProperties.myDefaultState == GpuResourceUsageState::COMMON || myProperties.myDefaultState == GpuResourceUsageState::WRITE_COPY_DEST);
+      myProperties.myDefaultState = GpuResourceUsageState::WRITE_COPY_DEST;
       canChangeStates = false;
     }
     else
@@ -91,35 +96,26 @@ namespace Fancy {
       // TODO: Rework the usage-mode and allow for multiple usages ("bindFlags") at the same time. It should be possible to make a vertexBuffer that is also a shaderBuffer
       switch (someProperties.myUsage)
       {
-      case GpuBufferUsage::STAGING_UPLOAD:
-        initialState = D3D12_RESOURCE_STATE_GENERIC_READ; // Required for upload-heaps according to the D3D12-docs
-        break;
-      case GpuBufferUsage::STAGING_READBACK:
-        initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-        break;
       case GpuBufferUsage::VERTEX_BUFFER:
       case GpuBufferUsage::CONSTANT_BUFFER:
-        readState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_COPY_SOURCE;
-        initialState = readState;
+        readStateMask = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_COPY_SOURCE;
         break;
       case GpuBufferUsage::INDEX_BUFFER:
-        readState = D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_COPY_SOURCE;
-        initialState = readState;
+        readStateMask = D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_COPY_SOURCE;
         break;
       case GpuBufferUsage::SHADER_BUFFER:
-        readState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
-        initialState = readState;
-        if (someProperties.myIsShaderWritable)
-          initialState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
         break;
       default: ASSERT(false, "Missing implementation");
       }
     }
 
+    D3D12_RESOURCE_STATES defaultStateDx12 = RenderCore_PlatformDX12::ResolveResourceUsageState(myProperties.myDefaultState);
     myHazardData = GpuResourceHazardData();
-    myHazardData.myDx12Data.mySubresourceStates.push_back(initialState);
-    myHazardData.myDx12Data.myReadStates = readState;
-    myHazardData.myDx12Data.myWriteStates = writeState;
+    myHazardData.myDx12Data.mySubresourceStates.push_back(defaultStateDx12);
+    myHazardData.myDx12Data.myReadStates = readStateMask;
+    myHazardData.myDx12Data.myWriteStates = writeStateMask;
+    myHazardData.myDx12Data.myDefaultStates = defaultStateDx12;
     myHazardData.mySubresourceContexts.push_back(CommandListType::Graphics);
     myHazardData.myCanChangeStates = canChangeStates;
 
@@ -134,7 +130,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, defaultStateDx12, nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
 
     std::wstring wName = StringUtil::ToWideString(myName);
     dataDx12->myResource->SetName(wName.c_str());
@@ -152,7 +148,11 @@ namespace Fancy {
       }
       else
       {
-        RenderCore::UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes, SyncMode::BLOCKING);
+        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+        ctx->ResourceBarrier(this, myProperties.myDefaultState, GpuResourceUsageState::WRITE_COPY_DEST);
+        ctx->UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes);
+        ctx->ResourceBarrier(this, GpuResourceUsageState::WRITE_COPY_DEST, myProperties.myDefaultState);
+        RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }
   }

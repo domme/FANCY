@@ -19,7 +19,6 @@
 #include <fancy_core/CommandQueue.h>
 #include <fancy_core/Profiler.h>
 #include <fancy_core/Annotations.h>
-#include "fancy_core/CommandContext.h"
 
 ANNOTATION_CREATE_TAG(ANNTAG_IMGUI, "ImGui", 0xFFC17700);
 
@@ -166,6 +165,7 @@ namespace Fancy { namespace ImGuiRendering {
       props.myWidth = width;
       props.myHeight = height;
       props.eFormat = DataFormat::RGBA_8;
+      props.myDefaultState = GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.eFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
 
@@ -234,10 +234,10 @@ namespace Fancy { namespace ImGuiRendering {
 //---------------------------------------------------------------------------//
   void RenderDrawLists(ImDrawData* _draw_data)
   {
-    CommandContext ctx(CommandListType::Graphics);
+    CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
     
     PROFILE_FUNCTION_TAG(ANNTAG_IMGUI);
-    GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx.GetCommandList(), ANNTAG_IMGUI);
+    GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx, ANNTAG_IMGUI);
 
     RenderOutput* renderOutput = ourRenderOutput;
 
@@ -305,8 +305,8 @@ namespace Fancy { namespace ImGuiRendering {
       }
     }
 
-    GPU_END_PROFILE(ctx.GetCommandList());
-    ctx.Execute();
+    GPU_END_PROFILE(ctx);
+    RenderCore::ExecuteAndFreeCommandList(ctx);
   }
 
   void Shutdown()

@@ -69,7 +69,6 @@
     <ClInclude Include="BlendState.h" />
     <ClInclude Include="Callback.h" />
     <ClInclude Include="CircularArray.h" />
-    <ClInclude Include="CommandContext.h" />
     <ClInclude Include="CommandList.h" />
     <ClInclude Include="CommandListDX12.h" />
     <ClInclude Include="CommandQueue.h" />
@@ -167,7 +166,6 @@
     <ClCompile Include="Annotations.cpp" />
     <ClCompile Include="BinaryCache.cpp" />
     <ClCompile Include="BlendState.cpp" />
-    <ClCompile Include="CommandContext.cpp" />
     <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandListDX12.cpp" />
     <ClCompile Include="CommandQueue.cpp" />

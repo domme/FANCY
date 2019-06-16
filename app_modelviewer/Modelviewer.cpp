@@ -2,13 +2,11 @@
 #include <fancy_core/RenderOutput.h>
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/RendererPrerequisites.h>
-#include <fancy_core/CommandListType.h>
 #include "fancy_core/CommandList.h"
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/GpuProgramPipelineDesc.h>
 #include <fancy_core/GpuBuffer.h>
-#include <fancy_core/Descriptor.h>
 #include <fancy_core/CommandQueue.h>
 
 #include <fancy_assets/ModelLoader.h>
@@ -22,7 +20,6 @@
 #include "CameraController.h"
 #include <fancy_core/MeshData.h>
 #include <fancy_core/ResourceRefs.h>
-#include "fancy_core/CommandContext.h"
 
 using namespace Fancy;
 

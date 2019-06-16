@@ -10,7 +10,6 @@
 #include <fancy_core/CommandQueue.h>
 #include <fancy_core/Profiler.h>
 #include <fancy_core/Input.h>
-#include "fancy_core/CommandContext.h"
 
 #include <array>
 #include "Test.h"
@@ -124,13 +123,13 @@ void Update()
 
 void Render()
 {
-  CommandContext ctx(CommandListType::Graphics);
-  GPU_BEGIN_PROFILE(ctx.GetCommandList(), "ClearRenderTarget", 0u);
+  CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+  GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
   ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceUsageState::READ_PRESENT, GpuResourceUsageState::WRITE_RENDER_TARGET);
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
-  GPU_END_PROFILE(ctx.GetCommandList());
-  ctx.ExecuteAndReset();
+  GPU_END_PROFILE(ctx);
+  RenderCore::ExecuteAndResetCommandList(ctx);
 
   for (UniquePtr<Test>& testItem : myTests)
     testItem->OnRender();
@@ -138,7 +137,7 @@ void Render()
   ImGui::Render();
 
   ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceUsageState::WRITE_RENDER_TARGET, GpuResourceUsageState::READ_PRESENT);
-  ctx.Execute();
+  RenderCore::ExecuteAndFreeCommandList(ctx);
   myRuntime->EndFrame();
 }
 

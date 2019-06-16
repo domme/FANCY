@@ -104,8 +104,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   std::unordered_map<uint64, ID3D12PipelineState*> CommandListDX12::ourPSOcache;
 //---------------------------------------------------------------------------//
-  CommandListDX12::CommandListDX12(CommandListType aCommandListType)
-    : CommandList(aCommandListType)
+  CommandListDX12::CommandListDX12(CommandListType aCommandListType, uint someFlags)
+    : CommandList(aCommandListType, someFlags)
     , myIsOpen(true)
     , myRootSignature(nullptr)
     , myComputeRootSignature(nullptr)
@@ -501,9 +501,9 @@ namespace Fancy {
     myCommandAllocator = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::Reset()
+  void CommandListDX12::Reset(uint someFlags)
   {
-    CommandList::Reset();
+    CommandList::Reset(someFlags);
 
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
@@ -890,40 +890,6 @@ namespace Fancy {
     const uint stateMaskTo = aDstQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
     const uint stateMaskCmdList = myCommandListType == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
 
-    auto ResolveUsageState = [](GpuResourceUsageState aState)
-    {
-      switch (aState)
-      {
-      case GpuResourceUsageState::COMMON:                               return D3D12_RESOURCE_STATE_COMMON;
-      case GpuResourceUsageState::READ_INDIRECT_ARGUMENT:               return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
-      case GpuResourceUsageState::READ_VERTEX_BUFFER:                   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-      case GpuResourceUsageState::READ_INDEX_BUFFER:                    return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-      case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER:   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-      case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE:          return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-      case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER:    return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-      case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE:           return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-      case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:  return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-      case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE:         return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-      case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER:      return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-      case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE:             return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-      case GpuResourceUsageState::READ_COPY_SOURCE:                     return D3D12_RESOURCE_STATE_COPY_SOURCE;
-      case GpuResourceUsageState::READ_DEPTH:                           return D3D12_RESOURCE_STATE_DEPTH_READ;
-      case GpuResourceUsageState::READ_PRESENT:                         return D3D12_RESOURCE_STATE_PRESENT;
-      case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV:              return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-      case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV:               return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-      case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV:             return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-      case GpuResourceUsageState::WRITE_ANY_SHADER_UAV:                 return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-      case GpuResourceUsageState::WRITE_RENDER_TARGET:                  return D3D12_RESOURCE_STATE_RENDER_TARGET;
-      case GpuResourceUsageState::WRITE_COPY_DEST:                      return D3D12_RESOURCE_STATE_COPY_DEST;
-      case GpuResourceUsageState::WRITE_DEPTH:                          return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-      case GpuResourceUsageState::NUM: break;
-      default:
-        ASSERT(false); return D3D12_RESOURCE_STATE_COMMON;
-      }
-
-      return D3D12_RESOURCE_STATE_COMMON;
-    };
-
     D3D12_RESOURCE_BARRIER barriers[64];
     ASSERT(aNumResources <= ARRAY_LENGTH(barriers));
 
@@ -943,8 +909,8 @@ namespace Fancy {
       const bool srcIsRead = srcState >= GpuResourceUsageState::FIRST_READ_STATE && srcState <= GpuResourceUsageState::LAST_READ_STATE;
       const bool dstIsRead = dstState >= GpuResourceUsageState::FIRST_READ_STATE && dstState <= GpuResourceUsageState::LAST_READ_STATE;
       
-      uint srcStateDx12 = ResolveUsageState(srcState);
-      uint dstStateDx12 = ResolveUsageState(dstState);
+      uint srcStateDx12 = RenderCore_PlatformDX12::ResolveResourceUsageState(srcState);
+      uint dstStateDx12 = RenderCore_PlatformDX12::ResolveResourceUsageState(dstState);
 
       const uint resourceWriteStateMask = hazardData.myDx12Data.myWriteStates;
       const uint resourceReadStateMask = hazardData.myDx12Data.myReadStates;

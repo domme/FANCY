@@ -11,8 +11,8 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  const uint kMeshVersion = 0;
-  const uint kTextureVersion = 2;
+  const uint kMeshVersion = 1;
+  const uint kTextureVersion = 3;
 //---------------------------------------------------------------------------//
   enum SERIALIZE_MODE
   {
@@ -122,6 +122,7 @@ namespace Fancy {
     serializer.Write((uint)someTexProps.myAccessType);
     serializer.Write((uint)someTexProps.eFormat);
     serializer.Write(someTexProps.myNumMipLevels);
+    serializer.Write((uint)someTexProps.myDefaultState);
 
     serializer.Write(aNumSubDatas);
 
@@ -182,6 +183,10 @@ namespace Fancy {
     texProps.eFormat = static_cast<DataFormat>(format);
 
     serializer.Read(texProps.myNumMipLevels);
+
+    uint defaultState;
+    serializer.Read(defaultState);
+    texProps.myDefaultState = static_cast<GpuResourceUsageState>(defaultState);
 
     uint numSavedSubdatas = 0;
     serializer.Read(numSavedSubdatas);

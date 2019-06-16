@@ -13,6 +13,7 @@ namespace Fancy {
       , myElementSizeBytes(0u)
       , myCpuAccess(CpuMemoryAccessType::NO_CPU_ACCESS)
       , myUsage(GpuBufferUsage::CONSTANT_BUFFER)
+      , myDefaultState(GpuResourceUsageState::COMMON)
       , myIsShaderWritable(false)
     { }
 
@@ -21,6 +22,7 @@ namespace Fancy {
     uint64 myElementSizeBytes;
     CpuMemoryAccessType myCpuAccess;
     GpuBufferUsage myUsage;
+    GpuResourceUsageState myDefaultState;
     bool myIsShaderWritable;
   };
 //---------------------------------------------------------------------------//  

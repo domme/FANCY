@@ -153,6 +153,7 @@ namespace Fancy
     READ_ANY_SHADER_CONSTANT_BUFFER,
     READ_ANY_SHADER_RESOURCE,
     READ_COPY_SOURCE,
+    READ_ANY_SHADER_ALL_BUT_DEPTH,
     READ_DEPTH,
     READ_PRESENT, LAST_READ_STATE = READ_PRESENT,
 
@@ -284,6 +285,11 @@ namespace Fancy
 
     NUM,
     UNKNOWN,
+  };
+//---------------------------------------------------------------------------//
+  enum class CommandListFlags
+  {
+    PARALLEL_RECORDING = 1 << 0,
   };
 //---------------------------------------------------------------------------//
   enum class GpuQueryType

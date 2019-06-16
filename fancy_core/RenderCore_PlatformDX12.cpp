@@ -288,9 +288,9 @@ namespace Fancy {
    return new GpuBufferDX12();
   }
 //---------------------------------------------------------------------------//
-  CommandList* RenderCore_PlatformDX12::CreateContext(CommandListType aType)
+  CommandList* RenderCore_PlatformDX12::CreateContext(CommandListType aType, uint someFlags)
   {
-    return new CommandListDX12(aType);
+    return new CommandListDX12(aType, someFlags);
   }
 //---------------------------------------------------------------------------//
   TextureView* RenderCore_PlatformDX12::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName /* = nullptr */)
@@ -637,6 +637,41 @@ namespace Fancy {
       case CpuMemoryAccessType::CPU_READ: return D3D12_HEAP_TYPE_READBACK;
       default: ASSERT(false, "Missing implementation"); return D3D12_HEAP_TYPE_DEFAULT;
     }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_RESOURCE_STATES RenderCore_PlatformDX12::ResolveResourceUsageState(GpuResourceUsageState aState)
+  {
+    switch (aState)
+    {
+    case GpuResourceUsageState::COMMON:                               return D3D12_RESOURCE_STATE_COMMON;
+    case GpuResourceUsageState::READ_INDIRECT_ARGUMENT:               return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+    case GpuResourceUsageState::READ_VERTEX_BUFFER:                   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceUsageState::READ_INDEX_BUFFER:                    return D3D12_RESOURCE_STATE_INDEX_BUFFER;
+    case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER:   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE:          return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER:    return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE:           return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:  return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE:         return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER:      return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE:             return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    case GpuResourceUsageState::READ_COPY_SOURCE:                     return D3D12_RESOURCE_STATE_COPY_SOURCE;
+    case GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH:        return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT | D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+    case GpuResourceUsageState::READ_DEPTH:                           return D3D12_RESOURCE_STATE_DEPTH_READ;
+    case GpuResourceUsageState::READ_PRESENT:                         return D3D12_RESOURCE_STATE_PRESENT;
+    case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV:              return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV:               return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV:             return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    case GpuResourceUsageState::WRITE_ANY_SHADER_UAV:                 return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    case GpuResourceUsageState::WRITE_RENDER_TARGET:                  return D3D12_RESOURCE_STATE_RENDER_TARGET;
+    case GpuResourceUsageState::WRITE_COPY_DEST:                      return D3D12_RESOURCE_STATE_COPY_DEST;
+    case GpuResourceUsageState::WRITE_DEPTH:                          return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+    case GpuResourceUsageState::NUM: break;
+    default:
+      ASSERT(false); return D3D12_RESOURCE_STATE_COMMON;
+    }
+
+    return D3D12_RESOURCE_STATE_COMMON;
   }
 //---------------------------------------------------------------------------//
   DXGI_FORMAT RenderCore_PlatformDX12::GetDXGIformat(DataFormat aFormat)

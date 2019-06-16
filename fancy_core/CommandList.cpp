@@ -85,9 +85,10 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  CommandList::CommandList(CommandListType aType)
+  CommandList::CommandList(CommandListType aType, uint someFlags)
     : myCommandListType(aType)
     , myCurrentContext(aType)
+    , myIsParallelRecording(someFlags & (uint) CommandListFlags::PARALLEL_RECORDING)
     , myViewportParams(0, 0, 1, 1)
     , myClipRect(0, 0, 1, 1)
     , myViewportDirty(true)
@@ -278,12 +279,13 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::Reset()
+  void CommandList::Reset(uint someFlags)
   {
     ASSERT(!IsOpen(), "Reset() called on open command list. Gpu-resources will not get freed! Did you forget to execute the command list?");
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
+    myIsParallelRecording = someFlags & (uint)CommandListFlags::PARALLEL_RECORDING;
     
     myViewportParams = glm::uvec4(0, 0, 1, 1);
     myClipRect = glm::uvec4(0, 0, 1, 1);

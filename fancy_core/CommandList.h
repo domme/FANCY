@@ -49,7 +49,7 @@ namespace Fancy {
   class CommandList
   {
   public:
-    CommandList(CommandListType aType);
+    CommandList(CommandListType aType, uint someFlags);
     virtual ~CommandList() {}
 
     CommandListType GetType() const { return myCommandListType; }
@@ -89,7 +89,7 @@ namespace Fancy {
     virtual void SetComputeProgram(const GpuProgram* aProgram);
     virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     virtual void ReleaseGpuResources(uint64 aFenceVal);
-    virtual void Reset();
+    virtual void Reset(uint someFlags);
 
     const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
     void BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize);
@@ -115,6 +115,7 @@ namespace Fancy {
 
     CommandListType myCommandListType;
     CommandListType myCurrentContext;
+    bool myIsParallelRecording;
 
     glm::uvec4 myViewportParams;
     glm::uvec4 myClipRect;

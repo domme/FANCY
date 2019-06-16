@@ -9,7 +9,6 @@
 #include "fancy_imgui/imgui_internal.h"
 #include "fancy_core/GrowingList.h"
 #include "fancy_core/TimeManager.h"
-#include "fancy_core/CommandContext.h"
 #include "fancy_core/StaticString.h"
 
 using namespace Fancy;
@@ -59,9 +58,9 @@ void Test_Synchronization::OnUpdate(bool aDrawProperties)
         bufferData[i] = myExpectedBufferValue;
       myUploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
 
-      CommandContext ctx(CommandListType::Graphics);
+      CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
       ctx->CopyBufferRegion(myReadbackBuffer.get(), 0ull, myUploadBuffer.get(), 0ull, myUploadBuffer->GetByteSize());
-      myBufferCopyFence = ctx.Execute();
+      myBufferCopyFence = RenderCore::ExecuteAndFreeCommandList(ctx);
 
       myStage = Stage::WAITING_FOR_COPY;
     }

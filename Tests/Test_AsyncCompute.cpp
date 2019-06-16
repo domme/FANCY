@@ -9,7 +9,6 @@
 #include "fancy_imgui/imgui_internal.h"
 #include "fancy_core/GrowingList.h"
 #include "fancy_core/TimeManager.h"
-#include "fancy_core/CommandContext.h"
 #include "fancy_core/StaticString.h"
 
 using namespace Fancy;
@@ -78,7 +77,7 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
   { 
     case Stage::IDLE: 
     {
-      CommandContext graphicsContext(CommandListType::Graphics);
+      CommandList* graphicsContext = RenderCore::BeginCommandList(CommandListType::Graphics);
       graphicsContext->SetComputeProgram(mySetBufferValueShader.get());
 
       struct CBuffer
@@ -95,18 +94,18 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
       const GpuResourceView* views[] = { myBufferUAV.get() };
       graphicsContext->BindResourceSet(views, ARRAY_LENGTH(views), 1);
       graphicsContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
-      const uint64 setValueFence = graphicsContext.ExecuteAndReset();
+      const uint64 setValueFence = RenderCore::ExecuteAndResetCommandList(graphicsContext);
 
-      CommandContext computeContext(CommandListType::Compute);
+      CommandList* computeContext = RenderCore::BeginCommandList(CommandListType::Compute);
       RenderCore::GetCommandQueue(CommandListType::Compute)->StallForFence(setValueFence);
       computeContext->SetComputeProgram(myIncrementBufferShader.get());
       computeContext->BindResourceSet(views, ARRAY_LENGTH(views), 1);
       computeContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
-      const uint64 incrementValueFence = computeContext.Execute();
+      const uint64 incrementValueFence = RenderCore::ExecuteAndFreeCommandList(computeContext);
 
       RenderCore::GetCommandQueue(CommandListType::Graphics)->StallForFence(incrementValueFence);
       graphicsContext->CopyBufferRegion(myReadbackBuffer.get(), 0ull, myBuffer.get(), 0ull, myBuffer->GetByteSize());
-      myBufferCopyFence = graphicsContext.Execute();
+      myBufferCopyFence = RenderCore::ExecuteAndFreeCommandList(graphicsContext);
 
       myStage = Stage::WAITING_FOR_READBACK_COPY;
     }
