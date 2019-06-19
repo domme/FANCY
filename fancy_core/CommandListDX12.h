@@ -30,7 +30,7 @@ namespace Fancy {
     CommandListDX12(CommandListType aType, uint someFlags);
     ~CommandListDX12() override;
 
-    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas) const;
+    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
     
     void ClearRenderTarget(TextureView* aTextureView, const float* aColor) override;
     void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) override;
@@ -42,6 +42,7 @@ namespace Fancy {
 
     void ReleaseGpuResources(uint64 aFenceVal) override;
     void Reset(uint someFlags) override;
+    void FlushBarriers() override;
     void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
@@ -55,10 +56,14 @@ namespace Fancy {
     GpuQuery InsertTimestamp() override;
     void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
 
-    void ResourceBarrier(
+    void ResourceUAVbarrier(const GpuResource** someResources = nullptr, uint aNumResources = 0u) override;
+
+    void SubresourceBarrier(
       const GpuResource** someResources,
-      GpuResourceUsageState* someSrcStates,
-      GpuResourceUsageState* someDstStates,
+      const uint16** someSubResourceLists,
+      const uint* someNumSubresources,
+      const GpuResourceUsageState* someSrcStates,
+      const GpuResourceUsageState* someDstStates,
       uint aNumResources,
       CommandListType aSrcQueue,
       CommandListType aDstQueue) override;
@@ -84,8 +89,6 @@ namespace Fancy {
     void SetTrackSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const;
     void SetTrackSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const;
 #endif 
-    
-    void SetResourceUAVbarrier(const GpuResource* aResource) const;
 
     DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount);
 
@@ -96,7 +99,9 @@ namespace Fancy {
     ID3D12RootSignature* myComputeRootSignature;
     ID3D12GraphicsCommandList* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
-    
+    D3D12_RESOURCE_BARRIER myPendingBarriers[256];
+    uint myNumPendingBarriers;
+
     DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     std::vector<DynamicDescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
   };

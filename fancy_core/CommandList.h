@@ -12,7 +12,8 @@ namespace Fancy {
   class GeometryData;
   class GpuResourceView;
   class GpuFence;
-  class GpuResource;  
+  class GpuResource;
+  class GpuResourceView;
   class DepthStencilState;
   class BlendState;
   class GpuProgram;
@@ -73,18 +74,50 @@ namespace Fancy {
     virtual void EndQuery(const GpuQuery& aQuery) = 0;
     virtual GpuQuery InsertTimestamp() = 0;
     virtual void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) = 0;
+    
+    virtual void ResourceUAVbarrier(
+      const GpuResource** someResources = nullptr, 
+      uint aNumResources = 0u) = 0;
 
-    virtual void ResourceBarrier(
-      const GpuResource** someResources,
-      GpuResourceUsageState* someSrcStates,
-      GpuResourceUsageState* someDstStates,
+    virtual void SubresourceBarrier(
+      const GpuResource** someResources, 
+      const uint16** someSubResourceLists,
+      const uint* someNumSubresources,
+      const GpuResourceUsageState* someSrcStates,
+      const GpuResourceUsageState* someDstStates,
       uint aNumResources,
       CommandListType aSrcQueue,
       CommandListType aDstQueue) = 0;
 
+    void SubresourceBarrier(
+      const GpuResource* aResource,
+      const uint16* aSubresourceList,
+      uint aNumSubresources,
+      GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState,
+      CommandListType aSrcQueue = CommandListType::UNKNOWN,
+      CommandListType aDstQueue = CommandListType::UNKNOWN
+    );
+
+    void SubresourceBarrier(
+      const GpuResourceView* aResourceView,
+      GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState,
+      CommandListType aSrcQueue = CommandListType::UNKNOWN,
+      CommandListType aDstQueue = CommandListType::UNKNOWN
+    );
+
+    void ResourceBarrier(
+      const GpuResource* aResource, 
+      GpuResourceUsageState aSrcState, 
+      GpuResourceUsageState aDstState, 
+      CommandListType aSrcQueue = CommandListType::UNKNOWN, 
+      CommandListType aDstQueue = CommandListType::UNKNOWN);
+
     virtual void Close() = 0;
     virtual bool IsOpen() const = 0;
-    
+
+    virtual void FlushBarriers() = 0;
     virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
     virtual void SetComputeProgram(const GpuProgram* aProgram);
     virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
@@ -108,8 +141,7 @@ namespace Fancy {
     void RemoveAllRenderTargets();
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
-    void ResourceBarrier(const GpuResource* aResource, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue = CommandListType::UNKNOWN, CommandListType aDstQueue = CommandListType::UNKNOWN);
-    
+        
   protected:
     GpuQuery AllocateQuery(GpuQueryType aType);
 

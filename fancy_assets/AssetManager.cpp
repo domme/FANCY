@@ -252,7 +252,7 @@ using namespace Fancy;
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  void AssetManager::ComputeMipmaps(const SharedPtr<Texture>& aTexture)  // TODO: NEW_RESOURCE_BARRIERS_FIXME
+  void AssetManager::ComputeMipmaps(const SharedPtr<Texture>& aTexture)
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;
@@ -265,6 +265,7 @@ using namespace Fancy;
     tempTexProps.myTextureProperties.myNumMipLevels = 1;
     tempTexProps.myTextureProperties.myWidth = (uint)tempTexSize.x;
     tempTexProps.myTextureProperties.myHeight = (uint)tempTexSize.y;
+    tempTexProps.myTextureProperties.myDefaultState = GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
     tempTexProps.myIsShaderWritable = true;
     tempTexProps.myIsRenderTarget = false;
     tempTexProps.myIsTexture = true;
@@ -307,7 +308,7 @@ using namespace Fancy;
     glm::float2 destSize = glm::ceil(srcSize * 0.5f);
     for (uint mip = 1u; mip < numMips; ++mip)
     {
-      const GpuResourceView* resources[] = { nullptr, nullptr };
+      const GpuResourceView* resourceViews[] = { nullptr, nullptr };
 
       // Resize horizontal
       glm::float2 tempDestSize(destSize.x, srcSize.y);
@@ -317,9 +318,15 @@ using namespace Fancy;
       cBuffer.myDestScale = srcSize / tempDestSize;
       cBuffer.myAxis = glm::float2(1.0f, 0.0f);
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-      resources[0] = readViews[mip - 1].get();
-      resources[1] = tempTexResource[0].myWriteView;
-      ctx->BindResourceSet(resources, 2, 1u);
+      resourceViews[0] = readViews[mip - 1].get();
+      resourceViews[1] = tempTexResource[0].myWriteView;
+
+      const uint16* subresourceLists[] = { resourceViews[0]->mySubresources[0].data(), resourceViews[1]->mySubresources[0].data() };
+      const uint numSubresources[] = { resourceViews[0]->mySubresources->size(), resourceViews[1]->mySubresources->size() };
+      const GpuResource* resources[] = { resourceViews[0]->myResource.get(), resourceViews[1]->myResource.get() };
+      //ctx->SubresourceBarrier(resources, subresourceLists, numSubresources, GpuResourceUsageState::)
+
+      ctx->BindResourceSet(resourceViews, 2, 1u);
       ctx->Dispatch(glm::int3((int)destSize.x, (int)srcSize.y, 1));
 
       // Resize vertical
@@ -329,9 +336,9 @@ using namespace Fancy;
       cBuffer.myDestScale = tempDestSize / destSize;
       cBuffer.myAxis = glm::float2(0.0f, 1.0f);
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-      resources[0] = tempTexResource[0].myReadView;
-      resources[1] = tempTexResource[1].myWriteView;
-      ctx->BindResourceSet(resources, 2, 1u);
+      resourceViews[0] = tempTexResource[0].myReadView;
+      resourceViews[1] = tempTexResource[1].myWriteView;
+      ctx->BindResourceSet(resourceViews, 2, 1u);
       ctx->Dispatch(glm::int3((int)destSize.x, (int)destSize.y, 1));
 
       TextureSubLocation destLocation;

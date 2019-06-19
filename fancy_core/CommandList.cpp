@@ -10,6 +10,7 @@
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
 #include "TimeManager.h"
+#include "GpuResourceView.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -511,9 +512,47 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue)
+  void CommandList::SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources,
+    GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue /*=CommandListType::UNKNOWN*/, CommandListType aDstQueue /*=CommandListType::UNKNOWN*/)
   {
-    ResourceBarrier(&aResource, &aSrcState, &aDstState, 1u, aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType, aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType);
+    const CommandListType srcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
+    const CommandListType dstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
+    SubresourceBarrier(&aResource, &aSubresourceList, &aNumSubresources, &aSrcState, &aDstState, 1u, srcQueue, dstQueue);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceUsageState aSrcState, 
+    GpuResourceUsageState aDstState, CommandListType aSrcQueue /*=CommandListType::UNKNOWN*/, CommandListType aDstQueue /*=CommandListType::UNKNOWN*/)
+  {
+    const CommandListType srcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
+    const CommandListType dstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
+
+    if (aResourceView->mySubresources[1].empty())  // Single-plane resource
+    {
+      const uint16* subresourceList = aResourceView->mySubresources[0].data();
+      const uint numSubresources = (uint)aResourceView->mySubresources->size();
+      ASSERT(numSubresources > 0);
+
+      SubresourceBarrier(aResourceView->myResource.get(), subresourceList, numSubresources, aSrcState, aDstState, srcQueue, dstQueue);
+    }
+    else
+    {
+      const GpuResource* resources[] = { aResourceView->myResource.get(), aResourceView->myResource.get() };
+      const uint16* subresourceLists[] = { aResourceView->mySubresources[0].data(), aResourceView->mySubresources[1].data() };
+      const uint numSubresources[] = { (uint)aResourceView->mySubresources[0].size(), (uint)aResourceView->mySubresources[1].size() };
+      const GpuResourceUsageState srcStates[] = { aSrcState, aSrcState };
+      const GpuResourceUsageState dstStates[] = { aDstState, aDstState };
+      ASSERT(numSubresources[0] > 0);
+      ASSERT(numSubresources[1] > 0);
+
+      SubresourceBarrier(resources, subresourceLists, numSubresources, srcStates, dstStates, 2u, srcQueue, dstQueue);
+    }
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue /*=CommandListType::UNKNOWN*/, CommandListType aDstQueue /*=CommandListType::UNKNOWN*/)
+  {
+    const CommandListType srcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
+    const CommandListType dstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
+    SubresourceBarrier(&aResource, nullptr, nullptr, &aSrcState, &aDstState, 1u, srcQueue, dstQueue);
   }
 //---------------------------------------------------------------------------//
 } 
