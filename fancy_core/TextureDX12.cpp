@@ -136,16 +136,15 @@ namespace Fancy {
     myNumPlanes = formatInfo.myNumPlanes;
 
     myHazardData = GpuResourceHazardData();
-    myHazardData.myDx12Data.mySubresourceStates.resize(numSubresources);
+    myHazardData.mySubresourceStates.resize(numSubresources);
     myHazardData.mySubresourceContexts.resize(numSubresources);
     for (uint i = 0u; i < numSubresources; ++i)
     {
-      myHazardData.myDx12Data.mySubresourceStates[i] = defaultStates;
+      myHazardData.mySubresourceStates[i] = someProperties.myDefaultState;
       myHazardData.mySubresourceContexts[i] = CommandListType::Graphics;
     }
     myHazardData.myDx12Data.myReadStates = readStateMask;
     myHazardData.myDx12Data.myWriteStates = writeStateMask;
-    myHazardData.myDx12Data.myDefaultStates = defaultStates;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;

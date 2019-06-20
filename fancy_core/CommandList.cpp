@@ -89,7 +89,7 @@ namespace Fancy {
   CommandList::CommandList(CommandListType aType, uint someFlags)
     : myCommandListType(aType)
     , myCurrentContext(aType)
-    , myIsParallelRecording(someFlags & (uint) CommandListFlags::PARALLEL_RECORDING)
+    , myIsTrackingResourceStates((someFlags & (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING) == 0)
     , myViewportParams(0, 0, 1, 1)
     , myClipRect(0, 0, 1, 1)
     , myViewportDirty(true)
@@ -99,6 +99,7 @@ namespace Fancy {
     , myShaderHasUnorderedWrites(false)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr)
+    , myNumResourceHazardEntries(0u)
   {
   }
 //---------------------------------------------------------------------------//
@@ -121,6 +122,15 @@ namespace Fancy {
     ++range.myNumUsedQueries;
 
     return GpuQuery(aType, queryIndex, Time::ourFrameIdx, myCommandListType);
+  }
+//---------------------------------------------------------------------------//
+  int CommandList::FindResourceHazardEntryIdx(const GpuResource* aResource)
+  {
+    for (uint i = 0; i < myNumResourceHazardEntries; ++i)
+      if (myResourceHazardResources[i] == aResource)
+        return i;
+
+    return -1;
   }
 //---------------------------------------------------------------------------//
   const GpuBuffer* CommandList::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
@@ -286,7 +296,8 @@ namespace Fancy {
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
-    myIsParallelRecording = someFlags & (uint)CommandListFlags::PARALLEL_RECORDING;
+    myNumResourceHazardEntries = 0u;
+    myIsTrackingResourceStates = (someFlags & (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING) == 0;
     
     myViewportParams = glm::uvec4(0, 0, 1, 1);
     myClipRect = glm::uvec4(0, 0, 1, 1);
@@ -510,6 +521,77 @@ namespace Fancy {
       const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
       CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
     }
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::SubresourceBarrier(const GpuResource** someResources, const uint16** someSubResourceLists,
+    const uint* someNumSubresources, const GpuResourceUsageState* someSrcStates,
+    const GpuResourceUsageState* someDstStates, uint aNumResources, CommandListType aSrcQueue, CommandListType aDstQueue)
+  {
+    if (myIsTrackingResourceStates)
+    {
+      for (uint iRes = 0u; iRes < aNumResources; ++iRes)
+      {
+        const GpuResource* resource = someResources[iRes];
+        const GpuResourceUsageState srcState = someSrcStates[iRes];
+        const GpuResourceUsageState dstState = someDstStates[iRes];
+        ASSERT(srcState != dstState);
+        ASSERT(dstState != GpuResourceUsageState::UNKNOWN);
+
+        // Find the local hazard-state for this resource if it already has one. If not, the srcState must be UNKNOWN
+        const int resourceHazardIdx = FindResourceHazardEntryIdx(resource);
+        ASSERT((srcState == GpuResourceUsageState::UNKNOWN) == (resourceHazardIdx < 0));
+        ResourceHazardEntry* entry = nullptr;
+        if (resourceHazardIdx < 0)
+        {
+          ASSERT(myNumResourceHazardEntries < ARRAY_LENGTH(myResourceHazardEntries));
+          myResourceHazardResources[myNumResourceHazardEntries] = resource;
+          entry = &myResourceHazardEntries[myNumResourceHazardEntries];
+          ++myNumResourceHazardEntries;
+
+          entry->mySubresourceStates.resize(resource->myNumSubresources);
+          entry->myFirstSubresourceStates.resize(resource->myNumSubresources);
+          for (uint i = 0; i < resource->myNumSubresources; ++i)
+          {
+            // UNKNOWN in the local hazard entry means that a subresource hasn't been touched by this command list
+            entry->mySubresourceStates[i] = GpuResourceUsageState::UNKNOWN;
+            entry->myFirstSubresourceStates[i] = GpuResourceUsageState::UNKNOWN;
+          }
+        }
+        else
+        {
+          entry = &myResourceHazardEntries[resourceHazardIdx];
+        }
+
+        // Transition all subresources?
+        if (someSubResourceLists == nullptr || someNumSubresources == nullptr || someNumSubresources[iRes] >= resource->myNumSubresources)
+        {
+          for (uint i = 0; i < resource->myNumSubresources; ++i)  // TODO: Optimize with a flag deciding if all subresources are in the same state
+          {
+            ASSERT(entry->mySubresourceStates[i] == srcState);
+            entry->mySubresourceStates[i] = dstState;
+            if (entry->myFirstSubresourceStates[i] == GpuResourceUsageState::UNKNOWN)
+              entry->myFirstSubresourceStates[i] = dstState;
+          }
+        }
+        else
+        {
+          const uint16* subresourceList = someSubResourceLists[iRes];
+          const uint numSubresources = someNumSubresources[iRes];
+          for (uint i = 0; i < numSubresources; ++i)
+          {
+            const uint16 subIdx = subresourceList[i];
+            ASSERT(subIdx < resource->myNumSubresources);
+            ASSERT(entry->mySubresourceStates[subIdx] == srcState);
+            entry->mySubresourceStates[subIdx] = dstState;
+            if (entry->myFirstSubresourceStates[subIdx] == GpuResourceUsageState::UNKNOWN)
+              entry->myFirstSubresourceStates[subIdx] = dstState;
+          }
+        }
+      }
+    }
+
+    // Queue the actual barrier
+    SubresourceBarrierInternal(someResources, someSubResourceLists, someNumSubresources, someSrcStates, someDstStates, aNumResources, aSrcQueue, aDstQueue);
   }
 //---------------------------------------------------------------------------//
   void CommandList::SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources,

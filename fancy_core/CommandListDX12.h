@@ -58,7 +58,7 @@ namespace Fancy {
 
     void ResourceUAVbarrier(const GpuResource** someResources = nullptr, uint aNumResources = 0u) override;
 
-    void SubresourceBarrier(
+    void SubresourceBarrierInternal(
       const GpuResource** someResources,
       const uint16** someSubResourceLists,
       const uint* someNumSubresources,

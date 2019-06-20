@@ -32,12 +32,11 @@ namespace Fancy
     virtual uint64 ExecuteCommandListInternal(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
     virtual uint64 ExecuteAndResetCommandListInternal(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
 
+    void ResolveResourceBarriers(CommandList* aCommandList);
     void FreeCommandList(CommandList* aCommandList);
 
     DynamicArray<UniquePtr<CommandList>> myCommandListPool;
     std::list<CommandList*> myAvailableCommandLists;
-    CommandList* myAllocatedCommandListStack[64];
-    uint myNextFreeCmdListStackIdx;
 
     CommandListType myType;
     uint64 myLastCompletedFenceVal;

@@ -110,13 +110,11 @@ namespace Fancy {
       }
     }
 
-    D3D12_RESOURCE_STATES defaultStateDx12 = RenderCore_PlatformDX12::ResolveResourceUsageState(myProperties.myDefaultState);
     myHazardData = GpuResourceHazardData();
-    myHazardData.myDx12Data.mySubresourceStates.push_back(defaultStateDx12);
+    myHazardData.mySubresourceStates.push_back(someProperties.myDefaultState);
+    myHazardData.mySubresourceContexts.push_back(CommandListType::Graphics);
     myHazardData.myDx12Data.myReadStates = readStateMask;
     myHazardData.myDx12Data.myWriteStates = writeStateMask;
-    myHazardData.myDx12Data.myDefaultStates = defaultStateDx12;
-    myHazardData.mySubresourceContexts.push_back(CommandListType::Graphics);
     myHazardData.myCanChangeStates = canChangeStates;
 
     myNumSubresources = 1u;
@@ -130,7 +128,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, defaultStateDx12, nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, RenderCore_PlatformDX12::ResolveResourceUsageState(myProperties.myDefaultState), nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
 
     std::wstring wName = StringUtil::ToWideString(myName);
     dataDx12->myResource->SetName(wName.c_str());

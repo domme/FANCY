@@ -9,8 +9,6 @@ namespace Fancy
     : myType(aType)
     , myLastCompletedFenceVal((((uint64)aType) << 61ULL))
     , myNextFenceVal(myLastCompletedFenceVal + 1u)
-    , myAllocatedCommandListStack{ nullptr }
-    , myNextFreeCmdListStackIdx(0u)
   {
   }
 //---------------------------------------------------------------------------//
@@ -28,9 +26,6 @@ namespace Fancy
         commandList->Reset(someCommandListFlags);
       myAvailableCommandLists.pop_front();
 
-      ASSERT(myNextFreeCmdListStackIdx < ARRAY_LENGTH(myAllocatedCommandListStack));
-      myAllocatedCommandListStack[myNextFreeCmdListStackIdx++] = commandList;
-
       return commandList;
     }
 
@@ -42,16 +37,13 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandQueue::FreeCommandList(CommandList* aCommandList)
   {
-    ASSERT(myNextFreeCmdListStackIdx > 0 && aCommandList == myAllocatedCommandListStack[myNextFreeCmdListStackIdx -1]);
     ASSERT(std::find(myAvailableCommandLists.begin(), myAvailableCommandLists.end(), aCommandList) == myAvailableCommandLists.end());
-
-    myAllocatedCommandListStack[--myNextFreeCmdListStackIdx] = nullptr;
     myAvailableCommandLists.push_back(aCommandList);
   }
 //---------------------------------------------------------------------------//
   uint64 CommandQueue::ExecuteAndFreeCommandList(CommandList* aCommandList, SyncMode aSyncMode)
   {
-    ASSERT(myNextFreeCmdListStackIdx > 0 && aCommandList == myAllocatedCommandListStack[myNextFreeCmdListStackIdx-1]);
+    ResolveResourceBarriers(aCommandList);
     const uint64 fence = ExecuteCommandListInternal(aCommandList, aSyncMode);
     FreeCommandList(aCommandList);
     return fence;
@@ -59,8 +51,25 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   uint64 CommandQueue::ExecuteAndResetCommandList(CommandList* aCommandList, SyncMode aSyncMode)
   {
-    ASSERT(myNextFreeCmdListStackIdx > 0 && aCommandList == myAllocatedCommandListStack[myNextFreeCmdListStackIdx - 1]);
+    ResolveResourceBarriers(aCommandList);
     return ExecuteAndResetCommandListInternal(aCommandList, aSyncMode);
+  }
+//---------------------------------------------------------------------------//
+  void CommandQueue::ResolveResourceBarriers(CommandList* aCommandList)
+  {
+    if (aCommandList->myNumResourceHazardEntries == 0)
+      return;
+
+    // TODO: It might be necessary to add more complexity to the hazard tracking so that we can also detect scenarios where the patching command list has to perform cross-queue transitions
+    CommandList* ctx = BeginCommandList((uint) CommandListFlags::NO_RESOURCE_STATE_TRACKING);
+
+    for (uint iRes = 0; iRes < aCommandList->myNumResourceHazardEntries; ++iRes)
+    {
+      const GpuResource* resource = aCommandList->myResourceHazardResources[iRes];
+      const CommandList::ResourceHazardEntry& entry = aCommandList->myResourceHazardEntries[iRes];
+
+
+    }
   }
 //---------------------------------------------------------------------------//
   CommandListType CommandQueue::GetCommandListType(uint64 aFenceVal)

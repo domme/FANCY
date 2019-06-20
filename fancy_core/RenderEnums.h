@@ -165,6 +165,7 @@ namespace Fancy
     WRITE_COPY_DEST,
     WRITE_DEPTH, LAST_WRITE_STATE = WRITE_DEPTH,
 
+    UNKNOWN,
     NUM
   };
 //---------------------------------------------------------------------------//
@@ -289,7 +290,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   enum class CommandListFlags
   {
-    PARALLEL_RECORDING = 1 << 0,
+    NO_RESOURCE_STATE_TRACKING = 1 << 0,
   };
 //---------------------------------------------------------------------------//
   enum class GpuQueryType

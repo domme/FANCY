@@ -18,15 +18,12 @@ namespace Fancy {
     // Uints are D3D12_RESOURCE_STATES
     uint myReadStates = 0u;
     uint myWriteStates = 0u;
-    uint myDefaultStates = 0u;
-    DynamicArray<uint> mySubresourceStates;
   };
 //---------------------------------------------------------------------------//
   struct GpuResourceHazardData
   {
     bool myCanChangeStates = true;
-    bool myAllSubresourcesInSameState = true;
-    DynamicArray<CommandListType> mySubresourceContexts;
+    DynamicArray<GpuResourceUsageState> mySubresourceStates;
     GpuResourceHazardDataDX12 myDx12Data;  // Will become a union once other platforms are in
   };
 //---------------------------------------------------------------------------//

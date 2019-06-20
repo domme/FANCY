@@ -6,6 +6,7 @@
 #include "MathIncludes.h"
 #include "RenderEnums.h"
 #include "DataFormat.h"
+#include "GpuResource.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -49,6 +50,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   class CommandList
   {
+    friend class CommandQueue;
+
   public:
     CommandList(CommandListType aType, uint someFlags);
     virtual ~CommandList() {}
@@ -79,8 +82,8 @@ namespace Fancy {
       const GpuResource** someResources = nullptr, 
       uint aNumResources = 0u) = 0;
 
-    virtual void SubresourceBarrier(
-      const GpuResource** someResources, 
+    virtual void SubresourceBarrierInternal(
+      const GpuResource** someResources,
       const uint16** someSubResourceLists,
       const uint* someNumSubresources,
       const GpuResourceUsageState* someSrcStates,
@@ -88,6 +91,16 @@ namespace Fancy {
       uint aNumResources,
       CommandListType aSrcQueue,
       CommandListType aDstQueue) = 0;
+
+    void SubresourceBarrier(
+      const GpuResource** someResources, 
+      const uint16** someSubResourceLists,
+      const uint* someNumSubresources,
+      const GpuResourceUsageState* someSrcStates,
+      const GpuResourceUsageState* someDstStates,
+      uint aNumResources,
+      CommandListType aSrcQueue,
+      CommandListType aDstQueue);
 
     void SubresourceBarrier(
       const GpuResource* aResource,
@@ -144,10 +157,11 @@ namespace Fancy {
         
   protected:
     GpuQuery AllocateQuery(GpuQueryType aType);
+    int FindResourceHazardEntryIdx(const GpuResource* aResource);
 
     CommandListType myCommandListType;
     CommandListType myCurrentContext;
-    bool myIsParallelRecording;
+    bool myIsTrackingResourceStates;
 
     glm::uvec4 myViewportParams;
     glm::uvec4 myClipRect;
@@ -166,6 +180,15 @@ namespace Fancy {
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
     DynamicArray<GpuRingBuffer*> myIndexRingBuffers;
+    
+    struct ResourceHazardEntry
+    {
+      DynamicArray<GpuResourceUsageState> mySubresourceStates;
+      DynamicArray<GpuResourceUsageState> myFirstSubresourceStates;
+    };
+    const GpuResource* myResourceHazardResources[1024];
+    ResourceHazardEntry myResourceHazardEntries[1024];
+    uint myNumResourceHazardEntries;
 
     struct GpuQueryRange
     {

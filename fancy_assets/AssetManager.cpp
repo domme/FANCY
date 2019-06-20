@@ -265,7 +265,6 @@ using namespace Fancy;
     tempTexProps.myTextureProperties.myNumMipLevels = 1;
     tempTexProps.myTextureProperties.myWidth = (uint)tempTexSize.x;
     tempTexProps.myTextureProperties.myHeight = (uint)tempTexSize.y;
-    tempTexProps.myTextureProperties.myDefaultState = GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
     tempTexProps.myIsShaderWritable = true;
     tempTexProps.myIsRenderTarget = false;
     tempTexProps.myIsTexture = true;
@@ -274,7 +273,7 @@ using namespace Fancy;
 
     CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
     ctx->SetComputeProgram(myTextureResizeShader.get());
-
+    
     struct CBuffer
     {
       glm::float2 mySrcSize;
@@ -305,6 +304,9 @@ using namespace Fancy;
       readViews[mip] = RenderCore::CreateTextureView(aTexture, readProps);
     }
 
+    ctx->ResourceBarrier(aTexture.get(), aTexture->GetProperties().myDefaultState, GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE);
+    ctx->ResourceBarrier(tempTexResource[0].myTexture, tempTexResource[0].myTexture->GetProperties().myDefaultState, GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV);
+    ctx->ResourceBarrier(tempTexResource[1].myTexture, tempTexResource[1].myTexture->GetProperties().myDefaultState, GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE);
     glm::float2 destSize = glm::ceil(srcSize * 0.5f);
     for (uint mip = 1u; mip < numMips; ++mip)
     {
@@ -320,14 +322,10 @@ using namespace Fancy;
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
       resourceViews[0] = readViews[mip - 1].get();
       resourceViews[1] = tempTexResource[0].myWriteView;
-
-      const uint16* subresourceLists[] = { resourceViews[0]->mySubresources[0].data(), resourceViews[1]->mySubresources[0].data() };
-      const uint numSubresources[] = { resourceViews[0]->mySubresources->size(), resourceViews[1]->mySubresources->size() };
-      const GpuResource* resources[] = { resourceViews[0]->myResource.get(), resourceViews[1]->myResource.get() };
-      //ctx->SubresourceBarrier(resources, subresourceLists, numSubresources, GpuResourceUsageState::)
-
+      ctx->ResourceBarrier(tempTexResource[0].myTexture, GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV);
       ctx->BindResourceSet(resourceViews, 2, 1u);
       ctx->Dispatch(glm::int3((int)destSize.x, (int)srcSize.y, 1));
+      ctx->ResourceUAVbarrier();
 
       // Resize vertical
       cBuffer.mySrcSize = tempDestSize;
@@ -338,16 +336,26 @@ using namespace Fancy;
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
       resourceViews[0] = tempTexResource[0].myReadView;
       resourceViews[1] = tempTexResource[1].myWriteView;
+      ctx->ResourceBarrier(tempTexResource[0].myTexture, GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV, GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE);
+      ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV);
       ctx->BindResourceSet(resourceViews, 2, 1u);
       ctx->Dispatch(glm::int3((int)destSize.x, (int)destSize.y, 1));
+      ctx->ResourceUAVbarrier();
 
       TextureSubLocation destLocation;
       destLocation.myMipLevel = mip;
+      const uint16 subresourceIndex = aTexture->GetSubresourceIndex(destLocation);
+      
+      ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV, GpuResourceUsageState::READ_COPY_SOURCE);
+      ctx->SubresourceBarrier(aTexture.get(), &subresourceIndex, 1u, GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceUsageState::WRITE_COPY_DEST);
 
       TextureRegion srcRegion;
       srcRegion.myTexelPos = glm::uvec3(0, 0, 0);
       srcRegion.myTexelSize = glm::uvec3((uint)destSize.x, (uint)destSize.y, 1);
       ctx->CopyTextureRegion(aTexture.get(), destLocation, glm::uvec3(0, 0, 0), tempTexResource[1].myTexture, TextureSubLocation(), &srcRegion);
+
+      ctx->SubresourceBarrier(aTexture.get(), &subresourceIndex, 1u, GpuResourceUsageState::WRITE_COPY_DEST, GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE);
+      ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceUsageState::WRITE_COPY_DEST, GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE);
 
       srcSize = glm::ceil(srcSize * 0.5f);
       destSize = glm::ceil(destSize * 0.5f);

@@ -940,7 +940,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SubresourceBarrier(
+  void CommandListDX12::SubresourceBarrierInternal(
     const GpuResource** someResources,
     const uint16** someSubResourceLists,
     const uint* someNumSubresources,
