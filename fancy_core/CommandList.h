@@ -180,15 +180,22 @@ namespace Fancy {
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
     DynamicArray<GpuRingBuffer*> myIndexRingBuffers;
-    
-    struct ResourceHazardEntry
+
+    struct SubresourceStateTracking
     {
-      DynamicArray<GpuResourceUsageState> mySubresourceStates;
-      DynamicArray<GpuResourceUsageState> myFirstSubresourceStates;
+      GpuResourceUsageState myFirstSrcState;
+      GpuResourceUsageState myFirstDstState;
+      GpuResourceUsageState myState;
     };
-    const GpuResource* myResourceHazardResources[1024];
-    ResourceHazardEntry myResourceHazardEntries[1024];
-    uint myNumResourceHazardEntries;
+
+    struct ResourceStateTracking
+    {
+      DynamicArray<SubresourceStateTracking> mySubresources;
+    };
+
+    const GpuResource* myTrackedResources[1024];
+    ResourceStateTracking myResourceStateTrackings[1024];
+    uint myNumTrackedResources;
 
     struct GpuQueryRange
     {

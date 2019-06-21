@@ -57,19 +57,43 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandQueue::ResolveResourceBarriers(CommandList* aCommandList)
   {
-    if (aCommandList->myNumResourceHazardEntries == 0)
+    if (aCommandList->myNumTrackedResources == 0)
       return;
 
     // TODO: It might be necessary to add more complexity to the hazard tracking so that we can also detect scenarios where the patching command list has to perform cross-queue transitions
     CommandList* ctx = BeginCommandList((uint) CommandListFlags::NO_RESOURCE_STATE_TRACKING);
 
-    for (uint iRes = 0; iRes < aCommandList->myNumResourceHazardEntries; ++iRes)
+    for (uint iRes = 0; iRes < aCommandList->myNumTrackedResources; ++iRes)
     {
-      const GpuResource* resource = aCommandList->myResourceHazardResources[iRes];
-      const CommandList::ResourceHazardEntry& entry = aCommandList->myResourceHazardEntries[iRes];
+      const GpuResource* resource = aCommandList->myTrackedResources[iRes];
+      const CommandList::ResourceHazardEntry& entry = aCommandList->myResourceStateTrackings[iRes];
 
+      ASSERT(resource->myNumSubresources == (uint) entry.mySubresourceStates.size());
+      ASSERT(resource->myNumSubresources == (uint) entry.myFirstSubresourceStates.size());
+      for (uint iSub = 0u; iSub < resource->myNumSubresources; ++iSub)
+      {
+        const GpuResourceUsageState firstNewState = entry.myFirstSubresourceStates[iSub];
+        if (firstNewState == GpuResourceUsageState::UNKNOWN)  // Hasn't been modified in aCommandList
+          continue;
 
+        GpuResourceUsageState& currState = resource->myHazardData.mySubresourceStates[iSub];
+        if (currState != firstNewState) // Needs a patching barrier
+        {
+          const uint16 subresources[] = { (uint16)iSub };
+          const uint16* subresourceList = subresources;
+          const uint numSubresources = 1u;
+          CommandListType srcQueue = ctx->GetType();  // TODO: Deal with cross-queue cases
+          CommandListType dstQueue = ctx->GetType();
+          ctx->SubresourceBarrier(&resource, &subresourceList, &numSubresources, &currState, &firstNewState, 1u, srcQueue, dstQueue);
+        }
+
+        const GpuResourceUsageState lastNewState = entry.mySubresourceStates[iSub];
+        currState = lastNewState;
+      }
     }
+
+    ctx->FlushBarriers();
+    ExecuteAndFreeCommandList(ctx);
   }
 //---------------------------------------------------------------------------//
   CommandListType CommandQueue::GetCommandListType(uint64 aFenceVal)

@@ -58,7 +58,6 @@ namespace Fancy {
       resource.myHazardData.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
       resource.myHazardData.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
       resource.myHazardData.mySubresourceStates.push_back(defaultState);
-      resource.myHazardData.mySubresourceContexts.push_back(CommandListType::Graphics);
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

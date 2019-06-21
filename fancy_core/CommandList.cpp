@@ -99,7 +99,7 @@ namespace Fancy {
     , myShaderHasUnorderedWrites(false)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr)
-    , myNumResourceHazardEntries(0u)
+    , myNumTrackedResources(0u)
   {
   }
 //---------------------------------------------------------------------------//
@@ -126,8 +126,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   int CommandList::FindResourceHazardEntryIdx(const GpuResource* aResource)
   {
-    for (uint i = 0; i < myNumResourceHazardEntries; ++i)
-      if (myResourceHazardResources[i] == aResource)
+    for (uint i = 0; i < myNumTrackedResources; ++i)
+      if (myTrackedResources[i] == aResource)
         return i;
 
     return -1;
@@ -296,7 +296,7 @@ namespace Fancy {
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
-    myNumResourceHazardEntries = 0u;
+    myNumTrackedResources = 0u;
     myIsTrackingResourceStates = (someFlags & (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING) == 0;
     
     myViewportParams = glm::uvec4(0, 0, 1, 1);
@@ -539,27 +539,24 @@ namespace Fancy {
 
         // Find the local hazard-state for this resource if it already has one. If not, the srcState must be UNKNOWN
         const int resourceHazardIdx = FindResourceHazardEntryIdx(resource);
-        ASSERT((srcState == GpuResourceUsageState::UNKNOWN) == (resourceHazardIdx < 0));
-        ResourceHazardEntry* entry = nullptr;
+        ResourceStateTracking* trackingData = nullptr;
         if (resourceHazardIdx < 0)
         {
-          ASSERT(myNumResourceHazardEntries < ARRAY_LENGTH(myResourceHazardEntries));
-          myResourceHazardResources[myNumResourceHazardEntries] = resource;
-          entry = &myResourceHazardEntries[myNumResourceHazardEntries];
-          ++myNumResourceHazardEntries;
+          ASSERT(myNumTrackedResources < ARRAY_LENGTH(myTrackedResources));
+          myTrackedResources[myNumTrackedResources] = resource;
+          trackingData = &myResourceStateTrackings[myNumTrackedResources];
+          ++myNumTrackedResources;
 
-          entry->mySubresourceStates.resize(resource->myNumSubresources);
-          entry->myFirstSubresourceStates.resize(resource->myNumSubresources);
+          trackingData->mySubresources.resize(resource->myNumSubresources);
           for (uint i = 0; i < resource->myNumSubresources; ++i)
           {
             // UNKNOWN in the local hazard entry means that a subresource hasn't been touched by this command list
-            entry->mySubresourceStates[i] = GpuResourceUsageState::UNKNOWN;
-            entry->myFirstSubresourceStates[i] = GpuResourceUsageState::UNKNOWN;
+            trackingData->mySubresources[i] = { GpuResourceUsageState::UNKNOWN, GpuResourceUsageState::UNKNOWN, GpuResourceUsageState::UNKNOWN };
           }
         }
         else
         {
-          entry = &myResourceHazardEntries[resourceHazardIdx];
+          trackingData = &myResourceStateTrackings[resourceHazardIdx];
         }
 
         // Transition all subresources?
@@ -567,10 +564,12 @@ namespace Fancy {
         {
           for (uint i = 0; i < resource->myNumSubresources; ++i)  // TODO: Optimize with a flag deciding if all subresources are in the same state
           {
+            SubresourceStateTracking& subTrackingData = trackingData->mySubresources[i];
+
             ASSERT(entry->mySubresourceStates[i] == srcState);
-            entry->mySubresourceStates[i] = dstState;
-            if (entry->myFirstSubresourceStates[i] == GpuResourceUsageState::UNKNOWN)
-              entry->myFirstSubresourceStates[i] = dstState;
+            trackingData->mySubresourceStates[i] = dstState;
+            if (trackingData->myFirstSubresourceStates[i] == GpuResourceUsageState::UNKNOWN)
+              trackingData->myFirstSubresourceStates[i] = dstState;
           }
         }
         else
@@ -582,9 +581,9 @@ namespace Fancy {
             const uint16 subIdx = subresourceList[i];
             ASSERT(subIdx < resource->myNumSubresources);
             ASSERT(entry->mySubresourceStates[subIdx] == srcState);
-            entry->mySubresourceStates[subIdx] = dstState;
-            if (entry->myFirstSubresourceStates[subIdx] == GpuResourceUsageState::UNKNOWN)
-              entry->myFirstSubresourceStates[subIdx] = dstState;
+            trackingData->mySubresourceStates[subIdx] = dstState;
+            if (trackingData->myFirstSubresourceStates[subIdx] == GpuResourceUsageState::UNKNOWN)
+              trackingData->myFirstSubresourceStates[subIdx] = dstState;
           }
         }
       }
