@@ -539,37 +539,49 @@ namespace Fancy {
 
         // Find the local hazard-state for this resource if it already has one. If not, the srcState must be UNKNOWN
         const int resourceHazardIdx = FindResourceHazardEntryIdx(resource);
-        ResourceStateTracking* trackingData = nullptr;
+        ResourceStateTracking* resTracking = nullptr;
         if (resourceHazardIdx < 0)
         {
           ASSERT(myNumTrackedResources < ARRAY_LENGTH(myTrackedResources));
           myTrackedResources[myNumTrackedResources] = resource;
-          trackingData = &myResourceStateTrackings[myNumTrackedResources];
+          resTracking = &myResourceStateTrackings[myNumTrackedResources];
           ++myNumTrackedResources;
 
-          trackingData->mySubresources.resize(resource->myNumSubresources);
+          resTracking->mySubresources.resize(resource->myNumSubresources);  // TODO: Avoid reallocations here - maybe some pooling-strategy? Or only resize to max(curr, new)?
           for (uint i = 0; i < resource->myNumSubresources; ++i)
           {
             // UNKNOWN in the local hazard entry means that a subresource hasn't been touched by this command list
-            trackingData->mySubresources[i] = { GpuResourceUsageState::UNKNOWN, GpuResourceUsageState::UNKNOWN, GpuResourceUsageState::UNKNOWN };
+            resTracking->mySubresources[i] = { GpuResourceUsageState::UNKNOWN, GpuResourceUsageState::UNKNOWN, GpuResourceUsageState::UNKNOWN };
           }
         }
         else
         {
-          trackingData = &myResourceStateTrackings[resourceHazardIdx];
+          resTracking = &myResourceStateTrackings[resourceHazardIdx];
         }
+
+        auto TransitionSubresource = [&](uint16 i)
+        {
+          SubresourceStateTracking& subTracking = resTracking->mySubresources[i];
+          if (subTracking.myState == GpuResourceUsageState::UNKNOWN)  // First transition of this subresource on this command list. Record the first transition!
+          {
+            subTracking.myFirstSrcState = srcState;
+            subTracking.myFirstDstState = dstState;
+          }
+          else
+          {
+            ASSERT(subTracking.myState == srcState, "Mismatching resource-state on command list. Resource % (Subresource %) is in state % but barrier wants to transition from %",
+              resource->myName.c_str(), i, (uint)subTracking.myState, (uint)srcState);
+          }
+
+          subTracking.myState = dstState;
+        };
 
         // Transition all subresources?
         if (someSubResourceLists == nullptr || someNumSubresources == nullptr || someNumSubresources[iRes] >= resource->myNumSubresources)
         {
           for (uint i = 0; i < resource->myNumSubresources; ++i)  // TODO: Optimize with a flag deciding if all subresources are in the same state
           {
-            SubresourceStateTracking& subTrackingData = trackingData->mySubresources[i];
-
-            ASSERT(entry->mySubresourceStates[i] == srcState);
-            trackingData->mySubresourceStates[i] = dstState;
-            if (trackingData->myFirstSubresourceStates[i] == GpuResourceUsageState::UNKNOWN)
-              trackingData->myFirstSubresourceStates[i] = dstState;
+            TransitionSubresource((uint16)i);
           }
         }
         else
@@ -580,10 +592,7 @@ namespace Fancy {
           {
             const uint16 subIdx = subresourceList[i];
             ASSERT(subIdx < resource->myNumSubresources);
-            ASSERT(entry->mySubresourceStates[subIdx] == srcState);
-            trackingData->mySubresourceStates[subIdx] = dstState;
-            if (trackingData->myFirstSubresourceStates[subIdx] == GpuResourceUsageState::UNKNOWN)
-              trackingData->myFirstSubresourceStates[subIdx] = dstState;
+            TransitionSubresource(subIdx);
           }
         }
       }
