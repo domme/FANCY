@@ -59,6 +59,8 @@ namespace Fancy {
     static void EndFrame();
     static void Shutdown();
 
+    static const char* ResourceUsageStateToString(GpuResourceUsageState aState);
+
     static bool IsInitialized();
 
     static const Texture* GetDefaultDiffuseTexture();

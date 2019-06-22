@@ -72,7 +72,7 @@ namespace Fancy
     CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), aFenceVal));
   }
 //---------------------------------------------------------------------------//
-  uint64 CommandQueueDX12::ExecuteCommandList(CommandList* aCommandList, SyncMode aSyncMode/* = SyncMode::ASYNC*/)
+  uint64 CommandQueueDX12::ExecuteCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode/* = SyncMode::ASYNC*/)
   {
     ASSERT(aCommandList->GetType() == myType);
     ASSERT(aCommandList->IsOpen());
@@ -91,10 +91,10 @@ namespace Fancy
     return fenceVal;
   }
 //---------------------------------------------------------------------------//
-  uint64 CommandQueueDX12::ExecuteAndResetCommandList(CommandList* aContext, SyncMode aSyncMode)
+  uint64 CommandQueueDX12::ExecuteAndResetCommandListInternal(CommandList* aContext, SyncMode aSyncMode)
   {
-    const uint64 fenceVal = ExecuteCommandList(aContext, aSyncMode);
-    aContext->Reset();
+    const uint64 fenceVal = ExecuteCommandListInternal(aContext, aSyncMode);
+    aContext->Reset(aContext->GetFlags());
     return fenceVal;
   }
 //---------------------------------------------------------------------------//

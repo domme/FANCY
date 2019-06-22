@@ -186,6 +186,38 @@ namespace Fancy {
     Shutdown_2_Platform();
   }
 //---------------------------------------------------------------------------//
+  const char* RenderCore::ResourceUsageStateToString(GpuResourceUsageState aState)
+  {
+    switch (aState)
+    {
+      case GpuResourceUsageState::COMMON: return "COMMON";
+      case GpuResourceUsageState::READ_INDIRECT_ARGUMENT: return "READ_INDIRECT_ARGUMENT";
+      case GpuResourceUsageState::READ_VERTEX_BUFFER: return "READ_VERTEX_BUFFER";
+      case GpuResourceUsageState::READ_INDEX_BUFFER: return "READ_INDEX_BUFFER";
+      case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER: return "READ_VERTEX_SHADER_CONSTANT_BUFFER";
+      case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE: return "READ_VERTEX_SHADER_RESOURCE";
+      case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER: return "READ_PIXEL_SHADER_CONSTANT_BUFFER";
+      case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE: return "READ_PIXEL_SHADER_RESOURCE";
+      case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER: return "READ_COMPUTE_SHADER_CONSTANT_BUFFER";
+      case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE: return "READ_COMPUTE_SHADER_RESOURCE";
+      case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER: return "READ_ANY_SHADER_CONSTANT_BUFFER";
+      case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE: return "READ_ANY_SHADER_RESOURCE";
+      case GpuResourceUsageState::READ_COPY_SOURCE: return "READ_COPY_SOURCE";
+      case GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH: return "READ_ANY_SHADER_ALL_BUT_DEPTH";
+      case GpuResourceUsageState::READ_DEPTH: return "READ_DEPTH";
+      case GpuResourceUsageState::READ_PRESENT: return "READ_PRESENT";
+      case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV: return "WRITE_VERTEX_SHADER_UAV";
+      case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV: return "WRITE_PIXEL_SHADER_UAV";
+      case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV: return "WRITE_COMPUTE_SHADER_UAV";
+      case GpuResourceUsageState::WRITE_ANY_SHADER_UAV: return "WRITE_ANY_SHADER_UAV";
+      case GpuResourceUsageState::WRITE_RENDER_TARGET: return "WRITE_RENDER_TARGET";
+      case GpuResourceUsageState::WRITE_COPY_DEST: return "WRITE_COPY_DEST";
+      case GpuResourceUsageState::WRITE_DEPTH: return "WRITE_DEPTH";
+      case GpuResourceUsageState::UNKNOWN: return "UNKNOWN";
+      default: ASSERT(false); return "";
+    }
+  }
+//---------------------------------------------------------------------------//
   RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
   {
     return GetPlatformType() == RenderPlatformType::DX12 ? static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get()) : nullptr;
@@ -1067,13 +1099,7 @@ namespace Fancy {
      */
     const GpuResourceHazardData& hazardData = aResource->myHazardData;
 
-    bool commandListNeedsWait[(uint)CommandListType::NUM] = { false, false, false };
-    for (uint i = aSubresourceOffset, end = aSubresourceOffset + glm::min(aResource->myNumSubresources - aSubresourceOffset, aNumSubresources); i < end; ++i)
-    {
-      CommandListType cmdListType = hazardData.mySubresourceContexts[i];
-      commandListNeedsWait[(uint)cmdListType] |= true;
-    }
-
+    bool commandListNeedsWait[(uint)CommandListType::NUM] = { true, true, false };
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
       if (commandListNeedsWait[i])
         WaitForIdle((CommandListType)i);

@@ -14,6 +14,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   GraphicsPipelineState::GraphicsPipelineState()
     : myFillMode(FillMode::SOLID)
     , myCullMode(CullMode::BACK)
@@ -90,6 +91,7 @@ namespace Fancy {
     : myCommandListType(aType)
     , myCurrentContext(aType)
     , myIsTrackingResourceStates((someFlags & (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING) == 0)
+    , myFlags(someFlags)
     , myViewportParams(0, 0, 1, 1)
     , myClipRect(0, 0, 1, 1)
     , myViewportDirty(true)
@@ -298,6 +300,7 @@ namespace Fancy {
     myComputePipelineState = ComputePipelineState();
     myNumTrackedResources = 0u;
     myIsTrackingResourceStates = (someFlags & (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING) == 0;
+    myFlags = someFlags;
     
     myViewportParams = glm::uvec4(0, 0, 1, 1);
     myClipRect = glm::uvec4(0, 0, 1, 1);
@@ -573,6 +576,10 @@ namespace Fancy {
               resource->myName.c_str(), i, (uint)subTracking.myState, (uint)srcState);
           }
 
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+          LOG_INFO("Resource state tracking: Resource % (subresource %) from % to % (current state on command list: %)", 
+            resource->myName.c_str(), i, RenderCore::ResourceUsageStateToString(srcState), RenderCore::ResourceUsageStateToString(dstState), RenderCore::ResourceUsageStateToString(subTracking.myState));
+#endif  
           subTracking.myState = dstState;
         };
 

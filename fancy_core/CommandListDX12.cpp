@@ -40,7 +40,7 @@ namespace Fancy {
     {
       if (someStates == 0)
       {
-        aString.Format("COMMON or PRESENT");
+        aString.Format("COMMON/PRESENT");
         return aString;
       }
       if (someStates & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER)
@@ -955,7 +955,7 @@ namespace Fancy {
     const uint stateMaskCmdList = myCommandListType == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
 
     D3D12_RESOURCE_BARRIER barriers[128];
-    static_assert(ARRAY_LENGTH(barriers) < ARRAY_LENGTH(myPendingBarriers), "Invalid barrier array sizes");
+    ASSERT(ARRAY_LENGTH(barriers) < ARRAY_LENGTH(myPendingBarriers), "Invalid barrier array sizes");
 
     uint numBarriers = 0;
     for (uint iRes = 0u; iRes < aNumResources; ++iRes)
@@ -990,7 +990,7 @@ namespace Fancy {
 #if  FANCY_RENDERER_LOG_RESOURCE_BARRIERS
         StaticString<2048> strBufFrom;
         StaticString<2048> strBufTo;
-        LOG_INFO("Resource barrier: % from % to %", resource->myName.c_str(), locResourceStatesToString(srcStateDx12, strBufFrom), locResourceStatesToString(dstStateDx12, strBufTo));
+        LOG_INFO("DX12 resource barrier: % from % to %", resource->myName.c_str(), locResourceStatesToString(srcStateDx12, strBufFrom), locResourceStatesToString(dstStateDx12, strBufTo));
 #endif
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -1013,7 +1013,7 @@ namespace Fancy {
 #if  FANCY_RENDERER_LOG_RESOURCE_BARRIERS
           StaticString<2048> strBufFrom;
           StaticString<2048> strBufTo;
-          LOG_INFO("Subresource barrier: % (subresource %) from % to %", resource->myName.c_str(), subresourceIndex, locResourceStatesToString(srcStateDx12, strBufFrom), locResourceStatesToString(dstStateDx12, strBufTo));
+          LOG_INFO("DX12 subresource barrier: % (subresource %) from % to %", resource->myName.c_str(), subresourceIndex, locResourceStatesToString(srcStateDx12, strBufFrom), locResourceStatesToString(dstStateDx12, strBufTo));
 #endif
           barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
           barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -1030,7 +1030,7 @@ namespace Fancy {
     if (numBarriers > numFreePendingBarriers)
       FlushBarriers();
 
-    memcpy(myPendingBarriers + myNumPendingBarriers, myPendingBarriers, sizeof(D3D12_RESOURCE_BARRIER) * numBarriers);
+    memcpy(myPendingBarriers + myNumPendingBarriers, barriers, sizeof(D3D12_RESOURCE_BARRIER) * numBarriers);
     myNumPendingBarriers += numBarriers;
   }
 //---------------------------------------------------------------------------//

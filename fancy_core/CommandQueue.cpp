@@ -43,6 +43,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   uint64 CommandQueue::ExecuteAndFreeCommandList(CommandList* aCommandList, SyncMode aSyncMode)
   {
+    aCommandList->FlushBarriers();
     ResolveResourceBarriers(aCommandList);
     const uint64 fence = ExecuteCommandListInternal(aCommandList, aSyncMode);
     FreeCommandList(aCommandList);
@@ -51,6 +52,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   uint64 CommandQueue::ExecuteAndResetCommandList(CommandList* aCommandList, SyncMode aSyncMode)
   {
+    aCommandList->FlushBarriers();
     ResolveResourceBarriers(aCommandList);
     return ExecuteAndResetCommandListInternal(aCommandList, aSyncMode);
   }
@@ -76,18 +78,29 @@ namespace Fancy
           continue;
 
         GpuResourceUsageState& currState = resource->myHazardData.mySubresourceStates[iSub];
-        ASSERT(subTracking.myFirstSrcState == GpuResourceUsageState::UNKNOWN || subTracking.myFirstSrcState == currState);
-
-        if (currState != subTracking.myFirstDstState) // Needs a patching barrier
+        
+        if (subTracking.myFirstSrcState == GpuResourceUsageState::UNKNOWN && currState != subTracking.myFirstDstState) // Needs a patching barrier
         {
           const uint16 subresources[] = { (uint16)iSub };
           const uint16* subresourceList = subresources;
           const uint numSubresources = 1u;
           CommandListType srcQueue = ctx->GetType();  // TODO: Deal with cross-queue cases
           CommandListType dstQueue = ctx->GetType();
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+          LOG_INFO("Patching resource state: Resource % (subresource %) has state %, but needs to transition to % on the commandlist.",
+            resource->myName.c_str(), iSub, RenderCore::ResourceUsageStateToString(currState), RenderCore::ResourceUsageStateToString(subTracking.myFirstDstState));
+#endif  
           ctx->SubresourceBarrier(&resource, &subresourceList, &numSubresources, &currState, &subTracking.myFirstDstState, 1u, srcQueue, dstQueue);
         }
+        else
+        {
+          ASSERT(subTracking.myFirstSrcState == currState);
+        }
 
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        LOG_INFO("New state for resource % (subresource %) after commandList: %",
+          resource->myName.c_str(), iSub, RenderCore::ResourceUsageStateToString(subTracking.myState));
+#endif  
         currState = subTracking.myState;
       }
     }

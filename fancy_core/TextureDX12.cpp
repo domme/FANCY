@@ -227,7 +227,7 @@ namespace Fancy {
         }
 
 
-        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics, (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
         ctx->ResourceBarrier(this, myProperties.myDefaultState, GpuResourceUsageState::WRITE_COPY_DEST);
         ctx->UpdateTextureData(this, TextureSubLocation(), newDatas, aNumInitialDatas);
         ctx->ResourceBarrier(this, GpuResourceUsageState::WRITE_COPY_DEST, myProperties.myDefaultState);
@@ -240,7 +240,7 @@ namespace Fancy {
       }
       else
       {
-        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics, (uint) CommandListFlags::NO_RESOURCE_STATE_TRACKING);
         ctx->ResourceBarrier(this, myProperties.myDefaultState, GpuResourceUsageState::WRITE_COPY_DEST);
         ctx->UpdateTextureData(this, TextureSubLocation(), someInitialDatas, aNumInitialDatas);
         ctx->ResourceBarrier(this, GpuResourceUsageState::WRITE_COPY_DEST, myProperties.myDefaultState);

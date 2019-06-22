@@ -75,8 +75,8 @@ namespace Fancy {
     if (someProperties.myIsShaderWritable)
       writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
-    ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_WRITE || someProperties.myUsage == GpuBufferUsage::STAGING_UPLOAD, "CPU-writable buffers must be upload-buffers");
-    ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_READ || someProperties.myUsage == GpuBufferUsage::STAGING_READBACK, "CPU-readable buffers must be readback-buffers");
+    // ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_WRITE || someProperties.myUsage == GpuBufferUsage::STAGING_UPLOAD, "CPU-writable buffers must be upload-buffers");
+    // ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_READ || someProperties.myUsage == GpuBufferUsage::STAGING_READBACK, "CPU-readable buffers must be readback-buffers");
 
     bool canChangeStates = true;
     if (cpuMemAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
@@ -145,7 +145,7 @@ namespace Fancy {
       }
       else
       {
-        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics, (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
         ctx->ResourceBarrier(this, myProperties.myDefaultState, GpuResourceUsageState::WRITE_COPY_DEST);
         ctx->UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes);
         ctx->ResourceBarrier(this, GpuResourceUsageState::WRITE_COPY_DEST, myProperties.myDefaultState);

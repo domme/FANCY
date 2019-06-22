@@ -154,6 +154,7 @@ namespace Fancy {
     void RemoveAllRenderTargets();
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
+    uint GetFlags() const { return myFlags; }
         
   protected:
     GpuQuery AllocateQuery(GpuQueryType aType);
@@ -162,6 +163,7 @@ namespace Fancy {
     CommandListType myCommandListType;
     CommandListType myCurrentContext;
     bool myIsTrackingResourceStates;
+    uint myFlags;
 
     glm::uvec4 myViewportParams;
     glm::uvec4 myClipRect;
