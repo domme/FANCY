@@ -2,7 +2,6 @@
 
 #include "FancyCoreDefines.h"
 #include "Ptr.h"
-#include "FC_String.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

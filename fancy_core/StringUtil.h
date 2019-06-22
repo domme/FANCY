@@ -1,8 +1,5 @@
 #pragma once
 
-#include "FC_String.h"
-#include <list>
-
 namespace Fancy 
 {
 //---------------------------------------------------------------------------//

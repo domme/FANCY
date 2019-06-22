@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <climits>
+#include <string>
 
 //Common MACRO defines
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }
@@ -38,13 +39,15 @@
 //---------------------------------------------------------------------------//
 // Typedefs
 //---------------------------------------------------------------------------//
-  typedef std::uint16_t	uint16;
-  typedef std::uint64_t	uint64;
-  typedef std::uint8_t	uint8;
-  typedef unsigned int	uint;
-  typedef double        float64;  
+  using uint16 = std::uint16_t;
+  using uint64 = std::uint64_t;
+  using uint8 = std::uint8_t;
+  using uint = unsigned int;
+  using float64 = double; 
 //---------------------------------------------------------------------------//
-
+  namespace Fancy {
+    using String = std::string;
+  }
 //---------------------------------------------------------------------------//
 // Compile-switches for debugging and validation in all core- and common-files
 //---------------------------------------------------------------------------//

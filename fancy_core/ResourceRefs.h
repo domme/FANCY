@@ -15,7 +15,7 @@ namespace Fancy {
 
     static String ToString(Ref aRef, uint anIndex = 0)
     {
-#define TEXTURE_REF(name, ...) case name: return StringFormat("%_%", #name, anIndex);
+#define TEXTURE_REF(name, ...) case name: return (const char*) StaticString<64>("%s_%d", #name, anIndex);
       switch(aRef)
       {
         #include "ResourceNameList.h"

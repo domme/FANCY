@@ -87,7 +87,7 @@ namespace Fancy
           CommandListType srcQueue = ctx->GetType();  // TODO: Deal with cross-queue cases
           CommandListType dstQueue = ctx->GetType();
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          LOG_INFO("Patching resource state: Resource % (subresource %) has state %, but needs to transition to % on the commandlist.",
+          LOG_INFO("Patching resource state: Resource %s (subresource %d) has state %s, but needs to transition to %s on the commandlist.",
             resource->myName.c_str(), iSub, RenderCore::ResourceUsageStateToString(currState), RenderCore::ResourceUsageStateToString(subTracking.myFirstDstState));
 #endif  
           ctx->SubresourceBarrier(&resource, &subresourceList, &numSubresources, &currState, &subTracking.myFirstDstState, 1u, srcQueue, dstQueue);
@@ -98,7 +98,7 @@ namespace Fancy
         }
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-        LOG_INFO("New state for resource % (subresource %) after commandList: %",
+        LOG_INFO("New state for resource %s (subresource %d) after commandList: %s",
           resource->myName.c_str(), iSub, RenderCore::ResourceUsageStateToString(subTracking.myState));
 #endif  
         currState = subTracking.myState;

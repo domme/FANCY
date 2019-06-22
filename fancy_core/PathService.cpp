@@ -1,5 +1,6 @@
 #include "fancy_core_precompile.h"
 #include "PathService.h"
+#include "StaticString.h"
 
 #include <ShlObj.h>
 #include <codecvt>
@@ -202,7 +203,7 @@ namespace Fancy {
 
       FILETIME lastWriteTime;
       const bool success = GetFileTime(hFile, nullptr, nullptr, &lastWriteTime) != 0;
-      ASSERT(success, "File % exists with a valid handle but failed to read its file time", aFile);
+      ASSERT(success, "File %s exists with a valid handle but failed to read its file time", aFile.c_str());
 
       CloseHandle(hFile);
 
@@ -240,13 +241,10 @@ namespace Fancy {
     void InitResourceFolders()
     {
       const String& appPath = Path::GetAppPath();
-
-      String appResourceFolder;
-      appResourceFolder.Format("%/../../../%/resources/", appPath.c_str(), Path::GetAppName().c_str());
+      String appResourceFolder(StaticString<260>("%s/../../../%s/resources/", appPath.c_str(), Path::GetAppName().c_str()));
       Path::RemoveFolderUpMarkers(appResourceFolder);
 
-      String coreResourceFolder;
-      coreResourceFolder.Format("%/../../../resources/", appPath.c_str());
+      String coreResourceFolder(StaticString<260>("%s/../../../resources/", appPath.c_str()));
       Path::RemoveFolderUpMarkers(coreResourceFolder);
 
       // Folders are ordered in descending priority. 
@@ -261,7 +259,7 @@ namespace Fancy {
       for (const String& resourceFolder : ourResourceFolders)
       {
         String resourcePath = resourceFolder + aResourceName;
-        if (Path::FileExists(resourcePath.c_str()))
+        if (Path::FileExists(resourcePath))
         {
           if (aWasFound)
             *aWasFound = true;

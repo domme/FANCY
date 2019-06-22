@@ -549,7 +549,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutput* anOutput) const
   {
-    LOG_INFO("Compiling shader %...", aDesc.myShaderFileName);
+    LOG_INFO("Compiling shader %s...", aDesc.myShaderFileName.c_str());
 
     const String& shaderStageDefineStr = GpuProgramCompilerUtils::ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
     const String& shaderProfileStr = locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage));

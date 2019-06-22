@@ -84,9 +84,6 @@
     <ClInclude Include="Fancy.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="FC_String.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="FileWatcher.h">
       <Filter>IO</Filter>
     </ClInclude>
@@ -365,9 +362,6 @@
       <Filter>IO</Filter>
     </ClCompile>
     <ClCompile Include="Fancy.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="FC_String.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="FileReader.cpp">

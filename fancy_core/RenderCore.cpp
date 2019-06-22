@@ -420,7 +420,7 @@ namespace Fancy {
       {
         bufferProps.myElementSizeBytes = GetQueryTypeDataSize((GpuQueryType)queryType);
         bufferProps.myNumElements = numQueriesPerType[queryType];
-        String name = StringFormat("QueryHeap %", locGetQueryTypeName((GpuQueryType)queryType));
+        String name(StaticString<64>("QueryHeap %s", locGetQueryTypeName((GpuQueryType)queryType)));
 
         GpuBuffer* buffer = ourPlatformImpl->CreateBuffer();
         buffer->Create(bufferProps, name.c_str());
@@ -899,7 +899,7 @@ namespace Fancy {
   CommandList* RenderCore::BeginCommandList(CommandListType aType, uint someFlags /* = 0u */)
   {
     ASSERT(aType == CommandListType::Graphics || aType == CommandListType::Compute,
-      "CommandList type % not implemented", (uint)aType);
+      "CommandList type %d not implemented", (uint)aType);
 
     CommandQueue* queue = GetCommandQueue(aType);
     return queue->BeginCommandList(someFlags);
@@ -909,7 +909,7 @@ namespace Fancy {
   {
     CommandListType type = aCommandList->GetType();
     ASSERT(type == CommandListType::Graphics || type == CommandListType::Compute,
-      "CommandList type % not implemented", (uint)type);
+      "CommandList type %d not implemented", (uint)type);
 
     ASSERT(aCommandList->IsOpen(), "CommandList is not open (already executed?)");
 
@@ -921,7 +921,7 @@ namespace Fancy {
   {
     CommandListType type = aCommandList->GetType();
     ASSERT(type == CommandListType::Graphics || type == CommandListType::Compute,
-      "CommandList type % not implemented", (uint)type);
+      "CommandList type %d not implemented", (uint)type);
 
     ASSERT(aCommandList->IsOpen(), "CommandList is not open (already executed?)");
 
@@ -1138,7 +1138,7 @@ namespace Fancy {
       if (ourShaderCompiler->Compile(program->GetDescription(), &compiledOutput))
         program->SetFromCompilerOutput(compiledOutput);
       else
-        LOG_WARNING("Failed compiling shader %", program->GetDescription().myShaderFileName.c_str());
+        LOG_WARNING("Failed compiling shader %s", program->GetDescription().myShaderFileName.c_str());
     }
     
     // Check which pipelines need to be updated...

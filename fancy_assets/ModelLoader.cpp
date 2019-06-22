@@ -24,6 +24,7 @@
 #include "AssetManager.h"
 
 #include "ModelDesc.h"
+#include "fancy_core/StaticString.h"
 
 namespace Fancy { namespace ModelLoader {
 //---------------------------------------------------------------------------//
@@ -31,7 +32,7 @@ namespace Fancy { namespace ModelLoader {
   {
     explicit ScopedLoggingStream(uint aSeverityMask) { Assimp::DefaultLogger::get()->attachStream(this, aSeverityMask); }
     ~ScopedLoggingStream() { Assimp::DefaultLogger::get()->detatchStream(this); }
-    void write(const char* message) override { C_LOG_INFO("SceneImporter: %s", message); }
+    void write(const char* message) override { LOG_INFO("SceneImporter: %s", message); }
   };
 //---------------------------------------------------------------------------//
   glm::mat4 matFromAiMat(const aiMatrix4x4& mat)
@@ -75,8 +76,7 @@ namespace Fancy { namespace ModelLoader {
 //---------------------------------------------------------------------------//
   String CreateUniqueMeshName(uint64 anAssimpMeshListHash, ProcessData& aProcessData)
   {
-    String name;
-    name.Format("%_Mesh_%", aProcessData.mySourcePath, anAssimpMeshListHash);
+    String name(StaticString<260>("%s_Mesh_%d", aProcessData.mySourcePath, anAssimpMeshListHash));
     return name;
   }
 

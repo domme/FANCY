@@ -14,7 +14,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
   GraphicsPipelineState::GraphicsPipelineState()
     : myFillMode(FillMode::SOLID)
     , myCullMode(CullMode::BACK)
@@ -572,12 +571,12 @@ namespace Fancy {
           }
           else
           {
-            ASSERT(subTracking.myState == srcState, "Mismatching resource-state on command list. Resource % (Subresource %) is in state % but barrier wants to transition from %",
+            ASSERT(subTracking.myState == srcState, "Mismatching resource-state on command list. Resource %s (Subresource %d) is in state %d but barrier wants to transition from %d",
               resource->myName.c_str(), i, (uint)subTracking.myState, (uint)srcState);
           }
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          LOG_INFO("Resource state tracking: Resource % (subresource %) from % to % (current state on command list: %)", 
+          LOG_INFO("Resource state tracking: Resource %s (subresource %d) from %s to %s (current state on command list: %s)", 
             resource->myName.c_str(), i, RenderCore::ResourceUsageStateToString(srcState), RenderCore::ResourceUsageStateToString(dstState), RenderCore::ResourceUsageStateToString(subTracking.myState));
 #endif  
           subTracking.myState = dstState;

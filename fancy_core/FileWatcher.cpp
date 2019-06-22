@@ -4,7 +4,6 @@
 #include "TimeManager.h"
 #include "Fancy.h"
 #include "PathService.h"
-#include "FC_String.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//  

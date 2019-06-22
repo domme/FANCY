@@ -38,7 +38,6 @@ namespace Fancy {
   struct GpuBufferProperties;
   struct TextureProperties;
   struct TextureSubData;
-  class String;
   class GpuQueryHeap;
   struct GpuQueryStorage;
 //---------------------------------------------------------------------------//

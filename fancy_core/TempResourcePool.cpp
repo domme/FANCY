@@ -40,14 +40,14 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   TempResourcePool::~TempResourcePool()
   {
-    ASSERT(myNumOpenBufferAllocs == 0, "% open temp buffer allocs when destroying the temp resource pool", myNumOpenBufferAllocs);
-    ASSERT(myNumOpenTextureAllocs == 0, "% open temp texture allocs when destroying the temp resource pool", myNumOpenTextureAllocs);
+    ASSERT(myNumOpenBufferAllocs == 0, "%d open temp buffer allocs when destroying the temp resource pool", myNumOpenBufferAllocs);
+    ASSERT(myNumOpenTextureAllocs == 0, "%d open temp texture allocs when destroying the temp resource pool", myNumOpenTextureAllocs);
   }
 //---------------------------------------------------------------------------//
   void TempResourcePool::Reset()
   {
-    ASSERT(myNumOpenBufferAllocs == 0, "% open temp buffer allocs accross frame boundary", myNumOpenBufferAllocs);
-    ASSERT(myNumOpenTextureAllocs == 0, "% open temp texture allocs accross frame boundary", myNumOpenTextureAllocs);
+    ASSERT(myNumOpenBufferAllocs == 0, "%d open temp buffer allocs accross frame boundary", myNumOpenBufferAllocs);
+    ASSERT(myNumOpenTextureAllocs == 0, "%d open temp texture allocs accross frame boundary", myNumOpenTextureAllocs);
   }
 //---------------------------------------------------------------------------//
   TempTextureResource TempResourcePool::AllocateTexture(const TextureResourceProperties& someProps, uint someFlags, const char* aName)

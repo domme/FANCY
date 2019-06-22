@@ -2,7 +2,6 @@
 
 #include "FancyCoreDefines.h"
 #include "Log.h"
-#include "FC_String.h"
 
 namespace Fancy
 {
@@ -17,6 +16,8 @@ namespace Fancy
     }
 
     explicit StaticString(const char* aFormatString, ...)
+      : myBuffer{ 0u }
+      , myNextFree(0u)
     {
       va_list args;
       va_start(args, aFormatString);

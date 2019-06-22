@@ -18,7 +18,7 @@ namespace Fancy
     while (cstr != nullptr)
     {
       _outTokenList.push_back(cstr);
-      cstr = strtok(NULL, _szDelimiters);
+      cstr = strtok(nullptr, _szDelimiters);
     }
   }
 //---------------------------------------------------------------------------//

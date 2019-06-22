@@ -15,7 +15,7 @@ using namespace Fancy;
     FILE* file = stbi__fopen(aPathAbs, "rb");
     if (file == nullptr)
     {
-      LOG_ERROR("Unable to open image-file % for reading", aPathAbs);
+      LOG_ERROR("Unable to open image-file %s for reading", aPathAbs);
       return false;
     }
     
@@ -23,7 +23,7 @@ using namespace Fancy;
     int numChannels;
     if (!stbi_info_from_file(file, &size.x, &size.y, &numChannels))
     {
-      LOG_ERROR("Unable to optain image-infos from file %. Reason: %", aPathAbs, stbi_failure_reason());
+      LOG_ERROR("Unable to optain image-infos from file %s. Reason: %s", aPathAbs, stbi_failure_reason());
       fclose(file);
       return false;
     }
@@ -32,7 +32,7 @@ using namespace Fancy;
     std::unique_ptr<uint8, Image::Malloc_deleter> imageData(stbi_load_from_file(file, &size.x, &size.y, &numChannels, forcedNumChannels));
     if (!imageData)
     {
-      LOG_ERROR("Unable to decode image file %. Reason: %", aPathAbs, stbi_failure_reason());
+      LOG_ERROR("Unable to decode image file %s. Reason: %s", aPathAbs, stbi_failure_reason());
       fclose(file);
       return false;
     }

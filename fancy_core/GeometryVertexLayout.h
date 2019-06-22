@@ -1,7 +1,6 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
-#include "FC_String.h"
 #include "DataFormat.h"
 #include "RenderEnums.h"
 #include "DynamicArray.h"

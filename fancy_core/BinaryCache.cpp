@@ -108,7 +108,7 @@ namespace Fancy {
 
     if (!serializer.IsGood())
     {
-      LOG_WARNING("Failed to open texture cache file path % for write", cacheFilePath.c_str());
+      LOG_WARNING("Failed to open texture cache file path %s for write", cacheFilePath.c_str());
       return false;
     }
 
@@ -228,7 +228,7 @@ namespace Fancy {
 
     if (!serializer.IsGood())
     {
-      LOG_WARNING("Failed to open mesh cache file path % for write", cacheFilePath.c_str());
+      LOG_WARNING("Failed to open mesh cache file path %s for write", cacheFilePath.c_str());
       return false;
     }
 

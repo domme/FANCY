@@ -1,7 +1,5 @@
 #pragma once
 
-#include "FC_String.h"
-
 namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Path

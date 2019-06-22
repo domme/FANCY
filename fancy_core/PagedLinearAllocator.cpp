@@ -83,7 +83,7 @@ namespace Fancy
     {
       return aBlockToFree.myStart >= aPage.myStart && aBlockToFree.myEnd <= aPage.myEnd;
     });
-    ASSERT(pageIt != myPages.end(), "No page found for block to free (start: %, end: %)", aBlockToFree.myStart, aBlockToFree.myEnd);
+    ASSERT(pageIt != myPages.end(), "No page found for block to free (start: %d, end: %d)", aBlockToFree.myStart, aBlockToFree.myEnd);
     Page& page = *pageIt;
 
     --page.myOpenAllocs;

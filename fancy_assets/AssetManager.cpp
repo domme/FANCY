@@ -137,7 +137,7 @@ using namespace Fancy;
     Image image;
     if (!ImageLoader::Load(texPathAbs.c_str(), image))
     {
-      LOG_ERROR("Failed to load texture at path %", texPathAbs);
+      LOG_ERROR("Failed to load texture at path %s", texPathAbs.c_str());
       return nullptr;
     }
 
@@ -153,7 +153,7 @@ using namespace Fancy;
 
     if (!(image.myBitsPerChannel == 8u || image.myBitsPerChannel == 16u))
     {
-      LOG_ERROR("Unsupported bits per channel in texture % (has % bits per channel)", texPathAbs, image.myBitsPerChannel);
+      LOG_ERROR("Unsupported bits per channel in texture %s (has %d bits per channel)", texPathAbs.c_str(), image.myBitsPerChannel);
       return nullptr;
     }
 
@@ -171,7 +171,7 @@ using namespace Fancy;
     const uint expectedDataSize = formatInfo.mySizeBytes * texProps.myWidth * texProps.myHeight;
     if (expectedDataSize != image.myByteSize)
     {
-      LOG_ERROR("Invalid pixel data loaded from texture %. Expected: %, Actual: %", texPathAbs, expectedDataSize, image.myByteSize);
+      LOG_ERROR("Invalid pixel data loaded from texture %s. Expected: %d, Actual: %d", texPathAbs.c_str(), expectedDataSize, image.myByteSize);
       return nullptr;
     }
     

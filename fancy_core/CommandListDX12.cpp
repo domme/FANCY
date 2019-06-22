@@ -31,7 +31,7 @@ namespace Fancy {
         case CommandListType::Compute: return D3D12_COMMAND_LIST_TYPE_COMPUTE;
         case CommandListType::DMA: return D3D12_COMMAND_LIST_TYPE_COPY;
         default:
-          ASSERT(false, "CommandListType % not implemented", (uint)aCommandListType);
+          ASSERT(false, "CommandListType %d not implemented", (uint)aCommandListType);
           return D3D12_COMMAND_LIST_TYPE_DIRECT;
       }
     }
@@ -990,7 +990,7 @@ namespace Fancy {
 #if  FANCY_RENDERER_LOG_RESOURCE_BARRIERS
         StaticString<2048> strBufFrom;
         StaticString<2048> strBufTo;
-        LOG_INFO("DX12 resource barrier: % from % to %", resource->myName.c_str(), locResourceStatesToString(srcStateDx12, strBufFrom), locResourceStatesToString(dstStateDx12, strBufTo));
+        LOG_INFO("DX12 resource barrier: %s from %s to %s", resource->myName.c_str(), locResourceStatesToString(srcStateDx12, strBufFrom), locResourceStatesToString(dstStateDx12, strBufTo));
 #endif
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -1013,7 +1013,7 @@ namespace Fancy {
 #if  FANCY_RENDERER_LOG_RESOURCE_BARRIERS
           StaticString<2048> strBufFrom;
           StaticString<2048> strBufTo;
-          LOG_INFO("DX12 subresource barrier: % (subresource %) from % to %", resource->myName.c_str(), subresourceIndex, locResourceStatesToString(srcStateDx12, strBufFrom), locResourceStatesToString(dstStateDx12, strBufTo));
+          LOG_INFO("DX12 subresource barrier: %s (subresource %d) from %s to %s", resource->myName.c_str(), subresourceIndex, locResourceStatesToString(srcStateDx12, strBufFrom), locResourceStatesToString(dstStateDx12, strBufTo));
 #endif
           barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
           barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;

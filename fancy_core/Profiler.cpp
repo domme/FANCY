@@ -184,7 +184,7 @@ namespace Fancy
 
 #if LOG_ALL_SAMPLES
             const SampleNodeInfo& info = GetSampleInfo(sample.myNodeInfo);
-            LOG_INFO("Frame % Duration %", frame.myFrame, sample.myDuration);
+            LOG_INFO("Frame %d Duration %d", frame.myFrame, sample.myDuration);
 #endif  // LOG_ALL_SAMPLES
           }
         }

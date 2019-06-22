@@ -42,7 +42,7 @@ void Test_GpuMemoryAllocator::OnUpdate(bool aDrawProperties)
     props.myUsage = GpuBufferUsage::SHADER_BUFFER;
     props.myElementSizeBytes = myBufferToAllocSizeMb * SIZE_MB;
 
-    String name = StringFormat("Gpu-buffer % MiB", myBufferToAllocSizeMb);
+    String name(StaticString<64>("Gpu-buffer %d MiB", myBufferToAllocSizeMb));
     myBuffers.push_back(RenderCore::CreateBuffer(props, name.c_str()));
   }
 

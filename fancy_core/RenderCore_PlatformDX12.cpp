@@ -48,7 +48,7 @@ namespace Fancy {
       case D3D12_COMMAND_LIST_TYPE_COMPUTE: return CommandListType::Compute;
       case D3D12_COMMAND_LIST_TYPE_COPY: return CommandListType::DMA;
       default:
-        ASSERT("Command list type % not supported", aType);
+        ASSERT("Command list type %d not supported", (uint) aType);
         return CommandListType::Graphics;
       }
     }

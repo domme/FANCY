@@ -3,7 +3,7 @@
 #include "Any.h"
 #include "RenderEnums.h"
 #include "DynamicArray.h"
-#include "FC_String.h"
+#include "FancyCoreDefines.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

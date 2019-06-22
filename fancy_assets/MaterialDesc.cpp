@@ -2,7 +2,6 @@
 #include "MaterialDesc.h"
 
 #include <fancy_core/MathUtil.h>
-#include <fancy_core/FC_String.h>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

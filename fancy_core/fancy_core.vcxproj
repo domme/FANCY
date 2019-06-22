@@ -143,7 +143,6 @@
     <ClInclude Include="SmallObjectAllocator.h" />
     <ClInclude Include="StaticDescriptorAllocatorDX12.h" />
     <ClInclude Include="fancy_core_precompile.h" />
-    <ClInclude Include="FC_String.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="TempResources.h" />
     <ClInclude Include="Texture.h" />
@@ -206,7 +205,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">fancy_core_precompile.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="FC_String.cpp" />
     <ClCompile Include="TempResources.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureData.cpp" />
