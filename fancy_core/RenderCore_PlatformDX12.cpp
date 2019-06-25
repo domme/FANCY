@@ -100,15 +100,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {
-    ourCommandQueues[(uint)CommandListType::Graphics].reset(new CommandQueueDX12(CommandListType::Graphics));
-    ourCommandQueues[(uint)CommandListType::Compute].reset(new CommandQueueDX12(CommandListType::Compute));
-
-    uint64 timestampFrequency = 1u;
-    CheckD3Dcall(ourCommandQueues[(uint)CommandListType::Graphics]->myQueue->GetTimestampFrequency(&timestampFrequency));
-    myGpuTicksToMsFactor[(uint)CommandListType::Graphics] = 1000.0f / timestampFrequency;  // Timestamp frequency is in seconds. We want ms here
-    CheckD3Dcall(ourCommandQueues[(uint)CommandListType::Compute]->myQueue->GetTimestampFrequency(&timestampFrequency));
-    myGpuTicksToMsFactor[(uint)CommandListType::Compute] = 1000.0f / timestampFrequency;
-
     ourCommandAllocatorPools[(uint)CommandListType::Graphics].reset(new CommandAllocatorPoolDX12(CommandListType::Graphics));
     ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
     
@@ -134,10 +125,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::Shutdown()
   {
-    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      if (ourCommandQueues[i] != nullptr)
-        ourCommandQueues[i]->WaitForIdle();
-
     UpdateAvailableDynamicDescriptorHeaps();
     ASSERT(myAvailableDynamicHeaps.size() == myDynamicHeapPool.size(),
       "There are still some dynamic descriptor heaps in flight when destroying them");
@@ -154,9 +141,6 @@ namespace Fancy {
 
     for (uint i = 0u; i < (uint) CommandListType::NUM; ++i)
       ourCommandAllocatorPools[i].reset();
-
-    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      ourCommandQueues[i].reset();
 
     ourDevice.Reset();
   }
@@ -213,7 +197,7 @@ namespace Fancy {
       uint64 fence = it->first;
       DynamicDescriptorHeapDX12* heap = it->second;
 
-      CommandQueueDX12* queue = (CommandQueueDX12*)GetCommandQueue(CommandQueue::GetCommandListType(fence));
+      CommandQueueDX12* queue = GetCommandQueueDX12(CommandQueue::GetCommandListType(fence));
       if (queue->IsFenceDone(fence))
       {
         heap->Reset();
@@ -300,7 +284,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore_PlatformDX12::CreateCommandQueue(CommandListType aType)
   {
-
+    return new CommandQueueDX12(aType);
   }
 //---------------------------------------------------------------------------//
   TextureView* RenderCore_PlatformDX12::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName /* = nullptr */)
@@ -331,6 +315,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   float64 RenderCore_PlatformDX12::GetGpuTicksToMsFactor(CommandListType aCommandListType)
   {
+    uint64 timestampFrequency = 1u;
+    CheckD3Dcall(GetCommandQueueDX12(aCommandListType)->myQueue->GetTimestampFrequency(&timestampFrequency));
+    return 1000.0f / timestampFrequency;
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
@@ -341,7 +328,7 @@ namespace Fancy {
     DXGI_SWAP_CHAIN_DESC swapChainDesc = aSwapChainDesc;
 
     Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
-    CheckD3Dcall(dxgiFactory->CreateSwapChain(ourCommandQueues[(uint)CommandListType::Graphics]->myQueue.Get(), &swapChainDesc, &swapChain));
+    CheckD3Dcall(dxgiFactory->CreateSwapChain(GetCommandQueueDX12(CommandListType::Graphics)->myQueue.Get(), &swapChainDesc, &swapChain));
     return swapChain;
   }
 //---------------------------------------------------------------------------//

@@ -292,6 +292,9 @@ namespace Fancy {
 
     ourPlatformImpl->InitCaps();
 
+    ourCommandQueues[(uint)CommandListType::Graphics].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Graphics));
+    ourCommandQueues[(uint)CommandListType::Compute].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Compute));
+
     // From here, resources can be created that depend on ourPlatformImpl
     ourPlatformImpl->InitInternalResources();
   }
@@ -460,6 +463,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_2_Platform()
   {
+    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
+      if (ourCommandQueues[i] != nullptr)
+        ourCommandQueues[i]->WaitForIdle();
+
     ourPlatformImpl->Shutdown();
     ourPlatformImpl.reset();
   }
@@ -1107,7 +1114,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)
   {
-    return ourPlatformImpl->GetCommandQueue(aType);
+    return ourCommandQueues[(uint)aType].get();
   }
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(uint64 aFenceVal)
