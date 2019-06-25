@@ -225,6 +225,11 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  CommandQueueDX12* RenderCore_PlatformDX12::GetCommandQueueDX12(CommandListType aCommandListType)
+  {
+    return static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(aCommandListType));
+  }
+//---------------------------------------------------------------------------//
   DynamicDescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
   {
     UpdateAvailableDynamicDescriptorHeaps();
@@ -293,6 +298,11 @@ namespace Fancy {
     return new CommandListDX12(aType, someFlags);
   }
 //---------------------------------------------------------------------------//
+  CommandQueue* RenderCore_PlatformDX12::CreateCommandQueue(CommandListType aType)
+  {
+
+  }
+//---------------------------------------------------------------------------//
   TextureView* RenderCore_PlatformDX12::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName /* = nullptr */)
   {   
     return new TextureViewDX12(aTexture, someProperties);
@@ -317,6 +327,10 @@ namespace Fancy {
       case GpuQueryType::NUM:
       default: ASSERT(false); return sizeof(uint64);
     }
+  }
+//---------------------------------------------------------------------------//
+  float64 RenderCore_PlatformDX12::GetGpuTicksToMsFactor(CommandListType aCommandListType)
+  {
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)

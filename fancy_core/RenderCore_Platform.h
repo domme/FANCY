@@ -40,7 +40,7 @@ namespace Fancy {
     virtual Texture* CreateTexture() = 0;
     virtual GpuBuffer* CreateBuffer() = 0;
     virtual CommandList* CreateContext(CommandListType aType, uint someFlags) = 0;
-    virtual CommandQueue* GetCommandQueue(CommandListType aType) = 0;
+    virtual CommandQueue* CreateCommandQueue(CommandListType aType) = 0;
     virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
     virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
     virtual GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) = 0;

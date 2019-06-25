@@ -71,12 +71,12 @@ namespace Fancy {
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
     CommandList* CreateContext(CommandListType aType, uint someFlags) override;
-    CommandQueue* GetCommandQueue(CommandListType aType) override { return ourCommandQueues[(uint)aType].get(); }
+    CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
-    float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override { return myGpuTicksToMsFactor[(uint)aCommandListType]; }
+    float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
     
     // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
@@ -84,6 +84,7 @@ namespace Fancy {
   // protected:
     void InitCaps() override;
     void UpdateAvailableDynamicDescriptorHeaps();
+    CommandQueueDX12* GetCommandQueueDX12(CommandListType aCommandListType);
 
     Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
 
@@ -95,7 +96,6 @@ namespace Fancy {
     UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)CpuMemoryAccessType::NUM];
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
-	  UniquePtr<CommandQueueDX12> ourCommandQueues[(uint)CommandListType::NUM];
     float64 myGpuTicksToMsFactor[(uint)CommandListType::NUM];
   };
 //---------------------------------------------------------------------------//
