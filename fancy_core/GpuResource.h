@@ -13,18 +13,25 @@ namespace Fancy {
     BUFFER
   };
 //---------------------------------------------------------------------------//
-  struct GpuResourceHazardDataDX12
+  struct GpuResourceStateTrackingDX12
   {
     // Uints are D3D12_RESOURCE_STATES
     uint myReadStates = 0u;
     uint myWriteStates = 0u;
   };
 //---------------------------------------------------------------------------//
-  struct GpuResourceHazardData
+  struct GpuSubresourceStateTracking
+  {
+    GpuResourceUsageState myState = GpuResourceUsageState::COMMON;
+    CommandListType myContext = CommandListType::Graphics;
+  };
+//---------------------------------------------------------------------------//
+  struct GpuResourceStateTracking
   {
     bool myCanChangeStates = true;
-    DynamicArray<GpuResourceUsageState> mySubresourceStates;
-    GpuResourceHazardDataDX12 myDx12Data;  // Will become a union once other platforms are in
+    bool myAllSubresourcesInSameStateAndContext = true;
+    DynamicArray<GpuSubresourceStateTracking> mySubresources;
+    GpuResourceStateTrackingDX12 myDx12Data;  // Will become a union once other platforms are in
   };
 //---------------------------------------------------------------------------//
   class GpuResource
@@ -42,7 +49,7 @@ namespace Fancy {
       myCategory = std::move(anOtherResource.myCategory);
       myNativeData = std::move(anOtherResource.myNativeData);
       myName = std::move(anOtherResource.myName);
-      myHazardData = std::move(anOtherResource.myHazardData);
+      myStateTracking = std::move(anOtherResource.myStateTracking);
       myNumSubresources = std::move(anOtherResource.myNumSubresources);
       myNumSubresourcesPerPlane = std::move(anOtherResource.myNumSubresourcesPerPlane);
       myNumPlanes = std::move(anOtherResource.myNumPlanes);
@@ -58,7 +65,7 @@ namespace Fancy {
 
     String myName;
     GpuResourceCategory myCategory;
-    mutable GpuResourceHazardData myHazardData;
+    mutable GpuResourceStateTracking myStateTracking;
     Any myNativeData;
   };
 //---------------------------------------------------------------------------//

@@ -82,51 +82,6 @@ namespace Fancy {
       const GpuResource** someResources = nullptr, 
       uint aNumResources = 0u) = 0;
 
-    virtual void SubresourceBarrierInternal(
-      const GpuResource** someResources,
-      const uint16** someSubResourceLists,
-      const uint* someNumSubresources,
-      const GpuResourceUsageState* someSrcStates,
-      const GpuResourceUsageState* someDstStates,
-      uint aNumResources,
-      CommandListType aSrcQueue,
-      CommandListType aDstQueue) = 0;
-
-    void SubresourceBarrier(
-      const GpuResource** someResources, 
-      const uint16** someSubResourceLists,
-      const uint* someNumSubresources,
-      const GpuResourceUsageState* someSrcStates,
-      const GpuResourceUsageState* someDstStates,
-      uint aNumResources,
-      CommandListType aSrcQueue,
-      CommandListType aDstQueue);
-
-    void SubresourceBarrier(
-      const GpuResource* aResource,
-      const uint16* aSubresourceList,
-      uint aNumSubresources,
-      GpuResourceUsageState aSrcState,
-      GpuResourceUsageState aDstState,
-      CommandListType aSrcQueue = CommandListType::UNKNOWN,
-      CommandListType aDstQueue = CommandListType::UNKNOWN
-    );
-
-    void SubresourceBarrier(
-      const GpuResourceView* aResourceView,
-      GpuResourceUsageState aSrcState,
-      GpuResourceUsageState aDstState,
-      CommandListType aSrcQueue = CommandListType::UNKNOWN,
-      CommandListType aDstQueue = CommandListType::UNKNOWN
-    );
-
-    void ResourceBarrier(
-      const GpuResource* aResource, 
-      GpuResourceUsageState aSrcState, 
-      GpuResourceUsageState aDstState, 
-      CommandListType aSrcQueue = CommandListType::UNKNOWN, 
-      CommandListType aDstQueue = CommandListType::UNKNOWN);
-
     virtual void Close() = 0;
     virtual bool IsOpen() const = 0;
 
@@ -155,8 +110,52 @@ namespace Fancy {
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
     uint GetFlags() const { return myFlags; }
+
+    void SubresourceBarrier(
+      const GpuResource* aResource,
+      const uint16* aSubresourceList,
+      uint aNumSubresources,
+      GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState,
+      CommandListType aSrcQueue = CommandListType::UNKNOWN,
+      CommandListType aDstQueue = CommandListType::UNKNOWN
+    );
+
+    void SubresourceBarrier(
+      const GpuResourceView* aResourceView,
+      GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState,
+      CommandListType aSrcQueue = CommandListType::UNKNOWN,
+      CommandListType aDstQueue = CommandListType::UNKNOWN
+    );
+
+    void ResourceBarrier(
+      const GpuResource* aResource,
+      GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState,
+      CommandListType aSrcQueue = CommandListType::UNKNOWN,
+      CommandListType aDstQueue = CommandListType::UNKNOWN);
         
   protected:
+    struct ResourceTransitionInfo
+    {
+      bool myCanTransitionFromSrc = false;
+      bool myCanTransitionToDst = false;
+      bool myCanFullyTransitionFromSrc = false;
+      bool myCanFullyTransitionToDst = false;
+    };
+    virtual ResourceTransitionInfo GetResourceTransitionInfo(const GpuResource* aResource, GpuResourceUsageState aSrcState, 
+      GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue) = 0;
+
+    virtual bool SubresourceBarrierInternal(
+      const GpuResource* aResource,
+      const uint16* someSubresources,
+      uint aNumSubresources,
+      GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState,
+      CommandListType aSrcQueue,
+      CommandListType aDstQueue) = 0;
+
     GpuQuery AllocateQuery(GpuQueryType aType);
     int FindResourceHazardEntryIdx(const GpuResource* aResource);
 
@@ -188,13 +187,16 @@ namespace Fancy {
       GpuResourceUsageState myFirstSrcState;
       GpuResourceUsageState myFirstDstState;
       GpuResourceUsageState myState;
+      CommandListType myFirstSrcQueue;
+      CommandListType myFirstDstQueue;
+      CommandListType myQueue;
+      bool myFirstCouldFullyTransition;
+      bool myCouldFullyTransition;
     };
-
     struct ResourceStateTracking
     {
       DynamicArray<SubresourceStateTracking> mySubresources;
     };
-
     const GpuResource* myTrackedResources[1024];
     ResourceStateTracking myResourceStateTrackings[1024];
     uint myNumTrackedResources;

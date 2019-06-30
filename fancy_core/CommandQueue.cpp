@@ -77,7 +77,7 @@ namespace Fancy
         if (subTracking.myState == GpuResourceUsageState::UNKNOWN)  // Hasn't been modified in aCommandList
           continue;
 
-        GpuResourceUsageState& currState = resource->myHazardData.mySubresourceStates[iSub];
+        GpuResourceUsageState& currState = resource->myStateTracking.mySubresourceStates[iSub];
         
         if (subTracking.myFirstSrcState == GpuResourceUsageState::UNKNOWN && currState != subTracking.myFirstDstState) // Needs a patching barrier
         {

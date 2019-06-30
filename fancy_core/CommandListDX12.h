@@ -58,16 +58,6 @@ namespace Fancy {
 
     void ResourceUAVbarrier(const GpuResource** someResources = nullptr, uint aNumResources = 0u) override;
 
-    void SubresourceBarrierInternal(
-      const GpuResource** someResources,
-      const uint16** someSubResourceLists,
-      const uint* someNumSubresources,
-      const GpuResourceUsageState* someSrcStates,
-      const GpuResourceUsageState* someDstStates,
-      uint aNumResources,
-      CommandListType aSrcQueue,
-      CommandListType aDstQueue) override;
-
     bool IsOpen() const override { return myIsOpen; }
     void Close() override;
 
@@ -75,6 +65,18 @@ namespace Fancy {
     void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:
+    ResourceTransitionInfo GetResourceTransitionInfo(const GpuResource* aResource, GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue) override;
+
+    bool SubresourceBarrierInternal(
+      const GpuResource* aResource,
+      const uint16* someSubresources,
+      uint aNumSubresources,
+      GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState,
+      CommandListType aSrcQueue,
+      CommandListType aDstQueue) override;
+
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DynamicDescriptorHeapDX12* aDescriptorHeap);
     void ApplyDescriptorHeaps();
     void ApplyViewportAndClipRect();

@@ -110,11 +110,15 @@ namespace Fancy {
       }
     }
 
-    myHazardData = GpuResourceHazardData();
-    myHazardData.mySubresourceStates.push_back(someProperties.myDefaultState);
-    myHazardData.myDx12Data.myReadStates = readStateMask;
-    myHazardData.myDx12Data.myWriteStates = writeStateMask;
-    myHazardData.myCanChangeStates = canChangeStates;
+    GpuSubresourceStateTracking subresourceStateTracking;
+    subresourceStateTracking.myState = someProperties.myDefaultState;
+    subresourceStateTracking.myContext = CommandListType::Graphics;
+
+    myStateTracking = GpuResourceStateTracking();
+    myStateTracking.mySubresources.push_back(subresourceStateTracking);
+    myStateTracking.myCanChangeStates = canChangeStates;
+    myStateTracking.myDx12Data.myReadStates = readStateMask;
+    myStateTracking.myDx12Data.myWriteStates = writeStateMask;
 
     myNumSubresources = 1u;
     myNumSubresourcesPerPlane = 1u;

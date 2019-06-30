@@ -525,130 +525,128 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SubresourceBarrier(const GpuResource** someResources, const uint16** someSubResourceLists,
-    const uint* someNumSubresources, const GpuResourceUsageState* someSrcStates,
-    const GpuResourceUsageState* someDstStates, uint aNumResources, CommandListType aSrcQueue, CommandListType aDstQueue)
+  void CommandList::SubresourceBarrier(
+    const GpuResource* aResource,
+    const uint16* aSubresourceList,
+    uint aNumSubresources,
+    GpuResourceUsageState aSrcState,
+    GpuResourceUsageState aDstState,
+    CommandListType aSrcQueue /*= CommandListType::UNKNOWN*/,
+    CommandListType aDstQueue /*= CommandListType::UNKNOWN*/)
   {
+    aSrcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
+    aDstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
+
+    const ResourceTransitionInfo& transitionInfo = GetResourceTransitionInfo(aResource, aSrcState, aDstState, aSrcQueue, aDstQueue);
+    ASSERT(transitionInfo.myCanTransitionFromSrc && transitionInfo.myCanTransitionToDst);
     if (myIsTrackingResourceStates)
     {
-      for (uint iRes = 0u; iRes < aNumResources; ++iRes)
+      const bool hasQueueTransition = aSrcQueue != aDstQueue || aSrcQueue != myCommandListType || aDstQueue != myCommandListType;
+      ASSERT(aSrcState != aDstState || hasQueueTransition);
+      ASSERT(aDstState != GpuResourceUsageState::UNKNOWN);
+
+      const uint maxNumSubresrouces = aResource->myNumSubresources;
+
+      // Find the local hazard-state for this resource if it already has one. If not, the srcState must be UNKNOWN
+      const int resourceHazardIdx = FindResourceHazardEntryIdx(aResource);
+      ResourceStateTracking* resTracking = nullptr;
+      if (resourceHazardIdx < 0)
       {
-        const GpuResource* resource = someResources[iRes];
-        const GpuResourceUsageState srcState = someSrcStates[iRes];
-        const GpuResourceUsageState dstState = someDstStates[iRes];
-        ASSERT(srcState != dstState);
-        ASSERT(dstState != GpuResourceUsageState::UNKNOWN);
+        ASSERT(myNumTrackedResources < ARRAY_LENGTH(myTrackedResources));
+        myTrackedResources[myNumTrackedResources] = aResource;
+        resTracking = &myResourceStateTrackings[myNumTrackedResources];
+        ++myNumTrackedResources;
 
-        // Find the local hazard-state for this resource if it already has one. If not, the srcState must be UNKNOWN
-        const int resourceHazardIdx = FindResourceHazardEntryIdx(resource);
-        ResourceStateTracking* resTracking = nullptr;
-        if (resourceHazardIdx < 0)
+        resTracking->mySubresources.resize(maxNumSubresrouces);  // TODO: Avoid reallocations here - maybe some pooling-strategy? Or only resize to max(curr, new)?
+        for (uint i = 0; i < maxNumSubresrouces; ++i)
         {
-          ASSERT(myNumTrackedResources < ARRAY_LENGTH(myTrackedResources));
-          myTrackedResources[myNumTrackedResources] = resource;
-          resTracking = &myResourceStateTrackings[myNumTrackedResources];
-          ++myNumTrackedResources;
+          // UNKNOWN in the local hazard entry means that a subresource hasn't been touched by this command list
+          resTracking->mySubresources[i] = { 
+            GpuResourceUsageState::UNKNOWN, 
+            GpuResourceUsageState::UNKNOWN, 
+            GpuResourceUsageState::UNKNOWN,
+            CommandListType::UNKNOWN,
+            CommandListType::UNKNOWN,
+            CommandListType::UNKNOWN,
+            true,
+            true };
+        }
+      }
+      else
+      {
+        resTracking = &myResourceStateTrackings[resourceHazardIdx];
+      }
 
-          resTracking->mySubresources.resize(resource->myNumSubresources);  // TODO: Avoid reallocations here - maybe some pooling-strategy? Or only resize to max(curr, new)?
-          for (uint i = 0; i < resource->myNumSubresources; ++i)
-          {
-            // UNKNOWN in the local hazard entry means that a subresource hasn't been touched by this command list
-            resTracking->mySubresources[i] = { GpuResourceUsageState::UNKNOWN, GpuResourceUsageState::UNKNOWN, GpuResourceUsageState::UNKNOWN };
-          }
+      auto TransitionSubresource = [&](uint16 i)
+      {
+        SubresourceStateTracking& subTracking = resTracking->mySubresources[i];
+        if (subTracking.myState == GpuResourceUsageState::UNKNOWN)  // First transition of this subresource on this command list. Record the first transition!
+        {
+          subTracking.myFirstSrcState = aSrcState;
+          subTracking.myFirstDstState = aDstState;
+          subTracking.myFirstSrcQueue = aSrcQueue;
+          subTracking.myFirstDstQueue = aDstQueue;
+          subTracking.myFirstCouldFullyTransition = transitionInfo.myCanFullyTransitionToDst;
         }
         else
         {
-          resTracking = &myResourceStateTrackings[resourceHazardIdx];
-        }
+          ASSERT(subTracking.myState == aSrcState, "Mismatching resource-state on command list. Resource %s (Subresource %d) is in state %d but barrier wants to transition from %d",
+            aResource->myName.c_str(), i, (uint)subTracking.myState, (uint)aSrcState);
 
-        auto TransitionSubresource = [&](uint16 i)
-        {
-          SubresourceStateTracking& subTracking = resTracking->mySubresources[i];
-          if (subTracking.myState == GpuResourceUsageState::UNKNOWN)  // First transition of this subresource on this command list. Record the first transition!
-          {
-            subTracking.myFirstSrcState = srcState;
-            subTracking.myFirstDstState = dstState;
-          }
-          else
-          {
-            ASSERT(subTracking.myState == srcState, "Mismatching resource-state on command list. Resource %s (Subresource %d) is in state %d but barrier wants to transition from %d",
-              resource->myName.c_str(), i, (uint)subTracking.myState, (uint)srcState);
-          }
+          ASSERT(subTracking.myQueue == aSrcQueue, "Mismatching resource queue-ownership on command list. Resource %s (Subresource %d) is owned by queue %d but barrier wants to transition from queue %d",
+            aResource->myName.c_str(), i, (uint)subTracking.myQueue, (uint)aSrcQueue);
+        }
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          LOG_INFO("Resource state tracking: Resource %s (subresource %d) from %s to %s (current state on command list: %s)", 
-            resource->myName.c_str(), i, RenderCore::ResourceUsageStateToString(srcState), RenderCore::ResourceUsageStateToString(dstState), RenderCore::ResourceUsageStateToString(subTracking.myState));
+        LOG_INFO("Resource state tracking: Resource %s (subresource %d) from state %s | queue %s to state %s | queue %s (current state on command list: %s | queue: %s)", 
+          aResource->myName.c_str(), i, RenderCore::ResourceUsageStateToString(aSrcState), RenderCore::CommandListTypeToString(aSrcQueue), 
+          RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeToString(aDstQueue), 
+          RenderCore::ResourceUsageStateToString(subTracking.myState), RenderCore::CommandListTypeToString(subTracking.myQueue));
 #endif  
-          subTracking.myState = dstState;
-        };
+        subTracking.myState = aDstState;
+        subTracking.myQueue = aDstQueue;
+        subTracking.myCouldFullyTransition = transitionInfo.myCanTransitionFromSrc && transitionInfo.myCanFullyTransitionToDst;
+      };
 
-        // Transition all subresources?
-        if (someSubResourceLists == nullptr || someNumSubresources == nullptr || someNumSubresources[iRes] >= resource->myNumSubresources)
+      // Transition all subresources?
+      if (aSubresourceList == nullptr || aNumSubresources >= maxNumSubresrouces)
+      {
+        for (uint i = 0; i < maxNumSubresrouces; ++i)  // TODO: Optimize with a flag deciding if all subresources are in the same state
         {
-          for (uint i = 0; i < resource->myNumSubresources; ++i)  // TODO: Optimize with a flag deciding if all subresources are in the same state
-          {
-            TransitionSubresource((uint16)i);
-          }
+          TransitionSubresource((uint16)i);
         }
-        else
+      }
+      else
+      {
+        for (uint i = 0; i < aNumSubresources; ++i)
         {
-          const uint16* subresourceList = someSubResourceLists[iRes];
-          const uint numSubresources = someNumSubresources[iRes];
-          for (uint i = 0; i < numSubresources; ++i)
-          {
-            const uint16 subIdx = subresourceList[i];
-            ASSERT(subIdx < resource->myNumSubresources);
-            TransitionSubresource(subIdx);
-          }
+          const uint16 subIdx = aSubresourceList[i];
+          ASSERT(subIdx < maxNumSubresrouces);
+          TransitionSubresource(subIdx);
         }
       }
     }
 
-    // Queue the actual barrier
-    SubresourceBarrierInternal(someResources, someSubResourceLists, someNumSubresources, someSrcStates, someDstStates, aNumResources, aSrcQueue, aDstQueue);
-  }
-//---------------------------------------------------------------------------//
-  void CommandList::SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources,
-    GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue /*=CommandListType::UNKNOWN*/, CommandListType aDstQueue /*=CommandListType::UNKNOWN*/)
-  {
-    const CommandListType srcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
-    const CommandListType dstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
-    SubresourceBarrier(&aResource, &aSubresourceList, &aNumSubresources, &aSrcState, &aDstState, 1u, srcQueue, dstQueue);
+    // Queue the actual barrier on low-level graphics API
+    SubresourceBarrierInternal(aResource, aSubresourceList, aNumSubresources, aSrcState, aDstState, aSrcQueue, aDstQueue);
   }
 //---------------------------------------------------------------------------//
   void CommandList::SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceUsageState aSrcState, 
     GpuResourceUsageState aDstState, CommandListType aSrcQueue /*=CommandListType::UNKNOWN*/, CommandListType aDstQueue /*=CommandListType::UNKNOWN*/)
   {
-    const CommandListType srcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
-    const CommandListType dstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
+    aSrcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
+    aDstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
 
-    if (aResourceView->mySubresources[1].empty())  // Single-plane resource
-    {
-      const uint16* subresourceList = aResourceView->mySubresources[0].data();
-      const uint numSubresources = (uint)aResourceView->mySubresources->size();
-      ASSERT(numSubresources > 0);
-
-      SubresourceBarrier(aResourceView->myResource.get(), subresourceList, numSubresources, aSrcState, aDstState, srcQueue, dstQueue);
-    }
-    else
-    {
-      const GpuResource* resources[] = { aResourceView->myResource.get(), aResourceView->myResource.get() };
-      const uint16* subresourceLists[] = { aResourceView->mySubresources[0].data(), aResourceView->mySubresources[1].data() };
-      const uint numSubresources[] = { (uint)aResourceView->mySubresources[0].size(), (uint)aResourceView->mySubresources[1].size() };
-      const GpuResourceUsageState srcStates[] = { aSrcState, aSrcState };
-      const GpuResourceUsageState dstStates[] = { aDstState, aDstState };
-      ASSERT(numSubresources[0] > 0);
-      ASSERT(numSubresources[1] > 0);
-
-      SubresourceBarrier(resources, subresourceLists, numSubresources, srcStates, dstStates, 2u, srcQueue, dstQueue);
-    }
+    SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresources[0].data(), (uint)aResourceView->mySubresources[0].size(), aSrcState, aDstState, aSrcQueue, aDstQueue);
+    if (!aResourceView->mySubresources[1].empty())
+      SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresources[1].data(), (uint)aResourceView->mySubresources[1].size(), aSrcState, aDstState, aSrcQueue, aDstQueue);
   }
 //---------------------------------------------------------------------------//
   void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue /*=CommandListType::UNKNOWN*/, CommandListType aDstQueue /*=CommandListType::UNKNOWN*/)
   {
-    const CommandListType srcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
-    const CommandListType dstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
-    SubresourceBarrier(&aResource, nullptr, nullptr, &aSrcState, &aDstState, 1u, srcQueue, dstQueue);
+    aSrcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
+    aDstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
+    SubresourceBarrier(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, aDstQueue);
   }
 //---------------------------------------------------------------------------//
 } 

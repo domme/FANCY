@@ -135,13 +135,16 @@ namespace Fancy {
     myNumSubresourcesPerPlane = numArraySlices * myProperties.myNumMipLevels;
     myNumPlanes = formatInfo.myNumPlanes;
 
-    myHazardData = GpuResourceHazardData();
-    myHazardData.mySubresourceStates.resize(numSubresources);
+    myStateTracking = GpuResourceStateTracking();
+    myStateTracking.mySubresources.resize(numSubresources);
+    myStateTracking.myAllSubresourcesInSameStateAndContext = true;
     for (uint i = 0u; i < numSubresources; ++i)
-      myHazardData.mySubresourceStates[i] = someProperties.myDefaultState;
-
-    myHazardData.myDx12Data.myReadStates = readStateMask;
-    myHazardData.myDx12Data.myWriteStates = writeStateMask;
+    {
+      myStateTracking.mySubresources[i].myState = someProperties.myDefaultState;
+      myStateTracking.mySubresources[i].myContext = CommandListType::Graphics;
+    }
+    myStateTracking.myDx12Data.myReadStates = readStateMask;
+    myStateTracking.myDx12Data.myWriteStates = writeStateMask;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -322,7 +325,7 @@ namespace Fancy {
     }
 
     myNativeData.Clear();
-    myHazardData = GpuResourceHazardData();
+    myStateTracking = GpuResourceStateTracking();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//

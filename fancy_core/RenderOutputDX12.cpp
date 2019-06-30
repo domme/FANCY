@@ -54,10 +54,14 @@ namespace Fancy {
 
       const GpuResourceUsageState defaultState = GpuResourceUsageState::READ_PRESENT;
 
-      resource.myHazardData = GpuResourceHazardData();
-      resource.myHazardData.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
-      resource.myHazardData.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
-      resource.myHazardData.mySubresourceStates.push_back(defaultState);
+      resource.myStateTracking = GpuResourceStateTracking();
+      resource.myStateTracking.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+      resource.myStateTracking.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
+
+      GpuSubresourceStateTracking subresourceStateTracking;
+      subresourceStateTracking.myState = defaultState;
+      subresourceStateTracking.myContext = CommandListType::Graphics;
+      resource.myStateTracking.mySubresources.push_back(subresourceStateTracking);
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

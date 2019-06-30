@@ -59,6 +59,7 @@ namespace Fancy {
     static void Shutdown();
 
     static const char* ResourceUsageStateToString(GpuResourceUsageState aState);
+    static const char* CommandListTypeToString(CommandListType aType);
 
     static bool IsInitialized();
 

@@ -218,6 +218,17 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  const char* RenderCore::CommandListTypeToString(CommandListType aType)
+  {
+    switch(aType) 
+    {
+      case CommandListType::Graphics: return "Graphics";
+      case CommandListType::Compute: return "Compute";
+      case CommandListType::DMA: return "Copy";
+      default: ASSERT(false); return "";
+    }
+  }
+//---------------------------------------------------------------------------//
   RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
   {
     return GetPlatformType() == RenderPlatformType::DX12 ? static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get()) : nullptr;
@@ -1104,7 +1115,7 @@ namespace Fancy {
      * This method just waits on all queues the resource has been used on, even if it hasn't been written to or has been written to a long time ago. 
      * Instead, the hazardData should include the fences after the last write-access for all queues so this method can wait on those fences instead.
      */
-    const GpuResourceHazardData& hazardData = aResource->myHazardData;
+    const GpuResourceStateTracking& hazardData = aResource->myStateTracking;
 
     bool commandListNeedsWait[(uint)CommandListType::NUM] = { true, true, false };
     for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
