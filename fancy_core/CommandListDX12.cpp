@@ -947,7 +947,7 @@ namespace Fancy {
     ID3D12Resource* resourceDx12 = aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
     GpuResourceStateTracking& resourceStateTracking = aResource->myStateTracking;
     if (!resourceStateTracking.myCanChangeStates)
-      return ResourceTransitionInfo();
+      return { };
 
     const bool srcIsRead = aSrcState >= GpuResourceUsageState::FIRST_READ_STATE && aSrcState <= GpuResourceUsageState::LAST_READ_STATE;
     const bool dstIsRead = aDstState >= GpuResourceUsageState::FIRST_READ_STATE && aDstState <= GpuResourceUsageState::LAST_READ_STATE;
@@ -959,20 +959,21 @@ namespace Fancy {
     const uint resourceReadStateMask = resourceStateTracking.myDx12Data.myReadStates;
     const bool srcWas0 = srcStateDx12 == 0;
     const bool dstWas0 = dstStateDx12 == 0;
-    const uint allowedSrcStateDx12 = srcStateDx12 & (srcIsRead ? resourceReadStateMask : resourceWriteStateMask);
-    const uint allowedDstStateDx12 = dstStateDx12 & (dstIsRead ? resourceReadStateMask : resourceWriteStateMask);
 
     const uint stateMaskFrom = aSrcQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
     const uint stateMaskTo = aDstQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+    const uint wantedSrcStateDx12 = srcStateDx12 & stateMaskFrom & (srcIsRead ? resourceReadStateMask : resourceWriteStateMask);
+    const uint wantedDstStateDx12 = dstStateDx12 & stateMaskTo & (dstIsRead ? resourceReadStateMask : resourceWriteStateMask);
+    
     const uint stateMaskCmdList = myCommandListType == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
-    srcStateDx12 = allowedSrcStateDx12 & stateMaskFrom & stateMaskCmdList;
-    dstStateDx12 = allowedDstStateDx12 & stateMaskTo & stateMaskCmdList;
+    srcStateDx12 = wantedSrcStateDx12 & stateMaskCmdList;
+    dstStateDx12 = wantedDstStateDx12 & stateMaskCmdList;
 
-    ResourceTransitionInfo info;
+    GpuResourceTransitionInfo info;
     info.myCanTransitionFromSrc = srcWas0 || srcStateDx12 != 0;
     info.myCanTransitionToDst = dstWas0 || dstStateDx12 != 0;
-    info.myCanFullyTransitionFromSrc = allowedSrcStateDx12 == srcStateDx12;
-    info.myCanFullyTransitionToDst = allowedDstStateDx12 == dstStateDx12;
+    info.myCanFullyTransitionFromSrc = wantedSrcStateDx12 == srcStateDx12;
+    info.myCanFullyTransitionToDst = wantedDstStateDx12 == dstStateDx12;
     return info;
   }
 //---------------------------------------------------------------------------//

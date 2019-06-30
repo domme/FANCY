@@ -537,7 +537,7 @@ namespace Fancy {
     aSrcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
     aDstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
 
-    const ResourceTransitionInfo& transitionInfo = GetResourceTransitionInfo(aResource, aSrcState, aDstState, aSrcQueue, aDstQueue);
+    const GpuResourceTransitionInfo& transitionInfo = GetResourceTransitionInfo(aResource, aSrcState, aDstState, aSrcQueue, aDstQueue);
     ASSERT(transitionInfo.myCanTransitionFromSrc && transitionInfo.myCanTransitionToDst);
     if (myIsTrackingResourceStates)
     {
@@ -564,12 +564,7 @@ namespace Fancy {
           resTracking->mySubresources[i] = { 
             GpuResourceUsageState::UNKNOWN, 
             GpuResourceUsageState::UNKNOWN, 
-            GpuResourceUsageState::UNKNOWN,
-            CommandListType::UNKNOWN,
-            CommandListType::UNKNOWN,
-            CommandListType::UNKNOWN,
-            true,
-            true };
+            GpuResourceUsageState::UNKNOWN };
         }
       }
       else
@@ -584,28 +579,20 @@ namespace Fancy {
         {
           subTracking.myFirstSrcState = aSrcState;
           subTracking.myFirstDstState = aDstState;
-          subTracking.myFirstSrcQueue = aSrcQueue;
-          subTracking.myFirstDstQueue = aDstQueue;
-          subTracking.myFirstCouldFullyTransition = transitionInfo.myCanFullyTransitionToDst;
         }
         else
         {
           ASSERT(subTracking.myState == aSrcState, "Mismatching resource-state on command list. Resource %s (Subresource %d) is in state %d but barrier wants to transition from %d",
             aResource->myName.c_str(), i, (uint)subTracking.myState, (uint)aSrcState);
-
-          ASSERT(subTracking.myQueue == aSrcQueue, "Mismatching resource queue-ownership on command list. Resource %s (Subresource %d) is owned by queue %d but barrier wants to transition from queue %d",
-            aResource->myName.c_str(), i, (uint)subTracking.myQueue, (uint)aSrcQueue);
         }
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
         LOG_INFO("Resource state tracking: Resource %s (subresource %d) from state %s | queue %s to state %s | queue %s (current state on command list: %s | queue: %s)", 
           aResource->myName.c_str(), i, RenderCore::ResourceUsageStateToString(aSrcState), RenderCore::CommandListTypeToString(aSrcQueue), 
           RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeToString(aDstQueue), 
-          RenderCore::ResourceUsageStateToString(subTracking.myState), RenderCore::CommandListTypeToString(subTracking.myQueue));
+          RenderCore::ResourceUsageStateToString(subTracking.myState), RenderCore::CommandListTypeToString(myCommandListType));
 #endif  
         subTracking.myState = aDstState;
-        subTracking.myQueue = aDstQueue;
-        subTracking.myCouldFullyTransition = transitionInfo.myCanTransitionFromSrc && transitionInfo.myCanFullyTransitionToDst;
       };
 
       // Transition all subresources?

@@ -46,6 +46,8 @@ namespace Fancy {
     virtual GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) = 0;
     virtual uint GetQueryTypeDataSize(GpuQueryType aType) = 0;
     virtual float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) = 0;
+    virtual GpuResourceTransitionInfo GetTransitionInfo(const GpuResource* aResource, GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue, CommandListType aCurrQueue) = 0;
   protected:
     RenderPlatformCaps myCaps;
     RenderPlatformType myType;

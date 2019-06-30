@@ -59,10 +59,40 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandQueue::ResolveResourceBarriers(CommandList* aCommandList)
   {
-    if (aCommandList->myNumTrackedResources == 0)
+    const uint numTrackedResources = aCommandList->myNumTrackedResources;
+    if (numTrackedResources == 0u)
       return;
 
-    // TODO: It might be necessary to add more complexity to the hazard tracking so that we can also detect scenarios where the patching command list has to perform cross-queue transitions
+    // This method will launch auxillary command lists to transition any resources to the state needed upon the first use in the command list.
+    // Cross-queue transitions from a more restricted to a less restricted queue need to be resolved by executing a patching command list on the less restricted queue.
+    // However, read-to-read transitions don't need to be treated that way. For those transitions it should be fine to just transition from/to whatever the current queue type can understand.
+    // But for Write-Read and Read-Write transitions it needs to be done this way.
+
+    for (uint iRes = 0u; iRes < numTrackedResources; ++iRes)
+    {
+      const GpuResource* resource = aCommandList->myTrackedResources[iRes];
+      const CommandList::ResourceStateTracking& cmdListResState = aCommandList->myResourceStateTrackings[iRes];
+      const GpuResourceStateTracking& resState = resource->myStateTracking;
+
+      const uint numSubresources = resource->myNumSubresources;
+      ASSERT(numSubresources == (uint)cmdListResState.mySubresources.size());
+
+      for (uint iSub = 0u; iSub < numSubresources; ++iSub)
+      {
+        const CommandList::SubresourceStateTracking& cmdListSubState = cmdListResState.mySubresources[iSub];
+        if (cmdListSubState.myState == GpuResourceUsageState::UNKNOWN)  // Hasn't been modified in aCommandList
+          continue;
+
+        const GpuSubresourceStateTracking& subState = resState.mySubresources[iSub];
+
+        const CommandList::ResourceTransitionInfo& transitionInfo = aCommandList->GetResourceTransitionInfo(resource, subState.myState, cmdListSubState.myFirstSrcState, subState.myQueueType, aCommandList->GetType());
+
+
+
+      }
+    }
+
+
     CommandList* ctx = BeginCommandList((uint) CommandListFlags::NO_RESOURCE_STATE_TRACKING);
 
     for (uint iRes = 0; iRes < aCommandList->myNumTrackedResources; ++iRes)

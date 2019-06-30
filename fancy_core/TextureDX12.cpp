@@ -141,7 +141,7 @@ namespace Fancy {
     for (uint i = 0u; i < numSubresources; ++i)
     {
       myStateTracking.mySubresources[i].myState = someProperties.myDefaultState;
-      myStateTracking.mySubresources[i].myContext = CommandListType::Graphics;
+      myStateTracking.mySubresources[i].myQueueType = CommandListType::Graphics;
     }
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;

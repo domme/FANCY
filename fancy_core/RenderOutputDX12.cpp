@@ -60,7 +60,7 @@ namespace Fancy {
 
       GpuSubresourceStateTracking subresourceStateTracking;
       subresourceStateTracking.myState = defaultState;
-      subresourceStateTracking.myContext = CommandListType::Graphics;
+      subresourceStateTracking.myQueueType = CommandListType::Graphics;
       resource.myStateTracking.mySubresources.push_back(subresourceStateTracking);
 
       TextureProperties backbufferProps;

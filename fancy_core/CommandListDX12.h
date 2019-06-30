@@ -65,7 +65,7 @@ namespace Fancy {
     void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:
-    ResourceTransitionInfo GetResourceTransitionInfo(const GpuResource* aResource, GpuResourceUsageState aSrcState,
+    GpuResourceTransitionInfo GetResourceTransitionInfo(const GpuResource* aResource, GpuResourceUsageState aSrcState,
       GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue) override;
 
     bool SubresourceBarrierInternal(

@@ -137,16 +137,6 @@ namespace Fancy {
       CommandListType aDstQueue = CommandListType::UNKNOWN);
         
   protected:
-    struct ResourceTransitionInfo
-    {
-      bool myCanTransitionFromSrc = false;
-      bool myCanTransitionToDst = false;
-      bool myCanFullyTransitionFromSrc = false;
-      bool myCanFullyTransitionToDst = false;
-    };
-    virtual ResourceTransitionInfo GetResourceTransitionInfo(const GpuResource* aResource, GpuResourceUsageState aSrcState, 
-      GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue) = 0;
-
     virtual bool SubresourceBarrierInternal(
       const GpuResource* aResource,
       const uint16* someSubresources,
@@ -187,11 +177,6 @@ namespace Fancy {
       GpuResourceUsageState myFirstSrcState;
       GpuResourceUsageState myFirstDstState;
       GpuResourceUsageState myState;
-      CommandListType myFirstSrcQueue;
-      CommandListType myFirstDstQueue;
-      CommandListType myQueue;
-      bool myFirstCouldFullyTransition;
-      bool myCouldFullyTransition;
     };
     struct ResourceStateTracking
     {
