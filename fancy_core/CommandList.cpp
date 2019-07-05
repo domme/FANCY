@@ -536,9 +536,7 @@ namespace Fancy {
   {
     aSrcQueue = aSrcQueue != CommandListType::UNKNOWN ? aSrcQueue : myCommandListType;
     aDstQueue = aDstQueue != CommandListType::UNKNOWN ? aDstQueue : myCommandListType;
-
-    const GpuResourceTransitionInfo& transitionInfo = GetResourceTransitionInfo(aResource, aSrcState, aDstState, aSrcQueue, aDstQueue);
-    ASSERT(transitionInfo.myCanTransitionFromSrc && transitionInfo.myCanTransitionToDst);
+    
     if (myIsTrackingResourceStates)
     {
       const bool hasQueueTransition = aSrcQueue != aDstQueue || aSrcQueue != myCommandListType || aDstQueue != myCommandListType;
@@ -584,6 +582,8 @@ namespace Fancy {
         {
           ASSERT(subTracking.myState == aSrcState, "Mismatching resource-state on command list. Resource %s (Subresource %d) is in state %d but barrier wants to transition from %d",
             aResource->myName.c_str(), i, (uint)subTracking.myState, (uint)aSrcState);
+
+          ASSERT(aSrcQueue == aDstQueue && aSrcQueue == myCommandListType, "Transitioning from a foreign queue after a subresource has already been transitioned on this command list. This doesn't make sense");
         }
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
