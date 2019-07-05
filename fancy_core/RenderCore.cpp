@@ -89,6 +89,8 @@ namespace Fancy {
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
 
+  UniquePtr<CommandQueue> RenderCore::ourCommandQueues[(uint)CommandListType::NUM];
+
   StaticCircularArray<uint64, RenderCore::NUM_QUEUED_FRAMES> RenderCore::ourQueuedFrameDoneFences;
   StaticCircularArray<std::pair<uint64, uint64>, 256> RenderCore::ourLastFrameDoneFences;
 

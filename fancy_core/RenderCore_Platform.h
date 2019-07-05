@@ -2,6 +2,7 @@
 
 #include "RendererPrerequisites.h"
 #include "Ptr.h"
+#include "GpuResourceStateTracking.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -20,6 +21,7 @@ namespace Fancy {
   class Texture;
   class GpuBuffer;
   class GpuQueryHeap;
+  class GpuResource;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
   {

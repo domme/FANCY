@@ -6,6 +6,7 @@
 
 #include "GpuResourceDataDX12.h"
 #include "RenderEnums.h"
+#include "GpuResourceStateTracking.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -65,8 +66,6 @@ namespace Fancy {
     void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:
-    GpuResourceTransitionInfo GetResourceTransitionInfo(const GpuResource* aResource, GpuResourceUsageState aSrcState,
-      GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue) override;
 
     bool SubresourceBarrierInternal(
       const GpuResource* aResource,

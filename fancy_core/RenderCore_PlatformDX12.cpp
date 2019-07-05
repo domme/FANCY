@@ -320,6 +320,43 @@ namespace Fancy {
     return 1000.0f / timestampFrequency;
   }
 //---------------------------------------------------------------------------//
+  GpuResourceTransitionInfo RenderCore_PlatformDX12::GetTransitionInfo(const GpuResource* aResource,
+    GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue,
+    CommandListType aDstQueue, CommandListType aCurrQueue)
+  {
+    ID3D12Resource* resourceDx12 = aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
+    GpuResourceStateTracking& resourceStateTracking = aResource->myStateTracking;
+    if (!resourceStateTracking.myCanChangeStates)
+      return { };
+
+    const bool srcIsRead = aSrcState >= GpuResourceUsageState::FIRST_READ_STATE && aSrcState <= GpuResourceUsageState::LAST_READ_STATE;
+    const bool dstIsRead = aDstState >= GpuResourceUsageState::FIRST_READ_STATE && aDstState <= GpuResourceUsageState::LAST_READ_STATE;
+
+    uint srcStateDx12 = RenderCore_PlatformDX12::ResolveResourceUsageState(aSrcState);
+    uint dstStateDx12 = RenderCore_PlatformDX12::ResolveResourceUsageState(aDstState);
+
+    const uint resourceWriteStateMask = resourceStateTracking.myDx12Data.myWriteStates;
+    const uint resourceReadStateMask = resourceStateTracking.myDx12Data.myReadStates;
+    const bool srcWas0 = srcStateDx12 == 0;
+    const bool dstWas0 = dstStateDx12 == 0;
+
+    const uint stateMaskFrom = aSrcQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+    const uint stateMaskTo = aDstQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+    const uint wantedSrcStateDx12 = srcStateDx12 & stateMaskFrom & (srcIsRead ? resourceReadStateMask : resourceWriteStateMask);
+    const uint wantedDstStateDx12 = dstStateDx12 & stateMaskTo & (dstIsRead ? resourceReadStateMask : resourceWriteStateMask);
+
+    const uint stateMaskCmdList = aCurrQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
+    srcStateDx12 = wantedSrcStateDx12 & stateMaskCmdList;
+    dstStateDx12 = wantedDstStateDx12 & stateMaskCmdList;
+
+    GpuResourceTransitionInfo info;
+    info.myCanTransitionFromSrc = srcWas0 || srcStateDx12 != 0;
+    info.myCanTransitionToDst = dstWas0 || dstStateDx12 != 0;
+    info.myCanFullyTransitionFromSrc = wantedSrcStateDx12 == srcStateDx12;
+    info.myCanFullyTransitionToDst = wantedDstStateDx12 == dstStateDx12;
+    return info;
+  }
+//---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
   {
     Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;

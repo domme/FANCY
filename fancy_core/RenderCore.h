@@ -163,6 +163,7 @@ namespace Fancy {
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
+
     static UniquePtr<CommandQueue> ourCommandQueues[(uint)CommandListType::NUM];
     
     static StaticCircularArray<uint64, NUM_QUEUED_FRAMES> ourQueuedFrameDoneFences;

@@ -85,10 +85,8 @@ namespace Fancy
 
         const GpuSubresourceStateTracking& subState = resState.mySubresources[iSub];
 
-        const CommandList::ResourceTransitionInfo& transitionInfo = aCommandList->GetResourceTransitionInfo(resource, subState.myState, cmdListSubState.myFirstSrcState, subState.myQueueType, aCommandList->GetType());
 
-
-
+        // TODO: Continue here
       }
     }
 
@@ -107,7 +105,8 @@ namespace Fancy
         if (subTracking.myState == GpuResourceUsageState::UNKNOWN)  // Hasn't been modified in aCommandList
           continue;
 
-        GpuResourceUsageState& currState = resource->myStateTracking.mySubresourceStates[iSub];
+        GpuSubresourceStateTracking& currSubTracking = resource->myStateTracking.mySubresources[iSub];
+        GpuResourceUsageState& currState = currSubTracking.myState;
         
         if (subTracking.myFirstSrcState == GpuResourceUsageState::UNKNOWN && currState != subTracking.myFirstDstState) // Needs a patching barrier
         {
@@ -120,7 +119,7 @@ namespace Fancy
           LOG_INFO("Patching resource state: Resource %s (subresource %d) has state %s, but needs to transition to %s on the commandlist.",
             resource->myName.c_str(), iSub, RenderCore::ResourceUsageStateToString(currState), RenderCore::ResourceUsageStateToString(subTracking.myFirstDstState));
 #endif  
-          ctx->SubresourceBarrier(&resource, &subresourceList, &numSubresources, &currState, &subTracking.myFirstDstState, 1u, srcQueue, dstQueue);
+          ctx->SubresourceBarrier(resource, subresourceList, numSubresources, currState, subTracking.myFirstDstState, srcQueue, dstQueue);
         }
         else
         {

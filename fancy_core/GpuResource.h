@@ -4,6 +4,7 @@
 #include "RenderEnums.h"
 #include "DynamicArray.h"
 #include "FancyCoreDefines.h"
+#include "GpuResourceStateTracking.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
