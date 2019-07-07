@@ -63,40 +63,83 @@ namespace Fancy
     if (numTrackedResources == 0u)
       return;
 
-    // This method will launch auxillary command lists to transition any resources to the state needed upon the first use in the command list.
-    // Cross-queue transitions from a more restricted to a less restricted queue need to be resolved by executing a patching command list on the less restricted queue.
-    // However, read-to-read transitions don't need to be treated that way. For those transitions it should be fine to just transition from/to whatever the current queue type can understand.
-    // But for Write-Read and Read-Write transitions it needs to be done this way.
+    struct BarrierData
+    {
+      const GpuResource* myResource;
+      CommandListType mySrcQueue;
+      GpuResourceUsageState mySrcState;
+      CommandListType myDstQueue;
+      GpuResourceUsageState myDstState;
+    };
+    BarrierData* barriers = (BarrierData*)alloca(sizeof(BarrierData) * numTrackedResources);
+    uint numBarriers = 0u;
+    CommandListType mostSpecificNeededQueue = aCommandList->myCommandListType;
 
-    for (uint iRes = 0u; iRes < numTrackedResources; ++iRes)
+    for (uint iRes = 0; iRes < aCommandList->myNumTrackedResources; ++iRes)
     {
       const GpuResource* resource = aCommandList->myTrackedResources[iRes];
-      const CommandList::ResourceStateTracking& cmdListResState = aCommandList->myResourceStateTrackings[iRes];
-      const GpuResourceStateTracking& resState = resource->myStateTracking;
+      GpuResourceStateTracking& resState = resource->myStateTracking;
+      const CommandList::ResourceStateTracking& localState = aCommandList->myResourceStateTrackings[iRes];
 
-      const uint numSubresources = resource->myNumSubresources;
-      ASSERT(numSubresources == (uint)cmdListResState.mySubresources.size());
+      if (localState.myFirstSrcState != GpuResourceUsageState::UNKNOWN)
+        ASSERT(localState.myFirstSrcState == resState.myState);
+      if (localState.myFirstSrcQueue != CommandListType::UNKNOWN)
+        ASSERT(localState.myFirstSrcQueue == resState.myQueueType);
 
-      for (uint iSub = 0u; iSub < numSubresources; ++iSub)
+      if (GpuResourceStateTracking::IsBarrierNeeded(resState.myQueueType, resState.myState, localState.myFirstDstQueue, localState.myFirstDstState))
       {
-        const CommandList::SubresourceStateTracking& cmdListSubState = cmdListResState.mySubresources[iSub];
-        if (cmdListSubState.myState == GpuResourceUsageState::UNKNOWN)  // Hasn't been modified in aCommandList
-          continue;
+        BarrierData& barrier = barriers[numBarriers++];
+        barrier.myResource = resource;
+        barrier.mySrcQueue = resState.myQueueType;
+        barrier.mySrcState = resState.myState;
+        barrier.myDstQueue = localState.myFirstDstQueue;
+        barrier.myDstState = localState.myFirstDstState;
 
-        const GpuSubresourceStateTracking& subState = resState.mySubresources[iSub];
-
-
-        // TODO: Continue here
+        while (!GpuResourceStateTracking::QueueCanTransitionFrom(mostSpecificNeededQueue, resState.myQueueType, resState.myState))
+        {
+          ASSERT(mostSpecificNeededQueue > (CommandListType) 0);
+          mostSpecificNeededQueue = static_cast<CommandListType>(static_cast<uint>(mostSpecificNeededQueue) - 1);
+        }
       }
+      else
+      {
+        // This is a read-read transition that doesn't need a barrier. Keep the more generic state
+        resState.myQueueType = resState.myQueueType < localState.myFirstDstQueue ? resState.myQueueType : localState.myFirstDstQueue;
+        resState.myState = 
+      }
+      
+
+
+      needsHigherLevelQueue |= resource->myStateTracking.myQueueType < aCommandList->myCommandListType;
+    }
+    
+
+    CommandList* ctx = nullptr;
+    if (needsHigherLevelQueue)
+      ctx = RenderCore::BeginCommandList(CommandListType::Graphics, (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
+    else
+      ctx = BeginCommandList((uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
+
+    for (uint iRes = 0; iRes < aCommandList->myNumTrackedResources; ++iRes)
+    {
+      const GpuResource* resource = aCommandList->myTrackedResources[iRes];
+      const CommandList::ResourceStateTracking& localState = aCommandList->myResourceStateTrackings[iRes];
+      GpuResourceStateTracking& resState = resource->myStateTracking;
+
     }
 
 
-    CommandList* ctx = BeginCommandList((uint) CommandListFlags::NO_RESOURCE_STATE_TRACKING);
+    
+
+
+    CommandList* ctx = 
 
     for (uint iRes = 0; iRes < aCommandList->myNumTrackedResources; ++iRes)
     {
       const GpuResource* resource = aCommandList->myTrackedResources[iRes];
       const CommandList::ResourceStateTracking& resTracking = aCommandList->myResourceStateTrackings[iRes];
+
+
 
       ASSERT(resource->myNumSubresources == (uint) resTracking.mySubresources.size());
       for (uint iSub = 0u; iSub < resource->myNumSubresources; ++iSub)

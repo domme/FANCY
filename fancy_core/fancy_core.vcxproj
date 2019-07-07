@@ -188,6 +188,7 @@
     <ClCompile Include="GpuProgramPipeline.cpp" />
     <ClCompile Include="GpuQueryHeap.cpp" />
     <ClCompile Include="GpuQueryHeapDX12.cpp" />
+    <ClCompile Include="GpuResourceStateTracking.cpp" />
     <ClCompile Include="GpuRingBuffer.cpp" />
     <ClCompile Include="PagedLinearAllocator.cpp" />
     <ClCompile Include="Profiler.cpp" />

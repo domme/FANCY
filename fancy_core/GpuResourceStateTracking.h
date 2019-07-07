@@ -18,18 +18,17 @@ namespace Fancy
     uint myReadStates = 0u;
     uint myWriteStates = 0u;
   };
-  //---------------------------------------------------------------------------//
-  struct GpuSubresourceStateTracking
-  {
-    GpuResourceUsageState myState = GpuResourceUsageState::COMMON;
-    CommandListType myQueueType = CommandListType::Graphics;
-  };
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   struct GpuResourceStateTracking
   {
+    static bool QueueCanTransitionFrom(CommandListType aQueue, CommandListType aSrcQueue, GpuResourceUsageState aSrcState);
+    static bool IsBarrierNeeded(CommandListType aSrcQueue, GpuResourceUsageState aSrcState, CommandListType aDstQueue, GpuResourceUsageState aDstState);
+    static GpuResourceUsageState GetMoreGenericState(GpuResourceUsageState aState1, GpuResourceUsageState aState2);
+    
     bool myCanChangeStates = true;
-    bool myAllSubresourcesInSameStateAndContext = true;
-    DynamicArray<GpuSubresourceStateTracking> mySubresources;
+    GpuResourceUsageState myState = GpuResourceUsageState::COMMON;
+    CommandListType myQueueType = CommandListType::Graphics;
+
     GpuResourceStateTrackingDX12 myDx12Data;  // Will become a union once other platforms are in
   };
 //---------------------------------------------------------------------------//

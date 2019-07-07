@@ -111,30 +111,14 @@ namespace Fancy {
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
     uint GetFlags() const { return myFlags; }
 
-    void SubresourceBarrier(
-      const GpuResource* aResource,
-      const uint16* aSubresourceList,
-      uint aNumSubresources,
-      GpuResourceUsageState aSrcState,
-      GpuResourceUsageState aDstState,
-      CommandListType aSrcQueue = CommandListType::UNKNOWN,
-      CommandListType aDstQueue = CommandListType::UNKNOWN
-    );
+    void SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState);
+    void SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState);
 
-    void SubresourceBarrier(
-      const GpuResourceView* aResourceView,
+    void ResourceBarrier(const GpuResource* aResource,
       GpuResourceUsageState aSrcState,
       GpuResourceUsageState aDstState,
-      CommandListType aSrcQueue = CommandListType::UNKNOWN,
-      CommandListType aDstQueue = CommandListType::UNKNOWN
-    );
-
-    void ResourceBarrier(
-      const GpuResource* aResource,
-      GpuResourceUsageState aSrcState,
-      GpuResourceUsageState aDstState,
-      CommandListType aSrcQueue = CommandListType::UNKNOWN,
-      CommandListType aDstQueue = CommandListType::UNKNOWN);
+      CommandListType aSrcQueue,
+      CommandListType aDstQueue);
         
   protected:
     virtual bool SubresourceBarrierInternal(
@@ -172,15 +156,14 @@ namespace Fancy {
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
     DynamicArray<GpuRingBuffer*> myIndexRingBuffers;
 
-    struct SubresourceStateTracking
+    struct ResourceStateTracking
     {
       GpuResourceUsageState myFirstSrcState;
       GpuResourceUsageState myFirstDstState;
       GpuResourceUsageState myState;
-    };
-    struct ResourceStateTracking
-    {
-      DynamicArray<SubresourceStateTracking> mySubresources;
+      CommandListType myFirstSrcQueue;
+      CommandListType myFirstDstQueue;
+      CommandListType myQueue;
     };
     const GpuResource* myTrackedResources[1024];
     ResourceStateTracking myResourceStateTrackings[1024];
