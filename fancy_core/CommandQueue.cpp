@@ -88,6 +88,10 @@ namespace Fancy
 
       if (GpuResourceStateTracking::IsBarrierNeeded(resState.myQueueType, resState.myState, localState.myFirstDstQueue, localState.myFirstDstState))
       {
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        LOG_INFO("Patching resource state: Resource %s has state %s, but needs to transition to %s on the commandlist.",
+          resource->myName.c_str(), RenderCore::ResourceUsageStateToString(resState.myState), RenderCore::ResourceUsageStateToString(localState.myFirstDstState));
+#endif  
         BarrierData& barrier = barriers[numBarriers++];
         barrier.myResource = resource;
         barrier.mySrcQueue = resState.myQueueType;
@@ -101,84 +105,25 @@ namespace Fancy
           mostSpecificNeededQueue = static_cast<CommandListType>(static_cast<uint>(mostSpecificNeededQueue) - 1);
         }
       }
-      else
-      {
-        // This is a read-read transition that doesn't need a barrier. Keep the more generic state
-        resState.myQueueType = resState.myQueueType < localState.myFirstDstQueue ? resState.myQueueType : localState.myFirstDstQueue;
-        resState.myState = 
-      }
-      
 
-
-      needsHigherLevelQueue |= resource->myStateTracking.myQueueType < aCommandList->myCommandListType;
+      resState.myState = localState.myState;
+      resState.myQueueType = localState.myQueue;
     }
-    
 
-    CommandList* ctx = nullptr;
-    if (needsHigherLevelQueue)
-      ctx = RenderCore::BeginCommandList(CommandListType::Graphics, (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
-    else
-      ctx = BeginCommandList((uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
-
-    for (uint iRes = 0; iRes < aCommandList->myNumTrackedResources; ++iRes)
+    if (numBarriers > 0)
     {
-      const GpuResource* resource = aCommandList->myTrackedResources[iRes];
-      const CommandList::ResourceStateTracking& localState = aCommandList->myResourceStateTrackings[iRes];
-      GpuResourceStateTracking& resState = resource->myStateTracking;
-
-    }
-
-
-    
-
-
-    CommandList* ctx = 
-
-    for (uint iRes = 0; iRes < aCommandList->myNumTrackedResources; ++iRes)
-    {
-      const GpuResource* resource = aCommandList->myTrackedResources[iRes];
-      const CommandList::ResourceStateTracking& resTracking = aCommandList->myResourceStateTrackings[iRes];
-
-
-
-      ASSERT(resource->myNumSubresources == (uint) resTracking.mySubresources.size());
-      for (uint iSub = 0u; iSub < resource->myNumSubresources; ++iSub)
+      CommandList* ctx = RenderCore::BeginCommandList(mostSpecificNeededQueue, (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
+      for (uint i = 0u; i < numBarriers; ++i)
       {
-        const CommandList::SubresourceStateTracking& subTracking = resTracking.mySubresources[iSub];
-        if (subTracking.myState == GpuResourceUsageState::UNKNOWN)  // Hasn't been modified in aCommandList
-          continue;
-
-        GpuSubresourceStateTracking& currSubTracking = resource->myStateTracking.mySubresources[iSub];
-        GpuResourceUsageState& currState = currSubTracking.myState;
-        
-        if (subTracking.myFirstSrcState == GpuResourceUsageState::UNKNOWN && currState != subTracking.myFirstDstState) // Needs a patching barrier
-        {
-          const uint16 subresources[] = { (uint16)iSub };
-          const uint16* subresourceList = subresources;
-          const uint numSubresources = 1u;
-          CommandListType srcQueue = ctx->GetType();  // TODO: Deal with cross-queue cases
-          CommandListType dstQueue = ctx->GetType();
-#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          LOG_INFO("Patching resource state: Resource %s (subresource %d) has state %s, but needs to transition to %s on the commandlist.",
-            resource->myName.c_str(), iSub, RenderCore::ResourceUsageStateToString(currState), RenderCore::ResourceUsageStateToString(subTracking.myFirstDstState));
-#endif  
-          ctx->SubresourceBarrier(resource, subresourceList, numSubresources, currState, subTracking.myFirstDstState, srcQueue, dstQueue);
-        }
-        else
-        {
-          ASSERT(subTracking.myFirstSrcState == currState);
-        }
-
-#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-        LOG_INFO("New state for resource %s (subresource %d) after commandList: %s",
-          resource->myName.c_str(), iSub, RenderCore::ResourceUsageStateToString(subTracking.myState));
-#endif  
-        currState = subTracking.myState;
+        const BarrierData& barrier = barriers[i];
+        ctx->ResourceBarrier(barrier.myResource, barrier.mySrcState, barrier.myDstState, barrier.mySrcQueue, barrier.myDstQueue);
       }
-    }
 
-    ctx->FlushBarriers();
-    ExecuteAndFreeCommandList(ctx);
+      const uint64 patchingCommandListFence = RenderCore::ExecuteAndFreeCommandList(ctx);
+
+      if (mostSpecificNeededQueue != aCommandList->myCommandListType)
+        RenderCore::GetCommandQueue(aCommandList->myCommandListType)->StallForFence(patchingCommandListFence);
+    }
   }
 //---------------------------------------------------------------------------//
   CommandListType CommandQueue::GetCommandListType(uint64 aFenceVal)

@@ -110,12 +110,9 @@ namespace Fancy {
       }
     }
 
-    GpuSubresourceStateTracking subresourceStateTracking;
-    subresourceStateTracking.myState = someProperties.myDefaultState;
-    subresourceStateTracking.myQueueType = CommandListType::Graphics;
-
     myStateTracking = GpuResourceStateTracking();
-    myStateTracking.mySubresources.push_back(subresourceStateTracking);
+    myStateTracking.myState = someProperties.myDefaultState;
+    myStateTracking.myQueueType = CommandListType::Graphics;
     myStateTracking.myCanChangeStates = canChangeStates;
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;

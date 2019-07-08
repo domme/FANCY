@@ -548,6 +548,11 @@ namespace Fancy {
       SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresources[1].data(), (uint)aResourceView->mySubresources[1].size(), aSrcState, aDstState);
   }
 //---------------------------------------------------------------------------//
+  void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState)
+  {
+    ResourceBarrier(aResource, aSrcState, aDstState, myCommandListType, myCommandListType);
+  }
+//---------------------------------------------------------------------------//
   void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue)
   {
     if (myIsTrackingResourceStates)
@@ -555,6 +560,12 @@ namespace Fancy {
       ASSERT(aSrcState != aDstState || aSrcQueue != aDstQueue);
       ASSERT(aDstState != GpuResourceUsageState::UNKNOWN);
       ASSERT(aDstQueue != CommandListType::UNKNOWN);
+
+      const bool isReadReadTransition = 
+        aSrcState <= GpuResourceUsageState::FIRST_READ_STATE && aSrcState <= GpuResourceUsageState::LAST_READ_STATE &&
+        aDstState <= GpuResourceUsageState::FIRST_READ_STATE && aDstState <= GpuResourceUsageState::LAST_READ_STATE;
+
+      ASSERT(!isReadReadTransition || GpuResourceStateTracking::StateIsContainedIn(aSrcState, aDstState), "Read-read transitions are only allowed if transitioning to a more general state");
 
       // Find the local hazard-state for this resource if it already has one. If not, the srcState must be UNKNOWN
       const int resourceHazardIdx = FindResourceHazardEntryIdx(aResource);
@@ -570,6 +581,7 @@ namespace Fancy {
         resTracking->myFirstDstState = aDstState;
         resTracking->myState = aDstState;
         resTracking->myFirstSrcQueue = aSrcQueue;
+        resTracking->myFirstDstQueue = aDstQueue;
         resTracking->myQueue = aDstQueue;
       }
       else
@@ -592,11 +604,14 @@ namespace Fancy {
 #endif  
         resTracking->myState = aDstState;
         resTracking->myQueue = aDstQueue;
+
+        SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, aDstQueue);
       }
     }
-
-    // Queue the actual barrier on low-level graphics API
-    SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, aDstQueue);
+    else
+    {
+      SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, aDstQueue);
+    }
   }
 //---------------------------------------------------------------------------//
 } 

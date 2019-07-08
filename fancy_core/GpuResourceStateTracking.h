@@ -4,14 +4,7 @@
 
 namespace Fancy
 {
-  struct GpuResourceTransitionInfo
-  {
-    bool myCanTransitionFromSrc = false;
-    bool myCanTransitionToDst = false;
-    bool myCanFullyTransitionFromSrc = false;
-    bool myCanFullyTransitionToDst = false;
-  };
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   struct GpuResourceStateTrackingDX12
   {
     // Uints are D3D12_RESOURCE_STATES
@@ -23,7 +16,7 @@ namespace Fancy
   {
     static bool QueueCanTransitionFrom(CommandListType aQueue, CommandListType aSrcQueue, GpuResourceUsageState aSrcState);
     static bool IsBarrierNeeded(CommandListType aSrcQueue, GpuResourceUsageState aSrcState, CommandListType aDstQueue, GpuResourceUsageState aDstState);
-    static GpuResourceUsageState CompareGetMoreGeneralState(GpuResourceUsageState aState1, GpuResourceUsageState aState2);
+    static bool StateIsContainedIn(GpuResourceUsageState aLowerState, GpuResourceUsageState aHigherState);
     
     bool myCanChangeStates = true;
     GpuResourceUsageState myState = GpuResourceUsageState::COMMON;

@@ -116,6 +116,10 @@ namespace Fancy {
 
     void ResourceBarrier(const GpuResource* aResource,
       GpuResourceUsageState aSrcState,
+      GpuResourceUsageState aDstState);
+
+    void ResourceBarrier(const GpuResource* aResource,
+      GpuResourceUsageState aSrcState,
       GpuResourceUsageState aDstState,
       CommandListType aSrcQueue,
       CommandListType aDstQueue);

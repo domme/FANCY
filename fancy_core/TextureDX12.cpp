@@ -136,13 +136,8 @@ namespace Fancy {
     myNumPlanes = formatInfo.myNumPlanes;
 
     myStateTracking = GpuResourceStateTracking();
-    myStateTracking.mySubresources.resize(numSubresources);
-    myStateTracking.myAllSubresourcesInSameStateAndContext = true;
-    for (uint i = 0u; i < numSubresources; ++i)
-    {
-      myStateTracking.mySubresources[i].myState = someProperties.myDefaultState;
-      myStateTracking.mySubresources[i].myQueueType = CommandListType::Graphics;
-    }
+    myStateTracking.myState = someProperties.myDefaultState;
+    myStateTracking.myQueueType = CommandListType::Graphics;
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;
 

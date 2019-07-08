@@ -57,11 +57,8 @@ namespace Fancy {
       resource.myStateTracking = GpuResourceStateTracking();
       resource.myStateTracking.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
       resource.myStateTracking.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
-
-      GpuSubresourceStateTracking subresourceStateTracking;
-      subresourceStateTracking.myState = defaultState;
-      subresourceStateTracking.myQueueType = CommandListType::Graphics;
-      resource.myStateTracking.mySubresources.push_back(subresourceStateTracking);
+      resource.myStateTracking.myState = defaultState;
+      resource.myStateTracking.myQueueType = CommandListType::Graphics;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
