@@ -78,11 +78,121 @@ namespace Fancy
     return false;
   }
 //---------------------------------------------------------------------------//
-  GpuResourceUsageState GpuResourceStateTracking::GetMoreGenericState(GpuResourceUsageState aState1, GpuResourceUsageState aState2)
+  GpuResourceUsageState GpuResourceStateTracking::CompareGetMoreGeneralState(GpuResourceUsageState aState1, GpuResourceUsageState aState2)
   {
-    
+    if (aState1 == aState2)
+      return aState1;
+
+    auto StateIsContainedIn = [](GpuResourceUsageState aLowerState, GpuResourceUsageState aHigherState)
+    {
+        switch (aLowerState) 
+      { 
+        case GpuResourceUsageState::COMMON: 
+          return false;
+
+        case GpuResourceUsageState::READ_INDIRECT_ARGUMENT: 
+          return false;
+
+        case GpuResourceUsageState::READ_VERTEX_BUFFER: 
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+
+        case GpuResourceUsageState::READ_INDEX_BUFFER:
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+
+        case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER:
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
+            || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER;
+
+        case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE:
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
+            || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_RESOURCE;
+
+        case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER: 
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
+            || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER;
+
+        case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE:
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
+            || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_RESOURCE;
+
+        case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
+            || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER;
+
+        case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE:
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
+            || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_RESOURCE;
+
+        case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER:
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
+            || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER;
+
+        case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE:
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+
+        case GpuResourceUsageState::READ_COPY_SOURCE:
+          return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+
+        case GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH:
+          return false;
+
+        case GpuResourceUsageState::READ_DEPTH:
+          return false;
+
+        case GpuResourceUsageState::READ_PRESENT: break;
+        case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV: break;
+        case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV: break;
+        case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV: break;
+        case GpuResourceUsageState::WRITE_ANY_SHADER_UAV: break;
+        case GpuResourceUsageState::WRITE_RENDER_TARGET: break;
+        case GpuResourceUsageState::WRITE_COPY_DEST: break;
+        case GpuResourceUsageState::WRITE_DEPTH: break;
+        case GpuResourceUsageState::UNKNOWN: break;
+        case GpuResourceUsageState::NUM: break;
+
+
+      case GpuResourceUsageState::COMMON:
+        return false;
+      case GpuResourceUsageState::READ_INDIRECT_ARGUMENT:
+        return false;
+      case GpuResourceUsageState::READ_VERTEX_BUFFER:
+      case GpuResourceUsageState::READ_INDEX_BUFFER:
+        case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER:
+        
+      case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE:
+      case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE:
+      case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE:
+        return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
+            || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_RESOURCE;
+      case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER:
+      case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER:
+      case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:
+        return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
+          || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER;
+      case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE:
+        return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+      case GpuResourceUsageState::READ_COPY_SOURCE: break;
+      case 
+      case GpuResourceUsageState::READ_DEPTH: break;
+      case GpuResourceUsageState::READ_PRESENT: break;
+      case GpuResourceUsageState::LAST_READ_STATE: break;
+      case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV: break;
+      case GpuResourceUsageState::FIRST_WRITE_STATE: break;
+      case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV: break;
+      case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV: break;
+      case GpuResourceUsageState::WRITE_ANY_SHADER_UAV: break;
+      case GpuResourceUsageState::WRITE_RENDER_TARGET: break;
+      case GpuResourceUsageState::WRITE_COPY_DEST: break;
+      case GpuResourceUsageState::WRITE_DEPTH: break;
+      case GpuResourceUsageState::LAST_WRITE_STATE: break;
+      case GpuResourceUsageState::UNKNOWN: break;
+      case GpuResourceUsageState::NUM: break;
+      default: ;
+      }
+};
   }
 //---------------------------------------------------------------------------//
+
 
 
 

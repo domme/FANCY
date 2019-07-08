@@ -23,7 +23,7 @@ namespace Fancy
   {
     static bool QueueCanTransitionFrom(CommandListType aQueue, CommandListType aSrcQueue, GpuResourceUsageState aSrcState);
     static bool IsBarrierNeeded(CommandListType aSrcQueue, GpuResourceUsageState aSrcState, CommandListType aDstQueue, GpuResourceUsageState aDstState);
-    static GpuResourceUsageState GetMoreGenericState(GpuResourceUsageState aState1, GpuResourceUsageState aState2);
+    static GpuResourceUsageState CompareGetMoreGeneralState(GpuResourceUsageState aState1, GpuResourceUsageState aState2);
     
     bool myCanChangeStates = true;
     GpuResourceUsageState myState = GpuResourceUsageState::COMMON;
