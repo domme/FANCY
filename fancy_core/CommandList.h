@@ -135,8 +135,7 @@ namespace Fancy {
       CommandListType aDstQueue) = 0;
 
     GpuQuery AllocateQuery(GpuQueryType aType);
-    int FindResourceHazardEntryIdx(const GpuResource* aResource);
-
+    
     CommandListType myCommandListType;
     CommandListType myCurrentContext;
     bool myIsTrackingResourceStates;

@@ -125,15 +125,6 @@ namespace Fancy {
     return GpuQuery(aType, queryIndex, Time::ourFrameIdx, myCommandListType);
   }
 //---------------------------------------------------------------------------//
-  int CommandList::FindResourceHazardEntryIdx(const GpuResource* aResource)
-  {
-    for (uint i = 0; i < myNumTrackedResources; ++i)
-      if (myTrackedResources[i] == aResource)
-        return i;
-
-    return -1;
-  }
-//---------------------------------------------------------------------------//
   const GpuBuffer* CommandList::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
   {
     DynamicArray<GpuRingBuffer*>* ringBufferList = nullptr;
@@ -561,16 +552,14 @@ namespace Fancy {
       ASSERT(aDstState != GpuResourceUsageState::UNKNOWN);
       ASSERT(aDstQueue != CommandListType::UNKNOWN);
 
-      const bool isReadReadTransition = 
-        aSrcState <= GpuResourceUsageState::FIRST_READ_STATE && aSrcState <= GpuResourceUsageState::LAST_READ_STATE &&
-        aDstState <= GpuResourceUsageState::FIRST_READ_STATE && aDstState <= GpuResourceUsageState::LAST_READ_STATE;
-
-      ASSERT(!isReadReadTransition || GpuResourceStateTracking::StateIsContainedIn(aSrcState, aDstState), "Read-read transitions are only allowed if transitioning to a more general state");
-
       // Find the local hazard-state for this resource if it already has one. If not, the srcState must be UNKNOWN
-      const int resourceHazardIdx = FindResourceHazardEntryIdx(aResource);
+      int trackingIdx = -1;
+      for (uint i = 0; i < myNumTrackedResources && trackingIdx == -1; ++i)
+        if (myTrackedResources[i] == aResource)
+          trackingIdx = i;
+
       ResourceStateTracking* resTracking = nullptr;
-      if (resourceHazardIdx < 0)
+      if (trackingIdx < 0)
       {
         ASSERT(myNumTrackedResources < ARRAY_LENGTH(myTrackedResources));
         myTrackedResources[myNumTrackedResources] = aResource;
@@ -586,7 +575,7 @@ namespace Fancy {
       }
       else
       {
-        resTracking = &myResourceStateTrackings[resourceHazardIdx];
+        resTracking = &myResourceStateTrackings[trackingIdx];
 
         const char* resName = aResource->myName.c_str();
         ASSERT(resTracking->myState == aSrcState, "Mismatching resource-state on command list. Resource %s is in state %d but barrier wants to transition from %d",

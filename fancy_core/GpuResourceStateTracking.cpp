@@ -89,7 +89,7 @@ namespace Fancy
       return false;
 
     case GpuResourceUsageState::READ_INDIRECT_ARGUMENT:
-      return false;
+      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
     case GpuResourceUsageState::READ_VERTEX_BUFFER:
       return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
