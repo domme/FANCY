@@ -74,13 +74,9 @@ namespace Fancy
       CommandListType myDstQueue;
       GpuResourceUsageState myDstState;
     };
-    BarrierData* prePatchingBarriers = (BarrierData*)alloca(sizeof(BarrierData) * numTrackedResources);
-    uint numPrePatchingBarriers = 0u;
-    CommandListType prePatchingQueueType = aCommandList->myCommandListType;
-
-    BarrierData* postPatchingBarriers = (BarrierData*)alloca(sizeof(BarrierData) * numTrackedResources);
-    uint numPostPatchingBarriers = 0u;
-    CommandListType postPatchingQueueType = aCommandList->myCommandListType;
+    BarrierData* patchingBarriers = (BarrierData*)alloca(sizeof(BarrierData) * numTrackedResources);
+    uint numPatchingBarriers = 0u;
+    CommandListType patchingQueue = aCommandList->myCommandListType;
 
     for (uint iRes = 0; iRes < aCommandList->myNumTrackedResources; ++iRes)
     {
@@ -99,17 +95,17 @@ namespace Fancy
         resource->myName.c_str(), RenderCore::CommandListTypeToString(resState.myQueueType), RenderCore::ResourceUsageStateToString(resState.myState), 
         RenderCore::CommandListTypeToString(localState.myFirstDstQueue), RenderCore::ResourceUsageStateToString(localState.myFirstDstState));
 #endif
-      BarrierData& prePatchBarrier = prePatchingBarriers[numPrePatchingBarriers++];
+      BarrierData& prePatchBarrier = patchingBarriers[numPatchingBarriers++];
       prePatchBarrier.myResource = resource;
       prePatchBarrier.mySrcQueue = resState.myQueueType;
       prePatchBarrier.mySrcState = resState.myState;
       prePatchBarrier.myDstQueue = localState.myFirstDstQueue;
       prePatchBarrier.myDstState = localState.myFirstDstState;
 
-      while (!GpuResourceStateTracking::QueueUnderstandsState(prePatchingQueueType, resState.myQueueType, resState.myState))
+      while (!GpuResourceStateTracking::QueueUnderstandsState(patchingQueue, resState.myQueueType, resState.myState))
       {
-        ASSERT(prePatchingQueueType > (CommandListType) 0);
-        prePatchingQueueType = static_cast<CommandListType>(static_cast<uint>(prePatchingQueueType) - 1);
+        ASSERT(patchingQueue > (CommandListType) 0);
+        patchingQueue = static_cast<CommandListType>(static_cast<uint>(patchingQueue) - 1);
       }
 
       resState.myState = localState.myState;
@@ -140,22 +136,22 @@ namespace Fancy
       }
     }
 
-    if (numPrePatchingBarriers > 0)
+    if (numPatchingBarriers > 0)
     {
-      CommandList* ctx = RenderCore::BeginCommandList(prePatchingQueueType, (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
-      for (uint i = 0u; i < numPrePatchingBarriers; ++i)
+      CommandList* ctx = RenderCore::BeginCommandList(patchingQueue, (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
+      for (uint i = 0u; i < numPatchingBarriers; ++i)
       {
-        const BarrierData& barrier = prePatchingBarriers[i];
+        const BarrierData& barrier = patchingBarriers[i];
         ctx->ResourceBarrier(barrier.myResource, barrier.mySrcState, barrier.myDstState, barrier.mySrcQueue, barrier.myDstQueue);
       }
 
       const uint64 patchingCommandListFence = RenderCore::ExecuteAndFreeCommandList(ctx);
 
-      if (prePatchingQueueType != aCommandList->myCommandListType)
+      if (patchingQueue != aCommandList->myCommandListType)
       {
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
         LOG_INFO("Some resources on command-list type %s need pre-patching with command-list type %s. The queues will be serialized",
-          RenderCore::CommandListTypeToString(aCommandList->myCommandListType), RenderCore::CommandListTypeToString(prePatchingQueueType));
+          RenderCore::CommandListTypeToString(aCommandList->myCommandListType), RenderCore::CommandListTypeToString(patchingQueue));
 #endif
         RenderCore::GetCommandQueue(aCommandList->myCommandListType)->StallForFence(patchingCommandListFence);
       }

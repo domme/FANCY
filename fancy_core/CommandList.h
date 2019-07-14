@@ -169,9 +169,7 @@ namespace Fancy {
 
       GpuResourceUsageState myState;
       CommandListType myQueue;
-
-      GpuResourceUsageState myPendingLastDstState;
-      CommandListType myPendingLastDstQueue;
+      CommandListType myPendingDstQueue;
     };
     const GpuResource* myTrackedResources[1024];
     ResourceStateTracking myResourceStateTrackings[1024];

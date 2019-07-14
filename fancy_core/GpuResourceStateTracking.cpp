@@ -44,6 +44,45 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  bool GpuResourceStateTracking::QueueUnderstandsPartsOfState(CommandListType aCurrQueue, GpuResourceUsageState aState)
+  {
+    if (aCurrQueue == CommandListType::Graphics)
+      return true;
+
+    const bool copy = aCurrQueue == CommandListType::DMA;
+    const bool compute = aCurrQueue == CommandListType::Compute;
+
+    switch (aState)
+    {
+      case GpuResourceUsageState::COMMON: return true; // This should mean "idle" more or less so it could be supported on any queue-type
+      case GpuResourceUsageState::READ_INDIRECT_ARGUMENT: return compute;
+      case GpuResourceUsageState::READ_VERTEX_BUFFER: return false;
+      case GpuResourceUsageState::READ_INDEX_BUFFER: return false;
+      case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER: return false;
+      case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE: return false;
+      case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER: return false;
+      case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE: return false;
+      case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER: return compute;
+      case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE: return compute;
+      case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER: return compute;
+      case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE:  return compute;
+      case GpuResourceUsageState::READ_COPY_SOURCE: return true;
+      case GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH: return compute;
+      case GpuResourceUsageState::READ_DEPTH: return false;
+      case GpuResourceUsageState::READ_PRESENT: return false;
+      case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV: return false;
+      case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV: return false;
+      case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV: return compute;
+      case GpuResourceUsageState::WRITE_ANY_SHADER_UAV: return compute;
+      case GpuResourceUsageState::WRITE_RENDER_TARGET: return false;
+      case GpuResourceUsageState::WRITE_COPY_DEST: return true;
+      case GpuResourceUsageState::WRITE_DEPTH: return false;
+      case GpuResourceUsageState::UNKNOWN:
+      case GpuResourceUsageState::NUM:
+      default: ASSERT(false); return false;
+    }
+  }
+//---------------------------------------------------------------------------//
   bool GpuResourceStateTracking::IsBarrierNeeded(CommandListType aSrcQueue, GpuResourceUsageState aSrcState, CommandListType aDstQueue, GpuResourceUsageState aDstState)
   {
     if (aSrcQueue == aDstQueue && aSrcState == aDstState)

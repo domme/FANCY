@@ -554,6 +554,8 @@ namespace Fancy {
       ASSERT((aSrcQueue == CommandListType::UNKNOWN || aSrcState == GpuResourceUsageState::UNKNOWN)
         || GpuResourceStateTracking::QueueUnderstandsState(myCommandListType, aSrcQueue, aSrcState));
 
+      ASSERT(GpuResourceStateTracking::QueueUnderstandsPartsOfState(myCommandListType, aDstState), "The current queue doesn't understand any part of the dst state");
+
       // Find the local hazard-state for this resource if it already has one. If not, the srcState must be UNKNOWN
       int trackingIdx = -1;
       for (uint i = 0; i < myNumTrackedResources && trackingIdx == -1; ++i)
@@ -563,7 +565,8 @@ namespace Fancy {
       ResourceStateTracking* resTracking = nullptr;
       if (trackingIdx < 0)
       {
-        ASSERT(GpuResourceStateTracking::QueueUnderstandsState(myCommandListType, aDstQueue, aDstState));
+        // Queue-ownership transition shouldn't be the first transition on a command list. The expected case is that the command list writes to a resource and then transfers ownership
+        ASSERT(GpuResourceStateTracking::QueueUnderstandsState(myCommandListType, aDstQueue, aDstState));  
 
         ASSERT(myNumTrackedResources < ARRAY_LENGTH(myTrackedResources));
         myTrackedResources[myNumTrackedResources] = aResource;
@@ -576,8 +579,7 @@ namespace Fancy {
         resTracking->myFirstSrcQueue = aSrcQueue;
         resTracking->myFirstDstQueue = aDstQueue;
         resTracking->myQueue = aDstQueue;
-        resTracking->myPendingLastDstQueue = CommandListType::UNKNOWN;
-        resTracking->myPendingLastDstState = GpuResourceUsageState::UNKNOWN;
+        resTracking->myPendingDstQueue = CommandListType::UNKNOWN;
       }
       else
       {
@@ -588,35 +590,30 @@ namespace Fancy {
           resName, (uint)resTracking->myState, (uint)aSrcState);
         ASSERT(resTracking->myQueue == aSrcQueue, "Mismatching queue-type on command list. Resource %s is owned by queue %d but barrier wants to transition from %d",
           resName, (uint)resTracking->myQueue, (uint)aSrcQueue);
-        ASSERT(resTracking->myQueue == myCommandListType, "Transitioning to a foreign queue-type should be the last transition on a command-list. Resource %s was given to queue %s but another barrier was issued on queue %s",
+        ASSERT(resTracking->myQueue == myCommandListType && resTracking->myPendingDstQueue == CommandListType::UNKNOWN, 
+          "Transitioning to a foreign queue-type should be the last transition on a command-list. Resource %s was given to queue %s but another barrier was issued on queue %s",
           resName, RenderCore::CommandListTypeToString(resTracking->myQueue), RenderCore::CommandListTypeToString(myCommandListType));
-        ASSERT(resTracking->myPendingLastDstQueue == CommandListType::UNKNOWN, "Resource %s has a pending queue-ownership transition recorded on a command list. This must remain the last transition issued to that resource",
-          resName);
 
-        if (GpuResourceStateTracking::QueueUnderstandsState(myCommandListType, aDstQueue, aDstState))
+        CommandListType reachableDstQueue = aDstQueue;
+        while (!GpuResourceStateTracking::QueueUnderstandsState(myCommandListType, reachableDstQueue, aDstState) && reachableDstQueue != myCommandListType)
+        {
+          ASSERT((uint)reachableDstQueue < (uint)CommandListType::NUM - 1);
+          reachableDstQueue = static_cast<CommandListType>(static_cast<uint>(reachableDstQueue) + 1);
+        }
+
+        if (reachableDstQueue != aDstQueue)
         {
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          LOG_INFO("Resource state tracking: Resource %s from %s-%s to %s-%s (current state on command list: %s-%s)",
+          LOG_INFO("Resource state tracking: Resource %s can only partially transition to %s-%s. It will transition to %s-%s instead and complete the transition on that queue type later",
             resName, RenderCore::CommandListTypeToString(aSrcQueue), RenderCore::ResourceUsageStateToString(aSrcState),
-            RenderCore::CommandListTypeToString(aDstQueue), RenderCore::ResourceUsageStateToString(aDstState),
-            RenderCore::CommandListTypeToString(resTracking->myQueue), RenderCore::ResourceUsageStateToString(resTracking->myState));
+            RenderCore::CommandListTypeToString(reachableDstQueue), RenderCore::ResourceUsageStateToString(aDstState));
 #endif  
-          resTracking->myState = aDstState;
-          resTracking->myQueue = aDstQueue;
-
-          SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, aDstQueue);
+          resTracking->myPendingDstQueue = aDstQueue;
         }
-        else  // The commandList can't transition into dst queue/state. Record it as a pending transition and patch it later during submission
-        {
-#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          LOG_INFO("Resource state tracking: Marking transition as pending because the current queue can't perform the transition to dst. (Resource %s from %s-%s to %s-%s on command list %s)",
-            resName, RenderCore::CommandListTypeToString(aSrcQueue), RenderCore::ResourceUsageStateToString(aSrcState),
-            RenderCore::CommandListTypeToString(aDstQueue), RenderCore::ResourceUsageStateToString(aDstState),
-            RenderCore::CommandListTypeToString(myCommandListType));
-#endif  
-          resTracking->myPendingLastDstQueue = aDstQueue;
-          resTracking->myPendingLastDstState = aDstState;
-        }
+        
+        resTracking->myState = aDstState;
+        resTracking->myQueue = reachableDstQueue;
+        SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, reachableDstQueue);
       }
     }
     else

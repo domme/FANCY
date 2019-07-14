@@ -15,12 +15,14 @@ namespace Fancy
   struct GpuResourceStateTracking
   {
     static bool QueueUnderstandsState(CommandListType aCurrQueue, CommandListType aQueue, GpuResourceUsageState aState);
+    static bool QueueUnderstandsPartsOfState(CommandListType aCurrQueue, GpuResourceUsageState aState);
     static bool IsBarrierNeeded(CommandListType aSrcQueue, GpuResourceUsageState aSrcState, CommandListType aDstQueue, GpuResourceUsageState aDstState);
     static bool StateIsContainedIn(GpuResourceUsageState aLowerState, GpuResourceUsageState aHigherState);
     
     bool myCanChangeStates = true;
     GpuResourceUsageState myState = GpuResourceUsageState::COMMON;
     CommandListType myQueueType = CommandListType::Graphics;
+    CommandListType myPendingQueueType = CommandListType::UNKNOWN;
 
     GpuResourceStateTrackingDX12 myDx12Data;  // Will become a union once other platforms are in
   };
