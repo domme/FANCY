@@ -32,7 +32,7 @@ namespace Fancy
     virtual uint64 ExecuteCommandListInternal(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
     virtual uint64 ExecuteAndResetCommandListInternal(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
 
-    void ResolveResourceBarriers(CommandList* aCommandList);
+    uint64 InsertCommandListTrackResourceStates(CommandList* aCommandList, bool aReset, SyncMode aSyncMode);
     void FreeCommandList(CommandList* aCommandList);
 
     DynamicArray<UniquePtr<CommandList>> myCommandListPool;

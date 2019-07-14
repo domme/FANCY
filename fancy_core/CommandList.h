@@ -161,12 +161,17 @@ namespace Fancy {
 
     struct ResourceStateTracking
     {
-      GpuResourceUsageState myFirstSrcState;
-      GpuResourceUsageState myFirstDstState;
-      GpuResourceUsageState myState;
       CommandListType myFirstSrcQueue;
+      GpuResourceUsageState myFirstSrcState;
+
       CommandListType myFirstDstQueue;
+      GpuResourceUsageState myFirstDstState;
+
+      GpuResourceUsageState myState;
       CommandListType myQueue;
+
+      GpuResourceUsageState myPendingLastDstState;
+      CommandListType myPendingLastDstQueue;
     };
     const GpuResource* myTrackedResources[1024];
     ResourceStateTracking myResourceStateTrackings[1024];

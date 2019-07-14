@@ -14,7 +14,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct GpuResourceStateTracking
   {
-    static bool QueueCanTransitionFrom(CommandListType aQueue, CommandListType aSrcQueue, GpuResourceUsageState aSrcState);
+    static bool QueueUnderstandsState(CommandListType aCurrQueue, CommandListType aQueue, GpuResourceUsageState aState);
     static bool IsBarrierNeeded(CommandListType aSrcQueue, GpuResourceUsageState aSrcState, CommandListType aDstQueue, GpuResourceUsageState aDstState);
     static bool StateIsContainedIn(GpuResourceUsageState aLowerState, GpuResourceUsageState aHigherState);
     
@@ -25,7 +25,4 @@ namespace Fancy
     GpuResourceStateTrackingDX12 myDx12Data;  // Will become a union once other platforms are in
   };
 //---------------------------------------------------------------------------//
-
 }
-
-

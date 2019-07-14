@@ -3,17 +3,17 @@
 
 namespace Fancy
 {
-  bool GpuResourceStateTracking::QueueCanTransitionFrom(CommandListType aQueue, CommandListType aSrcQueue, GpuResourceUsageState aSrcState)
+  bool GpuResourceStateTracking::QueueUnderstandsState(CommandListType aCurrQueue, CommandListType aQueue, GpuResourceUsageState aState)
   {
-    if (aSrcQueue == aQueue)
+    if (aQueue == aCurrQueue)
       return true;
 
-    const bool copy = aQueue == CommandListType::DMA;
-    const bool compute = aQueue == CommandListType::Compute;
-    const bool graphics = aQueue == CommandListType::Graphics;
-    const bool queueIsLessSpecificOrEqual = aQueue <= aSrcQueue;
+    const bool copy = aCurrQueue == CommandListType::DMA;
+    const bool compute = aCurrQueue == CommandListType::Compute;
+    const bool graphics = aCurrQueue == CommandListType::Graphics;
+    const bool queueIsLessSpecificOrEqual = aCurrQueue <= aQueue;
 
-    switch (aSrcState)
+    switch (aState)
     {
       case GpuResourceUsageState::COMMON: return true; // This should mean "idle" more or less so it could be supported on any queue-type
       case GpuResourceUsageState::READ_INDIRECT_ARGUMENT: return (graphics || compute) && queueIsLessSpecificOrEqual;
