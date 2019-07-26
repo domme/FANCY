@@ -17,6 +17,9 @@
     <ClCompile Include="Test_AsyncCompute.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="Test_Mipmapping.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Tests">
@@ -40,6 +43,9 @@
       <Filter>Tests</Filter>
     </ClInclude>
     <ClInclude Include="Test_AsyncCompute.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="Test_Mipmapping.h">
       <Filter>Tests</Filter>
     </ClInclude>
   </ItemGroup>

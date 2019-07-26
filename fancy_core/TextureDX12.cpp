@@ -107,7 +107,6 @@ namespace Fancy {
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     if (someProperties.bIsDepthStencil)
     {
-      defaultState = GpuResourceState::WRITE_DEPTH;
       resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
     }
     else
