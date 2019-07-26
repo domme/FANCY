@@ -183,9 +183,6 @@ namespace Fancy {
 
     serializer.Read(texProps.myNumMipLevels);
 
-    uint defaultState;
-    serializer.Read(defaultState);
-
     uint numSavedSubdatas = 0;
     serializer.Read(numSavedSubdatas);
     ASSERT(numSavedSubdatas > 0);

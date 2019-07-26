@@ -17,16 +17,18 @@ namespace Fancy {
     const int fileBufferSize = snprintf(nullptr, 0u, "File: %s (%i)", aFile, aLine) + 1;
 
     const int logBufferSizeBytes =
-      severityBufferSize + messageBufferSize + 1u // \n
-      + fileBufferSize + 1u + 1u;  // \0 \n 
+      severityBufferSize + messageBufferSize
+      + fileBufferSize + 1u + 1u + 1u + 1u + 1u;  // (...) \0 \n 
 
     char* logBuffer = (char*)alloca(logBufferSizeBytes);
 
     int offset = 0;
     offset += snprintf(logBuffer + offset, severityBufferSize, "%s: ", aSeverity);
     offset += vsnprintf(logBuffer + offset, messageBufferSize, aMessageFormat, args);
-    logBuffer[offset++] = '\n';
+    logBuffer[offset++] = ' ';
+    logBuffer[offset++] = '(';
     offset += snprintf(logBuffer + offset, fileBufferSize, "File: %s (%i)", aFile, aLine);
+    logBuffer[offset++] = ')';
     logBuffer[offset++] = '\n';
     logBuffer[offset] = '\0';
 

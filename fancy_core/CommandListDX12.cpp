@@ -827,6 +827,8 @@ namespace Fancy {
     SetTrackSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, aResourceCount);
 #endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
 
+    FlushBarriers();  // D3D12 needs a barrier flush here so the debug layer doesn't complain about expecting static descriptors and data at this point
+
     const DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
 
     switch(myCurrentContext)

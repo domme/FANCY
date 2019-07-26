@@ -31,9 +31,19 @@ namespace Fancy {
       SHADER_WRITABLE = 1 << 2
     };
 
+    enum ResampleFilter
+    {
+      FILTER_LINEAR = 0,
+      FILTER_LANCZOS,
+
+      FILTER_NUM
+    };
+
     SharedPtr<Texture> GetTexture(const char* aPath, uint someFlags = 0);
     SharedPtr<Texture> CreateTexture(const char* aPath, uint someLoadFlags = 0);
-    void ComputeMipmaps(const SharedPtr<Texture>& aTexture);
+    void ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter aFilter = FILTER_LANCZOS);
+
+    GpuProgram* GetResizeShader() const { return myTextureResizeShader.get(); }
 
     SharedPtr<Material> CreateMaterial(const MaterialDesc& aDesc);
     SharedPtr<Model> CreateModel(const ModelDesc& aDesc);

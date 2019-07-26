@@ -18,6 +18,7 @@
 #include "Test_GpuMemoryAllocator.h"
 #include "Test_Synchronization.h"
 #include "Test_AsyncCompute.h"
+#include "Tests/Test_Mipmapping.h"
 
 
 using namespace Fancy;
@@ -33,6 +34,7 @@ bool test_imgui = false;
 bool test_gpuMemoryAllocs = false;
 bool test_sychronization = false;
 bool test_asyncCompute = false;
+bool test_mipmapping = false;
 
 DynamicArray<UniquePtr<Test>> myTests;
 
@@ -103,6 +105,13 @@ void Update()
       myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_AsyncCompute*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(std::make_unique<Test_AsyncCompute>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+  if (ImGui::Checkbox("Test Mipmapping", &test_mipmapping))
+  {
+    if (!test_mipmapping)
+      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Mipmapping*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(std::make_unique<Test_Mipmapping>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
 
   ImGui::Separator();

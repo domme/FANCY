@@ -252,7 +252,7 @@ using namespace Fancy;
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  void AssetManager::ComputeMipmaps(const SharedPtr<Texture>& aTexture)
+  void AssetManager::ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter aFilter /*= FILTER_LANCZOS*/)
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;
@@ -290,7 +290,7 @@ using namespace Fancy;
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.eFormat);
     
     cBuffer.myIsSRGB = formatInfo.mySRGB ? 1 : 0;
-    cBuffer.myFilterMethod = 1; // Lanczos filter
+    cBuffer.myFilterMethod = (int) aFilter;
 
     const uint kMaxNumMips = 17;
     ASSERT(numMips <= kMaxNumMips);
