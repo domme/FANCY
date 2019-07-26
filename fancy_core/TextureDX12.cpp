@@ -102,10 +102,12 @@ namespace Fancy {
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     resourceDesc.Format = dxgiFormat;
-    
+
+    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_RESOURCE;
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     if (someProperties.bIsDepthStencil)
     {
+      defaultState = GpuResourceState::WRITE_DEPTH;
       resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
     }
     else
@@ -116,7 +118,7 @@ namespace Fancy {
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
     }
 
-    D3D12_RESOURCE_STATES defaultStates = RenderCore_PlatformDX12::ResolveResourceUsageState(someProperties.myDefaultState);
+    D3D12_RESOURCE_STATES defaultStates = RenderCore_PlatformDX12::ResolveResourceUsageState(defaultState);
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (someProperties.myIsShaderWritable)
@@ -136,8 +138,7 @@ namespace Fancy {
     myNumPlanes = formatInfo.myNumPlanes;
 
     myStateTracking = GpuResourceStateTracking();
-    myStateTracking.myState = someProperties.myDefaultState;
-    myStateTracking.myQueueType = CommandListType::Graphics;
+    myStateTracking.myDefaultState = defaultState;
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;
 
@@ -225,10 +226,10 @@ namespace Fancy {
         }
 
 
-        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics, (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
-        ctx->ResourceBarrier(this, myProperties.myDefaultState, GpuResourceUsageState::WRITE_COPY_DEST);
+        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+        ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
         ctx->UpdateTextureData(this, TextureSubLocation(), newDatas, aNumInitialDatas);
-        ctx->ResourceBarrier(this, GpuResourceUsageState::WRITE_COPY_DEST, myProperties.myDefaultState);
+        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
 
         for (uint i = 0u; i < aNumInitialDatas; ++i)
@@ -238,10 +239,10 @@ namespace Fancy {
       }
       else
       {
-        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics, (uint) CommandListFlags::NO_RESOURCE_STATE_TRACKING);
-        ctx->ResourceBarrier(this, myProperties.myDefaultState, GpuResourceUsageState::WRITE_COPY_DEST);
+        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+        ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
         ctx->UpdateTextureData(this, TextureSubLocation(), someInitialDatas, aNumInitialDatas);
-        ctx->ResourceBarrier(this, GpuResourceUsageState::WRITE_COPY_DEST, myProperties.myDefaultState);
+        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }

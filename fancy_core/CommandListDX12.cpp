@@ -104,8 +104,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   std::unordered_map<uint64, ID3D12PipelineState*> CommandListDX12::ourPSOcache;
 //---------------------------------------------------------------------------//
-  CommandListDX12::CommandListDX12(CommandListType aCommandListType, uint someFlags)
-    : CommandList(aCommandListType, someFlags)
+  CommandListDX12::CommandListDX12(CommandListType aCommandListType)
+    : CommandList(aCommandListType)
     , myIsOpen(true)
     , myRootSignature(nullptr)
     , myComputeRootSignature(nullptr)
@@ -513,9 +513,9 @@ namespace Fancy {
     myCommandAllocator = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::Reset(uint someFlags)
+  void CommandListDX12::Reset()
   {
-    CommandList::Reset(someFlags);
+    CommandList::Reset();
 
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
@@ -944,8 +944,8 @@ namespace Fancy {
     const GpuResource* aResource, 
     const uint16* someSubresources,
     uint aNumSubresources, 
-    GpuResourceUsageState aSrcState, 
-    GpuResourceUsageState aDstState, 
+    GpuResourceState aSrcState, 
+    GpuResourceState aDstState, 
     CommandListType aSrcQueue,
     CommandListType aDstQueue)
   {
@@ -962,8 +962,8 @@ namespace Fancy {
     if (!resourceStateTracking.myCanChangeStates)
       return false;
 
-    const bool srcIsRead = aSrcState >= GpuResourceUsageState::FIRST_READ_STATE && aSrcState <= GpuResourceUsageState::LAST_READ_STATE;
-    const bool dstIsRead = aDstState >= GpuResourceUsageState::FIRST_READ_STATE && aDstState <= GpuResourceUsageState::LAST_READ_STATE;
+    const bool srcIsRead = aSrcState >= GpuResourceState::FIRST_READ_STATE && aSrcState <= GpuResourceState::LAST_READ_STATE;
+    const bool dstIsRead = aDstState >= GpuResourceState::FIRST_READ_STATE && aDstState <= GpuResourceState::LAST_READ_STATE;
 
     uint srcStateDx12 = RenderCore_PlatformDX12::ResolveResourceUsageState(aSrcState);
     uint dstStateDx12 = RenderCore_PlatformDX12::ResolveResourceUsageState(aDstState);

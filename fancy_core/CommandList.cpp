@@ -86,11 +86,9 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  CommandList::CommandList(CommandListType aType, uint someFlags)
+  CommandList::CommandList(CommandListType aType)
     : myCommandListType(aType)
     , myCurrentContext(aType)
-    , myIsTrackingResourceStates((someFlags & (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING) == 0)
-    , myFlags(someFlags)
     , myViewportParams(0, 0, 1, 1)
     , myClipRect(0, 0, 1, 1)
     , myViewportDirty(true)
@@ -100,7 +98,6 @@ namespace Fancy {
     , myShaderHasUnorderedWrites(false)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr)
-    , myNumTrackedResources(0u)
   {
   }
 //---------------------------------------------------------------------------//
@@ -282,15 +279,12 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::Reset(uint someFlags)
+  void CommandList::Reset()
   {
     ASSERT(!IsOpen(), "Reset() called on open command list. Gpu-resources will not get freed! Did you forget to execute the command list?");
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
-    myNumTrackedResources = 0u;
-    myIsTrackingResourceStates = (someFlags & (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING) == 0;
-    myFlags = someFlags;
     
     myViewportParams = glm::uvec4(0, 0, 1, 1);
     myClipRect = glm::uvec4(0, 0, 1, 1);
@@ -516,7 +510,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState)
+  void CommandList::SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
     ASSERT(aSubresourceList != nullptr && aNumSubresources > 0u);
 
@@ -532,94 +526,36 @@ namespace Fancy {
     SubresourceBarrierInternal(aResource, aSubresourceList, aNumSubresources, aSrcState, aDstState, myCommandListType, myCommandListType);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState)
+  void CommandList::SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
     SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresources[0].data(), (uint)aResourceView->mySubresources[0].size(), aSrcState, aDstState);
     if (!aResourceView->mySubresources[1].empty())
       SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresources[1].data(), (uint)aResourceView->mySubresources[1].size(), aSrcState, aDstState);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState)
+  void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceState aSrcState, GpuResourceState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue)
   {
-    ResourceBarrier(aResource, aSrcState, aDstState, myCommandListType, myCommandListType);
+    if (aSrcState == aDstState && aSrcQueue == aDstQueue)
+      return;
+
+    ASSERT(aSrcState != GpuResourceState::UNKNOWN && aDstState != GpuResourceState::UNKNOWN);
+    ASSERT(aSrcQueue != CommandListType::UNKNOWN && aDstQueue != CommandListType::UNKNOWN);
+    ASSERT(GpuResourceStateTracking::QueueUnderstandsPartsOfState(myCommandListType, aSrcState));
+    ASSERT(GpuResourceStateTracking::QueueUnderstandsPartsOfState(myCommandListType, aDstState));
+    ASSERT(GpuResourceStateTracking::QueueUnderstandsPartsOfState(aSrcQueue, aSrcState));
+    ASSERT(GpuResourceStateTracking::QueueUnderstandsPartsOfState(aDstQueue, aDstState));
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+      LOG_INFO("Resource transition: Resource %s from %s-%s to %s-%s (on %s)",
+        aResource->myName.c_str(), RenderCore::CommandListTypeToString(aSrcQueue), RenderCore::ResourceUsageStateToString(aSrcState),
+        RenderCore::CommandListTypeToString(aDstQueue), RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeToString(myCommandListType));
+#endif  
+    SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, aDstQueue);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue)
+  void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
-    if (myIsTrackingResourceStates)
-    {
-      ASSERT(aSrcState != aDstState || aSrcQueue != aDstQueue);
-      ASSERT(aDstState != GpuResourceUsageState::UNKNOWN);
-      ASSERT(aDstQueue != CommandListType::UNKNOWN);
-      ASSERT((aSrcQueue == CommandListType::UNKNOWN || aSrcState == GpuResourceUsageState::UNKNOWN)
-        || GpuResourceStateTracking::QueueUnderstandsState(myCommandListType, aSrcQueue, aSrcState));
-
-      ASSERT(GpuResourceStateTracking::QueueUnderstandsPartsOfState(myCommandListType, aDstState), "The current queue doesn't understand any part of the dst state");
-
-      // Find the local hazard-state for this resource if it already has one. If not, the srcState must be UNKNOWN
-      int trackingIdx = -1;
-      for (uint i = 0; i < myNumTrackedResources && trackingIdx == -1; ++i)
-        if (myTrackedResources[i] == aResource)
-          trackingIdx = i;
-
-      ResourceStateTracking* resTracking = nullptr;
-      if (trackingIdx < 0)
-      {
-        // Queue-ownership transition shouldn't be the first transition on a command list. The expected case is that the command list writes to a resource and then transfers ownership
-        ASSERT(GpuResourceStateTracking::QueueUnderstandsState(myCommandListType, aDstQueue, aDstState));  
-
-        ASSERT(myNumTrackedResources < ARRAY_LENGTH(myTrackedResources));
-        myTrackedResources[myNumTrackedResources] = aResource;
-        resTracking = &myResourceStateTrackings[myNumTrackedResources];
-        ++myNumTrackedResources;
-
-        resTracking->myFirstSrcState = aSrcState;
-        resTracking->myFirstDstState = aDstState;
-        resTracking->myState = aDstState;
-        resTracking->myFirstSrcQueue = aSrcQueue;
-        resTracking->myFirstDstQueue = aDstQueue;
-        resTracking->myQueue = aDstQueue;
-        resTracking->myPendingDstQueue = CommandListType::UNKNOWN;
-      }
-      else
-      {
-        resTracking = &myResourceStateTrackings[trackingIdx];
-
-        const char* resName = aResource->myName.c_str();
-        ASSERT(resTracking->myState == aSrcState, "Mismatching resource-state on command list. Resource %s is in state %d but barrier wants to transition from %d",
-          resName, (uint)resTracking->myState, (uint)aSrcState);
-        ASSERT(resTracking->myQueue == aSrcQueue, "Mismatching queue-type on command list. Resource %s is owned by queue %d but barrier wants to transition from %d",
-          resName, (uint)resTracking->myQueue, (uint)aSrcQueue);
-        ASSERT(resTracking->myQueue == myCommandListType && resTracking->myPendingDstQueue == CommandListType::UNKNOWN, 
-          "Transitioning to a foreign queue-type should be the last transition on a command-list. Resource %s was given to queue %s but another barrier was issued on queue %s",
-          resName, RenderCore::CommandListTypeToString(resTracking->myQueue), RenderCore::CommandListTypeToString(myCommandListType));
-
-        CommandListType reachableDstQueue = aDstQueue;
-        while (!GpuResourceStateTracking::QueueUnderstandsState(myCommandListType, reachableDstQueue, aDstState) && reachableDstQueue != myCommandListType)
-        {
-          ASSERT((uint)reachableDstQueue < (uint)CommandListType::NUM - 1);
-          reachableDstQueue = static_cast<CommandListType>(static_cast<uint>(reachableDstQueue) + 1);
-        }
-
-        if (reachableDstQueue != aDstQueue)
-        {
-#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          LOG_INFO("Resource state tracking: Resource %s can only partially transition to %s-%s. It will transition to %s-%s instead and complete the transition on that queue type later",
-            resName, RenderCore::CommandListTypeToString(aSrcQueue), RenderCore::ResourceUsageStateToString(aSrcState),
-            RenderCore::CommandListTypeToString(reachableDstQueue), RenderCore::ResourceUsageStateToString(aDstState));
-#endif  
-          resTracking->myPendingDstQueue = aDstQueue;
-        }
-        
-        resTracking->myState = aDstState;
-        resTracking->myQueue = reachableDstQueue;
-        SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, reachableDstQueue);
-      }
-    }
-    else
-    {
-      SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, aDstQueue);
-    }
+    ResourceBarrier(aResource, aSrcState, aDstState, myCommandListType, myCommandListType);
   }
 //---------------------------------------------------------------------------//
 } 

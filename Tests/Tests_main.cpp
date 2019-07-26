@@ -126,7 +126,7 @@ void Render()
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
   GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
   float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceUsageState::READ_PRESENT, GpuResourceUsageState::WRITE_RENDER_TARGET);
+  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceState::READ_PRESENT, GpuResourceState::WRITE_RENDER_TARGET);
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   GPU_END_PROFILE(ctx);
   RenderCore::ExecuteAndResetCommandList(ctx);
@@ -136,7 +136,7 @@ void Render()
 
   ImGui::Render();
 
-  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceUsageState::WRITE_RENDER_TARGET, GpuResourceUsageState::READ_PRESENT);
+  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceState::WRITE_RENDER_TARGET, GpuResourceState::READ_PRESENT);
   RenderCore::ExecuteAndFreeCommandList(ctx);
   myRuntime->EndFrame();
 }

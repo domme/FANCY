@@ -3,7 +3,8 @@
 
 namespace Fancy
 {
-  bool GpuResourceStateTracking::QueueUnderstandsState(CommandListType aCurrQueue, CommandListType aQueue, GpuResourceUsageState aState)
+//---------------------------------------------------------------------------//
+  bool GpuResourceStateTracking::QueueUnderstandsState(CommandListType aCurrQueue, CommandListType aQueue, GpuResourceState aState)
   {
     if (aQueue == aCurrQueue)
       return true;
@@ -15,36 +16,36 @@ namespace Fancy
 
     switch (aState)
     {
-      case GpuResourceUsageState::COMMON: return true; // This should mean "idle" more or less so it could be supported on any queue-type
-      case GpuResourceUsageState::READ_INDIRECT_ARGUMENT: return (graphics || compute) && queueIsLessSpecificOrEqual;
-      case GpuResourceUsageState::READ_VERTEX_BUFFER: return graphics;
-      case GpuResourceUsageState::READ_INDEX_BUFFER: return graphics;
-      case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER: return graphics;
-      case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE: return graphics;
-      case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER: return graphics;
-      case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE: return graphics;
-      case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER: return graphics || compute;
-      case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE: return graphics || compute;
-      case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER: return (graphics || compute) && queueIsLessSpecificOrEqual;
-      case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE:  return (graphics || compute) && queueIsLessSpecificOrEqual;
-      case GpuResourceUsageState::READ_COPY_SOURCE: return graphics || compute;
-      case GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH: return (graphics || compute) && queueIsLessSpecificOrEqual;
-      case GpuResourceUsageState::READ_DEPTH: return graphics;
-      case GpuResourceUsageState::READ_PRESENT: return graphics;
-      case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV: return graphics;
-      case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV: return graphics;
-      case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV: return graphics || compute;
-      case GpuResourceUsageState::WRITE_ANY_SHADER_UAV: return (graphics || compute) && queueIsLessSpecificOrEqual;
-      case GpuResourceUsageState::WRITE_RENDER_TARGET: return graphics;
-      case GpuResourceUsageState::WRITE_COPY_DEST: return graphics || compute;
-      case GpuResourceUsageState::WRITE_DEPTH: return graphics;
-      case GpuResourceUsageState::UNKNOWN:
-      case GpuResourceUsageState::NUM:
+      case GpuResourceState::COMMON: return true; // This should mean "idle" more or less so it could be supported on any queue-type
+      case GpuResourceState::READ_INDIRECT_ARGUMENT: return (graphics || compute) && queueIsLessSpecificOrEqual;
+      case GpuResourceState::READ_VERTEX_BUFFER: return graphics;
+      case GpuResourceState::READ_INDEX_BUFFER: return graphics;
+      case GpuResourceState::READ_VERTEX_SHADER_CONSTANT_BUFFER: return graphics;
+      case GpuResourceState::READ_VERTEX_SHADER_RESOURCE: return graphics;
+      case GpuResourceState::READ_PIXEL_SHADER_CONSTANT_BUFFER: return graphics;
+      case GpuResourceState::READ_PIXEL_SHADER_RESOURCE: return graphics;
+      case GpuResourceState::READ_COMPUTE_SHADER_CONSTANT_BUFFER: return graphics || compute;
+      case GpuResourceState::READ_COMPUTE_SHADER_RESOURCE: return graphics || compute;
+      case GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER: return (graphics || compute) && queueIsLessSpecificOrEqual;
+      case GpuResourceState::READ_ANY_SHADER_RESOURCE:  return (graphics || compute) && queueIsLessSpecificOrEqual;
+      case GpuResourceState::READ_COPY_SOURCE: return graphics || compute;
+      case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH: return (graphics || compute) && queueIsLessSpecificOrEqual;
+      case GpuResourceState::READ_DEPTH: return graphics;
+      case GpuResourceState::READ_PRESENT: return graphics;
+      case GpuResourceState::WRITE_VERTEX_SHADER_UAV: return graphics;
+      case GpuResourceState::WRITE_PIXEL_SHADER_UAV: return graphics;
+      case GpuResourceState::WRITE_COMPUTE_SHADER_UAV: return graphics || compute;
+      case GpuResourceState::WRITE_ANY_SHADER_UAV: return (graphics || compute) && queueIsLessSpecificOrEqual;
+      case GpuResourceState::WRITE_RENDER_TARGET: return graphics;
+      case GpuResourceState::WRITE_COPY_DEST: return graphics || compute;
+      case GpuResourceState::WRITE_DEPTH: return graphics;
+      case GpuResourceState::UNKNOWN:
+      case GpuResourceState::NUM:
       default: ASSERT(false); return false;
     }
   }
 //---------------------------------------------------------------------------//
-  bool GpuResourceStateTracking::QueueUnderstandsPartsOfState(CommandListType aCurrQueue, GpuResourceUsageState aState)
+  bool GpuResourceStateTracking::QueueUnderstandsPartsOfState(CommandListType aCurrQueue, GpuResourceState aState)
   {
     if (aCurrQueue == CommandListType::Graphics)
       return true;
@@ -54,150 +55,116 @@ namespace Fancy
 
     switch (aState)
     {
-      case GpuResourceUsageState::COMMON: return true; // This should mean "idle" more or less so it could be supported on any queue-type
-      case GpuResourceUsageState::READ_INDIRECT_ARGUMENT: return compute;
-      case GpuResourceUsageState::READ_VERTEX_BUFFER: return false;
-      case GpuResourceUsageState::READ_INDEX_BUFFER: return false;
-      case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER: return false;
-      case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE: return false;
-      case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER: return false;
-      case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE: return false;
-      case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER: return compute;
-      case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE: return compute;
-      case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER: return compute;
-      case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE:  return compute;
-      case GpuResourceUsageState::READ_COPY_SOURCE: return true;
-      case GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH: return compute;
-      case GpuResourceUsageState::READ_DEPTH: return false;
-      case GpuResourceUsageState::READ_PRESENT: return false;
-      case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV: return false;
-      case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV: return false;
-      case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV: return compute;
-      case GpuResourceUsageState::WRITE_ANY_SHADER_UAV: return compute;
-      case GpuResourceUsageState::WRITE_RENDER_TARGET: return false;
-      case GpuResourceUsageState::WRITE_COPY_DEST: return true;
-      case GpuResourceUsageState::WRITE_DEPTH: return false;
-      case GpuResourceUsageState::UNKNOWN:
-      case GpuResourceUsageState::NUM:
+      case GpuResourceState::COMMON: return true; // This should mean "idle" more or less so it could be supported on any queue-type
+      case GpuResourceState::READ_INDIRECT_ARGUMENT: return compute;
+      case GpuResourceState::READ_VERTEX_BUFFER: return false;
+      case GpuResourceState::READ_INDEX_BUFFER: return false;
+      case GpuResourceState::READ_VERTEX_SHADER_CONSTANT_BUFFER: return false;
+      case GpuResourceState::READ_VERTEX_SHADER_RESOURCE: return false;
+      case GpuResourceState::READ_PIXEL_SHADER_CONSTANT_BUFFER: return false;
+      case GpuResourceState::READ_PIXEL_SHADER_RESOURCE: return false;
+      case GpuResourceState::READ_COMPUTE_SHADER_CONSTANT_BUFFER: return compute;
+      case GpuResourceState::READ_COMPUTE_SHADER_RESOURCE: return compute;
+      case GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER: return compute;
+      case GpuResourceState::READ_ANY_SHADER_RESOURCE:  return compute;
+      case GpuResourceState::READ_COPY_SOURCE: return true;
+      case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH: return compute;
+      case GpuResourceState::READ_DEPTH: return false;
+      case GpuResourceState::READ_PRESENT: return false;
+      case GpuResourceState::WRITE_VERTEX_SHADER_UAV: return false;
+      case GpuResourceState::WRITE_PIXEL_SHADER_UAV: return false;
+      case GpuResourceState::WRITE_COMPUTE_SHADER_UAV: return compute;
+      case GpuResourceState::WRITE_ANY_SHADER_UAV: return compute;
+      case GpuResourceState::WRITE_RENDER_TARGET: return false;
+      case GpuResourceState::WRITE_COPY_DEST: return true;
+      case GpuResourceState::WRITE_DEPTH: return false;
+      case GpuResourceState::UNKNOWN:
+      case GpuResourceState::NUM:
       default: ASSERT(false); return false;
     }
   }
 //---------------------------------------------------------------------------//
-  bool GpuResourceStateTracking::IsBarrierNeeded(CommandListType aSrcQueue, GpuResourceUsageState aSrcState, CommandListType aDstQueue, GpuResourceUsageState aDstState)
-  {
-    if (aSrcQueue == aDstQueue && aSrcState == aDstState)
-      return false;
-
-    const bool srcIsRead = aSrcState >= GpuResourceUsageState::FIRST_READ_STATE && aSrcState <= GpuResourceUsageState::LAST_READ_STATE;
-    const bool dstIsRead = aDstState >= GpuResourceUsageState::FIRST_READ_STATE && aDstState <= GpuResourceUsageState::LAST_READ_STATE;
-
-    // Read-Write or Write-Read transitions always need a barrier
-    if (srcIsRead != dstIsRead)
-      return true;
-
-    // Write-Write transitions also need a barrier because most write-states are also read-states (UAVs, Depthbuffer for depth-testing,...)
-    if (!srcIsRead && !dstIsRead)
-      return true;
-
-    // Read-read only need a barrier if the src-state doesn't already cover the dst-state. 
-    // We don't allow read-read transitions to less specific states, only transitions to more general states are allowed and those don't need a barrier.
-    // However, some cases do require a barrier:
-    // 1) From/To copy-states (maybe)
-    // 2) From/To indirect argument (maybe)
-    // 3) From/To depth
-    // 4) From/To present
-    if (aSrcState == GpuResourceUsageState::READ_COPY_SOURCE || aDstState == GpuResourceUsageState::READ_COPY_SOURCE)
-      return true;
-    if (aSrcState == GpuResourceUsageState::READ_INDIRECT_ARGUMENT || aDstState == GpuResourceUsageState::READ_INDIRECT_ARGUMENT)
-      return true;
-    if (aSrcState == GpuResourceUsageState::READ_PRESENT || aDstState == GpuResourceUsageState::READ_PRESENT)
-      return true;
-
-    // In all other cases, no actual barrier is required.
-    return false;
-  }
-//---------------------------------------------------------------------------//
-  bool GpuResourceStateTracking::StateIsContainedIn(GpuResourceUsageState aLowerState, GpuResourceUsageState aHigherState)
+  bool GpuResourceStateTracking::StateIsContainedIn(GpuResourceState aLowerState, GpuResourceState aHigherState)
   {
     if (aLowerState == aHigherState)
       return true;
 
     switch (aLowerState)
     {
-    case GpuResourceUsageState::COMMON:
+    case GpuResourceState::COMMON:
       return false;
 
-    case GpuResourceUsageState::READ_INDIRECT_ARGUMENT:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+    case GpuResourceState::READ_INDIRECT_ARGUMENT:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
-    case GpuResourceUsageState::READ_VERTEX_BUFFER:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+    case GpuResourceState::READ_VERTEX_BUFFER:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
-    case GpuResourceUsageState::READ_INDEX_BUFFER:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+    case GpuResourceState::READ_INDEX_BUFFER:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
-    case GpuResourceUsageState::READ_VERTEX_SHADER_CONSTANT_BUFFER:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
-        || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER;
+    case GpuResourceState::READ_VERTEX_SHADER_CONSTANT_BUFFER:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH
+        || aHigherState == GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER;
 
-    case GpuResourceUsageState::READ_VERTEX_SHADER_RESOURCE:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
-        || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_RESOURCE;
+    case GpuResourceState::READ_VERTEX_SHADER_RESOURCE:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH
+        || aHigherState == GpuResourceState::READ_ANY_SHADER_RESOURCE;
 
-    case GpuResourceUsageState::READ_PIXEL_SHADER_CONSTANT_BUFFER:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
-        || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER;
+    case GpuResourceState::READ_PIXEL_SHADER_CONSTANT_BUFFER:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH
+        || aHigherState == GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER;
 
-    case GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
-        || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_RESOURCE;
+    case GpuResourceState::READ_PIXEL_SHADER_RESOURCE:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH
+        || aHigherState == GpuResourceState::READ_ANY_SHADER_RESOURCE;
 
-    case GpuResourceUsageState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
-        || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER;
+    case GpuResourceState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH
+        || aHigherState == GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER;
 
-    case GpuResourceUsageState::READ_COMPUTE_SHADER_RESOURCE:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
-        || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_RESOURCE;
+    case GpuResourceState::READ_COMPUTE_SHADER_RESOURCE:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH
+        || aHigherState == GpuResourceState::READ_ANY_SHADER_RESOURCE;
 
-    case GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH
-        || aHigherState == GpuResourceUsageState::READ_ANY_SHADER_CONSTANT_BUFFER;
+    case GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH
+        || aHigherState == GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER;
 
-    case GpuResourceUsageState::READ_ANY_SHADER_RESOURCE:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+    case GpuResourceState::READ_ANY_SHADER_RESOURCE:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
-    case GpuResourceUsageState::READ_COPY_SOURCE:
-      return aHigherState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+    case GpuResourceState::READ_COPY_SOURCE:
+      return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
-    case GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH:
+    case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH:
       return false;
 
-    case GpuResourceUsageState::READ_DEPTH:
+    case GpuResourceState::READ_DEPTH:
       return false;
 
-    case GpuResourceUsageState::READ_PRESENT:
+    case GpuResourceState::READ_PRESENT:
       return false;
 
-    case GpuResourceUsageState::WRITE_VERTEX_SHADER_UAV:
-      return aHigherState == GpuResourceUsageState::WRITE_ANY_SHADER_UAV;
+    case GpuResourceState::WRITE_VERTEX_SHADER_UAV:
+      return aHigherState == GpuResourceState::WRITE_ANY_SHADER_UAV;
 
-    case GpuResourceUsageState::WRITE_PIXEL_SHADER_UAV:
-      return aHigherState == GpuResourceUsageState::WRITE_ANY_SHADER_UAV;
+    case GpuResourceState::WRITE_PIXEL_SHADER_UAV:
+      return aHigherState == GpuResourceState::WRITE_ANY_SHADER_UAV;
 
-    case GpuResourceUsageState::WRITE_COMPUTE_SHADER_UAV:
-      return aHigherState == GpuResourceUsageState::WRITE_ANY_SHADER_UAV;
+    case GpuResourceState::WRITE_COMPUTE_SHADER_UAV:
+      return aHigherState == GpuResourceState::WRITE_ANY_SHADER_UAV;
 
-    case GpuResourceUsageState::WRITE_ANY_SHADER_UAV:
+    case GpuResourceState::WRITE_ANY_SHADER_UAV:
       return false;
 
-    case GpuResourceUsageState::WRITE_RENDER_TARGET:
+    case GpuResourceState::WRITE_RENDER_TARGET:
       return false;
 
-    case GpuResourceUsageState::WRITE_COPY_DEST:
+    case GpuResourceState::WRITE_COPY_DEST:
       return false;
 
-    case GpuResourceUsageState::WRITE_DEPTH:
+    case GpuResourceState::WRITE_DEPTH:
       return false;
 
     default: return false;

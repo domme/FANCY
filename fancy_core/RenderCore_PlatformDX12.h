@@ -46,7 +46,7 @@ namespace Fancy {
 
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
     static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
-    static D3D12_RESOURCE_STATES ResolveResourceUsageState(GpuResourceUsageState aState);
+    static D3D12_RESOURCE_STATES ResolveResourceUsageState(GpuResourceState aState);
 
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
 
@@ -70,7 +70,7 @@ namespace Fancy {
     GpuProgram* CreateGpuProgram() override;
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
-    CommandList* CreateContext(CommandListType aType, uint someFlags) override;
+    CommandList* CreateContext(CommandListType aType) override;
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;

@@ -58,7 +58,7 @@ namespace Fancy {
     static void EndFrame();
     static void Shutdown();
 
-    static const char* ResourceUsageStateToString(GpuResourceUsageState aState);
+    static const char* ResourceUsageStateToString(GpuResourceState aState);
     static const char* CommandListTypeToString(CommandListType aType);
 
     static bool IsInitialized();
@@ -100,7 +100,7 @@ namespace Fancy {
     static GpuRingBuffer* AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
 
-    static CommandList* BeginCommandList(CommandListType aType, uint someCommandListFlags = 0);
+    static CommandList* BeginCommandList(CommandListType aType);
     static uint64 ExecuteAndFreeCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC);
     static uint64 ExecuteAndResetCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC);
 

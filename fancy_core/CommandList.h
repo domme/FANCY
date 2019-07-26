@@ -53,7 +53,7 @@ namespace Fancy {
     friend class CommandQueue;
 
   public:
-    CommandList(CommandListType aType, uint someFlags);
+    CommandList(CommandListType aType);
     virtual ~CommandList() {}
 
     CommandListType GetType() const { return myCommandListType; }
@@ -90,7 +90,7 @@ namespace Fancy {
     virtual void SetComputeProgram(const GpuProgram* aProgram);
     virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     virtual void ReleaseGpuResources(uint64 aFenceVal);
-    virtual void Reset(uint someFlags);
+    virtual void Reset();
 
     const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
     void BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize);
@@ -109,28 +109,27 @@ namespace Fancy {
     void RemoveAllRenderTargets();
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
     void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
-    uint GetFlags() const { return myFlags; }
 
-    void SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState);
-    void SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceUsageState aSrcState, GpuResourceUsageState aDstState);
-
+    void SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources, GpuResourceState aSrcState, GpuResourceState aDstState);
+    void SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceState aSrcState, GpuResourceState aDstState);
+        
     void ResourceBarrier(const GpuResource* aResource,
-      GpuResourceUsageState aSrcState,
-      GpuResourceUsageState aDstState);
-
-    void ResourceBarrier(const GpuResource* aResource,
-      GpuResourceUsageState aSrcState,
-      GpuResourceUsageState aDstState,
+      GpuResourceState aSrcState,
+      GpuResourceState aDstState,
       CommandListType aSrcQueue,
       CommandListType aDstQueue);
+
+    void ResourceBarrier(const GpuResource* aResource,
+      GpuResourceState aSrcState,
+      GpuResourceState aDstState);
         
   protected:
     virtual bool SubresourceBarrierInternal(
       const GpuResource* aResource,
       const uint16* someSubresources,
       uint aNumSubresources,
-      GpuResourceUsageState aSrcState,
-      GpuResourceUsageState aDstState,
+      GpuResourceState aSrcState,
+      GpuResourceState aDstState,
       CommandListType aSrcQueue,
       CommandListType aDstQueue) = 0;
 
@@ -138,8 +137,6 @@ namespace Fancy {
     
     CommandListType myCommandListType;
     CommandListType myCurrentContext;
-    bool myIsTrackingResourceStates;
-    uint myFlags;
 
     glm::uvec4 myViewportParams;
     glm::uvec4 myClipRect;
@@ -158,22 +155,6 @@ namespace Fancy {
     DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
     DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
     DynamicArray<GpuRingBuffer*> myIndexRingBuffers;
-
-    struct ResourceStateTracking
-    {
-      CommandListType myFirstSrcQueue;
-      GpuResourceUsageState myFirstSrcState;
-
-      CommandListType myFirstDstQueue;
-      GpuResourceUsageState myFirstDstState;
-
-      GpuResourceUsageState myState;
-      CommandListType myQueue;
-      CommandListType myPendingDstQueue;
-    };
-    const GpuResource* myTrackedResources[1024];
-    ResourceStateTracking myResourceStateTrackings[1024];
-    uint myNumTrackedResources;
 
     struct GpuQueryRange
     {

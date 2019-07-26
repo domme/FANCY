@@ -138,7 +138,7 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class GpuResourceUsageState
+  enum class GpuResourceState
   {
     COMMON = 0, FIRST_READ_STATE = 0,
     READ_INDIRECT_ARGUMENT,
@@ -286,11 +286,6 @@ namespace Fancy
 
     NUM,
     UNKNOWN,
-  };
-//---------------------------------------------------------------------------//
-  enum class CommandListFlags
-  {
-    NO_RESOURCE_STATE_TRACKING = 1 << 0,
   };
 //---------------------------------------------------------------------------//
   enum class GpuQueryType

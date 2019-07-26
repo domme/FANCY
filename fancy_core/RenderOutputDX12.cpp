@@ -52,13 +52,10 @@ namespace Fancy {
         resource.myNativeData = dataDx12;
       }
 
-      const GpuResourceUsageState defaultState = GpuResourceUsageState::READ_PRESENT;
-
       resource.myStateTracking = GpuResourceStateTracking();
       resource.myStateTracking.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
       resource.myStateTracking.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
-      resource.myStateTracking.myState = defaultState;
-      resource.myStateTracking.myQueueType = CommandListType::Graphics;
+      resource.myStateTracking.myDefaultState = GpuResourceState::READ_PRESENT;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
@@ -68,7 +65,6 @@ namespace Fancy {
       backbufferProps.myHeight = aHeight;
       backbufferProps.myDepthOrArraySize = 1u;
       backbufferProps.myNumMipLevels = 1u;
-      backbufferProps.myDefaultState = defaultState;
 
       myBackbufferTextures[i].reset(new TextureDX12());
       myBackbufferTextures[i]->Create(std::move(resource), backbufferProps);

@@ -35,6 +35,8 @@ namespace Fancy {
       myNumPlanes = std::move(anOtherResource.myNumPlanes);
     }
 
+    GpuResourceState GetDefaultState() const { return myStateTracking.myDefaultState; }
+
     virtual ~GpuResource() = default;
     virtual bool IsValid() const { return false; }
     virtual void SetName(const char* aName) { myName = aName; }

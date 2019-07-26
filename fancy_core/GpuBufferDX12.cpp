@@ -78,17 +78,16 @@ namespace Fancy {
     // ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_WRITE || someProperties.myUsage == GpuBufferUsage::STAGING_UPLOAD, "CPU-writable buffers must be upload-buffers");
     // ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_READ || someProperties.myUsage == GpuBufferUsage::STAGING_READBACK, "CPU-readable buffers must be readback-buffers");
 
+    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+
     bool canChangeStates = true;
     if (cpuMemAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
     {
-      ASSERT(myProperties.myDefaultState == GpuResourceUsageState::COMMON || myProperties.myDefaultState == GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH);
-      myProperties.myDefaultState = GpuResourceUsageState::READ_ANY_SHADER_ALL_BUT_DEPTH;
       canChangeStates = false;
     }
     else if (cpuMemAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
     {
-      ASSERT(myProperties.myDefaultState == GpuResourceUsageState::COMMON || myProperties.myDefaultState == GpuResourceUsageState::WRITE_COPY_DEST);
-      myProperties.myDefaultState = GpuResourceUsageState::WRITE_COPY_DEST;
+      defaultState = GpuResourceState::WRITE_COPY_DEST;
       canChangeStates = false;
     }
     else
@@ -111,9 +110,8 @@ namespace Fancy {
     }
 
     myStateTracking = GpuResourceStateTracking();
-    myStateTracking.myState = someProperties.myDefaultState;
-    myStateTracking.myQueueType = CommandListType::Graphics;
     myStateTracking.myCanChangeStates = canChangeStates;
+    myStateTracking.myDefaultState = defaultState;
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;
 
@@ -128,7 +126,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, RenderCore_PlatformDX12::ResolveResourceUsageState(myProperties.myDefaultState), nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, RenderCore_PlatformDX12::ResolveResourceUsageState(defaultState), nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
 
     std::wstring wName = StringUtil::ToWideString(myName);
     dataDx12->myResource->SetName(wName.c_str());
@@ -146,10 +144,10 @@ namespace Fancy {
       }
       else
       {
-        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics, (uint)CommandListFlags::NO_RESOURCE_STATE_TRACKING);
-        ctx->ResourceBarrier(this, myProperties.myDefaultState, GpuResourceUsageState::WRITE_COPY_DEST);
+        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+        ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
         ctx->UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes);
-        ctx->ResourceBarrier(this, GpuResourceUsageState::WRITE_COPY_DEST, myProperties.myDefaultState);
+        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }

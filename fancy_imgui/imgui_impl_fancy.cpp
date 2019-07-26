@@ -165,7 +165,6 @@ namespace Fancy { namespace ImGuiRendering {
       props.myWidth = width;
       props.myHeight = height;
       props.eFormat = DataFormat::RGBA_8;
-      props.myDefaultState = GpuResourceUsageState::READ_PIXEL_SHADER_RESOURCE;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.eFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
 

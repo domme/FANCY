@@ -94,7 +94,7 @@ namespace Fancy
   uint64 CommandQueueDX12::ExecuteAndResetCommandListInternal(CommandList* aContext, SyncMode aSyncMode)
   {
     const uint64 fenceVal = ExecuteCommandListInternal(aContext, aSyncMode);
-    aContext->Reset(aContext->GetFlags());
+    aContext->Reset();
     return fenceVal;
   }
 //---------------------------------------------------------------------------//

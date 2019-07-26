@@ -24,7 +24,7 @@ namespace Fancy
     virtual void StallForQueue(const CommandQueue* aCommandQueue) = 0;
     virtual void StallForFence(uint64 aFenceVal) = 0;
     
-    CommandList* BeginCommandList(uint someCommandListFlags);
+    CommandList* BeginCommandList();
     uint64 ExecuteAndFreeCommandList(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC);
     uint64 ExecuteAndResetCommandList(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC);
 
@@ -32,7 +32,6 @@ namespace Fancy
     virtual uint64 ExecuteCommandListInternal(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
     virtual uint64 ExecuteAndResetCommandListInternal(CommandList* aContext, SyncMode aSyncMode = SyncMode::ASYNC) = 0;
 
-    uint64 InsertCommandListTrackResourceStates(CommandList* aCommandList, bool aReset, SyncMode aSyncMode);
     void FreeCommandList(CommandList* aCommandList);
 
     DynamicArray<UniquePtr<CommandList>> myCommandListPool;
