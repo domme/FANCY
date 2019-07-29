@@ -1,6 +1,7 @@
 #pragma once
 
-#include <fancy_core/FancyCoreDefines.h>
+#include "fancy_core/FancyCoreDefines.h"
+#include "fancy_core/FixedArray.h"
 #include "MaterialSemantics.h"
 #include "MaterialDesc.h"
 

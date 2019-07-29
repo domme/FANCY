@@ -19,7 +19,7 @@
 #include "Test_Synchronization.h"
 #include "Test_AsyncCompute.h"
 #include "Tests/Test_Mipmapping.h"
-
+#include "Test_ModelViewer.h"
 
 using namespace Fancy;
 
@@ -35,12 +35,16 @@ bool test_gpuMemoryAllocs = false;
 bool test_sychronization = false;
 bool test_asyncCompute = false;
 bool test_mipmapping = false;
+bool test_modelviewer = false;
 
 DynamicArray<UniquePtr<Test>> myTests;
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
-
+  for (UniquePtr<Test>& testItem : myTests)
+  {
+    testItem->OnWindowResized(aWidth, aHeight);
+  }
 }
 
 void Init(HINSTANCE anInstanceHandle)
@@ -112,6 +116,13 @@ void Update()
       myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Mipmapping*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(std::make_unique<Test_Mipmapping>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+  if (ImGui::Checkbox("Test Model Viewer", &test_modelviewer))
+  {
+    if (!test_modelviewer)
+      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ModelViewer*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(std::make_unique<Test_ModelViewer>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
 
   ImGui::Separator();

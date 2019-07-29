@@ -28,7 +28,7 @@ public:
 
   const char* GetName() const { return myName.c_str(); }
 
-private:
+protected:
   Fancy::FancyRuntime* myRuntime;
   Fancy::Window* myWindow;
   Fancy::RenderOutput* myOutput;

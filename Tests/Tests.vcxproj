@@ -62,6 +62,7 @@
     <ClCompile Include="Test_GpuMemoryAllocator.cpp" />
     <ClCompile Include="Test_ImGui.cpp" />
     <ClCompile Include="Test_Mipmapping.cpp" />
+    <ClCompile Include="Test_ModelViewer.cpp" />
     <ClCompile Include="Test_Profiler.cpp" />
     <ClCompile Include="Tests_main.cpp" />
     <ClCompile Include="Test_Synchronization.cpp" />
@@ -72,6 +73,7 @@
     <ClInclude Include="Test_GpuMemoryAllocator.h" />
     <ClInclude Include="Test_ImGui.h" />
     <ClInclude Include="Test_Mipmapping.h" />
+    <ClInclude Include="Test_ModelViewer.h" />
     <ClInclude Include="Test_Profiler.h" />
     <ClInclude Include="Test_Synchronization.h" />
   </ItemGroup>

@@ -66,8 +66,6 @@ namespace Fancy
   void TextureResource::Update(const TextureResourceProperties& someProps, const char* aName)
   {
     const TextureProperties& texProps = someProps.myTextureProperties;
-    ASSERT(!someProps.myIsShaderWritable || texProps.myIsShaderWritable);
-    ASSERT(!someProps.myIsRenderTarget || texProps.myIsRenderTarget);
 
     bool needsCreate = myTexture == nullptr || 
       (someProps.myIsTexture == (myReadView == nullptr)) ||
@@ -89,7 +87,12 @@ namespace Fancy
 
     if (needsCreate)
     {
-      myTexture = RenderCore::CreateTexture(someProps.myTextureProperties, aName);
+      TextureProperties createProps = texProps;
+      createProps.path.clear();
+      createProps.myIsShaderWritable = someProps.myIsShaderWritable;
+      createProps.myIsRenderTarget = someProps.myIsRenderTarget;
+
+      myTexture = RenderCore::CreateTexture(createProps, aName);
       ASSERT(myTexture);
 
       if (someProps.myIsTexture)
