@@ -1,22 +1,20 @@
 #pragma once
 
-#include <fancy_core/MathIncludes.h>
+#include "MathIncludes.h"
 
-namespace Fancy {
-  class Window;
+namespace Fancy
+{
+//---------------------------------------------------------------------------//
   struct InputState;
-}
-
-class Camera;
-
+  class Camera;
 //---------------------------------------------------------------------------//
   class CameraController
   {
   public:
-    CameraController(Fancy::Window* aWindow, Camera* aCamera);
+    CameraController(Camera* aCamera);
     ~CameraController();
-    
-    void Update(float aDeltaTime, const Fancy::InputState& anInputState);
+
+    void Update(float aDeltaTime, const InputState& anInputState);
 
     float myMoveSpeed;
 
@@ -30,7 +28,6 @@ class Camera;
     void UpdateFPSCamera(float aDeltaTime, const Fancy::InputState& anInputState);
     void UpdateTrackballCamera(float aDeltaTime, const Fancy::InputState& anInputState);
 
-    Fancy::Window* myWindow;
     Camera* myCamera;
 
     glm::float2 myMouseSensitivity;
@@ -40,3 +37,4 @@ class Camera;
     Mode myLastMode;
   };
 //---------------------------------------------------------------------------//
+}

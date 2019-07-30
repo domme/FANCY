@@ -5,11 +5,7 @@
 #include "fancy_imgui/imgui.h"
 #include "fancy_core/RenderCore.h"
 #include "fancy_core/CommandList.h"
-#include "fancy_core/CommandQueue.h"
-#include "fancy_imgui/imgui_internal.h"
-#include "fancy_core/GrowingList.h"
 #include "fancy_core/TimeManager.h"
-#include "fancy_core/StaticString.h"
 
 using namespace Fancy;
 

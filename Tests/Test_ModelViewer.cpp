@@ -30,6 +30,7 @@ static SharedPtr<GpuProgramPipeline> locLoadShader(const char* aShaderPath, cons
 Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Model Viewer")
+  , myCameraController(&myCamera)
 {
   myAssetManager.reset(new AssetManager());
 
@@ -55,8 +56,6 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   myCamera.UpdateView();
   myCamera.UpdateProjection();
 
-  myCameraController.reset(new CameraController(myWindow, &myCamera));
-
   const bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", *(myAssetManager.get()), myScene);
   ASSERT(importSuccess)
 }
@@ -75,7 +74,7 @@ void Test_ModelViewer::OnWindowResized(uint aWidth, uint aHeight)
 
 void Test_ModelViewer::OnUpdate(bool aDrawProperties)
 {
-  myCameraController->Update(0.016f, *myInput);
+  myCameraController.Update(0.016f, *myInput);
 }
 
 void Test_ModelViewer::OnRender()

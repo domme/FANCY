@@ -68,6 +68,8 @@
     <ClInclude Include="BinaryCache.h" />
     <ClInclude Include="BlendState.h" />
     <ClInclude Include="Callback.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraController.h" />
     <ClInclude Include="CircularArray.h" />
     <ClInclude Include="CommandList.h" />
     <ClInclude Include="CommandListDX12.h" />
@@ -166,6 +168,8 @@
     <ClCompile Include="Annotations.cpp" />
     <ClCompile Include="BinaryCache.cpp" />
     <ClCompile Include="BlendState.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandListDX12.cpp" />
     <ClCompile Include="CommandQueue.cpp" />

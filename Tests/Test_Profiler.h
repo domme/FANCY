@@ -1,7 +1,7 @@
 #pragma once
 #include "Test.h"
 #include "fancy_core/GpuBuffer.h"
-#include "app_framework/ProfilerWindow.h"
+#include "fancy_imgui/ProfilerWindow.h"
 
 class Test_Profiler : public Test
 {
@@ -13,7 +13,7 @@ public:
 
 private:
   bool myShowProfilerWindow = false;
-  ProfilerWindow myProfilerWindow;
+  Fancy::ProfilerWindow myProfilerWindow;
   Fancy::SharedPtr<Fancy::GpuBuffer> myDummyGpuBuffer1;
   Fancy::SharedPtr<Fancy::GpuBuffer> myDummyGpuBuffer2;
 };

@@ -3,8 +3,8 @@
 #include "Test.h"
 #include "fancy_core/Ptr.h"
 #include "fancy_assets/ModelLoader.h"
-#include "app_framework/Camera.h"
-#include "app_framework/CameraController.h"
+#include "fancy_core/Camera.h"
+#include "fancy_core/CameraController.h"
 
 namespace Fancy
 {
@@ -29,8 +29,8 @@ private:
   Fancy::SharedPtr<Fancy::AssetManager> myAssetManager;
   Fancy::ModelLoader::Scene myScene;
 
-  Camera myCamera;
-  Fancy::SharedPtr<CameraController> myCameraController;
+  Fancy::Camera myCamera;
+  Fancy::CameraController myCameraController;
 
   Fancy::SharedPtr<Fancy::GpuProgramPipeline> myUnlitTexturedShader;
   Fancy::SharedPtr<Fancy::GpuProgramPipeline> myUnlitVertexColorShader;

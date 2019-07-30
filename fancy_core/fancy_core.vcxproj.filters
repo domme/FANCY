@@ -22,6 +22,9 @@
     <Filter Include="Profiler">
       <UniqueIdentifier>{20c7389f-6884-43af-9d55-b3d15924bdb3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{414f3123-e42a-49d3-841c-d4615ec99e39}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdapterDX12.h">
@@ -320,6 +323,12 @@
     <ClInclude Include="GpuResourceStateTracking.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraController.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -478,6 +487,12 @@
     </ClCompile>
     <ClCompile Include="GpuResourceStateTracking.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraController.cpp">
+      <Filter>Camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

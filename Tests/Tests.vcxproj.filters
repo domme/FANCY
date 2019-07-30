@@ -20,7 +20,9 @@
     <ClCompile Include="Test_Mipmapping.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
-    <ClCompile Include="Test_ModelViewer.cpp" />
+    <ClCompile Include="Test_ModelViewer.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Tests">
@@ -49,6 +51,8 @@
     <ClInclude Include="Test_Mipmapping.h">
       <Filter>Tests</Filter>
     </ClInclude>
-    <ClInclude Include="Test_ModelViewer.h" />
+    <ClInclude Include="Test_ModelViewer.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -9,28 +9,28 @@
 #include <fancy_core/TimeManager.h>
 #include <fancy_core/Annotations.h>
 
-using namespace Fancy;
-
+namespace Fancy
+{
 //---------------------------------------------------------------------------//
-  char TextBuf[2048];
-  const float kZoneElementHeight = 20.0f;
-  const float kZoneElementHeight_WithPadding = 25.0f;
-  const float kRulerMarkerVerticalSize = 10.0f;
-  const float kSubRulerMarkerVerticalSize = 5.0f;
-  const float kDefaultLineWidth = 1.0f;
-  const uint kFrameBoundaryColor = 0xFFAAAAAA;
-  const uint kFrameHeaderColor = 0xFFAAAAAA;
-  const uint kWindowBgColor = 0xAA3A3A3A;
-  const float kFrameHeaderHeight = 10.0f;
-  const float kFrameGraphHeightScale = 0.45f;
-  const ImGuiID kFrameId_FrameGraph[Profiler::TIMELINE_NUM] = { 1, 2 };
-  const uint kNumGraphFrames = 200;
-  const float kRulerSubMarkerVerticalOffset = (kRulerMarkerVerticalSize - kSubRulerMarkerVerticalSize) * 0.5f;
-  const ImU32 kRulerMarkerColor = ImGui::ColorConvertFloat4ToU32(ImVec4(.5f, .5f, .5f, .8f));
-  const float kRulerMainMarkerThickness = 1.5f;
-  const float kRulerSubMarkerThickness = 1.0f;
+  static char TextBuf[2048];
+  static const float kZoneElementHeight = 20.0f;
+  static const float kZoneElementHeight_WithPadding = 25.0f;
+  static const float kRulerMarkerVerticalSize = 10.0f;
+  static const float kSubRulerMarkerVerticalSize = 5.0f;
+  static const float kDefaultLineWidth = 1.0f;
+  static const uint kFrameBoundaryColor = 0xFFAAAAAA;
+  static const uint kFrameHeaderColor = 0xFFAAAAAA;
+  static const uint kWindowBgColor = 0xAA3A3A3A;
+  static const float kFrameHeaderHeight = 10.0f;
+  static const float kFrameGraphHeightScale = 0.45f;
+  static const ImGuiID kFrameId_FrameGraph[Profiler::TIMELINE_NUM] = { 1, 2 };
+  static const uint kNumGraphFrames = 200;
+  static const float kRulerSubMarkerVerticalOffset = (kRulerMarkerVerticalSize - kSubRulerMarkerVerticalSize) * 0.5f;
+  static const ImU32 kRulerMarkerColor = ImGui::ColorConvertFloat4ToU32(ImVec4(.5f, .5f, .5f, .8f));
+  static const float kRulerMainMarkerThickness = 1.5f;
+  static const float kRulerSubMarkerThickness = 1.0f;
 
-  const char* kTimeUnitLabels[] =
+  static const char* kTimeUnitLabels[] =
   {
     "s",
     "ms",
@@ -38,7 +38,7 @@ using namespace Fancy;
     "ns"
   };
 
-  const float64 kMsToTimeUnitFactors[] =
+  static const float64 kMsToTimeUnitFactors[] =
   {
     1.0 / 1000.0,
     1.0,
@@ -46,7 +46,7 @@ using namespace Fancy;
     1000.0 * 1000.0,
   };
 
-  const float64 kTimeUnitToMsFactors[] =
+  static const float64 kTimeUnitToMsFactors[] =
   {
     1000.0,
     1.0,
@@ -56,7 +56,7 @@ using namespace Fancy;
   static_assert(ARRAYSIZE(kTimeUnitLabels) == ARRAYSIZE(kMsToTimeUnitFactors), "Mismatching array sizes");
   static_assert(ARRAYSIZE(kTimeUnitLabels) == ARRAYSIZE(kTimeUnitToMsFactors), "Mismatching array sizes");
 //---------------------------------------------------------------------------//
-  const char* FormatString(const char* aFmt, ...)
+  static const char* FormatString(const char* aFmt, ...)
   {
     va_list args;
     va_start(args, aFmt);
@@ -69,7 +69,7 @@ using namespace Fancy;
     return TextBuf;
   }
 //---------------------------------------------------------------------------//
-  ImVec2 ToLocalPos(const ImVec2& aPos)
+  static ImVec2 ToLocalPos(const ImVec2& aPos)
   {
     ImVec2 localPos = aPos;
     localPos.x -= ImGui::GetWindowPos().x;
@@ -77,7 +77,7 @@ using namespace Fancy;
     return localPos;
   }
 //---------------------------------------------------------------------------//
-  ImVec2 ToGlobalPos(const ImVec2& aPos)
+  static ImVec2 ToGlobalPos(const ImVec2& aPos)
   {
     ImVec2 globalPos = aPos;
     globalPos.x += ImGui::GetWindowPos().x;
@@ -85,7 +85,7 @@ using namespace Fancy;
     return globalPos;
   }
 //---------------------------------------------------------------------------//
-  ImVec4 ToVec4Color(uint aColor)
+  static ImVec4 ToVec4Color(uint aColor)
   {
     ImVec4 col;
     col.x = (aColor & 0xFF) / 255.0f;
@@ -95,7 +95,7 @@ using namespace Fancy;
     return col;
   }
 //---------------------------------------------------------------------------//
-  void GetTimeRange(float64& aMinTimeOut, float64& aMaxTimeOut)
+  static void GetTimeRange(float64& aMinTimeOut, float64& aMaxTimeOut)
   {
     float64 minStart = DBL_MAX;
     float64 maxEnd = 0.0;
@@ -125,7 +125,7 @@ using namespace Fancy;
     aMaxTimeOut = maxEnd;
   }
 //---------------------------------------------------------------------------//
-  bool RenderSample(const Profiler::SampleNode& aNode, const ImVec2& aPosLocal, ImVec2 aSize)
+  static bool RenderSample(const Profiler::SampleNode& aNode, const ImVec2& aPosLocal, ImVec2 aSize)
   {
     const Profiler::SampleNodeInfo& nodeInfo = Profiler::GetSampleInfo(aNode.myNodeInfo);
     const char* aLabel = FormatString("%s: %.3f", nodeInfo.myName, (float)aNode.myDuration);
@@ -150,8 +150,8 @@ using namespace Fancy;
 
     return pressed;
   }
-//---------------------------------------------------------------------------//
-  void RenderSampleRecursive(const Profiler::SampleNode& aNode, float64 aTimeToPixelScale, float64 aMinStartTime, float aPixelOffset, float aFramePosLocalY, int aDepth, Profiler::Timeline aTimeline)
+  //---------------------------------------------------------------------------//
+  static void RenderSampleRecursive(const Profiler::SampleNode& aNode, float64 aTimeToPixelScale, float64 aMinStartTime, float aPixelOffset, float aFramePosLocalY, int aDepth, Profiler::Timeline aTimeline)
   {
     if (!aNode.myHasValidTimes)
       return;
@@ -179,7 +179,7 @@ using namespace Fancy;
     }
   }
 //---------------------------------------------------------------------------//
-  void RenderFrameHeader(float aWidth, float aWholeFrameHeight, const Profiler::FrameData& aFrameData)
+  static void RenderFrameHeader(float aWidth, float aWholeFrameHeight, const Profiler::FrameData& aFrameData)
   {
     ImDrawList* dl = ImGui::GetCurrentWindow()->DrawList;
 
@@ -233,7 +233,7 @@ using namespace Fancy;
     ImGui::SetCursorPos(startPosLocal);
   }
 //---------------------------------------------------------------------------//
-  void RenderFrameBoundary(float aHeight)
+  static void RenderFrameBoundary(float aHeight)
   {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
@@ -243,7 +243,7 @@ using namespace Fancy;
     window->DrawList->AddLine(start, end, kFrameBoundaryColor, kDefaultLineWidth);
   }
 //---------------------------------------------------------------------------//
-  void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime, Profiler::Timeline aTimeline)
+  static void RenderFrameTimeGraph(uint aFirstWindowFrame, uint aLastWindowFrame, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime, Profiler::Timeline aTimeline)
   {
     if (aFirstWindowFrame == UINT_MAX)
       return;
@@ -292,6 +292,29 @@ using namespace Fancy;
     }
   }
 //---------------------------------------------------------------------------//
+  static const char* GetTimeLabel(float64 aTimeMs)
+  {
+    const float64 unitThreshold = 2.0 / 1000.0;
+    const char* bestTimeLabel = kTimeUnitLabels[0];
+    float64 bestTime = aTimeMs * kMsToTimeUnitFactors[0];
+
+    if (bestTime < unitThreshold)
+    {
+      for (uint i = 1; i < ARRAYSIZE(kTimeUnitLabels); ++i)
+      {
+        const float64 timeInUnit = aTimeMs * kMsToTimeUnitFactors[i];
+        if (timeInUnit < unitThreshold)
+        {
+          bestTime = timeInUnit;
+          bestTimeLabel = kTimeUnitLabels[i];
+        }
+      }
+    }
+
+    return FormatString("%.3f%s", bestTime, bestTimeLabel);
+  }
+//---------------------------------------------------------------------------//
+  
 //---------------------------------------------------------------------------//
   ProfilerWindow::ProfilerWindow()
     : myIsPaused(false)
@@ -341,28 +364,6 @@ using namespace Fancy;
         myHorizontalOffset += newMousePos_TimelineSpace - mousePos_TimelineSpace;
       }
     }
-  }
-//---------------------------------------------------------------------------//
-  const char* GetTimeLabel(float64 aTimeMs)
-  {
-    const float64 unitThreshold = 2.0 / 1000.0;
-    const char* bestTimeLabel = kTimeUnitLabels[0];
-    float64 bestTime = aTimeMs * kMsToTimeUnitFactors[0];
-
-    if (bestTime < unitThreshold)
-    {
-      for (uint i = 1; i < ARRAYSIZE(kTimeUnitLabels); ++i)
-      {
-        const float64 timeInUnit = aTimeMs * kMsToTimeUnitFactors[i];
-        if (timeInUnit < unitThreshold)
-        {
-          bestTime = timeInUnit;
-          bestTimeLabel = kTimeUnitLabels[i];
-        }
-      }
-    }
-
-    return FormatString("%.3f%s", bestTime, bestTimeLabel);
   }
 //---------------------------------------------------------------------------//
   void ProfilerWindow::RenderRuler(float64 aMinStartTime)
@@ -552,3 +553,4 @@ using namespace Fancy;
     ImGui::PopStyleColor();
   }
 //---------------------------------------------------------------------------//
+}
