@@ -128,9 +128,10 @@ namespace Fancy {
     uint64 sizeStep = 2 * SIZE_MB;
     String name = "RingBuffer_";
 
+    uint bindFlags = 0u;
     switch(aType) 
     { 
-      case GpuBufferUsage::STAGING_UPLOAD: 
+      case GpuBufferUsage::STAGING_UPLOAD:
       {
         name += "STAGING_UPLOAD";
         ringBufferList = &myUploadRingBuffers;
@@ -139,12 +140,14 @@ namespace Fancy {
       {
         name += "CONSTANT_BUFFER";
         ringBufferList = &myConstantRingBuffers;
+        bindFlags |= (uint)GpuBufferBindFlags::CONSTANT_BUFFER;
       } break;
       case GpuBufferUsage::VERTEX_BUFFER:
       {
         name += "VERTEX_BUFFER";
         ringBufferList = &myVertexRingBuffers;
         sizeStep = 1 * SIZE_MB;
+        bindFlags |= (uint)GpuBufferBindFlags::VERTEX_BUFFER;
       }
       break;
       case GpuBufferUsage::INDEX_BUFFER:
@@ -152,6 +155,7 @@ namespace Fancy {
         name += "INDEX_BUFFER";
         ringBufferList = &myIndexRingBuffers;
         sizeStep = 1 * SIZE_MB;
+        bindFlags |= (uint)GpuBufferBindFlags::INDEX_BUFFER;
       }
       break;
       default:
@@ -162,7 +166,7 @@ namespace Fancy {
     }
 
     if (ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize() < aDataSize)
-      ringBufferList->push_back(RenderCore::AllocateRingBuffer(aType, MathUtil::Align(aDataSize, sizeStep), name.c_str()));
+      ringBufferList->push_back(RenderCore::AllocateRingBuffer(CpuMemoryAccessType::CPU_WRITE, bindFlags, MathUtil::Align(aDataSize, sizeStep), name.c_str()));
 
     GpuRingBuffer* ringBuffer = ringBufferList->back();
     uint64 offset = 0; 

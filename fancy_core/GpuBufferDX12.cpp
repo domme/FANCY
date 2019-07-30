@@ -49,7 +49,7 @@ namespace Fancy {
     myName = aName != nullptr ? aName : "GpuBuffer_Unnamed";
 
     myAlignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-    if (someProperties.myUsage == GpuBufferUsage::CONSTANT_BUFFER)
+    if ((someProperties.myBindFlags & (uint) GpuBufferBindFlags::CONSTANT_BUFFER) != 0u)
       myAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
 
     const uint64 pitch = MathUtil::Align(someProperties.myNumElements * someProperties.myElementSizeBytes, myAlignment);
@@ -68,46 +68,30 @@ namespace Fancy {
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
     resourceDesc.Flags = someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-    const CpuMemoryAccessType cpuMemAccess = (CpuMemoryAccessType)someProperties.myCpuAccess;
+    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+    bool canChangeStates = true;
+    if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
+    {
+      canChangeStates = false;
+    }
+    else if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
+    {
+      defaultState = GpuResourceState::WRITE_COPY_DEST;
+      canChangeStates = false;
+    }
 
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_GENERIC_READ;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (someProperties.myIsShaderWritable)
       writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
-    // ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_WRITE || someProperties.myUsage == GpuBufferUsage::STAGING_UPLOAD, "CPU-writable buffers must be upload-buffers");
-    // ASSERT(cpuMemAccess != CpuMemoryAccessType::CPU_READ || someProperties.myUsage == GpuBufferUsage::STAGING_READBACK, "CPU-readable buffers must be readback-buffers");
-
-    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
-
-    bool canChangeStates = true;
-    if (cpuMemAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
-    {
-      canChangeStates = false;
-    }
-    else if (cpuMemAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
-    {
-      defaultState = GpuResourceState::WRITE_COPY_DEST;
-      canChangeStates = false;
-    }
-    else
-    {
-      // TODO: Rework the usage-mode and allow for multiple usages ("bindFlags") at the same time. It should be possible to make a vertexBuffer that is also a shaderBuffer
-      switch (someProperties.myUsage)
-      {
-      case GpuBufferUsage::VERTEX_BUFFER:
-      case GpuBufferUsage::CONSTANT_BUFFER:
-        readStateMask = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_COPY_SOURCE;
-        break;
-      case GpuBufferUsage::INDEX_BUFFER:
-        readStateMask = D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_COPY_SOURCE;
-        break;
-      case GpuBufferUsage::SHADER_BUFFER:
-        readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
-        break;
-      default: ASSERT(false, "Missing implementation");
-      }
-    }
+    if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::VERTEX_BUFFER) &&
+        !(someProperties.myBindFlags & (uint)GpuBufferBindFlags::CONSTANT_BUFFER))
+      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::INDEX_BUFFER))
+      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_INDEX_BUFFER;
+    if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER))
+      readStateMask = readStateMask & ~(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
     myStateTracking = GpuResourceStateTracking();
     myStateTracking.myCanChangeStates = canChangeStates;
@@ -122,7 +106,7 @@ namespace Fancy {
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();
 
-    GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(GpuMemoryType::BUFFER, cpuMemAccess, pitch, myAlignment, myName.c_str());
+    GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(GpuMemoryType::BUFFER, someProperties.myCpuAccess, pitch, myAlignment, myName.c_str());
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
@@ -135,7 +119,7 @@ namespace Fancy {
 
     if (pInitialData != nullptr)
     {
-      if (cpuMemAccess == CpuMemoryAccessType::CPU_WRITE)
+      if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)
       {
         void* dest = Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
         ASSERT(dest != nullptr);

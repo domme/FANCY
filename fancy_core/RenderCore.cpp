@@ -236,14 +236,19 @@ namespace Fancy {
     return GetPlatformType() == RenderPlatformType::DX12 ? static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get()) : nullptr;
   }
 //---------------------------------------------------------------------------//
-  GpuRingBuffer* RenderCore::AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aNeededByteSize, const char* aName /*= nullptr*/)
+  GpuRingBuffer* RenderCore::AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName /*= nullptr*/)
   {
+    ASSERT(aCpuAccess != CpuMemoryAccessType::NO_CPU_ACCESS, "Ring buffers are expected to be either readable or writable from CPU");
+
     UpdateAvailableRingBuffers();
 
     for (auto it = ourAvailableRingBuffers.begin(); it != ourAvailableRingBuffers.end(); ++it)
     {
       GpuRingBuffer* buffer = *it;
-      if (buffer->GetBuffer()->GetByteSize() >= aNeededByteSize && buffer->GetBuffer()->GetProperties().myUsage == aUsage)
+      const GpuBufferProperties& bufferProps = buffer->GetBuffer()->GetProperties();
+      if (buffer->GetBuffer()->GetByteSize() >= aNeededByteSize 
+        && bufferProps.myCpuAccess == aCpuAccess
+        && bufferProps.myBindFlags == someBindFlags)  // We could also re-use buffers with more general bind flags, but since this method is likely to be called with the same arguments each frame, it might be beneficial to use the best match all the time
       {
         ourAvailableRingBuffers.erase(it);
         return buffer;
@@ -257,13 +262,13 @@ namespace Fancy {
     ASSERT(aNeededByteSize <= UINT_MAX, "Buffer size overflow. Consider making numElements 64 bit wide");
     params.myNumElements = aNeededByteSize;
     params.myElementSizeBytes = 1u;
-    params.myUsage = aUsage;
-    params.myCpuAccess = aUsage == GpuBufferUsage::STAGING_READBACK ? CpuMemoryAccessType::CPU_READ : CpuMemoryAccessType::CPU_WRITE;
+    params.myBindFlags = someBindFlags;
+    params.myCpuAccess = aCpuAccess;
 
     GpuResourceMapMode mapMode = GpuResourceMapMode::WRITE_UNSYNCHRONIZED;
     bool keepMapped = true;
 
-    if (aUsage == GpuBufferUsage::STAGING_READBACK)
+    if (aCpuAccess == CpuMemoryAccessType::CPU_READ)
     {
       mapMode = GpuResourceMapMode::READ_UNSYNCHRONIZED;
       keepMapped = false;
@@ -427,7 +432,6 @@ namespace Fancy {
 
     GpuBufferProperties bufferProps;
     bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    bufferProps.myUsage = GpuBufferUsage::STAGING_READBACK;
     for (uint i = 0u; i < NUM_QUERY_BUFFERS; ++i)
     {
       for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
@@ -699,7 +703,7 @@ namespace Fancy {
       SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateBuffer());
 
       GpuBufferProperties bufferParams;
-      bufferParams.myUsage = GpuBufferUsage::VERTEX_BUFFER;
+      bufferParams.myBindFlags = (uint) GpuBufferBindFlags::VERTEX_BUFFER;
       bufferParams.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
       bufferParams.myNumElements = numVertices;
       bufferParams.myElementSizeBytes = vertexLayout.myStride;
@@ -716,7 +720,7 @@ namespace Fancy {
       SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateBuffer());
 
       GpuBufferProperties indexBufParams;
-      indexBufParams.myUsage = GpuBufferUsage::INDEX_BUFFER;
+      indexBufParams.myBindFlags = (uint) GpuBufferBindFlags::INDEX_BUFFER;
       indexBufParams.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
       indexBufParams.myNumElements = numIndices;
       indexBufParams.myElementSizeBytes = sizeof(uint);
@@ -820,7 +824,6 @@ namespace Fancy {
     props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
     props.myBufferProperties.myElementSizeBytes = 1u;
     props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    props.myBufferProperties.myUsage = GpuBufferUsage::STAGING_READBACK;
     props.myIsShaderResource = false;
     props.myIsShaderWritable = false;
     TempBufferResource readbackBuffer  = AllocateTempBuffer(props, 0u, "Temp readback buffer");
@@ -844,7 +847,6 @@ namespace Fancy {
     props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
     props.myBufferProperties.myElementSizeBytes = 1u;
     props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    props.myBufferProperties.myUsage = GpuBufferUsage::STAGING_READBACK;
     props.myIsShaderResource = false;
     props.myIsShaderWritable = false;
     TempBufferResource readbackBuffer = AllocateTempBuffer(props, 0u, "Temp texture readback buffer");

@@ -97,7 +97,7 @@ namespace Fancy {
     static RenderCore_Platform* GetPlatform();
     static RenderCore_PlatformDX12* GetPlatformDX12();
 
-    static GpuRingBuffer* AllocateRingBuffer(GpuBufferUsage aUsage, uint64 aSize, const char* aName = nullptr);
+    static GpuRingBuffer* AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
 
     static CommandList* BeginCommandList(CommandListType aType);

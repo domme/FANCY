@@ -18,7 +18,6 @@ Test_Synchronization::Test_Synchronization(Fancy::FancyRuntime* aRuntime, Fancy:
   props.myElementSizeBytes = sizeof(uint);
   props.myNumElements = kNumBufferElements;
   props.myIsShaderWritable = false;
-  props.myUsage = GpuBufferUsage::VERTEX_BUFFER;
 
   std::vector<uint> initialData;
   initialData.resize(props.myNumElements);

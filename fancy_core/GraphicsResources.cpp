@@ -22,7 +22,7 @@ namespace Fancy
         newProps.myElementSizeBytes != currProps.myElementSizeBytes ||
         newProps.myNumElements != currProps.myNumElements ||
         newProps.myCpuAccess != currProps.myCpuAccess ||
-        newProps.myUsage != currProps.myUsage;
+        newProps.myBindFlags != currProps.myBindFlags;
 
       if (myReadView != nullptr || myWriteView != nullptr)
       {

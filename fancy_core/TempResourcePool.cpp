@@ -33,7 +33,7 @@ namespace Fancy
       MathUtil::hash_combine(hash, someProps.myIsShaderResource ? 1 : 0);
       MathUtil::hash_combine(hash, someProps.myIsShaderWritable ? 1 : 0);
       MathUtil::hash_combine(hash, someProps.myBufferProperties.myCpuAccess);
-      MathUtil::hash_combine(hash, someProps.myBufferProperties.myUsage);
+      MathUtil::hash_combine(hash, someProps.myBufferProperties.myBindFlags);
       return hash;
     }
   }

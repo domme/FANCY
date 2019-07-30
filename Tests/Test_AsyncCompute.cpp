@@ -23,8 +23,8 @@ Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Windo
   props.myNumElements = kNumBufferElements;
   props.myIsShaderWritable = true;
   props.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
-  props.myUsage = GpuBufferUsage::VERTEX_BUFFER;
-
+  props.myBindFlags = (uint)GpuBufferBindFlags::SHADER_BUFFER;
+  
   std::vector<uint> initialData;
   initialData.resize(props.myNumElements);
   for (uint& data : initialData)

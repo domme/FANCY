@@ -201,6 +201,16 @@ namespace Fancy
     TEXTURE_CUBE_ARRAY
   };
 //---------------------------------------------------------------------------//
+  enum class GpuBufferBindFlags
+  {
+    NONE = 0,
+    CONSTANT_BUFFER = 1 << 0,
+    VERTEX_BUFFER = 1 << 1,
+    INDEX_BUFFER = 1 << 2,
+    SHADER_BUFFER = 1 << 3,
+    ALL = ~0
+  };
+//---------------------------------------------------------------------------//
   enum class GpuBufferUsage
   {
     STAGING_UPLOAD = 0,
@@ -208,7 +218,7 @@ namespace Fancy
     CONSTANT_BUFFER,
     VERTEX_BUFFER,
     INDEX_BUFFER,
-    SHADER_BUFFER
+    SHADER_BUFFER,
   };
 //---------------------------------------------------------------------------//
   enum class VertexSemantics

@@ -39,7 +39,6 @@ void Test_GpuMemoryAllocator::OnUpdate(bool aDrawProperties)
     props.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
     props.myNumElements = 1u;
     props.myIsShaderWritable = false;
-    props.myUsage = GpuBufferUsage::SHADER_BUFFER;
     props.myElementSizeBytes = myBufferToAllocSizeMb * SIZE_MB;
 
     String name(StaticString<64>("Gpu-buffer %d MiB", myBufferToAllocSizeMb));
