@@ -50,6 +50,7 @@ void OnWindowResized(uint aWidth, uint aHeight)
 void Init(HINSTANCE anInstanceHandle)
 {
   RenderingStartupParameters params;
+  params.myRenderingApi = RenderPlatformType::VULKAN;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   Fancy::WindowParameters windowParams;

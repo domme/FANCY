@@ -78,7 +78,6 @@ namespace Fancy {
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
     
-    // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
   // protected:

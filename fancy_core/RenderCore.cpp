@@ -25,6 +25,7 @@
 #include "TimeManager.h"
 
 #include <xxHash/xxhash.h>
+#include "RenderCore_PlatformVk.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -303,8 +304,11 @@ namespace Fancy {
       case RenderPlatformType::DX12:
         ourPlatformImpl = std::make_unique<RenderCore_PlatformDX12>();
         break;
-      case RenderPlatformType::VULKAN: break;
-      default:;
+      case RenderPlatformType::VULKAN:
+        ourPlatformImpl = std::make_unique<RenderCore_PlatformVk>();
+        break;
+      default:
+        break;
     }
     ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
 
