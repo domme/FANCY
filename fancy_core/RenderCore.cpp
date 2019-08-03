@@ -1,6 +1,9 @@
 #include "fancy_core_precompile.h"
 #include "RenderCore.h"
 
+#include "RenderCore_PlatformDX12.h"
+#include "RenderCore_PlatformVk.h"
+
 #include "DepthStencilState.h"
 #include "ResourceRefs.h"
 #include "GpuBuffer.h"
@@ -13,7 +16,6 @@
 #include "GeometryData.h"
 #include "BlendState.h"
 #include "GpuProgram.h"
-#include "RenderCore_PlatformDX12.h"
 #include "VertexInputLayout.h"
 #include "RenderOutput.h"
 #include "CommandList.h"
@@ -25,7 +27,6 @@
 #include "TimeManager.h"
 
 #include <xxHash/xxhash.h>
-#include "RenderCore_PlatformVk.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -237,6 +238,11 @@ namespace Fancy {
     return GetPlatformType() == RenderPlatformType::DX12 ? static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get()) : nullptr;
   }
 //---------------------------------------------------------------------------//
+  RenderCore_PlatformVk* RenderCore::GetPlatformVk()
+  {
+    return GetPlatformType() == RenderPlatformType::VULKAN ? static_cast<RenderCore_PlatformVk*>(ourPlatformImpl.get()) : nullptr;
+  }
+//---------------------------------------------------------------------------//
   GpuRingBuffer* RenderCore::AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName /*= nullptr*/)
   {
     ASSERT(aCpuAccess != CpuMemoryAccessType::NO_CPU_ACCESS, "Ring buffers are expected to be either readable or writable from CPU");
@@ -311,8 +317,6 @@ namespace Fancy {
         break;
     }
     ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
-
-    ourPlatformImpl->InitCaps();
 
     ourCommandQueues[(uint)CommandListType::Graphics].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Graphics));
     ourCommandQueues[(uint)CommandListType::Compute].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Compute));

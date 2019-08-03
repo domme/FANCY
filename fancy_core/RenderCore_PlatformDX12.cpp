@@ -96,6 +96,10 @@ namespace Fancy {
     }
 
     //infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, false);
+
+    // Init Caps
+    myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;
+    myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
   }
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
@@ -330,12 +334,6 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
     CheckD3Dcall(dxgiFactory->CreateSwapChain(GetCommandQueueDX12(CommandListType::Graphics)->myQueue.Get(), &swapChainDesc, &swapChain));
     return swapChain;
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::InitCaps()
-  {
-    myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;
-    myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
   }
 //---------------------------------------------------------------------------//
   DXGI_FORMAT RenderCore_PlatformDX12::GetDepthStencilTextureFormat(DXGI_FORMAT aFormat)

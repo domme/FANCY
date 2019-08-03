@@ -17,7 +17,6 @@ namespace Fancy
    
     bool IsInitialized() override;
     bool InitInternalResources() override;
-    void InitCaps() override;
     void Shutdown() override;
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
     GpuProgramCompiler* CreateShaderCompiler() override;
@@ -33,9 +32,14 @@ namespace Fancy
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
+    
+    VkInstance myInstance = nullptr;
+    VkPhysicalDevice myPhysicalDevice = nullptr;
+    VkDevice myDevice = nullptr;
+    int myQueueIndices[(uint)CommandListType::NUM] = { 0u };
 
-  private:
-    VkInstance myInstance;
+    VkPhysicalDeviceFeatures myPhysicalDeviceFeatures;
+    VkPhysicalDeviceProperties myPhysicalDeviceProperties;
   };
 }
 

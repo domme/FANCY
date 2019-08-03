@@ -76,6 +76,7 @@
     <ClInclude Include="CommandListDX12.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="CommandQueueDX12.h" />
+    <ClInclude Include="CommandQueueVk.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DataFormat.h" />
     <ClInclude Include="DataFormatList.h" />
@@ -178,6 +179,7 @@
     <ClCompile Include="CommandListDX12.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CommandQueueDX12.cpp" />
+    <ClCompile Include="CommandQueueVk.cpp" />
     <ClCompile Include="DataFormat.cpp" />
     <ClCompile Include="DynamicDescriptorHeapDX12.cpp" />
     <ClCompile Include="FileWatcher.cpp" />

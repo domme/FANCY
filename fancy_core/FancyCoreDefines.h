@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <climits>
 #include <string>
+#include <cinttypes>
 
 //Common MACRO defines
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }

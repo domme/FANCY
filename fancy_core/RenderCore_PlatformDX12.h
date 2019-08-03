@@ -81,7 +81,6 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
   // protected:
-    void InitCaps() override;
     void UpdateAvailableDynamicDescriptorHeaps();
     CommandQueueDX12* GetCommandQueueDX12(CommandListType aCommandListType);
 

@@ -31,7 +31,6 @@ namespace Fancy {
 
     virtual bool IsInitialized() = 0;
     virtual bool InitInternalResources() = 0;
-    virtual void InitCaps() = 0;
     virtual void Shutdown() = 0;
 
     RenderPlatformType GetType() const { return myType; }
