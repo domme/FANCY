@@ -5,7 +5,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>C:/VulkanSDK/1.1.114.0/Include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/VulkanSDK/1.1.114.0/Include/Vulkan/;C:/VulkanSDK/1.1.114.0/Include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:/VulkanSDK/1.1.114.0/Lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

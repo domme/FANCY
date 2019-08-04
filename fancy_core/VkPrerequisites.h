@@ -1,6 +1,7 @@
 #pragma once
 
-#include "vulkan/vulkan.h"
+#define VK_USE_PLATFORM_WIN32_KHR
+#include "vulkan.h"
 
 namespace {
   void ASSERT_VK_RESULT(VkResult aResult)

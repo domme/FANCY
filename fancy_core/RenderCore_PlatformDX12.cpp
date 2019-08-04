@@ -256,7 +256,7 @@ namespace Fancy {
     myGpuMemoryAllocators[(uint)type][(uint) accessType]->Free(anAllocation);
   }
 //---------------------------------------------------------------------------//
-  RenderOutput* RenderCore_PlatformDX12::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
+  RenderOutput* RenderCore_PlatformDX12::CreateRenderOutput(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams)
   {
     return new RenderOutputDX12(aNativeInstanceHandle, someWindowParams);
   }

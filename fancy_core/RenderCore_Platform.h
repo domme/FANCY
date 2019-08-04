@@ -35,7 +35,7 @@ namespace Fancy {
 
     RenderPlatformType GetType() const { return myType; }
     const RenderPlatformCaps& GetCaps() const { return myCaps; }
-    virtual RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) = 0;
+    virtual RenderOutput* CreateRenderOutput(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams) = 0;
     virtual GpuProgramCompiler* CreateShaderCompiler() = 0;
     virtual GpuProgram* CreateGpuProgram() = 0;
     virtual Texture* CreateTexture() = 0;

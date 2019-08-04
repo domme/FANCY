@@ -2,6 +2,7 @@
 
 #include "RenderCore_PlatformVk.h"
 #include "RendererPrerequisites.h"
+#include "RenderOutputVk.h"
 #include "CommandQueueVk.h"
 
 namespace Fancy
@@ -279,11 +280,9 @@ namespace Fancy
     vkDestroyDevice(myDevice, nullptr);
   }
 
-  RenderOutput* RenderCore_PlatformVk::CreateRenderOutput(void* aNativeInstanceHandle,
-    const WindowParameters& someWindowParams)
+  RenderOutput* RenderCore_PlatformVk::CreateRenderOutput(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams)
   {
-    ASSERT(false, "Not implemented");
-    return nullptr;
+    return new RenderOutputVk(aNativeInstanceHandle, someWindowParams);
   }
 
   GpuProgramCompiler* RenderCore_PlatformVk::CreateShaderCompiler()

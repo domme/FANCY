@@ -11,12 +11,10 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  RenderOutput::RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
+  RenderOutput::RenderOutput(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams)
     : myCurrBackbufferIndex(0u)
   {
-    HINSTANCE instanceHandle = static_cast<HINSTANCE>(aNativeInstanceHandle);
-
-    myWindow = Window::Create(instanceHandle, someWindowParams);
+    myWindow = Window::Create(aNativeInstanceHandle, someWindowParams);
     myWindow->myOnResize.Connect(this, &RenderOutput::OnWindowResized);
   }
 //---------------------------------------------------------------------------//

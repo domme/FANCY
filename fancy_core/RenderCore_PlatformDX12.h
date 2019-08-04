@@ -65,7 +65,7 @@ namespace Fancy {
     GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName = nullptr);
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
 
-    RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
+    RenderOutput* CreateRenderOutput(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
     GpuProgramCompiler* CreateShaderCompiler() override;
     GpuProgram* CreateGpuProgram() override;
     Texture* CreateTexture() override;
