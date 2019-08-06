@@ -203,43 +203,80 @@ namespace Fancy
       DynamicArray<VkQueueFamilyProperties> queueFamilyProps(numQueueFamilies);
       vkGetPhysicalDeviceQueueFamilyProperties(myPhysicalDevice, &numQueueFamilies, queueFamilyProps.data());
 
+      // Try to get the most suitable queues for graphics, compute and dma.
+      // First try to use queues from different families (assuming different queue-families are more likely to be asynchronous on hardware-level)
+      // If that doesn't work, try to use different queues from the same family. Most likely these will be synchronous on hardware-level though.
+      // Else disable certain queue-types that can't be filled in.
+
+      int numUsedQueues[(uint)CommandListType::NUM] = { 0u };
       for (int i = 0, e = (int)queueFamilyProps.size(); i < e; ++i)
       {
         const VkQueueFamilyProperties& props = queueFamilyProps[i];
-        props.
         if (props.queueCount == 0u)
           continue;
 
-        if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-          myQueueIndices[(uint)CommandListType::Graphics] = i;
-        if (props.queueFlags & VK_QUEUE_COMPUTE_BIT)
-          myQueueIndices[(uint)CommandListType::Compute] = i;
-        if (props.queueFlags & VK_QUEUE_TRANSFER_BIT)
-          myQueueIndices[(uint)CommandListType::DMA] = i;
+        if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT && myQueueInfos[(uint) CommandListType::Graphics].myQueueFamilyIndex == -1)
+        {
+          myQueueInfos[(uint) CommandListType::Graphics].myQueueFamilyIndex = i;
+          myQueueInfos[(uint) CommandListType::Graphics].myQueueIndex = 0u;
+          ++numUsedQueues[(uint)CommandListType::Graphics];
+        }
+        else if (props.queueFlags & VK_QUEUE_COMPUTE_BIT && myQueueInfos[(uint)CommandListType::Compute].myQueueFamilyIndex == -1)
+        {
+          myQueueInfos[(uint)CommandListType::Compute].myQueueFamilyIndex = i;
+          myQueueInfos[(uint)CommandListType::Compute].myQueueIndex = 0u;
+          ++numUsedQueues[(uint)CommandListType::Compute];
+        }
+        else if (props.queueFlags & VK_QUEUE_TRANSFER_BIT && myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex == -1)
+        {
+          myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex = i;
+          myQueueInfos[(uint)CommandListType::DMA].myQueueIndex = 0u;
+          ++numUsedQueues[(uint)CommandListType::DMA];
+        }
       }
 
-      ASSERT(myQueueIndices[(uint)CommandListType::Graphics] >= 0, "Vulkan device doesn't support graphics queue");
-      ASSERT(myQueueIndices[(uint)CommandListType::Compute] >= 0, "Vulkan device doesn't support compute queue");
+      ASSERT(myQueueInfos[(uint)CommandListType::Graphics].myQueueFamilyIndex >= 0, "Could not find a graphics-capable Vulkan queue");
+
+      for (int queueType = (int)CommandListType::Compute; queueType < (int)CommandListType::NUM; ++queueType)
+      {
+        if (myQueueInfos[queueType].myQueueFamilyIndex < 0)
+        {
+          for (int higherQueueType = queueType - 1; higherQueueType >= 0; --higherQueueType)
+          {
+            const int higherFamilyIndex = myQueueInfos[higherQueueType].myQueueFamilyIndex;
+            const VkQueueFamilyProperties& higherFamilyProps = queueFamilyProps[higherFamilyIndex];
+            if (numUsedQueues[higherFamilyIndex] < (int) higherFamilyProps.queueCount)
+            {
+              myQueueInfos[queueType].myQueueFamilyIndex = higherFamilyIndex;
+              myQueueInfos[queueType].myQueueIndex = numUsedQueues[higherFamilyIndex]++;
+              break;
+            }
+          }
+        }
+      }
 
       LOG("Creating logical Vulkan device...");
       locPrintAvailableDeviceExtensions(myPhysicalDevice);
 
-      VkDeviceQueueCreateInfo queueCreateInfos[] = { {}, {} };
-      queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-      queueCreateInfos[0].queueFamilyIndex = myQueueIndices[(uint)CommandListType::Graphics];
-      queueCreateInfos[0].queueCount = 1;
-      float queuePriority = 1.0f;
-      queueCreateInfos[0].pQueuePriorities = &queuePriority;
-
-      queueCreateInfos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-      queueCreateInfos[1].queueFamilyIndex = myQueueIndices[(uint)CommandListType::Compute];
-      queueCreateInfos[1].queueCount = 1;
-      queueCreateInfos[1].pQueuePriorities = &queuePriority;
+      const float queuePriority = 1.0f;
+      uint numQueuesToCreate = 0u;
+      VkDeviceQueueCreateInfo queueCreateInfos[(uint) CommandListType::NUM] = {};
+      for (uint queueType = 0u; queueType < (uint)CommandListType::NUM; ++queueType)
+      {
+        if (numUsedQueues[queueType] > 0)
+        {
+          queueCreateInfos[numQueuesToCreate].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+          queueCreateInfos[numQueuesToCreate].queueFamilyIndex = myQueueInfos[queueType].myQueueFamilyIndex;
+          queueCreateInfos[numQueuesToCreate].queueCount = numUsedQueues[queueType];
+          queueCreateInfos[numQueuesToCreate].pQueuePriorities = &queuePriority;
+          ++numQueuesToCreate;
+        }
+      }
 
       VkDeviceCreateInfo deviceCreateInfo = {};
       deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
       deviceCreateInfo.pQueueCreateInfos = queueCreateInfos;
-      deviceCreateInfo.queueCreateInfoCount = ARRAY_LENGTH(queueCreateInfos);
+      deviceCreateInfo.queueCreateInfoCount = numQueuesToCreate;
       deviceCreateInfo.pEnabledFeatures = &myPhysicalDeviceFeatures;
 
       const char* const extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -314,6 +351,10 @@ namespace Fancy
 
   CommandQueue* RenderCore_PlatformVk::CreateCommandQueue(CommandListType aType)
   {
+    const QueueInfo& queueInfo = myQueueInfos[(uint)aType];
+    if (queueInfo.myQueueFamilyIndex == -1)
+      return nullptr;
+
     return new CommandQueueVk(aType);
   }
 

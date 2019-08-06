@@ -11,7 +11,10 @@ namespace Fancy
     , myQueue(nullptr)
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    vkGetDeviceQueue(platformVk->myDevice, platformVk->myQueueIndices[(uint)aType], 0u, &myQueue);
+    const RenderCore_PlatformVk::QueueInfo& queueInfo = platformVk->myQueueInfos[(uint)aType];
+    ASSERT(queueInfo.myQueueFamilyIndex >= 0u && queueInfo.myQueueIndex >= 0u);
+
+    vkGetDeviceQueue(platformVk->myDevice, queueInfo.myQueueFamilyIndex, queueInfo.myQueueIndex, &myQueue);
     ASSERT(myQueue != nullptr);
   }
 
