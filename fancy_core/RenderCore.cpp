@@ -418,10 +418,10 @@ namespace Fancy {
     }
 
     ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
-    ASSERT(ourDefaultDepthStencilState != nullptr);
+    // ASSERT(ourDefaultDepthStencilState != nullptr);
 
     ourDefaultBlendState = CreateBlendState(BlendStateDesc::GetDefaultSolid());
-    ASSERT(ourDefaultBlendState != nullptr);
+    // ASSERT(ourDefaultBlendState != nullptr);
 
     ourTempResourcePool.reset(new TempResourcePool);
 
@@ -449,7 +449,8 @@ namespace Fancy {
         String name(StaticString<64>("QueryHeap %s", locGetQueryTypeName((GpuQueryType)queryType)));
 
         GpuBuffer* buffer = ourPlatformImpl->CreateBuffer();
-        buffer->Create(bufferProps, name.c_str());
+        if (buffer)
+          buffer->Create(bufferProps, name.c_str());
         ourQueryBuffers[i][queryType].reset(buffer);
       }
     }
@@ -751,6 +752,9 @@ namespace Fancy {
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureProperties& someProperties, const char* aName /*= nullptr*/, TextureSubData* someUploadDatas, uint aNumUploadDatas)
   {
     SharedPtr<Texture> tex(ourPlatformImpl->CreateTexture());
+    if (!tex)
+      return nullptr;
+
     tex->Create(someProperties, aName, someUploadDatas, aNumUploadDatas);
     return tex->IsValid() ? tex : nullptr;
   }
@@ -758,6 +762,9 @@ namespace Fancy {
   SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* someInitialData /* = nullptr */)
   {
     SharedPtr<GpuBuffer> buffer(ourPlatformImpl->CreateBuffer());
+    if (!buffer)
+      return nullptr;
+
     buffer->Create(someProperties, aName, someInitialData);
     return buffer->IsValid() ? buffer : nullptr;
   }

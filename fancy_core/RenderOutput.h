@@ -14,7 +14,7 @@ namespace Fancy {
   class RenderOutput
   {
   public:
-    RenderOutput(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams);
+    RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     virtual ~RenderOutput();
     
     void BeginFrame();

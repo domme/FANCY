@@ -18,7 +18,7 @@ namespace Fancy
     bool IsInitialized() override;
     bool InitInternalResources() override;
     void Shutdown() override;
-    RenderOutput* CreateRenderOutput(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
+    RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
     GpuProgramCompiler* CreateShaderCompiler() override;
     GpuProgram* CreateGpuProgram() override;
     Texture* CreateTexture() override;
@@ -37,7 +37,13 @@ namespace Fancy
     VkPhysicalDevice myPhysicalDevice = nullptr;
     VkDevice myDevice = nullptr;
     VkSurfaceKHR mySurface = nullptr;
-    int myQueueIndices[(uint)CommandListType::NUM] = { 0u };
+
+    struct QueueInfo
+    {
+      int myQueueFamilyIndex = -1;
+      int myQueueIndex = -1;
+    };
+    QueueInfo myQueueInfos[(uint)CommandListType::NUM];
 
     VkPhysicalDeviceFeatures myPhysicalDeviceFeatures;
     VkPhysicalDeviceProperties myPhysicalDeviceProperties;

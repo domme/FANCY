@@ -10,7 +10,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  RenderOutputDX12::RenderOutputDX12(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams)
+  RenderOutputDX12::RenderOutputDX12(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
     : RenderOutput(aNativeInstanceHandle, someWindowParams)
   {
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};

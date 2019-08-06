@@ -202,13 +202,11 @@ namespace Fancy
 
       DynamicArray<VkQueueFamilyProperties> queueFamilyProps(numQueueFamilies);
       vkGetPhysicalDeviceQueueFamilyProperties(myPhysicalDevice, &numQueueFamilies, queueFamilyProps.data());
-      
-      for (int& idx : myQueueIndices)
-        idx = -1;
 
       for (int i = 0, e = (int)queueFamilyProps.size(); i < e; ++i)
       {
         const VkQueueFamilyProperties& props = queueFamilyProps[i];
+        props.
         if (props.queueCount == 0u)
           continue;
 
@@ -270,7 +268,7 @@ namespace Fancy
 
   bool RenderCore_PlatformVk::InitInternalResources()
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return true;
   }
 
@@ -280,14 +278,14 @@ namespace Fancy
     vkDestroyDevice(myDevice, nullptr);
   }
 
-  RenderOutput* RenderCore_PlatformVk::CreateRenderOutput(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams)
+  RenderOutput* RenderCore_PlatformVk::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
   {
     return new RenderOutputVk(aNativeInstanceHandle, someWindowParams);
   }
 
   GpuProgramCompiler* RenderCore_PlatformVk::CreateShaderCompiler()
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return nullptr;
   }
 
@@ -298,19 +296,19 @@ namespace Fancy
 
   Texture* RenderCore_PlatformVk::CreateTexture()
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return nullptr;
   }
 
   GpuBuffer* RenderCore_PlatformVk::CreateBuffer()
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return nullptr;
   }
 
   CommandList* RenderCore_PlatformVk::CreateContext(CommandListType aType)
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return nullptr;
   }
 
@@ -321,31 +319,31 @@ namespace Fancy
 
   TextureView* RenderCore_PlatformVk::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName)
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return nullptr;
   }
 
   GpuBufferView* RenderCore_PlatformVk::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName)
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return nullptr;
   }
 
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return nullptr;
   }
 
   uint RenderCore_PlatformVk::GetQueryTypeDataSize(GpuQueryType aType)
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return 0u;
   }
 
   float64 RenderCore_PlatformVk::GetGpuTicksToMsFactor(CommandListType aCommandListType)
   {
-    ASSERT(false, "Not implemented");
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return 1.0;
   }
 }

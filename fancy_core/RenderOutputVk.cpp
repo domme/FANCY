@@ -8,17 +8,16 @@ namespace Fancy
 {
   class RenderCore_PlatformVk;
 
-  RenderOutputVk::RenderOutputVk(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams)
+  RenderOutputVk::RenderOutputVk(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
     : RenderOutput(aNativeInstanceHandle, someWindowParams)
   {
-    VkWin32SurfaceCreateInfoKHR createInfo;
+    VkWin32SurfaceCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     createInfo.hwnd = myWindow->GetWindowHandle();
-    createInfo.hinstance = aNativeInstanceHandle;
+    createInfo.hinstance = reinterpret_cast<HINSTANCE>(aNativeInstanceHandle);
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     ASSERT_VK_RESULT(vkCreateWin32SurfaceKHR(platformVk->myInstance, &createInfo, nullptr, &mySurface));
-    
   }
 
   RenderOutputVk::~RenderOutputVk()

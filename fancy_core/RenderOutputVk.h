@@ -7,7 +7,7 @@ namespace Fancy
   class RenderOutputVk : public RenderOutput
   {
   public:
-    RenderOutputVk(HINSTANCE aNativeInstanceHandle, const WindowParameters& someWindowParams);
+    RenderOutputVk(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     ~RenderOutputVk();
 
   protected:
