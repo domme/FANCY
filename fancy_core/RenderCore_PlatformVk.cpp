@@ -144,7 +144,12 @@ namespace Fancy
       createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
       createInfo.pApplicationInfo = &appInfo;
 
-      const char* const extensions[] = { VK_KHR_SURFACE_EXTENSION_NAME, "VK_KHR_win32_surface", VK_EXT_DEBUG_UTILS_EXTENSION_NAME };
+      const char* const extensions[] = { 
+        VK_KHR_SURFACE_EXTENSION_NAME, 
+        VK_KHR_WIN32_SURFACE_EXTENSION_NAME, 
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+      };
+
       createInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
       createInfo.ppEnabledExtensionNames = extensions;
 
@@ -244,6 +249,9 @@ namespace Fancy
           for (int higherQueueType = queueType - 1; higherQueueType >= 0; --higherQueueType)
           {
             const int higherFamilyIndex = myQueueInfos[higherQueueType].myQueueFamilyIndex;
+            if (higherFamilyIndex < 0)
+              continue;
+
             const VkQueueFamilyProperties& higherFamilyProps = queueFamilyProps[higherFamilyIndex];
             if (numUsedQueues[higherFamilyIndex] < (int) higherFamilyProps.queueCount)
             {

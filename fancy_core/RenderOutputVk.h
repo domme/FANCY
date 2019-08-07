@@ -18,6 +18,7 @@ namespace Fancy
     void Present() override;
 
     VkSurfaceKHR mySurface;
+    VkSwapchainKHR mySwapChain;
   };
 }
 

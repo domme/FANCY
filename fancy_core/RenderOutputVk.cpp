@@ -3,25 +3,120 @@
 #include "Window.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
+#include "FancyCoreDefines.h"
 
 namespace Fancy
 {
-  class RenderCore_PlatformVk;
-
   RenderOutputVk::RenderOutputVk(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
     : RenderOutput(aNativeInstanceHandle, someWindowParams)
   {
-    VkWin32SurfaceCreateInfoKHR createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    createInfo.hwnd = myWindow->GetWindowHandle();
-    createInfo.hinstance = reinterpret_cast<HINSTANCE>(aNativeInstanceHandle);
-
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    ASSERT_VK_RESULT(vkCreateWin32SurfaceKHR(platformVk->myInstance, &createInfo, nullptr, &mySurface));
+
+    // Create the surface
+    {
+      VkWin32SurfaceCreateInfoKHR createInfo = {};
+      createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+      createInfo.hwnd = myWindow->GetWindowHandle();
+      createInfo.hinstance = reinterpret_cast<HINSTANCE>(aNativeInstanceHandle);
+      ASSERT_VK_RESULT(vkCreateWin32SurfaceKHR(platformVk->myInstance, &createInfo, nullptr, &mySurface));
+    }
+
+    // Ensure that the graphics queue can be used as a present queue
+    {
+      VkBool32 supportsPresent = false;
+      vkGetPhysicalDeviceSurfaceSupportKHR(platformVk->myPhysicalDevice,
+        platformVk->myQueueInfos[(uint)CommandListType::Graphics].myQueueFamilyIndex,
+        mySurface, &supportsPresent);
+
+      ASSERT(supportsPresent, "Vulkan graphics queue doesn't support present. There's currently no support for presenting on a different queue");
+    }
+
+    const VkFormat backbufferFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    const VkColorSpaceKHR backbufferColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    // Ensure that the implementation supports the desired backbuffer formats
+    {
+      uint numFormats = 0u;
+      ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(platformVk->myPhysicalDevice, mySurface, &numFormats, nullptr));
+
+      VkSurfaceFormatKHR* formats = (VkSurfaceFormatKHR*)alloca(sizeof(VkSurfaceFormatKHR) * numFormats);
+      ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(platformVk->myPhysicalDevice, mySurface, &numFormats, formats));
+
+      bool formatSupported = false;
+      bool colorSpaceSupported = false;
+      for (uint i = 0u; i < numFormats && !(formatSupported && colorSpaceSupported); ++i)
+      {
+        const VkSurfaceFormatKHR& format = formats[i];
+        formatSupported |= format.format == backbufferFormat;
+        colorSpaceSupported |= format.colorSpace == backbufferColorSpace;
+      }
+      ASSERT(formatSupported, "Required backbuffer format not supported for swapchain creation");
+      ASSERT(colorSpaceSupported, "Required color space not supported for swapchain creation");
+    }
+    
+    VkPresentModeKHR bestPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+    // Choose a present mode
+    {
+      uint numPresentModes = 0u;
+      ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfacePresentModesKHR(platformVk->myPhysicalDevice, mySurface, &numPresentModes, nullptr));
+
+      VkPresentModeKHR* presentModes = (VkPresentModeKHR*)alloca(sizeof(VkPresentModeKHR) * numPresentModes);
+      ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfacePresentModesKHR(platformVk->myPhysicalDevice, mySurface, &numPresentModes, presentModes));
+
+      uint presentModePriorities[VK_PRESENT_MODE_RANGE_SIZE_KHR] = { 0u };
+      presentModePriorities[VK_PRESENT_MODE_MAILBOX_KHR] = 4u;
+      presentModePriorities[VK_PRESENT_MODE_FIFO_RELAXED_KHR] = 3u;
+      presentModePriorities[VK_PRESENT_MODE_FIFO_KHR] = 2u;
+      presentModePriorities[VK_PRESENT_MODE_IMMEDIATE_KHR] = 1u;
+
+      for (uint i = 0u; i < numPresentModes; ++i)
+      {
+        VkPresentModeKHR presentMode = presentModes[i];
+        const uint prio = presentModePriorities[presentMode];
+        const uint oldPrio = presentModePriorities[bestPresentMode];
+
+        if (prio > oldPrio)
+          bestPresentMode = presentMode;
+      }
+      ASSERT(presentModePriorities[bestPresentMode] > 0u, "None of the desired present mode options seems to be supported for Vulkan swap chain creation");
+    }
+
+    VkExtent2D swapChainRes;
+    uint numBackbuffers;
+    VkSurfaceCapabilitiesKHR surfaceCaps;
+    ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(platformVk->myPhysicalDevice, mySurface, &surfaceCaps));
+
+    swapChainRes = surfaceCaps.currentExtent;
+    if (swapChainRes.width == UINT_MAX)
+      swapChainRes.width = glm::clamp(myWindow->GetWidth(), surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
+    if (swapChainRes.height == UINT_MAX)
+      swapChainRes.height = glm::clamp(myWindow->GetHeight(), surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
+
+    numBackbuffers = glm::clamp(kBackbufferCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
+
+    VkSwapchainCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.surface = mySurface;
+    createInfo.minImageCount = numBackbuffers;
+    createInfo.imageExtent = swapChainRes;
+    createInfo.imageColorSpace = backbufferColorSpace;
+    createInfo.imageFormat = backbufferFormat;
+    createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;  // SHARING would only be needed if the present-queue is different from the graphics-queue, which we don't support currently.
+    createInfo.preTransform = surfaceCaps.currentTransform;
+    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    createInfo.presentMode = bestPresentMode;
+    createInfo.clipped = VK_TRUE;
+    createInfo.oldSwapchain = nullptr;  // Needed for swapchain-recreation after resizing later...
+
+    ASSERT_VK_RESULT(vkCreateSwapchainKHR(platformVk->myDevice, &createInfo, nullptr, &mySwapChain));
   }
 
   RenderOutputVk::~RenderOutputVk()
   {
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    vkDestroySwapchainKHR(platformVk->myDevice, mySwapChain, nullptr);
+    vkDestroySurfaceKHR(platformVk->myInstance, mySurface, nullptr);
   }
 
   void RenderOutputVk::CreateBackbufferResources(uint aWidth, uint aHeight)
