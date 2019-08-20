@@ -188,6 +188,12 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
+  enum class GpuResourceCategory
+  {
+    TEXTURE = 0,
+    BUFFER
+  };
+//---------------------------------------------------------------------------//
   enum class GpuResourceDimension
   {
     UNKONWN = 0,

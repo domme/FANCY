@@ -51,7 +51,7 @@ namespace Fancy {
       , myIsDepthReadOnly(false)
       , myIsStencilReadOnly(false)
       , myNumMipLevels(UINT_MAX)
-      , myPlaneIndex(0u)
+      , myPlaneIndex(0u)  // TODO(VK): Exchange simple plane index for an enum-value that specifies the semantic of the plane so that it can work well with VkImageSubresourceRange
       , myArraySize(1u)
       , myFirstArrayIndex(0u)
       , myMinLodClamp(0.0f)

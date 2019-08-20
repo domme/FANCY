@@ -344,6 +344,12 @@
     <ClInclude Include="RenderOutputVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="TextureVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceDataVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -516,6 +522,9 @@
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="RenderOutputVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>

@@ -91,6 +91,7 @@
     <ClInclude Include="GpuQuery.h" />
     <ClInclude Include="GpuQueryHeap.h" />
     <ClInclude Include="GpuQueryHeapDX12.h" />
+    <ClInclude Include="GpuResourceDataVk.h" />
     <ClInclude Include="GpuResourceStateTracking.h" />
     <ClInclude Include="GpuResourceView.h" />
     <ClInclude Include="GpuResourceViewDX12.h" />
@@ -161,6 +162,7 @@
     <ClInclude Include="TextureSampler.h" />
     <ClInclude Include="TextureSamplerDesc.h" />
     <ClInclude Include="TextureSamplerDX12.h" />
+    <ClInclude Include="TextureVk.h" />
     <ClInclude Include="TimeManager.h" />
     <ClInclude Include="VertexInputLayout.h" />
     <ClInclude Include="GeometryVertexLayout.h" />
@@ -226,6 +228,7 @@
     <ClCompile Include="TextureSamplerDesc.cpp" />
     <ClCompile Include="TextureSamplerDX12.cpp" />
     <ClCompile Include="GraphicsResources.cpp" />
+    <ClCompile Include="TextureVk.cpp" />
     <ClCompile Include="TimeManager.cpp" />
     <ClCompile Include="VertexInputLayout.cpp" />
     <ClCompile Include="GeometryVertexLayout.cpp" />

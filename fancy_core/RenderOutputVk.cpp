@@ -121,21 +121,26 @@ namespace Fancy
 
   void RenderOutputVk::CreateBackbufferResources(uint aWidth, uint aHeight)
   {
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
   }
 
   void RenderOutputVk::ResizeBackbuffer(uint aWidth, uint aHeight)
   {
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
   }
 
   void RenderOutputVk::DestroyBackbufferResources()
   {
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
   }
 
   void RenderOutputVk::OnBeginFrame()
   {
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
   }
 
   void RenderOutputVk::Present()
   {
+    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
   }
 }
