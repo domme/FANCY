@@ -60,14 +60,13 @@ namespace Fancy {
       , myZSize(1u)
     { }
 
+    TextureSubRange mySubresourceRange;
     GpuResourceDimension myDimension;
     DataFormat myFormat;
     bool myIsShaderWritable;
     bool myIsRenderTarget;
     bool myIsDepthReadOnly;
     bool myIsStencilReadOnly;
-    uint myNumMipLevels;
-    uint myPlaneIndex;
     uint myArraySize;        // Interpreted as NumCubes in case of cube arrays
     uint myFirstArrayIndex;  // Interpreted as First 2D Array face in case of cube arrays
     float myMinLodClamp;

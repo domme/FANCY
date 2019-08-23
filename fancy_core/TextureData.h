@@ -41,6 +41,28 @@ namespace Fancy
     uint myPlaneIndex;
   };
 //---------------------------------------------------------------------------//
+  struct TextureSubRange
+  {
+    TextureSubRange(
+      uint aPlaneMask = (uint)TexturePlaneFlag::Color, 
+      uint aFirstMipLevel = 0u, 
+      uint aNumMipLevels = 1u, 
+      uint aFirstArrayIndex = 0u, 
+      uint aNumArrayIndices = 1u)
+      : myPlaneMask(aPlaneMask)
+      , myFirstMipLevel(aFirstMipLevel)
+      , myNumMipLevels(aNumMipLevels)
+      , myFirstArrayIndex(aFirstArrayIndex)
+      , myNumArrayIndices(aNumArrayIndices)
+    { }
+
+    uint myPlaneMask;
+    uint myFirstMipLevel;
+    uint myNumMipLevels;
+    uint myFirstArrayIndex;
+    uint myNumArrayIndices;
+  };
+//---------------------------------------------------------------------------//
   struct TextureRegion
   {
     TextureRegion()
