@@ -66,8 +66,7 @@ namespace Fancy {
       backbufferProps.myDepthOrArraySize = 1u;
       backbufferProps.myNumMipLevels = 1u;
 
-      myBackbufferTextures[i].reset(new TextureDX12());
-      myBackbufferTextures[i]->Create(std::move(resource), backbufferProps);
+      myBackbufferTextures[i].reset(new TextureDX12(std::move(resource), backbufferProps));
     }
   }
 //---------------------------------------------------------------------------//

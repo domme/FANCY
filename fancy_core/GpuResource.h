@@ -11,6 +11,8 @@ namespace Fancy {
   class GpuResource
   {
   public:
+    GpuResource(GpuResource&& anOther) = default;
+
     explicit GpuResource(GpuResourceCategory aType)
       : myNumSubresources(1u)
       , myNumSubresourcesPerPlane(1u)

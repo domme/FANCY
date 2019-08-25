@@ -159,6 +159,9 @@ namespace Fancy
 
       ASSERT_VK_RESULT(vkCreateInstance(&createInfo, nullptr, &myInstance));
       LOG("Initialized Vulkan instance");
+
+      VkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT) vkGetInstanceProcAddr(myInstance, "vkSetDebugUtilsObjectNameEXT");
+      ASSERT(VkSetDebugUtilsObjectNameEXT != nullptr);
     }
 
     // Create physical device

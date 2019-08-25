@@ -3,7 +3,6 @@
 #include "fancy_core/Log.h"
 #include "fancy_core/Texture.h"
 #include "fancy_core/RenderCore.h"
-#include "fancy_core/GpuProgramPipelineDesc.h"
 #include "fancy_assets/AssetManager.h"
 #include "fancy_imgui/imgui.h"
 
@@ -27,7 +26,7 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
   const DataFormatInfo& destTexFormatInfo = DataFormatInfo::GetFormatInfo(destTexProps.eFormat);
   myIsSRGB = destTexFormatInfo.mySRGB;
 
-  readProps.myNumMipLevels = 1;
+  readProps.mySubresourceRange.myNumMipLevels = 1;
 
   TextureViewProperties writeProps = readProps;
   writeProps.myFormat = DataFormatInfo::GetNonSRGBformat(readProps.myFormat);
@@ -39,8 +38,8 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
 
   for (uint mip = 0u; mip < numMips; ++mip)
   {
-    readProps.myMipIndex = mip;
-    writeProps.myMipIndex = mip;
+    readProps.mySubresourceRange.myFirstMipLevel = mip;
+    writeProps.mySubresourceRange.myFirstMipLevel = mip;
     myMipLevelReadViews[mip] = RenderCore::CreateTextureView(aTexture, readProps);
     myMipLevelWriteViews[mip] = RenderCore::CreateTextureView(aTexture, writeProps);
     ASSERT(myMipLevelReadViews[mip] != nullptr && myMipLevelWriteViews[mip] != nullptr);

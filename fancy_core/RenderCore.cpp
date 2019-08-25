@@ -775,14 +775,14 @@ namespace Fancy {
     TextureViewProperties viewProps = someProperties;
     viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.eFormat;
     viewProps.myDimension = viewProps.myDimension != GpuResourceDimension::UNKONWN ? viewProps.myDimension : texProps.myDimension;
-    viewProps.myNumMipLevels = glm::max(1u, glm::min(viewProps.myNumMipLevels, texProps.myNumMipLevels));
-    viewProps.myArraySize = glm::max(1u, glm::min(viewProps.myArraySize, texProps.GetArraySize() - viewProps.myFirstArrayIndex));
+    viewProps.mySubresourceRange.myNumMipLevels = glm::max(1u, glm::min(viewProps.mySubresourceRange.myNumMipLevels, texProps.myNumMipLevels));
+    viewProps.mySubresourceRange.myNumArrayIndices = glm::max(1u, glm::min(viewProps.mySubresourceRange.myNumArrayIndices, texProps.GetArraySize() - viewProps.mySubresourceRange.myFirstArrayIndex));
     viewProps.myZSize = glm::max(1u, glm::min(viewProps.myZSize, texProps.GetDepthSize() - viewProps.myFirstZindex));
     
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(viewProps.myFormat);
-    ASSERT(viewProps.myPlaneIndex < formatInfo.myNumPlanes);
+    ASSERT(viewProps.mySubresourceRange.myFirstPlane < formatInfo.myNumPlanes);
     ASSERT(!viewProps.myIsShaderWritable || !viewProps.myIsRenderTarget, "UAV and RTV are mutually exclusive");
-    ASSERT(viewProps.myPlaneIndex < GpuResourceView::ourNumSupportedPlanes);
+    ASSERT(viewProps.mySubresourceRange.myFirstPlane < GpuResourceView::ourNumSupportedPlanes);
 
     return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, viewProps, aName));
   }

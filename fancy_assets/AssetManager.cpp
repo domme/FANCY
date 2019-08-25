@@ -297,10 +297,10 @@ using namespace Fancy;
     FixedArray<SharedPtr<TextureView>, kMaxNumMips> readViews;
 
     TextureViewProperties readProps;
-    readProps.myNumMipLevels = 1;
+    readProps.mySubresourceRange.myNumMipLevels = 1;
     for (uint mip = 0u; mip < numMips - 1; ++mip)
     {
-      readProps.myMipIndex = mip;
+      readProps.mySubresourceRange.myFirstMipLevel = mip;
       readViews[mip] = RenderCore::CreateTextureView(aTexture, readProps);
     }
 

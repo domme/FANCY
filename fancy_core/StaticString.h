@@ -45,6 +45,8 @@ namespace Fancy
       return myBuffer;
     }
 
+    const char* GetBuffer() const { return myBuffer; }
+
     operator const char*() const { return myBuffer; }
 
   private:

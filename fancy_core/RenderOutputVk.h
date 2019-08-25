@@ -17,8 +17,9 @@ namespace Fancy
     void OnBeginFrame() override;
     void Present() override;
 
-    VkSurfaceKHR mySurface;
-    VkSwapchainKHR mySwapChain;
+    VkSurfaceKHR mySurface = nullptr;
+    VkSwapchainKHR mySwapChain = nullptr;
+    uint myNumBackbuffers = 0u;
   };
 }
 

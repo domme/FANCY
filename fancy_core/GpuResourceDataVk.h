@@ -12,6 +12,6 @@ namespace Fancy
     {
       VkBuffer myBuffer;
       VkImage myImage;
-    } myData;
+    };
   };
 }

@@ -38,6 +38,8 @@ namespace Fancy
     VkDevice myDevice = nullptr;
     VkSurfaceKHR mySurface = nullptr;
 
+    PFN_vkSetDebugUtilsObjectNameEXT VkSetDebugUtilsObjectNameEXT = nullptr;
+
     struct QueueInfo
     {
       int myQueueFamilyIndex = -1;

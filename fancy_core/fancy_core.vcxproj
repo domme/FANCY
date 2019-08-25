@@ -88,6 +88,7 @@
     <ClInclude Include="GpuBufferProperties.h" />
     <ClInclude Include="GpuMemoryAllocationDX12.h" />
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
+    <ClInclude Include="GpuProgramVk.h" />
     <ClInclude Include="GpuQuery.h" />
     <ClInclude Include="GpuQueryHeap.h" />
     <ClInclude Include="GpuQueryHeapDX12.h" />
@@ -103,6 +104,8 @@
     <ClInclude Include="RenderCore_PlatformVk.h" />
     <ClInclude Include="RenderEnums.h" />
     <ClInclude Include="RenderOutputVk.h" />
+    <ClInclude Include="spirv_reflect\spirv.h" />
+    <ClInclude Include="spirv_reflect\spirv_reflect.h" />
     <ClInclude Include="StaticString.h" />
     <ClInclude Include="TempResourcePool.h" />
     <ClInclude Include="Input.h" />
@@ -198,6 +201,7 @@
     <ClCompile Include="GpuProgramDX12.cpp" />
     <ClCompile Include="GpuProgramFeatures.cpp" />
     <ClCompile Include="GpuProgramPipeline.cpp" />
+    <ClCompile Include="GpuProgramVk.cpp" />
     <ClCompile Include="GpuQueryHeap.cpp" />
     <ClCompile Include="GpuQueryHeapDX12.cpp" />
     <ClCompile Include="GpuResourceStateTracking.cpp" />
@@ -206,6 +210,9 @@
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="RenderCore_PlatformVk.cpp" />
     <ClCompile Include="RenderOutputVk.cpp" />
+    <ClCompile Include="spirv_reflect\spirv_reflect.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="TempResourcePool.cpp" />
     <ClCompile Include="Input.cpp" />

@@ -45,6 +45,8 @@ namespace Fancy {
 
     static const uint kBackbufferCount = 2u;
 
+    // TODO: SharedPtrs don't make sense here - there is only ever this single window and those single backbuffers for each RenderOutput. Should be UniquePtr instead
+
     uint myCurrBackbufferIndex;
     SharedPtr<Window> myWindow;
 

@@ -3,6 +3,7 @@
 #include "FancyCoreDefines.h"
 #include "DataFormat.h"
 #include "RenderEnums.h"
+#include "TextureData.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -50,12 +51,7 @@ namespace Fancy {
       , myIsRenderTarget(false)
       , myIsDepthReadOnly(false)
       , myIsStencilReadOnly(false)
-      , myNumMipLevels(UINT_MAX)
-      , myPlaneIndex(0u)  // TODO(VK): Exchange simple plane index for an enum-value that specifies the semantic of the plane so that it can work well with VkImageSubresourceRange
-      , myArraySize(1u)
-      , myFirstArrayIndex(0u)
       , myMinLodClamp(0.0f)
-      , myMipIndex(0u)
       , myFirstZindex(0u)
       , myZSize(1u)
     { }
@@ -67,10 +63,7 @@ namespace Fancy {
     bool myIsRenderTarget;
     bool myIsDepthReadOnly;
     bool myIsStencilReadOnly;
-    uint myArraySize;        // Interpreted as NumCubes in case of cube arrays
-    uint myFirstArrayIndex;  // Interpreted as First 2D Array face in case of cube arrays
     float myMinLodClamp;
-    uint myMipIndex; // Only rendertargets
     uint myFirstZindex;  // Only rendertargets
     uint myZSize; // Only rendertargets
   };

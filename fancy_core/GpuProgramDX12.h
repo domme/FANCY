@@ -10,8 +10,6 @@ namespace Fancy {
   class GpuProgramDX12 : public GpuProgram
   {
     friend class GpuProgramCompilerDX12;
-    friend class RenderOutputDX12;
-    class ShaderResourceInterface;
     
   public:
     GpuProgramDX12() = default;
@@ -38,7 +36,7 @@ namespace Fancy {
     std::vector<D3D12_INPUT_ELEMENT_DESC> myNativeInputElements;
 
     Microsoft::WRL::ComPtr<ID3DBlob> myNativeData;
-    D3D12_SHADER_BYTECODE myNativeByteCode;
+    D3D12_SHADER_BYTECODE myNativeByteCode = {};
   };
 //---------------------------------------------------------------------------//
 }

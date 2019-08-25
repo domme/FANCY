@@ -4,6 +4,9 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
 #include "FancyCoreDefines.h"
+#include "GpuResource.h"
+#include "GpuResourceDataVk.h"
+#include "TextureVk.h"
 
 namespace Fancy
 {
@@ -81,7 +84,6 @@ namespace Fancy
     }
 
     VkExtent2D swapChainRes;
-    uint numBackbuffers;
     VkSurfaceCapabilitiesKHR surfaceCaps;
     ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(platformVk->myPhysicalDevice, mySurface, &surfaceCaps));
 
@@ -91,12 +93,12 @@ namespace Fancy
     if (swapChainRes.height == UINT_MAX)
       swapChainRes.height = glm::clamp(myWindow->GetHeight(), surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
 
-    numBackbuffers = glm::clamp(kBackbufferCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
+    myNumBackbuffers = glm::clamp(kBackbufferCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = mySurface;
-    createInfo.minImageCount = numBackbuffers;
+    createInfo.minImageCount = myNumBackbuffers;
     createInfo.imageExtent = swapChainRes;
     createInfo.imageColorSpace = backbufferColorSpace;
     createInfo.imageFormat = backbufferFormat;
@@ -110,18 +112,59 @@ namespace Fancy
     createInfo.oldSwapchain = nullptr;  // Needed for swapchain-recreation after resizing later...
 
     ASSERT_VK_RESULT(vkCreateSwapchainKHR(platformVk->myDevice, &createInfo, nullptr, &mySwapChain));
-  }
 
+    // TODO(Vk): This call is just for testing purposes:
+    CreateBackbufferResources(swapChainRes.width, swapChainRes.height);
+  }
+//---------------------------------------------------------------------------//
   RenderOutputVk::~RenderOutputVk()
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     vkDestroySwapchainKHR(platformVk->myDevice, mySwapChain, nullptr);
     vkDestroySurfaceKHR(platformVk->myInstance, mySurface, nullptr);
   }
-
+//---------------------------------------------------------------------------//
   void RenderOutputVk::CreateBackbufferResources(uint aWidth, uint aHeight)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+
+    uint numSwapChainImages;
+    vkGetSwapchainImagesKHR(platformVk->myDevice, mySwapChain, &numSwapChainImages, nullptr);
+    ASSERT(myNumBackbuffers == numSwapChainImages);
+
+    VkImage* const swapChainImages = (VkImage*)alloca(sizeof(VkImage*) * numSwapChainImages);
+    vkGetSwapchainImagesKHR(platformVk->myDevice, mySwapChain, &numSwapChainImages, swapChainImages);
+
+    for (uint i = 0u; i < myNumBackbuffers; ++i)
+    {
+      StaticString<32> name("Backbuffer Texture %d", i);
+
+      GpuResource resource(GpuResourceCategory::TEXTURE);
+      resource.myName = name.GetBuffer();
+
+      {
+        GpuResourceDataVk* dataVk(new GpuResourceDataVk);
+        dataVk->myType = GpuResourceCategory::TEXTURE;
+        dataVk->myImage = swapChainImages[i];
+        resource.myNativeData = dataVk;
+      }
+
+      resource.myStateTracking = GpuResourceStateTracking();
+      // TODO(Vk): Add similar read- and write-state masks as in DX12?
+      resource.myStateTracking.myDefaultState = GpuResourceState::READ_PRESENT;
+
+      TextureProperties backbufferProps;
+      backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
+      backbufferProps.myIsRenderTarget = true;
+      backbufferProps.eFormat = DataFormat::RGBA_8;
+      backbufferProps.myWidth = aWidth;
+      backbufferProps.myHeight = aHeight;
+      backbufferProps.myDepthOrArraySize = 1u;
+      backbufferProps.myNumMipLevels = 1u;
+
+      myBackbufferTextures[i].reset(new TextureVk(std::move(resource), backbufferProps));
+      myBackbufferTextures[i]->SetName(name.GetBuffer());
+    }
   }
 
   void RenderOutputVk::ResizeBackbuffer(uint aWidth, uint aHeight)
