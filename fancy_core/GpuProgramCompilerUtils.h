@@ -7,7 +7,9 @@ namespace Fancy {
   class GpuProgramCompilerUtils
   {
   public:
-    static String ShaderStageToDefineString(ShaderStage aShaderStage);
+    GpuProgramCompilerUtils() = delete;
+
+    static const char* ShaderStageToDefineString(ShaderStage aShaderStage);
   };
 //---------------------------------------------------------------------------//
 }

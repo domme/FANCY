@@ -9,9 +9,10 @@ namespace Fancy {
   {
   public:
       ~GpuProgramCompilerDX12() override = default;
-
-      bool Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutput* aCompilerOutput) const override;
       String ResolvePlatformShaderPath(const String& aPath) const override;
+
+  protected:
+    bool Compile_Internal(const GpuProgramDesc& aDesc, const char** someDefines, uint aNumDefines, GpuProgramCompilerOutput* aCompilerOutput) const override;
   };
 //---------------------------------------------------------------------------//
 }

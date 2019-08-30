@@ -22,8 +22,13 @@ namespace Fancy {
   {
     public:
       virtual ~GpuProgramCompiler() = default;
-      virtual bool Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutput* aCompilerOutput) const = 0;
       virtual String ResolvePlatformShaderPath(const String& aPath) const = 0;
+
+      bool Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutput* aCompilerOutput);
+
+  protected:
+    virtual bool Compile_Internal(const GpuProgramDesc& aDesc, const char** someDefines, uint aNumDefines, GpuProgramCompilerOutput* aCompilerOutput) const = 0;
+
   };
 //---------------------------------------------------------------------------//
 }

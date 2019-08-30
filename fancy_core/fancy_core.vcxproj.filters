@@ -362,6 +362,9 @@
     <ClInclude Include="spirv_reflect\spirv.h">
       <Filter>Rendering\Vulkan\spirv_reflect</Filter>
     </ClInclude>
+    <ClInclude Include="GpuProgramCompilerVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -544,6 +547,12 @@
     </ClCompile>
     <ClCompile Include="spirv_reflect\spirv_reflect.c">
       <Filter>Rendering\Vulkan\spirv_reflect</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuProgramCompilerVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuProgramCompiler.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  String GpuProgramCompilerUtils::ShaderStageToDefineString(ShaderStage aShaderStage)
+  const char* GpuProgramCompilerUtils::ShaderStageToDefineString(ShaderStage aShaderStage)
   {
     switch (aShaderStage)
     {

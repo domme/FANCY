@@ -16,7 +16,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  String locShaderStageToProfileString(ShaderStage aStage)
+  const char* locShaderStageToProfileString(ShaderStage aStage)
   {
     switch(aStage)
     {
@@ -547,32 +547,19 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramCompilerDX12::Compile(const GpuProgramDesc& aDesc, GpuProgramCompilerOutput* anOutput) const
+  String GpuProgramCompilerDX12::ResolvePlatformShaderPath(const String& aPath) const
   {
-    LOG_INFO("Compiling shader %s...", aDesc.myShaderFileName.c_str());
-
-    const String& shaderStageDefineStr = GpuProgramCompilerUtils::ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
-    const String& shaderProfileStr = locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage));
-
-    const String actualShaderPath = "shader/DX12/" + aDesc.myShaderFileName + ".hlsl";
-    std::wstring shaderPathAbs = StringUtil::ToWideString(Resources::FindPath(actualShaderPath));
-
-    const DynamicArray<GpuProgramFeature>& permuationFeatures = aDesc.myPermutation.getFeatureList();
-
-    std::vector<D3D_SHADER_MACRO> defines;
-    defines.resize(permuationFeatures.size() + 1u + 1u); // All permutation-defines + the stage define + termination macro
-
-    defines[0].Name = shaderStageDefineStr.c_str();
-    defines[0].Definition = "1";
-
-    std::vector<String> featureDefineStrings; // We need some temporary strings so that the c_str() are backed by memory until the end of the method
-    featureDefineStrings.resize(permuationFeatures.size());
-
-    for (uint i = 0u; i < permuationFeatures.size(); ++i)
+    return "shader/DX12/" + aPath + ".hlsl";
+  }
+//---------------------------------------------------------------------------//
+  bool GpuProgramCompilerDX12::Compile_Internal(const GpuProgramDesc& aDesc, const char** someDefines, uint aNumDefines, GpuProgramCompilerOutput* anOutput) const
+  {
+    DynamicArray<D3D_SHADER_MACRO> defines;
+    defines.resize(aNumDefines + 1u);
+    for (uint i = 0u; i < aNumDefines; ++i)
     {
-      featureDefineStrings[i] = GpuProgramPermutation::featureToDefineString(permuationFeatures[i]);
-      defines[i + 1u].Name = featureDefineStrings[i].c_str(); 
-      defines[i + 1u].Definition = "1";
+      defines[i].Name = someDefines[i];
+      defines[i].Definition = "1";
     }
 
     defines[defines.size() - 1].Name = nullptr;
@@ -581,12 +568,15 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<ID3DBlob> compiledShaderBytecode;
     Microsoft::WRL::ComPtr<ID3DBlob> errorData;
 
+    const String actualShaderPath = "shader/DX12/" + aDesc.myShaderFileName + ".hlsl";
+    std::wstring shaderPathAbs = StringUtil::ToWideString(Resources::FindPath(actualShaderPath));
+
     HRESULT sucess = D3DCompileFromFile(
       shaderPathAbs.c_str(),
       &defines[0],
       D3D_COMPILE_STANDARD_FILE_INCLUDE,
       aDesc.myMainFunction.c_str(),
-      shaderProfileStr.c_str(),
+      locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage)),
       D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_OPTIMIZATION_LEVEL0 | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_WARNINGS_ARE_ERRORS,
       0u,
       &compiledShaderBytecode,
@@ -613,7 +603,7 @@ namespace Fancy {
       LOG_ERROR("Failed extracting the root signature from shader");
       return false;
     }
-    
+
     ID3D12Device* d3dDevice = RenderCore::GetPlatformDX12()->GetDevice();
 
     ID3D12RootSignature* rootSignature;
@@ -676,7 +666,7 @@ namespace Fancy {
         return false;
       }
     }
-    else if(aDesc.myShaderStage == static_cast<uint>(ShaderStage::COMPUTE))
+    else if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::COMPUTE))
     {
       uint x, y, z;
       reflector->GetThreadGroupSize(&x, &y, &z);
@@ -686,11 +676,6 @@ namespace Fancy {
     anOutput->myNativeData = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
 
     return true;
-  }
-//---------------------------------------------------------------------------//
-  String GpuProgramCompilerDX12::ResolvePlatformShaderPath(const String& aPath) const
-  {
-    return "shader/DX12/" + aPath + ".hlsl";
   }
 //---------------------------------------------------------------------------//
 }

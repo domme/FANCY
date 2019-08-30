@@ -4,6 +4,9 @@
 #include "RendererPrerequisites.h"
 #include "RenderOutputVk.h"
 #include "CommandQueueVk.h"
+#include "GpuProgramCompilerVk.h"
+#include "GpuProgramVk.h"
+#include "TextureVk.h"
 
 namespace Fancy
 {
@@ -333,19 +336,17 @@ namespace Fancy
 
   GpuProgramCompiler* RenderCore_PlatformVk::CreateShaderCompiler()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
-    return nullptr;
+    return new GpuProgramCompilerVk();
   }
 
   GpuProgram* RenderCore_PlatformVk::CreateGpuProgram()
   {
-    return nullptr;
+    return new GpuProgramVk();
   }
 
   Texture* RenderCore_PlatformVk::CreateTexture()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
-    return nullptr;
+    return new TextureVk();
   }
 
   GpuBuffer* RenderCore_PlatformVk::CreateBuffer()
