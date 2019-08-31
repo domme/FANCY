@@ -60,9 +60,6 @@
     <ClInclude Include="GpuBufferDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="GpuProgramCompilerDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="GpuProgramDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
@@ -106,27 +103,6 @@
       <Filter>Geometry</Filter>
     </ClInclude>
     <ClInclude Include="GpuBuffer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgram.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramCompiler.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramCompilerUtils.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramDesc.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramFeatures.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramPipeline.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramPipelineDesc.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="GpuResource.h">
@@ -239,9 +215,6 @@
     </ClInclude>
     <ClInclude Include="DynamicDescriptorHeapDX12.h">
       <Filter>Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramProperties.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="GpuResourceDataDX12.h">
       <Filter>Rendering\DX12</Filter>
@@ -362,7 +335,28 @@
     <ClInclude Include="spirv_reflect\spirv.h">
       <Filter>Rendering\Vulkan\spirv_reflect</Filter>
     </ClInclude>
-    <ClInclude Include="GpuProgramCompilerVk.h">
+    <ClInclude Include="ShaderDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompiler.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderPipeline.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderPipelineDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderProperties.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompilerDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompilerVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
@@ -377,9 +371,6 @@
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="GpuBufferDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramCompilerDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="GpuProgramDX12.cpp">
@@ -422,18 +413,6 @@
       <Filter>Geometry</Filter>
     </ClCompile>
     <ClCompile Include="GpuBuffer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgram.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramCompilerUtils.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramFeatures.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramPipeline.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
@@ -548,11 +527,20 @@
     <ClCompile Include="spirv_reflect\spirv_reflect.c">
       <Filter>Rendering\Vulkan\spirv_reflect</Filter>
     </ClCompile>
-    <ClCompile Include="GpuProgramCompilerVk.cpp">
-      <Filter>Rendering\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramCompiler.cpp">
+    <ClCompile Include="Shader.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompiler.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderPipeline.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompilerDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompilerVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

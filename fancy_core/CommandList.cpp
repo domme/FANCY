@@ -4,9 +4,9 @@
 #include "RenderCore.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
-#include "GpuProgramPipeline.h"
+#include "ShaderPipeline.h"
 #include "Texture.h"
-#include "GpuProgram.h"
+#include "Shader.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
 #include "TimeManager.h"
@@ -214,7 +214,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 // Render Context:
 //---------------------------------------------------------------------------//
-  void CommandList::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
+  void CommandList::SetGpuProgramPipeline(const SharedPtr<ShaderPipeline>& aGpuProgramPipeline)
   {
     ASSERT(myCommandListType == CommandListType::Graphics);
     
@@ -225,7 +225,7 @@ namespace Fancy {
       myGraphicsPipelineState.myIsDirty = true;
 
       bool hasUnorderedWrites = false;
-      for (const SharedPtr<GpuProgram>& gpuProgram : aGpuProgramPipeline->myGpuPrograms)
+      for (const SharedPtr<Shader>& gpuProgram : aGpuProgramPipeline->myGpuPrograms)
         if(gpuProgram != nullptr)
           hasUnorderedWrites |= gpuProgram->myProperties.myHasUnorderedWrites;
 
@@ -233,7 +233,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SetComputeProgram(const GpuProgram* aProgram)
+  void CommandList::SetComputeProgram(const Shader* aProgram)
   {
     ASSERT(aProgram->myProperties.myShaderStage == ShaderStage::COMPUTE);
     ASSERT(myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute);

@@ -38,7 +38,7 @@ namespace Fancy { namespace MathUtil {
   }
 //---------------------------------------------------------------------------//
   template<class T>
-  inline void hash_combine(uint64& uCombinedSeed, const T value)
+  inline void hash_combine(uint64& uCombinedSeed, const T& value)
   {
     uCombinedSeed ^= Hash<T>(value) * 2654435761 + 0x9e3779b9 +
                      (uCombinedSeed << 6) + (uCombinedSeed >> 2);

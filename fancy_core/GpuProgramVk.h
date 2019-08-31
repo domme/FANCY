@@ -1,20 +1,20 @@
 #pragma once
-#include "GpuProgram.h"
+#include "Shader.h"
 
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  struct GpuProgramCompilerOutput;
+  struct ShaderCompilerResult;
 //---------------------------------------------------------------------------//
-  class GpuProgramVk : public GpuProgram
+  class GpuProgramVk : public Shader
   {
-    friend class GpuProgramCompilerVk;
+    friend class ShaderCompilerVk;
 
   public:
     GpuProgramVk();
     virtual ~GpuProgramVk() override;
 
-    void SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput) override;
+    void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
     uint64 GetNativeBytecodeHash() const override;
   };
 //---------------------------------------------------------------------------//

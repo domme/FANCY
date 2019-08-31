@@ -1,29 +1,29 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
-#include "GpuProgramDesc.h"
-#include "GpuProgramProperties.h"
+#include "ShaderDesc.h"
+#include "ShaderProperties.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct GpuProgramCompilerOutput;
+  struct ShaderCompilerResult;
   class ShaderResourceInterface;
 //---------------------------------------------------------------------------//
-  class GpuProgram
+  class Shader
   {
   public:
 
-    GpuProgram();
-    virtual ~GpuProgram() = default;
+    Shader();
+    virtual ~Shader() = default;
 
-    const GpuProgramDesc& GetDescription() const { return myDesc; }
-    virtual void SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput);
+    const ShaderDesc& GetDescription() const { return myDesc; }
+    virtual void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput);
     virtual uint64 GetNativeBytecodeHash() const = 0;
     
-    GpuProgramDesc myDesc;
+    ShaderDesc myDesc;
 
     ShaderResourceInterface* myResourceInterface;
-    GpuProgramProperties myProperties;
+    ShaderProperties myProperties;
   };
 //---------------------------------------------------------------------------//
 }

@@ -8,7 +8,7 @@ namespace Fancy
   class Texture;
   class TextureView;
   class AssetManager;
-  class GpuProgram;
+  class Shader;
 }
 
 struct ImageData
@@ -39,7 +39,7 @@ public:
   void OnUpdate(bool aDrawProperties) override;
 
 private:
-  void OnShaderRecompiled(const Fancy::GpuProgram* aShader);
+  void OnShaderRecompiled(const Fancy::Shader* aShader);
 
   Fancy::SharedPtr<Fancy::AssetManager> myAssetManager;
   Fancy::DynamicArray<ImageData> myImageDatas;

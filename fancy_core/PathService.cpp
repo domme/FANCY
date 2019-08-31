@@ -82,9 +82,9 @@ namespace Fancy {
       return anAbsolutePath.substr(workingDirPos + 1);
     }
 //---------------------------------------------------------------------------//
-    bool FileExists(const String& aFilePath)
+    bool FileExists(const char* aFilePath)
     {
-      if (FILE *file = fopen(aFilePath.c_str(), "r")) 
+      if (FILE *file = fopen(aFilePath, "r")) 
       {
         fclose(file);
         return true;

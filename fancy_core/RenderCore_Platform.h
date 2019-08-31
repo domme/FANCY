@@ -7,7 +7,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class RenderOutput;
-  class GpuProgramCompiler;
+  class ShaderCompiler;
   class CommandList;
   class CommandQueue;
   enum class CommandListType;
@@ -17,7 +17,7 @@ namespace Fancy {
   class TextureView;
   class GpuBufferView;
   struct GpuBufferViewProperties;
-  class GpuProgram;
+  class Shader;
   class Texture;
   class GpuBuffer;
   class GpuQueryHeap;
@@ -36,8 +36,8 @@ namespace Fancy {
     RenderPlatformType GetType() const { return myType; }
     const RenderPlatformCaps& GetCaps() const { return myCaps; }
     virtual RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) = 0;
-    virtual GpuProgramCompiler* CreateShaderCompiler() = 0;
-    virtual GpuProgram* CreateGpuProgram() = 0;
+    virtual ShaderCompiler* CreateShaderCompiler() = 0;
+    virtual Shader* CreateGpuProgram() = 0;
     virtual Texture* CreateTexture() = 0;
     virtual GpuBuffer* CreateBuffer() = 0;
     virtual CommandList* CreateContext(CommandListType aType) = 0;

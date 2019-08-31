@@ -1,7 +1,7 @@
 #pragma once
 #include "Test.h"
 #include "fancy_core/GpuBuffer.h"
-#include "fancy_core/GpuProgram.h"
+#include "fancy_core/Shader.h"
 
 class Test_AsyncCompute : public Test
 {
@@ -27,6 +27,6 @@ private:
   Fancy::SharedPtr<Fancy::GpuBuffer> myBuffer;
   Fancy::SharedPtr<Fancy::GpuBuffer> myReadbackBuffer;
 
-  Fancy::SharedPtr<Fancy::GpuProgram> mySetBufferValueShader;
-  Fancy::SharedPtr<Fancy::GpuProgram> myIncrementBufferShader;
+  Fancy::SharedPtr<Fancy::Shader> mySetBufferValueShader;
+  Fancy::SharedPtr<Fancy::Shader> myIncrementBufferShader;
 };

@@ -2,15 +2,15 @@
 
 #include "RenderCore_PlatformDX12.h"
 #include "DescriptorDX12.h"
-#include "GpuProgramCompilerDX12.h"
+#include "ShaderCompilerDX12.h"
 #include "GpuProgramDX12.h"
 #include "TextureDX12.h"
 #include "GpuBufferDX12.h"
 
-#include "GpuProgram.h"
+#include "Shader.h"
 #include "ShaderResourceInterface.h"
 #include "ShaderResourceInterfaceDX12.h"
-#include "GpuProgramCompiler.h"
+#include "ShaderCompiler.h"
 #include "DynamicDescriptorHeapDX12.h"
 #include "RenderOutputDX12.h"
 #include "RenderCore.h"
@@ -261,12 +261,12 @@ namespace Fancy {
     return new RenderOutputDX12(aNativeInstanceHandle, someWindowParams);
   }
 //---------------------------------------------------------------------------//
-  GpuProgramCompiler* RenderCore_PlatformDX12::CreateShaderCompiler()
+  ShaderCompiler* RenderCore_PlatformDX12::CreateShaderCompiler()
   {
-    return new GpuProgramCompilerDX12();
+    return new ShaderCompilerDX12();
   }
 //---------------------------------------------------------------------------//
-  GpuProgram* RenderCore_PlatformDX12::CreateGpuProgram()
+  Shader* RenderCore_PlatformDX12::CreateGpuProgram()
   {
     return new GpuProgramDX12();
   }

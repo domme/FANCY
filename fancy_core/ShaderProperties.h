@@ -39,9 +39,9 @@ namespace Fancy
     GpuResourceDimension myDimension;
   };
 //---------------------------------------------------------------------------//
-  struct GpuProgramProperties
+  struct ShaderProperties
   {
-    GpuProgramProperties()
+    ShaderProperties()
       : myShaderStage(ShaderStage::NONE)
       , myHasUnorderedWrites(false)
       , myNumGroupThreads(1,1,1)

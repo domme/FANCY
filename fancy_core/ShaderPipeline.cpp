@@ -1,28 +1,28 @@
 #include "fancy_core_precompile.h"
-#include "GpuProgramPipeline.h"
-#include "GpuProgram.h"
+#include "ShaderPipeline.h"
+#include "Shader.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  GpuProgramPipeline::GpuProgramPipeline()
+  ShaderPipeline::ShaderPipeline()
     : myShaderByteCodeHash(0u)
     , myResourceInterface(nullptr)
   {
     memset(myGpuPrograms, 0u, sizeof(myGpuPrograms));
   }
 //---------------------------------------------------------------------------//
-  GpuProgramPipeline::~GpuProgramPipeline()
+  ShaderPipeline::~ShaderPipeline()
   {
 
   }
 //---------------------------------------------------------------------------//
-  GpuProgramPipelineDesc GpuProgramPipeline::GetDescription() const
+  ShaderPipelineDesc ShaderPipeline::GetDescription() const
   {
-    GpuProgramPipelineDesc desc;
+    ShaderPipelineDesc desc;
 
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
-      const GpuProgram* pProgram = myGpuPrograms[i].get();
+      const Shader* pProgram = myGpuPrograms[i].get();
       if (pProgram)
         desc.myGpuPrograms[i] = pProgram->GetDescription();
     }
@@ -30,7 +30,7 @@ namespace Fancy {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipeline::SetFromShaders(const FixedArray<SharedPtr<GpuProgram>, (uint)ShaderStage::NUM>& someShaders)
+  void ShaderPipeline::SetFromShaders(const FixedArray<SharedPtr<Shader>, (uint)ShaderStage::NUM>& someShaders)
   {
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
       myGpuPrograms[i] = someShaders[i];
@@ -39,21 +39,21 @@ namespace Fancy {
     UpdateShaderByteCodeHash();
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipeline::UpdateResourceInterface()
+  void ShaderPipeline::UpdateResourceInterface()
   {
     myResourceInterface = nullptr;
-    if (GpuProgram* vertexShader = myGpuPrograms[(uint)ShaderStage::VERTEX].get())
+    if (Shader* vertexShader = myGpuPrograms[(uint)ShaderStage::VERTEX].get())
     {
       myResourceInterface = vertexShader->myResourceInterface;
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramPipeline::UpdateShaderByteCodeHash()
+  void ShaderPipeline::UpdateShaderByteCodeHash()
   {
     myShaderByteCodeHash = 0u;
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
-      GpuProgram* shader = myGpuPrograms[i].get();
+      Shader* shader = myGpuPrograms[i].get();
       MathUtil::hash_combine(myShaderByteCodeHash, reinterpret_cast<uint64>(shader));
       if (shader != nullptr)
         MathUtil::hash_combine(myShaderByteCodeHash, shader->GetNativeBytecodeHash());

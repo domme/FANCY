@@ -1,6 +1,6 @@
 #include "Test_ModelViewer.h"
 #include "fancy_core/Window.h"
-#include "fancy_core/GpuProgramPipelineDesc.h"
+#include "fancy_core/ShaderPipelineDesc.h"
 #include "fancy_core/RenderCore.h"
 #include "fancy_assets/AssetManager.h"
 #include "fancy_core/CommandList.h"
@@ -13,10 +13,10 @@
 
 using namespace Fancy;
 
-static SharedPtr<GpuProgramPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main")
+static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main")
 {
-  GpuProgramPipelineDesc pipelineDesc;
-  GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
+  ShaderPipelineDesc pipelineDesc;
+  ShaderDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
   shaderDesc->myShaderFileName = aShaderPath;
   shaderDesc->myMainFunction = aMainVtxFunction;
   shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];

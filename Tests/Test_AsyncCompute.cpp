@@ -44,7 +44,7 @@ Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Windo
   myReadbackBuffer = RenderCore::CreateBuffer(props, "Async compute test readback buffer", initialData.data());
   ASSERT(myReadbackBuffer);
 
-  GpuProgramDesc shaderDesc;
+  ShaderDesc shaderDesc;
   shaderDesc.myShaderStage = (uint) ShaderStage::COMPUTE;
   shaderDesc.myShaderFileName = "Tests/ModifyBuffer";
   shaderDesc.myMainFunction = "main_increment";

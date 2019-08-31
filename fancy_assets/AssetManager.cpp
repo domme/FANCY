@@ -26,7 +26,7 @@ using namespace Fancy;
 //---------------------------------------------------------------------------//
   AssetManager::AssetManager()
   {
-    GpuProgramDesc shaderDesc;
+    ShaderDesc shaderDesc;
     shaderDesc.myShaderFileName = "ResizeTexture2D";
     shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
     shaderDesc.myMainFunction = "main";

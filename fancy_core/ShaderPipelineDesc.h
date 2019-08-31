@@ -2,34 +2,31 @@
 
 #include "FancyCoreDefines.h"
 #include "MathUtil.h"
-#include "GpuProgramDesc.h"
+#include "ShaderDesc.h"
 #include "RenderEnums.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//  
-  struct GpuProgramPipelineDesc
+  struct ShaderPipelineDesc
   {
-    GpuProgramPipelineDesc();
-    bool operator==(const GpuProgramPipelineDesc& anOther) const;
+    ShaderPipelineDesc();
+    bool operator==(const ShaderPipelineDesc& anOther) const;
     uint64 GetHash() const;
-    GpuProgramDesc myGpuPrograms[(uint)ShaderStage::NUM];
+    ShaderDesc myGpuPrograms[(uint)ShaderStage::NUM];
   };
 //---------------------------------------------------------------------------//
-  inline GpuProgramPipelineDesc::GpuProgramPipelineDesc()
+  inline ShaderPipelineDesc::ShaderPipelineDesc()
   {
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
       myGpuPrograms[i].myShaderStage = i;
   }
 //---------------------------------------------------------------------------//
-  inline bool GpuProgramPipelineDesc::operator==(const GpuProgramPipelineDesc& anOther) const
+  inline bool ShaderPipelineDesc::operator==(const ShaderPipelineDesc& anOther) const
   {
-    bool equal = true;
-    for (uint i = 0u; equal && i < (uint)ShaderStage::NUM; ++i)
-      equal &= myGpuPrograms[i] == anOther.myGpuPrograms[i];
-    return equal;
+    return GetHash() == anOther.GetHash();
   }
 //---------------------------------------------------------------------------//
-  inline uint64 GpuProgramPipelineDesc::GetHash() const
+  inline uint64 ShaderPipelineDesc::GetHash() const
   {
     uint64 hash = 0u;
 

@@ -19,8 +19,8 @@ namespace Fancy
     bool InitInternalResources() override;
     void Shutdown() override;
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
-    GpuProgramCompiler* CreateShaderCompiler() override;
-    GpuProgram* CreateGpuProgram() override;
+    ShaderCompiler* CreateShaderCompiler() override;
+    Shader* CreateGpuProgram() override;
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
     CommandList* CreateContext(CommandListType aType) override;

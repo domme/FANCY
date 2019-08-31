@@ -1,15 +1,15 @@
 #include "fancy_core_precompile.h"
-#include "GpuProgram.h"
-#include "GpuProgramCompiler.h"
+#include "Shader.h"
+#include "ShaderCompiler.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  GpuProgram::GpuProgram()
+  Shader::Shader()
     : myResourceInterface(nullptr)
   {
   }
 //---------------------------------------------------------------------------//
-  void GpuProgram::SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput)
+  void Shader::SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput)
   {
     myProperties = aCompilerOutput.myProperties;
     myResourceInterface = aCompilerOutput.myRootSignature;

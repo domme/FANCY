@@ -106,7 +106,7 @@ void Test_Mipmapping::OnUpdate(bool aDrawProperties)
   }
 }
 
-void Test_Mipmapping::OnShaderRecompiled(const Fancy::GpuProgram* aShader)
+void Test_Mipmapping::OnShaderRecompiled(const Fancy::Shader* aShader)
 {
   if (aShader == myAssetManager->GetResizeShader())
   {

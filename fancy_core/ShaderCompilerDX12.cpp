@@ -1,35 +1,18 @@
 #include "fancy_core_precompile.h"
-#include "GpuProgramCompilerDX12.h"
+#include "ShaderCompilerDX12.h"
 
-#include "GpuProgramCompilerUtils.h"
-#include "GpuProgramFeatures.h"
-#include "GpuProgram.h"
+#include "Shader.h"
 #include "PathService.h"
 #include "ShaderResourceInterface.h"
 
-#include "GpuProgramPipeline.h"
+#include "ShaderPipeline.h"
 
-#include "GpuProgramProperties.h"
+#include "ShaderProperties.h"
 #include "GpuProgramDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  const char* locShaderStageToProfileString(ShaderStage aStage)
-  {
-    switch(aStage)
-    {
-      case ShaderStage::VERTEX: return "vs_5_1";
-      case ShaderStage::FRAGMENT: return "ps_5_1";
-      case ShaderStage::GEOMETRY: return "gs_5_1";
-      case ShaderStage::COMPUTE: return "cs_5_1";
-      default: 
-        ASSERT(false, "Unsupported HLSL shader-profile");
-        return "";
-        break;
-    }
-  }
 //---------------------------------------------------------------------------//
   /*
   DataFormat locResolveVectorFormat(const D3D12_SHADER_TYPE_DESC& aTypeDesc)
@@ -397,7 +380,7 @@ namespace Fancy {
 #undef CHECK
   }
 //---------------------------------------------------------------------------//
-  bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramProperties& someProps)
+  bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, ShaderProperties& someProps)
   {
     for (uint i = 0u; i < aShaderDesc.BoundResources; ++i)
     {
@@ -451,7 +434,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, GpuProgramProperties& someProps)
+  bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, ShaderProperties& someProps)
   {
     someProps.myConstantBufferElements.clear();
 
@@ -519,7 +502,7 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   bool locReflectVertexInputLayout(ID3D12ShaderReflection* aReflector, 
-    const D3D12_SHADER_DESC& aShaderDesc, GpuProgramProperties& someProps)
+    const D3D12_SHADER_DESC& aShaderDesc, ShaderProperties& someProps)
   {
     if (aShaderDesc.InputParameters == 0u)
       return false;
@@ -547,24 +530,25 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  String GpuProgramCompilerDX12::ResolvePlatformShaderPath(const String& aPath) const
+  String ShaderCompilerDX12::GetShaderPath(const String& aPath) const
   {
     return "shader/DX12/" + aPath + ".hlsl";
   }
 //---------------------------------------------------------------------------//
-  bool GpuProgramCompilerDX12::Compile_Internal(const GpuProgramDesc& aDesc, const char** someDefines, uint aNumDefines, GpuProgramCompilerOutput* anOutput) const
+  bool ShaderCompilerDX12::Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* anOutput) const
   {
     DynamicArray<D3D_SHADER_MACRO> defines;
-    defines.resize(aNumDefines + 1u);
-    for (uint i = 0u; i < aNumDefines; ++i)
+    defines.resize(aDesc.myDefines.size() + 2u);
+    defines[0].Name = aStageDefine;
+    defines[0].Definition = "1";
+    for (uint i = 0u, e = (uint) aDesc.myDefines.size(); i < e; ++i)
     {
-      defines[i].Name = someDefines[i];
-      defines[i].Definition = "1";
+      defines[i + 1].Name = aDesc.myDefines[i].c_str();
+      defines[i + 1].Definition = "1";
     }
-
     defines[defines.size() - 1].Name = nullptr;
     defines[defines.size() - 1].Definition = nullptr;
-
+    
     Microsoft::WRL::ComPtr<ID3DBlob> compiledShaderBytecode;
     Microsoft::WRL::ComPtr<ID3DBlob> errorData;
 
@@ -576,7 +560,7 @@ namespace Fancy {
       &defines[0],
       D3D_COMPILE_STANDARD_FILE_INCLUDE,
       aDesc.myMainFunction.c_str(),
-      locShaderStageToProfileString(static_cast<ShaderStage>(aDesc.myShaderStage)),
+      GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)),
       D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_OPTIMIZATION_LEVEL0 | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_WARNINGS_ARE_ERRORS,
       0u,
       &compiledShaderBytecode,

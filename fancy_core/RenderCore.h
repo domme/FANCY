@@ -19,18 +19,18 @@ namespace Fancy {
   class Mesh;
   struct MeshDesc;
   struct MeshData;
-  struct GpuProgramPipelineDesc;
+  struct ShaderPipelineDesc;
   struct DepthStencilStateDesc;
   struct BlendStateDesc;
   class RenderCore_PlatformDX12;
   class RenderCore_PlatformVk;
-  class GpuProgramPipeline;
+  class ShaderPipeline;
   class BlendState;
   class DepthStencilState;
   class FileWatcher;
   class GpuRingBuffer;
-  class GpuProgram;
-  struct GpuProgramDesc;
+  class Shader;
+  struct ShaderDesc;
   class TempResourcePool;
   struct TextureResourceProperties;
   class GpuResource;
@@ -67,15 +67,15 @@ namespace Fancy {
     static const Texture* GetDefaultDiffuseTexture();
     static const Texture* GetDefaultNormalTexture();
     static const Texture* GetDefaultMaterialTexture();
-    static const GpuProgramCompiler* GetGpuProgramCompiler();
+    static const ShaderCompiler* GetGpuProgramCompiler();
     
-    static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
-    static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
+    static SharedPtr<Shader> GetGpuProgram(uint64 aDescHash);
+    static SharedPtr<ShaderPipeline> GetGpuProgramPipeline(uint64 aDescHash);
     static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas);
 
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
-    static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
-    static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
+    static SharedPtr<Shader> CreateGpuProgram(const ShaderDesc& aDesc);
+    static SharedPtr<ShaderPipeline> CreateGpuProgramPipeline(const ShaderPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureProperties& someProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferProperties& someProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
     static SharedPtr<TextureView> CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName = nullptr);
@@ -127,7 +127,7 @@ namespace Fancy {
     static CommandQueue* GetCommandQueue(CommandListType aType);
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
 
-    static Slot<void(const GpuProgram*)> ourOnShaderRecompiled;
+    static Slot<void(const Shader*)> ourOnShaderRecompiled;
 
   protected:
     RenderCore() = default;
@@ -148,7 +148,7 @@ namespace Fancy {
 
     static UniquePtr<RenderCore_Platform> ourPlatformImpl;
     static UniquePtr<TempResourcePool> ourTempResourcePool;
-    static UniquePtr<GpuProgramCompiler> ourShaderCompiler;
+    static UniquePtr<ShaderCompiler> ourShaderCompiler;
     static UniquePtr<FileWatcher> ourShaderFileWatcher;
 
     static SharedPtr<DepthStencilState> ourDefaultDepthStencilState;
@@ -157,8 +157,8 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
 
-    static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;  
-    static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
+    static std::map<uint64, SharedPtr<Shader>> ourShaderCache;  
+    static std::map<uint64, SharedPtr<ShaderPipeline>> ourGpuProgramPipelineCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
     

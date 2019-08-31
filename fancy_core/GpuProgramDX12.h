@@ -2,14 +2,14 @@
 
 #include "FancyCoreDefines.h"
 #include "DX12Prerequisites.h"
-#include "GpuProgram.h"
+#include "Shader.h"
 #include "RenderEnums.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class GpuProgramDX12 : public GpuProgram
+  class GpuProgramDX12 : public Shader
   {
-    friend class GpuProgramCompilerDX12;
+    friend class ShaderCompilerDX12;
     
   public:
     GpuProgramDX12() = default;
@@ -24,7 +24,7 @@ namespace Fancy {
     const Microsoft::WRL::ComPtr<ID3DBlob>& getNativeData() const { return myNativeData; }
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
-    void SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput) override;
+    void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
     uint64 GetNativeBytecodeHash() const override;
 
     /// Shortcut for retrieving the DX12-rootSignature through the resourceInterface

@@ -2,6 +2,8 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  // TODO: Refactor these functions to only accept const char* as parameters so they can be used with string-literals without creating a temp string
+
   namespace Path
   {
     String GetAppName();
@@ -11,7 +13,7 @@ namespace Fancy {
     String GetWorkingDirectory();
     String GetAbsolutePath(const String& aWorkingDirPath);
     String GetRelativePath(const String& anAbsolutePath);
-    bool FileExists(const String& aFilePath);
+    bool FileExists(const char* aFilePath);
     bool IsPathAbsolute(const String& aPath);
     String GetFileExtension(const String& aFileName);
     String GetFilename(const String& aPath);

@@ -15,7 +15,7 @@ namespace Fancy {
   class GpuResourceDX12;
   class GpuResource;
   struct GpuResourceDataDX12;
-  class GpuProgram;
+  class Shader;
   class GpuBuffer;
 //---------------------------------------------------------------------------//
   class CommandListDX12 final : public CommandList
@@ -44,7 +44,7 @@ namespace Fancy {
     void ReleaseGpuResources(uint64 aFenceVal) override;
     void Reset() override;
     void FlushBarriers() override;
-    void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
+    void SetGpuProgramPipeline(const SharedPtr<ShaderPipeline>& aGpuProgramPipeline) override;
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
@@ -62,7 +62,7 @@ namespace Fancy {
     bool IsOpen() const override { return myIsOpen; }
     void Close() override;
 
-    void SetComputeProgram(const GpuProgram* aProgram) override;
+    void SetComputeProgram(const Shader* aProgram) override;
     void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:

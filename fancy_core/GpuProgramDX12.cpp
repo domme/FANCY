@@ -1,7 +1,7 @@
 #include "fancy_core_precompile.h"
 #include "GpuProgramDX12.h"
 
-#include "GpuProgramCompiler.h"
+#include "ShaderCompiler.h"
 #include "RenderCore_PlatformDX12.h"
 #include "ShaderResourceInterfaceDX12.h"
 
@@ -72,9 +72,9 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramDX12::SetFromCompilerOutput(const GpuProgramCompilerOutput& aCompilerOutput)
+  void GpuProgramDX12::SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput)
   {
-    GpuProgram::SetFromCompilerOutput(aCompilerOutput);
+    Shader::SetFromCompilerOutput(aCompilerOutput);
 
     myNativeData = static_cast<ID3DBlob*>(aCompilerOutput.myNativeData);
     myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();

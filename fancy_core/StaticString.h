@@ -93,5 +93,6 @@ namespace Fancy
   using CircularStringBufferSmall = CircularStringBufferSized<1024>;
   using CircularStringBuffer = CircularStringBufferSized<4096>;
   using CircularStringBufferLarge = CircularStringBufferSized<8192>;
+  using StaticFilePath = StaticString<260>;
 }
 //---------------------------------------------------------------------------//

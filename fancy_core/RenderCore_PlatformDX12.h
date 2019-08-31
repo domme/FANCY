@@ -16,7 +16,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   class ShaderResourceInterface;
   struct WindowParameters;
-  class GpuProgram;
+  class Shader;
   class Texture;
   class TextureView;
   struct TextureViewProperties;
@@ -66,8 +66,8 @@ namespace Fancy {
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
 
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
-    GpuProgramCompiler* CreateShaderCompiler() override;
-    GpuProgram* CreateGpuProgram() override;
+    ShaderCompiler* CreateShaderCompiler() override;
+    Shader* CreateGpuProgram() override;
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
     CommandList* CreateContext(CommandListType aType) override;

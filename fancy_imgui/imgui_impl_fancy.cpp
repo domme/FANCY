@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include <fancy_core/GpuProgramPipeline.h>
+#include <fancy_core/ShaderPipeline.h>
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/RenderOutput.h>
@@ -11,8 +11,8 @@
 #include <fancy_core/BlendState.h>
 #include <fancy_core/DepthStencilState.h>
 #include <fancy_core/CommandList.h>
-#include <fancy_core/GpuProgramDesc.h>
-#include <fancy_core/GpuProgramPipelineDesc.h>
+#include <fancy_core/ShaderDesc.h>
+#include <fancy_core/ShaderPipelineDesc.h>
 #include <fancy_core/Slot.h>
 #include <fancy_core/Log.h>
 #include <fancy_core/WindowsIncludes.h>
@@ -33,7 +33,7 @@ namespace Fancy { namespace ImGuiRendering {
   };
 
   SharedPtr<TextureView> ourFontTexture;
-  SharedPtr<GpuProgramPipeline> ourProgramPipeline;
+  SharedPtr<ShaderPipeline> ourProgramPipeline;
   SharedPtr<BlendState> ourBlendState;
   SharedPtr<DepthStencilState> ourDepthStencilState;
       
@@ -132,8 +132,8 @@ namespace Fancy { namespace ImGuiRendering {
 
     // Load the imgui-shader state
     {
-      GpuProgramPipelineDesc pipelineDesc;
-      GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
+      ShaderPipelineDesc pipelineDesc;
+      ShaderDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
       shaderDesc->myShaderFileName = "Imgui";
       shaderDesc->myMainFunction = "main";
       shaderDesc->myShaderStage = (uint)ShaderStage::VERTEX;

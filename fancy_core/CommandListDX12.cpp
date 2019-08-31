@@ -10,7 +10,7 @@
 #include "AdapterDX12.h"
 #include "GpuProgramDX12.h"
 #include "ShaderResourceInterfaceDX12.h"
-#include "GpuProgramPipeline.h"
+#include "ShaderPipeline.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "GeometryData.h"
@@ -1031,7 +1031,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
+  void CommandListDX12::SetGpuProgramPipeline(const SharedPtr<ShaderPipeline>& aGpuProgramPipeline)
   {
     CommandList::SetGpuProgramPipeline(aGpuProgramPipeline);
 
@@ -1416,7 +1416,7 @@ namespace Fancy {
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetComputeProgram(const GpuProgram* aProgram)
+  void CommandListDX12::SetComputeProgram(const Shader* aProgram)
   {
     CommandList::SetComputeProgram(aProgram);
 
