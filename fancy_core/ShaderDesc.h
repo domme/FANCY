@@ -2,6 +2,8 @@
 
 #include "FancyCoreDefines.h"
 #include "MathUtil.h"
+#include "RenderEnums.h"
+#include "DynamicArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

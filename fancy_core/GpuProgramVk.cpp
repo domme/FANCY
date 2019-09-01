@@ -1,15 +1,15 @@
 #include "fancy_core_precompile.h"
-#include "GpuProgramVk.h"
+#include "ShaderVk.h"
 
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  GpuProgramVk::GpuProgramVk()
+  ShaderVk::ShaderVk()
   {
   }
 
 
-  GpuProgramVk::~GpuProgramVk()
+  ShaderVk::~ShaderVk()
   {
   }
 //---------------------------------------------------------------------------//

@@ -12,7 +12,7 @@ namespace Fancy
 
   public:
     ShaderVk();
-    virtual ~ShaderVk() override;
+    ~ShaderVk() override;
 
     void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
     uint64 GetNativeBytecodeHash() const override;

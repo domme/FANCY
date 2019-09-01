@@ -1,6 +1,7 @@
 #include "fancy_core_precompile.h"
 #include "ShaderCompilerVk.h"
 #include "PathService.h"
+#include "FileReader.h"
 
 namespace Fancy
 {
@@ -50,17 +51,19 @@ namespace Fancy
     bool isGlsl = false;
     StaticFilePath srcFilePath = Priv_ShaderCompilerVk::locGetShaderPath(aDesc.myShaderFileName.c_str(), isGlsl);
     bool fileFound = false;
-    String srcFilePathAbs = srcFilePath.GetBuffer();
+    String hlslSrcPathAbs = srcFilePath.GetBuffer();
 
-    srcFilePathAbs = Resources::FindPath(srcFilePathAbs, &fileFound);
+    hlslSrcPathAbs = Resources::FindPath(hlslSrcPathAbs, &fileFound);
     if (!fileFound)
       return false;
 
-    const uint64 srcFileWriteTime = Path::GetFileWriteTime(srcFilePathAbs);
+    const uint64 srcFileWriteTime = Path::GetFileWriteTime(hlslSrcPathAbs);
 
     const uint64 shaderHash = aDesc.GetHash();
-    StaticFilePath dstFilePathAbs("%sShaderCache/%llu.spv", Path::GetUserDataPath().c_str(), shaderHash);
-    StaticFilePath dstFileErrorPathAbs("%sShaderCache/%llu_error.txt", Path::GetUserDataPath().c_str(), shaderHash);
+    String spvBinaryFilePathAbs(StaticFilePath("%sShaderCache/%llu.spv", Path::GetUserDataPath().c_str(), shaderHash));
+    String dstFileErrorPathAbs(StaticFilePath("%sShaderCache/%llu_error.txt", Path::GetUserDataPath().c_str(), shaderHash));
+
+    Path::CreateDirectoryTreeForPath(spvBinaryFilePathAbs);
 
     // TODO: Add fast-path if the cache-file is newer than the src-file and directly load the SPV binary from that file
     
@@ -73,7 +76,7 @@ namespace Fancy
         "-fvk-invert-y "  // Negate SV_Position.y before writing to stage output in VS/DS/GS to accommodate Vulkan's coordinate system
         "-fvk-use-dx-layout "  // Use DirectX memory layout for Vulkan resources
         "-fvk-use-dx-position-w " // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
-        "-o0 " // Optimization Level 0
+        // "-o0 " // Optimization Level 0  (Seems to be not recognized?!)
         "-Zpc " // Pack matrices in column-major order
         "-Zi " // Enable debug information
         "-E %s " // Entry point name
@@ -87,9 +90,28 @@ namespace Fancy
       for (const String& define : aDesc.myDefines)
         commandStr.Append("-D %s ", define.c_str());
 
-      commandStr.Append("%s -Fo %s -Fe %s", srcFilePathAbs.c_str(), dstFilePathAbs.GetBuffer(), dstFileErrorPathAbs.GetBuffer());
+      commandStr.Append("%s -Fo %s -Fe %s", hlslSrcPathAbs.c_str(), spvBinaryFilePathAbs.c_str(), dstFileErrorPathAbs.c_str());
 
-      const int returnCode = system(commandStr.GetBuffer());
+      String workDir = Path::GetWorkingDirectory();
+  
+      // TODO: relative path for dxc.exe is wrong somehow... only this absolute version works:
+      const int returnCode = system("D:/Entwicklung/FANCY/dependencies/bin/dxc.exe -spirv -fspv-reflect -fvk-invert-y -fvk-use-dx-layout -fvk-use-dx-position-w -Zpc -Zi -E main -T vs_5_1 -D PROGRAM_TYPE_VERTEX D:/Entwicklung/FANCY/resources/shader/DX12/Imgui.hlsl -Fo C:/Users/paino/Documents/Fancy/Tests/ShaderCache/18206891409352795614.spv -Fe C:/Users/paino/Documents/Fancy/Tests/ShaderCache/18206891409352795614_error.txt");
+      if (returnCode != 0)
+      {
+        LOG_ERROR("Error converting hlsl shader %s to SPIR-V.", hlslSrcPathAbs.c_str());
+        return false;
+      }
+
+      DynamicArray<uint8> spvBinaryData;
+      const bool spvReadSuccess = FileReader::ReadBinaryFile(spvBinaryFilePathAbs.c_str(), spvBinaryData);
+      ASSERT(spvReadSuccess);
+
+
+
+
+        
+
+
     }
 
     return true;

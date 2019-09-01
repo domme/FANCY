@@ -5,7 +5,7 @@
 #include "RenderOutputVk.h"
 #include "CommandQueueVk.h"
 #include "ShaderCompilerVk.h"
-#include "GpuProgramVk.h"
+#include "ShaderVk.h"
 #include "TextureVk.h"
 
 namespace Fancy
@@ -341,7 +341,7 @@ namespace Fancy
 
   Shader* RenderCore_PlatformVk::CreateGpuProgram()
   {
-    return new GpuProgramVk();
+    return new ShaderVk();
   }
 
   Texture* RenderCore_PlatformVk::CreateTexture()

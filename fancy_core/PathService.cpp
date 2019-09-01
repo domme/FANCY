@@ -93,6 +93,11 @@ namespace Fancy {
       return false;
     }
 //---------------------------------------------------------------------------//
+    bool IsPathAbsolute(const char* aPath)
+    {
+      return strlen(aPath) > 1 && aPath[1] == ':';
+    }
+//---------------------------------------------------------------------------//
     bool IsPathAbsolute(const String& aPath)
     {
       return aPath.size() > 1 && aPath[1] == ':';
@@ -259,7 +264,7 @@ namespace Fancy {
       for (const String& resourceFolder : ourResourceFolders)
       {
         String resourcePath = resourceFolder + aResourceName;
-        if (Path::FileExists(resourcePath))
+        if (Path::FileExists(resourcePath.c_str()))
         {
           if (aWasFound)
             *aWasFound = true;
@@ -270,7 +275,7 @@ namespace Fancy {
 
       // Fall back to the working dir if the resource hasn't been found in any of the registered resource folders
       const String& absPathInWorkDir = Path::GetAbsolutePath(aResourceName);
-      const bool existsInWorkDir = Path::FileExists(absPathInWorkDir);
+      const bool existsInWorkDir = Path::FileExists(absPathInWorkDir.c_str());
 
       if (aWasFound)
         *aWasFound = existsInWorkDir;

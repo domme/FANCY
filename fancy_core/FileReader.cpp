@@ -48,6 +48,16 @@ namespace Fancy {
       }
     }
 //---------------------------------------------------------------------------//
+  bool ReadBinaryFile(const char* aPathAbs, DynamicArray<uint8>& someDataOut)
+  {
+    std::ifstream fileStream(aPathAbs, std::ios::binary);
+    if (!fileStream.good())
+      return false;
+
+    someDataOut.assign(std::istreambuf_iterator<char>(fileStream), {});
+    return true;
+  }
+//---------------------------------------------------------------------------//
   }
 }
 

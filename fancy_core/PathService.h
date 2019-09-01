@@ -14,6 +14,7 @@ namespace Fancy {
     String GetAbsolutePath(const String& aWorkingDirPath);
     String GetRelativePath(const String& anAbsolutePath);
     bool FileExists(const char* aFilePath);
+    bool IsPathAbsolute(const char* aPath);
     bool IsPathAbsolute(const String& aPath);
     String GetFileExtension(const String& aFileName);
     String GetFilename(const String& aPath);
