@@ -236,6 +236,38 @@ namespace Fancy {
       return "";
     }
   //---------------------------------------------------------------------------//
+    void AddQuotesAroundSpaceSegments(String& aPath)
+    {
+      int i = 0;
+
+      while (i < (int)aPath.size())
+      {
+        if (aPath[i] == ' ')
+        {
+          int iPrev = i;
+          for (; iPrev > 0; --iPrev)
+          {
+            if (aPath[iPrev-1] == '/' || aPath[iPrev-1] == '\\')
+              break;
+          }
+
+          aPath.insert(iPrev, "\"");
+          ++i;
+
+          int iNext = i;
+          for (; iNext < (int) aPath.size(); ++iNext)
+          {
+            if (aPath[iNext] == '/' || aPath[iNext] == '\\')
+              break;
+          }
+
+          aPath.insert(iNext, "\"");
+        }
+
+        ++i;
+      }
+    }
+  //---------------------------------------------------------------------------//
   }
   
   namespace Resources 

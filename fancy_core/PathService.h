@@ -21,7 +21,8 @@ namespace Fancy {
     String GetPathWithoutExtension(const String& aPath);
     uint64 GetFileWriteTime(const String& aFile);
     String GetUserDataPath();
-        
+
+    void AddQuotesAroundSpaceSegments(String& aPath);
     void RemoveFolderUpMarkers(String& aPath);
     void UnifySlashes(String& aPath);
     bool HasUnifiedSlashes(const String& aPath);
