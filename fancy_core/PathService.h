@@ -22,7 +22,10 @@ namespace Fancy {
     uint64 GetFileWriteTime(const String& aFile);
     String GetUserDataPath();
 
-    void AddQuotesAroundSpaceSegments(String& aPath);
+    /// The following two functions add quotes around path-segments that contain spaces so the path is accepted as input to command-lines
+    String GetAsCmdParameter(const char* aPath);
+    void PrepareForCmdParameter(String& aPath);
+
     void RemoveFolderUpMarkers(String& aPath);
     void UnifySlashes(String& aPath);
     bool HasUnifiedSlashes(const String& aPath);

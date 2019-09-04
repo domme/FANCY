@@ -236,7 +236,14 @@ namespace Fancy {
       return "";
     }
   //---------------------------------------------------------------------------//
-    void AddQuotesAroundSpaceSegments(String& aPath)
+    String GetAsCmdParameter(const char* aPath)
+    {
+      String path(aPath);
+      PrepareForCmdParameter(path);
+      return path;
+    }
+  //---------------------------------------------------------------------------//
+    void PrepareForCmdParameter(String& aPath)
     {
       int i = 0;
 

@@ -2,24 +2,24 @@
 
 #include "FileReader.h"
 
-namespace Fancy {
-
+namespace Fancy 
+{
   namespace FileReader 
   {
 //---------------------------------------------------------------------------//
-    std::string ReadTextFile(const std::string& aPathAbs)
+    std::string ReadTextFile(const char* aPathAbs)
     {
       std::ifstream fileStream;
-      fileStream.open(aPathAbs.c_str());
+      fileStream.open(aPathAbs);
       std::stringstream stringStream;
       stringStream << fileStream.rdbuf();
       return stringStream.str();
     }
 //---------------------------------------------------------------------------//
-    void ReadTextFileLines(const std::string& aPathAbs, std::vector<std::string>& someLinesOut)
+    void ReadTextFileLines(const char* aPathAbs, std::vector<std::string>& someLinesOut)
     {
       std::ifstream fileStream;
-      fileStream.open(aPathAbs.c_str());
+      fileStream.open(aPathAbs);
 
       if (fileStream.good())
       {
@@ -32,10 +32,10 @@ namespace Fancy {
       }
     }
     //---------------------------------------------------------------------------//
-    void ReadTextFileLines(const std::string& aPathAbs, std::list<std::string>& someLinesOut)
+    void ReadTextFileLines(const char* aPathAbs, std::list<std::string>& someLinesOut)
     {
       std::ifstream fileStream;
-      fileStream.open(aPathAbs.c_str());
+      fileStream.open(aPathAbs);
 
       if (fileStream.good())
       {
@@ -48,16 +48,15 @@ namespace Fancy {
       }
     }
 //---------------------------------------------------------------------------//
-  bool ReadBinaryFile(const char* aPathAbs, DynamicArray<uint8>& someDataOut)
-  {
-    std::ifstream fileStream(aPathAbs, std::ios::binary);
-    if (!fileStream.good())
-      return false;
+    bool ReadBinaryFile(const char* aPathAbs, DynamicArray<uint8>& someDataOut)
+    {
+      std::ifstream fileStream(aPathAbs, std::ios::binary);
+      if (!fileStream.good())
+        return false;
 
-    someDataOut.assign(std::istreambuf_iterator<char>(fileStream), {});
-    return true;
-  }
+      someDataOut.assign(std::istreambuf_iterator<char>(fileStream), {});
+      return true;
+    }
 //---------------------------------------------------------------------------//
   }
 }
-
