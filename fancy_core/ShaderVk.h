@@ -1,10 +1,16 @@
 #pragma once
 #include "Shader.h"
+#include "VkPrerequisites.h"
 
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
   struct ShaderCompilerResult;
+//---------------------------------------------------------------------------//
+  struct ShaderCompiledDataVk
+  {
+    VkShaderModule myModule = nullptr;
+  };
 //---------------------------------------------------------------------------//
   class ShaderVk : public Shader
   {

@@ -7,6 +7,11 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  struct ShaderCompiledDataDX12
+  {
+    ID3DBlob* myBytecodeBlob = nullptr;
+  };
+//---------------------------------------------------------------------------//
   class GpuProgramDX12 : public Shader
   {
     friend class ShaderCompilerDX12;

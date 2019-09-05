@@ -657,7 +657,9 @@ namespace Fancy {
       anOutput->myProperties.myNumGroupThreads = glm::int3(static_cast<int>(x), static_cast<int>(y), static_cast<int>(z));
     }
 
-    anOutput->myNativeData = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
+    ShaderCompiledDataDX12 nativeData;
+    nativeData.myBytecodeBlob = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
+    anOutput->myNativeData = nativeData;
 
     return true;
   }

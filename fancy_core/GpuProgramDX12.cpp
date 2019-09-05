@@ -76,7 +76,9 @@ namespace Fancy {
   {
     Shader::SetFromCompilerOutput(aCompilerOutput);
 
-    myNativeData = static_cast<ID3DBlob*>(aCompilerOutput.myNativeData);
+    const ShaderCompiledDataDX12& data = aCompilerOutput.myNativeData.To<ShaderCompiledDataDX12>();
+
+    myNativeData = data.myBytecodeBlob;
     myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();
     myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
     

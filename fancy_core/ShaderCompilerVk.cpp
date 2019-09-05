@@ -2,6 +2,10 @@
 #include "ShaderCompilerVk.h"
 #include "PathService.h"
 #include "FileReader.h"
+#include "VkPrerequisites.h"
+#include "ShaderVk.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformVk.h"
 
 namespace Fancy
 {
@@ -100,6 +104,20 @@ namespace Fancy
       DynamicArray<uint8> spvBinaryData;
       const bool spvReadSuccess = FileReader::ReadBinaryFile(spvBinaryFilePathAbs.c_str(), spvBinaryData);
       ASSERT(spvReadSuccess);
+
+      VkShaderModuleCreateInfo moduleCreateInfo = {};
+      moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+      moduleCreateInfo.codeSize = spvBinaryData.size();
+      moduleCreateInfo.pCode = reinterpret_cast<uint32_t*>(spvBinaryData.data());
+
+      RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+
+      ShaderCompiledDataVk nativeData;
+      ASSERT_VK_RESULT(vkCreateShaderModule(platformVk->myDevice, &moduleCreateInfo, nullptr, &nativeData.myModule));
+      aCompilerOutput->myNativeData = nativeData;
+
+
+
 
     }
 
