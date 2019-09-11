@@ -7,6 +7,8 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
 
+#include "spirv_reflect/spirv_reflect.h"
+
 namespace Fancy
 {
   namespace Priv_ShaderCompilerVk
@@ -55,6 +57,8 @@ namespace Fancy
     String hlslSrcPathAbs = Priv_ShaderCompilerVk::locGetShaderPath(aDesc.myShaderFileName.c_str(), isGlsl).GetBuffer();
     bool fileFound = false;
 
+    // TODO: Add a glsl->SPIR-V compilation in case there is a glsl shader that should be picked over the HLSL one
+
     hlslSrcPathAbs = Resources::FindPath(hlslSrcPathAbs, &fileFound);
     if (!fileFound)
       return false;
@@ -75,7 +79,6 @@ namespace Fancy
       String commandStr = Path::GetAsCmdParameter(dxcPath.c_str()) + " " +
         "-spirv "  // Generate SPIR-V code
         "-fspv-reflect "  // Emit additional SPIR-V instructions to aid reflection
-        "-fvk-invert-y "  // Negate SV_Position.y before writing to stage output in VS/DS/GS to accommodate Vulkan's coordinate system
         "-fvk-use-dx-layout "  // Use DirectX memory layout for Vulkan resources
         "-fvk-use-dx-position-w " // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
         // "-o0 " // Optimization Level 0  (Seems to be not recognized?!)
@@ -84,6 +87,9 @@ namespace Fancy
         + "-E " + aDesc.myMainFunction + " "
         + "-T " + GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)) + " "
         + "-D " + aStageDefine + " ";
+
+      if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
+        commandStr += "-fvk-invert-y ";  // Negate SV_Position.y before writing to stage output in VS/DS/GS to accommodate Vulkan's coordinate system
 
       for (const String& define : aDesc.myDefines)
         commandStr += "-D " + define + " ";
@@ -116,6 +122,16 @@ namespace Fancy
       ASSERT_VK_RESULT(vkCreateShaderModule(platformVk->myDevice, &moduleCreateInfo, nullptr, &nativeData.myModule));
       aCompilerOutput->myNativeData = nativeData;
 
+      
+      // Reflect the spirv data
+
+      SpvReflectShaderModule reflectModule;
+      SpvReflectResult reflectResult = spvReflectCreateShaderModule(spvBinaryData.size(), spvBinaryData.data(), &reflectModule);
+      ASSERT(reflectResult == SPV_REFLECT_RESULT_SUCCESS);
+
+      // Reflect the RootSignature
+
+      
 
 
 
