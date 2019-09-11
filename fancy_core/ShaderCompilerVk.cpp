@@ -86,7 +86,9 @@ namespace Fancy
         "-Zi " // Enable debug information
         + "-E " + aDesc.myMainFunction + " "
         + "-T " + GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)) + " "
-        + "-D " + aStageDefine + " ";
+        + "-I " + "D:\\Entwicklung\\FANCY\\resources\\Shader\\DX12 "
+        + "-D " + aStageDefine + " "
+        + "-D " + "DXC_COMPILER ";
 
       if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
         commandStr += "-fvk-invert-y ";  // Negate SV_Position.y before writing to stage output in VS/DS/GS to accommodate Vulkan's coordinate system

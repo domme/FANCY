@@ -612,7 +612,7 @@ namespace Fancy {
       return it->second;
 
     std::array<SharedPtr<Shader>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
-    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
+    for (uint i = 1u; i < (uint)ShaderStage::NUM; ++i)
     {
       if (!aDesc.myGpuPrograms[i].myShaderFileName.empty())
         pipelinePrograms[i] = CreateGpuProgram(aDesc.myGpuPrograms[i]);
