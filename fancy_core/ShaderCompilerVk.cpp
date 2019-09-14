@@ -15,7 +15,7 @@ namespace Fancy
   {
     StaticFilePath locGetShaderPath(const char* aFilename, bool& isGlsl)
     {
-      StaticFilePath path("shader/Vk/%s.glsl", aFilename);
+      StaticFilePath path("%s/Vk/%s.glsl", ShaderCompiler::GetShaderRootFolderRelative(), aFilename);
 
       String pathRel = path.GetBuffer();
       String pathAbs = Resources::FindPath(pathRel);
@@ -27,7 +27,7 @@ namespace Fancy
       }
 
       isGlsl = false;
-      path.Format("shader/DX12/%s.hlsl", aFilename);
+      path.Format("%s/DX12/%s.hlsl", ShaderCompiler::GetShaderRootFolderRelative(), aFilename);
       return path;
     }
   }
@@ -40,10 +40,10 @@ namespace Fancy
   {
   }
 //---------------------------------------------------------------------------//
-  String ShaderCompilerVk::GetShaderPath(const String& aFilename) const
+  String ShaderCompilerVk::GetShaderPath(const char* aFilename) const
   {
     bool isGlsl = false;
-    return Priv_ShaderCompilerVk::locGetShaderPath(aFilename.c_str(), isGlsl).GetBuffer();
+    return Priv_ShaderCompilerVk::locGetShaderPath(aFilename, isGlsl).GetBuffer();
   }
 //---------------------------------------------------------------------------//
   bool ShaderCompilerVk::Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* aCompilerOutput) const
@@ -63,13 +63,12 @@ namespace Fancy
     if (!fileFound)
       return false;
 
-    const uint64 srcFileWriteTime = Path::GetFileWriteTime(hlslSrcPathAbs);
+    // TODO: Add fast-path if the cache-file is newer than the src-file and directly load the SPV binary from that file
+    // const uint64 srcFileWriteTime = Path::GetFileWriteTime(hlslSrcPathAbs);
 
     const uint64 shaderHash = aDesc.GetHash();
     String spvBinaryFilePathAbs(StaticFilePath("%sShaderCache/%llu.spv", Path::GetUserDataPath().c_str(), shaderHash));
     Path::CreateDirectoryTreeForPath(spvBinaryFilePathAbs);
-
-    // TODO: Add fast-path if the cache-file is newer than the src-file and directly load the SPV binary from that file
 
     String dxcPath = Path::GetAppPath() + "/../../../dependencies/bin/dxc.exe";
     Path::RemoveFolderUpMarkers(dxcPath);
@@ -86,15 +85,26 @@ namespace Fancy
         "-Zi " // Enable debug information
         + "-E " + aDesc.myMainFunction + " "
         + "-T " + GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)) + " "
-        + "-I " + "D:\\Entwicklung\\FANCY\\resources\\Shader\\DX12 "
         + "-D " + aStageDefine + " "
         + "-D " + "DXC_COMPILER ";
 
-      if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
-        commandStr += "-fvk-invert-y ";  // Negate SV_Position.y before writing to stage output in VS/DS/GS to accommodate Vulkan's coordinate system
-
       for (const String& define : aDesc.myDefines)
         commandStr += "-D " + define + " ";
+
+      if (aDesc.myShaderStage == (uint)ShaderStage::VERTEX)
+        commandStr += "-fvk-invert-y ";  // Negate SV_Position.y before writing to stage output in VS/DS/GS to accommodate Vulkan's coordinate system
+
+      // Add include search paths
+      String includeSearchFolders[] = {
+        Path::GetContainingFolder(hlslSrcPathAbs),
+        Path::GetAbsolutePath(GetShaderRootFolderRelative())
+      };
+      for (String& include : includeSearchFolders)
+      {
+        // For some reason dxc only understands include-paths in escaped backslash-format
+        std::replace(include.begin(), include.end(), '/', '\\');
+        commandStr += "-I \"" + include + "\" ";
+      }
 
       // Redirect output of command into file
       String errorOut(StaticFilePath("%sShaderCache/%llu_error.txt", Path::GetUserDataPath().c_str(), shaderHash));

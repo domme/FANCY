@@ -596,7 +596,7 @@ namespace Fancy {
     ourShaderCache.insert(std::make_pair(hash, program));
 
     const String actualShaderPath =
-      Resources::FindPath(ourShaderCompiler->GetShaderPath(aDesc.myShaderFileName));
+      Resources::FindPath(ourShaderCompiler->GetShaderPath(aDesc.myShaderFileName.c_str()));
 
     ourShaderFileWatcher->AddFileWatch(actualShaderPath);
 
@@ -1161,7 +1161,7 @@ namespace Fancy {
 
       const ShaderDesc& desc = program->GetDescription();
       String actualShaderPath =
-        Resources::FindPath(ourShaderCompiler->GetShaderPath(desc.myShaderFileName));
+        Resources::FindPath(ourShaderCompiler->GetShaderPath(desc.myShaderFileName.c_str()));
 
       if (actualShaderPath == aShaderFile)
         programsToRecompile.push_back(program);

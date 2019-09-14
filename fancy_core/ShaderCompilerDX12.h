@@ -9,7 +9,7 @@ namespace Fancy {
   {
   public:
       ~ShaderCompilerDX12() override = default;
-      String GetShaderPath(const String& aPath) const override;
+      String GetShaderPath(const char* aPath) const override;
 
   protected:
     bool Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* aCompilerOutput) const override;

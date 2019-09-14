@@ -530,9 +530,10 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  String ShaderCompilerDX12::GetShaderPath(const String& aPath) const
+  String ShaderCompilerDX12::GetShaderPath(const char* aPath) const
   {
-    return "shader/DX12/" + aPath + ".hlsl";
+    const StaticFilePath path("%s/DX12/%s.hlsl", ShaderCompiler::GetShaderRootFolderRelative(), aPath);
+    return String(path);
   }
 //---------------------------------------------------------------------------//
   bool ShaderCompilerDX12::Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* anOutput) const
@@ -552,7 +553,7 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<ID3DBlob> compiledShaderBytecode;
     Microsoft::WRL::ComPtr<ID3DBlob> errorData;
 
-    const String actualShaderPath = "shader/DX12/" + aDesc.myShaderFileName + ".hlsl";
+    const String actualShaderPath = GetShaderPath(aDesc.myShaderFileName.c_str());
     std::wstring shaderPathAbs = StringUtil::ToWideString(Resources::FindPath(actualShaderPath));
 
     HRESULT sucess = D3DCompileFromFile(

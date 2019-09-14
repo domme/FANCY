@@ -27,8 +27,8 @@ namespace Fancy {
     void PrepareForCmdParameter(String& aPath);
 
     void RemoveFolderUpMarkers(String& aPath);
-    void UnifySlashes(String& aPath);
-    bool HasUnifiedSlashes(const String& aPath);
+    void ConvertToSlash(String& aPath);
+    void ConvertToBackslash(String& aPath);
     void CreateDirectoryTreeForPath(const String& aPath);
   }
 //---------------------------------------------------------------------------//

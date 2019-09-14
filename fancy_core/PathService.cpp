@@ -18,7 +18,7 @@ namespace Fancy {
       GetModuleFileName(NULL, buf, FILENAME_MAX);
 
       String str(buf);
-      UnifySlashes(str);
+      ConvertToSlash(str);
 
       size_t exePos = str.rfind(".exe");
       ASSERT(exePos != String::npos);
@@ -34,7 +34,7 @@ namespace Fancy {
       GetModuleFileName(NULL, outString, FILENAME_MAX);
 
       String pathOut(outString);
-      UnifySlashes(pathOut);
+      ConvertToSlash(pathOut);
       return GetContainingFolder(pathOut);
     }
 //---------------------------------------------------------------------------//
@@ -54,7 +54,7 @@ namespace Fancy {
         return "";
 
       String workingDir(buf);
-      UnifySlashes(workingDir);
+      ConvertToSlash(workingDir);
 
       return workingDir;
     }
@@ -139,18 +139,16 @@ namespace Fancy {
       return aPath.substr(0, aPath.size() - dotPos);
     }
 //---------------------------------------------------------------------------//
-    void UnifySlashes(String& aPath)
+    void ConvertToSlash(String& aPath)
     {
-      for (uint i = 0; i < aPath.size(); ++i)
-        if (aPath[i] == '\\')
-          aPath[i] = '/';
+      std::replace(aPath.begin(), aPath.end(), '\\', '/');
     }
   //---------------------------------------------------------------------------//
-    bool HasUnifiedSlashes(const String& aPath)
+    void ConvertToBackslash(String& aPath)
     {
-      return aPath.find('\\') == String::npos;
+      std::replace(aPath.begin(), aPath.end(), '/', '\\');
     }
-//---------------------------------------------------------------------------//
+ //---------------------------------------------------------------------------//
     void CreateDirectoryTreeForPath(const String& aPath)
     {
       String aDirectoryTree = GetContainingFolder(aPath) + "/";
@@ -173,7 +171,7 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
     void RemoveFolderUpMarkers(String& aPath)
     {
-      UnifySlashes(aPath);
+      ConvertToSlash(aPath);
 
       const String kSearchKey = "/../";
       const size_t kSearchKeyLen = kSearchKey.length();
@@ -228,7 +226,7 @@ namespace Fancy {
           
         std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
         String path = converter.to_bytes(str);
-        UnifySlashes(path);
+        ConvertToSlash(path);
 
         return path + "/Fancy/" + GetAppName() + "/";
       }
