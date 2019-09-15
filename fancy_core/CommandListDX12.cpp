@@ -9,7 +9,6 @@
 #include "TextureDX12.h"
 #include "AdapterDX12.h"
 #include "GpuProgramDX12.h"
-#include "ShaderResourceInterfaceDX12.h"
 #include "ShaderPipeline.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"

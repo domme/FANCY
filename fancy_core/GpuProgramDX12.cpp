@@ -3,7 +3,6 @@
 
 #include "ShaderCompiler.h"
 #include "RenderCore_PlatformDX12.h"
-#include "ShaderResourceInterfaceDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -87,7 +86,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   ID3D12RootSignature* GpuProgramDX12::GetRootSignature() const
   {
-    return static_cast<ShaderResourceInterfaceDX12*>(myResourceInterface)->myRootSignature.Get();
+    return myProperties.myResourceInterface.myNativeData.To<Microsoft::WRL::ComPtr<ID3D12RootSignature>>().Get();
   }
 //---------------------------------------------------------------------------//
   uint64 GpuProgramDX12::GetNativeBytecodeHash() const

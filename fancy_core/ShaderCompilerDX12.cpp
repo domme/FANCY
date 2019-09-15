@@ -236,6 +236,76 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
+  static SriResourceType locGetResourceType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
+  {
+    switch (aRangeType)
+    {
+    case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return SriResourceType::BufferOrTexture;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return SriResourceType::BufferOrTextureRW;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return SriResourceType::ConstantBuffer;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return SriResourceType::Sampler;
+    default:
+      ASSERT(false);
+      return SriResourceType::BufferOrTexture;
+      break;
+    }
+  }
+//---------------------------------------------------------------------------//
+  ShaderResourceInterface locCreateShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, const Microsoft::WRL::ComPtr<ID3D12RootSignature>& aRootSignature)
+  {
+    ShaderResourceInterface sri;
+    sri.myNativeData = aRootSignature;
+
+    for (uint iParam = 0u; iParam < anRSdesc.NumParameters; ++iParam)
+    {
+      SriElement sriElement;
+
+      const D3D12_ROOT_PARAMETER& param = anRSdesc.pParameters[iParam];
+      switch (param.ParameterType)
+      {
+      case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
+        sriElement.myType = SriElementType::DescriptorSet;
+        sriElement.myDescriptorSet.myNumElements = param.DescriptorTable.NumDescriptorRanges;
+        ASSERT(param.DescriptorTable.NumDescriptorRanges <= SriDescriptorSet::MAX_DESCRIPTOR_SET_ELEMENTS);
+
+        for (uint iRange = 0u; iRange < param.DescriptorTable.NumDescriptorRanges; ++iRange)
+        {
+          const D3D12_DESCRIPTOR_RANGE& range = param.DescriptorTable.pDescriptorRanges[iRange];
+          SriDescriptorSetElement& setElement = sriElement.myDescriptorSet.myRangeElements[iRange];
+          setElement.myResourceType = locGetResourceType(range.RangeType);
+          setElement.myNumElements = range.NumDescriptors;
+          setElement.myBindingSlot = range.BaseShaderRegister;
+        }
+        break;
+      case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+        sriElement.myType = SriElementType::Constants;
+        sriElement.myConstants.myBindingSlot = param.Constants.ShaderRegister;
+        sriElement.myConstants.myNumValues = param.Constants.Num32BitValues;
+        break;
+      case D3D12_ROOT_PARAMETER_TYPE_CBV:
+        sriElement.myType = SriElementType::Descriptor;
+        sriElement.myDescriptor.myResourceType = SriResourceType::ConstantBuffer;
+        sriElement.myDescriptor.myBindingSlot = param.Descriptor.ShaderRegister;
+        break;
+      case D3D12_ROOT_PARAMETER_TYPE_SRV:
+        sriElement.myType = SriElementType::Descriptor;
+        sriElement.myDescriptor.myResourceType = SriResourceType::BufferOrTexture;
+        sriElement.myDescriptor.myBindingSlot = param.Descriptor.ShaderRegister;
+        break;
+      case D3D12_ROOT_PARAMETER_TYPE_UAV:
+        sriElement.myType = SriElementType::Descriptor;
+        sriElement.myDescriptor.myResourceType = SriResourceType::BufferOrTextureRW;
+        sriElement.myDescriptor.myBindingSlot = param.Descriptor.ShaderRegister;
+        break;
+      default: break;
+      }
+
+      sri.myElements.push_back(sriElement);
+    }
+
+    return sri;
+  }
+//---------------------------------------------------------------------------//
   String ShaderCompilerDX12::GetShaderPath(const char* aPath) const
   {
     const StaticFilePath path("%s/DX12/%s.hlsl", ShaderCompiler::GetShaderRootFolderRelative(), aPath);
@@ -316,12 +386,9 @@ namespace Fancy {
     }
 
     const D3D12_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetRootSignatureDesc();
-    ShaderResourceInterface* rsObject = RenderCore::GetPlatformDX12()->GetShaderResourceInterface(*rsDesc, rootSignature);
-    ASSERT(nullptr != rsObject);
-
+    anOutput->myProperties.myResourceInterface = locCreateShaderResourceInterface(*rsDesc, rootSignature);
     anOutput->myDesc = aDesc;
     anOutput->myProperties.myShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
-    anOutput->myRootSignature = rsObject;
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//

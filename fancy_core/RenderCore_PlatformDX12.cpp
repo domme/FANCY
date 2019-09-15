@@ -9,7 +9,6 @@
 
 #include "Shader.h"
 #include "ShaderResourceInterface.h"
-#include "ShaderResourceInterfaceDX12.h"
 #include "ShaderCompiler.h"
 #include "DynamicDescriptorHeapDX12.h"
 #include "RenderOutputDX12.h"
@@ -53,7 +52,6 @@ namespace Fancy {
       }
     }
   //---------------------------------------------------------------------------//
-    std::vector<std::unique_ptr<ShaderResourceInterface>> locShaderResourceInterfacePool;
   }  // namespace
 //---------------------------------------------------------------------------//
 
@@ -152,25 +150,6 @@ namespace Fancy {
   RenderCore_PlatformDX12::~RenderCore_PlatformDX12()
   {
     Shutdown();
-  }
-//---------------------------------------------------------------------------//
-  ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const
-  {
-    const uint64 requestedHash = ShaderResourceInterfaceDX12::ComputeHash(anRSdesc);
-
-    for (auto& rs : locShaderResourceInterfacePool)
-      if (rs->GetDesc().myHash == requestedHash)
-        return rs.get();
-
-    std::unique_ptr<ShaderResourceInterfaceDX12> rs(new ShaderResourceInterfaceDX12());
-    if (rs->Create(anRSdesc, anRS))
-    {
-      ShaderResourceInterface* rs_ptr = rs.get();
-      locShaderResourceInterfacePool.push_back(std::move(rs));
-      return rs_ptr;
-    }
-
-    return nullptr;
   }
 //---------------------------------------------------------------------------//
   ID3D12CommandAllocator* RenderCore_PlatformDX12::GetCommandAllocator(CommandListType aCmdListType)

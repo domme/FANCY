@@ -10,7 +10,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderCompilerResult
   { 
-    ShaderResourceInterface* myRootSignature = nullptr;
     ShaderDesc myDesc;
     ShaderProperties myProperties;
     Any myNativeData;

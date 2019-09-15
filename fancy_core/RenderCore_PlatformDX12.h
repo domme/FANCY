@@ -14,7 +14,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class ShaderResourceInterface;
   struct WindowParameters;
   class Shader;
   class Texture;
@@ -49,9 +48,6 @@ namespace Fancy {
     static D3D12_RESOURCE_STATES ResolveResourceUsageState(GpuResourceState aState);
 
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
-
-    ShaderResourceInterface*
-      GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS = nullptr) const;
 
     ID3D12CommandAllocator* GetCommandAllocator(CommandListType aCmdListType);
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, uint64 aFenceVal);

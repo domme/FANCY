@@ -28,7 +28,7 @@ namespace Fancy {
 
       SharedPtr<Shader> myGpuPrograms[(uint)ShaderStage::NUM];
       uint64 myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
-      const ShaderResourceInterface* myResourceInterface;
+      ShaderResourceInterface myResourceInterface;
   };
 //---------------------------------------------------------------------------//
 }

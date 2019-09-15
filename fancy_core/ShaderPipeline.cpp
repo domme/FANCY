@@ -6,7 +6,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   ShaderPipeline::ShaderPipeline()
     : myShaderByteCodeHash(0u)
-    , myResourceInterface(nullptr)
   {
     memset(myGpuPrograms, 0u, sizeof(myGpuPrograms));
   }
@@ -41,10 +40,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void ShaderPipeline::UpdateResourceInterface()
   {
-    myResourceInterface = nullptr;
     if (Shader* vertexShader = myGpuPrograms[(uint)ShaderStage::VERTEX].get())
     {
-      myResourceInterface = vertexShader->myResourceInterface;
+      myResourceInterface = vertexShader->myProperties.myResourceInterface;
     }
   }
 //---------------------------------------------------------------------------//

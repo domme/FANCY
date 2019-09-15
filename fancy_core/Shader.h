@@ -3,14 +3,15 @@
 #include "FancyCoreDefines.h"
 #include "ShaderDesc.h"
 #include "VertexInputLayout.h"
+#include "ShaderResourceInterface.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderCompilerResult;
-  class ShaderResourceInterface;
 //---------------------------------------------------------------------------//
   struct ShaderProperties
   {
+    ShaderResourceInterface myResourceInterface;
     ShaderVertexInputLayout myVertexInputLayout;
     ShaderStage myShaderStage = ShaderStage::NONE;
     bool myHasUnorderedWrites = false;
@@ -20,8 +21,6 @@ namespace Fancy {
   class Shader
   {
   public:
-
-    Shader();
     virtual ~Shader() = default;
 
     const ShaderDesc& GetDescription() const { return myDesc; }
@@ -29,8 +28,6 @@ namespace Fancy {
     virtual uint64 GetNativeBytecodeHash() const = 0;
     
     ShaderDesc myDesc;
-
-    ShaderResourceInterface* myResourceInterface;
     ShaderProperties myProperties;
   };
 //---------------------------------------------------------------------------//

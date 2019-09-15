@@ -146,8 +146,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceNameList.h" />
     <ClInclude Include="ShaderResourceInterface.h" />
-    <ClInclude Include="ShaderResourceInterfaceDesc.h" />
-    <ClInclude Include="ShaderResourceInterfaceDX12.h" />
     <ClInclude Include="Slot.h" />
     <ClInclude Include="SmallObjectAllocator.h" />
     <ClInclude Include="StaticDescriptorAllocatorDX12.h" />
@@ -220,7 +218,6 @@
     <ClCompile Include="RenderCore_PlatformDX12.cpp" />
     <ClCompile Include="RenderOutput.cpp" />
     <ClCompile Include="RenderOutputDX12.cpp" />
-    <ClCompile Include="ShaderResourceInterfaceDX12.cpp" />
     <ClCompile Include="StaticDescriptorAllocatorDX12.cpp" />
     <ClCompile Include="fancy_core_precompile.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">Create</PrecompiledHeader>

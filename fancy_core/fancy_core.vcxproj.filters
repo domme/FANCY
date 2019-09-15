@@ -69,9 +69,6 @@
     <ClInclude Include="RenderOutputDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderResourceInterfaceDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="TextureDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
@@ -136,9 +133,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="ShaderResourceInterface.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderResourceInterfaceDesc.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Slot.h">
@@ -377,9 +371,6 @@
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="RenderOutputDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderResourceInterfaceDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="TextureDX12.cpp">

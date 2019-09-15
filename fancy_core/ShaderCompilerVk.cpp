@@ -207,11 +207,17 @@ namespace Fancy
       SpvReflectResult reflectResult = spvReflectCreateShaderModule(spvBinaryData.size(), spvBinaryData.data(), &reflectModule);
       ASSERT(reflectResult == SPV_REFLECT_RESULT_SUCCESS);
 
+      // Handle unordered writes. It seems we can only determine if a UAV is used in the shader but not if its actually written to in the shader.
       bool hasUnorderedWrites = false;
       for (uint i = 0u; i < reflectModule.descriptor_binding_count && !hasUnorderedWrites; ++i)
         hasUnorderedWrites |= (reflectModule.descriptor_bindings[i].resource_type & SpvReflectResourceType::SPV_REFLECT_RESOURCE_FLAG_UAV) != 0;
-      
       aCompilerOutput->myProperties.myHasUnorderedWrites = hasUnorderedWrites;
+
+      // Build the resource interface. The descriptors reported from shader-reflection in Vulkan will only contain the ones actually used by the shader-stage so we 
+      // can't build the complete pipeline layout from just one shader. Instead, we have to merge the partial ResourceInterfaces from all shader-stages when building a pipeline
+
+
+
 
       // Build the vertex input layout in case of vertex-shader
       if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
