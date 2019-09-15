@@ -2,12 +2,20 @@
 
 #include "FancyCoreDefines.h"
 #include "ShaderDesc.h"
-#include "ShaderProperties.h"
+#include "VertexInputLayout.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderCompilerResult;
   class ShaderResourceInterface;
+//---------------------------------------------------------------------------//
+  struct ShaderProperties
+  {
+    ShaderVertexInputLayout myVertexInputLayout;
+    ShaderStage myShaderStage = ShaderStage::NONE;
+    bool myHasUnorderedWrites = false;
+    glm::int3 myNumGroupThreads = { 1, 1, 1 };
+  };
 //---------------------------------------------------------------------------//
   class Shader
   {

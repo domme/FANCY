@@ -337,47 +337,6 @@ namespace Fancy {
     ourShaderFileWatcher->myOnFileDeletedMoved.Connect(onDeletedFn);
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
-
-    {
-      ShaderVertexInputLayout& modelVertexLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
-      modelVertexLayout.myVertexInputElements.clear();
-
-      uint registerIndex = 0u;
-      ShaderVertexInputElement* elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Position";
-      elem->mySemantics = VertexSemantics::POSITION;
-      elem->myFormat = DataFormat::RGB_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 12;
-
-      elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Normal";
-      elem->mySemantics = VertexSemantics::NORMAL;
-      elem->myFormat = DataFormat::RGB_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 12;
-
-      elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Tangent";
-      elem->mySemantics = VertexSemantics::TANGENT;
-      elem->myFormat = DataFormat::RGB_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 12;
-
-      elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Bitangent";
-      elem->mySemantics = VertexSemantics::BITANGENT;
-      elem->myFormat = DataFormat::RGB_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 12;
-
-      elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Texcoord";
-      elem->mySemantics = VertexSemantics::TEXCOORD;
-      elem->myFormat = DataFormat::RG_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 8;
-    }
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_2_Resources()
@@ -612,7 +571,8 @@ namespace Fancy {
       return it->second;
 
     std::array<SharedPtr<Shader>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
-    for (uint i = 1u; i < (uint)ShaderStage::NUM; ++i)
+    // for (uint i = 1u; i < (uint)ShaderStage::NUM; ++i)  // Hack to only load pixel shaders for vulkan-dev
+    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
       if (!aDesc.myGpuPrograms[i].myShaderFileName.empty())
         pipelinePrograms[i] = CreateGpuProgram(aDesc.myGpuPrograms[i]);

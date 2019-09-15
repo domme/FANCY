@@ -52,7 +52,7 @@ VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
   [RootSignature(ROOT_SIGNATURE)]
   float4 main(VS_OUT input) : SV_Target
   {
-    float4 texCol = texture0.Sample(sampler_default, input.uv) * cbVSImgui.ProjectionMatrix[0];
+    float4 texCol = texture0.Sample(sampler_default, input.uv);
     float4 out_col = input.col * texCol;
     return out_col;
   }

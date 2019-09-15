@@ -130,6 +130,18 @@ namespace Fancy { namespace ImGuiRendering {
     if (!QueryPerformanceCounter((LARGE_INTEGER *)&ourTime))
       return false;
 
+    // DEBUG, don't commit!
+    {
+      ShaderDesc shaderDesc =
+      {
+        "Tests/ModifyBuffer",
+        "main_set",
+        (uint) ShaderStage::COMPUTE
+      };
+
+      SharedPtr<Shader> testComputShader = RenderCore::CreateGpuProgram(shaderDesc);
+    }
+
     // Load the imgui-shader state
     {
       ShaderPipelineDesc pipelineDesc;

@@ -129,7 +129,6 @@
     <ClInclude Include="GpuProgramDX12.h" />
     <ClInclude Include="ShaderPipeline.h" />
     <ClInclude Include="ShaderPipelineDesc.h" />
-    <ClInclude Include="ShaderProperties.h" />
     <ClInclude Include="GpuResource.h" />
     <ClInclude Include="GpuResourceSignature.h" />
     <ClInclude Include="GpuResourceDataDX12.h" />

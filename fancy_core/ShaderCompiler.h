@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ShaderProperties.h"
 #include "ShaderDesc.h"
+#include "Shader.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

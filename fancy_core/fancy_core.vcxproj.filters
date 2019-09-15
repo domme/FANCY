@@ -347,9 +347,6 @@
     <ClInclude Include="ShaderPipelineDesc.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderProperties.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderCompilerDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>

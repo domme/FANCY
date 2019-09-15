@@ -7,182 +7,11 @@
 
 #include "ShaderPipeline.h"
 
-#include "ShaderProperties.h"
 #include "GpuProgramDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  /*
-  DataFormat locResolveVectorFormat(const D3D12_SHADER_TYPE_DESC& aTypeDesc)
-  {
-    switch(aTypeDesc.Type)
-    {
-      case D3D_SVT_BOOL: 
-        switch(aTypeDesc.Columns) {
-          case 2: return DataFormat::RG_32UI;
-          case 3: return DataFormat::RGB_32UI;
-          case 4: return DataFormat::RGBA_32UI; 
-        }
-        break;
-      case D3D_SVT_INT: 
-        switch (aTypeDesc.Columns) {
-        case 2: return DataFormat::RG_32I;
-        case 3: return DataFormat::RGB_32I;
-        case 4: return DataFormat::RGBA_32I;
-        }
-        break;
-      case D3D_SVT_FLOAT:
-        switch (aTypeDesc.Columns) {
-        case 2: return DataFormat::RG_32F;
-        case 3: return DataFormat::RGB_32I;
-        case 4: return DataFormat::RGBA_32I;
-        }
-        break;
-      case D3D_SVT_STRING: break;
-      case D3D_SVT_TEXTURE: break;
-      case D3D_SVT_TEXTURE1D: break;
-      case D3D_SVT_TEXTURE2D: break;
-      case D3D_SVT_TEXTURE3D: break;
-      case D3D_SVT_TEXTURECUBE: break;
-      case D3D_SVT_SAMPLER: break;
-      case D3D_SVT_SAMPLER1D: break;
-      case D3D_SVT_SAMPLER2D: break;
-      case D3D_SVT_SAMPLER3D: break;
-      case D3D_SVT_SAMPLERCUBE: break;
-      case D3D_SVT_PIXELSHADER: break;
-      case D3D_SVT_VERTEXSHADER: break;
-      case D3D_SVT_PIXELFRAGMENT: break;
-      case D3D_SVT_VERTEXFRAGMENT: break;
-      case D3D_SVT_UINT: break;
-      case D3D_SVT_UINT8: break;
-      case D3D_SVT_GEOMETRYSHADER: break;
-      case D3D_SVT_RASTERIZER: break;
-      case D3D_SVT_DEPTHSTENCIL: break;
-      case D3D_SVT_BLEND: break;
-      case D3D_SVT_BUFFER: break;
-      case D3D_SVT_CBUFFER: break;
-      case D3D_SVT_TBUFFER: break;
-      case D3D_SVT_TEXTURE1DARRAY: break;
-      case D3D_SVT_TEXTURE2DARRAY: break;
-      case D3D_SVT_RENDERTARGETVIEW: break;
-      case D3D_SVT_DEPTHSTENCILVIEW: break;
-      case D3D_SVT_TEXTURE2DMS: break;
-      case D3D_SVT_TEXTURE2DMSARRAY: break;
-      case D3D_SVT_TEXTURECUBEARRAY: break;
-      case D3D_SVT_HULLSHADER: break;
-      case D3D_SVT_DOMAINSHADER: break;
-      case D3D_SVT_INTERFACE_POINTER: break;
-      case D3D_SVT_COMPUTESHADER: break;
-      case D3D_SVT_DOUBLE: break;
-      case D3D_SVT_RWTEXTURE1D: break;
-      case D3D_SVT_RWTEXTURE1DARRAY: break;
-      case D3D_SVT_RWTEXTURE2D: break;
-      case D3D_SVT_RWTEXTURE2DARRAY: break;
-      case D3D_SVT_RWTEXTURE3D: break;
-      case D3D_SVT_RWBUFFER: break;
-      case D3D_SVT_BYTEADDRESS_BUFFER: break;
-      case D3D_SVT_RWBYTEADDRESS_BUFFER: break;
-      case D3D_SVT_STRUCTURED_BUFFER: break;
-      case D3D_SVT_RWSTRUCTURED_BUFFER: break;
-      case D3D_SVT_APPEND_STRUCTURED_BUFFER: break;
-      case D3D_SVT_CONSUME_STRUCTURED_BUFFER: break;
-      case D3D_SVT_MIN8FLOAT: break;
-      case D3D_SVT_MIN10FLOAT: break;
-      case D3D_SVT_MIN16FLOAT: break;
-      case D3D_SVT_MIN12INT: break;
-      case D3D_SVT_MIN16INT: break;
-      case D3D_SVT_MIN16UINT: break;
-      case D3D10_SVT_VOID: break;
-      case D3D10_SVT_BOOL: break;
-      case D3D10_SVT_INT: break;
-      case D3D10_SVT_FLOAT: break;
-      case D3D10_SVT_STRING: break;
-      case D3D10_SVT_TEXTURE: break;
-      case D3D10_SVT_TEXTURE1D: break;
-      case D3D10_SVT_TEXTURE2D: break;
-      case D3D10_SVT_TEXTURE3D: break;
-      case D3D10_SVT_TEXTURECUBE: break;
-      case D3D10_SVT_SAMPLER: break;
-      case D3D10_SVT_SAMPLER1D: break;
-      case D3D10_SVT_SAMPLER2D: break;
-      case D3D10_SVT_SAMPLER3D: break;
-      case D3D10_SVT_SAMPLERCUBE: break;
-      case D3D10_SVT_PIXELSHADER: break;
-      case D3D10_SVT_VERTEXSHADER: break;
-      case D3D10_SVT_PIXELFRAGMENT: break;
-      case D3D10_SVT_VERTEXFRAGMENT: break;
-      case D3D10_SVT_UINT: break;
-      case D3D10_SVT_UINT8: break;
-      case D3D10_SVT_GEOMETRYSHADER: break;
-      case D3D10_SVT_RASTERIZER: break;
-      case D3D10_SVT_DEPTHSTENCIL: break;
-      case D3D10_SVT_BLEND: break;
-      case D3D10_SVT_BUFFER: break;
-      case D3D10_SVT_CBUFFER: break;
-      case D3D10_SVT_TBUFFER: break;
-      case D3D10_SVT_TEXTURE1DARRAY: break;
-      case D3D10_SVT_TEXTURE2DARRAY: break;
-      case D3D10_SVT_RENDERTARGETVIEW: break;
-      case D3D10_SVT_DEPTHSTENCILVIEW: break;
-      case D3D10_SVT_TEXTURE2DMS: break;
-      case D3D10_SVT_TEXTURE2DMSARRAY: break;
-      case D3D10_SVT_TEXTURECUBEARRAY: break;
-      case D3D11_SVT_HULLSHADER: break;
-      case D3D11_SVT_DOMAINSHADER: break;
-      case D3D11_SVT_INTERFACE_POINTER: break;
-      case D3D11_SVT_COMPUTESHADER: break;
-      case D3D11_SVT_DOUBLE: break;
-      case D3D11_SVT_RWTEXTURE1D: break;
-      case D3D11_SVT_RWTEXTURE1DARRAY: break;
-      case D3D11_SVT_RWTEXTURE2D: break;
-      case D3D11_SVT_RWTEXTURE2DARRAY: break;
-      case D3D11_SVT_RWTEXTURE3D: break;
-      case D3D11_SVT_RWBUFFER: break;
-      case D3D11_SVT_BYTEADDRESS_BUFFER: break;
-      case D3D11_SVT_RWBYTEADDRESS_BUFFER: break;
-      case D3D11_SVT_STRUCTURED_BUFFER: break;
-      case D3D11_SVT_RWSTRUCTURED_BUFFER: break;
-      case D3D11_SVT_APPEND_STRUCTURED_BUFFER: break;
-      case D3D11_SVT_CONSUME_STRUCTURED_BUFFER: break;
-      case D3D_SVT_FORCE_DWORD: break;
-      default: break;
-    }
-  }
-//---------------------------------------------------------------------------//
-  DataFormat locResolveMatrixFormat(const D3D12_SHADER_TYPE_DESC& aTypeDesc)
-  {
-    
-  }
-
-  DataFormat locResolveScalarFormat(const D3D12_SHADER_TYPE_DESC& aTypeDesc)
-  {
-    
-  }
-
-//---------------------------------------------------------------------------//
-  DataFormat locResolveFormat(const D3D12_SHADER_TYPE_DESC& aTypeDesc)
-  {
-    switch(aTypeDesc.Class)
-    {
-      case D3D_SVC_SCALAR:
-        return locResolveScalarFormat(aTypeDesc);
-        break;
-      case D3D_SVC_VECTOR: 
-        return locResolveVectorFormat(aTypeDesc);
-        break;
-      case D3D_SVC_MATRIX_ROWS: 
-      case D3D_SVC_MATRIX_COLUMNS: 
-        return locResolveMatrixFormat(aTypeDesc);
-        break;
-      case D3D_SVC_OBJECT: break;
-      case D3D_SVC_STRUCT: break;
-      case D3D_SVC_INTERFACE_CLASS: break;
-      case D3D_SVC_INTERFACE_POINTER: break;
-      default: break;
-    }
-  } */
 //---------------------------------------------------------------------------//
   DataFormat locResolveFormat(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
   {
@@ -380,127 +209,6 @@ namespace Fancy {
 #undef CHECK
   }
 //---------------------------------------------------------------------------//
-  bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, ShaderProperties& someProps)
-  {
-    for (uint i = 0u; i < aShaderDesc.BoundResources; ++i)
-    {
-      D3D12_SHADER_INPUT_BIND_DESC desc;
-      CheckD3Dcall(aReflector->GetResourceBindingDesc(i, &desc));
-
-      GpuProgramResourceInfo resInfo;
-      
-      switch(desc.Dimension) 
-      { 
-        case D3D_SRV_DIMENSION_BUFFER: 
-        case D3D_SRV_DIMENSION_BUFFEREX:
-          resInfo.myDimension = GpuResourceDimension::BUFFER; break;
-        case D3D_SRV_DIMENSION_TEXTURE1D: 
-          resInfo.myDimension = GpuResourceDimension::TEXTURE_1D; break;
-        case D3D_SRV_DIMENSION_TEXTURE1DARRAY: 
-          resInfo.myDimension = GpuResourceDimension::TEXTURE_1D_ARRAY; break;
-        case D3D_SRV_DIMENSION_TEXTURE2DMS:
-        case D3D_SRV_DIMENSION_TEXTURE2D: 
-          resInfo.myDimension = GpuResourceDimension::TEXTURE_2D; break;
-        case D3D_SRV_DIMENSION_TEXTURE2DARRAY: 
-        case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY: 
-          resInfo.myDimension = GpuResourceDimension::TEXTURE_2D_ARRAY; break;
-        case D3D_SRV_DIMENSION_TEXTURE3D: 
-          resInfo.myDimension = GpuResourceDimension::TEXTURE_3D; break;
-        case D3D_SRV_DIMENSION_TEXTURECUBE: 
-          resInfo.myDimension = GpuResourceDimension::TEXTURE_CUBE; break;
-        case D3D_SRV_DIMENSION_TEXTURECUBEARRAY: 
-          resInfo.myDimension = GpuResourceDimension::TEXTURE_CUBE_ARRAY; break;
-        case D3D_SRV_DIMENSION_UNKNOWN:
-          // We're currently only interested in texture- and buffer types. This case will hit for samplers. Skip them for now
-          continue;
-        default: 
-          ASSERT(false, "Unsupported resource dimension in shader reflection");
-          break;
-      }
-
-      resInfo.myName = desc.Name;
-      resInfo.myFirstBindSlot = desc.BindPoint;
-      resInfo.myNumBindSlots = desc.BindCount;
-      resInfo.myRegisterIndex = i;
-
-      resInfo.myIsUnorderedWrite = (desc.Type == D3D_SIT_UAV_RWTYPED || desc.Type == D3D_SIT_UAV_RWSTRUCTURED || 
-        desc.Type == D3D_SIT_UAV_RWBYTEADDRESS || desc.Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER);
-      
-      someProps.myHasUnorderedWrites |= resInfo.myIsUnorderedWrite;
-
-      someProps.myResourceInfos.push_back(resInfo);
-    }
-
-    return true;
-  }
-//---------------------------------------------------------------------------//
-  bool locReflectConstants(ID3D12ShaderReflection* aReflector, const D3D12_SHADER_DESC& aShaderDesc, ShaderProperties& someProps)
-  {
-    someProps.myConstantBufferElements.clear();
-
-    for (uint i = 0u; i < aShaderDesc.ConstantBuffers; ++i)
-    {
-      ID3D12ShaderReflectionConstantBuffer* cb = aReflector->GetConstantBufferByIndex(i);
-      
-      D3D12_SHADER_BUFFER_DESC cbDesc;
-      cb->GetDesc(&cbDesc);
-
-      uint currOffsetInCbuffer = 0u;
-      for (uint iCBvar = 0u; iCBvar < cbDesc.Variables; ++iCBvar)
-      {
-        ID3D12ShaderReflectionVariable* cbVar = cb->GetVariableByIndex(iCBvar);
-
-        D3D12_SHADER_VARIABLE_DESC cbVarDesc;
-        cbVar->GetDesc(&cbVarDesc);
-        
-        ID3D12ShaderReflectionType* cbVarType = cbVar->GetType();
-        D3D12_SHADER_TYPE_DESC cbVarTypeDesc;
-        cbVarType->GetDesc(&cbVarTypeDesc);
-
-        currOffsetInCbuffer += cbVarDesc.StartOffset;
-
-        if (cbVarTypeDesc.Members > 0u)  // This is a struct
-        {
-          for (uint iMember = 0u; iMember < cbVarTypeDesc.Members; ++iMember)
-          {
-            ID3D12ShaderReflectionType* cbVarMemberType = cbVarType->GetMemberTypeByIndex(iMember);
-            D3D12_SHADER_TYPE_DESC cbVarMemberTypeDesc;
-            cbVarMemberType->GetDesc(&cbVarMemberTypeDesc);
-
-            ConstantBufferElement cbElem;
-            cbElem.uOffsetBytes = currOffsetInCbuffer + cbVarMemberTypeDesc.Offset;
-            cbElem.name = cbVarType->GetMemberTypeName(iMember);
-
-            uint sizeBytes;
-            DataFormat format;
-            locResolveFormat(cbVarMemberTypeDesc.Name, sizeBytes, format);
-            cbElem.eFormat = format;
-            cbElem.uSizeBytes = sizeBytes;
-            cbElem.uFormatComponentCount = cbVarMemberTypeDesc.Rows;  // Columns is already encoded in the format
-
-            someProps.myConstantBufferElements.push_back(cbElem);
-          }
-        }
-        else
-        {
-          ConstantBufferElement cbElem;
-          cbElem.uOffsetBytes = cbVarTypeDesc.Offset;
-          cbElem.uSizeBytes = cbVarDesc.Size;
-
-          uint sizeBytes;
-          DataFormat format;
-          locResolveFormat(cbVarTypeDesc.Name, sizeBytes, format);
-          cbElem.eFormat = format;
-          cbElem.uFormatComponentCount = cbVarTypeDesc.Rows;
-          cbElem.name = cbVarDesc.Name;
-
-          someProps.myConstantBufferElements.push_back(cbElem);
-        }
-      }
-    }
-    return true;
-  }
-//---------------------------------------------------------------------------//
   bool locReflectVertexInputLayout(ID3D12ShaderReflection* aReflector, 
     const D3D12_SHADER_DESC& aShaderDesc, ShaderProperties& someProps)
   {
@@ -508,6 +216,7 @@ namespace Fancy {
       return false;
 
     someProps.myVertexInputLayout.myVertexInputElements.clear();
+    someProps.myVertexInputLayout.myVertexInputElements.reserve(aShaderDesc.InputParameters);
 
     D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
     for (uint i = 0u; i < aShaderDesc.InputParameters; ++i)
@@ -515,16 +224,13 @@ namespace Fancy {
       aReflector->GetInputParameterDesc(i, &paramDesc);
       
       ShaderVertexInputElement inputElem;
-
       inputElem.mySemantics = GpuProgramDX12::GetVertexSemanticFromShaderString(paramDesc.SemanticName);
       inputElem.mySemanticIndex = paramDesc.SemanticIndex;
-      inputElem.myRegisterIndex = paramDesc.Register;
       inputElem.myFormat = locResolveFormat(paramDesc);
       inputElem.mySizeBytes = locResolveSizeBytes(paramDesc);
       inputElem.myName = paramDesc.SemanticName;
       inputElem.myFormatComponentCount = locResolveComponentCount(paramDesc);
-
-      someProps.myVertexInputLayout.addVertexInputElement(inputElem);
+      someProps.myVertexInputLayout.myVertexInputElements.push_back(inputElem);
     }
 
     return true;
@@ -631,18 +337,17 @@ namespace Fancy {
     D3D12_SHADER_DESC shaderDesc;
     reflector->GetDesc(&shaderDesc);
 
-    if (!locReflectConstants(reflector, shaderDesc, anOutput->myProperties))
+    bool hasUnorderedWrites = false;
+    for (uint i = 0u; i < shaderDesc.BoundResources && !hasUnorderedWrites; ++i)
     {
-      LOG_ERROR("Failed reflecting constants");
-      return false;
-    }
+      D3D12_SHADER_INPUT_BIND_DESC desc;
+      CheckD3Dcall(reflector->GetResourceBindingDesc(i, &desc));
 
-    if (!locReflectResources(reflector, shaderDesc, anOutput->myProperties))
-    {
-      LOG_ERROR("Failed reflecting resources");
-      return false;
+      hasUnorderedWrites |= (desc.Type == D3D_SIT_UAV_RWTYPED || desc.Type == D3D_SIT_UAV_RWSTRUCTURED ||
+        desc.Type == D3D_SIT_UAV_RWBYTEADDRESS || desc.Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER);
     }
-
+    anOutput->myProperties.myHasUnorderedWrites = hasUnorderedWrites;
+    
     if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::VERTEX))
     {
       if (!locReflectVertexInputLayout(reflector, shaderDesc, anOutput->myProperties))
