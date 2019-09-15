@@ -8,6 +8,7 @@
 #include "GpuBufferDX12.h"
 
 #include "Shader.h"
+#include "ShaderPipelineDX12.h"
 #include "ShaderResourceInterface.h"
 #include "ShaderCompiler.h"
 #include "DynamicDescriptorHeapDX12.h"
@@ -19,7 +20,7 @@
 #include "GpuQueryHeapDX12.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
   namespace {
     //---------------------------------------------------------------------------//
     SriResourceType locGetResourceType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
@@ -245,9 +246,14 @@ namespace Fancy {
     return new ShaderCompilerDX12();
   }
 //---------------------------------------------------------------------------//
-  Shader* RenderCore_PlatformDX12::CreateGpuProgram()
+  Shader* RenderCore_PlatformDX12::CreateShader()
   {
     return new GpuProgramDX12();
+  }
+//---------------------------------------------------------------------------//
+  ShaderPipeline* RenderCore_PlatformDX12::CreateShaderPipeline()
+  {
+    return new ShaderPipelineDX12();
   }
 //---------------------------------------------------------------------------//
   Texture* RenderCore_PlatformDX12::CreateTexture()

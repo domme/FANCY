@@ -9,7 +9,7 @@
 #include "TextureDX12.h"
 #include "AdapterDX12.h"
 #include "GpuProgramDX12.h"
-#include "ShaderPipeline.h"
+#include "ShaderPipelineDX12.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "GeometryData.h"
@@ -559,8 +559,8 @@ namespace Fancy {
     }
 
     // ROOT SIGNATURE
-    const ShaderResourceInterfaceDX12* sriDx12 = static_cast<const ShaderResourceInterfaceDX12*>(aState.myGpuProgramPipeline->myResourceInterface);
-    psoDesc.pRootSignature = sriDx12->myRootSignature.Get();
+    const ShaderPipelineDX12* shaderPipelineDx12 = static_cast<const ShaderPipelineDX12*>(aState.myGpuProgramPipeline.get());
+    psoDesc.pRootSignature = shaderPipelineDx12->GetRootSignature();
 
     // BLEND DESC
     D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
@@ -1030,17 +1030,17 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetGpuProgramPipeline(const SharedPtr<ShaderPipeline>& aGpuProgramPipeline)
+  void CommandListDX12::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
   {
-    CommandList::SetGpuProgramPipeline(aGpuProgramPipeline);
+    CommandList::SetShaderPipeline(aShaderPipeline);
 
-    const ShaderResourceInterfaceDX12* sriDx12 =
-      static_cast<const ShaderResourceInterfaceDX12*>(aGpuProgramPipeline->myResourceInterface);
+    const ShaderPipelineDX12* pipelineDx12 = static_cast<const ShaderPipelineDX12*>(aShaderPipeline.get());
+    ID3D12RootSignature* rootSignature = pipelineDx12->GetRootSignature();
 
-    if (myRootSignature != sriDx12->myRootSignature.Get())
+    if (myRootSignature != rootSignature)
     {
-      myRootSignature = sriDx12->myRootSignature.Get();
-      myCommandList->SetGraphicsRootSignature(myRootSignature);
+      myRootSignature = rootSignature;
+      myCommandList->SetGraphicsRootSignature(rootSignature);
     }
   }
 //---------------------------------------------------------------------------//

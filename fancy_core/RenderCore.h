@@ -67,15 +67,15 @@ namespace Fancy {
     static const Texture* GetDefaultDiffuseTexture();
     static const Texture* GetDefaultNormalTexture();
     static const Texture* GetDefaultMaterialTexture();
-    static const ShaderCompiler* GetGpuProgramCompiler();
+    static const ShaderCompiler* GetShaderCompiler();
     
-    static SharedPtr<Shader> GetGpuProgram(uint64 aDescHash);
-    static SharedPtr<ShaderPipeline> GetGpuProgramPipeline(uint64 aDescHash);
+    static SharedPtr<Shader> GetShader(uint64 aDescHash);
+    static SharedPtr<ShaderPipeline> GetShaderPipeline(uint64 aDescHash);
     static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas);
 
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
-    static SharedPtr<Shader> CreateGpuProgram(const ShaderDesc& aDesc);
-    static SharedPtr<ShaderPipeline> CreateGpuProgramPipeline(const ShaderPipelineDesc& aDesc);
+    static SharedPtr<Shader> CreateShader(const ShaderDesc& aDesc);
+    static SharedPtr<ShaderPipeline> CreateShaderPipeline(const ShaderPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureProperties& someProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferProperties& someProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
     static SharedPtr<TextureView> CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName = nullptr);
@@ -158,7 +158,7 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultSpecularTexture;
 
     static std::map<uint64, SharedPtr<Shader>> ourShaderCache;  
-    static std::map<uint64, SharedPtr<ShaderPipeline>> ourGpuProgramPipelineCache;
+    static std::map<uint64, SharedPtr<ShaderPipeline>> ourShaderPipelineCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
     

@@ -9,8 +9,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class ShaderResourceInterface;
-//---------------------------------------------------------------------------//
   class ShaderPipeline
   {
     public:
@@ -23,7 +21,7 @@ namespace Fancy {
       uint64 GetHash() const { return GetDescription().GetHash(); }
       uint64 GetShaderByteCodeHash() const { return myShaderByteCodeHash; }
 
-      void UpdateResourceInterface();
+      virtual void UpdateResourceInterface() = 0;
       void UpdateShaderByteCodeHash();
 
       SharedPtr<Shader> myGpuPrograms[(uint)ShaderStage::NUM];

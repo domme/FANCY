@@ -214,7 +214,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 // Render Context:
 //---------------------------------------------------------------------------//
-  void CommandList::SetGpuProgramPipeline(const SharedPtr<ShaderPipeline>& aGpuProgramPipeline)
+  void CommandList::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aGpuProgramPipeline)
   {
     ASSERT(myCommandListType == CommandListType::Graphics);
     

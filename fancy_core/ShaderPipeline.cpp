@@ -36,15 +36,7 @@ namespace Fancy {
 
     UpdateResourceInterface();
     UpdateShaderByteCodeHash();
-  }
-//---------------------------------------------------------------------------//
-  void ShaderPipeline::UpdateResourceInterface()
-  {
-    if (Shader* vertexShader = myGpuPrograms[(uint)ShaderStage::VERTEX].get())
-    {
-      myResourceInterface = vertexShader->myProperties.myResourceInterface;
-    }
-  }
+  }  
 //---------------------------------------------------------------------------//
   void ShaderPipeline::UpdateShaderByteCodeHash()
   {

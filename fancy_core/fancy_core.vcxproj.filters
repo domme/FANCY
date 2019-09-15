@@ -350,6 +350,12 @@
     <ClInclude Include="ShaderVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="ShaderPipelineDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderPipelineVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -528,6 +534,12 @@
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="ShaderVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderPipelineDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderPipelineVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>

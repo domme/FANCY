@@ -22,7 +22,7 @@ static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const ch
   shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
   shaderDesc->myShaderFileName = aShaderPath;
   shaderDesc->myMainFunction = aMainFragmentFunction;
-  return RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+  return RenderCore::CreateShaderPipeline(pipelineDesc);
 }
 
 //---------------------------------------------------------------------------//
@@ -102,7 +102,7 @@ void Test_ModelViewer::RenderGrid(Fancy::CommandList* ctx)
   ctx->SetFillMode(FillMode::SOLID);
   ctx->SetWindingOrder(WindingOrder::CCW);
 
-  ctx->SetGpuProgramPipeline(myDebugGeoShader);
+  ctx->SetShaderPipeline(myDebugGeoShader);
 
   struct Cbuffer_DebugGeo
   {
@@ -152,7 +152,7 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
   ctx->SetWindingOrder(WindingOrder::CCW);
 
   ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-  ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
+  ctx->SetShaderPipeline(myUnlitTexturedShader);
   for (int i = 0; i < myScene.myModels.size(); ++i)
   {
     Model* model = myScene.myModels[i].get();

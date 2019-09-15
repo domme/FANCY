@@ -30,7 +30,7 @@ using namespace Fancy;
     shaderDesc.myShaderFileName = "ResizeTexture2D";
     shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
     shaderDesc.myMainFunction = "main";
-    myTextureResizeShader = RenderCore::CreateGpuProgram(shaderDesc);
+    myTextureResizeShader = RenderCore::CreateShader(shaderDesc);
     ASSERT(myTextureResizeShader != nullptr);
   }
 //---------------------------------------------------------------------------//

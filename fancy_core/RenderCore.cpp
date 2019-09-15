@@ -83,7 +83,7 @@ namespace Fancy {
   SharedPtr<Texture> RenderCore::ourDefaultSpecularTexture;
 
   std::map<uint64, SharedPtr<Shader>> RenderCore::ourShaderCache;
-  std::map<uint64, SharedPtr<ShaderPipeline>> RenderCore::ourGpuProgramPipelineCache;
+  std::map<uint64, SharedPtr<ShaderPipeline>> RenderCore::ourShaderPipelineCache;
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
   std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
   
@@ -129,7 +129,7 @@ namespace Fancy {
     return ourDefaultSpecularTexture.get();
   }
 
-  const ShaderCompiler* RenderCore::GetGpuProgramCompiler()
+  const ShaderCompiler* RenderCore::GetShaderCompiler()
   {
     return ourShaderCompiler.get();
   }
@@ -429,7 +429,7 @@ namespace Fancy {
     ourDefaultDepthStencilState.reset();
     ourDefaultBlendState.reset();
 
-    ourGpuProgramPipelineCache.clear();
+    ourShaderPipelineCache.clear();
     ourShaderCache.clear();
     ourBlendStateCache.clear();
     ourDepthStencilStateCache.clear();
@@ -537,7 +537,7 @@ namespace Fancy {
     return output;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Shader> RenderCore::CreateGpuProgram(const ShaderDesc& aDesc)
+  SharedPtr<Shader> RenderCore::CreateShader(const ShaderDesc& aDesc)
   {
     uint64 hash = aDesc.GetHash();
 
@@ -549,7 +549,7 @@ namespace Fancy {
     if (!ourShaderCompiler->Compile(aDesc, &compilerOutput))
       return nullptr;
 
-    SharedPtr<Shader> program(ourPlatformImpl->CreateGpuProgram());
+    SharedPtr<Shader> program(ourPlatformImpl->CreateShader());
     program->SetFromCompilerOutput(compilerOutput);
     
     ourShaderCache.insert(std::make_pair(hash, program));
@@ -562,12 +562,12 @@ namespace Fancy {
     return program;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<ShaderPipeline> RenderCore::CreateGpuProgramPipeline(const ShaderPipelineDesc& aDesc)
+  SharedPtr<ShaderPipeline> RenderCore::CreateShaderPipeline(const ShaderPipelineDesc& aDesc)
   {
     uint64 hash = aDesc.GetHash();
 
-    auto it = ourGpuProgramPipelineCache.find(hash);
-    if (it != ourGpuProgramPipelineCache.end())
+    auto it = ourShaderPipelineCache.find(hash);
+    if (it != ourShaderPipelineCache.end())
       return it->second;
 
     std::array<SharedPtr<Shader>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
@@ -575,18 +575,18 @@ namespace Fancy {
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
       if (!aDesc.myGpuPrograms[i].myShaderFileName.empty())
-        pipelinePrograms[i] = CreateGpuProgram(aDesc.myGpuPrograms[i]);
+        pipelinePrograms[i] = CreateShader(aDesc.myGpuPrograms[i]);
     }
 
-    SharedPtr<ShaderPipeline> pipeline(new ShaderPipeline);
+    SharedPtr<ShaderPipeline> pipeline(ourPlatformImpl->CreateShaderPipeline());
     pipeline->SetFromShaders(pipelinePrograms);
 
-    ourGpuProgramPipelineCache.insert(std::make_pair(hash, pipeline));
+    ourShaderPipelineCache.insert(std::make_pair(hash, pipeline));
 
     return pipeline;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Shader> RenderCore::GetGpuProgram(uint64 aDescHash)
+  SharedPtr<Shader> RenderCore::GetShader(uint64 aDescHash)
   {
     auto it = ourShaderCache.find(aDescHash);
     if (it != ourShaderCache.end())
@@ -595,10 +595,10 @@ namespace Fancy {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<ShaderPipeline> RenderCore::GetGpuProgramPipeline(uint64 aDescHash)
+  SharedPtr<ShaderPipeline> RenderCore::GetShaderPipeline(uint64 aDescHash)
   {
-    auto it = ourGpuProgramPipelineCache.find(aDescHash);
-    if (it != ourGpuProgramPipelineCache.end())
+    auto it = ourShaderPipelineCache.find(aDescHash);
+    if (it != ourShaderPipelineCache.end())
       return it->second;
 
     return nullptr;
@@ -1138,7 +1138,7 @@ namespace Fancy {
     
     // Check which pipelines need to be updated...
     std::vector<ShaderPipeline*> changedPipelines;
-    for (auto it = ourGpuProgramPipelineCache.begin(); it != ourGpuProgramPipelineCache.end(); ++it)
+    for (auto it = ourShaderPipelineCache.begin(); it != ourShaderPipelineCache.end(); ++it)
     {
       ShaderPipeline* pipeline = it->second.get();
 

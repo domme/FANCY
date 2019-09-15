@@ -48,11 +48,11 @@ Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Windo
   shaderDesc.myShaderStage = (uint) ShaderStage::COMPUTE;
   shaderDesc.myShaderFileName = "Tests/ModifyBuffer";
   shaderDesc.myMainFunction = "main_increment";
-  myIncrementBufferShader = RenderCore::CreateGpuProgram(shaderDesc);
+  myIncrementBufferShader = RenderCore::CreateShader(shaderDesc);
   ASSERT(myIncrementBufferShader);
 
   shaderDesc.myMainFunction = "main_set";
-  mySetBufferValueShader = RenderCore::CreateGpuProgram(shaderDesc);
+  mySetBufferValueShader = RenderCore::CreateShader(shaderDesc);
   ASSERT(mySetBufferValueShader);
 }
 

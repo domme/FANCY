@@ -63,7 +63,8 @@ namespace Fancy {
 
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
     ShaderCompiler* CreateShaderCompiler() override;
-    Shader* CreateGpuProgram() override;
+    Shader* CreateShader() override;
+    ShaderPipeline* CreateShaderPipeline() override;
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
     CommandList* CreateContext(CommandListType aType) override;

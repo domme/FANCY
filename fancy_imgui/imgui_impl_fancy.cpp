@@ -139,7 +139,7 @@ namespace Fancy { namespace ImGuiRendering {
         (uint) ShaderStage::COMPUTE
       };
 
-      SharedPtr<Shader> testComputShader = RenderCore::CreateGpuProgram(shaderDesc);
+      SharedPtr<Shader> testComputShader = RenderCore::CreateShader(shaderDesc);
     }
 
     // Load the imgui-shader state
@@ -153,7 +153,7 @@ namespace Fancy { namespace ImGuiRendering {
       shaderDesc->myShaderFileName = "Imgui";
       shaderDesc->myShaderStage = (uint)ShaderStage::FRAGMENT;
       shaderDesc->myMainFunction = "main";
-      ourProgramPipeline = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+      ourProgramPipeline = RenderCore::CreateShaderPipeline(pipelineDesc);
       ASSERT(ourProgramPipeline != nullptr);
     }
    
@@ -260,7 +260,7 @@ namespace Fancy { namespace ImGuiRendering {
     ctx->SetFillMode(FillMode::SOLID);
     ctx->SetWindingOrder(WindingOrder::CCW);
     ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-    ctx->SetGpuProgramPipeline(ourProgramPipeline);
+    ctx->SetShaderPipeline(ourProgramPipeline);
 
     // Update the cbuffer data
     {
