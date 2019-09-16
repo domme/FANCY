@@ -147,9 +147,10 @@ void Render()
 {
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
   GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
-  float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+  float clearColor[] = { 0.3f, 0.3f, 0.3f, 0.0f };
   ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceState::READ_PRESENT, GpuResourceState::WRITE_RENDER_TARGET);
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
+  ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), FLT_MAX, 0u);
   GPU_END_PROFILE(ctx);
   RenderCore::ExecuteAndResetCommandList(ctx);
 

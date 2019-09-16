@@ -80,10 +80,7 @@ void Test_ModelViewer::OnUpdate(bool aDrawProperties)
 void Test_ModelViewer::OnRender()
 {
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-  float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  ctx->ClearRenderTarget(myOutput->GetBackbufferRtv(), clearColor);
-  ctx->ClearDepthStencilTarget(myOutput->GetDepthStencilDsv(), 1.0f, 0u);
-  
+    
   RenderGrid(ctx);
   RenderScene(ctx);
 

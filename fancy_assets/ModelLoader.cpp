@@ -92,7 +92,7 @@ namespace Fancy { namespace ModelLoader {
       return it->second;
  
     DynamicArray<MeshData> meshDatas;
-      for (uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
+    for (uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
     {
       const aiMesh* aiMesh = someMeshes[iAiMesh];
 
