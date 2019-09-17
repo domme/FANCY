@@ -4,12 +4,15 @@
 #include "DX12Prerequisites.h"
 #include "Shader.h"
 #include "RenderEnums.h"
+#include "ShaderResourceInterfaceDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderCompiledDataDX12
   {
-    ID3DBlob* myBytecodeBlob = nullptr;
+    Microsoft::WRL::ComPtr<ID3DBlob> myBytecodeBlob;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
+    ShaderResourceInterfaceDX12 myResourceInterface;
   };
 //---------------------------------------------------------------------------//
   class GpuProgramDX12 : public Shader
@@ -32,15 +35,16 @@ namespace Fancy {
     void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
     uint64 GetNativeBytecodeHash() const override;
 
-    /// Shortcut for retrieving the DX12-rootSignature through the resourceInterface
-    ID3D12RootSignature* GetRootSignature() const;
+    ID3D12RootSignature* GetRootSignature() const { return myRootSignature.Get(); }
 
   private:
     static void CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout, std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements);
         
-    std::vector<D3D12_INPUT_ELEMENT_DESC> myNativeInputElements;
-
+    ShaderResourceInterfaceDX12 myResourceInterface;
+    DynamicArray<D3D12_INPUT_ELEMENT_DESC> myNativeInputElements;
     Microsoft::WRL::ComPtr<ID3DBlob> myNativeData;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
+    
     D3D12_SHADER_BYTECODE myNativeByteCode = {};
   };
 //---------------------------------------------------------------------------//

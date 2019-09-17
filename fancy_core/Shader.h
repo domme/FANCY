@@ -11,7 +11,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderProperties
   {
-    ShaderResourceInterface myResourceInterface;
     ShaderVertexInputLayout myVertexInputLayout;
     ShaderStage myShaderStage = ShaderStage::NONE;
     bool myHasUnorderedWrites = false;

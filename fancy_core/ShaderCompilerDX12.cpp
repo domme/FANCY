@@ -251,10 +251,9 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  ShaderResourceInterface locCreateShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, const Microsoft::WRL::ComPtr<ID3D12RootSignature>& aRootSignature)
+  ShaderResourceInterfaceDX12 locCreateShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc)
   {
-    ShaderResourceInterface sri;
-    sri.myNativeData = aRootSignature;
+    ShaderResourceInterfaceDX12 sri;
 
     for (uint iParam = 0u; iParam < anRSdesc.NumParameters; ++iParam)
     {
@@ -367,8 +366,10 @@ namespace Fancy {
 
     ID3D12Device* d3dDevice = RenderCore::GetPlatformDX12()->GetDevice();
 
-    ID3D12RootSignature* rootSignature;
+    ShaderCompiledDataDX12 compiledNativeData;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
     sucess = d3dDevice->CreateRootSignature(0u, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+    compiledNativeData.myRootSignature = rootSignature;
 
     if (S_OK != sucess)
     {
@@ -385,10 +386,11 @@ namespace Fancy {
       return false;
     }
 
-    const D3D12_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetRootSignatureDesc();
-    anOutput->myProperties.myResourceInterface = locCreateShaderResourceInterface(*rsDesc, rootSignature);
     anOutput->myDesc = aDesc;
     anOutput->myProperties.myShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
+    
+    const D3D12_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetRootSignatureDesc();
+    compiledNativeData.myResourceInterface = locCreateShaderResourceInterface(*rsDesc);
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//
@@ -429,10 +431,9 @@ namespace Fancy {
       reflector->GetThreadGroupSize(&x, &y, &z);
       anOutput->myProperties.myNumGroupThreads = glm::int3(static_cast<int>(x), static_cast<int>(y), static_cast<int>(z));
     }
-
-    ShaderCompiledDataDX12 nativeData;
-    nativeData.myBytecodeBlob = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
-    anOutput->myNativeData = nativeData;
+        
+    compiledNativeData.myBytecodeBlob = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
+    anOutput->myNativeData = compiledNativeData;
 
     return true;
   }

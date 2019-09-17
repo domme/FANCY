@@ -78,15 +78,13 @@ namespace Fancy {
     const ShaderCompiledDataDX12& data = aCompilerOutput.myNativeData.To<ShaderCompiledDataDX12>();
 
     myNativeData = data.myBytecodeBlob;
+    myRootSignature = data.myRootSignature;
+    myResourceInterface = data.myResourceInterface;
+
     myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();
     myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
     
     CreateNativeInputLayout(myProperties.myVertexInputLayout, myNativeInputElements);
-  }
-//---------------------------------------------------------------------------//
-  ID3D12RootSignature* GpuProgramDX12::GetRootSignature() const
-  {
-    return myProperties.myResourceInterface.myNativeData.To<Microsoft::WRL::ComPtr<ID3D12RootSignature>>().Get();
   }
 //---------------------------------------------------------------------------//
   uint64 GpuProgramDX12::GetNativeBytecodeHash() const
