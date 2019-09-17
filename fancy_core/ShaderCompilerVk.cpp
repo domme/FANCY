@@ -215,9 +215,45 @@ namespace Fancy
 
       // Build the resource interface. The descriptors reported from shader-reflection in Vulkan will only contain the ones actually used by the shader-stage so we 
       // can't build the complete pipeline layout from just one shader. Instead, we have to merge the partial ResourceInterfaces from all shader-stages when building a pipeline
+      ShaderResourceInterface& sri = aCompilerOutput->myProperties.myResourceInterface;
 
+      for (uint s = 0u; s < reflectModule.descriptor_set_count; ++s)
+      {
+        const SpvReflectDescriptorSet& set = reflectModule.descriptor_sets[s];
 
+        SriElement sriElement = {};
+        sriElement.myType = SriElementType::DescriptorSet;
 
+        for (uint b = 0u; b < set.binding_count; ++b )
+        {
+          const SpvReflectDescriptorBinding* binding = set.bindings[b];
+
+          ASSERT(sriElement.myDescriptorSet.myNumElements < ARRAY_LENGTH(sriElement.myDescriptorSet.myRangeElements) - 1);
+
+          SriDescriptorSetElement& sriSetElement = sriElement.myDescriptorSet.myRangeElements[sriElement.myDescriptorSet.myNumElements++];
+          sriSetElement.myBindingSlot = binding->binding;
+          sriSetElement.myNumElements = binding->count; // TODO: Unsure if this is correct...
+          switch(binding->resource_type)
+          {
+          case SPV_REFLECT_RESOURCE_FLAG_SAMPLER: 
+            sriSetElement.myResourceType = SriResourceType::Sampler;
+            break;
+          case SPV_REFLECT_RESOURCE_FLAG_CBV:
+            sriSetElement.myResourceType = SriResourceType::ConstantBuffer;
+            break;
+          case SPV_REFLECT_RESOURCE_FLAG_SRV:
+            sriSetElement.myResourceType = SriResourceType::BufferOrTexture;
+            break;
+          case SPV_REFLECT_RESOURCE_FLAG_UAV:
+            sriSetElement.myResourceType = SriResourceType::BufferOrTextureRW;
+            break;
+          default: 
+            ASSERT(false);
+          }
+        }
+
+        sri.myElements.push_back(sriElement);
+      }
 
       // Build the vertex input layout in case of vertex-shader
       if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)

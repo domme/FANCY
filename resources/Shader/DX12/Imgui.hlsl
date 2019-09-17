@@ -12,9 +12,9 @@ struct IMGUI_VS_CBUFFER
   float4x4 ProjectionMatrix;
 };
 
-VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
+VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b2);
 
-#define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), CBV(b0), DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL), StaticSampler(s0, addressU = TEXTURE_ADDRESS_CLAMP, addressV = TEXTURE_ADDRESS_CLAMP, addressW = TEXTURE_ADDRESS_CLAMP, filter = FILTER_MIN_MAG_MIP_LINEAR )"
+#define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), CBV(b2), DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL), StaticSampler(s0, addressU = TEXTURE_ADDRESS_CLAMP, addressV = TEXTURE_ADDRESS_CLAMP, addressW = TEXTURE_ADDRESS_CLAMP, filter = FILTER_MIN_MAG_MIP_LINEAR )"
 
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_VERTEX)
