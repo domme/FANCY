@@ -38,10 +38,10 @@ namespace Fancy {
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
     MathUtil::hash_combine(hash, myDepthStencilState->GetHash());
     MathUtil::hash_combine(hash, myBlendState->GetHash());
-    MathUtil::hash_combine(hash, myGpuProgramPipeline->GetHash());
+    MathUtil::hash_combine(hash, myShaderPipeline->GetHash());
 
-    if (myGpuProgramPipeline != nullptr)
-      MathUtil::hash_combine(hash, myGpuProgramPipeline->GetShaderByteCodeHash());
+    if (myShaderPipeline != nullptr)
+      MathUtil::hash_combine(hash, myShaderPipeline->GetShaderByteCodeHash());
 
     MathUtil::hash_combine(hash, myNumRenderTargets);
 
@@ -56,7 +56,7 @@ namespace Fancy {
   
 //---------------------------------------------------------------------------//
   ComputePipelineState::ComputePipelineState()
-    : myGpuProgram(nullptr)
+    : myShader(nullptr)
     , myIsDirty(true)
   {
   }
@@ -64,10 +64,10 @@ namespace Fancy {
   uint64 ComputePipelineState::GetHash() const
   {
     uint64 hash = 0u;
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgram));
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myShader));
 
-    if (myGpuProgram != nullptr)
-      MathUtil::hash_combine(hash, myGpuProgram->GetNativeBytecodeHash());
+    if (myShader != nullptr)
+      MathUtil::hash_combine(hash, myShader->GetNativeBytecodeHash());
 
     return hash;
   }
@@ -214,20 +214,20 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 // Render Context:
 //---------------------------------------------------------------------------//
-  void CommandList::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aGpuProgramPipeline)
+  void CommandList::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
   {
     ASSERT(myCommandListType == CommandListType::Graphics);
     
     myCurrentContext = CommandListType::Graphics;
-    if (myGraphicsPipelineState.myGpuProgramPipeline != aGpuProgramPipeline)
+    if (myGraphicsPipelineState.myShaderPipeline != aShaderPipeline)
     {
-      myGraphicsPipelineState.myGpuProgramPipeline = aGpuProgramPipeline;
+      myGraphicsPipelineState.myShaderPipeline = aShaderPipeline;
       myGraphicsPipelineState.myIsDirty = true;
 
       bool hasUnorderedWrites = false;
-      for (const SharedPtr<Shader>& gpuProgram : aGpuProgramPipeline->myGpuPrograms)
-        if(gpuProgram != nullptr)
-          hasUnorderedWrites |= gpuProgram->myProperties.myHasUnorderedWrites;
+      for (const SharedPtr<Shader>& shader : aShaderPipeline->myShaders)
+        if(shader != nullptr)
+          hasUnorderedWrites |= shader->myProperties.myHasUnorderedWrites;
 
       myShaderHasUnorderedWrites = hasUnorderedWrites;
     }
@@ -239,9 +239,9 @@ namespace Fancy {
     ASSERT(myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute);
 
     myCurrentContext = CommandListType::Compute;
-    if (myComputePipelineState.myGpuProgram != aProgram)
+    if (myComputePipelineState.myShader != aProgram)
     {
-      myComputePipelineState.myGpuProgram = aProgram;
+      myComputePipelineState.myShader = aProgram;
       myComputePipelineState.myIsDirty = true;
       myShaderHasUnorderedWrites = aProgram->myProperties.myHasUnorderedWrites;
     }

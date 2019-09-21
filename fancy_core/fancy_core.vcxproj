@@ -91,7 +91,6 @@
     <ClInclude Include="ShaderCompilerVk.h" />
     <ClInclude Include="ShaderPipelineDX12.h" />
     <ClInclude Include="ShaderPipelineVk.h" />
-    <ClInclude Include="ShaderResourceInterfaceDX12.h" />
     <ClInclude Include="ShaderVk.h" />
     <ClInclude Include="GpuQuery.h" />
     <ClInclude Include="GpuQueryHeap.h" />
@@ -129,7 +128,7 @@
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="ShaderCompilerDX12.h" />
     <ClInclude Include="ShaderDesc.h" />
-    <ClInclude Include="GpuProgramDX12.h" />
+    <ClInclude Include="ShaderDX12.h" />
     <ClInclude Include="ShaderPipeline.h" />
     <ClInclude Include="ShaderPipelineDesc.h" />
     <ClInclude Include="GpuResource.h" />
@@ -148,7 +147,6 @@
     <ClInclude Include="RenderOutputDX12.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceNameList.h" />
-    <ClInclude Include="ShaderResourceInterface.h" />
     <ClInclude Include="Slot.h" />
     <ClInclude Include="SmallObjectAllocator.h" />
     <ClInclude Include="StaticDescriptorAllocatorDX12.h" />
@@ -198,11 +196,10 @@
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="ShaderCompilerDX12.cpp" />
     <ClCompile Include="ShaderCompilerVk.cpp" />
-    <ClCompile Include="GpuProgramDX12.cpp" />
+    <ClCompile Include="ShaderDX12.cpp" />
     <ClCompile Include="ShaderPipeline.cpp" />
     <ClCompile Include="ShaderPipelineDX12.cpp" />
     <ClCompile Include="ShaderPipelineVk.cpp" />
-    <ClCompile Include="ShaderResourceInterfaceDX12.cpp" />
     <ClCompile Include="ShaderVk.cpp" />
     <ClCompile Include="GpuQueryHeap.cpp" />
     <ClCompile Include="GpuQueryHeapDX12.cpp" />

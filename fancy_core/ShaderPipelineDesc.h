@@ -12,13 +12,13 @@ namespace Fancy {
     ShaderPipelineDesc();
     bool operator==(const ShaderPipelineDesc& anOther) const;
     uint64 GetHash() const;
-    ShaderDesc myGpuPrograms[(uint)ShaderStage::NUM];
+    ShaderDesc myShader[(uint)ShaderStage::NUM];
   };
 //---------------------------------------------------------------------------//
   inline ShaderPipelineDesc::ShaderPipelineDesc()
   {
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
-      myGpuPrograms[i].myShaderStage = i;
+      myShader[i].myShaderStage = i;
   }
 //---------------------------------------------------------------------------//
   inline bool ShaderPipelineDesc::operator==(const ShaderPipelineDesc& anOther) const
@@ -31,7 +31,7 @@ namespace Fancy {
     uint64 hash = 0u;
 
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
-      MathUtil::hash_combine(hash, myGpuPrograms[i].GetHash());
+      MathUtil::hash_combine(hash, myShader[i].GetHash());
 
     return hash;
   }

@@ -3,7 +3,6 @@
 #include "FancyCoreDefines.h"
 #include "ShaderDesc.h"
 #include "VertexInputLayout.h"
-#include "ShaderResourceInterface.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

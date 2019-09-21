@@ -146,11 +146,11 @@ namespace Fancy { namespace ImGuiRendering {
     // Load the imgui-shader state
     {
       ShaderPipelineDesc pipelineDesc;
-      ShaderDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
+      ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
       shaderDesc->myShaderFileName = "Imgui";
       shaderDesc->myMainFunction = "main";
       shaderDesc->myShaderStage = (uint)ShaderStage::VERTEX;
-      shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
+      shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
       shaderDesc->myShaderFileName = "Imgui";
       shaderDesc->myShaderStage = (uint)ShaderStage::FRAGMENT;
       shaderDesc->myMainFunction = "main";

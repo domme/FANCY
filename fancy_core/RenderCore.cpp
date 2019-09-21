@@ -574,8 +574,8 @@ namespace Fancy {
     // for (uint i = 1u; i < (uint)ShaderStage::NUM; ++i)  // Hack to only load pixel shaders for vulkan-dev
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
-      if (!aDesc.myGpuPrograms[i].myShaderFileName.empty())
-        pipelinePrograms[i] = CreateShader(aDesc.myGpuPrograms[i]);
+      if (!aDesc.myShader[i].myShaderFileName.empty())
+        pipelinePrograms[i] = CreateShader(aDesc.myShader[i]);
     }
 
     SharedPtr<ShaderPipeline> pipeline(ourPlatformImpl->CreateShaderPipeline());
@@ -1145,7 +1145,7 @@ namespace Fancy {
       for (Shader* changedProgram : programsToRecompile)
       {
         const uint stage = static_cast<uint>(changedProgram->myProperties.myShaderStage);
-        if (changedProgram == pipeline->myGpuPrograms[stage].get())
+        if (changedProgram == pipeline->myShaders[stage].get())
         {
           changedPipelines.push_back(pipeline);
           break;

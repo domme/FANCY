@@ -30,7 +30,7 @@ namespace Fancy {
     WindingOrder myWindingOrder;
     SharedPtr<DepthStencilState> myDepthStencilState;
     SharedPtr<BlendState> myBlendState;
-    SharedPtr<ShaderPipeline> myGpuProgramPipeline;
+    SharedPtr<ShaderPipeline> myShaderPipeline;
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[RenderConstants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
@@ -44,7 +44,7 @@ namespace Fancy {
     ComputePipelineState();
     uint64 GetHash() const;
 
-    const Shader* myGpuProgram;
+    const Shader* myShader;
     bool myIsDirty;
   };
 //---------------------------------------------------------------------------//
@@ -86,7 +86,7 @@ namespace Fancy {
     virtual bool IsOpen() const = 0;
 
     virtual void FlushBarriers() = 0;
-    virtual void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aGpuProgramPipeline);
+    virtual void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline);
     virtual void SetComputeProgram(const Shader* aProgram);
     virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     virtual void ReleaseGpuResources(uint64 aFenceVal);

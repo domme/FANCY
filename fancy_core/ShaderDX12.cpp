@@ -1,12 +1,12 @@
 #include "fancy_core_precompile.h"
-#include "GpuProgramDX12.h"
+#include "ShaderDX12.h"
 
 #include "ShaderCompiler.h"
 #include "RenderCore_PlatformDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  void GpuProgramDX12::CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout,
+  void ShaderDX12::CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout,
     std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements)
   {
     someNativeInputElements.clear();
@@ -36,7 +36,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  VertexSemantics GpuProgramDX12::GetVertexSemanticFromShaderString(const char* aShaderString)
+  VertexSemantics ShaderDX12::GetVertexSemanticFromShaderString(const char* aShaderString)
   {
     if (strcmp(aShaderString, "POSITION") == 0u)
       return VertexSemantics::POSITION;
@@ -56,7 +56,7 @@ namespace Fancy {
     return VertexSemantics::NONE;
   }
 //---------------------------------------------------------------------------//
-  const char* GpuProgramDX12::GetShaderStringFromVertexSemantic(VertexSemantics aSemantic)
+  const char* ShaderDX12::GetShaderStringFromVertexSemantic(VertexSemantics aSemantic)
   {
     switch (aSemantic)
     {
@@ -71,7 +71,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void GpuProgramDX12::SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput)
+  void ShaderDX12::SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput)
   {
     Shader::SetFromCompilerOutput(aCompilerOutput);
 
@@ -79,7 +79,6 @@ namespace Fancy {
 
     myNativeData = data.myBytecodeBlob;
     myRootSignature = data.myRootSignature;
-    myResourceInterface = data.myResourceInterface;
 
     myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();
     myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
@@ -87,7 +86,7 @@ namespace Fancy {
     CreateNativeInputLayout(myProperties.myVertexInputLayout, myNativeInputElements);
   }
 //---------------------------------------------------------------------------//
-  uint64 GpuProgramDX12::GetNativeBytecodeHash() const
+  uint64 ShaderDX12::GetNativeBytecodeHash() const
   {
     return reinterpret_cast<uint64>(getNativeData().Get());
   }

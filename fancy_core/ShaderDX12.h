@@ -4,7 +4,6 @@
 #include "DX12Prerequisites.h"
 #include "Shader.h"
 #include "RenderEnums.h"
-#include "ShaderResourceInterfaceDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -12,16 +11,15 @@ namespace Fancy {
   {
     Microsoft::WRL::ComPtr<ID3DBlob> myBytecodeBlob;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
-    ShaderResourceInterfaceDX12 myResourceInterface;
   };
 //---------------------------------------------------------------------------//
-  class GpuProgramDX12 : public Shader
+  class ShaderDX12 : public Shader
   {
     friend class ShaderCompilerDX12;
     
   public:
-    GpuProgramDX12() = default;
-    ~GpuProgramDX12() override = default;
+    ShaderDX12() = default;
+    ~ShaderDX12() override = default;
 
     static VertexSemantics GetVertexSemanticFromShaderString(const char* aShaderString);
     static const char* GetShaderStringFromVertexSemantic(VertexSemantics aSemantic);
@@ -40,7 +38,6 @@ namespace Fancy {
   private:
     static void CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout, std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements);
         
-    ShaderResourceInterfaceDX12 myResourceInterface;
     DynamicArray<D3D12_INPUT_ELEMENT_DESC> myNativeInputElements;
     Microsoft::WRL::ComPtr<ID3DBlob> myNativeData;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;

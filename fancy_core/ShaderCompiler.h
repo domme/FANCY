@@ -6,7 +6,6 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderDesc;
-  class ShaderResourceInterface;
 //---------------------------------------------------------------------------//
   struct ShaderCompilerResult
   { 
@@ -28,7 +27,7 @@ namespace Fancy {
       bool Compile(const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const;
 
   protected:
-    virtual bool Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* aCompilerOutput) const = 0;
+      virtual bool Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* aCompilerOutput) const = 0;
 
   };
 //---------------------------------------------------------------------------//

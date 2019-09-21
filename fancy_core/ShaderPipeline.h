@@ -24,9 +24,8 @@ namespace Fancy {
       virtual void UpdateResourceInterface() = 0;
       void UpdateShaderByteCodeHash();
 
-      SharedPtr<Shader> myGpuPrograms[(uint)ShaderStage::NUM];
+      SharedPtr<Shader> myShaders[(uint)ShaderStage::NUM];
       uint64 myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
-      ShaderResourceInterface myResourceInterface;
   };
 //---------------------------------------------------------------------------//
 }

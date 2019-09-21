@@ -8,7 +8,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "TextureDX12.h"
 #include "AdapterDX12.h"
-#include "GpuProgramDX12.h"
+#include "ShaderDX12.h"
 #include "ShaderPipelineDX12.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
@@ -545,21 +545,21 @@ namespace Fancy {
     D3D12_SHADER_BYTECODE* shaderDescs[]{ &psoDesc.VS, &psoDesc.PS, &psoDesc.DS, &psoDesc.HS, &psoDesc.GS };
     ASSERT(ARRAY_LENGTH(shaderDescs) == (uint)ShaderStage::NUM_NO_COMPUTE);
 
-    if (aState.myGpuProgramPipeline != nullptr)
+    if (aState.myShaderPipeline != nullptr)
     {
       for (uint i = 0u; i < (uint)ShaderStage::NUM_NO_COMPUTE; ++i)
       {
-        if (nullptr == aState.myGpuProgramPipeline->myGpuPrograms[i])
+        if (nullptr == aState.myShaderPipeline->myShaders[i])
           continue;
 
-        const GpuProgramDX12* shaderDx12 = static_cast<const GpuProgramDX12*>(aState.myGpuProgramPipeline->myGpuPrograms[i].get());
+        const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShaderPipeline->myShaders[i].get());
 
         (*shaderDescs[i]) = shaderDx12->getNativeByteCode();
       }
     }
 
     // ROOT SIGNATURE
-    const ShaderPipelineDX12* shaderPipelineDx12 = static_cast<const ShaderPipelineDX12*>(aState.myGpuProgramPipeline.get());
+    const ShaderPipelineDX12* shaderPipelineDx12 = static_cast<const ShaderPipelineDX12*>(aState.myShaderPipeline.get());
     psoDesc.pRootSignature = shaderPipelineDx12->GetRootSignature();
 
     // BLEND DESC
@@ -663,11 +663,11 @@ namespace Fancy {
 
     // INPUT LAYOUT
 
-    if (aState.myGpuProgramPipeline != nullptr &&
-      aState.myGpuProgramPipeline->myGpuPrograms[(uint)ShaderStage::VERTEX] != nullptr)
+    if (aState.myShaderPipeline != nullptr &&
+      aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX] != nullptr)
     {
-      const GpuProgramDX12* vertexShader =
-        static_cast<const GpuProgramDX12*>(aState.myGpuProgramPipeline->myGpuPrograms[(uint)ShaderStage::VERTEX].get());
+      const ShaderDX12* vertexShader =
+        static_cast<const ShaderDX12*>(aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX].get());
 
       D3D12_INPUT_LAYOUT_DESC& inputLayout = psoDesc.InputLayout;
       inputLayout.NumElements = vertexShader->GetNumNativeInputElements();
@@ -703,13 +703,12 @@ namespace Fancy {
     D3D12_COMPUTE_PIPELINE_STATE_DESC desc;
     memset(&desc, 0u, sizeof(desc));
 
-    if (aState.myGpuProgram != nullptr)
+    if (aState.myShader != nullptr)
     {
-      const GpuProgramDX12* gpuProgramDx12 =
-        static_cast<const GpuProgramDX12*>(aState.myGpuProgram);
+      const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShader);
 
-      desc.pRootSignature = gpuProgramDx12->GetRootSignature();
-      desc.CS = gpuProgramDx12->getNativeByteCode();
+      desc.pRootSignature = shaderDx12->GetRootSignature();
+      desc.CS = shaderDx12->getNativeByteCode();
     }
 
     desc.NodeMask = 0u;
@@ -1419,7 +1418,7 @@ namespace Fancy {
   {
     CommandList::SetComputeProgram(aProgram);
 
-    const GpuProgramDX12* programDx12 = static_cast<const GpuProgramDX12*>(aProgram);
+    const ShaderDX12* programDx12 = static_cast<const ShaderDX12*>(aProgram);
 
     if (myComputeRootSignature != programDx12->GetRootSignature())
     {
@@ -1433,9 +1432,9 @@ namespace Fancy {
     FlushBarriers();
 
     ApplyComputePipelineState();
-    ASSERT(myComputePipelineState.myGpuProgram != nullptr);
+    ASSERT(myComputePipelineState.myShader != nullptr);
 
-    const glm::int3& numGroupThreads = myComputePipelineState.myGpuProgram->myProperties.myNumGroupThreads;
+    const glm::int3& numGroupThreads = myComputePipelineState.myShader->myProperties.myNumGroupThreads;
     const glm::int3 numGroups = glm::max(glm::int3(1), aNumThreads / numGroupThreads);
     myCommandList->Dispatch(static_cast<uint>(numGroups.x), static_cast<uint>(numGroups.y), static_cast<uint>(numGroups.z));
   }

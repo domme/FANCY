@@ -3,13 +3,12 @@
 #include "RenderCore_PlatformDX12.h"
 #include "DescriptorDX12.h"
 #include "ShaderCompilerDX12.h"
-#include "GpuProgramDX12.h"
+#include "ShaderDX12.h"
 #include "TextureDX12.h"
 #include "GpuBufferDX12.h"
 
 #include "Shader.h"
 #include "ShaderPipelineDX12.h"
-#include "ShaderResourceInterface.h"
 #include "ShaderCompiler.h"
 #include "DynamicDescriptorHeapDX12.h"
 #include "RenderOutputDX12.h"
@@ -22,23 +21,6 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   namespace {
-    //---------------------------------------------------------------------------//
-    SriResourceType locGetResourceType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
-    {
-      switch (aRangeType)
-      {
-      case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return SriResourceType::BufferOrTexture;
-      case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return SriResourceType::BufferOrTextureRW;
-      case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return SriResourceType::ConstantBuffer;
-      case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return SriResourceType::Sampler;
-      default:
-        ASSERT(false);
-        return SriResourceType::BufferOrTexture;
-        break;
-      }
-    }
-  //---------------------------------------------------------------------------//
-    
   //---------------------------------------------------------------------------//
     CommandListType locGetCommandListType(D3D12_COMMAND_LIST_TYPE aType)
     {
@@ -59,6 +41,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::RenderCore_PlatformDX12()
     : RenderCore_Platform(RenderPlatformType::DX12)
+    , myGpuTicksToMsFactor{}
   {
     using namespace Microsoft::WRL;
 
@@ -100,6 +83,7 @@ namespace Fancy {
     myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;
     myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
   }
+
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {
@@ -248,7 +232,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   Shader* RenderCore_PlatformDX12::CreateShader()
   {
-    return new GpuProgramDX12();
+    return new ShaderDX12();
   }
 //---------------------------------------------------------------------------//
   ShaderPipeline* RenderCore_PlatformDX12::CreateShaderPipeline()

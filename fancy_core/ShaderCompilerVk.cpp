@@ -13,6 +13,7 @@ namespace Fancy
 {
   namespace Priv_ShaderCompilerVk
   {
+//---------------------------------------------------------------------------//
     StaticFilePath locGetShaderPath(const char* aFilename, bool& isGlsl)
     {
       StaticFilePath path("%s/Vk/%s.glsl", ShaderCompiler::GetShaderRootFolderRelative(), aFilename);
@@ -30,7 +31,7 @@ namespace Fancy
       path.Format("%s/DX12/%s.hlsl", ShaderCompiler::GetShaderRootFolderRelative(), aFilename);
       return path;
     }
-
+//---------------------------------------------------------------------------//
     DataFormat locResolveFormat(SpvReflectFormat aFormat)
     {
       switch(aFormat) 
@@ -51,7 +52,7 @@ namespace Fancy
         default: ASSERT(false, "Missing implementation"); return DataFormat::NONE;
       }
     }
-
+//---------------------------------------------------------------------------//
     void locResolveSemantic(const char* aSemanticString, VertexSemantics& aSemanticOut, uint& aSemanticIndexOut)
     {
       const int strLen = (int)strlen(aSemanticString);
@@ -96,6 +97,26 @@ namespace Fancy
       else
         ASSERT(false, "Unrecognized vertex semantic %s", aSemanticString);
     }
+//---------------------------------------------------------------------------//
+    VkDescriptorType locResolveDescriptorType(SpvReflectDescriptorType aReflDescType)
+    {
+      switch (aReflDescType)
+      {
+        case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER: return VK_DESCRIPTOR_TYPE_SAMPLER;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER: return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+        case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+        default: ASSERT(false, "Missing implementation"); return VK_DESCRIPTOR_TYPE_SAMPLER;
+      }
+    }
+//---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
   ShaderCompilerVk::ShaderCompilerVk()
@@ -197,9 +218,8 @@ namespace Fancy
 
       RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
-      ShaderCompiledDataVk nativeData;
-      ASSERT_VK_RESULT(vkCreateShaderModule(platformVk->myDevice, &moduleCreateInfo, nullptr, &nativeData.myModule));
-      aCompilerOutput->myNativeData = nativeData;
+      ShaderCompiledDataVk compiledDataVk;
+      ASSERT_VK_RESULT(vkCreateShaderModule(platformVk->myDevice, &moduleCreateInfo, nullptr, &compiledDataVk.myModule));
             
       // Reflect the spirv data
 
@@ -213,46 +233,27 @@ namespace Fancy
         hasUnorderedWrites |= (reflectModule.descriptor_bindings[i].resource_type & SpvReflectResourceType::SPV_REFLECT_RESOURCE_FLAG_UAV) != 0;
       aCompilerOutput->myProperties.myHasUnorderedWrites = hasUnorderedWrites;
 
-      // Build the resource interface. The descriptors reported from shader-reflection in Vulkan will only contain the ones actually used by the shader-stage so we 
-      // can't build the complete pipeline layout from just one shader. Instead, we have to merge the partial ResourceInterfaces from all shader-stages when building a pipeline
-      ShaderResourceInterface& sri = aCompilerOutput->myProperties.myResourceInterface;
+      ShaderBindingInfoVk& bindingInfo = compiledDataVk.myBindingInfo;
+      bindingInfo.myDescriptorSets.resize(reflectModule.descriptor_set_count);
 
       for (uint s = 0u; s < reflectModule.descriptor_set_count; ++s)
       {
-        const SpvReflectDescriptorSet& set = reflectModule.descriptor_sets[s];
+        ShaderDescriptorSetBindingInfoVk& setInfo = bindingInfo.myDescriptorSets[s];
+        const SpvReflectDescriptorSet& reflSet = reflectModule.descriptor_sets[s];
 
-        SriElement sriElement = {};
-        sriElement.myType = SriElementType::DescriptorSet;
+        setInfo.mySet = reflSet.set;
+        setInfo.myBindings.resize(reflSet.binding_count);
 
-        for (uint b = 0u; b < set.binding_count; ++b )
+        for (uint b = 0u; b < reflSet.binding_count; ++b )
         {
-          const SpvReflectDescriptorBinding* binding = set.bindings[b];
+          const SpvReflectDescriptorBinding* reflBinding = reflSet.bindings[b];
+          ASSERT(reflBinding != nullptr);
 
-          ASSERT(sriElement.myDescriptorSet.myNumElements < ARRAY_LENGTH(sriElement.myDescriptorSet.myRangeElements) - 1);
-
-          SriDescriptorSetElement& sriSetElement = sriElement.myDescriptorSet.myRangeElements[sriElement.myDescriptorSet.myNumElements++];
-          sriSetElement.myBindingSlot = binding->binding;
-          sriSetElement.myNumElements = binding->count; // TODO: Unsure if this is correct...
-          switch(binding->resource_type)
-          {
-          case SPV_REFLECT_RESOURCE_FLAG_SAMPLER: 
-            sriSetElement.myResourceType = SriResourceType::Sampler;
-            break;
-          case SPV_REFLECT_RESOURCE_FLAG_CBV:
-            sriSetElement.myResourceType = SriResourceType::ConstantBuffer;
-            break;
-          case SPV_REFLECT_RESOURCE_FLAG_SRV:
-            sriSetElement.myResourceType = SriResourceType::BufferOrTexture;
-            break;
-          case SPV_REFLECT_RESOURCE_FLAG_UAV:
-            sriSetElement.myResourceType = SriResourceType::BufferOrTextureRW;
-            break;
-          default: 
-            ASSERT(false);
-          }
+          ShaderDescriptorBindingVk& setBinding = setInfo.myBindings[b];
+          setBinding.myBinding = reflBinding->binding;
+          setBinding.myDescriptorCount = reflBinding->count;
+          setBinding.myDescriptorType = Priv_ShaderCompilerVk::locResolveDescriptorType(reflBinding->descriptor_type);
         }
-
-        sri.myElements.push_back(sriElement);
       }
 
       // Build the vertex input layout in case of vertex-shader
@@ -326,6 +327,8 @@ namespace Fancy
       }
 
       spvReflectDestroyShaderModule(&reflectModule);
+
+      aCompilerOutput->myNativeData = compiledDataVk;
     }
 
     return true;

@@ -16,10 +16,10 @@ using namespace Fancy;
 static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main")
 {
   ShaderPipelineDesc pipelineDesc;
-  ShaderDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
+  ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
   shaderDesc->myShaderFileName = aShaderPath;
   shaderDesc->myMainFunction = aMainVtxFunction;
-  shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
+  shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
   shaderDesc->myShaderFileName = aShaderPath;
   shaderDesc->myMainFunction = aMainFragmentFunction;
   return RenderCore::CreateShaderPipeline(pipelineDesc);

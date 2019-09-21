@@ -7,7 +7,7 @@ namespace Fancy {
   ShaderPipeline::ShaderPipeline()
     : myShaderByteCodeHash(0u)
   {
-    memset(myGpuPrograms, 0u, sizeof(myGpuPrograms));
+    memset(myShaders, 0u, sizeof(myShaders));
   }
 //---------------------------------------------------------------------------//
   ShaderPipeline::~ShaderPipeline()
@@ -21,9 +21,9 @@ namespace Fancy {
 
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
-      const Shader* pProgram = myGpuPrograms[i].get();
+      const Shader* pProgram = myShaders[i].get();
       if (pProgram)
-        desc.myGpuPrograms[i] = pProgram->GetDescription();
+        desc.myShader[i] = pProgram->GetDescription();
     }
 
     return desc;
@@ -32,7 +32,7 @@ namespace Fancy {
   void ShaderPipeline::SetFromShaders(const FixedArray<SharedPtr<Shader>, (uint)ShaderStage::NUM>& someShaders)
   {
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
-      myGpuPrograms[i] = someShaders[i];
+      myShaders[i] = someShaders[i];
 
     UpdateResourceInterface();
     UpdateShaderByteCodeHash();
@@ -43,7 +43,7 @@ namespace Fancy {
     myShaderByteCodeHash = 0u;
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
-      Shader* shader = myGpuPrograms[i].get();
+      Shader* shader = myShaders[i].get();
       MathUtil::hash_combine(myShaderByteCodeHash, reinterpret_cast<uint64>(shader));
       if (shader != nullptr)
         MathUtil::hash_combine(myShaderByteCodeHash, shader->GetNativeBytecodeHash());

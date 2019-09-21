@@ -60,9 +60,6 @@
     <ClInclude Include="GpuBufferDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="GpuProgramDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="RenderCore_PlatformDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
@@ -130,9 +127,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="RenderOutput.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderResourceInterface.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Slot.h">
@@ -356,7 +350,7 @@
     <ClInclude Include="ShaderPipelineVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderResourceInterfaceDX12.h">
+    <ClInclude Include="ShaderDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
   </ItemGroup>
@@ -371,9 +365,6 @@
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="GpuBufferDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="RenderCore_PlatformDX12.cpp">
@@ -545,7 +536,7 @@
     <ClCompile Include="ShaderPipelineVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderResourceInterfaceDX12.cpp">
+    <ClCompile Include="ShaderDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>

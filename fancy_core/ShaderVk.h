@@ -7,9 +7,28 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct ShaderCompilerResult;
 //---------------------------------------------------------------------------//
+  struct ShaderDescriptorBindingVk
+  {
+    uint myBinding;
+    VkDescriptorType myDescriptorType;
+    uint myDescriptorCount;
+  };
+//---------------------------------------------------------------------------//
+  struct ShaderDescriptorSetBindingInfoVk
+  {
+    uint mySet;
+    DynamicArray<ShaderDescriptorBindingVk> myBindings;
+  };
+//---------------------------------------------------------------------------//
+  struct ShaderBindingInfoVk
+  {
+    DynamicArray<ShaderDescriptorSetBindingInfoVk> myDescriptorSets;
+  };
+//---------------------------------------------------------------------------//
   struct ShaderCompiledDataVk
   {
     VkShaderModule myModule = nullptr;
+    ShaderBindingInfoVk myBindingInfo;
   };
 //---------------------------------------------------------------------------//
   class ShaderVk : public Shader
@@ -17,11 +36,13 @@ namespace Fancy
     friend class ShaderCompilerVk;
 
   public:
-    ShaderVk();
     ~ShaderVk() override;
 
     void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
     uint64 GetNativeBytecodeHash() const override;
+
+    VkShaderModule myModule = nullptr;
+    ShaderBindingInfoVk myBindingInfo;
   };
 //---------------------------------------------------------------------------//
 }
