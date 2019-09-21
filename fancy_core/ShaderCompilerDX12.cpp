@@ -257,7 +257,7 @@ namespace Fancy {
 
     for (uint iParam = 0u; iParam < anRSdesc.NumParameters; ++iParam)
     {
-      SriElement sriElement;
+      ShaderRootParameter sriElement;
 
       const D3D12_ROOT_PARAMETER& param = anRSdesc.pParameters[iParam];
       switch (param.ParameterType)
