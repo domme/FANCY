@@ -250,7 +250,7 @@ namespace Fancy {
    return new GpuBufferDX12();
   }
 //---------------------------------------------------------------------------//
-  CommandList* RenderCore_PlatformDX12::CreateContext(CommandListType aType)
+  CommandList* RenderCore_PlatformDX12::CreateCommandList(CommandListType aType)
   {
     return new CommandListDX12(aType);
   }

@@ -29,7 +29,7 @@ namespace Fancy
       return commandList;
     }
 
-    myCommandListPool.push_back(std::unique_ptr<CommandList>(RenderCore::GetPlatform()->CreateContext(myType)));
+    myCommandListPool.push_back(std::unique_ptr<CommandList>(RenderCore::GetPlatform()->CreateCommandList(myType)));
     CommandList* commandList = myCommandListPool.back().get();
 
     return commandList;

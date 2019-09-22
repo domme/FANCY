@@ -8,6 +8,7 @@
 #include "ShaderVk.h"
 #include "ShaderPipelineVk.h"
 #include "TextureVk.h"
+#include "CommandListVk.h"
 
 namespace Fancy
 {
@@ -361,10 +362,9 @@ namespace Fancy
     return nullptr;
   }
 
-  CommandList* RenderCore_PlatformVk::CreateContext(CommandListType aType)
+  CommandList* RenderCore_PlatformVk::CreateCommandList(CommandListType aType)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
-    return nullptr;
+    return new CommandListVk(aType);
   }
 
   CommandQueue* RenderCore_PlatformVk::CreateCommandQueue(CommandListType aType)
@@ -404,5 +404,21 @@ namespace Fancy
   {
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return 1.0;
+  }
+
+  VkCommandPool RenderCore_PlatformVk::GetCommandPool(CommandListType aCommandListType)
+  {
+    // TODO: Don't just create a new pool all the time! Use a caching-scheme like on DX12. However, we first need fences functional on command-queues to detect when its safe to reuse a command pool on a new command list
+
+    VkCommandPool commandPool = nullptr;
+
+    VkCommandPoolCreateInfo createInfo;
+    createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    createInfo.pNext = nullptr;
+    createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    createInfo.queueFamilyIndex = myQueueInfos[(uint)aCommandListType].myQueueFamilyIndex;
+    ASSERT_VK_RESULT(vkCreateCommandPool(myDevice, &createInfo, nullptr, &commandPool));
+
+    return commandPool;
   }
 }

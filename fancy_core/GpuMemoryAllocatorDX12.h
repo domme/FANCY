@@ -4,8 +4,6 @@
 #include "PagedLinearAllocator.h"
 #include "GpuMemoryAllocationDX12.h"
 
-struct ID3D12Heap;
-
 namespace Fancy
 {
 //---------------------------------------------------------------------------// 
@@ -23,9 +21,6 @@ namespace Fancy
 
     GpuMemoryType myType;
     CpuMemoryAccessType myAccess;
-
-    
-
   };
 //---------------------------------------------------------------------------//
 }

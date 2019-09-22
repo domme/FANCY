@@ -67,7 +67,7 @@ namespace Fancy {
     ShaderPipeline* CreateShaderPipeline() override;
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
-    CommandList* CreateContext(CommandListType aType) override;
+    CommandList* CreateCommandList(CommandListType aType) override;
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;

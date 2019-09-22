@@ -88,10 +88,10 @@ namespace Fancy {
     virtual void FlushBarriers() = 0;
     virtual void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline);
     virtual void SetComputeProgram(const Shader* aProgram);
-    virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     virtual void ReleaseGpuResources(uint64 aFenceVal);
     virtual void Reset();
 
+    void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
     void BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize);
     void BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize);

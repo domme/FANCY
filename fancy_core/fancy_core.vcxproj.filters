@@ -353,6 +353,9 @@
     <ClInclude Include="ShaderDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="CommandListVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -538,6 +541,9 @@
     </ClCompile>
     <ClCompile Include="ShaderDX12.cpp">
       <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandListVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

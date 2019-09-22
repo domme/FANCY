@@ -74,6 +74,7 @@
     <ClInclude Include="CircularArray.h" />
     <ClInclude Include="CommandList.h" />
     <ClInclude Include="CommandListDX12.h" />
+    <ClInclude Include="CommandListVk.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="CommandQueueDX12.h" />
     <ClInclude Include="CommandQueueVk.h" />
@@ -179,6 +180,7 @@
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandListDX12.cpp" />
+    <ClCompile Include="CommandListVk.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CommandQueueDX12.cpp" />
     <ClCompile Include="CommandQueueVk.cpp" />

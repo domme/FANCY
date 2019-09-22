@@ -24,10 +24,6 @@ namespace Fancy {
     friend class CommandQueueDX12;
 
   public:
-    static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
-    static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
-    static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
-
     CommandListDX12(CommandListType aType);
     ~CommandListDX12() override;
 
@@ -66,6 +62,9 @@ namespace Fancy {
     void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:
+    static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
+    static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
+    static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
     bool SubresourceBarrierInternal(
       const GpuResource* aResource,

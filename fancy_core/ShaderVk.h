@@ -40,8 +40,10 @@ namespace Fancy
 
     void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
     uint64 GetNativeBytecodeHash() const override;
-
+    
     VkShaderModule myModule = nullptr;
+    VkPipelineShaderStageCreateInfo myShaderStageCreateInfo;
+    VkPipelineVertexInputStateCreateInfo myVertexInputCreateInfo;
     ShaderBindingInfoVk myBindingInfo;
   };
 //---------------------------------------------------------------------------//

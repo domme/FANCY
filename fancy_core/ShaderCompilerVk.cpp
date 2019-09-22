@@ -220,7 +220,7 @@ namespace Fancy
 
       ShaderCompiledDataVk compiledDataVk;
       ASSERT_VK_RESULT(vkCreateShaderModule(platformVk->myDevice, &moduleCreateInfo, nullptr, &compiledDataVk.myModule));
-            
+      
       // Reflect the spirv data
 
       SpvReflectShaderModule reflectModule;
