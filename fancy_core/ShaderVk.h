@@ -29,6 +29,7 @@ namespace Fancy
   {
     VkShaderModule myModule = nullptr;
     ShaderBindingInfoVk myBindingInfo;
+    DynamicArray<VkVertexInputAttributeDescription> myVertexAttributes;
   };
 //---------------------------------------------------------------------------//
   class ShaderVk : public Shader
@@ -42,9 +43,10 @@ namespace Fancy
     uint64 GetNativeBytecodeHash() const override;
     
     VkShaderModule myModule = nullptr;
-    VkPipelineShaderStageCreateInfo myShaderStageCreateInfo;
-    VkPipelineVertexInputStateCreateInfo myVertexInputCreateInfo;
+    VkPipelineShaderStageCreateInfo myShaderStageCreateInfo = {};
+    VkPipelineVertexInputStateCreateInfo myVertexInputCreateInfo = {};
     ShaderBindingInfoVk myBindingInfo;
+    DynamicArray<VkVertexInputAttributeDescription> myVertexAttributes;
   };
 //---------------------------------------------------------------------------//
 }

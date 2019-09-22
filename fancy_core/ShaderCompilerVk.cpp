@@ -259,12 +259,16 @@ namespace Fancy
       // Build the vertex input layout in case of vertex-shader
       if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
       {
-        ShaderVertexInputLayout vertexInputlayout;
-        vertexInputlayout.myVertexInputElements.reserve(reflectModule.input_variable_count);
+        DynamicArray<VkVertexInputAttributeDescription>& vertexAttributes = compiledDataVk.myVertexAttributes;
+        vertexAttributes.resize(reflectModule.input_variable_count);
 
         for (uint i = 0u; i < reflectModule.input_variable_count; ++i)
         {
           const SpvReflectInterfaceVariable& reflectedInput = reflectModule.input_variables[i];
+
+          VkVertexInputAttributeDescription& attributeDesc = vertexAttributes[i];
+          attributeDesc.binding = 
+          attributeDesc.location = reflectedInput.location;
 
           const DataFormat format = Priv_ShaderCompilerVk::locResolveFormat(reflectedInput.format);
           ASSERT(format != DataFormat::NONE);

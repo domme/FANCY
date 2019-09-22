@@ -254,7 +254,17 @@ VkPipeline CommandListVk::CreateGraphicsPipeline(const GraphicsPipelineState& aS
   }
   info.pStages = pipeShaderCreateInfos;
   info.stageCount = numShaderStages;
-  info.pv
+  
+  const ShaderVk* vertexShader = static_cast<const ShaderVk*>(aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX].get());
+  ASSERT(vertexShader != nullptr);
+  VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo;
+  vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+  vertexInputCreateInfo.pNext = nullptr;
+  vertexInputCreateInfo.flags = 0u;
+  vertexInputCreateInfo.pVertexAttributeDescriptions = myVertexInputLayout.myAttributeDescs.data();
+  vertexInputCreateInfo.vertexAttributeDescriptionCount = (uint)myVertexInputLayout.myAttributeDescs.size();
+  vertexInputCreateInfo.pVertexBindingDescriptions = myVertexInputLayout.myBindingDescs.data();
+  vertexInputCreateInfo.vertexBindingDescriptionCount = (uint)myVertexInputLayout.myBindingDescs.size();
 
     
 }

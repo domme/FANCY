@@ -41,6 +41,7 @@ namespace Fancy
 
     myModule = data.myModule;
     myBindingInfo = data.myBindingInfo;
+    myVertexAttributes = data.myVertexAttributes;
 
     myShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     myShaderStageCreateInfo.pNext = nullptr;
@@ -49,8 +50,6 @@ namespace Fancy
     myShaderStageCreateInfo.pSpecializationInfo = nullptr;
     myShaderStageCreateInfo.module = myModule;
     myShaderStageCreateInfo.stage = Priv_ShaderVk::locResolveShaderStage((ShaderStage) myDesc.myShaderStage);
-
-    // TODO (VK): Create native vertex input layout as in DX12 here? Could also scrap the platform-independent input layout and just create the native input layout in the compiler
   }
 //---------------------------------------------------------------------------//
   uint64 ShaderVk::GetNativeBytecodeHash() const
