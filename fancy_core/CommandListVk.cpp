@@ -231,48 +231,91 @@ namespace Fancy
   {
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
   }
-
-VkPipeline CommandListVk::CreateGraphicsPipeline(const GraphicsPipelineState& aState, VkRenderPass aRenderPass)
-{
-  VkGraphicsPipelineCreateInfo info;
-  info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-  info.pNext = nullptr;
-  info.basePipelineHandle = nullptr;
-  info.basePipelineIndex = -1;
-  info.renderPass = aRenderPass;
-
-  ASSERT(aState.myShaderPipeline != nullptr);
-  uint numShaderStages = 0;
-  VkPipelineShaderStageCreateInfo pipeShaderCreateInfos[(uint)ShaderStage::NUM_NO_COMPUTE];
-  for (const SharedPtr<Shader>& shader : aState.myShaderPipeline->myShaders)
+//---------------------------------------------------------------------------//
+  VkPipeline CommandListVk::CreateGraphicsPipeline(const GraphicsPipelineState& aState, VkRenderPass aRenderPass)
   {
-    if (shader != nullptr)
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo;
+    pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineCreateInfo.pNext = nullptr;
+    pipelineCreateInfo.basePipelineHandle = nullptr;
+    pipelineCreateInfo.basePipelineIndex = -1;
+    pipelineCreateInfo.renderPass = aRenderPass;
+
+    // Shader state
+    ASSERT(aState.myShaderPipeline != nullptr);
+    uint numShaderStages = 0;
+    VkPipelineShaderStageCreateInfo pipeShaderCreateInfos[(uint)ShaderStage::NUM_NO_COMPUTE];
+    for (const SharedPtr<Shader>& shader : aState.myShaderPipeline->myShaders)
     {
-      const ShaderVk* shaderVk = static_cast<const ShaderVk*>(shader.get());
-      pipeShaderCreateInfos[numShaderStages++] = shaderVk->myShaderStageCreateInfo;
+      if (shader != nullptr)
+      {
+        const ShaderVk* shaderVk = static_cast<const ShaderVk*>(shader.get());
+        pipeShaderCreateInfos[numShaderStages++] = shaderVk->myShaderStageCreateInfo;
+      }
     }
-  }
-  info.pStages = pipeShaderCreateInfos;
-  info.stageCount = numShaderStages;
-  
-  const ShaderVk* vertexShader = static_cast<const ShaderVk*>(aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX].get());
-  ASSERT(vertexShader != nullptr);
-  VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo;
-  vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-  vertexInputCreateInfo.pNext = nullptr;
-  vertexInputCreateInfo.flags = 0u;
-  vertexInputCreateInfo.pVertexAttributeDescriptions = myVertexInputLayout.myAttributeDescs.data();
-  vertexInputCreateInfo.vertexAttributeDescriptionCount = (uint)myVertexInputLayout.myAttributeDescs.size();
-  vertexInputCreateInfo.pVertexBindingDescriptions = myVertexInputLayout.myBindingDescs.data();
-  vertexInputCreateInfo.vertexBindingDescriptionCount = (uint)myVertexInputLayout.myBindingDescs.size();
+    pipelineCreateInfo.pStages = pipeShaderCreateInfos;
+    pipelineCreateInfo.stageCount = numShaderStages;
+
+    // Pipeline layout
+    const ShaderPipelineVk* shaderPipelineVk = static_cast<const ShaderPipelineVk*>(aState.myShaderPipeline.get());
+    pipelineCreateInfo.layout = shaderPipelineVk->myPipelineLayout;
+
+    // Vertex input state
+    const ShaderVk* vertexShader = static_cast<const ShaderVk*>(aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX].get());
+
+    VkVertexInputBindingDescription vertexBindingDesc;
+    vertexBindingDesc.binding = 0;
+    vertexBindingDesc.stride = vertexShader->myVertexAttributeDesc.myOverallVertexSize;
+    vertexBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    // TODO: Rework this part so that the user can define how the vertex-binding is to be set up.
+    VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo;
+    vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputCreateInfo.pNext = nullptr;
+    vertexInputCreateInfo.flags = 0u;
+    vertexInputCreateInfo.pVertexAttributeDescriptions = vertexShader->myVertexAttributeDesc.myVertexAttributes.data();
+    vertexInputCreateInfo.vertexAttributeDescriptionCount = (uint)vertexShader->myVertexAttributeDesc.myVertexAttributes.size();
+    vertexInputCreateInfo.pVertexBindingDescriptions = &vertexBindingDesc;
+    vertexInputCreateInfo.vertexBindingDescriptionCount = 1u;
+
+    pipelineCreateInfo.pVertexInputState = &vertexInputCreateInfo;
+
+    // Input assembly state
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
+    inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssemblyCreateInfo.pNext = nullptr;
+    inputAssemblyCreateInfo.flags = 0u;
+    inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssemblyCreateInfo.primitiveRestartEnable = false;
+    pipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
+
+    // Multisample state
+    VkPipelineMultisampleStateCreateInfo multisampleInfo;
+    multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampleInfo.pNext = nullptr;
+    multisampleInfo.flags = 0u;
+    multisampleInfo.alphaToCoverageEnable = false;
+    multisampleInfo.alphaToOneEnable = false;
+    multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampleInfo.sampleShadingEnable = false;
+    multisampleInfo.minSampleShading = 0.0f;
+    VkSampleMask sampleMask = ~0u;
+    multisampleInfo.pSampleMask = &sampleMask;
+    pipelineCreateInfo.pMultisampleState = &multisampleInfo;
+
+    // Color blend state
+    VkPipelineColorBlendStateCreateInfo colorBlendInfo;
+    colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlendInfo.pNext = nullptr;
+    colorBlendInfo.flags = 0u;
+    colorBlendInfo.
+
+    pipelineCreateInfo.pColorBlendState = &colorBlendInfo;
 
     
-}
 
-VkGraphicsPipelineCreateInfo CommandListVk::GetGraphicsPipelineCreateInfo(const GraphicsPipelineState& aState)
-  {
+
     
-
 
 
   }

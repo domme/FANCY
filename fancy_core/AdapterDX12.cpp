@@ -165,30 +165,27 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-	D3D12_BLEND Adapter::toNativeType(const BlendInput& generalType) 
+	D3D12_BLEND Adapter::toNativeType(const BlendFactor& generalType) 
 	{
 		switch (generalType) {
-			case BlendInput::ZERO:                return D3D12_BLEND_ZERO;
-			case BlendInput::ONE:                 return D3D12_BLEND_ONE;
-			case BlendInput::SRC_COLOR:           return D3D12_BLEND_SRC_COLOR;
-			case BlendInput::INV_SRC_COLOR:       return D3D12_BLEND_INV_SRC_COLOR;
-			case BlendInput::SRC_ALPHA:           return D3D12_BLEND_SRC_ALPHA;
-			case BlendInput::INV_SRC_ALPHA:       return D3D12_BLEND_INV_SRC_ALPHA;
-			case BlendInput::DEST_ALPHA:          return D3D12_BLEND_DEST_ALPHA;
-			case BlendInput::INV_DEST_ALPHA:      return D3D12_BLEND_INV_DEST_ALPHA;
-			case BlendInput::DEST_COLOR:          return D3D12_BLEND_DEST_COLOR;
-			case BlendInput::INV_DEST_COLOR:      return D3D12_BLEND_INV_DEST_COLOR;
-			case BlendInput::SRC_ALPHA_CLAMPED:   return D3D12_BLEND_SRC_ALPHA_SAT;
-			case BlendInput::CONSTANT_COLOR:
-			case BlendInput::CONSTANT_ALPHA:
-			case BlendInput::BLEND_FACTOR:        return D3D12_BLEND_BLEND_FACTOR;
-			case BlendInput::INV_CONSTANT_COLOR:
-			case BlendInput::INV_CONSTANT_ALPHA:
-			case BlendInput::INV_BLEND_FACTOR:    return D3D12_BLEND_INV_BLEND_FACTOR;
-			case BlendInput::SRC1_COLOR:          return D3D12_BLEND_SRC1_COLOR;
-			case BlendInput::INV_SRC1_COLOR:      return D3D12_BLEND_INV_SRC1_COLOR;
-			case BlendInput::SRC1_ALPHA:          return D3D12_BLEND_SRC1_ALPHA;
-			case BlendInput::INV_SRC1_ALPHA:      return D3D12_BLEND_INV_SRC1_ALPHA;
+			case BlendFactor::ZERO:                return D3D12_BLEND_ZERO;
+			case BlendFactor::ONE:                 return D3D12_BLEND_ONE;
+			case BlendFactor::SRC_COLOR:           return D3D12_BLEND_SRC_COLOR;
+			case BlendFactor::INV_SRC_COLOR:       return D3D12_BLEND_INV_SRC_COLOR;
+			case BlendFactor::SRC_ALPHA:           return D3D12_BLEND_SRC_ALPHA;
+			case BlendFactor::INV_SRC_ALPHA:       return D3D12_BLEND_INV_SRC_ALPHA;
+			case BlendFactor::DEST_ALPHA:          return D3D12_BLEND_DEST_ALPHA;
+			case BlendFactor::INV_DEST_ALPHA:      return D3D12_BLEND_INV_DEST_ALPHA;
+			case BlendFactor::DEST_COLOR:          return D3D12_BLEND_DEST_COLOR;
+			case BlendFactor::INV_DEST_COLOR:      return D3D12_BLEND_INV_DEST_COLOR;
+			case BlendFactor::SRC_ALPHA_CLAMPED:   return D3D12_BLEND_SRC_ALPHA_SAT;
+      case BlendFactor::SRC1_COLOR:          return D3D12_BLEND_SRC1_COLOR;
+      case BlendFactor::INV_SRC1_COLOR:      return D3D12_BLEND_INV_SRC1_COLOR;
+      case BlendFactor::SRC1_ALPHA:          return D3D12_BLEND_SRC1_ALPHA;
+      case BlendFactor::INV_SRC1_ALPHA:      return D3D12_BLEND_INV_SRC1_ALPHA;
+      case BlendFactor::CONSTANT_COLOR:      return D3D12_BLEND_BLEND_FACTOR;
+			case BlendFactor::INV_CONSTANT_COLOR:  return D3D12_BLEND_INV_BLEND_FACTOR;
+			
 			default: ASSERT(false, "Missing native values"); return D3D12_BLEND_ZERO;
 		}
 	}

@@ -17,11 +17,11 @@ namespace Fancy {
 
     for (uint i = 0u; i < RenderConstants::kMaxNumRenderTargets; ++i)
     {
-      mySrcBlend[i] = static_cast<uint>(BlendInput::ONE);
-      myDestBlend[i] = static_cast<uint>(BlendInput::ONE);
+      mySrcBlend[i] = static_cast<uint>(BlendFactor::ONE);
+      myDestBlend[i] = static_cast<uint>(BlendFactor::ONE);
       myBlendOp[i] = static_cast<uint>(BlendOp::ADD);
-      mySrcBlendAlpha[i] = static_cast<uint>(BlendInput::ONE);
-      myDestBlendAlpha[i] = static_cast<uint>(BlendInput::ONE);
+      mySrcBlendAlpha[i] = static_cast<uint>(BlendFactor::ONE);
+      myDestBlendAlpha[i] = static_cast<uint>(BlendFactor::ONE);
       myBlendOpAlpha[i] = static_cast<uint>(BlendOp::ADD);
       myRTwriteMask[i] = UINT_MAX;
     }
@@ -64,11 +64,11 @@ namespace Fancy {
 
     for (uint i = 0u; i < RenderConstants::kMaxNumRenderTargets; ++i)
     {
-      mySrcBlend[i] = BlendInput::ONE;
-      myDestBlend[i] = BlendInput::ONE;
+      mySrcBlend[i] = BlendFactor::ONE;
+      myDestBlend[i] = BlendFactor::ONE;
       myBlendOp[i] = BlendOp::ADD;
-      mySrcBlendAlpha[i] = BlendInput::ONE;
-      myDestBlendAlpha[i] = BlendInput::ONE;
+      mySrcBlendAlpha[i] = BlendFactor::ONE;
+      myDestBlendAlpha[i] = BlendFactor::ONE;
       myBlendOpAlpha[i] = BlendOp::ADD;
       myRTwriteMask[i] = UINT_MAX;
     }
@@ -116,11 +116,11 @@ namespace Fancy {
     {
       myAlphaSeparateBlend[i] = aDesc.myAlphaSeparateBlend[i];
       myBlendEnabled[i] = aDesc.myBlendEnabled[i];
-      mySrcBlend[i] = static_cast<BlendInput>(aDesc.mySrcBlend[i]);
-      myDestBlend[i] = static_cast<BlendInput>(aDesc.myDestBlend[i]);
+      mySrcBlend[i] = static_cast<BlendFactor>(aDesc.mySrcBlend[i]);
+      myDestBlend[i] = static_cast<BlendFactor>(aDesc.myDestBlend[i]);
       myBlendOp[i] = static_cast<BlendOp>(aDesc.myBlendOp[i]);
-      mySrcBlendAlpha[i] = static_cast<BlendInput>(aDesc.mySrcBlendAlpha[i]);
-      myDestBlendAlpha[i] = static_cast<BlendInput>(aDesc.myDestBlendAlpha[i]);
+      mySrcBlendAlpha[i] = static_cast<BlendFactor>(aDesc.mySrcBlendAlpha[i]);
+      myDestBlendAlpha[i] = static_cast<BlendFactor>(aDesc.myDestBlendAlpha[i]);
       myBlendOpAlpha[i] = static_cast<BlendOp>(aDesc.myBlendOpAlpha[i]);
       myRTwriteMask[i] = aDesc.myRTwriteMask[i];
     }

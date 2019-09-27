@@ -131,6 +131,84 @@ namespace Fancy
     }
   }
 
+  VkFormat RenderCore_PlatformVk::ResolveFormat(DataFormat aFormat)
+  {
+    switch (aFormat)
+    {
+    case SRGB_8_A_8:    return VK_FORMAT_R8G8B8A8_SRGB;
+    case RGBA_8:        return VK_FORMAT_R8G8B8A8_UNORM;
+    case RG_8:          return VK_FORMAT_R8G8_UNORM;
+    case R_8:           return VK_FORMAT_R8_UNORM;
+    case RGBA_16:       return VK_FORMAT_R16G16B16A16_UNORM;
+    case RG_16:         return VK_FORMAT_R16G16_UNORM;
+    case R_16:          return VK_FORMAT_R16_UNORM;
+    case RGB_11_11_10F: return VK_FORMAT_B10G11R11_UFLOAT_PACK32; // Memory-layout in both DX and Vk has B in the 10 highest bits. TODO: Check if we need additional swizzling in Vulkan-shaders
+    case RGBA_16F:      return VK_FORMAT_R16G16B16A16_SFLOAT;
+    case RGB_16F:       return VK_FORMAT_R16G16B16_SFLOAT;
+    case RG_16F:        return VK_FORMAT_R16G16_SFLOAT;
+    case R_16F:         return VK_FORMAT_R16_SFLOAT;
+    case RGBA_32F:      return VK_FORMAT_R32G32B32A32_SFLOAT;
+    case RGB_32F:       return VK_FORMAT_R32G32B32_SFLOAT;
+    case RG_32F:        return VK_FORMAT_R32G32_SFLOAT;
+    case R_32F:         return VK_FORMAT_R32_SFLOAT;
+    case RGBA_32UI:     return VK_FORMAT_R32G32B32A32_UINT;
+    case RGB_32UI:      return VK_FORMAT_R32G32B32_UINT;
+    case RG_32UI:       return VK_FORMAT_R32G32_UINT;
+    case R_32UI:        return VK_FORMAT_R32_UINT;
+    case RGBA_16UI:     return VK_FORMAT_R16G16B16A16_UINT;
+    case RGB_16UI:      return VK_FORMAT_R16G16B16_UINT;
+    case RG_16UI:       return VK_FORMAT_R16G16_UINT;
+    case R_16UI:        return VK_FORMAT_R16_UINT;
+    case RGBA_8UI:      return VK_FORMAT_R8G8B8A8_UINT;
+    case RGB_8UI:       return VK_FORMAT_R8G8B8_UINT;
+    case RG_8UI:        return VK_FORMAT_R8G8_UINT;
+    case R_8UI:         return VK_FORMAT_R8_UINT;
+    case RGBA_32I:      return VK_FORMAT_R32G32B32A32_SINT;
+    case RGB_32I:       return VK_FORMAT_R32G32B32_SINT;
+    case RG_32I:        return VK_FORMAT_R32G32_SINT;
+    case R_32I:         return VK_FORMAT_R32_SINT;
+    case RGBA_16I:      return VK_FORMAT_R16G16B16A16_SINT;
+    case RGB_16I:       return VK_FORMAT_R16G16B16_SINT;
+    case RG_16I:        return VK_FORMAT_R16G16_SINT;
+    case R_16I:         return VK_FORMAT_R16_SINT;
+    case RGBA_8I:       return VK_FORMAT_R8G8B8A8_SINT;
+    case RGB_8I:        return VK_FORMAT_R8G8B8_SINT;
+    case RG_8I:         return VK_FORMAT_R8G8_SINT;
+    case R_8I:          return VK_FORMAT_R8_SINT;
+    case D_24UNORM_S_8UI: return VK_FORMAT_D24_UNORM_S8_UINT;
+    default: ASSERT(false, "Unsupported format"); return VK_FORMAT_R8G8B8A8_SRGB;
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkBlendFactor RenderCore_PlatformVk::ResolveBlendFactor(BlendFactor aFactor)
+  {
+    static constexpr VkBlendFactor typeTable[] =
+    {
+      VK_BLEND_FACTOR_ZERO,
+      VK_BLEND_FACTOR_ONE,
+      VK_BLEND_FACTOR_SRC_COLOR,
+      VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, 
+      VK_BLEND_FACTOR_SRC_ALPHA,
+      VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+      VK_BLEND_FACTOR_DST_ALPHA,
+      VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+      VK_BLEND_FACTOR_DST_COLOR,
+      VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+      VK_BLEND_FACTOR_SRC_ALPHA_SATURATE,
+      VK_BLEND_FACTOR_SRC1_COLOR,
+      VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR,
+      VK_BLEND_FACTOR_SRC1_ALPHA,
+      VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
+      VK_BLEND_FACTOR_CONSTANT_COLOR,
+      VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR
+    };
+
+  }
+//---------------------------------------------------------------------------//
+  VkBlendOp RenderCore_PlatformVk::ResolveBlendOp(BlendOp aBlendOp)
+  {
+  }
+//---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)
   {
     LOG("Initializing Vulkan device...");

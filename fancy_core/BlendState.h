@@ -46,11 +46,11 @@ public:
   bool        myBlendStatePerRT;
   bool        myAlphaSeparateBlend[RenderConstants::kMaxNumRenderTargets];
   bool        myBlendEnabled[RenderConstants::kMaxNumRenderTargets];
-  BlendInput  mySrcBlend[RenderConstants::kMaxNumRenderTargets];
-  BlendInput  myDestBlend[RenderConstants::kMaxNumRenderTargets];
+  BlendFactor  mySrcBlend[RenderConstants::kMaxNumRenderTargets];
+  BlendFactor  myDestBlend[RenderConstants::kMaxNumRenderTargets];
   BlendOp     myBlendOp[RenderConstants::kMaxNumRenderTargets];
-  BlendInput  mySrcBlendAlpha[RenderConstants::kMaxNumRenderTargets];
-  BlendInput  myDestBlendAlpha[RenderConstants::kMaxNumRenderTargets];
+  BlendFactor  mySrcBlendAlpha[RenderConstants::kMaxNumRenderTargets];
+  BlendFactor  myDestBlendAlpha[RenderConstants::kMaxNumRenderTargets];
   BlendOp     myBlendOpAlpha[RenderConstants::kMaxNumRenderTargets];
   uint        myRTwriteMask[RenderConstants::kMaxNumRenderTargets];
 //---------------------------------------------------------------------------//

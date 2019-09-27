@@ -10,7 +10,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderProperties
   {
-    ShaderVertexInputLayout myVertexInputLayout;
+    ShaderVertexInputLayout myVertexInputLayout;  // TODO: Remove and replace with a platform-specific version. We don't need that in high-level code
     ShaderStage myShaderStage = ShaderStage::NONE;
     bool myHasUnorderedWrites = false;
     glm::int3 myNumGroupThreads = { 1, 1, 1 };

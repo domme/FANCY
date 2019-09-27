@@ -64,7 +64,7 @@ namespace Fancy
     NUM
   };
 //-----------------------------------------------------------------------//    
-  enum class BlendInput
+  enum class BlendFactor
   {
     ZERO = 0,
     ONE,
@@ -77,18 +77,12 @@ namespace Fancy
     DEST_COLOR,
     INV_DEST_COLOR,
     SRC_ALPHA_CLAMPED,
-    BLEND_FACTOR,// DX11-only
-    INV_BLEND_FACTOR,
     SRC1_COLOR,
     INV_SRC1_COLOR,
     SRC1_ALPHA,
     INV_SRC1_ALPHA,
-
-  // OpenGL-only:
     CONSTANT_COLOR,
     INV_CONSTANT_COLOR,
-    CONSTANT_ALPHA,
-    INV_CONSTANT_ALPHA,
 
     NUM
   };

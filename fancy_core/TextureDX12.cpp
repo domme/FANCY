@@ -70,7 +70,7 @@ namespace Fancy {
 
     myProperties.myDepthOrArraySize = glm::max(1u, myProperties.myDepthOrArraySize);
     
-    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetDXGIformat(myProperties.eFormat);
+    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::ResolveFormat(myProperties.eFormat);
     if (!someProperties.myPreferTypedFormat)
     {
       if (someProperties.bIsDepthStencil)
@@ -390,7 +390,7 @@ namespace Fancy {
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
-    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::GetDXGIformat(someProperties.myFormat);
+    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::ResolveFormat(someProperties.myFormat);
     const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
     if (formatInfo.myIsDepthStencil)
     {
@@ -472,7 +472,7 @@ namespace Fancy {
   bool TextureViewDX12::CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-    uavDesc.Format = RenderCore::GetPlatformDX12()->GetDXGIformat(someProperties.myFormat);
+    uavDesc.Format = RenderCore::GetPlatformDX12()->ResolveFormat(someProperties.myFormat);
     const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
     ASSERT(subresourceRange.myNumPlanes == 1u);
 
@@ -524,7 +524,7 @@ namespace Fancy {
   {
     D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 
-    rtvDesc.Format = RenderCore::GetPlatformDX12()->GetDXGIformat(someProperties.myFormat);
+    rtvDesc.Format = RenderCore::GetPlatformDX12()->ResolveFormat(someProperties.myFormat);
     const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
     ASSERT(subresourceRange.myNumPlanes == 1u);
 
@@ -575,7 +575,7 @@ namespace Fancy {
   bool TextureViewDX12::CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-    const DXGI_FORMAT baseFormat = RenderCore_PlatformDX12::GetDXGIformat(someProperties.myFormat);
+    const DXGI_FORMAT baseFormat = RenderCore_PlatformDX12::ResolveFormat(someProperties.myFormat);
 
     const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
 

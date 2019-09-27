@@ -686,11 +686,11 @@ namespace Fancy {
     // RTV-FORMATS
     for (uint i = 0u; i < aState.myNumRenderTargets; ++i)
     {
-      psoDesc.RTVFormats[i] = RenderCore_PlatformDX12::GetDXGIformat(aState.myRTVformats[i]);
+      psoDesc.RTVFormats[i] = RenderCore_PlatformDX12::ResolveFormat(aState.myRTVformats[i]);
     }
 
     // DSV FORMAT
-    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat(RenderCore_PlatformDX12::GetDXGIformat(aState.myDSVformat));
+    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat(RenderCore_PlatformDX12::ResolveFormat(aState.myDSVformat));
 
     // NODE MASK
     psoDesc.NodeMask = 0u;

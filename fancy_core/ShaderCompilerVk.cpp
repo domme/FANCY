@@ -259,16 +259,17 @@ namespace Fancy
       // Build the vertex input layout in case of vertex-shader
       if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
       {
-        DynamicArray<VkVertexInputAttributeDescription>& vertexAttributes = compiledDataVk.myVertexAttributes;
-        vertexAttributes.resize(reflectModule.input_variable_count);
+        ShaderVertexInputLayout& vertexInputlayout = aCompilerOutput->myProperties.myVertexInputLayout;
+        vertexInputlayout.myVertexInputElements.reserve(reflectModule.input_variable_count);
 
+        DynamicArray<VkVertexInputAttributeDescription>& vertexAttributes = compiledDataVk.myVertexAttributeDesc.myVertexAttributes;
+        vertexAttributes.reserve(reflectModule.input_variable_count);
+
+        // TODO: For simplicity, the code below assumes that all vertex attributes will be pulled from only one binding buffer in interleaved format
+        uint overallVertexSize = 0u;
         for (uint i = 0u; i < reflectModule.input_variable_count; ++i)
         {
           const SpvReflectInterfaceVariable& reflectedInput = reflectModule.input_variables[i];
-
-          VkVertexInputAttributeDescription& attributeDesc = vertexAttributes[i];
-          attributeDesc.binding = 
-          attributeDesc.location = reflectedInput.location;
 
           const DataFormat format = Priv_ShaderCompilerVk::locResolveFormat(reflectedInput.format);
           ASSERT(format != DataFormat::NONE);
@@ -288,11 +289,18 @@ namespace Fancy
             format,
             (uint8) formatInfo.myNumComponents
           };
-
           vertexInputlayout.myVertexInputElements.push_back(elem);
-        }
 
-        aCompilerOutput->myProperties.myVertexInputLayout = vertexInputlayout;
+          VkVertexInputAttributeDescription attribute;
+          attribute.binding = 0;  
+          attribute.format = RenderCore_PlatformVk::ResolveFormat(format);
+          attribute.offset = overallVertexSize;
+          attribute.location = reflectedInput.location;
+          vertexAttributes.push_back(attribute);
+
+          overallVertexSize += formatInfo.mySizeBytes;
+        }
+        compiledDataVk.myVertexAttributeDesc.myOverallVertexSize = overallVertexSize;
       }
       else if (aDesc.myShaderStage == (uint)ShaderStage::COMPUTE)
       {

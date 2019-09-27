@@ -642,17 +642,15 @@ namespace Fancy {
     return D3D12_RESOURCE_STATE_COMMON;
   }
 //---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetDXGIformat(DataFormat aFormat)
+  DXGI_FORMAT RenderCore_PlatformDX12::ResolveFormat(DataFormat aFormat)
   {
     switch (aFormat)
     {
     case DataFormat::SRGB_8_A_8:        return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-    // case DataFormat::SRGB_8:         (Unsupported - DX12 doesn't support 3-component 8 bit formats. Needs to be resolved & padded to 4-component)   
     case DataFormat::RGBA_8:            return DXGI_FORMAT_R8G8B8A8_UNORM;
     case DataFormat::RG_8:              return DXGI_FORMAT_R8G8_UNORM;
     case DataFormat::R_8:               return DXGI_FORMAT_R8_UNORM;
     case DataFormat::RGBA_16:           return DXGI_FORMAT_R16G16B16A16_UNORM;
-    //case DataFormat::RGB_16:          (Unsupported - DX12 doesn't support 3-component 8 bit formats. Needs to be resolved & padded to 4-component)   
     case DataFormat::RG_16:             return DXGI_FORMAT_R16G16_UNORM;
     case DataFormat::R_16:              return DXGI_FORMAT_R16_UNORM;
     case DataFormat::RGB_11_11_10F:     return DXGI_FORMAT_R11G11B10_FLOAT;

@@ -36,7 +36,7 @@ namespace Fancy {
     bool InitInternalResources() override;
     void Shutdown() override;
     
-    static DXGI_FORMAT GetDXGIformat(DataFormat aFormat);
+    static DXGI_FORMAT ResolveFormat(DataFormat aFormat);
     static DXGI_FORMAT GetDepthStencilTextureFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetDepthStencilViewFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);

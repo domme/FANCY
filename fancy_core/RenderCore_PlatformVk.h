@@ -9,6 +9,11 @@ namespace Fancy
   class RenderCore_PlatformVk final : public Fancy::RenderCore_Platform
   {
   public:
+    static VkFormat ResolveFormat(DataFormat aFormat);
+    static VkBlendFactor ResolveBlendFactor(BlendFactor aFactor);
+    static VkBlendOp ResolveBlendOp(BlendOp aBlendOp);
+
+
     RenderCore_PlatformVk();
     ~RenderCore_PlatformVk() override;
     // Disallow copy and assignment (class contains a list of unique_ptrs)

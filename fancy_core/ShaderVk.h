@@ -25,13 +25,20 @@ namespace Fancy
     DynamicArray<ShaderDescriptorSetBindingInfoVk> myDescriptorSets;
   };
 //---------------------------------------------------------------------------//
+  struct ShaderVertexAttributeDescVk
+  {
+    DynamicArray<VkVertexInputAttributeDescription> myVertexAttributes;
+    uint myOverallVertexSize;
+  };
+
   struct ShaderCompiledDataVk
   {
     VkShaderModule myModule = nullptr;
     ShaderBindingInfoVk myBindingInfo;
-    DynamicArray<VkVertexInputAttributeDescription> myVertexAttributes;
+    ShaderVertexAttributeDescVk myVertexAttributeDesc;
   };
 //---------------------------------------------------------------------------//
+  
   class ShaderVk : public Shader
   {
     friend class ShaderCompilerVk;
@@ -46,7 +53,7 @@ namespace Fancy
     VkPipelineShaderStageCreateInfo myShaderStageCreateInfo = {};
     VkPipelineVertexInputStateCreateInfo myVertexInputCreateInfo = {};
     ShaderBindingInfoVk myBindingInfo;
-    DynamicArray<VkVertexInputAttributeDescription> myVertexAttributes;
+    ShaderVertexAttributeDescVk myVertexAttributeDesc;
   };
 //---------------------------------------------------------------------------//
 }

@@ -9,7 +9,7 @@ namespace Fancy {
 	{
 		public:
 		static D3D12_BLEND_OP toNativeType(const BlendOp& generalType);
-		static D3D12_BLEND toNativeType(const BlendInput& generalType);
+		static D3D12_BLEND toNativeType(const BlendFactor& generalType);
 		static D3D12_COMPARISON_FUNC toNativeType(const CompFunc& generalType);
 		static D3D12_STENCIL_OP toNativeType(const StencilOp& generalType);
 		static D3D12_FILL_MODE toNativeType(const FillMode& generalType);

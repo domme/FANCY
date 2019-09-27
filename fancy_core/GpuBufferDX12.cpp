@@ -224,7 +224,7 @@ namespace Fancy {
       ASSERT(someProperties.myFormat != DataFormat::UNKNOWN, "Typed buffer-SRV needs a proper format");
       const DataFormat format = someProperties.myFormat;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
-      srvDesc.Format = RenderCore_PlatformDX12::GetDXGIformat(format);
+      srvDesc.Format = RenderCore_PlatformDX12::ResolveFormat(format);
       srvDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
       ASSERT(someProperties.mySize / formatInfo.mySizeBytes <= UINT_MAX);
       srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
@@ -264,7 +264,7 @@ namespace Fancy {
       ASSERT(someProperties.myFormat != DataFormat::UNKNOWN, "Typed buffer-UAV needs a proper format");
       const DataFormat format = someProperties.myFormat;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
-      uavDesc.Format = RenderCore_PlatformDX12::GetDXGIformat(format);
+      uavDesc.Format = RenderCore_PlatformDX12::ResolveFormat(format);
       uavDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
       ASSERT(someProperties.mySize / formatInfo.mySizeBytes <= UINT_MAX);
       uavDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
