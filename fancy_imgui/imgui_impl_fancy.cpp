@@ -193,8 +193,8 @@ namespace Fancy { namespace ImGuiRendering {
     {
       BlendStateDesc desc;
       desc.myBlendEnabled[0] = true;
-      desc.mySrcBlend[0] = static_cast<uint>(BlendInput::SRC_ALPHA);
-      desc.myDestBlend[0] = static_cast<uint>(BlendInput::INV_SRC_ALPHA);
+      desc.mySrcBlend[0] = static_cast<uint>(BlendFactor::SRC_ALPHA);
+      desc.myDestBlend[0] = static_cast<uint>(BlendFactor::INV_SRC_ALPHA);
       desc.myBlendOp[0] = static_cast<uint>(BlendOp::ADD);
       ourBlendState = RenderCore::CreateBlendState(desc);
       ASSERT(ourBlendState != nullptr);
