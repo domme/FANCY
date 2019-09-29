@@ -538,6 +538,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   D3D12_GRAPHICS_PIPELINE_STATE_DESC CommandListDX12::GetNativePSOdesc(const GraphicsPipelineState& aState)
   {
+    // TODO: Remove all those memsets, they shouldn't be necessary
+
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
     memset(&psoDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
@@ -564,46 +566,43 @@ namespace Fancy {
 
     // BLEND DESC
     D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
+    const BlendStateProperties& blendProps = aState.myBlendState->GetProperties();
+
     memset(&blendDesc, 0u, sizeof(D3D12_BLEND_DESC));
-    blendDesc.AlphaToCoverageEnable = aState.myBlendState->myAlphaToCoverageEnabled;
-    blendDesc.IndependentBlendEnable = aState.myBlendState->myBlendStatePerRT;
+    blendDesc.AlphaToCoverageEnable = blendProps.myAlphaToCoverageEnabled;
+    blendDesc.IndependentBlendEnable = blendProps.myBlendStatePerRT;
     uint rtCount = blendDesc.IndependentBlendEnable ? RenderConstants::kMaxNumRenderTargets : 1u;
     for (uint rt = 0u; rt < rtCount; ++rt)
     {
       D3D12_RENDER_TARGET_BLEND_DESC& rtBlendDesc = blendDesc.RenderTarget[rt];
+      const BlendStateRenderTargetProperties& rtBlendProps = blendProps.myRendertargetProperties[rt];
+
       memset(&rtBlendDesc, 0u, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
-      rtBlendDesc.BlendEnable = aState.myBlendState->myBlendEnabled[rt];
-      rtBlendDesc.BlendOp = Adapter::toNativeType(aState.myBlendState->myBlendOp[rt]);
-      rtBlendDesc.DestBlend = Adapter::toNativeType(aState.myBlendState->myDestBlend[rt]);
-      rtBlendDesc.SrcBlend = Adapter::toNativeType(aState.myBlendState->mySrcBlend[rt]);
+      rtBlendDesc.BlendEnable = rtBlendProps.myBlendEnabled;
 
-      if (aState.myBlendState->myAlphaSeparateBlend[rt])
-      {
-        rtBlendDesc.BlendOpAlpha = Adapter::toNativeType(aState.myBlendState->myBlendOpAlpha[rt]);
-        rtBlendDesc.DestBlendAlpha = Adapter::toNativeType(aState.myBlendState->myDestBlendAlpha[rt]);
-        rtBlendDesc.SrcBlendAlpha = Adapter::toNativeType(aState.myBlendState->mySrcBlendAlpha[rt]);
-      }
-      else
-      {
-        rtBlendDesc.BlendOpAlpha = rtBlendDesc.BlendOp;
-        rtBlendDesc.DestBlendAlpha = rtBlendDesc.DestBlend;
-        rtBlendDesc.SrcBlendAlpha = rtBlendDesc.SrcBlend;
-      }
+      rtBlendDesc.BlendOp = Adapter::toNativeType(rtBlendProps.myBlendOp);
+      rtBlendDesc.BlendOpAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType(rtBlendProps.myBlendOpAlpha) : rtBlendDesc.BlendOp;
 
-      // FEATURE: Add support for LogicOps?
-      rtBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
-      rtBlendDesc.LogicOpEnable = false;
+      rtBlendDesc.DestBlend = Adapter::toNativeType(rtBlendProps.myDstBlendFactor);
+      rtBlendDesc.DestBlendAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType(rtBlendProps.myDstBlendAlphaFactor) : rtBlendDesc.DestBlend;
 
-      if ((aState.myBlendState->myRTwriteMask[rt] & 0xFFFFFF) > 0u)
+      rtBlendDesc.SrcBlend = Adapter::toNativeType(rtBlendProps.mySrcBlendFactor);
+      rtBlendDesc.SrcBlendAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType(rtBlendProps.mySrcBlendAlphaFactor) : rtBlendDesc.SrcBlend;
+
+      rtBlendDesc.LogicOpEnable = blendProps.myLogicOpEnabled;
+      rtBlendDesc.LogicOp = RenderCore_PlatformDX12::ResolveLogicOp(blendProps.myLogicOp);
+
+      const uint channelWriteMask = rtBlendProps.myColorChannelWriteMask;
+      if ((channelWriteMask & 0xFFFFFF) > 0u)
       {
         rtBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
       }
       else
       {
-        const bool red = (aState.myBlendState->myRTwriteMask[rt] & 0xFF000000) > 0u;
-        const bool green = (aState.myBlendState->myRTwriteMask[rt] & 0x00FF0000) > 0u;
-        const bool blue = (aState.myBlendState->myRTwriteMask[rt] & 0x0000FF00) > 0u;
-        const bool alpha = (aState.myBlendState->myRTwriteMask[rt] & 0x000000FF) > 0u;
+        const bool red =    (channelWriteMask & 0xFF000000) > 0u;
+        const bool green =  (channelWriteMask & 0x00FF0000) > 0u;
+        const bool blue =   (channelWriteMask & 0x0000FF00) > 0u;
+        const bool alpha =  (channelWriteMask & 0x000000FF) > 0u;
         rtBlendDesc.RenderTargetWriteMask |= red ? D3D12_COLOR_WRITE_ENABLE_RED : 0u;
         rtBlendDesc.RenderTargetWriteMask |= green ? D3D12_COLOR_WRITE_ENABLE_GREEN : 0u;
         rtBlendDesc.RenderTargetWriteMask |= blue ? D3D12_COLOR_WRITE_ENABLE_BLUE : 0u;
@@ -636,29 +635,33 @@ namespace Fancy {
 
     // DEPTH STENCIL STATE
     D3D12_DEPTH_STENCIL_DESC& dsState = psoDesc.DepthStencilState;
-    dsState.DepthEnable = aState.myDepthStencilState->myDepthTestEnabled;
-    dsState.DepthWriteMask = aState.myDepthStencilState->myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
-    dsState.DepthFunc = Adapter::toNativeType(aState.myDepthStencilState->myDepthCompFunc);
-    dsState.StencilEnable = aState.myDepthStencilState->myStencilEnabled;
-    dsState.StencilReadMask = static_cast<uint8>(aState.myDepthStencilState->myStencilReadMask);
-    dsState.StencilWriteMask = static_cast<uint8>(aState.myDepthStencilState->myStencilWriteMask[0u]);
+    const DepthStencilStateProperties& dsProps = aState.myDepthStencilState->GetProperties();
+
+    dsState.DepthEnable = dsProps.myDepthTestEnabled;
+    dsState.DepthWriteMask = dsProps.myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+    dsState.DepthFunc = RenderCore_PlatformDX12::ResolveCompFunc(dsProps.myDepthCompFunc);
+    dsState.StencilEnable = dsProps.myStencilEnabled;
+    dsState.StencilReadMask = static_cast<uint8>(dsProps.myStencilReadMask);
+    dsState.StencilWriteMask = static_cast<uint8>(dsProps.myStencilWriteMask);
+
     // FrontFace
     {
       D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.FrontFace;
-      uint faceIdx = static_cast<uint>(FaceType::FRONT);
-      faceDesc.StencilFunc = Adapter::toNativeType(aState.myDepthStencilState->myStencilCompFunc[faceIdx]);
-      faceDesc.StencilDepthFailOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilDepthFailOp[faceIdx]);
-      faceDesc.StencilFailOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilFailOp[faceIdx]);
-      faceDesc.StencilPassOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilPassOp[faceIdx]);
+      const DepthStencilFaceProperties& faceProps = dsProps.myFrontFace;
+      faceDesc.StencilFunc = RenderCore_PlatformDX12::ResolveCompFunc(faceProps.myStencilCompFunc);
+      faceDesc.StencilDepthFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilDepthFailOp);
+      faceDesc.StencilFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilFailOp);
+      faceDesc.StencilPassOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilPassOp);
     }
+
     // BackFace
     {
       D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.BackFace;
-      uint faceIdx = static_cast<uint>(FaceType::BACK);
-      faceDesc.StencilFunc = Adapter::toNativeType(aState.myDepthStencilState->myStencilCompFunc[faceIdx]);
-      faceDesc.StencilDepthFailOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilDepthFailOp[faceIdx]);
-      faceDesc.StencilFailOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilFailOp[faceIdx]);
-      faceDesc.StencilPassOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilPassOp[faceIdx]);
+      const DepthStencilFaceProperties& faceProps = dsProps.myBackFace;
+      faceDesc.StencilFunc = RenderCore_PlatformDX12::ResolveCompFunc(faceProps.myStencilCompFunc);
+      faceDesc.StencilDepthFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilDepthFailOp);
+      faceDesc.StencilFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilFailOp);
+      faceDesc.StencilPassOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilPassOp);
     }
 
     // INPUT LAYOUT

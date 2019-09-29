@@ -361,9 +361,6 @@
     <ClCompile Include="AdapterDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="BlendState.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="CommandAllocatorPoolDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
@@ -383,9 +380,6 @@
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="DataFormat.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthStencilState.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="BinaryCache.cpp">

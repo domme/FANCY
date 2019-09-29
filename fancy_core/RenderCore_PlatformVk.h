@@ -12,6 +12,9 @@ namespace Fancy
     static VkFormat ResolveFormat(DataFormat aFormat);
     static VkBlendFactor ResolveBlendFactor(BlendFactor aFactor);
     static VkBlendOp ResolveBlendOp(BlendOp aBlendOp);
+    static VkLogicOp ResolveLogicOp(LogicOp aLogicOp);
+    static VkStencilOp ResolveStencilOp(StencilOp aStencilOp);
+    static VkCompareOp ResolveCompFunc(CompFunc aCompFunc);
 
 
     RenderCore_PlatformVk();

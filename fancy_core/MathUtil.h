@@ -11,8 +11,23 @@ namespace Fancy { namespace MathUtil {
   {
     uint64 hash = 0x0;
     std::hash<uint> hasher;
-    for (uint i = 0u; i < aSize; ++i)
-      hash ^= hasher(static_cast<uint>(aValue[i]) * 2654435761u) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+
+    const uint64 numDWORDs = aSize / 4u;
+    const uint64 numDWORDbytes = numDWORDs * 4u;
+    const uint64 numRemainingBytes = aSize - numDWORDbytes;
+
+    const uint* dwordPtr = reinterpret_cast<const uint*>(aValue);
+
+    const auto CombineHash = [&](uint aVal)
+    {
+      hash ^= hasher(hasher(aVal) * 2654435761u) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+    };
+
+    for (uint i = 0u; i < numDWORDs; ++i)
+      CombineHash(dwordPtr[i]);
+
+    for (uint i = numDWORDbytes; i < aSize; ++i)
+      CombineHash(static_cast<uint>(aValue[i]));
 
     return hash;
   }

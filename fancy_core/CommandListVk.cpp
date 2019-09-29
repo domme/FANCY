@@ -5,6 +5,8 @@
 #include "ShaderPipeline.h"
 #include "ShaderVk.h"
 #include "ShaderPipelineVk.h"
+#include "BlendState.h"
+#include "DepthStencilState.h"
 
 namespace Fancy
 {
@@ -234,6 +236,10 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   VkPipeline CommandListVk::CreateGraphicsPipeline(const GraphicsPipelineState& aState, VkRenderPass aRenderPass)
   {
+    ASSERT(aState.myNumRenderTargets <= RenderConstants::kMaxNumRenderTargets);
+    ASSERT(aState.myNumRenderTargets > 0 || aState.myDSVformat != DataFormat::NONE);
+    ASSERT(aState.myShaderPipeline != nullptr);
+
     VkGraphicsPipelineCreateInfo pipelineCreateInfo;
     pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineCreateInfo.pNext = nullptr;
@@ -242,7 +248,7 @@ namespace Fancy
     pipelineCreateInfo.renderPass = aRenderPass;
 
     // Shader state
-    ASSERT(aState.myShaderPipeline != nullptr);
+    
     uint numShaderStages = 0;
     VkPipelineShaderStageCreateInfo pipeShaderCreateInfos[(uint)ShaderStage::NUM_NO_COMPUTE];
     for (const SharedPtr<Shader>& shader : aState.myShaderPipeline->myShaders)
@@ -308,15 +314,87 @@ namespace Fancy
     colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     colorBlendInfo.pNext = nullptr;
     colorBlendInfo.flags = 0u;
-    colorBlendInfo.
 
+    const BlendStateProperties& blendProps = aState.myBlendState->GetProperties();
+    colorBlendInfo.logicOpEnable = blendProps.myLogicOpEnabled;
+    colorBlendInfo.logicOp = RenderCore_PlatformVk::ResolveLogicOp(blendProps.myLogicOp);
+
+    VkPipelineColorBlendAttachmentState colorAttachmentBlendState[RenderConstants::kMaxNumRenderTargets];
+    if (aState.myNumRenderTargets > 0)
+    {
+      auto GetBlendStateForRt = [&](int i)
+      {
+        const BlendStateRenderTargetProperties& rtBlendProps = blendProps.myRendertargetProperties[i];
+
+        VkPipelineColorBlendAttachmentState rt;
+        rt.blendEnable = rtBlendProps.myBlendEnabled;
+
+        const bool alphaSeparateBlend = rtBlendProps.myAlphaSeparateBlend;
+        rt.colorBlendOp = RenderCore_PlatformVk::ResolveBlendOp(rtBlendProps.myBlendOp);
+        rt.alphaBlendOp = alphaSeparateBlend ? RenderCore_PlatformVk::ResolveBlendOp(rtBlendProps.myBlendOpAlpha) : rt.colorBlendOp;
+
+        rt.srcColorBlendFactor = RenderCore_PlatformVk::ResolveBlendFactor(rtBlendProps.mySrcBlendFactor);
+        rt.srcAlphaBlendFactor = alphaSeparateBlend ? RenderCore_PlatformVk::ResolveBlendFactor(rtBlendProps.mySrcBlendAlphaFactor) : rt.srcColorBlendFactor;
+
+        rt.dstColorBlendFactor = RenderCore_PlatformVk::ResolveBlendFactor(rtBlendProps.myDstBlendFactor);
+        rt.dstAlphaBlendFactor = alphaSeparateBlend ? RenderCore_PlatformVk::ResolveBlendFactor(rtBlendProps.myDstBlendAlphaFactor) : rt.dstColorBlendFactor;
+
+        const uint writeMask = rtBlendProps.myColorChannelWriteMask;
+        const bool red = (writeMask & 0xFF000000) > 0u;
+        const bool green = (writeMask & 0x00FF0000) > 0u;
+        const bool blue = (writeMask & 0x0000FF00) > 0u;
+        const bool alpha = (writeMask & 0x000000FF) > 0u;
+        rt.colorWriteMask =
+          (red ? VK_COLOR_COMPONENT_R_BIT : 0u)
+          | (green ? VK_COLOR_COMPONENT_G_BIT : 0u)
+          | (blue ? VK_COLOR_COMPONENT_B_BIT : 0u)
+          | (alpha ? VK_COLOR_COMPONENT_A_BIT : 0u);
+
+        return rt;
+      };
+
+      colorAttachmentBlendState[0] = GetBlendStateForRt(0);
+      if (blendProps.myBlendStatePerRT)
+      {
+        for (uint i = 1u; i < aState.myNumRenderTargets; ++i)
+          colorAttachmentBlendState[i] = GetBlendStateForRt(i);
+      }
+      else
+      {
+        for (uint i = 1u; i < aState.myNumRenderTargets; ++i)
+          colorAttachmentBlendState[i] = colorAttachmentBlendState[0];
+      }
+    }
+    colorBlendInfo.pAttachments = colorAttachmentBlendState;
+    colorBlendInfo.attachmentCount = aState.myNumRenderTargets;
     pipelineCreateInfo.pColorBlendState = &colorBlendInfo;
 
+    // Depth-stencil state
+    VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+    const DepthStencilStateProperties& dsProps = aState.myDepthStencilState->GetProperties();
+    depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencilInfo.pNext = nullptr;
+    depthStencilInfo.flags = 0u;
+    depthStencilInfo.depthBoundsTestEnable = false; // TODO: Add support for depthbounds test
+    depthStencilInfo.minDepthBounds = 0.0f;
+    depthStencilInfo.maxDepthBounds = FLT_MAX;
+    depthStencilInfo.depthTestEnable = dsProps.myDepthTestEnabled;
+    depthStencilInfo.depthWriteEnable = dsProps.myDepthWriteEnabled;
+    depthStencilInfo.depthCompareOp = RenderCore_PlatformVk::ResolveCompFunc(dsProps.myDepthCompFunc);
     
+    // Front face
+    {
+      VkStencilOpState& faceState = depthStencilInfo.front;
+      const DepthStencilFaceProperties& faceProps = dsProps.myFrontFace;
+      faceState.writeMask = dsProps.myStencilWriteMask;
+      faceState.compareMask = dsProps.myStencilReadMask;
+      faceState.reference
+    }
 
 
-    
 
+
+    pipelineCreateInfo.pDepthStencilState = &depthStencilInfo;
 
   }
 

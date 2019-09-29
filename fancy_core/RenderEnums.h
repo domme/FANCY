@@ -98,6 +98,28 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
+  enum class LogicOp
+  {
+    CLEAR = 0,
+    AND,
+    AND_REVERSE,
+    COPY,
+    AND_INVERTED,
+    NO_OP,
+    XOR,
+    OR,
+    NOR,
+    EQUIVALENT,
+    INVERT,
+    OR_REVERSE,
+    COPY_INVERTED,
+    OR_INVERTED,
+    NAND,
+    SET,
+
+    NUM
+  };
+//---------------------------------------------------------------------------//
   enum class ShaderStage
   {
     VERTEX = 0,
@@ -124,14 +146,6 @@ namespace Fancy
     ALL = 0xFF
   };
 //-----------------------------------------------------------------------//
-  enum class FaceType
-  {
-    FRONT = 0,
-    BACK,
-
-    NUM
-  };
-//---------------------------------------------------------------------------//
   enum class GpuResourceState
   {
     COMMON = 0, FIRST_READ_STATE = 0,

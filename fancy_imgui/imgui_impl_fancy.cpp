@@ -191,7 +191,7 @@ namespace Fancy { namespace ImGuiRendering {
 
     // Blend state (alpha blending)
     {
-      BlendStateDesc desc;
+      BlendStateProperties desc;
       desc.myBlendEnabled[0] = true;
       desc.mySrcBlend[0] = static_cast<uint>(BlendFactor::SRC_ALPHA);
       desc.myDestBlend[0] = static_cast<uint>(BlendFactor::INV_SRC_ALPHA);
@@ -202,7 +202,7 @@ namespace Fancy { namespace ImGuiRendering {
 
     // Depth-stencil state (no depth testing)
     {
-      DepthStencilStateDesc desc;
+      DepthStencilStateProperties desc;
       desc.myStencilEnabled = false;
       desc.myDepthTestEnabled = false;
       desc.myDepthWriteEnabled = false;

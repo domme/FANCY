@@ -175,7 +175,6 @@
     <ClCompile Include="AdapterDX12.cpp" />
     <ClCompile Include="Annotations.cpp" />
     <ClCompile Include="BinaryCache.cpp" />
-    <ClCompile Include="BlendState.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="CommandList.cpp" />
@@ -189,7 +188,6 @@
     <ClCompile Include="FileWatcher.cpp" />
     <ClCompile Include="GpuBuffer.cpp" />
     <ClCompile Include="GpuBufferDX12.cpp" />
-    <ClCompile Include="DepthStencilState.cpp" />
     <ClCompile Include="Fancy.cpp" />
     <ClCompile Include="FileReader.cpp" />
     <ClCompile Include="CommandAllocatorPoolDX12.cpp" />

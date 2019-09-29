@@ -376,11 +376,8 @@ namespace Fancy {
       ourDefaultNormalTexture = CreateTexture(props, "Default_Normal", &data, 1);
     }
 
-    ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
-    // ASSERT(ourDefaultDepthStencilState != nullptr);
-
-    ourDefaultBlendState = CreateBlendState(BlendStateDesc::GetDefaultSolid());
-    // ASSERT(ourDefaultBlendState != nullptr);
+    ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateProperties());
+    ourDefaultBlendState = CreateBlendState(BlendStateProperties());
 
     ourTempResourcePool.reset(new TempResourcePool);
 
@@ -604,29 +601,30 @@ namespace Fancy {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<BlendState> RenderCore::CreateBlendState(const BlendStateDesc& aDesc)
+  SharedPtr<BlendState> RenderCore::CreateBlendState(const BlendStateProperties& aProperties)
   {
-    auto it = ourBlendStateCache.find(aDesc.GetHash());
+    const uint64 hash = MathUtil::ByteHash(aProperties);
+
+    auto it = ourBlendStateCache.find(hash);
     if (it != ourBlendStateCache.end())
       return it->second;
 
-    SharedPtr<BlendState> blendState(FANCY_NEW(BlendState, MemoryCategory::GENERAL));
-    blendState->SetFromDescription(aDesc);
+    SharedPtr<BlendState> blendState(new BlendState(aProperties));
 
-    ourBlendStateCache.insert(std::make_pair(aDesc.GetHash(), blendState));
+    ourBlendStateCache.insert(std::make_pair(hash, blendState));
     return blendState;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<DepthStencilState> RenderCore::CreateDepthStencilState(const DepthStencilStateDesc& aDesc)
+  SharedPtr<DepthStencilState> RenderCore::CreateDepthStencilState(const DepthStencilStateProperties& aDesc)
   {
-    auto it = ourDepthStencilStateCache.find(aDesc.GetHash());
+    const uint64 hash = MathUtil::ByteHash(aDesc);
+
+    auto it = ourDepthStencilStateCache.find(hash);
     if (it != ourDepthStencilStateCache.end())
       return it->second;
 
-    SharedPtr<DepthStencilState> depthStencilState(FANCY_NEW(DepthStencilState, MemoryCategory::GENERAL));
-    depthStencilState->SetFromDescription(aDesc);
-
-    ourDepthStencilStateCache.insert(std::make_pair(aDesc.GetHash(), depthStencilState));
+    SharedPtr<DepthStencilState> depthStencilState(new DepthStencilState(aDesc));
+    ourDepthStencilStateCache.insert(std::make_pair(hash, depthStencilState));
     return depthStencilState;
   }
 //---------------------------------------------------------------------------//

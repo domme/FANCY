@@ -130,7 +130,7 @@ namespace Fancy
       return score;
     }
   }
-
+//---------------------------------------------------------------------------//
   VkFormat RenderCore_PlatformVk::ResolveFormat(DataFormat aFormat)
   {
     switch (aFormat)
@@ -182,32 +182,99 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   VkBlendFactor RenderCore_PlatformVk::ResolveBlendFactor(BlendFactor aFactor)
   {
-    static constexpr VkBlendFactor typeTable[] =
+    switch (aFactor)
     {
-      VK_BLEND_FACTOR_ZERO,
-      VK_BLEND_FACTOR_ONE,
-      VK_BLEND_FACTOR_SRC_COLOR,
-      VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, 
-      VK_BLEND_FACTOR_SRC_ALPHA,
-      VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-      VK_BLEND_FACTOR_DST_ALPHA,
-      VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
-      VK_BLEND_FACTOR_DST_COLOR,
-      VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
-      VK_BLEND_FACTOR_SRC_ALPHA_SATURATE,
-      VK_BLEND_FACTOR_SRC1_COLOR,
-      VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR,
-      VK_BLEND_FACTOR_SRC1_ALPHA,
-      VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA,
-      VK_BLEND_FACTOR_CONSTANT_COLOR,
-      VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR
-    };
-
+      case BlendFactor::ZERO:               return VK_BLEND_FACTOR_ZERO;
+      case BlendFactor::ONE:                return VK_BLEND_FACTOR_ONE;
+      case BlendFactor::SRC_COLOR:          return VK_BLEND_FACTOR_SRC_COLOR;
+      case BlendFactor::INV_SRC_COLOR:      return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+      case BlendFactor::SRC_ALPHA:          return VK_BLEND_FACTOR_SRC_ALPHA;
+      case BlendFactor::INV_SRC_ALPHA:      return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+      case BlendFactor::DEST_ALPHA:         return VK_BLEND_FACTOR_DST_ALPHA;
+      case BlendFactor::INV_DEST_ALPHA:     return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+      case BlendFactor::DEST_COLOR:         return VK_BLEND_FACTOR_DST_COLOR;
+      case BlendFactor::INV_DEST_COLOR:     return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+      case BlendFactor::SRC_ALPHA_CLAMPED:  return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
+      case BlendFactor::SRC1_COLOR:         return VK_BLEND_FACTOR_SRC1_COLOR;
+      case BlendFactor::INV_SRC1_COLOR:     return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+      case BlendFactor::SRC1_ALPHA:         return VK_BLEND_FACTOR_SRC1_ALPHA;
+      case BlendFactor::INV_SRC1_ALPHA:     return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+      case BlendFactor::CONSTANT_COLOR:     return VK_BLEND_FACTOR_CONSTANT_COLOR;
+      case BlendFactor::INV_CONSTANT_COLOR: return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+      default: ASSERT(false, "Missing implementation"); return VK_BLEND_FACTOR_ZERO;
+    }
   }
 //---------------------------------------------------------------------------//
   VkBlendOp RenderCore_PlatformVk::ResolveBlendOp(BlendOp aBlendOp)
   {
+    switch(aBlendOp) 
+    { 
+      case BlendOp::ADD:          return VK_BLEND_OP_ADD;
+      case BlendOp::SUBTRACT:     return VK_BLEND_OP_SUBTRACT;
+      case BlendOp::REV_SUBTRACT: return VK_BLEND_OP_REVERSE_SUBTRACT;
+      case BlendOp::MIN:          return VK_BLEND_OP_MIN;
+      case BlendOp::MAX:          return VK_BLEND_OP_MAX;
+      default: ASSERT(false, "Missing implementation"); return VK_BLEND_OP_ADD;
+    }
   }
+//---------------------------------------------------------------------------//
+  VkLogicOp RenderCore_PlatformVk::ResolveLogicOp(LogicOp aLogicOp)
+  {
+    switch(aLogicOp) 
+    { 
+      case LogicOp::CLEAR:          return VK_LOGIC_OP_CLEAR;
+      case LogicOp::AND:            return VK_LOGIC_OP_AND;
+      case LogicOp::AND_REVERSE:    return VK_LOGIC_OP_AND_REVERSE;
+      case LogicOp::COPY:           return VK_LOGIC_OP_COPY;
+      case LogicOp::AND_INVERTED:   return VK_LOGIC_OP_AND_INVERTED;
+      case LogicOp::NO_OP:          return VK_LOGIC_OP_NO_OP;
+      case LogicOp::XOR:            return VK_LOGIC_OP_XOR;
+      case LogicOp::OR:             return VK_LOGIC_OP_OR;
+      case LogicOp::NOR:            return VK_LOGIC_OP_NOR;
+      case LogicOp::EQUIVALENT:     return VK_LOGIC_OP_EQUIVALENT;
+      case LogicOp::INVERT:         return VK_LOGIC_OP_INVERT;
+      case LogicOp::OR_REVERSE:     return VK_LOGIC_OP_OR_REVERSE;
+      case LogicOp::COPY_INVERTED:  return VK_LOGIC_OP_COPY_INVERTED;
+      case LogicOp::OR_INVERTED:    return VK_LOGIC_OP_OR_INVERTED;
+      case LogicOp::NAND:           return VK_LOGIC_OP_NAND;
+      case LogicOp::SET:            return VK_LOGIC_OP_SET;
+      default: ASSERT(false, "Missing implementation"); return VK_LOGIC_OP_NO_OP;
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkStencilOp RenderCore_PlatformVk::ResolveStencilOp(StencilOp aStencilOp)
+  {
+    switch (aStencilOp)
+    {
+      case StencilOp::KEEP:             return VK_STENCIL_OP_KEEP;
+      case StencilOp::ZERO:             return VK_STENCIL_OP_ZERO;
+      case StencilOp::REPLACE:          return VK_STENCIL_OP_REPLACE;
+      case StencilOp::INCREMENT_CLAMP:  return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+      case StencilOp::DECREMENT_CLAMP:  return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+      case StencilOp::INVERT:           return VK_STENCIL_OP_INVERT;
+      case StencilOp::INCEMENT_WRAP:    return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+      case StencilOp::DECREMENT_WRAP:   return VK_STENCIL_OP_DECREMENT_AND_WRAP;
+        default: ASSERT(false, "Missing implementation"); return VK_STENCIL_OP_KEEP;
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkCompareOp RenderCore_PlatformVk::ResolveCompFunc(CompFunc aCompFunc)
+  {
+    switch (aCompFunc)
+    {
+      case CompFunc::NEVER:     return VK_COMPARE_OP_NEVER;
+      case CompFunc::LESS:      return VK_COMPARE_OP_LESS;
+      case CompFunc::EQUAL:     return VK_COMPARE_OP_EQUAL;
+      case CompFunc::LEQUAL:    return VK_COMPARE_OP_LESS_OR_EQUAL;
+      case CompFunc::GREATER:   return VK_COMPARE_OP_GREATER;
+      case CompFunc::NOTEQUAL:  return VK_COMPARE_OP_NOT_EQUAL;
+      case CompFunc::GEQUAL:    return VK_COMPARE_OP_GREATER_OR_EQUAL;
+      case CompFunc::ALWAYS:    return VK_COMPARE_OP_ALWAYS;
+      default: ASSERT(false, "Missing implementation"); return VK_COMPARE_OP_ALWAYS;
+    }
+  }
+//---------------------------------------------------------------------------//
+
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)
   {

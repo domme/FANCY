@@ -26,6 +26,19 @@ namespace Fancy {
   class RenderCore_PlatformDX12 final : public RenderCore_Platform
   {
   public:
+    static D3D12_LOGIC_OP ResolveLogicOp(LogicOp aLogicOp);
+    static D3D12_COMPARISON_FUNC ResolveCompFunc(const CompFunc& aCompFunc);
+    static D3D12_STENCIL_OP ResolveStencilOp(const StencilOp& aStencilOp);
+    static DXGI_FORMAT ResolveFormat(DataFormat aFormat);
+    static DXGI_FORMAT GetDepthStencilTextureFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetDepthStencilViewFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetStencilViewFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetTypelessFormat(DXGI_FORMAT aFormat);
+    static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
+    static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
+    static D3D12_RESOURCE_STATES ResolveResourceUsageState(GpuResourceState aState);
+
     RenderCore_PlatformDX12();
     ~RenderCore_PlatformDX12() override;
     // Disallow copy and assignment (class contains a list of unique_ptrs)
@@ -35,17 +48,6 @@ namespace Fancy {
     bool IsInitialized() override { return ourDevice.Get() != nullptr; }
     bool InitInternalResources() override;
     void Shutdown() override;
-    
-    static DXGI_FORMAT ResolveFormat(DataFormat aFormat);
-    static DXGI_FORMAT GetDepthStencilTextureFormat(DXGI_FORMAT aFormat);
-    static DXGI_FORMAT GetDepthStencilViewFormat(DXGI_FORMAT aFormat);
-    static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);
-    static DXGI_FORMAT GetStencilViewFormat(DXGI_FORMAT aFormat);
-    static DXGI_FORMAT GetTypelessFormat(DXGI_FORMAT aFormat);
-
-    static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
-    static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
-    static D3D12_RESOURCE_STATES ResolveResourceUsageState(GpuResourceState aState);
 
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
 

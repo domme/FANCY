@@ -20,8 +20,8 @@ namespace Fancy {
   struct MeshDesc;
   struct MeshData;
   struct ShaderPipelineDesc;
-  struct DepthStencilStateDesc;
-  struct BlendStateDesc;
+  struct DepthStencilStateProperties;
+  struct BlendStateProperties;
   class RenderCore_PlatformDX12;
   class RenderCore_PlatformVk;
   class ShaderPipeline;
@@ -88,8 +88,8 @@ namespace Fancy {
     static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations);
     static bool ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations, TextureData& aTextureDataOut);
     
-    static SharedPtr<BlendState> CreateBlendState(const BlendStateDesc& aDesc);
-    static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateDesc& aDesc);
+    static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);
+    static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateProperties& aDesc);
     static const SharedPtr<BlendState>& GetDefaultBlendState();
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState();
 
