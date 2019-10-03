@@ -274,6 +274,47 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  VkPrimitiveTopology RenderCore_PlatformVk::ResolveTopologyType(TopologyType aTopology)
+  {
+    switch (aTopology)
+    {
+      case TopologyType::TRIANGLE_LIST: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+      case TopologyType::LINES: return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+      default: ASSERT(false, "Missing implementation"); return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkPolygonMode RenderCore_PlatformVk::ResolveFillMode(FillMode aFillMode)
+  {
+    switch(aFillMode)
+    {
+      case FillMode::WIREFRAME: return VK_POLYGON_MODE_LINE;
+      case FillMode::SOLID: return VK_POLYGON_MODE_FILL;
+      default: ASSERT(false, "Missing implementation"); return VK_POLYGON_MODE_LINE;
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkFrontFace RenderCore_PlatformVk::ResolveWindingOrder(WindingOrder aWindingOrder)
+  {
+    switch (aWindingOrder)
+    {
+      case WindingOrder::CCW: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+      case WindingOrder::CW: return VK_FRONT_FACE_CLOCKWISE;
+      default: ASSERT(false, "Missing implementation"); return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkCullModeFlagBits RenderCore_PlatformVk::ResolveCullMode(CullMode aCullMode)
+  {
+    switch (aCullMode)
+    {
+      case CullMode::NONE: return VK_CULL_MODE_NONE;
+      case CullMode::FRONT: return VK_CULL_MODE_FRONT_BIT;
+      case CullMode::BACK: return VK_CULL_MODE_BACK_BIT;
+      default: ASSERT(false, "Missing implementation"); return VK_CULL_MODE_NONE;
+    }
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)

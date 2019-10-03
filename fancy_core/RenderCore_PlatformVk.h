@@ -15,7 +15,10 @@ namespace Fancy
     static VkLogicOp ResolveLogicOp(LogicOp aLogicOp);
     static VkStencilOp ResolveStencilOp(StencilOp aStencilOp);
     static VkCompareOp ResolveCompFunc(CompFunc aCompFunc);
-
+    static VkPrimitiveTopology ResolveTopologyType(TopologyType aTopology);
+    static VkPolygonMode ResolveFillMode(FillMode aFillMode);
+    static VkFrontFace ResolveWindingOrder(WindingOrder aWindingOrder);
+    static VkCullModeFlagBits ResolveCullMode(CullMode aCullMode);
 
     RenderCore_PlatformVk();
     ~RenderCore_PlatformVk() override;

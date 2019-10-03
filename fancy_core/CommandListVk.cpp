@@ -221,9 +221,8 @@ namespace Fancy
     {
       RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
-      VkGraphicsPipelineCreateInfo createInfo = GetGraphicsPipelineCreateInfo(myGraphicsPipelineState);
-      ASSERT_VK_RESULT(vkCreateGraphicsPipelines(platformVk->myDevice, VK_NULL_HANDLE, 1u, &createInfo, nullptr, &pipeline));
-
+      VkRenderPass renderPass; // WHAT TO DO WITH THAT? Expose it as a high-level api call (begin/end renderpass and just ignore it on DX?)
+      pipeline = CreateGraphicsPipeline(myGraphicsPipelineState, renderPass);
       ourPipelineCache[requestedHash] = pipeline;
     }
     vkCmdBindPipeline(myCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
@@ -247,8 +246,24 @@ namespace Fancy
     pipelineCreateInfo.basePipelineIndex = -1;
     pipelineCreateInfo.renderPass = aRenderPass;
 
-    // Shader state
+    // Dynamic state (parts of the pipeline state that can be changed on the command-list)
+    VkPipelineDynamicStateCreateInfo dynamicStateInfo;
+    dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicStateInfo.pNext = nullptr;
+    dynamicStateInfo.flags = 0u;
+
+    // Make those states dynamic that are also dynamic on DX12 to unify the high-level command list API
+    VkDynamicState dynamicStates[] = {
+      VK_DYNAMIC_STATE_DEPTH_BOUNDS,
+      VK_DYNAMIC_STATE_STENCIL_REFERENCE,
+      VK_DYNAMIC_STATE_VIEWPORT,
+      VK_DYNAMIC_STATE_SCISSOR
+    };
+    dynamicStateInfo.pDynamicStates = dynamicStates;
+    dynamicStateInfo.dynamicStateCount = ARRAY_LENGTH(dynamicStates);
+    pipelineCreateInfo.pDynamicState = &dynamicStateInfo;
     
+    // Shader state
     uint numShaderStages = 0;
     VkPipelineShaderStageCreateInfo pipeShaderCreateInfos[(uint)ShaderStage::NUM_NO_COMPUTE];
     for (const SharedPtr<Shader>& shader : aState.myShaderPipeline->myShaders)
@@ -291,7 +306,7 @@ namespace Fancy
     inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyCreateInfo.pNext = nullptr;
     inputAssemblyCreateInfo.flags = 0u;
-    inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssemblyCreateInfo.topology = RenderCore_PlatformVk::ResolveTopologyType(aState.myTopologyType);
     inputAssemblyCreateInfo.primitiveRestartEnable = false;
     pipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
 
@@ -376,28 +391,98 @@ namespace Fancy
     depthStencilInfo.pNext = nullptr;
     depthStencilInfo.flags = 0u;
     depthStencilInfo.depthBoundsTestEnable = false; // TODO: Add support for depthbounds test
-    depthStencilInfo.minDepthBounds = 0.0f;
+    depthStencilInfo.minDepthBounds = 0.0f;  // Will be set as a dynamic state
     depthStencilInfo.maxDepthBounds = FLT_MAX;
     depthStencilInfo.depthTestEnable = dsProps.myDepthTestEnabled;
     depthStencilInfo.depthWriteEnable = dsProps.myDepthWriteEnabled;
+    depthStencilInfo.stencilTestEnable = dsProps.myStencilEnabled;
     depthStencilInfo.depthCompareOp = RenderCore_PlatformVk::ResolveCompFunc(dsProps.myDepthCompFunc);
-    
-    // Front face
+
+    VkStencilOpState* stencilFaceStates[] = { &depthStencilInfo.front, &depthStencilInfo.back };
+    const DepthStencilFaceProperties* stencilFaceProps[] = { &dsProps.myFrontFace, &dsProps.myBackFace };
+
+    for (uint i = 0u; i < ARRAY_LENGTH(stencilFaceStates); ++i)
     {
-      VkStencilOpState& faceState = depthStencilInfo.front;
-      const DepthStencilFaceProperties& faceProps = dsProps.myFrontFace;
-      faceState.writeMask = dsProps.myStencilWriteMask;
-      faceState.compareMask = dsProps.myStencilReadMask;
-      faceState.reference
+      VkStencilOpState& stencilFaceState = *stencilFaceStates[i];
+      const DepthStencilFaceProperties& stencilFaceProp = *stencilFaceProps[i];
+      stencilFaceState.writeMask = dsProps.myStencilWriteMask;
+      stencilFaceState.compareMask = dsProps.myStencilReadMask;
+      stencilFaceState.reference = 0;  // Will be set as a dynamic state
+      stencilFaceState.compareOp = RenderCore_PlatformVk::ResolveCompFunc(stencilFaceProp.myStencilCompFunc);
+      stencilFaceState.depthFailOp = RenderCore_PlatformVk::ResolveStencilOp(stencilFaceProp.myStencilDepthFailOp);
+      stencilFaceState.failOp = RenderCore_PlatformVk::ResolveStencilOp(stencilFaceProp.myStencilFailOp);
+      stencilFaceState.passOp = RenderCore_PlatformVk::ResolveStencilOp(stencilFaceProp.myStencilPassOp);
     }
-
-
-
 
     pipelineCreateInfo.pDepthStencilState = &depthStencilInfo;
 
-  }
+    // Rasterization state
+    VkPipelineRasterizationStateCreateInfo rasterInfo;
+    rasterInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterInfo.pNext = nullptr;
+    rasterInfo.flags = 0u;
+    rasterInfo.cullMode = RenderCore_PlatformVk::ResolveCullMode(aState.myCullMode);
+    rasterInfo.frontFace = RenderCore_PlatformVk::ResolveWindingOrder(aState.myWindingOrder);
+    rasterInfo.polygonMode = RenderCore_PlatformVk::ResolveFillMode(aState.myFillMode);
+    // TODO: Add support for these features below...
+    rasterInfo.depthBiasEnable = false;
+    rasterInfo.depthClampEnable = false;
+    rasterInfo.rasterizerDiscardEnable = false;
+    rasterInfo.depthBiasClamp = 0.0f;
+    rasterInfo.depthBiasConstantFactor = 1.0f;
+    rasterInfo.depthBiasSlopeFactor = 1.0f;
+    rasterInfo.lineWidth = 1.0f;
+    pipelineCreateInfo.pRasterizationState = &rasterInfo;
 
+    // Tesselation state
+    VkPipelineTessellationStateCreateInfo tesselationInfo;
+    tesselationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+    tesselationInfo.pNext = nullptr;
+    tesselationInfo.flags = 0u;
+    tesselationInfo.patchControlPoints = 1u;
+    pipelineCreateInfo.pTessellationState = &tesselationInfo;
+
+    // Viewport state (will be handled as a dynamic state on the command list)
+    VkPipelineViewportStateCreateInfo viewportInfo;
+    viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportInfo.pNext = nullptr;
+
+    // Dummy values - actual viewport will be set as a dynamic state to be more similar to DX
+    VkViewport viewport;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = FLT_MAX;
+    viewport.width = 1280.0f;
+    viewport.height = 720.0f;
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    
+    VkOffset2D offset;
+    offset.x = 0;
+    offset.y = 0;
+    VkExtent2D extend;
+    extend.width = 1280u;
+    extend.height = 720u;
+
+    VkRect2D scissor;
+    scissor.offset = offset;
+    scissor.extent = extend;
+
+    viewportInfo.pViewports = &viewport;
+    viewportInfo.viewportCount = 1u;
+    viewportInfo.pScissors = &scissor;
+    viewportInfo.scissorCount = 1u;
+
+    pipelineCreateInfo.pViewportState = &viewportInfo;
+
+    pipelineCreateInfo.renderPass = aRenderPass;
+    pipelineCreateInfo.subpass = 0u;
+
+    VkPipeline pipeline;
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    ASSERT_VK_RESULT(vkCreateGraphicsPipelines(platformVk->myDevice, nullptr, 1u, &pipelineCreateInfo, nullptr, &pipeline));
+    return pipeline;
+  }
+//---------------------------------------------------------------------------//
   VkComputePipelineCreateInfo CommandListVk::GetComputePipelineCreateInfo(const ComputePipelineState& aState)
   {
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
