@@ -7,14 +7,20 @@
 #include "ShaderPipelineVk.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
+#include "Texture.h"
 
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
+  std::unordered_map<uint64, VkPipeline> CommandListVk::ourPipelineCache;
+  std::unordered_map<uint64, VkRenderPass> CommandListVk::ourRenderpassCache;
+  std::unordered_map<uint64, VkFramebuffer> CommandListVk::ourFramebufferCache;
 //---------------------------------------------------------------------------//
   CommandListVk::CommandListVk(CommandListType aType) 
     : CommandList(aType)
     , myIsOpen(true)
     , myCommandBuffer(nullptr)
+    , myRenderPass(nullptr)
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
@@ -190,12 +196,69 @@ namespace Fancy
   {
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
   }
-
+//---------------------------------------------------------------------------//
   void CommandListVk::ApplyRenderTargets()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
-  }
+    if (!myRenderTargetsDirty)
+    {
+      ASSERT(myRenderPass != nullptr);
+      return;
+    }
+    
+    const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
+    ASSERT(numRtsToSet <= RenderConstants::kMaxNumRenderTargets);
+    ASSERT(myCurrentContext == CommandListType::Graphics);
+    
+    uint64 framebufferHash = MathUtil::ByteHash(reinterpret_cast<uint8*>(myRenderTargets), sizeof(TextureView*) * numRtsToSet);
 
+    DataFormat rtFormats[RenderConstants::kMaxNumRenderTargets];
+    for (uint i = 0u; i < numRtsToSet; ++i)
+    {
+      TextureView* renderTarget = myRenderTargets[i];
+      ASSERT(renderTarget != nullptr);
+
+      rtFormats[i] = renderTarget->GetProperties().myFormat;
+    }
+
+    const bool hasDepthStencilTarget = myDepthStencilTarget != nullptr;
+
+    uint64 renderpassHash = MathUtil::ByteHash(reinterpret_cast<uint8*>(rtFormats), sizeof(DataFormat) * numRtsToSet);
+
+    if (hasDepthStencilTarget)
+    {
+      MathUtil::hash_combine(framebufferHash, reinterpret_cast<uint64>(myDepthStencilTarget));
+
+      const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
+      MathUtil::hash_combine(renderpassHash, (uint)dsvProps.myFormat);
+      // Read-only DSVs need to produce a different renderpass-hash 
+      MathUtil::hash_combine(renderpassHash, dsvProps.myIsDepthReadOnly ? 1u : 0u);
+      MathUtil::hash_combine(renderpassHash, dsvProps.myIsStencilReadOnly ? 1u : 0u);
+      MathUtil::hash_combine(renderpassHash, (uint)myCurrentContext);
+    }
+
+    VkRenderPass renderPass = nullptr;
+    auto renderPassIt = ourRenderpassCache.find(renderpassHash);
+    if (renderPassIt != ourRenderpassCache.end())
+    {
+      renderPass = renderPassIt->second;
+    }
+    else
+    {
+      renderPass = CreateRenderPass(myRenderTargets, numRtsToSet, myDepthStencilTarget);
+
+    }
+
+    VkFramebuffer framebuffer = nullptr;
+    auto framebufferIt = ourFramebufferCache.find(framebufferHash);
+    if (framebufferIt != ourFramebufferCache.end())
+      framebuffer = framebufferIt->second;
+
+
+
+
+    
+  }
+//---------------------------------------------------------------------------//
   void CommandListVk::ApplyTopologyType()
   {
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
@@ -233,6 +296,102 @@ namespace Fancy
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
   }
 //---------------------------------------------------------------------------//
+  VkRenderPass CommandListVk::CreateRenderPass(const TextureView** someRendertargets, uint aNumRenderTargets, const TextureView* aDepthStencilTarget)
+  {
+    VkRenderPassCreateInfo renderpassInfo;
+    renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderpassInfo.pNext = nullptr;
+    renderpassInfo.flags = 0u;
+
+    VkAttachmentDescription attachmentDescriptions[RenderConstants::kMaxNumRenderTargets + 1u];
+    VkAttachmentReference colorAttachmentRefs[RenderConstants::kMaxNumRenderTargets];
+    VkAttachmentReference depthStencilAttachmentRef;
+    for (uint i = 0u; i < aNumRenderTargets; ++i)
+    {
+      VkAttachmentDescription& attachmentDesc = attachmentDescriptions[i];
+      attachmentDesc.flags = 0u;
+      attachmentDesc.format = RenderCore_PlatformVk::ResolveFormat(someRendertargets[i]->GetProperties().myFormat);
+      attachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+      // Image layouts: The high-level code is responsible for transitioning the rendertargets
+      // into VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL before being used as a rendertarget here.
+      // The renderpass itself does not modify the layout and it is up to higher-level code again to transition out of
+      // the color-attachment-optimal layout.
+      const VkImageLayout layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+      attachmentDesc.initialLayout = layout;
+      attachmentDesc.finalLayout = layout;
+      attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+      attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+      attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+      attachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+      VkAttachmentReference& attachmentRef = colorAttachmentRefs[i];
+      attachmentRef.attachment = i;
+      attachmentRef.layout = layout;
+    }
+
+    const bool hasDepthStencilTarget = aDepthStencilTarget != nullptr;
+    if (hasDepthStencilTarget)
+    {
+      const TextureViewProperties& dsvProps = aDepthStencilTarget->GetProperties();
+
+      VkAttachmentDescription& attachmentDesc = attachmentDescriptions[aNumRenderTargets];
+      attachmentDesc.flags = 0u;
+      attachmentDesc.format = RenderCore_PlatformVk::ResolveFormat(dsvProps.myFormat);
+      attachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+
+      VkImageLayout layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+      if (dsvProps.myIsDepthReadOnly && dsvProps.myIsStencilReadOnly)
+        layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+      else if (dsvProps.myIsDepthReadOnly)
+        layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
+      else if (dsvProps.myIsStencilReadOnly)
+        layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;
+
+      attachmentDesc.initialLayout = layout;
+      attachmentDesc.finalLayout = layout;
+      attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+      attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+      attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+      attachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+      depthStencilAttachmentRef.attachment = aNumRenderTargets;
+      depthStencilAttachmentRef.layout = layout;
+    }
+    renderpassInfo.attachmentCount = aNumRenderTargets + (aDepthStencilTarget != nullptr ? 1u : 0u);
+    renderpassInfo.pAttachments = attachmentDescriptions;
+
+    VkSubpassDescription subpassDesc;
+    subpassDesc.flags = 0u;
+    subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpassDesc.colorAttachmentCount = aNumRenderTargets;
+    subpassDesc.pColorAttachments = colorAttachmentRefs;
+    subpassDesc.pDepthStencilAttachment = aDepthStencilTarget != nullptr ? &depthStencilAttachmentRef : nullptr;
+    subpassDesc.pResolveAttachments = nullptr;
+
+    // Input attachments are a way to read the current value of a pixel that's currently being written in a fragment shader.
+    // This would enable some advanced effects like transparency and things like that without having to use multiple passes.
+    // For now, we'll disable that here, but will look into supporting this feature in the future if it has a corresponding feature in DX12
+    subpassDesc.inputAttachmentCount = 0u;
+    subpassDesc.pInputAttachments = nullptr;
+
+    uint preservedAttachmentIndices[RenderConstants::kMaxNumRenderTargets + 1u];
+    for (uint i = 0; i < aNumRenderTargets; ++i)
+      preservedAttachmentIndices[i] = i;
+
+    if (hasDepthStencilTarget)
+      preservedAttachmentIndices[aNumRenderTargets] = aNumRenderTargets;
+
+    subpassDesc.pPreserveAttachments = preservedAttachmentIndices;
+    subpassDesc.preserveAttachmentCount = hasDepthStencilTarget ? aNumRenderTargets + 1u : aNumRenderTargets;
+
+    renderpassInfo.pSubpasses = &subpassDesc;
+    renderpassInfo.subpassCount = 1u;
+    renderpassInfo.pDependencies = nullptr;
+    renderpassInfo.dependencyCount = 0u;
+
+    ASSERT_VK_RESULT(vkCreateRenderPass(RenderCore::GetPlatformVk()->myDevice, &renderpassInfo, nullptr, &renderPass));
+  }
+//---------------------------------------------------------------------------//
   VkPipeline CommandListVk::CreateGraphicsPipeline(const GraphicsPipelineState& aState, VkRenderPass aRenderPass)
   {
     ASSERT(aState.myNumRenderTargets <= RenderConstants::kMaxNumRenderTargets);
@@ -257,7 +416,7 @@ namespace Fancy
       VK_DYNAMIC_STATE_DEPTH_BOUNDS,
       VK_DYNAMIC_STATE_STENCIL_REFERENCE,
       VK_DYNAMIC_STATE_VIEWPORT,
-      VK_DYNAMIC_STATE_SCISSOR
+      VK_DYNAMIC_STATE_SCISSOR,
     };
     dynamicStateInfo.pDynamicStates = dynamicStates;
     dynamicStateInfo.dynamicStateCount = ARRAY_LENGTH(dynamicStates);
