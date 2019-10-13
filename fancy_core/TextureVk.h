@@ -1,12 +1,13 @@
 #pragma once
 
+
+#include "VkPrerequisites.h"
 #include "Texture.h"
 #include "DynamicArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GpuResourceDataVk;
-  class DescriptorVk;
 
   class TextureVk final : public Texture
   {
@@ -33,12 +34,6 @@ namespace Fancy {
   public:
     TextureViewVk(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties);
     ~TextureViewVk() override;
-
-  private:
-    static bool CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorVk& aDescriptor);
-    static bool CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorVk& aDescriptor);
-    static bool CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorVk& aDescriptor);
-    static bool CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorVk& aDescriptor);
   };
 //---------------------------------------------------------------------------//
 }

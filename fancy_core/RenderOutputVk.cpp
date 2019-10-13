@@ -112,9 +112,6 @@ namespace Fancy
     createInfo.oldSwapchain = nullptr;  // Needed for swapchain-recreation after resizing later...
 
     ASSERT_VK_RESULT(vkCreateSwapchainKHR(platformVk->myDevice, &createInfo, nullptr, &mySwapChain));
-
-    // TODO(Vk): This call is just for testing purposes:
-    CreateBackbufferResources(swapChainRes.width, swapChainRes.height);
   }
 //---------------------------------------------------------------------------//
   RenderOutputVk::~RenderOutputVk()

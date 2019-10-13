@@ -36,8 +36,8 @@ namespace Fancy {
     MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myCullMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
-    MathUtil::hash_combine(hash, myDepthStencilState->GetHash());
-    MathUtil::hash_combine(hash, myBlendState->GetHash());
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myDepthStencilState.get()));
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myBlendState.get()));
     MathUtil::hash_combine(hash, myShaderPipeline->GetHash());
 
     if (myShaderPipeline != nullptr)
@@ -313,9 +313,8 @@ namespace Fancy {
       aBlendState ? aBlendState : RenderCore::GetDefaultBlendState();
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
-    const uint64 requestedHash = stateToSet->GetHash();
 
-    if (pipelineState.myBlendState->GetHash() == requestedHash)
+    if (pipelineState.myBlendState == stateToSet)
       return;
 
     pipelineState.myBlendState = stateToSet;
@@ -328,9 +327,8 @@ namespace Fancy {
       aDepthStencilState ? aDepthStencilState : RenderCore::GetDefaultDepthStencilState();
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
-    uint64 requestedHash = stateToSet->GetHash();
 
-    if (pipelineState.myDepthStencilState->GetHash() == requestedHash)
+    if (pipelineState.myDepthStencilState == stateToSet)
       return;
 
     pipelineState.myDepthStencilState = stateToSet;

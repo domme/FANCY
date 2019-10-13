@@ -14,7 +14,7 @@
 #include "DepthStencilState.h"
 #include "GeometryData.h"
 #include "GpuResourceDataDX12.h"
-#include "GpuResourceViewDX12.h"
+#include "GpuResourceViewDataDX12.h"
 #include "TimeManager.h"
 #include "GpuQueryHeapDX12.h"
 
@@ -281,7 +281,7 @@ namespace Fancy {
     const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
 
     ASSERT(aTextureView->GetProperties().myIsRenderTarget);
-    ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::RTV);
+    ASSERT(aTextureView->myType == GpuResourceViewType::RTV);
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     SetTrackResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -294,7 +294,7 @@ namespace Fancy {
   void CommandListDX12::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
   {
     const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
-    ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::DSV);
+    ASSERT(aTextureView->myType == GpuResourceViewType::DSV);
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     SetTrackResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
@@ -728,20 +728,20 @@ namespace Fancy {
     
     const uint64 gpuVirtualAddress = storage->myResource->GetGPUVirtualAddress() + someViewProperties.myOffset;
 
-    GpuResourceViewDataDX12::Type type = GpuResourceViewDataDX12::NONE;
+    GpuResourceViewType type = GpuResourceViewType::NONE;
     if (someViewProperties.myIsShaderWritable)
     {
       ASSERT(someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor");
-      type = GpuResourceViewDataDX12::UAV;
+      type = GpuResourceViewType::UAV;
     }
     else if (someViewProperties.myIsConstantBuffer)
     {
-      type = GpuResourceViewDataDX12::CBV;
+      type = GpuResourceViewType::CBV;
     }
     else
     {
       ASSERT(someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor");
-      type = GpuResourceViewDataDX12::SRV;
+      type = GpuResourceViewType::SRV;
     }
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
@@ -762,9 +762,9 @@ namespace Fancy {
       {
         switch (type)
         {
-          case GpuResourceViewDataDX12::SRV: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
-          case GpuResourceViewDataDX12::UAV: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
-          case GpuResourceViewDataDX12::CBV: { myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::SRV: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::UAV: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::CBV: { myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
           default: { ASSERT(false); break; }
         }
       } break;
@@ -772,9 +772,9 @@ namespace Fancy {
       {
         switch (type)
         {
-          case GpuResourceViewDataDX12::SRV: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
-          case GpuResourceViewDataDX12::UAV: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
-          case GpuResourceViewDataDX12::CBV: { myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::SRV: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::UAV: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::CBV: { myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
           default: { ASSERT(false); break; }
         }
       } break;
@@ -1173,7 +1173,7 @@ namespace Fancy {
         ASSERT(myRenderTargets[i] != nullptr);
 
         const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myNativeData.To<GpuResourceViewDataDX12>();
-        ASSERT(viewData.myType == GpuResourceViewDataDX12::RTV);
+        ASSERT(myRenderTargets[i]->myType == GpuResourceViewType::RTV);
 
         rtResources[i] = myRenderTargets[i]->GetTexture();
         rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
@@ -1210,7 +1210,7 @@ namespace Fancy {
 #endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
       
       const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myNativeData.To<GpuResourceViewDataDX12>();
-      ASSERT(dsvViewData.myType == GpuResourceViewDataDX12::DSV);
+      ASSERT(myDepthStencilTarget->myType == GpuResourceViewType::DSV);
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
     }
     else

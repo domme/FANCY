@@ -8,7 +8,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
 #include "GpuResourceDataDX12.h"
-#include "GpuResourceViewDX12.h"
+#include "GpuResourceViewDataDX12.h"
 #include "CommandList.h"
 
 namespace Fancy {
@@ -307,19 +307,19 @@ namespace Fancy {
 
     bool success = false;
     GpuResourceViewDataDX12 nativeData;
-    nativeData.myType = GpuResourceViewDataDX12::NONE;
+    myType = GpuResourceViewType::NONE;
     if (someProperties.myIsRenderTarget)
     {
       if (formatInfo.myIsDepthStencil)
       {
-        nativeData.myType = GpuResourceViewDataDX12::DSV;
+        myType = GpuResourceViewType::DSV;
         name.append(" DSV");
         nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, name.c_str());
         success = CreateDSV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
       else
       {
-        nativeData.myType = GpuResourceViewDataDX12::RTV;
+        myType = GpuResourceViewType::RTV;
         name.append(" RTV");
         nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, name.c_str());
         success = CreateRTV(aTexture.get(), someProperties, nativeData.myDescriptor);
@@ -329,21 +329,21 @@ namespace Fancy {
     {
       if (someProperties.myIsShaderWritable)
       {
-        nativeData.myType = GpuResourceViewDataDX12::UAV;
+        myType = GpuResourceViewType::UAV;
         name.append(" UAV");
         nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str());
         success = CreateUAV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
       else
       {
-        nativeData.myType = GpuResourceViewDataDX12::SRV;
+        myType = GpuResourceViewType::SRV;
         name.append(" SRV");
         nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str());
         success = CreateSRV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
     }
 
-    ASSERT(success && nativeData.myDescriptor.myCpuHandle.ptr != 0u && nativeData.myType != GpuResourceViewDataDX12::NONE);
+    ASSERT(success && nativeData.myDescriptor.myCpuHandle.ptr != 0u && myType != GpuResourceViewType::NONE);
 
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numTexMips = texProps.myNumMipLevels;
@@ -354,7 +354,7 @@ namespace Fancy {
 
     const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
 
-    if (nativeData.myType != GpuResourceViewDataDX12::DSV)
+    if (myType != GpuResourceViewType::DSV)
     {
       ASSERT(subresourceRange.myFirstPlane == 0u && subresourceRange.myNumPlanes == 1u);
 

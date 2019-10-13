@@ -99,7 +99,7 @@
     <ClInclude Include="GpuResourceDataVk.h" />
     <ClInclude Include="GpuResourceStateTracking.h" />
     <ClInclude Include="GpuResourceView.h" />
-    <ClInclude Include="GpuResourceViewDX12.h" />
+    <ClInclude Include="GpuResourceViewDataDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />
     <ClInclude Include="GrowingList.h" />
     <ClInclude Include="MathIncludes.h" />
@@ -163,6 +163,7 @@
     <ClInclude Include="TextureSampler.h" />
     <ClInclude Include="TextureSamplerDesc.h" />
     <ClInclude Include="TextureSamplerDX12.h" />
+    <ClInclude Include="GpuResourceViewDataVk.h" />
     <ClInclude Include="TextureVk.h" />
     <ClInclude Include="TimeManager.h" />
     <ClInclude Include="VertexInputLayout.h" />

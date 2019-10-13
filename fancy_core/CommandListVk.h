@@ -59,10 +59,6 @@ namespace Fancy
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
     
-    static VkRenderPass CreateRenderPass(const TextureView** someRendertargets, uint aNumRenderTargets, const TextureView* aDepthStencilTarget);
-    static VkPipeline CreateGraphicsPipeline(const GraphicsPipelineState& aState, VkRenderPass aRenderPass);
-    static VkComputePipelineCreateInfo GetComputePipelineCreateInfo(const ComputePipelineState& aState);
-
     static std::unordered_map<uint64, VkPipeline> ourPipelineCache;
     static std::unordered_map<uint64, VkRenderPass> ourRenderpassCache;
     static std::unordered_map<uint64, VkFramebuffer> ourFramebufferCache;
@@ -70,6 +66,7 @@ namespace Fancy
     bool myIsOpen;
     VkCommandBuffer myCommandBuffer;
     VkRenderPass myRenderPass;
+    VkFramebuffer myFramebuffer;
   };
 }
 

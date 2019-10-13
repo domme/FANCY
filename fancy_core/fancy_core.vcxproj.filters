@@ -183,9 +183,6 @@
     <ClInclude Include="GpuResourceView.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="GpuResourceViewDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="Any.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -354,6 +351,12 @@
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="CommandListVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceViewDataDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceViewDataVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>

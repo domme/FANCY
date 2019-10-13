@@ -6,7 +6,7 @@
 
 #include "RenderCore_PlatformDX12.h"
 #include "GpuResourceDataDX12.h"
-#include "GpuResourceViewDX12.h"
+#include "GpuResourceViewDataDX12.h"
 #include "CommandList.h"
 
 namespace Fancy {
@@ -166,17 +166,17 @@ namespace Fancy {
     bool success = false;
     if (someProperties.myIsConstantBuffer)
     {
-      nativeData.myType = GpuResourceViewDataDX12::CBV;
+      myType = GpuResourceViewType::CBV;
       success = CreateCBV(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else if (someProperties.myIsShaderWritable)
     {
-      nativeData.myType = GpuResourceViewDataDX12::UAV;
+      myType = GpuResourceViewType::UAV;
       success = CreateUAV(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else
     {
-      nativeData.myType = GpuResourceViewDataDX12::SRV;
+      myType = GpuResourceViewType::SRV;
       success = CreateSRV(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
 
