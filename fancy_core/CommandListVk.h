@@ -67,6 +67,7 @@ namespace Fancy
     VkCommandBuffer myCommandBuffer;
     VkRenderPass myRenderPass;
     VkFramebuffer myFramebuffer;
+    glm::uvec2 myFramebufferRes;
   };
 }
 

@@ -114,14 +114,8 @@ namespace Fancy
       return renderPass;
     }
 //---------------------------------------------------------------------------//      
-    VkFramebuffer locCreateFramebuffer(const TextureView** someRendertargets, uint aNumRenderTargets, const TextureView* aDepthStencilTarget, VkRenderPass aRenderPass)
+    VkFramebuffer locCreateFramebuffer(const TextureView** someRendertargets, uint aNumRenderTargets, const TextureView* aDepthStencilTarget, glm::uvec2 aFramebufferRes, VkRenderPass aRenderPass)
     {
-      ASSERT(aNumRenderTargets > 0);
-
-      const TextureProperties& textureProps = someRendertargets[0]->GetTexture()->GetProperties();
-      const uint width = textureProps.myWidth;
-      const uint height = textureProps.myHeight;
-
       VkImageView attachments[RenderConstants::kMaxNumRenderTargets + 1u];
       for (uint i = 0u; i < aNumRenderTargets; ++i)
       {
@@ -143,8 +137,8 @@ namespace Fancy
       framebufferInfo.renderPass = aRenderPass;
       framebufferInfo.pAttachments = attachments;
       framebufferInfo.attachmentCount = hasDepthStencilTarget ? aNumRenderTargets + 1u : aNumRenderTargets;
-      framebufferInfo.width = width;
-      framebufferInfo.height = height;
+      framebufferInfo.width = aFramebufferRes.x;
+      framebufferInfo.height = aFramebufferRes.y;
       framebufferInfo.layers = 1u;  // TODO: Support layered rendering
 
       VkFramebuffer framebuffer = nullptr;
@@ -414,6 +408,7 @@ namespace Fancy
     , myCommandBuffer(nullptr)
     , myRenderPass(nullptr)
     , myFramebuffer(nullptr)
+    , myFramebufferRes(0u, 0u)
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
@@ -480,6 +475,7 @@ namespace Fancy
   {
     myRenderPass = nullptr;
     myFramebuffer = nullptr;
+    myFramebufferRes = glm::uvec2(0u, 0u);
 
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
   }
@@ -513,9 +509,19 @@ namespace Fancy
     ApplyGraphicsPipelineState();
 
     VkRenderPassBeginInfo renderPassBegin;
-    renderPassBegin.
+    renderPassBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBegin.pNext = nullptr;
+    renderPassBegin.renderArea.offset = { 0, 0 };
+    renderPassBegin.renderArea.extent = { myFramebufferRes.x, myFramebufferRes.y };
+    renderPassBegin.clearValueCount = 0u;
+    renderPassBegin.pClearValues = nullptr;
+    renderPassBegin.renderPass = myRenderPass;
+
+    vkCmdBeginRenderPass(myCommandBuffer, &renderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
 
     vkCmdDrawIndexed(myCommandBuffer, aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
+
+    vkCmdEndRenderPass(myCommandBuffer);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::RenderGeometry(const GeometryData* pGeometry)
@@ -605,7 +611,7 @@ namespace Fancy
     }
 
     myRenderTargetsDirty = false;
-    
+
     const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
     ASSERT(numRtsToSet <= RenderConstants::kMaxNumRenderTargets);
     ASSERT(myCurrentContext == CommandListType::Graphics);
@@ -647,6 +653,15 @@ namespace Fancy
     if (hasDepthStencilTarget)
       MathUtil::hash_combine(framebufferHash, reinterpret_cast<uint64>(myDepthStencilTarget));
 
+    glm::uvec2 framebufferRes(1u, 1u);
+    const TextureView* firstRenderTarget = numRtsToSet > 0 ? myRenderTargets[0] : myDepthStencilTarget;
+    if (firstRenderTarget != nullptr)
+    {
+      const TextureProperties& textureProps = firstRenderTarget->GetTexture()->GetProperties();
+      framebufferRes.x = textureProps.myWidth;
+      framebufferRes.y = textureProps.myHeight;
+    }
+
     VkFramebuffer framebuffer = nullptr;
     auto framebufferIt = ourFramebufferCache.find(framebufferHash);
     if (framebufferIt != ourFramebufferCache.end())
@@ -655,12 +670,13 @@ namespace Fancy
     }
     else
     {
-      framebuffer = Priv_CommandListVk::locCreateFramebuffer(const_cast<const TextureView**>(myRenderTargets), numRtsToSet, myDepthStencilTarget, renderPass);
+      framebuffer = Priv_CommandListVk::locCreateFramebuffer(const_cast<const TextureView**>(myRenderTargets), numRtsToSet, myDepthStencilTarget, framebufferRes, renderPass);
       ourFramebufferCache[framebufferHash] = framebuffer;
     }
 
     myRenderPass = renderPass;
     myFramebuffer = framebuffer;
+    myFramebufferRes = framebufferRes;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyTopologyType()
