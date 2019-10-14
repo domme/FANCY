@@ -20,7 +20,7 @@ namespace Fancy
         case ShaderStage::TESS_HULL: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
         case ShaderStage::TESS_DOMAIN: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
         case ShaderStage::COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
-        default: ASSERT(false, "Missing implementation");
+        default: ASSERT(false, "Missing implementation"); return VK_SHADER_STAGE_VERTEX_BIT;
       }
     }
   //---------------------------------------------------------------------------//

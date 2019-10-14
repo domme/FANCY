@@ -76,7 +76,7 @@ namespace Fancy {
     desc.AddressW = locResolveAddressMode(myDescription.addressModeZ);
     for (uint i = 0u; i < 4u; ++i)
       desc.BorderColor[i] = myDescription.borderColor[i];
-    desc.ComparisonFunc = Adapter::toNativeType(myDescription.comparisonFunc);
+    desc.ComparisonFunc = RenderCore_PlatformDX12::ResolveCompFunc(myDescription.comparisonFunc);
     desc.Filter = locResolveFilterMode(myDescription.minFiltering, myDescription.magFiltering);
     desc.MaxAnisotropy = myDescription.myMaxAnisotropy;
     desc.MaxLOD = myDescription.fMaxLod;

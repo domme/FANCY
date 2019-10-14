@@ -5,3 +5,7 @@ Fancy Rendering Framework - Issues and Todos
 - Get rid of the platform-specific TextureView(DX12/Vk)-specialization. GpuResourceView already has a nativeData-Any member. TextureViewDX12/Vk is only used for properly releasing the descriptor on DX12. That could also be done in the GpuResourceViewDataDX12-destructor.
 
 - Support layered framebuffers
+
+- Get rid of AdapterDX12 and move the resolve-functions into platform_dx12
+
+- Rename RenderCore_PlatformDX12 to something simpler like "RenderPlatformDX12"

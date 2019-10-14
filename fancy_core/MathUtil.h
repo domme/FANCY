@@ -20,13 +20,18 @@ namespace Fancy { namespace MathUtil {
 
     const auto CombineHash = [&](uint aVal)
     {
-      hash ^= hasher(hasher(aVal) * 2654435761u) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+      hash ^= hasher(
+        static_cast<uint>(hasher(aVal))
+        * 2654435761u)
+      + 0x9e3779b9 
+      + (hash << 6) 
+      + (hash >> 2);
     };
 
-    for (uint i = 0u; i < numDWORDs; ++i)
+    for (uint64 i = 0u; i < numDWORDs; ++i)
       CombineHash(dwordPtr[i]);
 
-    for (uint i = numDWORDbytes; i < aSize; ++i)
+    for (uint64 i = numDWORDbytes; i < aSize; ++i)
       CombineHash(static_cast<uint>(aValue[i]));
 
     return hash;

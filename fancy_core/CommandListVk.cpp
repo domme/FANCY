@@ -553,6 +553,7 @@ namespace Fancy
   GpuQuery CommandListVk::InsertTimestamp()
   {
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    return GpuQuery();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset)
@@ -573,6 +574,7 @@ namespace Fancy
   bool CommandListVk::IsOpen() const
   {
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    return false;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::SetComputeProgram(const Shader* aProgram)
@@ -595,6 +597,7 @@ namespace Fancy
     CommandListType aDstQueue)
   {
     ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    return false;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyViewportAndClipRect()
