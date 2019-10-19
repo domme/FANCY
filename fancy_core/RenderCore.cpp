@@ -173,7 +173,7 @@ namespace Fancy {
     ResolveUsedQueryData();
 
     CommandQueue* graphicsQueue = GetCommandQueue(CommandListType::Graphics);
-    const uint64 completedFrameFence = graphicsQueue->SignalAndIncrementFence();
+    const uint64 completedFrameFence = graphicsQueue->GetLastRequestedFenceVal();
 
     ASSERT(!ourQueuedFrameDoneFences.IsFull());
     ourQueuedFrameDoneFences.Add(completedFrameFence);

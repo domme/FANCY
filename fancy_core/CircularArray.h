@@ -51,12 +51,17 @@ namespace Fancy
     Handle GetHandle(uint anElement) { return { GetBufferIndex(anElement) }; }
     uint GetElementIndex(Handle aHandle) const { ASSERT(aHandle.myIndex < myCapacity); return aHandle.myIndex >= myHead ? aHandle.myIndex - myHead : (aHandle.myIndex + myCapacity) - myHead; }
 
+    T& GetFirst() { ASSERT(!IsEmpty()); return myBuffer[myHead]; }
+    const T& GetFirst() const { ASSERT(!IsEmpty()); return myBuffer[myHead]; }
+
+    T& GetLast() { ASSERT(!IsEmpty()); return myBuffer[myTail]; }
+    const T& GetLast() const { ASSERT(!IsEmpty()); return myBuffer[myTail]; }
+
     T& operator[](uint anElement) { ASSERT(anElement < Size()); return myBuffer[(myHead + anElement) % myCapacity]; }
     const T& operator[](uint anElement) const { ASSERT(anElement < Size()); return myBuffer[(myHead + anElement) % myCapacity]; }
 
     T& operator[](Handle aHandle) { ASSERT(aHandle.myIndex < myCapacity); return myBuffer[aHandle.myIndex]; }
     const T& operator[](Handle aHandle) const { ASSERT(aHandle.myIndex < myCapacity); return myBuffer[aHandle.myIndex]; }
-
     void Add(T aVal)
     {
       ASSERT(!IsFull());
@@ -64,6 +69,15 @@ namespace Fancy
       myTail = myTail == (myCapacity - 1u) ? 0 : myTail + 1u;
       ++mySize;
       myBuffer[tail] = std::move(aVal);
+    }
+
+    T& Add()
+    {
+      ASSERT(!IsFull());
+      const uint tail = myTail;
+      myTail = myTail == (myCapacity - 1u) ? 0 : myTail + 1u;
+      ++mySize;
+      return myBuffer[tail];
     }
 
     void RemoveLastElement()

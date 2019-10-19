@@ -9,3 +9,5 @@ Fancy Rendering Framework - Issues and Todos
 - Get rid of AdapterDX12 and move the resolve-functions into platform_dx12
 
 - Rename RenderCore_PlatformDX12 to something simpler like "RenderPlatformDX12"
+
+- Vulkan: Re-write the fence-system when VK_KHR_timeline_semaphore becomes more widely available (Intel?)

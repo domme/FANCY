@@ -42,6 +42,8 @@ namespace Fancy
     
     void SetComputeProgram(const Shader* aProgram) override;
     void Dispatch(const glm::int3& aNumThreads) override;
+
+    VkCommandBuffer GetCommandBuffer() const { return myCommandBuffer; }
     
   protected:
     bool SubresourceBarrierInternal(

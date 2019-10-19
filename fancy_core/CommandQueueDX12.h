@@ -15,7 +15,6 @@ namespace Fancy
     ~CommandQueueDX12() = default;
 
     bool IsFenceDone(uint64 aFenceVal) override;
-    uint64 SignalAndIncrementFence() override;
     // Waits for a fence-completion on CPU timeline
     void WaitForFence(uint64 aFenceVal) override;
     void WaitForIdle() override;
@@ -28,5 +27,8 @@ namespace Fancy
 	  Microsoft::WRL::ComPtr<ID3D12CommandQueue> myQueue;
     Microsoft::WRL::ComPtr<ID3D12Fence> myFence;
     HANDLE myFenceCompletedEvent;
+
+  protected:
+    uint64 SignalAndIncrementFence();
   };
 }
