@@ -18,6 +18,8 @@ namespace Fancy
     void StallForQueue(const CommandQueue* aCommandQueue) override;
     void StallForFence(uint64 aFenceVal) override;
 
+    VkQueue GetQueue() const { return myQueue; }
+
   protected:
     struct Semaphore
     {

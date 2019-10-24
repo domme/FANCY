@@ -7,6 +7,7 @@
 #include "GpuResource.h"
 #include "GpuResourceDataVk.h"
 #include "TextureVk.h"
+#include "CommandQueueVk.h"
 
 namespace Fancy
 {
@@ -54,8 +55,11 @@ namespace Fancy
       }
       ASSERT(formatSupported, "Required backbuffer format not supported for swapchain creation");
       ASSERT(colorSpaceSupported, "Required color space not supported for swapchain creation");
+
+      myBackbufferFormat = backbufferFormat;
+      myBackbufferColorSpace = backbufferColorSpace;
     }
-    
+
     VkPresentModeKHR bestPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
     // Choose a present mode
     {
@@ -81,44 +85,58 @@ namespace Fancy
           bestPresentMode = presentMode;
       }
       ASSERT(presentModePriorities[bestPresentMode] > 0u, "None of the desired present mode options seems to be supported for Vulkan swap chain creation");
+      myPresentMode = bestPresentMode;
     }
 
-    VkExtent2D swapChainRes;
+    VkSurfaceCapabilitiesKHR surfaceCaps;
+    ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(platformVk->myPhysicalDevice, mySurface, &surfaceCaps));
+    myNumBackbuffers = glm::clamp(kBackbufferCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
+
+    CreateSwapChain();
+
+    VkFenceCreateInfo fenceCreateInfo;
+    fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceCreateInfo.pNext = nullptr;
+    fenceCreateInfo.flags = 0u;
+    ASSERT_VK_RESULT(vkCreateFence(platformVk->myDevice, &fenceCreateInfo, nullptr, &myBackbufferReadyFence));
+  }
+  //---------------------------------------------------------------------------//
+  RenderOutputVk::~RenderOutputVk()
+  {
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    vkDestroySwapchainKHR(platformVk->myDevice, mySwapChain, nullptr);
+    vkDestroySurfaceKHR(platformVk->myInstance, mySurface, nullptr);
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutputVk::CreateSwapChain()
+  {
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+
     VkSurfaceCapabilitiesKHR surfaceCaps;
     ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(platformVk->myPhysicalDevice, mySurface, &surfaceCaps));
 
-    swapChainRes = surfaceCaps.currentExtent;
+    VkExtent2D swapChainRes = surfaceCaps.currentExtent;
     if (swapChainRes.width == UINT_MAX)
       swapChainRes.width = glm::clamp(myWindow->GetWidth(), surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
     if (swapChainRes.height == UINT_MAX)
       swapChainRes.height = glm::clamp(myWindow->GetHeight(), surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
-
-    myNumBackbuffers = glm::clamp(kBackbufferCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = mySurface;
     createInfo.minImageCount = myNumBackbuffers;
     createInfo.imageExtent = swapChainRes;
-    createInfo.imageColorSpace = backbufferColorSpace;
-    createInfo.imageFormat = backbufferFormat;
+    createInfo.imageColorSpace = myBackbufferColorSpace;
+    createInfo.imageFormat = myBackbufferFormat;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;  // SHARING would only be needed if the present-queue is different from the graphics-queue, which we don't support currently.
     createInfo.preTransform = surfaceCaps.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    createInfo.presentMode = bestPresentMode;
+    createInfo.presentMode = myPresentMode;
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = nullptr;  // Needed for swapchain-recreation after resizing later...
-
     ASSERT_VK_RESULT(vkCreateSwapchainKHR(platformVk->myDevice, &createInfo, nullptr, &mySwapChain));
-  }
-//---------------------------------------------------------------------------//
-  RenderOutputVk::~RenderOutputVk()
-  {
-    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    vkDestroySwapchainKHR(platformVk->myDevice, mySwapChain, nullptr);
-    vkDestroySurfaceKHR(platformVk->myInstance, mySurface, nullptr);
   }
 //---------------------------------------------------------------------------//
   void RenderOutputVk::CreateBackbufferResources(uint aWidth, uint aHeight)
@@ -163,24 +181,46 @@ namespace Fancy
       myBackbufferTextures[i]->SetName(name.GetBuffer());
     }
   }
-
+  //---------------------------------------------------------------------------//
   void RenderOutputVk::ResizeBackbuffer(uint aWidth, uint aHeight)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    vkDestroySwapchainKHR(RenderCore::GetPlatformVk()->myDevice, mySwapChain, nullptr);
+    CreateSwapChain();
   }
-
+  //---------------------------------------------------------------------------//
   void RenderOutputVk::DestroyBackbufferResources()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    for (uint i = 0u; i < kBackbufferCount; ++i)
+    {
+      myBackbufferTextures[i].reset();
+    }
   }
-
+  //---------------------------------------------------------------------------//
   void RenderOutputVk::OnBeginFrame()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VkDevice device = RenderCore::GetPlatformVk()->myDevice;
+    ASSERT_VK_RESULT(vkAcquireNextImageKHR(device, mySwapChain, UINT64_MAX, nullptr, myBackbufferReadyFence, &myCurrBackbufferIndex));
+    while (vkWaitForFences(device, 1u, &myBackbufferReadyFence, true, UINT64_MAX) != VK_SUCCESS)
+    {
+      // Wait indefinitely
+    }
+    ASSERT_VK_RESULT(vkResetFences(device, 1u, &myBackbufferReadyFence));
   }
-
+  //---------------------------------------------------------------------------//
   void RenderOutputVk::Present()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    const CommandQueueVk* graphicsQueue = static_cast<CommandQueueVk*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
+
+    VkPresentInfoKHR presentInfo;
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.pNext = nullptr;
+    presentInfo.swapchainCount = 1u;
+    presentInfo.pResults = nullptr;
+    presentInfo.pImageIndices = &myCurrBackbufferIndex;
+    presentInfo.pSwapchains = &mySwapChain;
+    presentInfo.pWaitSemaphores = nullptr;  // Wait-semaphores should be unnecessary when the present-queue is the graphics-queue.
+    presentInfo.waitSemaphoreCount = 0u;
+    ASSERT_VK_RESULT(vkQueuePresentKHR(graphicsQueue->GetQueue(), &presentInfo));
   }
+//---------------------------------------------------------------------------//
 }
