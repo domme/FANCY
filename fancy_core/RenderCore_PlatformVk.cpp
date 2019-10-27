@@ -391,6 +391,7 @@ namespace Fancy
       myPhysicalDevice = devices[highestScoreIdx];
       vkGetPhysicalDeviceFeatures(myPhysicalDevice, &myPhysicalDeviceFeatures);
       vkGetPhysicalDeviceProperties(myPhysicalDevice, &myPhysicalDeviceProperties);
+      vkGetPhysicalDeviceMemoryProperties(myPhysicalDevice, &myPhysicalDeviceMemoryProperties);
     }
 
     // Create queues and logical device

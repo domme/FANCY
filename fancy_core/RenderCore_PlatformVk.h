@@ -44,7 +44,10 @@ namespace Fancy
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
 
     VkCommandPool GetCommandPool(CommandListType aCommandListType);
+
+    const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return myPhysicalDeviceMemoryProperties; }
     
+    // TODO: Make these members private and add getter-functions where needed
     VkInstance myInstance = nullptr;
     VkPhysicalDevice myPhysicalDevice = nullptr;
     VkDevice myDevice = nullptr;
@@ -61,6 +64,9 @@ namespace Fancy
 
     VkPhysicalDeviceFeatures myPhysicalDeviceFeatures;
     VkPhysicalDeviceProperties myPhysicalDeviceProperties;
+
+  protected:
+    VkPhysicalDeviceMemoryProperties myPhysicalDeviceMemoryProperties;
   };
 }
 

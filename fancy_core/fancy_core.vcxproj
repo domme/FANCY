@@ -87,6 +87,7 @@
     <ClInclude Include="DynamicDescriptorHeapDX12.h" />
     <ClInclude Include="FixedArray.h" />
     <ClInclude Include="GpuBufferProperties.h" />
+    <ClInclude Include="GpuBufferVk.h" />
     <ClInclude Include="GpuMemoryAllocationDX12.h" />
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
     <ClInclude Include="ShaderCompilerVk.h" />
@@ -192,6 +193,7 @@
     <ClCompile Include="Fancy.cpp" />
     <ClCompile Include="FileReader.cpp" />
     <ClCompile Include="CommandAllocatorPoolDX12.cpp" />
+    <ClCompile Include="GpuBufferVk.cpp" />
     <ClCompile Include="GpuMemoryAllocatorDX12.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
