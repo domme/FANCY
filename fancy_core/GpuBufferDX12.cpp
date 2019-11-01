@@ -288,25 +288,8 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  void* GpuBufferDX12::Map(GpuResourceMapMode aMapMode, uint64 anOffset, uint64 aSize) const
+  void* GpuBufferDX12::Map_Internal(uint64 anOffset, uint64 aSize) const
   {
-    const uint64 bufferSize = myProperties.myNumElements * myProperties.myElementSizeBytes;
-    aSize = glm::min(bufferSize, aSize);
-    ASSERT(anOffset + aSize <= bufferSize);
-
-    const bool isCpuWritable = myProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE;
-    const bool isCpuReadable = myProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ;
-
-    const bool wantsWrite = aMapMode == GpuResourceMapMode::WRITE_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::WRITE;
-    const bool wantsRead = aMapMode == GpuResourceMapMode::READ_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::READ;
-
-    if ((wantsWrite && !isCpuWritable) || (wantsRead && !isCpuReadable))
-      return nullptr;
-
-    const bool needsWait = aMapMode == GpuResourceMapMode::READ || aMapMode == GpuResourceMapMode::WRITE;
-    if (needsWait)
-      RenderCore::WaitForResourceIdle(this);
-
     D3D12_RANGE range;
     range.Begin = anOffset;
     range.End = range.Begin + aSize;
@@ -317,12 +300,8 @@ namespace Fancy {
     return mappedData;
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Unmap(GpuResourceMapMode aMapMode, uint64 anOffset /* = 0u */, uint64 aSize /* = UINT64_MAX */) const
+  void GpuBufferDX12::Unmap_Internal(GpuResourceMapMode aMapMode, uint64 anOffset /* = 0u */, uint64 aSize /* = UINT64_MAX */) const
   {
-    const uint64 bufferSize = myProperties.myNumElements * myProperties.myElementSizeBytes;
-    aSize = glm::min(bufferSize, aSize);
-    ASSERT(anOffset + aSize <= bufferSize);
-
     D3D12_RANGE range;
     range.Begin = anOffset;
     range.End = range.Begin + aSize;

@@ -8,6 +8,7 @@ namespace Fancy
   struct GpuResourceDataVk
   {
     GpuResourceCategory myType;
+    VkDeviceMemory myMemory;
     union
     {
       VkBuffer myBuffer;

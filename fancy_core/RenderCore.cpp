@@ -1081,21 +1081,8 @@ namespace Fancy {
   void RenderCore::WaitForIdle(CommandListType aType)
   {
     CommandQueue* queue = GetCommandQueue(aType);
-    queue->WaitForIdle();
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore::WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset, uint aNumSubresources)
-  {
-    /* TODO: 
-     * This method just waits on all queues the resource has been used on, even if it hasn't been written to or has been written to a long time ago. 
-     * Instead, the hazardData should include the fences after the last write-access for all queues so this method can wait on those fences instead.
-     */
-    const GpuResourceStateTracking& hazardData = aResource->myStateTracking;
-
-    bool commandListNeedsWait[(uint)CommandListType::NUM] = { true, true, false };
-    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      if (commandListNeedsWait[i])
-        WaitForIdle((CommandListType)i);
+    if (queue != nullptr)
+      queue->WaitForIdle();
   }
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)

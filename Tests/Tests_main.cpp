@@ -37,6 +37,8 @@ bool test_asyncCompute = false;
 bool test_mipmapping = false;
 bool test_modelviewer = false;
 
+constexpr bool kEnableImGui = false; // Deactivate IMGUI for Vulkan development?
+
 DynamicArray<UniquePtr<Test>> myTests;
 
 void OnWindowResized(uint aWidth, uint aHeight)
@@ -51,7 +53,7 @@ void Init(HINSTANCE anInstanceHandle)
 {
   RenderingStartupParameters params;
   // params.myRenderingApi = RenderPlatformType::DX12; 
-  params.myRenderingApi = RenderPlatformType::VULKAN; 
+  params.myRenderingApi = RenderPlatformType::VULKAN;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   Fancy::WindowParameters windowParams;
@@ -67,15 +69,22 @@ void Init(HINSTANCE anInstanceHandle)
   myWindow->myOnResize.Connect(onWindowResized);
   myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
 
-  myImGuiContext = ImGui::CreateContext();
-  ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
+  if (kEnableImGui)
+  {
+    myImGuiContext = ImGui::CreateContext();
+    ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
+  }
 }
 
 void Update()
 {
   myRuntime->BeginFrame();
-  ImGuiRendering::NewFrame();
+  if (kEnableImGui)
+    ImGuiRendering::NewFrame();
   myRuntime->Update(0.016f);
+
+  if (!kEnableImGui)
+    return;
 
   if (ImGui::Checkbox("Test Profiler", &test_profiler))
   {
@@ -157,7 +166,8 @@ void Render()
   for (UniquePtr<Test>& testItem : myTests)
     testItem->OnRender();
 
-  ImGui::Render();
+  if (kEnableImGui)
+    ImGui::Render();
 
   ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceState::WRITE_RENDER_TARGET, GpuResourceState::READ_PRESENT);
   RenderCore::ExecuteAndFreeCommandList(ctx);

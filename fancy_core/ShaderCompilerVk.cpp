@@ -206,7 +206,7 @@ namespace Fancy
         LOG_ERROR("Error compiling hlsl shader %s to SPIR-V: %s", hlslSrcPathAbs.c_str(), errorOutMsg.c_str());
         return false;
       }
-
+      
       DynamicArray<uint8> spvBinaryData;
       const bool spvReadSuccess = FileReader::ReadBinaryFile(spvBinaryFilePathAbs.c_str(), spvBinaryData);
       ASSERT(spvReadSuccess);

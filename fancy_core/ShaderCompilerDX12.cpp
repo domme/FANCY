@@ -307,9 +307,6 @@ namespace Fancy {
       return false;
     }
 
-    anOutput->myDesc = aDesc;
-    anOutput->myProperties.myShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
-
     // Reflect the shader resources
     //---------------------------------------------------------------------------//
     ID3D12ShaderReflection* reflector;

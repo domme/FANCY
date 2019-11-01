@@ -596,7 +596,6 @@ namespace Fancy
     CommandListType aSrcQueue,
     CommandListType aDstQueue)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
     return false;
   }
 //---------------------------------------------------------------------------//

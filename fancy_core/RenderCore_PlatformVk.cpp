@@ -9,6 +9,7 @@
 #include "ShaderPipelineVk.h"
 #include "TextureVk.h"
 #include "CommandListVk.h"
+#include "GpuBufferVk.h"
 
 namespace Fancy
 {
@@ -508,7 +509,7 @@ namespace Fancy
 
   bool RenderCore_PlatformVk::InitInternalResources()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
     return true;
   }
 
@@ -545,8 +546,7 @@ namespace Fancy
 
   GpuBuffer* RenderCore_PlatformVk::CreateBuffer()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
-    return nullptr;
+    return new GpuBufferVk();
   }
 
   CommandList* RenderCore_PlatformVk::CreateCommandList(CommandListType aType)
@@ -565,31 +565,31 @@ namespace Fancy
 
   TextureView* RenderCore_PlatformVk::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
     return nullptr;
   }
 
   GpuBufferView* RenderCore_PlatformVk::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
     return nullptr;
   }
 
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
     return nullptr;
   }
 
   uint RenderCore_PlatformVk::GetQueryTypeDataSize(GpuQueryType aType)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
-    return 0u;
+    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
+    return 64u;
   }
 
   float64 RenderCore_PlatformVk::GetGpuTicksToMsFactor(CommandListType aCommandListType)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
     return 1.0;
   }
 

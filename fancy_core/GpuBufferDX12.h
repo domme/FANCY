@@ -18,12 +18,13 @@ namespace Fancy {
     void SetName(const char* aName) override;
 
     void Create(const GpuBufferProperties& clParameters, const char* aName = nullptr, const void* pInitialData = nullptr) override;
-    void* Map(GpuResourceMapMode aMapMode, uint64 anOffset = 0u, uint64 aSize = UINT64_MAX) const override;
-    void Unmap(GpuResourceMapMode aMapMode, uint64 anOffset = 0u, uint64 aSize = UINT64_MAX) const override;
-
+    
     GpuResourceDataDX12* GetData() const;
 
   protected:
+    void* Map_Internal(uint64 anOffset, uint64 aSize) const override;
+    void Unmap_Internal(GpuResourceMapMode aMapMode, uint64 anOffset, uint64 aSize) const override;
+
     void Destroy();
 	};
 //---------------------------------------------------------------------------//

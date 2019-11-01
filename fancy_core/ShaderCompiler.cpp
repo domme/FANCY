@@ -52,7 +52,13 @@ namespace Fancy
     LOG_INFO("Compiling shader %s...", aDesc.myShaderFileName.c_str());
 
     const char* stageDefine = ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
-    return Compile_Internal(aDesc, stageDefine, aCompilerOutput);
+    const bool success = Compile_Internal(aDesc, stageDefine, aCompilerOutput);
+    if (success)
+    {
+      aCompilerOutput->myDesc = aDesc;
+      aCompilerOutput->myProperties.myShaderStage = static_cast<ShaderStage>(aDesc.myShaderStage);
+    }
+    return success;
   }
  //---------------------------------------------------------------------------//
 }
