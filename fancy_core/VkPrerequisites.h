@@ -7,34 +7,34 @@
 
 namespace Fancy
 {
-  enum VkDebugLevel
+  enum VkImplementationDebugLevel
   {
-    LOG_MISSING_IMPLEMENTATION = 0,
-    ASSERT_MISSING_IMPLEMENTATION
+    VK_IMPLEMENTATION_DEBUG_LEVEL_NONE = 0,
+    VK_IMPLEMENTATION_DEBUG_LEVEL_LOG,
+    VK_IMPLEMENTATION_DEBUG_LEVEL_ASSERT
   };
 
   enum VkDebugConsts
   {
-    kVkDebugLevel = LOG_MISSING_IMPLEMENTATION
+    kVkImplementationDebugLevel = VK_IMPLEMENTATION_DEBUG_LEVEL_LOG
   };
 
-  namespace
+  inline void ASSERT_VK_RESULT(VkResult aResult)
   {
-    void ASSERT_VK_RESULT(VkResult aResult)
-    {
-      if (aResult != VkResult::VK_SUCCESS)
-        throw;
-    }
-
-    void ReportMissingVkImplementation(const char* aFunction)
-    {
-      if (kVkDebugLevel == LOG_MISSING_IMPLEMENTATION)
-
-    }
-
-#define VK_MISSING_IMPLEMENTATION
+    if (aResult != VkResult::VK_SUCCESS)
+      throw;
   }
-  
+
+  inline void ReportMissingVkImplementation(const char* aFile, int aLine)
+  {
+    if (kVkImplementationDebugLevel > VK_IMPLEMENTATION_DEBUG_LEVEL_NONE)
+      Log("Missing Vulkan Implementation: %s (Line %d)", aFile, aLine);
+
+    if (kVkImplementationDebugLevel == VK_IMPLEMENTATION_DEBUG_LEVEL_ASSERT)
+      throw;
+  }
+
+#define VK_MISSING_IMPLEMENTATION(...) ReportMissingVkImplementation(__FILE__, __LINE__)
 }
   
 
