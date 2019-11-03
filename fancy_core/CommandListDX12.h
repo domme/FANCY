@@ -37,8 +37,8 @@ namespace Fancy {
     void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
     void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
 
-    void ReleaseGpuResources(uint64 aFenceVal) override;
-    void Reset() override;
+    void PostExecute(uint64 aFenceVal) override;
+    void PreBegin() override;
     void FlushBarriers() override;
     void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline) override;
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
@@ -55,7 +55,6 @@ namespace Fancy {
 
     void ResourceUAVbarrier(const GpuResource** someResources = nullptr, uint aNumResources = 0u) override;
 
-    bool IsOpen() const override { return myIsOpen; }
     void Close() override;
 
     void SetComputeProgram(const Shader* aProgram) override;
@@ -93,8 +92,7 @@ namespace Fancy {
     DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount);
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
-  
-    bool myIsOpen;
+    
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12RootSignature* myComputeRootSignature;
     ID3D12GraphicsCommandList* myCommandList;

@@ -58,7 +58,9 @@ namespace Fancy {
 
     CommandListType GetType() const { return myCommandListType; }
 
+    /// Clears the RenderTargetView with aColor. The texture needs to be in the WRITE_RENDERTARGET state
     virtual void ClearRenderTarget(TextureView* aTextureView, const float* aColor) = 0;
+    /// Clears the depth and stencil planes of aTextureView with aDepthClear and aStencilClear. Texture needs to be in the WRITE_RENDERTARGET state
     virtual void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) = 0;
     virtual void CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) = 0;
@@ -83,14 +85,14 @@ namespace Fancy {
       uint aNumResources = 0u) = 0;
 
     virtual void Close() = 0;
-    virtual bool IsOpen() const = 0;
 
     virtual void FlushBarriers() = 0;
     virtual void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline);
     virtual void SetComputeProgram(const Shader* aProgram);
-    virtual void ReleaseGpuResources(uint64 aFenceVal);
-    virtual void Reset();
+    virtual void PostExecute(uint64 aFenceVal);
+    virtual void PreBegin();
 
+    bool IsOpen() const { return myIsOpen; }
     void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
     void BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize);
@@ -140,6 +142,7 @@ namespace Fancy {
 
     glm::uvec4 myViewportParams;
     glm::uvec4 myClipRect;
+    bool myIsOpen;
     bool myViewportDirty;
     bool myClipRectDirty;
     bool myTopologyDirty;

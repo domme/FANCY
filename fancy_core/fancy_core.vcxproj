@@ -72,6 +72,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraController.h" />
     <ClInclude Include="CircularArray.h" />
+    <ClInclude Include="CommandBufferAllocatorVk.h" />
     <ClInclude Include="CommandList.h" />
     <ClInclude Include="CommandListDX12.h" />
     <ClInclude Include="CommandListVk.h" />
@@ -179,6 +180,7 @@
     <ClCompile Include="BinaryCache.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraController.cpp" />
+    <ClCompile Include="CommandBufferAllocatorVk.cpp" />
     <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandListDX12.cpp" />
     <ClCompile Include="CommandListVk.cpp" />

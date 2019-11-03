@@ -506,29 +506,34 @@ namespace Fancy
   {
     return myDevice != nullptr;
   }
-
+//---------------------------------------------------------------------------//
   bool RenderCore_PlatformVk::InitInternalResources()
   {
-    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
+    myCommandBufferAllocators[(uint)CommandListType::Graphics].reset(new CommandBufferAllocatorVk(CommandListType::Graphics));
+    myCommandBufferAllocators[(uint)CommandListType::Compute].reset(new CommandBufferAllocatorVk(CommandListType::Compute));
+
     return true;
   }
-
+//---------------------------------------------------------------------------//
   void RenderCore_PlatformVk::Shutdown()
   {
+    for (UniquePtr<CommandBufferAllocatorVk>& cmdBufferAllocator : myCommandBufferAllocators)
+      cmdBufferAllocator.reset();
+
     vkDestroyInstance(myInstance, nullptr);
     vkDestroyDevice(myDevice, nullptr);
   }
-
+//---------------------------------------------------------------------------//
   RenderOutput* RenderCore_PlatformVk::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
   {
     return new RenderOutputVk(aNativeInstanceHandle, someWindowParams);
   }
-
+//---------------------------------------------------------------------------//
   ShaderCompiler* RenderCore_PlatformVk::CreateShaderCompiler()
   {
     return new ShaderCompilerVk();
   }
-
+//---------------------------------------------------------------------------//
   Shader* RenderCore_PlatformVk::CreateShader()
   {
     return new ShaderVk();
@@ -565,47 +570,42 @@ namespace Fancy
 
   TextureView* RenderCore_PlatformVk::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName)
   {
-    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
+    VK_MISSING_IMPLEMENTATION();
     return nullptr;
   }
 
   GpuBufferView* RenderCore_PlatformVk::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName)
   {
-    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
+    VK_MISSING_IMPLEMENTATION();
     return nullptr;
   }
 
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)
   {
-    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
+    VK_MISSING_IMPLEMENTATION();
     return nullptr;
   }
 
   uint RenderCore_PlatformVk::GetQueryTypeDataSize(GpuQueryType aType)
   {
-    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
+    VK_MISSING_IMPLEMENTATION();
     return 64u;
   }
 
   float64 RenderCore_PlatformVk::GetGpuTicksToMsFactor(CommandListType aCommandListType)
   {
-    LOG_DEBUG("Not Implemented (Vk): %s", __FUNCTION__);
+    VK_MISSING_IMPLEMENTATION();
     return 1.0;
   }
-
-  VkCommandPool RenderCore_PlatformVk::GetCommandPool(CommandListType aCommandListType)
+//---------------------------------------------------------------------------//
+  VkCommandBuffer RenderCore_PlatformVk::GetNewCommandBuffer(CommandListType aCommandListType)
   {
-    // TODO: Don't just create a new pool all the time! Use a caching-scheme like on DX12. However, we first need fences functional on command-queues to detect when its safe to reuse a command pool on a new command list
-
-    VkCommandPool commandPool = nullptr;
-
-    VkCommandPoolCreateInfo createInfo;
-    createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    createInfo.pNext = nullptr;
-    createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    createInfo.queueFamilyIndex = myQueueInfos[(uint)aCommandListType].myQueueFamilyIndex;
-    ASSERT_VK_RESULT(vkCreateCommandPool(myDevice, &createInfo, nullptr, &commandPool));
-
-    return commandPool;
+    return myCommandBufferAllocators[(uint)aCommandListType]->GetNewCommandBuffer();
   }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::ReleaseCommandBuffer(VkCommandBuffer aCommandBuffer, CommandListType aCommandListType, uint64 aCommandBufferDoneFence)
+  {
+    myCommandBufferAllocators[(uint)aCommandListType]->ReleaseCommandBuffer(aCommandBuffer, aCommandBufferDoneFence);
+  }
+//---------------------------------------------------------------------------//
 }

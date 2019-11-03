@@ -19,8 +19,8 @@ namespace Fancy
     void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion) override;
     void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
 
-    void ReleaseGpuResources(uint64 aFenceVal) override;
-    void Reset() override;
+    void PostExecute(uint64 aFenceVal) override;
+    void PreBegin() override;
     void FlushBarriers() override;
     void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline) override;
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset, uint64 aSize) override;
@@ -38,7 +38,6 @@ namespace Fancy
     void ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources) override;
 
     void Close() override;
-    bool IsOpen() const override;
     
     void SetComputeProgram(const Shader* aProgram) override;
     void Dispatch(const glm::int3& aNumThreads) override;
@@ -57,9 +56,10 @@ namespace Fancy
 
     void ApplyViewportAndClipRect();
     void ApplyRenderTargets();
-    void ApplyTopologyType();
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
+
+    void BeginCommandBuffer();
     
     static std::unordered_map<uint64, VkPipeline> ourPipelineCache;
     static std::unordered_map<uint64, VkRenderPass> ourRenderpassCache;

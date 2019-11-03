@@ -3,6 +3,7 @@
 
 #include "VkPrerequisites.h"
 #include "FancyCoreDefines.h"
+#include "CommandBufferAllocatorVk.h"
 
 namespace Fancy
 {
@@ -43,7 +44,8 @@ namespace Fancy
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
 
-    VkCommandPool GetCommandPool(CommandListType aCommandListType);
+    VkCommandBuffer GetNewCommandBuffer(CommandListType aCommandListType);
+    void ReleaseCommandBuffer(VkCommandBuffer aCommandBuffer, CommandListType aCommandListType, uint64 aCommandBufferDoneFence);
 
     const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return myPhysicalDeviceMemoryProperties; }
     
@@ -67,6 +69,8 @@ namespace Fancy
 
   protected:
     VkPhysicalDeviceMemoryProperties myPhysicalDeviceMemoryProperties;
+
+    UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::NUM];
   };
 }
 

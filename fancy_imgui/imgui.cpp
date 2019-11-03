@@ -7790,7 +7790,7 @@ static void ImGui::NavUpdate()
         }
     }
 
-    // Reset search results
+    // PreBegin search results
     g.NavMoveResultLocal.Clear();
     g.NavMoveResultLocalVisibleSet.Clear();
     g.NavMoveResultOther.Clear();

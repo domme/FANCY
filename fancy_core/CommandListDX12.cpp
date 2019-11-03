@@ -105,7 +105,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandListDX12::CommandListDX12(CommandListType aCommandListType)
     : CommandList(aCommandListType)
-    , myIsOpen(true)
     , myRootSignature(nullptr)
     , myComputeRootSignature(nullptr)
     , myCommandList(nullptr)
@@ -125,7 +124,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandListDX12::~CommandListDX12()
   {
-    CommandListDX12::ReleaseGpuResources(0ull);
+    CommandListDX12::PostExecute(0ull);
 
     if (myCommandList != nullptr)
       myCommandList->Release();
@@ -494,9 +493,9 @@ namespace Fancy {
     myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::ReleaseGpuResources(uint64 aFenceVal)
+  void CommandListDX12::PostExecute(uint64 aFenceVal)
   {
-    CommandList::ReleaseGpuResources(aFenceVal);
+    CommandList::PostExecute(aFenceVal);
 
     for (DynamicDescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
       if (heap != nullptr)
@@ -512,9 +511,9 @@ namespace Fancy {
     myCommandAllocator = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::Reset()
+  void CommandListDX12::PreBegin()
   {
-    CommandList::Reset();
+    CommandList::PreBegin();
 
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
@@ -523,7 +522,6 @@ namespace Fancy {
 
     myRootSignature = nullptr;
     myComputeRootSignature = nullptr;
-    myIsOpen = true;
     myNumPendingBarriers = 0u;
   }
 //---------------------------------------------------------------------------//

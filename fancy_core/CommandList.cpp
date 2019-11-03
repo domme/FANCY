@@ -91,6 +91,7 @@ namespace Fancy {
     , myCurrentContext(aType)
     , myViewportParams(0, 0, 1, 1)
     , myClipRect(0, 0, 1, 1)
+    , myIsOpen(true)
     , myViewportDirty(true)
     , myClipRectDirty(true)
     , myTopologyDirty(true)
@@ -256,7 +257,7 @@ namespace Fancy {
     myClipRectDirty = true;
   }
 //---------------------------------------------------------------------------//
-  void CommandList::ReleaseGpuResources(uint64 aFenceVal)
+  void CommandList::PostExecute(uint64 aFenceVal)
   {
     for (GpuRingBuffer* buf : myUploadRingBuffers)
       RenderCore::ReleaseRingBuffer(buf, aFenceVal);
@@ -283,9 +284,9 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::Reset()
+  void CommandList::PreBegin()
   {
-    ASSERT(!IsOpen(), "Reset() called on open command list. Gpu-resources will not get freed! Did you forget to execute the command list?");
+    ASSERT(!IsOpen(), "PreBegin() called on open command list. Gpu-resources will not get freed! Did you forget to execute the command list?");
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
@@ -296,6 +297,8 @@ namespace Fancy {
     myRenderTargetsDirty = true;
     myDepthStencilTarget = nullptr;
     memset(myRenderTargets, 0u, sizeof(myRenderTargets));
+
+    myIsOpen = true;
   }
 //---------------------------------------------------------------------------//
   void CommandList::SetViewport(const glm::uvec4& uViewportParams)

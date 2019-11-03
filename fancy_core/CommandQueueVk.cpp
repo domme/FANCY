@@ -192,7 +192,7 @@ namespace Fancy
     ASSERT_VK_RESULT(vkQueueSubmit(myQueue, 1u, &submitInfo, commandListDoneSyncPoint->myFence));
     const uint64 fenceVal = commandListDoneSyncPoint->myWaitingOnVal;
 
-    aCommandList->ReleaseGpuResources(fenceVal);
+    aCommandList->PostExecute(fenceVal);
 
     if (aSyncMode == SyncMode::BLOCKING)
       WaitForFence(fenceVal);
@@ -203,7 +203,7 @@ namespace Fancy
   uint64 CommandQueueVk::ExecuteAndResetCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode)
   {
     const uint64 fenceVal = ExecuteCommandListInternal(aCommandList, aSyncMode);
-    aCommandList->Reset();
+    aCommandList->PreBegin();
     return fenceVal;
   }
 //---------------------------------------------------------------------------//

@@ -8,7 +8,9 @@
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "Texture.h"
+#include "TextureVk.h"
 #include "GpuResourceViewDataVk.h"
+#include "GpuBufferVk.h"
 
 namespace Fancy
 {
@@ -411,28 +413,33 @@ namespace Fancy
     , myFramebufferRes(0u, 0u)
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    myCommandBuffer = platformVk->GetNewCommandBuffer(myCommandListType);
 
-    VkCommandPool commandPool = platformVk->GetCommandPool(aType);
-
-    VkCommandBufferAllocateInfo allocateInfo;
-    allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocateInfo.pNext = nullptr;
-    allocateInfo.commandBufferCount = 1u;
-    allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocateInfo.commandPool = commandPool;
-    ASSERT_VK_RESULT(vkAllocateCommandBuffers(platformVk->myDevice, &allocateInfo, &myCommandBuffer));
+    BeginCommandBuffer();
   }
 //---------------------------------------------------------------------------//
   CommandListVk::~CommandListVk()
   {
-    CommandListVk::ReleaseGpuResources(0ull);
+    CommandListVk::PostExecute(0ull);
 
     
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    // At this point, the texture is expected to be in the WRITE_RENDERTARGET state (High-level API design follows D3D12).
+    // This translates to VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL. In order to use vkCmdClearColorImage, it needs to be in e.g. IMAGE_LAYOUT_GENERAL or TRANSFER_DST layout
+
+    GpuResourceDataVk* dataVk = static_cast<TextureVk*>(aTextureView->GetTexture())->GetData();
+        
+    // TODO: Transition to a supported image layout
+    VkClearColorValue clearColor;
+    memcpy(clearColor.float32, aColor, sizeof(clearColor.float32));
+
+    VkImageSubresourceRange subRange;
+    vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, VK_IMAGE_LAYOUT_GENERAL, &clearColor,  )
+
+    
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
@@ -442,62 +449,77 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, 
     const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation,const TextureRegion* aSrcRegion)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::ReleaseGpuResources(uint64 aFenceVal)
+  void CommandListVk::PostExecute(uint64 aFenceVal)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    CommandList::PostExecute(aFenceVal);
+
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    platformVk->ReleaseCommandBuffer(myCommandBuffer, myCommandListType, aFenceVal);
+    myCommandBuffer = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::Reset()
+  void CommandListVk::PreBegin()
   {
+    CommandList::PreBegin();
+
     myRenderPass = nullptr;
     myFramebuffer = nullptr;
     myFramebufferRes = glm::uvec2(0u, 0u);
 
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    myCommandBuffer = platformVk->GetNewCommandBuffer(myCommandListType);
+    ASSERT_VK_RESULT(vkResetCommandBuffer(myCommandBuffer, 0u));
+
+    BeginCommandBuffer();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::FlushBarriers()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset, uint64 aSize)
+  void CommandListVk::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset, uint64 /*aSize*/)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
+    vkCmdBindVertexBuffers(myCommandBuffer, 0u, 1u, &resourceDataVk->myBuffer, &anOffset);
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset, uint64 aSize)
+  void CommandListVk::BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset, uint64 /*aSize*/)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    ASSERT(anIndexSize == 2u || anIndexSize == 4u);
+    const VkIndexType indexType = anIndexSize == 2u ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
+
+    GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
+    vkCmdBindIndexBuffer(myCommandBuffer, resourceDataVk->myBuffer, anOffset, indexType);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
@@ -505,7 +527,6 @@ namespace Fancy
     FlushBarriers();
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
-    ApplyTopologyType();
     ApplyGraphicsPipelineState();
 
     VkRenderPassBeginInfo renderPassBegin;
@@ -526,65 +547,62 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::RenderGeometry(const GeometryData* pGeometry)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandListVk::BeginQuery(GpuQueryType aType)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
     return GpuQuery(GpuQueryType::TIMESTAMP, 0u, 0ull, myCommandListType);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::EndQuery(const GpuQuery& aQuery)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandListVk::InsertTimestamp()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
     return GpuQuery();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::Close()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
-  }
-//---------------------------------------------------------------------------//
-  bool CommandListVk::IsOpen() const
-  {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
-    return false;
+    if (myIsOpen)
+      ASSERT_VK_RESULT(vkEndCommandBuffer(myCommandBuffer));
+
+    myIsOpen = false;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::SetComputeProgram(const Shader* aProgram)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::Dispatch(const glm::int3& aNumThreads)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   bool CommandListVk::SubresourceBarrierInternal(
@@ -596,12 +614,45 @@ namespace Fancy
     CommandListType aSrcQueue,
     CommandListType aDstQueue)
   {
-    return false;
+    VK_MISSING_IMPLEMENTATION();
+    return true;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyViewportAndClipRect()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    if (myViewportDirty)
+    {
+      VkViewport viewport;
+      viewport.x = static_cast<float>(myViewportParams.x);
+      viewport.y = static_cast<float>(myViewportParams.y);
+      viewport.width = static_cast<float>(myViewportParams.z);
+      viewport.height = static_cast<float>(myViewportParams.w);
+      viewport.minDepth = 0.0f;
+      viewport.maxDepth = 1.0f;
+
+      vkCmdSetViewport(myCommandBuffer, 0u, 1u, &viewport);
+
+      myClipRectDirty = true;
+      myViewportDirty = false;
+    }
+
+    if (myClipRectDirty)
+    {
+      const int left = static_cast<int>(myClipRect.x);
+      const int top = static_cast<int>(myClipRect.y);
+      const int right = static_cast<int>(myClipRect.z);
+      const int bottom = static_cast<int>(myClipRect.w);
+
+      VkRect2D clipRect;
+      clipRect.offset.x = left;
+      clipRect.offset.y = top;
+      clipRect.extent.width = right - left;
+      clipRect.extent.height = bottom - top;
+
+      vkCmdSetScissor(myCommandBuffer, 0u, 1u, &clipRect);
+
+      myClipRectDirty = false;
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyRenderTargets()
@@ -681,11 +732,6 @@ namespace Fancy
     myFramebufferRes = framebufferRes;
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::ApplyTopologyType()
-  {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
-  }
-//---------------------------------------------------------------------------//
   void CommandListVk::ApplyGraphicsPipelineState()
   {
     if (!myGraphicsPipelineState.myIsDirty)
@@ -715,7 +761,17 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyComputePipelineState()
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::BeginCommandBuffer()
+  {
+    VkCommandBufferBeginInfo info;
+    info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    info.pNext = nullptr;
+    info.pInheritanceInfo = nullptr;
+    info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    ASSERT_VK_RESULT(vkBeginCommandBuffer(myCommandBuffer, &info));
   }
 //---------------------------------------------------------------------------//
 }

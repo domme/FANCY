@@ -83,7 +83,7 @@ namespace Fancy
     myQueue->ExecuteCommandLists(1, &cmdList);
 
     const uint64 fenceVal = SignalAndIncrementFence();
-    aCommandList->ReleaseGpuResources(fenceVal);
+    aCommandList->PostExecute(fenceVal);
 
     if (aSyncMode == SyncMode::BLOCKING)
       WaitForFence(fenceVal);
@@ -94,7 +94,7 @@ namespace Fancy
   uint64 CommandQueueDX12::ExecuteAndResetCommandListInternal(CommandList* aContext, SyncMode aSyncMode)
   {
     const uint64 fenceVal = ExecuteCommandListInternal(aContext, aSyncMode);
-    aContext->Reset();
+    aContext->PreBegin();
     return fenceVal;
   }
 //---------------------------------------------------------------------------//
