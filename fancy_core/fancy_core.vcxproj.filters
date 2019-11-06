@@ -365,6 +365,9 @@
     <ClInclude Include="CommandBufferAllocatorVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="ResourceBarriersVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -552,6 +555,9 @@
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="CommandBufferAllocatorVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceBarriersVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
