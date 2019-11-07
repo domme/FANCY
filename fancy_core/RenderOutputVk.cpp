@@ -165,8 +165,9 @@ namespace Fancy
       }
 
       resource.myStateTracking = GpuResourceStateTracking();
-      // TODO(Vk): Add similar read- and write-state masks as in DX12?
       resource.myStateTracking.myDefaultState = GpuResourceState::READ_PRESENT;
+      resource.myStateTracking.myVkData.myReadAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
+      resource.myStateTracking.myVkData.myWriteAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

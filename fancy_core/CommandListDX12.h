@@ -97,7 +97,7 @@ namespace Fancy {
     ID3D12RootSignature* myComputeRootSignature;
     ID3D12GraphicsCommandList* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
-    D3D12_RESOURCE_BARRIER myPendingBarriers[256];
+    D3D12_RESOURCE_BARRIER myPendingBarriers[kNumCachedBarriers];
     uint myNumPendingBarriers;
 
     DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];

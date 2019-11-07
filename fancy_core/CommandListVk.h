@@ -70,6 +70,35 @@ namespace Fancy
     VkRenderPass myRenderPass;
     VkFramebuffer myFramebuffer;
     glm::uvec2 myFramebufferRes;
+
+    struct BufferMemoryBarrier
+    {
+      VkBuffer myBuffer = nullptr;
+      VkAccessFlags mySrcAccessMask = 0;
+      VkAccessFlags myDstAccessMask = 0;
+      uint mySrcQueueFamilyIndex = 0;
+      uint myDstQueueFamilyIndex = 0;
+    };
+
+    struct ImageMemoryBarrier
+    {
+      VkImageSubresourceRange mySubresourceRange;
+      VkImage myImage = nullptr;
+      VkAccessFlags mySrcAccessMask = 0;
+      VkAccessFlags myDstAccessMask = 0;
+      VkImageLayout mySrcLayout = VK_IMAGE_LAYOUT_GENERAL;
+      VkImageLayout myDstLayout = VK_IMAGE_LAYOUT_GENERAL;
+      uint mySrcQueueFamilyIndex = 0;
+      uint myDstQueueFamilyIndex = 0;
+    };
+
+    BufferMemoryBarrier myPendingBufferBarriers[kNumCachedBarriers];
+    ImageMemoryBarrier myPendingImageBarriers[kNumCachedBarriers];
+    uint myNumPendingBufferBarriers;
+    uint myNumPendingImageBarriers;
+
+    VkPipelineStageFlags myPendingBarrierSrcStageMask;
+    VkPipelineStageFlags myPendingBarrierDstStageMask;
   };
 }
 

@@ -194,7 +194,6 @@ namespace Fancy {
   {
     switch (aState)
     {
-      case GpuResourceState::COMMON: return "COMMON";
       case GpuResourceState::READ_INDIRECT_ARGUMENT: return "READ_INDIRECT_ARGUMENT";
       case GpuResourceState::READ_VERTEX_BUFFER: return "READ_VERTEX_BUFFER";
       case GpuResourceState::READ_INDEX_BUFFER: return "READ_INDEX_BUFFER";

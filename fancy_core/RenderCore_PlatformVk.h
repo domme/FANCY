@@ -7,6 +7,14 @@
 
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
+  struct ResourceBarrierInfoVk
+  {
+    VkPipelineStageFlags myStageMask;
+    VkAccessFlags myAccessMask;
+    VkImageLayout myImageLayout;
+  };
+//---------------------------------------------------------------------------//
   class RenderCore_PlatformVk final : public Fancy::RenderCore_Platform
   {
   public:
@@ -20,6 +28,7 @@ namespace Fancy
     static VkPolygonMode ResolveFillMode(FillMode aFillMode);
     static VkFrontFace ResolveWindingOrder(WindingOrder aWindingOrder);
     static VkCullModeFlagBits ResolveCullMode(CullMode aCullMode);
+    static ResourceBarrierInfoVk ResolveResourceState(GpuResourceState aResourceState);
 
     RenderCore_PlatformVk();
     ~RenderCore_PlatformVk() override;
@@ -48,7 +57,15 @@ namespace Fancy
     void ReleaseCommandBuffer(VkCommandBuffer aCommandBuffer, CommandListType aCommandListType, uint64 aCommandBufferDoneFence);
 
     const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return myPhysicalDeviceMemoryProperties; }
-    
+
+    struct QueueInfo
+    {
+      int myQueueFamilyIndex = -1;
+      int myQueueIndex = -1;
+    };
+
+    const QueueInfo& GetQueueInfo(CommandListType aCommandListType) { return myQueueInfos[(uint)aCommandListType]; }
+
     // TODO: Make these members private and add getter-functions where needed
     VkInstance myInstance = nullptr;
     VkPhysicalDevice myPhysicalDevice = nullptr;
@@ -57,11 +74,6 @@ namespace Fancy
 
     PFN_vkSetDebugUtilsObjectNameEXT VkSetDebugUtilsObjectNameEXT = nullptr;
 
-    struct QueueInfo
-    {
-      int myQueueFamilyIndex = -1;
-      int myQueueIndex = -1;
-    };
     QueueInfo myQueueInfos[(uint)CommandListType::NUM];
 
     VkPhysicalDeviceFeatures myPhysicalDeviceFeatures;

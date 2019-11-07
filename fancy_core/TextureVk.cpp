@@ -40,12 +40,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void TextureVk::Create(const TextureProperties& someProperties, const char* aName, const TextureSubData* someInitialDatas, uint aNumInitialDatas)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void TextureVk::GetSubresourceLayout(const TextureSubLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   GpuResourceDataVk* TextureVk::GetData() const

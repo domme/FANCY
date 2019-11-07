@@ -950,6 +950,9 @@ namespace Fancy {
     CommandListType aSrcQueue,
     CommandListType aDstQueue)
   {
+    const D3D12_RESOURCE_STATES kResourceStateMask_ComputeContext = D3D12_RESOURCE_STATE_UNORDERED_ACCESS | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT | D3D12_RESOURCE_STATE_COPY_DEST | D3D12_RESOURCE_STATE_COPY_SOURCE;
+    const D3D12_RESOURCE_STATES kResourceStateMask_GraphicsContext = static_cast<D3D12_RESOURCE_STATES>(~0u);
+
     const uint stateMaskFrom = aSrcQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
     const uint stateMaskTo = aDstQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
     const uint stateMaskCmdList = myCommandListType == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;

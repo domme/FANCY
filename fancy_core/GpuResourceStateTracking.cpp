@@ -16,7 +16,6 @@ namespace Fancy
 
     switch (aState)
     {
-      case GpuResourceState::COMMON: return true; // This should mean "idle" more or less so it could be supported on any queue-type
       case GpuResourceState::READ_INDIRECT_ARGUMENT: return (graphics || compute) && queueIsLessSpecificOrEqual;
       case GpuResourceState::READ_VERTEX_BUFFER: return graphics;
       case GpuResourceState::READ_INDEX_BUFFER: return graphics;
@@ -55,7 +54,6 @@ namespace Fancy
 
     switch (aState)
     {
-      case GpuResourceState::COMMON: return true; // This should mean "idle" more or less so it could be supported on any queue-type
       case GpuResourceState::READ_INDIRECT_ARGUMENT: return compute;
       case GpuResourceState::READ_VERTEX_BUFFER: return false;
       case GpuResourceState::READ_INDEX_BUFFER: return false;

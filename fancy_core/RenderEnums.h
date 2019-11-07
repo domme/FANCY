@@ -148,8 +148,7 @@ namespace Fancy
 //-----------------------------------------------------------------------//
   enum class GpuResourceState
   {
-    COMMON = 0, FIRST_READ_STATE = 0,
-    READ_INDIRECT_ARGUMENT,
+    READ_INDIRECT_ARGUMENT = 0, FIRST_READ_STATE = 0,
     READ_VERTEX_BUFFER,
     READ_INDEX_BUFFER,
     READ_VERTEX_SHADER_CONSTANT_BUFFER,

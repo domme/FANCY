@@ -438,7 +438,6 @@ namespace Fancy {
   {
     switch (aState)
     {
-    case GpuResourceState::COMMON:                               return D3D12_RESOURCE_STATE_COMMON;
     case GpuResourceState::READ_INDIRECT_ARGUMENT:               return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
     case GpuResourceState::READ_VERTEX_BUFFER:                   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
     case GpuResourceState::READ_INDEX_BUFFER:                    return D3D12_RESOURCE_STATE_INDEX_BUFFER;

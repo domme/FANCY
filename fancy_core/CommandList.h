@@ -126,6 +126,10 @@ namespace Fancy {
       GpuResourceState aDstState);
         
   protected:
+    enum Consts {
+      kNumCachedBarriers = 256
+    };
+
     virtual bool SubresourceBarrierInternal(
       const GpuResource* aResource,
       const uint16* someSubresources,
