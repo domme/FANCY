@@ -554,6 +554,9 @@
     <ClCompile Include="CommandBufferAllocatorVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="GpuResource.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

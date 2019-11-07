@@ -440,6 +440,46 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  VkImageAspectFlags RenderCore_PlatformVk::ResolveAspectMask(uint aFirstPlaneIndex, uint aNumPlanes, DataFormat aFormat)
+  {
+    ASSERT(aNumPlanes > 0u);
+
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aFormat);
+    ASSERT(aFirstPlaneIndex + aNumPlanes <= formatInfo.myNumPlanes);
+
+    VkImageAspectFlags aspectMask = 0u;
+
+    if (formatInfo.myIsDepthStencil)
+    {
+      ASSERT(aNumPlanes <= 2);
+      ASSERT(formatInfo.myNumPlanes == 2);
+
+      if (aFirstPlaneIndex == 0)
+        aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+      if (aFirstPlaneIndex + aNumPlanes >= 1)
+        aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
+    else
+    {
+      ASSERT(aNumPlanes == 1);
+      ASSERT(aFirstPlaneIndex == 0);
+      aspectMask |= VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+
+    return aspectMask;
+  }
+//---------------------------------------------------------------------------//
+  VkImageSubresourceRange RenderCore_PlatformVk::ResolveSubresourceRange(const SubresourceRange& aRange, DataFormat aFormat)
+  {
+    VkImageSubresourceRange rangeVk;
+    rangeVk.baseMipLevel = aRange.myFirstMipLevel;
+    rangeVk.levelCount = aRange.myNumMipLevels;
+    rangeVk.baseArrayLayer = aRange.myFirstArrayIndex;
+    rangeVk.layerCount = aRange.myNumArrayIndices;
+    rangeVk.aspectMask = ResolveAspectMask(aRange.myFirstPlane, aRange.myNumPlanes, aFormat);
+    return rangeVk;
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)

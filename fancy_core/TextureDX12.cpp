@@ -123,11 +123,7 @@ namespace Fancy {
       readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
     }
     
-    const uint numArraySlices = myProperties.GetArraySize();
-    const uint numSubresources = formatInfo.myNumPlanes * numArraySlices * myProperties.myNumMipLevels;
-    myNumSubresources = numSubresources;
-    myNumSubresourcesPerPlane = numArraySlices * myProperties.myNumMipLevels;
-    myNumPlanes = formatInfo.myNumPlanes;
+    mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), formatInfo.myNumPlanes);
 
     myStateTracking = GpuResourceStateTracking();
     myStateTracking.myDefaultState = defaultState;
@@ -220,7 +216,7 @@ namespace Fancy {
 
         CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
         ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
-        ctx->UpdateTextureData(this, TextureSubLocation(), newDatas, aNumInitialDatas);
+        ctx->UpdateTextureData(this, SubresourceLocation(), newDatas, aNumInitialDatas);
         ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
 
@@ -233,14 +229,14 @@ namespace Fancy {
       {
         CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
         ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
-        ctx->UpdateTextureData(this, TextureSubLocation(), someInitialDatas, aNumInitialDatas);
+        ctx->UpdateTextureData(this, SubresourceLocation(), someInitialDatas, aNumInitialDatas);
         ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }
   }
 //---------------------------------------------------------------------------//
-  void TextureDX12::GetSubresourceLayout(const TextureSubLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
+  void TextureDX12::GetSubresourceLayout(const SubresourceLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
   {
     // TODO support plane-indices?
     ASSERT(IsValid());
@@ -350,32 +346,12 @@ namespace Fancy {
     const uint numTexArraySlices = texProps.GetArraySize();
     
     myNativeData = nativeData;
-    mySubresources->reserve(aTexture->myNumSubresources);
+    const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
+    mySubresourceRange = subresourceRange;
 
-    const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
-
-    if (myType != GpuResourceViewType::DSV)
-    {
-      ASSERT(subresourceRange.myFirstPlane == 0u && subresourceRange.myNumPlanes == 1u);
-
-      for (uint iArray = subresourceRange.myFirstArrayIndex, e = subresourceRange.myFirstArrayIndex + subresourceRange.myNumArrayIndices; iArray < e; ++iArray)
-        for (uint iMip = subresourceRange.myFirstMipLevel, eMip = subresourceRange.myFirstMipLevel + subresourceRange.myNumMipLevels; iMip < eMip; ++iMip)
-          mySubresources[0].push_back(TextureDX12::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, 0u));
-
-      myCoversAllSubresources = mySubresources[0].size() == aTexture->myNumSubresources;
-    }
-    else // DSV
-    {
-      ASSERT(formatInfo.myNumPlanes <= GpuResourceView::ourNumSupportedPlanes);
-      for (int i = 0; i < (int) formatInfo.myNumPlanes; ++i)
-      {
-        for (uint iArray = subresourceRange.myFirstArrayIndex, e = subresourceRange.myFirstArrayIndex + subresourceRange.myNumArrayIndices; iArray < e; ++iArray)
-          for (uint iMip = subresourceRange.myFirstMipLevel, eMip = subresourceRange.myFirstMipLevel + subresourceRange.myNumMipLevels; iMip < eMip; ++iMip)
-            mySubresources[i].push_back(TextureDX12::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, i));
-      }
-
-      myCoversAllSubresources = mySubresources[0].size() == aTexture->myNumSubresourcesPerPlane;
-    }
+    myCoversAllSubresources = subresourceRange.myNumMipLevels == texProps.myNumMipLevels
+      && subresourceRange.myNumArrayIndices == texProps.myDepthOrArraySize
+      && subresourceRange.myNumPlanes == DataFormatInfo::GetFormatInfo(texProps.eFormat).myNumPlanes;
   }
 //---------------------------------------------------------------------------//
   TextureViewDX12::~TextureViewDX12()
@@ -391,7 +367,7 @@ namespace Fancy {
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
     DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::ResolveFormat(someProperties.myFormat);
-    const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
+    const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
     if (formatInfo.myIsDepthStencil)
     {
       ASSERT(subresourceRange.myFirstPlane <= 1);
@@ -473,7 +449,7 @@ namespace Fancy {
   {
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
     uavDesc.Format = RenderCore::GetPlatformDX12()->ResolveFormat(someProperties.myFormat);
-    const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
+    const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
     ASSERT(subresourceRange.myNumPlanes == 1u);
 
     if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
@@ -525,7 +501,7 @@ namespace Fancy {
     D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 
     rtvDesc.Format = RenderCore::GetPlatformDX12()->ResolveFormat(someProperties.myFormat);
-    const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
+    const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
     ASSERT(subresourceRange.myNumPlanes == 1u);
 
     if (someProperties.myDimension == GpuResourceDimension::TEXTURE_1D)
@@ -577,7 +553,7 @@ namespace Fancy {
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
     const DXGI_FORMAT baseFormat = RenderCore_PlatformDX12::ResolveFormat(someProperties.myFormat);
 
-    const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
+    const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
 
     dsvDesc.Format = RenderCore_PlatformDX12::GetDepthStencilViewFormat(baseFormat);
     dsvDesc.Flags = D3D12_DSV_FLAG_NONE;

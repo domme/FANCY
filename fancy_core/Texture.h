@@ -17,14 +17,8 @@ namespace Fancy {
     Texture(GpuResource&& aResource, const TextureProperties& someProperties);
     virtual ~Texture() = default;
 
-    static uint CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex);
-    static uint CalcNumSubresources(uint aNumMips, uint aNumArraySlices, uint aNumPlanes);
-
     virtual void Create(const TextureProperties& someProperties, const char* aName = nullptr, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) = 0;
-    virtual void GetSubresourceLayout(const TextureSubLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const = 0;
-
-    uint GetSubresourceIndex(const TextureSubLocation& aSubresourceLocation) const;
-    TextureSubLocation GetSubresourceLocation(uint aSubresourceIndex) const;
+    virtual void GetSubresourceLayout(const SubresourceLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const = 0;
 
     const TextureProperties& GetProperties() const { return myProperties; }
     

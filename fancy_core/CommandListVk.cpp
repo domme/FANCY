@@ -431,24 +431,27 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
   {
-    // At this point, the texture is expected to be in the WRITE_RENDERTARGET state (High-level API design follows D3D12).
-    // This translates to VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL. In order to use vkCmdClearColorImage, it needs to be in e.g. IMAGE_LAYOUT_GENERAL or TRANSFER_DST layout
-
-    GpuResourceDataVk* dataVk = static_cast<TextureVk*>(aTextureView->GetTexture())->GetData();
-        
-    // TODO: Transition to a supported image layout
+    // Need to temporarily transition to WRITE_COPY_DEST so that the image is in the VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL layout.
+    // The ATTACHMENT_OPTIMAL layout is not supported with vkCmdClearColorImage
+    SubresourceBarrier(aTextureView, GpuResourceState::WRITE_RENDER_TARGET, GpuResourceState::WRITE_COPY_DEST);
+    FlushBarriers();
+    
     VkClearColorValue clearColor;
     memcpy(clearColor.float32, aColor, sizeof(clearColor.float32));
 
-    VkImageSubresourceRange subRange;
-    // vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, VK_IMAGE_LAYOUT_GENERAL, &clearColor,  )
+    VkImageSubresourceRange subRange = RenderCore_PlatformVk::ResolveSubresourceRange(aTextureView->mySubresourceRange, 
+      aTextureView->GetTexture()->GetProperties().eFormat);
 
-    
+    GpuResourceDataVk* dataVk = static_cast<TextureVk*>(aTextureView->GetTexture())->GetData();
+    vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clearColor, 1u, &subRange);
+
+    SubresourceBarrier(aTextureView, GpuResourceState::WRITE_COPY_DEST, GpuResourceState::WRITE_RENDER_TARGET);
+    FlushBarriers();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
   {
-    ASSERT(!VK_ASSERT_MISSING_IMPLEMENTATION, "Not implemented");
+    VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
@@ -461,18 +464,18 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
+  void CommandListVk::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
   {
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, 
-    const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation,const TextureRegion* aSrcRegion)
+  void CommandListVk::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, 
+    const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation,const TextureRegion* aSrcRegion)
   {
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  void CommandListVk::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
     VK_MISSING_IMPLEMENTATION();
   }
@@ -505,9 +508,54 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::FlushBarriers()
   {
+    if (myNumPendingImageBarriers == 0u && myNumPendingBufferBarriers == 0u)
+      return;
+
+    ASSERT(myPendingBarrierSrcStageMask != 0u && myPendingBarrierDstStageMask != 0u);
+
+    VkImageMemoryBarrier imageBarriersVk[kNumCachedBarriers];
+    VkBufferMemoryBarrier bufferBarriersVk[kNumCachedBarriers];
+
+    for (uint i = 0u, e = myNumPendingImageBarriers; i < e; ++i)
+    {
+      VkImageMemoryBarrier& imageBarrierVk = imageBarriersVk[i];
+      const ImageMemoryBarrier& pendingBarrier = myPendingImageBarriers[i];
+
+      imageBarrierVk.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+      imageBarrierVk.pNext = nullptr;
+      imageBarrierVk.subresourceRange = pendingBarrier.mySubresourceRange;
+      imageBarrierVk.image = pendingBarrier.myImage;
+      imageBarrierVk.srcAccessMask = pendingBarrier.mySrcAccessMask;
+      imageBarrierVk.dstAccessMask = pendingBarrier.myDstAccessMask;
+      imageBarrierVk.oldLayout = pendingBarrier.mySrcLayout;
+      imageBarrierVk.newLayout = pendingBarrier.myDstLayout;
+      imageBarrierVk.srcQueueFamilyIndex = pendingBarrier.mySrcQueueFamilyIndex;
+      imageBarrierVk.dstQueueFamilyIndex = pendingBarrier.myDstQueueFamilyIndex;
+    }
+
+    for (uint i = 0u, e = myNumPendingBufferBarriers; i < e; ++i)
+    {
+      VkBufferMemoryBarrier& bufferBarrierVk = bufferBarriersVk[i];
+      const BufferMemoryBarrier& pendingBarrier = myPendingBufferBarriers[i];
+
+      bufferBarrierVk.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+      bufferBarrierVk.pNext = nullptr;
+      bufferBarrierVk.buffer = pendingBarrier.myBuffer;
+      bufferBarrierVk.srcAccessMask = pendingBarrier.mySrcAccessMask;
+      bufferBarrierVk.dstAccessMask = pendingBarrier.myDstAccessMask;
+      bufferBarrierVk.srcQueueFamilyIndex = pendingBarrier.mySrcQueueFamilyIndex;
+      bufferBarrierVk.dstQueueFamilyIndex = pendingBarrier.myDstQueueFamilyIndex;
+    }
+
+    const VkDependencyFlags dependencyFlags = 0u;
+    vkCmdPipelineBarrier(myCommandBuffer, myPendingBarrierSrcStageMask, myPendingBarrierDstStageMask, 
+      dependencyFlags, 0u, nullptr, 
+      myNumPendingBufferBarriers, bufferBarriersVk, myNumPendingImageBarriers, imageBarriersVk);
+
     myNumPendingBufferBarriers = 0u;
     myNumPendingImageBarriers = 0u;
-    VK_MISSING_IMPLEMENTATION();
+    myPendingBarrierSrcStageMask = 0u;
+    myPendingBarrierDstStageMask = 0u;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
@@ -560,6 +608,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const
   {
+
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
@@ -610,15 +659,16 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::Dispatch(const glm::int3& aNumThreads)
   {
+    FlushBarriers();
+
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
   bool CommandListVk::SubresourceBarrierInternal(
-    const GpuResource* aResource, 
-    const uint16* someSubresources,
-    uint aNumSubresources, 
-    GpuResourceState aSrcState, 
-    GpuResourceState aDstState, 
+    const GpuResource* aResource,
+    const SubresourceRange& aSubresourceRange,
+    GpuResourceState aSrcState,
+    GpuResourceState aDstState,
     CommandListType aSrcQueue,
     CommandListType aDstQueue)
   {
@@ -664,20 +714,15 @@ namespace Fancy
      const uint srcQueueFamilyIndex = platformVk->GetQueueInfo(aSrcQueue).myQueueFamilyIndex;
      const uint dstQueueFamilyIndex = platformVk->GetQueueInfo(aDstQueue).myQueueFamilyIndex;
 
-     constexpr uint kNumTempBarriers = 128u;
-     ImageMemoryBarrier imageBarriers[kNumTempBarriers];
-     BufferMemoryBarrier bufferBarriers[kNumTempBarriers];
-     uint numBarriers = 0u;
-     ASSERT(ARRAY_LENGTH(imageBarriers) < ARRAY_LENGTH(myPendingImageBarriers));
-     ASSERT(ARRAY_LENGTH(bufferBarriers) < ARRAY_LENGTH(myPendingBufferBarriers));
-
      const bool isImage = aResource->myCategory == GpuResourceCategory::TEXTURE;
      GpuResourceDataVk* dataVk = aResource->myNativeData.To<GpuResourceDataVk*>();
 
+     if (myNumPendingImageBarriers >= kNumCachedBarriers || myNumPendingBufferBarriers >= kNumCachedBarriers)
+       FlushBarriers();
+
      if (isImage)
      {
-       ASSERT(numBarriers < kNumTempBarriers);
-       ImageMemoryBarrier& imageBarrier = imageBarriers[numBarriers++];
+       ImageMemoryBarrier& imageBarrier = myPendingImageBarriers[myNumPendingImageBarriers++];
        imageBarrier.myImage = dataVk->myImage;
        imageBarrier.mySrcAccessMask = srcAccessMask;
        imageBarrier.myDstAccessMask = dstAccessMask;
@@ -686,22 +731,21 @@ namespace Fancy
        imageBarrier.mySrcQueueFamilyIndex = srcQueueFamilyIndex;
        imageBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;
 
-       VkImageSubresourceRange& subRange = imageBarrier.mySubresourceRange;
-       if (someSubresources == nullptr || aNumSubresources >= aResource->myNumSubresources)  // All subresources
-       {
-         
-       }
-       else
-       {
-         
-       }
+       const TextureVk* texture = static_cast<const TextureVk*>(aResource);
+       imageBarrier.mySubresourceRange = RenderCore_PlatformVk::ResolveSubresourceRange(aSubresourceRange, texture->GetProperties().eFormat);
      }
      else
      {
-       ASSERT(numBarriers < kNumTempBarriers);
-       BufferMemoryBarrier& bufferBarrier = bufferBarriers[numBarriers++];
+       BufferMemoryBarrier& bufferBarrier = myPendingBufferBarriers[myNumPendingBufferBarriers++];
+       bufferBarrier.myBuffer = dataVk->myBuffer;
+       bufferBarrier.mySrcAccessMask = srcAccessMask;
+       bufferBarrier.myDstAccessMask = dstAccessMask;
+       bufferBarrier.mySrcQueueFamilyIndex = srcQueueFamilyIndex;
+       bufferBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;
      }
 
+     myPendingBarrierSrcStageMask |= srcPipelineMask;
+     myPendingBarrierDstStageMask |= dstPipelineMask;
 
     return true;
   }

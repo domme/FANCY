@@ -197,6 +197,7 @@
     <ClCompile Include="CommandAllocatorPoolDX12.cpp" />
     <ClCompile Include="GpuBufferVk.cpp" />
     <ClCompile Include="GpuMemoryAllocatorDX12.cpp" />
+    <ClCompile Include="GpuResource.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="ShaderCompilerDX12.cpp" />

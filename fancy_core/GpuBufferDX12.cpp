@@ -99,9 +99,7 @@ namespace Fancy {
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;
 
-    myNumSubresources = 1u;
-    myNumSubresourcesPerPlane = 1u;
-    myNumPlanes = 1u;
+    mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();
@@ -183,7 +181,7 @@ namespace Fancy {
     ASSERT(success);
 
     myNativeData = nativeData;
-    mySubresources->push_back(0u);
+    mySubresourceRange = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
     myCoversAllSubresources = true;
   }
 //---------------------------------------------------------------------------//

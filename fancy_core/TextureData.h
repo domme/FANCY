@@ -28,9 +28,9 @@ namespace Fancy
     uint myNumRows;
   };
 //---------------------------------------------------------------------------//
-  struct TextureSubLocation
+  struct SubresourceLocation
   {
-    TextureSubLocation(uint aMipLevel = 0u, uint anArrayIndex = 0u, uint aPlaneIndex = 0u)
+    SubresourceLocation(uint aMipLevel = 0u, uint anArrayIndex = 0u, uint aPlaneIndex = 0u)
       : myMipLevel(aMipLevel)
       , myArrayIndex(anArrayIndex)
       , myPlaneIndex(aPlaneIndex) 
@@ -41,9 +41,11 @@ namespace Fancy
     uint myPlaneIndex;
   };
 //---------------------------------------------------------------------------//
-  struct TextureSubRange
+  struct SubresourceIterator;
+
+  struct SubresourceRange
   {
-    TextureSubRange(
+    SubresourceRange(
       uint aFirstMipLevel = 0u,
       uint aNumMipLevels = 1u,
       uint aFirstArrayIndex = 0u,
@@ -58,12 +60,37 @@ namespace Fancy
       , myNumPlanes(aNumPlanes)
     { }
 
+    bool operator==(const SubresourceRange& anOther) const;
+
+    SubresourceIterator Begin() const;
+    SubresourceIterator End() const;
+    bool IsEmpty() const;
+
     uint myFirstMipLevel;
     uint myNumMipLevels;
     uint myFirstArrayIndex;
     uint myNumArrayIndices;
     uint myFirstPlane;
     uint myNumPlanes;
+  };
+//---------------------------------------------------------------------------//
+  struct SubresourceIterator
+  {
+    explicit SubresourceIterator(const SubresourceRange& aRange);
+    SubresourceIterator(const SubresourceRange& aRange, SubresourceLocation aLocation);
+
+    const SubresourceLocation& operator*() const { return myCurrentLocation; }
+    const SubresourceLocation* operator->() const { return &myCurrentLocation; }
+    const SubresourceLocation& operator++();
+    bool operator==(const SubresourceIterator& anOther) const;
+    bool operator!=(const SubresourceIterator& anOther) const;
+
+  private:
+    bool IsEnd() const;
+
+    SubresourceRange myRange;
+    SubresourceLocation myCurrentLocation;
+    SubresourceLocation myEndLocation;
   };
 //---------------------------------------------------------------------------//
   struct TextureRegion

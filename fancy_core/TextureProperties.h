@@ -56,7 +56,7 @@ namespace Fancy {
       , myZSize(1u)
     { }
 
-    TextureSubRange mySubresourceRange;
+    SubresourceRange mySubresourceRange;
     GpuResourceDimension myDimension;
     DataFormat myFormat;
     bool myIsShaderWritable;

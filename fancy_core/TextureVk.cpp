@@ -43,7 +43,7 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void TextureVk::GetSubresourceLayout(const TextureSubLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
+  void TextureVk::GetSubresourceLayout(const SubresourceLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
   {
     VK_MISSING_IMPLEMENTATION();
   }
@@ -96,7 +96,7 @@ namespace Fancy
       const GpuResourceDataVk* const dataVk = textureVk->GetData();
 
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
-      const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
+      const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
 
       VkImageViewCreateInfo info;
       info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -174,38 +174,18 @@ namespace Fancy
 
     nativeData.myView.myImage = Priv_TextureViewVk::locCreateImageView(aTexture.get(), someProperties);
     ASSERT(nativeData.myView.myImage != nullptr && myType != GpuResourceViewType::NONE);
-    myNativeData = nativeData;
-
+    
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numTexMips = texProps.myNumMipLevels;
     const uint numTexArraySlices = texProps.GetArraySize();
 
-    mySubresources->reserve(aTexture->myNumSubresources);
+    myNativeData = nativeData;
+    const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
+    mySubresourceRange = subresourceRange;
 
-    const TextureSubRange& subresourceRange = someProperties.mySubresourceRange;
-
-    if (myType != GpuResourceViewType::DSV)
-    {
-      ASSERT(subresourceRange.myFirstPlane == 0u && subresourceRange.myNumPlanes == 1u);
-
-      for (uint iArray = subresourceRange.myFirstArrayIndex, e = subresourceRange.myFirstArrayIndex + subresourceRange.myNumArrayIndices; iArray < e; ++iArray)
-        for (uint iMip = subresourceRange.myFirstMipLevel, eMip = subresourceRange.myFirstMipLevel + subresourceRange.myNumMipLevels; iMip < eMip; ++iMip)
-          mySubresources[0].push_back(TextureVk::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, 0u));
-
-      myCoversAllSubresources = mySubresources[0].size() == aTexture->myNumSubresources;
-    }
-    else // DSV
-    {
-      ASSERT(formatInfo.myNumPlanes <= GpuResourceView::ourNumSupportedPlanes);
-      for (int i = 0; i < (int)formatInfo.myNumPlanes; ++i)
-      {
-        for (uint iArray = subresourceRange.myFirstArrayIndex, e = subresourceRange.myFirstArrayIndex + subresourceRange.myNumArrayIndices; iArray < e; ++iArray)
-          for (uint iMip = subresourceRange.myFirstMipLevel, eMip = subresourceRange.myFirstMipLevel + subresourceRange.myNumMipLevels; iMip < eMip; ++iMip)
-            mySubresources[i].push_back(TextureVk::CalcSubresourceIndex(iMip, numTexMips, iArray, numTexArraySlices, i));
-      }
-
-      myCoversAllSubresources = mySubresources[0].size() == aTexture->myNumSubresourcesPerPlane;
-    }
+    myCoversAllSubresources = subresourceRange.myNumMipLevels == texProps.myNumMipLevels
+      && subresourceRange.myNumArrayIndices == texProps.myDepthOrArraySize
+      && subresourceRange.myNumPlanes == DataFormatInfo::GetFormatInfo(texProps.eFormat).myNumPlanes;
   }
 //---------------------------------------------------------------------------//
   TextureViewVk::~TextureViewVk()

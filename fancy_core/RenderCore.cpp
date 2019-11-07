@@ -808,7 +808,7 @@ namespace Fancy {
     return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ, aByteSize);
   }
 //---------------------------------------------------------------------------//
-  MappedTempTextureBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations)
+  MappedTempTextureBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceLocation& aStartSubLocation, uint aNumSublocations)
   {
     DynamicArray<TextureSubLayout> subresourceLayouts;
     DynamicArray<uint64> subresourceOffsets;
@@ -829,7 +829,7 @@ namespace Fancy {
     CommandList* ctx = BeginCommandList(CommandListType::Graphics);
     for (uint subresource = 0; subresource < aNumSublocations; ++subresource)
     {
-      TextureSubLocation subLocation = aTexture->GetSubresourceLocation(startSubresourceIndex + subresource);
+      SubresourceLocation subLocation = aTexture->GetSubresourceLocation(startSubresourceIndex + subresource);
       uint64 offset = subresourceOffsets[subresource];
       ctx->CopyTextureRegion(readbackBuffer.myBuffer, offset, aTexture, subLocation);
     }
@@ -838,7 +838,7 @@ namespace Fancy {
     return MappedTempTextureBuffer(subresourceLayouts, readbackBuffer, GpuResourceMapMode::READ, totalSize);
   }
 //---------------------------------------------------------------------------//
-  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations, TextureData& aTextureDataOut)
+  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceLocation& aStartSubLocation, uint aNumSublocations, TextureData& aTextureDataOut)
   {
     MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aStartSubLocation, aNumSublocations);
     if (readbackTex.myMappedData == nullptr || readbackTex.myLayouts.empty())

@@ -467,7 +467,7 @@ namespace Fancy {
     CopyBufferRegion(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions /*= nullptr*/) // TODO: Support regions
+  void CommandList::UpdateTextureData(const Texture* aDestTexture, const SubresourceLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions /*= nullptr*/) // TODO: Support regions
   {
     DynamicArray<TextureSubLayout> subresourceLayouts;
     DynamicArray<uint64> subresourceOffsets;
@@ -510,32 +510,30 @@ namespace Fancy {
     const uint startDestSubresourceIndex = aDestTexture->GetSubresourceIndex(aStartSubresource);
     for (uint i = 0; i < numSubresources; ++i)
     {
-      const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
+      const SubresourceLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
       CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources, GpuResourceState aSrcState, GpuResourceState aDstState)
+  void CommandList::SubresourceBarrier(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
-    ASSERT(aSubresourceList != nullptr && aNumSubresources > 0u);
+    ASSERT(!aSubresourceRange.IsEmpty());
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-    for (uint i = 0u; i < aNumSubresources; ++i)
+    for (SubresourceIterator subIter = aSubresourceRange.Begin(), end = aSubresourceRange.End(); subIter != end; ++subIter)
     {
-      LOG_INFO("Subresource transition (untracked): Resource %s (subresource %d) from %s-%s to %s-%s",
-        aResource->myName.c_str(), i, RenderCore::CommandListTypeToString(myCommandListType), RenderCore::ResourceUsageStateToString(aSrcState),
+      LOG_INFO("Subresource transition (untracked): Resource %s (subresource mip: %d, array: %d, plane: %d) from %s-%s to %s-%s",
+        aResource->myName.c_str(), subIter->myMipLevel, subIter->myArrayIndex, subIter->myPlaneIndex, RenderCore::CommandListTypeToString(myCommandListType), RenderCore::ResourceUsageStateToString(aSrcState),
         RenderCore::CommandListTypeToString(myCommandListType), RenderCore::ResourceUsageStateToString(aDstState));
     }
-#endif  
+#endif
 
-    SubresourceBarrierInternal(aResource, aSubresourceList, aNumSubresources, aSrcState, aDstState, myCommandListType, myCommandListType);
+    SubresourceBarrierInternal(aResource, aSubresourceRange, aSrcState, aDstState, myCommandListType, myCommandListType);
   }
 //---------------------------------------------------------------------------//
   void CommandList::SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
-    SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresources[0].data(), (uint)aResourceView->mySubresources[0].size(), aSrcState, aDstState);
-    if (!aResourceView->mySubresources[1].empty())
-      SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresources[1].data(), (uint)aResourceView->mySubresources[1].size(), aSrcState, aDstState);
+    SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresourceRange, aSrcState, aDstState);
   }
 //---------------------------------------------------------------------------//
   void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceState aSrcState, GpuResourceState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue)
@@ -555,7 +553,7 @@ namespace Fancy {
         aResource->myName.c_str(), RenderCore::CommandListTypeToString(aSrcQueue), RenderCore::ResourceUsageStateToString(aSrcState),
         RenderCore::CommandListTypeToString(aDstQueue), RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeToString(myCommandListType));
 #endif  
-    SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, aDstQueue);
+    SubresourceBarrierInternal(aResource, aResource->mySubresources, aSrcState, aDstState, aSrcQueue, aDstQueue);
   }
 //---------------------------------------------------------------------------//
   void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceState aSrcState, GpuResourceState aDstState)

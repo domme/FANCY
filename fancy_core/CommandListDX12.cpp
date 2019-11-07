@@ -343,7 +343,7 @@ namespace Fancy {
     myCommandList->CopyBufferRegion(dstResource, aDestOffset, srcResource, aSrcOffset, aSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
+  void CommandListDX12::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
   {
     ID3D12Resource* bufferResourceDX12 = static_cast<const GpuBufferDX12*>(aDestBuffer)->GetData()->myResource.Get();
     ID3D12Resource* textureResourceDX12 = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
@@ -400,7 +400,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
+  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
     const TextureProperties& srcProps = aSrcTexture->GetProperties();
@@ -450,7 +450,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
 
@@ -942,11 +942,10 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   bool CommandListDX12::SubresourceBarrierInternal(
-    const GpuResource* aResource, 
-    const uint16* someSubresources,
-    uint aNumSubresources, 
-    GpuResourceState aSrcState, 
-    GpuResourceState aDstState, 
+    const GpuResource* aResource,
+    const SubresourceRange& aSubresourceRange,
+    GpuResourceState aSrcState,
+    GpuResourceState aDstState,
     CommandListType aSrcQueue,
     CommandListType aDstQueue)
   {
@@ -982,7 +981,8 @@ namespace Fancy {
     dstStateDx12 = allowedDstStateDx12 & stateMaskTo & stateMaskCmdList;
     ASSERT((srcWas0 || srcStateDx12 != 0) && (dstWas0 || dstStateDx12 != 0));
 
-    if (someSubresources == nullptr || aNumSubresources >= aResource->myNumSubresources)  // Note: This would break if there are duplicated subresrouces in the list, but this wouldn't make any sense
+    const bool allSubresources = aSubresourceRange == aResource->mySubresources;
+    if (allSubresources)
     {
       ASSERT(numBarriers < ARRAY_LENGTH(barriers));
       D3D12_RESOURCE_BARRIER& barrier = barriers[numBarriers++];
@@ -1001,9 +1001,9 @@ namespace Fancy {
     }
     else
     {
-      for (uint iSub = 0u; iSub < aNumSubresources; ++iSub)
+      for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
       {
-        const uint subresourceIndex = static_cast<uint>(someSubresources[iSub]);
+        const uint subresourceIndex = aResource->GetSubresourceIndex(*subIter);
 
         ASSERT(numBarriers < ARRAY_LENGTH(barriers));
         D3D12_RESOURCE_BARRIER& barrier = barriers[numBarriers++];
@@ -1163,53 +1163,18 @@ namespace Fancy {
     const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
     D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[RenderConstants::kMaxNumRenderTargets];
 
-    // RenderTarget state-transitions
+    for (uint i = 0u; i < numRtsToSet; ++i)
     {
-      const GpuResource* rtResources[RenderConstants::kMaxNumRenderTargets];
-      const uint16* subresourceLists[RenderConstants::kMaxNumRenderTargets];
-      uint numSubresources[RenderConstants::kMaxNumRenderTargets];
+      ASSERT(myRenderTargets[i] != nullptr);
 
-      for (uint i = 0u; i < numRtsToSet; ++i)
-      {
-        ASSERT(myRenderTargets[i] != nullptr);
+      const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myNativeData.To<GpuResourceViewDataDX12>();
+      ASSERT(myRenderTargets[i]->myType == GpuResourceViewType::RTV);
 
-        const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myNativeData.To<GpuResourceViewDataDX12>();
-        ASSERT(myRenderTargets[i]->myType == GpuResourceViewType::RTV);
-
-        rtResources[i] = myRenderTargets[i]->GetTexture();
-        rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
-        subresourceLists[i] = myRenderTargets[i]->mySubresources[0].data();
-        numSubresources[i] = static_cast<uint>(myRenderTargets[i]->mySubresources[0].size());
-      }
-
-#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-      D3D12_RESOURCE_STATES newStates[RenderConstants::kMaxNumRenderTargets];
-      for (uint i = 0; i < numRtsToSet; ++i)
-        newStates[i] = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-      SetTrackSubresourceTransitionBarriers(rtResources, newStates, subresourceLists, numSubresources, numRtsToSet);
-#endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+      rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
     }
     
     if (myDepthStencilTarget != nullptr)
     {
-#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myDepthStencilTarget->GetTexture()->GetProperties().eFormat);
-      const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
-
-      // TODO: Also respect stencilWriteMask per rendertarget?
-      D3D12_RESOURCE_STATES dsStates[2] = { 
-          (dsvProps.myIsDepthReadOnly || !myGraphicsPipelineState.myDepthStencilState->myDepthWriteEnabled) ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE,
-          (dsvProps.myIsStencilReadOnly || !myGraphicsPipelineState.myDepthStencilState->myStencilEnabled) ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE
-      };
-
-      const GpuResource* resources[2] = { myDepthStencilTarget->GetTexture(), myDepthStencilTarget->GetTexture() };
-      const uint16* subresourceLists[2] = { myDepthStencilTarget->mySubresources[0].data(), myDepthStencilTarget->mySubresources[1].data() };
-      const uint numSubresources[2] = { static_cast<uint>(myDepthStencilTarget->mySubresources[0].size()), static_cast<uint>(myDepthStencilTarget->mySubresources[1].size()) };
-      
-      SetTrackSubresourceTransitionBarriers(resources, dsStates, subresourceLists, numSubresources, 2u);
-#endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-      
       const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myNativeData.To<GpuResourceViewDataDX12>();
       ASSERT(myDepthStencilTarget->myType == GpuResourceViewType::DSV);
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);

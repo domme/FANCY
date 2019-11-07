@@ -29,6 +29,8 @@ namespace Fancy
     static VkFrontFace ResolveWindingOrder(WindingOrder aWindingOrder);
     static VkCullModeFlagBits ResolveCullMode(CullMode aCullMode);
     static ResourceBarrierInfoVk ResolveResourceState(GpuResourceState aResourceState);
+    static VkImageAspectFlags ResolveAspectMask(uint aFirstPlaneIndex, uint aNumPlanes, DataFormat aFormat);
+    static VkImageSubresourceRange ResolveSubresourceRange(const SubresourceRange& aRange, DataFormat aFormat);
 
     RenderCore_PlatformVk();
     ~RenderCore_PlatformVk() override;

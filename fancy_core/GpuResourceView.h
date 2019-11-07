@@ -17,8 +17,6 @@ namespace Fancy {
   public:
     virtual ~GpuResourceView() = default;
 
-    static const uint ourNumSupportedPlanes = 2u;
-
     explicit GpuResourceView(SharedPtr<GpuResource> aResource)
       : myResource(aResource)
       , myCoversAllSubresources(true)
@@ -26,7 +24,7 @@ namespace Fancy {
     { }
 
     Any myNativeData;
-    DynamicArray<uint16> mySubresources[ourNumSupportedPlanes];
+    SubresourceRange mySubresourceRange;
     SharedPtr<GpuResource> myResource;
     bool myCoversAllSubresources;
     GpuResourceViewType myType;
