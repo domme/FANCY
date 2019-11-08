@@ -13,8 +13,8 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  TextureDX12::TextureDX12(GpuResource&& aResource, const TextureProperties& someProperties)
-    : Texture(std::move(aResource), someProperties)
+  TextureDX12::TextureDX12(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable)
+    : Texture(std::move(aResource), someProperties, aIsPresentable)
   {
   }
 //---------------------------------------------------------------------------//

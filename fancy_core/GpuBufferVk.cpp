@@ -129,6 +129,7 @@ namespace Fancy
     // TODO: Replace memory allocation with a dedicated allocator like in DX12
     VkMemoryAllocateInfo memAllocInfo;
     memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memAllocInfo.pNext = nullptr;
     memAllocInfo.allocationSize = memRequirements.size;
     memAllocInfo.memoryTypeIndex = memoryTypeIndex;
     ASSERT_VK_RESULT(vkAllocateMemory(device, &memAllocInfo, nullptr, &dataVk->myMemory));

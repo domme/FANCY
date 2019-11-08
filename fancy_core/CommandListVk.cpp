@@ -406,7 +406,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   CommandListVk::CommandListVk(CommandListType aType) 
     : CommandList(aType)
-    , myIsOpen(true)
     , myCommandBuffer(nullptr)
     , myRenderPass(nullptr)
     , myFramebuffer(nullptr)
@@ -431,9 +430,21 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
   {
-    // Need to temporarily transition to WRITE_COPY_DEST so that the image is in the VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL layout.
+    // Need to temporarily transition to WRITE_COPY_DEST or PRESENT so that the image is in the VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL or VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR layout.
     // The ATTACHMENT_OPTIMAL layout is not supported with vkCmdClearColorImage
-    SubresourceBarrier(aTextureView, GpuResourceState::WRITE_RENDER_TARGET, GpuResourceState::WRITE_COPY_DEST);
+
+    // Change image layout to GENERAL, kepp everyting else untouched
+    const ResourceBarrierInfoVk renderTargetBarrierInfo = RenderCore_PlatformVk::ResolveResourceState(GpuResourceState::WRITE_RENDER_TARGET);
+    SubresourceBarrierInternal(aTextureView->GetTexture(), aTextureView->mySubresourceRange,
+      renderTargetBarrierInfo.myAccessMask,
+      renderTargetBarrierInfo.myAccessMask,
+      renderTargetBarrierInfo.myStageMask,
+      renderTargetBarrierInfo.myStageMask,
+      renderTargetBarrierInfo.myImageLayout,
+      VK_IMAGE_LAYOUT_GENERAL,
+      myCommandListType,
+      myCommandListType);
+
     FlushBarriers();
     
     VkClearColorValue clearColor;
@@ -443,9 +454,19 @@ namespace Fancy
       aTextureView->GetTexture()->GetProperties().eFormat);
 
     GpuResourceDataVk* dataVk = static_cast<TextureVk*>(aTextureView->GetTexture())->GetData();
-    vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clearColor, 1u, &subRange);
+    vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, VK_IMAGE_LAYOUT_GENERAL, &clearColor, 1u, &subRange);
 
-    SubresourceBarrier(aTextureView, GpuResourceState::WRITE_COPY_DEST, GpuResourceState::WRITE_RENDER_TARGET);
+    // Change image layout back to the one reported by WRITE_RENDER_TARGET
+    SubresourceBarrierInternal(aTextureView->GetTexture(), aTextureView->mySubresourceRange,
+      renderTargetBarrierInfo.myAccessMask,
+      renderTargetBarrierInfo.myAccessMask,
+      renderTargetBarrierInfo.myStageMask,
+      renderTargetBarrierInfo.myStageMask,
+      VK_IMAGE_LAYOUT_GENERAL,
+      renderTargetBarrierInfo.myImageLayout,
+      myCommandListType,
+      myCommandListType);
+
     FlushBarriers();
   }
 //---------------------------------------------------------------------------//
@@ -519,7 +540,7 @@ namespace Fancy
     for (uint i = 0u, e = myNumPendingImageBarriers; i < e; ++i)
     {
       VkImageMemoryBarrier& imageBarrierVk = imageBarriersVk[i];
-      const ImageMemoryBarrier& pendingBarrier = myPendingImageBarriers[i];
+      const ImageMemoryBarrierData& pendingBarrier = myPendingImageBarriers[i];
 
       imageBarrierVk.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
       imageBarrierVk.pNext = nullptr;
@@ -536,7 +557,7 @@ namespace Fancy
     for (uint i = 0u, e = myNumPendingBufferBarriers; i < e; ++i)
     {
       VkBufferMemoryBarrier& bufferBarrierVk = bufferBarriersVk[i];
-      const BufferMemoryBarrier& pendingBarrier = myPendingBufferBarriers[i];
+      const BufferMemoryBarrierData& pendingBarrier = myPendingBufferBarriers[i];
 
       bufferBarrierVk.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
       bufferBarrierVk.pNext = nullptr;
@@ -672,80 +693,115 @@ namespace Fancy
     CommandListType aSrcQueue,
     CommandListType aDstQueue)
   {
+    const ResourceBarrierInfoVk srcBarrierInfo = RenderCore_PlatformVk::ResolveResourceState(aSrcState);
+    const ResourceBarrierInfoVk dstBarrierInfo = RenderCore_PlatformVk::ResolveResourceState(aDstState);
+    
+    return SubresourceBarrierInternal(
+      aResource, 
+      aSubresourceRange,
+      srcBarrierInfo.myAccessMask,
+      dstBarrierInfo.myAccessMask,
+      srcBarrierInfo.myStageMask,
+      dstBarrierInfo.myStageMask,
+      srcBarrierInfo.myImageLayout,
+      dstBarrierInfo.myImageLayout,
+      aSrcQueue,
+      aDstQueue);
+  }
+//---------------------------------------------------------------------------//
+  bool CommandListVk::SubresourceBarrierInternal(const GpuResource* aResource,
+    const SubresourceRange& aSubresourceRange,
+    VkAccessFlags aSrcAccessMask, 
+    VkAccessFlags aDstAccessMask, 
+    VkPipelineStageFlags aSrcStageMask,
+    VkPipelineStageFlags aDstStageMask, 
+    VkImageLayout aSrcImageLayout, 
+    VkImageLayout aDstImageLayout,
+    CommandListType aSrcQueue, 
+    CommandListType aDstQueue)
+  {
     GpuResourceStateTracking& resourceStateTracking = aResource->myStateTracking;
     if (!resourceStateTracking.myCanChangeStates)
       return false;
 
-     constexpr VkAccessFlags accessMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
-     constexpr VkAccessFlags accessMaskCompute = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT 
-       | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT 
-       | VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+    constexpr VkAccessFlags accessMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
+    constexpr VkAccessFlags accessMaskCompute = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT
+      | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+      | VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
 
-     const VkAccessFlags accessMaskSrcQueue = aSrcQueue == CommandListType::Graphics ? accessMaskGraphics : accessMaskCompute;
-     const VkAccessFlags accessMaskDstQueue = aDstQueue == CommandListType::Graphics ? accessMaskGraphics : accessMaskCompute;
-     const VkAccessFlags accessMaskCurrentQueue = myCommandListType == CommandListType::Graphics ? accessMaskGraphics : accessMaskCompute;
-     
-     constexpr VkPipelineStageFlags pipelineMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
-     constexpr VkPipelineStageFlags pipelineMaskCompute = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT |
-       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    constexpr VkAccessFlags accessMaskRead = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_SHADER_READ_BIT |
+      VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT | VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT |
+      VK_ACCESS_COMMAND_PROCESS_READ_BIT_NVX | VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT | VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV | VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV | VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;
 
-     const VkPipelineStageFlags pipelineMaskSrcQueue = aSrcQueue == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
-     const VkPipelineStageFlags pipelineMaskDstQueue = aDstQueue == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
-     const VkPipelineStageFlags pipelineMaskCurrentQueue = myCommandListType == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
-     const VkPipelineStageFlags srcPipelineMask = pipelineMaskSrcQueue & pipelineMaskCurrentQueue;
-     const VkPipelineStageFlags dstPipelineMask = pipelineMaskDstQueue & pipelineMaskCurrentQueue;
+    constexpr VkAccessFlags accessMaskWrite = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT |
+      VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT | VK_ACCESS_COMMAND_PROCESS_WRITE_BIT_NVX | VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;
 
-     const ResourceBarrierInfoVk srcBarrierInfo = RenderCore_PlatformVk::ResolveResourceState(aSrcState);
-     const ResourceBarrierInfoVk dstBarrierInfo = RenderCore_PlatformVk::ResolveResourceState(aDstState);
+    const bool srcIsRead = (aSrcAccessMask & accessMaskRead) != 0u;
+    ASSERT(!srcIsRead || (aSrcAccessMask & accessMaskWrite) == 0u, "src access mask contains both read and write bits");
 
-     const bool srcIsRead = aSrcState >= GpuResourceState::FIRST_READ_STATE && aSrcState <= GpuResourceState::LAST_READ_STATE;
-     const bool dstIsRead = aDstState >= GpuResourceState::FIRST_READ_STATE && aDstState <= GpuResourceState::LAST_READ_STATE;
+    const bool dstIsRead = (aDstAccessMask & accessMaskRead) != 0u;
+    ASSERT(!dstIsRead || (aDstAccessMask & accessMaskWrite) == 0u, "dst access mask contains both read and write bits");
 
-     const VkAccessFlags resourceWriteAccessMask = static_cast<VkAccessFlags>(resourceStateTracking.myVkData.myWriteAccessMask);
-     const VkAccessFlags resourceReadAccessMask = static_cast<VkAccessFlags>(resourceStateTracking.myVkData.myReadAccessMask);
+    const VkAccessFlags accessMaskSrcQueue = aSrcQueue == CommandListType::Graphics ? accessMaskGraphics : accessMaskCompute;
+    const VkAccessFlags accessMaskDstQueue = aDstQueue == CommandListType::Graphics ? accessMaskGraphics : accessMaskCompute;
+    const VkAccessFlags accessMaskCurrentQueue = myCommandListType == CommandListType::Graphics ? accessMaskGraphics : accessMaskCompute;
 
-     const VkAccessFlags allowedSrcAccessMask = srcBarrierInfo.myAccessMask & (srcIsRead ? resourceReadAccessMask : resourceWriteAccessMask);
-     const VkAccessFlags allowedDstAccessMask = dstBarrierInfo.myAccessMask & (dstIsRead ? resourceReadAccessMask : resourceWriteAccessMask);
-     const VkAccessFlags srcAccessMask = allowedSrcAccessMask & accessMaskSrcQueue & accessMaskCurrentQueue;
-     const VkAccessFlags dstAccessMask = allowedDstAccessMask & accessMaskDstQueue & accessMaskCurrentQueue;
-     ASSERT(srcAccessMask != 0u && dstAccessMask != 0u, "Invalid barrier");
+    constexpr VkPipelineStageFlags pipelineMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
+    constexpr VkPipelineStageFlags pipelineMaskCompute = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT |
+      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 
-     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-     const uint srcQueueFamilyIndex = platformVk->GetQueueInfo(aSrcQueue).myQueueFamilyIndex;
-     const uint dstQueueFamilyIndex = platformVk->GetQueueInfo(aDstQueue).myQueueFamilyIndex;
+    const VkPipelineStageFlags pipelineMaskSrcQueue = aSrcQueue == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
+    const VkPipelineStageFlags pipelineMaskDstQueue = aDstQueue == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
+    const VkPipelineStageFlags pipelineMaskCurrentQueue = myCommandListType == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
 
-     const bool isImage = aResource->myCategory == GpuResourceCategory::TEXTURE;
-     GpuResourceDataVk* dataVk = aResource->myNativeData.To<GpuResourceDataVk*>();
+    const VkPipelineStageFlags srcPipelineMask = pipelineMaskSrcQueue & pipelineMaskCurrentQueue & aSrcStageMask;
+    const VkPipelineStageFlags dstPipelineMask = pipelineMaskDstQueue & pipelineMaskCurrentQueue & aDstStageMask;
 
-     if (myNumPendingImageBarriers >= kNumCachedBarriers || myNumPendingBufferBarriers >= kNumCachedBarriers)
-       FlushBarriers();
+    const VkAccessFlags resourceWriteAccessMask = static_cast<VkAccessFlags>(resourceStateTracking.myVkData.myWriteAccessMask);
+    const VkAccessFlags resourceReadAccessMask = static_cast<VkAccessFlags>(resourceStateTracking.myVkData.myReadAccessMask);
 
-     if (isImage)
-     {
-       ImageMemoryBarrier& imageBarrier = myPendingImageBarriers[myNumPendingImageBarriers++];
-       imageBarrier.myImage = dataVk->myImage;
-       imageBarrier.mySrcAccessMask = srcAccessMask;
-       imageBarrier.myDstAccessMask = dstAccessMask;
-       imageBarrier.mySrcLayout = srcBarrierInfo.myImageLayout;
-       imageBarrier.myDstLayout = dstBarrierInfo.myImageLayout;
-       imageBarrier.mySrcQueueFamilyIndex = srcQueueFamilyIndex;
-       imageBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;
+    const VkAccessFlags allowedSrcAccessMask = aSrcAccessMask & (srcIsRead ? resourceReadAccessMask : resourceWriteAccessMask);
+    const VkAccessFlags allowedDstAccessMask = aDstAccessMask & (dstIsRead ? resourceReadAccessMask : resourceWriteAccessMask);
+    const VkAccessFlags srcAccessMask = allowedSrcAccessMask & accessMaskSrcQueue & accessMaskCurrentQueue;
+    const VkAccessFlags dstAccessMask = allowedDstAccessMask & accessMaskDstQueue & accessMaskCurrentQueue;
+    ASSERT((aSrcAccessMask == 0u || srcAccessMask != 0u) && (aDstAccessMask == 0u || dstAccessMask != 0u), "Invalid barrier");
 
-       const TextureVk* texture = static_cast<const TextureVk*>(aResource);
-       imageBarrier.mySubresourceRange = RenderCore_PlatformVk::ResolveSubresourceRange(aSubresourceRange, texture->GetProperties().eFormat);
-     }
-     else
-     {
-       BufferMemoryBarrier& bufferBarrier = myPendingBufferBarriers[myNumPendingBufferBarriers++];
-       bufferBarrier.myBuffer = dataVk->myBuffer;
-       bufferBarrier.mySrcAccessMask = srcAccessMask;
-       bufferBarrier.myDstAccessMask = dstAccessMask;
-       bufferBarrier.mySrcQueueFamilyIndex = srcQueueFamilyIndex;
-       bufferBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;
-     }
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    const uint srcQueueFamilyIndex = platformVk->GetQueueInfo(aSrcQueue).myQueueFamilyIndex;
+    const uint dstQueueFamilyIndex = platformVk->GetQueueInfo(aDstQueue).myQueueFamilyIndex;
 
-     myPendingBarrierSrcStageMask |= srcPipelineMask;
-     myPendingBarrierDstStageMask |= dstPipelineMask;
+    const bool isImage = aResource->myCategory == GpuResourceCategory::TEXTURE;
+    GpuResourceDataVk* dataVk = aResource->myNativeData.To<GpuResourceDataVk*>();
+
+    if (myNumPendingImageBarriers >= kNumCachedBarriers || myNumPendingBufferBarriers >= kNumCachedBarriers)
+      FlushBarriers();
+
+    if (isImage)
+    {
+      ImageMemoryBarrierData& imageBarrier = myPendingImageBarriers[myNumPendingImageBarriers++];
+      imageBarrier.myImage = dataVk->myImage;
+      imageBarrier.mySrcAccessMask = srcAccessMask;
+      imageBarrier.myDstAccessMask = dstAccessMask;
+      imageBarrier.mySrcLayout = aSrcImageLayout;
+      imageBarrier.myDstLayout = aDstImageLayout;
+      imageBarrier.mySrcQueueFamilyIndex = srcQueueFamilyIndex;
+      imageBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;
+
+      const TextureVk* texture = static_cast<const TextureVk*>(aResource);
+      imageBarrier.mySubresourceRange = RenderCore_PlatformVk::ResolveSubresourceRange(aSubresourceRange, texture->GetProperties().eFormat);
+    }
+    else
+    {
+      BufferMemoryBarrierData& bufferBarrier = myPendingBufferBarriers[myNumPendingBufferBarriers++];
+      bufferBarrier.myBuffer = dataVk->myBuffer;
+      bufferBarrier.mySrcAccessMask = srcAccessMask;
+      bufferBarrier.myDstAccessMask = dstAccessMask;
+      bufferBarrier.mySrcQueueFamilyIndex = srcQueueFamilyIndex;
+      bufferBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;
+    }
+
+    myPendingBarrierSrcStageMask |= srcPipelineMask;
+    myPendingBarrierDstStageMask |= dstPipelineMask;
 
     return true;
   }

@@ -10,6 +10,7 @@
 #include "TextureVk.h"
 #include "CommandListVk.h"
 #include "GpuBufferVk.h"
+#include "GpuQueryHeapVk.h"
 
 namespace Fancy
 {
@@ -138,6 +139,7 @@ namespace Fancy
     {
     case SRGB_8_A_8:    return VK_FORMAT_R8G8B8A8_SRGB;
     case RGBA_8:        return VK_FORMAT_R8G8B8A8_UNORM;
+    case BGRA_8:        return VK_FORMAT_B8G8R8A8_UNORM;
     case RG_8:          return VK_FORMAT_R8G8_UNORM;
     case R_8:           return VK_FORMAT_R8_UNORM;
     case RGBA_16:       return VK_FORMAT_R16G16B16A16_UNORM;
@@ -734,8 +736,7 @@ namespace Fancy
 
   TextureView* RenderCore_PlatformVk::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName)
   {
-    VK_MISSING_IMPLEMENTATION();
-    return nullptr;
+    return new TextureViewVk(aTexture, someProperties);
   }
 
   GpuBufferView* RenderCore_PlatformVk::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName)
@@ -746,8 +747,7 @@ namespace Fancy
 
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)
   {
-    VK_MISSING_IMPLEMENTATION();
-    return nullptr;
+    return new GpuQueryHeapVk(aType, aNumQueries);
   }
 
   uint RenderCore_PlatformVk::GetQueryTypeDataSize(GpuQueryType aType)

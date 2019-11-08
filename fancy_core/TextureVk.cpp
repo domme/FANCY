@@ -8,8 +8,8 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  TextureVk::TextureVk(GpuResource&& aResource, const TextureProperties& someProperties)
-    : Texture(std::move(aResource), someProperties)
+  TextureVk::TextureVk(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable)
+    : Texture(std::move(aResource), someProperties, aIsPresentable)
   {
   }
 //---------------------------------------------------------------------------//

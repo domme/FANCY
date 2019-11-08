@@ -32,8 +32,9 @@ namespace Fancy {
     static uint CalcNumSubresources(uint aNumMips, uint aNumArraySlices, uint aNumPlanes);
     uint GetSubresourceIndex(const SubresourceLocation& aSubresourceLocation) const;
     SubresourceLocation GetSubresourceLocation(uint aSubresourceIndex) const;
-    const SubresourceRange& GetSubresources() const { return mySubresources; }
 
+    const SubresourceRange& GetSubresources() const { return mySubresources; }
+    const GpuResourceStateTracking& GetStateTracking() const { return myStateTracking; }
     GpuResourceState GetDefaultState() const { return myStateTracking.myDefaultState; }
 
     virtual ~GpuResource() = default;

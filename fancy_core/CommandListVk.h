@@ -53,6 +53,19 @@ namespace Fancy
       CommandListType aSrcQueue,
       CommandListType aDstQueue) override;
 
+    bool SubresourceBarrierInternal(
+      const GpuResource* aResource,
+      const SubresourceRange& aSubresourceRange,
+      VkAccessFlags aSrcAccessMask,
+      VkAccessFlags aDstAccessMask,
+      VkPipelineStageFlags aSrcStageMask,
+      VkPipelineStageFlags aDstStageMask,
+      VkImageLayout aSrcImageLayout,
+      VkImageLayout aDstImageLayout,
+      CommandListType aSrcQueue,
+      CommandListType aDstQueue
+    );
+
     void ApplyViewportAndClipRect();
     void ApplyRenderTargets();
     void ApplyGraphicsPipelineState();
@@ -64,13 +77,12 @@ namespace Fancy
     static std::unordered_map<uint64, VkRenderPass> ourRenderpassCache;
     static std::unordered_map<uint64, VkFramebuffer> ourFramebufferCache;
 
-    bool myIsOpen;
     VkCommandBuffer myCommandBuffer;
     VkRenderPass myRenderPass;
     VkFramebuffer myFramebuffer;
     glm::uvec2 myFramebufferRes;
 
-    struct BufferMemoryBarrier
+    struct BufferMemoryBarrierData
     {
       VkBuffer myBuffer = nullptr;
       VkAccessFlags mySrcAccessMask = 0;
@@ -79,7 +91,7 @@ namespace Fancy
       uint myDstQueueFamilyIndex = 0;
     };
 
-    struct ImageMemoryBarrier
+    struct ImageMemoryBarrierData
     {
       VkImageSubresourceRange mySubresourceRange;
       VkImage myImage = nullptr;
@@ -91,8 +103,8 @@ namespace Fancy
       uint myDstQueueFamilyIndex = 0;
     };
 
-    BufferMemoryBarrier myPendingBufferBarriers[kNumCachedBarriers];
-    ImageMemoryBarrier myPendingImageBarriers[kNumCachedBarriers];
+    BufferMemoryBarrierData myPendingBufferBarriers[kNumCachedBarriers];
+    ImageMemoryBarrierData myPendingImageBarriers[kNumCachedBarriers];
     uint myNumPendingBufferBarriers;
     uint myNumPendingImageBarriers;
 

@@ -6,6 +6,7 @@ namespace Fancy {
     NONE,
     SRGB_8_A_8,
     RGBA_8,
+    BGRA_8,
     SRGB_8,
     RG_8,
     R_8,

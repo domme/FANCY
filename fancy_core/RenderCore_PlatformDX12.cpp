@@ -99,6 +99,7 @@ namespace Fancy {
     {
     case DataFormat::SRGB_8_A_8:        return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     case DataFormat::RGBA_8:            return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case DataFormat::BGRA_8:            return DXGI_FORMAT_B8G8R8A8_UNORM;
     case DataFormat::RG_8:              return DXGI_FORMAT_R8G8_UNORM;
     case DataFormat::R_8:               return DXGI_FORMAT_R8_UNORM;
     case DataFormat::RGBA_16:           return DXGI_FORMAT_R16G16B16A16_UNORM;

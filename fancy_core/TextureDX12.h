@@ -14,7 +14,7 @@ namespace Fancy {
 
   public:
     TextureDX12() = default;
-    TextureDX12(GpuResource&& aResource, const TextureProperties& someProperties);
+    TextureDX12(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable);
     ~TextureDX12() override;
 
     bool IsValid() const override;

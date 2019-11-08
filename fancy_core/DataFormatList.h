@@ -6,6 +6,7 @@
 DECLARE_DATA_FORMAT(NONE,             0,               0,             1,           false,       false,      false )
 DECLARE_DATA_FORMAT(SRGB_8_A_8,       4,               4,             1,           false,       true,       false )
 DECLARE_DATA_FORMAT(RGBA_8,           4,               4,             1,           false,       false,      false )
+DECLARE_DATA_FORMAT(BGRA_8,           4,               4,             1,           false,       false,      false )
 DECLARE_DATA_FORMAT(RG_8,             2,               2,             1,           false,       false,      false )
 DECLARE_DATA_FORMAT(R_8,              1,               1,             1,           false,       false,      false )
 DECLARE_DATA_FORMAT(RGBA_16,          8,               4,             1,           false,       false,      false )

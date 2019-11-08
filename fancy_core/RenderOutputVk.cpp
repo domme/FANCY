@@ -129,7 +129,7 @@ namespace Fancy
     createInfo.imageColorSpace = myBackbufferColorSpace;
     createInfo.imageFormat = myBackbufferFormat;
     createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;  // SHARING would only be needed if the present-queue is different from the graphics-queue, which we don't support currently.
     createInfo.preTransform = surfaceCaps.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
@@ -149,6 +149,19 @@ namespace Fancy
 
     VkImage* const swapChainImages = (VkImage*)alloca(sizeof(VkImage*) * numSwapChainImages);
     vkGetSwapchainImagesKHR(platformVk->myDevice, mySwapChain, &numSwapChainImages, swapChainImages);
+
+    DataFormat backbufferFormat = DataFormat::UNKNOWN;
+    switch (myBackbufferFormat)
+    {
+    case VK_FORMAT_R8G8B8A8_UNORM:
+      backbufferFormat = DataFormat::RGBA_8;
+      break;
+    case VK_FORMAT_B8G8R8A8_UNORM:
+      backbufferFormat = DataFormat::BGRA_8;
+      break;
+    default:
+      ASSERT(false, "Unsupported backbuffer format");
+    }
 
     for (uint i = 0u; i < myNumBackbuffers; ++i)
     {
@@ -172,13 +185,13 @@ namespace Fancy
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
       backbufferProps.myIsRenderTarget = true;
-      backbufferProps.eFormat = DataFormat::RGBA_8;
+      backbufferProps.eFormat = backbufferFormat;
       backbufferProps.myWidth = aWidth;
       backbufferProps.myHeight = aHeight;
       backbufferProps.myDepthOrArraySize = 1u;
       backbufferProps.myNumMipLevels = 1u;
 
-      myBackbufferTextures[i].reset(new TextureVk(std::move(resource), backbufferProps));
+      myBackbufferTextures[i].reset(new TextureVk(std::move(resource), backbufferProps, true));
       myBackbufferTextures[i]->SetName(name.GetBuffer());
     }
   }

@@ -82,6 +82,8 @@ namespace Fancy {
     uint width, height;
     GetWindowSizeSafe(width, height);
 
+    LOG_WARNING("Temporarily disabled depth-stencil buffer");
+    /*
     TextureProperties dsTexProps;
     dsTexProps.myDimension = GpuResourceDimension::TEXTURE_2D;
     dsTexProps.bIsDepthStencil = true;
@@ -118,6 +120,7 @@ namespace Fancy {
       myDepthSrv = RenderCore::CreateTextureView(dsTexture, props);
       ASSERT(myDepthSrv != nullptr);
     }
+    */
 
     for (uint i = 0u; i < kBackbufferCount; i++)
     {
@@ -127,7 +130,7 @@ namespace Fancy {
       {
         TextureViewProperties props;
         props.myDimension = GpuResourceDimension::TEXTURE_2D;
-        props.myFormat = DataFormat::RGBA_8;
+        props.myFormat = myBackbufferTextures[i]->GetProperties().eFormat;
         props.myIsRenderTarget = true;
         myBackbufferRtv[i] = RenderCore::CreateTextureView(myBackbufferTextures[i], props);
         ASSERT(myBackbufferRtv[i] != nullptr);
@@ -137,7 +140,7 @@ namespace Fancy {
       {
         TextureViewProperties props;
         props.myDimension = GpuResourceDimension::TEXTURE_2D;
-        props.myFormat = DataFormat::RGBA_8;
+        props.myFormat = myBackbufferTextures[i]->GetProperties().eFormat;
         myBackbufferSrv[i] = RenderCore::CreateTextureView(myBackbufferTextures[i], props);
         ASSERT(myBackbufferSrv[i] != nullptr);
       }

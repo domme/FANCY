@@ -91,6 +91,7 @@
     <ClInclude Include="GpuBufferVk.h" />
     <ClInclude Include="GpuMemoryAllocationDX12.h" />
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
+    <ClInclude Include="GpuQueryHeapVk.h" />
     <ClInclude Include="ShaderCompilerVk.h" />
     <ClInclude Include="ShaderPipelineDX12.h" />
     <ClInclude Include="ShaderPipelineVk.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="CommandAllocatorPoolDX12.cpp" />
     <ClCompile Include="GpuBufferVk.cpp" />
     <ClCompile Include="GpuMemoryAllocatorDX12.cpp" />
+    <ClCompile Include="GpuQueryHeapVk.cpp" />
     <ClCompile Include="GpuResource.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />

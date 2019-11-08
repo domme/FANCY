@@ -14,18 +14,20 @@ namespace Fancy {
 
   public:
     Texture();
-    Texture(GpuResource&& aResource, const TextureProperties& someProperties);
+    Texture(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable);
     virtual ~Texture() = default;
 
     virtual void Create(const TextureProperties& someProperties, const char* aName = nullptr, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) = 0;
     virtual void GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const = 0;
 
     const TextureProperties& GetProperties() const { return myProperties; }
+    bool IsPresentable() const { return myIsPresentable; }
     
   protected:
     virtual void Destroy() = 0;
 
     TextureProperties myProperties;
+    bool myIsPresentable;
   };
 //---------------------------------------------------------------------------//
   class TextureView : public GpuResourceView
