@@ -14,6 +14,16 @@ namespace Fancy
     return myNumMipLevels == 0u && myNumArrayIndices == 0u && myNumPlanes == 0u;
   }
 //---------------------------------------------------------------------------//
+  uint SubresourceRange::GetNumSubresources() const
+  {
+    return myNumMipLevels * myNumArrayIndices * myNumPlanes;
+  }
+//---------------------------------------------------------------------------//
+  uint SubresourceRange::GetNumSubresourcesPerPlane() const
+  {
+    return myNumMipLevels * myNumArrayIndices;
+  }
+//---------------------------------------------------------------------------//
   bool SubresourceRange::operator==(const SubresourceRange& anOther) const
   {
     return myFirstMipLevel == anOther.myFirstMipLevel
@@ -75,10 +85,6 @@ namespace Fancy
         myCurrentLocation.myArrayIndex = myRange.myFirstArrayIndex;
 
         ++myCurrentLocation.myPlaneIndex;
-        if (myCurrentLocation.myPlaneIndex >= myEndLocation.myPlaneIndex)
-        {
-          myCurrentLocation.myPlaneIndex = myRange.myFirstPlane;
-        }
       }
     }
 

@@ -89,9 +89,6 @@ namespace Fancy
 
     switch (aLowerState)
     {
-    case GpuResourceState::COMMON:
-      return false;
-
     case GpuResourceState::READ_INDIRECT_ARGUMENT:
       return aHigherState == GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 

@@ -36,10 +36,6 @@ namespace Fancy
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "GpuBuffer_Unnamed";
 
-    myNumSubresources = 1u;
-    myNumSubresourcesPerPlane = 1u;
-    myNumPlanes = 1u;
-
     const uint64 sizeBytes = someProperties.myElementSizeBytes * someProperties.myNumElements;
 
     VkBufferCreateInfo bufferInfo = {};

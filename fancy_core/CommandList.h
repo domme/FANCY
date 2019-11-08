@@ -110,8 +110,9 @@ namespace Fancy {
     void SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil);
     void RemoveAllRenderTargets();
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
-    void UpdateTextureData(const Texture* aDestTexture, const SubresourceLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
+    void UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
 
+    void SubresourceBarrier(const GpuResource* aResource, const SubresourceLocation& aSubresourceLocation, GpuResourceState aSrcState, GpuResourceState aDstState);
     void SubresourceBarrier(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, GpuResourceState aSrcState, GpuResourceState aDstState);
     void SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceState aSrcState, GpuResourceState aDstState);
         

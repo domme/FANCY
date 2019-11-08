@@ -176,6 +176,12 @@ namespace Fancy {
     // Initialize texture data?
     if (someInitialDatas != nullptr && aNumInitialDatas > 0u)
     {
+      const uint lastSubresourceIndex = aNumInitialDatas - 1u;
+      const SubresourceLocation lastSubresourceLocation = GetSubresourceLocation(lastSubresourceIndex);
+      const SubresourceRange subresourceRange(0, lastSubresourceLocation.myMipLevel + 1u, 
+        0u, lastSubresourceLocation.myArrayIndex + 1u, 
+        0u, lastSubresourceLocation.myPlaneIndex + 1u);
+
       const uint pixelSizeBytes = formatInfo.mySizeBytes;
 
       if (pixelSizeBytes > someInitialDatas[0].myPixelSizeBytes)
@@ -216,7 +222,7 @@ namespace Fancy {
 
         CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
         ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
-        ctx->UpdateTextureData(this, SubresourceLocation(), newDatas, aNumInitialDatas);
+        ctx->UpdateTextureData(this, subresourceRange, newDatas, aNumInitialDatas);
         ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
 
@@ -229,29 +235,27 @@ namespace Fancy {
       {
         CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
         ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
-        ctx->UpdateTextureData(this, SubresourceLocation(), someInitialDatas, aNumInitialDatas);
+        ctx->UpdateTextureData(this, subresourceRange, someInitialDatas, aNumInitialDatas);
         ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }
   }
 //---------------------------------------------------------------------------//
-  void TextureDX12::GetSubresourceLayout(const SubresourceLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
+  void TextureDX12::GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
   {
-    // TODO support plane-indices?
     ASSERT(IsValid());
-
-    const int startSubresourceIndex = GetSubresourceIndex(aStartSubLocation);
-
-    const uint arraySize = myProperties.GetArraySize();
-    const int numOverallSubresources = myProperties.myNumMipLevels * arraySize;
-    const int numSubresources = glm::min((int)aNumSubDatas, numOverallSubresources - startSubresourceIndex);
-    ASSERT(numSubresources > 0);
+    ASSERT(aSubresourceRange.myFirstMipLevel + aSubresourceRange.myNumMipLevels <= mySubresources.myNumMipLevels);
+    ASSERT(aSubresourceRange.myFirstArrayIndex + aSubresourceRange.myNumArrayIndices <= mySubresources.myNumArrayIndices);
+    ASSERT(aSubresourceRange.myFirstPlane + aSubresourceRange.myNumPlanes <= mySubresources.myNumPlanes);
 
     ID3D12Resource* texResource = GetData()->myResource.Get();
     const D3D12_RESOURCE_DESC& texResourceDesc = texResource->GetDesc();
 
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
+
+    const int startSubresourceIndex = GetSubresourceIndex(SubresourceLocation(aSubresourceRange.myFirstMipLevel, aSubresourceRange.myFirstArrayIndex, aSubresourceRange.myFirstPlane));
+    const int numSubresources = aSubresourceRange.myNumMipLevels * aSubresourceRange.myNumArrayIndices * aSubresourceRange.myNumPlanes;
 
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT* placedFootprints = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * numSubresources));
     uint64* rowSizes = static_cast<uint64*>(alloca(sizeof(uint64) * numSubresources));

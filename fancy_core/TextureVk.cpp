@@ -43,7 +43,7 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void TextureVk::GetSubresourceLayout(const SubresourceLocation& aStartSubLocation, uint aNumSubDatas, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
+  void TextureVk::GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
   {
     VK_MISSING_IMPLEMENTATION();
   }

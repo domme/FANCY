@@ -65,6 +65,8 @@ namespace Fancy
     SubresourceIterator Begin() const;
     SubresourceIterator End() const;
     bool IsEmpty() const;
+    uint GetNumSubresources() const;
+    uint GetNumSubresourcesPerPlane() const;
 
     uint myFirstMipLevel;
     uint myNumMipLevels;

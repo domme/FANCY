@@ -467,12 +467,14 @@ namespace Fancy {
     CopyBufferRegion(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::UpdateTextureData(const Texture* aDestTexture, const SubresourceLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions /*= nullptr*/) // TODO: Support regions
+  void CommandList::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions /*= nullptr*/) // TODO: Support regions
   {
+    ASSERT(aNumDatas == aSubresourceRange.GetNumSubresources());
+
     DynamicArray<TextureSubLayout> subresourceLayouts;
     DynamicArray<uint64> subresourceOffsets;
     uint64 totalSize;
-    aDestTexture->GetSubresourceLayout(aStartSubresource, aNumDatas, subresourceLayouts, subresourceOffsets, totalSize);
+    aDestTexture->GetSubresourceLayout(aSubresourceRange, subresourceLayouts, subresourceOffsets, totalSize);
 
     uint64 uploadBufferOffset;
     const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize);
@@ -480,8 +482,7 @@ namespace Fancy {
 
     uint8* uploadBufferData = (uint8*) uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
 
-    const uint numSubresources = glm::min(aNumDatas, (uint) subresourceLayouts.size());
-    for (uint i = 0; i < numSubresources; ++i)
+    for (uint i = 0; i < aNumDatas; ++i)
     {
       const TextureSubLayout& dstLayout = subresourceLayouts[i];
       const TextureSubData& srcData = someDatas[i];
@@ -507,12 +508,18 @@ namespace Fancy {
     }
     uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
 
-    const uint startDestSubresourceIndex = aDestTexture->GetSubresourceIndex(aStartSubresource);
-    for (uint i = 0; i < numSubresources; ++i)
+    int i = 0;
+    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
     {
-      const SubresourceLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
-      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
+      const SubresourceLocation dstLocation = *subIter;
+      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i++]);
     }
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::SubresourceBarrier(const GpuResource* aResource, const SubresourceLocation& aSubresourceLocation, GpuResourceState aSrcState, GpuResourceState aDstState)
+  {
+    SubresourceRange subresourceRange(aSubresourceLocation.myMipLevel, 1u, aSubresourceLocation.myArrayIndex, 1u, aSubresourceLocation.myPlaneIndex, 1u);
+    SubresourceBarrier(aResource, subresourceRange, aSrcState, aDstState);
   }
 //---------------------------------------------------------------------------//
   void CommandList::SubresourceBarrier(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, GpuResourceState aSrcState, GpuResourceState aDstState)

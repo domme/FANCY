@@ -5,6 +5,7 @@
 #include "DynamicArray.h"
 #include "FancyCoreDefines.h"
 #include "GpuResourceStateTracking.h"
+#include "TextureData.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -31,6 +32,7 @@ namespace Fancy {
     static uint CalcNumSubresources(uint aNumMips, uint aNumArraySlices, uint aNumPlanes);
     uint GetSubresourceIndex(const SubresourceLocation& aSubresourceLocation) const;
     SubresourceLocation GetSubresourceLocation(uint aSubresourceIndex) const;
+    const SubresourceRange& GetSubresources() const { return mySubresources; }
 
     GpuResourceState GetDefaultState() const { return myStateTracking.myDefaultState; }
 

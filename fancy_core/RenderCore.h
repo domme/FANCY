@@ -85,8 +85,8 @@ namespace Fancy {
     static uint GetQueryTypeDataSize(GpuQueryType aType);
     
     static MappedTempBuffer ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize);
-    static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const SubresourceLocation& aStartSubLocation, uint aNumSublocations);
-    static bool ReadbackTextureData(const Texture* aTexture, const SubresourceLocation& aStartSubLocation, uint aNumSublocations, TextureData& aTextureDataOut);
+    static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange);
+    static bool ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange, TextureData& aTextureDataOut);
     
     static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateProperties& aDesc);

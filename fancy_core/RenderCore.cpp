@@ -739,7 +739,6 @@ namespace Fancy {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(viewProps.myFormat);
     ASSERT(viewProps.mySubresourceRange.myFirstPlane < formatInfo.myNumPlanes);
     ASSERT(!viewProps.myIsShaderWritable || !viewProps.myIsRenderTarget, "UAV and RTV are mutually exclusive");
-    ASSERT(viewProps.mySubresourceRange.myFirstPlane < GpuResourceView::ourNumSupportedPlanes);
 
     return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, viewProps, aName));
   }
@@ -808,12 +807,12 @@ namespace Fancy {
     return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ, aByteSize);
   }
 //---------------------------------------------------------------------------//
-  MappedTempTextureBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceLocation& aStartSubLocation, uint aNumSublocations)
+  MappedTempTextureBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange)
   {
     DynamicArray<TextureSubLayout> subresourceLayouts;
     DynamicArray<uint64> subresourceOffsets;
     uint64 totalSize;
-    aTexture->GetSubresourceLayout(aStartSubLocation, aNumSublocations, subresourceLayouts, subresourceOffsets, totalSize);
+    aTexture->GetSubresourceLayout(aSubresourceRange, subresourceLayouts, subresourceOffsets, totalSize);
 
     GpuBufferResourceProperties props;
     props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
@@ -824,23 +823,20 @@ namespace Fancy {
     TempBufferResource readbackBuffer = AllocateTempBuffer(props, 0u, "Temp texture readback buffer");
     ASSERT(readbackBuffer.myBuffer != nullptr);
 
-    const uint startSubresourceIndex = aTexture->GetSubresourceIndex(aStartSubLocation);
-
     CommandList* ctx = BeginCommandList(CommandListType::Graphics);
-    for (uint subresource = 0; subresource < aNumSublocations; ++subresource)
+    int i = 0;
+    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
     {
-      SubresourceLocation subLocation = aTexture->GetSubresourceLocation(startSubresourceIndex + subresource);
-      uint64 offset = subresourceOffsets[subresource];
-      ctx->CopyTextureRegion(readbackBuffer.myBuffer, offset, aTexture, subLocation);
+      ctx->CopyTextureRegion(readbackBuffer.myBuffer, subresourceOffsets[i++], aTexture, *subIter);
     }
     ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
 
     return MappedTempTextureBuffer(subresourceLayouts, readbackBuffer, GpuResourceMapMode::READ, totalSize);
   }
 //---------------------------------------------------------------------------//
-  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceLocation& aStartSubLocation, uint aNumSublocations, TextureData& aTextureDataOut)
+  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange, TextureData& aTextureDataOut)
   {
-    MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aStartSubLocation, aNumSublocations);
+    MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aSubresourceRange);
     if (readbackTex.myMappedData == nullptr || readbackTex.myLayouts.empty())
       return false;
 
