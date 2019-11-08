@@ -754,8 +754,8 @@ namespace Fancy
     const VkPipelineStageFlags pipelineMaskDstQueue = aDstQueue == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
     const VkPipelineStageFlags pipelineMaskCurrentQueue = myCommandListType == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
 
-    const VkPipelineStageFlags srcPipelineMask = pipelineMaskSrcQueue & pipelineMaskCurrentQueue & aSrcStageMask;
-    const VkPipelineStageFlags dstPipelineMask = pipelineMaskDstQueue & pipelineMaskCurrentQueue & aDstStageMask;
+    const VkPipelineStageFlags srcPipelineMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT | (pipelineMaskSrcQueue & pipelineMaskCurrentQueue & aSrcStageMask);
+    const VkPipelineStageFlags dstPipelineMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT | (pipelineMaskDstQueue & pipelineMaskCurrentQueue & aDstStageMask);
 
     const VkAccessFlags resourceWriteAccessMask = static_cast<VkAccessFlags>(resourceStateTracking.myVkData.myWriteAccessMask);
     const VkAccessFlags resourceReadAccessMask = static_cast<VkAccessFlags>(resourceStateTracking.myVkData.myReadAccessMask);

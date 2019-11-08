@@ -43,15 +43,6 @@ namespace Fancy
     void Dispatch(const glm::int3& aNumThreads) override;
 
     VkCommandBuffer GetCommandBuffer() const { return myCommandBuffer; }
-    
-  protected:
-    bool SubresourceBarrierInternal(
-      const GpuResource* aResource,
-      const SubresourceRange& aSubresourceRange,
-      GpuResourceState aSrcState,
-      GpuResourceState aDstState,
-      CommandListType aSrcQueue,
-      CommandListType aDstQueue) override;
 
     bool SubresourceBarrierInternal(
       const GpuResource* aResource,
@@ -65,6 +56,15 @@ namespace Fancy
       CommandListType aSrcQueue,
       CommandListType aDstQueue
     );
+    
+  protected:
+    bool SubresourceBarrierInternal(
+      const GpuResource* aResource,
+      const SubresourceRange& aSubresourceRange,
+      GpuResourceState aSrcState,
+      GpuResourceState aDstState,
+      CommandListType aSrcQueue,
+      CommandListType aDstQueue) override;
 
     void ApplyViewportAndClipRect();
     void ApplyRenderTargets();

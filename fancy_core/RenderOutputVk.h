@@ -27,5 +27,6 @@ namespace Fancy
     VkSwapchainKHR mySwapChain = nullptr;
     VkFence myBackbufferReadyFence = nullptr;
     uint myNumBackbuffers = 0u;
+    DynamicArray<bool> myBackbuffersUsed;
   };
 }

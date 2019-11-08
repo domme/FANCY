@@ -753,7 +753,7 @@ namespace Fancy
   uint RenderCore_PlatformVk::GetQueryTypeDataSize(GpuQueryType aType)
   {
     VK_MISSING_IMPLEMENTATION();
-    return 64u;
+    return sizeof(uint64);
   }
 
   float64 RenderCore_PlatformVk::GetGpuTicksToMsFactor(CommandListType aCommandListType)

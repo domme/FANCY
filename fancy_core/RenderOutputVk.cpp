@@ -8,6 +8,7 @@
 #include "GpuResourceDataVk.h"
 #include "TextureVk.h"
 #include "CommandQueueVk.h"
+#include "CommandListVk.h"
 
 namespace Fancy
 {
@@ -194,6 +195,9 @@ namespace Fancy
       myBackbufferTextures[i].reset(new TextureVk(std::move(resource), backbufferProps, true));
       myBackbufferTextures[i]->SetName(name.GetBuffer());
     }
+
+    myBackbuffersUsed.resize(myNumBackbuffers);
+    std::fill_n(myBackbuffersUsed.begin(), myBackbuffersUsed.size(), false);
   }
   //---------------------------------------------------------------------------//
   void RenderOutputVk::ResizeBackbuffer(uint aWidth, uint aHeight)
@@ -219,6 +223,26 @@ namespace Fancy
       // Wait indefinitely
     }
     ASSERT_VK_RESULT(vkResetFences(device, 1u, &myBackbufferReadyFence));
+
+    // Upon first use, each backbuffer must be transitioned from an unknown image layout into the present-layout that high-level rendering code expects
+    if (!myBackbuffersUsed[myCurrBackbufferIndex])
+    {
+      myBackbuffersUsed[myCurrBackbufferIndex] = true;
+
+      CommandListVk* ctx = static_cast<CommandListVk*>(RenderCore::BeginCommandList(CommandListType::Graphics));
+      const ResourceBarrierInfoVk presentInfo = RenderCore_PlatformVk::ResolveResourceState(GpuResourceState::READ_PRESENT);
+      ctx->SubresourceBarrierInternal(myBackbufferTextures[myCurrBackbufferIndex].get(), myBackbufferTextures[myCurrBackbufferIndex]->GetSubresources(),
+        0u,
+        presentInfo.myAccessMask,
+        0u,
+        presentInfo.myStageMask,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        presentInfo.myImageLayout,
+        CommandListType::Graphics,
+        CommandListType::Graphics
+      );
+      RenderCore::ExecuteAndFreeCommandList(ctx);
+    }
   }
   //---------------------------------------------------------------------------//
   void RenderOutputVk::Present()
