@@ -14,9 +14,8 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class ShaderResourceInterface;
   struct WindowParameters;
-  class GpuProgram;
+  class Shader;
   class Texture;
   class TextureView;
   struct TextureViewProperties;
@@ -27,6 +26,19 @@ namespace Fancy {
   class RenderCore_PlatformDX12 final : public RenderCore_Platform
   {
   public:
+    static D3D12_LOGIC_OP ResolveLogicOp(LogicOp aLogicOp);
+    static D3D12_COMPARISON_FUNC ResolveCompFunc(const CompFunc& aCompFunc);
+    static D3D12_STENCIL_OP ResolveStencilOp(const StencilOp& aStencilOp);
+    static DXGI_FORMAT ResolveFormat(DataFormat aFormat);
+    static DXGI_FORMAT GetDepthStencilTextureFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetDepthStencilViewFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetStencilViewFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetTypelessFormat(DXGI_FORMAT aFormat);
+    static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
+    static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
+    static D3D12_RESOURCE_STATES ResolveResourceUsageState(GpuResourceState aState);
+
     RenderCore_PlatformDX12();
     ~RenderCore_PlatformDX12() override;
     // Disallow copy and assignment (class contains a list of unique_ptrs)
@@ -36,22 +48,8 @@ namespace Fancy {
     bool IsInitialized() override { return ourDevice.Get() != nullptr; }
     bool InitInternalResources() override;
     void Shutdown() override;
-    
-    static DXGI_FORMAT GetDXGIformat(DataFormat aFormat);
-    static DXGI_FORMAT GetDepthStencilTextureFormat(DXGI_FORMAT aFormat);
-    static DXGI_FORMAT GetDepthStencilViewFormat(DXGI_FORMAT aFormat);
-    static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);
-    static DXGI_FORMAT GetStencilViewFormat(DXGI_FORMAT aFormat);
-    static DXGI_FORMAT GetTypelessFormat(DXGI_FORMAT aFormat);
-
-    static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
-    static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
-    static D3D12_RESOURCE_STATES ResolveResourceUsageState(GpuResourceState aState);
 
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
-
-    ShaderResourceInterface*
-      GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS = nullptr) const;
 
     ID3D12CommandAllocator* GetCommandAllocator(CommandListType aCmdListType);
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, uint64 aFenceVal);
@@ -66,11 +64,12 @@ namespace Fancy {
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
 
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
-    GpuProgramCompiler* CreateShaderCompiler() override;
-    GpuProgram* CreateGpuProgram() override;
+    ShaderCompiler* CreateShaderCompiler() override;
+    Shader* CreateShader() override;
+    ShaderPipeline* CreateShaderPipeline() override;
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
-    CommandList* CreateContext(CommandListType aType) override;
+    CommandList* CreateCommandList(CommandListType aType) override;
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
@@ -78,11 +77,9 @@ namespace Fancy {
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
     
-    // TODO: Make this more platform-independent if we need a platform-independent swap-chain representation (how does Vulkan handle it?)
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
   // protected:
-    void InitCaps() override;
     void UpdateAvailableDynamicDescriptorHeaps();
     CommandQueueDX12* GetCommandQueueDX12(CommandListType aCommandListType);
 
@@ -97,6 +94,12 @@ namespace Fancy {
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)CpuMemoryAccessType::NUM];
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
     float64 myGpuTicksToMsFactor[(uint)CommandListType::NUM];
+
+  private:
+    static bool CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
+    static bool CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
+    static bool CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
+    static bool CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
   };
 //---------------------------------------------------------------------------//
 }

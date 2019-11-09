@@ -10,7 +10,7 @@ namespace Fancy
 {
   class CommandList;
   class AssetManager;
-  class GpuProgramPipeline;
+  class ShaderPipeline;
 }
 
 class Test_ModelViewer : public Test
@@ -32,8 +32,8 @@ private:
   Fancy::Camera myCamera;
   Fancy::CameraController myCameraController;
 
-  Fancy::SharedPtr<Fancy::GpuProgramPipeline> myUnlitTexturedShader;
-  Fancy::SharedPtr<Fancy::GpuProgramPipeline> myUnlitVertexColorShader;
-  Fancy::SharedPtr<Fancy::GpuProgramPipeline> myDebugGeoShader;  
+  Fancy::SharedPtr<Fancy::ShaderPipeline> myUnlitTexturedShader;
+  Fancy::SharedPtr<Fancy::ShaderPipeline> myUnlitVertexColorShader;
+  Fancy::SharedPtr<Fancy::ShaderPipeline> myDebugGeoShader;  
 };
 

@@ -1,19 +1,21 @@
 #include "fancy_core_precompile.h"
 #include "RenderCore.h"
 
+#include "RenderCore_PlatformDX12.h"
+#include "RenderCore_PlatformVk.h"
+
 #include "DepthStencilState.h"
 #include "ResourceRefs.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
-#include "GpuProgramCompiler.h"
+#include "ShaderCompiler.h"
 #include "FileWatcher.h"
 #include "PathService.h"
-#include "GpuProgramPipeline.h"
+#include "ShaderPipeline.h"
 #include "Mesh.h"
 #include "GeometryData.h"
 #include "BlendState.h"
-#include "GpuProgram.h"
-#include "RenderCore_PlatformDX12.h"
+#include "Shader.h"
 #include "VertexInputLayout.h"
 #include "RenderOutput.h"
 #include "CommandList.h"
@@ -67,12 +69,12 @@ namespace Fancy {
     
   }
 //---------------------------------------------------------------------------//
-  Slot<void(const GpuProgram*)> RenderCore::ourOnShaderRecompiled;
+  Slot<void(const Shader*)> RenderCore::ourOnShaderRecompiled;
 
   UniquePtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
   UniquePtr<TempResourcePool> RenderCore::ourTempResourcePool;
   UniquePtr<FileWatcher> RenderCore::ourShaderFileWatcher;
-  UniquePtr<GpuProgramCompiler> RenderCore::ourShaderCompiler;
+  UniquePtr<ShaderCompiler> RenderCore::ourShaderCompiler;
 
   SharedPtr<DepthStencilState> RenderCore::ourDefaultDepthStencilState;
   SharedPtr<BlendState> RenderCore::ourDefaultBlendState;
@@ -80,8 +82,8 @@ namespace Fancy {
   SharedPtr<Texture> RenderCore::ourDefaultNormalTexture;
   SharedPtr<Texture> RenderCore::ourDefaultSpecularTexture;
 
-  std::map<uint64, SharedPtr<GpuProgram>> RenderCore::ourShaderCache;
-  std::map<uint64, SharedPtr<GpuProgramPipeline>> RenderCore::ourGpuProgramPipelineCache;
+  std::map<uint64, SharedPtr<Shader>> RenderCore::ourShaderCache;
+  std::map<uint64, SharedPtr<ShaderPipeline>> RenderCore::ourShaderPipelineCache;
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
   std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
   
@@ -127,7 +129,7 @@ namespace Fancy {
     return ourDefaultSpecularTexture.get();
   }
 
-  const GpuProgramCompiler* RenderCore::GetGpuProgramCompiler()
+  const ShaderCompiler* RenderCore::GetShaderCompiler()
   {
     return ourShaderCompiler.get();
   }
@@ -171,7 +173,7 @@ namespace Fancy {
     ResolveUsedQueryData();
 
     CommandQueue* graphicsQueue = GetCommandQueue(CommandListType::Graphics);
-    const uint64 completedFrameFence = graphicsQueue->SignalAndIncrementFence();
+    const uint64 completedFrameFence = graphicsQueue->GetLastRequestedFenceVal();
 
     ASSERT(!ourQueuedFrameDoneFences.IsFull());
     ourQueuedFrameDoneFences.Add(completedFrameFence);
@@ -192,7 +194,6 @@ namespace Fancy {
   {
     switch (aState)
     {
-      case GpuResourceState::COMMON: return "COMMON";
       case GpuResourceState::READ_INDIRECT_ARGUMENT: return "READ_INDIRECT_ARGUMENT";
       case GpuResourceState::READ_VERTEX_BUFFER: return "READ_VERTEX_BUFFER";
       case GpuResourceState::READ_INDEX_BUFFER: return "READ_INDEX_BUFFER";
@@ -234,6 +235,11 @@ namespace Fancy {
   RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
   {
     return GetPlatformType() == RenderPlatformType::DX12 ? static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get()) : nullptr;
+  }
+//---------------------------------------------------------------------------//
+  RenderCore_PlatformVk* RenderCore::GetPlatformVk()
+  {
+    return GetPlatformType() == RenderPlatformType::VULKAN ? static_cast<RenderCore_PlatformVk*>(ourPlatformImpl.get()) : nullptr;
   }
 //---------------------------------------------------------------------------//
   GpuRingBuffer* RenderCore::AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName /*= nullptr*/)
@@ -303,12 +309,13 @@ namespace Fancy {
       case RenderPlatformType::DX12:
         ourPlatformImpl = std::make_unique<RenderCore_PlatformDX12>();
         break;
-      case RenderPlatformType::VULKAN: break;
-      default:;
+      case RenderPlatformType::VULKAN:
+        ourPlatformImpl = std::make_unique<RenderCore_PlatformVk>();
+        break;
+      default:
+        break;
     }
     ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
-
-    ourPlatformImpl->InitCaps();
 
     ourCommandQueues[(uint)CommandListType::Graphics].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Graphics));
     ourCommandQueues[(uint)CommandListType::Compute].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Compute));
@@ -329,47 +336,6 @@ namespace Fancy {
     ourShaderFileWatcher->myOnFileDeletedMoved.Connect(onDeletedFn);
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
-
-    {
-      ShaderVertexInputLayout& modelVertexLayout = ShaderVertexInputLayout::ourDefaultModelLayout;
-      modelVertexLayout.myVertexInputElements.clear();
-
-      uint registerIndex = 0u;
-      ShaderVertexInputElement* elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Position";
-      elem->mySemantics = VertexSemantics::POSITION;
-      elem->myFormat = DataFormat::RGB_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 12;
-
-      elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Normal";
-      elem->mySemantics = VertexSemantics::NORMAL;
-      elem->myFormat = DataFormat::RGB_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 12;
-
-      elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Tangent";
-      elem->mySemantics = VertexSemantics::TANGENT;
-      elem->myFormat = DataFormat::RGB_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 12;
-
-      elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Bitangent";
-      elem->mySemantics = VertexSemantics::BITANGENT;
-      elem->myFormat = DataFormat::RGB_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 12;
-
-      elem = &modelVertexLayout.addVertexInputElement();
-      elem->myName = "Texcoord";
-      elem->mySemantics = VertexSemantics::TEXCOORD;
-      elem->myFormat = DataFormat::RG_32F;
-      elem->myRegisterIndex = registerIndex++;
-      elem->mySizeBytes = 8;
-    }
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_2_Resources()
@@ -409,11 +375,8 @@ namespace Fancy {
       ourDefaultNormalTexture = CreateTexture(props, "Default_Normal", &data, 1);
     }
 
-    ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateDesc::GetDefaultDepthNoStencil());
-    ASSERT(ourDefaultDepthStencilState != nullptr);
-
-    ourDefaultBlendState = CreateBlendState(BlendStateDesc::GetDefaultSolid());
-    ASSERT(ourDefaultBlendState != nullptr);
+    ourDefaultDepthStencilState = CreateDepthStencilState(DepthStencilStateProperties());
+    ourDefaultBlendState = CreateBlendState(BlendStateProperties());
 
     ourTempResourcePool.reset(new TempResourcePool);
 
@@ -441,7 +404,8 @@ namespace Fancy {
         String name(StaticString<64>("QueryHeap %s", locGetQueryTypeName((GpuQueryType)queryType)));
 
         GpuBuffer* buffer = ourPlatformImpl->CreateBuffer();
-        buffer->Create(bufferProps, name.c_str());
+        if (buffer)
+          buffer->Create(bufferProps, name.c_str());
         ourQueryBuffers[i][queryType].reset(buffer);
       }
     }
@@ -461,7 +425,7 @@ namespace Fancy {
     ourDefaultDepthStencilState.reset();
     ourDefaultBlendState.reset();
 
-    ourGpuProgramPipelineCache.clear();
+    ourShaderPipelineCache.clear();
     ourShaderCache.clear();
     ourBlendStateCache.clear();
     ourDepthStencilStateCache.clear();
@@ -569,7 +533,7 @@ namespace Fancy {
     return output;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuProgram> RenderCore::CreateGpuProgram(const GpuProgramDesc& aDesc)
+  SharedPtr<Shader> RenderCore::CreateShader(const ShaderDesc& aDesc)
   {
     uint64 hash = aDesc.GetHash();
 
@@ -577,47 +541,48 @@ namespace Fancy {
     if (it != ourShaderCache.end())
       return it->second;
 
-    GpuProgramCompilerOutput compilerOutput;
+    ShaderCompilerResult compilerOutput;
     if (!ourShaderCompiler->Compile(aDesc, &compilerOutput))
       return nullptr;
 
-    SharedPtr<GpuProgram> program(ourPlatformImpl->CreateGpuProgram());
+    SharedPtr<Shader> program(ourPlatformImpl->CreateShader());
     program->SetFromCompilerOutput(compilerOutput);
     
     ourShaderCache.insert(std::make_pair(hash, program));
 
     const String actualShaderPath =
-      Resources::FindPath(ourShaderCompiler->ResolvePlatformShaderPath(aDesc.myShaderFileName));
+      Resources::FindPath(ourShaderCompiler->GetShaderPath(aDesc.myShaderFileName.c_str()));
 
     ourShaderFileWatcher->AddFileWatch(actualShaderPath);
 
     return program;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuProgramPipeline> RenderCore::CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc)
+  SharedPtr<ShaderPipeline> RenderCore::CreateShaderPipeline(const ShaderPipelineDesc& aDesc)
   {
     uint64 hash = aDesc.GetHash();
 
-    auto it = ourGpuProgramPipelineCache.find(hash);
-    if (it != ourGpuProgramPipelineCache.end())
+    auto it = ourShaderPipelineCache.find(hash);
+    if (it != ourShaderPipelineCache.end())
       return it->second;
 
-    std::array<SharedPtr<GpuProgram>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
+    std::array<SharedPtr<Shader>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
+    // for (uint i = 1u; i < (uint)ShaderStage::NUM; ++i)  // Hack to only load pixel shaders for vulkan-dev
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
-      if (!aDesc.myGpuPrograms[i].myShaderFileName.empty())
-        pipelinePrograms[i] = CreateGpuProgram(aDesc.myGpuPrograms[i]);
+      if (!aDesc.myShader[i].myShaderFileName.empty())
+        pipelinePrograms[i] = CreateShader(aDesc.myShader[i]);
     }
 
-    SharedPtr<GpuProgramPipeline> pipeline(new GpuProgramPipeline);
+    SharedPtr<ShaderPipeline> pipeline(ourPlatformImpl->CreateShaderPipeline());
     pipeline->SetFromShaders(pipelinePrograms);
 
-    ourGpuProgramPipelineCache.insert(std::make_pair(hash, pipeline));
+    ourShaderPipelineCache.insert(std::make_pair(hash, pipeline));
 
     return pipeline;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuProgram> RenderCore::GetGpuProgram(uint64 aDescHash)
+  SharedPtr<Shader> RenderCore::GetShader(uint64 aDescHash)
   {
     auto it = ourShaderCache.find(aDescHash);
     if (it != ourShaderCache.end())
@@ -626,38 +591,39 @@ namespace Fancy {
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuProgramPipeline> RenderCore::GetGpuProgramPipeline(uint64 aDescHash)
+  SharedPtr<ShaderPipeline> RenderCore::GetShaderPipeline(uint64 aDescHash)
   {
-    auto it = ourGpuProgramPipelineCache.find(aDescHash);
-    if (it != ourGpuProgramPipelineCache.end())
+    auto it = ourShaderPipelineCache.find(aDescHash);
+    if (it != ourShaderPipelineCache.end())
       return it->second;
 
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<BlendState> RenderCore::CreateBlendState(const BlendStateDesc& aDesc)
+  SharedPtr<BlendState> RenderCore::CreateBlendState(const BlendStateProperties& aProperties)
   {
-    auto it = ourBlendStateCache.find(aDesc.GetHash());
+    const uint64 hash = MathUtil::ByteHash(aProperties);
+
+    auto it = ourBlendStateCache.find(hash);
     if (it != ourBlendStateCache.end())
       return it->second;
 
-    SharedPtr<BlendState> blendState(FANCY_NEW(BlendState, MemoryCategory::GENERAL));
-    blendState->SetFromDescription(aDesc);
+    SharedPtr<BlendState> blendState(new BlendState(aProperties));
 
-    ourBlendStateCache.insert(std::make_pair(aDesc.GetHash(), blendState));
+    ourBlendStateCache.insert(std::make_pair(hash, blendState));
     return blendState;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<DepthStencilState> RenderCore::CreateDepthStencilState(const DepthStencilStateDesc& aDesc)
+  SharedPtr<DepthStencilState> RenderCore::CreateDepthStencilState(const DepthStencilStateProperties& aDesc)
   {
-    auto it = ourDepthStencilStateCache.find(aDesc.GetHash());
+    const uint64 hash = MathUtil::ByteHash(aDesc);
+
+    auto it = ourDepthStencilStateCache.find(hash);
     if (it != ourDepthStencilStateCache.end())
       return it->second;
 
-    SharedPtr<DepthStencilState> depthStencilState(FANCY_NEW(DepthStencilState, MemoryCategory::GENERAL));
-    depthStencilState->SetFromDescription(aDesc);
-
-    ourDepthStencilStateCache.insert(std::make_pair(aDesc.GetHash(), depthStencilState));
+    SharedPtr<DepthStencilState> depthStencilState(new DepthStencilState(aDesc));
+    ourDepthStencilStateCache.insert(std::make_pair(hash, depthStencilState));
     return depthStencilState;
   }
 //---------------------------------------------------------------------------//
@@ -743,6 +709,9 @@ namespace Fancy {
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureProperties& someProperties, const char* aName /*= nullptr*/, TextureSubData* someUploadDatas, uint aNumUploadDatas)
   {
     SharedPtr<Texture> tex(ourPlatformImpl->CreateTexture());
+    if (!tex)
+      return nullptr;
+
     tex->Create(someProperties, aName, someUploadDatas, aNumUploadDatas);
     return tex->IsValid() ? tex : nullptr;
   }
@@ -750,6 +719,9 @@ namespace Fancy {
   SharedPtr<GpuBuffer> RenderCore::CreateBuffer(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* someInitialData /* = nullptr */)
   {
     SharedPtr<GpuBuffer> buffer(ourPlatformImpl->CreateBuffer());
+    if (!buffer)
+      return nullptr;
+
     buffer->Create(someProperties, aName, someInitialData);
     return buffer->IsValid() ? buffer : nullptr;
   }
@@ -760,14 +732,13 @@ namespace Fancy {
     TextureViewProperties viewProps = someProperties;
     viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.eFormat;
     viewProps.myDimension = viewProps.myDimension != GpuResourceDimension::UNKONWN ? viewProps.myDimension : texProps.myDimension;
-    viewProps.myNumMipLevels = glm::max(1u, glm::min(viewProps.myNumMipLevels, texProps.myNumMipLevels));
-    viewProps.myArraySize = glm::max(1u, glm::min(viewProps.myArraySize, texProps.GetArraySize() - viewProps.myFirstArrayIndex));
+    viewProps.mySubresourceRange.myNumMipLevels = glm::max(1u, glm::min(viewProps.mySubresourceRange.myNumMipLevels, texProps.myNumMipLevels));
+    viewProps.mySubresourceRange.myNumArrayIndices = glm::max(1u, glm::min(viewProps.mySubresourceRange.myNumArrayIndices, texProps.GetArraySize() - viewProps.mySubresourceRange.myFirstArrayIndex));
     viewProps.myZSize = glm::max(1u, glm::min(viewProps.myZSize, texProps.GetDepthSize() - viewProps.myFirstZindex));
     
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(viewProps.myFormat);
-    ASSERT(viewProps.myPlaneIndex < formatInfo.myNumPlanes);
+    ASSERT(viewProps.mySubresourceRange.myFirstPlane < formatInfo.myNumPlanes);
     ASSERT(!viewProps.myIsShaderWritable || !viewProps.myIsRenderTarget, "UAV and RTV are mutually exclusive");
-    ASSERT(viewProps.myPlaneIndex < GpuResourceView::ourNumSupportedPlanes);
 
     return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, viewProps, aName));
   }
@@ -836,12 +807,12 @@ namespace Fancy {
     return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ, aByteSize);
   }
 //---------------------------------------------------------------------------//
-  MappedTempTextureBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations)
+  MappedTempTextureBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange)
   {
     DynamicArray<TextureSubLayout> subresourceLayouts;
     DynamicArray<uint64> subresourceOffsets;
     uint64 totalSize;
-    aTexture->GetSubresourceLayout(aStartSubLocation, aNumSublocations, subresourceLayouts, subresourceOffsets, totalSize);
+    aTexture->GetSubresourceLayout(aSubresourceRange, subresourceLayouts, subresourceOffsets, totalSize);
 
     GpuBufferResourceProperties props;
     props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
@@ -852,23 +823,20 @@ namespace Fancy {
     TempBufferResource readbackBuffer = AllocateTempBuffer(props, 0u, "Temp texture readback buffer");
     ASSERT(readbackBuffer.myBuffer != nullptr);
 
-    const uint startSubresourceIndex = aTexture->GetSubresourceIndex(aStartSubLocation);
-
     CommandList* ctx = BeginCommandList(CommandListType::Graphics);
-    for (uint subresource = 0; subresource < aNumSublocations; ++subresource)
+    int i = 0;
+    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
     {
-      TextureSubLocation subLocation = aTexture->GetSubresourceLocation(startSubresourceIndex + subresource);
-      uint64 offset = subresourceOffsets[subresource];
-      ctx->CopyTextureRegion(readbackBuffer.myBuffer, offset, aTexture, subLocation);
+      ctx->CopyTextureRegion(readbackBuffer.myBuffer, subresourceOffsets[i++], aTexture, *subIter);
     }
     ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
 
     return MappedTempTextureBuffer(subresourceLayouts, readbackBuffer, GpuResourceMapMode::READ, totalSize);
   }
 //---------------------------------------------------------------------------//
-  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations, TextureData& aTextureDataOut)
+  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange, TextureData& aTextureDataOut)
   {
-    MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aStartSubLocation, aNumSublocations);
+    MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aSubresourceRange);
     if (readbackTex.myMappedData == nullptr || readbackTex.myLayouts.empty())
       return false;
 
@@ -1108,21 +1076,8 @@ namespace Fancy {
   void RenderCore::WaitForIdle(CommandListType aType)
   {
     CommandQueue* queue = GetCommandQueue(aType);
-    queue->WaitForIdle();
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore::WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset, uint aNumSubresources)
-  {
-    /* TODO: 
-     * This method just waits on all queues the resource has been used on, even if it hasn't been written to or has been written to a long time ago. 
-     * Instead, the hazardData should include the fences after the last write-access for all queues so this method can wait on those fences instead.
-     */
-    const GpuResourceStateTracking& hazardData = aResource->myStateTracking;
-
-    bool commandListNeedsWait[(uint)CommandListType::NUM] = { true, true, false };
-    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      if (commandListNeedsWait[i])
-        WaitForIdle((CommandListType)i);
+    if (queue != nullptr)
+      queue->WaitForIdle();
   }
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)
@@ -1139,22 +1094,22 @@ namespace Fancy {
   void RenderCore::OnShaderFileUpdated(const String& aShaderFile)
   {
     // Find GpuPrograms for this file
-    std::vector<GpuProgram*> programsToRecompile;
+    std::vector<Shader*> programsToRecompile;
     for (auto it = ourShaderCache.begin(); it != ourShaderCache.end(); ++it)
     {
-      GpuProgram* program = it->second.get();
+      Shader* program = it->second.get();
 
-      const GpuProgramDesc& desc = program->GetDescription();
+      const ShaderDesc& desc = program->GetDescription();
       String actualShaderPath =
-        Resources::FindPath(ourShaderCompiler->ResolvePlatformShaderPath(desc.myShaderFileName));
+        Resources::FindPath(ourShaderCompiler->GetShaderPath(desc.myShaderFileName.c_str()));
 
       if (actualShaderPath == aShaderFile)
         programsToRecompile.push_back(program);
     }
     
-    for (GpuProgram* program : programsToRecompile)
+    for (Shader* program : programsToRecompile)
     {
-      GpuProgramCompilerOutput compiledOutput;
+      ShaderCompilerResult compiledOutput;
       if (ourShaderCompiler->Compile(program->GetDescription(), &compiledOutput))
         program->SetFromCompilerOutput(compiledOutput);
       else
@@ -1162,15 +1117,15 @@ namespace Fancy {
     }
     
     // Check which pipelines need to be updated...
-    std::vector<GpuProgramPipeline*> changedPipelines;
-    for (auto it = ourGpuProgramPipelineCache.begin(); it != ourGpuProgramPipelineCache.end(); ++it)
+    std::vector<ShaderPipeline*> changedPipelines;
+    for (auto it = ourShaderPipelineCache.begin(); it != ourShaderPipelineCache.end(); ++it)
     {
-      GpuProgramPipeline* pipeline = it->second.get();
+      ShaderPipeline* pipeline = it->second.get();
 
-      for (GpuProgram* changedProgram : programsToRecompile)
+      for (Shader* changedProgram : programsToRecompile)
       {
         const uint stage = static_cast<uint>(changedProgram->myProperties.myShaderStage);
-        if (changedProgram == pipeline->myGpuPrograms[stage].get())
+        if (changedProgram == pipeline->myShaders[stage].get())
         {
           changedPipelines.push_back(pipeline);
           break;
@@ -1178,13 +1133,13 @@ namespace Fancy {
       }
     }
 
-    for (GpuProgramPipeline* pipeline : changedPipelines)
+    for (ShaderPipeline* pipeline : changedPipelines)
     {
       pipeline->UpdateResourceInterface();
       pipeline->UpdateShaderByteCodeHash();
     }
 
-    for (GpuProgram* program : programsToRecompile)
+    for (Shader* program : programsToRecompile)
       ourOnShaderRecompiled(program);
   }
 //---------------------------------------------------------------------------//

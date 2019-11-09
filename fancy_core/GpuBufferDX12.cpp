@@ -6,7 +6,7 @@
 
 #include "RenderCore_PlatformDX12.h"
 #include "GpuResourceDataDX12.h"
-#include "GpuResourceViewDX12.h"
+#include "GpuResourceViewDataDX12.h"
 #include "CommandList.h"
 
 namespace Fancy {
@@ -99,9 +99,7 @@ namespace Fancy {
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;
 
-    myNumSubresources = 1u;
-    myNumSubresourcesPerPlane = 1u;
-    myNumPlanes = 1u;
+    mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();
@@ -166,24 +164,24 @@ namespace Fancy {
     bool success = false;
     if (someProperties.myIsConstantBuffer)
     {
-      nativeData.myType = GpuResourceViewDataDX12::CBV;
+      myType = GpuResourceViewType::CBV;
       success = CreateCBV(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else if (someProperties.myIsShaderWritable)
     {
-      nativeData.myType = GpuResourceViewDataDX12::UAV;
+      myType = GpuResourceViewType::UAV;
       success = CreateUAV(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else
     {
-      nativeData.myType = GpuResourceViewDataDX12::SRV;
+      myType = GpuResourceViewType::SRV;
       success = CreateSRV(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
 
     ASSERT(success);
 
     myNativeData = nativeData;
-    mySubresources->push_back(0u);
+    mySubresourceRange = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
     myCoversAllSubresources = true;
   }
 //---------------------------------------------------------------------------//
@@ -224,7 +222,7 @@ namespace Fancy {
       ASSERT(someProperties.myFormat != DataFormat::UNKNOWN, "Typed buffer-SRV needs a proper format");
       const DataFormat format = someProperties.myFormat;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
-      srvDesc.Format = RenderCore_PlatformDX12::GetDXGIformat(format);
+      srvDesc.Format = RenderCore_PlatformDX12::ResolveFormat(format);
       srvDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
       ASSERT(someProperties.mySize / formatInfo.mySizeBytes <= UINT_MAX);
       srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
@@ -264,7 +262,7 @@ namespace Fancy {
       ASSERT(someProperties.myFormat != DataFormat::UNKNOWN, "Typed buffer-UAV needs a proper format");
       const DataFormat format = someProperties.myFormat;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
-      uavDesc.Format = RenderCore_PlatformDX12::GetDXGIformat(format);
+      uavDesc.Format = RenderCore_PlatformDX12::ResolveFormat(format);
       uavDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
       ASSERT(someProperties.mySize / formatInfo.mySizeBytes <= UINT_MAX);
       uavDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
@@ -288,25 +286,8 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  void* GpuBufferDX12::Map(GpuResourceMapMode aMapMode, uint64 anOffset, uint64 aSize) const
+  void* GpuBufferDX12::Map_Internal(uint64 anOffset, uint64 aSize) const
   {
-    const uint64 bufferSize = myProperties.myNumElements * myProperties.myElementSizeBytes;
-    aSize = glm::min(bufferSize, aSize);
-    ASSERT(anOffset + aSize <= bufferSize);
-
-    const bool isCpuWritable = myProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE;
-    const bool isCpuReadable = myProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ;
-
-    const bool wantsWrite = aMapMode == GpuResourceMapMode::WRITE_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::WRITE;
-    const bool wantsRead = aMapMode == GpuResourceMapMode::READ_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::READ;
-
-    if ((wantsWrite && !isCpuWritable) || (wantsRead && !isCpuReadable))
-      return nullptr;
-
-    const bool needsWait = aMapMode == GpuResourceMapMode::READ || aMapMode == GpuResourceMapMode::WRITE;
-    if (needsWait)
-      RenderCore::WaitForResourceIdle(this);
-
     D3D12_RANGE range;
     range.Begin = anOffset;
     range.End = range.Begin + aSize;
@@ -317,12 +298,8 @@ namespace Fancy {
     return mappedData;
   }
 //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Unmap(GpuResourceMapMode aMapMode, uint64 anOffset /* = 0u */, uint64 aSize /* = UINT64_MAX */) const
+  void GpuBufferDX12::Unmap_Internal(GpuResourceMapMode aMapMode, uint64 anOffset /* = 0u */, uint64 aSize /* = UINT64_MAX */) const
   {
-    const uint64 bufferSize = myProperties.myNumElements * myProperties.myElementSizeBytes;
-    aSize = glm::min(bufferSize, aSize);
-    ASSERT(anOffset + aSize <= bufferSize);
-
     D3D12_RANGE range;
     range.Begin = anOffset;
     range.End = range.Begin + aSize;

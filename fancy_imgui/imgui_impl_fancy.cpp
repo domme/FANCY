@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include <fancy_core/GpuProgramPipeline.h>
+#include <fancy_core/ShaderPipeline.h>
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/Window.h>
 #include <fancy_core/RenderOutput.h>
@@ -11,8 +11,8 @@
 #include <fancy_core/BlendState.h>
 #include <fancy_core/DepthStencilState.h>
 #include <fancy_core/CommandList.h>
-#include <fancy_core/GpuProgramDesc.h>
-#include <fancy_core/GpuProgramPipelineDesc.h>
+#include <fancy_core/ShaderDesc.h>
+#include <fancy_core/ShaderPipelineDesc.h>
 #include <fancy_core/Slot.h>
 #include <fancy_core/Log.h>
 #include <fancy_core/WindowsIncludes.h>
@@ -33,7 +33,7 @@ namespace Fancy { namespace ImGuiRendering {
   };
 
   SharedPtr<TextureView> ourFontTexture;
-  SharedPtr<GpuProgramPipeline> ourProgramPipeline;
+  SharedPtr<ShaderPipeline> ourProgramPipeline;
   SharedPtr<BlendState> ourBlendState;
   SharedPtr<DepthStencilState> ourDepthStencilState;
       
@@ -130,18 +130,31 @@ namespace Fancy { namespace ImGuiRendering {
     if (!QueryPerformanceCounter((LARGE_INTEGER *)&ourTime))
       return false;
 
+    
+    // DEBUG - test during VK development to test compilation of a compute shader before anything else
+    // {
+    //   ShaderDesc shaderDesc =
+    //   {
+    //     "Tests/ModifyBuffer",
+    //     "main_set",
+    //     (uint) ShaderStage::COMPUTE
+    //   };
+    // 
+    //   SharedPtr<Shader> testComputShader = RenderCore::CreateShader(shaderDesc);
+    // }
+
     // Load the imgui-shader state
     {
-      GpuProgramPipelineDesc pipelineDesc;
-      GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
+      ShaderPipelineDesc pipelineDesc;
+      ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
       shaderDesc->myShaderFileName = "Imgui";
       shaderDesc->myMainFunction = "main";
       shaderDesc->myShaderStage = (uint)ShaderStage::VERTEX;
-      shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
+      shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
       shaderDesc->myShaderFileName = "Imgui";
       shaderDesc->myShaderStage = (uint)ShaderStage::FRAGMENT;
       shaderDesc->myMainFunction = "main";
-      ourProgramPipeline = RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+      ourProgramPipeline = RenderCore::CreateShaderPipeline(pipelineDesc);
       ASSERT(ourProgramPipeline != nullptr);
     }
    
@@ -178,18 +191,18 @@ namespace Fancy { namespace ImGuiRendering {
 
     // Blend state (alpha blending)
     {
-      BlendStateDesc desc;
-      desc.myBlendEnabled[0] = true;
-      desc.mySrcBlend[0] = static_cast<uint>(BlendInput::SRC_ALPHA);
-      desc.myDestBlend[0] = static_cast<uint>(BlendInput::INV_SRC_ALPHA);
-      desc.myBlendOp[0] = static_cast<uint>(BlendOp::ADD);
+      BlendStateProperties desc;
+      desc.myRendertargetProperties[0].myBlendEnabled = true;
+      desc.myRendertargetProperties[0].mySrcBlendFactor = BlendFactor::SRC_ALPHA;
+      desc.myRendertargetProperties[0].myDstBlendFactor = BlendFactor::INV_SRC_ALPHA;
+      desc.myRendertargetProperties[0].myBlendOp = BlendOp::ADD;
       ourBlendState = RenderCore::CreateBlendState(desc);
       ASSERT(ourBlendState != nullptr);
     }
 
     // Depth-stencil state (no depth testing)
     {
-      DepthStencilStateDesc desc;
+      DepthStencilStateProperties desc;
       desc.myStencilEnabled = false;
       desc.myDepthTestEnabled = false;
       desc.myDepthWriteEnabled = false;
@@ -248,7 +261,7 @@ namespace Fancy { namespace ImGuiRendering {
     ctx->SetFillMode(FillMode::SOLID);
     ctx->SetWindingOrder(WindingOrder::CCW);
     ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-    ctx->SetGpuProgramPipeline(ourProgramPipeline);
+    ctx->SetShaderPipeline(ourProgramPipeline);
 
     // Update the cbuffer data
     {

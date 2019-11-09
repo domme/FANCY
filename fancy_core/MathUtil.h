@@ -11,8 +11,28 @@ namespace Fancy { namespace MathUtil {
   {
     uint64 hash = 0x0;
     std::hash<uint> hasher;
-    for (uint i = 0u; i < aSize; ++i)
-      hash ^= hasher(static_cast<uint>(aValue[i]) * 2654435761u) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+
+    const uint64 numDWORDs = aSize / 4u;
+    const uint64 numDWORDbytes = numDWORDs * 4u;
+    const uint64 numRemainingBytes = aSize - numDWORDbytes;
+
+    const uint* dwordPtr = reinterpret_cast<const uint*>(aValue);
+
+    const auto CombineHash = [&](uint aVal)
+    {
+      hash ^= hasher(
+        static_cast<uint>(hasher(aVal))
+        * 2654435761u)
+      + 0x9e3779b9 
+      + (hash << 6) 
+      + (hash >> 2);
+    };
+
+    for (uint64 i = 0u; i < numDWORDs; ++i)
+      CombineHash(dwordPtr[i]);
+
+    for (uint64 i = numDWORDbytes; i < aSize; ++i)
+      CombineHash(static_cast<uint>(aValue[i]));
 
     return hash;
   }
@@ -38,7 +58,7 @@ namespace Fancy { namespace MathUtil {
   }
 //---------------------------------------------------------------------------//
   template<class T>
-  inline void hash_combine(uint64& uCombinedSeed, const T value)
+  inline void hash_combine(uint64& uCombinedSeed, const T& value)
   {
     uCombinedSeed ^= Hash<T>(value) * 2654435761 + 0x9e3779b9 +
                      (uCombinedSeed << 6) + (uCombinedSeed >> 2);

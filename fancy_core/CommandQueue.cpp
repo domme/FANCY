@@ -23,13 +23,13 @@ namespace Fancy
     {
       CommandList* commandList = myAvailableCommandLists.front();
       if (!commandList->IsOpen())
-        commandList->Reset();
+        commandList->PreBegin();
       myAvailableCommandLists.pop_front();
 
       return commandList;
     }
 
-    myCommandListPool.push_back(std::unique_ptr<CommandList>(RenderCore::GetPlatform()->CreateContext(myType)));
+    myCommandListPool.push_back(std::unique_ptr<CommandList>(RenderCore::GetPlatform()->CreateCommandList(myType)));
     CommandList* commandList = myCommandListPool.back().get();
 
     return commandList;

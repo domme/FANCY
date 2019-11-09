@@ -1,6 +1,6 @@
 #pragma once
 #include <fancy_core/FancyCoreDefines.h>
-#include <fancy_core/GpuProgram.h>
+#include <fancy_core/Shader.h>
 #include <fancy_core/Ptr.h>
 
 #include <map>
@@ -15,7 +15,7 @@ namespace Fancy {
   struct ModelDesc;
   struct MaterialDesc;
   class Texture;
-  class GpuProgram;
+  class Shader;
 //---------------------------------------------------------------------------//
   class AssetManager
   {
@@ -43,7 +43,7 @@ namespace Fancy {
     SharedPtr<Texture> CreateTexture(const char* aPath, uint someLoadFlags = 0);
     void ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter aFilter = FILTER_LANCZOS);
 
-    GpuProgram* GetResizeShader() const { return myTextureResizeShader.get(); }
+    Shader* GetResizeShader() const { return myTextureResizeShader.get(); }
 
     SharedPtr<Material> CreateMaterial(const MaterialDesc& aDesc);
     SharedPtr<Model> CreateModel(const ModelDesc& aDesc);
@@ -57,7 +57,7 @@ namespace Fancy {
     std::map<uint64, SharedPtr<Texture>> myTextures;
     std::map<uint64, SharedPtr<Mesh>> myMeshes;
 
-    SharedPtr<GpuProgram> myTextureResizeShader;
+    SharedPtr<Shader> myTextureResizeShader;
   };
 //---------------------------------------------------------------------------//
 }

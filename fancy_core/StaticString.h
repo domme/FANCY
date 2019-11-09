@@ -45,6 +45,8 @@ namespace Fancy
       return myBuffer;
     }
 
+    const char* GetBuffer() const { return myBuffer; }
+
     operator const char*() const { return myBuffer; }
 
   private:
@@ -91,5 +93,6 @@ namespace Fancy
   using CircularStringBufferSmall = CircularStringBufferSized<1024>;
   using CircularStringBuffer = CircularStringBufferSized<4096>;
   using CircularStringBufferLarge = CircularStringBufferSized<8192>;
+  using StaticFilePath = StaticString<260>;
 }
 //---------------------------------------------------------------------------//

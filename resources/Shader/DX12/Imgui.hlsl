@@ -1,3 +1,5 @@
+#include "Vulkan_Support.h"
+
 struct VS_OUT
 {
   float4 pos : SV_POSITION;
@@ -10,9 +12,9 @@ struct IMGUI_VS_CBUFFER
   float4x4 ProjectionMatrix;
 };
 
-ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
+VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b2);
 
-#define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), CBV(b0), DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL), StaticSampler(s0, addressU = TEXTURE_ADDRESS_CLAMP, addressV = TEXTURE_ADDRESS_CLAMP, addressW = TEXTURE_ADDRESS_CLAMP, filter = FILTER_MIN_MAG_MIP_LINEAR )"
+#define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), CBV(b2), DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL), StaticSampler(s0, addressU = TEXTURE_ADDRESS_CLAMP, addressV = TEXTURE_ADDRESS_CLAMP, addressW = TEXTURE_ADDRESS_CLAMP, filter = FILTER_MIN_MAG_MIP_LINEAR )"
 
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_VERTEX)
@@ -44,8 +46,8 @@ ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_FRAGMENT)  
-  Texture2D texture0 : register(t0);
-  SamplerState sampler_default : register(s0);
+  VK_BINDING(0, 1) Texture2D texture0 : register(t0);
+  VK_BINDING(1, 1) SamplerState sampler_default : register(s0);
  
   [RootSignature(ROOT_SIGNATURE)]
   float4 main(VS_OUT input) : SV_Target

@@ -1,0 +1,19 @@
+Fancy Rendering Framework - Issues and Todos
+=============================================
+- Think about which format a TextureView should have on high-level for Depth- or Stencil formats. Currently, a view is created with a depth- or stencil format which is then resolved into an appropriate floating-point of uint format (e.g. DXGI_FORMAT_R24_UNORM_X8_TYPELESS for DXGI_FORMAT_D24_UNORM_S8_UINT). On Vulkan, there don't seem to be any special formats for views required.
+
+- Get rid of the platform-specific TextureView(DX12/Vk)-specialization. GpuResourceView already has a nativeData-Any member. TextureViewDX12/Vk is only used for properly releasing the descriptor on DX12. That could also be done in the GpuResourceViewDataDX12-destructor.
+
+- Support layered framebuffers
+
+- Get rid of AdapterDX12 and move the resolve-functions into platform_dx12
+
+- Rename RenderCore_PlatformDX12 to something simpler like "RenderPlatformDX12"
+
+- Vulkan: Re-write the fence-system when VK_KHR_timeline_semaphore becomes more widely available (Intel?)
+
+- Separate Core- and Render- libraries and make them each an own project. Forbid dependencies from core to render
+
+- GrowingList doesn't destruct removed elements
+
+- Group allocator-classes that cache render-objects on a fence-basis under a common templated base-class. Right now, there are a lot of very similar implementations for various things (CommandAllocatorPoolDX12, CommandBufferAllocatorVk,...)

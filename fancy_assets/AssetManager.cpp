@@ -26,11 +26,11 @@ using namespace Fancy;
 //---------------------------------------------------------------------------//
   AssetManager::AssetManager()
   {
-    GpuProgramDesc shaderDesc;
+    ShaderDesc shaderDesc;
     shaderDesc.myShaderFileName = "ResizeTexture2D";
     shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
     shaderDesc.myMainFunction = "main";
-    myTextureResizeShader = RenderCore::CreateGpuProgram(shaderDesc);
+    myTextureResizeShader = RenderCore::CreateShader(shaderDesc);
     ASSERT(myTextureResizeShader != nullptr);
   }
 //---------------------------------------------------------------------------//
@@ -188,7 +188,7 @@ using namespace Fancy;
       ComputeMipmaps(tex);
 
       TextureData textureData;
-      bool success = RenderCore::ReadbackTextureData(tex.get(), TextureSubLocation(1), tex->myNumSubresources - 1, textureData);
+      bool success = RenderCore::ReadbackTextureData(tex.get(), tex->GetSubresources(), textureData);
       textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
 
       BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), (uint) textureData.mySubDatas.size());
@@ -297,10 +297,10 @@ using namespace Fancy;
     FixedArray<SharedPtr<TextureView>, kMaxNumMips> readViews;
 
     TextureViewProperties readProps;
-    readProps.myNumMipLevels = 1;
+    readProps.mySubresourceRange.myNumMipLevels = 1;
     for (uint mip = 0u; mip < numMips - 1; ++mip)
     {
-      readProps.myMipIndex = mip;
+      readProps.mySubresourceRange.myFirstMipLevel = mip;
       readViews[mip] = RenderCore::CreateTextureView(aTexture, readProps);
     }
 
@@ -340,23 +340,20 @@ using namespace Fancy;
       ctx->BindResourceSet(resourceViews, 2, 1u);
       ctx->Dispatch(glm::int3((int)destSize.x, (int)destSize.y, 1));
       ctx->ResourceUAVbarrier();
-
-      TextureSubLocation destLocation;
-      destLocation.myMipLevel = mip;
-      const uint16 subresourceIndex = aTexture->GetSubresourceIndex(destLocation);
       
+      SubresourceLocation dstSubLocation(mip);
       ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceState::WRITE_COMPUTE_SHADER_UAV, GpuResourceState::READ_COPY_SOURCE);
-      ctx->SubresourceBarrier(aTexture.get(), &subresourceIndex, 1u, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceState::WRITE_COPY_DEST);
+      ctx->SubresourceBarrier(aTexture.get(), dstSubLocation, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceState::WRITE_COPY_DEST);
 
       TextureRegion srcRegion;
       srcRegion.myTexelPos = glm::uvec3(0, 0, 0);
       srcRegion.myTexelSize = glm::uvec3((uint)destSize.x, (uint)destSize.y, 1);
-      ctx->CopyTextureRegion(aTexture.get(), destLocation, glm::uvec3(0, 0, 0), tempTexResource[1].myTexture, TextureSubLocation(), &srcRegion);
+      ctx->CopyTextureRegion(aTexture.get(), dstSubLocation, glm::uvec3(0, 0, 0), tempTexResource[1].myTexture, SubresourceLocation(), &srcRegion);
 
       srcSize = glm::ceil(srcSize * 0.5f);
       destSize = glm::ceil(destSize * 0.5f);
 
-      ctx->SubresourceBarrier(aTexture.get(), &subresourceIndex, 1u, GpuResourceState::WRITE_COPY_DEST, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE);
+      ctx->SubresourceBarrier(aTexture.get(), dstSubLocation, GpuResourceState::WRITE_COPY_DEST, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE);
 
       if (mip < numMips - 1)
       {

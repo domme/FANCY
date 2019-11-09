@@ -4,9 +4,9 @@
 #include "RenderCore.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
-#include "GpuProgramPipeline.h"
+#include "ShaderPipeline.h"
 #include "Texture.h"
-#include "GpuProgram.h"
+#include "Shader.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
 #include "TimeManager.h"
@@ -36,12 +36,12 @@ namespace Fancy {
     MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myCullMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
-    MathUtil::hash_combine(hash, myDepthStencilState->GetHash());
-    MathUtil::hash_combine(hash, myBlendState->GetHash());
-    MathUtil::hash_combine(hash, myGpuProgramPipeline->GetHash());
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myDepthStencilState.get()));
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myBlendState.get()));
+    MathUtil::hash_combine(hash, myShaderPipeline->GetHash());
 
-    if (myGpuProgramPipeline != nullptr)
-      MathUtil::hash_combine(hash, myGpuProgramPipeline->GetShaderByteCodeHash());
+    if (myShaderPipeline != nullptr)
+      MathUtil::hash_combine(hash, myShaderPipeline->GetShaderByteCodeHash());
 
     MathUtil::hash_combine(hash, myNumRenderTargets);
 
@@ -56,7 +56,7 @@ namespace Fancy {
   
 //---------------------------------------------------------------------------//
   ComputePipelineState::ComputePipelineState()
-    : myGpuProgram(nullptr)
+    : myShader(nullptr)
     , myIsDirty(true)
   {
   }
@@ -64,10 +64,10 @@ namespace Fancy {
   uint64 ComputePipelineState::GetHash() const
   {
     uint64 hash = 0u;
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myGpuProgram));
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myShader));
 
-    if (myGpuProgram != nullptr)
-      MathUtil::hash_combine(hash, myGpuProgram->GetNativeBytecodeHash());
+    if (myShader != nullptr)
+      MathUtil::hash_combine(hash, myShader->GetNativeBytecodeHash());
 
     return hash;
   }
@@ -91,6 +91,7 @@ namespace Fancy {
     , myCurrentContext(aType)
     , myViewportParams(0, 0, 1, 1)
     , myClipRect(0, 0, 1, 1)
+    , myIsOpen(true)
     , myViewportDirty(true)
     , myClipRectDirty(true)
     , myTopologyDirty(true)
@@ -214,34 +215,34 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 // Render Context:
 //---------------------------------------------------------------------------//
-  void CommandList::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
+  void CommandList::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
   {
     ASSERT(myCommandListType == CommandListType::Graphics);
     
     myCurrentContext = CommandListType::Graphics;
-    if (myGraphicsPipelineState.myGpuProgramPipeline != aGpuProgramPipeline)
+    if (myGraphicsPipelineState.myShaderPipeline != aShaderPipeline)
     {
-      myGraphicsPipelineState.myGpuProgramPipeline = aGpuProgramPipeline;
+      myGraphicsPipelineState.myShaderPipeline = aShaderPipeline;
       myGraphicsPipelineState.myIsDirty = true;
 
       bool hasUnorderedWrites = false;
-      for (const SharedPtr<GpuProgram>& gpuProgram : aGpuProgramPipeline->myGpuPrograms)
-        if(gpuProgram != nullptr)
-          hasUnorderedWrites |= gpuProgram->myProperties.myHasUnorderedWrites;
+      for (const SharedPtr<Shader>& shader : aShaderPipeline->myShaders)
+        if(shader != nullptr)
+          hasUnorderedWrites |= shader->myProperties.myHasUnorderedWrites;
 
       myShaderHasUnorderedWrites = hasUnorderedWrites;
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SetComputeProgram(const GpuProgram* aProgram)
+  void CommandList::SetComputeProgram(const Shader* aProgram)
   {
     ASSERT(aProgram->myProperties.myShaderStage == ShaderStage::COMPUTE);
     ASSERT(myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute);
 
     myCurrentContext = CommandListType::Compute;
-    if (myComputePipelineState.myGpuProgram != aProgram)
+    if (myComputePipelineState.myShader != aProgram)
     {
-      myComputePipelineState.myGpuProgram = aProgram;
+      myComputePipelineState.myShader = aProgram;
       myComputePipelineState.myIsDirty = true;
       myShaderHasUnorderedWrites = aProgram->myProperties.myHasUnorderedWrites;
     }
@@ -256,7 +257,7 @@ namespace Fancy {
     myClipRectDirty = true;
   }
 //---------------------------------------------------------------------------//
-  void CommandList::ReleaseGpuResources(uint64 aFenceVal)
+  void CommandList::PostExecute(uint64 aFenceVal)
   {
     for (GpuRingBuffer* buf : myUploadRingBuffers)
       RenderCore::ReleaseRingBuffer(buf, aFenceVal);
@@ -283,9 +284,9 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::Reset()
+  void CommandList::PreBegin()
   {
-    ASSERT(!IsOpen(), "Reset() called on open command list. Gpu-resources will not get freed! Did you forget to execute the command list?");
+    ASSERT(!IsOpen(), "PreBegin() called on open command list. Gpu-resources will not get freed! Did you forget to execute the command list?");
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
@@ -296,6 +297,8 @@ namespace Fancy {
     myRenderTargetsDirty = true;
     myDepthStencilTarget = nullptr;
     memset(myRenderTargets, 0u, sizeof(myRenderTargets));
+
+    myIsOpen = true;
   }
 //---------------------------------------------------------------------------//
   void CommandList::SetViewport(const glm::uvec4& uViewportParams)
@@ -313,9 +316,8 @@ namespace Fancy {
       aBlendState ? aBlendState : RenderCore::GetDefaultBlendState();
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
-    const uint64 requestedHash = stateToSet->GetHash();
 
-    if (pipelineState.myBlendState->GetHash() == requestedHash)
+    if (pipelineState.myBlendState == stateToSet)
       return;
 
     pipelineState.myBlendState = stateToSet;
@@ -328,9 +330,8 @@ namespace Fancy {
       aDepthStencilState ? aDepthStencilState : RenderCore::GetDefaultDepthStencilState();
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
-    uint64 requestedHash = stateToSet->GetHash();
 
-    if (pipelineState.myDepthStencilState->GetHash() == requestedHash)
+    if (pipelineState.myDepthStencilState == stateToSet)
       return;
 
     pipelineState.myDepthStencilState = stateToSet;
@@ -466,12 +467,14 @@ namespace Fancy {
     CopyBufferRegion(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubresource, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions /*= nullptr*/) // TODO: Support regions
+  void CommandList::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions /*= nullptr*/) // TODO: Support regions
   {
+    ASSERT(aNumDatas == aSubresourceRange.GetNumSubresources());
+
     DynamicArray<TextureSubLayout> subresourceLayouts;
     DynamicArray<uint64> subresourceOffsets;
     uint64 totalSize;
-    aDestTexture->GetSubresourceLayout(aStartSubresource, aNumDatas, subresourceLayouts, subresourceOffsets, totalSize);
+    aDestTexture->GetSubresourceLayout(aSubresourceRange, subresourceLayouts, subresourceOffsets, totalSize);
 
     uint64 uploadBufferOffset;
     const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize);
@@ -479,8 +482,7 @@ namespace Fancy {
 
     uint8* uploadBufferData = (uint8*) uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
 
-    const uint numSubresources = glm::min(aNumDatas, (uint) subresourceLayouts.size());
-    for (uint i = 0; i < numSubresources; ++i)
+    for (uint i = 0; i < aNumDatas; ++i)
     {
       const TextureSubLayout& dstLayout = subresourceLayouts[i];
       const TextureSubData& srcData = someDatas[i];
@@ -506,35 +508,39 @@ namespace Fancy {
     }
     uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
 
-    const uint startDestSubresourceIndex = aDestTexture->GetSubresourceIndex(aStartSubresource);
-    for (uint i = 0; i < numSubresources; ++i)
+    int i = 0;
+    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
     {
-      const TextureSubLocation dstLocation = aDestTexture->GetSubresourceLocation(startDestSubresourceIndex + i);
-      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i]);
+      const SubresourceLocation dstLocation = *subIter;
+      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i++]);
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources, GpuResourceState aSrcState, GpuResourceState aDstState)
+  void CommandList::SubresourceBarrier(const GpuResource* aResource, const SubresourceLocation& aSubresourceLocation, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
-    ASSERT(aSubresourceList != nullptr && aNumSubresources > 0u);
+    SubresourceRange subresourceRange(aSubresourceLocation.myMipLevel, 1u, aSubresourceLocation.myArrayIndex, 1u, aSubresourceLocation.myPlaneIndex, 1u);
+    SubresourceBarrier(aResource, subresourceRange, aSrcState, aDstState);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::SubresourceBarrier(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, GpuResourceState aSrcState, GpuResourceState aDstState)
+  {
+    ASSERT(!aSubresourceRange.IsEmpty());
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-    for (uint i = 0u; i < aNumSubresources; ++i)
+    for (SubresourceIterator subIter = aSubresourceRange.Begin(), end = aSubresourceRange.End(); subIter != end; ++subIter)
     {
-      LOG_INFO("Subresource transition (untracked): Resource %s (subresource %d) from %s-%s to %s-%s",
-        aResource->myName.c_str(), i, RenderCore::CommandListTypeToString(myCommandListType), RenderCore::ResourceUsageStateToString(aSrcState),
+      LOG_INFO("Subresource transition (untracked): Resource %s (subresource mip: %d, array: %d, plane: %d) from %s-%s to %s-%s",
+        aResource->myName.c_str(), subIter->myMipLevel, subIter->myArrayIndex, subIter->myPlaneIndex, RenderCore::CommandListTypeToString(myCommandListType), RenderCore::ResourceUsageStateToString(aSrcState),
         RenderCore::CommandListTypeToString(myCommandListType), RenderCore::ResourceUsageStateToString(aDstState));
     }
-#endif  
+#endif
 
-    SubresourceBarrierInternal(aResource, aSubresourceList, aNumSubresources, aSrcState, aDstState, myCommandListType, myCommandListType);
+    SubresourceBarrierInternal(aResource, aSubresourceRange, aSrcState, aDstState, myCommandListType, myCommandListType);
   }
 //---------------------------------------------------------------------------//
   void CommandList::SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
-    SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresources[0].data(), (uint)aResourceView->mySubresources[0].size(), aSrcState, aDstState);
-    if (!aResourceView->mySubresources[1].empty())
-      SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresources[1].data(), (uint)aResourceView->mySubresources[1].size(), aSrcState, aDstState);
+    SubresourceBarrier(aResourceView->myResource.get(), aResourceView->mySubresourceRange, aSrcState, aDstState);
   }
 //---------------------------------------------------------------------------//
   void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceState aSrcState, GpuResourceState aDstState, CommandListType aSrcQueue, CommandListType aDstQueue)
@@ -554,7 +560,7 @@ namespace Fancy {
         aResource->myName.c_str(), RenderCore::CommandListTypeToString(aSrcQueue), RenderCore::ResourceUsageStateToString(aSrcState),
         RenderCore::CommandListTypeToString(aDstQueue), RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeToString(myCommandListType));
 #endif  
-    SubresourceBarrierInternal(aResource, nullptr, 0u, aSrcState, aDstState, aSrcQueue, aDstQueue);
+    SubresourceBarrierInternal(aResource, aResource->mySubresources, aSrcState, aDstState, aSrcQueue, aDstQueue);
   }
 //---------------------------------------------------------------------------//
   void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceState aSrcState, GpuResourceState aDstState)

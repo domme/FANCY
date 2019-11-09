@@ -23,6 +23,7 @@ lib/*
 *.opendb
 
 dependencies/lib/*
+dependencies/bin/*
 *.db
 FANCY.VC.db
 *.user

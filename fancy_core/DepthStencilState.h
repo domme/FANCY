@@ -5,51 +5,40 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct DepthStencilStateDesc
+  struct DepthStencilFaceProperties
   {
-    static DepthStencilStateDesc GetDefaultDepthNoStencil();
+    CompFunc  myStencilCompFunc = CompFunc::ALWAYS;
+    StencilOp myStencilFailOp = StencilOp::KEEP;
+    StencilOp myStencilDepthFailOp = StencilOp::KEEP;
+    StencilOp myStencilPassOp = StencilOp::KEEP;
+  };
+//---------------------------------------------------------------------------//
+  struct DepthStencilStateProperties
+  {
+    DepthStencilFaceProperties myFrontFace;
+    DepthStencilFaceProperties myBackFace;
 
-    DepthStencilStateDesc();
-    bool operator==(const DepthStencilStateDesc& anOther) const;
-    uint64 GetHash() const;
-
-    bool myDepthTestEnabled;
-    bool myDepthWriteEnabled;
-    uint myDepthCompFunc;
-    bool myStencilEnabled;
-    bool myTwoSidedStencil;
-    int myStencilRef;
-    uint myStencilReadMask;
-    uint myStencilCompFunc[(uint)FaceType::NUM];
-    uint myStencilWriteMask[(uint)FaceType::NUM];
-    uint myStencilFailOp[(uint)FaceType::NUM];
-    uint myStencilDepthFailOp[(uint)FaceType::NUM];
-    uint myStencilPassOp[(uint)FaceType::NUM];
+    bool      myDepthTestEnabled = true;
+    bool      myDepthWriteEnabled = true;
+    CompFunc  myDepthCompFunc = CompFunc::LESS;
+    bool      myStencilEnabled = false;
+    bool      myTwoSidedStencil = false;
+    int       myStencilRef = 0;
+    uint      myStencilReadMask = 0u;
+    uint      myStencilWriteMask = 0u;
   };
 //---------------------------------------------------------------------------//
   class DepthStencilState
   {
   public:
-      DepthStencilState();
-      bool operator==(const DepthStencilState& clOther) const;
-      bool operator==(const DepthStencilStateDesc& aDesc) const;
+    DepthStencilState(DepthStencilStateProperties aProperties)
+      : myProperties(aProperties)
+    { }
 
-      DepthStencilStateDesc GetDescription() const;
-      void SetFromDescription(const DepthStencilStateDesc& aDesc);
-      uint64 GetHash() const;
+    const DepthStencilStateProperties& GetProperties() const { return myProperties; }
 
-      bool      myDepthTestEnabled;
-      bool      myDepthWriteEnabled;
-      CompFunc  myDepthCompFunc;
-      bool      myStencilEnabled;
-      bool      myTwoSidedStencil;
-      int       myStencilRef;
-      uint      myStencilReadMask;
-      CompFunc  myStencilCompFunc[(uint)FaceType::NUM];
-      uint      myStencilWriteMask[(uint)FaceType::NUM];
-      StencilOp myStencilFailOp[(uint)FaceType::NUM];
-      StencilOp myStencilDepthFailOp[(uint)FaceType::NUM];
-      StencilOp myStencilPassOp[(uint)FaceType::NUM];
+  private:
+    DepthStencilStateProperties myProperties;
   };
 //---------------------------------------------------------------------------//
 }

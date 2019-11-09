@@ -106,8 +106,8 @@ namespace Fancy
       {
         TextureViewProperties viewProps;
         viewProps.myIsRenderTarget = true;
-        viewProps.myMipIndex = 0u;
-        viewProps.myNumMipLevels = 1u;
+        viewProps.mySubresourceRange.myFirstMipLevel = 0u;
+        viewProps.mySubresourceRange.myNumMipLevels = 1u;
         myRenderTargetView = RenderCore::CreateTextureView(myTexture, viewProps);
         ASSERT(myRenderTargetView);
       }
@@ -116,8 +116,8 @@ namespace Fancy
       {
         TextureViewProperties viewProps;
         viewProps.myIsShaderWritable = true;
-        viewProps.myMipIndex = 0u;
-        viewProps.myNumMipLevels = 1u;
+        viewProps.mySubresourceRange.myFirstMipLevel = 0u;
+        viewProps.mySubresourceRange.myNumMipLevels = 1u;
         viewProps.myFormat = DataFormatInfo::GetNonSRGBformat(someProps.myTextureProperties.eFormat);
         myWriteView = RenderCore::CreateTextureView(myTexture, viewProps);
         ASSERT(myWriteView);

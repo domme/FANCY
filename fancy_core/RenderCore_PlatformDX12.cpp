@@ -2,15 +2,14 @@
 
 #include "RenderCore_PlatformDX12.h"
 #include "DescriptorDX12.h"
-#include "GpuProgramCompilerDX12.h"
-#include "GpuProgramDX12.h"
+#include "ShaderCompilerDX12.h"
+#include "ShaderDX12.h"
 #include "TextureDX12.h"
 #include "GpuBufferDX12.h"
 
-#include "GpuProgram.h"
-#include "ShaderResourceInterface.h"
-#include "ShaderResourceInterfaceDX12.h"
-#include "GpuProgramCompiler.h"
+#include "Shader.h"
+#include "ShaderPipelineDX12.h"
+#include "ShaderCompiler.h"
 #include "DynamicDescriptorHeapDX12.h"
 #include "RenderOutputDX12.h"
 #include "RenderCore.h"
@@ -20,25 +19,8 @@
 #include "GpuQueryHeapDX12.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  namespace {
-    //---------------------------------------------------------------------------//
-    SriResourceType locGetResourceType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
-    {
-      switch (aRangeType)
-      {
-      case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return SriResourceType::BufferOrTexture;
-      case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return SriResourceType::BufferOrTextureRW;
-      case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return SriResourceType::ConstantBuffer;
-      case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return SriResourceType::Sampler;
-      default:
-        ASSERT(false);
-        return SriResourceType::BufferOrTexture;
-        break;
-      }
-    }
   //---------------------------------------------------------------------------//
-    
+  namespace {
   //---------------------------------------------------------------------------//
     CommandListType locGetCommandListType(D3D12_COMMAND_LIST_TYPE aType)
     {
@@ -53,13 +35,445 @@ namespace Fancy {
       }
     }
   //---------------------------------------------------------------------------//
-    std::vector<std::unique_ptr<ShaderResourceInterface>> locShaderResourceInterfacePool;
   }  // namespace
+//---------------------------------------------------------------------------//
+  D3D12_LOGIC_OP RenderCore_PlatformDX12::ResolveLogicOp(LogicOp aLogicOp)
+  {
+    switch(aLogicOp) 
+    {
+      case LogicOp::CLEAR:          return D3D12_LOGIC_OP_CLEAR;
+      case LogicOp::AND:            return D3D12_LOGIC_OP_AND;
+      case LogicOp::AND_REVERSE:    return D3D12_LOGIC_OP_AND_REVERSE;
+      case LogicOp::COPY:           return D3D12_LOGIC_OP_COPY;
+      case LogicOp::AND_INVERTED:   return D3D12_LOGIC_OP_AND_INVERTED;
+      case LogicOp::NO_OP:          return D3D12_LOGIC_OP_NOOP;
+      case LogicOp::XOR:            return D3D12_LOGIC_OP_XOR;
+      case LogicOp::OR:             return D3D12_LOGIC_OP_OR;
+      case LogicOp::NOR:            return D3D12_LOGIC_OP_NOR;
+      case LogicOp::EQUIVALENT:     return D3D12_LOGIC_OP_EQUIV;
+      case LogicOp::INVERT:         return D3D12_LOGIC_OP_INVERT;
+      case LogicOp::OR_REVERSE:     return D3D12_LOGIC_OP_OR_REVERSE;
+      case LogicOp::COPY_INVERTED:  return D3D12_LOGIC_OP_COPY_INVERTED;
+      case LogicOp::OR_INVERTED:    return D3D12_LOGIC_OP_OR_INVERTED;
+      case LogicOp::NAND:           return D3D12_LOGIC_OP_NAND;
+      case LogicOp::SET:            return D3D12_LOGIC_OP_SET;
+      default: ASSERT(false, "Missing implementation"); return D3D12_LOGIC_OP_NOOP;
+    }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_COMPARISON_FUNC RenderCore_PlatformDX12::ResolveCompFunc(const CompFunc& aCompFunc)
+  {
+    switch (aCompFunc)
+    {
+      case CompFunc::NEVER:     return D3D12_COMPARISON_FUNC_NEVER;
+      case CompFunc::LESS:      return D3D12_COMPARISON_FUNC_LESS;
+      case CompFunc::EQUAL:     return D3D12_COMPARISON_FUNC_EQUAL;
+      case CompFunc::LEQUAL:    return D3D12_COMPARISON_FUNC_LESS_EQUAL;
+      case CompFunc::GREATER:   return D3D12_COMPARISON_FUNC_GREATER;
+      case CompFunc::NOTEQUAL:  return D3D12_COMPARISON_FUNC_NOT_EQUAL;
+      case CompFunc::GEQUAL:    return D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+      case CompFunc::ALWAYS:    return D3D12_COMPARISON_FUNC_ALWAYS;
+      default: ASSERT(false, "Missing implementation"); return D3D12_COMPARISON_FUNC_ALWAYS;
+    }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_STENCIL_OP RenderCore_PlatformDX12::ResolveStencilOp(const StencilOp& aStencilOp)
+  {
+    switch (aStencilOp)
+    {
+      case StencilOp::KEEP:             return D3D12_STENCIL_OP_KEEP;
+      case StencilOp::ZERO:             return D3D12_STENCIL_OP_ZERO;
+      case StencilOp::REPLACE:          return D3D12_STENCIL_OP_REPLACE;
+      case StencilOp::INCREMENT_CLAMP:  return D3D12_STENCIL_OP_INCR_SAT;
+      case StencilOp::DECREMENT_CLAMP:  return D3D12_STENCIL_OP_DECR_SAT;
+      case StencilOp::INVERT:           return D3D12_STENCIL_OP_INVERT;
+      case StencilOp::INCEMENT_WRAP:    return D3D12_STENCIL_OP_INCR;
+      case StencilOp::DECREMENT_WRAP:   return D3D12_STENCIL_OP_DECR;
+      default: ASSERT(false); return D3D12_STENCIL_OP_KEEP;
+    }
+  }
+//---------------------------------------------------------------------------//
+  DXGI_FORMAT RenderCore_PlatformDX12::ResolveFormat(DataFormat aFormat)
+  {
+    switch (aFormat)
+    {
+    case DataFormat::SRGB_8_A_8:        return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    case DataFormat::RGBA_8:            return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case DataFormat::BGRA_8:            return DXGI_FORMAT_B8G8R8A8_UNORM;
+    case DataFormat::RG_8:              return DXGI_FORMAT_R8G8_UNORM;
+    case DataFormat::R_8:               return DXGI_FORMAT_R8_UNORM;
+    case DataFormat::RGBA_16:           return DXGI_FORMAT_R16G16B16A16_UNORM;
+    case DataFormat::RG_16:             return DXGI_FORMAT_R16G16_UNORM;
+    case DataFormat::R_16:              return DXGI_FORMAT_R16_UNORM;
+    case DataFormat::RGB_11_11_10F:     return DXGI_FORMAT_R11G11B10_FLOAT;
+    case DataFormat::RGBA_16F:          return DXGI_FORMAT_R16G16B16A16_FLOAT;
+    case DataFormat::RG_16F:            return DXGI_FORMAT_R16G16_FLOAT;
+    case DataFormat::R_16F:             return DXGI_FORMAT_R16_FLOAT;
+    case DataFormat::RGBA_32F:          return DXGI_FORMAT_R32G32B32A32_FLOAT;
+    case DataFormat::RGB_32F:           return DXGI_FORMAT_R32G32B32_FLOAT;
+    case DataFormat::RG_32F:            return DXGI_FORMAT_R32G32_FLOAT;
+    case DataFormat::R_32F:             return DXGI_FORMAT_R32_FLOAT;
+    case DataFormat::RGBA_32UI:         return DXGI_FORMAT_R32G32B32A32_UINT;
+    case DataFormat::RGB_32UI:          return DXGI_FORMAT_R32G32B32_UINT;
+    case DataFormat::RG_32UI:           return DXGI_FORMAT_R32G32_UINT;
+    case DataFormat::R_32UI:            return DXGI_FORMAT_R32_UINT;
+    case DataFormat::RGBA_16UI:         return DXGI_FORMAT_R16G16B16A16_UINT;
+    case DataFormat::RG_16UI:           return DXGI_FORMAT_R16G16_UINT;
+    case DataFormat::R_16UI:            return DXGI_FORMAT_R16_UINT;
+    case DataFormat::RGBA_8UI:          return DXGI_FORMAT_R8G8B8A8_UINT;
+    case DataFormat::RG_8UI:            return DXGI_FORMAT_R8G8_UINT;
+    case DataFormat::R_8UI:             return DXGI_FORMAT_R8_UINT;
+    case DataFormat::D_24UNORM_S_8UI:   return DXGI_FORMAT_D24_UNORM_S8_UINT;
+    case DataFormat::UNKNOWN:           return DXGI_FORMAT_UNKNOWN;
+
+    case DataFormat::RGB_16F:
+    case DataFormat::RGB_16UI:
+    case DataFormat::RGB_8UI:
+    default: ASSERT(false, "Missing implementation or unsupported format"); return DXGI_FORMAT_R8G8B8A8_UNORM;
+    }
+  }
+//---------------------------------------------------------------------------//
+  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthStencilTextureFormat(DXGI_FORMAT aFormat)
+  {
+    switch (aFormat)
+    {
+      // 32-bit Z w/ Stencil
+    case DXGI_FORMAT_R32G8X24_TYPELESS:
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
+    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
+      return DXGI_FORMAT_R32G8X24_TYPELESS;
+
+      // No Stencil
+    case DXGI_FORMAT_R32_TYPELESS:
+    case DXGI_FORMAT_D32_FLOAT:
+    case DXGI_FORMAT_R32_FLOAT:
+      return DXGI_FORMAT_R32_TYPELESS;
+
+      // 24-bit Z
+    case DXGI_FORMAT_R24G8_TYPELESS:
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+      return DXGI_FORMAT_R24G8_TYPELESS;
+
+      // 16-bit Z w/o Stencil
+    case DXGI_FORMAT_R16_TYPELESS:
+    case DXGI_FORMAT_D16_UNORM:
+    case DXGI_FORMAT_R16_UNORM:
+      return DXGI_FORMAT_R16_TYPELESS;
+
+    default:
+      return DXGI_FORMAT_UNKNOWN;
+    }
+  }
+//---------------------------------------------------------------------------//
+  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthStencilViewFormat(DXGI_FORMAT aFormat)
+  {
+    switch (aFormat)
+    {
+      // 32-bit Z w/ Stencil
+    case DXGI_FORMAT_R32G8X24_TYPELESS:
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
+    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
+      return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+
+      // No Stencil
+    case DXGI_FORMAT_R32_TYPELESS:
+    case DXGI_FORMAT_D32_FLOAT:
+    case DXGI_FORMAT_R32_FLOAT:
+      return DXGI_FORMAT_D32_FLOAT;
+
+      // 24-bit Z
+    case DXGI_FORMAT_R24G8_TYPELESS:
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+      return DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+      // 16-bit Z w/o Stencil
+    case DXGI_FORMAT_R16_TYPELESS:
+    case DXGI_FORMAT_D16_UNORM:
+    case DXGI_FORMAT_R16_UNORM:
+      return DXGI_FORMAT_D16_UNORM;
+
+    default:
+      return DXGI_FORMAT_UNKNOWN;
+    }
+  }
+//---------------------------------------------------------------------------//
+  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthViewFormat(DXGI_FORMAT aFormat)
+  {
+    switch (aFormat)
+    {
+      // 32-bit Z w/ Stencil
+    case DXGI_FORMAT_R32G8X24_TYPELESS:
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
+    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
+      return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+
+      // No Stencil
+    case DXGI_FORMAT_R32_TYPELESS:
+    case DXGI_FORMAT_D32_FLOAT:
+    case DXGI_FORMAT_R32_FLOAT:
+      return DXGI_FORMAT_R32_FLOAT;
+
+      // 24-bit Z
+    case DXGI_FORMAT_R24G8_TYPELESS:
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+      return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+
+      // 16-bit Z w/o Stencil
+    case DXGI_FORMAT_R16_TYPELESS:
+    case DXGI_FORMAT_D16_UNORM:
+    case DXGI_FORMAT_R16_UNORM:
+      return DXGI_FORMAT_R16_UNORM;
+
+    default:
+      return DXGI_FORMAT_UNKNOWN;
+    }
+  }
+//---------------------------------------------------------------------------//
+  DXGI_FORMAT RenderCore_PlatformDX12::GetStencilViewFormat(DXGI_FORMAT aFormat)
+  {
+    switch (aFormat)
+    {
+      // 32-bit Z w/ Stencil
+    case DXGI_FORMAT_R32G8X24_TYPELESS:
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
+    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
+      return DXGI_FORMAT_X32_TYPELESS_G8X24_UINT;
+
+      // 24-bit Z
+    case DXGI_FORMAT_R24G8_TYPELESS:
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+      return DXGI_FORMAT_X24_TYPELESS_G8_UINT;
+
+    default:
+      return DXGI_FORMAT_UNKNOWN;
+    }
+  }
+//---------------------------------------------------------------------------//
+  DXGI_FORMAT RenderCore_PlatformDX12::GetTypelessFormat(DXGI_FORMAT aFormat)
+  {
+    switch (aFormat)
+    {
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:
+    case DXGI_FORMAT_R32G32B32A32_UINT:
+    case DXGI_FORMAT_R32G32B32A32_SINT:
+    case DXGI_FORMAT_R32G32B32A32_TYPELESS:
+      return DXGI_FORMAT_R32G32B32A32_TYPELESS;
+
+    case DXGI_FORMAT_R32G32B32_FLOAT:
+    case DXGI_FORMAT_R32G32B32_UINT:
+    case DXGI_FORMAT_R32G32B32_SINT:
+    case DXGI_FORMAT_R32G32B32_TYPELESS:
+      return DXGI_FORMAT_R32G32B32_TYPELESS;
+
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+    case DXGI_FORMAT_R16G16B16A16_UNORM:
+    case DXGI_FORMAT_R16G16B16A16_UINT:
+    case DXGI_FORMAT_R16G16B16A16_SNORM:
+    case DXGI_FORMAT_R16G16B16A16_SINT:
+    case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+      return DXGI_FORMAT_R16G16B16A16_TYPELESS;
+
+    case DXGI_FORMAT_R32G32_FLOAT:
+    case DXGI_FORMAT_R32G32_UINT:
+    case DXGI_FORMAT_R32G32_SINT:
+    case DXGI_FORMAT_R32G32_TYPELESS:
+      return DXGI_FORMAT_R32G32_TYPELESS;
+
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
+      return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+
+    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
+    case DXGI_FORMAT_R32G8X24_TYPELESS:
+      return DXGI_FORMAT_R32G8X24_TYPELESS;
+
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+    case DXGI_FORMAT_R10G10B10A2_UINT:
+    case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM:
+    case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+      // case DXGI_FORMAT_R11G11B10_FLOAT  // This is most likely not a valid format to cast into from DXGI_FORMAT_R10G10B10A2_TYPELESS...
+      return DXGI_FORMAT_R10G10B10A2_TYPELESS;
+
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    case DXGI_FORMAT_R8G8B8A8_UINT:
+    case DXGI_FORMAT_R8G8B8A8_SNORM:
+    case DXGI_FORMAT_R8G8B8A8_SINT:
+    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+      return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+
+    case DXGI_FORMAT_R16G16_FLOAT:
+    case DXGI_FORMAT_R16G16_UNORM:
+    case DXGI_FORMAT_R16G16_UINT:
+    case DXGI_FORMAT_R16G16_SNORM:
+    case DXGI_FORMAT_R16G16_SINT:
+    case DXGI_FORMAT_R16G16_TYPELESS:
+      return DXGI_FORMAT_R16G16_TYPELESS;
+
+    case DXGI_FORMAT_D32_FLOAT:
+    case DXGI_FORMAT_R32_FLOAT:
+    case DXGI_FORMAT_R32_UINT:
+    case DXGI_FORMAT_R32_SINT:
+    case DXGI_FORMAT_R32_TYPELESS:
+      return DXGI_FORMAT_R32_TYPELESS;
+
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+      return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+
+    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+    case DXGI_FORMAT_R24G8_TYPELESS:
+      return DXGI_FORMAT_R24G8_TYPELESS;
+
+    case DXGI_FORMAT_R8G8_UNORM:
+    case DXGI_FORMAT_R8G8_UINT:
+    case DXGI_FORMAT_R8G8_SNORM:
+    case DXGI_FORMAT_R8G8_SINT:
+    case DXGI_FORMAT_R8G8_TYPELESS:
+      return DXGI_FORMAT_R8G8_TYPELESS;
+
+    case DXGI_FORMAT_R16_FLOAT:
+    case DXGI_FORMAT_D16_UNORM:
+    case DXGI_FORMAT_R16_UNORM:
+    case DXGI_FORMAT_R16_UINT:
+    case DXGI_FORMAT_R16_SNORM:
+    case DXGI_FORMAT_R16_SINT:
+    case DXGI_FORMAT_R16_TYPELESS:
+      return DXGI_FORMAT_R16_TYPELESS;
+
+    case DXGI_FORMAT_R8_UNORM:
+    case DXGI_FORMAT_R8_UINT:
+    case DXGI_FORMAT_R8_SNORM:
+    case DXGI_FORMAT_R8_SINT:
+    case DXGI_FORMAT_A8_UNORM:
+    case DXGI_FORMAT_R8_TYPELESS:
+      return DXGI_FORMAT_R8_TYPELESS;
+
+    case DXGI_FORMAT_BC1_UNORM:
+    case DXGI_FORMAT_BC1_UNORM_SRGB:
+    case DXGI_FORMAT_BC1_TYPELESS:
+      return DXGI_FORMAT_BC1_TYPELESS;
+
+    case DXGI_FORMAT_BC2_UNORM:
+    case DXGI_FORMAT_BC2_UNORM_SRGB:
+    case DXGI_FORMAT_BC2_TYPELESS:
+      return DXGI_FORMAT_BC2_TYPELESS;
+
+    case DXGI_FORMAT_BC3_UNORM:
+    case DXGI_FORMAT_BC3_UNORM_SRGB:
+    case DXGI_FORMAT_BC3_TYPELESS:
+      return DXGI_FORMAT_BC3_TYPELESS;
+
+    case DXGI_FORMAT_BC4_UNORM:
+    case DXGI_FORMAT_BC4_SNORM:
+    case DXGI_FORMAT_BC4_TYPELESS:
+      return DXGI_FORMAT_BC4_TYPELESS;
+
+    case DXGI_FORMAT_BC5_UNORM:
+    case DXGI_FORMAT_BC5_SNORM:
+    case DXGI_FORMAT_BC5_TYPELESS:
+      return DXGI_FORMAT_BC5_TYPELESS;
+
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+      return DXGI_FORMAT_B8G8R8A8_TYPELESS;
+
+    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+    case DXGI_FORMAT_B8G8R8X8_UNORM:
+    case DXGI_FORMAT_B8G8R8X8_TYPELESS:
+      return DXGI_FORMAT_B8G8R8X8_TYPELESS;
+
+    case DXGI_FORMAT_BC6H_UF16:
+    case DXGI_FORMAT_BC6H_SF16:
+    case DXGI_FORMAT_BC6H_TYPELESS:
+      return DXGI_FORMAT_BC6H_TYPELESS;
+
+    case DXGI_FORMAT_BC7_UNORM:
+    case DXGI_FORMAT_BC7_UNORM_SRGB:
+    case DXGI_FORMAT_BC7_TYPELESS:
+      return DXGI_FORMAT_BC7_TYPELESS;
+
+    default:
+      ASSERT(false, "Missing typeless format");
+      return DXGI_FORMAT_R32G32B32A32_TYPELESS;
+    }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_COMMAND_LIST_TYPE RenderCore_PlatformDX12::GetCommandListType(CommandListType aType)
+  {
+    switch (aType)
+    {
+    case CommandListType::Graphics: return D3D12_COMMAND_LIST_TYPE_DIRECT;
+    case CommandListType::Compute: return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+    case CommandListType::DMA: return D3D12_COMMAND_LIST_TYPE_COPY;
+    default:
+      ASSERT(false);
+      return D3D12_COMMAND_LIST_TYPE_DIRECT;
+    }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_HEAP_TYPE RenderCore_PlatformDX12::ResolveHeapType(CpuMemoryAccessType anAccessType)
+  {
+    switch (anAccessType) {
+    case CpuMemoryAccessType::NO_CPU_ACCESS: return D3D12_HEAP_TYPE_DEFAULT;
+    case CpuMemoryAccessType::CPU_WRITE: return D3D12_HEAP_TYPE_UPLOAD;
+    case CpuMemoryAccessType::CPU_READ: return D3D12_HEAP_TYPE_READBACK;
+    default: ASSERT(false, "Missing implementation"); return D3D12_HEAP_TYPE_DEFAULT;
+    }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_RESOURCE_STATES RenderCore_PlatformDX12::ResolveResourceUsageState(GpuResourceState aState)
+  {
+    switch (aState)
+    {
+    case GpuResourceState::READ_INDIRECT_ARGUMENT:               return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+    case GpuResourceState::READ_VERTEX_BUFFER:                   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceState::READ_INDEX_BUFFER:                    return D3D12_RESOURCE_STATE_INDEX_BUFFER;
+    case GpuResourceState::READ_VERTEX_SHADER_CONSTANT_BUFFER:   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceState::READ_VERTEX_SHADER_RESOURCE:          return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    case GpuResourceState::READ_PIXEL_SHADER_CONSTANT_BUFFER:    return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceState::READ_PIXEL_SHADER_RESOURCE:           return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    case GpuResourceState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:  return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceState::READ_COMPUTE_SHADER_RESOURCE:         return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    case GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER:      return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+    case GpuResourceState::READ_ANY_SHADER_RESOURCE:             return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    case GpuResourceState::READ_COPY_SOURCE:                     return D3D12_RESOURCE_STATE_COPY_SOURCE;
+    case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH:        return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT | D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+    case GpuResourceState::READ_DEPTH:                           return D3D12_RESOURCE_STATE_DEPTH_READ;
+    case GpuResourceState::READ_PRESENT:                         return D3D12_RESOURCE_STATE_PRESENT;
+    case GpuResourceState::WRITE_VERTEX_SHADER_UAV:              return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    case GpuResourceState::WRITE_PIXEL_SHADER_UAV:               return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    case GpuResourceState::WRITE_COMPUTE_SHADER_UAV:             return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    case GpuResourceState::WRITE_ANY_SHADER_UAV:                 return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    case GpuResourceState::WRITE_RENDER_TARGET:                  return D3D12_RESOURCE_STATE_RENDER_TARGET;
+    case GpuResourceState::WRITE_COPY_DEST:                      return D3D12_RESOURCE_STATE_COPY_DEST;
+    case GpuResourceState::WRITE_DEPTH:                          return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+    case GpuResourceState::NUM: break;
+    default:
+      ASSERT(false); return D3D12_RESOURCE_STATE_COMMON;
+    }
+
+    return D3D12_RESOURCE_STATE_COMMON;
+  }
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::RenderCore_PlatformDX12()
     : RenderCore_Platform(RenderPlatformType::DX12)
+    , myGpuTicksToMsFactor{}
   {
     using namespace Microsoft::WRL;
 
@@ -96,7 +510,12 @@ namespace Fancy {
     }
 
     //infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, false);
+
+    // Init Caps
+    myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;
+    myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
   }
+
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {
@@ -148,25 +567,6 @@ namespace Fancy {
   RenderCore_PlatformDX12::~RenderCore_PlatformDX12()
   {
     Shutdown();
-  }
-//---------------------------------------------------------------------------//
-  ShaderResourceInterface* RenderCore_PlatformDX12::GetShaderResourceInterface(const D3D12_ROOT_SIGNATURE_DESC& anRSdesc, Microsoft::WRL::ComPtr<ID3D12RootSignature> anRS /* = nullptr */) const
-  {
-    const uint64 requestedHash = ShaderResourceInterfaceDX12::ComputeHash(anRSdesc);
-
-    for (auto& rs : locShaderResourceInterfacePool)
-      if (rs->GetDesc().myHash == requestedHash)
-        return rs.get();
-
-    std::unique_ptr<ShaderResourceInterfaceDX12> rs(new ShaderResourceInterfaceDX12());
-    if (rs->Create(anRSdesc, anRS))
-    {
-      ShaderResourceInterface* rs_ptr = rs.get();
-      locShaderResourceInterfacePool.push_back(std::move(rs));
-      return rs_ptr;
-    }
-
-    return nullptr;
   }
 //---------------------------------------------------------------------------//
   ID3D12CommandAllocator* RenderCore_PlatformDX12::GetCommandAllocator(CommandListType aCmdListType)
@@ -257,14 +657,19 @@ namespace Fancy {
     return new RenderOutputDX12(aNativeInstanceHandle, someWindowParams);
   }
 //---------------------------------------------------------------------------//
-  GpuProgramCompiler* RenderCore_PlatformDX12::CreateShaderCompiler()
+  ShaderCompiler* RenderCore_PlatformDX12::CreateShaderCompiler()
   {
-    return new GpuProgramCompilerDX12();
+    return new ShaderCompilerDX12();
   }
 //---------------------------------------------------------------------------//
-  GpuProgram* RenderCore_PlatformDX12::CreateGpuProgram()
+  Shader* RenderCore_PlatformDX12::CreateShader()
   {
-    return new GpuProgramDX12();
+    return new ShaderDX12();
+  }
+//---------------------------------------------------------------------------//
+  ShaderPipeline* RenderCore_PlatformDX12::CreateShaderPipeline()
+  {
+    return new ShaderPipelineDX12();
   }
 //---------------------------------------------------------------------------//
   Texture* RenderCore_PlatformDX12::CreateTexture()
@@ -277,7 +682,7 @@ namespace Fancy {
    return new GpuBufferDX12();
   }
 //---------------------------------------------------------------------------//
-  CommandList* RenderCore_PlatformDX12::CreateContext(CommandListType aType)
+  CommandList* RenderCore_PlatformDX12::CreateCommandList(CommandListType aType)
   {
     return new CommandListDX12(aType);
   }
@@ -332,388 +737,4 @@ namespace Fancy {
     return swapChain;
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::InitCaps()
-  {
-    myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;
-    myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
-  }
-//---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthStencilTextureFormat(DXGI_FORMAT aFormat)
-  {
-    switch (aFormat)
-    {
-      // 32-bit Z w/ Stencil
-    case DXGI_FORMAT_R32G8X24_TYPELESS:
-    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-      return DXGI_FORMAT_R32G8X24_TYPELESS;
-
-      // No Stencil
-    case DXGI_FORMAT_R32_TYPELESS:
-    case DXGI_FORMAT_D32_FLOAT:
-    case DXGI_FORMAT_R32_FLOAT:
-      return DXGI_FORMAT_R32_TYPELESS;
-
-      // 24-bit Z
-    case DXGI_FORMAT_R24G8_TYPELESS:
-    case DXGI_FORMAT_D24_UNORM_S8_UINT:
-    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-      return DXGI_FORMAT_R24G8_TYPELESS;
-
-      // 16-bit Z w/o Stencil
-    case DXGI_FORMAT_R16_TYPELESS:
-    case DXGI_FORMAT_D16_UNORM:
-    case DXGI_FORMAT_R16_UNORM:
-      return DXGI_FORMAT_R16_TYPELESS;
-
-    default:
-      return DXGI_FORMAT_UNKNOWN;
-    }
-  }
-//---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthStencilViewFormat(DXGI_FORMAT aFormat)
-  {
-    switch (aFormat)
-    {
-      // 32-bit Z w/ Stencil
-    case DXGI_FORMAT_R32G8X24_TYPELESS:
-    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-      return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-
-      // No Stencil
-    case DXGI_FORMAT_R32_TYPELESS:
-    case DXGI_FORMAT_D32_FLOAT:
-    case DXGI_FORMAT_R32_FLOAT:
-      return DXGI_FORMAT_D32_FLOAT;
-
-      // 24-bit Z
-    case DXGI_FORMAT_R24G8_TYPELESS:
-    case DXGI_FORMAT_D24_UNORM_S8_UINT:
-    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-      return DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-      // 16-bit Z w/o Stencil
-    case DXGI_FORMAT_R16_TYPELESS:
-    case DXGI_FORMAT_D16_UNORM:
-    case DXGI_FORMAT_R16_UNORM:
-      return DXGI_FORMAT_D16_UNORM;
-
-    default:
-      return DXGI_FORMAT_UNKNOWN;
-    }
-  }
-  //---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetDepthViewFormat(DXGI_FORMAT aFormat)
-  {
-    switch (aFormat)
-    {
-      // 32-bit Z w/ Stencil
-    case DXGI_FORMAT_R32G8X24_TYPELESS:
-    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-      return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-
-      // No Stencil
-    case DXGI_FORMAT_R32_TYPELESS:
-    case DXGI_FORMAT_D32_FLOAT:
-    case DXGI_FORMAT_R32_FLOAT:
-      return DXGI_FORMAT_R32_FLOAT;
-
-      // 24-bit Z
-    case DXGI_FORMAT_R24G8_TYPELESS:
-    case DXGI_FORMAT_D24_UNORM_S8_UINT:
-    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-      return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-
-      // 16-bit Z w/o Stencil
-    case DXGI_FORMAT_R16_TYPELESS:
-    case DXGI_FORMAT_D16_UNORM:
-    case DXGI_FORMAT_R16_UNORM:
-      return DXGI_FORMAT_R16_UNORM;
-
-    default:
-      return DXGI_FORMAT_UNKNOWN;
-    }
-  }
-//---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetStencilViewFormat(DXGI_FORMAT aFormat)
-  {
-    switch (aFormat)
-    {
-      // 32-bit Z w/ Stencil
-    case DXGI_FORMAT_R32G8X24_TYPELESS:
-    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-      return DXGI_FORMAT_X32_TYPELESS_G8X24_UINT;
-
-      // 24-bit Z
-    case DXGI_FORMAT_R24G8_TYPELESS:
-    case DXGI_FORMAT_D24_UNORM_S8_UINT:
-    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-      return DXGI_FORMAT_X24_TYPELESS_G8_UINT;
-
-    default:
-      return DXGI_FORMAT_UNKNOWN;
-    }
-  }
-//---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetTypelessFormat(DXGI_FORMAT aFormat)
-  {
-    switch (aFormat)
-    {
-    case DXGI_FORMAT_R32G32B32A32_FLOAT:
-    case DXGI_FORMAT_R32G32B32A32_UINT:
-    case DXGI_FORMAT_R32G32B32A32_SINT:
-    case DXGI_FORMAT_R32G32B32A32_TYPELESS:
-      return DXGI_FORMAT_R32G32B32A32_TYPELESS;
-
-    case DXGI_FORMAT_R32G32B32_FLOAT:
-    case DXGI_FORMAT_R32G32B32_UINT:
-    case DXGI_FORMAT_R32G32B32_SINT:
-    case DXGI_FORMAT_R32G32B32_TYPELESS:
-      return DXGI_FORMAT_R32G32B32_TYPELESS;
-
-    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-    case DXGI_FORMAT_R16G16B16A16_UNORM:
-    case DXGI_FORMAT_R16G16B16A16_UINT:
-    case DXGI_FORMAT_R16G16B16A16_SNORM:
-    case DXGI_FORMAT_R16G16B16A16_SINT:
-    case DXGI_FORMAT_R16G16B16A16_TYPELESS:
-      return DXGI_FORMAT_R16G16B16A16_TYPELESS;
-        
-    case DXGI_FORMAT_R32G32_FLOAT:
-    case DXGI_FORMAT_R32G32_UINT:
-    case DXGI_FORMAT_R32G32_SINT:
-    case DXGI_FORMAT_R32G32_TYPELESS:
-      return DXGI_FORMAT_R32G32_TYPELESS;
-
-    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-      return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-
-    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
-    case DXGI_FORMAT_R32G8X24_TYPELESS:
-      return DXGI_FORMAT_R32G8X24_TYPELESS;
-
-    case DXGI_FORMAT_R10G10B10A2_UNORM:
-    case DXGI_FORMAT_R10G10B10A2_UINT:
-    case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM:
-    case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-      // case DXGI_FORMAT_R11G11B10_FLOAT  // This is most likely not a valid format to cast into from DXGI_FORMAT_R10G10B10A2_TYPELESS...
-      return DXGI_FORMAT_R10G10B10A2_TYPELESS;
-
-    case DXGI_FORMAT_R8G8B8A8_UNORM:
-    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-    case DXGI_FORMAT_R8G8B8A8_UINT:
-    case DXGI_FORMAT_R8G8B8A8_SNORM:
-    case DXGI_FORMAT_R8G8B8A8_SINT:
-    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-      return DXGI_FORMAT_R8G8B8A8_TYPELESS;
-
-    case DXGI_FORMAT_R16G16_FLOAT:
-    case DXGI_FORMAT_R16G16_UNORM:
-    case DXGI_FORMAT_R16G16_UINT:
-    case DXGI_FORMAT_R16G16_SNORM:
-    case DXGI_FORMAT_R16G16_SINT:
-    case DXGI_FORMAT_R16G16_TYPELESS:
-      return DXGI_FORMAT_R16G16_TYPELESS;
-      
-    case DXGI_FORMAT_D32_FLOAT:
-    case DXGI_FORMAT_R32_FLOAT:
-    case DXGI_FORMAT_R32_UINT:
-    case DXGI_FORMAT_R32_SINT:
-    case DXGI_FORMAT_R32_TYPELESS:
-      return DXGI_FORMAT_R32_TYPELESS;
-
-    case DXGI_FORMAT_D24_UNORM_S8_UINT:
-    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
-      return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-
-    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
-    case DXGI_FORMAT_R24G8_TYPELESS:
-      return DXGI_FORMAT_R24G8_TYPELESS;
-
-    case DXGI_FORMAT_R8G8_UNORM:
-    case DXGI_FORMAT_R8G8_UINT:
-    case DXGI_FORMAT_R8G8_SNORM:
-    case DXGI_FORMAT_R8G8_SINT:
-    case DXGI_FORMAT_R8G8_TYPELESS:
-      return DXGI_FORMAT_R8G8_TYPELESS;
-
-    case DXGI_FORMAT_R16_FLOAT:
-    case DXGI_FORMAT_D16_UNORM:
-    case DXGI_FORMAT_R16_UNORM:
-    case DXGI_FORMAT_R16_UINT:
-    case DXGI_FORMAT_R16_SNORM:
-    case DXGI_FORMAT_R16_SINT:
-    case DXGI_FORMAT_R16_TYPELESS:
-        return DXGI_FORMAT_R16_TYPELESS;
-        
-    case DXGI_FORMAT_R8_UNORM:
-    case DXGI_FORMAT_R8_UINT:
-    case DXGI_FORMAT_R8_SNORM:
-    case DXGI_FORMAT_R8_SINT:
-    case DXGI_FORMAT_A8_UNORM:
-    case DXGI_FORMAT_R8_TYPELESS:
-        return DXGI_FORMAT_R8_TYPELESS;
-
-    case DXGI_FORMAT_BC1_UNORM:
-    case DXGI_FORMAT_BC1_UNORM_SRGB:
-    case DXGI_FORMAT_BC1_TYPELESS:
-      return DXGI_FORMAT_BC1_TYPELESS;
-
-    case DXGI_FORMAT_BC2_UNORM:
-    case DXGI_FORMAT_BC2_UNORM_SRGB:
-    case DXGI_FORMAT_BC2_TYPELESS:
-      return DXGI_FORMAT_BC2_TYPELESS;
-
-    case DXGI_FORMAT_BC3_UNORM:
-    case DXGI_FORMAT_BC3_UNORM_SRGB:
-    case DXGI_FORMAT_BC3_TYPELESS:
-      return DXGI_FORMAT_BC3_TYPELESS;
-
-    case DXGI_FORMAT_BC4_UNORM:
-    case DXGI_FORMAT_BC4_SNORM:
-    case DXGI_FORMAT_BC4_TYPELESS:
-      return DXGI_FORMAT_BC4_TYPELESS;
-    
-    case DXGI_FORMAT_BC5_UNORM:
-    case DXGI_FORMAT_BC5_SNORM:
-    case DXGI_FORMAT_BC5_TYPELESS:
-      return DXGI_FORMAT_BC5_TYPELESS;
-
-    case DXGI_FORMAT_B8G8R8A8_UNORM:
-    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-      return DXGI_FORMAT_B8G8R8A8_TYPELESS;
-
-    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-    case DXGI_FORMAT_B8G8R8X8_UNORM:
-    case DXGI_FORMAT_B8G8R8X8_TYPELESS:
-      return DXGI_FORMAT_B8G8R8X8_TYPELESS;
-        
-    case DXGI_FORMAT_BC6H_UF16:
-    case DXGI_FORMAT_BC6H_SF16:
-    case DXGI_FORMAT_BC6H_TYPELESS:
-      return DXGI_FORMAT_BC6H_TYPELESS;
-        
-    case DXGI_FORMAT_BC7_UNORM:
-    case DXGI_FORMAT_BC7_UNORM_SRGB:
-    case DXGI_FORMAT_BC7_TYPELESS:
-      return DXGI_FORMAT_BC7_TYPELESS;
-
-    default:
-      ASSERT(false, "Missing typeless format");
-      return DXGI_FORMAT_R32G32B32A32_TYPELESS;
-    }
-  }
-//---------------------------------------------------------------------------//
-  D3D12_COMMAND_LIST_TYPE RenderCore_PlatformDX12::GetCommandListType(CommandListType aType)
-  {
-    switch (aType)
-    {
-    case CommandListType::Graphics: return D3D12_COMMAND_LIST_TYPE_DIRECT;
-    case CommandListType::Compute: return D3D12_COMMAND_LIST_TYPE_COMPUTE;
-    case CommandListType::DMA: return D3D12_COMMAND_LIST_TYPE_COPY;
-    default:
-      ASSERT(false);
-      return D3D12_COMMAND_LIST_TYPE_DIRECT;
-    }
-  }
-//---------------------------------------------------------------------------//
-  D3D12_HEAP_TYPE RenderCore_PlatformDX12::ResolveHeapType(CpuMemoryAccessType anAccessType)
-  {
-    switch (anAccessType) { 
-      case CpuMemoryAccessType::NO_CPU_ACCESS: return D3D12_HEAP_TYPE_DEFAULT;
-      case CpuMemoryAccessType::CPU_WRITE: return D3D12_HEAP_TYPE_UPLOAD;
-      case CpuMemoryAccessType::CPU_READ: return D3D12_HEAP_TYPE_READBACK;
-      default: ASSERT(false, "Missing implementation"); return D3D12_HEAP_TYPE_DEFAULT;
-    }
-  }
-//---------------------------------------------------------------------------//
-  D3D12_RESOURCE_STATES RenderCore_PlatformDX12::ResolveResourceUsageState(GpuResourceState aState)
-  {
-    switch (aState)
-    {
-    case GpuResourceState::COMMON:                               return D3D12_RESOURCE_STATE_COMMON;
-    case GpuResourceState::READ_INDIRECT_ARGUMENT:               return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
-    case GpuResourceState::READ_VERTEX_BUFFER:                   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_INDEX_BUFFER:                    return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-    case GpuResourceState::READ_VERTEX_SHADER_CONSTANT_BUFFER:   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_VERTEX_SHADER_RESOURCE:          return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_PIXEL_SHADER_CONSTANT_BUFFER:    return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_PIXEL_SHADER_RESOURCE:           return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:  return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_COMPUTE_SHADER_RESOURCE:         return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER:      return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_ANY_SHADER_RESOURCE:             return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_COPY_SOURCE:                     return D3D12_RESOURCE_STATE_COPY_SOURCE;
-    case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH:        return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT | D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
-    case GpuResourceState::READ_DEPTH:                           return D3D12_RESOURCE_STATE_DEPTH_READ;
-    case GpuResourceState::READ_PRESENT:                         return D3D12_RESOURCE_STATE_PRESENT;
-    case GpuResourceState::WRITE_VERTEX_SHADER_UAV:              return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_PIXEL_SHADER_UAV:               return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_COMPUTE_SHADER_UAV:             return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_ANY_SHADER_UAV:                 return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_RENDER_TARGET:                  return D3D12_RESOURCE_STATE_RENDER_TARGET;
-    case GpuResourceState::WRITE_COPY_DEST:                      return D3D12_RESOURCE_STATE_COPY_DEST;
-    case GpuResourceState::WRITE_DEPTH:                          return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-    case GpuResourceState::NUM: break;
-    default:
-      ASSERT(false); return D3D12_RESOURCE_STATE_COMMON;
-    }
-
-    return D3D12_RESOURCE_STATE_COMMON;
-  }
-//---------------------------------------------------------------------------//
-  DXGI_FORMAT RenderCore_PlatformDX12::GetDXGIformat(DataFormat aFormat)
-  {
-    switch (aFormat)
-    {
-    case DataFormat::SRGB_8_A_8:        return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-    // case DataFormat::SRGB_8:         (Unsupported - DX12 doesn't support 3-component 8 bit formats. Needs to be resolved & padded to 4-component)   
-    case DataFormat::RGBA_8:            return DXGI_FORMAT_R8G8B8A8_UNORM;
-    case DataFormat::RG_8:              return DXGI_FORMAT_R8G8_UNORM;
-    case DataFormat::R_8:               return DXGI_FORMAT_R8_UNORM;
-    case DataFormat::RGBA_16:           return DXGI_FORMAT_R16G16B16A16_UNORM;
-    //case DataFormat::RGB_16:          (Unsupported - DX12 doesn't support 3-component 8 bit formats. Needs to be resolved & padded to 4-component)   
-    case DataFormat::RG_16:             return DXGI_FORMAT_R16G16_UNORM;
-    case DataFormat::R_16:              return DXGI_FORMAT_R16_UNORM;
-    case DataFormat::RGB_11_11_10F:     return DXGI_FORMAT_R11G11B10_FLOAT;
-    case DataFormat::RGBA_16F:          return DXGI_FORMAT_R16G16B16A16_FLOAT;
-    case DataFormat::RG_16F:            return DXGI_FORMAT_R16G16_FLOAT;
-    case DataFormat::R_16F:             return DXGI_FORMAT_R16_FLOAT;
-    case DataFormat::RGBA_32F:          return DXGI_FORMAT_R32G32B32A32_FLOAT;
-    case DataFormat::RGB_32F:           return DXGI_FORMAT_R32G32B32_FLOAT;
-    case DataFormat::RG_32F:            return DXGI_FORMAT_R32G32_FLOAT;
-    case DataFormat::R_32F:             return DXGI_FORMAT_R32_FLOAT;
-    case DataFormat::RGBA_32UI:         return DXGI_FORMAT_R32G32B32A32_UINT;
-    case DataFormat::RGB_32UI:          return DXGI_FORMAT_R32G32B32_UINT;
-    case DataFormat::RG_32UI:           return DXGI_FORMAT_R32G32_UINT;
-    case DataFormat::R_32UI:            return DXGI_FORMAT_R32_UINT;
-    case DataFormat::RGBA_16UI:         return DXGI_FORMAT_R16G16B16A16_UINT;
-    case DataFormat::RG_16UI:           return DXGI_FORMAT_R16G16_UINT;
-    case DataFormat::R_16UI:            return DXGI_FORMAT_R16_UINT;
-    case DataFormat::RGBA_8UI:          return DXGI_FORMAT_R8G8B8A8_UINT;
-    case DataFormat::RG_8UI:            return DXGI_FORMAT_R8G8_UINT;
-    case DataFormat::R_8UI:             return DXGI_FORMAT_R8_UINT;
-    case DataFormat::D_24UNORM_S_8UI:   return DXGI_FORMAT_D24_UNORM_S8_UINT;
-    case DataFormat::UNKNOWN:           return DXGI_FORMAT_UNKNOWN;
-
-    case DataFormat::RGB_16F:
-    case DataFormat::RGB_16UI:
-    case DataFormat::RGB_8UI:
-    default: ASSERT(false, "Missing implementation or unsupported format"); return DXGI_FORMAT_R8G8B8A8_UNORM;
-    }
-  }
-//---------------------------------------------------------------------------//
-}
+} 

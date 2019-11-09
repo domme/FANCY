@@ -92,7 +92,7 @@ namespace Fancy { namespace ModelLoader {
       return it->second;
  
     DynamicArray<MeshData> meshDatas;
-      for (uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
+    for (uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
     {
       const aiMesh* aiMesh = someMeshes[iAiMesh];
 
@@ -325,7 +325,7 @@ namespace Fancy { namespace ModelLoader {
     _pAmaterial->Get(AI_MATKEY_TEXTURE(_aiTextureType, _texIndex), szATexPath);
 
     String texPathAbs = String(szATexPath.C_Str());
-    Path::UnifySlashes(texPathAbs);
+    Path::ConvertToSlash(texPathAbs);
 
     if (!Path::IsPathAbsolute(texPathAbs))
     {

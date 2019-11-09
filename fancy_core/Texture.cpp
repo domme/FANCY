@@ -5,17 +5,15 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   Texture::Texture()
     : GpuResource(GpuResourceCategory::TEXTURE)
+    , myIsPresentable(false)
   {
   }
 //---------------------------------------------------------------------------//
-  void Texture::Create(GpuResource&& aResource, const TextureProperties& someProperties)
+  Texture::Texture(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable)
+    : GpuResource(std::move(aResource))
+    , myProperties(someProperties)
+    , myIsPresentable(aIsPresentable)
   {
-    Destroy();
-
-    myProperties = someProperties;
-    
-    GpuResource& resource = *static_cast<GpuResource*>(this);
-    resource = std::move(aResource);
   }
 //---------------------------------------------------------------------------//
 }

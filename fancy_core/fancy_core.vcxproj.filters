@@ -25,6 +25,12 @@
     <Filter Include="Camera">
       <UniqueIdentifier>{414f3123-e42a-49d3-841c-d4615ec99e39}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Rendering\Vulkan">
+      <UniqueIdentifier>{d7d63964-440b-4f1b-9748-9dbd652194fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Vulkan\spirv_reflect">
+      <UniqueIdentifier>{a058e921-3fc2-4bb9-a31a-f9a3a63fac13}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdapterDX12.h">
@@ -54,19 +60,10 @@
     <ClInclude Include="GpuBufferDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="GpuProgramCompilerDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="RenderCore_PlatformDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="RenderOutputDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderResourceInterfaceDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="TextureDX12.h">
@@ -102,27 +99,6 @@
     <ClInclude Include="GpuBuffer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="GpuProgram.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramCompiler.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramCompilerUtils.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramDesc.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramFeatures.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramPipeline.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramPipelineDesc.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="GpuResource.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -151,12 +127,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="RenderOutput.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderResourceInterface.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderResourceInterfaceDesc.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Slot.h">
@@ -213,9 +183,6 @@
     <ClInclude Include="GpuResourceView.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="GpuResourceViewDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="Any.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -233,9 +200,6 @@
     </ClInclude>
     <ClInclude Include="DynamicDescriptorHeapDX12.h">
       <Filter>Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProgramProperties.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="GpuResourceDataDX12.h">
       <Filter>Rendering\DX12</Filter>
@@ -329,13 +293,85 @@
     <ClInclude Include="CameraController.h">
       <Filter>Camera</Filter>
     </ClInclude>
+    <ClInclude Include="RenderCore_PlatformVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkPrerequisites.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueueVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderOutputVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceDataVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="spirv_reflect\spirv_reflect.h">
+      <Filter>Rendering\Vulkan\spirv_reflect</Filter>
+    </ClInclude>
+    <ClInclude Include="spirv_reflect\spirv.h">
+      <Filter>Rendering\Vulkan\spirv_reflect</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompiler.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderPipeline.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderPipelineDesc.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompilerDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompilerVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderPipelineDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderPipelineVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandListVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceViewDataDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceViewDataVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuBufferVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandBufferAllocatorVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuQueryHeapVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
       <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="BlendState.cpp">
-      <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="CommandAllocatorPoolDX12.cpp">
       <Filter>Rendering\DX12</Filter>
@@ -343,19 +379,10 @@
     <ClCompile Include="GpuBufferDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="GpuProgramCompilerDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
     <ClCompile Include="RenderCore_PlatformDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="RenderOutputDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderResourceInterfaceDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="TextureDX12.cpp">
@@ -365,9 +392,6 @@
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="DataFormat.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthStencilState.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="BinaryCache.cpp">
@@ -386,18 +410,6 @@
       <Filter>Geometry</Filter>
     </ClCompile>
     <ClCompile Include="GpuBuffer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgram.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramCompilerUtils.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramFeatures.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProgramPipeline.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
@@ -494,6 +506,61 @@
     <ClCompile Include="CameraController.cpp">
       <Filter>Camera</Filter>
     </ClCompile>
+    <ClCompile Include="RenderCore_PlatformVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueueVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderOutputVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="spirv_reflect\spirv_reflect.c">
+      <Filter>Rendering\Vulkan\spirv_reflect</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompiler.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderPipeline.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompilerDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompilerVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderPipelineDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderPipelineVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandListVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuBufferVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandBufferAllocatorVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuResource.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuQueryHeapVk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

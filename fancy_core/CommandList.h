@@ -17,7 +17,7 @@ namespace Fancy {
   class GpuResourceView;
   class DepthStencilState;
   class BlendState;
-  class GpuProgram;
+  class Shader;
   class GpuQueryHeap;
 //---------------------------------------------------------------------------//
   struct GraphicsPipelineState
@@ -30,7 +30,7 @@ namespace Fancy {
     WindingOrder myWindingOrder;
     SharedPtr<DepthStencilState> myDepthStencilState;
     SharedPtr<BlendState> myBlendState;
-    SharedPtr<GpuProgramPipeline> myGpuProgramPipeline;
+    SharedPtr<ShaderPipeline> myShaderPipeline;
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[RenderConstants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
@@ -44,7 +44,7 @@ namespace Fancy {
     ComputePipelineState();
     uint64 GetHash() const;
 
-    const GpuProgram* myGpuProgram;
+    const Shader* myShader;
     bool myIsDirty;
   };
 //---------------------------------------------------------------------------//
@@ -58,13 +58,15 @@ namespace Fancy {
 
     CommandListType GetType() const { return myCommandListType; }
 
+    /// Clears the RenderTargetView with aColor. The texture needs to be in the WRITE_RENDERTARGET state
     virtual void ClearRenderTarget(TextureView* aTextureView, const float* aColor) = 0;
+    /// Clears the depth and stencil planes of aTextureView with aDepthClear and aStencilClear. Texture needs to be in the WRITE_RENDERTARGET state
     virtual void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) = 0;
     virtual void CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) = 0;
-    virtual void CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) = 0;
-    virtual void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) = 0;
-    virtual void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) = 0;
+    virtual void CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) = 0;
+    virtual void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) = 0;
+    virtual void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) = 0;
     virtual void Dispatch(const glm::int3& aNumThreads) = 0;
     virtual void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const = 0;
     virtual void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) = 0;
@@ -83,15 +85,15 @@ namespace Fancy {
       uint aNumResources = 0u) = 0;
 
     virtual void Close() = 0;
-    virtual bool IsOpen() const = 0;
 
     virtual void FlushBarriers() = 0;
-    virtual void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline);
-    virtual void SetComputeProgram(const GpuProgram* aProgram);
-    virtual void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
-    virtual void ReleaseGpuResources(uint64 aFenceVal);
-    virtual void Reset();
+    virtual void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline);
+    virtual void SetComputeProgram(const Shader* aProgram);
+    virtual void PostExecute(uint64 aFenceVal);
+    virtual void PreBegin();
 
+    bool IsOpen() const { return myIsOpen; }
+    void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
     void BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize);
     void BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize);
@@ -108,9 +110,10 @@ namespace Fancy {
     void SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil);
     void RemoveAllRenderTargets();
     void UpdateBufferData(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const void* aDataPtr, uint64 aByteSize);
-    void UpdateTextureData(const Texture* aDestTexture, const TextureSubLocation& aStartSubLocation, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
+    void UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */); // TODO: Support regions
 
-    void SubresourceBarrier(const GpuResource* aResource, const uint16* aSubresourceList, uint aNumSubresources, GpuResourceState aSrcState, GpuResourceState aDstState);
+    void SubresourceBarrier(const GpuResource* aResource, const SubresourceLocation& aSubresourceLocation, GpuResourceState aSrcState, GpuResourceState aDstState);
+    void SubresourceBarrier(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, GpuResourceState aSrcState, GpuResourceState aDstState);
     void SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceState aSrcState, GpuResourceState aDstState);
         
     void ResourceBarrier(const GpuResource* aResource,
@@ -124,10 +127,13 @@ namespace Fancy {
       GpuResourceState aDstState);
         
   protected:
+    enum Consts {
+      kNumCachedBarriers = 256
+    };
+
     virtual bool SubresourceBarrierInternal(
       const GpuResource* aResource,
-      const uint16* someSubresources,
-      uint aNumSubresources,
+      const SubresourceRange& aSubresourceRange,
       GpuResourceState aSrcState,
       GpuResourceState aDstState,
       CommandListType aSrcQueue,
@@ -140,6 +146,7 @@ namespace Fancy {
 
     glm::uvec4 myViewportParams;
     glm::uvec4 myClipRect;
+    bool myIsOpen;
     bool myViewportDirty;
     bool myClipRectDirty;
     bool myTopologyDirty;

@@ -8,14 +8,13 @@
 #include "RenderCore_PlatformDX12.h"
 #include "TextureDX12.h"
 #include "AdapterDX12.h"
-#include "GpuProgramDX12.h"
-#include "ShaderResourceInterfaceDX12.h"
-#include "GpuProgramPipeline.h"
+#include "ShaderDX12.h"
+#include "ShaderPipelineDX12.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "GeometryData.h"
 #include "GpuResourceDataDX12.h"
-#include "GpuResourceViewDX12.h"
+#include "GpuResourceViewDataDX12.h"
 #include "TimeManager.h"
 #include "GpuQueryHeapDX12.h"
 
@@ -106,7 +105,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandListDX12::CommandListDX12(CommandListType aCommandListType)
     : CommandList(aCommandListType)
-    , myIsOpen(true)
     , myRootSignature(nullptr)
     , myComputeRootSignature(nullptr)
     , myCommandList(nullptr)
@@ -126,7 +124,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandListDX12::~CommandListDX12()
   {
-    CommandListDX12::ReleaseGpuResources(0ull);
+    CommandListDX12::PostExecute(0ull);
 
     if (myCommandList != nullptr)
       myCommandList->Release();
@@ -282,7 +280,7 @@ namespace Fancy {
     const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
 
     ASSERT(aTextureView->GetProperties().myIsRenderTarget);
-    ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::RTV);
+    ASSERT(aTextureView->myType == GpuResourceViewType::RTV);
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     SetTrackResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -295,7 +293,7 @@ namespace Fancy {
   void CommandListDX12::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
   {
     const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
-    ASSERT(viewDataDx12.myType == GpuResourceViewDataDX12::DSV);
+    ASSERT(aTextureView->myType == GpuResourceViewType::DSV);
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     SetTrackResourceTransitionBarrier(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
@@ -345,7 +343,7 @@ namespace Fancy {
     myCommandList->CopyBufferRegion(dstResource, aDestOffset, srcResource, aSrcOffset, aSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
+  void CommandListDX12::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
   {
     ID3D12Resource* bufferResourceDX12 = static_cast<const GpuBufferDX12*>(aDestBuffer)->GetData()->myResource.Get();
     ID3D12Resource* textureResourceDX12 = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
@@ -402,7 +400,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
+  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
     const TextureProperties& srcProps = aSrcTexture->GetProperties();
@@ -452,7 +450,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
     const TextureProperties& dstProps = aDestTexture->GetProperties();
 
@@ -495,9 +493,9 @@ namespace Fancy {
     myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::ReleaseGpuResources(uint64 aFenceVal)
+  void CommandListDX12::PostExecute(uint64 aFenceVal)
   {
-    CommandList::ReleaseGpuResources(aFenceVal);
+    CommandList::PostExecute(aFenceVal);
 
     for (DynamicDescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
       if (heap != nullptr)
@@ -513,9 +511,9 @@ namespace Fancy {
     myCommandAllocator = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::Reset()
+  void CommandListDX12::PreBegin()
   {
-    CommandList::Reset();
+    CommandList::PreBegin();
 
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
@@ -524,7 +522,6 @@ namespace Fancy {
 
     myRootSignature = nullptr;
     myComputeRootSignature = nullptr;
-    myIsOpen = true;
     myNumPendingBarriers = 0u;
   }
 //---------------------------------------------------------------------------//
@@ -539,6 +536,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   D3D12_GRAPHICS_PIPELINE_STATE_DESC CommandListDX12::GetNativePSOdesc(const GraphicsPipelineState& aState)
   {
+    // TODO: Remove all those memsets, they shouldn't be necessary
+
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
     memset(&psoDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
@@ -546,65 +545,62 @@ namespace Fancy {
     D3D12_SHADER_BYTECODE* shaderDescs[]{ &psoDesc.VS, &psoDesc.PS, &psoDesc.DS, &psoDesc.HS, &psoDesc.GS };
     ASSERT(ARRAY_LENGTH(shaderDescs) == (uint)ShaderStage::NUM_NO_COMPUTE);
 
-    if (aState.myGpuProgramPipeline != nullptr)
+    if (aState.myShaderPipeline != nullptr)
     {
       for (uint i = 0u; i < (uint)ShaderStage::NUM_NO_COMPUTE; ++i)
       {
-        if (nullptr == aState.myGpuProgramPipeline->myGpuPrograms[i])
+        if (nullptr == aState.myShaderPipeline->myShaders[i])
           continue;
 
-        const GpuProgramDX12* shaderDx12 = static_cast<const GpuProgramDX12*>(aState.myGpuProgramPipeline->myGpuPrograms[i].get());
+        const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShaderPipeline->myShaders[i].get());
 
         (*shaderDescs[i]) = shaderDx12->getNativeByteCode();
       }
     }
 
     // ROOT SIGNATURE
-    const ShaderResourceInterfaceDX12* sriDx12 = static_cast<const ShaderResourceInterfaceDX12*>(aState.myGpuProgramPipeline->myResourceInterface);
-    psoDesc.pRootSignature = sriDx12->myRootSignature.Get();
+    const ShaderPipelineDX12* shaderPipelineDx12 = static_cast<const ShaderPipelineDX12*>(aState.myShaderPipeline.get());
+    psoDesc.pRootSignature = shaderPipelineDx12->GetRootSignature();
 
     // BLEND DESC
     D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
+    const BlendStateProperties& blendProps = aState.myBlendState->GetProperties();
+
     memset(&blendDesc, 0u, sizeof(D3D12_BLEND_DESC));
-    blendDesc.AlphaToCoverageEnable = aState.myBlendState->myAlphaToCoverageEnabled;
-    blendDesc.IndependentBlendEnable = aState.myBlendState->myBlendStatePerRT;
+    blendDesc.AlphaToCoverageEnable = blendProps.myAlphaToCoverageEnabled;
+    blendDesc.IndependentBlendEnable = blendProps.myBlendStatePerRT;
     uint rtCount = blendDesc.IndependentBlendEnable ? RenderConstants::kMaxNumRenderTargets : 1u;
     for (uint rt = 0u; rt < rtCount; ++rt)
     {
       D3D12_RENDER_TARGET_BLEND_DESC& rtBlendDesc = blendDesc.RenderTarget[rt];
+      const BlendStateRenderTargetProperties& rtBlendProps = blendProps.myRendertargetProperties[rt];
+
       memset(&rtBlendDesc, 0u, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
-      rtBlendDesc.BlendEnable = aState.myBlendState->myBlendEnabled[rt];
-      rtBlendDesc.BlendOp = Adapter::toNativeType(aState.myBlendState->myBlendOp[rt]);
-      rtBlendDesc.DestBlend = Adapter::toNativeType(aState.myBlendState->myDestBlend[rt]);
-      rtBlendDesc.SrcBlend = Adapter::toNativeType(aState.myBlendState->mySrcBlend[rt]);
+      rtBlendDesc.BlendEnable = rtBlendProps.myBlendEnabled;
 
-      if (aState.myBlendState->myAlphaSeparateBlend[rt])
-      {
-        rtBlendDesc.BlendOpAlpha = Adapter::toNativeType(aState.myBlendState->myBlendOpAlpha[rt]);
-        rtBlendDesc.DestBlendAlpha = Adapter::toNativeType(aState.myBlendState->myDestBlendAlpha[rt]);
-        rtBlendDesc.SrcBlendAlpha = Adapter::toNativeType(aState.myBlendState->mySrcBlendAlpha[rt]);
-      }
-      else
-      {
-        rtBlendDesc.BlendOpAlpha = rtBlendDesc.BlendOp;
-        rtBlendDesc.DestBlendAlpha = rtBlendDesc.DestBlend;
-        rtBlendDesc.SrcBlendAlpha = rtBlendDesc.SrcBlend;
-      }
+      rtBlendDesc.BlendOp = Adapter::toNativeType(rtBlendProps.myBlendOp);
+      rtBlendDesc.BlendOpAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType(rtBlendProps.myBlendOpAlpha) : rtBlendDesc.BlendOp;
 
-      // FEATURE: Add support for LogicOps?
-      rtBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
-      rtBlendDesc.LogicOpEnable = false;
+      rtBlendDesc.DestBlend = Adapter::toNativeType(rtBlendProps.myDstBlendFactor);
+      rtBlendDesc.DestBlendAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType(rtBlendProps.myDstBlendAlphaFactor) : rtBlendDesc.DestBlend;
 
-      if ((aState.myBlendState->myRTwriteMask[rt] & 0xFFFFFF) > 0u)
+      rtBlendDesc.SrcBlend = Adapter::toNativeType(rtBlendProps.mySrcBlendFactor);
+      rtBlendDesc.SrcBlendAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType(rtBlendProps.mySrcBlendAlphaFactor) : rtBlendDesc.SrcBlend;
+
+      rtBlendDesc.LogicOpEnable = blendProps.myLogicOpEnabled;
+      rtBlendDesc.LogicOp = RenderCore_PlatformDX12::ResolveLogicOp(blendProps.myLogicOp);
+
+      const uint channelWriteMask = rtBlendProps.myColorChannelWriteMask;
+      if ((channelWriteMask & 0xFFFFFF) > 0u)
       {
         rtBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
       }
       else
       {
-        const bool red = (aState.myBlendState->myRTwriteMask[rt] & 0xFF000000) > 0u;
-        const bool green = (aState.myBlendState->myRTwriteMask[rt] & 0x00FF0000) > 0u;
-        const bool blue = (aState.myBlendState->myRTwriteMask[rt] & 0x0000FF00) > 0u;
-        const bool alpha = (aState.myBlendState->myRTwriteMask[rt] & 0x000000FF) > 0u;
+        const bool red =    (channelWriteMask & 0xFF000000) > 0u;
+        const bool green =  (channelWriteMask & 0x00FF0000) > 0u;
+        const bool blue =   (channelWriteMask & 0x0000FF00) > 0u;
+        const bool alpha =  (channelWriteMask & 0x000000FF) > 0u;
         rtBlendDesc.RenderTargetWriteMask |= red ? D3D12_COLOR_WRITE_ENABLE_RED : 0u;
         rtBlendDesc.RenderTargetWriteMask |= green ? D3D12_COLOR_WRITE_ENABLE_GREEN : 0u;
         rtBlendDesc.RenderTargetWriteMask |= blue ? D3D12_COLOR_WRITE_ENABLE_BLUE : 0u;
@@ -637,38 +633,42 @@ namespace Fancy {
 
     // DEPTH STENCIL STATE
     D3D12_DEPTH_STENCIL_DESC& dsState = psoDesc.DepthStencilState;
-    dsState.DepthEnable = aState.myDepthStencilState->myDepthTestEnabled;
-    dsState.DepthWriteMask = aState.myDepthStencilState->myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
-    dsState.DepthFunc = Adapter::toNativeType(aState.myDepthStencilState->myDepthCompFunc);
-    dsState.StencilEnable = aState.myDepthStencilState->myStencilEnabled;
-    dsState.StencilReadMask = static_cast<uint8>(aState.myDepthStencilState->myStencilReadMask);
-    dsState.StencilWriteMask = static_cast<uint8>(aState.myDepthStencilState->myStencilWriteMask[0u]);
+    const DepthStencilStateProperties& dsProps = aState.myDepthStencilState->GetProperties();
+
+    dsState.DepthEnable = dsProps.myDepthTestEnabled;
+    dsState.DepthWriteMask = dsProps.myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+    dsState.DepthFunc = RenderCore_PlatformDX12::ResolveCompFunc(dsProps.myDepthCompFunc);
+    dsState.StencilEnable = dsProps.myStencilEnabled;
+    dsState.StencilReadMask = static_cast<uint8>(dsProps.myStencilReadMask);
+    dsState.StencilWriteMask = static_cast<uint8>(dsProps.myStencilWriteMask);
+
     // FrontFace
     {
       D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.FrontFace;
-      uint faceIdx = static_cast<uint>(FaceType::FRONT);
-      faceDesc.StencilFunc = Adapter::toNativeType(aState.myDepthStencilState->myStencilCompFunc[faceIdx]);
-      faceDesc.StencilDepthFailOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilDepthFailOp[faceIdx]);
-      faceDesc.StencilFailOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilFailOp[faceIdx]);
-      faceDesc.StencilPassOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilPassOp[faceIdx]);
+      const DepthStencilFaceProperties& faceProps = dsProps.myFrontFace;
+      faceDesc.StencilFunc = RenderCore_PlatformDX12::ResolveCompFunc(faceProps.myStencilCompFunc);
+      faceDesc.StencilDepthFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilDepthFailOp);
+      faceDesc.StencilFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilFailOp);
+      faceDesc.StencilPassOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilPassOp);
     }
+
     // BackFace
     {
       D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.BackFace;
-      uint faceIdx = static_cast<uint>(FaceType::BACK);
-      faceDesc.StencilFunc = Adapter::toNativeType(aState.myDepthStencilState->myStencilCompFunc[faceIdx]);
-      faceDesc.StencilDepthFailOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilDepthFailOp[faceIdx]);
-      faceDesc.StencilFailOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilFailOp[faceIdx]);
-      faceDesc.StencilPassOp = Adapter::toNativeType(aState.myDepthStencilState->myStencilPassOp[faceIdx]);
+      const DepthStencilFaceProperties& faceProps = dsProps.myBackFace;
+      faceDesc.StencilFunc = RenderCore_PlatformDX12::ResolveCompFunc(faceProps.myStencilCompFunc);
+      faceDesc.StencilDepthFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilDepthFailOp);
+      faceDesc.StencilFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilFailOp);
+      faceDesc.StencilPassOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilPassOp);
     }
 
     // INPUT LAYOUT
 
-    if (aState.myGpuProgramPipeline != nullptr &&
-      aState.myGpuProgramPipeline->myGpuPrograms[(uint)ShaderStage::VERTEX] != nullptr)
+    if (aState.myShaderPipeline != nullptr &&
+      aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX] != nullptr)
     {
-      const GpuProgramDX12* vertexShader =
-        static_cast<const GpuProgramDX12*>(aState.myGpuProgramPipeline->myGpuPrograms[(uint)ShaderStage::VERTEX].get());
+      const ShaderDX12* vertexShader =
+        static_cast<const ShaderDX12*>(aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX].get());
 
       D3D12_INPUT_LAYOUT_DESC& inputLayout = psoDesc.InputLayout;
       inputLayout.NumElements = vertexShader->GetNumNativeInputElements();
@@ -687,11 +687,11 @@ namespace Fancy {
     // RTV-FORMATS
     for (uint i = 0u; i < aState.myNumRenderTargets; ++i)
     {
-      psoDesc.RTVFormats[i] = RenderCore_PlatformDX12::GetDXGIformat(aState.myRTVformats[i]);
+      psoDesc.RTVFormats[i] = RenderCore_PlatformDX12::ResolveFormat(aState.myRTVformats[i]);
     }
 
     // DSV FORMAT
-    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat(RenderCore_PlatformDX12::GetDXGIformat(aState.myDSVformat));
+    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat(RenderCore_PlatformDX12::ResolveFormat(aState.myDSVformat));
 
     // NODE MASK
     psoDesc.NodeMask = 0u;
@@ -704,13 +704,12 @@ namespace Fancy {
     D3D12_COMPUTE_PIPELINE_STATE_DESC desc;
     memset(&desc, 0u, sizeof(desc));
 
-    if (aState.myGpuProgram != nullptr)
+    if (aState.myShader != nullptr)
     {
-      const GpuProgramDX12* gpuProgramDx12 =
-        static_cast<const GpuProgramDX12*>(aState.myGpuProgram);
+      const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShader);
 
-      desc.pRootSignature = gpuProgramDx12->GetRootSignature();
-      desc.CS = gpuProgramDx12->getNativeByteCode();
+      desc.pRootSignature = shaderDx12->GetRootSignature();
+      desc.CS = shaderDx12->getNativeByteCode();
     }
 
     desc.NodeMask = 0u;
@@ -727,20 +726,20 @@ namespace Fancy {
     
     const uint64 gpuVirtualAddress = storage->myResource->GetGPUVirtualAddress() + someViewProperties.myOffset;
 
-    GpuResourceViewDataDX12::Type type = GpuResourceViewDataDX12::NONE;
+    GpuResourceViewType type = GpuResourceViewType::NONE;
     if (someViewProperties.myIsShaderWritable)
     {
       ASSERT(someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor");
-      type = GpuResourceViewDataDX12::UAV;
+      type = GpuResourceViewType::UAV;
     }
     else if (someViewProperties.myIsConstantBuffer)
     {
-      type = GpuResourceViewDataDX12::CBV;
+      type = GpuResourceViewType::CBV;
     }
     else
     {
       ASSERT(someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor");
-      type = GpuResourceViewDataDX12::SRV;
+      type = GpuResourceViewType::SRV;
     }
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
@@ -761,9 +760,9 @@ namespace Fancy {
       {
         switch (type)
         {
-          case GpuResourceViewDataDX12::SRV: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
-          case GpuResourceViewDataDX12::UAV: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
-          case GpuResourceViewDataDX12::CBV: { myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::SRV: { myCommandList->SetGraphicsRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::UAV: { myCommandList->SetGraphicsRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::CBV: { myCommandList->SetGraphicsRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
           default: { ASSERT(false); break; }
         }
       } break;
@@ -771,9 +770,9 @@ namespace Fancy {
       {
         switch (type)
         {
-          case GpuResourceViewDataDX12::SRV: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
-          case GpuResourceViewDataDX12::UAV: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
-          case GpuResourceViewDataDX12::CBV: { myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::SRV: { myCommandList->SetComputeRootShaderResourceView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::UAV: { myCommandList->SetComputeRootUnorderedAccessView(aRegisterIndex, gpuVirtualAddress); break; }
+          case GpuResourceViewType::CBV: { myCommandList->SetComputeRootConstantBufferView(aRegisterIndex, gpuVirtualAddress); break; }
           default: { ASSERT(false); break; }
         }
       } break;
@@ -943,14 +942,16 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   bool CommandListDX12::SubresourceBarrierInternal(
-    const GpuResource* aResource, 
-    const uint16* someSubresources,
-    uint aNumSubresources, 
-    GpuResourceState aSrcState, 
-    GpuResourceState aDstState, 
+    const GpuResource* aResource,
+    const SubresourceRange& aSubresourceRange,
+    GpuResourceState aSrcState,
+    GpuResourceState aDstState,
     CommandListType aSrcQueue,
     CommandListType aDstQueue)
   {
+    const D3D12_RESOURCE_STATES kResourceStateMask_ComputeContext = D3D12_RESOURCE_STATE_UNORDERED_ACCESS | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT | D3D12_RESOURCE_STATE_COPY_DEST | D3D12_RESOURCE_STATE_COPY_SOURCE;
+    const D3D12_RESOURCE_STATES kResourceStateMask_GraphicsContext = static_cast<D3D12_RESOURCE_STATES>(~0u);
+
     const uint stateMaskFrom = aSrcQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
     const uint stateMaskTo = aDstQueue == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
     const uint stateMaskCmdList = myCommandListType == CommandListType::Graphics ? kResourceStateMask_GraphicsContext : kResourceStateMask_ComputeContext;
@@ -980,7 +981,8 @@ namespace Fancy {
     dstStateDx12 = allowedDstStateDx12 & stateMaskTo & stateMaskCmdList;
     ASSERT((srcWas0 || srcStateDx12 != 0) && (dstWas0 || dstStateDx12 != 0));
 
-    if (someSubresources == nullptr || aNumSubresources >= aResource->myNumSubresources)  // Note: This would break if there are duplicated subresrouces in the list, but this wouldn't make any sense
+    const bool allSubresources = aSubresourceRange == aResource->mySubresources;
+    if (allSubresources)
     {
       ASSERT(numBarriers < ARRAY_LENGTH(barriers));
       D3D12_RESOURCE_BARRIER& barrier = barriers[numBarriers++];
@@ -999,9 +1001,9 @@ namespace Fancy {
     }
     else
     {
-      for (uint iSub = 0u; iSub < aNumSubresources; ++iSub)
+      for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
       {
-        const uint subresourceIndex = static_cast<uint>(someSubresources[iSub]);
+        const uint subresourceIndex = aResource->GetSubresourceIndex(*subIter);
 
         ASSERT(numBarriers < ARRAY_LENGTH(barriers));
         D3D12_RESOURCE_BARRIER& barrier = barriers[numBarriers++];
@@ -1031,17 +1033,17 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline)
+  void CommandListDX12::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
   {
-    CommandList::SetGpuProgramPipeline(aGpuProgramPipeline);
+    CommandList::SetShaderPipeline(aShaderPipeline);
 
-    const ShaderResourceInterfaceDX12* sriDx12 =
-      static_cast<const ShaderResourceInterfaceDX12*>(aGpuProgramPipeline->myResourceInterface);
+    const ShaderPipelineDX12* pipelineDx12 = static_cast<const ShaderPipelineDX12*>(aShaderPipeline.get());
+    ID3D12RootSignature* rootSignature = pipelineDx12->GetRootSignature();
 
-    if (myRootSignature != sriDx12->myRootSignature.Get())
+    if (myRootSignature != rootSignature)
     {
-      myRootSignature = sriDx12->myRootSignature.Get();
-      myCommandList->SetGraphicsRootSignature(myRootSignature);
+      myRootSignature = rootSignature;
+      myCommandList->SetGraphicsRootSignature(rootSignature);
     }
   }
 //---------------------------------------------------------------------------//
@@ -1161,55 +1163,20 @@ namespace Fancy {
     const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
     D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[RenderConstants::kMaxNumRenderTargets];
 
-    // RenderTarget state-transitions
+    for (uint i = 0u; i < numRtsToSet; ++i)
     {
-      const GpuResource* rtResources[RenderConstants::kMaxNumRenderTargets];
-      const uint16* subresourceLists[RenderConstants::kMaxNumRenderTargets];
-      uint numSubresources[RenderConstants::kMaxNumRenderTargets];
+      ASSERT(myRenderTargets[i] != nullptr);
 
-      for (uint i = 0u; i < numRtsToSet; ++i)
-      {
-        ASSERT(myRenderTargets[i] != nullptr);
+      const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myNativeData.To<GpuResourceViewDataDX12>();
+      ASSERT(myRenderTargets[i]->myType == GpuResourceViewType::RTV);
 
-        const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myNativeData.To<GpuResourceViewDataDX12>();
-        ASSERT(viewData.myType == GpuResourceViewDataDX12::RTV);
-
-        rtResources[i] = myRenderTargets[i]->GetTexture();
-        rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
-        subresourceLists[i] = myRenderTargets[i]->mySubresources[0].data();
-        numSubresources[i] = static_cast<uint>(myRenderTargets[i]->mySubresources[0].size());
-      }
-
-#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-      D3D12_RESOURCE_STATES newStates[RenderConstants::kMaxNumRenderTargets];
-      for (uint i = 0; i < numRtsToSet; ++i)
-        newStates[i] = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-      SetTrackSubresourceTransitionBarriers(rtResources, newStates, subresourceLists, numSubresources, numRtsToSet);
-#endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
+      rtDescriptors[i] = viewData.myDescriptor.myCpuHandle;
     }
     
     if (myDepthStencilTarget != nullptr)
     {
-#if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myDepthStencilTarget->GetTexture()->GetProperties().eFormat);
-      const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
-
-      // TODO: Also respect stencilWriteMask per rendertarget?
-      D3D12_RESOURCE_STATES dsStates[2] = { 
-          (dsvProps.myIsDepthReadOnly || !myGraphicsPipelineState.myDepthStencilState->myDepthWriteEnabled) ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE,
-          (dsvProps.myIsStencilReadOnly || !myGraphicsPipelineState.myDepthStencilState->myStencilEnabled) ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE
-      };
-
-      const GpuResource* resources[2] = { myDepthStencilTarget->GetTexture(), myDepthStencilTarget->GetTexture() };
-      const uint16* subresourceLists[2] = { myDepthStencilTarget->mySubresources[0].data(), myDepthStencilTarget->mySubresources[1].data() };
-      const uint numSubresources[2] = { static_cast<uint>(myDepthStencilTarget->mySubresources[0].size()), static_cast<uint>(myDepthStencilTarget->mySubresources[1].size()) };
-      
-      SetTrackSubresourceTransitionBarriers(resources, dsStates, subresourceLists, numSubresources, 2u);
-#endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-      
       const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myNativeData.To<GpuResourceViewDataDX12>();
-      ASSERT(dsvViewData.myType == GpuResourceViewDataDX12::DSV);
+      ASSERT(myDepthStencilTarget->myType == GpuResourceViewType::DSV);
       myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
     }
     else
@@ -1416,11 +1383,11 @@ namespace Fancy {
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetComputeProgram(const GpuProgram* aProgram)
+  void CommandListDX12::SetComputeProgram(const Shader* aProgram)
   {
     CommandList::SetComputeProgram(aProgram);
 
-    const GpuProgramDX12* programDx12 = static_cast<const GpuProgramDX12*>(aProgram);
+    const ShaderDX12* programDx12 = static_cast<const ShaderDX12*>(aProgram);
 
     if (myComputeRootSignature != programDx12->GetRootSignature())
     {
@@ -1434,9 +1401,9 @@ namespace Fancy {
     FlushBarriers();
 
     ApplyComputePipelineState();
-    ASSERT(myComputePipelineState.myGpuProgram != nullptr);
+    ASSERT(myComputePipelineState.myShader != nullptr);
 
-    const glm::int3& numGroupThreads = myComputePipelineState.myGpuProgram->myProperties.myNumGroupThreads;
+    const glm::int3& numGroupThreads = myComputePipelineState.myShader->myProperties.myNumGroupThreads;
     const glm::int3 numGroups = glm::max(glm::int3(1), aNumThreads / numGroupThreads);
     myCommandList->Dispatch(static_cast<uint>(numGroups.x), static_cast<uint>(numGroups.y), static_cast<uint>(numGroups.z));
   }

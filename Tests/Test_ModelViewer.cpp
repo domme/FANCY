@@ -1,6 +1,6 @@
 #include "Test_ModelViewer.h"
 #include "fancy_core/Window.h"
-#include "fancy_core/GpuProgramPipelineDesc.h"
+#include "fancy_core/ShaderPipelineDesc.h"
 #include "fancy_core/RenderCore.h"
 #include "fancy_assets/AssetManager.h"
 #include "fancy_core/CommandList.h"
@@ -13,16 +13,16 @@
 
 using namespace Fancy;
 
-static SharedPtr<GpuProgramPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main")
+static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main")
 {
-  GpuProgramPipelineDesc pipelineDesc;
-  GpuProgramDesc* shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::VERTEX];
+  ShaderPipelineDesc pipelineDesc;
+  ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
   shaderDesc->myShaderFileName = aShaderPath;
   shaderDesc->myMainFunction = aMainVtxFunction;
-  shaderDesc = &pipelineDesc.myGpuPrograms[(uint)ShaderStage::FRAGMENT];
+  shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
   shaderDesc->myShaderFileName = aShaderPath;
   shaderDesc->myMainFunction = aMainFragmentFunction;
-  return RenderCore::CreateGpuProgramPipeline(pipelineDesc);
+  return RenderCore::CreateShaderPipeline(pipelineDesc);
 }
 
 //---------------------------------------------------------------------------//
@@ -80,10 +80,7 @@ void Test_ModelViewer::OnUpdate(bool aDrawProperties)
 void Test_ModelViewer::OnRender()
 {
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-  float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  ctx->ClearRenderTarget(myOutput->GetBackbufferRtv(), clearColor);
-  ctx->ClearDepthStencilTarget(myOutput->GetDepthStencilDsv(), 1.0f, 0u);
-  
+    
   RenderGrid(ctx);
   RenderScene(ctx);
 
@@ -102,7 +99,7 @@ void Test_ModelViewer::RenderGrid(Fancy::CommandList* ctx)
   ctx->SetFillMode(FillMode::SOLID);
   ctx->SetWindingOrder(WindingOrder::CCW);
 
-  ctx->SetGpuProgramPipeline(myDebugGeoShader);
+  ctx->SetShaderPipeline(myDebugGeoShader);
 
   struct Cbuffer_DebugGeo
   {
@@ -152,7 +149,7 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
   ctx->SetWindingOrder(WindingOrder::CCW);
 
   ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-  ctx->SetGpuProgramPipeline(myUnlitTexturedShader);
+  ctx->SetShaderPipeline(myUnlitTexturedShader);
   for (int i = 0; i < myScene.myModels.size(); ++i)
   {
     Model* model = myScene.myModels[i].get();

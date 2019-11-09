@@ -22,7 +22,7 @@ namespace Fancy {
       kMaxNumReadTextures = 32u,
       kMaxNumWriteTextures = 8u,
       kMaxNumBoundConstantBuffers = 12u,
-      kMaxNumGpuProgramResources = 32u,
+      kMaxNumShaderResources = 32u,
       kMaxNumConstantBufferElements = 128u,
       kMaxNumGeometriesPerSubModel = 128u,
       kMaxNumRenderContexts = 256u,

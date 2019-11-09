@@ -37,6 +37,8 @@ bool test_asyncCompute = false;
 bool test_mipmapping = false;
 bool test_modelviewer = false;
 
+constexpr bool kEnableImGui = false; // Deactivate IMGUI for Vulkan development?
+
 DynamicArray<UniquePtr<Test>> myTests;
 
 void OnWindowResized(uint aWidth, uint aHeight)
@@ -50,6 +52,8 @@ void OnWindowResized(uint aWidth, uint aHeight)
 void Init(HINSTANCE anInstanceHandle)
 {
   RenderingStartupParameters params;
+  // params.myRenderingApi = RenderPlatformType::DX12; 
+  params.myRenderingApi = RenderPlatformType::VULKAN;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   Fancy::WindowParameters windowParams;
@@ -65,15 +69,22 @@ void Init(HINSTANCE anInstanceHandle)
   myWindow->myOnResize.Connect(onWindowResized);
   myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
 
-  myImGuiContext = ImGui::CreateContext();
-  ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
+  if (kEnableImGui)
+  {
+    myImGuiContext = ImGui::CreateContext();
+    ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
+  }
 }
 
 void Update()
 {
   myRuntime->BeginFrame();
-  ImGuiRendering::NewFrame();
+  if (kEnableImGui)
+    ImGuiRendering::NewFrame();
   myRuntime->Update(0.016f);
+
+  if (!kEnableImGui)
+    return;
 
   if (ImGui::Checkbox("Test Profiler", &test_profiler))
   {
@@ -145,16 +156,18 @@ void Render()
 {
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
   GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
-  float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceState::READ_PRESENT, GpuResourceState::WRITE_RENDER_TARGET);
+  float clearColor[] = { 1.0f, 0.3f, 0.3f, 0.0f };
+  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceState::READ_PRESENT, GpuResourceState::WRITE_RENDER_TARGET);  
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
+  // ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), FLT_MAX, 0u);
   GPU_END_PROFILE(ctx);
   RenderCore::ExecuteAndResetCommandList(ctx);
 
   for (UniquePtr<Test>& testItem : myTests)
     testItem->OnRender();
 
-  ImGui::Render();
+  if (kEnableImGui)
+    ImGui::Render();
 
   ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceState::WRITE_RENDER_TARGET, GpuResourceState::READ_PRESENT);
   RenderCore::ExecuteAndFreeCommandList(ctx);

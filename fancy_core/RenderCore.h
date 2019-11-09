@@ -19,22 +19,23 @@ namespace Fancy {
   class Mesh;
   struct MeshDesc;
   struct MeshData;
-  struct GpuProgramPipelineDesc;
-  struct DepthStencilStateDesc;
-  struct BlendStateDesc;
+  struct ShaderPipelineDesc;
+  struct DepthStencilStateProperties;
+  struct BlendStateProperties;
   class RenderCore_PlatformDX12;
-  class GpuProgramPipeline;
+  class RenderCore_PlatformVk;
+  class ShaderPipeline;
   class BlendState;
   class DepthStencilState;
   class FileWatcher;
   class GpuRingBuffer;
-  class GpuProgram;
-  struct GpuProgramDesc;
+  class Shader;
+  struct ShaderDesc;
   class TempResourcePool;
   struct TextureResourceProperties;
   class GpuResource;
   struct GpuBufferResourceProperties;
-  struct TextureSubLocation;
+  struct SubresourceLocation;
   struct GpuBufferProperties;
   struct TextureProperties;
   struct TextureSubData;
@@ -66,15 +67,15 @@ namespace Fancy {
     static const Texture* GetDefaultDiffuseTexture();
     static const Texture* GetDefaultNormalTexture();
     static const Texture* GetDefaultMaterialTexture();
-    static const GpuProgramCompiler* GetGpuProgramCompiler();
+    static const ShaderCompiler* GetShaderCompiler();
     
-    static SharedPtr<GpuProgram> GetGpuProgram(uint64 aDescHash);
-    static SharedPtr<GpuProgramPipeline> GetGpuProgramPipeline(uint64 aDescHash);
+    static SharedPtr<Shader> GetShader(uint64 aDescHash);
+    static SharedPtr<ShaderPipeline> GetShaderPipeline(uint64 aDescHash);
     static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas);
 
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
-    static SharedPtr<GpuProgram> CreateGpuProgram(const GpuProgramDesc& aDesc);
-    static SharedPtr<GpuProgramPipeline> CreateGpuProgramPipeline(const GpuProgramPipelineDesc& aDesc);
+    static SharedPtr<Shader> CreateShader(const ShaderDesc& aDesc);
+    static SharedPtr<ShaderPipeline> CreateShaderPipeline(const ShaderPipelineDesc& aDesc);
     static SharedPtr<Texture> CreateTexture(const TextureProperties& someProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferProperties& someProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
     static SharedPtr<TextureView> CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName = nullptr);
@@ -84,11 +85,11 @@ namespace Fancy {
     static uint GetQueryTypeDataSize(GpuQueryType aType);
     
     static MappedTempBuffer ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize);
-    static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations);
-    static bool ReadbackTextureData(const Texture* aTexture, const TextureSubLocation& aStartSubLocation, uint aNumSublocations, TextureData& aTextureDataOut);
+    static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange);
+    static bool ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange, TextureData& aTextureDataOut);
     
-    static SharedPtr<BlendState> CreateBlendState(const BlendStateDesc& aDesc);
-    static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateDesc& aDesc);
+    static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);
+    static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateProperties& aDesc);
     static const SharedPtr<BlendState>& GetDefaultBlendState();
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState();
 
@@ -96,6 +97,7 @@ namespace Fancy {
     static const RenderPlatformCaps& GetPlatformCaps();
     static RenderCore_Platform* GetPlatform();
     static RenderCore_PlatformDX12* GetPlatformDX12();
+    static RenderCore_PlatformVk* GetPlatformVk();
 
     static GpuRingBuffer* AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
@@ -120,12 +122,11 @@ namespace Fancy {
     static void WaitForFrame(uint64 aFrameIdx);
     static void WaitForFence(uint64 aFenceVal);
     static void WaitForIdle(CommandListType aType);
-    static void WaitForResourceIdle(const GpuResource* aResource, uint aSubresourceOffset = 0, uint aNumSubresources = UINT_MAX);
-
+    
     static CommandQueue* GetCommandQueue(CommandListType aType);
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
 
-    static Slot<void(const GpuProgram*)> ourOnShaderRecompiled;
+    static Slot<void(const Shader*)> ourOnShaderRecompiled;
 
   protected:
     RenderCore() = default;
@@ -146,7 +147,7 @@ namespace Fancy {
 
     static UniquePtr<RenderCore_Platform> ourPlatformImpl;
     static UniquePtr<TempResourcePool> ourTempResourcePool;
-    static UniquePtr<GpuProgramCompiler> ourShaderCompiler;
+    static UniquePtr<ShaderCompiler> ourShaderCompiler;
     static UniquePtr<FileWatcher> ourShaderFileWatcher;
 
     static SharedPtr<DepthStencilState> ourDefaultDepthStencilState;
@@ -155,8 +156,8 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
 
-    static std::map<uint64, SharedPtr<GpuProgram>> ourShaderCache;  
-    static std::map<uint64, SharedPtr<GpuProgramPipeline>> ourGpuProgramPipelineCache;
+    static std::map<uint64, SharedPtr<Shader>> ourShaderCache;  
+    static std::map<uint64, SharedPtr<ShaderPipeline>> ourShaderPipelineCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
     
@@ -164,7 +165,7 @@ namespace Fancy {
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
 
-    static UniquePtr<CommandQueue> ourCommandQueues[(uint)CommandListType::NUM];
+    static UniquePtr<CommandQueue> ourCommandQueues[(uint)CommandListType::NUM];  // TODO: Move into RenderCore_Platform
     
     static StaticCircularArray<uint64, NUM_QUEUED_FRAMES> ourQueuedFrameDoneFences;
     static StaticCircularArray<std::pair<uint64, uint64>, 256> ourLastFrameDoneFences;

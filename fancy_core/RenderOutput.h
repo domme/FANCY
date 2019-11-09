@@ -14,7 +14,7 @@ namespace Fancy {
   class RenderOutput
   {
   public:
-    explicit RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
+    RenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     virtual ~RenderOutput();
     
     void BeginFrame();
@@ -44,6 +44,8 @@ namespace Fancy {
     void CreateViews();
 
     static const uint kBackbufferCount = 2u;
+
+    // TODO: SharedPtrs don't make sense here - there is only ever this single window and those single backbuffers for each RenderOutput. Should be UniquePtr instead
 
     uint myCurrBackbufferIndex;
     SharedPtr<Window> myWindow;

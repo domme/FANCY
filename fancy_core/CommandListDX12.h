@@ -15,7 +15,7 @@ namespace Fancy {
   class GpuResourceDX12;
   class GpuResource;
   struct GpuResourceDataDX12;
-  class GpuProgram;
+  class Shader;
   class GpuBuffer;
 //---------------------------------------------------------------------------//
   class CommandListDX12 final : public CommandList
@@ -24,10 +24,6 @@ namespace Fancy {
     friend class CommandQueueDX12;
 
   public:
-    static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
-    static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
-    static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
-
     CommandListDX12(CommandListType aType);
     ~CommandListDX12() override;
 
@@ -37,14 +33,14 @@ namespace Fancy {
     void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) override;
     void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) override;
     void CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) override;
-    void CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
-    void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const TextureSubLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
-    void CopyTextureRegion(const Texture* aDestTexture, const TextureSubLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
+    void CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
+    void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
+    void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
 
-    void ReleaseGpuResources(uint64 aFenceVal) override;
-    void Reset() override;
+    void PostExecute(uint64 aFenceVal) override;
+    void PreBegin() override;
     void FlushBarriers() override;
-    void SetGpuProgramPipeline(const SharedPtr<GpuProgramPipeline>& aGpuProgramPipeline) override;
+    void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline) override;
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
@@ -59,18 +55,19 @@ namespace Fancy {
 
     void ResourceUAVbarrier(const GpuResource** someResources = nullptr, uint aNumResources = 0u) override;
 
-    bool IsOpen() const override { return myIsOpen; }
     void Close() override;
 
-    void SetComputeProgram(const GpuProgram* aProgram) override;
+    void SetComputeProgram(const Shader* aProgram) override;
     void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:
+    static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
+    static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
+    static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
     bool SubresourceBarrierInternal(
       const GpuResource* aResource,
-      const uint16* someSubresources,
-      uint aNumSubresources,
+      const SubresourceRange& aSubresourceRange,
       GpuResourceState aSrcState,
       GpuResourceState aDstState,
       CommandListType aSrcQueue,
@@ -94,13 +91,12 @@ namespace Fancy {
     DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount);
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
-  
-    bool myIsOpen;
+    
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12RootSignature* myComputeRootSignature;
     ID3D12GraphicsCommandList* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
-    D3D12_RESOURCE_BARRIER myPendingBarriers[256];
+    D3D12_RESOURCE_BARRIER myPendingBarriers[kNumCachedBarriers];
     uint myNumPendingBarriers;
 
     DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];

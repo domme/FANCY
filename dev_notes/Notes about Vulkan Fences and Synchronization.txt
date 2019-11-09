@@ -1,0 +1,18 @@
+Notes about Vulkan Fences and Synchronization
+=============================================
+
+- Fancy follows the D3D12 API style by expressing fences as 64-bit values throughout the high-level API (e.g. IsFenceDone(uint64 aFenceVal))
+- On D3D12 a ID3D12Fence-object has an internal counter-value that is incremented by Fancy with each signal. 
+- One D3D12-Fence object can be used for both GPU-GPU syncs and CPU-GPU syncs using explicit API commands like queue->Wait(fence), and fence->SetEventOnCompletion(EventHandle); WaitOnSingleObject(EventHandle); 
+
+- In Vulkan, there seem to be two different primitives needed:
+	- VkFence
+		- Needed for CPU-GPU sync. A Fence can be either signalled or unsignalled. It is signalled indirectly when submitting a command list. It can be explicitly waited on using vkWaitFences(). Before each signal, it needs to be reset again using vkResetFence()
+
+	- VkSemaphore
+		- Needed for GPU-GPU sync. Can bei either signalled or unsignalled but is reset automatically after signalling.
+		- Signalling is done as part of the queueSubmit() command
+		- Waiting is also done as part of the queueSubmit() command
+
+		-> There is no explicit vulkan-command available to wait on semaphores outside of queue-submissions like in D3D12. However, Fancy uses it as queue->StallForFence(fenceVal). So we might need to store this value until the next command-list execution.
+

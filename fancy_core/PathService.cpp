@@ -18,7 +18,7 @@ namespace Fancy {
       GetModuleFileName(NULL, buf, FILENAME_MAX);
 
       String str(buf);
-      UnifySlashes(str);
+      ConvertToSlash(str);
 
       size_t exePos = str.rfind(".exe");
       ASSERT(exePos != String::npos);
@@ -34,7 +34,7 @@ namespace Fancy {
       GetModuleFileName(NULL, outString, FILENAME_MAX);
 
       String pathOut(outString);
-      UnifySlashes(pathOut);
+      ConvertToSlash(pathOut);
       return GetContainingFolder(pathOut);
     }
 //---------------------------------------------------------------------------//
@@ -54,7 +54,7 @@ namespace Fancy {
         return "";
 
       String workingDir(buf);
-      UnifySlashes(workingDir);
+      ConvertToSlash(workingDir);
 
       return workingDir;
     }
@@ -82,15 +82,20 @@ namespace Fancy {
       return anAbsolutePath.substr(workingDirPos + 1);
     }
 //---------------------------------------------------------------------------//
-    bool FileExists(const String& aFilePath)
+    bool FileExists(const char* aFilePath)
     {
-      if (FILE *file = fopen(aFilePath.c_str(), "r")) 
+      if (FILE *file = fopen(aFilePath, "r")) 
       {
         fclose(file);
         return true;
       }
 
       return false;
+    }
+//---------------------------------------------------------------------------//
+    bool IsPathAbsolute(const char* aPath)
+    {
+      return strlen(aPath) > 1 && aPath[1] == ':';
     }
 //---------------------------------------------------------------------------//
     bool IsPathAbsolute(const String& aPath)
@@ -134,18 +139,16 @@ namespace Fancy {
       return aPath.substr(0, aPath.size() - dotPos);
     }
 //---------------------------------------------------------------------------//
-    void UnifySlashes(String& aPath)
+    void ConvertToSlash(String& aPath)
     {
-      for (uint i = 0; i < aPath.size(); ++i)
-        if (aPath[i] == '\\')
-          aPath[i] = '/';
+      std::replace(aPath.begin(), aPath.end(), '\\', '/');
     }
   //---------------------------------------------------------------------------//
-    bool HasUnifiedSlashes(const String& aPath)
+    void ConvertToBackslash(String& aPath)
     {
-      return aPath.find('\\') == String::npos;
+      std::replace(aPath.begin(), aPath.end(), '/', '\\');
     }
-//---------------------------------------------------------------------------//
+ //---------------------------------------------------------------------------//
     void CreateDirectoryTreeForPath(const String& aPath)
     {
       String aDirectoryTree = GetContainingFolder(aPath) + "/";
@@ -168,7 +171,7 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
     void RemoveFolderUpMarkers(String& aPath)
     {
-      UnifySlashes(aPath);
+      ConvertToSlash(aPath);
 
       const String kSearchKey = "/../";
       const size_t kSearchKeyLen = kSearchKey.length();
@@ -223,12 +226,51 @@ namespace Fancy {
           
         std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
         String path = converter.to_bytes(str);
-        UnifySlashes(path);
+        ConvertToSlash(path);
 
         return path + "/Fancy/" + GetAppName() + "/";
       }
 
       return "";
+    }
+  //---------------------------------------------------------------------------//
+    String GetAsCmdParameter(const char* aPath)
+    {
+      String path(aPath);
+      PrepareForCmdParameter(path);
+      return path;
+    }
+  //---------------------------------------------------------------------------//
+    void PrepareForCmdParameter(String& aPath)
+    {
+      int i = 0;
+
+      while (i < (int)aPath.size())
+      {
+        if (aPath[i] == ' ')
+        {
+          int iPrev = i;
+          for (; iPrev > 0; --iPrev)
+          {
+            if (aPath[iPrev-1] == '/' || aPath[iPrev-1] == '\\')
+              break;
+          }
+
+          aPath.insert(iPrev, "\"");
+          ++i;
+
+          int iNext = i;
+          for (; iNext < (int) aPath.size(); ++iNext)
+          {
+            if (aPath[iNext] == '/' || aPath[iNext] == '\\')
+              break;
+          }
+
+          aPath.insert(iNext, "\"");
+        }
+
+        ++i;
+      }
     }
   //---------------------------------------------------------------------------//
   }
@@ -259,7 +301,7 @@ namespace Fancy {
       for (const String& resourceFolder : ourResourceFolders)
       {
         String resourcePath = resourceFolder + aResourceName;
-        if (Path::FileExists(resourcePath))
+        if (Path::FileExists(resourcePath.c_str()))
         {
           if (aWasFound)
             *aWasFound = true;
@@ -270,7 +312,7 @@ namespace Fancy {
 
       // Fall back to the working dir if the resource hasn't been found in any of the registered resource folders
       const String& absPathInWorkDir = Path::GetAbsolutePath(aResourceName);
-      const bool existsInWorkDir = Path::FileExists(absPathInWorkDir);
+      const bool existsInWorkDir = Path::FileExists(absPathInWorkDir.c_str());
 
       if (aWasFound)
         *aWasFound = existsInWorkDir;

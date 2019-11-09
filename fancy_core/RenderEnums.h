@@ -64,7 +64,7 @@ namespace Fancy
     NUM
   };
 //-----------------------------------------------------------------------//    
-  enum class BlendInput
+  enum class BlendFactor
   {
     ZERO = 0,
     ONE,
@@ -77,18 +77,12 @@ namespace Fancy
     DEST_COLOR,
     INV_DEST_COLOR,
     SRC_ALPHA_CLAMPED,
-    BLEND_FACTOR,// DX11-only
-    INV_BLEND_FACTOR,
     SRC1_COLOR,
     INV_SRC1_COLOR,
     SRC1_ALPHA,
     INV_SRC1_ALPHA,
-
-  // OpenGL-only:
     CONSTANT_COLOR,
     INV_CONSTANT_COLOR,
-    CONSTANT_ALPHA,
-    INV_CONSTANT_ALPHA,
 
     NUM
   };
@@ -100,6 +94,28 @@ namespace Fancy
     REV_SUBTRACT,
     MIN,
     MAX,
+
+    NUM
+  };
+//---------------------------------------------------------------------------//
+  enum class LogicOp
+  {
+    CLEAR = 0,
+    AND,
+    AND_REVERSE,
+    COPY,
+    AND_INVERTED,
+    NO_OP,
+    XOR,
+    OR,
+    NOR,
+    EQUIVALENT,
+    INVERT,
+    OR_REVERSE,
+    COPY_INVERTED,
+    OR_INVERTED,
+    NAND,
+    SET,
 
     NUM
   };
@@ -130,18 +146,9 @@ namespace Fancy
     ALL = 0xFF
   };
 //-----------------------------------------------------------------------//
-  enum class FaceType
-  {
-    FRONT = 0,
-    BACK,
-
-    NUM
-  };
-//---------------------------------------------------------------------------//
   enum class GpuResourceState
   {
-    COMMON = 0, FIRST_READ_STATE = 0,
-    READ_INDIRECT_ARGUMENT,
+    READ_INDIRECT_ARGUMENT = 0, FIRST_READ_STATE = 0,
     READ_VERTEX_BUFFER,
     READ_INDEX_BUFFER,
     READ_VERTEX_SHADER_CONSTANT_BUFFER,
@@ -186,6 +193,12 @@ namespace Fancy
     WRITE,
 
     NUM
+  };
+//---------------------------------------------------------------------------//
+  enum class GpuResourceCategory
+  {
+    TEXTURE = 0,
+    BUFFER
   };
 //---------------------------------------------------------------------------//
   enum class GpuResourceDimension
@@ -310,6 +323,13 @@ namespace Fancy
   {
     BLOCKING = 0,
     ASYNC,
+
+    NUM
+  };
+//---------------------------------------------------------------------------//
+  enum class ShaderModel
+  {
+    SM_5_1 = 0,
 
     NUM
   };
