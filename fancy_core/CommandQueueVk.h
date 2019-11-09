@@ -21,16 +21,24 @@ namespace Fancy
     VkQueue GetQueue() const { return myQueue; }
 
   protected:
+    // The SyncPoints and the Semaphore-wrapper emulate a semaphore with a running integer payload
+    // similar to what DX12 has and what the high-level rendering API expects when passing around increasing UINT64 fence-values.
+    // As soon as the extension VK_KHR_timeline_semaphore becomes available on all major Vendors (Intel is still missing at this time...)
+    // we can switch to that to arrive at a simpler API.
+
+    // Each VkSemaphore can only be waited on once because a wait-operation resets a semaphore again to the unsignalled state.
+    // That's why each SyncPoint includes multiple semaphores for each other queue-type.
+    // With that design, each other queue can wait on a commandList-submission once.
     struct Semaphore
     {
-      VkSemaphore mySemaphores[(uint)CommandListType::NUM];
-      bool myIsPending[(uint)CommandListType::NUM];
+      VkSemaphore mySemaphores[(uint)CommandListType::NUM] = { nullptr };
+      bool myWasWaitedOn[(uint)CommandListType::NUM] = { false };
     };
 
     struct SyncPoint
     {
-      Semaphore mySemaphore;
-      VkFence myFence;
+      Semaphore mySemaphore;  // GPU-GPU syncs
+      VkFence myFence;        // CPU-GPU syncs
       uint64 myWaitingOnVal;
     };
 
@@ -40,7 +48,10 @@ namespace Fancy
     SyncPoint* GetNewSyncPoint();
     void AddPendingWaitSemaphore(Semaphore* aWaitSemaphore);
 
-    mutable StaticCircularArray<SyncPoint, 256> mySyncPoints;
+    void RecreateSemaphores(Semaphore& aSemaphore);
+
+    mutable StaticCircularArray<SyncPoint, 8> mySyncPoints;
+    // mutable StaticCircularArray<SyncPoint, 256> mySyncPoints;
     VkQueue myQueue;
 
     Semaphore* myPendingWaitSemaphores[64];

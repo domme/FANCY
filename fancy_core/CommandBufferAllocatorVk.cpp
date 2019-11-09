@@ -80,8 +80,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandBufferAllocatorVk::UpdateAvailable(VkCommandBuffer* aRequestedCommandBuffer /* = nullptr */)
   {
+    bool foundBuffer = false;
     auto it = myReleasedWaitingCommandBuffers.begin();
-    while (it != myReleasedWaitingCommandBuffers.end())
+    for (; it != myReleasedWaitingCommandBuffers.end(); )
     {
       const uint64 waitingFenceVal = it->first;
       VkCommandBuffer buffer = it->second;
@@ -93,11 +94,16 @@ namespace Fancy
           ASSERT_VK_RESULT(vkResetCommandBuffer(buffer, 0u));
 
         it = myReleasedWaitingCommandBuffers.erase(it);
-        
-        if (aRequestedCommandBuffer != nullptr)
+
+        if (aRequestedCommandBuffer != nullptr && !foundBuffer)
+        {
           *aRequestedCommandBuffer = buffer;
+          foundBuffer = true;
+        }
         else
+        {
           myAvailableCommandBuffers.push_back(buffer);
+        }
       }
       else
         ++it;

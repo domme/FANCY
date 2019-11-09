@@ -117,7 +117,7 @@ namespace Fancy
     ourRecordedFrames[aTimeline].RemoveFirstElement();
 
     const FrameData& nextFrame = ourRecordedFrames[aTimeline][0];
-    while (ourRecordedSamples[aTimeline].GetHandle(0) != nextFrame.myFirstSample)
+    while (!ourRecordedSamples[aTimeline].IsEmpty() && ourRecordedSamples[aTimeline].GetHandle(0) != nextFrame.myFirstSample)
       ourRecordedSamples[aTimeline].RemoveFirstElement();
   }
 //---------------------------------------------------------------------------//

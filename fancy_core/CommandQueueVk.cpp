@@ -34,15 +34,7 @@ namespace Fancy
       fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
       ASSERT_VK_RESULT(vkCreateFence(platformVk->myDevice, &fenceCreateInfo, nullptr, &syncPoint.myFence));
 
-      VkSemaphoreCreateInfo semaphoreCreateInfo;
-      semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-      semaphoreCreateInfo.pNext = nullptr;
-      semaphoreCreateInfo.flags = 0u;
-      for (uint iType = 0u; iType < (uint) CommandListType::NUM; ++iType)
-      {
-        ASSERT_VK_RESULT(vkCreateSemaphore(platformVk->myDevice, &semaphoreCreateInfo, nullptr, &syncPoint.mySemaphore.mySemaphores[iType]));
-        syncPoint.mySemaphore.myIsPending[iType] = false;
-      }
+      RecreateSemaphores(syncPoint.mySemaphore);
     }
   }
 //---------------------------------------------------------------------------//
@@ -126,7 +118,7 @@ namespace Fancy
     ASSERT(otherQueue != this);
     
     if (!otherQueue->mySyncPoints.IsEmpty())
-      AddPendingWaitSemaphore(&otherQueue->mySyncPoints.GetLast().mySemaphore);
+      StallForFence(otherQueue->mySyncPoints.GetLast().myWaitingOnVal);
   }
 //---------------------------------------------------------------------------//
   void CommandQueueVk::StallForFence(uint64 aFenceVal)
@@ -136,7 +128,7 @@ namespace Fancy
 
     if (!otherQueue->mySyncPoints.IsEmpty())
     {
-      // Find the corresponding fence in the other queue
+      // Find the corresponding syncPoint in the other queue
       SyncPoint* syncPoint = nullptr;
       for (uint i = otherQueue->mySyncPoints.Size() - 1u; syncPoint != nullptr && i != 0; --i)
       {
@@ -144,7 +136,7 @@ namespace Fancy
           syncPoint = &otherQueue->mySyncPoints[i];
       }
 
-      if (syncPoint != nullptr)
+      if (syncPoint != nullptr && !syncPoint->mySemaphore.myWasWaitedOn[(uint)otherQueue->myType])
         AddPendingWaitSemaphore(&syncPoint->mySemaphore);
 
       // If the fence isn't found it should only mean that the fenceVal is too old and is not included in the fences-array anymore.
@@ -164,11 +156,10 @@ namespace Fancy
     for (uint i = 0; i < numWaitSemaphores; ++i)
     {
       Semaphore* semaphore = myPendingWaitSemaphores[i];
-      if (semaphore->myIsPending[(uint)myType])
-      {
-        waitSemaphores[numValidWaitSemaphores++] = semaphore->mySemaphores[(uint)myType];
-        semaphore->myIsPending[(uint)myType] = false;
-      }
+      ASSERT(!semaphore->myWasWaitedOn[(uint)myType]);  // Should early-out in stallForFence
+        
+      waitSemaphores[numValidWaitSemaphores++] = semaphore->mySemaphores[(uint)myType];
+      semaphore->myWasWaitedOn[(uint)myType] = true;
     }
 
     SyncPoint* commandListDoneSyncPoint = GetNewSyncPoint();
@@ -222,17 +213,42 @@ namespace Fancy
     SyncPoint& syncPoint = mySyncPoints.Add();
     syncPoint.myWaitingOnVal = myNextFenceVal++;
     ASSERT_VK_RESULT(vkResetFences(platformVk->myDevice, 1u, &syncPoint.myFence));
-
-    for (uint i = 0u; i < (uint)CommandListType::NUM; ++i)
-      syncPoint.mySemaphore.myIsPending[i] = true;
+    
+    RecreateSemaphores(syncPoint.mySemaphore);
 
     return &syncPoint;
   }
 //---------------------------------------------------------------------------//
   void CommandQueueVk::AddPendingWaitSemaphore(Semaphore* aWaitSemaphore)
   {
+    for (uint i = 0; i < myNextPendingWaitSemaphoreIdx; ++i)
+      if (myPendingWaitSemaphores[i] == aWaitSemaphore)
+        return;
+
     ASSERT(myNextPendingWaitSemaphoreIdx < ARRAY_LENGTH(myPendingWaitSemaphores) - 1u);
     myPendingWaitSemaphores[myNextPendingWaitSemaphoreIdx++] = aWaitSemaphore;
+  }
+//---------------------------------------------------------------------------//
+  void CommandQueueVk::RecreateSemaphores(Semaphore& aSemaphore)
+  {
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+
+    VkSemaphoreCreateInfo semaphoreCreateInfo;
+    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    semaphoreCreateInfo.pNext = nullptr;
+    semaphoreCreateInfo.flags = 0u;
+    for (uint iType = 0u; iType < (uint)CommandListType::NUM; ++iType)
+    {
+      if (aSemaphore.mySemaphores[iType] != nullptr && !aSemaphore.myWasWaitedOn[iType])
+      {
+        // This semaphore is still signaled and needs to be recreated since the only way to reset semaphores is to wait on them on a command list submission
+        vkDestroySemaphore(platformVk->myDevice, aSemaphore.mySemaphores[iType], nullptr);
+      }
+
+      ASSERT_VK_RESULT(vkCreateSemaphore(platformVk->myDevice, &semaphoreCreateInfo, nullptr, &aSemaphore.mySemaphores[iType]));
+
+      aSemaphore.myWasWaitedOn[iType] = false;
+    }
   }
 //---------------------------------------------------------------------------//
 }
