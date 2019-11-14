@@ -80,7 +80,7 @@ namespace Fancy
         texProps.myHeight != currTexProps.myHeight ||
         texProps.GetDepthSize() != currTexProps.GetDepthSize() ||
         texProps.GetArraySize() != currTexProps.GetArraySize() ||
-        texProps.eFormat != currTexProps.eFormat ||
+        texProps.myFormat != currTexProps.myFormat ||
         texProps.myDimension != currTexProps.myDimension ||
         texProps.myPreferTypedFormat != currTexProps.myPreferTypedFormat;
     }
@@ -118,7 +118,7 @@ namespace Fancy
         viewProps.myIsShaderWritable = true;
         viewProps.mySubresourceRange.myFirstMipLevel = 0u;
         viewProps.mySubresourceRange.myNumMipLevels = 1u;
-        viewProps.myFormat = DataFormatInfo::GetNonSRGBformat(someProps.myTextureProperties.eFormat);
+        viewProps.myFormat = DataFormatInfo::GetNonSRGBformat(someProps.myTextureProperties.myFormat);
         myWriteView = RenderCore::CreateTextureView(myTexture, viewProps);
         ASSERT(myWriteView);
       }

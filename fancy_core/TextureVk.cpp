@@ -26,6 +26,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void TextureVk::SetName(const char* aName)
   {
+    Texture::SetName(aName);
+
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
     GpuResourceDataVk* const nativeData = GetData();
@@ -40,28 +42,116 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void TextureVk::Create(const TextureProperties& someProperties, const char* aName, const TextureSubData* someInitialDatas, uint aNumInitialDatas)
   {
+    ASSERT((aNumInitialDatas == 0) == (someInitialDatas == nullptr));
+
     Destroy();
     GpuResourceDataVk* dataVk = new GpuResourceDataVk();
     dataVk->myType = GpuResourceCategory::TEXTURE;
     myNativeData = dataVk;
 
     myProperties = someProperties;
-    myName = aName != nullptr ? aName : "Texture_Unnamed";
-
+    
     bool isArray = false;
     bool isCube = false;
-    const VkImageType imageType = RenderCore_PlatformVk::ResolveImageResourceDimension(someProperties.myDimension);
+    const VkImageType imageType = RenderCore_PlatformVk::ResolveImageResourceDimension(someProperties.myDimension, isArray, isCube);
 
     VkImageCreateInfo imageInfo = {};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.pNext = nullptr;
+
     imageInfo.flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
-    
-    
-    
+    if (isCube)
+      imageInfo.flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+    if (isArray && imageType == VK_IMAGE_TYPE_2D)
+      imageInfo.flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
 
+    imageInfo.format = RenderCore_PlatformVk::ResolveFormat(someProperties.myFormat);
+    imageInfo.extent.width = someProperties.myWidth;
+    imageInfo.extent.height = someProperties.myHeight;
+    imageInfo.extent.depth = someProperties.GetDepthSize();
 
+    const uint minSide = (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(someProperties.myWidth, someProperties.myHeight, someProperties.myDepthOrArraySize) : glm::min(someProperties.myWidth, someProperties.myHeight);
+    const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(minSide)));
+    imageInfo.mipLevels = glm::max(1u, glm::min(someProperties.myNumMipLevels, maxNumMipLevels));
+    myProperties.myNumMipLevels = imageInfo.mipLevels;
 
+    imageInfo.arrayLayers = someProperties.GetArraySize();
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
+    imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (someProperties.myIsRenderTarget)
+    {
+      if (formatInfo.myIsDepthStencil)
+        imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+      else
+        imageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    }
+    if (someProperties.myIsShaderWritable)
+    {
+      imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+    }
+
+    imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    const uint queueFamilyIndices[] =
+    {
+      (uint)platformVk->GetQueueInfo(CommandListType::Graphics).myQueueFamilyIndex,
+      (uint)platformVk->GetQueueInfo(CommandListType::Compute).myQueueFamilyIndex
+    };
+    imageInfo.pQueueFamilyIndices = queueFamilyIndices;
+    imageInfo.queueFamilyIndexCount = ARRAY_LENGTH(queueFamilyIndices);
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+    myStateTracking = GpuResourceStateTracking();
+    myStateTracking.myCanChangeStates = true;
+    myStateTracking.myDefaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+
+    VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT;
+    VkAccessFlags writeMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+    if (someProperties.myIsRenderTarget)
+    {
+      if (formatInfo.myIsDepthStencil)
+      {
+        readMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+        writeMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+      }
+      else
+      {
+        readMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+        writeMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+      }
+    }
+    if (someProperties.myIsShaderWritable)
+      writeMask |= VK_ACCESS_SHADER_WRITE_BIT;
+
+    myStateTracking.myVkData.myReadAccessMask = readMask;
+    myStateTracking.myVkData.myWriteAccessMask = writeMask;
+
+    VkDevice device = platformVk->myDevice;
+    ASSERT_VK_RESULT(vkCreateImage(device, &imageInfo, nullptr, &dataVk->myImage));
+
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(device, dataVk->myImage, &memRequirements);
+
+    const uint memoryTypeIndex = platformVk->FindMemoryTypeIndex(memRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    
+    VkMemoryAllocateInfo memAllocInfo;
+    memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memAllocInfo.pNext = nullptr;
+    memAllocInfo.allocationSize = memRequirements.size;
+    memAllocInfo.memoryTypeIndex = memoryTypeIndex;
+    ASSERT_VK_RESULT(vkAllocateMemory(device, &memAllocInfo, nullptr, &dataVk->myMemory));
+    ASSERT_VK_RESULT(vkBindImageMemory(device, dataVk->myImage, dataVk->myMemory, 0));
+
+    SetName(aName != nullptr ? aName : "Texture_Unnamed");
+
+    if (someInitialDatas != nullptr && aNumInitialDatas > 0u)
+    {
+      InitTextureData(someInitialDatas, aNumInitialDatas);
+    }
   }
 //---------------------------------------------------------------------------//
   void TextureVk::GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
@@ -208,7 +298,7 @@ namespace Fancy
 
     myCoversAllSubresources = subresourceRange.myNumMipLevels == texProps.myNumMipLevels
       && subresourceRange.myNumArrayIndices == texProps.myDepthOrArraySize
-      && subresourceRange.myNumPlanes == DataFormatInfo::GetFormatInfo(texProps.eFormat).myNumPlanes;
+      && subresourceRange.myNumPlanes == DataFormatInfo::GetFormatInfo(texProps.myFormat).myNumPlanes;
   }
 //---------------------------------------------------------------------------//
   TextureViewVk::~TextureViewVk()

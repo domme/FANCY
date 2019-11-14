@@ -826,4 +826,21 @@ namespace Fancy
     myCommandBufferAllocators[(uint)aCommandListType]->ReleaseCommandBuffer(aCommandBuffer, aCommandBufferDoneFence);
   }
 //---------------------------------------------------------------------------//
+  uint RenderCore_PlatformVk::FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags)
+  {
+    const VkPhysicalDeviceMemoryProperties& deviceMemProps = GetPhysicalDeviceMemoryProperties();
+    for (uint i = 0u; i < deviceMemProps.memoryTypeCount; ++i)
+    {
+      const VkMemoryType& memType = deviceMemProps.memoryTypes[i];
+      if ((someMemoryRequirements.memoryTypeBits & (1 << i))
+        && (memType.propertyFlags & someMemPropertyFlags) == someMemPropertyFlags)
+      {
+        return i;
+      }
+    }
+    ASSERT(false, "Couldn't find appropriate memory type");
+
+    return UINT_MAX;
+  }
+//---------------------------------------------------------------------------//
 }

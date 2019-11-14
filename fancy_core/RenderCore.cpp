@@ -344,7 +344,7 @@ namespace Fancy {
 
     {
       TextureProperties props;
-      props.eFormat = DataFormat::SRGB_8_A_8;
+      props.myFormat = DataFormat::SRGB_8_A_8;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
@@ -362,7 +362,7 @@ namespace Fancy {
 
     {
       TextureProperties props;
-      props.eFormat = DataFormat::RGBA_8;
+      props.myFormat = DataFormat::RGBA_8;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
@@ -730,7 +730,7 @@ namespace Fancy {
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     TextureViewProperties viewProps = someProperties;
-    viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.eFormat;
+    viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.myFormat;
     viewProps.myDimension = viewProps.myDimension != GpuResourceDimension::UNKONWN ? viewProps.myDimension : texProps.myDimension;
     viewProps.mySubresourceRange.myNumMipLevels = glm::max(1u, glm::min(viewProps.mySubresourceRange.myNumMipLevels, texProps.myNumMipLevels));
     viewProps.mySubresourceRange.myNumArrayIndices = glm::max(1u, glm::min(viewProps.mySubresourceRange.myNumArrayIndices, texProps.GetArraySize() - viewProps.mySubresourceRange.myFirstArrayIndex));

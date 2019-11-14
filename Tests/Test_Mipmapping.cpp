@@ -18,12 +18,12 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
 
   myTexture = aTexture;
   TextureViewProperties readProps;
-  readProps.myFormat = aTexture->GetProperties().eFormat;
+  readProps.myFormat = aTexture->GetProperties().myFormat;
   readProps.myDimension = GpuResourceDimension::TEXTURE_2D;
   myTextureView = RenderCore::CreateTextureView(aTexture, readProps);
   ASSERT(myTextureView != nullptr);
 
-  const DataFormatInfo& destTexFormatInfo = DataFormatInfo::GetFormatInfo(destTexProps.eFormat);
+  const DataFormatInfo& destTexFormatInfo = DataFormatInfo::GetFormatInfo(destTexProps.myFormat);
   myIsSRGB = destTexFormatInfo.mySRGB;
 
   readProps.mySubresourceRange.myNumMipLevels = 1;

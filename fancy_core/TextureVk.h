@@ -11,8 +11,6 @@ namespace Fancy {
 
   class TextureVk final : public Texture
   {
-    friend class RenderOutputVk;  // Remove after backbuffers are handled through the texture class
-
   public:
     TextureVk() = default;
     TextureVk(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsSwapChainTexture);

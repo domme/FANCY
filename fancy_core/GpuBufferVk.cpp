@@ -111,20 +111,7 @@ namespace Fancy
     ASSERT(memRequirements.alignment <= UINT_MAX);
     myAlignment = (uint) memRequirements.alignment;
 
-    // Find the correct memory type to use
-    const VkPhysicalDeviceMemoryProperties& deviceMemProps = platformVk->GetPhysicalDeviceMemoryProperties();
-    
-    uint memoryTypeIndex = UINT_MAX;
-    for (uint i = 0u; memoryTypeIndex == UINT_MAX && i < deviceMemProps.memoryTypeCount; ++i)
-    {
-      const VkMemoryType& memType = deviceMemProps.memoryTypes[i];
-      if ((memRequirements.memoryTypeBits & (1 << i)) 
-        && (memType.propertyFlags & memPropertyFlags) == memPropertyFlags)
-      {
-        memoryTypeIndex = i;
-      }
-    }
-    ASSERT(memoryTypeIndex != UINT_MAX, "Couldn't find appropriate memory type for allocation vulkan buffer %s", aName);
+    const uint memoryTypeIndex = platformVk->FindMemoryTypeIndex(memRequirements, memPropertyFlags);
 
     // TODO: Replace memory allocation with a dedicated allocator like in DX12
     VkMemoryAllocateInfo memAllocInfo;

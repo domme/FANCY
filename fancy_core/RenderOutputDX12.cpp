@@ -60,7 +60,7 @@ namespace Fancy {
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
       backbufferProps.myIsRenderTarget = true;
-      backbufferProps.eFormat = DataFormat::RGBA_8;
+      backbufferProps.myFormat = DataFormat::RGBA_8;
       backbufferProps.myWidth = aWidth;
       backbufferProps.myHeight = aHeight;
       backbufferProps.myDepthOrArraySize = 1u;

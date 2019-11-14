@@ -194,7 +194,7 @@ namespace Fancy
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
       backbufferProps.myIsRenderTarget = true;
-      backbufferProps.eFormat = backbufferFormat;
+      backbufferProps.myFormat = backbufferFormat;
       backbufferProps.myWidth = aWidth;
       backbufferProps.myHeight = aHeight;
       backbufferProps.myDepthOrArraySize = 1u;

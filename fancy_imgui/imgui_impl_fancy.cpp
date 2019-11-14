@@ -177,8 +177,8 @@ namespace Fancy { namespace ImGuiRendering {
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myWidth = width;
       props.myHeight = height;
-      props.eFormat = DataFormat::RGBA_8;
-      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.eFormat);
+      props.myFormat = DataFormat::RGBA_8;
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.myFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
 
       TextureViewProperties viewProps;

@@ -15,7 +15,7 @@ namespace Fancy {
       , myWidth(0u)
       , myHeight(0u)
       , myDepthOrArraySize(1u)
-      , eFormat(DataFormat::NONE)
+      , myFormat(DataFormat::NONE)
       , myAccessType(CpuMemoryAccessType::NO_CPU_ACCESS)
       , myNumMipLevels(UINT_MAX)
       , bIsDepthStencil(false)
@@ -33,7 +33,7 @@ namespace Fancy {
     uint myWidth;
     uint myHeight;
     uint myDepthOrArraySize;
-    DataFormat eFormat;
+    DataFormat myFormat;
     CpuMemoryAccessType myAccessType;
     uint myNumMipLevels;
     bool bIsDepthStencil;

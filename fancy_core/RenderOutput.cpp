@@ -87,7 +87,7 @@ namespace Fancy {
     TextureProperties dsTexProps;
     dsTexProps.myDimension = GpuResourceDimension::TEXTURE_2D;
     dsTexProps.bIsDepthStencil = true;
-    dsTexProps.eFormat = DataFormat::D_24UNORM_S_8UI;
+    dsTexProps.myFormat = DataFormat::D_24UNORM_S_8UI;
     dsTexProps.myIsRenderTarget = false;
     dsTexProps.myIsShaderWritable = false;
     dsTexProps.myWidth = width;
@@ -130,7 +130,7 @@ namespace Fancy {
       {
         TextureViewProperties props;
         props.myDimension = GpuResourceDimension::TEXTURE_2D;
-        props.myFormat = myBackbufferTextures[i]->GetProperties().eFormat;
+        props.myFormat = myBackbufferTextures[i]->GetProperties().myFormat;
         props.myIsRenderTarget = true;
         myBackbufferRtv[i] = RenderCore::CreateTextureView(myBackbufferTextures[i], props);
         ASSERT(myBackbufferRtv[i] != nullptr);
@@ -140,7 +140,7 @@ namespace Fancy {
       {
         TextureViewProperties props;
         props.myDimension = GpuResourceDimension::TEXTURE_2D;
-        props.myFormat = myBackbufferTextures[i]->GetProperties().eFormat;
+        props.myFormat = myBackbufferTextures[i]->GetProperties().myFormat;
         myBackbufferSrv[i] = RenderCore::CreateTextureView(myBackbufferTextures[i], props);
         ASSERT(myBackbufferSrv[i] != nullptr);
       }

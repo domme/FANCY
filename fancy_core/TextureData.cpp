@@ -121,7 +121,7 @@ namespace Fancy
   TextureSubData::TextureSubData(const TextureProperties& someProperties)
     : myData(nullptr)
   {
-    const DataFormatInfo info(someProperties.eFormat);
+    const DataFormatInfo info(someProperties.myFormat);
     myPixelSizeBytes = info.mySizeBytes;
 
     const uint width = someProperties.myWidth;

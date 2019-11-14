@@ -159,15 +159,15 @@ using namespace Fancy;
 
     switch(image.myNumChannels)
     {
-      case 1: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::R_8 : DataFormat::R_16; break;
-      case 2: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::RG_8 : DataFormat::RG_16; break;
+      case 1: texProps.myFormat = image.myBitsPerChannel == 8 ? DataFormat::R_8 : DataFormat::R_16; break;
+      case 2: texProps.myFormat = image.myBitsPerChannel == 8 ? DataFormat::RG_8 : DataFormat::RG_16; break;
       // 3-channels unsupported in all modern rendering-APIs. Image-importer lib should deal with it to convert it to 4 channels      
-      case 4: texProps.eFormat = image.myBitsPerChannel == 8 ? DataFormat::SRGB_8_A_8 : DataFormat::RGBA_16; break;
+      case 4: texProps.myFormat = image.myBitsPerChannel == 8 ? DataFormat::SRGB_8_A_8 : DataFormat::RGBA_16; break;
       default: ASSERT(false, "Unsupported channels");
       return nullptr;
     }
 
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.eFormat);
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
     const uint expectedDataSize = formatInfo.mySizeBytes * texProps.myWidth * texProps.myHeight;
     if (expectedDataSize != image.myByteSize)
     {
@@ -287,7 +287,7 @@ using namespace Fancy;
       glm::float2 myAxis;
     } cBuffer;
 
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.eFormat);
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
     
     cBuffer.myIsSRGB = formatInfo.mySRGB ? 1 : 0;
     cBuffer.myFilterMethod = (int) aFilter;

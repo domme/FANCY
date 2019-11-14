@@ -451,7 +451,7 @@ namespace Fancy
     memcpy(clearColor.float32, aColor, sizeof(clearColor.float32));
 
     VkImageSubresourceRange subRange = RenderCore_PlatformVk::ResolveSubresourceRange(aTextureView->mySubresourceRange, 
-      aTextureView->GetTexture()->GetProperties().eFormat);
+      aTextureView->GetTexture()->GetProperties().myFormat);
 
     GpuResourceDataVk* dataVk = static_cast<TextureVk*>(aTextureView->GetTexture())->GetData();
     vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, VK_IMAGE_LAYOUT_GENERAL, &clearColor, 1u, &subRange);
@@ -788,7 +788,7 @@ namespace Fancy
       imageBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;
 
       const TextureVk* texture = static_cast<const TextureVk*>(aResource);
-      imageBarrier.mySubresourceRange = RenderCore_PlatformVk::ResolveSubresourceRange(aSubresourceRange, texture->GetProperties().eFormat);
+      imageBarrier.mySubresourceRange = RenderCore_PlatformVk::ResolveSubresourceRange(aSubresourceRange, texture->GetProperties().myFormat);
     }
     else
     {

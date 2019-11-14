@@ -120,7 +120,7 @@ namespace Fancy {
     serializer.Write(someTexProps.myHeight);
     serializer.Write(someTexProps.myDepthOrArraySize);
     serializer.Write((uint)someTexProps.myAccessType);
-    serializer.Write((uint)someTexProps.eFormat);
+    serializer.Write((uint)someTexProps.myFormat);
     serializer.Write(someTexProps.myNumMipLevels);
 
     serializer.Write(aNumSubDatas);
@@ -179,7 +179,7 @@ namespace Fancy {
 
     uint format;
     serializer.Read(format);
-    texProps.eFormat = static_cast<DataFormat>(format);
+    texProps.myFormat = static_cast<DataFormat>(format);
 
     serializer.Read(texProps.myNumMipLevels);
 
