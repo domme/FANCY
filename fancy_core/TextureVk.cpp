@@ -8,8 +8,8 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  TextureVk::TextureVk(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable)
-    : Texture(std::move(aResource), someProperties, aIsPresentable)
+  TextureVk::TextureVk(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsSwapChainTexture)
+    : Texture(std::move(aResource), someProperties, aIsSwapChainTexture)
   {
   }
 //---------------------------------------------------------------------------//
@@ -26,6 +26,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void TextureVk::SetName(const char* aName)
   {
+    /*
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
     GpuResourceDataVk* const nativeData = GetData();
@@ -36,6 +37,7 @@ namespace Fancy
     nameInfo.objectType = VK_OBJECT_TYPE_IMAGE;
     nameInfo.pObjectName = aName;
     ASSERT_VK_RESULT(platformVk->VkSetDebugUtilsObjectNameEXT(platformVk->myDevice, &nameInfo));
+    */
   }
 //---------------------------------------------------------------------------//
   void TextureVk::Create(const TextureProperties& someProperties, const char* aName, const TextureSubData* someInitialDatas, uint aNumInitialDatas)
@@ -59,7 +61,9 @@ namespace Fancy
     {
       const GpuResourceDataVk* const dataVk = GetData();
       RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-      vkDestroyImage(platformVk->myDevice, dataVk->myImage, nullptr);
+
+      if (!myIsSwapChainTexture)  // Memory is managed by the swapchain and shouldn't be released here
+        vkDestroyImage(platformVk->myDevice, dataVk->myImage, nullptr);
 
       delete dataVk;
     }

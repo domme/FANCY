@@ -59,7 +59,7 @@ namespace Fancy {
     DestroyBackbufferResources();
 
     GetWindowSizeSafe(aWidth, aHeight);
-    ResizeBackbuffer(aWidth, aHeight);
+    ResizeSwapChain(aWidth, aHeight);
 
     CreateBackbufferResources(aWidth, aHeight);
     CreateViews();

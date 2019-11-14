@@ -93,7 +93,7 @@ namespace Fancy
     ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(platformVk->myPhysicalDevice, mySurface, &surfaceCaps));
     myNumBackbuffers = glm::clamp(kBackbufferCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
 
-    CreateSwapChain();
+    CreateSwapChain(myWindow->GetWidth(), myWindow->GetHeight());
 
     VkFenceCreateInfo fenceCreateInfo;
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -104,12 +104,12 @@ namespace Fancy
   //---------------------------------------------------------------------------//
   RenderOutputVk::~RenderOutputVk()
   {
+    DestroySwapChain();
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    vkDestroySwapchainKHR(platformVk->myDevice, mySwapChain, nullptr);
     vkDestroySurfaceKHR(platformVk->myInstance, mySurface, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void RenderOutputVk::CreateSwapChain()
+  void RenderOutputVk::CreateSwapChain(uint aWidth, uint aHeight)
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
@@ -118,12 +118,13 @@ namespace Fancy
 
     VkExtent2D swapChainRes = surfaceCaps.currentExtent;
     if (swapChainRes.width == UINT_MAX)
-      swapChainRes.width = glm::clamp(myWindow->GetWidth(), surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
+      swapChainRes.width = glm::clamp(aWidth, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
     if (swapChainRes.height == UINT_MAX)
-      swapChainRes.height = glm::clamp(myWindow->GetHeight(), surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
+      swapChainRes.height = glm::clamp(aHeight, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.pNext = nullptr;
     createInfo.surface = mySurface;
     createInfo.minImageCount = myNumBackbuffers;
     createInfo.imageExtent = swapChainRes;
@@ -136,8 +137,15 @@ namespace Fancy
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.presentMode = myPresentMode;
     createInfo.clipped = VK_TRUE;
-    createInfo.oldSwapchain = nullptr;  // Needed for swapchain-recreation after resizing later...
+    createInfo.oldSwapchain = nullptr;  // Could be used for a more optimal swapchain-recreation
     ASSERT_VK_RESULT(vkCreateSwapchainKHR(platformVk->myDevice, &createInfo, nullptr, &mySwapChain));
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutputVk::DestroySwapChain()
+  {
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    ASSERT_VK_RESULT(vkDeviceWaitIdle(platformVk->myDevice));
+    vkDestroySwapchainKHR(platformVk->myDevice, mySwapChain, nullptr);
   }
 //---------------------------------------------------------------------------//
   void RenderOutputVk::CreateBackbufferResources(uint aWidth, uint aHeight)
@@ -200,10 +208,10 @@ namespace Fancy
     std::fill_n(myBackbuffersUsed.begin(), myBackbuffersUsed.size(), false);
   }
   //---------------------------------------------------------------------------//
-  void RenderOutputVk::ResizeBackbuffer(uint aWidth, uint aHeight)
+  void RenderOutputVk::ResizeSwapChain(uint aWidth, uint aHeight)
   {
-    vkDestroySwapchainKHR(RenderCore::GetPlatformVk()->myDevice, mySwapChain, nullptr);
-    CreateSwapChain();
+    DestroySwapChain();
+    CreateSwapChain(aWidth, aHeight);
   }
   //---------------------------------------------------------------------------//
   void RenderOutputVk::DestroyBackbufferResources()

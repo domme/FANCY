@@ -80,7 +80,7 @@ namespace Fancy {
     mySwapChain->Present(1, 0);
   }
 //---------------------------------------------------------------------------//
-  void RenderOutputDX12::ResizeBackbuffer(uint aWidth, uint aHeight)
+  void RenderOutputDX12::ResizeSwapChain(uint aWidth, uint aHeight)
   {
     CheckD3Dcall(mySwapChain->ResizeBuffers(kBackbufferCount, aWidth, aHeight, DXGI_FORMAT_UNKNOWN, 0));
   }

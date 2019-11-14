@@ -34,7 +34,7 @@ namespace Fancy {
     void OnWindowResized(uint aWidth, uint aHeight);
 
     virtual void CreateBackbufferResources(uint aWidth, uint aHeight) = 0;
-    virtual void ResizeBackbuffer(uint aWidth, uint aHeight) = 0;
+    virtual void ResizeSwapChain(uint aWidth, uint aHeight) = 0;
     virtual void DestroyBackbufferResources() = 0;
 
     virtual void OnBeginFrame() = 0;

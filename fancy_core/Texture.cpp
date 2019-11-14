@@ -5,14 +5,14 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   Texture::Texture()
     : GpuResource(GpuResourceCategory::TEXTURE)
-    , myIsPresentable(false)
+    , myIsSwapChainTexture(false)
   {
   }
 //---------------------------------------------------------------------------//
-  Texture::Texture(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable)
+  Texture::Texture(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsSwapChainTexture)
     : GpuResource(std::move(aResource))
     , myProperties(someProperties)
-    , myIsPresentable(aIsPresentable)
+    , myIsSwapChainTexture(aIsSwapChainTexture)
   {
   }
 //---------------------------------------------------------------------------//

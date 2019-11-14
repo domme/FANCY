@@ -15,7 +15,7 @@ namespace Fancy {
 
   public:
     TextureVk() = default;
-    TextureVk(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable);
+    TextureVk(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsSwapChainTexture);
     ~TextureVk() override;
 
     bool IsValid() const override;

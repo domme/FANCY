@@ -15,7 +15,7 @@ namespace Fancy {
     
   private:
     void CreateBackbufferResources(uint aWidth, uint aHeight) override;
-    void ResizeBackbuffer(uint aWidth, uint aHeight) override;
+    void ResizeSwapChain(uint aWidth, uint aHeight) override;
     void DestroyBackbufferResources() override;
 
     void OnBeginFrame() override;
