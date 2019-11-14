@@ -482,6 +482,60 @@ namespace Fancy
     return rangeVk;
   }
 //---------------------------------------------------------------------------//
+  VkImageType RenderCore_PlatformVk::ResolveImageResourceDimension(GpuResourceDimension aDimension, bool& isArray, bool& isCubeMap)
+  {
+    VkImageType imageType = VK_IMAGE_TYPE_2D;
+    switch(aDimension)
+    {
+      case GpuResourceDimension::TEXTURE_1D: 
+      {
+        imageType = VK_IMAGE_TYPE_1D;
+        isCubeMap = false;
+        isArray = false;
+      } break;
+      case GpuResourceDimension::TEXTURE_2D:
+      {
+        imageType = VK_IMAGE_TYPE_2D;
+        isCubeMap = false;
+        isArray = false;
+      } break;
+      case GpuResourceDimension::TEXTURE_3D:
+      {
+        imageType = VK_IMAGE_TYPE_3D;
+        isCubeMap = false;
+        isArray = false;
+      } break;
+      case GpuResourceDimension::TEXTURE_CUBE:
+      {
+        imageType = VK_IMAGE_TYPE_2D;
+        isCubeMap = true;
+        isArray = false;
+      } break;
+      case GpuResourceDimension::TEXTURE_1D_ARRAY: 
+      {
+        imageType = VK_IMAGE_TYPE_1D;
+        isCubeMap = false;
+        isArray = true;
+      } break;
+      case GpuResourceDimension::TEXTURE_2D_ARRAY:
+      {
+        imageType = VK_IMAGE_TYPE_2D;
+        isCubeMap = false;
+        isArray = true;
+      } break;
+      case GpuResourceDimension::TEXTURE_CUBE_ARRAY:
+      {
+        imageType = VK_IMAGE_TYPE_2D;
+        isCubeMap = true;
+        isArray = true;
+      } break;
+      default: 
+        ASSERT(false, "Missing implementation");
+    }
+
+    return imageType;
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)

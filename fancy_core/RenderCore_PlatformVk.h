@@ -31,6 +31,7 @@ namespace Fancy
     static ResourceBarrierInfoVk ResolveResourceState(GpuResourceState aResourceState);
     static VkImageAspectFlags ResolveAspectMask(uint aFirstPlaneIndex, uint aNumPlanes, DataFormat aFormat);
     static VkImageSubresourceRange ResolveSubresourceRange(const SubresourceRange& aRange, DataFormat aFormat);
+    static VkImageType ResolveImageResourceDimension(GpuResourceDimension aDimension, bool& isArray, bool& isCubeMap);
 
     RenderCore_PlatformVk();
     ~RenderCore_PlatformVk() override;

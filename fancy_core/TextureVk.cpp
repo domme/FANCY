@@ -26,7 +26,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void TextureVk::SetName(const char* aName)
   {
-    /*
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
     GpuResourceDataVk* const nativeData = GetData();
@@ -37,12 +36,32 @@ namespace Fancy
     nameInfo.objectType = VK_OBJECT_TYPE_IMAGE;
     nameInfo.pObjectName = aName;
     ASSERT_VK_RESULT(platformVk->VkSetDebugUtilsObjectNameEXT(platformVk->myDevice, &nameInfo));
-    */
   }
 //---------------------------------------------------------------------------//
   void TextureVk::Create(const TextureProperties& someProperties, const char* aName, const TextureSubData* someInitialDatas, uint aNumInitialDatas)
   {
-    VK_MISSING_IMPLEMENTATION();
+    Destroy();
+    GpuResourceDataVk* dataVk = new GpuResourceDataVk();
+    dataVk->myType = GpuResourceCategory::TEXTURE;
+    myNativeData = dataVk;
+
+    myProperties = someProperties;
+    myName = aName != nullptr ? aName : "Texture_Unnamed";
+
+    bool isArray = false;
+    bool isCube = false;
+    const VkImageType imageType = RenderCore_PlatformVk::ResolveImageResourceDimension(someProperties.myDimension);
+
+    VkImageCreateInfo imageInfo = {};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.pNext = nullptr;
+    imageInfo.flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+    
+    
+    
+
+
+
   }
 //---------------------------------------------------------------------------//
   void TextureVk::GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
