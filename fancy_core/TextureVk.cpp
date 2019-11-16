@@ -156,7 +156,44 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void TextureVk::GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
   {
-    VK_MISSING_IMPLEMENTATION();
+    ASSERT(IsValid());
+    ASSERT(aSubresourceRange.myFirstMipLevel + aSubresourceRange.myNumMipLevels <= mySubresources.myNumMipLevels);
+    ASSERT(aSubresourceRange.myFirstArrayIndex + aSubresourceRange.myNumArrayIndices <= mySubresources.myNumArrayIndices);
+    ASSERT(aSubresourceRange.myFirstPlane + aSubresourceRange.myNumPlanes <= mySubresources.myNumPlanes);
+
+    VkDevice device = RenderCore::GetPlatformVk()->myDevice;
+    VkImage image = GetData()->myImage;
+
+    for (SubresourceIterator subIter = aSubresourceRange.Begin(), end = aSubresourceRange.End(); subIter != end; ++subIter)
+    {
+      const SubresourceLocation& subLocation = *subIter;
+      VkImageSubresource subLocationVk;
+      subLocationVk.mipLevel = subLocation.myMipLevel;
+      subLocationVk.arrayLayer = subLocation.myArrayIndex;
+      subLocationVk.aspectMask = RenderCore_PlatformVk::ResolveAspectMask(subLocation.myPlaneIndex, 1u, myProperties.myFormat);
+
+      VkSubresourceLayout subLayoutVk;
+      vkGetImageSubresourceLayout(device, image, &subLocationVk, &subLayoutVk);
+
+      // VkDeviceSize    offset;
+      // VkDeviceSize    size;
+      // VkDeviceSize    rowPitch;
+      // VkDeviceSize    arrayPitch;
+      // VkDeviceSize    depthPitch;
+
+      // address(x, y, z, layer) = layer * arrayPitch + z * depthPitch + y * rowPitch + x * elementSize + offset
+
+      TextureSubLayout subLayout;
+      subLayout.myAlignedRowSize = subLayoutVk.rowPitch;
+      subLayout.
+
+
+      
+    }
+
+    
+
+
   }
 //---------------------------------------------------------------------------//
   GpuResourceDataVk* TextureVk::GetData() const
