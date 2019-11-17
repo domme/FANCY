@@ -49,6 +49,16 @@ namespace Fancy {
     virtual GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) = 0;
     virtual uint GetQueryTypeDataSize(GpuQueryType aType) = 0;
     virtual float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) = 0;
+
+    // GetTextureReadbackBufferSize(Texture*, SubresourceRange);
+    // CopyTextureToReadbackBuffer(Texture*, GpuBuffer*);
+    // ReadTextureDataFromReadbackBuffer(
+
+    
+
+    
+
+
   protected:
     RenderPlatformCaps myCaps;
     RenderPlatformType myType;

@@ -429,10 +429,6 @@ namespace Fancy {
     ourShaderCache.clear();
     ourBlendStateCache.clear();
     ourDepthStencilStateCache.clear();
-
-    ASSERT(ourRingBufferPool.size() == ourAvailableRingBuffers.size(), "There are still some ringbuffers in flight");
-    ourAvailableRingBuffers.clear();
-    ourRingBufferPool.clear();
   }
 //---------------------------------------------------------------------------//  
   void RenderCore::Shutdown_1_Services()

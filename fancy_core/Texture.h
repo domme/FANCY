@@ -18,7 +18,6 @@ namespace Fancy {
     virtual ~Texture() = default;
 
     virtual void Create(const TextureProperties& someProperties, const char* aName = nullptr, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) = 0;
-    virtual void GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const = 0;
 
     const TextureProperties& GetProperties() const { return myProperties; }
     bool IsSwapChainTexture() const { return myIsSwapChainTexture; }

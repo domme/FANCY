@@ -493,6 +493,58 @@ namespace Fancy {
     myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
   }
 //---------------------------------------------------------------------------//
+  void CommandListDX12::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
+  {
+    const uint numSubresources = aSubresourceRange.GetNumSubresources();
+    ASSERT(aNumDatas == numSubresources);
+    
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* footprints = (D3D12_PLACED_SUBRESOURCE_FOOTPRINT*)alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * numSubresources);
+    uint* rowNums = (uint*)alloca(sizeof(uint) * numSubresources);
+    uint64* rowSizes = (uint64*)alloca(sizeof(uint64) * numSubresources);
+    uint64 totalSize = static_cast<const TextureDX12*>(aDestTexture)->GetCopyableFootprints(aSubresourceRange, footprints, rowNums, rowSizes);
+
+    uint64 uploadBufferOffset;
+    const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize);
+    ASSERT(uploadBuffer);
+
+    uint8* uploadBufferData = (uint8*)uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
+
+    for (uint i = 0; i < aNumDatas; ++i)
+    {
+      const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint = footprints[i];
+      uint numRows = rowNums[i];
+      
+      const TextureSubData& srcData = someDatas[i];
+      ASSERT(rowSizes[i] == srcData.myRowSizeBytes);
+
+      const uint64 alignedSliceSize = footprint.Footprint.RowPitch * numRows;
+
+      uint8* dstSubresourceData = uploadBufferData + footprint.Offset;
+      const uint8* srcSubresourceData = srcData.myData;
+      for (uint iSlice = 0; iSlice < footprint.Footprint.Depth; ++iSlice)
+      {
+        uint8* dstSliceData = dstSubresourceData + iSlice * alignedSliceSize;
+        const uint8* srcSliceData = srcSubresourceData + iSlice * srcData.mySliceSizeBytes;
+
+        for (uint iRow = 0; iRow < numRows; ++iRow)
+        {
+          uint8* dstRowData = dstSliceData + iRow * footprint.Footprint.RowPitch;
+          const uint8* srcRowData = srcSliceData + iRow * srcData.myRowSizeBytes;
+
+          memcpy(dstRowData, srcRowData, srcData.myRowSizeBytes);
+        }
+      }
+    }
+    uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
+
+    int i = 0;
+    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
+    {
+      const SubresourceLocation dstLocation = *subIter;
+      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + footprints[i++].Offset);
+    }
+  }
+//---------------------------------------------------------------------------//
   void CommandListDX12::PostExecute(uint64 aFenceVal)
   {
     CommandList::PostExecute(aFenceVal);

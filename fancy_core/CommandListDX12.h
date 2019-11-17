@@ -36,6 +36,7 @@ namespace Fancy {
     void CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
     void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
     void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
+    void UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override; // TODO: Support regions
 
     void PostExecute(uint64 aFenceVal) override;
     void PreBegin() override;

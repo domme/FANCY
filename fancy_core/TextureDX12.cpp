@@ -179,7 +179,10 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void TextureDX12::GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
+  uint64 TextureDX12::GetCopyableFootprints(const SubresourceRange& aSubresourceRange,
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* someFootprintsOut,
+    uint* someNumRowsOut,
+    uint64* someRowSizesOut) const
   {
     ASSERT(IsValid());
     ASSERT(aSubresourceRange.myFirstMipLevel + aSubresourceRange.myNumMipLevels <= mySubresources.myNumMipLevels);
@@ -192,27 +195,11 @@ namespace Fancy {
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
 
     const int startSubresourceIndex = GetSubresourceIndex(SubresourceLocation(aSubresourceRange.myFirstMipLevel, aSubresourceRange.myFirstArrayIndex, aSubresourceRange.myFirstPlane));
-    const int numSubresources = aSubresourceRange.myNumMipLevels * aSubresourceRange.myNumArrayIndices * aSubresourceRange.myNumPlanes;
+    const int numSubresources = aSubresourceRange.GetNumSubresources();
 
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* placedFootprints = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * numSubresources));
-    uint64* rowSizes = static_cast<uint64*>(alloca(sizeof(uint64) * numSubresources));
-    uint* numRows = static_cast<uint*>(alloca(sizeof(uint) * numSubresources));
-
-    device->GetCopyableFootprints(&texResourceDesc, startSubresourceIndex, numSubresources, 0u, placedFootprints, numRows, rowSizes, &aTotalSizeOut);
-
-    someLayoutsOut.resize(numSubresources);
-    someOffsetsOut.resize(numSubresources);
-    for (int i = 0; i < numSubresources; ++i)
-    {
-      someOffsetsOut[i] = placedFootprints[i].Offset;
-
-      someLayoutsOut[i].myWidth = placedFootprints[i].Footprint.Width;
-      someLayoutsOut[i].myHeight = placedFootprints[i].Footprint.Height;
-      someLayoutsOut[i].myDepth = placedFootprints[i].Footprint.Depth;
-      someLayoutsOut[i].myAlignedRowSize = placedFootprints[i].Footprint.RowPitch;
-      someLayoutsOut[i].myRowSize = rowSizes[i];
-      someLayoutsOut[i].myNumRows = numRows[i];
-    }
+    uint64 totalSize;
+    device->GetCopyableFootprints(&texResourceDesc, startSubresourceIndex, numSubresources, 0u, someFootprintsOut, someNumRowsOut, someRowSizesOut, &totalSize);
+    return totalSize;
   }
 //---------------------------------------------------------------------------//
   void TextureDX12::Destroy()

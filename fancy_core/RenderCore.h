@@ -42,6 +42,16 @@ namespace Fancy {
   class GpuQueryHeap;
   struct GpuQueryStorage;
 //---------------------------------------------------------------------------//
+  struct ReadbackTextureTask
+  {
+    GpuBuffer* GetBufferAndOffset(uint64& anOffsetOut);
+    
+  private:
+    GpuRingBuffer* myRingBuffer = nullptr;
+    uint64 myFence = 0ull;
+
+  };
+//---------------------------------------------------------------------------//
   class RenderCore
   {
   public:

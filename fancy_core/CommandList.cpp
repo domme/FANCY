@@ -465,56 +465,7 @@ namespace Fancy {
     uint64 srcOffset = 0u;
     const GpuBuffer* uploadBuffer = GetBuffer(srcOffset, GpuBufferUsage::STAGING_UPLOAD, aDataPtr, aByteSize);
     CopyBufferRegion(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
-  }
-//---------------------------------------------------------------------------//
-  void CommandList::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions /*= nullptr*/) // TODO: Support regions
-  {
-    ASSERT(aNumDatas == aSubresourceRange.GetNumSubresources());
-
-    DynamicArray<TextureSubLayout> subresourceLayouts;
-    DynamicArray<uint64> subresourceOffsets;
-    uint64 totalSize;
-    aDestTexture->GetSubresourceLayout(aSubresourceRange, subresourceLayouts, subresourceOffsets, totalSize);
-
-    uint64 uploadBufferOffset;
-    const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize);
-    ASSERT(uploadBuffer);
-
-    uint8* uploadBufferData = (uint8*) uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
-
-    for (uint i = 0; i < aNumDatas; ++i)
-    {
-      const TextureSubLayout& dstLayout = subresourceLayouts[i];
-      const TextureSubData& srcData = someDatas[i];
-
-      const uint64 alignedSliceSize = dstLayout.myAlignedRowSize * dstLayout.myNumRows;
-
-      uint8* dstSubresourceData = uploadBufferData + subresourceOffsets[i];
-      uint8* srcSubresourceData = srcData.myData;
-      for (uint iSlice = 0; iSlice < dstLayout.myDepth; ++iSlice)
-      {
-        uint8* dstSliceData = dstSubresourceData + iSlice * alignedSliceSize;
-        uint8* srcSliceData = srcSubresourceData + iSlice * srcData.mySliceSizeBytes;
-        
-        for (uint iRow = 0; iRow < dstLayout.myNumRows; ++iRow)
-        {
-          uint8* dstRowData = dstSliceData + iRow * dstLayout.myAlignedRowSize;
-          uint8* srcRowData = srcSliceData + iRow * srcData.myRowSizeBytes;
-
-          ASSERT(dstLayout.myRowSize == srcData.myRowSizeBytes);
-          memcpy(dstRowData, srcRowData, srcData.myRowSizeBytes);
-        }
-      }
-    }
-    uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
-
-    int i = 0;
-    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
-    {
-      const SubresourceLocation dstLocation = *subIter;
-      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i++]);
-    }
-  }
+  }  
 //---------------------------------------------------------------------------//
   void CommandList::SubresourceBarrier(const GpuResource* aResource, const SubresourceLocation& aSubresourceLocation, GpuResourceState aSrcState, GpuResourceState aDstState)
   {

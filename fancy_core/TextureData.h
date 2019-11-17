@@ -9,25 +9,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct TextureProperties;
 //---------------------------------------------------------------------------//
-  struct TextureSubLayout
-  {
-    TextureSubLayout()
-      : myWidth(0u)
-      , myHeight(0u)
-      , myDepth(0u)
-      , myAlignedRowSize(0u)
-      , myRowSize(0u)
-      , myNumRows(0u)
-    {}
-
-    uint myWidth;
-    uint myHeight;
-    uint myDepth;
-    uint64 myAlignedRowSize;
-    uint64 myRowSize;
-    uint myNumRows;
-  };
-//---------------------------------------------------------------------------//
   struct SubresourceLocation
   {
     SubresourceLocation(uint aMipLevel = 0u, uint anArrayIndex = 0u, uint aPlaneIndex = 0u)
