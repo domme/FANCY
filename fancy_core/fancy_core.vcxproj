@@ -92,6 +92,7 @@
     <ClInclude Include="GpuMemoryAllocationDX12.h" />
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
     <ClInclude Include="GpuQueryHeapVk.h" />
+    <ClInclude Include="GpuReadbackBuffer.h" />
     <ClInclude Include="ShaderCompilerVk.h" />
     <ClInclude Include="ShaderPipelineDX12.h" />
     <ClInclude Include="ShaderPipelineVk.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="TextureProperties.h" />
     <ClInclude Include="TextureDX12.h" />
     <ClInclude Include="ResourceRefs.h" />
+    <ClInclude Include="TextureReadbackTask.h" />
     <ClInclude Include="TextureSampler.h" />
     <ClInclude Include="TextureSamplerDesc.h" />
     <ClInclude Include="TextureSamplerDX12.h" />
@@ -199,6 +201,7 @@
     <ClCompile Include="GpuBufferVk.cpp" />
     <ClCompile Include="GpuMemoryAllocatorDX12.cpp" />
     <ClCompile Include="GpuQueryHeapVk.cpp" />
+    <ClCompile Include="GpuReadbackBuffer.cpp" />
     <ClCompile Include="GpuResource.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
@@ -238,6 +241,7 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureData.cpp" />
     <ClCompile Include="TextureDX12.cpp" />
+    <ClCompile Include="TextureReadbackTask.cpp" />
     <ClCompile Include="TextureSamplerDesc.cpp" />
     <ClCompile Include="TextureSamplerDX12.cpp" />
     <ClCompile Include="GraphicsResources.cpp" />

@@ -300,6 +300,14 @@ namespace Fancy {
     ourUsedRingBuffers.push_back(std::make_pair(aFenceVal, aBuffer));
   }
 //---------------------------------------------------------------------------//
+  GpuBuffer* RenderCore::AllocateReadbackBuffer(uint64 aBlockSize, uint64& anOffsetToBlockOut)
+  {
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::FreeReadbackBuffer(GpuBuffer* aBuffer, uint64 aBlockSize, uint64 anOffsetToBlock)
+  {
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderPlatformType aRenderingApi)
   {
     ASSERT(ourPlatformImpl == nullptr);

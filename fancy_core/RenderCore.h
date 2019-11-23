@@ -41,16 +41,7 @@ namespace Fancy {
   struct TextureSubData;
   class GpuQueryHeap;
   struct GpuQueryStorage;
-//---------------------------------------------------------------------------//
-  struct ReadbackTextureTask
-  {
-    GpuBuffer* GetBufferAndOffset(uint64& anOffsetOut);
-    
-  private:
-    GpuRingBuffer* myRingBuffer = nullptr;
-    uint64 myFence = 0ull;
-
-  };
+  struct ReadbackBufferAllocation;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -92,11 +83,7 @@ namespace Fancy {
     static SharedPtr<TextureView> CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, GpuBufferViewProperties someProperties, const char* aName = nullptr);
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, GpuBufferViewProperties someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
-    static uint GetQueryTypeDataSize(GpuQueryType aType);
-    
-    static MappedTempBuffer ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize);
-    static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange);
-    static bool ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange, TextureData& aTextureDataOut);
+    static uint GetQueryTypeDataSize(GpuQueryType aType); 
     
     static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateProperties& aDesc);
@@ -111,6 +98,9 @@ namespace Fancy {
 
     static GpuRingBuffer* AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
+
+    static GpuBuffer* AllocateReadbackBuffer(uint64 aBlockSize, uint64& anOffsetToBlockOut);
+    static void FreeReadbackBuffer(GpuBuffer* aBuffer, uint64 aBlockSize, uint64 anOffsetToBlock);
 
     static CommandList* BeginCommandList(CommandListType aType);
     static uint64 ExecuteAndFreeCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC);
@@ -174,6 +164,8 @@ namespace Fancy {
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
+
+    
 
     static UniquePtr<CommandQueue> ourCommandQueues[(uint)CommandListType::NUM];  // TODO: Move into RenderCore_Platform
     

@@ -368,6 +368,12 @@
     <ClInclude Include="GpuQueryHeapVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="GpuReadbackBuffer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureReadbackTask.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -560,7 +566,15 @@
     <ClCompile Include="GpuResource.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="GpuQueryHeapVk.cpp" />
+    <ClCompile Include="GpuReadbackBuffer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureReadbackTask.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuQueryHeapVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />
