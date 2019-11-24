@@ -20,6 +20,7 @@
 #include "Model.h"
 
 #include "Material.h"
+#include "fancy_core/TextureReadbackTask.h"
 
 using namespace Fancy;
 
@@ -187,10 +188,13 @@ using namespace Fancy;
     {
       ComputeMipmaps(tex);
 
-      TextureData textureData;
-      bool success = RenderCore::ReadbackTextureData(tex.get(), tex->GetSubresources(), textureData);
-      textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
+      TextureReadbackTask readbackTask = RenderCore::ReadbackTexture(tex.get(), tex->GetSubresources());
+      readbackTask.Wait();
 
+      TextureData textureData;
+      readbackTask.GetData(textureData);
+
+      textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
       BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), (uint) textureData.mySubDatas.size());
 
       // Test:

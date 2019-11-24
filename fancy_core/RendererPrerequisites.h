@@ -58,12 +58,14 @@ namespace Fancy {
   struct RenderPlatformCaps
   {
     RenderPlatformCaps()
-      : myMaxNumVertexAttributes(32)
-      , myCbufferPlacementAlignment(0)
+      : myMaxNumVertexAttributes(32u)
+      , myCbufferPlacementAlignment(0u)
+      , myTextureRowAlignment(1u)
     {}
 
     unsigned int myMaxNumVertexAttributes;
     unsigned int myCbufferPlacementAlignment;
+    unsigned int myTextureRowAlignment;
   };
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

@@ -241,6 +241,7 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureData.cpp" />
     <ClCompile Include="TextureDX12.cpp" />
+    <ClCompile Include="TextureProperties.cpp" />
     <ClCompile Include="TextureReadbackTask.cpp" />
     <ClCompile Include="TextureSamplerDesc.cpp" />
     <ClCompile Include="TextureSamplerDX12.cpp" />

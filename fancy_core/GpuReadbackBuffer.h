@@ -14,6 +14,8 @@ namespace Fancy
 
     GpuBuffer* AllocateBlock(uint64 aSize, uint64& anOffsetOut);
     bool FreeBlock(GpuBuffer* aBuffer, uint64 anOffsetToBlock, uint64 aBlockSize);
+    bool IsEmpty() const { return myUsedBlocks.IsEmpty(); }
+    const uint64 GetFreeSize() const { return myFreeSize; }
 
   private:
     struct Block

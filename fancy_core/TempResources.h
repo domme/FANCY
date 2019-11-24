@@ -110,23 +110,5 @@ namespace Fancy
   protected:
     SharedPtr<TempResourceKeepAlive> myKeepAlive;
   };
-  //---------------------------------------------------------------------------//
-  struct MappedTempBuffer
-  {
-    MappedTempBuffer(const TempBufferResource& aResource, GpuResourceMapMode aMapMode, uint64 aSize);
-    ~MappedTempBuffer();
-    void Unmap();
-
-    TempBufferResource myTempBuffer;
-    GpuResourceMapMode myMapMode = GpuResourceMapMode::WRITE;
-    uint64 mySize = 0u;
-    void* myMappedData = nullptr;
-  };
-  //---------------------------------------------------------------------------//
-  struct MappedTempTextureBuffer : MappedTempBuffer
-  {
-    MappedTempTextureBuffer(DynamicArray<TextureSubLayout> someLayouts, const TempBufferResource& aResource, GpuResourceMapMode aMapMode, uint64 aSize);
-    DynamicArray<TextureSubLayout> myLayouts;
-  };
 //---------------------------------------------------------------------------//
 }

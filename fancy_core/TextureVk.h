@@ -20,7 +20,6 @@ namespace Fancy {
     void SetName(const char* aName) override;
 
     void Create(const TextureProperties& someProperties, const char* aName = nullptr, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) override;
-    void GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const override;
 
     GpuResourceDataVk* GetData() const;
   protected:

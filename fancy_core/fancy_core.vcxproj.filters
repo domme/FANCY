@@ -575,6 +575,9 @@
     <ClCompile Include="GpuQueryHeapVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="TextureProperties.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

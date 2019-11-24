@@ -123,7 +123,7 @@ namespace Fancy {
       readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
     }
     
-    mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), formatInfo.myNumPlanes);
+    mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes);
 
     myStateTracking = GpuResourceStateTracking();
     myStateTracking.myDefaultState = defaultState;

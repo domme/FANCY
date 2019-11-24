@@ -8,6 +8,7 @@
 #include "ResourceRefs.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
+#include "GpuReadbackBuffer.h"
 #include "ShaderCompiler.h"
 #include "FileWatcher.h"
 #include "PathService.h"
@@ -25,6 +26,7 @@
 #include "TempResourcePool.h"
 #include "GpuQueryHeap.h"
 #include "TimeManager.h"
+#include "TextureReadbackTask.h"
 
 #include <xxHash/xxhash.h>
 
@@ -60,8 +62,6 @@ namespace Fancy {
       XXH64_freeState(xxHashState);
       return hash;
     }
-
-    const uint kReadbackBufferSizeIncrease = 2 * SIZE_MB;
   }
 //---------------------------------------------------------------------------//
   namespace
@@ -90,6 +90,8 @@ namespace Fancy {
   DynamicArray<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
+
+  DynamicArray<UniquePtr<GpuReadbackBuffer>> RenderCore::ourReadbackBuffers;
 
   UniquePtr<CommandQueue> RenderCore::ourCommandQueues[(uint)CommandListType::NUM];
 
@@ -302,10 +304,147 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBuffer* RenderCore::AllocateReadbackBuffer(uint64 aBlockSize, uint64& anOffsetToBlockOut)
   {
+    for (UniquePtr<GpuReadbackBuffer>& readbackBuffer : ourReadbackBuffers)
+    {
+      uint64 offset;
+      GpuBuffer* buffer = readbackBuffer->AllocateBlock(aBlockSize, offset);
+      if (buffer != nullptr)
+      {
+        anOffsetToBlockOut = offset;
+        return buffer;
+      }
+    }
+
+    const uint64 newBufferSize = MathUtil::Align(aBlockSize, 2 * SIZE_MB);
+#if FANCY_RENDERER_DEBUG
+    LOG_INFO("Allocating new readback buffer of size %d", newBufferSize);
+#endif // FANCY_RENDERER_DEBUG
+    ourReadbackBuffers.push_back(std::make_unique<GpuReadbackBuffer>(newBufferSize));
+
+    uint64 offset;
+    GpuBuffer* buffer = ourReadbackBuffers.back()->AllocateBlock(aBlockSize, offset);
+    ASSERT(buffer != nullptr);
+
+    anOffsetToBlockOut = offset;
+    return buffer;
   }
 //---------------------------------------------------------------------------//
   void RenderCore::FreeReadbackBuffer(GpuBuffer* aBuffer, uint64 aBlockSize, uint64 anOffsetToBlock)
   {
+    for (auto it = ourReadbackBuffers.begin(); it != ourReadbackBuffers.end(); ++it)
+    {
+      UniquePtr<GpuReadbackBuffer>& readbackBuffer = *it;
+      if (readbackBuffer->FreeBlock(aBuffer, anOffsetToBlock, aBlockSize))
+      {
+        if (readbackBuffer->IsEmpty() && it != ourReadbackBuffers.begin())  // Always keep one readback buffer around
+        {
+#if FANCY_RENDERER_DEBUG
+          LOG_INFO("Deleting readback buffer of size %d", readbackBuffer->GetFreeSize());
+#endif // FANCY_RENDERER_DEBUG
+
+          ourReadbackBuffers.erase(it);
+        }
+
+        return;
+      }
+    }
+
+    ASSERT(false, "Readback-buffer allocation not found");
+  }
+//---------------------------------------------------------------------------//
+  TextureReadbackTask RenderCore::ReadbackTexture(Texture* aTexture, const SubresourceRange& aSubresourceRange, 
+    GpuResourceState aStateBefore /* = GpuResourceState::UNKNOWN */,
+    GpuResourceState aStateAfter /* = GpuResourceState::UNKNOWN */,
+    CommandListType aCommandListType /*= CommandListType::Graphics*/)
+  {
+    const TextureProperties& texProps = aTexture->GetProperties();
+    const DataFormatInfo& dataFormatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
+
+    uint64* subresourceSizes = static_cast<uint64*>(alloca(sizeof(uint64) * aSubresourceRange.GetNumSubresources()));
+
+    uint64 requiredBufferSize = 0u;
+    uint i = 0u;
+    for (SubresourceIterator it = aSubresourceRange.Begin(), end = aSubresourceRange.End(); it != end; ++it)
+    {
+      const SubresourceLocation& subResource = *it;
+      
+      uint width, height, depth;
+      texProps.GetSize(subResource.myMipLevel, width, height, depth);
+
+      const uint64 subresourceSize = MathUtil::Align(width * dataFormatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex], GetPlatformCaps().myTextureRowAlignment) * height * depth;
+      subresourceSizes[i++] = subresourceSize;
+      
+      requiredBufferSize += subresourceSize;
+    }
+
+    uint64 offsetToReadbackBuffer;
+    GpuBuffer* readbackBuffer = AllocateReadbackBuffer(requiredBufferSize, offsetToReadbackBuffer);
+    ASSERT(readbackBuffer != nullptr);
+
+    const GpuResourceState stateBefore = aStateBefore == GpuResourceState::UNKNOWN ? aTexture->myStateTracking.myDefaultState : aStateBefore;
+    const GpuResourceState stateAfter = aStateAfter == GpuResourceState::UNKNOWN ? aTexture->myStateTracking.myDefaultState : aStateAfter;
+    const bool needsTransitionBefore = stateBefore != GpuResourceState::READ_COPY_SOURCE;
+    const bool needsTransitionAfter = stateAfter != GpuResourceState::READ_COPY_SOURCE;
+
+    CommandList* ctx = BeginCommandList(aCommandListType);
+
+    if (needsTransitionBefore)
+      ctx->ResourceBarrier(aTexture, stateBefore, GpuResourceState::READ_COPY_SOURCE);
+
+    uint64 dstOffset = offsetToReadbackBuffer;
+    i = 0u;
+    for (SubresourceIterator it = aSubresourceRange.Begin(), end = aSubresourceRange.End(); it != end; ++it)
+    {
+      const SubresourceLocation& subResource = *it;
+      ctx->CopyTextureRegion(readbackBuffer, dstOffset, aTexture, subResource);
+      dstOffset += subresourceSizes[i++];
+    }
+
+    if (needsTransitionAfter)
+      ctx->ResourceBarrier(aTexture, GpuResourceState::READ_COPY_SOURCE, stateAfter);
+
+    const uint64 fence = ExecuteAndFreeCommandList(ctx);
+
+    SharedPtr<ReadbackBufferAllocation> bufferAlloc(new ReadbackBufferAllocation);
+    bufferAlloc->myBlockSize = requiredBufferSize;
+    bufferAlloc->myOffsetToBlock = offsetToReadbackBuffer;
+    bufferAlloc->myBuffer = readbackBuffer;
+
+    return TextureReadbackTask(texProps, aSubresourceRange, bufferAlloc, fence);
+  }
+//---------------------------------------------------------------------------//
+  ReadbackTask RenderCore::ReadbackBuffer(GpuBuffer* aBuffer, uint64 anOffset, uint64 aSize, 
+    GpuResourceState aStateBefore /* = GpuResourceState::UNKNOWN */,
+    GpuResourceState aStateAfter /* = GpuResourceState::UNKNOWN */,
+    CommandListType aCommandListType /*= CommandListType::Graphics*/)
+  {
+    uint64 offsetToReadbackBuffer;
+    GpuBuffer* readbackBuffer = AllocateReadbackBuffer(aSize, offsetToReadbackBuffer);
+    ASSERT(readbackBuffer != nullptr);
+
+    const GpuResourceState stateBefore = aStateBefore == GpuResourceState::UNKNOWN ? aBuffer->myStateTracking.myDefaultState : aStateBefore;
+    const GpuResourceState stateAfter = aStateAfter == GpuResourceState::UNKNOWN ? aBuffer->myStateTracking.myDefaultState : aStateAfter;
+    const bool needsTransitionBefore = stateBefore != GpuResourceState::READ_COPY_SOURCE;
+    const bool needsTransitionAfter = stateAfter != GpuResourceState::READ_COPY_SOURCE;
+
+    CommandList* ctx = BeginCommandList(aCommandListType);
+    
+    if (needsTransitionBefore)
+      ctx->ResourceBarrier(aBuffer, stateBefore, GpuResourceState::READ_COPY_SOURCE);
+    
+    ctx->CopyBufferRegion(readbackBuffer, offsetToReadbackBuffer, aBuffer, anOffset, aSize);
+
+    if (needsTransitionAfter)
+      ctx->ResourceBarrier(aBuffer, GpuResourceState::READ_COPY_SOURCE, stateAfter);
+    
+    const uint64 fence = ExecuteAndFreeCommandList(ctx);
+
+    SharedPtr<ReadbackBufferAllocation> bufferAlloc(new ReadbackBufferAllocation);
+    bufferAlloc->myBlockSize = aSize;
+    bufferAlloc->myOffsetToBlock = offsetToReadbackBuffer;
+    bufferAlloc->myBuffer = readbackBuffer;
+
+    return ReadbackTask(bufferAlloc, fence);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderPlatformType aRenderingApi)
@@ -417,6 +556,8 @@ namespace Fancy {
         ourQueryBuffers[i][queryType].reset(buffer);
       }
     }
+
+    ourReadbackBuffers.push_back(std::make_unique<GpuReadbackBuffer>(64 * SIZE_MB));
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()
@@ -437,6 +578,16 @@ namespace Fancy {
     ourShaderCache.clear();
     ourBlendStateCache.clear();
     ourDepthStencilStateCache.clear();
+
+    for (uint i = 0u; i < NUM_QUERY_BUFFERS; ++i)
+      for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
+        ourQueryBuffers[i][queryType].reset();
+
+    for (uint i = 0u; i < NUM_QUEUED_FRAMES; ++i)
+      for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
+        ourQueryHeaps[i][queryType].reset();
+
+    ourReadbackBuffers.clear();
   }
 //---------------------------------------------------------------------------//  
   void RenderCore::Shutdown_1_Services()
@@ -786,106 +937,6 @@ namespace Fancy {
   uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)
   {
     return ourPlatformImpl->GetQueryTypeDataSize(aType);
-  }
-//---------------------------------------------------------------------------//
-  MappedTempBuffer RenderCore::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
-  {
-    ASSERT(anOffset + aByteSize <= aBuffer->GetByteSize());
-
-    if (aBuffer->GetProperties().myCpuAccess == CpuMemoryAccessType::CPU_READ)
-      LOG_WARNING("ReadbackBufferData() called with a CPU-readable buffer. Its better to directly map the buffer to avoid uneccessary temp-copies");
-
-    GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
-    props.myBufferProperties.myElementSizeBytes = 1u;
-    props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    props.myIsShaderResource = false;
-    props.myIsShaderWritable = false;
-    TempBufferResource readbackBuffer  = AllocateTempBuffer(props, 0u, "Temp readback buffer");
-    ASSERT(readbackBuffer.myBuffer != nullptr);
-
-    CommandList* ctx = BeginCommandList(CommandListType::Graphics);
-    ctx->CopyBufferRegion(readbackBuffer.myBuffer, 0u, aBuffer, anOffset, aByteSize);
-    ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
-
-    return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ, aByteSize);
-  }
-//---------------------------------------------------------------------------//
-  MappedTempTextureBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange)
-  {
-    DynamicArray<TextureSubLayout> subresourceLayouts;
-    DynamicArray<uint64> subresourceOffsets;
-    uint64 totalSize;
-    aTexture->GetSubresourceLayout(aSubresourceRange, subresourceLayouts, subresourceOffsets, totalSize);
-
-    GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
-    props.myBufferProperties.myElementSizeBytes = 1u;
-    props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    props.myIsShaderResource = false;
-    props.myIsShaderWritable = false;
-    TempBufferResource readbackBuffer = AllocateTempBuffer(props, 0u, "Temp texture readback buffer");
-    ASSERT(readbackBuffer.myBuffer != nullptr);
-
-    CommandList* ctx = BeginCommandList(CommandListType::Graphics);
-    int i = 0;
-    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
-    {
-      ctx->CopyTextureRegion(readbackBuffer.myBuffer, subresourceOffsets[i++], aTexture, *subIter);
-    }
-    ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
-
-    return MappedTempTextureBuffer(subresourceLayouts, readbackBuffer, GpuResourceMapMode::READ, totalSize);
-  }
-//---------------------------------------------------------------------------//
-  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange, TextureData& aTextureDataOut)
-  {
-    MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aSubresourceRange);
-    if (readbackTex.myMappedData == nullptr || readbackTex.myLayouts.empty())
-      return false;
-
-    const uint64 pixelSize = readbackTex.myLayouts.front().myRowSize / readbackTex.myLayouts.front().myWidth;
-
-    uint64 totalSize = 0u;
-    for (const TextureSubLayout& subLayout : readbackTex.myLayouts)
-      totalSize += subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * pixelSize;
-
-    aTextureDataOut.myData.resize(totalSize);
-    aTextureDataOut.mySubDatas.resize(readbackTex.myLayouts.size());
-
-    uint8* dstSubResourceStart = aTextureDataOut.myData.data();
-    const uint8* srcSubResourceStart = static_cast<const uint8*>(readbackTex.myMappedData);
-    for (uint iSubResource = 0u, e = (uint) readbackTex.myLayouts.size(); iSubResource < e; ++iSubResource)
-    {
-      const TextureSubLayout& subLayout = readbackTex.myLayouts[iSubResource];
-
-      TextureSubData& dstSubData = aTextureDataOut.mySubDatas[iSubResource];
-      dstSubData.myData = dstSubResourceStart;
-      dstSubData.myPixelSizeBytes = pixelSize;
-      dstSubData.myRowSizeBytes = subLayout.myRowSize;
-      dstSubData.mySliceSizeBytes = subLayout.myRowSize * subLayout.myHeight;
-      dstSubData.myTotalSizeBytes = dstSubData.mySliceSizeBytes * subLayout.myDepth;
-
-      for (uint iDepthSlice = 0u; iDepthSlice < subLayout.myDepth; ++iDepthSlice)
-      {
-        uint8* dstSliceStart = dstSubResourceStart + iDepthSlice * subLayout.myRowSize * subLayout.myHeight;
-        const uint8* srcSliceStart = srcSubResourceStart + iDepthSlice * subLayout.myAlignedRowSize * subLayout.myNumRows;
-        for (uint y = 0u; y < subLayout.myHeight; ++y)
-        {
-          uint8* dstRowStart = dstSliceStart + y * subLayout.myRowSize;
-          const uint8* srcRowStart = srcSliceStart + y * subLayout.myAlignedRowSize;
-          memcpy(dstRowStart, srcRowStart, subLayout.myRowSize);
-        }
-      }
-
-      const uint64 dstSubresourceSize = subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * pixelSize;
-      dstSubResourceStart += dstSubresourceSize;
-
-      const uint64 srcSubresourceSize = subLayout.myAlignedRowSize * subLayout.myNumRows * subLayout.myDepth;
-      srcSubResourceStart += srcSubresourceSize;
-    }
-
-    return true;
   }
 //---------------------------------------------------------------------------//
   CommandList* RenderCore::BeginCommandList(CommandListType aType)

@@ -27,6 +27,7 @@ namespace Fancy {
     bool IsArray() const { return myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY || myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY || myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY; }
     uint GetArraySize() const { return IsArray() ? myDepthOrArraySize : 1u; }
     uint GetDepthSize() const { return IsArray() ? 1u : myDepthOrArraySize; }
+    void GetSize(uint aMipLevel, uint& aWidthOut, uint& aHeightOut, uint& aDepthOut) const;
 
     GpuResourceDimension myDimension;
     String path;

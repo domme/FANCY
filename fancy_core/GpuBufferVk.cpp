@@ -154,9 +154,7 @@ namespace Fancy
     const VkMemoryMapFlags mapFlags = static_cast<VkMemoryMapFlags>(0);
 
     void* mappedData = nullptr;
-    ASSERT_VK_RESULT(
-      vkMapMemory(RenderCore::GetPlatformVk()->myDevice, dataVk->myMemory, anOffset, aSize, mapFlags, &mappedData));
-
+    ASSERT_VK_RESULT(vkMapMemory(RenderCore::GetPlatformVk()->myDevice, dataVk->myMemory, anOffset, aSize, mapFlags, &mappedData));
     return mappedData;
   }
 //---------------------------------------------------------------------------//

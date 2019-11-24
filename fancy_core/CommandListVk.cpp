@@ -626,6 +626,11 @@ namespace Fancy
   {
     VK_MISSING_IMPLEMENTATION();
   }
+
+void CommandListVk::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
+{
+}
+
 //---------------------------------------------------------------------------//
   void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const
   {

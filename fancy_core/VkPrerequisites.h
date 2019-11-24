@@ -25,16 +25,16 @@ namespace Fancy
       throw;
   }
 
-  inline void ReportMissingVkImplementation(const char* aFile, int aLine)
+  inline void ReportMissingVkImplementation(const char* aFunction)
   {
     if (kVkImplementationDebugLevel > VK_IMPLEMENTATION_DEBUG_LEVEL_NONE)
-      Log("Missing Vulkan Implementation: %s (Line %d)", aFile, aLine);
+      Log("Missing Vulkan Implementation: %s", aFunction);
 
     if (kVkImplementationDebugLevel == VK_IMPLEMENTATION_DEBUG_LEVEL_ASSERT)
       throw;
   }
 
-#define VK_MISSING_IMPLEMENTATION(...) ReportMissingVkImplementation(__FILE__, __LINE__)
+#define VK_MISSING_IMPLEMENTATION(...) ReportMissingVkImplementation(__FUNCTION__)
 }
   
 

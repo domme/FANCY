@@ -16,6 +16,8 @@ namespace Fancy
     static int bufferCounter = 0;
     myBuffer = RenderCore::CreateBuffer(props, StaticString<32>("Readback buffer %d", bufferCounter++));
     ASSERT(myBuffer != nullptr);
+
+    myFreeSize = aSize;
   }
 
   GpuReadbackBuffer::~GpuReadbackBuffer()

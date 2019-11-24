@@ -29,6 +29,7 @@ namespace Fancy {
   class DepthStencilState;
   class FileWatcher;
   class GpuRingBuffer;
+  class GpuReadbackBuffer;
   class Shader;
   struct ShaderDesc;
   class TempResourcePool;
@@ -42,6 +43,8 @@ namespace Fancy {
   class GpuQueryHeap;
   struct GpuQueryStorage;
   struct ReadbackBufferAllocation;
+  class ReadbackTask;
+  class TextureReadbackTask;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -101,6 +104,16 @@ namespace Fancy {
 
     static GpuBuffer* AllocateReadbackBuffer(uint64 aBlockSize, uint64& anOffsetToBlockOut);
     static void FreeReadbackBuffer(GpuBuffer* aBuffer, uint64 aBlockSize, uint64 anOffsetToBlock);
+
+    static TextureReadbackTask ReadbackTexture(Texture* aTexture, const SubresourceRange& aSubresourceRange, 
+      GpuResourceState aStateBefore = GpuResourceState::UNKNOWN, 
+      GpuResourceState aStateAfter = GpuResourceState::UNKNOWN,
+      CommandListType aCommandListType = CommandListType::Graphics);
+
+    static ReadbackTask ReadbackBuffer(GpuBuffer* aBuffer, uint64 anOffset, uint64 aSize, 
+      GpuResourceState aStateBefore = GpuResourceState::UNKNOWN,
+      GpuResourceState aStateAfter = GpuResourceState::UNKNOWN,
+      CommandListType aCommandListType = CommandListType::Graphics);
 
     static CommandList* BeginCommandList(CommandListType aType);
     static uint64 ExecuteAndFreeCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC);
@@ -165,7 +178,7 @@ namespace Fancy {
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
 
-    
+    static DynamicArray<UniquePtr<GpuReadbackBuffer>> ourReadbackBuffers;
 
     static UniquePtr<CommandQueue> ourCommandQueues[(uint)CommandListType::NUM];  // TODO: Move into RenderCore_Platform
     

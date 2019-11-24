@@ -18,30 +18,39 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  class TextureReadbackTask
+  class ReadbackTask
+  {
+  public:
+    ReadbackTask(SharedPtr<ReadbackBufferAllocation> aBufferAllocation, uint64 aFence)
+      : myBufferAllocation(std::move(aBufferAllocation))
+      , myFence(std::move(aFence))
+    { }
+
+    void GetRawData(DynamicArray<uint8>& aDataOut);
+    bool IsCompleted() const;
+    void Wait() const;
+    GpuBuffer* GetBuffer() const { return myBufferAllocation ? myBufferAllocation->myBuffer : nullptr; }
+
+  protected:
+    SharedPtr<ReadbackBufferAllocation> myBufferAllocation;
+    uint64 myFence;
+  };
+//---------------------------------------------------------------------------//
+  class TextureReadbackTask : public ReadbackTask
   {
   public:
     TextureReadbackTask(TextureProperties someTextureProperties, SubresourceRange aSubresourceRange, 
-      SharedPtr<ReadbackBufferAllocation> aBufferAllocation, uint64 aFence, uint64 aRowAlignment)
-      : myTextureProperties(std::move(someTextureProperties))
+      SharedPtr<ReadbackBufferAllocation> aBufferAllocation, uint64 aFence)
+      : ReadbackTask(std::move(aBufferAllocation), std::move(aFence))
+      , myTextureProperties(std::move(someTextureProperties))
       , mySubresourceRange(std::move(aSubresourceRange))
-      , myBufferAllocation(std::move(aBufferAllocation))
-      , myFence(aFence)
-      , myRowAlignment(aRowAlignment)
     { }
 
-    bool GetData(TextureData& aDataOut) const;
-    bool IsCompleted() const;
-    void WaitForCompletion() const;
-    GpuBuffer* GetBuffer() const { return myBufferAllocation ? myBufferAllocation->myBuffer : nullptr; }
+    void GetData(TextureData& aDataOut) const;
 
   private:
     TextureProperties myTextureProperties;
     SubresourceRange mySubresourceRange;
-    SharedPtr<ReadbackBufferAllocation> myBufferAllocation;
-    uint64 myFence;
-    uint64 myRowAlignment;
-    
   };
 //---------------------------------------------------------------------------//
 }
