@@ -111,9 +111,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool SubresourceIterator::IsEnd() const
   {
-    return myCurrentLocation.myMipLevel >= myRange.myNumMipLevels
-      || myCurrentLocation.myArrayIndex >= myRange.myNumArrayIndices
-      || myCurrentLocation.myPlaneIndex >= myRange.myNumPlanes;
+    return myCurrentLocation.myMipLevel >= myRange.myFirstMipLevel + myRange.myNumMipLevels
+      || myCurrentLocation.myArrayIndex >= myRange.myFirstArrayIndex + myRange.myNumArrayIndices
+      || myCurrentLocation.myPlaneIndex >= myRange.myFirstPlane + myRange.myNumPlanes;
   }
 //---------------------------------------------------------------------------//
 

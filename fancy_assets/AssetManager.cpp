@@ -188,6 +188,7 @@ using namespace Fancy;
     {
       ComputeMipmaps(tex);
 
+      SubresourceRange subresourceRange()
       TextureReadbackTask readbackTask = RenderCore::ReadbackTexture(tex.get(), tex->GetSubresources());
       readbackTask.Wait();
 

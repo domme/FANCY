@@ -52,18 +52,30 @@ namespace Fancy
   
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myTextureProperties.myFormat);
 
+    const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+    const uint64 rowAlignment = caps.myTextureRowAlignment;
+    const uint64 subresourceAlignment = caps.myTextureSubresourceBufferAlignment;
+
     uint64 overallSizeBytes = 0u;
+    uint64 expectedBufferSize = 0u;
     for (SubresourceIterator it = mySubresourceRange.Begin(), end = mySubresourceRange.End(); it != end; ++it)
     {
       const SubresourceLocation& subResource = *it;
 
       uint width, height, depth;
       myTextureProperties.GetSize(subResource.myMipLevel, width, height, depth);
-      overallSizeBytes += width * height * depth * formatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex];
+
+      const uint64 rowSize = width * formatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex];
+      const uint64 alignedRowSize = MathUtil::Align(rowSize, rowAlignment);
+
+      const uint64 subresourceSize = rowSize * height * depth;
+      const uint64 alignedSubresourceSize = MathUtil::Align(alignedRowSize * height * depth, subresourceAlignment);
+
+      overallSizeBytes += subresourceSize;
+      expectedBufferSize += alignedSubresourceSize;
     }
 
-    // The allocated buffer size should be greater or equal to the overall size. It could be greater because of padding between rows
-    ASSERT(myBufferAllocation->myBlockSize >= overallSizeBytes);
+    ASSERT(myBufferAllocation->myBlockSize == expectedBufferSize);
 
     aDataOut.myData.resize(overallSizeBytes);
     aDataOut.mySubDatas.resize(mySubresourceRange.GetNumSubresources());
@@ -72,8 +84,6 @@ namespace Fancy
       myBufferAllocation->myBuffer->Map(GpuResourceMapMode::READ_UNSYNCHRONIZED,
       myBufferAllocation->myOffsetToBlock, myBufferAllocation->myBlockSize));
     ASSERT(srcSubResourceStart != nullptr);
-
-    const uint64 rowAlignment = RenderCore::GetPlatformCaps().myTextureRowAlignment;
 
     uint8* dstSubResourceStart = aDataOut.myData.data();
     uint subResourceIndex = 0u;
@@ -96,6 +106,9 @@ namespace Fancy
       dstSubData.mySliceSizeBytes = dstSliceSizeBytes;
       dstSubData.myTotalSizeBytes = dstSliceSizeBytes * depth;
 
+      const uint64 srcSubresourceSizeBytes = srcSliceSizeBytes * depth;
+      const uint64 dstSubresourceSizeBytes = MathUtil::Align(dstSliceSizeBytes * depth, caps.myTextureSubresourceBufferAlignment);
+
       const uint8* srcSliceStart = srcSubResourceStart;
       uint8* dstSliceStart = dstSubResourceStart;
       for (uint d = 0u; d < depth; ++d)
@@ -114,8 +127,8 @@ namespace Fancy
         dstSliceStart += dstSliceSizeBytes;
       }
 
-      srcSubResourceStart += srcSliceSizeBytes * depth;
-      dstSubResourceStart += dstSliceSizeBytes * depth;
+      srcSubResourceStart += srcSubresourceSizeBytes;
+      dstSubResourceStart += dstSubresourceSizeBytes;
     }
 
     myBufferAllocation->myBuffer->Unmap(GpuResourceMapMode::READ_UNSYNCHRONIZED, 

@@ -102,7 +102,7 @@ namespace Fancy {
     static GpuRingBuffer* AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
 
-    static GpuBuffer* AllocateReadbackBuffer(uint64 aBlockSize, uint64& anOffsetToBlockOut);
+    static GpuBuffer* AllocateReadbackBuffer(uint64 aBlockSize, uint anOffsetAlignment, uint64& anOffsetToBlockOut);
     static void FreeReadbackBuffer(GpuBuffer* aBuffer, uint64 aBlockSize, uint64 anOffsetToBlock);
 
     static TextureReadbackTask ReadbackTexture(Texture* aTexture, const SubresourceRange& aSubresourceRange, 

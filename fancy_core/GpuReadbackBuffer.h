@@ -12,7 +12,7 @@ namespace Fancy
     explicit GpuReadbackBuffer(uint64 aSize);
     ~GpuReadbackBuffer();
 
-    GpuBuffer* AllocateBlock(uint64 aSize, uint64& anOffsetOut);
+    GpuBuffer* AllocateBlock(uint64 aSize, uint anOffsetAlignment, uint64& anOffsetOut);
     bool FreeBlock(GpuBuffer* aBuffer, uint64 anOffsetToBlock, uint64 aBlockSize);
     bool IsEmpty() const { return myUsedBlocks.IsEmpty(); }
     const uint64 GetFreeSize() const { return myFreeSize; }

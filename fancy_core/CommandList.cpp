@@ -167,7 +167,7 @@ namespace Fancy {
     }
 
     if (ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize() < aDataSize)
-      ringBufferList->push_back(RenderCore::AllocateRingBuffer(CpuMemoryAccessType::CPU_WRITE, bindFlags, MathUtil::Align(aDataSize, sizeStep), name.c_str()));
+      ringBufferList->push_back(RenderCore::AllocateRingBuffer(CpuMemoryAccessType::CPU_WRITE, bindFlags, (uint) MathUtil::Align(aDataSize, sizeStep), name.c_str()));
 
     GpuRingBuffer* ringBuffer = ringBufferList->back();
     uint64 offset = 0; 

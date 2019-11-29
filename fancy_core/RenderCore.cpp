@@ -302,12 +302,12 @@ namespace Fancy {
     ourUsedRingBuffers.push_back(std::make_pair(aFenceVal, aBuffer));
   }
 //---------------------------------------------------------------------------//
-  GpuBuffer* RenderCore::AllocateReadbackBuffer(uint64 aBlockSize, uint64& anOffsetToBlockOut)
+  GpuBuffer* RenderCore::AllocateReadbackBuffer(uint64 aBlockSize, uint anOffsetAlignment, uint64& anOffsetToBlockOut)
   {
     for (UniquePtr<GpuReadbackBuffer>& readbackBuffer : ourReadbackBuffers)
     {
       uint64 offset;
-      GpuBuffer* buffer = readbackBuffer->AllocateBlock(aBlockSize, offset);
+      GpuBuffer* buffer = readbackBuffer->AllocateBlock(aBlockSize, anOffsetAlignment, offset);
       if (buffer != nullptr)
       {
         anOffsetToBlockOut = offset;
@@ -315,14 +315,14 @@ namespace Fancy {
       }
     }
 
-    const uint64 newBufferSize = MathUtil::Align(aBlockSize, 2 * SIZE_MB);
+    const uint64 newBufferSize = MathUtil::Align(aBlockSize, MathUtil::Align(2 * SIZE_MB, anOffsetAlignment));
 #if FANCY_RENDERER_DEBUG
     LOG_INFO("Allocating new readback buffer of size %d", newBufferSize);
 #endif // FANCY_RENDERER_DEBUG
     ourReadbackBuffers.push_back(std::make_unique<GpuReadbackBuffer>(newBufferSize));
 
     uint64 offset;
-    GpuBuffer* buffer = ourReadbackBuffers.back()->AllocateBlock(aBlockSize, offset);
+    GpuBuffer* buffer = ourReadbackBuffers.back()->AllocateBlock(aBlockSize, anOffsetAlignment, offset);
     ASSERT(buffer != nullptr);
 
     anOffsetToBlockOut = offset;
@@ -359,8 +359,9 @@ namespace Fancy {
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     const DataFormatInfo& dataFormatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
+    const RenderPlatformCaps& caps = GetPlatformCaps();
 
-    uint64* subresourceSizes = static_cast<uint64*>(alloca(sizeof(uint64) * aSubresourceRange.GetNumSubresources()));
+    uint64* alignedSubresourceSizes = static_cast<uint64*>(alloca(sizeof(uint64) * aSubresourceRange.GetNumSubresources()));
 
     uint64 requiredBufferSize = 0u;
     uint i = 0u;
@@ -371,14 +372,15 @@ namespace Fancy {
       uint width, height, depth;
       texProps.GetSize(subResource.myMipLevel, width, height, depth);
 
-      const uint64 subresourceSize = MathUtil::Align(width * dataFormatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex], GetPlatformCaps().myTextureRowAlignment) * height * depth;
-      subresourceSizes[i++] = subresourceSize;
+      const uint64 rowSize = MathUtil::Align(width * dataFormatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex], caps.myTextureRowAlignment);
+      const uint64 subresourceSize = MathUtil::Align(rowSize * height * depth, (uint64) caps.myTextureSubresourceBufferAlignment);
+      alignedSubresourceSizes[i++] = subresourceSize;
       
       requiredBufferSize += subresourceSize;
     }
 
     uint64 offsetToReadbackBuffer;
-    GpuBuffer* readbackBuffer = AllocateReadbackBuffer(requiredBufferSize, offsetToReadbackBuffer);
+    GpuBuffer* readbackBuffer = AllocateReadbackBuffer(requiredBufferSize, caps.myTextureSubresourceBufferAlignment, offsetToReadbackBuffer);
     ASSERT(readbackBuffer != nullptr);
 
     const GpuResourceState stateBefore = aStateBefore == GpuResourceState::UNKNOWN ? aTexture->myStateTracking.myDefaultState : aStateBefore;
@@ -397,7 +399,7 @@ namespace Fancy {
     {
       const SubresourceLocation& subResource = *it;
       ctx->CopyTextureRegion(readbackBuffer, dstOffset, aTexture, subResource);
-      dstOffset += subresourceSizes[i++];
+      dstOffset += alignedSubresourceSizes[i++];
     }
 
     if (needsTransitionAfter)
@@ -419,7 +421,7 @@ namespace Fancy {
     CommandListType aCommandListType /*= CommandListType::Graphics*/)
   {
     uint64 offsetToReadbackBuffer;
-    GpuBuffer* readbackBuffer = AllocateReadbackBuffer(aSize, offsetToReadbackBuffer);
+    GpuBuffer* readbackBuffer = AllocateReadbackBuffer(aSize, 1u, offsetToReadbackBuffer);
     ASSERT(readbackBuffer != nullptr);
 
     const GpuResourceState stateBefore = aStateBefore == GpuResourceState::UNKNOWN ? aBuffer->myStateTracking.myDefaultState : aStateBefore;

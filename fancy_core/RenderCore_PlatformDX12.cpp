@@ -515,6 +515,7 @@ namespace Fancy {
     myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;
     myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
     myCaps.myTextureRowAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
+    myCaps.myTextureSubresourceBufferAlignment = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
   }
 
 //---------------------------------------------------------------------------//

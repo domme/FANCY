@@ -7,7 +7,7 @@
 
 // Track the resource barrier-states per resource. Only works in single-threaded commandList-recording!
 #define FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES 0
-#define FANCY_RENDERER_LOG_RESOURCE_BARRIERS 1
+#define FANCY_RENDERER_LOG_RESOURCE_BARRIERS 0
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -61,11 +61,13 @@ namespace Fancy {
       : myMaxNumVertexAttributes(32u)
       , myCbufferPlacementAlignment(0u)
       , myTextureRowAlignment(1u)
+      , myTextureSubresourceBufferAlignment(1u)
     {}
 
     unsigned int myMaxNumVertexAttributes;
     unsigned int myCbufferPlacementAlignment;
     unsigned int myTextureRowAlignment;
+    unsigned int myTextureSubresourceBufferAlignment;
   };
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

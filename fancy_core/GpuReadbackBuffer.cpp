@@ -26,16 +26,22 @@ namespace Fancy
       myBuffer->myName.c_str(), myUsedBlocks.Size());
   }
 
-  GpuBuffer* GpuReadbackBuffer::AllocateBlock(uint64 aSize, uint64& anOffsetOut)
+  GpuBuffer* GpuReadbackBuffer::AllocateBlock(uint64 aSize, uint anOffsetAlignment, uint64& anOffsetOut)
   {
     if (myFreeSize < aSize)
       return nullptr;
 
-    anOffsetOut = myNextFree;
-    myUsedBlocks.Add({ myNextFree, aSize });
+    const uint64 alignedNextFree = MathUtil::Align(myNextFree, anOffsetAlignment);
+    const uint64 requiredSize = aSize + (alignedNextFree - myNextFree);
 
-    myNextFree += aSize;
-    myFreeSize -= aSize;
+    if (myFreeSize < requiredSize)
+      return nullptr;
+
+    anOffsetOut = alignedNextFree;
+    myUsedBlocks.Add({ alignedNextFree, aSize });
+
+    myNextFree = alignedNextFree + aSize;
+    myFreeSize -= requiredSize;
 
     return myBuffer.get();
   }
