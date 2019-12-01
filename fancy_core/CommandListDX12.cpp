@@ -17,6 +17,7 @@
 #include "GpuResourceViewDataDX12.h"
 #include "TimeManager.h"
 #include "GpuQueryHeapDX12.h"
+#include <glm/detail/type_mat.hpp>
 
 namespace Fancy { 
 //---------------------------------------------------------------------------//
@@ -159,11 +160,11 @@ namespace Fancy {
     ApplyDescriptorHeaps();
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource,
+  void CommandListDX12::UpdateSubresources(ID3D12Resource* aDstResource, ID3D12Resource* aStagingResource,
     uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas)
   {
     D3D12_RESOURCE_DESC srcDesc = aStagingResource->GetDesc();
-    D3D12_RESOURCE_DESC destDesc = aDestResource->GetDesc();
+    D3D12_RESOURCE_DESC destDesc = aDstResource->GetDesc();
     
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT* destLayouts = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * aNumSubresources));
     uint64* destRowSizesByte = static_cast<uint64*>(alloca(sizeof(uint64) * aNumSubresources));
@@ -207,14 +208,14 @@ namespace Fancy {
     // Copy from the temp staging buffer to the destination resource (could be buffer or texture)
     if (destDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
     {
-      myCommandList->CopyBufferRegion(aDestResource, 0, aStagingResource, destLayouts[0].Offset, destLayouts[0].Footprint.Width);
+      myCommandList->CopyBufferRegion(aDstResource, 0, aStagingResource, destLayouts[0].Offset, destLayouts[0].Footprint.Width);
     }
     else
     {
       for (uint i = 0u; i < aNumSubresources; ++i)
       {
         D3D12_TEXTURE_COPY_LOCATION destCopyLocation;
-        destCopyLocation.pResource = aDestResource;
+        destCopyLocation.pResource = aDstResource;
         destCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
         destCopyLocation.SubresourceIndex = aFirstSubresourceIndex + i;
 
@@ -309,50 +310,54 @@ namespace Fancy {
     myCommandList->ClearDepthStencilView(viewDataDx12.myDescriptor.myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
+  void CommandListDX12::CopyResource(GpuResource* aDstResource, GpuResource* aSrcResource)
   {
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-    const GpuResource* resourcesToTransition[] = { aDestResource, aSrcResource };
+    const GpuResource* resourcesToTransition[] = { aDstResource, aSrcResource };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
     SetTrackResourceTransitionBarriers(resourcesToTransition, barrierStates, 2);
 #endif
     FlushBarriers();
 
-    GpuResourceDataDX12* destData = aDestResource->myNativeData.To<GpuResourceDataDX12*>();
+    GpuResourceDataDX12* destData = aDstResource->myNativeData.To<GpuResourceDataDX12*>();
     GpuResourceDataDX12* srcData = aSrcResource->myNativeData.To<GpuResourceDataDX12*>();
 
     myCommandList->CopyResource(destData->myResource.Get(), srcData->myResource.Get());
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
+  void CommandListDX12::CopyBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
   {
-    ASSERT(aDestBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)");
-    ASSERT(aSize <= aDestBuffer->GetByteSize() - aDestOffset, "Invalid dst-region specified");
+    ASSERT(aDstBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)");
+    ASSERT(aSize <= aDstBuffer->GetByteSize() - aDstOffset, "Invalid dst-region specified");
     ASSERT(aSize <= aSrcBuffer->GetByteSize() - aSrcOffset, "Invalid src-region specified");
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-    const GpuResource* resourcesToTransition[] = { aDestBuffer, aSrcBuffer };
+    const GpuResource* resourcesToTransition[] = { aDstBuffer, aSrcBuffer };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
     SetTrackResourceTransitionBarriers(resourcesToTransition, barrierStates, 2);
 #endif
     FlushBarriers();
 
-    ID3D12Resource* dstResource = static_cast<const GpuBufferDX12*>(aDestBuffer)->GetData()->myResource.Get();
+    ID3D12Resource* dstResource = static_cast<const GpuBufferDX12*>(aDstBuffer)->GetData()->myResource.Get();
     ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
 
-    myCommandList->CopyBufferRegion(dstResource, aDestOffset, srcResource, aSrcOffset, aSize);
+    myCommandList->CopyBufferRegion(dstResource, aDstOffset, srcResource, aSrcOffset, aSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
+  void CommandListDX12::CopyTextureToBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion)
   {
-    ID3D12Resource* bufferResourceDX12 = static_cast<const GpuBufferDX12*>(aDestBuffer)->GetData()->myResource.Get();
+#if FANCY_RENDERER_USE_VALIDATION
+    ValidateTextureToBufferCopy(aDstBuffer->GetProperties(), aDstOffset, aSrcTexture->GetProperties(), aSrcSubresource, aSrcRegion);
+#endif
+
+    ID3D12Resource* bufferResourceDX12 = static_cast<const GpuBufferDX12*>(aDstBuffer)->GetData()->myResource.Get();
     ID3D12Resource* textureResourceDX12 = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
 
     const uint16 bufferSubresourceIndex = 0;
-    const uint16 textureSubresourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubLocation));
+    const uint16 textureSubresourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubresource));
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-    const GpuResource* resourcesToTransition[] = { aDestBuffer, aSrcTexture };
+    const GpuResource* resourcesToTransition[] = { aDstBuffer, aSrcTexture };
     const uint16* subresourceLists[] = { &bufferSubresourceIndex, &textureSubresourceIndex };
     const uint numSubresources[] = { 1, 1 };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
@@ -373,48 +378,41 @@ namespace Fancy {
     uint64 totalSizeBytes;
     device->GetCopyableFootprints(&textureResourceDescDX12, srcLocation.SubresourceIndex, 1u, 0u, &footprint, &numRows, &rowSizeBytes, &totalSizeBytes);
 
-    ASSERT(totalSizeBytes <= aDestBuffer->GetByteSize() - aDestOffset);
+    ASSERT(totalSizeBytes <= aDstBuffer->GetByteSize() - aDstOffset);  // If this triggers but ValidateTextureToBufferCopy() was fine, then something is wrong in the validation-code
 
     D3D12_TEXTURE_COPY_LOCATION destLocation;
     destLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
     destLocation.pResource = bufferResourceDX12;
     destLocation.PlacedFootprint.Footprint = footprint.Footprint;
-    destLocation.PlacedFootprint.Offset = aDestOffset + footprint.Offset;
+    destLocation.PlacedFootprint.Offset = aDstOffset + footprint.Offset;
 
     FlushBarriers();
 
-    if (aSrcRegion != nullptr)
-    {
-      D3D12_BOX srcBox;
-      srcBox.left = aSrcRegion->myTexelPos.x;
-      srcBox.right = aSrcRegion->myTexelPos.x + aSrcRegion->myTexelSize.x;
-      srcBox.top = aSrcRegion->myTexelPos.y;
-      srcBox.bottom = aSrcRegion->myTexelPos.y + aSrcRegion->myTexelSize.y;
-      srcBox.front = aSrcRegion->myTexelPos.z;
-      srcBox.back = aSrcRegion->myTexelPos.z + aSrcRegion->myTexelSize.z;
-      myCommandList->CopyTextureRegion(&destLocation, 0, 0, 0, &srcLocation, &srcBox);
-    }
-    else
-    {
-      myCommandList->CopyTextureRegion(&destLocation, 0, 0, 0, &srcLocation, nullptr);
-    }
+    D3D12_BOX srcBox;
+    srcBox.left = aSrcRegion.myPos.x;
+    srcBox.right = aSrcRegion.myPos.x + aSrcRegion.mySize.x;
+    srcBox.top = aSrcRegion.myPos.y;
+    srcBox.bottom = aSrcRegion.myPos.y + aSrcRegion.mySize.y;
+    srcBox.front = aSrcRegion.myPos.z;
+    srcBox.back = aSrcRegion.myPos.z + aSrcRegion.mySize.z;
+    myCommandList->CopyTextureRegion(&destLocation, 0, 0, 0, &srcLocation, &srcBox);
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion /*= nullptr*/)
+  void CommandListDX12::CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion, 
+    const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion)
   {
-    const TextureProperties& dstProps = aDestTexture->GetProperties();
-    const TextureProperties& srcProps = aSrcTexture->GetProperties();
-
-    // TODO: asserts and validation of regions against texture-parameters
+#if FANCY_RENDERER_USE_VALIDATION
+    ValidateTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcTexture->GetProperties(), aSrcSubresource, aSrcRegion);
+#endif
     
-    ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDestTexture)->GetData()->myResource.Get();
+    ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDstTexture)->GetData()->myResource.Get();
     ID3D12Resource* srcResource = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
 
-    const uint16 destSubResourceIndex = static_cast<uint16>(aDestTexture->GetSubresourceIndex(aDestSubLocation));
-    const uint16 srcSubResourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubLocation));
+    const uint16 destSubResourceIndex = static_cast<uint16>(aDstTexture->GetSubresourceIndex(aDstSubresource));
+    const uint16 srcSubResourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubresource));
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-    const GpuResource* resourcesToTransition[] = { aDestTexture, aSrcTexture };
+    const GpuResource* resourcesToTransition[] = { aDstTexture, aSrcTexture };
     const uint16* subresourceLists[] = { &destSubResourceIndex, &srcSubResourceIndex };
     const uint numSubresources[] = { 1, 1 };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
@@ -433,35 +431,28 @@ namespace Fancy {
 
     FlushBarriers();
 
-    if (aSrcRegion != nullptr)
-    {
-      D3D12_BOX srcBox;
-      srcBox.left = aSrcRegion->myTexelPos.x;
-      srcBox.right = aSrcRegion->myTexelPos.x + aSrcRegion->myTexelSize.x;
-      srcBox.top = aSrcRegion->myTexelPos.y;
-      srcBox.bottom = aSrcRegion->myTexelPos.y + aSrcRegion->myTexelSize.y;
-      srcBox.front = aSrcRegion->myTexelPos.z;
-      srcBox.back = aSrcRegion->myTexelPos.z + aSrcRegion->myTexelSize.z;
-      myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, &srcBox);
-    }
-    else
-    {
-      myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
-    }
+    D3D12_BOX srcBox;
+    srcBox.left = aSrcRegion.myPos.x;
+    srcBox.right = aSrcRegion.myPos.x + aSrcRegion.mySize.x;
+    srcBox.top = aSrcRegion.myPos.y;
+    srcBox.bottom = aSrcRegion.myPos.y + aSrcRegion.mySize.y;
+    srcBox.front = aSrcRegion.myPos.z;
+    srcBox.back = aSrcRegion.myPos.z + aSrcRegion.mySize.z;
+    myCommandList->CopyTextureRegion(&dstLocation, aDstRegion.myPos.x, aDstRegion.myPos.y, aDstRegion.myPos.z, &srcLocation, &srcBox);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  void CommandListDX12::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
-    const TextureProperties& dstProps = aDestTexture->GetProperties();
+    const TextureProperties& dstProps = aDstTexture->GetProperties();
 
-    ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDestTexture)->GetData()->myResource.Get();
+    ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDstTexture)->GetData()->myResource.Get();
     ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
 
-    const uint16 destSubResourceIndex = static_cast<uint16>(aDestTexture->GetSubresourceIndex(aDestSubLocation));
+    const uint16 destSubResourceIndex = static_cast<uint16>(aDstTexture->GetSubresourceIndex(aDstSubresource));
     const uint16 srcSubResourceIndex = 0;
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
-    const GpuResource* resourcesToTransition[] = { aDestTexture, aSrcBuffer };
+    const GpuResource* resourcesToTransition[] = { aDstTexture, aSrcBuffer };
     const uint16* subresourceLists[] = { &destSubResourceIndex, &srcSubResourceIndex };
     const uint numSubresources[] = { 1, 1 };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
@@ -490,10 +481,10 @@ namespace Fancy {
     srcLocation.PlacedFootprint.Offset = aSrcOffset + footprint.Offset;
 
     FlushBarriers();
-    myCommandList->CopyTextureRegion(&dstLocation, aDestTexelPos.x, aDestTexelPos.y, aDestTexelPos.z, &srcLocation, nullptr);
+    myCommandList->CopyTextureRegion(&dstLocation, aDstTexelPos.x, aDstTexelPos.y, aDstTexelPos.z, &srcLocation, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
+  void CommandListDX12::UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
   {
     const uint numSubresources = aSubresourceRange.GetNumSubresources();
     ASSERT(aNumDatas == numSubresources);
@@ -501,11 +492,11 @@ namespace Fancy {
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT* footprints = (D3D12_PLACED_SUBRESOURCE_FOOTPRINT*)alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * numSubresources);
     uint* rowNums = (uint*)alloca(sizeof(uint) * numSubresources);
     uint64* rowSizes = (uint64*)alloca(sizeof(uint64) * numSubresources);
-    uint64 totalSize = static_cast<const TextureDX12*>(aDestTexture)->GetCopyableFootprints(aSubresourceRange, footprints, rowNums, rowSizes);
+    uint64 totalSize = static_cast<const TextureDX12*>(aDstTexture)->GetCopyableFootprints(aSubresourceRange, footprints, rowNums, rowSizes);
 
     uint64 uploadBufferOffset;
     const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize);
-    ASSERT(uploadBuffer);
+    ASSERT(uploadBuffer != nullptr);
 
     uint8* uploadBufferData = (uint8*)uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
 
@@ -541,7 +532,7 @@ namespace Fancy {
     for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
     {
       const SubresourceLocation dstLocation = *subIter;
-      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + footprints[i++].Offset);
+      CopyBufferToTexture(aDstTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + footprints[i++].Offset);
     }
   }
 //---------------------------------------------------------------------------//

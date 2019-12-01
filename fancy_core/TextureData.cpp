@@ -5,10 +5,6 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  TextureRegion TextureRegion::ourMaxRegion;
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
   bool SubresourceRange::IsEmpty() const
   {
     return myNumMipLevels == 0u && myNumArrayIndices == 0u && myNumPlanes == 0u;

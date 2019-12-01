@@ -79,14 +79,17 @@ namespace Fancy
   struct TextureRegion
   {
     TextureRegion()
-      : myTexelPos(glm::uvec3(0))
-      , myTexelSize(glm::uvec3(UINT_MAX))
+      : myPos(glm::uvec3(0))
+      , mySize(glm::uvec3(UINT_MAX))
     {}
 
-    static TextureRegion ourMaxRegion;
+    TextureRegion(glm::uvec3 aPos, glm::uvec3 aSize)
+      : myPos(std::move(aPos))
+      , mySize(std::move(aSize))
+    {}
 
-    glm::uvec3 myTexelPos;
-    glm::uvec3 myTexelSize;
+    glm::uvec3 myPos;
+    glm::uvec3 mySize;
   };
 //---------------------------------------------------------------------------//
   struct TextureSubData

@@ -290,7 +290,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal)
   {
-#if FANCY_RENDERER_HEAVY_VALIDATION
+#if FANCY_RENDERER_USE_VALIDATION
     auto predicate = [aBuffer](const std::pair<uint64, GpuRingBuffer*>& aPair) {
       return aPair.second == aBuffer;
     };
@@ -398,7 +398,7 @@ namespace Fancy {
     for (SubresourceIterator it = aSubresourceRange.Begin(), end = aSubresourceRange.End(); it != end; ++it)
     {
       const SubresourceLocation& subResource = *it;
-      ctx->CopyTextureRegion(readbackBuffer, dstOffset, aTexture, subResource);
+      ctx->CopyTextureToBuffer(readbackBuffer, dstOffset, aTexture, subResource);
       dstOffset += alignedSubresourceSizes[i++];
     }
 
@@ -434,7 +434,7 @@ namespace Fancy {
     if (needsTransitionBefore)
       ctx->ResourceBarrier(aBuffer, stateBefore, GpuResourceState::READ_COPY_SOURCE);
     
-    ctx->CopyBufferRegion(readbackBuffer, offsetToReadbackBuffer, aBuffer, anOffset, aSize);
+    ctx->CopyBuffer(readbackBuffer, offsetToReadbackBuffer, aBuffer, anOffset, aSize);
 
     if (needsTransitionAfter)
       ctx->ResourceBarrier(aBuffer, GpuResourceState::READ_COPY_SOURCE, stateAfter);

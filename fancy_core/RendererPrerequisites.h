@@ -1,7 +1,7 @@
 #pragma once
 
 /// Enables various sanity-checks and validations
-#define FANCY_RENDERER_HEAVY_VALIDATION 1
+#define FANCY_RENDERER_USE_VALIDATION 1
 #define FANCY_RENDERER_DEBUG 1
 #define FANCY_RENDERER_DEBUG_MEMORY_ALLOCS FANCY_RENDERER_DEBUG
 

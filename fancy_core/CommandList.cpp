@@ -102,6 +102,29 @@ namespace Fancy {
   {
   }
 //---------------------------------------------------------------------------//
+  void CommandList::CopyTextureToBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource)
+  {
+    const TextureProperties& srcProps = aSrcTexture->GetProperties();
+    uint srcWidth, srcHeight, srcDepth;
+    srcProps.GetSize(aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth);
+
+    CopyTextureToBuffer(aDstBuffer, aDstOffset, aSrcTexture, aSrcSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(srcWidth, srcHeight, srcDepth)));
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion)
+  {
+    const TextureProperties& srcProps = aSrcTexture->GetProperties();
+    uint srcWidth, srcHeight, srcDepth;
+    srcProps.GetSize(aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth);
+
+    const TextureProperties& dstProps = aDstTexture->GetProperties();
+    uint dstWidth, dstHeight, dstDepth;
+    dstProps.GetSize(aDstSubresource.myMipLevel, dstWidth, dstHeight, dstDepth);
+
+    CopyTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)),
+      aSrcTexture, aSrcSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(srcWidth, srcHeight, srcDepth)));
+  }
+//---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
   {
     const uint type = (uint)aType;
@@ -464,7 +487,7 @@ namespace Fancy {
     
     uint64 srcOffset = 0u;
     const GpuBuffer* uploadBuffer = GetBuffer(srcOffset, GpuBufferUsage::STAGING_UPLOAD, aDataPtr, aByteSize);
-    CopyBufferRegion(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
+    CopyBuffer(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
   }  
 //---------------------------------------------------------------------------//
   void CommandList::SubresourceBarrier(const GpuResource* aResource, const SubresourceLocation& aSubresourceLocation, GpuResourceState aSrcState, GpuResourceState aDstState)
@@ -517,6 +540,51 @@ namespace Fancy {
   void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
     ResourceBarrier(aResource, aSrcState, aDstState, myCommandListType, myCommandListType);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::ValidateTextureCopy(const TextureProperties& aDstProps, const SubresourceLocation& aDstSubresrource, const TextureRegion& aDstRegion,
+    const TextureProperties& aSrcProps, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) const
+  {
+    ASSERT(aSrcRegion.mySize == aDstRegion.mySize);
+    ASSERT(aSrcRegion.mySize != glm::uvec3(0) && aDstRegion.mySize != glm::uvec3(0));
+
+    uint dstWidth, dstHeight, dstDepth;
+    aDstProps.GetSize(aDstSubresrource.myMipLevel, dstWidth, dstHeight, dstDepth);
+
+    const glm::uvec3 dstEndTexel = aDstRegion.myPos + aDstRegion.mySize;
+    ASSERT(dstEndTexel.x <= dstWidth && dstEndTexel.y <= dstHeight && dstEndTexel.z <= dstDepth);
+
+    uint srcWidth, srcHeight, srcDepth;
+    aSrcProps.GetSize(aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth);
+
+    const glm::uvec3 srcEndTexel = aSrcRegion.myPos + aSrcRegion.mySize;
+    ASSERT(srcEndTexel.x <= srcWidth && srcEndTexel.y <= srcHeight && srcEndTexel.z <= srcDepth);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::ValidateTextureToBufferCopy(const GpuBufferProperties& aDstBufferProps, uint64 aDstBufferOffset,
+    const TextureProperties& aSrcTextureProps, const SubresourceLocation& aSrcSubresource,
+    const TextureRegion& aSrcRegion) const
+  {
+    ASSERT(aSrcRegion.mySize != glm::uvec3(0));
+
+    uint srcWidth, srcHeight, srcDepth;
+    aSrcTextureProps.GetSize(aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth);
+
+    const glm::uvec3 srcEndTexel = aSrcRegion.myPos + aSrcRegion.mySize;
+    ASSERT(srcEndTexel.x <= srcWidth && srcEndTexel.y <= srcHeight && srcEndTexel.z <= srcDepth);
+
+    const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+    const uint64 alignedBufferOffset = MathUtil::Align(aDstBufferOffset, caps.myTextureSubresourceBufferAlignment);
+
+    const uint64 bufferCapacity = aDstBufferProps.myElementSizeBytes * aDstBufferProps.myElementSizeBytes;
+    ASSERT(bufferCapacity > alignedBufferOffset);
+
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aSrcTextureProps.myFormat);
+    const uint64 alignedRowSize = MathUtil::Align(aSrcRegion.mySize.x * formatInfo.mySizeBytesPerPlane[aSrcSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    const uint64 requiredBufferSize = MathUtil::Align(alignedRowSize * aSrcRegion.mySize.y * aSrcRegion.mySize.z, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
+
+    const uint64 freeBufferSize = bufferCapacity - alignedBufferOffset;
+    ASSERT(freeBufferSize >= requiredBufferSize);
   }
 //---------------------------------------------------------------------------//
 } 

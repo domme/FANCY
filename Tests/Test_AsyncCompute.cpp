@@ -104,7 +104,7 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
       const uint64 incrementValueFence = RenderCore::ExecuteAndFreeCommandList(computeContext);
 
       RenderCore::GetCommandQueue(CommandListType::Graphics)->StallForFence(incrementValueFence);
-      graphicsContext->CopyBufferRegion(myReadbackBuffer.get(), 0ull, myBuffer.get(), 0ull, myBuffer->GetByteSize());
+      graphicsContext->CopyBuffer(myReadbackBuffer.get(), 0ull, myBuffer.get(), 0ull, myBuffer->GetByteSize());
       myBufferCopyFence = RenderCore::ExecuteAndFreeCommandList(graphicsContext);
 
       myStage = Stage::WAITING_FOR_READBACK_COPY;

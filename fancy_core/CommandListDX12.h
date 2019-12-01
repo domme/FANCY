@@ -7,6 +7,7 @@
 #include "GpuResourceDataDX12.h"
 #include "RenderEnums.h"
 #include "GpuResourceStateTracking.h"
+#include <glm/detail/type_mat.hpp>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -27,16 +28,16 @@ namespace Fancy {
     CommandListDX12(CommandListType aType);
     ~CommandListDX12() override;
 
-    void UpdateSubresources(ID3D12Resource* aDestResource, ID3D12Resource* aStagingResource, uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
+    void UpdateSubresources(ID3D12Resource* aDstResource, ID3D12Resource* aStagingResource, uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
     
     void ClearRenderTarget(TextureView* aTextureView, const float* aColor) override;
     void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) override;
-    void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) override;
-    void CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) override;
-    void CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
-    void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion = nullptr) override;
-    void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
-    void UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override; // TODO: Support regions
+    void CopyResource(GpuResource* aDstResource, GpuResource* aSrcResource) override;
+    void CopyBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) override;
+    void CopyTextureToBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) override;
+    void CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) override;
+    void CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
+    void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override; // TODO: Support regions
 
     void PostExecute(uint64 aFenceVal) override;
     void PreBegin() override;

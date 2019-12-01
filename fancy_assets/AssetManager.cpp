@@ -186,14 +186,20 @@ using namespace Fancy;
 
     if (tex != nullptr)
     {
-      ComputeMipmaps(tex);
-
-      SubresourceRange subresourceRange()
-      TextureReadbackTask readbackTask = RenderCore::ReadbackTexture(tex.get(), tex->GetSubresources());
-      readbackTask.Wait();
-
       TextureData textureData;
-      readbackTask.GetData(textureData);
+
+      if (texProps.myNumMipLevels > 1)
+      {
+        ComputeMipmaps(tex);
+        SubresourceRange subresourceRange = tex->GetSubresources();
+        subresourceRange.myFirstMipLevel = 1;
+        subresourceRange.myNumMipLevels -= 1;
+
+        TextureReadbackTask readbackTask = RenderCore::ReadbackTexture(tex.get(), subresourceRange);
+        readbackTask.Wait();
+        
+        readbackTask.GetData(textureData);
+      }
 
       textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
       BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), (uint) textureData.mySubDatas.size());
@@ -351,9 +357,9 @@ using namespace Fancy;
       ctx->SubresourceBarrier(aTexture.get(), dstSubLocation, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceState::WRITE_COPY_DEST);
 
       TextureRegion srcRegion;
-      srcRegion.myTexelPos = glm::uvec3(0, 0, 0);
-      srcRegion.myTexelSize = glm::uvec3((uint)destSize.x, (uint)destSize.y, 1);
-      ctx->CopyTextureRegion(aTexture.get(), dstSubLocation, glm::uvec3(0, 0, 0), tempTexResource[1].myTexture, SubresourceLocation(), &srcRegion);
+      srcRegion.myPos = glm::uvec3(0, 0, 0);
+      srcRegion.mySize = glm::uvec3((uint)destSize.x, (uint)destSize.y, 1);
+      ctx->CopyTexture(aTexture.get(), dstSubLocation, glm::uvec3(0, 0, 0), tempTexResource[1].myTexture, SubresourceLocation(),);
 
       srcSize = glm::ceil(srcSize * 0.5f);
       destSize = glm::ceil(destSize * 0.5f);

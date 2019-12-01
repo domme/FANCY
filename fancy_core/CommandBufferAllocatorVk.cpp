@@ -67,7 +67,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandBufferAllocatorVk::ReleaseCommandBuffer(VkCommandBuffer aCommandBuffer, uint64 aCommandBufferDoneFence)
   {
-#if defined (FANCY_RENDERER_HEAVY_VALIDATION)
+#if defined (FANCY_RENDERER_USE_VALIDATION)
     for (VkCommandBuffer buffer : myAvailableCommandBuffers)
       ASSERT(buffer != aCommandBuffer);
 

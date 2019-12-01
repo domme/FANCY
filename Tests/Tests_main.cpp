@@ -37,7 +37,7 @@ bool test_asyncCompute = false;
 bool test_mipmapping = false;
 bool test_modelviewer = false;
 
-constexpr bool kEnableImGui = true; // Deactivate IMGUI for Vulkan development?
+constexpr bool kEnableImGui = false; // Deactivate IMGUI for Vulkan development?
 
 DynamicArray<UniquePtr<Test>> myTests;
 
@@ -52,8 +52,8 @@ void OnWindowResized(uint aWidth, uint aHeight)
 void Init(HINSTANCE anInstanceHandle)
 {
   RenderingStartupParameters params;
-  params.myRenderingApi = RenderPlatformType::DX12; 
-  // params.myRenderingApi = RenderPlatformType::VULKAN;
+  // params.myRenderingApi = RenderPlatformType::DX12; 
+  params.myRenderingApi = RenderPlatformType::VULKAN;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   Fancy::WindowParameters windowParams;

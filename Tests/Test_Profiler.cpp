@@ -51,7 +51,7 @@ void LongGpuCopy(GpuBuffer* aSrcBuffer, GpuBuffer* aDstBuffer)
 {
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
   GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx, ANNTAG_PROFILER_TEST);
-  ctx->CopyBufferRegion(aDstBuffer, 0u, aSrcBuffer, 0u, aSrcBuffer->GetByteSize());
+  ctx->CopyBuffer(aDstBuffer, 0u, aSrcBuffer, 0u, aSrcBuffer->GetByteSize());
   GPU_END_PROFILE(ctx);
   RenderCore::ExecuteAndFreeCommandList(ctx);
 }

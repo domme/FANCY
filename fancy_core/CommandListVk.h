@@ -2,6 +2,7 @@
 #include "CommandList.h"
 #include "MathIncludes.h"
 #include "VkPrerequisites.h"
+#include <glm/detail/type_mat.hpp>
 
 namespace Fancy
 {
@@ -14,10 +15,12 @@ namespace Fancy
     void ClearRenderTarget(TextureView* aTextureView, const float* aColor) override;
     void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags) override;
     void CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource) override;
-    void CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) override;
-    void CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion) override;
-    void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion) override;
-    void CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
+    void CopyBuffer(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) override;
+    void CopyTextureToBuffer(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const
+                             TextureRegion& aSrcRegion) override;
+    void CopyTexture(const Texture* aDestTexture, const SubresourceLocation& aDestSubresource, const TextureRegion& aDestRegion, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const
+                     TextureRegion& aSrcRegion) override;
+    void CopyBufferToTexture(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
 
     void PostExecute(uint64 aFenceVal) override;
     void PreBegin() override;

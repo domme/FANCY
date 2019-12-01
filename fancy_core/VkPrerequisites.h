@@ -30,7 +30,7 @@ namespace Fancy
     if (kVkImplementationDebugLevel > VK_IMPLEMENTATION_DEBUG_LEVEL_NONE)
       Log("Missing Vulkan Implementation: %s", aFunction);
 
-    if (kVkImplementationDebugLevel == VK_IMPLEMENTATION_DEBUG_LEVEL_ASSERT)
+    if ((uint) kVkImplementationDebugLevel == (uint) VK_IMPLEMENTATION_DEBUG_LEVEL_ASSERT)
       throw;
   }
 

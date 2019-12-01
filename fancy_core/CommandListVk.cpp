@@ -11,6 +11,7 @@
 #include "TextureVk.h"
 #include "GpuResourceViewDataVk.h"
 #include "GpuBufferVk.h"
+#include <glm/detail/type_mat.hpp>
 
 namespace Fancy
 {
@@ -480,25 +481,52 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyBufferRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
+  void CommandListVk::CopyBuffer(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
   {
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyTextureRegion(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const TextureRegion* aSrcRegion)
+  void CommandListVk::CopyTextureToBuffer(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const
+                                          TextureRegion& aSrcRegion)
   {
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, 
-    const glm::uvec3& aDestTexelPos, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation,const TextureRegion* aSrcRegion)
+  void CommandListVk::CopyTexture(const Texture* aDestTexture, const SubresourceLocation& aDestSubresource,
+                                  const TextureRegion& aDestRegion, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const
+                                  TextureRegion& aSrcRegion)
   {
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyTextureRegion(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  void CommandListVk::CopyBufferToTexture(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, 
+    const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
-    VK_MISSING_IMPLEMENTATION();
+    VkImage dstImage = static_cast<const TextureVk*>(aDestTexture)->GetData()->myImage;
+    VkBuffer srcBuffer = static_cast<const GpuBufferVk*>(aSrcBuffer)->GetData()->myBuffer;
+
+    const TextureProperties& texProps = aDestTexture->GetProperties();
+
+    uint width, height, depth;
+    texProps.GetSize(aDestSubLocation.myMipLevel, width, height, depth);
+
+    VkBufferImageCopy copy;
+    copy.bufferOffset = aSrcOffset;
+    copy.bufferRowLength = width;
+    copy.bufferImageHeight = height;
+    copy.imageSubresource.baseArrayLayer = aDestSubLocation.myArrayIndex;
+    copy.imageSubresource.layerCount = 1u;
+    copy.imageSubresource.aspectMask = RenderCore_PlatformVk::ResolveAspectMask(aDestSubLocation.myPlaneIndex, 1u, texProps.myFormat);
+    copy.imageSubresource.mipLevel = aDestSubLocation.myMipLevel;
+    copy.imageOffset.x = aDestTexelPos.x;
+    copy.imageOffset.y = aDestTexelPos.y;
+    copy.imageOffset.z = aDestTexelPos.z;
+
+
+    
+    vkCmdCopyBufferToImage(myCommandBuffer, )
+
+    
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::PostExecute(uint64 aFenceVal)
@@ -626,11 +654,99 @@ namespace Fancy
   {
     VK_MISSING_IMPLEMENTATION();
   }
+//---------------------------------------------------------------------------//
+  void CommandListVk::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
+  {
+    const uint numSubresources = aSubresourceRange.GetNumSubresources();
+    ASSERT(aNumDatas == numSubresources);
 
-void CommandListVk::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
-{
-}
+    const TextureProperties& texProps = aDestTexture->GetProperties();
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
+    const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+    
+    uint64* rowSizes = (uint64*)alloca(sizeof(uint64) * numSubresources);
+    uint64* bufferRowSizes = (uint64*)alloca(sizeof(uint64) * numSubresources);
+    uint64* bufferSliceSizes = (uint64*)alloca(sizeof(uint64) * numSubresources);
+    uint64* bufferSubresourceSizes = (uint64*)alloca(sizeof(uint64) * numSubresources);
+    uint* heights = (uint*)alloca(sizeof(uint) * numSubresources);
+    uint* depths = (uint*)alloca(sizeof(uint) * numSubresources);
 
+    uint i = 0;
+    uint64 requiredBufferSize = 0u;
+    for (SubresourceIterator it = aSubresourceRange.Begin(), end = aSubresourceRange.End(); it != end; ++it)
+    {
+      const SubresourceLocation subResource = *it;
+
+      uint width, height, depth;
+      texProps.GetSize(subResource.myMipLevel, width, height, depth);
+
+      const uint64 rowSize = width * formatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex];
+      const uint64 alignedRowSize = MathUtil::Align(rowSize, caps.myTextureRowAlignment);
+      const uint64 alignedSliceSize = alignedRowSize * height;
+      const uint64 alignedSubresourceSize = MathUtil::Align(alignedSliceSize * depth, caps.myTextureSubresourceBufferAlignment);
+      requiredBufferSize += alignedSubresourceSize;
+  
+      rowSizes[i] = rowSize;
+      bufferRowSizes[i] = alignedRowSize;
+      bufferSliceSizes[i] = alignedSliceSize;
+      bufferSubresourceSizes[i] = alignedSubresourceSize;
+      heights[i] = height;
+      depths[i] = depth;
+      ++i;
+    }
+
+    uint64 uploadBufferOffset;
+    const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, requiredBufferSize);
+    ASSERT(uploadBuffer != nullptr);
+
+    uint8* uploadBufferData = (uint8*)uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, requiredBufferSize);
+    ASSERT(uploadBufferData != nullptr);
+
+    uint8* dstSubresourceData = uploadBufferData;
+    for (i = 0; i < aNumDatas; ++i)
+    {
+      const TextureSubData& srcData = someDatas[i];
+      ASSERT(rowSizes[i] == srcData.myRowSizeBytes);
+
+      const uint depth = depths[i];
+      const uint height = heights[i];
+
+      const uint64 dstRowSize = bufferRowSizes[i];
+      const uint64 dstSliceSize = bufferSliceSizes[i];
+      const uint64 dstSubresourceSize = bufferSubresourceSizes[i];
+
+      uint8* dstSliceData = dstSubresourceData;
+      const uint8* srcSliceData = srcData.myData;
+      for (uint d = 0; d < depth; ++d)
+      {
+        uint8* dstRowData = dstSliceData;
+        const uint8* srcRowData = srcSliceData;
+        for (uint h = 0; h < height; ++h)
+        {
+          memcpy(dstRowData, srcRowData, srcData.myRowSizeBytes);
+
+          dstRowData += dstRowSize;
+          srcRowData += srcData.myRowSizeBytes;
+        }
+
+        dstSliceData += dstSliceSize;
+        srcSliceData += srcData.mySliceSizeBytes;
+      }
+
+      dstSubresourceData += dstSubresourceSize;
+    }
+    uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, requiredBufferSize);
+
+    i = 0;
+    uint64 bufferOffset = uploadBufferOffset;
+    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
+    {
+      const SubresourceLocation dstLocation = *subIter;
+      CopyBufferToTexture(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, bufferOffset);
+
+      bufferOffset += bufferSubresourceSizes[i++];
+    }
+  }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const
   {
