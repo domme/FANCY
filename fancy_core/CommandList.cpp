@@ -111,7 +111,7 @@ namespace Fancy {
     CopyTextureToBuffer(aDstBuffer, aDstOffset, aSrcTexture, aSrcSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(srcWidth, srcHeight, srcDepth)));
   }
 //---------------------------------------------------------------------------//
-  void CommandList::CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion)
+  void CommandList::CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource)
   {
     const TextureProperties& srcProps = aSrcTexture->GetProperties();
     uint srcWidth, srcHeight, srcDepth;
@@ -123,6 +123,12 @@ namespace Fancy {
 
     CopyTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)),
       aSrcTexture, aSrcSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(srcWidth, srcHeight, srcDepth)));
+  }
+
+//---------------------------------------------------------------------------//
+  void CommandList::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  {
+
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
@@ -585,6 +591,28 @@ namespace Fancy {
 
     const uint64 freeBufferSize = bufferCapacity - alignedBufferOffset;
     ASSERT(freeBufferSize >= requiredBufferSize);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::ValidateBufferToTextureCopy(const TextureProperties& aDstTexProps,
+    const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstOffset, const GpuBufferProperties& aSrcBufferProps,
+    uint64 aSrcBufferOffset, const TextureRegion& aSrcRegion)
+  {
+    ASSERT(aSrcRegion.mySize != glm::uvec3(0));
+
+    uint subWidth, subHeight, subDepth;
+    aDstTexProps.GetSize(aDstSubresource.myMipLevel, subWidth, subHeight, subDepth);
+    ASSERT(aDstOffset.x + aSrcRegion.mySize.x <= subWidth);
+    ASSERT(aDstOffset.y + aSrcRegion.mySize.y <= subHeight);
+    ASSERT(aDstOffset.z + aSrcRegion.mySize.z <= subDepth);
+
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aDstTexProps.myFormat);
+    const uint64 alignedRowSize = MathUtil::Align((subWidth - aDstOffset.x) * formatInfo.mySizeBytesPerPlane[aDstSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    const uint64 requiredBufferSize = MathUtil::Align(alignedRowSize * (subHeight - aDstOffset.y) * (subDepth - aDstOffset.z), RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
+
+    const uint64 bufferCapacity = aSrcBufferProps.myElementSizeBytes * aSrcBufferProps.myNumElements;
+    ASSERT(aSrcBufferOffset < bufferCapacity);
+    ASSERT(bufferCapacity >= aSrcBufferOffset + requiredBufferSize);
+    ASSERT(aSrcRegion.mySize.x * aSrcRegion.mySize.y * aSrcRegion.mySize.z * formatInfo.mySizeBytesPerPlane[aDstSubresource.myPlaneIndex] <= bufferCapacity - aSrcBufferOffset);
   }
 //---------------------------------------------------------------------------//
   void CommandList::ValidateBufferCopy(const GpuBufferProperties& aDstProps, uint64 aDstOffset, 

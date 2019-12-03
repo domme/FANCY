@@ -444,9 +444,11 @@ namespace Fancy {
     myCommandList->CopyTextureRegion(&dstLocation, aDstRegion.myPos.x, aDstRegion.myPos.y, aDstRegion.myPos.z, &srcLocation, &srcBox);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  void CommandListDX12::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, const TextureRegion& aSrcRegion)
   {
-    const TextureProperties& dstProps = aDstTexture->GetProperties();
+#if FANCY_RENDERER_USE_VALIDATION
+    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcBuffer->GetProperties(), aSrcOffset);
+#endif
 
     ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDstTexture)->GetData()->myResource.Get();
     ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
@@ -484,7 +486,15 @@ namespace Fancy {
     srcLocation.PlacedFootprint.Offset = aSrcOffset + footprint.Offset;
 
     FlushBarriers();
-    myCommandList->CopyTextureRegion(&dstLocation, aDstTexelPos.x, aDstTexelPos.y, aDstTexelPos.z, &srcLocation, nullptr);
+
+    D3D12_BOX srcBox;
+    srcBox.left = aSrcRegion.myPos.x;
+    srcBox.right = aSrcRegion.myPos.x + aSrcRegion.mySize.x;
+    srcBox.top = aSrcRegion.myPos.y;
+    srcBox.bottom = aSrcRegion.myPos.y + aSrcRegion.mySize.y;
+    srcBox.front = aSrcRegion.myPos.z;
+    srcBox.back = aSrcRegion.myPos.z + aSrcRegion.mySize.z;
+    myCommandList->CopyTextureRegion(&dstLocation, aDstOffset.x, aDstOffset.y, aDstOffset.z, &srcLocation, &srcBox);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
