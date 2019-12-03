@@ -63,6 +63,7 @@ namespace Fancy {
     /// Clears the depth and stencil planes of aTextureView with aDepthClear and aStencilClear. Texture needs to be in the WRITE_RENDERTARGET state
     virtual void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
     virtual void CopyResource(GpuResource* aDstResource, GpuResource* aSrcResource) = 0;
+
     virtual void CopyBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) = 0;
 
     void CopyTextureToBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource);
@@ -71,6 +72,7 @@ namespace Fancy {
     void CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion);
     virtual void CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) = 0;
 
+    void CopyTextureToBuffer
     virtual void CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) = 0;
     virtual void Dispatch(const glm::int3& aNumThreads) = 0;
     virtual void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const = 0;
@@ -137,6 +139,8 @@ namespace Fancy {
 
     void ValidateTextureToBufferCopy(const GpuBufferProperties& aDstBufferProps, uint64 aDstBufferOffset, 
       const TextureProperties& aSrcTextureProps, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) const;
+
+    void ValidateBufferCopy(const GpuBufferProperties& aDstProps, uint64 aDstOffset, const GpuBufferProperties& aSrcProps, uint64 aSrcOffset, uint64 aSize) const;
 
     enum Consts {
       kNumCachedBarriers = 256

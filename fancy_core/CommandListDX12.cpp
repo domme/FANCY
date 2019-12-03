@@ -328,14 +328,17 @@ namespace Fancy {
   void CommandListDX12::CopyBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
   {
     ASSERT(aDstBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)");
-    ASSERT(aSize <= aDstBuffer->GetByteSize() - aDstOffset, "Invalid dst-region specified");
-    ASSERT(aSize <= aSrcBuffer->GetByteSize() - aSrcOffset, "Invalid src-region specified");
+
+#if FANCY_RENDERER_USE_VALIDATION
+    ValidateBufferCopy(aDstBuffer->GetProperties(), aDstOffset, aSrcBuffer->GetProperties(), aSrcOffset, aSize);
+#endif
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     const GpuResource* resourcesToTransition[] = { aDstBuffer, aSrcBuffer };
     const D3D12_RESOURCE_STATES barrierStates[] = { D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE };
     SetTrackResourceTransitionBarriers(resourcesToTransition, barrierStates, 2);
 #endif
+    
     FlushBarriers();
 
     ID3D12Resource* dstResource = static_cast<const GpuBufferDX12*>(aDstBuffer)->GetData()->myResource.Get();

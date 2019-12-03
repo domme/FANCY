@@ -587,4 +587,22 @@ namespace Fancy {
     ASSERT(freeBufferSize >= requiredBufferSize);
   }
 //---------------------------------------------------------------------------//
+  void CommandList::ValidateBufferCopy(const GpuBufferProperties& aDstProps, uint64 aDstOffset, 
+    const GpuBufferProperties& aSrcProps, uint64 aSrcOffset, uint64 aSize) const
+  {
+    ASSERT(aSize > 0u);
+
+    const uint64 dstBufferCapacity = aDstProps.myElementSizeBytes * aDstProps.myElementSizeBytes;
+    ASSERT(aSize < dstBufferCapacity);
+    ASSERT(aDstOffset < dstBufferCapacity);
+
+    const uint64 dstFreeSize = dstBufferCapacity - aDstOffset;
+    ASSERT(aSize <= dstFreeSize);
+
+    const uint64 srcBufferCapacity = aSrcProps.myElementSizeBytes * aSrcProps.myElementSizeBytes;
+    ASSERT(aSrcOffset < srcBufferCapacity);
+
+    ASSERT(aSrcOffset + aSize <= srcBufferCapacity);
+  }
+//---------------------------------------------------------------------------//
 } 
