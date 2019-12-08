@@ -499,34 +499,43 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyBufferToTexture(const Texture* aDestTexture, const SubresourceLocation& aDestSubLocation, 
-    const glm::uvec3& aDestTexelPos, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  void CommandListVk::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource,
+    const glm::uvec3& aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, const TextureRegion& aSrcRegion)
   {
-    VkImage dstImage = static_cast<const TextureVk*>(aDestTexture)->GetData()->myImage;
+#if FANCY_RENDERER_USE_VALIDATION
+    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstOffset, aSrcBuffer->GetProperties(), aSrcOffset, aSrcRegion);
+#endif
+
+    VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
     VkBuffer srcBuffer = static_cast<const GpuBufferVk*>(aSrcBuffer)->GetData()->myBuffer;
 
-    const TextureProperties& texProps = aDestTexture->GetProperties();
+    const TextureProperties& texProps = aDstTexture->GetProperties();
 
     uint width, height, depth;
-    texProps.GetSize(aDestSubLocation.myMipLevel, width, height, depth);
+    texProps.GetSize(aDstSubresource.myMipLevel, width, height, depth);
+
+    const uint bufferRowLength = aSrcRegion.mySize.x;
+    const uint64 bufferOffsetToFirstSlice
 
     VkBufferImageCopy copy;
     copy.bufferOffset = aSrcOffset;
-    copy.bufferRowLength = width;
-    copy.bufferImageHeight = height;
-    copy.imageSubresource.baseArrayLayer = aDestSubLocation.myArrayIndex;
+    copy.bufferRowLength = 0u;  // Using 0 here will make it fall back to imageExtent
+    copy.bufferImageHeight = 0u;
+    copy.imageSubresource.baseArrayLayer = aDstSubresource.myArrayIndex;
     copy.imageSubresource.layerCount = 1u;
-    copy.imageSubresource.aspectMask = RenderCore_PlatformVk::ResolveAspectMask(aDestSubLocation.myPlaneIndex, 1u, texProps.myFormat);
-    copy.imageSubresource.mipLevel = aDestSubLocation.myMipLevel;
-    copy.imageOffset.x = aDestTexelPos.x;
-    copy.imageOffset.y = aDestTexelPos.y;
-    copy.imageOffset.z = aDestTexelPos.z;
+    copy.imageSubresource.aspectMask = RenderCore_PlatformVk::ResolveAspectMask(aDstSubresource.myPlaneIndex, 1u, texProps.myFormat);
+    copy.imageSubresource.mipLevel = aDstSubresource.myMipLevel;
+    copy.imageOffset.x = aDstOffset.x;
+    copy.imageOffset.y = aDstOffset.y;
+    copy.imageOffset.z = aDstOffset.z;
+    copy.imageExtent.width = aSrcRegion.mySize.x;
+    copy.imageExtent.height = aSrcRegion.mySize.y;
+    copy.imageExtent.width = aSrcRegion.mySize.z;
 
 
-    
+
+
     vkCmdCopyBufferToImage(myCommandBuffer, )
-
-    
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::PostExecute(uint64 aFenceVal)

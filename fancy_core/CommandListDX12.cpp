@@ -447,7 +447,7 @@ namespace Fancy {
   void CommandListDX12::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, const TextureRegion& aSrcRegion)
   {
 #if FANCY_RENDERER_USE_VALIDATION
-    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcBuffer->GetProperties(), aSrcOffset);
+    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstOffset, aSrcBuffer->GetProperties(), aSrcOffset, aSrcRegion);
 #endif
 
     ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDstTexture)->GetData()->myResource.Get();
@@ -545,7 +545,7 @@ namespace Fancy {
     for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
     {
       const SubresourceLocation dstLocation = *subIter;
-      CopyBufferToTexture(aDstTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + footprints[i++].Offset);
+      CommandList::CopyBufferToTexture(aDstTexture, dstLocation, uploadBuffer, uploadBufferOffset + footprints[i++].Offset);
     }
   }
 //---------------------------------------------------------------------------//

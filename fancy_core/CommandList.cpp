@@ -595,7 +595,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandList::ValidateBufferToTextureCopy(const TextureProperties& aDstTexProps,
     const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstOffset, const GpuBufferProperties& aSrcBufferProps,
-    uint64 aSrcBufferOffset, const TextureRegion& aSrcRegion)
+    uint64 aSrcBufferOffset, const TextureRegion& aSrcRegion) const
   {
     ASSERT(aSrcRegion.mySize != glm::uvec3(0));
 
@@ -605,14 +605,16 @@ namespace Fancy {
     ASSERT(aDstOffset.y + aSrcRegion.mySize.y <= subHeight);
     ASSERT(aDstOffset.z + aSrcRegion.mySize.z <= subDepth);
 
+    // Its a bit unclear if the following calculation of the required buffer size is correct. This assumes that the buffer will always hold the entire
+    // subresource, which makes somewhat sense since the srcRegion specifies a subregion of that subresrouce. So, in order for that to work properly, the buffer
+    // should be expected to have the whole subresource-data present.
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aDstTexProps.myFormat);
-    const uint64 alignedRowSize = MathUtil::Align((subWidth - aDstOffset.x) * formatInfo.mySizeBytesPerPlane[aDstSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
-    const uint64 requiredBufferSize = MathUtil::Align(alignedRowSize * (subHeight - aDstOffset.y) * (subDepth - aDstOffset.z), RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
+    const uint64 alignedRowSize = MathUtil::Align(subWidth * formatInfo.mySizeBytesPerPlane[aDstSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    const uint64 requiredBufferSize = MathUtil::Align(alignedRowSize * subHeight * subDepth, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
 
     const uint64 bufferCapacity = aSrcBufferProps.myElementSizeBytes * aSrcBufferProps.myNumElements;
     ASSERT(aSrcBufferOffset < bufferCapacity);
     ASSERT(bufferCapacity >= aSrcBufferOffset + requiredBufferSize);
-    ASSERT(aSrcRegion.mySize.x * aSrcRegion.mySize.y * aSrcRegion.mySize.z * formatInfo.mySizeBytesPerPlane[aDstSubresource.myPlaneIndex] <= bufferCapacity - aSrcBufferOffset);
   }
 //---------------------------------------------------------------------------//
   void CommandList::ValidateBufferCopy(const GpuBufferProperties& aDstProps, uint64 aDstOffset, 

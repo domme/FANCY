@@ -137,13 +137,10 @@ namespace Fancy {
   protected:
     void ValidateTextureCopy(const TextureProperties& aDstProps, const SubresourceLocation& aDstSubresrource, const TextureRegion& aDstRegion,
       const TextureProperties& aSrcProps, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) const;
-
     void ValidateTextureToBufferCopy(const GpuBufferProperties& aDstBufferProps, uint64 aDstBufferOffset, 
       const TextureProperties& aSrcTextureProps, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) const;
-
     void ValidateBufferToTextureCopy(const TextureProperties& aDstTexProps, const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstOffset,
-      const GpuBufferProperties& aSrcBufferProps, uint64 aSrcBufferOffset, const TextureRegion& aSrcRegion);
-
+      const GpuBufferProperties& aSrcBufferProps, uint64 aSrcBufferOffset, const TextureRegion& aSrcRegion) const;
     void ValidateBufferCopy(const GpuBufferProperties& aDstProps, uint64 aDstOffset, const GpuBufferProperties& aSrcProps, uint64 aSrcOffset, uint64 aSize) const;
 
     enum Consts {
