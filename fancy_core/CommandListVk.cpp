@@ -500,10 +500,10 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource,
-    const glm::uvec3& aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, const TextureRegion& aSrcRegion)
+                                          const TextureRegion& aDstRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
 #if FANCY_RENDERER_USE_VALIDATION
-    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstOffset, aSrcBuffer->GetProperties(), aSrcOffset, aSrcRegion);
+    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aSrcRegion, aSrcBuffer->GetProperties(), aSrcOffset);
 #endif
 
     VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
@@ -525,9 +525,9 @@ namespace Fancy
     copy.imageSubresource.layerCount = 1u;
     copy.imageSubresource.aspectMask = RenderCore_PlatformVk::ResolveAspectMask(aDstSubresource.myPlaneIndex, 1u, texProps.myFormat);
     copy.imageSubresource.mipLevel = aDstSubresource.myMipLevel;
-    copy.imageOffset.x = aDstOffset.x;
-    copy.imageOffset.y = aDstOffset.y;
-    copy.imageOffset.z = aDstOffset.z;
+    copy.imageOffset.x = aDstRegion.x;
+    copy.imageOffset.y = aDstRegion.y;
+    copy.imageOffset.z = aDstRegion.z;
     copy.imageExtent.width = aSrcRegion.mySize.x;
     copy.imageExtent.height = aSrcRegion.mySize.y;
     copy.imageExtent.width = aSrcRegion.mySize.z;
@@ -689,7 +689,7 @@ namespace Fancy
       uint width, height, depth;
       texProps.GetSize(subResource.myMipLevel, width, height, depth);
 
-      const uint64 rowSize = width * formatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex];
+      const uint64 rowSize = width * formatInfo.myCopyableSizePerPlane[subResource.myPlaneIndex];
       const uint64 alignedRowSize = MathUtil::Align(rowSize, caps.myTextureRowAlignment);
       const uint64 alignedSliceSize = alignedRowSize * height;
       const uint64 alignedSubresourceSize = MathUtil::Align(alignedSliceSize * depth, caps.myTextureSubresourceBufferAlignment);

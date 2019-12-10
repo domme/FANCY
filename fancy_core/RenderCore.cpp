@@ -372,7 +372,7 @@ namespace Fancy {
       uint width, height, depth;
       texProps.GetSize(subResource.myMipLevel, width, height, depth);
 
-      const uint64 rowSize = MathUtil::Align(width * dataFormatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex], caps.myTextureRowAlignment);
+      const uint64 rowSize = MathUtil::Align(width * dataFormatInfo.myCopyableSizePerPlane[subResource.myPlaneIndex], caps.myTextureRowAlignment);
       const uint64 subresourceSize = MathUtil::Align(rowSize * height * depth, (uint64) caps.myTextureSubresourceBufferAlignment);
       alignedSubresourceSizes[i++] = subresourceSize;
       

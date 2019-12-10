@@ -356,7 +356,6 @@ namespace Fancy {
     ID3D12Resource* bufferResourceDX12 = static_cast<const GpuBufferDX12*>(aDstBuffer)->GetData()->myResource.Get();
     ID3D12Resource* textureResourceDX12 = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
 
-    const uint16 bufferSubresourceIndex = 0;
     const uint16 textureSubresourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubresource));
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
@@ -374,20 +373,22 @@ namespace Fancy {
     srcLocation.SubresourceIndex = textureSubresourceIndex;
     srcLocation.pResource = textureResourceDX12;
 
-    const D3D12_RESOURCE_DESC& textureResourceDescDX12 = textureResourceDX12->GetDesc();
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-    uint numRows;
-    uint64 rowSizeBytes;
-    uint64 totalSizeBytes;
-    device->GetCopyableFootprints(&textureResourceDescDX12, srcLocation.SubresourceIndex, 1u, 0u, &footprint, &numRows, &rowSizeBytes, &totalSizeBytes);
+    const DataFormat format = aSrcTexture->GetProperties().myFormat;
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
 
-    ASSERT(totalSizeBytes <= aDstBuffer->GetByteSize() - aDstOffset);  // If this triggers but ValidateTextureToBufferCopy() was fine, then something is wrong in the validation-code
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+    footprint.Offset = 0;
+    footprint.Footprint.Format = DXGI_FORMAT_UNKNOWN;  // TEST: See if the format is needed here
+    footprint.Footprint.Width = aSrcRegion.mySize.x;
+    footprint.Footprint.RowPitch = MathUtil::Align(aSrcRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aSrcSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    footprint.Footprint.Height = aSrcRegion.mySize.y;
+    footprint.Footprint.Depth = aSrcRegion.mySize.z;
 
     D3D12_TEXTURE_COPY_LOCATION destLocation;
     destLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
     destLocation.pResource = bufferResourceDX12;
     destLocation.PlacedFootprint.Footprint = footprint.Footprint;
-    destLocation.PlacedFootprint.Offset = aDstOffset + footprint.Offset;
+    destLocation.PlacedFootprint.Offset = aDstOffset;
 
     FlushBarriers();
 
@@ -444,10 +445,10 @@ namespace Fancy {
     myCommandList->CopyTextureRegion(&dstLocation, aDstRegion.myPos.x, aDstRegion.myPos.y, aDstRegion.myPos.z, &srcLocation, &srcBox);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, const TextureRegion& aSrcRegion)
+  void CommandListDX12::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
 #if FANCY_RENDERER_USE_VALIDATION
-    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstOffset, aSrcBuffer->GetProperties(), aSrcOffset, aSrcRegion);
+    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcBuffer->GetProperties(), aSrcOffset);
 #endif
 
     ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDstTexture)->GetData()->myResource.Get();
@@ -473,28 +474,25 @@ namespace Fancy {
 
     const D3D12_RESOURCE_DESC& dstResourceDesc = dstResource->GetDesc();
 
+    const DataFormat format = aDstTexture->GetProperties().myFormat;
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
-    uint numRows;
-    uint64 rowSizeBytes;
-    uint64 totalSizeBytes;
-    device->GetCopyableFootprints(&dstResourceDesc, dstLocation.SubresourceIndex, 1u, 0u, &footprint, &numRows, &rowSizeBytes, &totalSizeBytes);
-    
+    footprint.Offset = 0u;
+    footprint.Footprint.Format = RenderCore_PlatformDX12::ResolveFormat(format);
+    footprint.Footprint.Width = aDstRegion.mySize.x;
+    footprint.Footprint.RowPitch = MathUtil::Align(aDstRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aDstSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    footprint.Footprint.Height = aDstRegion.mySize.y;
+    footprint.Footprint.Depth = aDstRegion.mySize.z;
+
     D3D12_TEXTURE_COPY_LOCATION srcLocation;
     srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
     srcLocation.pResource = srcResource;
     srcLocation.PlacedFootprint.Footprint = footprint.Footprint;
-    srcLocation.PlacedFootprint.Offset = aSrcOffset + footprint.Offset;
+    srcLocation.PlacedFootprint.Offset = aSrcOffset;
 
     FlushBarriers();
 
-    D3D12_BOX srcBox;
-    srcBox.left = aSrcRegion.myPos.x;
-    srcBox.right = aSrcRegion.myPos.x + aSrcRegion.mySize.x;
-    srcBox.top = aSrcRegion.myPos.y;
-    srcBox.bottom = aSrcRegion.myPos.y + aSrcRegion.mySize.y;
-    srcBox.front = aSrcRegion.myPos.z;
-    srcBox.back = aSrcRegion.myPos.z + aSrcRegion.mySize.z;
-    myCommandList->CopyTextureRegion(&dstLocation, aDstOffset.x, aDstOffset.y, aDstOffset.z, &srcLocation, &srcBox);
+    myCommandList->CopyTextureRegion(&dstLocation, aDstRegion.myPos.x, aDstRegion.myPos.y, aDstRegion.myPos.z, &srcLocation, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)

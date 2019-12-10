@@ -128,7 +128,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandList::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
+    const TextureProperties& dstProps = aDstTexture->GetProperties();
+    uint dstWidth, dstHeight, dstDepth;
+    dstProps.GetSize(aDstSubresource.myMipLevel, dstWidth, dstHeight, dstDepth);
 
+    CopyBufferToTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)), aSrcBuffer, aSrcOffset);
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
@@ -573,11 +577,15 @@ namespace Fancy {
   {
     ASSERT(aSrcRegion.mySize != glm::uvec3(0));
 
-    uint srcWidth, srcHeight, srcDepth;
-    aSrcTextureProps.GetSize(aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth);
+    uint subWidth, subHeight, subDepth;
+    aSrcTextureProps.GetSize(aSrcSubresource.myMipLevel, subWidth, subHeight, subDepth);
+
+    const bool entireSubresource = aSrcRegion.mySize == glm::uvec3(subWidth, subHeight, subDepth);
+    if (entireSubresource)
+      ASSERT(MathUtil::IsAligned(aDstBufferOffset, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment));
 
     const glm::uvec3 srcEndTexel = aSrcRegion.myPos + aSrcRegion.mySize;
-    ASSERT(srcEndTexel.x <= srcWidth && srcEndTexel.y <= srcHeight && srcEndTexel.z <= srcDepth);
+    ASSERT(srcEndTexel.x <= subWidth && srcEndTexel.y <= subHeight && srcEndTexel.z <= subDepth);
 
     const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
     const uint64 alignedBufferOffset = MathUtil::Align(aDstBufferOffset, caps.myTextureSubresourceBufferAlignment);
@@ -586,31 +594,36 @@ namespace Fancy {
     ASSERT(bufferCapacity > alignedBufferOffset);
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aSrcTextureProps.myFormat);
-    const uint64 alignedRowSize = MathUtil::Align(aSrcRegion.mySize.x * formatInfo.mySizeBytesPerPlane[aSrcSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
-    const uint64 requiredBufferSize = MathUtil::Align(alignedRowSize * aSrcRegion.mySize.y * aSrcRegion.mySize.z, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
+    const uint64 alignedRowSize = MathUtil::Align(aSrcRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aSrcSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    uint64 requiredBufferSize = alignedRowSize * aSrcRegion.mySize.y * aSrcRegion.mySize.z;
+    if (entireSubresource)
+      requiredBufferSize = MathUtil::Align(requiredBufferSize, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
 
     const uint64 freeBufferSize = bufferCapacity - alignedBufferOffset;
     ASSERT(freeBufferSize >= requiredBufferSize);
   }
 //---------------------------------------------------------------------------//
   void CommandList::ValidateBufferToTextureCopy(const TextureProperties& aDstTexProps,
-    const SubresourceLocation& aDstSubresource, const glm::uvec3& aDstOffset, const GpuBufferProperties& aSrcBufferProps,
-    uint64 aSrcBufferOffset, const TextureRegion& aSrcRegion) const
+                                                const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion,
+                                                const GpuBufferProperties& aSrcBufferProps, uint64 aSrcBufferOffset) const
   {
-    ASSERT(aSrcRegion.mySize != glm::uvec3(0));
+    ASSERT(aDstRegion.mySize != glm::uvec3(0));
 
     uint subWidth, subHeight, subDepth;
     aDstTexProps.GetSize(aDstSubresource.myMipLevel, subWidth, subHeight, subDepth);
-    ASSERT(aDstOffset.x + aSrcRegion.mySize.x <= subWidth);
-    ASSERT(aDstOffset.y + aSrcRegion.mySize.y <= subHeight);
-    ASSERT(aDstOffset.z + aSrcRegion.mySize.z <= subDepth);
+    ASSERT(aDstRegion.myPos.x + aDstRegion.mySize.x <= subWidth);
+    ASSERT(aDstRegion.myPos.y + aDstRegion.mySize.y <= subHeight);
+    ASSERT(aDstRegion.myPos.z + aDstRegion.mySize.z <= subDepth);
 
-    // Its a bit unclear if the following calculation of the required buffer size is correct. This assumes that the buffer will always hold the entire
-    // subresource, which makes somewhat sense since the srcRegion specifies a subregion of that subresrouce. So, in order for that to work properly, the buffer
-    // should be expected to have the whole subresource-data present.
+    const bool entireSubresource = aDstRegion.mySize == glm::uvec3(subWidth, subHeight, subDepth);
+    if (entireSubresource)
+      ASSERT(MathUtil::IsAligned(aSrcBufferOffset, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment));
+    
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aDstTexProps.myFormat);
-    const uint64 alignedRowSize = MathUtil::Align(subWidth * formatInfo.mySizeBytesPerPlane[aDstSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
-    const uint64 requiredBufferSize = MathUtil::Align(alignedRowSize * subHeight * subDepth, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
+    const uint64 alignedRowSize = MathUtil::Align(aDstRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aDstSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    uint64 requiredBufferSize = alignedRowSize * aDstRegion.mySize.y * aDstRegion.mySize.z;
+    if (entireSubresource)
+      requiredBufferSize = MathUtil::Align(requiredBufferSize, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
 
     const uint64 bufferCapacity = aSrcBufferProps.myElementSizeBytes * aSrcBufferProps.myNumElements;
     ASSERT(aSrcBufferOffset < bufferCapacity);

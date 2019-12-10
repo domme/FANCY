@@ -65,7 +65,7 @@ namespace Fancy
       uint width, height, depth;
       myTextureProperties.GetSize(subResource.myMipLevel, width, height, depth);
 
-      const uint64 rowSize = width * formatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex];
+      const uint64 rowSize = width * formatInfo.myCopyableSizePerPlane[subResource.myPlaneIndex];
       const uint64 alignedRowSize = MathUtil::Align(rowSize, rowAlignment);
 
       const uint64 subresourceSize = rowSize * height * depth;
@@ -93,7 +93,7 @@ namespace Fancy
       uint width, height, depth;
       myTextureProperties.GetSize(subResource.myMipLevel, width, height, depth);
 
-      const uint64 dstRowSizeBytes = width * formatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex];
+      const uint64 dstRowSizeBytes = width * formatInfo.myCopyableSizePerPlane[subResource.myPlaneIndex];
       const uint64 srcRowSizeBytes = MathUtil::Align(dstRowSizeBytes, rowAlignment);
 
       const uint64 srcSliceSizeBytes = srcRowSizeBytes * height;
@@ -101,7 +101,7 @@ namespace Fancy
 
       TextureSubData& dstSubData = aDataOut.mySubDatas[subResourceIndex];
       dstSubData.myData = dstSubResourceStart;
-      dstSubData.myPixelSizeBytes = formatInfo.mySizeBytesPerPlane[subResource.myPlaneIndex];
+      dstSubData.myPixelSizeBytes = formatInfo.myCopyableSizePerPlane[subResource.myPlaneIndex];
       dstSubData.myRowSizeBytes = dstRowSizeBytes;
       dstSubData.mySliceSizeBytes = dstSliceSizeBytes;
       dstSubData.myTotalSizeBytes = dstSliceSizeBytes * depth;

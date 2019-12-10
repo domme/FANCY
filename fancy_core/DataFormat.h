@@ -16,7 +16,7 @@ namespace Fancy {
   public:
     DataFormatInfo(DataFormat aFormat, uint aSizeBytes, uint aSizeBytesPlane0, uint aSizeBytesPlane1, uint aNumComponents, uint aNumPlanes, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false)
       : mySizeBytes(aSizeBytes)
-      , mySizeBytesPerPlane{ aSizeBytesPlane0, aSizeBytesPlane1 }
+      , myCopyableSizePerPlane{ aSizeBytesPlane0, aSizeBytesPlane1 }
       , myNumComponents(aNumComponents)
       , myNumPlanes(aNumPlanes)
       , myFormat(aFormat)
@@ -27,18 +27,19 @@ namespace Fancy {
 
     DataFormatInfo()
       : mySizeBytes(0u)
+      , myCopyableSizePerPlane{ 0u, 0u }
       , myNumComponents(0u)
       , myNumPlanes(1u)
       , myFormat(NONE)
+      , myIsDepthStencil(false)
       , mySRGB(false)
       , myIsCompressed(false)
-      , myIsDepthStencil(false)
     {}
 
     explicit DataFormatInfo(DataFormat aFormat);
     
     uint mySizeBytes;
-    uint mySizeBytesPerPlane[2];
+    uint myCopyableSizePerPlane[2];
     uint myNumComponents;
     uint myNumPlanes;
     DataFormat myFormat;
@@ -52,3 +53,4 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
