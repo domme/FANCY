@@ -273,16 +273,7 @@ namespace Fancy {
     params.myBindFlags = someBindFlags;
     params.myCpuAccess = aCpuAccess;
 
-    GpuResourceMapMode mapMode = GpuResourceMapMode::WRITE_UNSYNCHRONIZED;
-    bool keepMapped = true;
-
-    if (aCpuAccess == CpuMemoryAccessType::CPU_READ)
-    {
-      mapMode = GpuResourceMapMode::READ_UNSYNCHRONIZED;
-      keepMapped = false;
-    }
-
-    buf->Create(params, mapMode, keepMapped, aName);
+    buf->Create(params, aName);
     ourRingBufferPool.push_back(std::move(buf));
 
     return ourRingBufferPool.back().get();
@@ -500,7 +491,7 @@ namespace Fancy {
       props.path = TextureRef::ToString(TextureRef::DEFAULT_DIFFUSE);
 
       TextureSubData data(props);
-      uint8 color[3] = { 0, 0, 0 };
+      uint8 color[4] = { 0, 0, 0, 255 };
       data.myData = color;
 
       ourDefaultDiffuseTexture = CreateTexture(props, "Default_Diffuse", &data, 1);
@@ -518,7 +509,7 @@ namespace Fancy {
       props.path = TextureRef::ToString(TextureRef::DEFAULT_NORMAL);
 
       TextureSubData data(props);
-      uint8 color[3] = { 128, 128, 128 };
+      uint8 color[4] = { 128, 128, 128, 255 };
       data.myData = color;
 
       ourDefaultNormalTexture = CreateTexture(props, "Default_Normal", &data, 1);

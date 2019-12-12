@@ -104,6 +104,7 @@ namespace Fancy {
     bool IsOpen() const { return myIsOpen; }
     void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
+    const GpuBuffer* GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize);
     void BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize);
     void BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize);
     void BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex);
@@ -142,6 +143,8 @@ namespace Fancy {
     void ValidateBufferToTextureCopy(const TextureProperties& aDstTexProps, const SubresourceLocation& aDstSubresource,
                                      const TextureRegion& aDstRegion, const GpuBufferProperties& aSrcBufferProps, uint64 aSrcBufferOffset) const;
     void ValidateBufferCopy(const GpuBufferProperties& aDstProps, uint64 aDstOffset, const GpuBufferProperties& aSrcProps, uint64 aSrcOffset, uint64 aSize) const;
+
+    GpuRingBuffer* GetUploadBuffer_Internal(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
 
     enum Consts {
       kNumCachedBarriers = 256

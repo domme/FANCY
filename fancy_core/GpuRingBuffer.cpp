@@ -10,7 +10,6 @@ namespace Fancy
   GpuRingBuffer::GpuRingBuffer() 
     : myData(nullptr)
     , myOffset(0u)
-    , myLockType(GpuResourceMapMode::NUM)
   {
     
   }
@@ -18,28 +17,23 @@ namespace Fancy
   GpuRingBuffer::~GpuRingBuffer()
   {
     if (myBuffer != nullptr && myData != nullptr)
-      myBuffer->Unmap(myLockType);
+      myBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
     myData = nullptr;
   }
 //---------------------------------------------------------------------------//
-  void GpuRingBuffer::Create(const GpuBufferProperties& someParameters, GpuResourceMapMode aLockOption, bool aKeepMapped, const char* aName /*= nullptr*/, const void* pInitialData)
+  void GpuRingBuffer::Create(const GpuBufferProperties& someParameters, const char* aName /*= nullptr*/, const void* pInitialData)
   {
     Reset();
     
     if (myBuffer != nullptr && myData != nullptr)
-      myBuffer->Unmap(myLockType);
+      myBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
     myData = nullptr;
 
     myBuffer = RenderCore::CreateBuffer(someParameters, aName, pInitialData);
     ASSERT(myBuffer != nullptr);
 
-    if (aKeepMapped)
-    {
-      myData = (uint8*)myBuffer->Map(aLockOption);
-      ASSERT(myData != nullptr);
-    }
-
-    myLockType = aLockOption;
+    myData = (uint8*)myBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
+    ASSERT(myData != nullptr);
   }
 //---------------------------------------------------------------------------//
   uint64 GpuRingBuffer::GetFreeDataSize() const
@@ -49,7 +43,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool GpuRingBuffer::AllocateAndWrite(const void* someData, uint64 aDataSize, uint64& anOffsetOut)
   {
-    ASSERT(myLockType == GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
     ASSERT(myData != nullptr);
 
     if (GetFreeDataSize() < aDataSize)

@@ -434,7 +434,7 @@ namespace Fancy
     // Need to temporarily transition to WRITE_COPY_DEST or PRESENT so that the image is in the VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL or VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR layout.
     // The ATTACHMENT_OPTIMAL layout is not supported with vkCmdClearColorImage
 
-    // Change image layout to GENERAL, kepp everyting else untouched
+    // Change image layout to GENERAL, keep everyting else untouched
     const ResourceBarrierInfoVk renderTargetBarrierInfo = RenderCore_PlatformVk::ResolveResourceState(GpuResourceState::WRITE_RENDER_TARGET);
     SubresourceBarrierInternal(aTextureView->GetTexture(), aTextureView->mySubresourceRange,
       renderTargetBarrierInfo.myAccessMask,
@@ -514,18 +514,39 @@ namespace Fancy
     VkBuffer dstBuffer = static_cast<const GpuBufferVk*>(aDstBuffer)->GetData()->myBuffer;
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
 
+    FlushBarriers();
+
     // Texture is expected to transition to COPY_SRC before using this method
     const VkImageLayout srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;  
     vkCmdCopyImageToBuffer(myCommandBuffer, srcImage, srcImageLayout, dstBuffer, 1u, &copyRegion);   
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource,
-                                  const TextureRegion& aDstRegion, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const
+                                  const TextureRegion& aDstRegion, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const
                                   TextureRegion& aSrcRegion)
   {
 #if FANCY_RENDERER_USE_VALIDATION
     ValidateTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcTexture->GetProperties(), aSrcSubresource, aSrcRegion);
 #endif
+
+    VkImageCopy copyRegion;
+    copyRegion.extent.width = aDstRegion.mySize.x;
+    copyRegion.extent.height = aDstRegion.mySize.y;
+    copyRegion.extent.depth = aDstRegion.mySize.z;
+    copyRegion.dstOffset.x = aDstRegion.myPos.x;
+    copyRegion.dstOffset.y = aDstRegion.myPos.y;
+    copyRegion.dstOffset.z = aDstRegion.myPos.z;
+    copyRegion.srcOffset.x = aSrcRegion.myPos.x;
+    copyRegion.srcOffset.y = aSrcRegion.myPos.y;
+    copyRegion.srcOffset.z = aSrcRegion.myPos.z;
+    copyRegion.srcSubresource.mipLevel = aSrcSubresource.myMipLevel;
+    copyRegion.srcSubresource.baseArrayLayer = aSrcSubresource.myArrayIndex;
+    copyRegion.srcSubresource.layerCount = 1u;
+    copyRegion.srcSubresource.aspectMask = RenderCore_PlatformVk::ResolveAspectMask(aSrcSubresource.myPlaneIndex, 1u, aSrcTexture->GetProperties().myFormat);
+    copyRegion.dstSubresource.mipLevel = aDstSubresource.myMipLevel;
+    copyRegion.dstSubresource.baseArrayLayer = aDstSubresource.myArrayIndex;
+    copyRegion.dstSubresource.layerCount = 1u;
+    copyRegion.dstSubresource.aspectMask = RenderCore_PlatformVk::ResolveAspectMask(aDstSubresource.myPlaneIndex, 1u, aDstTexture->GetProperties().myFormat);
 
     VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
@@ -534,8 +555,9 @@ namespace Fancy
     const VkImageLayout srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
     const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
-    vkCmdCopyImage(myCommandBuffer, srcImage, srcImageLayout,  )
+    FlushBarriers();
 
+    vkCmdCopyImage(myCommandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, 1u, &copyRegion);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource,
@@ -561,10 +583,12 @@ namespace Fancy
     copyRegion.imageOffset.z = aDstRegion.myPos.z;
     copyRegion.imageExtent.width = aDstRegion.mySize.x;
     copyRegion.imageExtent.height = aDstRegion.mySize.y;
-    copyRegion.imageExtent.width = aDstRegion.mySize.z;
+    copyRegion.imageExtent.depth = aDstRegion.mySize.z;
 
     VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
     VkBuffer srcBuffer = static_cast<const GpuBufferVk*>(aSrcBuffer)->GetData()->myBuffer;
+
+    FlushBarriers();
 
     const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;  // Texture is expected in the WRITE_COPY_DST state here
     vkCmdCopyBufferToImage(myCommandBuffer, srcBuffer, dstImage, imageLayout, 1u, &copyRegion);
@@ -737,10 +761,9 @@ namespace Fancy
     }
 
     uint64 uploadBufferOffset;
-    const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, requiredBufferSize);
+    uint8* uploadBufferData;
+    const GpuBuffer* uploadBuffer = GetMappedBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, &uploadBufferData, requiredBufferSize);
     ASSERT(uploadBuffer != nullptr);
-
-    uint8* uploadBufferData = (uint8*)uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, requiredBufferSize);
     ASSERT(uploadBufferData != nullptr);
 
     uint8* dstSubresourceData = uploadBufferData;
@@ -776,7 +799,6 @@ namespace Fancy
 
       dstSubresourceData += dstSubresourceSize;
     }
-    uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, requiredBufferSize);
 
     i = 0;
     uint64 bufferOffset = uploadBufferOffset;

@@ -124,7 +124,6 @@ namespace Fancy {
     CopyTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)),
       aSrcTexture, aSrcSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(srcWidth, srcHeight, srcDepth)));
   }
-
 //---------------------------------------------------------------------------//
   void CommandList::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
@@ -156,62 +155,77 @@ namespace Fancy {
     return GpuQuery(aType, queryIndex, Time::ourFrameIdx, myCommandListType);
   }
 //---------------------------------------------------------------------------//
-  const GpuBuffer* CommandList::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
+  GpuRingBuffer* CommandList::GetUploadBuffer_Internal(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
   {
     DynamicArray<GpuRingBuffer*>* ringBufferList = nullptr;
     uint64 sizeStep = 2 * SIZE_MB;
     String name = "RingBuffer_";
 
     uint bindFlags = 0u;
-    switch(aType) 
-    { 
-      case GpuBufferUsage::STAGING_UPLOAD:
-      {
-        name += "STAGING_UPLOAD";
-        ringBufferList = &myUploadRingBuffers;
-      } break;
-      case GpuBufferUsage::CONSTANT_BUFFER:
-      {
-        name += "CONSTANT_BUFFER";
-        ringBufferList = &myConstantRingBuffers;
-        bindFlags |= (uint)GpuBufferBindFlags::CONSTANT_BUFFER;
-      } break;
-      case GpuBufferUsage::VERTEX_BUFFER:
-      {
-        name += "VERTEX_BUFFER";
-        ringBufferList = &myVertexRingBuffers;
-        sizeStep = 1 * SIZE_MB;
-        bindFlags |= (uint)GpuBufferBindFlags::VERTEX_BUFFER;
-      }
-      break;
-      case GpuBufferUsage::INDEX_BUFFER:
-      {
-        name += "INDEX_BUFFER";
-        ringBufferList = &myIndexRingBuffers;
-        sizeStep = 1 * SIZE_MB;
-        bindFlags |= (uint)GpuBufferBindFlags::INDEX_BUFFER;
-      }
-      break;
-      default:
-      {
-        ASSERT(false, "Buffertype not implemented as a ringBuffer");
-        return nullptr;
-      }
+    switch (aType)
+    {
+    case GpuBufferUsage::STAGING_UPLOAD:
+    {
+      name += "STAGING_UPLOAD";
+      ringBufferList = &myUploadRingBuffers;
+    } break;
+    case GpuBufferUsage::CONSTANT_BUFFER:
+    {
+      name += "CONSTANT_BUFFER";
+      ringBufferList = &myConstantRingBuffers;
+      bindFlags |= (uint)GpuBufferBindFlags::CONSTANT_BUFFER;
+    } break;
+    case GpuBufferUsage::VERTEX_BUFFER:
+    {
+      name += "VERTEX_BUFFER";
+      ringBufferList = &myVertexRingBuffers;
+      sizeStep = 1 * SIZE_MB;
+      bindFlags |= (uint)GpuBufferBindFlags::VERTEX_BUFFER;
+    }
+    break;
+    case GpuBufferUsage::INDEX_BUFFER:
+    {
+      name += "INDEX_BUFFER";
+      ringBufferList = &myIndexRingBuffers;
+      sizeStep = 1 * SIZE_MB;
+      bindFlags |= (uint)GpuBufferBindFlags::INDEX_BUFFER;
+    }
+    break;
+    default:
+    {
+      ASSERT(false, "Buffertype not implemented as a ringBuffer");
+      return nullptr;
+    }
     }
 
     if (ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize() < aDataSize)
-      ringBufferList->push_back(RenderCore::AllocateRingBuffer(CpuMemoryAccessType::CPU_WRITE, bindFlags, (uint) MathUtil::Align(aDataSize, sizeStep), name.c_str()));
+      ringBufferList->push_back(RenderCore::AllocateRingBuffer(CpuMemoryAccessType::CPU_WRITE, bindFlags, (uint)MathUtil::Align(aDataSize, sizeStep), name.c_str()));
 
     GpuRingBuffer* ringBuffer = ringBufferList->back();
-    uint64 offset = 0; 
+    uint64 offset = 0;
     bool success = true;
     if (someData != nullptr)
       success = ringBuffer->AllocateAndWrite(someData, aDataSize, offset);
     else
       success = ringBuffer->Allocate(aDataSize, offset);
     ASSERT(success);
-    
+
     anOffsetOut = offset;
+    return ringBuffer;
+  }
+//---------------------------------------------------------------------------//
+  const GpuBuffer* CommandList::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
+  {
+    GpuRingBuffer* ringBuffer = GetUploadBuffer_Internal(anOffsetOut, aType, someData, aDataSize);
+    ASSERT(ringBuffer != nullptr);
+    return ringBuffer->GetBuffer();
+  }
+//---------------------------------------------------------------------------//
+  const GpuBuffer* CommandList::GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize)
+  {
+    GpuRingBuffer* ringBuffer = GetUploadBuffer_Internal(anOffsetOut, aType, nullptr, aDataSize);
+    ASSERT(ringBuffer != nullptr);
+    *someDataPtrOut = ringBuffer->GetData() + anOffsetOut;
     return ringBuffer->GetBuffer();
   }
 //---------------------------------------------------------------------------//
