@@ -476,27 +476,66 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyResource(GpuResource* aDestResource, GpuResource* aSrcResource)
+  void CommandListVk::CopyResource(GpuResource* aDstResource, GpuResource* aSrcResource)
   {
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyBuffer(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
+  void CommandListVk::CopyBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
   {
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyTextureToBuffer(const GpuBuffer* aDestBuffer, uint64 aDestOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const
+  void CommandListVk::CopyTextureToBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const
                                           TextureRegion& aSrcRegion)
   {
-    VK_MISSING_IMPLEMENTATION();
+#if FANCY_RENDERER_USE_VALIDATION
+    ValidateTextureToBufferCopy(aDstBuffer->GetProperties(), aDstOffset, aSrcTexture->GetProperties(), aSrcSubresource, aSrcRegion);
+#endif  // FANCY_RENDERER_USE_VALIDATION
+
+    VkBufferImageCopy copyRegion;
+    copyRegion.bufferOffset = aDstOffset;
+    // Using 0 here will make it fall back to imageExtent. 
+    // The buffer is expected to have the copied texture region tightly packed in memory
+    copyRegion.bufferRowLength = 0;
+    copyRegion.bufferImageHeight = 0;
+    copyRegion.imageSubresource.baseArrayLayer = aSrcSubresource.myArrayIndex;
+    copyRegion.imageSubresource.layerCount = 1u;
+    copyRegion.imageSubresource.aspectMask =
+      RenderCore_PlatformVk::ResolveAspectMask(aSrcSubresource.myPlaneIndex, 1u, aSrcTexture->GetProperties().myFormat);
+    copyRegion.imageSubresource.mipLevel = aSrcSubresource.myMipLevel;
+    copyRegion.imageOffset.x = aSrcRegion.myPos.x;
+    copyRegion.imageOffset.y = aSrcRegion.myPos.y;
+    copyRegion.imageOffset.z = aSrcRegion.myPos.z;
+    copyRegion.imageExtent.width = aSrcRegion.mySize.x;
+    copyRegion.imageExtent.height = aSrcRegion.mySize.y;
+    copyRegion.imageExtent.depth = aSrcRegion.mySize.z;
+
+    VkBuffer dstBuffer = static_cast<const GpuBufferVk*>(aDstBuffer)->GetData()->myBuffer;
+    VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
+
+    // Texture is expected to transition to COPY_SRC before using this method
+    const VkImageLayout srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;  
+    vkCmdCopyImageToBuffer(myCommandBuffer, srcImage, srcImageLayout, dstBuffer, 1u, &copyRegion);   
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::CopyTexture(const Texture* aDestTexture, const SubresourceLocation& aDestSubresource,
-                                  const TextureRegion& aDestRegion, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const
+  void CommandListVk::CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource,
+                                  const TextureRegion& aDstRegion, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubLocation, const
                                   TextureRegion& aSrcRegion)
   {
-    VK_MISSING_IMPLEMENTATION();
+#if FANCY_RENDERER_USE_VALIDATION
+    ValidateTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcTexture->GetProperties(), aSrcSubresource, aSrcRegion);
+#endif
+
+    VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
+    VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
+
+    // Textures are expected to transition to COPY_SRC and COPY_DST before using this method
+    const VkImageLayout srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+    vkCmdCopyImage(myCommandBuffer, srcImage, srcImageLayout,  )
+
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource,
@@ -508,7 +547,9 @@ namespace Fancy
 
     VkBufferImageCopy copyRegion;
     copyRegion.bufferOffset = aSrcOffset;
-    copyRegion.bufferRowLength = 0u;  // Using 0 here will make it fall back to imageExtent
+    // Using 0 here will make it fall back to imageExtent. 
+    // The buffer is expected to have the copied texture region tightly packed in memory
+    copyRegion.bufferRowLength = 0u;
     copyRegion.bufferImageHeight = 0u;
     copyRegion.imageSubresource.baseArrayLayer = aDstSubresource.myArrayIndex;
     copyRegion.imageSubresource.layerCount = 1u;
@@ -655,12 +696,12 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
+  void CommandListVk::UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
   {
     const uint numSubresources = aSubresourceRange.GetNumSubresources();
     ASSERT(aNumDatas == numSubresources);
 
-    const TextureProperties& texProps = aDestTexture->GetProperties();
+    const TextureProperties& texProps = aDstTexture->GetProperties();
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
     const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
     
@@ -742,7 +783,7 @@ namespace Fancy
     for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
     {
       const SubresourceLocation dstLocation = *subIter;
-      CommandList::CopyBufferToTexture(aDestTexture, dstLocation, uploadBuffer, bufferOffset);
+      CommandList::CopyBufferToTexture(aDstTexture, dstLocation, uploadBuffer, bufferOffset);
 
       bufferOffset += bufferSubresourceSizes[i++];
     }
