@@ -356,10 +356,10 @@ using namespace Fancy;
       ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceState::WRITE_COMPUTE_SHADER_UAV, GpuResourceState::READ_COPY_SOURCE);
       ctx->SubresourceBarrier(aTexture.get(), dstSubLocation, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceState::WRITE_COPY_DEST);
 
-      TextureRegion srcRegion;
-      srcRegion.myPos = glm::uvec3(0, 0, 0);
-      srcRegion.mySize = glm::uvec3((uint)destSize.x, (uint)destSize.y, 1);
-      ctx->CopyTexture(aTexture.get(), dstSubLocation, glm::uvec3(0, 0, 0), tempTexResource[1].myTexture, SubresourceLocation(),);
+      TextureRegion region;
+      region.myPos = glm::uvec3(0, 0, 0);
+      region.mySize = glm::uvec3((uint)destSize.x, (uint)destSize.y, 1);
+      ctx->CopyTexture(aTexture.get(), dstSubLocation, region, tempTexResource[1].myTexture, SubresourceLocation(), region);
 
       srcSize = glm::ceil(srcSize * 0.5f);
       destSize = glm::ceil(destSize * 0.5f);

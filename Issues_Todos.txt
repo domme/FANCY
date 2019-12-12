@@ -12,8 +12,12 @@ Fancy Rendering Framework - Issues and Todos
 
 - Vulkan: Re-write the fence-system when VK_KHR_timeline_semaphore becomes more widely available (Intel?)
 
+- Vulkan: Use the DXC API instead of the command line
+
 - Separate Core- and Render- libraries and make them each an own project. Forbid dependencies from core to render
 
 - GrowingList doesn't destruct removed elements
 
 - Group allocator-classes that cache render-objects on a fence-basis under a common templated base-class. Right now, there are a lot of very similar implementations for various things (CommandAllocatorPoolDX12, CommandBufferAllocatorVk,...)
+
+- Write a test for the various Texture<->Buffer copy methods. Above all, make sure that depth- and stencil readbacks work

@@ -35,6 +35,7 @@ namespace Fancy {
     static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetStencilViewFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetTypelessFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetCopyableFormat(DXGI_FORMAT aFormat, uint aPlaneIndex);
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
     static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
     static D3D12_RESOURCE_STATES ResolveResourceUsageState(GpuResourceState aState);

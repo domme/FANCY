@@ -503,39 +503,30 @@ namespace Fancy
                                           const TextureRegion& aDstRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
   {
 #if FANCY_RENDERER_USE_VALIDATION
-    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aSrcRegion, aSrcBuffer->GetProperties(), aSrcOffset);
+    ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcBuffer->GetProperties(), aSrcOffset);
 #endif
+
+    VkBufferImageCopy copyRegion;
+    copyRegion.bufferOffset = aSrcOffset;
+    copyRegion.bufferRowLength = 0u;  // Using 0 here will make it fall back to imageExtent
+    copyRegion.bufferImageHeight = 0u;
+    copyRegion.imageSubresource.baseArrayLayer = aDstSubresource.myArrayIndex;
+    copyRegion.imageSubresource.layerCount = 1u;
+    copyRegion.imageSubresource.aspectMask = 
+      RenderCore_PlatformVk::ResolveAspectMask(aDstSubresource.myPlaneIndex, 1u, aDstTexture->GetProperties().myFormat);
+    copyRegion.imageSubresource.mipLevel = aDstSubresource.myMipLevel;
+    copyRegion.imageOffset.x = aDstRegion.myPos.x;
+    copyRegion.imageOffset.y = aDstRegion.myPos.y;
+    copyRegion.imageOffset.z = aDstRegion.myPos.z;
+    copyRegion.imageExtent.width = aDstRegion.mySize.x;
+    copyRegion.imageExtent.height = aDstRegion.mySize.y;
+    copyRegion.imageExtent.width = aDstRegion.mySize.z;
 
     VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
     VkBuffer srcBuffer = static_cast<const GpuBufferVk*>(aSrcBuffer)->GetData()->myBuffer;
 
-    const TextureProperties& texProps = aDstTexture->GetProperties();
-
-    uint width, height, depth;
-    texProps.GetSize(aDstSubresource.myMipLevel, width, height, depth);
-
-    const uint bufferRowLength = aSrcRegion.mySize.x;
-    const uint64 bufferOffsetToFirstSlice
-
-    VkBufferImageCopy copy;
-    copy.bufferOffset = aSrcOffset;
-    copy.bufferRowLength = 0u;  // Using 0 here will make it fall back to imageExtent
-    copy.bufferImageHeight = 0u;
-    copy.imageSubresource.baseArrayLayer = aDstSubresource.myArrayIndex;
-    copy.imageSubresource.layerCount = 1u;
-    copy.imageSubresource.aspectMask = RenderCore_PlatformVk::ResolveAspectMask(aDstSubresource.myPlaneIndex, 1u, texProps.myFormat);
-    copy.imageSubresource.mipLevel = aDstSubresource.myMipLevel;
-    copy.imageOffset.x = aDstRegion.x;
-    copy.imageOffset.y = aDstRegion.y;
-    copy.imageOffset.z = aDstRegion.z;
-    copy.imageExtent.width = aSrcRegion.mySize.x;
-    copy.imageExtent.height = aSrcRegion.mySize.y;
-    copy.imageExtent.width = aSrcRegion.mySize.z;
-
-
-
-
-    vkCmdCopyBufferToImage(myCommandBuffer, )
+    const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;  // Texture is expected in the WRITE_COPY_DST state here
+    vkCmdCopyBufferToImage(myCommandBuffer, srcBuffer, dstImage, imageLayout, 1u, &copyRegion);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::PostExecute(uint64 aFenceVal)
@@ -751,7 +742,7 @@ namespace Fancy
     for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
     {
       const SubresourceLocation dstLocation = *subIter;
-      CopyBufferToTexture(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, bufferOffset);
+      CommandList::CopyBufferToTexture(aDestTexture, dstLocation, uploadBuffer, bufferOffset);
 
       bufferOffset += bufferSubresourceSizes[i++];
     }

@@ -412,6 +412,25 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  DXGI_FORMAT RenderCore_PlatformDX12::GetCopyableFormat(DXGI_FORMAT aFormat, uint aPlaneIndex)
+  {
+    switch(aFormat)
+    {
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+      ASSERT(aPlaneIndex < 2);
+      return aPlaneIndex == 0 ? DXGI_FORMAT_R32_FLOAT : DXGI_FORMAT_R8_UINT;
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+      ASSERT(aPlaneIndex < 2);
+      return aPlaneIndex == 0 ? DXGI_FORMAT_R32_FLOAT : DXGI_FORMAT_R32_UINT;
+    case DXGI_FORMAT_D32_FLOAT:
+      ASSERT(aPlaneIndex == 0u);
+      return DXGI_FORMAT_R32_FLOAT;
+    }
+
+    ASSERT(aPlaneIndex == 0u);
+    return aFormat;
+  }
+//---------------------------------------------------------------------------//
   D3D12_COMMAND_LIST_TYPE RenderCore_PlatformDX12::GetCommandListType(CommandListType aType)
   {
     switch (aType)
