@@ -92,6 +92,7 @@ namespace Fancy
     myStateTracking.myDefaultState = defaultState;
     myStateTracking.myVkData.myReadAccessMask = readMask;
     myStateTracking.myVkData.myWriteAccessMask = writeMask;
+    myStateTracking.myVkData.myHasExclusiveQueueAccess = bufferInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     const uint queueFamilyIndices[] = 

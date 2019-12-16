@@ -129,6 +129,7 @@ namespace Fancy
 
     myStateTracking.myVkData.myReadAccessMask = readMask;
     myStateTracking.myVkData.myWriteAccessMask = writeMask;
+    myStateTracking.myVkData.myHasExclusiveQueueAccess = imageInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
 
     VkDevice device = platformVk->myDevice;
     ASSERT_VK_RESULT(vkCreateImage(device, &imageInfo, nullptr, &dataVk->myImage));

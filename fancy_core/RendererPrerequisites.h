@@ -9,6 +9,8 @@
 #define FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES 0
 #define FANCY_RENDERER_LOG_RESOURCE_BARRIERS 0
 
+#define FANCY_RENDERER_SUPPORT_MESH_SHADERS 0
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace RenderConstants 

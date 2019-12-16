@@ -951,8 +951,10 @@ namespace Fancy
     ASSERT((aSrcAccessMask == 0u || srcAccessMask != 0u) && (aDstAccessMask == 0u || dstAccessMask != 0u), "Invalid barrier");
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    const uint srcQueueFamilyIndex = platformVk->GetQueueInfo(aSrcQueue).myQueueFamilyIndex;
-    const uint dstQueueFamilyIndex = platformVk->GetQueueInfo(aDstQueue).myQueueFamilyIndex;
+    const uint srcQueueFamilyIndex = 
+      resourceStateTracking.myVkData.myHasExclusiveQueueAccess ? platformVk->GetQueueInfo(aSrcQueue).myQueueFamilyIndex : VK_QUEUE_FAMILY_IGNORED;
+    const uint dstQueueFamilyIndex = 
+      resourceStateTracking.myVkData.myHasExclusiveQueueAccess ? platformVk->GetQueueInfo(aDstQueue).myQueueFamilyIndex : VK_QUEUE_FAMILY_IGNORED;
 
     const bool isImage = aResource->myCategory == GpuResourceCategory::TEXTURE;
     GpuResourceDataVk* dataVk = aResource->myNativeData.To<GpuResourceDataVk*>();

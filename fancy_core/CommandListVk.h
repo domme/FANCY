@@ -90,8 +90,8 @@ namespace Fancy
       VkBuffer myBuffer = nullptr;
       VkAccessFlags mySrcAccessMask = 0;
       VkAccessFlags myDstAccessMask = 0;
-      uint mySrcQueueFamilyIndex = 0;
-      uint myDstQueueFamilyIndex = 0;
+      uint mySrcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      uint myDstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     };
 
     struct ImageMemoryBarrierData
@@ -102,8 +102,8 @@ namespace Fancy
       VkAccessFlags myDstAccessMask = 0;
       VkImageLayout mySrcLayout = VK_IMAGE_LAYOUT_GENERAL;
       VkImageLayout myDstLayout = VK_IMAGE_LAYOUT_GENERAL;
-      uint mySrcQueueFamilyIndex = 0;
-      uint myDstQueueFamilyIndex = 0;
+      uint mySrcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      uint myDstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     };
 
     BufferMemoryBarrierData myPendingBufferBarriers[kNumCachedBarriers];

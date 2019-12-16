@@ -17,6 +17,7 @@ namespace Fancy
     // Uints are VkAccessFlags
     uint myReadAccessMask;
     uint myWriteAccessMask;
+    bool myHasExclusiveQueueAccess;
   };
 //---------------------------------------------------------------------------//
   struct GpuResourceStateTracking
