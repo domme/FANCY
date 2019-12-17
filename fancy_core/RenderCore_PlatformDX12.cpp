@@ -535,13 +535,19 @@ namespace Fancy {
     myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
     myCaps.myTextureRowAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
     myCaps.myTextureSubresourceBufferAlignment = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+    // DX12 always supports async compute and copy on the API-level, even though there might not
+    // be hardware-support for it.
+    // TODO: Check if there's a way to detect missing HW-support and disable the missing queues
+    myCaps.myHasAsyncCompute = true;
+    myCaps.myHasAsyncCopy = true;
   }
 
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {
     ourCommandAllocatorPools[(uint)CommandListType::Graphics].reset(new CommandAllocatorPoolDX12(CommandListType::Graphics));
-    ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
+    if (myCaps.myHasAsyncCompute)
+      ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
     
     myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)CpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, CpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
     myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)CpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, CpuMemoryAccessType::CPU_WRITE, 64 * SIZE_MB));

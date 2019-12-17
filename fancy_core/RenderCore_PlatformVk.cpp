@@ -634,25 +634,25 @@ namespace Fancy
       // Else disable certain queue-types that can't be filled in.
 
       int numUsedQueues[(uint)CommandListType::NUM] = { 0u };
-      for (int i = 0, e = (int)queueFamilyProps.size(); i < e; ++i)
+      for (uint i = 0u, e = (uint) queueFamilyProps.size(); i < e; ++i)
       {
         const VkQueueFamilyProperties& props = queueFamilyProps[i];
         if (props.queueCount == 0u)
           continue;
 
-        if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT && myQueueInfos[(uint) CommandListType::Graphics].myQueueFamilyIndex == -1)
+        if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT && myQueueInfos[(uint) CommandListType::Graphics].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
           myQueueInfos[(uint) CommandListType::Graphics].myQueueFamilyIndex = i;
           myQueueInfos[(uint) CommandListType::Graphics].myQueueIndex = 0u;
           ++numUsedQueues[(uint)CommandListType::Graphics];
         }
-        else if (props.queueFlags & VK_QUEUE_COMPUTE_BIT && myQueueInfos[(uint)CommandListType::Compute].myQueueFamilyIndex == -1)
+        else if (props.queueFlags & VK_QUEUE_COMPUTE_BIT && myQueueInfos[(uint)CommandListType::Compute].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
           myQueueInfos[(uint)CommandListType::Compute].myQueueFamilyIndex = i;
           myQueueInfos[(uint)CommandListType::Compute].myQueueIndex = 0u;
           ++numUsedQueues[(uint)CommandListType::Compute];
         }
-        else if (props.queueFlags & VK_QUEUE_TRANSFER_BIT && myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex == -1)
+        else if (props.queueFlags & VK_QUEUE_TRANSFER_BIT && myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
           myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex = i;
           myQueueInfos[(uint)CommandListType::DMA].myQueueIndex = 0u;
@@ -660,16 +660,17 @@ namespace Fancy
         }
       }
 
-      ASSERT(myQueueInfos[(uint)CommandListType::Graphics].myQueueFamilyIndex >= 0, "Could not find a graphics-capable Vulkan queue");
+      ASSERT(myQueueInfos[(uint)CommandListType::Graphics].myQueueFamilyIndex != VK_QUEUE_FAMILY_IGNORED, "Could not find a graphics-capable Vulkan queue");
 
+      // If the graphics device has multiple queues on a higher-level queue family, try to use those for lower-level queues on API-level
       for (int queueType = (int)CommandListType::Compute; queueType < (int)CommandListType::NUM; ++queueType)
       {
-        if (myQueueInfos[queueType].myQueueFamilyIndex < 0)
+        if (myQueueInfos[queueType].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
           for (int higherQueueType = queueType - 1; higherQueueType >= 0; --higherQueueType)
           {
-            const int higherFamilyIndex = myQueueInfos[higherQueueType].myQueueFamilyIndex;
-            if (higherFamilyIndex < 0)
+            const uint higherFamilyIndex = myQueueInfos[higherQueueType].myQueueFamilyIndex;
+            if (higherFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
               continue;
 
             const VkQueueFamilyProperties& higherFamilyProps = queueFamilyProps[higherFamilyIndex];
@@ -681,6 +682,18 @@ namespace Fancy
             }
           }
         }
+      }
+
+      if (myQueueInfos[(uint) CommandListType::Compute].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
+      {
+        LOG("No dedicated COMPUTE-queue found. Async compute will be disabled");
+        myCaps.myHasAsyncCompute = false;
+      }
+
+      if (myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
+      {
+        LOG("No dedicated COPY-queue found. Async copy will be disabled");
+        myCaps.myHasAsyncCopy = false;
       }
 
       LOG("Creating logical Vulkan device...");
@@ -714,11 +727,8 @@ namespace Fancy
       ASSERT_VK_RESULT(vkCreateDevice(myPhysicalDevice, &deviceCreateInfo, nullptr, &myDevice));
     }
 
-    // Init caps
-    {
-      myCaps.myMaxNumVertexAttributes = myPhysicalDeviceProperties.limits.maxVertexInputAttributes;
-      myCaps.myCbufferPlacementAlignment = (uint) myPhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
-    }
+    myCaps.myMaxNumVertexAttributes = myPhysicalDeviceProperties.limits.maxVertexInputAttributes;
+    myCaps.myCbufferPlacementAlignment = (uint) myPhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
   }
   
   RenderCore_PlatformVk::~RenderCore_PlatformVk()

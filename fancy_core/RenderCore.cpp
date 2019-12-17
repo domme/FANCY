@@ -17,7 +17,6 @@
 #include "GeometryData.h"
 #include "BlendState.h"
 #include "Shader.h"
-#include "VertexInputLayout.h"
 #include "RenderOutput.h"
 #include "CommandList.h"
 #include "MeshData.h"
@@ -232,6 +231,20 @@ namespace Fancy {
       case CommandListType::DMA: return "Copy";
       default: ASSERT(false); return "";
     }
+  }
+//---------------------------------------------------------------------------//
+  CommandListType RenderCore::ResolveSupportedCommandListType(CommandListType aType)
+  {
+    const RenderPlatformCaps& caps = GetPlatformCaps();
+
+    if (aType == CommandListType::Graphics
+      || (aType == CommandListType::Compute && !caps.myHasAsyncCompute)
+      || (aType == CommandListType::DMA && !caps.myHasAsyncCopy))
+    {
+      return CommandListType::Graphics;
+    }
+
+    return aType;
   }
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
@@ -458,7 +471,8 @@ namespace Fancy {
     ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
 
     ourCommandQueues[(uint)CommandListType::Graphics].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Graphics));
-    ourCommandQueues[(uint)CommandListType::Compute].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Compute));
+    if (GetPlatformCaps().myHasAsyncCopy)
+      ourCommandQueues[(uint)CommandListType::Compute].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Compute));
 
     // From here, resources can be created that depend on ourPlatformImpl
     ourPlatformImpl->InitInternalResources();
@@ -1130,7 +1144,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)
   {
-    return ourCommandQueues[(uint)aType].get();
+    const CommandListType commandListType = ResolveSupportedCommandListType(aType);
+    return ourCommandQueues[(uint)commandListType].get();
   }
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(uint64 aFenceVal)

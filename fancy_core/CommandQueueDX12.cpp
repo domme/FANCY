@@ -59,17 +59,15 @@ namespace Fancy
   void CommandQueueDX12::StallForQueue(const CommandQueue* aCommandQueue)
   {
     const CommandQueueDX12* otherQueue = static_cast<const CommandQueueDX12*>(aCommandQueue);
-    ASSERT(otherQueue != this);
-
-    CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), otherQueue->myNextFenceVal - 1u));
+    if (otherQueue != this)
+      CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), otherQueue->myNextFenceVal - 1u));
   }
 //---------------------------------------------------------------------------//
   void CommandQueueDX12::StallForFence(uint64 aFenceVal)
   {
     const CommandQueueDX12* otherQueue = static_cast<const CommandQueueDX12*>(RenderCore::GetCommandQueue(aFenceVal));
-    ASSERT(otherQueue != this);
-
-    CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), aFenceVal));
+    if (otherQueue != this)
+      CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), aFenceVal));
   }
 //---------------------------------------------------------------------------//
   uint64 CommandQueueDX12::ExecuteCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode/* = SyncMode::ASYNC*/)

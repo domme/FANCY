@@ -68,18 +68,6 @@ namespace Fancy {
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
     resourceDesc.Flags = someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
-    bool canChangeStates = true;
-    if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
-    {
-      canChangeStates = false;
-    }
-    else if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
-    {
-      defaultState = GpuResourceState::WRITE_COPY_DEST;
-      canChangeStates = false;
-    }
-
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_GENERIC_READ;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (someProperties.myIsShaderWritable)
@@ -92,6 +80,21 @@ namespace Fancy {
       readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_INDEX_BUFFER;
     if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER))
       readStateMask = readStateMask & ~(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+    D3D12_RESOURCE_STATES initialStates = (RenderCore_PlatformDX12::ResolveResourceUsageState(defaultState) & readStateMask) & writeStateMask;
+    bool canChangeStates = true;
+    if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
+    {
+      canChangeStates = false;
+      initialStates = D3D12_RESOURCE_STATE_GENERIC_READ;
+    }
+    else if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
+    {
+      defaultState = GpuResourceState::WRITE_COPY_DEST;
+      canChangeStates = false;
+      initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
+    }
 
     myStateTracking = GpuResourceStateTracking();
     myStateTracking.myCanChangeStates = canChangeStates;
@@ -108,7 +111,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, RenderCore_PlatformDX12::ResolveResourceUsageState(defaultState), nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
 
     std::wstring wName = StringUtil::ToWideString(myName);
     dataDx12->myResource->SetName(wName.c_str());

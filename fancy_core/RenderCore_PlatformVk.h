@@ -64,8 +64,8 @@ namespace Fancy
 
     struct QueueInfo
     {
-      int myQueueFamilyIndex = -1;
-      int myQueueIndex = -1;
+      uint myQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      uint myQueueIndex = UINT_MAX;
     };
 
     const QueueInfo& GetQueueInfo(CommandListType aCommandListType) { return myQueueInfos[(uint)aCommandListType]; }

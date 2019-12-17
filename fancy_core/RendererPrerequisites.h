@@ -59,17 +59,12 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct RenderPlatformCaps
   {
-    RenderPlatformCaps()
-      : myMaxNumVertexAttributes(32u)
-      , myCbufferPlacementAlignment(0u)
-      , myTextureRowAlignment(1u)
-      , myTextureSubresourceBufferAlignment(1u)
-    {}
-
-    unsigned int myMaxNumVertexAttributes;
-    unsigned int myCbufferPlacementAlignment;
-    unsigned int myTextureRowAlignment;
-    unsigned int myTextureSubresourceBufferAlignment;
+    unsigned int myMaxNumVertexAttributes = 32u;
+    unsigned int myCbufferPlacementAlignment = 1u;
+    unsigned int myTextureRowAlignment = 1u;
+    unsigned int myTextureSubresourceBufferAlignment = 10;
+    bool myHasAsyncCompute = false;
+    bool myHasAsyncCopy = false;
   };
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

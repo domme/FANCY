@@ -649,16 +649,15 @@ namespace Fancy {
   {
     ASSERT(aSize > 0u);
 
-    const uint64 dstBufferCapacity = aDstProps.myElementSizeBytes * aDstProps.myElementSizeBytes;
-    ASSERT(aSize < dstBufferCapacity);
+    const uint64 dstBufferCapacity = aDstProps.myNumElements * aDstProps.myElementSizeBytes;
     ASSERT(aDstOffset < dstBufferCapacity);
+    ASSERT(aDstOffset + aSize <= dstBufferCapacity);
 
     const uint64 dstFreeSize = dstBufferCapacity - aDstOffset;
     ASSERT(aSize <= dstFreeSize);
 
-    const uint64 srcBufferCapacity = aSrcProps.myElementSizeBytes * aSrcProps.myElementSizeBytes;
+    const uint64 srcBufferCapacity = aSrcProps.myNumElements * aSrcProps.myElementSizeBytes;
     ASSERT(aSrcOffset < srcBufferCapacity);
-
     ASSERT(aSrcOffset + aSize <= srcBufferCapacity);
   }
 //---------------------------------------------------------------------------//
