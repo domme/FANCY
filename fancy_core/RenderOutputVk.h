@@ -23,6 +23,7 @@ namespace Fancy
     VkFormat myBackbufferFormat = VK_FORMAT_UNDEFINED;
     VkColorSpaceKHR myBackbufferColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
     VkPresentModeKHR myPresentMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
+    VkSharingMode mySharingMode = VK_SHARING_MODE_MAX_ENUM;
 
     VkSurfaceKHR mySurface = nullptr;
     VkSwapchainKHR mySwapChain = nullptr;

@@ -744,7 +744,9 @@ namespace Fancy
   bool RenderCore_PlatformVk::InitInternalResources()
   {
     myCommandBufferAllocators[(uint)CommandListType::Graphics].reset(new CommandBufferAllocatorVk(CommandListType::Graphics));
-    myCommandBufferAllocators[(uint)CommandListType::Compute].reset(new CommandBufferAllocatorVk(CommandListType::Compute));
+    
+    if (myCaps.myHasAsyncCompute)
+      myCommandBufferAllocators[(uint)CommandListType::Compute].reset(new CommandBufferAllocatorVk(CommandListType::Compute));
 
     return true;
   }

@@ -13,11 +13,6 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  namespace Priv_RenderOutputVk
-  {
-    static constexpr VkSharingMode locSharingMode = VK_SHARING_MODE_CONCURRENT;
-  }
-//---------------------------------------------------------------------------//
   RenderOutputVk::RenderOutputVk(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
     : RenderOutput(aNativeInstanceHandle, someWindowParams)
   {
@@ -95,6 +90,15 @@ namespace Fancy
       myPresentMode = bestPresentMode;
     }
 
+    // Pick the appropriate sharing mode. 
+    {
+      const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+      const bool hasAsyncQueues = caps.myHasAsyncCompute || caps.myHasAsyncCopy;
+
+      // In single - queue scenarios it is a validation error to pick CONCURRENT
+      mySharingMode = hasAsyncQueues ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
+    }
+
     VkSurfaceCapabilitiesKHR surfaceCaps;
     ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(platformVk->myPhysicalDevice, mySurface, &surfaceCaps));
     myNumBackbuffers = glm::clamp(kBackbufferCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
@@ -138,7 +142,7 @@ namespace Fancy
     createInfo.imageFormat = myBackbufferFormat;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    createInfo.imageSharingMode = Priv_RenderOutputVk::locSharingMode;
+    createInfo.imageSharingMode = mySharingMode;
     createInfo.preTransform = surfaceCaps.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.presentMode = myPresentMode;
@@ -196,7 +200,7 @@ namespace Fancy
       resource.myStateTracking.myDefaultState = GpuResourceState::READ_PRESENT;
       resource.myStateTracking.myVkData.myReadAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
       resource.myStateTracking.myVkData.myWriteAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-      resource.myStateTracking.myVkData.myHasExclusiveQueueAccess = Priv_RenderOutputVk::locSharingMode == VK_SHARING_MODE_EXCLUSIVE;
+      resource.myStateTracking.myVkData.myHasExclusiveQueueAccess = mySharingMode == VK_SHARING_MODE_EXCLUSIVE;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

@@ -93,21 +93,29 @@ namespace Fancy
       imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
     }
 
-    imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+    const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+    const bool hasAsyncQueues = caps.myHasAsyncCompute || caps.myHasAsyncCopy;
+
+    imageInfo.sharingMode = hasAsyncQueues ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     const uint queueFamilyIndices[] =
     {
       (uint)platformVk->GetQueueInfo(CommandListType::Graphics).myQueueFamilyIndex,
-      (uint)platformVk->GetQueueInfo(CommandListType::Compute).myQueueFamilyIndex
+      (uint)platformVk->GetQueueInfo(CommandListType::Compute).myQueueFamilyIndex,
     };
     imageInfo.pQueueFamilyIndices = queueFamilyIndices;
-    imageInfo.queueFamilyIndexCount = ARRAY_LENGTH(queueFamilyIndices);
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
+    imageInfo.queueFamilyIndexCount = caps.myHasAsyncCompute ? ARRAY_LENGTH(queueFamilyIndices) : 1;
+    
     myStateTracking = GpuResourceStateTracking();
     myStateTracking.myCanChangeStates = true;
     myStateTracking.myDefaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+
+    const ResourceBarrierInfoVk& defaultStateInfo = RenderCore_PlatformVk::ResolveResourceState(myStateTracking.myDefaultState);
+    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
+
+    // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier
+    imageInfo.initialLayout = hasInitData ? VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL : defaultStateInfo.myImageLayout;
 
     VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT;
     VkAccessFlags writeMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
@@ -149,7 +157,7 @@ namespace Fancy
 
     SetName(aName != nullptr ? aName : "Texture_Unnamed");
 
-    if (someInitialDatas != nullptr && aNumInitialDatas > 0u)
+    if (hasInitData)
     {
       InitTextureData(someInitialDatas, aNumInitialDatas);
     }

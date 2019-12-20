@@ -64,9 +64,7 @@ namespace Fancy {
         }
       }
 
-
       CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-      ctx->ResourceBarrier(this, myStateTracking.myDefaultState, GpuResourceState::WRITE_COPY_DEST);
       ctx->UpdateTextureData(this, subresourceRange, newDatas, aNumInitialDatas);
       ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, myStateTracking.myDefaultState);
       RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
@@ -79,7 +77,6 @@ namespace Fancy {
     else
     {
       CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-      ctx->ResourceBarrier(this, myStateTracking.myDefaultState, GpuResourceState::WRITE_COPY_DEST);
       ctx->UpdateTextureData(this, subresourceRange, someInitialDatas, aNumInitialDatas);
       ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, myStateTracking.myDefaultState);
       RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);

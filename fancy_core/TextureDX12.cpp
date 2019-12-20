@@ -111,6 +111,11 @@ namespace Fancy {
     }
 
     D3D12_RESOURCE_STATES defaultStates = RenderCore_PlatformDX12::ResolveResourceUsageState(defaultState);
+    
+    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
+    // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier
+    const D3D12_RESOURCE_STATES initialStates = hasInitData ? RenderCore_PlatformDX12::ResolveResourceUsageState(GpuResourceState::WRITE_COPY_DEST) : defaultStates;
+
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (someProperties.myIsShaderWritable)
@@ -156,7 +161,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, defaultStates, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
     dataDx12->myGpuMemory = gpuMemory;
 
     // TODO: Decide between placed and committed resources depending on size and alignment requirements (maybe also expose a preference as a flag to the caller?)
@@ -173,7 +178,7 @@ namespace Fancy {
     std::wstring wName = StringUtil::ToWideString(myName);
     dataDx12->myResource->SetName(wName.c_str());
 
-    if (someInitialDatas != nullptr && aNumInitialDatas > 0u)
+    if (hasInitData)
     {
       InitTextureData(someInitialDatas, aNumInitialDatas);
     }

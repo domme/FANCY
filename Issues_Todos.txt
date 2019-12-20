@@ -21,3 +21,5 @@ Fancy Rendering Framework - Issues and Todos
 - Group allocator-classes that cache render-objects on a fence-basis under a common templated base-class. Right now, there are a lot of very similar implementations for various things (CommandAllocatorPoolDX12, CommandBufferAllocatorVk,...)
 
 - Write a test for the various Texture<->Buffer copy methods. Above all, make sure that depth- and stencil readbacks work
+
+- Think about going back to automatic resource-state tracking. 

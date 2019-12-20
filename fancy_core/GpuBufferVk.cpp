@@ -42,8 +42,12 @@ namespace Fancy
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.pNext = nullptr;
     bufferInfo.size = sizeBytes;
-    bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
     bufferInfo.flags = 0u;
+
+    const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+    const bool hasAsyncQueues = caps.myHasAsyncCompute || caps.myHasAsyncCopy;
+
+    bufferInfo.sharingMode = hasAsyncQueues ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
     
     bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT;
@@ -102,7 +106,7 @@ namespace Fancy
     };
 
     bufferInfo.pQueueFamilyIndices = queueFamilyIndices;
-    bufferInfo.queueFamilyIndexCount = ARRAY_LENGTH(queueFamilyIndices);
+    bufferInfo.queueFamilyIndexCount = caps.myHasAsyncCompute ? ARRAY_LENGTH(queueFamilyIndices) : 1;
 
     VkDevice device = platformVk->myDevice;
     ASSERT_VK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &dataVk->myBuffer));
