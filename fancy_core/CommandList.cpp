@@ -38,7 +38,7 @@ namespace Fancy {
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
     MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myDepthStencilState.get()));
     MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myBlendState.get()));
-    MathUtil::hash_combine(hash, myShaderPipeline->GetHash());
+    MathUtil::hash_combine(hash, myShaderPipeline != nullptr ? myShaderPipeline->GetHash() : 0u);
 
     if (myShaderPipeline != nullptr)
       MathUtil::hash_combine(hash, myShaderPipeline->GetShaderByteCodeHash());

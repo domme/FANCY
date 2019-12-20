@@ -130,19 +130,6 @@ namespace Fancy { namespace ImGuiRendering {
     if (!QueryPerformanceCounter((LARGE_INTEGER *)&ourTime))
       return false;
 
-    
-    // DEBUG - test during VK development to test compilation of a compute shader before anything else
-    // {
-    //   ShaderDesc shaderDesc =
-    //   {
-    //     "Tests/ModifyBuffer",
-    //     "main_set",
-    //     (uint) ShaderStage::COMPUTE
-    //   };
-    // 
-    //   SharedPtr<Shader> testComputShader = RenderCore::CreateShader(shaderDesc);
-    // }
-
     // Load the imgui-shader state
     {
       ShaderPipelineDesc pipelineDesc;

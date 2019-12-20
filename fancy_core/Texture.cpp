@@ -18,7 +18,7 @@ namespace Fancy {
   {
   }
 //---------------------------------------------------------------------------//
-  void Texture::InitTextureData(const TextureSubData* someInitialDatas, uint aNumInitialDatas)
+  void Texture::InitTextureData(const TextureSubData* someInitialDatas, uint aNumInitialDatas, GpuResourceState aCurrentState, GpuResourceState aNewState)
   {
     const uint lastSubresourceIndex = aNumInitialDatas - 1u;
     const SubresourceLocation lastSubresourceLocation = GetSubresourceLocation(lastSubresourceIndex);
@@ -65,8 +65,15 @@ namespace Fancy {
       }
 
       CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+
+      if (aCurrentState != GpuResourceState::WRITE_COPY_DEST)
+        ctx->ResourceBarrier(this, aCurrentState, GpuResourceState::WRITE_COPY_DEST);
+
       ctx->UpdateTextureData(this, subresourceRange, newDatas, aNumInitialDatas);
-      ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, myStateTracking.myDefaultState);
+
+      if (aNewState != GpuResourceState::WRITE_COPY_DEST)
+        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, aNewState);
+
       RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
 
       for (uint i = 0u; i < aNumInitialDatas; ++i)
@@ -77,8 +84,15 @@ namespace Fancy {
     else
     {
       CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+
+      if (aCurrentState != GpuResourceState::WRITE_COPY_DEST)
+        ctx->ResourceBarrier(this, aCurrentState, GpuResourceState::WRITE_COPY_DEST);
+
       ctx->UpdateTextureData(this, subresourceRange, someInitialDatas, aNumInitialDatas);
-      ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, myStateTracking.myDefaultState);
+
+      if (aNewState != GpuResourceState::WRITE_COPY_DEST)
+        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, aNewState);
+
       RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
     }
   }

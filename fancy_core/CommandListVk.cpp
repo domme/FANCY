@@ -96,15 +96,8 @@ namespace Fancy
       subpassDesc.inputAttachmentCount = 0u;
       subpassDesc.pInputAttachments = nullptr;
 
-      uint preservedAttachmentIndices[RenderConstants::kMaxNumRenderTargets + 1u];
-      for (uint i = 0; i < aNumRenderTargets; ++i)
-        preservedAttachmentIndices[i] = i;
-
-      if (hasDepthStencilTarget)
-        preservedAttachmentIndices[aNumRenderTargets] = aNumRenderTargets;
-
-      subpassDesc.pPreserveAttachments = preservedAttachmentIndices;
-      subpassDesc.preserveAttachmentCount = hasDepthStencilTarget ? aNumRenderTargets + 1u : aNumRenderTargets;
+      subpassDesc.preserveAttachmentCount = 0u;
+      subpassDesc.pPreserveAttachments = nullptr;
 
       renderpassInfo.pSubpasses = &subpassDesc;
       renderpassInfo.subpassCount = 1u;
@@ -155,12 +148,13 @@ namespace Fancy
       ASSERT(aState.myNumRenderTargets > 0 || aState.myDSVformat != DataFormat::NONE);
       ASSERT(aState.myShaderPipeline != nullptr);
 
-      VkGraphicsPipelineCreateInfo pipelineCreateInfo;
+      VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
       pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
       pipelineCreateInfo.pNext = nullptr;
       pipelineCreateInfo.basePipelineHandle = nullptr;
       pipelineCreateInfo.basePipelineIndex = -1;
       pipelineCreateInfo.renderPass = aRenderPass;
+      pipelineCreateInfo.flags = 0u;
 
       // Dynamic state (parts of the pipeline state that can be changed on the command-list)
       VkPipelineDynamicStateCreateInfo dynamicStateInfo;
@@ -362,6 +356,7 @@ namespace Fancy
       VkPipelineViewportStateCreateInfo viewportInfo;
       viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
       viewportInfo.pNext = nullptr;
+      viewportInfo.flags = 0u;
 
       // Dummy values - actual viewport will be set as a dynamic state to be more similar to DX
       VkViewport viewport;
@@ -674,7 +669,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
   {
-    VK_MISSING_IMPLEMENTATION();
+    CommandList::SetShaderPipeline(aShaderPipeline);
+
+    // Not sure if we need to do anything similar to switching root signatures as in DX12... if not, this override can be removed
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset, uint64 /*aSize*/)
@@ -707,6 +704,7 @@ namespace Fancy
     renderPassBegin.clearValueCount = 0u;
     renderPassBegin.pClearValues = nullptr;
     renderPassBegin.renderPass = myRenderPass;
+    renderPassBegin.framebuffer = myFramebuffer;
 
     vkCmdBeginRenderPass(myCommandBuffer, &renderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -964,11 +962,15 @@ namespace Fancy
 
     if (isImage)
     {
+      const GpuResourceStateTrackingVk& stateTrackingVk = aResource->myStateTracking.myVkData;
+      const VkImageLayout srcImageLayout = stateTrackingVk.myHasInitialImageLayout ? static_cast<VkImageLayout>(stateTrackingVk.myInitialImageLayout) : aSrcImageLayout;
+      stateTrackingVk.myHasInitialImageLayout = false;
+
       ImageMemoryBarrierData& imageBarrier = myPendingImageBarriers[myNumPendingImageBarriers++];
       imageBarrier.myImage = dataVk->myImage;
       imageBarrier.mySrcAccessMask = srcAccessMask;
       imageBarrier.myDstAccessMask = dstAccessMask;
-      imageBarrier.mySrcLayout = aSrcImageLayout;
+      imageBarrier.mySrcLayout = srcImageLayout;
       imageBarrier.myDstLayout = aDstImageLayout;
       imageBarrier.mySrcQueueFamilyIndex = srcQueueFamilyIndex;
       imageBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;

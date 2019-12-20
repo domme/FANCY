@@ -88,7 +88,7 @@ namespace Fancy
     SyncPoint* syncPoint = nullptr;
     if (!mySyncPoints.IsEmpty())
     {
-      for (uint i = mySyncPoints.Size() - 1u; syncPoint == nullptr && i != 0; --i)
+      for (uint i = mySyncPoints.Size() - 1u; syncPoint == nullptr && i >= 0; --i)
       {
         if (mySyncPoints[i].myWaitingOnVal == aFenceVal)
           syncPoint = &mySyncPoints[i];

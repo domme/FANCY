@@ -65,6 +65,7 @@ namespace Fancy
     if (isArray && imageType == VK_IMAGE_TYPE_2D)
       imageInfo.flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
 
+    imageInfo.imageType = imageType;
     imageInfo.format = RenderCore_PlatformVk::ResolveFormat(someProperties.myFormat);
     imageInfo.extent.width = someProperties.myWidth;
     imageInfo.extent.height = someProperties.myHeight;
@@ -112,11 +113,7 @@ namespace Fancy
     myStateTracking.myDefaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
     const ResourceBarrierInfoVk& defaultStateInfo = RenderCore_PlatformVk::ResolveResourceState(myStateTracking.myDefaultState);
-    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
-
-    // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier
-    imageInfo.initialLayout = hasInitData ? VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL : defaultStateInfo.myImageLayout;
-
+    
     VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT;
     VkAccessFlags writeMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
     if (someProperties.myIsRenderTarget)
@@ -139,6 +136,11 @@ namespace Fancy
     myStateTracking.myVkData.myWriteAccessMask = writeMask;
     myStateTracking.myVkData.myHasExclusiveQueueAccess = imageInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
 
+    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;  // Initial layout must be either UNDEFINED or PREINITIALIZED, we can't start in COPY_DEST or the default state unfortunately
+    myStateTracking.myVkData.myInitialImageLayout = imageInfo.initialLayout;
+    myStateTracking.myVkData.myHasInitialImageLayout = true;
+
     VkDevice device = platformVk->myDevice;
     ASSERT_VK_RESULT(vkCreateImage(device, &imageInfo, nullptr, &dataVk->myImage));
 
@@ -159,7 +161,7 @@ namespace Fancy
 
     if (hasInitData)
     {
-      InitTextureData(someInitialDatas, aNumInitialDatas);
+      InitTextureData(someInitialDatas, aNumInitialDatas, myStateTracking.myDefaultState, myStateTracking.myDefaultState);
     }
   }
 //---------------------------------------------------------------------------//

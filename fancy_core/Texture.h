@@ -25,8 +25,7 @@ namespace Fancy {
   protected:
     virtual void Destroy() = 0;
 
-    /// Initializes a texture after creation. Also handles format-padding. Texture is expected to be in COPY_DEST_STATE
-    void InitTextureData(const TextureSubData* someInitialDatas, uint aNumInitialDatas);
+    void InitTextureData(const TextureSubData* someInitialDatas, uint aNumInitialDatas, GpuResourceState aCurrentState, GpuResourceState aNewState);
 
     TextureProperties myProperties;
     bool myIsSwapChainTexture;

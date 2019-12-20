@@ -180,7 +180,7 @@ namespace Fancy {
 
     if (hasInitData)
     {
-      InitTextureData(someInitialDatas, aNumInitialDatas);
+      InitTextureData(someInitialDatas, aNumInitialDatas, GpuResourceState::WRITE_COPY_DEST, defaultState);
     }
   }
 //---------------------------------------------------------------------------//

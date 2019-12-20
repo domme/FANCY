@@ -201,6 +201,8 @@ namespace Fancy
       resource.myStateTracking.myVkData.myReadAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
       resource.myStateTracking.myVkData.myWriteAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
       resource.myStateTracking.myVkData.myHasExclusiveQueueAccess = mySharingMode == VK_SHARING_MODE_EXCLUSIVE;
+      resource.myStateTracking.myVkData.myInitialImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      resource.myStateTracking.myVkData.myHasInitialImageLayout = false;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

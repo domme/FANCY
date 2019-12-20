@@ -97,6 +97,8 @@ namespace Fancy
     myStateTracking.myVkData.myReadAccessMask = readMask;
     myStateTracking.myVkData.myWriteAccessMask = writeMask;
     myStateTracking.myVkData.myHasExclusiveQueueAccess = bufferInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
+    myStateTracking.myVkData.myHasInitialImageLayout = false;
+    myStateTracking.myVkData.myInitialImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;  // Buffers don't have image layouts
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     const uint queueFamilyIndices[] = 
