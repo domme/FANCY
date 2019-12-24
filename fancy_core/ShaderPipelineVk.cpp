@@ -27,7 +27,7 @@ namespace Fancy
 
     struct DescriptorSet
     {
-      DescriptorSet(uint aSetIndex) : mySet((aSetIndex)) { }
+      DescriptorSet(uint aSetIndex) : mySet(aSetIndex) { }
       uint mySet;
       DynamicArray<VkDescriptorSetLayoutBinding> myBindings;
     };

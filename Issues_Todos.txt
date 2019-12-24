@@ -22,4 +22,6 @@ Fancy Rendering Framework - Issues and Todos
 
 - Write a test for the various Texture<->Buffer copy methods. Above all, make sure that depth- and stencil readbacks work
 
-- Think about going back to automatic resource-state tracking. 
+- Think about going back to automatic resource-state tracking. Maybe its a "good enough" assumption that the command-list recording order will be the same as the order processed on the GPU
+
+- Add support for multiple vertex-input buffers and make it possible to specify the input vertex format (i.e. don't assume that it will always be an interleaved buffer but leave that choice up to the user)

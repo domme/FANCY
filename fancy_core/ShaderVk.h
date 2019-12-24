@@ -30,7 +30,7 @@ namespace Fancy
     DynamicArray<VkVertexInputAttributeDescription> myVertexAttributes;
     uint myOverallVertexSize;
   };
-
+//---------------------------------------------------------------------------//
   struct ShaderCompiledDataVk
   {
     VkShaderModule myModule = nullptr;
@@ -38,8 +38,9 @@ namespace Fancy
     ShaderVertexAttributeDescVk myVertexAttributeDesc;
   };
 //---------------------------------------------------------------------------//
-  
-  class ShaderVk : public Shader
+
+//---------------------------------------------------------------------------//
+    class ShaderVk : public Shader
   {
     friend class ShaderCompilerVk;
 
