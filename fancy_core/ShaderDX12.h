@@ -7,6 +7,11 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  struct ShaderResourceBindingInfoDX12
+  {
+    
+  };
+//---------------------------------------------------------------------------//
   struct ShaderCompiledDataDX12
   {
     Microsoft::WRL::ComPtr<ID3DBlob> myBytecodeBlob;

@@ -307,6 +307,17 @@ namespace Fancy {
       return false;
     }
 
+    Microsoft::WRL::ComPtr<ID3D12VersionedRootSignatureDeserializer> rsDeserializer;
+    sucess = D3D12CreateVersionedRootSignatureDeserializer(rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rsDeserializer));
+
+    if (S_OK != sucess)
+    {
+      LOG_ERROR("Failed deserializing the shader root signature");
+      return false;
+    }
+
+    const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetUnconvertedRootSignatureDesc();
+
     // Reflect the shader resources
     //---------------------------------------------------------------------------//
     ID3D12ShaderReflection* reflector;
