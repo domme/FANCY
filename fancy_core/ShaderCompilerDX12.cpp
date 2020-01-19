@@ -235,6 +235,178 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
+  bool locIsRwResource(D3D_SHADER_INPUT_TYPE aType)
+  {
+    switch (aType)
+    {
+      case D3D_SIT_UAV_RWTYPED: 
+      case D3D_SIT_UAV_RWSTRUCTURED: 
+      case D3D_SIT_UAV_RWBYTEADDRESS: 
+      case D3D11_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+        return true;
+      default: return false;
+    }
+  }
+//---------------------------------------------------------------------------//
+  bool locAreResourceTypesEqual(D3D_SHADER_INPUT_TYPE anInputType, D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
+  {
+    switch (anInputType)
+    {
+      case D3D_SIT_CBUFFER: 
+        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+
+      case D3D_SIT_TBUFFER:
+      case D3D_SIT_TEXTURE:
+      case D3D_SIT_STRUCTURED:
+      case D3D_SIT_BYTEADDRESS:
+        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+
+      case D3D_SIT_SAMPLER:
+        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+
+      case D3D_SIT_UAV_RWTYPED:
+      case D3D_SIT_UAV_RWSTRUCTURED:
+      case D3D_SIT_UAV_RWBYTEADDRESS:
+      case D3D_SIT_UAV_APPEND_STRUCTURED:
+      case D3D_SIT_UAV_CONSUME_STRUCTURED:
+      case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+
+      default: return false;
+    }
+  }
+//---------------------------------------------------------------------------//
+  bool locAreResourceTypesEqual(D3D_SHADER_INPUT_TYPE anInputType, D3D12_ROOT_PARAMETER_TYPE aParamType)
+  {
+    switch (anInputType)
+    {
+    case D3D_SIT_CBUFFER:
+      return aParamType == D3D12_ROOT_PARAMETER_TYPE_CBV;
+
+    case D3D_SIT_TBUFFER:
+    case D3D_SIT_TEXTURE:
+    case D3D_SIT_STRUCTURED:
+    case D3D_SIT_BYTEADDRESS:
+      return aParamType == D3D12_ROOT_PARAMETER_TYPE_SRV;
+
+    case D3D_SIT_UAV_RWTYPED:
+    case D3D_SIT_UAV_RWSTRUCTURED:
+    case D3D_SIT_UAV_RWBYTEADDRESS:
+    case D3D_SIT_UAV_APPEND_STRUCTURED:
+    case D3D_SIT_UAV_CONSUME_STRUCTURED:
+    case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+      return aParamType == D3D12_ROOT_PARAMETER_TYPE_UAV;
+
+    default: return false;
+    }
+  }
+//---------------------------------------------------------------------------//
+  bool locAddShaderResourceInfo(const D3D12_SHADER_INPUT_BIND_DESC& aResourceDesc, const D3D12_ROOT_SIGNATURE_DESC1& aRsDesc, ShaderResourceInfoContainerDX12& someResourceInfos)
+  {
+    if (aResourceDesc.Type == D3D_SIT_SAMPLER) // This could be a static sampler that doesn't need an entry in the resourceInfos since its just defined in the root signature
+    {
+      for (uint i = 0u; i < aRsDesc.NumStaticSamplers; ++i)
+      {
+        if (aResourceDesc.BindPoint == aRsDesc.pStaticSamplers[i].ShaderRegister)
+          return true;  // Ignore this resource - not an actual resource that needs binding from the app
+      }
+    }
+
+    ShaderResourceInfoDX12 resourceInfo;
+    resourceInfo.myNameHash = MathUtil::Hash(aResourceDesc.Name);
+    resourceInfo.myName = aResourceDesc.Name;
+
+    for (uint iRootParam = 0u; iRootParam < aRsDesc.NumParameters; ++iRootParam)
+    {
+      const D3D12_ROOT_PARAMETER1& rParam = aRsDesc.pParameters[iRootParam];
+      if (rParam.ParameterType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
+      {
+        const D3D12_ROOT_DESCRIPTOR_TABLE1& rDescTable = rParam.DescriptorTable;
+        uint descriptorOffsetInTable = 0u;
+        for (uint iDescRange = 0u; iDescRange < rDescTable.NumDescriptorRanges; ++iDescRange)
+        {
+          const D3D12_DESCRIPTOR_RANGE1& descRange = rDescTable.pDescriptorRanges[iDescRange];
+
+          if (descRange.BaseShaderRegister == aResourceDesc.BindPoint && locAreResourceTypesEqual(aResourceDesc.Type, descRange.RangeType))
+          {
+            resourceInfo.myIsDescriptorTableEntry = true;
+            resourceInfo.myRootParamIndex = iRootParam;
+            resourceInfo.myDescriptorOffsetInTable = descRange.OffsetInDescriptorsFromTableStart == D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND ? descriptorOffsetInTable : descRange.OffsetInDescriptorsFromTableStart;
+
+            switch (descRange.RangeType)
+            {
+              case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: 
+                someResourceInfos.mySRVs.push_back(resourceInfo); break;
+              case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: 
+                someResourceInfos.myUAVs.push_back(resourceInfo); break;
+              case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
+                someResourceInfos.myCBVs.push_back(resourceInfo); break;
+              case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: 
+                someResourceInfos.mySamplers.push_back(resourceInfo); break;
+              default: return false;
+            }
+
+            return true;
+          }
+
+          descriptorOffsetInTable += descRange.NumDescriptors;
+        }
+      }
+      else if (rParam.ParameterType != D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
+      {
+        if (rParam.Descriptor.ShaderRegister == aResourceDesc.BindPoint && locAreResourceTypesEqual(aResourceDesc.Type, rParam.ParameterType))
+        {
+          resourceInfo.myIsDescriptorTableEntry = false;
+          resourceInfo.myRootParamIndex = iRootParam;
+
+          switch (rParam.ParameterType)
+          {
+            case D3D12_ROOT_PARAMETER_TYPE_CBV:
+              someResourceInfos.myCBVs.push_back(resourceInfo); break;
+            case D3D12_ROOT_PARAMETER_TYPE_SRV:
+              someResourceInfos.mySRVs.push_back(resourceInfo); break;
+            case D3D12_ROOT_PARAMETER_TYPE_UAV:
+              someResourceInfos.myUAVs.push_back(resourceInfo); break;
+            default: return false;
+          }
+
+          return true;
+        }
+      }
+      else
+      {
+        LOG_ERROR("Unsupported root parameter type for resource %s. FANCY supports only CBVs as root descriptors and doesn't support any root constants", aResourceDesc.Name);
+      }
+    }
+
+    return false;
+  }
+//---------------------------------------------------------------------------//
+  bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* aRootSignatureDesc, 
+    ShaderResourceInfoContainerDX12& someResourceInfosOut, bool& aHasUnorderedWritesOut)
+  {
+    ASSERT(aRootSignatureDesc->Version == D3D_ROOT_SIGNATURE_VERSION_1_1);
+    const D3D12_ROOT_SIGNATURE_DESC1& rsDesc = aRootSignatureDesc->Desc_1_1;
+
+    D3D12_SHADER_DESC shaderDesc;
+    aReflector->GetDesc(&shaderDesc);
+
+    bool hasUnorderedWrites = false;
+    for (uint i = 0u; i < shaderDesc.BoundResources && !hasUnorderedWrites; ++i)
+    {
+      D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
+      CheckD3Dcall(aReflector->GetResourceBindingDesc(i, &resourceDesc));
+
+      hasUnorderedWrites |= locIsRwResource(resourceDesc.Type);
+
+      if (!locAddShaderResourceInfo(resourceDesc, rsDesc, someResourceInfosOut))
+        return false;
+    }
+    aHasUnorderedWritesOut = hasUnorderedWrites;
+
+    return true;
+  }
+//---------------------------------------------------------------------------//
   String ShaderCompilerDX12::GetShaderPath(const char* aPath) const
   {
     const StaticFilePath path("%s/DX12/%s.hlsl", ShaderCompiler::GetShaderRootFolderRelative(), aPath);
@@ -329,22 +501,17 @@ namespace Fancy {
       return false;
     }
 
-    D3D12_SHADER_DESC shaderDesc;
-    reflector->GetDesc(&shaderDesc);
-
-    bool hasUnorderedWrites = false;
-    for (uint i = 0u; i < shaderDesc.BoundResources && !hasUnorderedWrites; ++i)
+    if (!locReflectResources(reflector, rsDesc, compiledNativeData.myResourceInfos, anOutput->myProperties.myHasUnorderedWrites))
     {
-      D3D12_SHADER_INPUT_BIND_DESC desc;
-      CheckD3Dcall(reflector->GetResourceBindingDesc(i, &desc));
-
-      hasUnorderedWrites |= (desc.Type == D3D_SIT_UAV_RWTYPED || desc.Type == D3D_SIT_UAV_RWSTRUCTURED ||
-        desc.Type == D3D_SIT_UAV_RWBYTEADDRESS || desc.Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER);
+      LOG_ERROR("Failed reflecting shader resources");
+      return false;
     }
-    anOutput->myProperties.myHasUnorderedWrites = hasUnorderedWrites;
-    
+
     if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::VERTEX))
     {
+      D3D12_SHADER_DESC shaderDesc;
+      reflector->GetDesc(&shaderDesc);
+
       if (!locReflectVertexInputLayout(reflector, shaderDesc, anOutput->myProperties))
       {
         LOG_ERROR("Failed reflecting vertex input layout");

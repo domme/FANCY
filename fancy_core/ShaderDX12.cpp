@@ -84,6 +84,8 @@ namespace Fancy {
     myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
     
     CreateNativeInputLayout(myProperties.myVertexInputLayout, myNativeInputElements);
+
+    myResourceInfos = data.myResourceInfos;
   }
 //---------------------------------------------------------------------------//
   uint64 ShaderDX12::GetNativeBytecodeHash() const

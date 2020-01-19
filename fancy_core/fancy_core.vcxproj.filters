@@ -374,7 +374,7 @@
     <ClInclude Include="TextureReadbackTask.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderResourceBindInfoDX12.h" />
+    <ClInclude Include="ShaderResourceInfoDX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -579,7 +579,6 @@
     <ClCompile Include="TextureProperties.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderResourceBindInfoDX12.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />
