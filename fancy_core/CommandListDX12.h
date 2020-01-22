@@ -50,6 +50,11 @@ namespace Fancy {
     void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const override;
     void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
 
+    void BindBufferView(const char* aName, const GpuResourceView* aView) override;
+    void BindRwBufferView(const char* aName, const GpuResourceView* aView) override;
+    void BindTextureView(const char* aName, const GpuResourceView* aView) override;
+    void BindRwTextureView(const char* aName, const GpuResourceView* aView) override;
+
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
     GpuQuery InsertTimestamp() override;
@@ -63,6 +68,8 @@ namespace Fancy {
     void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:
+    
+
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
@@ -103,6 +110,7 @@ namespace Fancy {
 
     DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     std::vector<DynamicDescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
+
   };
 //---------------------------------------------------------------------------//
 }

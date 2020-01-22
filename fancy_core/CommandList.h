@@ -80,6 +80,12 @@ namespace Fancy {
     virtual void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) = 0;
     virtual void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
+
+    virtual void BindBufferView(const char* aName, const GpuResourceView* aView) = 0;
+    virtual void BindRwBufferView(const char* aName, const GpuResourceView* aView) = 0;
+    virtual void BindTextureView(const char* aName, const GpuResourceView* aView) = 0;
+    virtual void BindRwTextureView(const char* aName, const GpuResourceView* aView) = 0;
+    
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
     virtual void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) = 0; // TODO: Support regions
@@ -147,7 +153,8 @@ namespace Fancy {
     GpuRingBuffer* GetUploadBuffer_Internal(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
 
     enum Consts {
-      kNumCachedBarriers = 256
+      kNumCachedBarriers = 256,
+      kMaxNumShaderDescriptors = 32,
     };
 
     virtual bool SubresourceBarrierInternal(
