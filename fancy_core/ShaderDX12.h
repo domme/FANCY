@@ -12,7 +12,7 @@ namespace Fancy {
   {
     Microsoft::WRL::ComPtr<ID3DBlob> myBytecodeBlob;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
-    ShaderResourceInfoContainerDX12 myResourceInfos;
+    DynamicArray<ShaderResourceInfoDX12> myResourceInfos;
   };
 //---------------------------------------------------------------------------//
   class ShaderDX12 : public Shader
@@ -43,7 +43,7 @@ namespace Fancy {
     DynamicArray<D3D12_INPUT_ELEMENT_DESC> myNativeInputElements;
     Microsoft::WRL::ComPtr<ID3DBlob> myNativeData;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
-    ShaderResourceInfoContainerDX12 myResourceInfos;
+    DynamicArray<ShaderResourceInfoDX12> myResourceInfos;
     
     D3D12_SHADER_BYTECODE myNativeByteCode = {};
   };

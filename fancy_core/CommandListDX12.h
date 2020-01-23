@@ -89,6 +89,7 @@ namespace Fancy {
     void ApplyComputePipelineState();
     void ApplyRenderTargets();
     void ApplyTopologyType();
+    void ApplyResourceBindings();
 
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
     void SetTrackResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const;
@@ -111,7 +112,7 @@ namespace Fancy {
     DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     std::vector<DynamicDescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
 
-    struct ShaderResourceBindings
+    struct ResourceBindings
     {
       void Clear();
 
@@ -121,13 +122,25 @@ namespace Fancy {
         NumDescriptorTables = 16,
       };
 
-      StaticArray<StaticArray<DescriptorDX12, NumDescriptors>, NumDescriptorTables> myDescriptorTables;
-      StaticArray<DescriptorDX12, NumDescriptors> myRootCBVs;
-      StaticArray<DescriptorDX12, NumDescriptors> myRootSRVs;
-      StaticArray<DescriptorDX12, NumDescriptors> myRootUAVs;
+      struct DescriptorTable
+      {
+        StaticArray<DescriptorDX12, NumDescriptors> myDescriptors;
+        uint myRootParameterIndex;
+      };
+
+      struct RootDescriptor
+      {
+        uint64 myGpuVirtualAddress;
+        uint myRootParameterIndex;
+      };
+
+      StaticArray<DescriptorTable, NumDescriptorTables> myDescriptorTables;
+      StaticArray<RootDescriptor, NumDescriptors> myRootCBVs;
+      StaticArray<RootDescriptor, NumDescriptors> myRootSRVs;
+      StaticArray<RootDescriptor, NumDescriptors> myRootUAVs;
     };
 
-    ShaderResourceBindings myShaderResourceBindings;
+    ResourceBindings myResourceBindings;
   };
 //---------------------------------------------------------------------------//
 }

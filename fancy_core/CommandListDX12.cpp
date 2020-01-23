@@ -580,6 +580,7 @@ namespace Fancy {
     myRootSignature = nullptr;
     myComputeRootSignature = nullptr;
     myNumPendingBarriers = 0u;
+    myResourceBindings.Clear();
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::FlushBarriers()
@@ -883,22 +884,24 @@ namespace Fancy {
     SetTrackSubresourceTransitionBarriers(resourcesToTransition, barrierStates, subresourceLists, numSubresources, aResourceCount);
 #endif  // FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
 
-    FlushBarriers();  // D3D12 needs a barrier flush here so the debug layer doesn't complain about expecting static descriptors and data at this point
+    
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::BindBufferView(const char* aName, const GpuResourceView* aView)
+  {
 
-    const DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(dx12Descriptors, aResourceCount);
-
-    switch(myCurrentContext)
-    {
-      case CommandListType::Graphics: 
-        myCommandList->SetGraphicsRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
-        break;
-      case CommandListType::Compute: 
-        myCommandList->SetComputeRootDescriptorTable(aRegisterIndex, dynamicRangeStartDescriptor.myGpuHandle);
-        break;
-      case CommandListType::DMA: break;
-      case CommandListType::NUM: break;
-      default: break;
-    }
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::BindRwBufferView(const char* aName, const GpuResourceView* aView)
+  {
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::BindTextureView(const char* aName, const GpuResourceView* aView)
+  {
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::BindRwTextureView(const char* aName, const GpuResourceView* aView)
+  {
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandListDX12::BeginQuery(GpuQueryType aType)
@@ -1253,6 +1256,65 @@ namespace Fancy {
     myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
   }
 //---------------------------------------------------------------------------//
+  void CommandListDX12::ApplyResourceBindings()
+  {
+    ASSERT(myCurrentContext != CommandListType::Graphics || myRootSignature != nullptr);
+    ASSERT(myCurrentContext != CommandListType::Compute || myComputeRootSignature != nullptr);
+    
+    FlushBarriers();  // D3D12 needs a barrier flush here so the debug layer doesn't complain about expecting static descriptors and data at this point
+
+    for (uint i = 0u; i < myResourceBindings.myDescriptorTables.Size(); ++i)
+    {
+      ResourceBindings::DescriptorTable& descriptorTable = myResourceBindings.myDescriptorTables[i];
+      ASSERT(!descriptorTable.myDescriptors.IsEmpty());
+
+      const DescriptorDX12 dynamicRangeStartDescriptor = CopyDescriptorsToDynamicHeapRange(descriptorTable.myDescriptors.GetBuffer(), descriptorTable.myDescriptors.Size());
+
+      switch (myCurrentContext)
+      {
+        case CommandListType::Graphics:
+          myCommandList->SetGraphicsRootDescriptorTable(descriptorTable.myRootParameterIndex, dynamicRangeStartDescriptor.myGpuHandle);
+          break;
+        case CommandListType::Compute:
+          myCommandList->SetComputeRootDescriptorTable(descriptorTable.myRootParameterIndex, dynamicRangeStartDescriptor.myGpuHandle);
+          break;
+        case CommandListType::DMA: break;
+        case CommandListType::NUM: break;
+        default: break;
+      }
+    }
+
+    for (uint i = 0u; i < myResourceBindings.myRootCBVs.Size(); ++i)
+    {
+      ResourceBindings::RootDescriptor& rootDescriptor = myResourceBindings.myRootCBVs[i];
+
+      if (myCurrentContext == CommandListType::Graphics)
+        myCommandList->SetGraphicsRootConstantBufferView(rootDescriptor.myRootParameterIndex, rootDescriptor.myGpuVirtualAddress);
+      else
+        myCommandList->SetComputeRootConstantBufferView(rootDescriptor.myRootParameterIndex, rootDescriptor.myGpuVirtualAddress);
+    }
+
+    for (uint i = 0u; i < myResourceBindings.myRootSRVs.Size(); ++i)
+    {
+      ResourceBindings::RootDescriptor& rootDescriptor = myResourceBindings.myRootSRVs[i];
+
+      if (myCurrentContext == CommandListType::Graphics)
+        myCommandList->SetGraphicsRootShaderResourceView(rootDescriptor.myRootParameterIndex, rootDescriptor.myGpuVirtualAddress);
+      else
+        myCommandList->SetComputeRootShaderResourceView(rootDescriptor.myRootParameterIndex, rootDescriptor.myGpuVirtualAddress);
+    }
+
+    for (uint i = 0u; i < myResourceBindings.myRootUAVs.Size(); ++i)
+    {
+      ResourceBindings::RootDescriptor& rootDescriptor = myResourceBindings.myRootUAVs[i];
+
+      if (myCurrentContext == CommandListType::Graphics)
+        myCommandList->SetGraphicsRootUnorderedAccessView(rootDescriptor.myRootParameterIndex, rootDescriptor.myGpuVirtualAddress);
+      else
+        myCommandList->SetComputeRootUnorderedAccessView(rootDescriptor.myRootParameterIndex, rootDescriptor.myGpuVirtualAddress);
+    }
+  }
+//---------------------------------------------------------------------------//
 #if FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES
   void CommandListDX12::SetTrackResourceTransitionBarrier(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState) const
   {
@@ -1474,7 +1536,7 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  void CommandListDX12::ShaderResourceBindings::Clear()
+  void CommandListDX12::ResourceBindings::Clear()
   {
     for (uint i = 0u; i < myDescriptorTables.Size(); ++i)
       myDescriptorTables.Clear();
