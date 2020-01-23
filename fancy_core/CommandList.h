@@ -154,7 +154,6 @@ namespace Fancy {
 
     enum Consts {
       kNumCachedBarriers = 256,
-      kMaxNumShaderDescriptors = 32,
     };
 
     virtual bool SubresourceBarrierInternal(

@@ -1473,4 +1473,15 @@ namespace Fancy {
     myIsOpen = false;
   }
 //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  void CommandListDX12::ShaderResourceBindings::Clear()
+  {
+    for (uint i = 0u; i < myDescriptorTables.Size(); ++i)
+      myDescriptorTables.Clear();
+
+    myRootCBVs.Clear();
+    myRootSRVs.Clear();
+    myRootUAVs.Clear();
+  }
+//---------------------------------------------------------------------------//
 }

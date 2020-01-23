@@ -375,6 +375,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="ShaderResourceInfoDX12.h" />
+    <ClInclude Include="StaticArray.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">

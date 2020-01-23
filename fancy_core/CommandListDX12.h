@@ -8,6 +8,7 @@
 #include "RenderEnums.h"
 #include "GpuResourceStateTracking.h"
 #include <glm/detail/type_mat.hpp>
+#include "StaticArray.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -69,7 +70,6 @@ namespace Fancy {
 
   protected:
     
-
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
@@ -111,6 +111,23 @@ namespace Fancy {
     DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     std::vector<DynamicDescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
 
+    struct ShaderResourceBindings
+    {
+      void Clear();
+
+      enum
+      {
+        NumDescriptors = 32,
+        NumDescriptorTables = 16,
+      };
+
+      StaticArray<StaticArray<DescriptorDX12, NumDescriptors>, NumDescriptorTables> myDescriptorTables;
+      StaticArray<DescriptorDX12, NumDescriptors> myRootCBVs;
+      StaticArray<DescriptorDX12, NumDescriptors> myRootSRVs;
+      StaticArray<DescriptorDX12, NumDescriptors> myRootUAVs;
+    };
+
+    ShaderResourceBindings myShaderResourceBindings;
   };
 //---------------------------------------------------------------------------//
 }

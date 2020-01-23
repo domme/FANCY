@@ -115,6 +115,7 @@
     <ClInclude Include="RenderOutputVk.h" />
     <ClInclude Include="spirv_reflect\spirv.h" />
     <ClInclude Include="spirv_reflect\spirv_reflect.h" />
+    <ClInclude Include="StaticArray.h" />
     <ClInclude Include="StaticString.h" />
     <ClInclude Include="TempResourcePool.h" />
     <ClInclude Include="Input.h" />
