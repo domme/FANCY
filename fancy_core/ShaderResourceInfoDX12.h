@@ -7,16 +7,23 @@ namespace Fancy
 //---------------------------------------------------------------------------// 
   struct ShaderResourceInfoDX12
   {
+    bool operator==(const ShaderResourceInfoDX12& anOther) const
+    {
+      return myDescriptorOffsetInTable == anOther.myDescriptorOffsetInTable &&
+        myRootParamIndex == anOther.myRootParamIndex;
+    }
+
     enum Type
     {
-      CBV, SRV, UAV, Sampler
+      None, CBV, SRV, UAV, Sampler
     };
 
-    uint64 myNameHash;  // The name of the resource in the shader source
+    uint64 myNameHash = 0ull;  // The name of the resource in the shader source
     String myName;
-    bool myIsDescriptorTableEntry;
-    uint myDescriptorOffsetInTable;
-    uint myRootParamIndex;
+    Type myType = None;
+    bool myIsDescriptorTableEntry = false;
+    uint myDescriptorOffsetInTable = UINT_MAX;
+    uint myRootParamIndex = UINT_MAX;
   };
 }
 

@@ -36,6 +36,7 @@ namespace Fancy {
     uint64 GetNativeBytecodeHash() const override;
 
     ID3D12RootSignature* GetRootSignature() const { return myRootSignature.Get(); }
+    const DynamicArray<ShaderResourceInfoDX12>& GetResourceInfos() const { return myResourceInfos; }
 
   private:
     static void CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout, std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements);

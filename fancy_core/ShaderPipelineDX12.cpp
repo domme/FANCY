@@ -14,4 +14,25 @@ void Fancy::ShaderPipelineDX12::UpdateResourceInterface()
       break;
     }
   }
+
+  // Create a list of all resource infos used by all shader stages
+  myResourceInfos.clear();
+  for (const SharedPtr<Shader>& shader : myShaders)
+  {
+    if (shader == nullptr)
+      continue;
+
+    const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(shader.get());
+    const DynamicArray<ShaderResourceInfoDX12>& resInfos = shaderDx12->GetResourceInfos();
+
+    if (myResourceInfos.empty())
+    {
+      myResourceInfos.insert(myResourceInfos.begin(), resInfos.begin(), resInfos.end());
+      continue;
+    }
+
+    for (const ShaderResourceInfoDX12& info : resInfos)
+      if (std::find(myResourceInfos.begin(), myResourceInfos.end(), info) == myResourceInfos.end())
+        myResourceInfos.push_back(info);
+  }
 }
