@@ -81,10 +81,7 @@ namespace Fancy {
     virtual void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
 
-    virtual void BindBufferView(const char* aName, const GpuResourceView* aView) = 0;
-    virtual void BindRwBufferView(const char* aName, const GpuResourceView* aView) = 0;
-    virtual void BindTextureView(const char* aName, const GpuResourceView* aView) = 0;
-    virtual void BindRwTextureView(const char* aName, const GpuResourceView* aView) = 0;
+    virtual void BindResourceView(const char* aName, const GpuResourceView* aView) = 0;
     
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;

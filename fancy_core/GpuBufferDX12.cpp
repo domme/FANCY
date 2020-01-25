@@ -162,7 +162,7 @@ namespace Fancy {
   {
     GpuResourceViewDataDX12 nativeData;
     nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, "GpuBufferView");
-    ASSERT(nativeData.myDescriptor.myCpuHandle.ptr != 0u);
+    ASSERT(nativeData.myDescriptor.myCpuHandle.ptr != UINT_MAX);
 
     bool success = false;
     if (someProperties.myIsConstantBuffer)

@@ -272,7 +272,7 @@ namespace Fancy {
       }
     }
 
-    ASSERT(success && nativeData.myDescriptor.myCpuHandle.ptr != 0u && myType != GpuResourceViewType::NONE);
+    ASSERT(success && nativeData.myDescriptor.myCpuHandle.ptr != UINT_MAX && myType != GpuResourceViewType::NONE);
 
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numTexMips = texProps.myNumMipLevels;

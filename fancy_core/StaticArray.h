@@ -79,11 +79,24 @@ namespace Fancy
       myData[mySize++] = std::move(anElement);
     }
 
+    void GrowToSize(uint aNewSize)
+    {
+      ASSERT(aNewSize <= N);
+      while (mySize < aNewSize)
+        AddElement();
+    }
+
     void Clear()
     {
       for (uint i = 0u; i < mySize; ++i)
         myData[i].~T();
 
+      mySize = 0u;
+    }
+
+    /// Clears without calling destructors. Should only be used with POD-types
+    void ClearDiscard()
+    {
       mySize = 0u;
     }
 

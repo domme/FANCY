@@ -9,6 +9,7 @@
 #include "GpuResourceStateTracking.h"
 #include <glm/detail/type_mat.hpp>
 #include "StaticArray.h"
+#include "ShaderResourceInfoDX12.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -19,6 +20,35 @@ namespace Fancy {
   struct GpuResourceDataDX12;
   class Shader;
   class GpuBuffer;
+//---------------------------------------------------------------------------//
+  struct ResourceBindingsDX12
+  {
+    struct RootDescriptor
+    {
+      ShaderResourceTypeDX12 myType;
+      uint64 myGpuVirtualAddress;
+    };
+
+    struct DescriptorTable
+    {
+      DescriptorDX12* myDescriptors;
+      uint myNumDescriptors;
+    };
+
+    struct RootParameter
+    {
+      bool myIsDescriptorTable;
+      RootDescriptor myRootDescriptor;
+      DescriptorTable myDescriptorTable;
+    };
+
+    void BindResourceView(const ShaderResourceInfoDX12& aResourceInfo, const GpuResourceView* aView);
+    void Clear();
+
+    StaticArray<DescriptorDX12, 256> myBoundDescriptorPool;
+    RootParameter myRootParameters[256];
+    uint myNumBoundRootParameters;
+  };
 //---------------------------------------------------------------------------//
   class CommandListDX12 final : public CommandList
   {
@@ -51,10 +81,7 @@ namespace Fancy {
     void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const override;
     void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
 
-    void BindBufferView(const char* aName, const GpuResourceView* aView) override;
-    void BindRwBufferView(const char* aName, const GpuResourceView* aView) override;
-    void BindTextureView(const char* aName, const GpuResourceView* aView) override;
-    void BindRwTextureView(const char* aName, const GpuResourceView* aView) override;
+    void BindResourceView(const char* aName, const GpuResourceView* aView) override;
 
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
@@ -109,38 +136,10 @@ namespace Fancy {
     D3D12_RESOURCE_BARRIER myPendingBarriers[kNumCachedBarriers];
     uint myNumPendingBarriers;
 
+    ResourceBindingsDX12 myResourceBindings;
+
     DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     std::vector<DynamicDescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
-
-    struct ResourceBindings
-    {
-      void Clear();
-
-      enum
-      {
-        NumDescriptors = 32,
-        NumDescriptorTables = 16,
-      };
-
-      struct DescriptorTable
-      {
-        StaticArray<DescriptorDX12, NumDescriptors> myDescriptors;
-        uint myRootParameterIndex;
-      };
-
-      struct RootDescriptor
-      {
-        uint64 myGpuVirtualAddress;
-        uint myRootParameterIndex;
-      };
-
-      StaticArray<DescriptorTable, NumDescriptorTables> myDescriptorTables;
-      StaticArray<RootDescriptor, NumDescriptors> myRootCBVs;
-      StaticArray<RootDescriptor, NumDescriptors> myRootSRVs;
-      StaticArray<RootDescriptor, NumDescriptors> myRootUAVs;
-    };
-
-    ResourceBindings myResourceBindings;
   };
 //---------------------------------------------------------------------------//
 }

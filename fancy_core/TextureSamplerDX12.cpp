@@ -91,7 +91,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool TextureSamplerDX12::IsCreated()
   {
-    return myDescriptor.myCpuHandle.ptr != 0u;
+    return myDescriptor.myCpuHandle.ptr != UINT_MAX;
   }
 //---------------------------------------------------------------------------//
 }

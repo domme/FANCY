@@ -8,8 +8,8 @@ namespace Fancy {
   {
   public:
     DescriptorDX12()
-      : myCpuHandle{0u}
-      , myGpuHandle{0u}
+      : myCpuHandle{UINT_MAX}
+      , myGpuHandle{UINT_MAX}
       , myHeapType(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)
       , myIsManagedByAllocator(false)
     {

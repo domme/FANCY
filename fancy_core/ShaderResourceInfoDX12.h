@@ -5,6 +5,11 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------// 
+  enum class ShaderResourceTypeDX12
+  {
+    None, CBV, SRV, UAV, Sampler
+  };
+
   struct ShaderResourceInfoDX12
   {
     bool operator==(const ShaderResourceInfoDX12& anOther) const
@@ -13,19 +18,11 @@ namespace Fancy
         myRootParamIndex == anOther.myRootParamIndex;
     }
 
-    enum Type
-    {
-      None, CBV, SRV, UAV, Sampler
-    };
-
     uint64 myNameHash = 0ull;  // The name of the resource in the shader source
     String myName;
-    Type myType = None;
+    ShaderResourceTypeDX12 myType = ShaderResourceTypeDX12::None;
     bool myIsDescriptorTableEntry = false;
     uint myDescriptorOffsetInTable = UINT_MAX;
     uint myRootParamIndex = UINT_MAX;
   };
 }
-
-
-

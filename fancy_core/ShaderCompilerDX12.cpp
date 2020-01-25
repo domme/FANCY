@@ -301,26 +301,26 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  ShaderResourceInfoDX12::Type locGetShaderResourceInfoType(D3D12_ROOT_PARAMETER_TYPE aRootParamType)
+  ShaderResourceTypeDX12 locGetShaderResourceInfoType(D3D12_ROOT_PARAMETER_TYPE aRootParamType)
   {
     switch (aRootParamType) 
     { 
-      case D3D12_ROOT_PARAMETER_TYPE_CBV: return ShaderResourceInfoDX12::CBV;
-      case D3D12_ROOT_PARAMETER_TYPE_SRV: return ShaderResourceInfoDX12::SRV;
-      case D3D12_ROOT_PARAMETER_TYPE_UAV: return ShaderResourceInfoDX12::UAV;
-      default: ASSERT(false); return ShaderResourceInfoDX12::CBV;
+      case D3D12_ROOT_PARAMETER_TYPE_CBV: return ShaderResourceTypeDX12::CBV;
+      case D3D12_ROOT_PARAMETER_TYPE_SRV: return ShaderResourceTypeDX12::SRV;
+      case D3D12_ROOT_PARAMETER_TYPE_UAV: return ShaderResourceTypeDX12::UAV;
+      default: ASSERT(false); return ShaderResourceTypeDX12::CBV;
     }
   }
 //---------------------------------------------------------------------------//
-  ShaderResourceInfoDX12::Type locGetShaderResourceInfoType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
+  ShaderResourceTypeDX12 locGetShaderResourceInfoType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
   {
     switch (aRangeType)
     {
-    case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return ShaderResourceInfoDX12::CBV;
-    case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return ShaderResourceInfoDX12::SRV;
-    case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return ShaderResourceInfoDX12::UAV;
-    case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return ShaderResourceInfoDX12::Sampler;
-    default: ASSERT(false); return ShaderResourceInfoDX12::CBV;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return ShaderResourceTypeDX12::CBV;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return ShaderResourceTypeDX12::SRV;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return ShaderResourceTypeDX12::UAV;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return ShaderResourceTypeDX12::Sampler;
+    default: ASSERT(false); return ShaderResourceTypeDX12::CBV;
     }
   }
 //---------------------------------------------------------------------------//
