@@ -809,9 +809,8 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const
+  void CommandListVk::BindBuffer(const char* aName, const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties)
   {
-
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//

@@ -30,7 +30,7 @@ namespace Fancy
     void RenderGeometry(const GeometryData* pGeometry) override;
     void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override;
 
-    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) const override;
+    void BindBuffer(const char* aName, const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties) override;
     void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
     
     GpuQuery BeginQuery(GpuQueryType aType) override;
