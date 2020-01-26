@@ -89,17 +89,16 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
       };
       myExpectedBufferValue = (uint)Time::ourFrameIdx;
       CBuffer cbuf = { myExpectedBufferValue };
-      graphicsContext->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
+      graphicsContext->BindConstantBuffer(&cbuf, sizeof(cbuf), "CB0");
       
-      const GpuResourceView* views[] = { myBufferUAV.get() };
-      graphicsContext->BindResourceSet(views, ARRAY_LENGTH(views), 1);
+      graphicsContext->BindResourceView(myBufferUAV.get(), "DstBuffer");
       graphicsContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
       const uint64 setValueFence = RenderCore::ExecuteAndResetCommandList(graphicsContext);
 
       CommandList* computeContext = RenderCore::BeginCommandList(CommandListType::Compute);
       RenderCore::GetCommandQueue(CommandListType::Compute)->StallForFence(setValueFence);
       computeContext->SetComputeProgram(myIncrementBufferShader.get());
-      computeContext->BindResourceSet(views, ARRAY_LENGTH(views), 1);
+      graphicsContext->BindResourceView(myBufferUAV.get(), "DstBuffer");
       computeContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
       const uint64 incrementValueFence = RenderCore::ExecuteAndFreeCommandList(computeContext);
 

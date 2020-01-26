@@ -42,11 +42,12 @@ namespace Fancy {
       DescriptorTable myDescriptorTable;
     };
 
+    void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress);
     void BindResourceView(const ShaderResourceInfoDX12& aResourceInfo, const GpuResourceView* aView);
     void BindBuffer(const ShaderResourceInfoDX12& aResourceInfo, const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties);
     void Clear();
 
-    StaticArray<SharedPtr<GpuResourceView>, 32> myTempResourceViews;
+    StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;
     StaticArray<DescriptorDX12, 256> myBoundDescriptorPool;
     RootParameter myRootParameters[256];
     uint myNumBoundRootParameters;
@@ -80,10 +81,9 @@ namespace Fancy {
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     void RenderGeometry(const GeometryData* pGeometry) override;
-    void BindBuffer(const char* aName, const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties) override;
-    void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
+    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName) override;
 
-    void BindResourceView(const char* aName, const GpuResourceView* aView) override;
+    void BindResourceView(const GpuResourceView* aView, const char* aName) override;
 
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;

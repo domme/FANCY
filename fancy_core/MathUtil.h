@@ -52,7 +52,7 @@ namespace Fancy { namespace MathUtil {
   }
 //---------------------------------------------------------------------------//
   template<>
-  inline size_t Hash<const char*&>(const char*& aValue)
+  inline size_t Hash<const char*>(const char* const& aValue)
   {
     return ByteHash(reinterpret_cast<const uint8*>(aValue), strlen(aValue));
   }

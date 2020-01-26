@@ -76,12 +76,11 @@ namespace Fancy {
     virtual void CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) = 0;
 
     virtual void Dispatch(const glm::int3& aNumThreads) = 0;
-    virtual void BindBuffer(const char* aName, const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties) = 0;
-    virtual void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) = 0;
+    virtual void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName) = 0;
     virtual void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
 
-    virtual void BindResourceView(const char* aName, const GpuResourceView* aView) = 0;
+    virtual void BindResourceView(const GpuResourceView* aView, const char* aName) = 0;
     
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
@@ -110,7 +109,7 @@ namespace Fancy {
     const GpuBuffer* GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize);
     void BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize);
     void BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize);
-    void BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex);
+    void BindConstantBuffer(void* someData, uint64 aDataSize, const char* aName);
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
     void SetBlendState(const SharedPtr<BlendState>& aBlendState);

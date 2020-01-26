@@ -245,7 +245,7 @@ namespace Fancy {
     BindIndexBuffer(buffer, anIndexSize, offset, aDataSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex)
+  void CommandList::BindConstantBuffer(void* someData, uint64 aDataSize, const char* aName)
   {
     uint64 offset = 0u;
     const GpuBuffer* buffer = GetBuffer(offset, GpuBufferUsage::CONSTANT_BUFFER, someData, aDataSize);
@@ -255,7 +255,7 @@ namespace Fancy {
     viewProperties.myIsConstantBuffer = true;
     viewProperties.myOffset = offset;
 
-    BindBuffer(buffer, viewProperties, aRegisterIndex);
+    BindBuffer(buffer, viewProperties, aName);
   }
 //---------------------------------------------------------------------------//
 

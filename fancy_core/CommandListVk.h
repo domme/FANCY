@@ -30,8 +30,8 @@ namespace Fancy
     void RenderGeometry(const GeometryData* pGeometry) override;
     void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override;
 
-    void BindBuffer(const char* aName, const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties) override;
-    void BindResourceSet(const GpuResourceView** someResourceViews, uint aResourceCount, uint aRegisterIndex) override;
+    void BindResourceView(const GpuResourceView* aView, const char* aName) override;
+    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName) override;
     
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
@@ -75,7 +75,7 @@ namespace Fancy
     void ApplyComputePipelineState();
 
     void BeginCommandBuffer();
-    
+
     static std::unordered_map<uint64, VkPipeline> ourPipelineCache;
     static std::unordered_map<uint64, VkRenderPass> ourRenderpassCache;
     static std::unordered_map<uint64, VkFramebuffer> ourFramebufferCache;

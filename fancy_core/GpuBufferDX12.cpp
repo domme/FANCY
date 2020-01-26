@@ -168,17 +168,17 @@ namespace Fancy {
     if (someProperties.myIsConstantBuffer)
     {
       myType = GpuResourceViewType::CBV;
-      success = CreateCBV(aBuffer.get(), someProperties, nativeData.myDescriptor);
+      success = CreateCBVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else if (someProperties.myIsShaderWritable)
     {
       myType = GpuResourceViewType::UAV;
-      success = CreateUAV(aBuffer.get(), someProperties, nativeData.myDescriptor);
+      success = CreateUAVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else
     {
       myType = GpuResourceViewType::SRV;
-      success = CreateSRV(aBuffer.get(), someProperties, nativeData.myDescriptor);
+      success = CreateSRVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
 
     ASSERT(success);
@@ -194,7 +194,7 @@ namespace Fancy {
     RenderCore::GetPlatformDX12()->ReleaseDescriptor(viewData.myDescriptor);
   }
 //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateSRV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  bool GpuBufferViewDX12::CreateSRVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
     GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
@@ -235,7 +235,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateUAV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  bool GpuBufferViewDX12::CreateUAVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
     GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
@@ -275,7 +275,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateCBV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  bool GpuBufferViewDX12::CreateCBVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
     GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 

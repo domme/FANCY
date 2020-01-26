@@ -55,13 +55,13 @@ namespace Fancy
 
     T& operator[](int i)
     {
-      ASSERT(i < mySize);
+      ASSERT((uint)i < mySize);
       return myData[i];
     }
 
     const T& operator[](int i ) const
     {
-      ASSERT(i < mySize);
+      ASSERT((uint)i < mySize);
       return myData[i];
     }
 
@@ -104,7 +104,7 @@ namespace Fancy
     bool IsFull() const { return mySize == N; }
     uint Size() const { return mySize; }
     static uint Capacity() { return N; }
-    T* GetBuffer() const { return myData; }
+    T* GetBuffer() { return myData; }
 
   private:
     T& AddElement()

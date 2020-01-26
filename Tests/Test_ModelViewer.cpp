@@ -111,7 +111,7 @@ void Test_ModelViewer::RenderGrid(Fancy::CommandList* ctx)
     myCamera.myViewProj,
     glm::float4(1.0f, 0.0f, 0.0f, 1.0f),
   };
-  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), 0u);
+  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), "cbPerObject");
 
   struct GridGeoVertex
   {
@@ -162,12 +162,12 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     {
       myCamera.myViewProj * myScene.myTransforms[i],
     };
-    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), 0u);
+    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
 
     Material* mat = model->myMaterial.get();
     const GpuResourceView* diffuseTex = mat->mySemanticTextures[(uint)TextureSemantic::BASE_COLOR].get();
     if (diffuseTex)
-      ctx->BindResourceSet(&diffuseTex, 1u, 1u);
+      ctx->BindResourceView(diffuseTex, "tex_diffuse");
 
     Mesh* mesh = model->myMesh.get();
     for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)

@@ -265,7 +265,7 @@ namespace Fancy { namespace ImGuiRendering {
         0.0f,               0.0f,               0.5f,       0.0f,
         (R + L) / (L - R),  (T + B) / (B - T),  0.5f,       1.0f);
       
-      ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), 0u);
+      ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), "cbVSImgui");
     }
 
     uint cmdListVertexOffset = 0u;
@@ -287,13 +287,13 @@ namespace Fancy { namespace ImGuiRendering {
         }
         else
         {
-          const GpuResourceView* textureViews[] = { ourFontTexture.get() };
+          const GpuResourceView* textureView = ourFontTexture.get();
 
           ImTextureID textureId = pcmd->TextureId;
           if (textureId != nullptr)
-            textureViews[0] = static_cast<const GpuResourceView*>(textureId);
+            textureView = static_cast<const GpuResourceView*>(textureId);
 
-          ctx->BindResourceSet(textureViews, 1u, 1u);
+          ctx->BindResourceView(textureView, "texture0");
 
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
           ctx->SetClipRect(clipRect);

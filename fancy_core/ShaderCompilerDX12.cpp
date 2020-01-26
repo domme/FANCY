@@ -335,9 +335,11 @@ namespace Fancy {
       }
     }
 
+    const char* name = aResourceDesc.Name;
+
     ShaderResourceInfoDX12 resourceInfo;
-    resourceInfo.myNameHash = MathUtil::Hash(aResourceDesc.Name);
-    resourceInfo.myName = aResourceDesc.Name;
+    resourceInfo.myNameHash = MathUtil::Hash(name);
+    resourceInfo.myName = name;
 
     for (uint iRootParam = 0u; iRootParam < aRsDesc.NumParameters; ++iRootParam)
     {

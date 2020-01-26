@@ -321,8 +321,6 @@ using namespace Fancy;
     glm::float2 destSize = glm::ceil(srcSize * 0.5f);
     for (uint mip = 1u; mip < numMips; ++mip)
     {
-      const GpuResourceView* resourceViews[] = { nullptr, nullptr };
-
       // Resize horizontal
       glm::float2 tempDestSize(destSize.x, srcSize.y);
       cBuffer.mySrcSize = srcSize;
@@ -330,10 +328,9 @@ using namespace Fancy;
       cBuffer.mySrcScale = tempDestSize / srcSize;
       cBuffer.myDestScale = srcSize / tempDestSize;
       cBuffer.myAxis = glm::float2(1.0f, 0.0f);
-      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-      resourceViews[0] = readViews[mip - 1].get();
-      resourceViews[1] = tempTexResource[0].myWriteView;
-      ctx->BindResourceSet(resourceViews, 2, 1u);
+      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), "CB0");
+      ctx->BindResourceView(readViews[mip - 1].get(), "SrcTexture");
+      ctx->BindResourceView(tempTexResource[0].myWriteView, "DestTexture");
       ctx->Dispatch(glm::int3((int)destSize.x, (int)srcSize.y, 1));
       ctx->ResourceUAVbarrier();
 
@@ -343,12 +340,11 @@ using namespace Fancy;
       cBuffer.mySrcScale = destSize / tempDestSize;
       cBuffer.myDestScale = tempDestSize / destSize;
       cBuffer.myAxis = glm::float2(0.0f, 1.0f);
-      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0u);
-      resourceViews[0] = tempTexResource[0].myReadView;
-      resourceViews[1] = tempTexResource[1].myWriteView;
+      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), "CB0");
       ctx->ResourceBarrier(tempTexResource[0].myTexture, GpuResourceState::WRITE_COMPUTE_SHADER_UAV, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE);
       ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceState::WRITE_COMPUTE_SHADER_UAV);
-      ctx->BindResourceSet(resourceViews, 2, 1u);
+      ctx->BindResourceView(tempTexResource[0].myReadView, "SrcTexture");
+      ctx->BindResourceView(tempTexResource[1].myWriteView, "DestTexture");
       ctx->Dispatch(glm::int3((int)destSize.x, (int)destSize.y, 1));
       ctx->ResourceUAVbarrier();
       
