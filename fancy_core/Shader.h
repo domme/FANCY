@@ -19,6 +19,8 @@ namespace Fancy {
   class Shader
   {
   public:
+    static uint64 GetParameterNameHash(const char* aName);
+
     virtual ~Shader() = default;
 
     const ShaderDesc& GetDescription() const { return myDesc; }

@@ -134,6 +134,18 @@ namespace Fancy {
     CopyBufferToTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)), aSrcBuffer, aSrcOffset);
   }
 //---------------------------------------------------------------------------//
+  void CommandList::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName)
+  {
+    const uint64 nameHash = Shader::GetParameterNameHash(aName);
+    BindBuffer(aBuffer, someViewProperties, nameHash);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::BindResourceView(const GpuResourceView* aView, const char* aName)
+  {
+    const uint64 nameHash = Shader::GetParameterNameHash(aName);
+    BindResourceView(aView, nameHash);
+  }
+//---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
   {
     const uint type = (uint)aType;

@@ -809,12 +809,12 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindResourceView(const GpuResourceView* aView, const char* aName)
+  void CommandListVk::BindResourceView(const GpuResourceView* aView, uint64 aNameHash)
   {
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName)
+  void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash)
   {
     VK_MISSING_IMPLEMENTATION();
   }

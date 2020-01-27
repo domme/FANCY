@@ -21,38 +21,6 @@ namespace Fancy {
   class Shader;
   class GpuBuffer;
 //---------------------------------------------------------------------------//
-  struct ResourceStateDX12
-  {
-    struct RootDescriptor
-    {
-      ShaderResourceTypeDX12 myType;
-      uint64 myGpuVirtualAddress;
-    };
-
-    struct DescriptorTable
-    {
-      DescriptorDX12* myDescriptors;
-      uint myNumDescriptors;
-    };
-
-    struct RootParameter
-    {
-      bool myIsDescriptorTable;
-      RootDescriptor myRootDescriptor;
-      DescriptorTable myDescriptorTable;
-    };
-
-    void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress);
-    void BindResourceView(const ShaderResourceInfoDX12& aResourceInfo, const GpuResourceView* aView);
-    void BindBuffer(const ShaderResourceInfoDX12& aResourceInfo, const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties);
-    void Clear();
-
-    StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;
-    StaticArray<DescriptorDX12, 256> myBoundDescriptorPool;
-    RootParameter myRootParameters[256];
-    uint myNumBoundRootParameters;
-  };
-//---------------------------------------------------------------------------//
   class CommandListDX12 final : public CommandList
   {
     friend class RenderCore_PlatformDX12;
@@ -81,9 +49,9 @@ namespace Fancy {
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     void RenderGeometry(const GeometryData* pGeometry) override;
-    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName) override;
 
-    void BindResourceView(const GpuResourceView* aView, const char* aName) override;
+    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash) override;
+    void BindResourceView(const GpuResourceView* aView, uint64 aNameHash) override;
 
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
@@ -98,11 +66,40 @@ namespace Fancy {
     void Dispatch(const glm::int3& aNumThreads) override;
 
   protected:
+    struct ResourceState
+    {
+      struct RootDescriptor
+      {
+        ShaderResourceTypeDX12 myType;
+        uint64 myGpuVirtualAddress;
+      };
+
+      struct DescriptorTable
+      {
+        DescriptorDX12* myDescriptors;
+        uint myNumDescriptors;
+      };
+
+      struct RootParameter
+      {
+        bool myIsDescriptorTable;
+        RootDescriptor myRootDescriptor;
+        DescriptorTable myDescriptorTable;
+      };
+
+      StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;
+      StaticArray<DescriptorDX12, 256> myBoundDescriptorPool;
+      RootParameter myRootParameters[256];
+      uint myNumBoundRootParameters;
+    };
+
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
-    bool FindShaderResourceInfo(const char* aName, ShaderResourceInfoDX12& aResourceInfoOut) const;
+    bool FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoDX12& aResourceInfoOut) const;
+    void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress);
+    void ClearResourceBindings();
 
     bool SubresourceBarrierInternal(
       const GpuResource* aResource,
@@ -131,6 +128,8 @@ namespace Fancy {
     DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount);
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
+
+    ResourceState myResourceState;
     
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12RootSignature* myComputeRootSignature;
@@ -138,8 +137,6 @@ namespace Fancy {
     ID3D12CommandAllocator* myCommandAllocator;
     D3D12_RESOURCE_BARRIER myPendingBarriers[kNumCachedBarriers];
     uint myNumPendingBarriers;
-
-    ResourceStateDX12 myResourceState;
 
     DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     std::vector<DynamicDescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
