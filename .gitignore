@@ -1,8 +1,6 @@
-*.exe
 *.exp
 *.opensdf
 *.ilk
-*.pdb
 *.suo
 *.obj
 
@@ -22,8 +20,6 @@ lib/*
 *.cache
 *.opendb
 
-dependencies/lib/*
-dependencies/bin/*
 *.db
 FANCY.VC.db
 *.user
