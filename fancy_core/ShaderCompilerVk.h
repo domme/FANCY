@@ -1,8 +1,8 @@
 #pragma once
 #include "ShaderCompiler.h"
 
-class IDxcLibrary;
-class IDxcCompiler;
+struct IDxcLibrary;
+struct IDxcCompiler;
 
 namespace Fancy
 {

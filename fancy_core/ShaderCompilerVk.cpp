@@ -6,6 +6,7 @@
 #include "ShaderVk.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
+#include "StaticArray.h"
 
 #include "spirv_reflect/spirv_reflect.h"
 
@@ -124,11 +125,9 @@ namespace Fancy
   ShaderCompilerVk::ShaderCompilerVk()
   {
     HRESULT hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&myDxcLibrary));
-    if(FAILED(hr))
-
-    Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
+    ASSERT(hr == S_OK, "Failed to create DXC library");
     hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&myDxcCompiler));
-    //if(FAILED(hr)) Handle error...
+    ASSERT(hr == S_OK, "Failed to create DXC compiler");
   }
 //---------------------------------------------------------------------------//
   ShaderCompilerVk::~ShaderCompilerVk()
@@ -165,6 +164,66 @@ namespace Fancy
     String spvBinaryFilePathAbs(StaticFilePath("%sShaderCache/%llu.spv", Path::GetUserDataPath().c_str(), shaderHash));
     Path::CreateDirectoryTreeForPath(spvBinaryFilePathAbs);
 
+    DynamicArray<uint8> spvBinaryData;
+    if (!isGlsl)
+    {
+      std::string shaderFile = FileReader::ReadTextFile(hlslSrcPathAbs.c_str());
+      if (shaderFile.empty())
+        return false;
+      
+      IDxcBlobEncoding* sourceBlob;
+      if (myDxcLibrary->CreateBlobWithEncodingFromPinned(shaderFile.c_str(), (uint) shaderFile.size(), CP_UTF8, &sourceBlob) != S_OK)
+        return false;
+
+      StaticArray<std::wstring, 32> defineNames;
+      StaticArray<DxcDefine, 32> defines;
+      for (const String& define : aDesc.myDefines)
+      {
+        defineNames.Add(StringUtil::ToWideString(define));
+        defines.Add({ defineNames[defineNames.Size() -1 ].c_str(), nullptr });
+      }
+
+      LPCWSTR args[] = { 
+        L"/spirv",                  // Generate SPIR-V code
+        L"/fspv-reflect",           // Emit additional SPIR-V instructions to aid reflection
+        L"/fvk-use-dx-layout",      // Use DirectX memory layout for Vulkan resources
+        L"/fvk-use-dx-position-w",  // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
+        L"/Zpc",                    // Pack matrices in column-major order
+        L"/Zi"                      // Enable debug information
+      };
+
+      IDxcOperationResult* compiledResult;
+      HRESULT result = myDxcCompiler->Compile(
+        sourceBlob,
+        StringUtil::ToWideString(aDesc.myShaderFileName).c_str(),
+        StringUtil::ToWideString(aDesc.myMainFunction).c_str(),
+        StringUtil::ToWideString(GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage))).c_str(),
+        args,
+        ARRAY_LENGTH(args),
+        defines.GetBuffer(),
+        defines.Size(),
+        nullptr,
+        &compiledResult);
+
+      if (result != S_OK)
+      {
+        IDxcBlobEncoding* errorBlob;
+        compiledResult->GetErrorBuffer(&errorBlob);
+
+        IDxcBlobEncoding* errorBlob8;
+        myDxcLibrary->GetBlobAsUtf8(errorBlob, &errorBlob8);
+
+        LOG_ERROR("Error compiling shader %s: %s", aDesc.myShaderFileName.c_str(), static_cast<const char*>(errorBlob8->GetBufferPointer()));
+        return false;
+      }
+
+      IDxcBlob* spirvBlob;
+      compiledResult->GetResult(&spirvBlob);
+
+      spvBinaryData.resize(spirvBlob->GetBufferSize());
+      memcpy(spvBinaryData.data(), spirvBlob->GetBufferPointer(), spirvBlob->GetBufferSize());
+
+    /*
     String dxcPath = Path::GetAppPath() + "/../../../dependencies/bin/dxc.exe";
     Path::RemoveFolderUpMarkers(dxcPath);
     
@@ -218,6 +277,7 @@ namespace Fancy
       DynamicArray<uint8> spvBinaryData;
       const bool spvReadSuccess = FileReader::ReadBinaryFile(spvBinaryFilePathAbs.c_str(), spvBinaryData);
       ASSERT(spvReadSuccess);
+      */
 
       VkShaderModuleCreateInfo moduleCreateInfo = {};
       moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
