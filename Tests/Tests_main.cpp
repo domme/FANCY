@@ -53,7 +53,7 @@ void Init(HINSTANCE anInstanceHandle)
 {
   RenderingStartupParameters params;
   params.myRenderingApi = RenderPlatformType::DX12; 
-  // params.myRenderingApi = RenderPlatformType::VULKAN;
+  //params.myRenderingApi = RenderPlatformType::VULKAN;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   Fancy::WindowParameters windowParams;

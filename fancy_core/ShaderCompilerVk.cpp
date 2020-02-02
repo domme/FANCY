@@ -9,6 +9,8 @@
 
 #include "spirv_reflect/spirv_reflect.h"
 
+#include <dxc/dxcapi.h>
+
 namespace Fancy
 {
   namespace Priv_ShaderCompilerVk
@@ -121,6 +123,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   ShaderCompilerVk::ShaderCompilerVk()
   {
+    HRESULT hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&myDxcLibrary));
+    if(FAILED(hr))
+
+    Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
+    hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&myDxcCompiler));
+    //if(FAILED(hr)) Handle error...
   }
 //---------------------------------------------------------------------------//
   ShaderCompilerVk::~ShaderCompilerVk()
