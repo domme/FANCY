@@ -10,6 +10,9 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
+#include <dxc/dxcapi.h>
+#include <dxc/DxilContainer/DxilContainer.h>
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   DataFormat locResolveFormat(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
@@ -414,82 +417,47 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  String ShaderCompilerDX12::GetShaderPath(const char* aPath) const
+  bool ShaderCompilerDX12::Compile_Internal(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, ShaderCompilerResult* anOutput) const
   {
-    const StaticFilePath path("%s/DX12/%s.hlsl", ShaderCompiler::GetShaderRootFolderRelative(), aPath);
-    return String(path);
-  }
-//---------------------------------------------------------------------------//
-  bool ShaderCompilerDX12::Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* anOutput) const
-  {
-    DynamicArray<D3D_SHADER_MACRO> defines;
-    defines.resize(aDesc.myDefines.size() + 2u);
-    defines[0].Name = aStageDefine;
-    defines[0].Definition = "1";
-    for (uint i = 0u, e = (uint) aDesc.myDefines.size(); i < e; ++i)
+    DxcShaderCompiler::Config config =
     {
-      defines[i + 1].Name = aDesc.myDefines[i].c_str();
-      defines[i + 1].Definition = "1";
-    }
-    defines[defines.size() - 1].Name = nullptr;
-    defines[defines.size() - 1].Definition = nullptr;
-    
-    Microsoft::WRL::ComPtr<ID3DBlob> compiledShaderBytecode;
-    Microsoft::WRL::ComPtr<ID3DBlob> errorData;
+      true,
+      false,
+      GetHLSLprofileString((ShaderStage)aDesc.myShaderStage)
+    };
 
-    const String actualShaderPath = GetShaderPath(aDesc.myShaderFileName.c_str());
-    std::wstring shaderPathAbs = StringUtil::ToWideString(Resources::FindPath(actualShaderPath));
+    Microsoft::WRL::ComPtr<IDxcBlob> compiledShaderBytecode;
+    if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, compiledShaderBytecode))
+      return false;
 
-    HRESULT sucess = D3DCompileFromFile(
-      shaderPathAbs.c_str(),
-      &defines[0],
-      D3D_COMPILE_STANDARD_FILE_INCLUDE,
-      aDesc.myMainFunction.c_str(),
-      GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)),
-      D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_OPTIMIZATION_LEVEL0 | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_WARNINGS_ARE_ERRORS,
-      0u,
-      &compiledShaderBytecode,
-      &errorData);
-
-    if (S_OK != sucess)
+    IDxcContainerReflection* dxcReflection = myDxcCompiler.GetDxcReflector();
+    HRESULT success = dxcReflection->Load(compiledShaderBytecode.Get());
+    if (success != S_OK)
     {
-      if (errorData != nullptr)
-      {
-        const char* errorMsg = (const char*)errorData->GetBufferPointer();
-        LOG_WARNING(errorMsg);
-        errorData.ReleaseAndGetAddressOf();
-      }
-
+      LOG_ERROR("Failed to load the compiled shader bytecode into the dxc reflector");
       return false;
     }
 
     // Extract and parse RootSignature
-    ID3DBlob* rsBlob = nullptr;
-    sucess = D3DGetBlobPart(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), D3D_BLOB_ROOT_SIGNATURE, 0u, &rsBlob);
-
-    if (S_OK != sucess)
-    {
-      LOG_ERROR("Failed extracting the root signature from shader");
-      return false;
-    }
+    uint rootSigPartIdx;
+    success = dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx);
+    ASSERT(success == S_OK);
 
     ID3D12Device* d3dDevice = RenderCore::GetPlatformDX12()->GetDevice();
 
     ShaderCompiledDataDX12 compiledNativeData;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-    sucess = d3dDevice->CreateRootSignature(0u, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+    success = d3dDevice->CreateRootSignature(0u, compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
     compiledNativeData.myRootSignature = rootSignature;
-
-    if (S_OK != sucess)
+    if (S_OK != success)
     {
       LOG_ERROR("Failed creating the root signature from shader");
       return false;
     }
 
     Microsoft::WRL::ComPtr<ID3D12VersionedRootSignatureDeserializer> rsDeserializer;
-    sucess = D3D12CreateVersionedRootSignatureDeserializer(rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rsDeserializer));
-
-    if (S_OK != sucess)
+    success = D3D12CreateVersionedRootSignatureDeserializer(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rsDeserializer));
+    if (S_OK != success)
     {
       LOG_ERROR("Failed deserializing the shader root signature");
       return false;
@@ -499,16 +467,19 @@ namespace Fancy {
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//
-    ID3D12ShaderReflection* reflector;
-    sucess = D3DReflect(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_ID3D12ShaderReflection, (void**)&reflector);
+    uint dxilPartIdx;
+    success = dxcReflection->FindFirstPartKind(hlsl::DFCC_DXIL, &dxilPartIdx);
+    ASSERT(success == S_OK);
 
-    if (S_OK != sucess)
+    Microsoft::WRL::ComPtr<ID3D12ShaderReflection> reflector;
+    success = dxcReflection->GetPartReflection(dxilPartIdx, IID_PPV_ARGS(&reflector));
+    if (S_OK != success)
     {
       LOG_ERROR("Failed reflecting shader");
       return false;
     }
 
-    if (!locReflectResources(reflector, rsDesc, compiledNativeData.myResourceInfos, anOutput->myProperties.myHasUnorderedWrites))
+    if (!locReflectResources(reflector.Get(), rsDesc, compiledNativeData.myResourceInfos, anOutput->myProperties.myHasUnorderedWrites))
     {
       LOG_ERROR("Failed reflecting shader resources");
       return false;
@@ -519,7 +490,7 @@ namespace Fancy {
       D3D12_SHADER_DESC shaderDesc;
       reflector->GetDesc(&shaderDesc);
 
-      if (!locReflectVertexInputLayout(reflector, shaderDesc, anOutput->myProperties))
+      if (!locReflectVertexInputLayout(reflector.Get(), shaderDesc, anOutput->myProperties))
       {
         LOG_ERROR("Failed reflecting vertex input layout");
         return false;
@@ -531,8 +502,10 @@ namespace Fancy {
       reflector->GetThreadGroupSize(&x, &y, &z);
       anOutput->myProperties.myNumGroupThreads = glm::int3(static_cast<int>(x), static_cast<int>(y), static_cast<int>(z));
     }
-        
-    compiledNativeData.myBytecodeBlob = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
+    
+    compiledNativeData.myBytecode.resize(compiledShaderBytecode->GetBufferSize());
+    memcpy(compiledNativeData.myBytecode.data(), compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize());
+
     anOutput->myNativeData = compiledNativeData;
 
     return true;

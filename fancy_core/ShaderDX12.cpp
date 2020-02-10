@@ -77,11 +77,11 @@ namespace Fancy {
 
     const ShaderCompiledDataDX12& data = aCompilerOutput.myNativeData.To<ShaderCompiledDataDX12>();
 
-    myNativeData = data.myBytecodeBlob;
+    myBytecode = data.myBytecode;
     myRootSignature = data.myRootSignature;
 
-    myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();
-    myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
+    myNativeByteCode.pShaderBytecode = myBytecode.data();
+    myNativeByteCode.BytecodeLength = myBytecode.size();
     
     CreateNativeInputLayout(myProperties.myVertexInputLayout, myNativeInputElements);
 
@@ -90,7 +90,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   uint64 ShaderDX12::GetNativeBytecodeHash() const
   {
-    return reinterpret_cast<uint64>(getNativeData().Get());
+    return reinterpret_cast<uint64>(myNativeByteCode.pShaderBytecode);
   }
 //---------------------------------------------------------------------------//
 }

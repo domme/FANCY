@@ -19,24 +19,6 @@ namespace Fancy
   namespace Priv_ShaderCompilerVk
   {
 //---------------------------------------------------------------------------//
-    StaticFilePath locGetShaderPath(const char* aFilename, bool& isGlsl)
-    {
-      StaticFilePath path("%s/Vk/%s.glsl", ShaderCompiler::GetShaderRootFolderRelative(), aFilename);
-
-      String pathRel = path.GetBuffer();
-      String pathAbs = Resources::FindPath(pathRel);
-
-      if (Path::FileExists(pathAbs.c_str()))
-      {
-        isGlsl = true;
-        return path;
-      }
-
-      isGlsl = false;
-      path.Format("%s/DX12/%s.hlsl", ShaderCompiler::GetShaderRootFolderRelative(), aFilename);
-      return path;
-    }
-//---------------------------------------------------------------------------//
     DataFormat locResolveFormat(SpvReflectFormat aFormat)
     {
       switch(aFormat) 
@@ -122,227 +104,36 @@ namespace Fancy
       }
     }
 //---------------------------------------------------------------------------//
-    struct IncludeHandler : IDxcIncludeHandler
-    {
-      StaticArray<std::wstring, 16> myIncludeSearchPaths;
-      IDxcLibrary* myDxcLibrary;
-
-      IncludeHandler(IDxcLibrary* aDxcLibrary, String* someIncludeSearchPaths, uint aNumPaths)
-        : myDxcLibrary(aDxcLibrary)
-      {
-        for (uint i = 0u; i < aNumPaths; ++i)
-        {
-          const String& dir = someIncludeSearchPaths[i];
-          ASSERT(!dir.empty());
-
-          if (dir[dir.size() - 1] != '/' && dir[dir.size() - 1] != '\\')
-            myIncludeSearchPaths.Add(StringUtil::ToWideString(dir + '/'));
-          else
-            myIncludeSearchPaths.Add(StringUtil::ToWideString(dir));
-        }
-          
-      }
-
-      HRESULT LoadSource(LPCWSTR pFilename, IDxcBlob** ppIncludeSource) override
-      {
-        // Skip current-folder markers "./" 
-        if (wcslen(pFilename) > 1 && pFilename[0] == '.' && (pFilename[1] == '/' || pFilename[1] == '\\'))
-          pFilename += 2;
-
-        if (Path::FileExists(pFilename))
-        {
-          IDxcBlobEncoding* pBlobWithEncoding;
-          HRESULT result = myDxcLibrary->CreateBlobFromFile(pFilename, nullptr, &pBlobWithEncoding);
-          ASSERT(result == S_OK);
-          *ppIncludeSource = pBlobWithEncoding;
-          return S_OK;
-        }
-
-        for (uint i = 0u; i < myIncludeSearchPaths.Size(); ++i)
-        {
-          std::wstring path = myIncludeSearchPaths[i] + pFilename;
-          if (Path::FileExists(path.c_str()))
-          {
-            IDxcBlobEncoding* pBlobWithEncoding;
-            HRESULT result = myDxcLibrary->CreateBlobFromFile(path.c_str(), nullptr, &pBlobWithEncoding);
-            ASSERT(result == S_OK);
-            *ppIncludeSource = pBlobWithEncoding;
-            return S_OK;
-          }
-        }
-
-        return E_FAIL;
-      }
-
-      HRESULT QueryInterface(const IID& riid, void** ppvObject) override
-      {
-        if (!ppvObject)
-          return E_INVALIDARG;
-        *ppvObject = nullptr;
-
-        if (riid == IID_IUnknown || riid == __uuidof(IDxcIncludeHandler))
-        {
-          *ppvObject = this;
-          AddRef();
-          return NOERROR;
-        }
-        return E_NOINTERFACE;
-      }
-
-      ULONG AddRef() override
-      {
-        myRefCount++;
-        return (ULONG) myRefCount;
-      }
-
-      ULONG Release() override
-      {
-        int refCount = --myRefCount;
-        if (myRefCount == 0)
-        {
-          delete this;
-        }
-        return (ULONG) refCount;
-      }
-
-      std::atomic<int> myRefCount = 1;
-    };
-//---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
   ShaderCompilerVk::ShaderCompilerVk()
   {
-    HRESULT hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&myDxcLibrary));
-    ASSERT(hr == S_OK, "Failed to create DXC library");
-    hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&myDxcCompiler));
-    ASSERT(hr == S_OK, "Failed to create DXC compiler");
+    
   }
 //---------------------------------------------------------------------------//
   ShaderCompilerVk::~ShaderCompilerVk()
   {
   }
 //---------------------------------------------------------------------------//
-  String ShaderCompilerVk::GetShaderPath(const char* aFilename) const
+  bool ShaderCompilerVk::Compile_Internal(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const
   {
-    bool isGlsl = false;
-    return Priv_ShaderCompilerVk::locGetShaderPath(aFilename, isGlsl).GetBuffer();
-  }
-//---------------------------------------------------------------------------//
-  bool ShaderCompilerVk::Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* aCompilerOutput) const
-  {
-    // The Vulkan shader compiler should work like that:
-    // - Translate default HLSL shader into a SPIR-V binary
-    // - If there is a .../Vulkan/.glsl-file for that shader as well (or only that) prefer that one over the HLSL file. That way, HLSL-translation problems can be worked around by providing a glsl shader
-    // - In the future: Use caches to skip source-file compilation!
-
-    bool isGlsl = false;
-    String hlslSrcPathAbs = Priv_ShaderCompilerVk::locGetShaderPath(aDesc.myShaderFileName.c_str(), isGlsl).GetBuffer();
-    bool fileFound = false;
-
-    // TODO: Add a glsl->SPIR-V compilation in case there is a glsl shader that should be picked over the HLSL one
-
-    hlslSrcPathAbs = Resources::FindPath(hlslSrcPathAbs, &fileFound);
-    if (!fileFound)
-      return false;
-
     // TODO: Add fast-path if the cache-file is newer than the src-file and directly load the SPV binary from that file
     // const uint64 srcFileWriteTime = Path::GetFileWriteTime(hlslSrcPathAbs);
+
+    DxcShaderCompiler::Config config = 
+    {
+      true,
+      true,
+      GetHLSLprofileString((ShaderStage) aDesc.myShaderStage)
+    };
+
+    DynamicArray<uint8> spvBinaryData;
+    if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, spvBinaryData))
+      return false;
 
     const uint64 shaderHash = aDesc.GetHash();
     String spvBinaryFilePathAbs(StaticFilePath("%sShaderCache/%llu.spv", Path::GetUserDataPath().c_str(), shaderHash));
     Path::CreateDirectoryTreeForPath(spvBinaryFilePathAbs);
-
-    DynamicArray<uint8> spvBinaryData;
-    if (!isGlsl)
-    {
-      std::string shaderFile = FileReader::ReadTextFile(hlslSrcPathAbs.c_str());
-      if (shaderFile.empty())
-        return false;
-      
-      IDxcBlobEncoding* sourceBlob;
-      if (myDxcLibrary->CreateBlobWithEncodingFromPinned(shaderFile.c_str(), (uint) shaderFile.size(), CP_UTF8, &sourceBlob) != S_OK)
-        return false;
-
-      LPCWSTR args[32];
-      uint numArgs = 0u;
-
-      auto AddArgument = [&](LPCWSTR anArg)
-      {
-        ASSERT(numArgs < ARRAY_LENGTH(args));
-        args[numArgs++] = anArg;
-      };
-      
-      AddArgument(L"/spirv");                 // Generate SPIR-V code
-      AddArgument(L"/fspv-reflect");          // Emit additional SPIR-V instructions to aid reflection
-      AddArgument(L"/fvk-use-dx-layout");     // Use DirectX memory layout for Vulkan resources
-      AddArgument(L"/fvk-use-dx-position-w"); // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
-      AddArgument(L"/Zpc");                   // Pack matrices in column-major order
-      AddArgument(L"/Zi");                    // Enable debug information
-      AddArgument(L"/Qembed_debug");          // Silence warning about embedding PDBs into the shader container
-      if (aDesc.myShaderStage == (uint)ShaderStage::VERTEX)
-        AddArgument(L"/fvk-invert-y");
-
-      StaticArray<std::wstring, 32> defineNames;
-      StaticArray<DxcDefine, 32> defines;
-      for (const String& define : aDesc.myDefines)
-      {
-        defineNames.Add(StringUtil::ToWideString(define));
-        defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
-      }
-
-      defineNames.Add(L"DXC_COMPILER");
-      defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
-
-      defineNames.Add(StringUtil::ToWideString(aStageDefine));
-      defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
-
-      String includePaths[] =
-      {
-        Path::GetContainingFolder(hlslSrcPathAbs),
-        Path::GetAbsolutePath(GetShaderRootFolderRelative()),
-        Path::GetAbsolutePath(String(GetShaderRootFolderRelative()) + "/DX12"),
-      };
-      Microsoft::WRL::ComPtr<Priv_ShaderCompilerVk::IncludeHandler> includeHandler = 
-        new Priv_ShaderCompilerVk::IncludeHandler(myDxcLibrary.Get(), includePaths, ARRAY_LENGTH(includePaths));
-
-      IDxcOperationResult* compiledResult;
-      HRESULT result = myDxcCompiler->Compile(
-        sourceBlob,
-        StringUtil::ToWideString(aDesc.myShaderFileName).c_str(),
-        StringUtil::ToWideString(aDesc.myMainFunction).c_str(),
-        StringUtil::ToWideString(GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage))).c_str(),
-        args,
-        numArgs,
-        defines.GetBuffer(),
-        defines.Size(),
-        includeHandler.Get(),
-        &compiledResult);
-
-      IDxcBlobEncoding* errorBlob = nullptr;
-      compiledResult->GetErrorBuffer(&errorBlob);
-
-      if (errorBlob != nullptr)
-      {
-        IDxcBlobEncoding* errorBlob8 = nullptr;
-        myDxcLibrary->GetBlobAsUtf8(errorBlob, &errorBlob8);
-
-        if (errorBlob8 != nullptr &&  static_cast<const char*>(errorBlob8->GetBufferPointer())[0] != '\0')
-        {
-          LOG_ERROR("Error compiling shader %s: %s", aDesc.myShaderFileName.c_str(), static_cast<const char*>(errorBlob8->GetBufferPointer()));
-          return false;
-        }
-      }
-
-      IDxcBlob* spirvBlob;
-      result = compiledResult->GetResult(&spirvBlob);
-      if (result != S_OK)
-      {
-        LOG_ERROR("Failed getting compiled binary result of shader %s", aDesc.myShaderFileName.c_str());
-        return false;
-      }
-
-      spvBinaryData.resize(spirvBlob->GetBufferSize());
-      memcpy(spvBinaryData.data(), spirvBlob->GetBufferPointer(), spirvBlob->GetBufferSize());
 
     /*
     String dxcPath = Path::GetAppPath() + "/../../../dependencies/bin/dxc.exe";
@@ -400,137 +191,136 @@ namespace Fancy
       ASSERT(spvReadSuccess);
       */
 
-      VkShaderModuleCreateInfo moduleCreateInfo = {};
-      moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-      moduleCreateInfo.codeSize = spvBinaryData.size();
-      moduleCreateInfo.pCode = reinterpret_cast<uint32_t*>(spvBinaryData.data());
+    VkShaderModuleCreateInfo moduleCreateInfo = {};
+    moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    moduleCreateInfo.codeSize = spvBinaryData.size();
+    moduleCreateInfo.pCode = reinterpret_cast<uint32_t*>(spvBinaryData.data());
 
-      RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
-      ShaderCompiledDataVk compiledDataVk;
-      ASSERT_VK_RESULT(vkCreateShaderModule(platformVk->myDevice, &moduleCreateInfo, nullptr, &compiledDataVk.myModule));
-      
-      // Reflect the spirv data
+    ShaderCompiledDataVk compiledDataVk;
+    ASSERT_VK_RESULT(vkCreateShaderModule(platformVk->myDevice, &moduleCreateInfo, nullptr, &compiledDataVk.myModule));
+    
+    // Reflect the spirv data
 
-      SpvReflectShaderModule reflectModule;
-      SpvReflectResult reflectResult = spvReflectCreateShaderModule(spvBinaryData.size(), spvBinaryData.data(), &reflectModule);
-      ASSERT(reflectResult == SPV_REFLECT_RESULT_SUCCESS);
+    SpvReflectShaderModule reflectModule;
+    SpvReflectResult reflectResult = spvReflectCreateShaderModule(spvBinaryData.size(), spvBinaryData.data(), &reflectModule);
+    ASSERT(reflectResult == SPV_REFLECT_RESULT_SUCCESS);
 
-      // Handle unordered writes. It seems we can only determine if a UAV is used in the shader but not if its actually written to in the shader.
-      bool hasUnorderedWrites = false;
-      for (uint i = 0u; i < reflectModule.descriptor_binding_count && !hasUnorderedWrites; ++i)
-        hasUnorderedWrites |= (reflectModule.descriptor_bindings[i].resource_type & SpvReflectResourceType::SPV_REFLECT_RESOURCE_FLAG_UAV) != 0;
-      aCompilerOutput->myProperties.myHasUnorderedWrites = hasUnorderedWrites;
+    // Handle unordered writes. It seems we can only determine if a UAV is used in the shader but not if its actually written to in the shader.
+    bool hasUnorderedWrites = false;
+    for (uint i = 0u; i < reflectModule.descriptor_binding_count && !hasUnorderedWrites; ++i)
+      hasUnorderedWrites |= (reflectModule.descriptor_bindings[i].resource_type & SpvReflectResourceType::SPV_REFLECT_RESOURCE_FLAG_UAV) != 0;
+    aCompilerOutput->myProperties.myHasUnorderedWrites = hasUnorderedWrites;
 
-      ShaderBindingInfoVk& bindingInfo = compiledDataVk.myBindingInfo;
-      bindingInfo.myDescriptorSets.resize(reflectModule.descriptor_set_count);
+    ShaderBindingInfoVk& bindingInfo = compiledDataVk.myBindingInfo;
+    bindingInfo.myDescriptorSets.resize(reflectModule.descriptor_set_count);
 
-      for (uint s = 0u; s < reflectModule.descriptor_set_count; ++s)
+    for (uint s = 0u; s < reflectModule.descriptor_set_count; ++s)
+    {
+      ShaderDescriptorSetBindingInfoVk& setInfo = bindingInfo.myDescriptorSets[s];
+      const SpvReflectDescriptorSet& reflSet = reflectModule.descriptor_sets[s];
+
+      setInfo.mySet = reflSet.set;
+      setInfo.myBindings.resize(reflSet.binding_count);
+
+      for (uint b = 0u; b < reflSet.binding_count; ++b )
       {
-        ShaderDescriptorSetBindingInfoVk& setInfo = bindingInfo.myDescriptorSets[s];
-        const SpvReflectDescriptorSet& reflSet = reflectModule.descriptor_sets[s];
+        const SpvReflectDescriptorBinding* reflBinding = reflSet.bindings[b];
+        ASSERT(reflBinding != nullptr);
 
-        setInfo.mySet = reflSet.set;
-        setInfo.myBindings.resize(reflSet.binding_count);
-
-        for (uint b = 0u; b < reflSet.binding_count; ++b )
-        {
-          const SpvReflectDescriptorBinding* reflBinding = reflSet.bindings[b];
-          ASSERT(reflBinding != nullptr);
-
-          ShaderDescriptorBindingVk& setBinding = setInfo.myBindings[b];
-          setBinding.myBinding = reflBinding->binding;
-          setBinding.myDescriptorCount = reflBinding->count;
-          setBinding.myDescriptorType = Priv_ShaderCompilerVk::locResolveDescriptorType(reflBinding->descriptor_type);
-        }
+        ShaderDescriptorBindingVk& setBinding = setInfo.myBindings[b];
+        setBinding.myBinding = reflBinding->binding;
+        setBinding.myDescriptorCount = reflBinding->count;
+        setBinding.myDescriptorType = Priv_ShaderCompilerVk::locResolveDescriptorType(reflBinding->descriptor_type);
       }
-
-      // Build the vertex input layout in case of vertex-shader
-      if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
-      {
-        ShaderVertexInputLayout& vertexInputlayout = aCompilerOutput->myProperties.myVertexInputLayout;
-        vertexInputlayout.myVertexInputElements.reserve(reflectModule.input_variable_count);
-
-        DynamicArray<VkVertexInputAttributeDescription>& vertexAttributes = compiledDataVk.myVertexAttributeDesc.myVertexAttributes;
-        vertexAttributes.reserve(reflectModule.input_variable_count);
-
-        // TODO: For simplicity, the code below assumes that all vertex attributes will be pulled from only one binding buffer in interleaved format
-        uint overallVertexSize = 0u;
-        for (uint i = 0u; i < reflectModule.input_variable_count; ++i)
-        {
-          const SpvReflectInterfaceVariable& reflectedInput = reflectModule.input_variables[i];
-
-          const DataFormat format = Priv_ShaderCompilerVk::locResolveFormat(reflectedInput.format);
-          ASSERT(format != DataFormat::NONE);
-
-          const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
-
-          VertexSemantics semantic;
-          uint semanticIndex;
-          Priv_ShaderCompilerVk::locResolveSemantic(reflectedInput.semantic, semantic, semanticIndex);
-
-          ShaderVertexInputElement elem =
-          {
-            reflectedInput.name,
-            semantic,
-            semanticIndex,
-            formatInfo.mySizeBytes,
-            format,
-            (uint8) formatInfo.myNumComponents
-          };
-          vertexInputlayout.myVertexInputElements.push_back(elem);
-
-          VkVertexInputAttributeDescription attribute;
-          attribute.binding = 0;  
-          attribute.format = RenderCore_PlatformVk::ResolveFormat(format);
-          attribute.offset = overallVertexSize;
-          attribute.location = reflectedInput.location;
-          vertexAttributes.push_back(attribute);
-
-          overallVertexSize += formatInfo.mySizeBytes;
-        }
-        compiledDataVk.myVertexAttributeDesc.myOverallVertexSize = overallVertexSize;
-      }
-      else if (aDesc.myShaderStage == (uint)ShaderStage::COMPUTE)
-      {
-        // SPIR-V reflect doesn't provide a way to reflect group-thread count yet, so just parse the source-code as a workaround for now
-        String hlslSource = FileReader::ReadTextFile(hlslSrcPathAbs.c_str());
-        ASSERT(hlslSource.size() > 0);
-
-        size_t mainFuncPos = hlslSource.find("void " + aDesc.myMainFunction);
-        ASSERT(mainFuncPos != String::npos);
-
-        const char* numthreadsSearchKey = "[numthreads(";
-        size_t numThreadsPos = hlslSource.rfind(numthreadsSearchKey, mainFuncPos);
-        ASSERT(numThreadsPos != String::npos);
-
-        char delims[3] = { ',', ',', ')' };
-        int numGroupThreads[3] = { -1, -1, -1 };
-        
-        int i = (int)numThreadsPos + (int) strlen(numthreadsSearchKey);
-        for (int cat = 0; cat < 3; ++cat)
-        {
-          int numChars = 0;
-          char buf[16];
-          for ( ; hlslSource[i] != delims[cat] && i < (int) hlslSource.size(); ++i)
-          {
-            const char c = hlslSource[i];
-            if (c != ' ')
-              buf[numChars++] = c;
-          }
-          ++i;
-          buf[numChars] = '\0';
-          numGroupThreads[cat] = atoi(buf);
-          ASSERT(numGroupThreads[cat] != -1);
-        }
-
-        aCompilerOutput->myProperties.myNumGroupThreads = glm::int3(numGroupThreads[0], numGroupThreads[1], numGroupThreads[2]);
-      }
-
-      spvReflectDestroyShaderModule(&reflectModule);
-
-      aCompilerOutput->myNativeData = compiledDataVk;
     }
+
+    // Build the vertex input layout in case of vertex-shader
+    if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
+    {
+      ShaderVertexInputLayout& vertexInputlayout = aCompilerOutput->myProperties.myVertexInputLayout;
+      vertexInputlayout.myVertexInputElements.reserve(reflectModule.input_variable_count);
+
+      DynamicArray<VkVertexInputAttributeDescription>& vertexAttributes = compiledDataVk.myVertexAttributeDesc.myVertexAttributes;
+      vertexAttributes.reserve(reflectModule.input_variable_count);
+
+      // TODO: For simplicity, the code below assumes that all vertex attributes will be pulled from only one binding buffer in interleaved format
+      uint overallVertexSize = 0u;
+      for (uint i = 0u; i < reflectModule.input_variable_count; ++i)
+      {
+        const SpvReflectInterfaceVariable& reflectedInput = reflectModule.input_variables[i];
+
+        const DataFormat format = Priv_ShaderCompilerVk::locResolveFormat(reflectedInput.format);
+        ASSERT(format != DataFormat::NONE);
+
+        const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
+
+        VertexSemantics semantic;
+        uint semanticIndex;
+        Priv_ShaderCompilerVk::locResolveSemantic(reflectedInput.semantic, semantic, semanticIndex);
+
+        ShaderVertexInputElement elem =
+        {
+          reflectedInput.name,
+          semantic,
+          semanticIndex,
+          formatInfo.mySizeBytes,
+          format,
+          (uint8) formatInfo.myNumComponents
+        };
+        vertexInputlayout.myVertexInputElements.push_back(elem);
+
+        VkVertexInputAttributeDescription attribute;
+        attribute.binding = 0;  
+        attribute.format = RenderCore_PlatformVk::ResolveFormat(format);
+        attribute.offset = overallVertexSize;
+        attribute.location = reflectedInput.location;
+        vertexAttributes.push_back(attribute);
+
+        overallVertexSize += formatInfo.mySizeBytes;
+      }
+      compiledDataVk.myVertexAttributeDesc.myOverallVertexSize = overallVertexSize;
+    }
+    else if (aDesc.myShaderStage == (uint)ShaderStage::COMPUTE)
+    {
+      // SPIR-V reflect doesn't provide a way to reflect group-thread count yet, so just parse the source-code as a workaround for now
+      String hlslSource = FileReader::ReadTextFile(anHlslSrcPathAbs);
+      ASSERT(hlslSource.size() > 0);
+
+      size_t mainFuncPos = hlslSource.find("void " + aDesc.myMainFunction);
+      ASSERT(mainFuncPos != String::npos);
+
+      const char* numthreadsSearchKey = "[numthreads(";
+      size_t numThreadsPos = hlslSource.rfind(numthreadsSearchKey, mainFuncPos);
+      ASSERT(numThreadsPos != String::npos);
+
+      char delims[3] = { ',', ',', ')' };
+      int numGroupThreads[3] = { -1, -1, -1 };
+      
+      int i = (int)numThreadsPos + (int) strlen(numthreadsSearchKey);
+      for (int cat = 0; cat < 3; ++cat)
+      {
+        int numChars = 0;
+        char buf[16];
+        for ( ; hlslSource[i] != delims[cat] && i < (int) hlslSource.size(); ++i)
+        {
+          const char c = hlslSource[i];
+          if (c != ' ')
+            buf[numChars++] = c;
+        }
+        ++i;
+        buf[numChars] = '\0';
+        numGroupThreads[cat] = atoi(buf);
+        ASSERT(numGroupThreads[cat] != -1);
+      }
+
+      aCompilerOutput->myProperties.myNumGroupThreads = glm::int3(numGroupThreads[0], numGroupThreads[1], numGroupThreads[2]);
+    }
+
+    spvReflectDestroyShaderModule(&reflectModule);
+
+    aCompilerOutput->myNativeData = compiledDataVk;
 
     return true;
   }

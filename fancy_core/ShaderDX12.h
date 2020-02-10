@@ -10,7 +10,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderCompiledDataDX12
   {
-    Microsoft::WRL::ComPtr<ID3DBlob> myBytecodeBlob;
+    DynamicArray<uint8> myBytecode;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
     DynamicArray<ShaderResourceInfoDX12> myResourceInfos;
   };
@@ -29,7 +29,7 @@ namespace Fancy {
     const D3D12_INPUT_ELEMENT_DESC* GetNativeInputElements() const { ASSERT(!myNativeInputElements.empty()); return &myNativeInputElements[0u]; }
     uint GetNumNativeInputElements() const { return static_cast<uint>(myNativeInputElements.size()); }
 
-    const Microsoft::WRL::ComPtr<ID3DBlob>& getNativeData() const { return myNativeData; }
+    const DynamicArray<uint8>& GetBytecode() const { return myBytecode; }
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
     void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
@@ -42,7 +42,7 @@ namespace Fancy {
     static void CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout, std::vector<D3D12_INPUT_ELEMENT_DESC>& someNativeInputElements);
         
     DynamicArray<D3D12_INPUT_ELEMENT_DESC> myNativeInputElements;
-    Microsoft::WRL::ComPtr<ID3DBlob> myNativeData;
+    DynamicArray<uint8> myBytecode;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
     DynamicArray<ShaderResourceInfoDX12> myResourceInfos;
     

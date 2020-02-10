@@ -378,6 +378,9 @@
     <ClInclude Include="StaticArray.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="DxcShaderCompiler.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -580,6 +583,9 @@
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="TextureProperties.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="DxcShaderCompiler.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
