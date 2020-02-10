@@ -154,12 +154,12 @@ namespace Fancy
 
     if (aConfig.mySpirv)
     {
-      AddArgument(L"/spirv");                 // Generate SPIR-V code
-      AddArgument(L"/fspv-reflect");          // Emit additional SPIR-V instructions to aid reflection
-      AddArgument(L"/fvk-use-dx-layout");     // Use DirectX memory layout for Vulkan resources
-      AddArgument(L"/fvk-use-dx-position-w"); // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
+      AddArgument(L"-spirv");                 // Generate SPIR-V code
+      AddArgument(L"-fspv-reflect");          // Emit additional SPIR-V instructions to aid reflection
+      AddArgument(L"-fvk-use-dx-layout");     // Use DirectX memory layout for Vulkan resources
+      AddArgument(L"-fvk-use-dx-position-w"); // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
       if (aDesc.myShaderStage == (uint)ShaderStage::VERTEX)
-        AddArgument(L"/fvk-invert-y");
+        AddArgument(L"-fvk-invert-y");
     }
 
     StaticArray<std::wstring, 32> defineNames;

@@ -131,65 +131,10 @@ namespace Fancy
     if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, spvBinaryData))
       return false;
 
-    const uint64 shaderHash = aDesc.GetHash();
-    String spvBinaryFilePathAbs(StaticFilePath("%sShaderCache/%llu.spv", Path::GetUserDataPath().c_str(), shaderHash));
-    Path::CreateDirectoryTreeForPath(spvBinaryFilePathAbs);
-
-    /*
-    String dxcPath = Path::GetAppPath() + "/../../../dependencies/bin/dxc.exe";
-    Path::RemoveFolderUpMarkers(dxcPath);
-    
-    if (!isGlsl)  // Use dxc.exe to convert from HLSL to SPIR-V binary
-    {
-      String commandStr = Path::GetAsCmdParameter(dxcPath.c_str()) + " " +
-        "-spirv "  // Generate SPIR-V code
-        "-fspv-reflect "  // Emit additional SPIR-V instructions to aid reflection
-        "-fvk-use-dx-layout "  // Use DirectX memory layout for Vulkan resources
-        "-fvk-use-dx-position-w " // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
-        // "-o0 " // Optimization Level 0  (Seems to be not recognized?!)
-        "-Zpc " // Pack matrices in column-major order
-        "-Zi " // Enable debug information
-        + "-E " + aDesc.myMainFunction + " "
-        + "-T " + GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)) + " "
-        + "-D " + aStageDefine + " "
-        + "-D " + "DXC_COMPILER ";
-
-      for (const String& define : aDesc.myDefines)
-        commandStr += "-D " + define + " ";
-
-      if (aDesc.myShaderStage == (uint)ShaderStage::VERTEX)
-        commandStr += "-fvk-invert-y ";  // Negate SV_Position.y before writing to stage output in VS/DS/GS to accommodate Vulkan's coordinate system
-
-      // Add include search paths
-      String includeSearchFolders[] = {
-        Path::GetContainingFolder(hlslSrcPathAbs),
-        Path::GetAbsolutePath(GetShaderRootFolderRelative()),
-        Path::GetAbsolutePath(String(GetShaderRootFolderRelative()) + "/DX12"),
-      };
-      for (String& include : includeSearchFolders)
-      {
-        // For some reason dxc only understands include-paths in escaped backslash-format
-        std::replace(include.begin(), include.end(), '/', '\\');
-        commandStr += "-I \"" + include + "\" ";
-      }
-
-      // Redirect output of command into file
-      String errorOut(StaticFilePath("%sShaderCache/%llu_error.txt", Path::GetUserDataPath().c_str(), shaderHash));
-      commandStr += "-Fe " + Path::GetAsCmdParameter(errorOut.c_str()) + " ";
-      commandStr += Path::GetAsCmdParameter(hlslSrcPathAbs.c_str()) + " -Fo " + Path::GetAsCmdParameter(spvBinaryFilePathAbs.c_str());
-
-      const int returnCode = system(commandStr.c_str());
-      if (returnCode != 0)
-      {
-        String errorOutMsg = FileReader::ReadTextFile(errorOut.c_str());
-        LOG_ERROR("Error compiling hlsl shader %s to SPIR-V: %s", hlslSrcPathAbs.c_str(), errorOutMsg.c_str());
-        return false;
-      }
-      
-      DynamicArray<uint8> spvBinaryData;
-      const bool spvReadSuccess = FileReader::ReadBinaryFile(spvBinaryFilePathAbs.c_str(), spvBinaryData);
-      ASSERT(spvReadSuccess);
-      */
+    // TODO: Safe shader-cache?
+    // const uint64 shaderHash = aDesc.GetHash();
+    // String spvBinaryFilePathAbs(StaticFilePath("%sShaderCache/%llu.spv", Path::GetUserDataPath().c_str(), shaderHash));
+    // Path::CreateDirectoryTreeForPath(spvBinaryFilePathAbs);
 
     VkShaderModuleCreateInfo moduleCreateInfo = {};
     moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -202,7 +147,6 @@ namespace Fancy
     ASSERT_VK_RESULT(vkCreateShaderModule(platformVk->myDevice, &moduleCreateInfo, nullptr, &compiledDataVk.myModule));
     
     // Reflect the spirv data
-
     SpvReflectShaderModule reflectModule;
     SpvReflectResult reflectResult = spvReflectCreateShaderModule(spvBinaryData.size(), spvBinaryData.data(), &reflectModule);
     ASSERT(reflectResult == SPV_REFLECT_RESULT_SUCCESS);
