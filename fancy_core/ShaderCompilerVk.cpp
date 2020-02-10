@@ -7,10 +7,12 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
 #include "StaticArray.h"
+#include "PathService.h"
 
 #include "spirv_reflect/spirv_reflect.h"
 
 #include <dxc/dxcapi.h>
+#include <atomic>
 
 namespace Fancy
 {
@@ -120,6 +122,92 @@ namespace Fancy
       }
     }
 //---------------------------------------------------------------------------//
+    struct IncludeHandler : IDxcIncludeHandler
+    {
+      StaticArray<std::wstring, 16> myIncludeSearchPaths;
+      IDxcLibrary* myDxcLibrary;
+
+      IncludeHandler(IDxcLibrary* aDxcLibrary, String* someIncludeSearchPaths, uint aNumPaths)
+        : myDxcLibrary(aDxcLibrary)
+      {
+        for (uint i = 0u; i < aNumPaths; ++i)
+        {
+          const String& dir = someIncludeSearchPaths[i];
+          ASSERT(!dir.empty());
+
+          if (dir[dir.size() - 1] != '/' && dir[dir.size() - 1] != '\\')
+            myIncludeSearchPaths.Add(StringUtil::ToWideString(dir + '/'));
+          else
+            myIncludeSearchPaths.Add(StringUtil::ToWideString(dir));
+        }
+          
+      }
+
+      HRESULT LoadSource(LPCWSTR pFilename, IDxcBlob** ppIncludeSource) override
+      {
+        // Skip current-folder markers "./" 
+        if (wcslen(pFilename) > 1 && pFilename[0] == '.' && (pFilename[1] == '/' || pFilename[1] == '\\'))
+          pFilename += 2;
+
+        if (Path::FileExists(pFilename))
+        {
+          IDxcBlobEncoding* pBlobWithEncoding;
+          HRESULT result = myDxcLibrary->CreateBlobFromFile(pFilename, nullptr, &pBlobWithEncoding);
+          ASSERT(result == S_OK);
+          *ppIncludeSource = pBlobWithEncoding;
+          return S_OK;
+        }
+
+        for (uint i = 0u; i < myIncludeSearchPaths.Size(); ++i)
+        {
+          std::wstring path = myIncludeSearchPaths[i] + pFilename;
+          if (Path::FileExists(path.c_str()))
+          {
+            IDxcBlobEncoding* pBlobWithEncoding;
+            HRESULT result = myDxcLibrary->CreateBlobFromFile(path.c_str(), nullptr, &pBlobWithEncoding);
+            ASSERT(result == S_OK);
+            *ppIncludeSource = pBlobWithEncoding;
+            return S_OK;
+          }
+        }
+
+        return E_FAIL;
+      }
+
+      HRESULT QueryInterface(const IID& riid, void** ppvObject) override
+      {
+        if (!ppvObject)
+          return E_INVALIDARG;
+        *ppvObject = nullptr;
+
+        if (riid == IID_IUnknown || riid == __uuidof(IDxcIncludeHandler))
+        {
+          *ppvObject = this;
+          AddRef();
+          return NOERROR;
+        }
+        return E_NOINTERFACE;
+      }
+
+      ULONG AddRef() override
+      {
+        myRefCount++;
+        return (ULONG) myRefCount;
+      }
+
+      ULONG Release() override
+      {
+        int refCount = --myRefCount;
+        if (myRefCount == 0)
+        {
+          delete this;
+        }
+        return (ULONG) refCount;
+      }
+
+      std::atomic<int> myRefCount = 1;
+    };
+//---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
   ShaderCompilerVk::ShaderCompilerVk()
@@ -175,22 +263,47 @@ namespace Fancy
       if (myDxcLibrary->CreateBlobWithEncodingFromPinned(shaderFile.c_str(), (uint) shaderFile.size(), CP_UTF8, &sourceBlob) != S_OK)
         return false;
 
+      LPCWSTR args[32];
+      uint numArgs = 0u;
+
+      auto AddArgument = [&](LPCWSTR anArg)
+      {
+        ASSERT(numArgs < ARRAY_LENGTH(args));
+        args[numArgs++] = anArg;
+      };
+      
+      AddArgument(L"/spirv");                 // Generate SPIR-V code
+      AddArgument(L"/fspv-reflect");          // Emit additional SPIR-V instructions to aid reflection
+      AddArgument(L"/fvk-use-dx-layout");     // Use DirectX memory layout for Vulkan resources
+      AddArgument(L"/fvk-use-dx-position-w"); // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
+      AddArgument(L"/Zpc");                   // Pack matrices in column-major order
+      AddArgument(L"/Zi");                    // Enable debug information
+      AddArgument(L"/Qembed_debug");          // Silence warning about embedding PDBs into the shader container
+      if (aDesc.myShaderStage == (uint)ShaderStage::VERTEX)
+        AddArgument(L"/fvk-invert-y");
+
       StaticArray<std::wstring, 32> defineNames;
       StaticArray<DxcDefine, 32> defines;
       for (const String& define : aDesc.myDefines)
       {
         defineNames.Add(StringUtil::ToWideString(define));
-        defines.Add({ defineNames[defineNames.Size() -1 ].c_str(), nullptr });
+        defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
       }
 
-      LPCWSTR args[] = { 
-        L"/spirv",                  // Generate SPIR-V code
-        L"/fspv-reflect",           // Emit additional SPIR-V instructions to aid reflection
-        L"/fvk-use-dx-layout",      // Use DirectX memory layout for Vulkan resources
-        L"/fvk-use-dx-position-w",  // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
-        L"/Zpc",                    // Pack matrices in column-major order
-        L"/Zi"                      // Enable debug information
+      defineNames.Add(L"DXC_COMPILER");
+      defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
+
+      defineNames.Add(StringUtil::ToWideString(aStageDefine));
+      defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
+
+      String includePaths[] =
+      {
+        Path::GetContainingFolder(hlslSrcPathAbs),
+        Path::GetAbsolutePath(GetShaderRootFolderRelative()),
+        Path::GetAbsolutePath(String(GetShaderRootFolderRelative()) + "/DX12"),
       };
+      Microsoft::WRL::ComPtr<Priv_ShaderCompilerVk::IncludeHandler> includeHandler = 
+        new Priv_ShaderCompilerVk::IncludeHandler(myDxcLibrary.Get(), includePaths, ARRAY_LENGTH(includePaths));
 
       IDxcOperationResult* compiledResult;
       HRESULT result = myDxcCompiler->Compile(
@@ -199,26 +312,34 @@ namespace Fancy
         StringUtil::ToWideString(aDesc.myMainFunction).c_str(),
         StringUtil::ToWideString(GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage))).c_str(),
         args,
-        ARRAY_LENGTH(args),
+        numArgs,
         defines.GetBuffer(),
         defines.Size(),
-        nullptr,
+        includeHandler.Get(),
         &compiledResult);
 
-      if (result != S_OK)
-      {
-        IDxcBlobEncoding* errorBlob;
-        compiledResult->GetErrorBuffer(&errorBlob);
+      IDxcBlobEncoding* errorBlob = nullptr;
+      compiledResult->GetErrorBuffer(&errorBlob);
 
-        IDxcBlobEncoding* errorBlob8;
+      if (errorBlob != nullptr)
+      {
+        IDxcBlobEncoding* errorBlob8 = nullptr;
         myDxcLibrary->GetBlobAsUtf8(errorBlob, &errorBlob8);
 
-        LOG_ERROR("Error compiling shader %s: %s", aDesc.myShaderFileName.c_str(), static_cast<const char*>(errorBlob8->GetBufferPointer()));
-        return false;
+        if (errorBlob8 != nullptr &&  static_cast<const char*>(errorBlob8->GetBufferPointer())[0] != '\0')
+        {
+          LOG_ERROR("Error compiling shader %s: %s", aDesc.myShaderFileName.c_str(), static_cast<const char*>(errorBlob8->GetBufferPointer()));
+          return false;
+        }
       }
 
       IDxcBlob* spirvBlob;
-      compiledResult->GetResult(&spirvBlob);
+      result = compiledResult->GetResult(&spirvBlob);
+      if (result != S_OK)
+      {
+        LOG_ERROR("Failed getting compiled binary result of shader %s", aDesc.myShaderFileName.c_str());
+        return false;
+      }
 
       spvBinaryData.resize(spirvBlob->GetBufferSize());
       memcpy(spvBinaryData.data(), spirvBlob->GetBufferPointer(), spirvBlob->GetBufferSize());

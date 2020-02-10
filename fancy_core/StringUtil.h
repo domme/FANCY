@@ -14,6 +14,7 @@ namespace Fancy
     }
 //---------------------------------------------------------------------------//
     std::wstring ToWideString(const String& aStr);
+    String ToNarrowString(const std::wstring& aStr);
 //---------------------------------------------------------------------------//
     void Tokenize(const String& _str, const char* _szDelimiters, std::list<String>& _outTokenList);
 //---------------------------------------------------------------------------//

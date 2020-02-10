@@ -10,6 +10,12 @@ namespace Fancy
     return converter.from_bytes(aStr);
   }
 //---------------------------------------------------------------------------//
+  String StringUtil::ToNarrowString(const std::wstring& aStr)
+  {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.to_bytes(aStr);
+  }
+//---------------------------------------------------------------------------//
   void StringUtil::Tokenize(const String& _str, const char* _szDelimiters, std::list<String>& _outTokenList)
   {
     char* cstr = const_cast<char*>(_str.c_str());

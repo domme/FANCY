@@ -3,6 +3,7 @@
 
 struct IDxcLibrary;
 struct IDxcCompiler;
+struct IDxcIncludeHandler;
 
 namespace Fancy
 {

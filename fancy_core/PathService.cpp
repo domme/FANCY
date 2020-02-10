@@ -84,13 +84,14 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
     bool FileExists(const char* aFilePath)
     {
-      if (FILE *file = fopen(aFilePath, "r")) 
-      {
-        fclose(file);
-        return true;
-      }
-
-      return false;
+      std::ifstream fileStream(aFilePath);
+      return fileStream.good();
+    }
+//---------------------------------------------------------------------------//
+    bool FileExists(const wchar_t* aFilePath)
+    {
+      std::ifstream fileStream(aFilePath);
+      return fileStream.good();
     }
 //---------------------------------------------------------------------------//
     bool IsPathAbsolute(const char* aPath)
