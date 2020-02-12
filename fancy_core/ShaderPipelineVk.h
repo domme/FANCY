@@ -12,6 +12,7 @@ namespace Fancy
     void UpdateResourceInterface() override;
 
     VkPipelineLayout myPipelineLayout;
+    DynamicArray<VkDescriptorSetLayout> myDescriptorSetLayouts
   };
 }
 

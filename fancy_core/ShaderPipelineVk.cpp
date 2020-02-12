@@ -72,7 +72,7 @@ namespace Fancy
     }
 
     // Create the VkDescriptorSetLayouts
-    DynamicArray<VkDescriptorSetLayout> descSetLayout(descriptorSets.size());
+    myDescriptorSetLayouts.resize(descriptorSets.size());
     for (uint i = 0u; i < (uint) descriptorSets.size(); ++i)
     {
       VkDescriptorSetLayoutCreateInfo createInfo;
@@ -82,7 +82,7 @@ namespace Fancy
       createInfo.bindingCount = (uint) descriptorSets[i].myBindings.size();
       createInfo.pBindings = descriptorSets[i].myBindings.data();
 
-      ASSERT_VK_RESULT(vkCreateDescriptorSetLayout(platformVk->myDevice, &createInfo, nullptr, &descSetLayout[i]));
+      ASSERT_VK_RESULT(vkCreateDescriptorSetLayout(platformVk->myDevice, &createInfo, nullptr, &myDescriptorSetLayouts[i]));
     }
 
     // Describe the pipeline layout using the descriptorSetLayouts
@@ -92,8 +92,8 @@ namespace Fancy
     layoutCreateInfo.pNext = nullptr;
     layoutCreateInfo.pPushConstantRanges = nullptr;  // Don't use push constants for now
     layoutCreateInfo.pushConstantRangeCount = 0u;
-    layoutCreateInfo.setLayoutCount = (uint)descSetLayout.size();
-    layoutCreateInfo.pSetLayouts = descSetLayout.data();
+    layoutCreateInfo.setLayoutCount = (uint)myDescriptorSetLayouts.size();
+    layoutCreateInfo.pSetLayouts = myDescriptorSetLayouts.data();
     
     ASSERT_VK_RESULT(vkCreatePipelineLayout(platformVk->myDevice, &layoutCreateInfo, nullptr, &myPipelineLayout));
   }
