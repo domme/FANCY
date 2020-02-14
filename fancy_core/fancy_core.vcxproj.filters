@@ -381,6 +381,9 @@
     <ClInclude Include="DxcShaderCompiler.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="DescriptorPoolAllocatorVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -587,6 +590,9 @@
     </ClCompile>
     <ClCompile Include="DxcShaderCompiler.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorPoolAllocatorVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

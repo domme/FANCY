@@ -100,6 +100,42 @@ namespace Fancy
       mySize = 0u;
     }
 
+    void RemoveLast()
+    {
+      ASSERT(!IsEmpty());
+      myData[mySize - 1].~T();
+      --mySize;
+    }
+
+    void RemoveCyclicAt(uint anIndex)
+    {
+      ASSERT(mySize > anIndex);
+      if (anIndex == mySize - 1)
+      {
+        RemoveLast();
+      }
+      else
+      {
+        myData[anIndex].~T();
+        myData[anIndex] = std::move(myData[mySize - 1]);
+        --mySize;
+      }
+    }
+
+    void RemoveAt(uint anIndex)
+    {
+      ASSERT(mySize > anIndex);
+      if (anIndex == mySize - 1)
+      {
+        RemoveLast();
+      }
+      else
+      {
+        myData[anIndex].~T();
+        
+      }
+    }
+
     bool IsEmpty() const { return mySize == 0u; }
     bool IsFull() const { return mySize == N; }
     uint Size() const { return mySize; }
