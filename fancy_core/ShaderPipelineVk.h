@@ -4,6 +4,8 @@
 
 namespace Fancy
 {
+  struct ShaderResourceInfoVk;
+
   class ShaderPipelineVk : public ShaderPipeline
   {
   public:
@@ -11,8 +13,12 @@ namespace Fancy
 
     void UpdateResourceInterface() override;
 
+    const DynamicArray<ShaderResourceInfoVk>& GetResourceInfos() const { return myResourceInfos; }
+    VkDescriptorSetLayout GetDescriptorSetLayout(uint aSetIdx) const { return myDescriptorSetLayouts[aSetIdx]; }
+
     VkPipelineLayout myPipelineLayout;
-    DynamicArray<VkDescriptorSetLayout> myDescriptorSetLayouts
+    StaticArray<VkDescriptorSetLayout, 32> myDescriptorSetLayouts;
+    DynamicArray<ShaderResourceInfoVk> myResourceInfos;
   };
 }
 

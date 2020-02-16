@@ -9,7 +9,7 @@ namespace Fancy
   {
     None, CBV, SRV, UAV, Sampler
   };
-
+//---------------------------------------------------------------------------// 
   struct ShaderResourceInfoDX12
   {
     bool operator==(const ShaderResourceInfoDX12& anOther) const
@@ -25,4 +25,5 @@ namespace Fancy
     uint myDescriptorOffsetInTable = UINT_MAX;
     uint myRootParamIndex = UINT_MAX;
   };
+//---------------------------------------------------------------------------// 
 }

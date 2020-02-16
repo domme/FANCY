@@ -17,7 +17,7 @@ namespace Fancy
 
   private:
     void UpdateWaitingPools();
-    void AddNewDescriptorPool();
+    void CreateDescriptorPool();
 
     uint myMaxNumDescriptors;
     uint myMaxNumSets;

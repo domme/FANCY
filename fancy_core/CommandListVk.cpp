@@ -11,7 +11,7 @@
 #include "TextureVk.h"
 #include "GpuResourceViewDataVk.h"
 #include "GpuBufferVk.h"
-#include <glm/detail/type_mat.hpp>
+#include "ShaderResourceInfoVk.h"
 
 namespace Fancy
 {
@@ -594,8 +594,13 @@ namespace Fancy
     CommandList::PostExecute(aFenceVal);
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    
     platformVk->ReleaseCommandBuffer(myCommandBuffer, myCommandListType, aFenceVal);
     myCommandBuffer = nullptr;
+
+    for (uint i = 0u; i < myUsedDescriptorPools.Size(); ++i)
+      platformVk->FreeDescriptorPool(myUsedDescriptorPools[i], aFenceVal);
+    myUsedDescriptorPools.ClearDiscard();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::PreBegin()
@@ -611,6 +616,8 @@ namespace Fancy
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     myCommandBuffer = platformVk->GetNewCommandBuffer(myCommandListType);
     ASSERT_VK_RESULT(vkResetCommandBuffer(myCommandBuffer, 0u));
+
+    ClearResourceState();
 
     BeginCommandBuffer();
   }
@@ -669,9 +676,10 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
   {
-    CommandList::SetShaderPipeline(aShaderPipeline);
+    if (myGraphicsPipelineState.myShaderPipeline != aShaderPipeline)
+      ClearResourceState();
 
-    // Not sure if we need to do anything similar to switching root signatures as in DX12... if not, this override can be removed
+    CommandList::SetShaderPipeline(aShaderPipeline);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset, uint64 /*aSize*/)
@@ -695,6 +703,7 @@ namespace Fancy
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
     ApplyGraphicsPipelineState();
+    ApplyResourceState();
 
     VkRenderPassBeginInfo renderPassBegin;
     renderPassBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -811,7 +820,80 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::BindResourceView(const GpuResourceView* aView, uint64 aNameHash)
   {
-    VK_MISSING_IMPLEMENTATION();
+    ShaderResourceInfoVk resourceInfo;
+    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+      return;
+
+#if FANCY_RENDERER_DEBUG
+    switch (resourceInfo.myType)
+    {
+      case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs its own function. Samplers will not be a GpuResourceView
+      case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: 
+      case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+      case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+      case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+      case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+      case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+        ASSERT(aView->myType == GpuResourceViewType::SRV || aView->myType == GpuResourceViewType::UAV);
+        break;
+      case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+      case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+      case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+        ASSERT(aView->myType == GpuResourceViewType::CBV);
+        break;
+      default: ASSERT(false);
+    }
+#endif
+
+    const GpuResourceViewDataVk& viewDataVk = aView->myNativeData.To<GpuResourceViewDataVk>();
+    const GpuResourceDataVk* resourceDataVk = aView->myResource->myNativeData.To<GpuResourceDataVk*>();
+
+    int iSet = -1;
+    for (uint i = 0u; iSet == -1 && i < myResourceState.myDescriptorSets.Size(); ++i)
+      if (myResourceState.myDescriptorSets[i].mySet == resourceInfo.myDescriptorSet)
+        iSet = i;
+
+    if (iSet == -1)
+    {
+      ASSERT(myCurrentContext == CommandListType::Graphics); // TODO: Add compute shader support. Also needs a pipeline layout and descriptor set layouts
+
+      ASSERT(myGraphicsPipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Graphics);
+      ASSERT(myComputePipelineState.myShader != nullptr || myCurrentContext != CommandListType::Compute);
+
+      const VkDescriptorSetLayout setLayout = static_cast<ShaderPipelineVk*>(myGraphicsPipelineState.myShaderPipeline.get())->GetDescriptorSetLayout(resourceInfo.myDescriptorSet);
+
+      ResourceState::DescriptorSet set;
+      set.mySet = resourceInfo.myDescriptorSet;
+      set.myLayout = setLayout;
+      myResourceState.myDescriptorSets.Add(set);
+      iSet = myResourceState.myDescriptorSets.Size() - 1;
+    }
+
+    ResourceState::DescriptorSet& set = myResourceState.myDescriptorSets[iSet];
+
+    ASSERT(resourceInfo.myBindingInSet < ARRAY_LENGTH(set.myDescriptors));
+    ResourceState::Descriptor& descriptor = set.myDescriptors[resourceInfo.myBindingInSet];
+
+    switch (aView->myType)
+    {
+      case GpuResourceViewType::CBV: 
+        
+        break;
+      case GpuResourceViewType::SRV: break;
+      case GpuResourceViewType::UAV: break;
+      case GpuResourceViewType::DSV: break;
+      case GpuResourceViewType::RTV: break;
+      default: ;
+    }
+
+
+
+
+
+      
+
+
+
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash)
@@ -993,6 +1075,29 @@ namespace Fancy
     return true;
   }
 //---------------------------------------------------------------------------//
+  bool CommandListVk::FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoVk& aResourceInfoOut) const
+  {
+    ASSERT(myGraphicsPipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Graphics);
+    ASSERT(myComputePipelineState.myShader != nullptr || myCurrentContext != CommandListType::Compute);
+
+    const DynamicArray<ShaderResourceInfoVk>& shaderResources = myCurrentContext == CommandListType::Graphics ?
+      static_cast<ShaderPipelineVk*>(myGraphicsPipelineState.myShaderPipeline.get())->GetResourceInfos() :
+      static_cast<const ShaderVk*>(myComputePipelineState.myShader)->GetResourceInfos();
+
+    auto it = std::find_if(shaderResources.begin(), shaderResources.end(), [aNameHash](const ShaderResourceInfoVk& aResourceInfo) {
+      return aResourceInfo.myNameHash == aNameHash;
+    });
+
+    if (it == shaderResources.end())
+    {
+      LOG_WARNING("Resource %s not found in shader");
+      return false;
+    }
+
+    aResourceInfoOut = *it;
+    return true;
+  }
+//---------------------------------------------------------------------------//
   void CommandListVk::ApplyViewportAndClipRect()
   {
     if (myViewportDirty)
@@ -1137,6 +1242,98 @@ namespace Fancy
   void CommandListVk::ApplyComputePipelineState()
   {
     VK_MISSING_IMPLEMENTATION();
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::ApplyResourceState()
+  {
+    if (myResourceState.myDescriptorSets.IsEmpty())
+      return;
+
+    ASSERT(myCurrentContext != CommandListType::Graphics || myGraphicsPipelineState.myShaderPipeline != nullptr);
+
+    for (uint iSet = 0u; iSet < myResourceState.myDescriptorSets.Size(); ++iSet)
+    {
+      const ResourceState::DescriptorSet& set = myResourceState.myDescriptorSets[iSet];
+      ASSERT(!set.myDescriptors.IsEmpty());
+
+      VkDescriptorSet vkSet = CreateDescriptorSet(set.myLayout);
+
+      VkWriteDescriptorSet baseWriteInfo = {};
+      baseWriteInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      baseWriteInfo.dstSet = vkSet;
+      
+      StaticArray<VkWriteDescriptorSet, 64> writeInfos;
+      for (uint iDesc = 0u; iDesc < set.myDescriptors.Size(); ++iDesc)
+      {
+        const ResourceState::Descriptor& desc = set.myDescriptors[iDesc];
+
+        VkWriteDescriptorSet writeInfo = baseWriteInfo;
+        writeInfo.descriptorType = desc.myType;
+        writeInfo.dstArrayElement = desc.myFirstArrayElement;
+        writeInfo.descriptorCount = desc.myNumDescriptors;
+        writeInfo.dstBinding = desc.myBindingInSet;
+        writeInfo.pImageInfo = desc.myImageInfos;
+        writeInfo.pBufferInfo = desc.myBufferInfos;
+        writeInfo.pTexelBufferView = desc.myTexelBufferView;
+        writeInfos.Add(writeInfo);
+      }
+
+      vkUpdateDescriptorSets(RenderCore::GetPlatformVk()->myDevice, writeInfos.Size(), writeInfos.GetBuffer(), 0u, nullptr);
+
+      VkPipelineBindPoint bindPoint;
+      VkPipelineLayout pipelineLayout;
+      switch (myCurrentContext)
+      {
+      case CommandListType::Graphics:
+        bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; 
+        pipelineLayout = static_cast<ShaderPipelineVk*>(myGraphicsPipelineState.myShaderPipeline.get())->myPipelineLayout;
+        break;
+      case CommandListType::Compute:
+        bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE; 
+        pipelineLayout = nullptr; // TODO: Add support for compute shaders. Do they even have a pipeline layout?
+        break;
+      default: ASSERT(false);
+      }
+
+      // TODO: Dynamic offsets might be needed for ring-allocated cbuffers
+      const uint numDynamicOffsets = 0u;
+      const uint* dynamicOffsets = nullptr;
+      vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipelineLayout, set.mySet, 1u, &vkSet, numDynamicOffsets, dynamicOffsets);
+    }
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::ClearResourceState()
+  {
+    myResourceState.myDescriptorSets.ClearDiscard();
+    myResourceState.myBoundBuffers.ClearDiscard();
+    myResourceState.myBoundImages.ClearDiscard();
+    myResourceState.myBoundTexelBufferView.ClearDiscard();
+  }
+//---------------------------------------------------------------------------//
+  VkDescriptorSet CommandListVk::CreateDescriptorSet(VkDescriptorSetLayout aLayout)
+  {
+    if (myUsedDescriptorPools.IsEmpty())
+      myUsedDescriptorPools.Add(RenderCore::GetPlatformVk()->AllocateDescriptorPool());
+    
+    VkDescriptorSetAllocateInfo allocInfo;
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.pNext = nullptr;
+    allocInfo.descriptorSetCount = 1u;
+    allocInfo.pSetLayouts = &aLayout;
+    allocInfo.descriptorPool = myUsedDescriptorPools.GetLast();
+
+    VkDescriptorSet descriptorSet;
+    VkResult result = vkAllocateDescriptorSets(RenderCore::GetPlatformVk()->myDevice, &allocInfo, &descriptorSet);
+
+    if (result == VK_SUCCESS)
+      return descriptorSet;
+
+    myUsedDescriptorPools.Add(RenderCore::GetPlatformVk()->AllocateDescriptorPool());
+    allocInfo.descriptorPool = myUsedDescriptorPools.GetLast();
+    result = vkAllocateDescriptorSets(RenderCore::GetPlatformVk()->myDevice, &allocInfo, &descriptorSet);
+
+    ASSERT(result == VK_SUCCESS);
+    return descriptorSet;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BeginCommandBuffer()

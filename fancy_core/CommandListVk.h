@@ -6,6 +6,8 @@
 
 namespace Fancy
 {
+  struct ShaderResourceInfoVk;
+
   class CommandListVk : public CommandList
   {
   public:
@@ -61,6 +63,8 @@ namespace Fancy
     );
     
   protected:
+    bool FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoVk& aResourceInfoOut) const;
+
     bool SubresourceBarrierInternal(
       const GpuResource* aResource,
       const SubresourceRange& aSubresourceRange,
@@ -73,6 +77,11 @@ namespace Fancy
     void ApplyRenderTargets();
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
+    void ApplyResourceState();
+
+    void ClearResourceState();
+
+    VkDescriptorSet CreateDescriptorSet(VkDescriptorSetLayout aLayout);
 
     void BeginCommandBuffer();
 
@@ -106,6 +115,35 @@ namespace Fancy
       uint myDstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     };
 
+    struct ResourceState
+    {
+      struct Descriptor
+      {
+        uint myBindingInSet = UINT_MAX;
+        uint myFirstArrayElement = UINT_MAX;
+        uint myNumDescriptors = UINT_MAX;
+        VkDescriptorType myType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
+        VkDescriptorImageInfo* myImageInfos = nullptr;
+        VkDescriptorBufferInfo* myBufferInfos = nullptr;
+        VkBufferView* myTexelBufferView = nullptr;
+      };
+
+      struct DescriptorSet
+      {
+        uint mySet;
+        VkDescriptorSetLayout myLayout;
+        Descriptor myDescriptors[64];
+      };
+
+      StaticArray<DescriptorSet, 16> myDescriptorSets;
+      StaticArray<VkDescriptorImageInfo, 128> myBoundImages;
+      StaticArray<VkDescriptorBufferInfo, 128> myBoundBuffers;
+      StaticArray<VkBufferView, 128> myBoundTexelBufferView;
+    };
+
+    ResourceState myResourceState;
+
+    StaticArray<VkDescriptorPool, 16> myUsedDescriptorPools;
     BufferMemoryBarrierData myPendingBufferBarriers[kNumCachedBarriers];
     ImageMemoryBarrierData myPendingImageBarriers[kNumCachedBarriers];
     uint myNumPendingBufferBarriers;

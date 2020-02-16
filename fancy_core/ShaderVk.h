@@ -4,26 +4,9 @@
 
 namespace Fancy
 {
-//---------------------------------------------------------------------------//
+  struct ShaderResourceInfoVk;
+  //---------------------------------------------------------------------------//
   struct ShaderCompilerResult;
-//---------------------------------------------------------------------------//
-  struct ShaderDescriptorBindingVk
-  {
-    uint myBinding;
-    VkDescriptorType myDescriptorType;
-    uint myDescriptorCount;
-  };
-//---------------------------------------------------------------------------//
-  struct ShaderDescriptorSetBindingInfoVk
-  {
-    uint mySet;
-    DynamicArray<ShaderDescriptorBindingVk> myBindings;
-  };
-//---------------------------------------------------------------------------//
-  struct ShaderBindingInfoVk
-  {
-    DynamicArray<ShaderDescriptorSetBindingInfoVk> myDescriptorSets;
-  };
 //---------------------------------------------------------------------------//
   struct ShaderVertexAttributeDescVk
   {
@@ -34,7 +17,7 @@ namespace Fancy
   struct ShaderCompiledDataVk
   {
     VkShaderModule myModule = nullptr;
-    ShaderBindingInfoVk myBindingInfo;
+    DynamicArray<ShaderResourceInfoVk> myResourceInfos;
     ShaderVertexAttributeDescVk myVertexAttributeDesc;
   };
 //---------------------------------------------------------------------------//
@@ -49,11 +32,13 @@ namespace Fancy
 
     void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
     uint64 GetNativeBytecodeHash() const override;
+
+    const DynamicArray<ShaderResourceInfoVk>& GetResourceInfos() const { return myResourceInfos; }
     
     VkShaderModule myModule = nullptr;
     VkPipelineShaderStageCreateInfo myShaderStageCreateInfo = {};
     VkPipelineVertexInputStateCreateInfo myVertexInputCreateInfo = {};
-    ShaderBindingInfoVk myBindingInfo;
+    DynamicArray<ShaderResourceInfoVk> myResourceInfos;
     ShaderVertexAttributeDescVk myVertexAttributeDesc;
   };
 //---------------------------------------------------------------------------//

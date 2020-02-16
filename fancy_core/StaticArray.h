@@ -94,6 +94,30 @@ namespace Fancy
       mySize = 0u;
     }
 
+    T& GetLast()
+    {
+      ASSERT(!IsEmpty());
+      return myData[mySize - 1];
+    }
+
+    const T& GetLast() const
+    {
+      ASSERT(!IsEmpty());
+      return myData[mySize - 1];
+    }
+
+    T& GetFirst()
+    {
+      ASSERT(!IsEmpty());
+      return myData[0];
+    }
+
+    const T& GetFirst() const
+    {
+      ASSERT(!IsEmpty());
+      return myData[0];
+    }
+
     /// Clears without calling destructors. Should only be used with POD-types
     void ClearDiscard()
     {
@@ -132,8 +156,10 @@ namespace Fancy
       else
       {
         myData[anIndex].~T();
-        
+        for (uint i = anIndex; i < mySize - 1; ++i)
+          myData[anIndex] = std::move(myData[anIndex + 1]);
       }
+      --mySize;
     }
 
     bool IsEmpty() const { return mySize == 0u; }
@@ -141,6 +167,7 @@ namespace Fancy
     uint Size() const { return mySize; }
     static uint Capacity() { return N; }
     T* GetBuffer() { return myData; }
+    const T* GetBuffer() const { return myData; }
 
   private:
     T& AddElement()

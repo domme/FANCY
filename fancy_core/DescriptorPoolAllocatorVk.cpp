@@ -10,19 +10,42 @@ namespace Fancy
     : myMaxNumDescriptors(aMaxNumDescriptors)
     , myMaxNumSets(aMaxNumSets)
   {
-    AddNewDescriptorPool();
+    CreateDescriptorPool();
   }
 //---------------------------------------------------------------------------//
   DescriptorPoolAllocatorVk::~DescriptorPoolAllocatorVk()
   {
+    UpdateWaitingPools();
+    ASSERT(myWaitingPools.IsEmpty());
+    ASSERT(myAvaiablePools.Size() == myCreatedPools.Size());
+
+    for (uint i = 0u; i < myCreatedPools.Size(); ++i)
+      vkDestroyDescriptorPool(RenderCore::GetPlatformVk()->myDevice, myCreatedPools[i], nullptr);
   }
 //---------------------------------------------------------------------------//
   VkDescriptorPool DescriptorPoolAllocatorVk::AllocateDescriptorPool()
   {
+    UpdateWaitingPools();
+
+    if (myAvaiablePools.IsEmpty())
+      CreateDescriptorPool();
+
+    ASSERT(!myAvaiablePools.IsEmpty());
+    VkDescriptorPool pool = myAvaiablePools[myAvaiablePools.Size() - 1];
+    myAvaiablePools.RemoveLast();
+    return pool;
   }
 //---------------------------------------------------------------------------//
-  void DescriptorPoolAllocatorVk::FreeDescriptorPool(VkDescriptorPool aDescriptorSet, uint64 aFence)
+  void DescriptorPoolAllocatorVk::FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence)
   {
+#if FANCY_RENDERER_DEBUG
+    for (uint i = 0u; i < myWaitingPools.Size(); ++i)
+      ASSERT(myWaitingPools[i].second != aDescriptorPool);
+    for (uint i = 0u; i < myAvaiablePools.Size(); ++i)
+      ASSERT(myAvaiablePools[i] != aDescriptorPool);
+#endif
+
+    myWaitingPools.Add({ aFence, aDescriptorPool });
   }
 //---------------------------------------------------------------------------//
   void DescriptorPoolAllocatorVk::UpdateWaitingPools()
@@ -31,11 +54,16 @@ namespace Fancy
     {
       const std::pair<uint64, VkDescriptorPool>& waitingPool = myWaitingPools[i];
 
-
+      if (RenderCore::IsFenceDone(waitingPool.first))
+      {
+        myAvaiablePools.Add(waitingPool.second);
+        myWaitingPools.RemoveCyclicAt(i);
+        --i;
+      }
     }
   }
 //---------------------------------------------------------------------------//
-  void DescriptorPoolAllocatorVk::AddNewDescriptorPool()
+  void DescriptorPoolAllocatorVk::CreateDescriptorPool()
   {
     VkDescriptorPoolSize poolSizes[] =
     {

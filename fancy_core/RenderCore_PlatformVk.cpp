@@ -748,6 +748,8 @@ namespace Fancy
     if (myCaps.myHasAsyncCompute)
       myCommandBufferAllocators[(uint)CommandListType::Compute].reset(new CommandBufferAllocatorVk(CommandListType::Compute));
 
+    myDescriptorPoolAllocator.reset(new DescriptorPoolAllocatorVk(256, 64));
+
     return true;
   }
 //---------------------------------------------------------------------------//
@@ -755,6 +757,8 @@ namespace Fancy
   {
     for (UniquePtr<CommandBufferAllocatorVk>& cmdBufferAllocator : myCommandBufferAllocators)
       cmdBufferAllocator.reset();
+
+    myDescriptorPoolAllocator.reset();
 
     vkDestroyInstance(myInstance, nullptr);
     vkDestroyDevice(myDevice, nullptr);
@@ -840,6 +844,16 @@ namespace Fancy
   void RenderCore_PlatformVk::ReleaseCommandBuffer(VkCommandBuffer aCommandBuffer, CommandListType aCommandListType, uint64 aCommandBufferDoneFence)
   {
     myCommandBufferAllocators[(uint)aCommandListType]->ReleaseCommandBuffer(aCommandBuffer, aCommandBufferDoneFence);
+  }
+//---------------------------------------------------------------------------//
+  VkDescriptorPool RenderCore_PlatformVk::AllocateDescriptorPool()
+  {
+    return myDescriptorPoolAllocator->AllocateDescriptorPool();
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence)
+  {
+    myDescriptorPoolAllocator->FreeDescriptorPool(aDescriptorPool, aFence);
   }
 //---------------------------------------------------------------------------//
   uint RenderCore_PlatformVk::FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags)

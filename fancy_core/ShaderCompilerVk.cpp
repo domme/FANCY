@@ -1,17 +1,14 @@
 #include "fancy_core_precompile.h"
 #include "ShaderCompilerVk.h"
-#include "PathService.h"
 #include "FileReader.h"
 #include "VkPrerequisites.h"
 #include "ShaderVk.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
-#include "StaticArray.h"
-#include "PathService.h"
+#include "ShaderResourceInfoVk.h"
 
 #include "spirv_reflect/spirv_reflect.h"
 
-#include <dxc/dxcapi.h>
 #include <atomic>
 
 namespace Fancy
@@ -131,7 +128,7 @@ namespace Fancy
     if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, spvBinaryData))
       return false;
 
-    // TODO: Safe shader-cache?
+    // TODO: Save shader-cache?
     // const uint64 shaderHash = aDesc.GetHash();
     // String spvBinaryFilePathAbs(StaticFilePath("%sShaderCache/%llu.spv", Path::GetUserDataPath().c_str(), shaderHash));
     // Path::CreateDirectoryTreeForPath(spvBinaryFilePathAbs);
@@ -157,26 +154,25 @@ namespace Fancy
       hasUnorderedWrites |= (reflectModule.descriptor_bindings[i].resource_type & SpvReflectResourceType::SPV_REFLECT_RESOURCE_FLAG_UAV) != 0;
     aCompilerOutput->myProperties.myHasUnorderedWrites = hasUnorderedWrites;
 
-    ShaderBindingInfoVk& bindingInfo = compiledDataVk.myBindingInfo;
-    bindingInfo.myDescriptorSets.resize(reflectModule.descriptor_set_count);
+    compiledDataVk.myResourceInfos.clear();
 
     for (uint s = 0u; s < reflectModule.descriptor_set_count; ++s)
     {
-      ShaderDescriptorSetBindingInfoVk& setInfo = bindingInfo.myDescriptorSets[s];
       const SpvReflectDescriptorSet& reflSet = reflectModule.descriptor_sets[s];
-
-      setInfo.mySet = reflSet.set;
-      setInfo.myBindings.resize(reflSet.binding_count);
 
       for (uint b = 0u; b < reflSet.binding_count; ++b )
       {
         const SpvReflectDescriptorBinding* reflBinding = reflSet.bindings[b];
         ASSERT(reflBinding != nullptr);
 
-        ShaderDescriptorBindingVk& setBinding = setInfo.myBindings[b];
-        setBinding.myBinding = reflBinding->binding;
-        setBinding.myDescriptorCount = reflBinding->count;
-        setBinding.myDescriptorType = Priv_ShaderCompilerVk::locResolveDescriptorType(reflBinding->descriptor_type);
+        ShaderResourceInfoVk resourceInfo;
+        resourceInfo.myType = Priv_ShaderCompilerVk::locResolveDescriptorType(reflBinding->descriptor_type);
+        resourceInfo.myBindingInSet = reflBinding->binding;
+        resourceInfo.myDescriptorSet = reflSet.set;
+        resourceInfo.myName = reflBinding->name;
+        resourceInfo.myNameHash = MathUtil::Hash(reflBinding->name);
+        resourceInfo.myNumDescriptors = reflBinding->count;
+        compiledDataVk.myResourceInfos.push_back(std::move(resourceInfo));
       }
     }
 

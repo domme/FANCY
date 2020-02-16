@@ -4,6 +4,7 @@
 #include "VkPrerequisites.h"
 #include "FancyCoreDefines.h"
 #include "CommandBufferAllocatorVk.h"
+#include "DescriptorPoolAllocatorVk.h"
 
 namespace Fancy
 {
@@ -59,6 +60,9 @@ namespace Fancy
     VkCommandBuffer GetNewCommandBuffer(CommandListType aCommandListType);
     void ReleaseCommandBuffer(VkCommandBuffer aCommandBuffer, CommandListType aCommandListType, uint64 aCommandBufferDoneFence);
 
+    VkDescriptorPool AllocateDescriptorPool();
+    void FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence);
+
     uint FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags);
     const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return myPhysicalDeviceMemoryProperties; }
 
@@ -87,6 +91,7 @@ namespace Fancy
     VkPhysicalDeviceMemoryProperties myPhysicalDeviceMemoryProperties;
 
     UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::NUM];
+    UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
   };
 }
 

@@ -40,7 +40,7 @@ namespace Fancy
     const ShaderCompiledDataVk& data = aCompilerOutput.myNativeData.To<ShaderCompiledDataVk>();
 
     myModule = data.myModule;
-    myBindingInfo = data.myBindingInfo;
+    myResourceInfos = data.myResourceInfos;
     myVertexAttributeDesc = data.myVertexAttributeDesc;
 
     myShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
