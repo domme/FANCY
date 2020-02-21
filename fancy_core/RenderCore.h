@@ -13,6 +13,8 @@
 
 #include <map>
 #include <list>
+#include "TextureSampler.h"
+#include <map>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -91,6 +93,7 @@ namespace Fancy {
     
     static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateProperties& aDesc);
+    static SharedPtr<TextureSampler> CreateTextureSampler(const TextureSamplerProperties& someProperties);
     static const SharedPtr<BlendState>& GetDefaultBlendState();
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState();
 
@@ -174,7 +177,8 @@ namespace Fancy {
     static std::map<uint64, SharedPtr<ShaderPipeline>> ourShaderPipelineCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
-    
+    static std::map<uint64, SharedPtr<TextureSampler>> ourSamplerCache;
+
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;

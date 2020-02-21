@@ -23,6 +23,8 @@ namespace Fancy {
   class GpuBuffer;
   class GpuQueryHeap;
   class GpuResource;
+  class TextureSampler;
+  struct TextureSamplerProperties;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
   {
@@ -42,6 +44,7 @@ namespace Fancy {
     virtual ShaderPipeline* CreateShaderPipeline() = 0;
     virtual Texture* CreateTexture() = 0;
     virtual GpuBuffer* CreateBuffer() = 0;
+    virtual TextureSampler* CreateTextureSampler(const TextureSamplerProperties& someProperties) = 0;
     virtual CommandList* CreateCommandList(CommandListType aType) = 0;
     virtual CommandQueue* CreateCommandQueue(CommandListType aType) = 0;
     virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) = 0;

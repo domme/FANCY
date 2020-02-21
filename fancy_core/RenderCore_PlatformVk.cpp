@@ -11,6 +11,7 @@
 #include "CommandListVk.h"
 #include "GpuBufferVk.h"
 #include "GpuQueryHeapVk.h"
+#include "TextureSamplerVk.h"
 
 namespace Fancy
 {
@@ -729,6 +730,7 @@ namespace Fancy
 
     myCaps.myMaxNumVertexAttributes = myPhysicalDeviceProperties.limits.maxVertexInputAttributes;
     myCaps.myCbufferPlacementAlignment = (uint) myPhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
+    myCaps.myMaxTextureAnisotropy = (uint) myPhysicalDeviceProperties.limits.maxSamplerAnisotropy;
   }
   
   RenderCore_PlatformVk::~RenderCore_PlatformVk()
@@ -792,6 +794,11 @@ namespace Fancy
   GpuBuffer* RenderCore_PlatformVk::CreateBuffer()
   {
     return new GpuBufferVk();
+  }
+
+  TextureSampler* RenderCore_PlatformVk::CreateTextureSampler(const TextureSamplerProperties& someProperties)
+  {
+    return new TextureSamplerVk(someProperties);
   }
 
   CommandList* RenderCore_PlatformVk::CreateCommandList(CommandListType aType)

@@ -83,6 +83,8 @@ namespace Fancy {
 
     void BindResourceView(const GpuResourceView* aView, const char* aName);
     virtual void BindResourceView(const GpuResourceView* aView, uint64 aNameHash) = 0;
+    void BindSampler(const TextureSampler* aSampler, const char* aName);
+    virtual void BindSampler(const TextureSampler* aSampler, uint64 aNameHash) = 0;
     
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void RenderGeometry(const GeometryData* pGeometry) = 0;

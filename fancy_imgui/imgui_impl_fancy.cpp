@@ -36,6 +36,7 @@ namespace Fancy { namespace ImGuiRendering {
   SharedPtr<ShaderPipeline> ourProgramPipeline;
   SharedPtr<BlendState> ourBlendState;
   SharedPtr<DepthStencilState> ourDepthStencilState;
+  SharedPtr<TextureSampler> ourSampler;
       
   HWND ourHwnd = nullptr;
   INT64 ourTicksPerSecond = 0;
@@ -176,6 +177,18 @@ namespace Fancy { namespace ImGuiRendering {
       ASSERT(ourFontTexture != nullptr);
     }
 
+    // Sampler
+    {
+      TextureSamplerProperties props;
+      props.myAddressModeX = SamplerAddressMode::CLAMP_BORDER;
+      props.myAddressModeY = SamplerAddressMode::CLAMP_BORDER;
+      props.myAddressModeZ = SamplerAddressMode::CLAMP_BORDER;
+      props.myMinFiltering = SamplerFilterMode::TRILINEAR;
+      props.myMagFiltering = SamplerFilterMode::TRILINEAR;
+
+      ourSampler = RenderCore::CreateTextureSampler(props);
+    }
+
     // Blend state (alpha blending)
     {
       BlendStateProperties desc;
@@ -249,6 +262,7 @@ namespace Fancy { namespace ImGuiRendering {
     ctx->SetWindingOrder(WindingOrder::CCW);
     ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
     ctx->SetShaderPipeline(ourProgramPipeline);
+    ctx->BindSampler(ourSampler.get(), "sampler_default");
 
     // Update the cbuffer data
     {

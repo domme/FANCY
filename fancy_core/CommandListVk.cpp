@@ -871,8 +871,13 @@ namespace Fancy
 
     ResourceState::DescriptorSet& set = myResourceState.myDescriptorSets[iSet];
 
-    ASSERT(resourceInfo.myBindingInSet < ARRAY_LENGTH(set.myDescriptors));
-    ResourceState::Descriptor& descriptor = set.myDescriptors[resourceInfo.myBindingInSet];
+    ResourceState::Descriptor* descriptor = nullptr;
+    for (uint i = 0u; i < set.myDescriptors.Size(); ++i)
+      if (set.myDescriptors[i].myBindingInSet == resourceInfo.myBindingInSet)
+        descriptor = &set.myDescriptors[i];
+
+    if (descriptor == nullptr)
+      descriptor = &set.myDescriptors.Add();
 
     switch (aView->myType)
     {
@@ -886,17 +891,14 @@ namespace Fancy
       default: ;
     }
 
-
-
-
-
-      
-
-
-
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash)
+  {
+    VK_MISSING_IMPLEMENTATION();
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::BindSampler(const TextureSampler* aSampler, uint64 aNameHash)
   {
     VK_MISSING_IMPLEMENTATION();
   }

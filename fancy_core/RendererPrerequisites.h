@@ -63,6 +63,7 @@ namespace Fancy {
     unsigned int myCbufferPlacementAlignment = 1u;
     unsigned int myTextureRowAlignment = 1u;
     unsigned int myTextureSubresourceBufferAlignment = 10;
+    unsigned int myMaxTextureAnisotropy = 16u;
     bool myHasAsyncCompute = false;
     bool myHasAsyncCopy = false;
   };

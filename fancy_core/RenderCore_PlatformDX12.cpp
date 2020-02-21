@@ -17,6 +17,7 @@
 #include "GpuResourceDataDX12.h"
 #include "AdapterDX12.h"
 #include "GpuQueryHeapDX12.h"
+#include "TextureSamplerDX12.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -535,11 +536,13 @@ namespace Fancy {
     myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
     myCaps.myTextureRowAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
     myCaps.myTextureSubresourceBufferAlignment = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+    myCaps.myMaxTextureAnisotropy = D3D12_DEFAULT_MAX_ANISOTROPY;
     // DX12 always supports async compute and copy on the API-level, even though there might not
     // be hardware-support for it.
     // TODO: Check if there's a way to detect missing HW-support and disable the missing queues
     myCaps.myHasAsyncCompute = true;
     myCaps.myHasAsyncCopy = true;
+   
   }
 
 //---------------------------------------------------------------------------//
@@ -707,6 +710,11 @@ namespace Fancy {
   GpuBuffer* RenderCore_PlatformDX12::CreateBuffer()
   {
    return new GpuBufferDX12();
+  }
+//---------------------------------------------------------------------------//
+  TextureSampler* RenderCore_PlatformDX12::CreateTextureSampler(const TextureSamplerProperties& someProperties)
+  {
+    return new TextureSamplerDX12(someProperties);
   }
 //---------------------------------------------------------------------------//
   CommandList* RenderCore_PlatformDX12::CreateCommandList(CommandListType aType)

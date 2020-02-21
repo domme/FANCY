@@ -171,9 +171,10 @@
     <ClInclude Include="ResourceRefs.h" />
     <ClInclude Include="TextureReadbackTask.h" />
     <ClInclude Include="TextureSampler.h" />
-    <ClInclude Include="TextureSamplerDesc.h" />
+    <ClInclude Include="TextureSamplerProperties.h" />
     <ClInclude Include="TextureSamplerDX12.h" />
     <ClInclude Include="GpuResourceViewDataVk.h" />
+    <ClInclude Include="TextureSamplerVk.h" />
     <ClInclude Include="TextureVk.h" />
     <ClInclude Include="TimeManager.h" />
     <ClInclude Include="VertexInputLayout.h" />
@@ -250,9 +251,9 @@
     <ClCompile Include="TextureDX12.cpp" />
     <ClCompile Include="TextureProperties.cpp" />
     <ClCompile Include="TextureReadbackTask.cpp" />
-    <ClCompile Include="TextureSamplerDesc.cpp" />
     <ClCompile Include="TextureSamplerDX12.cpp" />
     <ClCompile Include="GraphicsResources.cpp" />
+    <ClCompile Include="TextureSamplerVk.cpp" />
     <ClCompile Include="TextureVk.cpp" />
     <ClCompile Include="TimeManager.cpp" />
     <ClCompile Include="VertexInputLayout.cpp" />

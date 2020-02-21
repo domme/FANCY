@@ -141,9 +141,6 @@
     <ClInclude Include="TextureSampler.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="TextureSamplerDesc.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="VertexInputLayout.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -387,6 +384,12 @@
     <ClInclude Include="ShaderResourceInfoVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="TextureSamplerProperties.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureSamplerVk.h">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -444,9 +447,6 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureSamplerDesc.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="VertexInputLayout.cpp">
@@ -595,6 +595,9 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="DescriptorPoolAllocatorVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureSamplerVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>

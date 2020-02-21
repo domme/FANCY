@@ -18,6 +18,7 @@
 #include "TimeManager.h"
 #include "GpuQueryHeapDX12.h"
 #include <glm/detail/type_mat.hpp>
+#include "TextureSamplerDX12.h"
 
 namespace Fancy { 
 //---------------------------------------------------------------------------//
@@ -267,6 +268,7 @@ namespace Fancy {
     D3D12_CPU_DESCRIPTOR_HANDLE* const srcDescriptors = static_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(alloca(sizeof(D3D12_CPU_DESCRIPTOR_HANDLE) * numSrcRanges));
     for (uint i = 0u; i < aResourceCount; ++i)
     {
+      ASSERT(heapType == someResources[i].myHeapType);
       srcRangeSizes[i] = 1;
       srcDescriptors[i] = someResources[i].myCpuHandle;
     }
@@ -832,6 +834,19 @@ namespace Fancy {
     BindInternal(resourceInfo, viewDataDx12.myDescriptor, gpuVirtualAddress);
   }
 //---------------------------------------------------------------------------//
+  void CommandListDX12::BindSampler(const TextureSampler* aSampler, uint64 aNameHash)
+  {
+    ShaderResourceInfoDX12 resourceInfo;
+    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+      return;
+
+    ASSERT(resourceInfo.myIsDescriptorTableEntry, "Samplers can only be bound in descriptor tables");
+
+    const TextureSamplerDX12* samplerDx12 = static_cast<const TextureSamplerDX12*>(aSampler);
+
+    BindInternal(resourceInfo, samplerDx12->GetDescriptor(), UINT64_MAX);
+  }
+//---------------------------------------------------------------------------//
   void CommandListDX12::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash)
   {
     ShaderResourceInfoDX12 resourceInfo;
@@ -1317,8 +1332,11 @@ namespace Fancy {
         const ResourceState::DescriptorTable& descTable = rootParam.myDescriptorTable;
 
 #if FANCY_RENDERER_DEBUG
+
         for (uint iTableEntry = 0u; iTableEntry < descTable.myNumDescriptors; ++iTableEntry)
+        {
           ASSERT(descTable.myDescriptors[iTableEntry].myCpuHandle.ptr != UINT_MAX, "Missing descriptor binding %d in descriptor table %d", iTableEntry, i);
+        }
 #endif
         const DescriptorDX12 firstGpuVisibleDescriptor = CopyDescriptorsToDynamicHeapRange(descTable.myDescriptors, descTable.myNumDescriptors);
         if (myCommandListType == CommandListType::Graphics)

@@ -34,6 +34,7 @@ namespace Fancy
 
     void BindResourceView(const GpuResourceView* aView, uint64 aNameHash) override;
     void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash) override;
+    void BindSampler(const TextureSampler* aSampler, uint64 aNameHash) override;
     
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
@@ -132,7 +133,7 @@ namespace Fancy
       {
         uint mySet;
         VkDescriptorSetLayout myLayout;
-        Descriptor myDescriptors[64];
+        StaticArray<Descriptor, 64> myDescriptors;
       };
 
       StaticArray<DescriptorSet, 16> myDescriptorSets;

@@ -28,6 +28,7 @@
 #include "TextureReadbackTask.h"
 
 #include <xxHash/xxhash.h>
+#include "TextureSampler.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -85,6 +86,7 @@ namespace Fancy {
   std::map<uint64, SharedPtr<ShaderPipeline>> RenderCore::ourShaderPipelineCache;
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
   std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
+  std::map<uint64, SharedPtr<TextureSampler>> RenderCore::ourSamplerCache;
   
   DynamicArray<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
@@ -787,6 +789,19 @@ namespace Fancy {
     SharedPtr<DepthStencilState> depthStencilState(new DepthStencilState(aDesc));
     ourDepthStencilStateCache.insert(std::make_pair(hash, depthStencilState));
     return depthStencilState;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<TextureSampler> RenderCore::CreateTextureSampler(const TextureSamplerProperties& someProperties)
+  {
+    const uint64 hash = MathUtil::ByteHash(someProperties);
+
+    auto it = ourSamplerCache.find(hash);
+    if (it != ourSamplerCache.end())
+      return it->second;
+
+    SharedPtr<TextureSampler> sampler(ourPlatformImpl->CreateTextureSampler(someProperties));
+    ourSamplerCache.insert(std::make_pair(hash, sampler));
+    return sampler;
   }
 //---------------------------------------------------------------------------//
   const SharedPtr<BlendState>& RenderCore::GetDefaultBlendState()

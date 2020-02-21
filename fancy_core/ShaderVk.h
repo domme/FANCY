@@ -1,11 +1,11 @@
 #pragma once
 #include "Shader.h"
 #include "VkPrerequisites.h"
+#include "ShaderResourceInfoVk.h"
 
 namespace Fancy
 {
-  struct ShaderResourceInfoVk;
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   struct ShaderCompilerResult;
 //---------------------------------------------------------------------------//
   struct ShaderVertexAttributeDescVk

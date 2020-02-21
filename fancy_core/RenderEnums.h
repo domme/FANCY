@@ -260,12 +260,23 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   enum class SamplerAddressMode
   {
-    WRAP = 0,
-    CLAMP_EDGE,
+    CLAMP_EDGE = 0,
     MIRROR_CLAMP_EDGE,
     CLAMP_BORDER,
     REPEAT,
     MIRROR_REPEAT,
+
+    NUM
+  };
+//---------------------------------------------------------------------------//
+  enum class SamplerBorderColor
+  {
+    FLOAT_TRANSPARENT_BLACK = 0,
+    INT_TRANSPARENT_BLACK,
+    FLOAT_OPAQUE_BLACK,
+    INT_OPAQUE_BLACK,
+    FLOAT_OPAQUE_WHITE,
+    INT_OPAQUE_WHITE,
 
     NUM
   };

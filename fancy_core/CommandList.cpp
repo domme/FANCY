@@ -146,6 +146,12 @@ namespace Fancy {
     BindResourceView(aView, nameHash);
   }
 //---------------------------------------------------------------------------//
+  void CommandList::BindSampler(const TextureSampler* aSampler, const char* aName)
+  {
+    const uint64 nameHash = Shader::GetParameterNameHash(aName);
+    BindSampler(aSampler, nameHash);
+  }
+//---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
   {
     const uint type = (uint)aType;

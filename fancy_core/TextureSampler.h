@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TextureSamplerDesc.h"
+#include "TextureSamplerProperties.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -9,22 +9,14 @@ namespace Fancy {
   public:
     virtual ~TextureSampler() = default;
 
-    TextureSamplerDesc GetDescription() const { return myDescription; }
-
-    void SetFromDescription(const TextureSamplerDesc& aDesc)
-    {
-      if (aDesc == myDescription && IsCreated())
-        return;
-       
-      myDescription = aDesc;
-      Create();
-    }
+    const TextureSamplerProperties GetProperties() const { return myProperties; }
 
   protected:
-    TextureSamplerDesc myDescription;
+    TextureSampler(const TextureSamplerProperties& someProperties)
+      : myProperties(someProperties)
+    { }
 
-    virtual void Create() = 0;
-    virtual bool IsCreated() = 0;
+    TextureSamplerProperties myProperties;
   };
 //---------------------------------------------------------------------------//
 }
