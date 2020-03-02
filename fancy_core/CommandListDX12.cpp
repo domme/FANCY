@@ -793,7 +793,7 @@ namespace Fancy {
 
     if (it == shaderResources.end())
     {
-      LOG_WARNING("Resource %s not found in shader");
+      LOG_WARNING("Resource %ull not found in shader", aNameHash);
       return false;
     }
 
@@ -1215,31 +1215,15 @@ namespace Fancy {
   void CommandListDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
   {
     FlushBarriers();
-    ApplyResourceBindings();
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
     ApplyTopologyType();
     ApplyGraphicsPipelineState();
+    ApplyResourceBindings();
 
     myCommandList->DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
   }
-  //---------------------------------------------------------------------------//
-  void CommandListDX12::RenderGeometry(const GeometryData* pGeometry)
-  {
-    const GpuBufferDX12* vertexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getVertexBuffer());
-    const GpuBufferDX12* indexBufferDx12 = static_cast<const GpuBufferDX12*>(pGeometry->getIndexBuffer());
-
-    ASSERT(vertexBufferDx12->GetProperties().myElementSizeBytes <= UINT_MAX);
-    ASSERT(indexBufferDx12->GetProperties().myElementSizeBytes <= UINT_MAX);
-
-    SetTopologyType(pGeometry->getGeometryVertexLayout().myTopology);
-    BindVertexBuffer(pGeometry->getVertexBuffer(), (uint) vertexBufferDx12->GetProperties().myElementSizeBytes);
-    BindIndexBuffer(pGeometry->getIndexBuffer(), (uint) indexBufferDx12->GetProperties().myElementSizeBytes);
-
-    ASSERT(indexBufferDx12->GetProperties().myNumElements <= UINT_MAX);
-    Render((uint) indexBufferDx12->GetProperties().myNumElements, 1, 0, 0, 0);
-  }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   void CommandListDX12::ApplyViewportAndClipRect()
   {
     if (myViewportDirty)
@@ -1339,7 +1323,7 @@ namespace Fancy {
         }
 #endif
         const DescriptorDX12 firstGpuVisibleDescriptor = CopyDescriptorsToDynamicHeapRange(descTable.myDescriptors, descTable.myNumDescriptors);
-        if (myCommandListType == CommandListType::Graphics)
+        if (myCurrentContext == CommandListType::Graphics)
           myCommandList->SetGraphicsRootDescriptorTable(i, firstGpuVisibleDescriptor.myGpuHandle);
         else
           myCommandList->SetComputeRootDescriptorTable(i, firstGpuVisibleDescriptor.myGpuHandle);
@@ -1350,18 +1334,18 @@ namespace Fancy {
         switch (rootDescriptor.myType)
         {
           case ShaderResourceTypeDX12::CBV:
-            if (myCommandListType == CommandListType::Graphics)
+            if (myCurrentContext == CommandListType::Graphics)
               myCommandList->SetGraphicsRootConstantBufferView(i, rootDescriptor.myGpuVirtualAddress);
             else
               myCommandList->SetComputeRootConstantBufferView(i, rootDescriptor.myGpuVirtualAddress);
             break;
           case ShaderResourceTypeDX12::SRV:
-            if (myCommandListType == CommandListType::Graphics)
+            if (myCurrentContext == CommandListType::Graphics)
               myCommandList->SetGraphicsRootShaderResourceView(i, rootDescriptor.myGpuVirtualAddress);
             else
               myCommandList->SetComputeRootShaderResourceView(i, rootDescriptor.myGpuVirtualAddress);
           case ShaderResourceTypeDX12::UAV:
-            if (myCommandListType == CommandListType::Graphics)
+            if (myCurrentContext == CommandListType::Graphics)
               myCommandList->SetGraphicsRootUnorderedAccessView(i, rootDescriptor.myGpuVirtualAddress);
             else
               myCommandList->SetComputeRootUnorderedAccessView(i, rootDescriptor.myGpuVirtualAddress);
@@ -1575,8 +1559,8 @@ namespace Fancy {
   {
     FlushBarriers();
 
-    ApplyResourceBindings();
     ApplyComputePipelineState();
+    ApplyResourceBindings();
     ASSERT(myComputePipelineState.myShader != nullptr);
 
     const glm::int3& numGroupThreads = myComputePipelineState.myShader->myProperties.myNumGroupThreads;

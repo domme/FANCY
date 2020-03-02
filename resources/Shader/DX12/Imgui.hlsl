@@ -16,8 +16,8 @@ VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b2);
 
 #define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), \
                         CBV(b2), \
-                        DescriptorTable(SRV(t0, numDescriptors = 1)), \
-                        DescriptorTable(Sampler(s0, numDescriptors = 1))"
+                        DescriptorTable(SRV(t0)), \
+                        DescriptorTable(Sampler(s0))"
 
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_VERTEX)

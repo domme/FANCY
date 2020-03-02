@@ -722,11 +722,6 @@ namespace Fancy
     vkCmdEndRenderPass(myCommandBuffer);
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::RenderGeometry(const GeometryData* pGeometry)
-  {
-    VK_MISSING_IMPLEMENTATION();
-  }
-//---------------------------------------------------------------------------//
   void CommandListVk::UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas)
   {
     const uint numSubresources = aSubresourceRange.GetNumSubresources();

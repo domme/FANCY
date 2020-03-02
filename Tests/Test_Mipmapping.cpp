@@ -53,7 +53,6 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
   mySelectedFilter = AssetManager::FILTER_LINEAR;
 }
 
-
 Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Mipmapping")
@@ -66,11 +65,11 @@ Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
 
   RenderCore::ourOnShaderRecompiled.Connect(this, &Test_Mipmapping::OnShaderRecompiled);
-
 }
 
 Test_Mipmapping::~Test_Mipmapping()
 {
+  RenderCore::ourOnShaderRecompiled.DetachObserver(this);
 }
 
 void Test_Mipmapping::OnUpdate(bool aDrawProperties)

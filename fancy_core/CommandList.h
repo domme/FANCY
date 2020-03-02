@@ -10,7 +10,6 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class GeometryData;
   class GpuResourceView;
   class GpuFence;
   class GpuResource;
@@ -87,7 +86,6 @@ namespace Fancy {
     virtual void BindSampler(const TextureSampler* aSampler, uint64 aNameHash) = 0;
     
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
-    virtual void RenderGeometry(const GeometryData* pGeometry) = 0;
     virtual void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) = 0; // TODO: Support regions
 
     virtual GpuQuery BeginQuery(GpuQueryType aType) = 0;

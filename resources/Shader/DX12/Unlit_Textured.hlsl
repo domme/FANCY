@@ -2,10 +2,7 @@
 #define ROOT_SIGNATURE  "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT )," \
                         "CBV(b0), " \
                         "DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL)," \
-                        "StaticSampler(s0, " \
-                        "addressU = TEXTURE_ADDRESS_WRAP, " \
-                        "addressV = TEXTURE_ADDRESS_WRAP, " \
-                        "filter = FILTER_MIN_MAG_MIP_POINT )"
+                        "DescriptorTable(Sampler(s0))"
 
 struct CBUFFER
 {

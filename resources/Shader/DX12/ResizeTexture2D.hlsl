@@ -1,13 +1,5 @@
 #define ROOT_SIGNATURE  "CBV(b0)," \
-                        "DescriptorTable(SRV(t0), UAV(u0))," \
-                        "StaticSampler(s0, " \
-                        "addressU = TEXTURE_ADDRESS_WRAP, " \
-                        "addressV = TEXTURE_ADDRESS_WRAP, " \
-                        "filter = FILTER_MIN_MAG_LINEAR_MIP_POINT )," \
-                        "StaticSampler(s1, " \
-                        "addressU = TEXTURE_ADDRESS_WRAP, " \
-                        "addressV = TEXTURE_ADDRESS_WRAP, " \
-                        "filter = FILTER_MIN_MAG_MIP_POINT )"
+                        "DescriptorTable(SRV(t0), UAV(u0))"
 
 cbuffer CB0 : register(b0)
 {
@@ -24,9 +16,6 @@ cbuffer CB0 : register(b0)
 
 Texture2D<float4> SrcTexture : register(t0);
 RWTexture2D<float4> DestTexture: register(u0);
-
-SamplerState sampler_linear : register(s0);
-SamplerState sampler_point : register(s1);
 
 struct SampleParams
 {

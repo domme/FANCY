@@ -48,8 +48,7 @@ namespace Fancy {
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
-    void RenderGeometry(const GeometryData* pGeometry) override;
-
+    
     void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash) override;
     void BindResourceView(const GpuResourceView* aView, uint64 aNameHash) override;
     void BindSampler(const TextureSampler* aSampler, uint64 aNameHash) override;
