@@ -6,6 +6,7 @@
 
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
   class GpuBufferVk final : public GpuBuffer
   {
   public:
@@ -25,6 +26,19 @@ namespace Fancy
 
     void Destroy();
   };
+//---------------------------------------------------------------------------//
+  class GpuBufferViewVk final : public GpuBufferView
+  {
+  public:
+    GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
+    ~GpuBufferViewVk() override;
+
+    VkBufferView GetBufferView() const { return myBufferView; }
+
+  private:
+    VkBufferView myBufferView;
+  };
+//---------------------------------------------------------------------------//
 }
 
 

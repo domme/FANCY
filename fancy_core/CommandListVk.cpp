@@ -819,27 +819,6 @@ namespace Fancy
     if (!FindShaderResourceInfo(aNameHash, resourceInfo))
       return;
 
-#if FANCY_RENDERER_DEBUG
-    switch (resourceInfo.myType)
-    {
-      case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs its own function. Samplers will not be a GpuResourceView
-      case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: 
-      case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-      case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-      case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-      case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-      case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-        ASSERT(aView->myType == GpuResourceViewType::SRV || aView->myType == GpuResourceViewType::UAV);
-        break;
-      case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-      case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-      case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-        ASSERT(aView->myType == GpuResourceViewType::CBV);
-        break;
-      default: ASSERT(false);
-    }
-#endif
-
     const GpuResourceViewDataVk& viewDataVk = aView->myNativeData.To<GpuResourceViewDataVk>();
     const GpuResourceDataVk* resourceDataVk = aView->myResource->myNativeData.To<GpuResourceDataVk*>();
 
@@ -874,16 +853,74 @@ namespace Fancy
     if (descriptor == nullptr)
       descriptor = &set.myDescriptors.Add();
 
-    switch (aView->myType)
+    HOW TO HANDLE MULTIPLE DESCRIPTORS???
+
+    VkDescriptorImageInfo* imageInfo = nullptr;
+    VkDescriptorBufferInfo* bufferInfo = nullptr;
+    VkBufferView bufferView = nullptr;
+    switch (resourceInfo.myType)
     {
-      case GpuResourceViewType::CBV: 
-        
-        break;
-      case GpuResourceViewType::SRV: break;
-      case GpuResourceViewType::UAV: break;
-      case GpuResourceViewType::DSV: break;
-      case GpuResourceViewType::RTV: break;
-      default: ;
+    case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
+    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL so this should never happen
+    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+      {
+        ASSERT(aView->myType == GpuResourceViewType::SRV);
+        ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
+        imageInfo = &myResourceState.myBoundImages.Add();
+        imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo->imageView = viewDataVk.myView.myImage;
+        imageInfo->sampler = nullptr;
+      } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+      {
+        ASSERT(aView->myType == GpuResourceViewType::UAV);
+        ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
+        imageInfo = &myResourceState.myBoundImages.Add();
+        imageInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        imageInfo->imageView = viewDataVk.myView.myImage;
+        imageInfo->sampler = nullptr;
+      } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+      {
+        ASSERT(aView->myType == GpuResourceViewType::UAV);
+        ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+        const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
+        ASSERT(bufferViewVk->GetBufferView() != nullptr);
+        bufferView = bufferViewVk->GetBufferView();
+      } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+      {
+        ASSERT(aView->myType == GpuResourceViewType::UAV);
+        ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+        bufferInfo = &myResourceState.myBoundBuffers.Add();
+        bufferInfo->buffer = resourceDataVk->myBuffer;
+        bufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
+        bufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+      } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+      break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+      {
+        ASSERT(aView->myType == GpuResourceViewType::SRV);
+        ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+        const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
+        ASSERT(bufferViewVk->GetBufferView() != nullptr);
+        bufferView = bufferViewVk->GetBufferView();
+      } break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+      {
+        ASSERT(aView->myType == GpuResourceViewType::CBV);
+        ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+        bufferInfo = &myResourceState.myBoundBuffers.Add();
+        bufferInfo->buffer = resourceDataVk->myBuffer;
+        bufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
+        bufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+      } break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+      break;
+    default: ASSERT(false);
     }
 
   }
