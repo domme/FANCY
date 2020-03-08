@@ -359,15 +359,20 @@ namespace Fancy {
           {
             resourceInfo.myIsDescriptorTableEntry = true;
             resourceInfo.myRootParamIndex = iRootParam;
+            ASSERT(descriptorOffsetInTable != UINT_MAX || descRange.OffsetInDescriptorsFromTableStart != D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND, "Ranges following an unbounded range must have an explicit offset");
             resourceInfo.myDescriptorOffsetInTable = descRange.OffsetInDescriptorsFromTableStart == D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND ? descriptorOffsetInTable : descRange.OffsetInDescriptorsFromTableStart;
             resourceInfo.myType = locGetShaderResourceInfoType(descRange.RangeType);
+            resourceInfo.myNumDescriptors = descRange.NumDescriptors;
 
             someResourceInfos.push_back(resourceInfo);
 
             return true;
           }
 
-          descriptorOffsetInTable += descRange.NumDescriptors;
+          if (descRange.NumDescriptors == UINT_MAX)  // Unbounded range. Usually appears as the last range in the table definition
+            descriptorOffsetInTable = UINT_MAX;
+          else
+            descriptorOffsetInTable += descRange.NumDescriptors;
         }
       }
       else if (rParam.ParameterType != D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)

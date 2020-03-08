@@ -49,9 +49,9 @@ namespace Fancy {
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     
-    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash) override;
-    void BindResourceView(const GpuResourceView* aView, uint64 aNameHash) override;
-    void BindSampler(const TextureSampler* aSampler, uint64 aNameHash) override;
+    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) override;
+    void BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex = 0u) override;
+    void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) override;
 
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
@@ -68,16 +68,9 @@ namespace Fancy {
   protected:
     struct ResourceState
     {
-      struct DescriptorRange
-      {
-        DescriptorDX12* myDescriptors;
-        uint myNumDescriptors;
-      };
-
       struct DescriptorTable
       {
-        DescriptorRange* myDescriptorRanges;
-        uint myNumRanges;
+        DynamicArray<DescriptorDX12> myDescriptors;
       };
 
       struct RootDescriptor
@@ -94,8 +87,6 @@ namespace Fancy {
       };
 
       StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;
-      StaticArray<DescriptorDX12, 256> myBoundDescriptorPool;
-      StaticArray<DescriptorRange, 256> myBoundDescriptorRanges;
       RootParameter myRootParameters[256];
       uint myNumBoundRootParameters;
     };
@@ -105,7 +96,7 @@ namespace Fancy {
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
     bool FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoDX12& aResourceInfoOut) const;
-    void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress);
+    void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex);
     void ClearResourceBindings();
 
     bool SubresourceBarrierInternal(

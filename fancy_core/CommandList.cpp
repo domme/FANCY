@@ -143,7 +143,7 @@ namespace Fancy {
   void CommandList::BindResourceView(const GpuResourceView* aView, const char* aName)
   {
     const uint64 nameHash = Shader::GetParameterNameHash(aName);
-    BindResourceView(aView, nameHash);
+    BindResourceView(aView, nameHash, 0);
   }
 //---------------------------------------------------------------------------//
   void CommandList::BindSampler(const TextureSampler* aSampler, const char* aName)

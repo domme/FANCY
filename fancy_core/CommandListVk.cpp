@@ -813,11 +813,13 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindResourceView(const GpuResourceView* aView, uint64 aNameHash)
+  void CommandListVk::BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex /* = 0u */)
   {
     ShaderResourceInfoVk resourceInfo;
     if (!FindShaderResourceInfo(aNameHash, resourceInfo))
       return;
+
+    ASSERT(resourceInfo.myNumDescriptors > anArrayIndex);
 
     const GpuResourceViewDataVk& viewDataVk = aView->myNativeData.To<GpuResourceViewDataVk>();
     const GpuResourceDataVk* resourceDataVk = aView->myResource->myNativeData.To<GpuResourceDataVk*>();
@@ -845,55 +847,69 @@ namespace Fancy
 
     ResourceState::DescriptorSet& set = myResourceState.myDescriptorSets[iSet];
 
-    ResourceState::Descriptor* descriptor = nullptr;
-    for (uint i = 0u; i < set.myDescriptors.Size(); ++i)
-      if (set.myDescriptors[i].myBindingInSet == resourceInfo.myBindingInSet)
-        descriptor = &set.myDescriptors[i];
+    ResourceState::DescriptorRange* range = nullptr;
+    for (uint i = 0u; i < set.myRanges.Size(); ++i)
+    {
+      if (set.myRanges[i].myBindingInSet == resourceInfo.myBindingInSet)
+      {
+        ASSERT(set.myRanges[i].myType == resourceInfo.myType);
+        range = &set.myRanges[i];
+      }
+    }
 
-    if (descriptor == nullptr)
-      descriptor = &set.myDescriptors.Add();
+    if (range == nullptr)
+    {
+      range = &set.myRanges.Add();
+      range->myType = resourceInfo.myType;
+      range->myBindingInSet = resourceInfo.myBindingInSet;
+    }
 
-    VkDescriptorImageInfo* imageInfo = nullptr;
-    VkDescriptorBufferInfo* bufferInfo = nullptr;
-    VkBufferView bufferView = nullptr;
     switch (resourceInfo.myType)
     {
     case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
-    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL so this should never happen
+    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
     case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
       {
         ASSERT(aView->myType == GpuResourceViewType::SRV);
         ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
-        imageInfo = &myResourceState.myBoundImages.Add();
-        imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo->imageView = viewDataVk.myView.myImage;
-        imageInfo->sampler = nullptr;
+        if (range->myImageInfos.size() < anArrayIndex + 1)
+          range->myImageInfos.resize(anArrayIndex + 1);
+        VkDescriptorImageInfo& info = range->myImageInfos[anArrayIndex];
+        info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        info.imageView = viewDataVk.myView.myImage;
+        info.sampler = nullptr;
       } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
       {
         ASSERT(aView->myType == GpuResourceViewType::UAV);
         ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
-        imageInfo = &myResourceState.myBoundImages.Add();
-        imageInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageInfo->imageView = viewDataVk.myView.myImage;
-        imageInfo->sampler = nullptr;
+        if (range->myImageInfos.size() < anArrayIndex + 1)
+          range->myImageInfos.resize(anArrayIndex + 1);
+        VkDescriptorImageInfo& info = range->myImageInfos[anArrayIndex];
+        info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        info.imageView = viewDataVk.myView.myImage;
+        info.sampler = nullptr;
       } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
       {
         ASSERT(aView->myType == GpuResourceViewType::UAV);
         ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+        if (range->myTexelBufferViews.size() < anArrayIndex + 1)
+          range->myTexelBufferViews.resize(anArrayIndex + 1);
         const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
         ASSERT(bufferViewVk->GetBufferView() != nullptr);
-        bufferView = bufferViewVk->GetBufferView();
+        range->myTexelBufferViews[anArrayIndex] = bufferViewVk->GetBufferView();
       } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
       {
         ASSERT(aView->myType == GpuResourceViewType::UAV);
         ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
-        bufferInfo = &myResourceState.myBoundBuffers.Add();
-        bufferInfo->buffer = resourceDataVk->myBuffer;
-        bufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
-        bufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+        if (range->myBufferInfos.size() < anArrayIndex + 1)
+          range->myBufferInfos.resize(anArrayIndex + 1);
+        VkDescriptorBufferInfo& info = range->myBufferInfos[anArrayIndex];
+        info.buffer = resourceDataVk->myBuffer;
+        info.offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
+        info.range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
       } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
       ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
@@ -902,33 +918,36 @@ namespace Fancy
       {
         ASSERT(aView->myType == GpuResourceViewType::SRV);
         ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+        if (range->myTexelBufferViews.size() < anArrayIndex + 1)
+          range->myTexelBufferViews.resize(anArrayIndex + 1);
         const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
         ASSERT(bufferViewVk->GetBufferView() != nullptr);
-        bufferView = bufferViewVk->GetBufferView();
+        range->myTexelBufferViews[anArrayIndex] = bufferViewVk->GetBufferView();
       } break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
       {
         ASSERT(aView->myType == GpuResourceViewType::CBV);
         ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
-        bufferInfo = &myResourceState.myBoundBuffers.Add();
-        bufferInfo->buffer = resourceDataVk->myBuffer;
-        bufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
-        bufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+        if (range->myBufferInfos.size() < anArrayIndex + 1)
+          range->myBufferInfos.resize(anArrayIndex + 1);
+        VkDescriptorBufferInfo& info = range->myBufferInfos[anArrayIndex];
+       info.buffer = resourceDataVk->myBuffer;
+       info.offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
+       info.range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
       } break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
       ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
       break;
     default: ASSERT(false);
     }
-
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash)
+  void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
   {
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindSampler(const TextureSampler* aSampler, uint64 aNameHash)
+  void CommandListVk::BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
   {
     VK_MISSING_IMPLEMENTATION();
   }
@@ -1286,27 +1305,42 @@ namespace Fancy
     for (uint iSet = 0u; iSet < myResourceState.myDescriptorSets.Size(); ++iSet)
     {
       const ResourceState::DescriptorSet& set = myResourceState.myDescriptorSets[iSet];
-      ASSERT(!set.myDescriptors.IsEmpty());
+      ASSERT(!set.myRanges.IsEmpty());
 
       VkDescriptorSet vkSet = CreateDescriptorSet(set.myLayout);
 
       VkWriteDescriptorSet baseWriteInfo = {};
       baseWriteInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
       baseWriteInfo.dstSet = vkSet;
-      
+
       StaticArray<VkWriteDescriptorSet, 64> writeInfos;
-      for (uint iDesc = 0u; iDesc < set.myDescriptors.Size(); ++iDesc)
+      for (uint iRange = 0u; iRange < set.myRanges.Size(); ++iRange)
       {
-        const ResourceState::Descriptor& desc = set.myDescriptors[iDesc];
+        const ResourceState::DescriptorRange& range = set.myRanges[iRange];
+
+#if FANCY_RENDERER_DEBUG
+        if (!range.myImageInfos.empty()) {
+          ASSERT(range.myBufferInfos.empty() && range.myTexelBufferViews.empty());
+        }
+        else if (!range.myBufferInfos.empty()) {
+          ASSERT(range.myImageInfos.empty() && range.myTexelBufferViews.empty());
+        }
+        else if (!range.myTexelBufferViews.empty()) {
+          ASSERT(range.myImageInfos.empty() && range.myBufferInfos.empty());
+        }
+        ASSERT(!range.myImageInfos.empty() || !range.myBufferInfos.empty() || !range.myBufferInfos.empty(), "Descriptor set %d doesn't have any resources bound on range %d", iSet, iRange);
+#endif  // FANCY_RENDERER_DEBUG
+
+        const uint numDescriptors = (uint) glm::max(range.myImageInfos.size(), glm::max(range.myBufferInfos.size(), range.myTexelBufferViews.size()));
 
         VkWriteDescriptorSet writeInfo = baseWriteInfo;
-        writeInfo.descriptorType = desc.myType;
-        writeInfo.dstArrayElement = desc.myFirstArrayElement;
-        writeInfo.descriptorCount = desc.myNumDescriptors;
-        writeInfo.dstBinding = desc.myBindingInSet;
-        writeInfo.pImageInfo = desc.myImageInfos;
-        writeInfo.pBufferInfo = desc.myBufferInfos;
-        writeInfo.pTexelBufferView = desc.myTexelBufferView;
+        writeInfo.descriptorType = range.myType;
+        writeInfo.dstArrayElement = 0u;
+        writeInfo.descriptorCount = numDescriptors;
+        writeInfo.dstBinding = range.myBindingInSet;
+        writeInfo.pImageInfo = range.myImageInfos.empty() ? nullptr : range.myImageInfos.data();
+        writeInfo.pBufferInfo = range.myBufferInfos.empty() ? nullptr : range.myBufferInfos.data();
+        writeInfo.pTexelBufferView = range.myTexelBufferViews.empty() ? nullptr : range.myTexelBufferViews.data();
         writeInfos.Add(writeInfo);
       }
 
@@ -1336,10 +1370,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearResourceState()
   {
-    myResourceState.myDescriptorSets.ClearDiscard();
-    myResourceState.myBoundBuffers.ClearDiscard();
-    myResourceState.myBoundImages.ClearDiscard();
-    myResourceState.myBoundTexelBufferView.ClearDiscard();
+    myResourceState.myDescriptorSets.Clear();
   }
 //---------------------------------------------------------------------------//
   VkDescriptorSet CommandListVk::CreateDescriptorSet(VkDescriptorSetLayout aLayout)

@@ -801,53 +801,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::BindResourceView(const GpuResourceView* aView, uint64 aNameHash)
-  {
-    ShaderResourceInfoDX12 resourceInfo;
-    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
-      return;
-
-#if FANCY_RENDERER_DEBUG
-    switch (resourceInfo.myType)
-    {
-    case ShaderResourceTypeDX12::CBV:
-      ASSERT(aView->myType == GpuResourceViewType::CBV);
-      break;
-    case ShaderResourceTypeDX12::SRV:
-      ASSERT(aView->myType == GpuResourceViewType::SRV);
-      break;
-    case ShaderResourceTypeDX12::UAV:
-      ASSERT(aView->myType == GpuResourceViewType::UAV);
-      break;
-    case ShaderResourceTypeDX12::Sampler: break;
-    default: ASSERT(false);
-    }
-#endif
-
-    const GpuResourceViewDataDX12& viewDataDx12 = aView->myNativeData.To<GpuResourceViewDataDX12>();
-    const GpuResourceDataDX12* resourceDataDx12 = aView->myResource->myNativeData.To<GpuResourceDataDX12*>();
-
-    uint64 gpuVirtualAddress = 0u;
-    if (aView->myResource->myCategory == GpuResourceCategory::BUFFER)
-      gpuVirtualAddress = resourceDataDx12->myResource->GetGPUVirtualAddress();
-
-    BindInternal(resourceInfo, viewDataDx12.myDescriptor, gpuVirtualAddress);
-  }
-//---------------------------------------------------------------------------//
-  void CommandListDX12::BindSampler(const TextureSampler* aSampler, uint64 aNameHash)
-  {
-    ShaderResourceInfoDX12 resourceInfo;
-    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
-      return;
-
-    ASSERT(resourceInfo.myIsDescriptorTableEntry, "Samplers can only be bound in descriptor tables");
-
-    const TextureSamplerDX12* samplerDx12 = static_cast<const TextureSamplerDX12*>(aSampler);
-
-    BindInternal(resourceInfo, samplerDx12->GetDescriptor(), UINT64_MAX);
-  }
-//---------------------------------------------------------------------------//
-  void CommandListDX12::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash)
+  void CommandListDX12::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex /*= 0u*/)
   {
     ShaderResourceInfoDX12 resourceInfo;
     if (!FindShaderResourceInfo(aNameHash, resourceInfo))
@@ -900,16 +854,63 @@ namespace Fancy {
         GpuBufferViewDX12::CreateSRVdescriptor(aBuffer, someViewProperties, tempDescriptor); break;
       case GpuResourceViewType::UAV:
         GpuBufferViewDX12::CreateUAVdescriptor(aBuffer, someViewProperties, tempDescriptor); break;
-      default:;
+      default: ASSERT(false);
       }
     }
 
     const GpuResourceDataDX12* resourceDataDx12 = aBuffer->myNativeData.To<GpuResourceDataDX12*>();
-    BindInternal(resourceInfo, tempDescriptor, resourceDataDx12->myResource->GetGPUVirtualAddress());
+    BindInternal(resourceInfo, tempDescriptor, resourceDataDx12->myResource->GetGPUVirtualAddress(), anArrayIndex);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress)
+  void CommandListDX12::BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex /* = 0u */)
   {
+    ShaderResourceInfoDX12 resourceInfo;
+    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+      return;
+
+#if FANCY_RENDERER_DEBUG
+    switch (resourceInfo.myType)
+    {
+    case ShaderResourceTypeDX12::CBV:
+      ASSERT(aView->myType == GpuResourceViewType::CBV);
+      break;
+    case ShaderResourceTypeDX12::SRV:
+      ASSERT(aView->myType == GpuResourceViewType::SRV);
+      break;
+    case ShaderResourceTypeDX12::UAV:
+      ASSERT(aView->myType == GpuResourceViewType::UAV);
+      break;
+    case ShaderResourceTypeDX12::Sampler: break;
+    default: ASSERT(false);
+    }
+#endif
+
+    const GpuResourceViewDataDX12& viewDataDx12 = aView->myNativeData.To<GpuResourceViewDataDX12>();
+    const GpuResourceDataDX12* resourceDataDx12 = aView->myResource->myNativeData.To<GpuResourceDataDX12*>();
+
+    uint64 gpuVirtualAddress = 0u;
+    if (aView->myResource->myCategory == GpuResourceCategory::BUFFER)
+      gpuVirtualAddress = resourceDataDx12->myResource->GetGPUVirtualAddress();
+
+    BindInternal(resourceInfo, viewDataDx12.myDescriptor, gpuVirtualAddress, anArrayIndex);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex /*= 0u*/)
+  {
+    ShaderResourceInfoDX12 resourceInfo;
+    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+      return;
+
+    ASSERT(resourceInfo.myIsDescriptorTableEntry, "Samplers can only be bound in descriptor tables");
+
+    const TextureSamplerDX12* samplerDx12 = static_cast<const TextureSamplerDX12*>(aSampler);
+
+    BindInternal(resourceInfo, samplerDx12->GetDescriptor(), UINT64_MAX, anArrayIndex);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex)
+  {
+    ASSERT(aResourceInfo.myNumDescriptors > anArrayIndex);
     ASSERT(aResourceInfo.myRootParamIndex < ARRAY_LENGTH(myResourceState.myRootParameters));
     ResourceState::RootParameter& rootParam = myResourceState.myRootParameters[aResourceInfo.myRootParamIndex];
     myResourceState.myNumBoundRootParameters = glm::max(myResourceState.myNumBoundRootParameters, aResourceInfo.myRootParamIndex + 1);
@@ -919,27 +920,17 @@ namespace Fancy {
       rootParam.myIsDescriptorTable = true;
       ResourceState::DescriptorTable& descTable = rootParam.myDescriptorTable;
 
-      if (descTable.myNumDescriptors < aResourceInfo.myDescriptorOffsetInTable + 1)
-      {
-        ASSERT((descTable.myNumDescriptors == 0) == (descTable.myDescriptors == nullptr));
+      const uint endDescriptorIdx = aResourceInfo.myDescriptorOffsetInTable + anArrayIndex + 1;
+      if (descTable.myDescriptors.size() < endDescriptorIdx)
+        descTable.myDescriptors.resize(endDescriptorIdx);
 
-        if (descTable.myDescriptors == nullptr)
-          descTable.myDescriptors = myResourceState.myBoundDescriptorPool.GetBuffer() + myResourceState.myBoundDescriptorPool.Size();
-
-        while (descTable.myNumDescriptors < aResourceInfo.myDescriptorOffsetInTable + 1)
-        {
-          ++descTable.myNumDescriptors;
-          myResourceState.myBoundDescriptorPool.Add();
-        }
-      }
-
-      descTable.myDescriptors[aResourceInfo.myDescriptorOffsetInTable] = aDescriptor;
+      descTable.myDescriptors[aResourceInfo.myDescriptorOffsetInTable + anArrayIndex] = aDescriptor;
     }
     else
     {
+      ASSERT(anArrayIndex == 0, "Descriptor-arrays are not supported as root descriptors in DX12. ArrayIndex must be 0");
       rootParam.myIsDescriptorTable = false;
       ResourceState::RootDescriptor& rootDesc = rootParam.myRootDescriptor;
-
       rootDesc.myType = aResourceInfo.myType;
       ASSERT(aResourceInfo.myType != ShaderResourceTypeDX12::Sampler, "Samplers are not supported as root descriptors");
 
@@ -951,7 +942,8 @@ namespace Fancy {
   {
     memset(myResourceState.myRootParameters, 0u, sizeof(myResourceState.myRootParameters));
     myResourceState.myNumBoundRootParameters = 0u;
-    myResourceState.myBoundDescriptorPool.ClearDiscard();
+    for (ResourceState::RootParameter& rootParam : myResourceState.myRootParameters)
+      rootParam.myDescriptorTable.myDescriptors.clear();
 
     for (uint i = 0u; i < myResourceState.myTempAllocatedDescriptors.Size(); ++i)
       RenderCore::GetPlatformDX12()->ReleaseDescriptor(myResourceState.myTempAllocatedDescriptors[i]);
@@ -1316,13 +1308,10 @@ namespace Fancy {
         const ResourceState::DescriptorTable& descTable = rootParam.myDescriptorTable;
 
 #if FANCY_RENDERER_DEBUG
-
-        for (uint iTableEntry = 0u; iTableEntry < descTable.myNumDescriptors; ++iTableEntry)
-        {
+        for (uint iTableEntry = 0u; iTableEntry < descTable.myDescriptors.size(); ++iTableEntry)
           ASSERT(descTable.myDescriptors[iTableEntry].myCpuHandle.ptr != UINT_MAX, "Missing descriptor binding %d in descriptor table %d", iTableEntry, i);
-        }
-#endif
-        const DescriptorDX12 firstGpuVisibleDescriptor = CopyDescriptorsToDynamicHeapRange(descTable.myDescriptors, descTable.myNumDescriptors);
+#endif  // FANCY_RENDERER_DEBUG
+        const DescriptorDX12 firstGpuVisibleDescriptor = CopyDescriptorsToDynamicHeapRange(descTable.myDescriptors.data(), descTable.myDescriptors.size());
         if (myCurrentContext == CommandListType::Graphics)
           myCommandList->SetGraphicsRootDescriptorTable(i, firstGpuVisibleDescriptor.myGpuHandle);
         else

@@ -24,6 +24,7 @@ namespace Fancy
     bool myIsDescriptorTableEntry = false;
     uint myDescriptorOffsetInTable = UINT_MAX;
     uint myRootParamIndex = UINT_MAX;
+    uint myNumDescriptors = 0u;
   };
 //---------------------------------------------------------------------------// 
 }

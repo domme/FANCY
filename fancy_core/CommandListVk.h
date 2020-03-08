@@ -31,9 +31,9 @@ namespace Fancy
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override;
 
-    void BindResourceView(const GpuResourceView* aView, uint64 aNameHash) override;
-    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash) override;
-    void BindSampler(const TextureSampler* aSampler, uint64 aNameHash) override;
+    void BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex = 0u) override;
+    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) override;
+    void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) override;
     
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
@@ -117,28 +117,23 @@ namespace Fancy
 
     struct ResourceState
     {
-      struct Descriptor
+      struct DescriptorRange
       {
         uint myBindingInSet = UINT_MAX;
-        uint myFirstArrayElement = UINT_MAX;
-        uint myNumDescriptors = UINT_MAX;
         VkDescriptorType myType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-        VkDescriptorImageInfo* myImageInfos = nullptr;
-        VkDescriptorBufferInfo* myBufferInfos = nullptr;
-        VkBufferView* myTexelBufferView = nullptr;
+        DynamicArray<VkDescriptorImageInfo> myImageInfos;
+        DynamicArray<VkDescriptorBufferInfo> myBufferInfos;
+        DynamicArray<VkBufferView> myTexelBufferViews;
       };
 
       struct DescriptorSet
       {
         uint mySet;
         VkDescriptorSetLayout myLayout;
-        StaticArray<Descriptor, 64> myDescriptors;
+        StaticArray<DescriptorRange, 64> myRanges;
       };
 
       StaticArray<DescriptorSet, 16> myDescriptorSets;
-      StaticArray<VkDescriptorImageInfo, 128> myBoundImages;
-      StaticArray<VkDescriptorBufferInfo, 128> myBoundBuffers;
-      StaticArray<VkBufferView, 128> myBoundTexelBufferView;
     };
 
     ResourceState myResourceState;
