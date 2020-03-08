@@ -68,16 +68,22 @@ namespace Fancy {
   protected:
     struct ResourceState
     {
-      struct RootDescriptor
+      struct DescriptorRange
       {
-        ShaderResourceTypeDX12 myType;
-        uint64 myGpuVirtualAddress;
+        DescriptorDX12* myDescriptors;
+        uint myNumDescriptors;
       };
 
       struct DescriptorTable
       {
-        DescriptorDX12* myDescriptors;
-        uint myNumDescriptors;
+        DescriptorRange* myDescriptorRanges;
+        uint myNumRanges;
+      };
+
+      struct RootDescriptor
+      {
+        ShaderResourceTypeDX12 myType;
+        uint64 myGpuVirtualAddress;
       };
 
       struct RootParameter
@@ -89,6 +95,7 @@ namespace Fancy {
 
       StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;
       StaticArray<DescriptorDX12, 256> myBoundDescriptorPool;
+      StaticArray<DescriptorRange, 256> myBoundDescriptorRanges;
       RootParameter myRootParameters[256];
       uint myNumBoundRootParameters;
     };

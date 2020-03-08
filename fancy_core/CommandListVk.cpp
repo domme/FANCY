@@ -853,8 +853,6 @@ namespace Fancy
     if (descriptor == nullptr)
       descriptor = &set.myDescriptors.Add();
 
-    HOW TO HANDLE MULTIPLE DESCRIPTORS???
-
     VkDescriptorImageInfo* imageInfo = nullptr;
     VkDescriptorBufferInfo* bufferInfo = nullptr;
     VkBufferView bufferView = nullptr;
