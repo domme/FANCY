@@ -3,6 +3,7 @@
 #include "RenderCore_PlatformVk.h"
 #include "RenderCore.h"
 #include "CommandList.h"
+#include "GpuResourceViewDataVk.h"
 
 namespace Fancy
 {
@@ -192,7 +193,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuBufferViewVk::GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
     : GpuBufferView(aBuffer, someProperties)
-    , myBufferView(nullptr)
   {
     // Creating a vkBufferView is only needed for uniform texel buffers or storage texel buffers (Buffer<T> or RWBuffer<T> in HLSL)
     // For anything else, GpuBufferViewVk just acts as a reference-holder to the GpuBuffer and stores the view-properties needed when binding
@@ -209,14 +209,33 @@ namespace Fancy
       info.format = RenderCore_PlatformVk::ResolveFormat(myProperties.myFormat);
       info.offset = myProperties.myOffset;
       info.range = myProperties.mySize;
-      ASSERT_VK_RESULT(vkCreateBufferView(RenderCore::GetPlatformVk()->myDevice, &info, nullptr, &myBufferView));
+
+      VkBufferView bufferView;
+      ASSERT_VK_RESULT(vkCreateBufferView(RenderCore::GetPlatformVk()->myDevice, &info, nullptr, &bufferView));
+
+      GpuResourceViewDataVk nativeData;
+      nativeData.myType = GpuResourceViewDataVk::Buffer;
+      nativeData.myView.myBuffer = bufferView;
+      myNativeData = nativeData;
     }
   }
 //---------------------------------------------------------------------------//
   GpuBufferViewVk::~GpuBufferViewVk()
   {
-    if (myBufferView != nullptr)
-      vkDestroyBufferView(RenderCore::GetPlatformVk()->myDevice, myBufferView, nullptr);
+    if (myNativeData.HasType<GpuResourceViewDataVk>())
+    {
+      const GpuResourceViewDataVk& nativeData = myNativeData.To<GpuResourceViewDataVk>();
+      if (nativeData.myView.myBuffer != nullptr)
+        vkDestroyBufferView(RenderCore::GetPlatformVk()->myDevice, nativeData.myView.myBuffer, nullptr);
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkBufferView GpuBufferViewVk::GetBufferView() const
+  {
+    if (myNativeData.HasType<GpuResourceViewDataVk>())
+      return myNativeData.To<GpuResourceViewDataVk>().myView.myBuffer;
+
+    return nullptr;
   }
 //---------------------------------------------------------------------------//
 }

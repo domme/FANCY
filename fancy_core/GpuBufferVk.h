@@ -33,10 +33,7 @@ namespace Fancy
     GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
     ~GpuBufferViewVk() override;
 
-    VkBufferView GetBufferView() const { return myBufferView; }
-
-  private:
-    VkBufferView myBufferView;
+    VkBufferView GetBufferView() const;
   };
 //---------------------------------------------------------------------------//
 }
