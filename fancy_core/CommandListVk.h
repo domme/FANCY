@@ -133,11 +133,13 @@ namespace Fancy
         StaticArray<DescriptorRange, 64> myRanges;
       };
 
+      StaticArray<std::pair<VkBufferView, uint64>, 64> myTempBufferViews;
       StaticArray<DescriptorSet, 16> myDescriptorSets;
     };
 
     ResourceState myResourceState;
 
+    
     StaticArray<VkDescriptorPool, 16> myUsedDescriptorPools;
     BufferMemoryBarrierData myPendingBufferBarriers[kNumCachedBarriers];
     ImageMemoryBarrierData myPendingImageBarriers[kNumCachedBarriers];

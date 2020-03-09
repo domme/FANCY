@@ -757,6 +757,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformVk::Shutdown()
   {
+    DestroyTempBufferViews();
+    ASSERT(myTempBufferViews.IsEmpty());
+
     for (UniquePtr<CommandBufferAllocatorVk>& cmdBufferAllocator : myCommandBufferAllocators)
       cmdBufferAllocator.reset();
 
@@ -764,6 +767,11 @@ namespace Fancy
 
     vkDestroyInstance(myInstance, nullptr);
     vkDestroyDevice(myDevice, nullptr);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::BeginFrame()
+  {
+    DestroyTempBufferViews();
   }
 //---------------------------------------------------------------------------//
   RenderOutput* RenderCore_PlatformVk::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
@@ -878,6 +886,28 @@ namespace Fancy
     ASSERT(false, "Couldn't find appropriate memory type");
 
     return UINT_MAX;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::ReleaseTempBufferView(VkBufferView aBufferView, uint64 aFence)
+  {
+#if FANCY_RENDERER_DEBUG
+    for (uint i = 0u; i < myTempBufferViews.Size(); ++i)
+      ASSERT(myTempBufferViews[i].first != aBufferView);
+#endif
+
+    myTempBufferViews.Add({ aBufferView, aFence });
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::DestroyTempBufferViews()
+  {
+    for (uint i = 0u; i < myTempBufferViews.Size(); ++i)
+    {
+      if (RenderCore::IsFenceDone(myTempBufferViews[i].second))
+      {
+        vkDestroyBufferView(myDevice, myTempBufferViews[i].first, nullptr);
+        myTempBufferViews.RemoveCyclicAt(i--);
+      }
+    } 
   }
 //---------------------------------------------------------------------------//
 }

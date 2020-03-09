@@ -43,6 +43,8 @@ namespace Fancy
     bool IsInitialized() override;
     bool InitInternalResources() override;
     void Shutdown() override;
+    void BeginFrame() override;
+
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
     ShaderCompiler* CreateShaderCompiler() override;
     Shader* CreateShader() override;
@@ -66,6 +68,9 @@ namespace Fancy
 
     uint FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags);
     const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return myPhysicalDeviceMemoryProperties; }
+
+    void ReleaseTempBufferView(VkBufferView aBufferView, uint64 aFence);
+    void DestroyTempBufferViews();
 
     struct QueueInfo
     {
@@ -93,6 +98,8 @@ namespace Fancy
 
     UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::NUM];
     UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
+
+    StaticArray<std::pair<VkBufferView, uint64>, 256> myTempBufferViews;
   };
 }
 

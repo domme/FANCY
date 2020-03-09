@@ -166,6 +166,8 @@ namespace Fancy {
 
     ourCurrQueryBufferIdx = (ourCurrQueryBufferIdx + 1) % NUM_QUERY_BUFFERS;
     ourQueryBufferFrames[ourCurrQueryBufferIdx] = Time::ourFrameIdx;
+
+    ourPlatformImpl->BeginFrame();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
@@ -184,6 +186,8 @@ namespace Fancy {
     if (ourLastFrameDoneFences.IsFull())
       ourLastFrameDoneFences.RemoveFirstElement();
     ourLastFrameDoneFences.Add({ Time::ourFrameIdx, completedFrameFence });
+
+    ourPlatformImpl->EndFrame();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()

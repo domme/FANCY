@@ -601,6 +601,9 @@ namespace Fancy
     for (uint i = 0u; i < myUsedDescriptorPools.Size(); ++i)
       platformVk->FreeDescriptorPool(myUsedDescriptorPools[i], aFenceVal);
     myUsedDescriptorPools.ClearDiscard();
+
+    for (uint i = 0u; i < myResourceState.myTempBufferViews.Size(); ++i)
+      myResourceState.myTempBufferViews[i].second = glm::max(myResourceState.myTempBufferViews[i].second, aFenceVal);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::PreBegin()
@@ -1370,6 +1373,10 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearResourceState()
   {
+    for (uint i = 0u; i < myResourceState.myTempBufferViews.Size(); ++i)
+      RenderCore::GetPlatformVk()->ReleaseTempBufferView(myResourceState.myTempBufferViews[i].first, myResourceState.myTempBufferViews[i].second);
+    myResourceState.myTempBufferViews.ClearDiscard();
+
     myResourceState.myDescriptorSets.Clear();
   }
 //---------------------------------------------------------------------------//
