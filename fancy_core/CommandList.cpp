@@ -134,22 +134,22 @@ namespace Fancy {
     CopyBufferToTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)), aSrcBuffer, aSrcOffset);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName)
+  void CommandList::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName, uint anArrayIndex /*= 0u*/)
   {
     const uint64 nameHash = Shader::GetParameterNameHash(aName);
-    BindBuffer(aBuffer, someViewProperties, nameHash);
+    BindBuffer(aBuffer, someViewProperties, nameHash, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::BindResourceView(const GpuResourceView* aView, const char* aName)
+  void CommandList::BindResourceView(const GpuResourceView* aView, const char* aName, uint anArrayIndex /*= 0u*/)
   {
     const uint64 nameHash = Shader::GetParameterNameHash(aName);
-    BindResourceView(aView, nameHash, 0);
+    BindResourceView(aView, nameHash, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::BindSampler(const TextureSampler* aSampler, const char* aName)
+  void CommandList::BindSampler(const TextureSampler* aSampler, const char* aName, uint anArrayIndex /*= 0u*/)
   {
     const uint64 nameHash = Shader::GetParameterNameHash(aName);
-    BindSampler(aSampler, nameHash);
+    BindSampler(aSampler, nameHash, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)

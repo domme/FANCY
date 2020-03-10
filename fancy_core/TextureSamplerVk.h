@@ -11,6 +11,8 @@ namespace Fancy {
     TextureSamplerVk(const TextureSamplerProperties& someProperties);
     ~TextureSamplerVk() override;
 
+    VkSampler GetVkSampler() const { return mySampler; }
+
   protected:
     VkSampler mySampler;
   };

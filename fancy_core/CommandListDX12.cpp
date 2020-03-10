@@ -1311,7 +1311,7 @@ namespace Fancy {
         for (uint iTableEntry = 0u; iTableEntry < descTable.myDescriptors.size(); ++iTableEntry)
           ASSERT(descTable.myDescriptors[iTableEntry].myCpuHandle.ptr != UINT_MAX, "Missing descriptor binding %d in descriptor table %d", iTableEntry, i);
 #endif  // FANCY_RENDERER_DEBUG
-        const DescriptorDX12 firstGpuVisibleDescriptor = CopyDescriptorsToDynamicHeapRange(descTable.myDescriptors.data(), descTable.myDescriptors.size());
+        const DescriptorDX12 firstGpuVisibleDescriptor = CopyDescriptorsToDynamicHeapRange(descTable.myDescriptors.data(), static_cast<uint>(descTable.myDescriptors.size()));
         if (myCurrentContext == CommandListType::Graphics)
           myCommandList->SetGraphicsRootDescriptorTable(i, firstGpuVisibleDescriptor.myGpuHandle);
         else

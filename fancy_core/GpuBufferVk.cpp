@@ -190,6 +190,28 @@ namespace Fancy
     myProperties = GpuBufferProperties();
   }
 //---------------------------------------------------------------------------//
+  VkBufferView GpuBufferViewVk::CreateVkBufferView(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties)
+  {
+    ASSERT(someProperties.myFormat != DataFormat::UNKNOWN && !someProperties.myIsStructured && !someProperties.myIsRaw);
+
+    const GpuBufferProperties& bufferProps = aBuffer->GetProperties();
+    ASSERT((bufferProps.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER) != 0u, "A vkBufferView can only be created for buffers created with the SHADER_BUFFER bind flag");
+
+    VkBufferViewCreateInfo info;
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0u;
+    info.buffer = static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBuffer;
+    info.format = RenderCore_PlatformVk::ResolveFormat(someProperties.myFormat);
+    info.offset = someProperties.myOffset;
+    info.range = someProperties.mySize;
+
+    VkBufferView bufferView;
+    ASSERT_VK_RESULT(vkCreateBufferView(RenderCore::GetPlatformVk()->myDevice, &info, nullptr, &bufferView));
+
+    return bufferView;
+  }
+//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
   GpuBufferViewVk::GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
     : GpuBufferView(aBuffer, someProperties)
@@ -198,20 +220,7 @@ namespace Fancy
     // For anything else, GpuBufferViewVk just acts as a reference-holder to the GpuBuffer and stores the view-properties needed when binding
     if (myProperties.myFormat != DataFormat::UNKNOWN && !myProperties.myIsStructured && !myProperties.myIsRaw)
     {
-      const GpuBufferProperties& bufferProps = aBuffer->GetProperties();
-      ASSERT((bufferProps.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER) != 0u, "A vkBufferView can only be created for buffers created with the SHADER_BUFFER bind flag");
-
-      VkBufferViewCreateInfo info;
-      info.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
-      info.pNext = nullptr;
-      info.flags = 0u;
-      info.buffer = static_cast<const GpuBufferVk*>(GetBuffer())->GetData()->myBuffer;
-      info.format = RenderCore_PlatformVk::ResolveFormat(myProperties.myFormat);
-      info.offset = myProperties.myOffset;
-      info.range = myProperties.mySize;
-
-      VkBufferView bufferView;
-      ASSERT_VK_RESULT(vkCreateBufferView(RenderCore::GetPlatformVk()->myDevice, &info, nullptr, &bufferView));
+      VkBufferView bufferView = CreateVkBufferView(aBuffer.get(), someProperties);
 
       GpuResourceViewDataVk nativeData;
       nativeData.myType = GpuResourceViewDataVk::Buffer;

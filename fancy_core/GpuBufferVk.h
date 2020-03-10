@@ -30,6 +30,8 @@ namespace Fancy
   class GpuBufferViewVk final : public GpuBufferView
   {
   public:
+    static VkBufferView CreateVkBufferView(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
+
     GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
     ~GpuBufferViewVk() override;
 

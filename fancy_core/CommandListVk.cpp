@@ -12,6 +12,7 @@
 #include "GpuResourceViewDataVk.h"
 #include "GpuBufferVk.h"
 #include "ShaderResourceInfoVk.h"
+#include "TextureSamplerVk.h"
 
 namespace Fancy
 {
@@ -895,12 +896,67 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
   {
-    VK_MISSING_IMPLEMENTATION();
+    ShaderResourceInfoVk resourceInfo;
+    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+      return;
+
+    const GpuBufferProperties& bufferProps = aBuffer->GetProperties();
+
+    bool needsTempBufferView = false;
+    switch (resourceInfo.myType)
+    {
+    case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
+    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
+    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE: ASSERT(false); break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE: ASSERT(false); break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+    {
+      ASSERT(someViewProperties.myIsShaderWritable && bufferProps.myIsShaderWritable && (bufferProps.myBindFlags & (uint) GpuBufferBindFlags::SHADER_BUFFER));
+      needsTempBufferView = true;
+    } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+    {
+      ASSERT(someViewProperties.myIsShaderWritable && bufferProps.myIsShaderWritable && (bufferProps.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER));
+    } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+      break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+    {
+      ASSERT(!someViewProperties.myIsShaderWritable && (bufferProps.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER));
+      needsTempBufferView = true;
+    } break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+    {
+      ASSERT(!someViewProperties.myIsShaderWritable && someViewProperties.myIsConstantBuffer && (bufferProps.myBindFlags & (uint)GpuBufferBindFlags::CONSTANT_BUFFER));
+    } break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+      break;
+    default: ASSERT(false);
+    }
+
+    VkBufferView bufferView = nullptr;
+    if (needsTempBufferView)
+    {
+      bufferView = GpuBufferViewVk::CreateVkBufferView(aBuffer, someViewProperties);
+      myResourceState.myTempBufferViews.Add({ bufferView, 0u });
+    }
+
+    BindInternal(resourceInfo, anArrayIndex, bufferView, static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBuffer, 
+      someViewProperties.myOffset, someViewProperties.mySize, nullptr, VK_IMAGE_LAYOUT_UNDEFINED, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
   {
-    VK_MISSING_IMPLEMENTATION();
+    ShaderResourceInfoVk resourceInfo;
+    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+      return;
+  
+    ASSERT(resourceInfo.myType == VK_DESCRIPTOR_TYPE_SAMPLER);
+
+    VkSampler sampler = static_cast<const TextureSamplerVk*>(aSampler)->GetVkSampler();
+    BindInternal(resourceInfo, anArrayIndex, nullptr, nullptr, 0ull, 0ull, nullptr, VK_IMAGE_LAYOUT_UNDEFINED, sampler);
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandListVk::BeginQuery(GpuQueryType aType)
@@ -1384,7 +1440,7 @@ namespace Fancy
       info.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
       info.imageView = nullptr;
       info.sampler = aSampler;
-      }
+    } break;
     case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
     case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
     case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
@@ -1409,6 +1465,8 @@ namespace Fancy
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
     {
       ASSERT(aBuffer != nullptr && aBufferSize > 0ull);
+      if (range->myBufferInfos.size() < anArrayIndex + 1)
+        range->myBufferInfos.resize(anArrayIndex + 1);
       VkDescriptorBufferInfo& info = range->myBufferInfos[anArrayIndex];
       info.buffer = aBuffer;
       info.offset = aBufferOffset;
