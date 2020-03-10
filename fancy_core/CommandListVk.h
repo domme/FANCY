@@ -64,6 +64,16 @@ namespace Fancy
     
   protected:
     bool FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoVk& aResourceInfoOut) const;
+    void ClearResourceState();
+    void BindInternal(const ShaderResourceInfoVk &aResourceInfo,
+      uint anArrayIndex,
+      VkBufferView aBufferView,
+      VkBuffer aBuffer,
+      uint64 aBufferOffset,
+      uint64 aBufferSize,
+      VkImageView anImageView,
+      VkImageLayout anImageLayout,
+      VkSampler aSampler);
 
     bool SubresourceBarrierInternal(
       const GpuResource* aResource,
@@ -78,8 +88,6 @@ namespace Fancy
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
     void ApplyResourceState();
-
-    void ClearResourceState();
 
     VkDescriptorSet CreateDescriptorSet(VkDescriptorSetLayout aLayout);
 

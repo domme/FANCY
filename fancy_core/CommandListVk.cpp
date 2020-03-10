@@ -822,127 +822,75 @@ namespace Fancy
     if (!FindShaderResourceInfo(aNameHash, resourceInfo))
       return;
 
-    ASSERT(resourceInfo.myNumDescriptors > anArrayIndex);
-
     const GpuResourceViewDataVk& viewDataVk = aView->myNativeData.To<GpuResourceViewDataVk>();
     const GpuResourceDataVk* resourceDataVk = aView->myResource->myNativeData.To<GpuResourceDataVk*>();
 
-    int iSet = -1;
-    for (uint i = 0u; iSet == -1 && i < myResourceState.myDescriptorSets.Size(); ++i)
-      if (myResourceState.myDescriptorSets[i].mySet == resourceInfo.myDescriptorSet)
-        iSet = i;
-
-    if (iSet == -1)
-    {
-      ASSERT(myCurrentContext == CommandListType::Graphics); // TODO: Add compute shader support. Also needs a pipeline layout and descriptor set layouts
-
-      ASSERT(myGraphicsPipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Graphics);
-      ASSERT(myComputePipelineState.myShader != nullptr || myCurrentContext != CommandListType::Compute);
-
-      const VkDescriptorSetLayout setLayout = static_cast<ShaderPipelineVk*>(myGraphicsPipelineState.myShaderPipeline.get())->GetDescriptorSetLayout(resourceInfo.myDescriptorSet);
-
-      ResourceState::DescriptorSet set;
-      set.mySet = resourceInfo.myDescriptorSet;
-      set.myLayout = setLayout;
-      myResourceState.myDescriptorSets.Add(set);
-      iSet = myResourceState.myDescriptorSets.Size() - 1;
-    }
-
-    ResourceState::DescriptorSet& set = myResourceState.myDescriptorSets[iSet];
-
-    ResourceState::DescriptorRange* range = nullptr;
-    for (uint i = 0u; i < set.myRanges.Size(); ++i)
-    {
-      if (set.myRanges[i].myBindingInSet == resourceInfo.myBindingInSet)
-      {
-        ASSERT(set.myRanges[i].myType == resourceInfo.myType);
-        range = &set.myRanges[i];
-      }
-    }
-
-    if (range == nullptr)
-    {
-      range = &set.myRanges.Add();
-      range->myType = resourceInfo.myType;
-      range->myBindingInSet = resourceInfo.myBindingInSet;
-    }
-
+    VkImageView imageView = nullptr;
+    VkImageLayout imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    VkBufferView bufferView = nullptr;
+    VkBuffer buffer = nullptr;
+    uint64 bufferOffset = 0ull;
+    uint64 bufferSize = 0ull;
     switch (resourceInfo.myType)
     {
     case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
     case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
     case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-      {
-        ASSERT(aView->myType == GpuResourceViewType::SRV);
-        ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
-        if (range->myImageInfos.size() < anArrayIndex + 1)
-          range->myImageInfos.resize(anArrayIndex + 1);
-        VkDescriptorImageInfo& info = range->myImageInfos[anArrayIndex];
-        info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        info.imageView = viewDataVk.myView.myImage;
-        info.sampler = nullptr;
-      } break;
+    {
+      ASSERT(aView->myType == GpuResourceViewType::SRV);
+      ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
+      imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      imageView = viewDataVk.myView.myImage;
+    } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-      {
-        ASSERT(aView->myType == GpuResourceViewType::UAV);
-        ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
-        if (range->myImageInfos.size() < anArrayIndex + 1)
-          range->myImageInfos.resize(anArrayIndex + 1);
-        VkDescriptorImageInfo& info = range->myImageInfos[anArrayIndex];
-        info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        info.imageView = viewDataVk.myView.myImage;
-        info.sampler = nullptr;
-      } break;
+    {
+      ASSERT(aView->myType == GpuResourceViewType::UAV);
+      ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
+      imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+      imageView = viewDataVk.myView.myImage;
+    } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-      {
-        ASSERT(aView->myType == GpuResourceViewType::UAV);
-        ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
-        if (range->myTexelBufferViews.size() < anArrayIndex + 1)
-          range->myTexelBufferViews.resize(anArrayIndex + 1);
-        const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
-        ASSERT(bufferViewVk->GetBufferView() != nullptr);
-        range->myTexelBufferViews[anArrayIndex] = bufferViewVk->GetBufferView();
-      } break;
+    {
+      ASSERT(aView->myType == GpuResourceViewType::UAV);
+      ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+      const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
+      ASSERT(bufferViewVk->GetBufferView() != nullptr);
+      bufferView = bufferViewVk->GetBufferView();
+    } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-      {
-        ASSERT(aView->myType == GpuResourceViewType::UAV);
-        ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
-        if (range->myBufferInfos.size() < anArrayIndex + 1)
-          range->myBufferInfos.resize(anArrayIndex + 1);
-        VkDescriptorBufferInfo& info = range->myBufferInfos[anArrayIndex];
-        info.buffer = resourceDataVk->myBuffer;
-        info.offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
-        info.range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
-      } break;
+    {
+      ASSERT(aView->myType == GpuResourceViewType::UAV);
+      ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+      buffer = resourceDataVk->myBuffer;
+      bufferOffset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
+      bufferSize = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+    } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
       ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
       break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-      {
-        ASSERT(aView->myType == GpuResourceViewType::SRV);
-        ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
-        if (range->myTexelBufferViews.size() < anArrayIndex + 1)
-          range->myTexelBufferViews.resize(anArrayIndex + 1);
-        const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
-        ASSERT(bufferViewVk->GetBufferView() != nullptr);
-        range->myTexelBufferViews[anArrayIndex] = bufferViewVk->GetBufferView();
-      } break;
+    {
+      ASSERT(aView->myType == GpuResourceViewType::SRV);
+      ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+      const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
+      ASSERT(bufferViewVk->GetBufferView() != nullptr);
+      bufferView = bufferViewVk->GetBufferView();
+    } break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-      {
-        ASSERT(aView->myType == GpuResourceViewType::CBV);
-        ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
-        if (range->myBufferInfos.size() < anArrayIndex + 1)
-          range->myBufferInfos.resize(anArrayIndex + 1);
-        VkDescriptorBufferInfo& info = range->myBufferInfos[anArrayIndex];
-       info.buffer = resourceDataVk->myBuffer;
-       info.offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
-       info.range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
-      } break;
+    {
+      ASSERT(aView->myType == GpuResourceViewType::CBV);
+      ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+      buffer = resourceDataVk->myBuffer;
+      bufferOffset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
+      bufferSize = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+    } break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
       ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
       break;
     default: ASSERT(false);
     }
+
+    BindInternal(resourceInfo, anArrayIndex, bufferView, buffer, bufferOffset, bufferSize, imageView, imageLayout, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
@@ -1378,6 +1326,100 @@ namespace Fancy
     myResourceState.myTempBufferViews.ClearDiscard();
 
     myResourceState.myDescriptorSets.Clear();
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::BindInternal(const ShaderResourceInfoVk& aResourceInfo, uint anArrayIndex,  VkBufferView aBufferView,
+    VkBuffer aBuffer, uint64 aBufferOffset, uint64 aBufferSize, VkImageView anImageView, VkImageLayout anImageLayout, VkSampler aSampler)
+  {
+    ASSERT(aResourceInfo.myNumDescriptors > anArrayIndex);
+
+    int iSet = -1;
+    for (uint i = 0u; iSet == -1 && i < myResourceState.myDescriptorSets.Size(); ++i)
+      if (myResourceState.myDescriptorSets[i].mySet == aResourceInfo.myDescriptorSet)
+        iSet = i;
+
+    if (iSet == -1)
+    {
+      ASSERT(myCurrentContext == CommandListType::Graphics); // TODO: Add compute shader support. Also needs a pipeline layout and descriptor set layouts
+
+      ASSERT(myGraphicsPipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Graphics);
+      ASSERT(myComputePipelineState.myShader != nullptr || myCurrentContext != CommandListType::Compute);
+
+      const VkDescriptorSetLayout setLayout = static_cast<ShaderPipelineVk*>(myGraphicsPipelineState.myShaderPipeline.get())->GetDescriptorSetLayout(aResourceInfo.myDescriptorSet);
+
+      ResourceState::DescriptorSet set;
+      set.mySet = aResourceInfo.myDescriptorSet;
+      set.myLayout = setLayout;
+      myResourceState.myDescriptorSets.Add(set);
+      iSet = myResourceState.myDescriptorSets.Size() - 1;
+    }
+
+    ResourceState::DescriptorSet& set = myResourceState.myDescriptorSets[iSet];
+
+    ResourceState::DescriptorRange* range = nullptr;
+    for (uint i = 0u; i < set.myRanges.Size(); ++i)
+    {
+      if (set.myRanges[i].myBindingInSet == aResourceInfo.myBindingInSet)
+      {
+        ASSERT(set.myRanges[i].myType == aResourceInfo.myType);
+        range = &set.myRanges[i];
+      }
+    }
+
+    if (range == nullptr)
+    {
+      range = &set.myRanges.Add();
+      range->myType = aResourceInfo.myType;
+      range->myBindingInSet = aResourceInfo.myBindingInSet;
+    }
+
+    switch (aResourceInfo.myType)
+    {
+    case VK_DESCRIPTOR_TYPE_SAMPLER:
+      {
+      ASSERT(aSampler != nullptr);
+      if (range->myImageInfos.size() < anArrayIndex + 1)
+        range->myImageInfos.resize(anArrayIndex + 1);
+      VkDescriptorImageInfo& info = range->myImageInfos[anArrayIndex];
+      info.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      info.imageView = nullptr;
+      info.sampler = aSampler;
+      }
+    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
+    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+    {
+      ASSERT(anImageView != nullptr);
+      if (range->myImageInfos.size() < anArrayIndex + 1)
+        range->myImageInfos.resize(anArrayIndex + 1);
+      VkDescriptorImageInfo& info = range->myImageInfos[anArrayIndex];
+      info.imageLayout = anImageLayout;
+      info.imageView = anImageView;
+      info.sampler = nullptr;
+    } break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+    case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+    {
+      ASSERT(aBufferView != nullptr);
+      if (range->myTexelBufferViews.size() < anArrayIndex + 1)
+        range->myTexelBufferViews.resize(anArrayIndex + 1);
+      range->myTexelBufferViews[anArrayIndex] = aBufferView;
+    } break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+    {
+      ASSERT(aBuffer != nullptr && aBufferSize > 0ull);
+      VkDescriptorBufferInfo& info = range->myBufferInfos[anArrayIndex];
+      info.buffer = aBuffer;
+      info.offset = aBufferOffset;
+      info.range = aBufferSize;
+    } break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+      break;
+    default: ASSERT(false);
+    }
   }
 //---------------------------------------------------------------------------//
   VkDescriptorSet CommandListVk::CreateDescriptorSet(VkDescriptorSetLayout aLayout)
