@@ -12,10 +12,10 @@ struct IMGUI_VS_CBUFFER
   float4x4 ProjectionMatrix;
 };
 
-VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b2);
+VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
 
 #define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), \
-                        CBV(b2), \
+                        CBV(b0), \
                         DescriptorTable(SRV(t0)), \
                         DescriptorTable(Sampler(s0))"
 
@@ -49,8 +49,8 @@ VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b2);
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_FRAGMENT)  
-  VK_BINDING(0, 1) Texture2D texture0 : register(t0);
-  VK_BINDING(1, 1) SamplerState sampler_default : register(s0);
+  VK_BINDING(1, 0) Texture2D texture0 : register(t0);
+  VK_BINDING(2, 0) SamplerState sampler_default : register(s0);
  
   [RootSignature(ROOT_SIGNATURE)]
   float4 main(VS_OUT input) : SV_Target

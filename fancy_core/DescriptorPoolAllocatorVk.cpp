@@ -56,7 +56,10 @@ namespace Fancy
 
       if (RenderCore::IsFenceDone(waitingPool.first))
       {
-        myAvaiablePools.Add(waitingPool.second);
+        VkDescriptorPool pool = waitingPool.second;
+        ASSERT_VK_RESULT(vkResetDescriptorPool(RenderCore::GetPlatformVk()->myDevice, pool, 0u));
+
+        myAvaiablePools.Add(pool);
         myWaitingPools.RemoveCyclicAt(i);
         --i;
       }

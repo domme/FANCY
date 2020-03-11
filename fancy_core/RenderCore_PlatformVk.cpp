@@ -399,7 +399,7 @@ namespace Fancy
     case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH:
       return { allCommandsMask,
                VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT,
-              VK_IMAGE_LAYOUT_GENERAL };
+              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
     case GpuResourceState::READ_DEPTH:
       return { VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
@@ -570,7 +570,7 @@ namespace Fancy
       createInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
       createInfo.ppEnabledExtensionNames = extensions;
 
-      const char* const layers[] = { "VK_LAYER_KHRONOS_validation" };
+      const char* const layers[] = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_standard_validation", "VK_LAYER_LUNARG_monitor"  };
       createInfo.enabledLayerCount = ARRAY_LENGTH(layers);
       createInfo.ppEnabledLayerNames = layers;
 

@@ -22,9 +22,9 @@ namespace Fancy
     uint myMaxNumDescriptors;
     uint myMaxNumSets;
 
-    StaticArray<VkDescriptorPool, 16> myCreatedPools;
-    StaticArray<VkDescriptorPool, 16> myAvaiablePools;
-    StaticArray<std::pair<uint64, VkDescriptorPool>, 16> myWaitingPools;
+    StaticArray<VkDescriptorPool, 128> myCreatedPools;
+    StaticArray<VkDescriptorPool, 128> myAvaiablePools;
+    StaticArray<std::pair<uint64, VkDescriptorPool>, 128> myWaitingPools;
   };
 }
 

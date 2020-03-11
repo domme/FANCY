@@ -158,7 +158,7 @@ namespace Fancy
       pipelineCreateInfo.flags = 0u;
 
       // Dynamic state (parts of the pipeline state that can be changed on the command-list)
-      VkPipelineDynamicStateCreateInfo dynamicStateInfo;
+      VkPipelineDynamicStateCreateInfo dynamicStateInfo = {};
       dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
       dynamicStateInfo.pNext = nullptr;
       dynamicStateInfo.flags = 0u;
@@ -176,7 +176,7 @@ namespace Fancy
 
       // Shader state
       uint numShaderStages = 0;
-      VkPipelineShaderStageCreateInfo pipeShaderCreateInfos[(uint)ShaderStage::NUM_NO_COMPUTE];
+      VkPipelineShaderStageCreateInfo pipeShaderCreateInfos[(uint)ShaderStage::NUM_NO_COMPUTE] = {};
       for (const SharedPtr<Shader>& shader : aState.myShaderPipeline->myShaders)
       {
         if (shader != nullptr)
@@ -195,13 +195,13 @@ namespace Fancy
       // Vertex input state
       const ShaderVk* vertexShader = static_cast<const ShaderVk*>(aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX].get());
 
-      VkVertexInputBindingDescription vertexBindingDesc;
+      VkVertexInputBindingDescription vertexBindingDesc = {};
       vertexBindingDesc.binding = 0;
       vertexBindingDesc.stride = vertexShader->myVertexAttributeDesc.myOverallVertexSize;
       vertexBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
       // TODO: Rework this part so that the user can define how the vertex-binding is to be set up.
-      VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo;
+      VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
       vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
       vertexInputCreateInfo.pNext = nullptr;
       vertexInputCreateInfo.flags = 0u;
@@ -213,7 +213,7 @@ namespace Fancy
       pipelineCreateInfo.pVertexInputState = &vertexInputCreateInfo;
 
       // Input assembly state
-      VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
+      VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
       inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
       inputAssemblyCreateInfo.pNext = nullptr;
       inputAssemblyCreateInfo.flags = 0u;
@@ -222,7 +222,7 @@ namespace Fancy
       pipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
 
       // Multisample state
-      VkPipelineMultisampleStateCreateInfo multisampleInfo;
+      VkPipelineMultisampleStateCreateInfo multisampleInfo = {};
       multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
       multisampleInfo.pNext = nullptr;
       multisampleInfo.flags = 0u;
@@ -231,12 +231,12 @@ namespace Fancy
       multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
       multisampleInfo.sampleShadingEnable = false;
       multisampleInfo.minSampleShading = 0.0f;
-      VkSampleMask sampleMask = ~0u;
+      VkSampleMask sampleMask = UINT_MAX;
       multisampleInfo.pSampleMask = &sampleMask;
       pipelineCreateInfo.pMultisampleState = &multisampleInfo;
 
       // Color blend state
-      VkPipelineColorBlendStateCreateInfo colorBlendInfo;
+      VkPipelineColorBlendStateCreateInfo colorBlendInfo = {};
       colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
       colorBlendInfo.pNext = nullptr;
       colorBlendInfo.flags = 0u;
@@ -245,7 +245,7 @@ namespace Fancy
       colorBlendInfo.logicOpEnable = blendProps.myLogicOpEnabled;
       colorBlendInfo.logicOp = RenderCore_PlatformVk::ResolveLogicOp(blendProps.myLogicOp);
 
-      VkPipelineColorBlendAttachmentState colorAttachmentBlendState[RenderConstants::kMaxNumRenderTargets];
+      VkPipelineColorBlendAttachmentState colorAttachmentBlendState[RenderConstants::kMaxNumRenderTargets] = {};
       if (aState.myNumRenderTargets > 0)
       {
         auto GetBlendStateForRt = [&](int i)
@@ -296,14 +296,14 @@ namespace Fancy
       pipelineCreateInfo.pColorBlendState = &colorBlendInfo;
 
       // Depth-stencil state
-      VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+      VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
       const DepthStencilStateProperties& dsProps = aState.myDepthStencilState->GetProperties();
       depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
       depthStencilInfo.pNext = nullptr;
       depthStencilInfo.flags = 0u;
       depthStencilInfo.depthBoundsTestEnable = false; // TODO: Add support for depthbounds test
       depthStencilInfo.minDepthBounds = 0.0f;  // Will be set as a dynamic state
-      depthStencilInfo.maxDepthBounds = FLT_MAX;
+      depthStencilInfo.maxDepthBounds = 9999.0f;
       depthStencilInfo.depthTestEnable = dsProps.myDepthTestEnabled;
       depthStencilInfo.depthWriteEnable = dsProps.myDepthWriteEnabled;
       depthStencilInfo.stencilTestEnable = dsProps.myStencilEnabled;
@@ -328,7 +328,7 @@ namespace Fancy
       pipelineCreateInfo.pDepthStencilState = &depthStencilInfo;
 
       // Rasterization state
-      VkPipelineRasterizationStateCreateInfo rasterInfo;
+      VkPipelineRasterizationStateCreateInfo rasterInfo = {};
       rasterInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
       rasterInfo.pNext = nullptr;
       rasterInfo.flags = 0u;
@@ -346,7 +346,7 @@ namespace Fancy
       pipelineCreateInfo.pRasterizationState = &rasterInfo;
 
       // Tesselation state
-      VkPipelineTessellationStateCreateInfo tesselationInfo;
+      VkPipelineTessellationStateCreateInfo tesselationInfo = {};
       tesselationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
       tesselationInfo.pNext = nullptr;
       tesselationInfo.flags = 0u;
@@ -354,30 +354,25 @@ namespace Fancy
       pipelineCreateInfo.pTessellationState = &tesselationInfo;
 
       // Viewport state (will be handled as a dynamic state on the command list)
-      VkPipelineViewportStateCreateInfo viewportInfo;
+      VkPipelineViewportStateCreateInfo viewportInfo ={};
       viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
       viewportInfo.pNext = nullptr;
       viewportInfo.flags = 0u;
 
       // Dummy values - actual viewport will be set as a dynamic state to be more similar to DX
-      VkViewport viewport;
+      VkViewport viewport = {};
       viewport.minDepth = 0.0f;
-      viewport.maxDepth = FLT_MAX;
+      viewport.maxDepth = 1.0f;
       viewport.width = 1280.0f;
       viewport.height = 720.0f;
       viewport.x = 0.0f;
       viewport.y = 0.0f;
 
-      VkOffset2D offset;
-      offset.x = 0;
-      offset.y = 0;
-      VkExtent2D extend;
-      extend.width = 1280u;
-      extend.height = 720u;
-
-      VkRect2D scissor;
-      scissor.offset = offset;
-      scissor.extent = extend;
+      VkRect2D scissor = {};
+      scissor.offset.x = 0;
+      scissor.offset.y = 0;
+      scissor.extent.width = 1280u;
+      scissor.extent.height = 720u;
 
       viewportInfo.pViewports = &viewport;
       viewportInfo.viewportCount = 1u;
@@ -1148,7 +1143,7 @@ namespace Fancy
 
     if (it == shaderResources.end())
     {
-      LOG_WARNING("Resource %s not found in shader");
+      LOG_WARNING("Resource not found in shader");
       return false;
     }
 
