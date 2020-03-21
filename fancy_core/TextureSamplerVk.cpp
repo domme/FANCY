@@ -57,7 +57,7 @@ namespace Fancy
     : TextureSampler(someProperties)
     , mySampler(nullptr)
   {
-    VkSamplerCreateInfo info;
+    VkSamplerCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     info.pNext = nullptr;
     info.flags = 0u;

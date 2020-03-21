@@ -39,6 +39,12 @@ namespace Fancy
 
     const ShaderCompiledDataVk& data = aCompilerOutput.myNativeData.To<ShaderCompiledDataVk>();
 
+    if (myModule != nullptr)
+    {
+      RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+      vkDestroyShaderModule(platformVk->myDevice, myModule, nullptr);
+    }
+
     myModule = data.myModule;
     myResourceInfos = data.myResourceInfos;
     myVertexAttributeDesc = data.myVertexAttributeDesc;

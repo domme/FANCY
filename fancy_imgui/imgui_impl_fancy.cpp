@@ -166,6 +166,7 @@ namespace Fancy { namespace ImGuiRendering {
       props.myWidth = width;
       props.myHeight = height;
       props.myFormat = DataFormat::RGBA_8;
+      props.myNumMipLevels = 1u;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.myFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
 

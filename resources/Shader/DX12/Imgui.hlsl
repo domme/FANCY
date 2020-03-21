@@ -53,11 +53,11 @@ VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
   VK_BINDING(2, 0) SamplerState sampler_default : register(s0);
  
   [RootSignature(ROOT_SIGNATURE)]
-  float4 main(VS_OUT input) : SV_Target
+  void main(VS_OUT input, out float4 colorOut : SV_Target0)
   {
-    float4 texCol = texture0.Sample(sampler_default, input.uv);
-    float4 out_col = input.col * texCol;
-    return out_col;
+    float2 uv = input.uv;
+    float4 tex = texture0.Sample(sampler_default, uv).wwww;
+    colorOut = input.col * tex;
   }
 #endif // PROGRAM_TYPE_FRAGMENT
 //---------------------------------------------------------------------------//
