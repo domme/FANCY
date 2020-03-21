@@ -13,7 +13,7 @@ namespace Fancy
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     
-    VkCommandPoolCreateInfo createInfo;
+    VkCommandPoolCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     createInfo.pNext = nullptr;
     createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -53,7 +53,7 @@ namespace Fancy
     }
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    VkCommandBufferAllocateInfo allocateInfo;
+    VkCommandBufferAllocateInfo allocateInfo = {};
     allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocateInfo.pNext = nullptr;
     allocateInfo.commandBufferCount = 1u;
@@ -90,9 +90,6 @@ namespace Fancy
 
       if (queue->IsFenceDone(waitingFenceVal))
       {
-        if (waitingFenceVal != 0)
-          ASSERT_VK_RESULT(vkResetCommandBuffer(buffer, 0u));
-
         it = myReleasedWaitingCommandBuffers.erase(it);
 
         if (aRequestedCommandBuffer != nullptr && !foundBuffer)

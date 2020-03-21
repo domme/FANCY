@@ -82,7 +82,7 @@ namespace Fancy
       { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, myMaxNumDescriptors },
     };
 
-    VkDescriptorPoolCreateInfo poolCreateInfo;
+    VkDescriptorPoolCreateInfo poolCreateInfo = {};
     poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolCreateInfo.pNext = nullptr;
     poolCreateInfo.flags = 0u;

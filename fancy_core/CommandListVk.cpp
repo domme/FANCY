@@ -359,24 +359,9 @@ namespace Fancy
       viewportInfo.pNext = nullptr;
       viewportInfo.flags = 0u;
 
-      // Dummy values - actual viewport will be set as a dynamic state to be more similar to DX
-      VkViewport viewport = {};
-      viewport.minDepth = 0.0f;
-      viewport.maxDepth = 1.0f;
-      viewport.width = 1280.0f;
-      viewport.height = 720.0f;
-      viewport.x = 0.0f;
-      viewport.y = 0.0f;
-
-      VkRect2D scissor = {};
-      scissor.offset.x = 0;
-      scissor.offset.y = 0;
-      scissor.extent.width = 1280u;
-      scissor.extent.height = 720u;
-
-      viewportInfo.pViewports = &viewport;
-      viewportInfo.viewportCount = 1u;
-      viewportInfo.pScissors = &scissor;
+      viewportInfo.pViewports = nullptr;  // Part of the dynamic states
+      viewportInfo.viewportCount = 1u;  // Must be 1, even though the pointer is nullptr
+      viewportInfo.pScissors = nullptr;
       viewportInfo.scissorCount = 1u;
 
       pipelineCreateInfo.pViewportState = &viewportInfo;
@@ -1480,7 +1465,7 @@ namespace Fancy
     if (myUsedDescriptorPools.IsEmpty())
       myUsedDescriptorPools.Add(RenderCore::GetPlatformVk()->AllocateDescriptorPool());
     
-    VkDescriptorSetAllocateInfo allocInfo;
+    VkDescriptorSetAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.pNext = nullptr;
     allocInfo.descriptorSetCount = 1u;
