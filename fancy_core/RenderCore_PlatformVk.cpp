@@ -555,7 +555,7 @@ namespace Fancy
       appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
       appInfo.pApplicationName = "Fancy";
       appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-      appInfo.apiVersion = VK_API_VERSION_1_0;
+      appInfo.apiVersion = VK_API_VERSION_1_2;
 
       VkInstanceCreateInfo createInfo = {};
       createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -573,7 +573,7 @@ namespace Fancy
       const char* const layers[] = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_standard_validation", "VK_LAYER_LUNARG_monitor"  };
       createInfo.enabledLayerCount = ARRAY_LENGTH(layers);
       createInfo.ppEnabledLayerNames = layers;
-
+      
       ASSERT_VK_RESULT(vkCreateInstance(&createInfo, nullptr, &myInstance));
       LOG("Initialized Vulkan instance");
 
