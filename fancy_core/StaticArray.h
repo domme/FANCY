@@ -73,6 +73,15 @@ namespace Fancy
       newElement = anElement;
     }
 
+    void AddUnique(const T& anElement)
+    {
+      for (uint i = 0u; i < mySize; ++i)
+        if (myData[i] == anElement)
+          return;
+
+      Add(anElement);
+    }
+
     void Add(T&& anElement)
     {
       ASSERT(mySize < N);

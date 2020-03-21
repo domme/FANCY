@@ -16,7 +16,7 @@ namespace Fancy
 
   enum VkDebugConsts
   {
-    kVkImplementationDebugLevel = VK_IMPLEMENTATION_DEBUG_LEVEL_LOG
+    kVkImplementationDebugLevel = VK_IMPLEMENTATION_DEBUG_LEVEL_NONE
   };
 
   inline void ASSERT_VK_RESULT(VkResult aResult)

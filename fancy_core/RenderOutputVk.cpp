@@ -239,10 +239,7 @@ namespace Fancy
   {
     VkDevice device = RenderCore::GetPlatformVk()->myDevice;
     ASSERT_VK_RESULT(vkAcquireNextImageKHR(device, mySwapChain, UINT64_MAX, nullptr, myBackbufferReadyFence, &myCurrBackbufferIndex));
-    while (vkWaitForFences(device, 1u, &myBackbufferReadyFence, true, UINT64_MAX) != VK_SUCCESS)
-    {
-      // Wait indefinitely
-    }
+    ASSERT_VK_RESULT(vkWaitForFences(device, 1u, &myBackbufferReadyFence, true, UINT64_MAX));
     ASSERT_VK_RESULT(vkResetFences(device, 1u, &myBackbufferReadyFence));
 
     // Upon first use, each backbuffer must be transitioned from an unknown image layout into the present-layout that high-level rendering code expects
@@ -270,7 +267,7 @@ namespace Fancy
   {
     const CommandQueueVk* graphicsQueue = static_cast<CommandQueueVk*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
 
-    VkPresentInfoKHR presentInfo;
+    VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.pNext = nullptr;
     presentInfo.swapchainCount = 1u;
