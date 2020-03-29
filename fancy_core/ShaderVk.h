@@ -3,6 +3,8 @@
 #include "VkPrerequisites.h"
 #include "ShaderResourceInfoVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -43,3 +45,5 @@ namespace Fancy
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

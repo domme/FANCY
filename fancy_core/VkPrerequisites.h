@@ -1,5 +1,7 @@
 #pragma once
 
+#if FANCY_ENABLE_VK
+
 #define VK_USE_PLATFORM_WIN32_KHR
 #include "vulkan.h"
 
@@ -37,4 +39,4 @@ namespace Fancy
 #define VK_MISSING_IMPLEMENTATION(...) ReportMissingVkImplementation(__FUNCTION__)
 }
   
-
+#endif

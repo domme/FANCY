@@ -52,10 +52,15 @@ namespace Fancy {
         resource.myNativeData = dataDx12;
       }
 
-      resource.myStateTracking = GpuResourceStateTracking();
+      GpuSubresourceHazardDataDX12 subHazardData;
+      subHazardData.myContext = CommandListType::Graphics;
+      subHazardData.myStates = D3D12_RESOURCE_STATE_PRESENT;
+
+      resource.myStateTracking = GpuResourceHazardData();
       resource.myStateTracking.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
       resource.myStateTracking.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
-      resource.myStateTracking.myDefaultState = GpuResourceState::READ_PRESENT;
+      resource.myStateTracking.myDx12Data.mySubresources.push_back(subHazardData);
+      resource.myStateTracking.myCanChangeStates = true;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
@@ -77,6 +82,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::Present()
   {
+    CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+    CommandListDX12* ctxDx12 = static_cast<CommandListDX12*>(ctx);
+    ctxDx12->TrackResourceTransition(GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT);
+    RenderCore::ExecuteAndFreeCommandList(ctx);
+
     mySwapChain->Present(1, 0);
   }
 //---------------------------------------------------------------------------//

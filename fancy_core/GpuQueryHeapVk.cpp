@@ -1,6 +1,8 @@
 #include "fancy_core_precompile.h"
 #include "GpuQueryHeapVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   GpuQueryHeapVk::GpuQueryHeapVk(GpuQueryType aQueryType, uint aNumQueries)
@@ -15,4 +17,4 @@ namespace Fancy
   }
 }
 
-
+#endif

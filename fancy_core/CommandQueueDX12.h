@@ -23,6 +23,7 @@ namespace Fancy
     void StallForFence(uint64 aFenceVal) override;
     uint64 ExecuteCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC) override;
     uint64 ExecuteAndResetCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC) override;
+    void ResolveResourceHazardData(CommandList* aCommandList);
 	
 	  Microsoft::WRL::ComPtr<ID3D12CommandQueue> myQueue;
     Microsoft::WRL::ComPtr<ID3D12Fence> myFence;

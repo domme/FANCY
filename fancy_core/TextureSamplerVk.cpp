@@ -3,6 +3,8 @@
 #include "RenderCore_PlatformVk.h"
 #include "RenderCore.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   namespace Priv_TextureSamplerVk
@@ -119,3 +121,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

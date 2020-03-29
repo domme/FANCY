@@ -17,6 +17,13 @@ namespace Fancy
       , myPlaneIndex(aPlaneIndex) 
     {}
 
+    bool operator==(const SubresourceLocation& anOther) const 
+    {
+      return myMipLevel == anOther.myMipLevel &&
+        myArrayIndex == anOther.myArrayIndex &&
+        myPlaneIndex == anOther.myPlaneIndex;
+    }
+
     uint myMipLevel;
     uint myArrayIndex;
     uint myPlaneIndex;
@@ -39,6 +46,15 @@ namespace Fancy
       , myNumArrayIndices(aNumArrayIndices)
       , myFirstPlane(aFirstPlaneIndex)
       , myNumPlanes(aNumPlanes)
+    { }
+
+    SubresourceRange(const SubresourceLocation& aLocation)
+      : myFirstMipLevel(aLocation.myMipLevel)
+      , myNumMipLevels(1u)
+      , myFirstArrayIndex(aLocation.myArrayIndex)
+      , myNumArrayIndices(1u)
+      , myFirstPlane(aLocation.myPlaneIndex)
+      , myNumPlanes(1u)
     { }
 
     bool operator==(const SubresourceRange& anOther) const;

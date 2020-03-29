@@ -4,7 +4,7 @@
 #include "RenderEnums.h"
 #include "DynamicArray.h"
 #include "FancyCoreDefines.h"
-#include "GpuResourceStateTracking.h"
+#include "GpuResourceHazardData.h"
 #include "TextureData.h"
 
 namespace Fancy {
@@ -34,8 +34,7 @@ namespace Fancy {
     SubresourceLocation GetSubresourceLocation(uint aSubresourceIndex) const;
 
     const SubresourceRange& GetSubresources() const { return mySubresources; }
-    const GpuResourceStateTracking& GetStateTracking() const { return myStateTracking; }
-    GpuResourceState GetDefaultState() const { return myStateTracking.myDefaultState; }
+    GpuResourceHazardData& GetHazardData() const { return myStateTracking; }
 
     virtual ~GpuResource() = default;
     virtual bool IsValid() const { return false; }
@@ -44,7 +43,7 @@ namespace Fancy {
     SubresourceRange mySubresources;
     String myName;
     GpuResourceCategory myCategory;
-    mutable GpuResourceStateTracking myStateTracking;
+    mutable GpuResourceHazardData myStateTracking;
     Any myNativeData;
   };
 //---------------------------------------------------------------------------//

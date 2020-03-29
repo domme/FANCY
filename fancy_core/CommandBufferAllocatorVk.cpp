@@ -4,6 +4,8 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -108,3 +110,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif  // FANCY_ENABLE_VK

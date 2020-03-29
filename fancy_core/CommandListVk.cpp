@@ -14,6 +14,8 @@
 #include "ShaderResourceInfoVk.h"
 #include "TextureSamplerVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -1021,7 +1023,7 @@ namespace Fancy
     CommandListType aSrcQueue, 
     CommandListType aDstQueue)
   {
-    GpuResourceStateTracking& resourceStateTracking = aResource->myStateTracking;
+    GpuResourceHazardTracking& resourceStateTracking = aResource->myStateTracking;
     if (!resourceStateTracking.myCanChangeStates)
       return false;
 
@@ -1081,7 +1083,7 @@ namespace Fancy
 
     if (isImage)
     {
-      const GpuResourceStateTrackingVk& stateTrackingVk = aResource->myStateTracking.myVkData;
+      const GpuResourceHazardTrackingVk& stateTrackingVk = aResource->myStateTracking.myVkData;
       const VkImageLayout srcImageLayout = stateTrackingVk.myHasInitialImageLayout ? static_cast<VkImageLayout>(stateTrackingVk.myInitialImageLayout) : aSrcImageLayout;
       stateTrackingVk.myHasInitialImageLayout = false;
 
@@ -1497,3 +1499,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

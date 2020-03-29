@@ -95,8 +95,6 @@ namespace Fancy {
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     resourceDesc.Format = dxgiFormat;
-
-    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_RESOURCE;
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
     if (someProperties.bIsDepthStencil)
     {
@@ -110,12 +108,6 @@ namespace Fancy {
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
     }
 
-    D3D12_RESOURCE_STATES defaultStates = RenderCore_PlatformDX12::ResolveResourceUsageState(defaultState);
-    
-    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
-    // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier
-    const D3D12_RESOURCE_STATES initialStates = hasInitData ? RenderCore_PlatformDX12::ResolveResourceUsageState(GpuResourceState::WRITE_COPY_DEST) : defaultStates;
-
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (someProperties.myIsShaderWritable)
@@ -127,13 +119,22 @@ namespace Fancy {
       writeStateMask |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
       readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
     }
+
+    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
+    // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier
+    const D3D12_RESOURCE_STATES initialStates = hasInitData ? D3D12_RESOURCE_STATE_COPY_DEST : readStateMask;
     
     mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes);
 
-    myStateTracking = GpuResourceStateTracking();
-    myStateTracking.myDefaultState = defaultState;
+    GpuSubresourceHazardDataDX12 subHazardData;
+    subHazardData.myContext = CommandListType::Graphics;
+    subHazardData.myStates = initialStates;
+
+    myStateTracking = GpuResourceHazardData();
+    myStateTracking.myDx12Data.mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;
+    myStateTracking.myDx12Data.myAllSubresourcesSameStates = true;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -180,7 +181,7 @@ namespace Fancy {
 
     if (hasInitData)
     {
-      InitTextureData(someInitialDatas, aNumInitialDatas, GpuResourceState::WRITE_COPY_DEST, defaultState);
+      InitTextureData(someInitialDatas, aNumInitialDatas);
     }
   }
 //---------------------------------------------------------------------------//
@@ -221,7 +222,7 @@ namespace Fancy {
     }
 
     myNativeData.Clear();
-    myStateTracking = GpuResourceStateTracking();
+    myStateTracking = GpuResourceHazardData();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//

@@ -197,37 +197,6 @@ namespace Fancy {
     Shutdown_2_Platform();
   }
 //---------------------------------------------------------------------------//
-  const char* RenderCore::ResourceUsageStateToString(GpuResourceState aState)
-  {
-    switch (aState)
-    {
-      case GpuResourceState::READ_INDIRECT_ARGUMENT: return "READ_INDIRECT_ARGUMENT";
-      case GpuResourceState::READ_VERTEX_BUFFER: return "READ_VERTEX_BUFFER";
-      case GpuResourceState::READ_INDEX_BUFFER: return "READ_INDEX_BUFFER";
-      case GpuResourceState::READ_VERTEX_SHADER_CONSTANT_BUFFER: return "READ_VERTEX_SHADER_CONSTANT_BUFFER";
-      case GpuResourceState::READ_VERTEX_SHADER_RESOURCE: return "READ_VERTEX_SHADER_RESOURCE";
-      case GpuResourceState::READ_PIXEL_SHADER_CONSTANT_BUFFER: return "READ_PIXEL_SHADER_CONSTANT_BUFFER";
-      case GpuResourceState::READ_PIXEL_SHADER_RESOURCE: return "READ_PIXEL_SHADER_RESOURCE";
-      case GpuResourceState::READ_COMPUTE_SHADER_CONSTANT_BUFFER: return "READ_COMPUTE_SHADER_CONSTANT_BUFFER";
-      case GpuResourceState::READ_COMPUTE_SHADER_RESOURCE: return "READ_COMPUTE_SHADER_RESOURCE";
-      case GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER: return "READ_ANY_SHADER_CONSTANT_BUFFER";
-      case GpuResourceState::READ_ANY_SHADER_RESOURCE: return "READ_ANY_SHADER_RESOURCE";
-      case GpuResourceState::READ_COPY_SOURCE: return "READ_COPY_SOURCE";
-      case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH: return "READ_ANY_SHADER_ALL_BUT_DEPTH";
-      case GpuResourceState::READ_DEPTH: return "READ_DEPTH";
-      case GpuResourceState::READ_PRESENT: return "READ_PRESENT";
-      case GpuResourceState::WRITE_VERTEX_SHADER_UAV: return "WRITE_VERTEX_SHADER_UAV";
-      case GpuResourceState::WRITE_PIXEL_SHADER_UAV: return "WRITE_PIXEL_SHADER_UAV";
-      case GpuResourceState::WRITE_COMPUTE_SHADER_UAV: return "WRITE_COMPUTE_SHADER_UAV";
-      case GpuResourceState::WRITE_ANY_SHADER_UAV: return "WRITE_ANY_SHADER_UAV";
-      case GpuResourceState::WRITE_RENDER_TARGET: return "WRITE_RENDER_TARGET";
-      case GpuResourceState::WRITE_COPY_DEST: return "WRITE_COPY_DEST";
-      case GpuResourceState::WRITE_DEPTH: return "WRITE_DEPTH";
-      case GpuResourceState::UNKNOWN: return "UNKNOWN";
-      default: ASSERT(false); return "";
-    }
-  }
-//---------------------------------------------------------------------------//
   const char* RenderCore::CommandListTypeToString(CommandListType aType)
   {
     switch(aType) 
@@ -255,12 +224,20 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
   {
+#if FANCY_ENABLE_DX12
     return GetPlatformType() == RenderPlatformType::DX12 ? static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get()) : nullptr;
+#else
+    return nullptr;
+#endif
   }
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk* RenderCore::GetPlatformVk()
   {
+#if FANCY_ENABLE_VK
     return GetPlatformType() == RenderPlatformType::VULKAN ? static_cast<RenderCore_PlatformVk*>(ourPlatformImpl.get()) : nullptr;
+#else
+    return nullptr;
+#endif
   }
 //---------------------------------------------------------------------------//
   GpuRingBuffer* RenderCore::AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName /*= nullptr*/)
@@ -362,10 +339,7 @@ namespace Fancy {
     ASSERT(false, "Readback-buffer allocation not found");
   }
 //---------------------------------------------------------------------------//
-  TextureReadbackTask RenderCore::ReadbackTexture(Texture* aTexture, const SubresourceRange& aSubresourceRange, 
-    GpuResourceState aStateBefore /* = GpuResourceState::UNKNOWN */,
-    GpuResourceState aStateAfter /* = GpuResourceState::UNKNOWN */,
-    CommandListType aCommandListType /*= CommandListType::Graphics*/)
+  TextureReadbackTask RenderCore::ReadbackTexture(Texture* aTexture, const SubresourceRange& aSubresourceRange, CommandListType aCommandListType /*= CommandListType::Graphics*/)
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     const DataFormatInfo& dataFormatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
@@ -393,15 +367,7 @@ namespace Fancy {
     GpuBuffer* readbackBuffer = AllocateReadbackBuffer(requiredBufferSize, caps.myTextureSubresourceBufferAlignment, offsetToReadbackBuffer);
     ASSERT(readbackBuffer != nullptr);
 
-    const GpuResourceState stateBefore = aStateBefore == GpuResourceState::UNKNOWN ? aTexture->myStateTracking.myDefaultState : aStateBefore;
-    const GpuResourceState stateAfter = aStateAfter == GpuResourceState::UNKNOWN ? aTexture->myStateTracking.myDefaultState : aStateAfter;
-    const bool needsTransitionBefore = stateBefore != GpuResourceState::READ_COPY_SOURCE;
-    const bool needsTransitionAfter = stateAfter != GpuResourceState::READ_COPY_SOURCE;
-
     CommandList* ctx = BeginCommandList(aCommandListType);
-
-    if (needsTransitionBefore)
-      ctx->ResourceBarrier(aTexture, stateBefore, GpuResourceState::READ_COPY_SOURCE);
 
     uint64 dstOffset = offsetToReadbackBuffer;
     i = 0u;
@@ -411,9 +377,6 @@ namespace Fancy {
       ctx->CopyTextureToBuffer(readbackBuffer, dstOffset, aTexture, subResource);
       dstOffset += alignedSubresourceSizes[i++];
     }
-
-    if (needsTransitionAfter)
-      ctx->ResourceBarrier(aTexture, GpuResourceState::READ_COPY_SOURCE, stateAfter);
 
     const uint64 fence = ExecuteAndFreeCommandList(ctx);
 
@@ -425,29 +388,15 @@ namespace Fancy {
     return TextureReadbackTask(texProps, aSubresourceRange, bufferAlloc, fence);
   }
 //---------------------------------------------------------------------------//
-  ReadbackTask RenderCore::ReadbackBuffer(GpuBuffer* aBuffer, uint64 anOffset, uint64 aSize, 
-    GpuResourceState aStateBefore /* = GpuResourceState::UNKNOWN */,
-    GpuResourceState aStateAfter /* = GpuResourceState::UNKNOWN */,
-    CommandListType aCommandListType /*= CommandListType::Graphics*/)
+  ReadbackTask RenderCore::ReadbackBuffer(GpuBuffer* aBuffer, uint64 anOffset, uint64 aSize, CommandListType aCommandListType /*= CommandListType::Graphics*/)
   {
     uint64 offsetToReadbackBuffer;
     GpuBuffer* readbackBuffer = AllocateReadbackBuffer(aSize, 1u, offsetToReadbackBuffer);
     ASSERT(readbackBuffer != nullptr);
 
-    const GpuResourceState stateBefore = aStateBefore == GpuResourceState::UNKNOWN ? aBuffer->myStateTracking.myDefaultState : aStateBefore;
-    const GpuResourceState stateAfter = aStateAfter == GpuResourceState::UNKNOWN ? aBuffer->myStateTracking.myDefaultState : aStateAfter;
-    const bool needsTransitionBefore = stateBefore != GpuResourceState::READ_COPY_SOURCE;
-    const bool needsTransitionAfter = stateAfter != GpuResourceState::READ_COPY_SOURCE;
-
     CommandList* ctx = BeginCommandList(aCommandListType);
     
-    if (needsTransitionBefore)
-      ctx->ResourceBarrier(aBuffer, stateBefore, GpuResourceState::READ_COPY_SOURCE);
-    
     ctx->CopyBuffer(readbackBuffer, offsetToReadbackBuffer, aBuffer, anOffset, aSize);
-
-    if (needsTransitionAfter)
-      ctx->ResourceBarrier(aBuffer, GpuResourceState::READ_COPY_SOURCE, stateAfter);
     
     const uint64 fence = ExecuteAndFreeCommandList(ctx);
 
@@ -469,7 +418,11 @@ namespace Fancy {
         ourPlatformImpl = std::make_unique<RenderCore_PlatformDX12>();
         break;
       case RenderPlatformType::VULKAN:
+#if FANCY_ENABLE_VK
         ourPlatformImpl = std::make_unique<RenderCore_PlatformVk>();
+#else
+        ASSERT(false, "Vulkan not supported. Recompile with FANCY_ENABLE_VK 1");
+#endif
         break;
       default:
         break;
@@ -735,7 +688,6 @@ namespace Fancy {
       return it->second;
 
     std::array<SharedPtr<Shader>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
-    // for (uint i = 1u; i < (uint)ShaderStage::NUM; ++i)  // Hack to only load pixel shaders for vulkan-dev
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
       if (!aDesc.myShader[i].myShaderFileName.empty())

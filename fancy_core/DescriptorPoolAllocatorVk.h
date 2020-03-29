@@ -1,8 +1,9 @@
 #pragma once
 
-#include "RenderEnums.h"
 #include "VkPrerequisites.h"
 #include "StaticArray.h"
+
+#if FANCY_ENABLE_VK
 
 namespace Fancy
 {
@@ -28,5 +29,4 @@ namespace Fancy
   };
 }
 
-
-
+#endif

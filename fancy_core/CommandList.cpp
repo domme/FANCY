@@ -276,8 +276,6 @@ namespace Fancy {
     BindBuffer(buffer, viewProperties, aName);
   }
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // Render Context:
 //---------------------------------------------------------------------------//
   void CommandList::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
@@ -530,8 +528,11 @@ namespace Fancy {
     uint64 srcOffset = 0u;
     const GpuBuffer* uploadBuffer = GetBuffer(srcOffset, GpuBufferUsage::STAGING_UPLOAD, aDataPtr, aByteSize);
     CopyBuffer(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
-  }  
+  }
 //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+   /*
+
   void CommandList::SubresourceBarrier(const GpuResource* aResource, const SubresourceLocation& aSubresourceLocation, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
     SubresourceRange subresourceRange(aSubresourceLocation.myMipLevel, 1u, aSubresourceLocation.myArrayIndex, 1u, aSubresourceLocation.myPlaneIndex, 1u);
@@ -583,6 +584,8 @@ namespace Fancy {
   {
     ResourceBarrier(aResource, aSrcState, aDstState, myCommandListType, myCommandListType);
   }
+
+  */
 //---------------------------------------------------------------------------//
   void CommandList::ValidateTextureCopy(const TextureProperties& aDstProps, const SubresourceLocation& aDstSubresrource, const TextureRegion& aDstRegion,
     const TextureProperties& aSrcProps, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) const

@@ -146,36 +146,6 @@ namespace Fancy
     ALL = 0xFF
   };
 //-----------------------------------------------------------------------//
-  enum class GpuResourceState
-  {
-    READ_INDIRECT_ARGUMENT = 0, FIRST_READ_STATE = 0,
-    READ_VERTEX_BUFFER,
-    READ_INDEX_BUFFER,
-    READ_VERTEX_SHADER_CONSTANT_BUFFER,
-    READ_VERTEX_SHADER_RESOURCE,
-    READ_PIXEL_SHADER_CONSTANT_BUFFER,
-    READ_PIXEL_SHADER_RESOURCE,
-    READ_COMPUTE_SHADER_CONSTANT_BUFFER,
-    READ_COMPUTE_SHADER_RESOURCE,
-    READ_ANY_SHADER_CONSTANT_BUFFER,
-    READ_ANY_SHADER_RESOURCE,
-    READ_COPY_SOURCE,
-    READ_ANY_SHADER_ALL_BUT_DEPTH,
-    READ_DEPTH,
-    READ_PRESENT, LAST_READ_STATE = READ_PRESENT,
-
-    WRITE_VERTEX_SHADER_UAV, FIRST_WRITE_STATE = WRITE_VERTEX_SHADER_UAV,
-    WRITE_PIXEL_SHADER_UAV,
-    WRITE_COMPUTE_SHADER_UAV,
-    WRITE_ANY_SHADER_UAV,
-    WRITE_RENDER_TARGET,
-    WRITE_COPY_DEST,
-    WRITE_DEPTH, LAST_WRITE_STATE = WRITE_DEPTH,
-
-    UNKNOWN,
-    NUM
-  };
-//---------------------------------------------------------------------------//
   enum class CpuMemoryAccessType
   {
     NO_CPU_ACCESS = 0,
@@ -320,6 +290,7 @@ namespace Fancy
 
     NUM,
     UNKNOWN,
+    SHARED_READ
   };
 //---------------------------------------------------------------------------//
   enum class GpuQueryType
@@ -347,6 +318,11 @@ namespace Fancy
     SM_6_4,
 
     NUM
+  };
+//---------------------------------------------------------------------------//
+  enum class ResourceTransition
+  {
+    TO_SHARED_CONTEXT_READ,
   };
 //---------------------------------------------------------------------------//
 }

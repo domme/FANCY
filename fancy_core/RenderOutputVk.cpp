@@ -10,6 +10,8 @@
 #include "CommandQueueVk.h"
 #include "CommandListVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -196,7 +198,7 @@ namespace Fancy
         resource.myNativeData = dataVk;
       }
 
-      resource.myStateTracking = GpuResourceStateTracking();
+      resource.myStateTracking = GpuResourceHazardTracking();
       resource.myStateTracking.myDefaultState = GpuResourceState::READ_PRESENT;
       resource.myStateTracking.myVkData.myReadAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
       resource.myStateTracking.myVkData.myWriteAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -280,3 +282,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

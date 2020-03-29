@@ -5,14 +5,22 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  struct GpuResourceStateTrackingDX12
+  struct GpuSubresourceHazardDataDX12
+  {
+    uint myStates;
+    CommandListType myContext;
+  };
+//---------------------------------------------------------------------------//
+  struct GpuResourceHazardDataDX12
   {
     // Uints are D3D12_RESOURCE_STATES
     uint myReadStates;
     uint myWriteStates;
+    bool myAllSubresourcesSameStates;
+    DynamicArray<GpuSubresourceHazardDataDX12> mySubresources;
   };
 //---------------------------------------------------------------------------//
-  struct GpuResourceStateTrackingVk
+  struct GpuResourceHazardDataVk
   {
     // Uints are VkAccessFlags
     uint myReadAccessMask;
@@ -22,19 +30,14 @@ namespace Fancy
     uint myInitialImageLayout;  // Initial layout given to an image upon creation.
   };
 //---------------------------------------------------------------------------//
-  struct GpuResourceHazardTracking
+  struct GpuResourceHazardData
   {
-    static bool QueueUnderstandsState(CommandListType aCurrQueue, CommandListType aQueue, GpuResourceState aState);
-    static bool QueueUnderstandsPartsOfState(CommandListType aCurrQueue, GpuResourceState aState);
-    static bool StateIsContainedIn(GpuResourceState aLowerState, GpuResourceState aHigherState);
-    
     bool myCanChangeStates = true;
-    GpuResourceState myDefaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
-    union {
-      GpuResourceStateTrackingDX12 myDx12Data;
-      GpuResourceStateTrackingVk myVkData;
-    };
+    // union {
+      GpuResourceHazardDataDX12 myDx12Data;
+      GpuResourceHazardDataVk myVkData;
+   // };
   };
 //---------------------------------------------------------------------------//
 }

@@ -4,6 +4,8 @@
 
 #include "VkPrerequisites.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   class CommandQueueVk final : public CommandQueue
@@ -30,4 +32,4 @@ namespace Fancy
   };
 }
 
-
+#endif

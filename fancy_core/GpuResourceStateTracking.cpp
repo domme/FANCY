@@ -1,10 +1,10 @@
 #include "fancy_core_precompile.h"
-#include "GpuResourceStateTracking.h"
+#include "GpuResourceHazardTracking.h"
 
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  bool GpuResourceStateTracking::QueueUnderstandsState(CommandListType aCurrQueue, CommandListType aQueue, GpuResourceState aState)
+  bool GpuResourceHazardTracking::QueueUnderstandsState(CommandListType aCurrQueue, CommandListType aQueue, GpuResourceState aState)
   {
     if (aQueue == aCurrQueue)
       return true;
@@ -44,7 +44,7 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  bool GpuResourceStateTracking::QueueUnderstandsPartsOfState(CommandListType aCurrQueue, GpuResourceState aState)
+  bool GpuResourceHazardTracking::QueueUnderstandsPartsOfState(CommandListType aCurrQueue, GpuResourceState aState)
   {
     if (aCurrQueue == CommandListType::Graphics)
       return true;
@@ -82,7 +82,7 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  bool GpuResourceStateTracking::StateIsContainedIn(GpuResourceState aLowerState, GpuResourceState aHigherState)
+  bool GpuResourceHazardTracking::StateIsContainedIn(GpuResourceState aLowerState, GpuResourceState aHigherState)
   {
     if (aLowerState == aHigherState)
       return true;

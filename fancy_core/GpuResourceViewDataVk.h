@@ -2,6 +2,8 @@
 
 #include "VkPrerequisites.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   struct GpuResourceViewDataVk
@@ -22,3 +24,5 @@ namespace Fancy
     Type myType = None;
   };
 }
+
+#endif

@@ -105,7 +105,7 @@
     <ClInclude Include="GpuQueryHeap.h" />
     <ClInclude Include="GpuQueryHeapDX12.h" />
     <ClInclude Include="GpuResourceDataVk.h" />
-    <ClInclude Include="GpuResourceStateTracking.h" />
+    <ClInclude Include="GpuResourceHazardData.h" />
     <ClInclude Include="GpuResourceView.h" />
     <ClInclude Include="GpuResourceViewDataDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />
@@ -222,7 +222,6 @@
     <ClCompile Include="ShaderVk.cpp" />
     <ClCompile Include="GpuQueryHeap.cpp" />
     <ClCompile Include="GpuQueryHeapDX12.cpp" />
-    <ClCompile Include="GpuResourceStateTracking.cpp" />
     <ClCompile Include="GpuRingBuffer.cpp" />
     <ClCompile Include="PagedLinearAllocator.cpp" />
     <ClCompile Include="Profiler.cpp" />

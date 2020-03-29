@@ -2,6 +2,8 @@
 #include "RenderOutput.h"
 #include "VkPrerequisites.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   class RenderOutputVk : public RenderOutput
@@ -32,3 +34,5 @@ namespace Fancy
     DynamicArray<bool> myBackbuffersUsed;
   };
 }
+
+#endif

@@ -4,6 +4,8 @@
 #include "VkPrerequisites.h"
 #include <glm/detail/type_mat.hpp>
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   struct ShaderResourceInfoVk;
@@ -159,5 +161,4 @@ namespace Fancy
   };
 }
 
-
-
+#endif

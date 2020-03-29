@@ -2,6 +2,8 @@
 #include "ShaderPipeline.h"
 #include "VkPrerequisites.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   struct ShaderResourceInfoVk;
@@ -22,5 +24,4 @@ namespace Fancy
   };
 }
 
-
-
+#endif

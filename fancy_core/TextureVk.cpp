@@ -5,6 +5,8 @@
 #include "GpuResourceDataVk.h"
 #include "GpuResourceViewDataVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -108,7 +110,7 @@ namespace Fancy
     imageInfo.pQueueFamilyIndices = queueFamilyIndices;
     imageInfo.queueFamilyIndexCount = caps.myHasAsyncCompute ? ARRAY_LENGTH(queueFamilyIndices) : 1;
     
-    myStateTracking = GpuResourceStateTracking();
+    myStateTracking = GpuResourceHazardTracking();
     myStateTracking.myCanChangeStates = true;
     myStateTracking.myDefaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
@@ -184,7 +186,7 @@ namespace Fancy
     }
 
     myNativeData.Clear();
-    myStateTracking = GpuResourceStateTracking();
+    myStateTracking = GpuResourceHazardTracking();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//
@@ -314,3 +316,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

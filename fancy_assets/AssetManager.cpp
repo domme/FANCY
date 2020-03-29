@@ -268,21 +268,49 @@ using namespace Fancy;
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;
     glm::float2 srcSize(texProps.myWidth, texProps.myHeight);
-    glm::int2 tempTexSize = (glm::int2) glm::float2(glm::ceil(srcSize.x * 0.5), srcSize.y);
 
-    TempTextureResource tempTexResource[2];
+    SharedPtr<Texture> texture = aTexture;
+    if (!texProps.myIsShaderWritable)
+    {
+      TextureProperties props = aTexture->GetProperties();
+      props.myIsRenderTarget = false;
+      props.myIsShaderWritable = true;
+      texture = RenderCore::CreateTexture(props, "Mipmapping temp texture");
+    }
+
     TextureResourceProperties tempTexProps;
-    tempTexProps.myTextureProperties = texProps;
-    tempTexProps.myTextureProperties.myNumMipLevels = 1;
-    tempTexProps.myTextureProperties.myWidth = (uint)tempTexSize.x;
-    tempTexProps.myTextureProperties.myHeight = (uint)tempTexSize.y;
     tempTexProps.myIsShaderWritable = true;
     tempTexProps.myIsRenderTarget = false;
     tempTexProps.myIsTexture = true;
-    tempTexResource[0] = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture 0");
-    tempTexResource[1] = RenderCore::AllocateTempTexture(tempTexProps, TempResourcePool::FORCE_SIZE, "Mipmapping temp texture 1");
+    tempTexProps.myTextureProperties = texProps;
+    tempTexProps.myTextureProperties.myWidth = texProps.myWidth / 2;
+    tempTexProps.myTextureProperties.myHeight = texProps.myHeight / 2;
+    tempTexProps.myTextureProperties.myNumMipLevels = 1u;
+    TempTextureResource tempTexture = RenderCore::AllocateTempTexture(tempTexProps, 0u, "Temp mipmapping texture");
+
+    const uint kMaxNumMips = 17;
+    ASSERT(numMips <= kMaxNumMips);
+    FixedArray<SharedPtr<TextureView>, kMaxNumMips> readViews;
+    FixedArray<SharedPtr<TextureView>, kMaxNumMips> writeViews;
+
+    TextureViewProperties props;
+    props.mySubresourceRange.myNumMipLevels = 1;
+    for (uint mip = 0u; mip < numMips; ++mip)
+    {
+      props.mySubresourceRange.myFirstMipLevel = mip;
+      props.myIsShaderWritable = false;
+      props.myFormat = texture->GetProperties().myFormat;
+      readViews[mip] = RenderCore::CreateTextureView(texture, props);
+
+      props.myIsShaderWritable = true;
+      props.myFormat = DataFormatInfo::GetNonSRGBformat(props.myFormat);
+      writeViews[mip] = RenderCore::CreateTextureView(texture, props);
+    }
 
     CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+    if (texture != aTexture)
+      ctx->CopyTexture(texture.get(), SubresourceLocation(0), aTexture.get(), SubresourceLocation(0));
+
     ctx->SetComputeProgram(myTextureResizeShader.get());
     
     struct CBuffer
@@ -303,21 +331,6 @@ using namespace Fancy;
     cBuffer.myIsSRGB = formatInfo.mySRGB ? 1 : 0;
     cBuffer.myFilterMethod = (int) aFilter;
 
-    const uint kMaxNumMips = 17;
-    ASSERT(numMips <= kMaxNumMips);
-    FixedArray<SharedPtr<TextureView>, kMaxNumMips> readViews;
-
-    TextureViewProperties readProps;
-    readProps.mySubresourceRange.myNumMipLevels = 1;
-    for (uint mip = 0u; mip < numMips - 1; ++mip)
-    {
-      readProps.mySubresourceRange.myFirstMipLevel = mip;
-      readViews[mip] = RenderCore::CreateTextureView(aTexture, readProps);
-    }
-
-    ctx->ResourceBarrier(aTexture.get(), aTexture->GetDefaultState(), GpuResourceState::READ_COMPUTE_SHADER_RESOURCE);
-    ctx->ResourceBarrier(tempTexResource[0].myTexture, tempTexResource[0].myTexture->GetDefaultState(), GpuResourceState::WRITE_COMPUTE_SHADER_UAV);
-    ctx->ResourceBarrier(tempTexResource[1].myTexture, tempTexResource[1].myTexture->GetDefaultState(), GpuResourceState::READ_COMPUTE_SHADER_RESOURCE);
     glm::float2 destSize = glm::ceil(srcSize * 0.5f);
     for (uint mip = 1u; mip < numMips; ++mip)
     {
@@ -330,7 +343,7 @@ using namespace Fancy;
       cBuffer.myAxis = glm::float2(1.0f, 0.0f);
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), "CB0");
       ctx->BindResourceView(readViews[mip - 1].get(), "SrcTexture");
-      ctx->BindResourceView(tempTexResource[0].myWriteView, "DestTexture");
+      ctx->BindResourceView(tempTexture.myWriteView, "DestTexture");
       ctx->Dispatch(glm::int3((int)destSize.x, (int)srcSize.y, 1));
       ctx->ResourceUAVbarrier();
 
@@ -341,39 +354,14 @@ using namespace Fancy;
       cBuffer.myDestScale = tempDestSize / destSize;
       cBuffer.myAxis = glm::float2(0.0f, 1.0f);
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), "CB0");
-      ctx->ResourceBarrier(tempTexResource[0].myTexture, GpuResourceState::WRITE_COMPUTE_SHADER_UAV, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE);
-      ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceState::WRITE_COMPUTE_SHADER_UAV);
-      ctx->BindResourceView(tempTexResource[0].myReadView, "SrcTexture");
-      ctx->BindResourceView(tempTexResource[1].myWriteView, "DestTexture");
+      ctx->BindResourceView(tempTexture.myReadView, "SrcTexture");
+      ctx->BindResourceView(writeViews[mip].get(), "DestTexture");
       ctx->Dispatch(glm::int3((int)destSize.x, (int)destSize.y, 1));
       ctx->ResourceUAVbarrier();
-      
-      SubresourceLocation dstSubLocation(mip);
-      ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceState::WRITE_COMPUTE_SHADER_UAV, GpuResourceState::READ_COPY_SOURCE);
-      ctx->SubresourceBarrier(aTexture.get(), dstSubLocation, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceState::WRITE_COPY_DEST);
-
-      TextureRegion region;
-      region.myPos = glm::uvec3(0, 0, 0);
-      region.mySize = glm::uvec3((uint)destSize.x, (uint)destSize.y, 1);
-      ctx->CopyTexture(aTexture.get(), dstSubLocation, region, tempTexResource[1].myTexture, SubresourceLocation(), region);
-
-      srcSize = glm::ceil(srcSize * 0.5f);
-      destSize = glm::ceil(destSize * 0.5f);
-
-      ctx->SubresourceBarrier(aTexture.get(), dstSubLocation, GpuResourceState::WRITE_COPY_DEST, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE);
-
-      if (mip < numMips - 1)
-      {
-        ctx->ResourceBarrier(tempTexResource[0].myTexture, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, GpuResourceState::WRITE_COMPUTE_SHADER_UAV);
-        ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceState::READ_COPY_SOURCE, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE);
-      }
-      else
-      {
-        ctx->ResourceBarrier(aTexture.get(), GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, aTexture->GetDefaultState());
-        ctx->ResourceBarrier(tempTexResource[0].myTexture, GpuResourceState::READ_COMPUTE_SHADER_RESOURCE, tempTexResource[0].myTexture->GetDefaultState());
-        ctx->ResourceBarrier(tempTexResource[1].myTexture, GpuResourceState::READ_COPY_SOURCE, tempTexResource[1].myTexture->GetDefaultState());
-      }
     }
+
+    if (aTexture != texture)
+      ctx->CopyResource(aTexture.get(), texture.get());
 
     RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
   }

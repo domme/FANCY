@@ -5,6 +5,8 @@
 #include "RenderCore_PlatformVk.h"
 #include "ShaderCompiler.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   namespace Priv_ShaderVk
@@ -65,4 +67,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
-
+#endif

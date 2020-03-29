@@ -95,6 +95,8 @@ namespace Fancy {
     virtual void EndQuery(const GpuQuery& aQuery) = 0;
     virtual GpuQuery InsertTimestamp() = 0;
     virtual void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) = 0;
+
+    virtual void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition) = 0;
     
     virtual void ResourceUAVbarrier(
       const GpuResource** someResources = nullptr, 
@@ -127,20 +129,6 @@ namespace Fancy {
     void SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil);
     void RemoveAllRenderTargets();
     void UpdateBufferData(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const void* aDataPtr, uint64 aByteSize);
-    
-    void SubresourceBarrier(const GpuResource* aResource, const SubresourceLocation& aSubresourceLocation, GpuResourceState aSrcState, GpuResourceState aDstState);
-    void SubresourceBarrier(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, GpuResourceState aSrcState, GpuResourceState aDstState);
-    void SubresourceBarrier(const GpuResourceView* aResourceView, GpuResourceState aSrcState, GpuResourceState aDstState);
-        
-    void ResourceBarrier(const GpuResource* aResource,
-      GpuResourceState aSrcState,
-      GpuResourceState aDstState,
-      CommandListType aSrcQueue,
-      CommandListType aDstQueue);
-
-    void ResourceBarrier(const GpuResource* aResource,
-      GpuResourceState aSrcState,
-      GpuResourceState aDstState);
         
   protected:
     void ValidateTextureCopy(const TextureProperties& aDstProps, const SubresourceLocation& aDstSubresrource, const TextureRegion& aDstRegion,
@@ -156,14 +144,6 @@ namespace Fancy {
     enum Consts {
       kNumCachedBarriers = 256,
     };
-
-    virtual bool SubresourceBarrierInternal(
-      const GpuResource* aResource,
-      const SubresourceRange& aSubresourceRange,
-      GpuResourceState aSrcState,
-      GpuResourceState aDstState,
-      CommandListType aSrcQueue,
-      CommandListType aDstQueue) = 0;
 
     GpuQuery AllocateQuery(GpuQueryType aType);
     

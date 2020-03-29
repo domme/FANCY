@@ -56,7 +56,8 @@ VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
   void main(VS_OUT input, out float4 colorOut : SV_Target0)
   {
     float2 uv = input.uv;
-    float4 tex = texture0.Sample(sampler_default, uv).wwww;
+    float4 tex = texture0.Sample(sampler_default, uv);
+    tex.xyz *= tex.w;
     colorOut = input.col * tex;
   }
 #endif // PROGRAM_TYPE_FRAGMENT

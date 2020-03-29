@@ -455,41 +455,6 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  D3D12_RESOURCE_STATES RenderCore_PlatformDX12::ResolveResourceUsageState(GpuResourceState aState)
-  {
-    switch (aState)
-    {
-    case GpuResourceState::READ_INDIRECT_ARGUMENT:               return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
-    case GpuResourceState::READ_VERTEX_BUFFER:                   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_INDEX_BUFFER:                    return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-    case GpuResourceState::READ_VERTEX_SHADER_CONSTANT_BUFFER:   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_VERTEX_SHADER_RESOURCE:          return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_PIXEL_SHADER_CONSTANT_BUFFER:    return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_PIXEL_SHADER_RESOURCE:           return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:  return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_COMPUTE_SHADER_RESOURCE:         return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER:      return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_ANY_SHADER_RESOURCE:             return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_COPY_SOURCE:                     return D3D12_RESOURCE_STATE_COPY_SOURCE;
-    case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH:        return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT | D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
-    case GpuResourceState::READ_DEPTH:                           return D3D12_RESOURCE_STATE_DEPTH_READ;
-    case GpuResourceState::READ_PRESENT:                         return D3D12_RESOURCE_STATE_PRESENT;
-    case GpuResourceState::WRITE_VERTEX_SHADER_UAV:              return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_PIXEL_SHADER_UAV:               return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_COMPUTE_SHADER_UAV:             return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_ANY_SHADER_UAV:                 return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_RENDER_TARGET:                  return D3D12_RESOURCE_STATE_RENDER_TARGET;
-    case GpuResourceState::WRITE_COPY_DEST:                      return D3D12_RESOURCE_STATE_COPY_DEST;
-    case GpuResourceState::WRITE_DEPTH:                          return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-    case GpuResourceState::NUM: break;
-    default:
-      ASSERT(false); return D3D12_RESOURCE_STATE_COMMON;
-    }
-
-    return D3D12_RESOURCE_STATE_COMMON;
-  }
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::RenderCore_PlatformDX12()
     : RenderCore_Platform(RenderPlatformType::DX12)
@@ -542,9 +507,7 @@ namespace Fancy {
     // TODO: Check if there's a way to detect missing HW-support and disable the missing queues
     myCaps.myHasAsyncCompute = true;
     myCaps.myHasAsyncCopy = true;
-   
   }
-
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {

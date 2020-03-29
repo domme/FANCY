@@ -6,6 +6,8 @@
 #include "CommandList.h"
 #include "CommandListVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   CommandQueueVk::CommandQueueVk(CommandListType aType)
@@ -180,4 +182,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
-
+#endif

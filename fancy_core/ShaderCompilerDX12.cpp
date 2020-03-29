@@ -382,6 +382,7 @@ namespace Fancy {
           resourceInfo.myIsDescriptorTableEntry = false;
           resourceInfo.myRootParamIndex = iRootParam;
           resourceInfo.myType = locGetShaderResourceInfoType(rParam.ParameterType);
+          resourceInfo.myNumDescriptors = 1u;
 
           someResourceInfos.push_back(resourceInfo);
 

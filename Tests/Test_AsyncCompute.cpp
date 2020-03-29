@@ -98,7 +98,7 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
       CommandList* computeContext = RenderCore::BeginCommandList(CommandListType::Compute);
       RenderCore::GetCommandQueue(CommandListType::Compute)->StallForFence(setValueFence);
       computeContext->SetComputeProgram(myIncrementBufferShader.get());
-      graphicsContext->BindResourceView(myBufferUAV.get(), "DstBuffer");
+      computeContext->BindResourceView(myBufferUAV.get(), "DstBuffer");
       computeContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
       const uint64 incrementValueFence = RenderCore::ExecuteAndFreeCommandList(computeContext);
 

@@ -54,5 +54,8 @@
 //---------------------------------------------------------------------------//
 #define CORE_DEBUG_MEMORY_ALLOCATIONS 1
 
+#define FANCY_ENABLE_VK 0
+#define FANCY_ENABLE_DX12 1
+
 
 

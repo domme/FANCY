@@ -2,6 +2,8 @@
 #include "GpuQueryHeap.h"
 #include "VkPrerequisites.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   class GpuQueryHeapVk : public GpuQueryHeap
@@ -12,5 +14,4 @@ namespace Fancy
   };
 }
 
-
-
+#endif

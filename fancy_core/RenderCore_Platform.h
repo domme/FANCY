@@ -2,7 +2,7 @@
 
 #include "RendererPrerequisites.h"
 #include "Ptr.h"
-#include "GpuResourceStateTracking.h"
+#include "GpuResourceHazardData.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//

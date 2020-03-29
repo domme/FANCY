@@ -5,6 +5,8 @@
 #include "RenderCore_PlatformVk.h"
 #include "ShaderResourceInfoVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   ShaderPipelineVk::~ShaderPipelineVk()
@@ -112,3 +114,5 @@ namespace Fancy
     ASSERT_VK_RESULT(vkCreatePipelineLayout(platformVk->myDevice, &layoutCreateInfo, nullptr, &myPipelineLayout));
   }
 }
+
+#endif  

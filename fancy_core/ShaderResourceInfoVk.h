@@ -3,6 +3,8 @@
 #include "FancyCoreDefines.h"
 #include "VkPrerequisites.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
  //---------------------------------------------------------------------------// 
@@ -23,3 +25,5 @@ namespace Fancy
   };
 //---------------------------------------------------------------------------// 
 }
+
+#endif

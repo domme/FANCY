@@ -65,7 +65,6 @@ namespace Fancy {
     static void EndFrame();
     static void Shutdown();
 
-    static const char* ResourceUsageStateToString(GpuResourceState aState);
     static const char* CommandListTypeToString(CommandListType aType);
     static CommandListType ResolveSupportedCommandListType(CommandListType aType);
 
@@ -109,15 +108,8 @@ namespace Fancy {
     static GpuBuffer* AllocateReadbackBuffer(uint64 aBlockSize, uint anOffsetAlignment, uint64& anOffsetToBlockOut);
     static void FreeReadbackBuffer(GpuBuffer* aBuffer, uint64 aBlockSize, uint64 anOffsetToBlock);
 
-    static TextureReadbackTask ReadbackTexture(Texture* aTexture, const SubresourceRange& aSubresourceRange, 
-      GpuResourceState aStateBefore = GpuResourceState::UNKNOWN, 
-      GpuResourceState aStateAfter = GpuResourceState::UNKNOWN,
-      CommandListType aCommandListType = CommandListType::Graphics);
-
-    static ReadbackTask ReadbackBuffer(GpuBuffer* aBuffer, uint64 anOffset, uint64 aSize, 
-      GpuResourceState aStateBefore = GpuResourceState::UNKNOWN,
-      GpuResourceState aStateAfter = GpuResourceState::UNKNOWN,
-      CommandListType aCommandListType = CommandListType::Graphics);
+    static TextureReadbackTask ReadbackTexture(Texture* aTexture, const SubresourceRange& aSubresourceRange, CommandListType aCommandListType = CommandListType::Graphics);
+    static ReadbackTask ReadbackBuffer(GpuBuffer* aBuffer, uint64 anOffset, uint64 aSize, CommandListType aCommandListType = CommandListType::Graphics);
 
     static CommandList* BeginCommandList(CommandListType aType);
     static uint64 ExecuteAndFreeCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC);

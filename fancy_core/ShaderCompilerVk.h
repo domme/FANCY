@@ -1,8 +1,7 @@
 #pragma once
 #include "ShaderCompiler.h"
 
-struct IDxcLibrary;
-struct IDxcCompiler;
+#if FANCY_ENABLE_VK
 
 namespace Fancy
 {
@@ -18,5 +17,7 @@ namespace Fancy
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif
 
 

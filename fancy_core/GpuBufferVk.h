@@ -4,6 +4,8 @@
 #include "VkPrerequisites.h"
 #include "GpuResourceDataVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -40,4 +42,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
-
+#endif

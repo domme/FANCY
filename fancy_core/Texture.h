@@ -25,7 +25,7 @@ namespace Fancy {
   protected:
     virtual void Destroy() = 0;
 
-    void InitTextureData(const TextureSubData* someInitialDatas, uint aNumInitialDatas, GpuResourceState aCurrentState, GpuResourceState aNewState);
+    void InitTextureData(const TextureSubData* someInitialDatas, uint aNumInitialDatas);
 
     TextureProperties myProperties;
     bool myIsSwapChainTexture;

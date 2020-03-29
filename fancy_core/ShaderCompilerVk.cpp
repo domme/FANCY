@@ -11,6 +11,8 @@
 
 #include <atomic>
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   namespace Priv_ShaderCompilerVk
@@ -267,3 +269,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
+#endif

@@ -281,9 +281,6 @@
     <ClInclude Include="CommandListDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="GpuResourceStateTracking.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Camera</Filter>
     </ClInclude>
@@ -371,7 +368,6 @@
     <ClInclude Include="TextureReadbackTask.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderResourceInfoDX12.h" />
     <ClInclude Include="StaticArray.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -389,6 +385,12 @@
     </ClInclude>
     <ClInclude Include="TextureSamplerVk.h">
       <Filter>Rendering\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderResourceInfoDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceHazardData.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -515,9 +517,6 @@
     </ClCompile>
     <ClCompile Include="CommandListDX12.cpp">
       <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuResourceStateTracking.cpp">
-      <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Camera</Filter>

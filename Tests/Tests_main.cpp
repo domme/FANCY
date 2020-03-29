@@ -52,8 +52,8 @@ void OnWindowResized(uint aWidth, uint aHeight)
 void Init(HINSTANCE anInstanceHandle)
 {
   RenderingStartupParameters params;
-  // params.myRenderingApi = RenderPlatformType::DX12; 
-  params.myRenderingApi = RenderPlatformType::VULKAN;
+  params.myRenderingApi = RenderPlatformType::DX12; 
+  // params.myRenderingApi = RenderPlatformType::VULKAN;
   params.myRenderingTechnique = RenderingTechnique::FORWARD;
 
   Fancy::WindowParameters windowParams;
@@ -157,11 +157,10 @@ void Render()
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
   GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
   float clearColor[] = { 1.0f, 0.3f, 0.3f, 0.0f };
-  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceState::READ_PRESENT, GpuResourceState::WRITE_RENDER_TARGET);  
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
   // ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), FLT_MAX, 0u);
   GPU_END_PROFILE(ctx);
-  RenderCore::ExecuteAndResetCommandList(ctx);
+  RenderCore::ExecuteAndFreeCommandList(ctx);
 
   for (UniquePtr<Test>& testItem : myTests)
     testItem->OnRender();
@@ -169,8 +168,6 @@ void Render()
   if (kEnableImGui)
     ImGui::Render();
 
-  ctx->ResourceBarrier(myRenderOutput->GetBackbuffer(), GpuResourceState::WRITE_RENDER_TARGET, GpuResourceState::READ_PRESENT);
-  RenderCore::ExecuteAndFreeCommandList(ctx);
   myRuntime->EndFrame();
 }
 

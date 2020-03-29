@@ -5,6 +5,8 @@
 #include "CommandList.h"
 #include "GpuResourceViewDataVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -94,7 +96,7 @@ namespace Fancy
       readMask |= VK_ACCESS_HOST_READ_BIT;
     }
 
-    myStateTracking = GpuResourceStateTracking();
+    myStateTracking = GpuResourceHazardTracking();
     myStateTracking.myCanChangeStates = canChangeStates;
     myStateTracking.myDefaultState = defaultState;
     myStateTracking.myVkData.myReadAccessMask = readMask;
@@ -248,3 +250,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif // VK_SUPPORT

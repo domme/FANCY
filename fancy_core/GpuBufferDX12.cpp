@@ -81,8 +81,7 @@ namespace Fancy {
     if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER))
       readStateMask = readStateMask & ~(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
-    D3D12_RESOURCE_STATES initialStates = (RenderCore_PlatformDX12::ResolveResourceUsageState(defaultState) & readStateMask) & writeStateMask;
+    D3D12_RESOURCE_STATES initialStates = (D3D12_RESOURCE_STATE_GENERIC_READ & readStateMask) & writeStateMask;
     bool canChangeStates = true;
     if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
     {
@@ -91,14 +90,18 @@ namespace Fancy {
     }
     else if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
     {
-      defaultState = GpuResourceState::WRITE_COPY_DEST;
       canChangeStates = false;
       initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
     }
 
-    myStateTracking = GpuResourceStateTracking();
+
+    GpuSubresourceHazardDataDX12 subHazardData;
+    subHazardData.myContext = CommandListType::Graphics;
+    subHazardData.myStates = initialStates;
+
+    myStateTracking = GpuResourceHazardData();
     myStateTracking.myCanChangeStates = canChangeStates;
-    myStateTracking.myDefaultState = defaultState;
+    myStateTracking.myDx12Data.mySubresources.push_back(subHazardData);
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;
 
@@ -130,9 +133,7 @@ namespace Fancy {
       else
       {
         CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-        ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
         ctx->UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes);
-        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }

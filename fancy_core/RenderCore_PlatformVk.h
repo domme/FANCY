@@ -6,6 +6,8 @@
 #include "CommandBufferAllocatorVk.h"
 #include "DescriptorPoolAllocatorVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -103,4 +105,4 @@ namespace Fancy
   };
 }
 
-
+#endif
