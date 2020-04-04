@@ -31,7 +31,7 @@ namespace Fancy
     static VkPolygonMode ResolveFillMode(FillMode aFillMode);
     static VkFrontFace ResolveWindingOrder(WindingOrder aWindingOrder);
     static VkCullModeFlagBits ResolveCullMode(CullMode aCullMode);
-    static ResourceBarrierInfoVk ResolveResourceState(GpuResourceState aResourceState);
+    // static ResourceBarrierInfoVk ResolveResourceState(GpuResourceState aResourceState);
     static VkImageAspectFlags ResolveAspectMask(uint aFirstPlaneIndex, uint aNumPlanes, DataFormat aFormat);
     static VkImageSubresourceRange ResolveSubresourceRange(const SubresourceRange& aRange, DataFormat aFormat);
     static VkImageType ResolveImageResourceDimension(GpuResourceDimension aDimension, bool& isArray, bool& isCubeMap);

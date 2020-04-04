@@ -110,12 +110,6 @@ namespace Fancy
     imageInfo.pQueueFamilyIndices = queueFamilyIndices;
     imageInfo.queueFamilyIndexCount = caps.myHasAsyncCompute ? ARRAY_LENGTH(queueFamilyIndices) : 1;
     
-    myStateTracking = GpuResourceHazardTracking();
-    myStateTracking.myCanChangeStates = true;
-    myStateTracking.myDefaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
-
-    const ResourceBarrierInfoVk& defaultStateInfo = RenderCore_PlatformVk::ResolveResourceState(myStateTracking.myDefaultState);
-    
     VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT;
     VkAccessFlags writeMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
     if (someProperties.myIsRenderTarget)
@@ -134,10 +128,26 @@ namespace Fancy
     if (someProperties.myIsShaderWritable)
       writeMask |= VK_ACCESS_SHADER_WRITE_BIT;
 
+    mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes);
+
+    myStateTracking = GpuResourceHazardData();
+    myStateTracking.myCanChangeStates = true;
+    myStateTracking.myDefaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
+
     myStateTracking.myVkData.myReadAccessMask = readMask;
     myStateTracking.myVkData.myWriteAccessMask = writeMask;
     myStateTracking.myVkData.myHasExclusiveQueueAccess = imageInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
 
+    GpuSubresourceHazardDataVk subHazardData;
+    subHazardData.myContext = CommandListType::Graphics;
+    subHazardData.myAccessMask = 
+    myStateTracking.myVkData.mySubresources.resize(mySubresources.GetNumSubresources());
+    for (GpuSubresourceHazardDataVk& subVkHazardData : myStateTracking.myVkData.mySubresources)
+    {
+      subVkHazardData.myContext = CommandListType::Graphics;
+    }
+
+   
     const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;  // Initial layout must be either UNDEFINED or PREINITIALIZED, we can't start in COPY_DEST or the default state unfortunately
     myStateTracking.myVkData.myInitialImageLayout = imageInfo.initialLayout;

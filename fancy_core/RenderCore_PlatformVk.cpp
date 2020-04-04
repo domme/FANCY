@@ -321,6 +321,7 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  /*
   ResourceBarrierInfoVk RenderCore_PlatformVk::ResolveResourceState(GpuResourceState aResourceState)
   {
     // According to the vulkan specs VK_PIPELINE_STAGE_ALL_COMMANDS_BIT is the logical OR of every command supported on a specific queue.
@@ -448,6 +449,7 @@ namespace Fancy
       ASSERT(false, "Missing implementation"); return { 0, 0, VK_IMAGE_LAYOUT_GENERAL };
     }
   }
+  */
 //---------------------------------------------------------------------------//
   VkImageAspectFlags RenderCore_PlatformVk::ResolveAspectMask(uint aFirstPlaneIndex, uint aNumPlanes, DataFormat aFormat)
   {

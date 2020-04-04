@@ -20,6 +20,13 @@ namespace Fancy
     DynamicArray<GpuSubresourceHazardDataDX12> mySubresources;
   };
 //---------------------------------------------------------------------------//
+  struct GpuSubresourceHazardDataVk
+  {
+    uint myImageLayout;
+    uint myAccessMask;
+    CommandListType myContext;
+  };
+//---------------------------------------------------------------------------//
   struct GpuResourceHazardDataVk
   {
     // Uints are VkAccessFlags
@@ -28,6 +35,7 @@ namespace Fancy
     bool myHasExclusiveQueueAccess;
     mutable bool myHasInitialImageLayout;  // True if the image has never been used in a resourceBarrier and still has its initial layout from creation.
     uint myInitialImageLayout;  // Initial layout given to an image upon creation.
+    DynamicArray<GpuSubresourceHazardDataVk> mySubresources;
   };
 //---------------------------------------------------------------------------//
   struct GpuResourceHazardData
