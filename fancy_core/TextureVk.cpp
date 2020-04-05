@@ -157,7 +157,6 @@ namespace Fancy
     subHazardData.myContext = CommandListType::Graphics;
     subHazardData.myAccessMask = 0u;
     subHazardData.myImageLayout = initialImageLayout; // Initial layout must be either UNDEFINED or PREINITIALIZED
-    subHazardData.myPipelineStateMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     myStateTracking.myVkData.mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
     
     imageInfo.initialLayout = initialImageLayout;

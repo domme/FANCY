@@ -378,7 +378,7 @@ namespace Fancy
       return pipeline;
     }
 //---------------------------------------------------------------------------//
-    constexpr VkAccessFlags locAccessMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
+    constexpr VkAccessFlags locAccessMaskGraphics = static_cast<VkAccessFlags>(~0u);
     constexpr VkAccessFlags locAccessMaskCompute = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT
       | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
       | VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
@@ -390,7 +390,21 @@ namespace Fancy
     constexpr VkAccessFlags locAccessMaskWrite = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT |
       VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT | VK_ACCESS_COMMAND_PROCESS_WRITE_BIT_NVX | VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;
 //---------------------------------------------------------------------------//
-    constexpr VkPipelineStageFlags locPipelineMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
+    constexpr VkPipelineStageFlags locPipelineMaskGraphics =
+      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
+      | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT
+      | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT
+      | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
+      | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+      | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
+      | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT | VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT
+      | VK_PIPELINE_STAGE_COMMAND_PROCESS_BIT_NVX | VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV
+      | VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV
+      | VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT
+#if  FANCY_RENDERER_SUPPORT_MESH_SHADERS
+      | VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV | VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV
+#endif  // FANCY_RENDERER_SUPPORT_MESH_SHADERS
+      ;
   //---------------------------------------------------------------------------//
     constexpr VkPipelineStageFlags locPipelineMaskCompute = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT |
       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
@@ -417,14 +431,16 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     VkAccessFlags locResolveValidateDstAccessMask(const GpuResource* aResource, CommandListType aCommandListType, VkAccessFlags aAccessFlags)
     {
+      const bool accessWas0 = aAccessFlags == 0u;
+
       const VkAccessFlags contextAccessMask = Priv_CommandListVk::locGetContextAccessMask(aCommandListType);
       VkAccessFlags dstFlags = aAccessFlags & contextAccessMask;
-      ASSERT(dstFlags != 0, "Unsupported access mask for this commandlist type");
+      ASSERT(accessWas0 || dstFlags != 0, "Unsupported access mask for this commandlist type");
       ASSERT((dstFlags & Priv_CommandListVk::locAccessMaskRead) == dstFlags || (dstFlags & Priv_CommandListVk::locAccessMaskWrite) == dstFlags, "Simulataneous read- and write access flags are not allowed");
 
       const bool dstIsRead = (dstFlags & Priv_CommandListVk::locAccessMaskRead) == dstFlags;
       dstFlags = dstFlags & (dstIsRead ? aResource->GetHazardData().myVkData.myReadAccessMask : aResource->GetHazardData().myVkData.myWriteAccessMask);
-      ASSERT(dstFlags != 0, "Dst access flags not supported by resource");
+      ASSERT(accessWas0 || dstFlags != 0, "Dst access flags not supported by resource");
 
       return dstFlags;
     }
@@ -479,11 +495,12 @@ namespace Fancy
     VkImageSubresourceRange subRange = RenderCore_PlatformVk::ResolveSubresourceRange(aTextureView->mySubresourceRange, 
       aTextureView->GetTexture()->GetProperties().myFormat);
 
-    TrackSubresourceTransition(aTextureView->GetResource(), aTextureView->GetSubresourceRange(), VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    TrackSubresourceTransition(aTextureView->GetResource(), aTextureView->GetSubresourceRange(), VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
     FlushBarriers();
 
     GpuResourceDataVk* dataVk = static_cast<TextureVk*>(aTextureView->GetTexture())->GetData();
-    vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, VK_IMAGE_LAYOUT_GENERAL, &clearColor, 1u, &subRange);
+    vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, imageLayout, &clearColor, 1u, &subRange);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
@@ -687,6 +704,8 @@ namespace Fancy
       bufferBarrierVk.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
       bufferBarrierVk.pNext = nullptr;
       bufferBarrierVk.buffer = pendingBarrier.myBuffer;
+      bufferBarrierVk.offset = 0u;
+      bufferBarrierVk.size = pendingBarrier.myBufferSize;
       bufferBarrierVk.srcAccessMask = pendingBarrier.mySrcAccessMask;
       bufferBarrierVk.dstAccessMask = pendingBarrier.myDstAccessMask;
       bufferBarrierVk.srcQueueFamilyIndex = pendingBarrier.mySrcQueueFamilyIndex;
@@ -694,8 +713,8 @@ namespace Fancy
     }
 
     // TODO: Make this more optimial. BOTTOM_OF_PIPE->TOP_OF_PIPE will stall much more than necessary in most cases. But the last writing pipeline stage needs to be tracked per subresource to correctly do this
-    VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    VkPipelineStageFlags srcStageMask = myCurrentContext == CommandListType::Graphics ? Priv_CommandListVk::locPipelineMaskGraphics : Priv_CommandListVk::locPipelineMaskCompute;
+    VkPipelineStageFlags dstStageMask = myCurrentContext == CommandListType::Graphics ? Priv_CommandListVk::locPipelineMaskGraphics : Priv_CommandListVk::locPipelineMaskCompute;
 
     const VkDependencyFlags dependencyFlags = 0u;
     vkCmdPipelineBarrier(myCommandBuffer, srcStageMask, dstStageMask, 
@@ -720,6 +739,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset, uint64 /*aSize*/)
   {
+    TrackResourceTransition(aBuffer, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
+
     GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
     vkCmdBindVertexBuffers(myCommandBuffer, 0u, 1u, &resourceDataVk->myBuffer, &anOffset);
   }
@@ -728,6 +749,8 @@ namespace Fancy
   {
     ASSERT(anIndexSize == 2u || anIndexSize == 4u);
     const VkIndexType indexType = anIndexSize == 2u ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
+
+    TrackResourceTransition(aBuffer, VK_ACCESS_INDEX_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
 
     GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
     vkCmdBindIndexBuffer(myCommandBuffer, resourceDataVk->myBuffer, anOffset, indexType);
@@ -855,6 +878,8 @@ namespace Fancy
     if (!FindShaderResourceInfo(aNameHash, resourceInfo))
       return;
 
+    const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
     const GpuResourceViewDataVk& viewDataVk = aView->myNativeData.To<GpuResourceViewDataVk>();
     const GpuResourceDataVk* resourceDataVk = aView->myResource->myNativeData.To<GpuResourceDataVk*>();
 
@@ -874,6 +899,7 @@ namespace Fancy
       ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
       imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
       imageView = viewDataVk.myView.myImage;
+      TrackSubresourceTransition(aView->GetResource(), aView->GetSubresourceRange(), VK_ACCESS_SHADER_READ_BIT, imageLayout, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
     {
@@ -881,6 +907,7 @@ namespace Fancy
       ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
       imageLayout = VK_IMAGE_LAYOUT_GENERAL;
       imageView = viewDataVk.myView.myImage;
+      TrackSubresourceTransition(aView->GetResource(), aView->GetSubresourceRange(), VK_ACCESS_SHADER_WRITE_BIT, imageLayout, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
     {
@@ -889,6 +916,7 @@ namespace Fancy
       const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
       ASSERT(bufferViewVk->GetBufferView() != nullptr);
       bufferView = bufferViewVk->GetBufferView();
+      TrackResourceTransition(aView->GetResource(), VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
     {
@@ -897,6 +925,7 @@ namespace Fancy
       buffer = resourceDataVk->myBuffer;
       bufferOffset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
       bufferSize = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+      TrackResourceTransition(aView->GetResource(), VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
       ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
@@ -908,6 +937,7 @@ namespace Fancy
       const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
       ASSERT(bufferViewVk->GetBufferView() != nullptr);
       bufferView = bufferViewVk->GetBufferView();
+      TrackResourceTransition(aView->GetResource(), VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
     {
@@ -916,6 +946,7 @@ namespace Fancy
       buffer = resourceDataVk->myBuffer;
       bufferOffset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
       bufferSize = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+      TrackResourceTransition(aView->GetResource(), VK_ACCESS_UNIFORM_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
       ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
@@ -932,6 +963,8 @@ namespace Fancy
     if (!FindShaderResourceInfo(aNameHash, resourceInfo))
       return;
 
+    const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
     const GpuBufferProperties& bufferProps = aBuffer->GetProperties();
 
     bool needsTempBufferView = false;
@@ -945,25 +978,31 @@ namespace Fancy
     {
       ASSERT(someViewProperties.myIsShaderWritable && bufferProps.myIsShaderWritable && (bufferProps.myBindFlags & (uint) GpuBufferBindFlags::SHADER_BUFFER));
       needsTempBufferView = true;
+      TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
     {
       ASSERT(someViewProperties.myIsShaderWritable && bufferProps.myIsShaderWritable && (bufferProps.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER));
+      TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
       ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+      TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
       break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
     {
       ASSERT(!someViewProperties.myIsShaderWritable && (bufferProps.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER));
       needsTempBufferView = true;
+      TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
     {
       ASSERT(!someViewProperties.myIsShaderWritable && someViewProperties.myIsConstantBuffer && (bufferProps.myBindFlags & (uint)GpuBufferBindFlags::CONSTANT_BUFFER));
+      TrackResourceTransition(aBuffer, VK_ACCESS_UNIFORM_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
     } break;
     case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
       ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+      TrackResourceTransition(aBuffer, VK_ACCESS_UNIFORM_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
       break;
     default: ASSERT(false);
     }
@@ -1164,6 +1203,7 @@ namespace Fancy
       {
         BufferMemoryBarrierData barrier;
         barrier.myBuffer = aResource->myNativeData.To<GpuResourceDataVk*>()->myBuffer;
+        barrier.myBufferSize = static_cast<const GpuBuffer*>(aResource)->GetByteSize();
         barrier.myDstAccessMask = dstAccessFlags;
         barrier.mySrcAccessMask = localData->mySubresources[0].myAccessFlags;
         AddBarrier(barrier);
@@ -1239,7 +1279,7 @@ namespace Fancy
     VkAccessFlags currAccess = globalData.myVkData.mySubresources[aSubresourceIndex].myAccessMask;
     VkImageLayout currImgLayout = (VkImageLayout) globalData.myVkData.mySubresources[aSubresourceIndex].myImageLayout;
 
-    CommandListType currGlobalContext = globalData.myDx12Data.mySubresources[aSubresourceIndex].myContext;
+    CommandListType currGlobalContext = globalData.myVkData.mySubresources[aSubresourceIndex].myContext;
 
     auto it = myLocalHazardData.find(aResource);
     if (it != myLocalHazardData.end())
@@ -1249,6 +1289,8 @@ namespace Fancy
     }
 
     bool currAccessHasAllDstAccessFlags = (currAccess & aDstAccess) == aDstAccess;
+    if (aDstAccess == 0u)
+      currAccessHasAllDstAccessFlags = currAccess == 0u;
     
     if (it != myLocalHazardData.end()   // We can only truly skip this transition if we already have the resource state on the local timeline
       && currAccessHasAllDstAccessFlags
@@ -1327,17 +1369,46 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyRenderTargets()
   {
-    if (!myRenderTargetsDirty)
-    {
-      ASSERT(myRenderPass != nullptr && myFramebuffer != nullptr);
-      return;
-    }
-
-    myRenderTargetsDirty = false;
-
     const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
     ASSERT(numRtsToSet <= RenderConstants::kMaxNumRenderTargets);
     ASSERT(myCurrentContext == CommandListType::Graphics);
+
+    for (uint i = 0u; i < numRtsToSet; ++i)
+    {
+      TextureView* renderTarget = myRenderTargets[i];
+      ASSERT(renderTarget != nullptr);
+
+      TrackSubresourceTransition(renderTarget->GetResource(), renderTarget->GetSubresourceRange(), 
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+    }
+
+    const bool hasDepthStencilTarget = myDepthStencilTarget != nullptr;
+    const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
+    if (hasDepthStencilTarget)
+    {
+      if (dsvProps.myIsDepthReadOnly == dsvProps.myIsStencilReadOnly)
+      {
+        TrackSubresourceTransition(myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange(),
+          dsvProps.myIsDepthReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, 
+          VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+      }
+      else
+      {
+        SubresourceRange range = myDepthStencilTarget->GetSubresourceRange();
+        range.myFirstPlane = 0u;
+        range.myNumPlanes = 1u;
+
+        TrackSubresourceTransition(myDepthStencilTarget->GetResource(), range,
+          dsvProps.myIsDepthReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+          VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+
+        range.myFirstPlane = 1u;
+
+        TrackSubresourceTransition(myDepthStencilTarget->GetResource(), range,
+          dsvProps.myIsStencilReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+          VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+      }
+    }
     
     DataFormat rtFormats[RenderConstants::kMaxNumRenderTargets];
     for (uint i = 0u; i < numRtsToSet; ++i)
@@ -1349,10 +1420,8 @@ namespace Fancy
     }
 
     uint64 renderpassHash = MathUtil::ByteHash(reinterpret_cast<uint8*>(rtFormats), sizeof(DataFormat) * numRtsToSet);
-    const bool hasDepthStencilTarget = myDepthStencilTarget != nullptr;
     if (hasDepthStencilTarget)
     {
-      const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
       MathUtil::hash_combine(renderpassHash, (uint)dsvProps.myFormat);
       // Read-only DSVs need to produce a different renderpass-hash 
       MathUtil::hash_combine(renderpassHash, dsvProps.myIsDepthReadOnly ? 1u : 0u);
@@ -1396,6 +1465,8 @@ namespace Fancy
       framebuffer = Priv_CommandListVk::locCreateFramebuffer(const_cast<const TextureView**>(myRenderTargets), numRtsToSet, myDepthStencilTarget, framebufferRes, renderPass);
       ourFramebufferCache[framebufferHash] = framebuffer;
     }
+
+    myRenderTargetsDirty = false;
 
     myRenderPass = renderPass;
     myFramebuffer = framebuffer;

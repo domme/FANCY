@@ -6,6 +6,7 @@
 #include "CommandList.h"
 #include "CommandListVk.h"
 #include "Texture.h"
+#include "GpuBuffer.h"
 #include "GpuResourceDataVk.h"
 
 #if FANCY_ENABLE_VK
@@ -250,6 +251,7 @@ namespace Fancy
           ASSERT(subIdx == 0);
           CommandListVk::BufferMemoryBarrierData barrier;
           barrier.myBuffer = resource->myNativeData.To<GpuResourceDataVk*>()->myBuffer;
+          barrier.myBufferSize = static_cast<const GpuBuffer*>(resource)->GetByteSize();
           barrier.mySrcAccessMask = globalSubData.myAccessMask;
           barrier.myDstAccessMask = localSubData.myFirstDstAccessFlags;
           subresourceBufferBarriers.push_back(barrier);

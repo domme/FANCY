@@ -1219,9 +1219,6 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void CommandListDX12::ApplyRenderTargets()
   {
-    if (!myRenderTargetsDirty)
-      return;
-
     const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
     D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[RenderConstants::kMaxNumRenderTargets];
 
@@ -1245,11 +1242,13 @@ namespace Fancy {
       const D3D12_RESOURCE_STATES depthState = myDepthStencilTarget->GetProperties().myIsDepthReadOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
       TrackSubresourceTransition(myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange(), depthState);
 
-      myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
+      if (myRenderTargets)
+        myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
     }
     else
     {
-      myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, nullptr);
+      if (myRenderTargetsDirty)
+        myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, nullptr);
     }
 
     myRenderTargetsDirty = false;

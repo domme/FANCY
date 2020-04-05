@@ -255,35 +255,17 @@ namespace Fancy
     ASSERT_VK_RESULT(vkAcquireNextImageKHR(device, mySwapChain, UINT64_MAX, nullptr, myBackbufferReadyFence, &myCurrBackbufferIndex));
     ASSERT_VK_RESULT(vkWaitForFences(device, 1u, &myBackbufferReadyFence, true, UINT64_MAX));
     ASSERT_VK_RESULT(vkResetFences(device, 1u, &myBackbufferReadyFence));
-
-    // This should've only been necessary with the manual resource transitions
-    /*
-
-    // Upon first use, each backbuffer must be transitioned from an unknown image layout into the present-layout that high-level rendering code expects
-    if (!myBackbuffersUsed[myCurrBackbufferIndex])
-    {
-      myBackbuffersUsed[myCurrBackbufferIndex] = true;
-
-      CommandListVk* ctx = static_cast<CommandListVk*>(RenderCore::BeginCommandList(CommandListType::Graphics));
-      const ResourceBarrierInfoVk presentInfo = RenderCore_PlatformVk::ResolveResourceState(GpuResourceState::READ_PRESENT);
-      ctx->SubresourceBarrierInternal(myBackbufferTextures[myCurrBackbufferIndex].get(), myBackbufferTextures[myCurrBackbufferIndex]->GetSubresources(),
-        0u,
-        presentInfo.myAccessMask,
-        0u,
-        presentInfo.myStageMask,
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        presentInfo.myImageLayout,
-        CommandListType::Graphics,
-        CommandListType::Graphics
-      );
-      RenderCore::ExecuteAndFreeCommandList(ctx);
-    }
-    */
   }
   //---------------------------------------------------------------------------//
   void RenderOutputVk::Present()
   {
     const CommandQueueVk* graphicsQueue = static_cast<CommandQueueVk*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
+
+    CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+    CommandListVk* ctxVk = static_cast<CommandListVk*>(ctx);
+    ctxVk->TrackResourceTransition(GetBackbuffer(), 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, 0u);
+    ctxVk->FlushBarriers();
+    RenderCore::ExecuteAndFreeCommandList(ctx);
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

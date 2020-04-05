@@ -18,6 +18,7 @@ namespace Fancy
     struct BufferMemoryBarrierData
     {
       VkBuffer myBuffer = nullptr;
+      uint64 myBufferSize = 0ull;
       VkAccessFlags mySrcAccessMask = 0;
       VkAccessFlags myDstAccessMask = 0;
       uint mySrcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
