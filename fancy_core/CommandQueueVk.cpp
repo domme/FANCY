@@ -5,6 +5,8 @@
 #include "RenderCore_PlatformVk.h"
 #include "CommandList.h"
 #include "CommandListVk.h"
+#include "Texture.h"
+#include "GpuResourceDataVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -128,6 +130,9 @@ namespace Fancy
   {
     ASSERT(aCommandList->GetType() == myType);
     ASSERT(aCommandList->IsOpen());
+
+    ResolveResourceHazardData(aCommandList);
+
     aCommandList->Close();
 
     const VkPipelineStageFlags stageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
@@ -178,6 +183,104 @@ namespace Fancy
     const uint64 fenceVal = ExecuteCommandListInternal(aCommandList, aSyncMode);
     aCommandList->PreBegin();
     return fenceVal;
+  }
+//---------------------------------------------------------------------------//
+  void CommandQueueVk::ResolveResourceHazardData(CommandList* aCommandList)
+  {
+    DynamicArray<CommandListVk::BufferMemoryBarrierData> patchingBufferBarriers;
+    DynamicArray<CommandListVk::ImageMemoryBarrierData> patchingImageBarriers;
+
+    CommandListVk* cmdListVk = static_cast<CommandListVk*>(aCommandList);
+
+    for (auto it : cmdListVk->myLocalHazardData)
+    {
+      const GpuResource* resource = it.first;
+
+      GpuResourceHazardData& globalHazardData = resource->GetHazardData();
+      const CommandListVk::LocalHazardData& localHazardData = it.second;
+
+      DynamicArray<CommandListVk::BufferMemoryBarrierData> subresourceBufferBarriers;
+      DynamicArray<CommandListVk::ImageMemoryBarrierData> subresourceImageBarriers;
+      for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.size(); ++subIdx)
+      {
+        GpuSubresourceHazardDataVk& globalSubData = globalHazardData.myVkData.mySubresources[subIdx];
+        const CommandListVk::SubresourceHazardData& localSubData = localHazardData.mySubresources[subIdx];
+        const SubresourceLocation subresource = resource->GetSubresourceLocation(subIdx);
+
+        if (localSubData.myIsSharedReadState)
+        {
+          ASSERT(!localSubData.myWasWritten);
+          globalSubData.myContext = CommandListType::SHARED_READ;
+        }
+
+        if (!localSubData.myWasUsed || (globalSubData.myAccessMask == localSubData.myFirstDstAccessFlags && globalSubData.myImageLayout == localSubData.myFirstDstImageLayout))
+          continue;
+
+        if (resource->IsTexture())
+        {
+          bool couldMerge = false;
+          if (!subresourceImageBarriers.empty())
+          {
+            ASSERT(subIdx > 0);  // Otherwise subresourceImageBarriers should be empty.
+            CommandListVk::ImageMemoryBarrierData& lastBarrier = subresourceImageBarriers.back();
+            couldMerge = lastBarrier.mySrcAccessMask == globalSubData.myAccessMask &&
+              lastBarrier.mySrcLayout == globalSubData.myImageLayout &&
+              lastBarrier.myDstAccessMask == localSubData.myFirstDstAccessFlags &&
+              lastBarrier.myDstLayout == localSubData.myFirstDstImageLayout &&
+              resource->GetSubresourceIndex(lastBarrier.mySubresourceRange.Last()) == subIdx - 1u;
+
+            if (couldMerge)
+              lastBarrier.mySubresourceRange = SubresourceRange(lastBarrier.mySubresourceRange.First(), subresource);
+          }
+
+          if (!couldMerge)
+          {
+            CommandListVk::ImageMemoryBarrierData barrier;
+            barrier.myImage = resource->myNativeData.To<GpuResourceDataVk*>()->myImage;
+            barrier.mySrcAccessMask = globalSubData.myAccessMask;
+            barrier.mySrcLayout = (VkImageLayout)globalSubData.myImageLayout;
+            barrier.myDstAccessMask = localSubData.myFirstDstAccessFlags;
+            barrier.myDstLayout = localSubData.myFirstDstImageLayout;
+            barrier.mySubresourceRange = SubresourceRange(subresource);
+            subresourceImageBarriers.push_back(barrier);
+          }
+        }
+        else
+        {
+          ASSERT(subIdx == 0);
+          CommandListVk::BufferMemoryBarrierData barrier;
+          barrier.myBuffer = resource->myNativeData.To<GpuResourceDataVk*>()->myBuffer;
+          barrier.mySrcAccessMask = globalSubData.myAccessMask;
+          barrier.myDstAccessMask = localSubData.myFirstDstAccessFlags;
+          subresourceBufferBarriers.push_back(barrier);
+        }
+
+        globalSubData.myAccessMask = localSubData.myAccessFlags;
+        globalSubData.myImageLayout = localSubData.myImageLayout;
+        if (localSubData.myWasWritten)
+          globalSubData.myContext = aCommandList->GetType();
+      }
+
+      if (!subresourceBufferBarriers.empty())
+        patchingBufferBarriers.insert(patchingBufferBarriers.end(), subresourceBufferBarriers.begin(), subresourceBufferBarriers.end());
+      if (!subresourceImageBarriers.empty())
+        patchingImageBarriers.insert(patchingImageBarriers.end(), subresourceImageBarriers.begin(), subresourceImageBarriers.end());
+    }
+
+    if (!patchingBufferBarriers.empty() || !patchingImageBarriers.empty())
+    {
+      CommandList* ctx = RenderCore::BeginCommandList(myType);
+      CommandListVk* ctxVk = static_cast<CommandListVk*>(ctx);
+
+      for (const CommandListVk::BufferMemoryBarrierData& barrier : patchingBufferBarriers)
+        ctxVk->AddBarrier(barrier);
+      for (const CommandListVk::ImageMemoryBarrierData& barrier : patchingImageBarriers)
+        ctxVk->AddBarrier(barrier);
+
+      ctxVk->FlushBarriers();
+      
+      ExecuteAndFreeCommandList(ctx);
+    }
   }
 //---------------------------------------------------------------------------//
 }

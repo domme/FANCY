@@ -82,18 +82,48 @@ namespace Fancy
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 
+    VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT;
+    VkAccessFlags writeMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+
+    DynamicArray<uint> supportedImageLayouts;
+    supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_GENERAL);
+    supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
     imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
     if (someProperties.myIsRenderTarget)
     {
       if (formatInfo.myIsDepthStencil)
+      {
+        readMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+        writeMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
         imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL);
+        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL);
+        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL);
+        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL);
+        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL);
+      }
       else
+      {
+        readMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+        writeMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
         imageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      }  
     }
     if (someProperties.myIsShaderWritable)
     {
       imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+
+      writeMask |= VK_ACCESS_SHADER_WRITE_BIT;
     }
 
     const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
@@ -110,48 +140,27 @@ namespace Fancy
     imageInfo.pQueueFamilyIndices = queueFamilyIndices;
     imageInfo.queueFamilyIndexCount = caps.myHasAsyncCompute ? ARRAY_LENGTH(queueFamilyIndices) : 1;
     
-    VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT;
-    VkAccessFlags writeMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
-    if (someProperties.myIsRenderTarget)
-    {
-      if (formatInfo.myIsDepthStencil)
-      {
-        readMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-        writeMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-      }
-      else
-      {
-        readMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-        writeMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-      }
-    }
-    if (someProperties.myIsShaderWritable)
-      writeMask |= VK_ACCESS_SHADER_WRITE_BIT;
-
     mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes);
 
     myStateTracking = GpuResourceHazardData();
     myStateTracking.myCanChangeStates = true;
-    myStateTracking.myDefaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
 
     myStateTracking.myVkData.myReadAccessMask = readMask;
     myStateTracking.myVkData.myWriteAccessMask = writeMask;
     myStateTracking.myVkData.myHasExclusiveQueueAccess = imageInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
+    myStateTracking.myVkData.mySupportedImageLayouts = std::move(supportedImageLayouts);
+
+    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
+    const VkImageLayout initialImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
     GpuSubresourceHazardDataVk subHazardData;
     subHazardData.myContext = CommandListType::Graphics;
-    subHazardData.myAccessMask = 
-    myStateTracking.myVkData.mySubresources.resize(mySubresources.GetNumSubresources());
-    for (GpuSubresourceHazardDataVk& subVkHazardData : myStateTracking.myVkData.mySubresources)
-    {
-      subVkHazardData.myContext = CommandListType::Graphics;
-    }
-
-   
-    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;  // Initial layout must be either UNDEFINED or PREINITIALIZED, we can't start in COPY_DEST or the default state unfortunately
-    myStateTracking.myVkData.myInitialImageLayout = imageInfo.initialLayout;
-    myStateTracking.myVkData.myHasInitialImageLayout = true;
+    subHazardData.myAccessMask = 0u;
+    subHazardData.myImageLayout = initialImageLayout; // Initial layout must be either UNDEFINED or PREINITIALIZED
+    subHazardData.myPipelineStateMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    myStateTracking.myVkData.mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
+    
+    imageInfo.initialLayout = initialImageLayout;
 
     VkDevice device = platformVk->myDevice;
     ASSERT_VK_RESULT(vkCreateImage(device, &imageInfo, nullptr, &dataVk->myImage));
@@ -172,9 +181,7 @@ namespace Fancy
     SetName(aName != nullptr ? aName : "Texture_Unnamed");
 
     if (hasInitData)
-    {
-      InitTextureData(someInitialDatas, aNumInitialDatas, myStateTracking.myDefaultState, myStateTracking.myDefaultState);
-    }
+      InitTextureData(someInitialDatas, aNumInitialDatas);
   }
 //---------------------------------------------------------------------------//
   GpuResourceDataVk* TextureVk::GetData() const
@@ -196,7 +203,7 @@ namespace Fancy
     }
 
     myNativeData.Clear();
-    myStateTracking = GpuResourceHazardTracking();
+    myStateTracking = GpuResourceHazardData();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//

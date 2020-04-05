@@ -12,7 +12,31 @@ namespace Fancy
 
   class CommandListVk : public CommandList
   {
+    friend class CommandQueueVk;
+
   public:
+    struct BufferMemoryBarrierData
+    {
+      VkBuffer myBuffer = nullptr;
+      VkAccessFlags mySrcAccessMask = 0;
+      VkAccessFlags myDstAccessMask = 0;
+      uint mySrcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      uint myDstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    };
+
+    struct ImageMemoryBarrierData
+    {
+      SubresourceRange mySubresourceRange;
+      VkImage myImage = nullptr;
+      DataFormat myFormat = DataFormat::UNKNOWN;
+      VkAccessFlags mySrcAccessMask = 0;
+      VkAccessFlags myDstAccessMask = 0;
+      VkImageLayout mySrcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      VkImageLayout myDstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      uint mySrcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      uint myDstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    };
+
     CommandListVk(CommandListType aType);
     ~CommandListVk();
 
@@ -42,6 +66,7 @@ namespace Fancy
     GpuQuery InsertTimestamp() override;
     void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
 
+    void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition) override;
     void ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources) override;
 
     void Close() override;
@@ -51,18 +76,10 @@ namespace Fancy
 
     VkCommandBuffer GetCommandBuffer() const { return myCommandBuffer; }
 
-    bool SubresourceBarrierInternal(
-      const GpuResource* aResource,
-      const SubresourceRange& aSubresourceRange,
-      VkAccessFlags aSrcAccessMask,
-      VkAccessFlags aDstAccessMask,
-      VkPipelineStageFlags aSrcStageMask,
-      VkPipelineStageFlags aDstStageMask,
-      VkImageLayout aSrcImageLayout,
-      VkImageLayout aDstImageLayout,
-      CommandListType aSrcQueue,
-      CommandListType aDstQueue
-    );
+    void TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, VkPipelineStageFlags aNewPipelineStageFlags, bool aIsSharedReadState = false);
+    void TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, VkPipelineStageFlags aNewPipelineStageFlags, bool aIsSharedReadState = false);
+    void AddBarrier(const BufferMemoryBarrierData& aBarrier);
+    void AddBarrier(const ImageMemoryBarrierData& aBarrier);
     
   protected:
     bool FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoVk& aResourceInfoOut) const;
@@ -77,13 +94,7 @@ namespace Fancy
       VkImageLayout anImageLayout,
       VkSampler aSampler);
 
-    bool SubresourceBarrierInternal(
-      const GpuResource* aResource,
-      const SubresourceRange& aSubresourceRange,
-      GpuResourceState aSrcState,
-      GpuResourceState aDstState,
-      CommandListType aSrcQueue,
-      CommandListType aDstQueue) override;
+    bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout);
 
     void ApplyViewportAndClipRect();
     void ApplyRenderTargets();
@@ -103,27 +114,6 @@ namespace Fancy
     VkRenderPass myRenderPass;
     VkFramebuffer myFramebuffer;
     glm::uvec2 myFramebufferRes;
-
-    struct BufferMemoryBarrierData
-    {
-      VkBuffer myBuffer = nullptr;
-      VkAccessFlags mySrcAccessMask = 0;
-      VkAccessFlags myDstAccessMask = 0;
-      uint mySrcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-      uint myDstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    };
-
-    struct ImageMemoryBarrierData
-    {
-      VkImageSubresourceRange mySubresourceRange;
-      VkImage myImage = nullptr;
-      VkAccessFlags mySrcAccessMask = 0;
-      VkAccessFlags myDstAccessMask = 0;
-      VkImageLayout mySrcLayout = VK_IMAGE_LAYOUT_GENERAL;
-      VkImageLayout myDstLayout = VK_IMAGE_LAYOUT_GENERAL;
-      uint mySrcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-      uint myDstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    };
 
     struct ResourceState
     {
@@ -149,12 +139,25 @@ namespace Fancy
 
     ResourceState myResourceState;
 
+    struct SubresourceHazardData
+    {
+      VkAccessFlags myFirstDstAccessFlags = 0u;
+      VkImageLayout myFirstDstImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      VkAccessFlags myAccessFlags = 0u;
+      VkImageLayout myImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      bool myWasWritten = false;
+      bool myWasUsed = false;
+      bool myIsSharedReadState = false;
+    };
+    struct LocalHazardData
+    {
+      DynamicArray<SubresourceHazardData> mySubresources;
+    };
+    std::map<const GpuResource*, LocalHazardData> myLocalHazardData;
     
     StaticArray<VkDescriptorPool, 16> myUsedDescriptorPools;
-    BufferMemoryBarrierData myPendingBufferBarriers[kNumCachedBarriers];
-    ImageMemoryBarrierData myPendingImageBarriers[kNumCachedBarriers];
-    uint myNumPendingBufferBarriers;
-    uint myNumPendingImageBarriers;
+    StaticArray<BufferMemoryBarrierData, kNumCachedBarriers> myPendingBufferBarriers;
+    StaticArray<ImageMemoryBarrierData, kNumCachedBarriers> myPendingImageBarriers;
 
     VkPipelineStageFlags myPendingBarrierSrcStageMask;
     VkPipelineStageFlags myPendingBarrierDstStageMask;

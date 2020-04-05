@@ -198,13 +198,25 @@ namespace Fancy
         resource.myNativeData = dataVk;
       }
 
-      resource.myStateTracking = GpuResourceHazardTracking();
-      resource.myStateTracking.myDefaultState = GpuResourceState::READ_PRESENT;
+      resource.mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
+
+      resource.myStateTracking = GpuResourceHazardData();
       resource.myStateTracking.myVkData.myReadAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
       resource.myStateTracking.myVkData.myWriteAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
       resource.myStateTracking.myVkData.myHasExclusiveQueueAccess = mySharingMode == VK_SHARING_MODE_EXCLUSIVE;
-      resource.myStateTracking.myVkData.myInitialImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-      resource.myStateTracking.myVkData.myHasInitialImageLayout = false;
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_GENERAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR);
+
+      GpuSubresourceHazardDataVk subHazardData;
+      subHazardData.myContext = CommandListType::Graphics;
+      subHazardData.myAccessMask = 0u;
+      subHazardData.myImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      resource.myStateTracking.myVkData.mySubresources.resize(1u, subHazardData);
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
@@ -244,6 +256,9 @@ namespace Fancy
     ASSERT_VK_RESULT(vkWaitForFences(device, 1u, &myBackbufferReadyFence, true, UINT64_MAX));
     ASSERT_VK_RESULT(vkResetFences(device, 1u, &myBackbufferReadyFence));
 
+    // This should've only been necessary with the manual resource transitions
+    /*
+
     // Upon first use, each backbuffer must be transitioned from an unknown image layout into the present-layout that high-level rendering code expects
     if (!myBackbuffersUsed[myCurrBackbufferIndex])
     {
@@ -263,6 +278,7 @@ namespace Fancy
       );
       RenderCore::ExecuteAndFreeCommandList(ctx);
     }
+    */
   }
   //---------------------------------------------------------------------------//
   void RenderOutputVk::Present()

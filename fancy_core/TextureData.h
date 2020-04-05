@@ -24,6 +24,11 @@ namespace Fancy
         myPlaneIndex == anOther.myPlaneIndex;
     }
 
+    bool operator !=(const SubresourceLocation& anOther) const
+    {
+      return !(*this == anOther);
+    }
+
     uint myMipLevel;
     uint myArrayIndex;
     uint myPlaneIndex;
@@ -57,10 +62,21 @@ namespace Fancy
       , myNumPlanes(1u)
     { }
 
+    SubresourceRange(const SubresourceLocation& aFirstLocation, const SubresourceLocation& aLastLocation)
+      : myFirstMipLevel(aFirstLocation.myMipLevel)
+      , myNumMipLevels(aLastLocation.myMipLevel - aFirstLocation.myMipLevel + 1)
+      , myFirstArrayIndex(aFirstLocation.myArrayIndex)
+      , myNumArrayIndices(aLastLocation.myArrayIndex - aFirstLocation.myArrayIndex + 1)
+      , myFirstPlane(aFirstLocation.myPlaneIndex)
+      , myNumPlanes(aLastLocation.myPlaneIndex - aFirstLocation.myPlaneIndex + 1)
+    { }
+
     bool operator==(const SubresourceRange& anOther) const;
 
     SubresourceIterator Begin() const;
     SubresourceIterator End() const;
+    SubresourceLocation First() const { return SubresourceLocation(myFirstMipLevel, myFirstArrayIndex, myFirstPlane); }
+    SubresourceLocation Last() const { return SubresourceLocation(myFirstMipLevel + myNumMipLevels - 1, myFirstArrayIndex + myNumArrayIndices - 1, myFirstPlane + myNumPlanes - 1); }
     bool IsEmpty() const;
     uint GetNumSubresources() const;
     uint GetNumSubresourcesPerPlane() const;

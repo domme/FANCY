@@ -25,6 +25,7 @@ namespace Fancy
   protected:
     uint64 ExecuteCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode) override;
     uint64 ExecuteAndResetCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode) override;
+    void ResolveResourceHazardData(CommandList* aCommandList);
     
     StaticArray<std::pair<VkSemaphore, uint64>, (uint)CommandListType::NUM> myPendingStallSemaphores;  // Semaphores from other queues that the next submit needs to wait on
     VkSemaphore myTimelineSemaphore;

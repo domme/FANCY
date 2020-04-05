@@ -13,6 +13,7 @@
 #include "GpuBufferVk.h"
 #include "ShaderResourceInfoVk.h"
 #include "TextureSamplerVk.h"
+#include "DynamicArray.h"
 
 #if FANCY_ENABLE_VK
 
@@ -377,6 +378,73 @@ namespace Fancy
       return pipeline;
     }
 //---------------------------------------------------------------------------//
+    constexpr VkAccessFlags locAccessMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
+    constexpr VkAccessFlags locAccessMaskCompute = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT
+      | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+      | VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+//---------------------------------------------------------------------------//
+    constexpr VkAccessFlags locAccessMaskRead = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_SHADER_READ_BIT |
+      VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT | VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT |
+      VK_ACCESS_COMMAND_PROCESS_READ_BIT_NVX | VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT | VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV | VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV | VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;
+//---------------------------------------------------------------------------//
+    constexpr VkAccessFlags locAccessMaskWrite = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT |
+      VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT | VK_ACCESS_COMMAND_PROCESS_WRITE_BIT_NVX | VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;
+//---------------------------------------------------------------------------//
+    constexpr VkPipelineStageFlags locPipelineMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
+  //---------------------------------------------------------------------------//
+    constexpr VkPipelineStageFlags locPipelineMaskCompute = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT |
+      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+//---------------------------------------------------------------------------//
+    constexpr VkAccessFlags locGetContextAccessMask(CommandListType aCommandListType)
+    {
+      switch (aCommandListType) 
+      { 
+        case CommandListType::Graphics: return locAccessMaskGraphics;
+        case CommandListType::Compute: return locAccessMaskCompute;
+        default: ASSERT(false, "Missing implementation"); return 0u;
+      }
+    }
+//---------------------------------------------------------------------------//
+    constexpr VkPipelineStageFlags locGetContextPipelineStageMask(CommandListType aCommandListType)
+    {
+      switch (aCommandListType)
+      {
+      case CommandListType::Graphics: return locPipelineMaskGraphics;
+      case CommandListType::Compute: return locPipelineMaskCompute;
+      default: ASSERT(false, "Missing implementation"); return 0u;
+      }
+    }
+//---------------------------------------------------------------------------//
+    VkAccessFlags locResolveValidateDstAccessMask(const GpuResource* aResource, CommandListType aCommandListType, VkAccessFlags aAccessFlags)
+    {
+      const VkAccessFlags contextAccessMask = Priv_CommandListVk::locGetContextAccessMask(aCommandListType);
+      VkAccessFlags dstFlags = aAccessFlags & contextAccessMask;
+      ASSERT(dstFlags != 0, "Unsupported access mask for this commandlist type");
+      ASSERT((dstFlags & Priv_CommandListVk::locAccessMaskRead) == dstFlags || (dstFlags & Priv_CommandListVk::locAccessMaskWrite) == dstFlags, "Simulataneous read- and write access flags are not allowed");
+
+      const bool dstIsRead = (dstFlags & Priv_CommandListVk::locAccessMaskRead) == dstFlags;
+      dstFlags = dstFlags & (dstIsRead ? aResource->GetHazardData().myVkData.myReadAccessMask : aResource->GetHazardData().myVkData.myWriteAccessMask);
+      ASSERT(dstFlags != 0, "Dst access flags not supported by resource");
+
+      return dstFlags;
+    }
+//---------------------------------------------------------------------------//
+    bool locValidateDstImageLayout(const GpuResource* aResource, VkImageLayout anImageLayout)
+    {
+      if (aResource->myCategory == GpuResourceCategory::BUFFER)
+      {
+        ASSERT(anImageLayout == VK_IMAGE_LAYOUT_UNDEFINED);
+        return anImageLayout == VK_IMAGE_LAYOUT_UNDEFINED;
+      }
+      else
+      {
+        DynamicArray<uint>& supportedLayouts = aResource->GetHazardData().myVkData.mySupportedImageLayouts;
+        const bool supportsLayout = std::find(supportedLayouts.begin(), supportedLayouts.end(), (uint) anImageLayout) != supportedLayouts.end();
+        ASSERT(supportsLayout);
+        return supportsLayout;
+      }
+    }
+//---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
   std::unordered_map<uint64, VkPipeline> CommandListVk::ourPipelineCache;
@@ -389,8 +457,6 @@ namespace Fancy
     , myRenderPass(nullptr)
     , myFramebuffer(nullptr)
     , myFramebufferRes(0u, 0u)
-    , myNumPendingBufferBarriers(0u)
-    , myNumPendingImageBarriers(0u)
     , myPendingBarrierSrcStageMask(0u)
     , myPendingBarrierDstStageMask(0u)
   {
@@ -403,50 +469,21 @@ namespace Fancy
   CommandListVk::~CommandListVk()
   {
     CommandListVk::PostExecute(0ull);
-
-    
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
   {
-    // Need to temporarily transition to WRITE_COPY_DEST or PRESENT so that the image is in the VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL or VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR layout.
-    // The ATTACHMENT_OPTIMAL layout is not supported with vkCmdClearColorImage
-
-    // Change image layout to GENERAL, keep everyting else untouched
-    const ResourceBarrierInfoVk renderTargetBarrierInfo = RenderCore_PlatformVk::ResolveResourceState(GpuResourceState::WRITE_RENDER_TARGET);
-    SubresourceBarrierInternal(aTextureView->GetTexture(), aTextureView->mySubresourceRange,
-      renderTargetBarrierInfo.myAccessMask,
-      renderTargetBarrierInfo.myAccessMask,
-      renderTargetBarrierInfo.myStageMask,
-      renderTargetBarrierInfo.myStageMask,
-      renderTargetBarrierInfo.myImageLayout,
-      VK_IMAGE_LAYOUT_GENERAL,
-      myCommandListType,
-      myCommandListType);
-
-    FlushBarriers();
-    
     VkClearColorValue clearColor;
     memcpy(clearColor.float32, aColor, sizeof(clearColor.float32));
 
     VkImageSubresourceRange subRange = RenderCore_PlatformVk::ResolveSubresourceRange(aTextureView->mySubresourceRange, 
       aTextureView->GetTexture()->GetProperties().myFormat);
 
+    TrackSubresourceTransition(aTextureView->GetResource(), aTextureView->GetSubresourceRange(), VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    FlushBarriers();
+
     GpuResourceDataVk* dataVk = static_cast<TextureVk*>(aTextureView->GetTexture())->GetData();
     vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, VK_IMAGE_LAYOUT_GENERAL, &clearColor, 1u, &subRange);
-
-    // Change image layout back to the one reported by WRITE_RENDER_TARGET
-    SubresourceBarrierInternal(aTextureView->GetTexture(), aTextureView->mySubresourceRange,
-      renderTargetBarrierInfo.myAccessMask,
-      renderTargetBarrierInfo.myAccessMask,
-      renderTargetBarrierInfo.myStageMask,
-      renderTargetBarrierInfo.myStageMask,
-      VK_IMAGE_LAYOUT_GENERAL,
-      renderTargetBarrierInfo.myImageLayout,
-      myCommandListType,
-      myCommandListType);
-
-    FlushBarriers();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
@@ -492,10 +529,11 @@ namespace Fancy
     VkBuffer dstBuffer = static_cast<const GpuBufferVk*>(aDstBuffer)->GetData()->myBuffer;
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
 
+    const VkImageLayout srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackResourceTransition(aDstBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
     FlushBarriers();
-
-    // Texture is expected to transition to COPY_SRC before using this method
-    const VkImageLayout srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;  
+    
     vkCmdCopyImageToBuffer(myCommandBuffer, srcImage, srcImageLayout, dstBuffer, 1u, &copyRegion);   
   }
 //---------------------------------------------------------------------------//
@@ -529,10 +567,11 @@ namespace Fancy
     VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
 
-    // Textures are expected to transition to COPY_SRC and COPY_DST before using this method
     const VkImageLayout srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
     const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
+    TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackSubresourceTransition(aDstTexture, SubresourceRange(aDstSubresource), VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT);
     FlushBarriers();
 
     vkCmdCopyImage(myCommandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, 1u, &copyRegion);
@@ -566,9 +605,11 @@ namespace Fancy
     VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
     VkBuffer srcBuffer = static_cast<const GpuBufferVk*>(aSrcBuffer)->GetData()->myBuffer;
 
-    FlushBarriers();
-
     const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;  // Texture is expected in the WRITE_COPY_DST state here
+    TrackResourceTransition(aSrcBuffer, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackSubresourceTransition(aDstTexture, SubresourceRange(aDstSubresource), VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    FlushBarriers();
+    
     vkCmdCopyBufferToImage(myCommandBuffer, srcBuffer, dstImage, imageLayout, 1u, &copyRegion);
   }
 //---------------------------------------------------------------------------//
@@ -587,6 +628,8 @@ namespace Fancy
 
     for (uint i = 0u; i < myResourceState.myTempBufferViews.Size(); ++i)
       myResourceState.myTempBufferViews[i].second = glm::max(myResourceState.myTempBufferViews[i].second, aFenceVal);
+
+    myLocalHazardData.clear();
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::PreBegin()
@@ -596,8 +639,9 @@ namespace Fancy
     myRenderPass = nullptr;
     myFramebuffer = nullptr;
     myFramebufferRes = glm::uvec2(0u, 0u);
-    myNumPendingBufferBarriers = 0u;
-    myNumPendingImageBarriers = 0u;
+    myPendingBufferBarriers.ClearDiscard();
+    myPendingImageBarriers.ClearDiscard();
+    myLocalHazardData.clear();
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     myCommandBuffer = platformVk->GetNewCommandBuffer(myCommandListType);
@@ -610,22 +654,22 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::FlushBarriers()
   {
-    if (myNumPendingImageBarriers == 0u && myNumPendingBufferBarriers == 0u)
+    if (myPendingBufferBarriers.IsEmpty() && myPendingImageBarriers.IsEmpty())
       return;
 
-    ASSERT(myPendingBarrierSrcStageMask != 0u && myPendingBarrierDstStageMask != 0u);
+    // ASSERT(myPendingBarrierSrcStageMask != 0u && myPendingBarrierDstStageMask != 0u);
 
     VkImageMemoryBarrier imageBarriersVk[kNumCachedBarriers];
     VkBufferMemoryBarrier bufferBarriersVk[kNumCachedBarriers];
 
-    for (uint i = 0u, e = myNumPendingImageBarriers; i < e; ++i)
+    for (uint i = 0u, e = myPendingImageBarriers.Size(); i < e; ++i)
     {
       VkImageMemoryBarrier& imageBarrierVk = imageBarriersVk[i];
       const ImageMemoryBarrierData& pendingBarrier = myPendingImageBarriers[i];
 
       imageBarrierVk.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
       imageBarrierVk.pNext = nullptr;
-      imageBarrierVk.subresourceRange = pendingBarrier.mySubresourceRange;
+      imageBarrierVk.subresourceRange = RenderCore_PlatformVk::ResolveSubresourceRange(pendingBarrier.mySubresourceRange, pendingBarrier.myFormat);
       imageBarrierVk.image = pendingBarrier.myImage;
       imageBarrierVk.srcAccessMask = pendingBarrier.mySrcAccessMask;
       imageBarrierVk.dstAccessMask = pendingBarrier.myDstAccessMask;
@@ -635,7 +679,7 @@ namespace Fancy
       imageBarrierVk.dstQueueFamilyIndex = pendingBarrier.myDstQueueFamilyIndex;
     }
 
-    for (uint i = 0u, e = myNumPendingBufferBarriers; i < e; ++i)
+    for (uint i = 0u, e = myPendingBufferBarriers.Size(); i < e; ++i)
     {
       VkBufferMemoryBarrier& bufferBarrierVk = bufferBarriersVk[i];
       const BufferMemoryBarrierData& pendingBarrier = myPendingBufferBarriers[i];
@@ -649,13 +693,19 @@ namespace Fancy
       bufferBarrierVk.dstQueueFamilyIndex = pendingBarrier.myDstQueueFamilyIndex;
     }
 
-    const VkDependencyFlags dependencyFlags = 0u;
-    vkCmdPipelineBarrier(myCommandBuffer, myPendingBarrierSrcStageMask, myPendingBarrierDstStageMask, 
-      dependencyFlags, 0u, nullptr, 
-      myNumPendingBufferBarriers, bufferBarriersVk, myNumPendingImageBarriers, imageBarriersVk);
+    // TODO: Make this more optimial. BOTTOM_OF_PIPE->TOP_OF_PIPE will stall much more than necessary in most cases. But the last writing pipeline stage needs to be tracked per subresource to correctly do this
+    VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
-    myNumPendingBufferBarriers = 0u;
-    myNumPendingImageBarriers = 0u;
+    const VkDependencyFlags dependencyFlags = 0u;
+    vkCmdPipelineBarrier(myCommandBuffer, srcStageMask, dstStageMask, 
+      dependencyFlags, 0u, nullptr, 
+      myPendingBufferBarriers.Size(), bufferBarriersVk, 
+      myPendingImageBarriers.Size(), imageBarriersVk);
+
+    myPendingBufferBarriers.ClearDiscard();
+    myPendingImageBarriers.ClearDiscard();
+    
     myPendingBarrierSrcStageMask = 0u;
     myPendingBarrierDstStageMask = 0u;
   }
@@ -963,6 +1013,11 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
+  void CommandListVk::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition)
+  {
+    VK_MISSING_IMPLEMENTATION();
+  }
+//---------------------------------------------------------------------------//
   void CommandListVk::ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources)
   {
     VK_MISSING_IMPLEMENTATION();
@@ -988,129 +1043,224 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  bool CommandListVk::SubresourceBarrierInternal(
-    const GpuResource* aResource,
-    const SubresourceRange& aSubresourceRange,
-    GpuResourceState aSrcState,
-    GpuResourceState aDstState,
-    CommandListType aSrcQueue,
-    CommandListType aDstQueue)
+  void CommandListVk::TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, VkPipelineStageFlags aNewPipelineStageFlags, bool aIsSharedReadState)
   {
-    const ResourceBarrierInfoVk srcBarrierInfo = RenderCore_PlatformVk::ResolveResourceState(aSrcState);
-    const ResourceBarrierInfoVk dstBarrierInfo = RenderCore_PlatformVk::ResolveResourceState(aDstState);
-    
-    return SubresourceBarrierInternal(
-      aResource, 
-      aSubresourceRange,
-      srcBarrierInfo.myAccessMask,
-      dstBarrierInfo.myAccessMask,
-      srcBarrierInfo.myStageMask,
-      dstBarrierInfo.myStageMask,
-      srcBarrierInfo.myImageLayout,
-      dstBarrierInfo.myImageLayout,
-      aSrcQueue,
-      aDstQueue);
+    TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewAccessFlags, aNewImageLayout, aNewPipelineStageFlags, aIsSharedReadState);
   }
 //---------------------------------------------------------------------------//
-  bool CommandListVk::SubresourceBarrierInternal(const GpuResource* aResource,
-    const SubresourceRange& aSubresourceRange,
-    VkAccessFlags aSrcAccessMask, 
-    VkAccessFlags aDstAccessMask, 
-    VkPipelineStageFlags aSrcStageMask,
-    VkPipelineStageFlags aDstStageMask, 
-    VkImageLayout aSrcImageLayout, 
-    VkImageLayout aDstImageLayout,
-    CommandListType aSrcQueue, 
-    CommandListType aDstQueue)
+  void CommandListVk::TrackSubresourceTransition(
+    const GpuResource* aResource, 
+    const SubresourceRange& aSubresourceRange, 
+    VkAccessFlags aNewAccessFlags, 
+    VkImageLayout aNewImageLayout, 
+    VkPipelineStageFlags aNewPipelineStageFlags, 
+    bool aIsSharedReadState)
   {
-    GpuResourceHazardTracking& resourceStateTracking = aResource->myStateTracking;
-    if (!resourceStateTracking.myCanChangeStates)
-      return false;
-
-    constexpr VkAccessFlags accessMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
-    constexpr VkAccessFlags accessMaskCompute = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT
-      | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
-      | VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
-
-    constexpr VkAccessFlags accessMaskRead = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_SHADER_READ_BIT |
-      VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT | VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT |
-      VK_ACCESS_COMMAND_PROCESS_READ_BIT_NVX | VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT | VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV | VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV | VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;
-
-    constexpr VkAccessFlags accessMaskWrite = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT |
-      VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT | VK_ACCESS_COMMAND_PROCESS_WRITE_BIT_NVX | VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;
-
-    const bool srcIsRead = (aSrcAccessMask & accessMaskRead) != 0u;
-    ASSERT(!srcIsRead || (aSrcAccessMask & accessMaskWrite) == 0u, "src access mask contains both read and write bits");
-
-    const bool dstIsRead = (aDstAccessMask & accessMaskRead) != 0u;
-    ASSERT(!dstIsRead || (aDstAccessMask & accessMaskWrite) == 0u, "dst access mask contains both read and write bits");
-
-    const VkAccessFlags accessMaskSrcQueue = aSrcQueue == CommandListType::Graphics ? accessMaskGraphics : accessMaskCompute;
-    const VkAccessFlags accessMaskDstQueue = aDstQueue == CommandListType::Graphics ? accessMaskGraphics : accessMaskCompute;
-    const VkAccessFlags accessMaskCurrentQueue = myCommandListType == CommandListType::Graphics ? accessMaskGraphics : accessMaskCompute;
-
-    constexpr VkPipelineStageFlags pipelineMaskGraphics = static_cast<D3D12_RESOURCE_STATES>(~0u);
-    constexpr VkPipelineStageFlags pipelineMaskCompute = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT |
-      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
-    const VkPipelineStageFlags pipelineMaskSrcQueue = aSrcQueue == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
-    const VkPipelineStageFlags pipelineMaskDstQueue = aDstQueue == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
-    const VkPipelineStageFlags pipelineMaskCurrentQueue = myCommandListType == CommandListType::Graphics ? pipelineMaskGraphics : pipelineMaskCompute;
-
-    const VkPipelineStageFlags srcPipelineMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT | (pipelineMaskSrcQueue & pipelineMaskCurrentQueue & aSrcStageMask);
-    const VkPipelineStageFlags dstPipelineMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT | (pipelineMaskDstQueue & pipelineMaskCurrentQueue & aDstStageMask);
-
-    const VkAccessFlags resourceWriteAccessMask = static_cast<VkAccessFlags>(resourceStateTracking.myVkData.myWriteAccessMask);
-    const VkAccessFlags resourceReadAccessMask = static_cast<VkAccessFlags>(resourceStateTracking.myVkData.myReadAccessMask);
-
-    const VkAccessFlags allowedSrcAccessMask = aSrcAccessMask & (srcIsRead ? resourceReadAccessMask : resourceWriteAccessMask);
-    const VkAccessFlags allowedDstAccessMask = aDstAccessMask & (dstIsRead ? resourceReadAccessMask : resourceWriteAccessMask);
-    const VkAccessFlags srcAccessMask = allowedSrcAccessMask & accessMaskSrcQueue & accessMaskCurrentQueue;
-    const VkAccessFlags dstAccessMask = allowedDstAccessMask & accessMaskDstQueue & accessMaskCurrentQueue;
-    ASSERT((aSrcAccessMask == 0u || srcAccessMask != 0u) && (aDstAccessMask == 0u || dstAccessMask != 0u), "Invalid barrier");
-
-    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    const uint srcQueueFamilyIndex = 
-      resourceStateTracking.myVkData.myHasExclusiveQueueAccess ? platformVk->GetQueueInfo(aSrcQueue).myQueueFamilyIndex : VK_QUEUE_FAMILY_IGNORED;
-    const uint dstQueueFamilyIndex = 
-      resourceStateTracking.myVkData.myHasExclusiveQueueAccess ? platformVk->GetQueueInfo(aDstQueue).myQueueFamilyIndex : VK_QUEUE_FAMILY_IGNORED;
-
-    const bool isImage = aResource->myCategory == GpuResourceCategory::TEXTURE;
-    GpuResourceDataVk* dataVk = aResource->myNativeData.To<GpuResourceDataVk*>();
-
-    if (myNumPendingImageBarriers >= kNumCachedBarriers || myNumPendingBufferBarriers >= kNumCachedBarriers)
-      FlushBarriers();
-
-    if (isImage)
+    if (aResource->IsBuffer())
     {
-      const GpuResourceHazardTrackingVk& stateTrackingVk = aResource->myStateTracking.myVkData;
-      const VkImageLayout srcImageLayout = stateTrackingVk.myHasInitialImageLayout ? static_cast<VkImageLayout>(stateTrackingVk.myInitialImageLayout) : aSrcImageLayout;
-      stateTrackingVk.myHasInitialImageLayout = false;
+      ASSERT(aSubresourceRange.GetNumSubresources() == 1u);
+      ASSERT(aNewImageLayout == VK_IMAGE_LAYOUT_UNDEFINED);
+    }
 
-      ImageMemoryBarrierData& imageBarrier = myPendingImageBarriers[myNumPendingImageBarriers++];
-      imageBarrier.myImage = dataVk->myImage;
-      imageBarrier.mySrcAccessMask = srcAccessMask;
-      imageBarrier.myDstAccessMask = dstAccessMask;
-      imageBarrier.mySrcLayout = srcImageLayout;
-      imageBarrier.myDstLayout = aDstImageLayout;
-      imageBarrier.mySrcQueueFamilyIndex = srcQueueFamilyIndex;
-      imageBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;
+    const bool canEarlyOut = !aIsSharedReadState;
 
-      const TextureVk* texture = static_cast<const TextureVk*>(aResource);
-      imageBarrier.mySubresourceRange = RenderCore_PlatformVk::ResolveSubresourceRange(aSubresourceRange, texture->GetProperties().myFormat);
+    if (!aResource->myStateTracking.myCanChangeStates && canEarlyOut)
+      return;
+
+    VkAccessFlags dstAccessFlags = Priv_CommandListVk::locResolveValidateDstAccessMask(aResource, myCommandListType, aNewAccessFlags);
+
+    if (!Priv_CommandListVk::locValidateDstImageLayout(aResource, aNewImageLayout))
+      return;
+
+    uint numPossibleSubresourceTransitions = 0u;
+    DynamicArray<bool> subresourceTransitionPossible(aSubresourceRange.GetNumSubresources(), false);
+    uint i = 0u;
+    for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it)
+    {
+      const bool transitionPossible = ValidateSubresourceTransition(aResource, aResource->GetSubresourceIndex(*it), dstAccessFlags, aNewImageLayout);
+      if (transitionPossible)
+        ++numPossibleSubresourceTransitions;
+      subresourceTransitionPossible[i++] = transitionPossible;
+    }
+
+    if (numPossibleSubresourceTransitions == 0u && canEarlyOut)
+      return;
+
+    bool canTransitionAllSubresources = numPossibleSubresourceTransitions == aResource->mySubresources.GetNumSubresources();
+
+    const bool dstIsRead = (dstAccessFlags & Priv_CommandListVk::locAccessMaskRead) == dstAccessFlags;
+
+    LocalHazardData* localData = nullptr;
+    auto it = myLocalHazardData.find(aResource);
+    if (it == myLocalHazardData.end())  // We don't have a local record of this resource yet
+    {
+      localData = &myLocalHazardData[aResource];
+      localData->mySubresources.resize(aResource->mySubresources.GetNumSubresources());
     }
     else
     {
-      BufferMemoryBarrierData& bufferBarrier = myPendingBufferBarriers[myNumPendingBufferBarriers++];
-      bufferBarrier.myBuffer = dataVk->myBuffer;
-      bufferBarrier.mySrcAccessMask = srcAccessMask;
-      bufferBarrier.myDstAccessMask = dstAccessMask;
-      bufferBarrier.mySrcQueueFamilyIndex = srcQueueFamilyIndex;
-      bufferBarrier.myDstQueueFamilyIndex = dstQueueFamilyIndex;
+      localData = &it->second;
     }
 
-    myPendingBarrierSrcStageMask |= srcPipelineMask;
-    myPendingBarrierDstStageMask |= dstPipelineMask;
+    if (!canTransitionAllSubresources && aResource->IsTexture())
+    {
+      ImageMemoryBarrierData imageBarrier;
+      imageBarrier.myImage = aResource->myNativeData.To<GpuResourceDataVk*>()->myImage;
+      imageBarrier.myFormat = static_cast<const Texture*>(aResource)->GetProperties().myFormat;
+      imageBarrier.myDstAccessMask = dstAccessFlags;
+      imageBarrier.myDstLayout = aNewImageLayout;
+
+      SubresourceLocation firstSubresource(*aSubresourceRange.Begin());
+      SubresourceLocation lastSubresource(*aSubresourceRange.Begin());
+
+      i = 0u;
+      for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it, ++i)
+      {
+        if (!subresourceTransitionPossible[i])
+        {
+          if (firstSubresource != lastSubresource)  // Add the barrier we have batched so far since we've reached a discontinuity in subresource-transitions
+          {
+            imageBarrier.mySubresourceRange = SubresourceRange(firstSubresource, lastSubresource);
+            AddBarrier(imageBarrier);
+            firstSubresource = lastSubresource;
+            lastSubresource = firstSubresource;
+          }
+
+          continue;
+        }
+
+        const uint subresourceIndex = aResource->GetSubresourceIndex(*it);
+
+        SubresourceHazardData& subData = localData->mySubresources[subresourceIndex];
+        if (subData.myWasUsed)
+        {
+          // We can add a barrier. Check if we can append the transition to the current barrier or if we have to start a new one.
+          const bool isEmpty = firstSubresource == lastSubresource;
+          const bool canBatch = isEmpty || (imageBarrier.mySrcAccessMask == subData.myAccessFlags && imageBarrier.mySrcLayout == subData.myImageLayout);
+
+          if (canBatch)
+          {
+            imageBarrier.mySrcAccessMask = subData.myAccessFlags;
+            imageBarrier.mySrcLayout = subData.myImageLayout;
+            lastSubresource = *it;
+          }
+          else
+          {
+            imageBarrier.mySubresourceRange = SubresourceRange(firstSubresource, lastSubresource);
+            AddBarrier(imageBarrier);
+            firstSubresource = lastSubresource;
+            lastSubresource = firstSubresource;
+          }
+        }
+      }
+    }
+
+    for (uint i = 0u; canTransitionAllSubresources && i < localData->mySubresources.size(); ++i)
+      canTransitionAllSubresources &= localData->mySubresources[i].myWasUsed;
+
+    if (canTransitionAllSubresources)
+    {
+      if (aResource->IsBuffer())
+      {
+        BufferMemoryBarrierData barrier;
+        barrier.myBuffer = aResource->myNativeData.To<GpuResourceDataVk*>()->myBuffer;
+        barrier.myDstAccessMask = dstAccessFlags;
+        barrier.mySrcAccessMask = localData->mySubresources[0].myAccessFlags;
+        AddBarrier(barrier);
+      }
+      else
+      {
+        const DataFormat format = static_cast<const Texture*>(aResource)->GetProperties().myFormat;
+
+        ImageMemoryBarrierData barrier;
+        barrier.myImage = aResource->myNativeData.To<GpuResourceDataVk*>()->myImage;
+        barrier.myFormat = static_cast<const Texture*>(aResource)->GetProperties().myFormat;
+        barrier.myDstAccessMask = dstAccessFlags;
+        barrier.myDstLayout = aNewImageLayout;
+        barrier.mySrcAccessMask = localData->mySubresources[0].myAccessFlags;
+        barrier.mySrcLayout = localData->mySubresources[0].myImageLayout;
+        barrier.mySubresourceRange = aResource->GetSubresources();
+        AddBarrier(barrier);
+      }
+    }
+
+    i = 0u;
+    for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it, ++i)
+    {
+      const uint subresourceIndex = aResource->GetSubresourceIndex(*it);
+      SubresourceHazardData& subData = localData->mySubresources[subresourceIndex];
+      if (aIsSharedReadState)
+      {
+        subData.myWasWritten = false;
+        subData.myIsSharedReadState = true;
+      }
+
+      if (!subresourceTransitionPossible[i])
+        continue;
+
+      if (!subData.myWasUsed)
+      {
+        subData.myFirstDstAccessFlags = dstAccessFlags;
+        subData.myFirstDstImageLayout = aNewImageLayout;
+      }
+
+      subData.myWasUsed = true;
+      subData.myAccessFlags = dstAccessFlags;
+      subData.myImageLayout = aNewImageLayout;
+
+      if (!dstIsRead)
+      {
+        subData.myWasWritten = true;
+        subData.myIsSharedReadState = false;
+      }
+    }
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::AddBarrier(const BufferMemoryBarrierData& aBarrier)
+  {
+    if (myPendingBufferBarriers.IsFull())
+      FlushBarriers();
+
+    myPendingBufferBarriers.Add(aBarrier);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::AddBarrier(const ImageMemoryBarrierData& aBarrier)
+  {
+    if (myPendingImageBarriers.IsFull())
+      FlushBarriers();
+
+    myPendingImageBarriers.Add(aBarrier);
+  }
+//---------------------------------------------------------------------------//
+  bool CommandListVk::ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout)
+  {
+    const GpuResourceHazardData& globalData = aResource->GetHazardData();
+
+    VkAccessFlags currAccess = globalData.myVkData.mySubresources[aSubresourceIndex].myAccessMask;
+    VkImageLayout currImgLayout = (VkImageLayout) globalData.myVkData.mySubresources[aSubresourceIndex].myImageLayout;
+
+    CommandListType currGlobalContext = globalData.myDx12Data.mySubresources[aSubresourceIndex].myContext;
+
+    auto it = myLocalHazardData.find(aResource);
+    if (it != myLocalHazardData.end())
+    {
+      currAccess = it->second.mySubresources[aSubresourceIndex].myAccessFlags;
+      currImgLayout = it->second.mySubresources[aSubresourceIndex].myImageLayout;
+    }
+
+    bool currAccessHasAllDstAccessFlags = (currAccess & aDstAccess) == aDstAccess;
+    
+    if (it != myLocalHazardData.end()   // We can only truly skip this transition if we already have the resource state on the local timeline
+      && currAccessHasAllDstAccessFlags
+      && currImgLayout == aDstImageLayout) 
+      return false;
+
+    const bool dstIsRead = (aDstAccess & Priv_CommandListVk::locAccessMaskRead) == aDstAccess;
+    if (dstIsRead && currGlobalContext == CommandListType::SHARED_READ)  // A transition to a write-state will make the resource be owned by this context-type again so we only have to check for a read-transition
+    {
+      ASSERT(false, "No resource transitions allowed on SHARED_READ context. Resource must be transitioned to a state mask that incorporates all future read-states");
+      return false;
+    }
 
     return true;
   }

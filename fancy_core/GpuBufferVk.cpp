@@ -82,7 +82,6 @@ namespace Fancy
     }
 
     VkMemoryPropertyFlags memPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
     bool canChangeStates = true;
     if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
     {
@@ -92,18 +91,22 @@ namespace Fancy
     else if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
     {
       memPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-      defaultState = GpuResourceState::WRITE_COPY_DEST;
       readMask |= VK_ACCESS_HOST_READ_BIT;
     }
 
-    myStateTracking = GpuResourceHazardTracking();
+    mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
+
+    myStateTracking = GpuResourceHazardData();
     myStateTracking.myCanChangeStates = canChangeStates;
-    myStateTracking.myDefaultState = defaultState;
     myStateTracking.myVkData.myReadAccessMask = readMask;
     myStateTracking.myVkData.myWriteAccessMask = writeMask;
     myStateTracking.myVkData.myHasExclusiveQueueAccess = bufferInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
-    myStateTracking.myVkData.myHasInitialImageLayout = false;
-    myStateTracking.myVkData.myInitialImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;  // Buffers don't have image layouts
+    
+    GpuSubresourceHazardDataVk subHazardData;
+    subHazardData.myContext = CommandListType::Graphics;
+    subHazardData.myImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    subHazardData.myAccessMask = 0u;
+    myStateTracking.myVkData.mySubresources.resize(1u, subHazardData);
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     const uint queueFamilyIndices[] = 
@@ -146,9 +149,7 @@ namespace Fancy
       else
       {
         CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-        ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
         ctx->UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes);
-        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }

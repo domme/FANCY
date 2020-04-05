@@ -30,11 +30,15 @@ namespace Fancy {
 
     static uint CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex);
     static uint CalcNumSubresources(uint aNumMips, uint aNumArraySlices, uint aNumPlanes);
+
     uint GetSubresourceIndex(const SubresourceLocation& aSubresourceLocation) const;
     SubresourceLocation GetSubresourceLocation(uint aSubresourceIndex) const;
 
     const SubresourceRange& GetSubresources() const { return mySubresources; }
     GpuResourceHazardData& GetHazardData() const { return myStateTracking; }
+
+    bool IsBuffer() const { return myCategory == GpuResourceCategory::BUFFER; }
+    bool IsTexture() const { return myCategory == GpuResourceCategory::TEXTURE; }
 
     virtual ~GpuResource() = default;
     virtual bool IsValid() const { return false; }

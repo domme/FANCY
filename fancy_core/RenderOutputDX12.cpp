@@ -56,6 +56,7 @@ namespace Fancy {
       subHazardData.myContext = CommandListType::Graphics;
       subHazardData.myStates = D3D12_RESOURCE_STATE_PRESENT;
 
+      resource.mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
       resource.myStateTracking = GpuResourceHazardData();
       resource.myStateTracking.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
       resource.myStateTracking.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
