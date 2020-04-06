@@ -55,7 +55,7 @@ namespace Fancy
     
     bool isArray = false;
     bool isCube = false;
-    const VkImageType imageType = RenderCore_PlatformVk::ResolveImageResourceDimension(someProperties.myDimension, isArray, isCube);
+    const VkImageType imageType = RenderCore_PlatformVk::ResolveImageResourceDimension(myProperties.myDimension, isArray, isCube);
 
     VkImageCreateInfo imageInfo = {};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -68,19 +68,18 @@ namespace Fancy
       imageInfo.flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
 
     imageInfo.imageType = imageType;
-    imageInfo.format = RenderCore_PlatformVk::ResolveFormat(someProperties.myFormat);
-    imageInfo.extent.width = someProperties.myWidth;
-    imageInfo.extent.height = someProperties.myHeight;
-    imageInfo.extent.depth = someProperties.GetDepthSize();
-
-    const uint minSide = (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(someProperties.myWidth, someProperties.myHeight, someProperties.myDepthOrArraySize) : glm::min(someProperties.myWidth, someProperties.myHeight);
-    const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(minSide)));
-    imageInfo.mipLevels = glm::max(1u, glm::min(someProperties.myNumMipLevels, maxNumMipLevels));
-    myProperties.myNumMipLevels = imageInfo.mipLevels;
-
-    imageInfo.arrayLayers = someProperties.GetArraySize();
+    imageInfo.format = RenderCore_PlatformVk::ResolveFormat(DataFormatInfo::GetNonSRGBformat(myProperties.myFormat));
+    imageInfo.extent.width = myProperties.myWidth;
+    imageInfo.extent.height = myProperties.myHeight;
+    imageInfo.extent.depth = glm::max(1u, myProperties.GetDepthSize());
+    imageInfo.arrayLayers = glm::max(1u, myProperties.GetArraySize());
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+
+    const uint minSide = (myProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(myProperties.myWidth, myProperties.myHeight, myProperties.myDepthOrArraySize) : glm::min(myProperties.myWidth, myProperties.myHeight);
+    const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(minSide)));
+    imageInfo.mipLevels = glm::max(1u, glm::min(myProperties.myNumMipLevels, maxNumMipLevels));
+    myProperties.myNumMipLevels = imageInfo.mipLevels;
 
     VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT;
     VkAccessFlags writeMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
@@ -91,9 +90,9 @@ namespace Fancy
     supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.myFormat);
     imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    if (someProperties.myIsRenderTarget)
+    if (myProperties.myIsRenderTarget)
     {
       if (formatInfo.myIsDepthStencil)
       {
@@ -119,7 +118,7 @@ namespace Fancy
         supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
       }  
     }
-    if (someProperties.myIsShaderWritable)
+    if (myProperties.myIsShaderWritable)
     {
       imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
@@ -235,9 +234,34 @@ namespace Fancy
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
       const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
 
+      VkImageViewUsageCreateInfo usageInfo = {};
+      usageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO;
+      usageInfo.pNext = nullptr;
+      
+      usageInfo.usage = 0u;
+      if (someProperties.myIsShaderWritable)
+      {
+        usageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+      }
+      else if (someProperties.myIsRenderTarget)
+      {
+        if (formatInfo.myIsDepthStencil)
+        {
+          usageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        }
+        else
+        {
+          usageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        }
+      }
+      else
+      {
+        usageInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+      }
+      
       VkImageViewCreateInfo info;
       info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-      info.pNext = nullptr;
+      info.pNext = &usageInfo;
       info.flags = 0u;
       info.image = dataVk->myImage;
       info.format = RenderCore_PlatformVk::ResolveFormat(someProperties.myFormat);

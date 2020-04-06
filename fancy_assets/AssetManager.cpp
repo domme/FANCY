@@ -148,7 +148,6 @@ using namespace Fancy;
     texProps.bIsDepthStencil = false;
     texProps.myWidth = (uint) image.mySize.x;
     texProps.myHeight = (uint) image.mySize.y;
-    texProps.myDepthOrArraySize = 0u;
     texProps.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
     texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
 

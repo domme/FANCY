@@ -64,57 +64,56 @@ namespace Fancy {
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive");
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsRenderTarget, "Render target and depthstencil are mutually exclusive");
 
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.myFormat);
     ASSERT(formatInfo.myNumComponents != 3, "Texture-formats must be 1-, 2-, or 4-component");
-    myProperties.myFormat = someProperties.myFormat;
 
     myProperties.myDepthOrArraySize = glm::max(1u, myProperties.myDepthOrArraySize);
     
     DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::ResolveFormat(myProperties.myFormat);
-    if (!someProperties.myPreferTypedFormat)
+    if (!myProperties.myPreferTypedFormat)
     {
-      if (someProperties.bIsDepthStencil)
+      if (myProperties.bIsDepthStencil)
         dxgiFormat = RenderCore_PlatformDX12::GetDepthStencilTextureFormat(dxgiFormat);
       else
         dxgiFormat = RenderCore_PlatformDX12::GetTypelessFormat(dxgiFormat);
     }
 
-    const uint minSide = (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(someProperties.myWidth, someProperties.myHeight, someProperties.myDepthOrArraySize) : glm::min(someProperties.myWidth, someProperties.myHeight);
+    const uint minSide = (myProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(myProperties.myWidth, myProperties.myHeight, myProperties.myDepthOrArraySize) : glm::min(myProperties.myWidth, myProperties.myHeight);
     const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(minSide)));
-    myProperties.myNumMipLevels = glm::max(1u, glm::min(someProperties.myNumMipLevels, maxNumMipLevels));
+    myProperties.myNumMipLevels = glm::max(1u, glm::min(myProperties.myNumMipLevels, maxNumMipLevels));
 
     D3D12_RESOURCE_DESC resourceDesc;
     memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = dimension;
     resourceDesc.Alignment = 0;
-    resourceDesc.Width = glm::max(1u, static_cast<uint>(someProperties.myWidth));
-    resourceDesc.Height = glm::max(1u, static_cast<uint>(someProperties.myHeight));
-    resourceDesc.DepthOrArraySize = glm::max(1u, static_cast<uint>(someProperties.myDepthOrArraySize));
+    resourceDesc.Width = glm::max(1u, static_cast<uint>(myProperties.myWidth));
+    resourceDesc.Height = glm::max(1u, static_cast<uint>(myProperties.myHeight));
+    resourceDesc.DepthOrArraySize = glm::max(1u, static_cast<uint>(myProperties.myDepthOrArraySize));
     resourceDesc.MipLevels = myProperties.myNumMipLevels;
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     resourceDesc.Format = dxgiFormat;
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-    if (someProperties.bIsDepthStencil)
+    if (myProperties.bIsDepthStencil)
     {
       resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
     }
     else
     {
-      if (someProperties.myIsShaderWritable)
+      if (myProperties.myIsShaderWritable)
           resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-      else if (someProperties.myIsRenderTarget)
+      else if (myProperties.myIsRenderTarget)
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
     }
 
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
-    if (someProperties.myIsShaderWritable)
+    if (myProperties.myIsShaderWritable)
       writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    if (someProperties.myIsRenderTarget)
+    if (myProperties.myIsRenderTarget)
       writeStateMask |= D3D12_RESOURCE_STATE_RENDER_TARGET;
-    if (someProperties.bIsDepthStencil)
+    if (myProperties.bIsDepthStencil)
     {
       writeStateMask |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
       readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
@@ -140,7 +139,7 @@ namespace Fancy {
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
 
     D3D12_CLEAR_VALUE clearValue;
-    if (someProperties.bIsDepthStencil)
+    if (myProperties.bIsDepthStencil)
     {
       clearValue.Format = RenderCore_PlatformDX12::GetDepthStencilViewFormat(resourceDesc.Format);
       clearValue.DepthStencil.Depth = 1.0f;
@@ -154,10 +153,10 @@ namespace Fancy {
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();
-    const CpuMemoryAccessType gpuMemAccess = (CpuMemoryAccessType)someProperties.myAccessType;
+    const CpuMemoryAccessType gpuMemAccess = (CpuMemoryAccessType)myProperties.myAccessType;
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo(0u, 1u, &resourceDesc);
 
-    const GpuMemoryType memoryType = (someProperties.myIsRenderTarget || someProperties.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
+    const GpuMemoryType memoryType = (myProperties.myIsRenderTarget || myProperties.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
     const GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(memoryType, gpuMemAccess, allocInfo.SizeInBytes, (uint) allocInfo.Alignment, myName.c_str());
     ASSERT(gpuMemory.myHeap != nullptr);
 
