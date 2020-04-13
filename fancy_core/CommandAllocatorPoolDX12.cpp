@@ -4,6 +4,8 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//  
   CommandAllocatorPoolDX12::CommandAllocatorPoolDX12(CommandListType aType)
@@ -86,3 +88,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

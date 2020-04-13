@@ -9,6 +9,7 @@
 namespace Fancy
 {
   struct ShaderResourceInfoVk;
+  class ShaderPipelineVk;
 
   class CommandListVk : public CommandList
   {
@@ -52,7 +53,6 @@ namespace Fancy
     void PostExecute(uint64 aFenceVal) override;
     void PreBegin() override;
     void FlushBarriers() override;
-    void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline) override;
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset, uint64 aSize) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset, uint64 aSize) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
@@ -72,7 +72,6 @@ namespace Fancy
 
     void Close() override;
     
-    void SetComputeProgram(const Shader* aProgram) override;
     void Dispatch(const glm::int3& aNumThreads) override;
 
     VkCommandBuffer GetCommandBuffer() const { return myCommandBuffer; }
@@ -83,8 +82,11 @@ namespace Fancy
     void AddBarrier(const ImageMemoryBarrierData& aBarrier);
     
   protected:
+    void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut) override;
+
+    const ShaderPipelineVk* GetShaderPipeline() const;
+
     bool FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoVk& aResourceInfoOut) const;
-    void ClearResourceState();
     void BindInternal(const ShaderResourceInfoVk &aResourceInfo,
       uint anArrayIndex,
       VkBufferView aBufferView,
@@ -120,22 +122,31 @@ namespace Fancy
     {
       struct DescriptorRange
       {
-        uint myBindingInSet = UINT_MAX;
-        VkDescriptorType myType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-        DynamicArray<VkDescriptorImageInfo> myImageInfos;
-        DynamicArray<VkDescriptorBufferInfo> myBufferInfos;
-        DynamicArray<VkBufferView> myTexelBufferViews;
+        DescriptorRange();
+        VkDescriptorType myType;
+        uint myNumBoundDescriptors;
+        union
+        {
+          VkDescriptorImageInfo myImageInfos[kVkMaxNumDescriptorsPerRange];
+          VkDescriptorBufferInfo myBufferInfos[kVkMaxNumDescriptorsPerRange];
+          VkBufferView myTexelBufferViews[kVkMaxNumDescriptorsPerRange];
+        } myData;
       };
 
       struct DescriptorSet
       {
-        uint mySet;
-        VkDescriptorSetLayout myLayout;
-        StaticArray<DescriptorRange, 64> myRanges;
+        mutable bool myIsDirty = true;
+        uint myNumBoundRanges = 0u;
+        VkDescriptorSetLayout myLayout = nullptr;
+        DescriptorRange myRanges[kVkMaxNumDescriptorRangesPerSet];
       };
 
+      void Clear();
+
+      VkPipelineLayout myPipelineLayout = nullptr;
       StaticArray<std::pair<VkBufferView, uint64>, 64> myTempBufferViews;
-      StaticArray<DescriptorSet, 16> myDescriptorSets;
+      DescriptorSet myDescriptorSets[kVkMaxNumBoundDescriptorSets];
+      uint myNumBoundDescriptorSets = 0u;
     };
 
     ResourceState myResourceState;

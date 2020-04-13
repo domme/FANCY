@@ -6,6 +6,8 @@
 #include "RenderEnums.h"
 #include "ShaderResourceInfoDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderCompiledDataDX12
@@ -50,3 +52,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

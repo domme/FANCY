@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Texture.h"
-#include "DynamicArray.h"
+
+#if FANCY_ENABLE_DX12
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -45,3 +46,5 @@ namespace Fancy {
     static bool CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
   };
 }
+
+#endif

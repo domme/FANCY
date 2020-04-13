@@ -9,6 +9,13 @@
 
 namespace Fancy
 {
+  enum
+  {
+    kVkMaxNumBoundDescriptorSets = 32,
+    kVkMaxNumDescriptorRangesPerSet = 64,
+    kVkMaxNumDescriptorsPerRange = 64
+  };
+
   enum VkImplementationDebugLevel
   {
     VK_IMPLEMENTATION_DEBUG_LEVEL_NONE = 0,

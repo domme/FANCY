@@ -13,6 +13,8 @@
 #include <dxc/dxcapi.h>
 #include <dxc/DxilContainer/DxilContainer.h>
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   DataFormat locResolveFormat(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
@@ -518,3 +520,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

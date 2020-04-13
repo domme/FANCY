@@ -27,7 +27,7 @@ namespace Fancy {
       kMaxNumConstantBufferElements = 128u,
       kMaxNumGeometriesPerSubModel = 128u,
       kMaxNumRenderContexts = 256u,
-      kNumRenderThreads = 1u
+      kNumRenderThreads = 1u,
     };
   }
 //---------------------------------------------------------------------------//

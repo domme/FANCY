@@ -4,12 +4,11 @@
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 
-#include "GpuResourceDataDX12.h"
 #include "RenderEnums.h"
-#include "GpuResourceHazardData.h"
-#include <glm/detail/type_mat.hpp>
 #include "StaticArray.h"
 #include "ShaderResourceInfoDX12.h"
+
+#if FANCY_ENABLE_DX12
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -45,7 +44,6 @@ namespace Fancy {
     void PreBegin() override;
 
     void FlushBarriers() override;
-    void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline) override;
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
@@ -64,7 +62,6 @@ namespace Fancy {
 
     void Close() override;
 
-    void SetComputeProgram(const Shader* aProgram) override;
     void Dispatch(const glm::int3& aNumThreads) override;
 
     void TrackResourceTransition(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState, bool aIsSharedReadState = false);
@@ -72,6 +69,8 @@ namespace Fancy {
     void AddBarrier(const D3D12_RESOURCE_BARRIER& aBarrier);
 
   protected:
+    void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut) override;
+
     struct ResourceState
     {
       struct DescriptorTable
@@ -163,3 +162,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

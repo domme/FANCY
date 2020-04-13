@@ -20,8 +20,10 @@ namespace Fancy {
 
       uint64 GetHash() const { return GetDescription().GetHash(); }
       uint64 GetShaderByteCodeHash() const { return myShaderByteCodeHash; }
+      bool IsComputePipeline() const { return myShaders[(uint)ShaderStage::COMPUTE] != nullptr; }
+      const Shader* GetShader(ShaderStage aStage) const { return myShaders[(uint)aStage].get(); }
 
-      virtual void UpdateResourceInterface() = 0;
+      virtual void CreateFromShaders() = 0;
       void UpdateShaderByteCodeHash();
 
       SharedPtr<Shader> myShaders[(uint)ShaderStage::NUM];

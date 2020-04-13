@@ -26,8 +26,8 @@ namespace Fancy {
     for(DataFormat& rtvFormat : myRTVformats)
       rtvFormat = DataFormat::UNKNOWN;
 
-    myDepthStencilState = RenderCore::GetDefaultDepthStencilState();
-    myBlendState = RenderCore::GetDefaultBlendState();
+    myDepthStencilState = RenderCore::GetDefaultDepthStencilState().get();
+    myBlendState = RenderCore::GetDefaultBlendState().get();
   }
 //---------------------------------------------------------------------------//
   uint64 GraphicsPipelineState::GetHash() const
@@ -36,9 +36,9 @@ namespace Fancy {
     MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myCullMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myDepthStencilState.get()));
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myBlendState.get()));
-    MathUtil::hash_combine(hash, myShaderPipeline != nullptr ? myShaderPipeline->GetHash() : 0u);
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myDepthStencilState));
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myBlendState));
+    MathUtil::hash_combine(hash, myShaderPipeline != nullptr ? myShaderPipeline->GetHash() : 0u);  // TODO: This should not be needed, the shaderbytecode hash should be enough
 
     if (myShaderPipeline != nullptr)
       MathUtil::hash_combine(hash, myShaderPipeline->GetShaderByteCodeHash());
@@ -56,7 +56,7 @@ namespace Fancy {
   
 //---------------------------------------------------------------------------//
   ComputePipelineState::ComputePipelineState()
-    : myShader(nullptr)
+    : myShaderPipeline(nullptr)
     , myIsDirty(true)
   {
   }
@@ -64,10 +64,10 @@ namespace Fancy {
   uint64 ComputePipelineState::GetHash() const
   {
     uint64 hash = 0u;
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myShader));
+    MathUtil::hash_combine(hash, myShaderPipeline != nullptr ? myShaderPipeline->GetHash() : 0u);  // TODO: This should not be needed, the shaderbytecode hash should be enough
 
-    if (myShader != nullptr)
-      MathUtil::hash_combine(hash, myShader->GetNativeBytecodeHash());
+    if (myShaderPipeline != nullptr)
+      MathUtil::hash_combine(hash, myShaderPipeline->GetShaderByteCodeHash());
 
     return hash;
   }
@@ -96,7 +96,7 @@ namespace Fancy {
     , myClipRectDirty(true)
     , myTopologyDirty(true)
     , myRenderTargetsDirty(true)
-    , myShaderHasUnorderedWrites(false)
+    , myShaderPipelineHasUnorderedWrites(false)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr)
   {
@@ -278,37 +278,47 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 // Render Context:
 //---------------------------------------------------------------------------//
-  void CommandList::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
+  void CommandList::SetShaderPipeline(const ShaderPipeline* aShaderPipeline)
   {
-    ASSERT(myCommandListType == CommandListType::Graphics);
-    
-    myCurrentContext = CommandListType::Graphics;
-    if (myGraphicsPipelineState.myShaderPipeline != aShaderPipeline)
-    {
-      myGraphicsPipelineState.myShaderPipeline = aShaderPipeline;
-      myGraphicsPipelineState.myIsDirty = true;
-
-      bool hasUnorderedWrites = false;
-      for (const SharedPtr<Shader>& shader : aShaderPipeline->myShaders)
-        if(shader != nullptr)
-          hasUnorderedWrites |= shader->myProperties.myHasUnorderedWrites;
-
-      myShaderHasUnorderedWrites = hasUnorderedWrites;
-    }
+    bool hasChanged = false;
+    SetShaderPipelineInternal(aShaderPipeline, hasChanged);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SetComputeProgram(const Shader* aProgram)
+  void CommandList::SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut)
   {
-    ASSERT(aProgram->myProperties.myShaderStage == ShaderStage::COMPUTE);
-    ASSERT(myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute);
+    ASSERT(myCommandListType != CommandListType::DMA);
 
-    myCurrentContext = CommandListType::Compute;
-    if (myComputePipelineState.myShader != aProgram)
+    aHasPipelineChangedOut = false;
+
+    if (aPipeline->IsComputePipeline())
     {
-      myComputePipelineState.myShader = aProgram;
-      myComputePipelineState.myIsDirty = true;
-      myShaderHasUnorderedWrites = aProgram->myProperties.myHasUnorderedWrites;
+      myCurrentContext = CommandListType::Compute;
+      if (myComputePipelineState.myShaderPipeline != aPipeline)
+      {
+        myComputePipelineState.myShaderPipeline = aPipeline;
+        myComputePipelineState.myIsDirty = true;
+        aHasPipelineChangedOut = true;
+      }
     }
+    else
+    {
+      ASSERT(myCommandListType == CommandListType::Graphics);
+      myCurrentContext = CommandListType::Graphics;
+
+      if (myGraphicsPipelineState.myShaderPipeline != aPipeline)
+      {
+        myGraphicsPipelineState.myShaderPipeline = aPipeline;
+        myGraphicsPipelineState.myIsDirty = true;
+        aHasPipelineChangedOut = true;
+      }
+    }
+
+    bool hasUnorderedWrites = false;
+    for (const SharedPtr<Shader>& shader : aPipeline->myShaders)
+      if (shader != nullptr)
+        hasUnorderedWrites |= shader->myProperties.myHasUnorderedWrites;
+
+    myShaderPipelineHasUnorderedWrites = hasUnorderedWrites;
   }
 //---------------------------------------------------------------------------//
   void CommandList::SetClipRect(const glm::uvec4& aClipRect)
@@ -380,10 +390,10 @@ namespace Fancy {
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
 
-    if (pipelineState.myBlendState == stateToSet)
+    if (pipelineState.myBlendState == stateToSet.get())
       return;
 
-    pipelineState.myBlendState = stateToSet;
+    pipelineState.myBlendState = stateToSet.get();
     pipelineState.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
@@ -394,10 +404,10 @@ namespace Fancy {
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
 
-    if (pipelineState.myDepthStencilState == stateToSet)
+    if (pipelineState.myDepthStencilState == stateToSet.get())
       return;
 
-    pipelineState.myDepthStencilState = stateToSet;
+    pipelineState.myDepthStencilState = stateToSet.get();
     pipelineState.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//

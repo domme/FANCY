@@ -5,6 +5,8 @@
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy 
 {
 //---------------------------------------------------------------------------//
@@ -34,5 +36,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
-
-
+#endif

@@ -4,6 +4,8 @@
 #include "ShaderCompiler.h"
 #include "RenderCore_PlatformDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   void ShaderDX12::CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout,
@@ -94,3 +96,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

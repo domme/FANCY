@@ -3,6 +3,8 @@
 #include "GpuBuffer.h"
 #include "RenderEnums.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class DescriptorDX12;
@@ -40,3 +42,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

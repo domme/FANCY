@@ -12,6 +12,8 @@
 #include "CommandQueueDX12.h"
 #include "GpuQueryHeap.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct WindowParameters;
@@ -104,3 +106,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

@@ -27,9 +27,9 @@ namespace Fancy {
     FillMode myFillMode;
     CullMode myCullMode;
     WindingOrder myWindingOrder;
-    SharedPtr<DepthStencilState> myDepthStencilState;
-    SharedPtr<BlendState> myBlendState;
-    SharedPtr<ShaderPipeline> myShaderPipeline;
+    const DepthStencilState* myDepthStencilState;
+    const BlendState* myBlendState;
+    const ShaderPipeline* myShaderPipeline;
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[RenderConstants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
@@ -43,7 +43,7 @@ namespace Fancy {
     ComputePipelineState();
     uint64 GetHash() const;
 
-    const Shader* myShader;
+    const ShaderPipeline* myShaderPipeline;
     bool myIsDirty;
   };
 //---------------------------------------------------------------------------//
@@ -105,8 +105,6 @@ namespace Fancy {
     virtual void Close() = 0;
 
     virtual void FlushBarriers() = 0;
-    virtual void SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline);
-    virtual void SetComputeProgram(const Shader* aProgram);
     virtual void PostExecute(uint64 aFenceVal);
     virtual void PreBegin();
 
@@ -119,6 +117,7 @@ namespace Fancy {
     void BindConstantBuffer(void* someData, uint64 aDataSize, const char* aName);
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
+    void SetShaderPipeline(const ShaderPipeline* aShaderPipeline);
     void SetBlendState(const SharedPtr<BlendState>& aBlendState);
     void SetDepthStencilState(const SharedPtr<DepthStencilState>& aDepthStencilState);
     void SetFillMode(const FillMode eFillMode);
@@ -131,6 +130,8 @@ namespace Fancy {
     void UpdateBufferData(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const void* aDataPtr, uint64 aByteSize);
         
   protected:
+    virtual void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut);
+
     void ValidateTextureCopy(const TextureProperties& aDstProps, const SubresourceLocation& aDstSubresrource, const TextureRegion& aDstRegion,
       const TextureProperties& aSrcProps, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) const;
     void ValidateTextureToBufferCopy(const GpuBufferProperties& aDstBufferProps, uint64 aDstBufferOffset, 
@@ -157,7 +158,7 @@ namespace Fancy {
     bool myClipRectDirty;
     bool myTopologyDirty;
     bool myRenderTargetsDirty;
-    bool myShaderHasUnorderedWrites;
+    bool myShaderPipelineHasUnorderedWrites;
     TextureView* myRenderTargets[RenderConstants::kMaxNumRenderTargets];
     TextureView* myDepthStencilTarget;
 

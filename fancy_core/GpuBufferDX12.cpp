@@ -9,6 +9,8 @@
 #include "GpuResourceViewDataDX12.h"
 #include "CommandList.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBufferDX12::~GpuBufferDX12()
@@ -316,3 +318,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

@@ -4,6 +4,8 @@
 #include "PagedLinearAllocator.h"
 #include "GpuMemoryAllocationDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------// 
@@ -24,3 +26,5 @@ namespace Fancy
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

@@ -5,6 +5,7 @@
 #include "FancyCoreDefines.h"
 #include "CommandBufferAllocatorVk.h"
 #include "DescriptorPoolAllocatorVk.h"
+#include "PipelineLayoutCacheVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -82,6 +83,8 @@ namespace Fancy
 
     const QueueInfo& GetQueueInfo(CommandListType aCommandListType) { return myQueueInfos[(uint)aCommandListType]; }
 
+    PipelineLayoutCacheVk& GetPipelineLayoutCache() { return myPipelineLayoutCache; }
+
     // TODO: Make these members private and add getter-functions where needed
     VkInstance myInstance = nullptr;
     VkPhysicalDevice myPhysicalDevice = nullptr;
@@ -102,6 +105,8 @@ namespace Fancy
     UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
 
     StaticArray<std::pair<VkBufferView, uint64>, 256> myTempBufferViews;
+
+    PipelineLayoutCacheVk myPipelineLayoutCache;
   };
 }
 

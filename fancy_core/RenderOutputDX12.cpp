@@ -8,6 +8,8 @@
 #include "CommandListDX12.h"
 #include "GpuResourceDataDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderOutputDX12::RenderOutputDX12(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
@@ -105,3 +107,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

@@ -3,6 +3,8 @@
 #include "DX12Prerequisites.h"
 #include "GpuMemoryAllocationDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GpuResourceDataDX12
@@ -12,3 +14,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

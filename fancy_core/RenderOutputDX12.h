@@ -3,6 +3,8 @@
 #include "DX12Prerequisites.h"
 #include "RenderOutput.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class Window;
@@ -25,3 +27,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

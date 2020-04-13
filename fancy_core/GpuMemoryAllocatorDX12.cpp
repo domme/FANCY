@@ -5,6 +5,8 @@
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//  
@@ -74,3 +76,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

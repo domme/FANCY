@@ -3,6 +3,8 @@
 #include "TextureSampler.h"
 #include "DescriptorDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class TextureSamplerDX12 : public TextureSampler
@@ -19,3 +21,4 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 }
 
+#endif

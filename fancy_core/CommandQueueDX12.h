@@ -4,6 +4,8 @@
 
 #include <wrl.h>
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy
 {
   class CommandList;
@@ -33,3 +35,5 @@ namespace Fancy
     uint64 SignalAndIncrementFence();
   };
 }
+
+#endif

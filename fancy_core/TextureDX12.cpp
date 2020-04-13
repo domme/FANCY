@@ -11,6 +11,8 @@
 #include "GpuResourceViewDataDX12.h"
 #include "CommandList.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   TextureDX12::TextureDX12(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable)
@@ -531,3 +533,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

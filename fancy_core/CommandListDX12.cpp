@@ -17,8 +17,9 @@
 #include "GpuResourceViewDataDX12.h"
 #include "TimeManager.h"
 #include "GpuQueryHeapDX12.h"
-#include <glm/detail/type_mat.hpp>
 #include "TextureSamplerDX12.h"
+
+#if FANCY_ENABLE_DX12
 
 namespace Fancy { 
 //---------------------------------------------------------------------------//
@@ -593,7 +594,7 @@ namespace Fancy {
     }
 
     // ROOT SIGNATURE
-    const ShaderPipelineDX12* shaderPipelineDx12 = static_cast<const ShaderPipelineDX12*>(aState.myShaderPipeline.get());
+    const ShaderPipelineDX12* shaderPipelineDx12 = static_cast<const ShaderPipelineDX12*>(aState.myShaderPipeline);
     psoDesc.pRootSignature = shaderPipelineDx12->GetRootSignature();
 
     // BLEND DESC
@@ -738,9 +739,9 @@ namespace Fancy {
     D3D12_COMPUTE_PIPELINE_STATE_DESC desc;
     memset(&desc, 0u, sizeof(desc));
 
-    if (aState.myShader != nullptr)
+    if (aState.myShaderPipeline != nullptr)
     {
-      const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShader);
+      const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShaderPipeline->myShaders[(uint) ShaderStage::COMPUTE].get());
 
       desc.pRootSignature = shaderDx12->GetRootSignature();
       desc.CS = shaderDx12->getNativeByteCode();
@@ -753,11 +754,11 @@ namespace Fancy {
   bool CommandListDX12::FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoDX12& aResourceInfoOut) const
   {
     ASSERT(myGraphicsPipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Graphics);
-    ASSERT(myComputePipelineState.myShader != nullptr || myCurrentContext != CommandListType::Compute);
+    ASSERT(myComputePipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Compute);
 
     const DynamicArray<ShaderResourceInfoDX12>& shaderResources = myCurrentContext == CommandListType::Graphics ?
-      static_cast<ShaderPipelineDX12*>(myGraphicsPipelineState.myShaderPipeline.get())->GetResourceInfos() :
-      static_cast<const ShaderDX12*>(myComputePipelineState.myShader)->GetResourceInfos();
+      static_cast<const ShaderPipelineDX12*>(myGraphicsPipelineState.myShaderPipeline)->GetResourceInfos() :
+      static_cast<const ShaderPipelineDX12*>(myComputePipelineState.myShaderPipeline)->GetResourceInfos();
 
     auto it = std::find_if(shaderResources.begin(), shaderResources.end(), [aNameHash](const ShaderResourceInfoDX12& aResourceInfo) {
       return aResourceInfo.myNameHash == aNameHash;
@@ -1113,18 +1114,30 @@ namespace Fancy {
   }
   */
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
+  void CommandListDX12::SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut)
   {
-    CommandList::SetShaderPipeline(aShaderPipeline);
+    CommandList::SetShaderPipelineInternal(aPipeline, aHasPipelineChangedOut);
 
-    const ShaderPipelineDX12* pipelineDx12 = static_cast<const ShaderPipelineDX12*>(aShaderPipeline.get());
+    const ShaderPipelineDX12* pipelineDx12 = static_cast<const ShaderPipelineDX12*>(aPipeline);
     ID3D12RootSignature* rootSignature = pipelineDx12->GetRootSignature();
 
-    if (myRootSignature != rootSignature)
+    if (aPipeline->IsComputePipeline())
     {
-      myRootSignature = rootSignature;
-      myCommandList->SetGraphicsRootSignature(rootSignature);
-      ClearResourceBindings();
+      if (myComputeRootSignature != rootSignature)
+      {
+        myComputeRootSignature = rootSignature;
+        myCommandList->SetComputeRootSignature(myComputeRootSignature);
+        ClearResourceBindings();
+      }
+    }
+    else
+    {
+      if (myRootSignature != rootSignature)
+      {
+        myRootSignature = rootSignature;
+        myCommandList->SetGraphicsRootSignature(rootSignature);
+        ClearResourceBindings();
+      }
     }
   }
 //---------------------------------------------------------------------------//
@@ -1549,28 +1562,18 @@ namespace Fancy {
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::SetComputeProgram(const Shader* aProgram)
-  {
-    CommandList::SetComputeProgram(aProgram);
-
-    const ShaderDX12* programDx12 = static_cast<const ShaderDX12*>(aProgram);
-
-    if (myComputeRootSignature != programDx12->GetRootSignature())
-    {
-      myComputeRootSignature = programDx12->GetRootSignature();
-      myCommandList->SetComputeRootSignature(myComputeRootSignature);
-    }
-  }
-//---------------------------------------------------------------------------//
   void CommandListDX12::Dispatch(const glm::int3& aNumThreads)
   {
     FlushBarriers();
 
     ApplyComputePipelineState();
     ApplyResourceBindings();
-    ASSERT(myComputePipelineState.myShader != nullptr);
+    ASSERT(myComputePipelineState.myShaderPipeline != nullptr);
 
-    const glm::int3& numGroupThreads = myComputePipelineState.myShader->myProperties.myNumGroupThreads;
+    const Shader* shader = myComputePipelineState.myShaderPipeline->GetShader(ShaderStage::COMPUTE);
+    ASSERT(shader != nullptr);
+
+    const glm::int3& numGroupThreads = shader->GetProperties().myNumGroupThreads;
     const glm::int3 numGroups = glm::max(glm::int3(1), aNumThreads / numGroupThreads);
     myCommandList->Dispatch(static_cast<uint>(numGroups.x), static_cast<uint>(numGroups.y), static_cast<uint>(numGroups.z));
   }
@@ -1587,3 +1590,5 @@ namespace Fancy {
   
 //---------------------------------------------------------------------------//
 }
+
+#endif

@@ -3,6 +3,8 @@
 #include "FileWatcher.h"
 #include "ShaderCompiler.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class ShaderCompilerDX12 : public ShaderCompiler, public FileWatcher
@@ -15,3 +17,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

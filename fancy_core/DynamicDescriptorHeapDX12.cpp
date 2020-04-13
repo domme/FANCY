@@ -5,6 +5,8 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   DynamicDescriptorHeapDX12::DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors)
@@ -75,3 +77,6 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+
+#endif

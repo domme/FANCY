@@ -36,6 +36,8 @@ namespace Fancy
     uint64 GetNativeBytecodeHash() const override;
 
     const DynamicArray<ShaderResourceInfoVk>& GetResourceInfos() const { return myResourceInfos; }
+    VkShaderModule GetModule() const { return myModule; }
+    const VkPipelineShaderStageCreateInfo& GetStageCreateInfo() const { return myShaderStageCreateInfo; }
     
     VkShaderModule myModule = nullptr;
     VkPipelineShaderStageCreateInfo myShaderStageCreateInfo = {};

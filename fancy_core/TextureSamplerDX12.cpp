@@ -4,6 +4,8 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy 
 {
   namespace Priv_TextureSamplerDX12
@@ -114,3 +116,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

@@ -19,6 +19,8 @@
 #include "GpuQueryHeapDX12.h"
 #include "TextureSamplerDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
   //---------------------------------------------------------------------------//
   namespace {
@@ -736,3 +738,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 } 
+
+#endif

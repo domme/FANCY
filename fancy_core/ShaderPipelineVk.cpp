@@ -4,11 +4,17 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
 #include "ShaderResourceInfoVk.h"
+#include "PipelineLayoutCacheVk.h"
 
 #if FANCY_ENABLE_VK
 
 namespace Fancy
 {
+  ShaderPipelineVk::ShaderPipelineVk()
+    : myPipelineLayout(nullptr)
+  {
+  }
+
   ShaderPipelineVk::~ShaderPipelineVk()
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
@@ -16,103 +22,102 @@ namespace Fancy
       vkDestroyPipelineLayout(platformVk->myDevice, myPipelineLayout, nullptr);
   }
 
-  void ShaderPipelineVk::UpdateResourceInterface()
+  void ShaderPipelineVk::CreateFromShaders()
   {
-    // Create the pipeline layout by analyzing the reflected data from all shaders
+#if FANCY_RENDERER_DEBUG
+    const bool hasComputeShader = myShaders[(uint)ShaderStage::COMPUTE] != nullptr;
+    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
+    {
+      if (myShaders[i] == nullptr)
+        continue;
+
+      if (hasComputeShader)
+      {
+        ASSERT(i == (uint)ShaderStage::COMPUTE, "Can't mix a compute shader with other stages in the same pipeline");
+      }
+      else
+      {
+        ASSERT(i != (uint)ShaderStage::COMPUTE, "Can't mix a compute shader with other stages in the same pipeline");
+      }
+    }
+#endif
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-
     if (myPipelineLayout != nullptr)
     {
       vkDestroyPipelineLayout(platformVk->myDevice, myPipelineLayout, nullptr);
       myPipelineLayout = nullptr;
     }
 
-    struct DescriptorSet
-    {
-      DescriptorSet(uint aSetIndex) : mySet(aSetIndex) { }
-      uint mySet;
-      DynamicArray<VkDescriptorSetLayoutBinding> myBindings;
-    };
-    DynamicArray<DescriptorSet> descriptorSets;
-
+    // Merge Resource infos
     myResourceInfos.clear();
-
-    // Loop through all shaders and find all unique resources. Create both a descriptorSet-structure to create descriptorset layouts and also merge all resource infos into the pipeline
-    for (SharedPtr<Shader>& shader : myShaders)
+    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
+      Shader* shader = myShaders[i].get();
       if (shader == nullptr)
         continue;
 
-      ShaderVk* shaderVk = static_cast<ShaderVk*>(shader.get());
+      ShaderVk* shaderVk = static_cast<ShaderVk*>(shader);
       const DynamicArray<ShaderResourceInfoVk>& shaderResourceInfos = shaderVk->GetResourceInfos();
-
       for (const ShaderResourceInfoVk& resourceInfo : shaderResourceInfos)
       {
         if (std::find(myResourceInfos.begin(), myResourceInfos.end(), resourceInfo) == myResourceInfos.end())
           myResourceInfos.push_back(resourceInfo);
-
-        int iSet = -1;
-        for (int i = 0; i < (int)descriptorSets.size() && iSet == -1; ++i)
-          if (descriptorSets[i].mySet == resourceInfo.myDescriptorSet)
-            iSet = i;
-
-        if (iSet == -1)
-        {
-          descriptorSets.push_back(DescriptorSet(resourceInfo.myDescriptorSet));
-          iSet = (int)descriptorSets.size() - 1;
-        }
-
-        DynamicArray<VkDescriptorSetLayoutBinding>& targetBindingsInSet = descriptorSets[iSet].myBindings;
-
-        for (int i = 0; i < (int)targetBindingsInSet.size(); ++i)
-          ASSERT(targetBindingsInSet[i].binding != resourceInfo.myBindingInSet, "Binding %d is already used", resourceInfo.myBindingInSet);
-
-        VkDescriptorSetLayoutBinding vkBinding;
-        vkBinding.binding = resourceInfo.myBindingInSet;
-        vkBinding.descriptorCount = resourceInfo.myNumDescriptors;
-        vkBinding.descriptorType = resourceInfo.myType;
-        vkBinding.stageFlags = VK_SHADER_STAGE_ALL;
-        vkBinding.pImmutableSamplers = nullptr;  // TODO: Needs to be used for static samplers in Vulkan shaders. Do that in the future! Otherwise we need to actually bind dynamic samplers
-        targetBindingsInSet.push_back(vkBinding);
       }
     }
 
+    // Create descriptor set layouts from the resource infos
+    DynamicArray<PipelineLayoutCacheVk::DescriptorSetInfo> descriptorSets;
     uint maxSetIdx = 0u;
-    for (uint i = 0u; i < (uint)descriptorSets.size(); ++i)
-      maxSetIdx = glm::max(maxSetIdx, descriptorSets[i].mySet);
-
-    myDescriptorSetLayouts.GrowToSize(maxSetIdx + 1);
-    for (uint i = 0u; i < myDescriptorSetLayouts.Size(); ++i)
-      myDescriptorSetLayouts[i] = nullptr;
-
-    // Create the VkDescriptorSetLayouts
-    StaticArray<VkDescriptorSetLayout, 32> createdLayouts;
-    for (uint i = 0u; i < (uint) descriptorSets.size(); ++i)
+    for (const ShaderResourceInfoVk& resourceInfo : myResourceInfos)
     {
-      VkDescriptorSetLayoutCreateInfo createInfo;
-      createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-      createInfo.pNext = nullptr;
-      createInfo.flags = 0u;
-      createInfo.bindingCount = (uint) descriptorSets[i].myBindings.size();
-      createInfo.pBindings = descriptorSets[i].myBindings.data();
+      int iSet = -1;
+      for (int i = 0; i < (int)descriptorSets.size() && iSet == -1; ++i)
+        if (descriptorSets[i].mySet == resourceInfo.myDescriptorSet)
+          iSet = i;
 
-      ASSERT_VK_RESULT(vkCreateDescriptorSetLayout(platformVk->myDevice, &createInfo, nullptr, &myDescriptorSetLayouts[descriptorSets[i].mySet]));
-      createdLayouts.Add(myDescriptorSetLayouts[descriptorSets[i].mySet]);
+      if (iSet == -1)
+      {
+        descriptorSets.push_back(PipelineLayoutCacheVk::DescriptorSetInfo(resourceInfo.myDescriptorSet));
+        iSet = (int)descriptorSets.size() - 1;
+      }
+
+      DynamicArray<VkDescriptorSetLayoutBinding>& targetBindingsInSet = descriptorSets[iSet].myBindings;
+      maxSetIdx = glm::max(maxSetIdx, descriptorSets[iSet].mySet);
+
+#if FANCY_RENDERER_DEBUG
+      for (int i = 0; i < (int)targetBindingsInSet.size(); ++i)
+      ASSERT(targetBindingsInSet[i].binding != resourceInfo.myBindingInSet, "Binding %d is already used", resourceInfo.
+myBindingInSet);
+#endif
+
+      VkDescriptorSetLayoutBinding vkBinding;
+      vkBinding.binding = resourceInfo.myBindingInSet;
+      vkBinding.descriptorCount = resourceInfo.myNumDescriptors;
+      vkBinding.descriptorType = resourceInfo.myType;
+      vkBinding.stageFlags = VK_SHADER_STAGE_ALL;
+      vkBinding.pImmutableSamplers = nullptr;
+      // TODO: Needs to be used for static samplers in Vulkan shaders. Do that in the future! Otherwise we need to actually bind dynamic samplers
+      targetBindingsInSet.push_back(vkBinding);
     }
 
-    // Describe the pipeline layout using the descriptorSetLayouts
-    VkPipelineLayoutCreateInfo layoutCreateInfo;
-    layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    layoutCreateInfo.flags = 0u;
-    layoutCreateInfo.pNext = nullptr;
-    layoutCreateInfo.pPushConstantRanges = nullptr;  // Don't use push constants for now
-    layoutCreateInfo.pushConstantRangeCount = 0u;
-    layoutCreateInfo.setLayoutCount = (uint)createdLayouts.Size();
-    layoutCreateInfo.pSetLayouts = createdLayouts.GetBuffer();
-    
-    ASSERT_VK_RESULT(vkCreatePipelineLayout(platformVk->myDevice, &layoutCreateInfo, nullptr, &myPipelineLayout));
+    std::stable_sort(descriptorSets.begin(), descriptorSets.end(), [](const PipelineLayoutCacheVk::DescriptorSetInfo& aLeft, const PipelineLayoutCacheVk::DescriptorSetInfo& aRight) {
+      return aLeft.mySet < aRight.mySet;
+    });
+ 
+    for (uint i = 0u; i < (uint)descriptorSets.size(); ++i)
+    {
+     PipelineLayoutCacheVk::DescriptorSetInfo& descriptorSet = descriptorSets[i];
+     std::stable_sort(descriptorSet.myBindings.begin(), descriptorSet.myBindings.end(), [](const VkDescriptorSetLayoutBinding& aLeft, const VkDescriptorSetLayoutBinding& aRight) {
+        return aLeft.binding < aRight.binding;
+     });
+    }
+
+    myDescriptorSetLayouts = PipelineDescriptorSetLayoutsVk();
+
+    PipelineLayoutCacheVk& layoutCache = RenderCore::GetPlatformVk()->GetPipelineLayoutCache();
+    myPipelineLayout = layoutCache.GetPipelineLayout(descriptorSets, myDescriptorSetLayouts);
   }
 }
 
-#endif  
+#endif

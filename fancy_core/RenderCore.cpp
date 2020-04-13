@@ -1169,7 +1169,7 @@ namespace Fancy {
 
     for (ShaderPipeline* pipeline : changedPipelines)
     {
-      pipeline->UpdateResourceInterface();
+      pipeline->CreateFromShaders();
       pipeline->UpdateShaderByteCodeHash();
     }
 
