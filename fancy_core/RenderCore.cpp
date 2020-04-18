@@ -26,6 +26,7 @@
 #include "GpuQueryHeap.h"
 #include "TimeManager.h"
 #include "TextureReadbackTask.h"
+#include "CommandLine.h"
 
 #include <xxHash/xxhash.h>
 #include "TextureSampler.h"
@@ -138,9 +139,9 @@ namespace Fancy {
     return ourShaderCompiler.get();
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::Init(RenderPlatformType aRenderingApi)
+  void RenderCore::Init()
   {
-    Init_0_Platform(aRenderingApi);
+    Init_0_Platform();
     Init_1_Services();
     Init_2_Resources();
   }
@@ -409,11 +410,17 @@ namespace Fancy {
     return ReadbackTask(bufferAlloc, fence);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::Init_0_Platform(RenderPlatformType aRenderingApi)
+  void RenderCore::Init_0_Platform()
   {
     ASSERT(ourPlatformImpl == nullptr);
 
-    switch (aRenderingApi)
+    const CommandLine* commandLine = CommandLine::GetInstance();
+
+    RenderPlatformType platformType = RenderPlatformType::DX12;
+    if (commandLine->HasArgument("vulkan"))
+      platformType = RenderPlatformType::VULKAN;
+
+    switch (platformType)
     {
       case RenderPlatformType::DX12:
 #if FANCY_ENABLE_DX12

@@ -10,14 +10,13 @@ namespace Fancy {
   struct WindowParameters;
   class Window;
   class Time;
-  struct RenderingStartupParameters;
   class RenderingProcess;
   class RenderOutput;
 //---------------------------------------------------------------------------//
   class FancyRuntime
   {
   public:
-    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams, const WindowParameters& someWindowParams);
+    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams);
     static void Shutdown();
     static FancyRuntime* GetInstance();
 

@@ -20,6 +20,7 @@
 #include "Test_AsyncCompute.h"
 #include "Tests/Test_Mipmapping.h"
 #include "Test_ModelViewer.h"
+#include "fancy_core/StringUtil.h"
 
 using namespace Fancy;
 
@@ -49,18 +50,13 @@ void OnWindowResized(uint aWidth, uint aHeight)
   }
 }
 
-void Init(HINSTANCE anInstanceHandle)
+void Init(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArguments)
 {
-  RenderingStartupParameters params;
-  params.myRenderingApi = RenderPlatformType::DX12; 
-  // params.myRenderingApi = RenderPlatformType::VULKAN;
-  params.myRenderingTechnique = RenderingTechnique::FORWARD;
-
   Fancy::WindowParameters windowParams;
   windowParams.myWidth = 1280;
   windowParams.myHeight = 720;
   windowParams.myTitle = "Fancy Engine Tests";
-  myRuntime = FancyRuntime::Init(anInstanceHandle, params, windowParams);
+  myRuntime = FancyRuntime::Init(anInstanceHandle, someArguments, aNumArguments, windowParams);
 
   myRenderOutput = myRuntime->GetRenderOutput();
   myWindow = myRenderOutput->GetWindow();
@@ -185,7 +181,20 @@ void Shutdown()
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-  Init(hInstance);
+  int numArgs = 0;
+  LPWSTR* commandLineArgs = CommandLineToArgvW(GetCommandLineW(), &numArgs);
+
+  DynamicArray<String> commandLineArgStrings(numArgs);
+  DynamicArray<const char*> cStrings(numArgs);
+  for (uint i = 0u; i < numArgs; ++i)
+  {
+    commandLineArgStrings[i] = StringUtil::ToNarrowString(commandLineArgs[i]);
+    cStrings[i] = commandLineArgStrings[i].c_str();
+  }
+
+  LocalFree(commandLineArgs);
+
+  Init(hInstance, cStrings.data(), cStrings.size());
 
   MSG msg = { 0 };
   while (true)

@@ -45,7 +45,44 @@ namespace Fancy
       return myBuffer;
     }
 
+    bool operator==(const char* aStr) const 
+    {
+      uint len = (uint) strlen(aStr);
+      if (len != Size())
+        return false;
+
+      for (uint i = 0u; i < len; ++i)
+      {
+        if (aStr[i] != myBuffer[i])
+          return false;
+      }
+
+      return true;
+    }
+
+    template<uint BufferSize2>
+    bool operator==(const StaticString<BufferSize2>& aStr) const
+    {
+      uint len = aStr.Size();
+      if (len != Size())
+        return false;
+
+      for (uint i = 0u; i < len; ++i)
+      {
+        if (aStr[i] != myBuffer[i])
+          return false;
+      }
+
+      return true;
+    }
+
+    uint Size() const 
+    {
+      return myNextFree;
+    }
+
     const char* GetBuffer() const { return myBuffer; }
+    char* GetBuffer() { return myBuffer; }
 
     operator const char*() const { return myBuffer; }
 

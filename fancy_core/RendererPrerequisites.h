@@ -37,25 +37,6 @@ namespace Fancy {
     VULKAN,
   };
 //---------------------------------------------------------------------------//
-  enum class RenderingTechnique
-  {
-    FORWARD = 0,
-    FORWARD_PLUS,
-
-    NUM
-  };
-  //---------------------------------------------------------------------------//
-  struct RenderingStartupParameters
-  {
-    RenderingStartupParameters()
-      : myRenderingTechnique(RenderingTechnique::FORWARD)
-      , myRenderingApi(RenderPlatformType::DX12)
-    { }
-
-    RenderingTechnique myRenderingTechnique;
-    RenderPlatformType myRenderingApi;
-  };
-//---------------------------------------------------------------------------//
   struct RenderPlatformCaps
   {
     unsigned int myMaxNumVertexAttributes = 32u;

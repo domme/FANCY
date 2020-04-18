@@ -11,6 +11,7 @@
 #include "CommandQueue.h"
 #include "RenderOutput.h"
 #include "Profiler.h"
+#include "CommandLine.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -27,11 +28,13 @@ namespace Fancy {
     RenderCore::Shutdown();
   }
 //---------------------------------------------------------------------------//
-  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const RenderingStartupParameters& someParams, const WindowParameters& someWindowParams)
+  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams)
   {
     ASSERT(ourInstance == nullptr);
     if (ourInstance != nullptr)
       return ourInstance;
+
+    CommandLine::CreateInstance(someArguments, aNumArguments);
 
     // Init IO-subsystem
     Resources::InitResourceFolders();
@@ -40,7 +43,7 @@ namespace Fancy {
 
     // Init rendering subsystem
     if (!RenderCore::IsInitialized())
-      RenderCore::Init(someParams.myRenderingApi);
+      RenderCore::Init();
 
     ASSERT(RenderCore::IsInitialized());
 
