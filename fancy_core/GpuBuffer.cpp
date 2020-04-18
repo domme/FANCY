@@ -27,8 +27,7 @@ namespace Fancy {
     if ((wantsWrite && !isCpuWritable) || (wantsRead && !isCpuReadable))
       return nullptr;
 
-    // TODO: Ideally this should only wait for the last fence per queue this resource written last.
-    // But we don't have this data (yet?)
+    // TODO: Ideally this should only wait for the last fence per queue this resource written last. But we don't have this data (yet?)
     const bool needsWait = aMapMode == GpuResourceMapMode::READ || aMapMode == GpuResourceMapMode::WRITE;
     if (needsWait)
     {

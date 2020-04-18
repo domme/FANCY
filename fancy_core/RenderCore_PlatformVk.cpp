@@ -11,6 +11,9 @@
 #include "CommandListVk.h"
 #include "GpuBufferVk.h"
 #include "GpuQueryHeapVk.h"
+#include "TextureSamplerVk.h"
+
+#if FANCY_ENABLE_VK
 
 namespace Fancy
 {
@@ -318,6 +321,7 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  /*
   ResourceBarrierInfoVk RenderCore_PlatformVk::ResolveResourceState(GpuResourceState aResourceState)
   {
     // According to the vulkan specs VK_PIPELINE_STAGE_ALL_COMMANDS_BIT is the logical OR of every command supported on a specific queue.
@@ -332,8 +336,12 @@ namespace Fancy
       | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
       | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT | VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT
       | VK_PIPELINE_STAGE_COMMAND_PROCESS_BIT_NVX | VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV
-      | VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV | VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV | VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV
-      | VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT;
+      | VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV
+      | VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT
+#if  FANCY_RENDERER_SUPPORT_MESH_SHADERS
+      | VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV | VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV
+#endif  // FANCY_RENDERER_SUPPORT_MESH_SHADERS
+    ;
 
     switch (aResourceState)
     {
@@ -394,7 +402,7 @@ namespace Fancy
     case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH:
       return { allCommandsMask,
                VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT,
-              VK_IMAGE_LAYOUT_GENERAL };
+              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
     case GpuResourceState::READ_DEPTH:
       return { VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
@@ -441,6 +449,7 @@ namespace Fancy
       ASSERT(false, "Missing implementation"); return { 0, 0, VK_IMAGE_LAYOUT_GENERAL };
     }
   }
+  */
 //---------------------------------------------------------------------------//
   VkImageAspectFlags RenderCore_PlatformVk::ResolveAspectMask(uint aFirstPlaneIndex, uint aNumPlanes, DataFormat aFormat)
   {
@@ -482,6 +491,60 @@ namespace Fancy
     return rangeVk;
   }
 //---------------------------------------------------------------------------//
+  VkImageType RenderCore_PlatformVk::ResolveImageResourceDimension(GpuResourceDimension aDimension, bool& isArray, bool& isCubeMap)
+  {
+    VkImageType imageType = VK_IMAGE_TYPE_2D;
+    switch(aDimension)
+    {
+      case GpuResourceDimension::TEXTURE_1D: 
+      {
+        imageType = VK_IMAGE_TYPE_1D;
+        isCubeMap = false;
+        isArray = false;
+      } break;
+      case GpuResourceDimension::TEXTURE_2D:
+      {
+        imageType = VK_IMAGE_TYPE_2D;
+        isCubeMap = false;
+        isArray = false;
+      } break;
+      case GpuResourceDimension::TEXTURE_3D:
+      {
+        imageType = VK_IMAGE_TYPE_3D;
+        isCubeMap = false;
+        isArray = false;
+      } break;
+      case GpuResourceDimension::TEXTURE_CUBE:
+      {
+        imageType = VK_IMAGE_TYPE_2D;
+        isCubeMap = true;
+        isArray = false;
+      } break;
+      case GpuResourceDimension::TEXTURE_1D_ARRAY: 
+      {
+        imageType = VK_IMAGE_TYPE_1D;
+        isCubeMap = false;
+        isArray = true;
+      } break;
+      case GpuResourceDimension::TEXTURE_2D_ARRAY:
+      {
+        imageType = VK_IMAGE_TYPE_2D;
+        isCubeMap = false;
+        isArray = true;
+      } break;
+      case GpuResourceDimension::TEXTURE_CUBE_ARRAY:
+      {
+        imageType = VK_IMAGE_TYPE_2D;
+        isCubeMap = true;
+        isArray = true;
+      } break;
+      default: 
+        ASSERT(false, "Missing implementation");
+    }
+
+    return imageType;
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)
@@ -496,7 +559,7 @@ namespace Fancy
       appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
       appInfo.pApplicationName = "Fancy";
       appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-      appInfo.apiVersion = VK_API_VERSION_1_0;
+      appInfo.apiVersion = VK_API_VERSION_1_2;
 
       VkInstanceCreateInfo createInfo = {};
       createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -511,10 +574,10 @@ namespace Fancy
       createInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
       createInfo.ppEnabledExtensionNames = extensions;
 
-      const char* const layers[] = { "VK_LAYER_KHRONOS_validation" };
+      const char* const layers[] = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_standard_validation", "VK_LAYER_LUNARG_monitor"  };
       createInfo.enabledLayerCount = ARRAY_LENGTH(layers);
       createInfo.ppEnabledLayerNames = layers;
-
+      
       ASSERT_VK_RESULT(vkCreateInstance(&createInfo, nullptr, &myInstance));
       LOG("Initialized Vulkan instance");
 
@@ -576,25 +639,25 @@ namespace Fancy
       // Else disable certain queue-types that can't be filled in.
 
       int numUsedQueues[(uint)CommandListType::NUM] = { 0u };
-      for (int i = 0, e = (int)queueFamilyProps.size(); i < e; ++i)
+      for (uint i = 0u, e = (uint) queueFamilyProps.size(); i < e; ++i)
       {
         const VkQueueFamilyProperties& props = queueFamilyProps[i];
         if (props.queueCount == 0u)
           continue;
 
-        if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT && myQueueInfos[(uint) CommandListType::Graphics].myQueueFamilyIndex == -1)
+        if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT && myQueueInfos[(uint) CommandListType::Graphics].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
           myQueueInfos[(uint) CommandListType::Graphics].myQueueFamilyIndex = i;
           myQueueInfos[(uint) CommandListType::Graphics].myQueueIndex = 0u;
           ++numUsedQueues[(uint)CommandListType::Graphics];
         }
-        else if (props.queueFlags & VK_QUEUE_COMPUTE_BIT && myQueueInfos[(uint)CommandListType::Compute].myQueueFamilyIndex == -1)
+        else if (props.queueFlags & VK_QUEUE_COMPUTE_BIT && myQueueInfos[(uint)CommandListType::Compute].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
           myQueueInfos[(uint)CommandListType::Compute].myQueueFamilyIndex = i;
           myQueueInfos[(uint)CommandListType::Compute].myQueueIndex = 0u;
           ++numUsedQueues[(uint)CommandListType::Compute];
         }
-        else if (props.queueFlags & VK_QUEUE_TRANSFER_BIT && myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex == -1)
+        else if (props.queueFlags & VK_QUEUE_TRANSFER_BIT && myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
           myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex = i;
           myQueueInfos[(uint)CommandListType::DMA].myQueueIndex = 0u;
@@ -602,16 +665,17 @@ namespace Fancy
         }
       }
 
-      ASSERT(myQueueInfos[(uint)CommandListType::Graphics].myQueueFamilyIndex >= 0, "Could not find a graphics-capable Vulkan queue");
+      ASSERT(myQueueInfos[(uint)CommandListType::Graphics].myQueueFamilyIndex != VK_QUEUE_FAMILY_IGNORED, "Could not find a graphics-capable Vulkan queue");
 
+      // If the graphics device has multiple queues on a higher-level queue family, try to use those for lower-level queues on API-level
       for (int queueType = (int)CommandListType::Compute; queueType < (int)CommandListType::NUM; ++queueType)
       {
-        if (myQueueInfos[queueType].myQueueFamilyIndex < 0)
+        if (myQueueInfos[queueType].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
           for (int higherQueueType = queueType - 1; higherQueueType >= 0; --higherQueueType)
           {
-            const int higherFamilyIndex = myQueueInfos[higherQueueType].myQueueFamilyIndex;
-            if (higherFamilyIndex < 0)
+            const uint higherFamilyIndex = myQueueInfos[higherQueueType].myQueueFamilyIndex;
+            if (higherFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
               continue;
 
             const VkQueueFamilyProperties& higherFamilyProps = queueFamilyProps[higherFamilyIndex];
@@ -623,6 +687,18 @@ namespace Fancy
             }
           }
         }
+      }
+
+      if (myQueueInfos[(uint) CommandListType::Compute].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
+      {
+        LOG("No dedicated COMPUTE-queue found. Async compute will be disabled");
+        myCaps.myHasAsyncCompute = false;
+      }
+
+      if (myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
+      {
+        LOG("No dedicated COPY-queue found. Async copy will be disabled");
+        myCaps.myHasAsyncCopy = false;
       }
 
       LOG("Creating logical Vulkan device...");
@@ -643,8 +719,60 @@ namespace Fancy
         }
       }
 
+      VkPhysicalDeviceVulkan12Features vk12Features;
+      vk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+      vk12Features.pNext = nullptr;
+      vk12Features.samplerMirrorClampToEdge = true;
+      vk12Features.drawIndirectCount = true;
+      vk12Features.storageBuffer8BitAccess = true;
+      vk12Features.uniformAndStorageBuffer8BitAccess = true;
+      vk12Features.storagePushConstant8 = true;
+      vk12Features.shaderBufferInt64Atomics = true;
+      vk12Features.shaderSharedInt64Atomics = true;
+      vk12Features.shaderFloat16 = true;
+      vk12Features.shaderInt8 = true;
+      vk12Features.descriptorIndexing = true;
+      vk12Features.shaderInputAttachmentArrayDynamicIndexing = true;
+      vk12Features.shaderUniformTexelBufferArrayDynamicIndexing = true;
+      vk12Features.shaderStorageTexelBufferArrayDynamicIndexing = true;
+      vk12Features.shaderUniformBufferArrayNonUniformIndexing = true;
+      vk12Features.shaderSampledImageArrayNonUniformIndexing = true;
+      vk12Features.shaderStorageBufferArrayNonUniformIndexing = true;
+      vk12Features.shaderStorageImageArrayNonUniformIndexing = true;
+      vk12Features.shaderInputAttachmentArrayNonUniformIndexing = true;
+      vk12Features.shaderUniformTexelBufferArrayNonUniformIndexing = true;
+      vk12Features.shaderStorageTexelBufferArrayNonUniformIndexing = true;
+      vk12Features.descriptorBindingUniformBufferUpdateAfterBind = true;
+      vk12Features.descriptorBindingSampledImageUpdateAfterBind = true;
+      vk12Features.descriptorBindingStorageImageUpdateAfterBind = true;
+      vk12Features.descriptorBindingStorageBufferUpdateAfterBind = true;
+      vk12Features.descriptorBindingUniformTexelBufferUpdateAfterBind = true;
+      vk12Features.descriptorBindingStorageTexelBufferUpdateAfterBind = true;
+      vk12Features.descriptorBindingUpdateUnusedWhilePending = true;
+      vk12Features.descriptorBindingPartiallyBound = true;
+      vk12Features.descriptorBindingVariableDescriptorCount = true;
+      vk12Features.runtimeDescriptorArray = true;
+      vk12Features.samplerFilterMinmax = true;
+      vk12Features.scalarBlockLayout = true;
+      vk12Features.imagelessFramebuffer = true;
+      vk12Features.uniformBufferStandardLayout = true;
+      vk12Features.shaderSubgroupExtendedTypes = true;
+      vk12Features.separateDepthStencilLayouts = true;
+      vk12Features.hostQueryReset = true;
+      vk12Features.timelineSemaphore = true;
+      vk12Features.bufferDeviceAddress = true;
+      vk12Features.bufferDeviceAddressCaptureReplay = true;
+      vk12Features.bufferDeviceAddressMultiDevice = true;
+      vk12Features.vulkanMemoryModel = true;
+      vk12Features.vulkanMemoryModelDeviceScope = true;
+      vk12Features.vulkanMemoryModelAvailabilityVisibilityChains = true;
+      vk12Features.shaderOutputViewportIndex = true;
+      vk12Features.shaderOutputLayer = true;
+      vk12Features.subgroupBroadcastDynamicId = true;
+
       VkDeviceCreateInfo deviceCreateInfo = {};
       deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+      deviceCreateInfo.pNext = &vk12Features;
       deviceCreateInfo.pQueueCreateInfos = queueCreateInfos;
       deviceCreateInfo.queueCreateInfoCount = numQueuesToCreate;
       deviceCreateInfo.pEnabledFeatures = &myPhysicalDeviceFeatures;
@@ -656,11 +784,9 @@ namespace Fancy
       ASSERT_VK_RESULT(vkCreateDevice(myPhysicalDevice, &deviceCreateInfo, nullptr, &myDevice));
     }
 
-    // Init caps
-    {
-      myCaps.myMaxNumVertexAttributes = myPhysicalDeviceProperties.limits.maxVertexInputAttributes;
-      myCaps.myCbufferPlacementAlignment = (uint) myPhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
-    }
+    myCaps.myMaxNumVertexAttributes = myPhysicalDeviceProperties.limits.maxVertexInputAttributes;
+    myCaps.myCbufferPlacementAlignment = (uint) myPhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
+    myCaps.myMaxTextureAnisotropy = (uint) myPhysicalDeviceProperties.limits.maxSamplerAnisotropy;
   }
   
   RenderCore_PlatformVk::~RenderCore_PlatformVk()
@@ -676,18 +802,32 @@ namespace Fancy
   bool RenderCore_PlatformVk::InitInternalResources()
   {
     myCommandBufferAllocators[(uint)CommandListType::Graphics].reset(new CommandBufferAllocatorVk(CommandListType::Graphics));
-    myCommandBufferAllocators[(uint)CommandListType::Compute].reset(new CommandBufferAllocatorVk(CommandListType::Compute));
+    
+    if (myCaps.myHasAsyncCompute)
+      myCommandBufferAllocators[(uint)CommandListType::Compute].reset(new CommandBufferAllocatorVk(CommandListType::Compute));
+
+    myDescriptorPoolAllocator.reset(new DescriptorPoolAllocatorVk(256, 64));
 
     return true;
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformVk::Shutdown()
   {
+    DestroyTempBufferViews();
+    ASSERT(myTempBufferViews.IsEmpty());
+
     for (UniquePtr<CommandBufferAllocatorVk>& cmdBufferAllocator : myCommandBufferAllocators)
       cmdBufferAllocator.reset();
 
+    myDescriptorPoolAllocator.reset();
+
     vkDestroyInstance(myInstance, nullptr);
     vkDestroyDevice(myDevice, nullptr);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::BeginFrame()
+  {
+    DestroyTempBufferViews();
   }
 //---------------------------------------------------------------------------//
   RenderOutput* RenderCore_PlatformVk::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
@@ -718,6 +858,11 @@ namespace Fancy
   GpuBuffer* RenderCore_PlatformVk::CreateBuffer()
   {
     return new GpuBufferVk();
+  }
+
+  TextureSampler* RenderCore_PlatformVk::CreateTextureSampler(const TextureSamplerProperties& someProperties)
+  {
+    return new TextureSamplerVk(someProperties);
   }
 
   CommandList* RenderCore_PlatformVk::CreateCommandList(CommandListType aType)
@@ -772,4 +917,55 @@ namespace Fancy
     myCommandBufferAllocators[(uint)aCommandListType]->ReleaseCommandBuffer(aCommandBuffer, aCommandBufferDoneFence);
   }
 //---------------------------------------------------------------------------//
+  VkDescriptorPool RenderCore_PlatformVk::AllocateDescriptorPool()
+  {
+    return myDescriptorPoolAllocator->AllocateDescriptorPool();
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence)
+  {
+    myDescriptorPoolAllocator->FreeDescriptorPool(aDescriptorPool, aFence);
+  }
+//---------------------------------------------------------------------------//
+  uint RenderCore_PlatformVk::FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags)
+  {
+    const VkPhysicalDeviceMemoryProperties& deviceMemProps = GetPhysicalDeviceMemoryProperties();
+    for (uint i = 0u; i < deviceMemProps.memoryTypeCount; ++i)
+    {
+      const VkMemoryType& memType = deviceMemProps.memoryTypes[i];
+      if ((someMemoryRequirements.memoryTypeBits & (1 << i))
+        && (memType.propertyFlags & someMemPropertyFlags) == someMemPropertyFlags)
+      {
+        return i;
+      }
+    }
+    ASSERT(false, "Couldn't find appropriate memory type");
+
+    return UINT_MAX;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::ReleaseTempBufferView(VkBufferView aBufferView, uint64 aFence)
+  {
+#if FANCY_RENDERER_DEBUG
+    for (uint i = 0u; i < myTempBufferViews.Size(); ++i)
+      ASSERT(myTempBufferViews[i].first != aBufferView);
+#endif
+
+    myTempBufferViews.Add({ aBufferView, aFence });
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::DestroyTempBufferViews()
+  {
+    for (uint i = 0u; i < myTempBufferViews.Size(); ++i)
+    {
+      if (RenderCore::IsFenceDone(myTempBufferViews[i].second))
+      {
+        vkDestroyBufferView(myDevice, myTempBufferViews[i].first, nullptr);
+        myTempBufferViews.RemoveCyclicAt(i--);
+      }
+    } 
+  }
+//---------------------------------------------------------------------------//
 }
+
+#endif

@@ -12,9 +12,12 @@ struct IMGUI_VS_CBUFFER
   float4x4 ProjectionMatrix;
 };
 
-VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b2);
+VK_BINDING_SET(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
 
-#define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), CBV(b2), DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL), StaticSampler(s0, addressU = TEXTURE_ADDRESS_CLAMP, addressV = TEXTURE_ADDRESS_CLAMP, addressW = TEXTURE_ADDRESS_CLAMP, filter = FILTER_MIN_MAG_MIP_LINEAR )"
+#define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), \
+                        CBV(b0), \
+                        DescriptorTable(SRV(t0)), \
+                        DescriptorTable(Sampler(s0))"
 
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_VERTEX)
@@ -46,15 +49,16 @@ VK_BINDING(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b2);
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_FRAGMENT)  
-  VK_BINDING(0, 1) Texture2D texture0 : register(t0);
-  VK_BINDING(1, 1) SamplerState sampler_default : register(s0);
+  VK_BINDING_SET(1, 0) Texture2D texture0 : register(t0);
+  VK_BINDING_SET(2, 0) SamplerState sampler_default : register(s0);
  
   [RootSignature(ROOT_SIGNATURE)]
-  float4 main(VS_OUT input) : SV_Target
+  void main(VS_OUT input, out float4 colorOut : SV_Target0)
   {
-    float4 texCol = texture0.Sample(sampler_default, input.uv);
-    float4 out_col = input.col * texCol;
-    return out_col;
+    float2 uv = input.uv;
+    float4 tex = texture0.Sample(sampler_default, uv);
+    tex.xyz *= tex.w;
+    colorOut = input.col * tex;
   }
 #endif // PROGRAM_TYPE_FRAGMENT
 //---------------------------------------------------------------------------//

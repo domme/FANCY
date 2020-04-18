@@ -4,6 +4,8 @@
 #include "ShaderCompiler.h"
 #include "RenderCore_PlatformDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   void ShaderDX12::CreateNativeInputLayout(const ShaderVertexInputLayout& anInputLayout,
@@ -77,18 +79,22 @@ namespace Fancy {
 
     const ShaderCompiledDataDX12& data = aCompilerOutput.myNativeData.To<ShaderCompiledDataDX12>();
 
-    myNativeData = data.myBytecodeBlob;
+    myBytecode = data.myBytecode;
     myRootSignature = data.myRootSignature;
 
-    myNativeByteCode.pShaderBytecode = myNativeData->GetBufferPointer();
-    myNativeByteCode.BytecodeLength = myNativeData->GetBufferSize();
+    myNativeByteCode.pShaderBytecode = myBytecode.data();
+    myNativeByteCode.BytecodeLength = myBytecode.size();
     
     CreateNativeInputLayout(myProperties.myVertexInputLayout, myNativeInputElements);
+
+    myResourceInfos = data.myResourceInfos;
   }
 //---------------------------------------------------------------------------//
   uint64 ShaderDX12::GetNativeBytecodeHash() const
   {
-    return reinterpret_cast<uint64>(getNativeData().Get());
+    return reinterpret_cast<uint64>(myNativeByteCode.pShaderBytecode);
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

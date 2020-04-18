@@ -36,6 +36,7 @@ namespace Fancy { namespace ImGuiRendering {
   SharedPtr<ShaderPipeline> ourProgramPipeline;
   SharedPtr<BlendState> ourBlendState;
   SharedPtr<DepthStencilState> ourDepthStencilState;
+  SharedPtr<TextureSampler> ourSampler;
       
   HWND ourHwnd = nullptr;
   INT64 ourTicksPerSecond = 0;
@@ -130,19 +131,6 @@ namespace Fancy { namespace ImGuiRendering {
     if (!QueryPerformanceCounter((LARGE_INTEGER *)&ourTime))
       return false;
 
-    
-    // DEBUG - test during VK development to test compilation of a compute shader before anything else
-    // {
-    //   ShaderDesc shaderDesc =
-    //   {
-    //     "Tests/ModifyBuffer",
-    //     "main_set",
-    //     (uint) ShaderStage::COMPUTE
-    //   };
-    // 
-    //   SharedPtr<Shader> testComputShader = RenderCore::CreateShader(shaderDesc);
-    // }
-
     // Load the imgui-shader state
     {
       ShaderPipelineDesc pipelineDesc;
@@ -177,8 +165,9 @@ namespace Fancy { namespace ImGuiRendering {
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myWidth = width;
       props.myHeight = height;
-      props.eFormat = DataFormat::RGBA_8;
-      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.eFormat);
+      props.myFormat = DataFormat::RGBA_8;
+      props.myNumMipLevels = 1u;
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.myFormat);
       ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
 
       TextureViewProperties viewProps;
@@ -187,6 +176,18 @@ namespace Fancy { namespace ImGuiRendering {
       
       ourFontTexture = RenderCore::CreateTextureView(props, viewProps, "Imgui Font Texture", &uploadData, 1u);
       ASSERT(ourFontTexture != nullptr);
+    }
+
+    // Sampler
+    {
+      TextureSamplerProperties props;
+      props.myAddressModeX = SamplerAddressMode::CLAMP_BORDER;
+      props.myAddressModeY = SamplerAddressMode::CLAMP_BORDER;
+      props.myAddressModeZ = SamplerAddressMode::CLAMP_BORDER;
+      props.myMinFiltering = SamplerFilterMode::TRILINEAR;
+      props.myMagFiltering = SamplerFilterMode::TRILINEAR;
+
+      ourSampler = RenderCore::CreateTextureSampler(props);
     }
 
     // Blend state (alpha blending)
@@ -261,7 +262,8 @@ namespace Fancy { namespace ImGuiRendering {
     ctx->SetFillMode(FillMode::SOLID);
     ctx->SetWindingOrder(WindingOrder::CCW);
     ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-    ctx->SetShaderPipeline(ourProgramPipeline);
+    ctx->SetShaderPipeline(ourProgramPipeline.get());
+    ctx->BindSampler(ourSampler.get(), "sampler_default");
 
     // Update the cbuffer data
     {
@@ -278,7 +280,7 @@ namespace Fancy { namespace ImGuiRendering {
         0.0f,               0.0f,               0.5f,       0.0f,
         (R + L) / (L - R),  (T + B) / (B - T),  0.5f,       1.0f);
       
-      ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), 0u);
+      ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), "cbVSImgui");
     }
 
     uint cmdListVertexOffset = 0u;
@@ -300,13 +302,13 @@ namespace Fancy { namespace ImGuiRendering {
         }
         else
         {
-          const GpuResourceView* textureViews[] = { ourFontTexture.get() };
+          const GpuResourceView* textureView = ourFontTexture.get();
 
           ImTextureID textureId = pcmd->TextureId;
           if (textureId != nullptr)
-            textureViews[0] = static_cast<const GpuResourceView*>(textureId);
+            textureView = static_cast<const GpuResourceView*>(textureId);
 
-          ctx->BindResourceSet(textureViews, 1u, 1u);
+          ctx->BindResourceView(textureView, "texture0");
 
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
           ctx->SetClipRect(clipRect);

@@ -4,7 +4,7 @@
 #include "RenderEnums.h"
 #include "DynamicArray.h"
 #include "FancyCoreDefines.h"
-#include "GpuResourceStateTracking.h"
+#include "GpuResourceHazardData.h"
 #include "TextureData.h"
 
 namespace Fancy {
@@ -30,12 +30,15 @@ namespace Fancy {
 
     static uint CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex);
     static uint CalcNumSubresources(uint aNumMips, uint aNumArraySlices, uint aNumPlanes);
+
     uint GetSubresourceIndex(const SubresourceLocation& aSubresourceLocation) const;
     SubresourceLocation GetSubresourceLocation(uint aSubresourceIndex) const;
 
     const SubresourceRange& GetSubresources() const { return mySubresources; }
-    const GpuResourceStateTracking& GetStateTracking() const { return myStateTracking; }
-    GpuResourceState GetDefaultState() const { return myStateTracking.myDefaultState; }
+    GpuResourceHazardData& GetHazardData() const { return myStateTracking; }
+
+    bool IsBuffer() const { return myCategory == GpuResourceCategory::BUFFER; }
+    bool IsTexture() const { return myCategory == GpuResourceCategory::TEXTURE; }
 
     virtual ~GpuResource() = default;
     virtual bool IsValid() const { return false; }
@@ -44,7 +47,7 @@ namespace Fancy {
     SubresourceRange mySubresources;
     String myName;
     GpuResourceCategory myCategory;
-    mutable GpuResourceStateTracking myStateTracking;
+    mutable GpuResourceHazardData myStateTracking;
     Any myNativeData;
   };
 //---------------------------------------------------------------------------//

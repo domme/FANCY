@@ -99,6 +99,7 @@ const char* locGetMemoryLabel(uint64 aMemorySize, CircularStringBuffer& aStringP
   return aStringPool.Format("%d Byte", aMemorySize);
 }
 
+#if FANCY_ENABLE_DX12
 void locDebugPrintMemoryAllocatorDx12(GpuMemoryAllocatorDX12* anAllocatorDx12, float aMemoryToPixelScale)
 {
   PagedLinearAllocator& allocator = *anAllocatorDx12;
@@ -165,8 +166,12 @@ void locDebugPrintMemoryAllocatorDx12(GpuMemoryAllocatorDX12* anAllocatorDx12, f
   ImGui::PopStyleColor(1);
 }
 
+#endif
+
+
 void Test_GpuMemoryAllocator::RenderMemoryAllocatorLayouts()
 {
+#if FANCY_ENABLE_DX12
   RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
   if (platformDx12 == nullptr)
     return;
@@ -188,4 +193,7 @@ void Test_GpuMemoryAllocator::RenderMemoryAllocatorLayouts()
     }
   }
   ImGui::EndChildFrame();
+#endif
 }
+
+

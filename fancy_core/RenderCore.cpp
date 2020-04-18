@@ -8,6 +8,7 @@
 #include "ResourceRefs.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
+#include "GpuReadbackBuffer.h"
 #include "ShaderCompiler.h"
 #include "FileWatcher.h"
 #include "PathService.h"
@@ -16,7 +17,6 @@
 #include "GeometryData.h"
 #include "BlendState.h"
 #include "Shader.h"
-#include "VertexInputLayout.h"
 #include "RenderOutput.h"
 #include "CommandList.h"
 #include "MeshData.h"
@@ -25,8 +25,10 @@
 #include "TempResourcePool.h"
 #include "GpuQueryHeap.h"
 #include "TimeManager.h"
+#include "TextureReadbackTask.h"
 
 #include <xxHash/xxhash.h>
+#include "TextureSampler.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -60,8 +62,6 @@ namespace Fancy {
       XXH64_freeState(xxHashState);
       return hash;
     }
-
-    const uint kReadbackBufferSizeIncrease = 2 * SIZE_MB;
   }
 //---------------------------------------------------------------------------//
   namespace
@@ -70,6 +70,7 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   Slot<void(const Shader*)> RenderCore::ourOnShaderRecompiled;
+  Slot<void(const ShaderPipeline*)> RenderCore::ourOnShaderPipelineRecompiled;
 
   UniquePtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
   UniquePtr<TempResourcePool> RenderCore::ourTempResourcePool;
@@ -86,10 +87,13 @@ namespace Fancy {
   std::map<uint64, SharedPtr<ShaderPipeline>> RenderCore::ourShaderPipelineCache;
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
   std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
+  std::map<uint64, SharedPtr<TextureSampler>> RenderCore::ourSamplerCache;
   
   DynamicArray<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
   std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
+
+  DynamicArray<UniquePtr<GpuReadbackBuffer>> RenderCore::ourReadbackBuffers;
 
   UniquePtr<CommandQueue> RenderCore::ourCommandQueues[(uint)CommandListType::NUM];
 
@@ -163,6 +167,8 @@ namespace Fancy {
 
     ourCurrQueryBufferIdx = (ourCurrQueryBufferIdx + 1) % NUM_QUERY_BUFFERS;
     ourQueryBufferFrames[ourCurrQueryBufferIdx] = Time::ourFrameIdx;
+
+    ourPlatformImpl->BeginFrame();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
@@ -181,6 +187,8 @@ namespace Fancy {
     if (ourLastFrameDoneFences.IsFull())
       ourLastFrameDoneFences.RemoveFirstElement();
     ourLastFrameDoneFences.Add({ Time::ourFrameIdx, completedFrameFence });
+
+    ourPlatformImpl->EndFrame();
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown()
@@ -188,37 +196,6 @@ namespace Fancy {
     Shutdown_0_Resources();
     Shutdown_1_Services();
     Shutdown_2_Platform();
-  }
-//---------------------------------------------------------------------------//
-  const char* RenderCore::ResourceUsageStateToString(GpuResourceState aState)
-  {
-    switch (aState)
-    {
-      case GpuResourceState::READ_INDIRECT_ARGUMENT: return "READ_INDIRECT_ARGUMENT";
-      case GpuResourceState::READ_VERTEX_BUFFER: return "READ_VERTEX_BUFFER";
-      case GpuResourceState::READ_INDEX_BUFFER: return "READ_INDEX_BUFFER";
-      case GpuResourceState::READ_VERTEX_SHADER_CONSTANT_BUFFER: return "READ_VERTEX_SHADER_CONSTANT_BUFFER";
-      case GpuResourceState::READ_VERTEX_SHADER_RESOURCE: return "READ_VERTEX_SHADER_RESOURCE";
-      case GpuResourceState::READ_PIXEL_SHADER_CONSTANT_BUFFER: return "READ_PIXEL_SHADER_CONSTANT_BUFFER";
-      case GpuResourceState::READ_PIXEL_SHADER_RESOURCE: return "READ_PIXEL_SHADER_RESOURCE";
-      case GpuResourceState::READ_COMPUTE_SHADER_CONSTANT_BUFFER: return "READ_COMPUTE_SHADER_CONSTANT_BUFFER";
-      case GpuResourceState::READ_COMPUTE_SHADER_RESOURCE: return "READ_COMPUTE_SHADER_RESOURCE";
-      case GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER: return "READ_ANY_SHADER_CONSTANT_BUFFER";
-      case GpuResourceState::READ_ANY_SHADER_RESOURCE: return "READ_ANY_SHADER_RESOURCE";
-      case GpuResourceState::READ_COPY_SOURCE: return "READ_COPY_SOURCE";
-      case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH: return "READ_ANY_SHADER_ALL_BUT_DEPTH";
-      case GpuResourceState::READ_DEPTH: return "READ_DEPTH";
-      case GpuResourceState::READ_PRESENT: return "READ_PRESENT";
-      case GpuResourceState::WRITE_VERTEX_SHADER_UAV: return "WRITE_VERTEX_SHADER_UAV";
-      case GpuResourceState::WRITE_PIXEL_SHADER_UAV: return "WRITE_PIXEL_SHADER_UAV";
-      case GpuResourceState::WRITE_COMPUTE_SHADER_UAV: return "WRITE_COMPUTE_SHADER_UAV";
-      case GpuResourceState::WRITE_ANY_SHADER_UAV: return "WRITE_ANY_SHADER_UAV";
-      case GpuResourceState::WRITE_RENDER_TARGET: return "WRITE_RENDER_TARGET";
-      case GpuResourceState::WRITE_COPY_DEST: return "WRITE_COPY_DEST";
-      case GpuResourceState::WRITE_DEPTH: return "WRITE_DEPTH";
-      case GpuResourceState::UNKNOWN: return "UNKNOWN";
-      default: ASSERT(false); return "";
-    }
   }
 //---------------------------------------------------------------------------//
   const char* RenderCore::CommandListTypeToString(CommandListType aType)
@@ -232,14 +209,36 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  CommandListType RenderCore::ResolveSupportedCommandListType(CommandListType aType)
+  {
+    const RenderPlatformCaps& caps = GetPlatformCaps();
+
+    if (aType == CommandListType::Graphics
+      || (aType == CommandListType::Compute && !caps.myHasAsyncCompute)
+      || (aType == CommandListType::DMA && !caps.myHasAsyncCopy))
+    {
+      return CommandListType::Graphics;
+    }
+
+    return aType;
+  }
+//---------------------------------------------------------------------------//
   RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
   {
+#if FANCY_ENABLE_DX12
     return GetPlatformType() == RenderPlatformType::DX12 ? static_cast<RenderCore_PlatformDX12*>(ourPlatformImpl.get()) : nullptr;
+#else
+    return nullptr;
+#endif
   }
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk* RenderCore::GetPlatformVk()
   {
+#if FANCY_ENABLE_VK
     return GetPlatformType() == RenderPlatformType::VULKAN ? static_cast<RenderCore_PlatformVk*>(ourPlatformImpl.get()) : nullptr;
+#else
+    return nullptr;
+#endif
   }
 //---------------------------------------------------------------------------//
   GpuRingBuffer* RenderCore::AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName /*= nullptr*/)
@@ -271,16 +270,7 @@ namespace Fancy {
     params.myBindFlags = someBindFlags;
     params.myCpuAccess = aCpuAccess;
 
-    GpuResourceMapMode mapMode = GpuResourceMapMode::WRITE_UNSYNCHRONIZED;
-    bool keepMapped = true;
-
-    if (aCpuAccess == CpuMemoryAccessType::CPU_READ)
-    {
-      mapMode = GpuResourceMapMode::READ_UNSYNCHRONIZED;
-      keepMapped = false;
-    }
-
-    buf->Create(params, mapMode, keepMapped, aName);
+    buf->Create(params, aName);
     ourRingBufferPool.push_back(std::move(buf));
 
     return ourRingBufferPool.back().get();
@@ -288,7 +278,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal)
   {
-#if FANCY_RENDERER_HEAVY_VALIDATION
+#if FANCY_RENDERER_USE_VALIDATION
     auto predicate = [aBuffer](const std::pair<uint64, GpuRingBuffer*>& aPair) {
       return aPair.second == aBuffer;
     };
@@ -300,6 +290,125 @@ namespace Fancy {
     ourUsedRingBuffers.push_back(std::make_pair(aFenceVal, aBuffer));
   }
 //---------------------------------------------------------------------------//
+  GpuBuffer* RenderCore::AllocateReadbackBuffer(uint64 aBlockSize, uint anOffsetAlignment, uint64& anOffsetToBlockOut)
+  {
+    for (UniquePtr<GpuReadbackBuffer>& readbackBuffer : ourReadbackBuffers)
+    {
+      uint64 offset;
+      GpuBuffer* buffer = readbackBuffer->AllocateBlock(aBlockSize, anOffsetAlignment, offset);
+      if (buffer != nullptr)
+      {
+        anOffsetToBlockOut = offset;
+        return buffer;
+      }
+    }
+
+    const uint64 newBufferSize = MathUtil::Align(aBlockSize, MathUtil::Align(2 * SIZE_MB, anOffsetAlignment));
+#if FANCY_RENDERER_DEBUG
+    LOG_INFO("Allocating new readback buffer of size %d", newBufferSize);
+#endif // FANCY_RENDERER_DEBUG
+    ourReadbackBuffers.push_back(std::make_unique<GpuReadbackBuffer>(newBufferSize));
+
+    uint64 offset;
+    GpuBuffer* buffer = ourReadbackBuffers.back()->AllocateBlock(aBlockSize, anOffsetAlignment, offset);
+    ASSERT(buffer != nullptr);
+
+    anOffsetToBlockOut = offset;
+    return buffer;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore::FreeReadbackBuffer(GpuBuffer* aBuffer, uint64 aBlockSize, uint64 anOffsetToBlock)
+  {
+    for (auto it = ourReadbackBuffers.begin(); it != ourReadbackBuffers.end(); ++it)
+    {
+      UniquePtr<GpuReadbackBuffer>& readbackBuffer = *it;
+      if (readbackBuffer->FreeBlock(aBuffer, anOffsetToBlock, aBlockSize))
+      {
+        if (readbackBuffer->IsEmpty() && it != ourReadbackBuffers.begin())  // Always keep one readback buffer around
+        {
+#if FANCY_RENDERER_DEBUG
+          LOG_INFO("Deleting readback buffer of size %d", readbackBuffer->GetFreeSize());
+#endif // FANCY_RENDERER_DEBUG
+
+          ourReadbackBuffers.erase(it);
+        }
+
+        return;
+      }
+    }
+
+    ASSERT(false, "Readback-buffer allocation not found");
+  }
+//---------------------------------------------------------------------------//
+  TextureReadbackTask RenderCore::ReadbackTexture(Texture* aTexture, const SubresourceRange& aSubresourceRange, CommandListType aCommandListType /*= CommandListType::Graphics*/)
+  {
+    const TextureProperties& texProps = aTexture->GetProperties();
+    const DataFormatInfo& dataFormatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
+    const RenderPlatformCaps& caps = GetPlatformCaps();
+
+    uint64* alignedSubresourceSizes = static_cast<uint64*>(alloca(sizeof(uint64) * aSubresourceRange.GetNumSubresources()));
+
+    uint64 requiredBufferSize = 0u;
+    uint i = 0u;
+    for (SubresourceIterator it = aSubresourceRange.Begin(), end = aSubresourceRange.End(); it != end; ++it)
+    {
+      const SubresourceLocation& subResource = *it;
+      
+      uint width, height, depth;
+      texProps.GetSize(subResource.myMipLevel, width, height, depth);
+
+      const uint64 rowSize = MathUtil::Align(width * dataFormatInfo.myCopyableSizePerPlane[subResource.myPlaneIndex], caps.myTextureRowAlignment);
+      const uint64 subresourceSize = MathUtil::Align(rowSize * height * depth, (uint64) caps.myTextureSubresourceBufferAlignment);
+      alignedSubresourceSizes[i++] = subresourceSize;
+      
+      requiredBufferSize += subresourceSize;
+    }
+
+    uint64 offsetToReadbackBuffer;
+    GpuBuffer* readbackBuffer = AllocateReadbackBuffer(requiredBufferSize, caps.myTextureSubresourceBufferAlignment, offsetToReadbackBuffer);
+    ASSERT(readbackBuffer != nullptr);
+
+    CommandList* ctx = BeginCommandList(aCommandListType);
+
+    uint64 dstOffset = offsetToReadbackBuffer;
+    i = 0u;
+    for (SubresourceIterator it = aSubresourceRange.Begin(), end = aSubresourceRange.End(); it != end; ++it)
+    {
+      const SubresourceLocation& subResource = *it;
+      ctx->CopyTextureToBuffer(readbackBuffer, dstOffset, aTexture, subResource);
+      dstOffset += alignedSubresourceSizes[i++];
+    }
+
+    const uint64 fence = ExecuteAndFreeCommandList(ctx);
+
+    SharedPtr<ReadbackBufferAllocation> bufferAlloc(new ReadbackBufferAllocation);
+    bufferAlloc->myBlockSize = requiredBufferSize;
+    bufferAlloc->myOffsetToBlock = offsetToReadbackBuffer;
+    bufferAlloc->myBuffer = readbackBuffer;
+
+    return TextureReadbackTask(texProps, aSubresourceRange, bufferAlloc, fence);
+  }
+//---------------------------------------------------------------------------//
+  ReadbackTask RenderCore::ReadbackBuffer(GpuBuffer* aBuffer, uint64 anOffset, uint64 aSize, CommandListType aCommandListType /*= CommandListType::Graphics*/)
+  {
+    uint64 offsetToReadbackBuffer;
+    GpuBuffer* readbackBuffer = AllocateReadbackBuffer(aSize, 1u, offsetToReadbackBuffer);
+    ASSERT(readbackBuffer != nullptr);
+
+    CommandList* ctx = BeginCommandList(aCommandListType);
+    
+    ctx->CopyBuffer(readbackBuffer, offsetToReadbackBuffer, aBuffer, anOffset, aSize);
+    
+    const uint64 fence = ExecuteAndFreeCommandList(ctx);
+
+    SharedPtr<ReadbackBufferAllocation> bufferAlloc(new ReadbackBufferAllocation);
+    bufferAlloc->myBlockSize = aSize;
+    bufferAlloc->myOffsetToBlock = offsetToReadbackBuffer;
+    bufferAlloc->myBuffer = readbackBuffer;
+
+    return ReadbackTask(bufferAlloc, fence);
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::Init_0_Platform(RenderPlatformType aRenderingApi)
   {
     ASSERT(ourPlatformImpl == nullptr);
@@ -307,10 +416,18 @@ namespace Fancy {
     switch (aRenderingApi)
     {
       case RenderPlatformType::DX12:
+#if FANCY_ENABLE_DX12
         ourPlatformImpl = std::make_unique<RenderCore_PlatformDX12>();
+#else
+        ASSERT(false, "DX12 not supported. Recompile with FANCY_ENABLE_DX12 1");
+#endif
         break;
       case RenderPlatformType::VULKAN:
+#if FANCY_ENABLE_VK
         ourPlatformImpl = std::make_unique<RenderCore_PlatformVk>();
+#else
+        ASSERT(false, "Vulkan not supported. Recompile with FANCY_ENABLE_VK 1");
+#endif
         break;
       default:
         break;
@@ -318,7 +435,8 @@ namespace Fancy {
     ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
 
     ourCommandQueues[(uint)CommandListType::Graphics].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Graphics));
-    ourCommandQueues[(uint)CommandListType::Compute].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Compute));
+    if (GetPlatformCaps().myHasAsyncCopy)
+      ourCommandQueues[(uint)CommandListType::Compute].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Compute));
 
     // From here, resources can be created that depend on ourPlatformImpl
     ourPlatformImpl->InitInternalResources();
@@ -344,14 +462,14 @@ namespace Fancy {
 
     {
       TextureProperties props;
-      props.eFormat = DataFormat::SRGB_8_A_8;
+      props.myFormat = DataFormat::SRGB_8_A_8;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
       props.path = TextureRef::ToString(TextureRef::DEFAULT_DIFFUSE);
 
       TextureSubData data(props);
-      uint8 color[3] = { 0, 0, 0 };
+      uint8 color[4] = { 0, 0, 0, 255 };
       data.myData = color;
 
       ourDefaultDiffuseTexture = CreateTexture(props, "Default_Diffuse", &data, 1);
@@ -362,14 +480,14 @@ namespace Fancy {
 
     {
       TextureProperties props;
-      props.eFormat = DataFormat::RGBA_8;
+      props.myFormat = DataFormat::RGBA_8;
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
       props.path = TextureRef::ToString(TextureRef::DEFAULT_NORMAL);
 
       TextureSubData data(props);
-      uint8 color[3] = { 128, 128, 128 };
+      uint8 color[4] = { 128, 128, 128, 255 };
       data.myData = color;
 
       ourDefaultNormalTexture = CreateTexture(props, "Default_Normal", &data, 1);
@@ -409,6 +527,8 @@ namespace Fancy {
         ourQueryBuffers[i][queryType].reset(buffer);
       }
     }
+
+    ourReadbackBuffers.push_back(std::make_unique<GpuReadbackBuffer>(64 * SIZE_MB));
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()
@@ -430,9 +550,15 @@ namespace Fancy {
     ourBlendStateCache.clear();
     ourDepthStencilStateCache.clear();
 
-    ASSERT(ourRingBufferPool.size() == ourAvailableRingBuffers.size(), "There are still some ringbuffers in flight");
-    ourAvailableRingBuffers.clear();
-    ourRingBufferPool.clear();
+    for (uint i = 0u; i < NUM_QUERY_BUFFERS; ++i)
+      for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
+        ourQueryBuffers[i][queryType].reset();
+
+    for (uint i = 0u; i < NUM_QUEUED_FRAMES; ++i)
+      for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
+        ourQueryHeaps[i][queryType].reset();
+
+    ourReadbackBuffers.clear();
   }
 //---------------------------------------------------------------------------//  
   void RenderCore::Shutdown_1_Services()
@@ -567,7 +693,6 @@ namespace Fancy {
       return it->second;
 
     std::array<SharedPtr<Shader>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
-    // for (uint i = 1u; i < (uint)ShaderStage::NUM; ++i)  // Hack to only load pixel shaders for vulkan-dev
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
       if (!aDesc.myShader[i].myShaderFileName.empty())
@@ -625,6 +750,19 @@ namespace Fancy {
     SharedPtr<DepthStencilState> depthStencilState(new DepthStencilState(aDesc));
     ourDepthStencilStateCache.insert(std::make_pair(hash, depthStencilState));
     return depthStencilState;
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<TextureSampler> RenderCore::CreateTextureSampler(const TextureSamplerProperties& someProperties)
+  {
+    const uint64 hash = MathUtil::ByteHash(someProperties);
+
+    auto it = ourSamplerCache.find(hash);
+    if (it != ourSamplerCache.end())
+      return it->second;
+
+    SharedPtr<TextureSampler> sampler(ourPlatformImpl->CreateTextureSampler(someProperties));
+    ourSamplerCache.insert(std::make_pair(hash, sampler));
+    return sampler;
   }
 //---------------------------------------------------------------------------//
   const SharedPtr<BlendState>& RenderCore::GetDefaultBlendState()
@@ -730,7 +868,7 @@ namespace Fancy {
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     TextureViewProperties viewProps = someProperties;
-    viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.eFormat;
+    viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.myFormat;
     viewProps.myDimension = viewProps.myDimension != GpuResourceDimension::UNKONWN ? viewProps.myDimension : texProps.myDimension;
     viewProps.mySubresourceRange.myNumMipLevels = glm::max(1u, glm::min(viewProps.mySubresourceRange.myNumMipLevels, texProps.myNumMipLevels));
     viewProps.mySubresourceRange.myNumArrayIndices = glm::max(1u, glm::min(viewProps.mySubresourceRange.myNumArrayIndices, texProps.GetArraySize() - viewProps.mySubresourceRange.myFirstArrayIndex));
@@ -782,106 +920,6 @@ namespace Fancy {
   uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)
   {
     return ourPlatformImpl->GetQueryTypeDataSize(aType);
-  }
-//---------------------------------------------------------------------------//
-  MappedTempBuffer RenderCore::ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize)
-  {
-    ASSERT(anOffset + aByteSize <= aBuffer->GetByteSize());
-
-    if (aBuffer->GetProperties().myCpuAccess == CpuMemoryAccessType::CPU_READ)
-      LOG_WARNING("ReadbackBufferData() called with a CPU-readable buffer. Its better to directly map the buffer to avoid uneccessary temp-copies");
-
-    GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = MathUtil::Align(aByteSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
-    props.myBufferProperties.myElementSizeBytes = 1u;
-    props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    props.myIsShaderResource = false;
-    props.myIsShaderWritable = false;
-    TempBufferResource readbackBuffer  = AllocateTempBuffer(props, 0u, "Temp readback buffer");
-    ASSERT(readbackBuffer.myBuffer != nullptr);
-
-    CommandList* ctx = BeginCommandList(CommandListType::Graphics);
-    ctx->CopyBufferRegion(readbackBuffer.myBuffer, 0u, aBuffer, anOffset, aByteSize);
-    ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
-
-    return MappedTempBuffer(readbackBuffer, GpuResourceMapMode::READ, aByteSize);
-  }
-//---------------------------------------------------------------------------//
-  MappedTempTextureBuffer RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange)
-  {
-    DynamicArray<TextureSubLayout> subresourceLayouts;
-    DynamicArray<uint64> subresourceOffsets;
-    uint64 totalSize;
-    aTexture->GetSubresourceLayout(aSubresourceRange, subresourceLayouts, subresourceOffsets, totalSize);
-
-    GpuBufferResourceProperties props;
-    props.myBufferProperties.myNumElements = MathUtil::Align(totalSize, kReadbackBufferSizeIncrease); // Reserve a bit more size to make it more likely this buffer can be re-used for other, bigger readbacks
-    props.myBufferProperties.myElementSizeBytes = 1u;
-    props.myBufferProperties.myCpuAccess = CpuMemoryAccessType::CPU_READ;
-    props.myIsShaderResource = false;
-    props.myIsShaderWritable = false;
-    TempBufferResource readbackBuffer = AllocateTempBuffer(props, 0u, "Temp texture readback buffer");
-    ASSERT(readbackBuffer.myBuffer != nullptr);
-
-    CommandList* ctx = BeginCommandList(CommandListType::Graphics);
-    int i = 0;
-    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
-    {
-      ctx->CopyTextureRegion(readbackBuffer.myBuffer, subresourceOffsets[i++], aTexture, *subIter);
-    }
-    ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
-
-    return MappedTempTextureBuffer(subresourceLayouts, readbackBuffer, GpuResourceMapMode::READ, totalSize);
-  }
-//---------------------------------------------------------------------------//
-  bool RenderCore::ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange, TextureData& aTextureDataOut)
-  {
-    MappedTempTextureBuffer readbackTex = ReadbackTextureData(aTexture, aSubresourceRange);
-    if (readbackTex.myMappedData == nullptr || readbackTex.myLayouts.empty())
-      return false;
-
-    const uint64 pixelSize = readbackTex.myLayouts.front().myRowSize / readbackTex.myLayouts.front().myWidth;
-
-    uint64 totalSize = 0u;
-    for (const TextureSubLayout& subLayout : readbackTex.myLayouts)
-      totalSize += subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * pixelSize;
-
-    aTextureDataOut.myData.resize(totalSize);
-    aTextureDataOut.mySubDatas.resize(readbackTex.myLayouts.size());
-
-    uint8* dstSubResourceStart = aTextureDataOut.myData.data();
-    const uint8* srcSubResourceStart = static_cast<const uint8*>(readbackTex.myMappedData);
-    for (uint iSubResource = 0u, e = (uint) readbackTex.myLayouts.size(); iSubResource < e; ++iSubResource)
-    {
-      const TextureSubLayout& subLayout = readbackTex.myLayouts[iSubResource];
-
-      TextureSubData& dstSubData = aTextureDataOut.mySubDatas[iSubResource];
-      dstSubData.myData = dstSubResourceStart;
-      dstSubData.myPixelSizeBytes = pixelSize;
-      dstSubData.myRowSizeBytes = subLayout.myRowSize;
-      dstSubData.mySliceSizeBytes = subLayout.myRowSize * subLayout.myHeight;
-      dstSubData.myTotalSizeBytes = dstSubData.mySliceSizeBytes * subLayout.myDepth;
-
-      for (uint iDepthSlice = 0u; iDepthSlice < subLayout.myDepth; ++iDepthSlice)
-      {
-        uint8* dstSliceStart = dstSubResourceStart + iDepthSlice * subLayout.myRowSize * subLayout.myHeight;
-        const uint8* srcSliceStart = srcSubResourceStart + iDepthSlice * subLayout.myAlignedRowSize * subLayout.myNumRows;
-        for (uint y = 0u; y < subLayout.myHeight; ++y)
-        {
-          uint8* dstRowStart = dstSliceStart + y * subLayout.myRowSize;
-          const uint8* srcRowStart = srcSliceStart + y * subLayout.myAlignedRowSize;
-          memcpy(dstRowStart, srcRowStart, subLayout.myRowSize);
-        }
-      }
-
-      const uint64 dstSubresourceSize = subLayout.myWidth * subLayout.myHeight * subLayout.myDepth * pixelSize;
-      dstSubResourceStart += dstSubresourceSize;
-
-      const uint64 srcSubresourceSize = subLayout.myAlignedRowSize * subLayout.myNumRows * subLayout.myDepth;
-      srcSubResourceStart += srcSubresourceSize;
-    }
-
-    return true;
   }
 //---------------------------------------------------------------------------//
   CommandList* RenderCore::BeginCommandList(CommandListType aType)
@@ -1082,7 +1120,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(CommandListType aType)
   {
-    return ourCommandQueues[(uint)aType].get();
+    const CommandListType commandListType = ResolveSupportedCommandListType(aType);
+    return ourCommandQueues[(uint)commandListType].get();
   }
 //---------------------------------------------------------------------------//
   CommandQueue* RenderCore::GetCommandQueue(uint64 aFenceVal)
@@ -1135,8 +1174,9 @@ namespace Fancy {
 
     for (ShaderPipeline* pipeline : changedPipelines)
     {
-      pipeline->UpdateResourceInterface();
+      pipeline->CreateFromShaders();
       pipeline->UpdateShaderByteCodeHash();
+      ourOnShaderPipelineRecompiled(pipeline);
     }
 
     for (Shader* program : programsToRecompile)

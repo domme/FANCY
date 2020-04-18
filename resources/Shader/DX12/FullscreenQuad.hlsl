@@ -3,7 +3,7 @@
 
 #define RS_TEXTURED "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT )," \
                     "DescriptorTable(SRV(t0)), " \
-                    "StaticSampler(s0, addressU = TEXTURE_ADDRESS_CLAMP, addressV = TEXTURE_ADDRESS_CLAMP, filter = FILTER_MIN_MAG_MIP_LINEAR)"
+                    "DescriptorTable(Sampler(s0))"
 
   struct VS_OUT
   {

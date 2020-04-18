@@ -14,8 +14,9 @@ namespace Fancy {
   class DataFormatInfo
   {
   public:
-    DataFormatInfo(DataFormat aFormat, uint aSizeBytes, uint aNumComponents, uint aNumPlanes, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false)
+    DataFormatInfo(DataFormat aFormat, uint aSizeBytes, uint aSizeBytesPlane0, uint aSizeBytesPlane1, uint aNumComponents, uint aNumPlanes, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false)
       : mySizeBytes(aSizeBytes)
+      , myCopyableSizePerPlane{ aSizeBytesPlane0, aSizeBytesPlane1 }
       , myNumComponents(aNumComponents)
       , myNumPlanes(aNumPlanes)
       , myFormat(aFormat)
@@ -26,24 +27,25 @@ namespace Fancy {
 
     DataFormatInfo()
       : mySizeBytes(0u)
+      , myCopyableSizePerPlane{ 0u, 0u }
       , myNumComponents(0u)
       , myNumPlanes(1u)
       , myFormat(NONE)
+      , myIsDepthStencil(false)
       , mySRGB(false)
       , myIsCompressed(false)
-      , myIsDepthStencil(false)
     {}
 
     explicit DataFormatInfo(DataFormat aFormat);
     
     uint mySizeBytes;
+    uint myCopyableSizePerPlane[2];
     uint myNumComponents;
     uint myNumPlanes;
     DataFormat myFormat;
-    bool myIsDepthStencil : 1;
-    bool mySRGB : 1;
-    bool myIsCompressed : 1;
-    int __padding : 1;
+    bool myIsDepthStencil;
+    bool mySRGB;
+    bool myIsCompressed;
 
     static const DataFormatInfo& GetFormatInfo(DataFormat aFormat);
     static DataFormat GetSRGBformat(DataFormat aFormat);
@@ -51,3 +53,4 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+

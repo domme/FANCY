@@ -34,7 +34,7 @@ namespace Fancy {
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
       myShaders[i] = someShaders[i];
 
-    UpdateResourceInterface();
+    CreateFromShaders();
     UpdateShaderByteCodeHash();
   }  
 //---------------------------------------------------------------------------//

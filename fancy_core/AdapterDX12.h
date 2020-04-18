@@ -3,6 +3,8 @@
 #include "DX12Prerequisites.h"
 #include "RenderEnums.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
 	class Adapter
@@ -24,3 +26,5 @@ namespace Fancy {
 	};
 //---------------------------------------------------------------------------//
 }
+
+#endif

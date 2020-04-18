@@ -2,6 +2,8 @@
 #include "GpuQueryHeap.h"
 #include "DX12Prerequisites.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy
 {
   class GpuQueryHeapDX12 final : public GpuQueryHeap
@@ -14,4 +16,4 @@ namespace Fancy
   };
 }
 
-
+#endif

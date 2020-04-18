@@ -11,6 +11,7 @@ namespace Fancy
   class CommandList;
   class AssetManager;
   class ShaderPipeline;
+  class TextureSampler;
 }
 
 class Test_ModelViewer : public Test
@@ -34,6 +35,7 @@ private:
 
   Fancy::SharedPtr<Fancy::ShaderPipeline> myUnlitTexturedShader;
   Fancy::SharedPtr<Fancy::ShaderPipeline> myUnlitVertexColorShader;
-  Fancy::SharedPtr<Fancy::ShaderPipeline> myDebugGeoShader;  
+  Fancy::SharedPtr<Fancy::ShaderPipeline> myDebugGeoShader;
+  Fancy::SharedPtr<Fancy::TextureSampler> mySampler;
 };
 

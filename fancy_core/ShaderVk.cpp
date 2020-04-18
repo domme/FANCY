@@ -5,6 +5,8 @@
 #include "RenderCore_PlatformVk.h"
 #include "ShaderCompiler.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   namespace Priv_ShaderVk
@@ -39,8 +41,14 @@ namespace Fancy
 
     const ShaderCompiledDataVk& data = aCompilerOutput.myNativeData.To<ShaderCompiledDataVk>();
 
+    if (myModule != nullptr)
+    {
+      RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+      vkDestroyShaderModule(platformVk->myDevice, myModule, nullptr);
+    }
+
     myModule = data.myModule;
-    myBindingInfo = data.myBindingInfo;
+    myResourceInfos = data.myResourceInfos;
     myVertexAttributeDesc = data.myVertexAttributeDesc;
 
     myShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -59,4 +67,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
-
+#endif

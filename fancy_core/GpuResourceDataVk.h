@@ -3,6 +3,8 @@
 #include "VkPrerequisites.h"
 #include "RenderEnums.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   struct GpuResourceDataVk
@@ -16,3 +18,5 @@ namespace Fancy
     };
   };
 }
+
+#endif

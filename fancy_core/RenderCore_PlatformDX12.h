@@ -12,6 +12,8 @@
 #include "CommandQueueDX12.h"
 #include "GpuQueryHeap.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct WindowParameters;
@@ -35,9 +37,9 @@ namespace Fancy {
     static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetStencilViewFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetTypelessFormat(DXGI_FORMAT aFormat);
+    static DXGI_FORMAT GetCopyableFormat(DXGI_FORMAT aFormat, uint aPlaneIndex);
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
     static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
-    static D3D12_RESOURCE_STATES ResolveResourceUsageState(GpuResourceState aState);
 
     RenderCore_PlatformDX12();
     ~RenderCore_PlatformDX12() override;
@@ -69,6 +71,7 @@ namespace Fancy {
     ShaderPipeline* CreateShaderPipeline() override;
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
+    TextureSampler* CreateTextureSampler(const TextureSamplerProperties& someProperties) override;
     CommandList* CreateCommandList(CommandListType aType) override;
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
@@ -103,3 +106,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

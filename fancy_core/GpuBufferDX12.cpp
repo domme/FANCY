@@ -9,6 +9,8 @@
 #include "GpuResourceViewDataDX12.h"
 #include "CommandList.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBufferDX12::~GpuBufferDX12()
@@ -68,18 +70,6 @@ namespace Fancy {
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
     resourceDesc.Flags = someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
-    bool canChangeStates = true;
-    if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
-    {
-      canChangeStates = false;
-    }
-    else if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
-    {
-      defaultState = GpuResourceState::WRITE_COPY_DEST;
-      canChangeStates = false;
-    }
-
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_GENERIC_READ;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (someProperties.myIsShaderWritable)
@@ -93,9 +83,27 @@ namespace Fancy {
     if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER))
       readStateMask = readStateMask & ~(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    myStateTracking = GpuResourceStateTracking();
+    D3D12_RESOURCE_STATES initialStates = (D3D12_RESOURCE_STATE_GENERIC_READ & readStateMask) & writeStateMask;
+    bool canChangeStates = true;
+    if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
+    {
+      canChangeStates = false;
+      initialStates = D3D12_RESOURCE_STATE_GENERIC_READ;
+    }
+    else if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
+    {
+      canChangeStates = false;
+      initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
+    }
+
+
+    GpuSubresourceHazardDataDX12 subHazardData;
+    subHazardData.myContext = CommandListType::Graphics;
+    subHazardData.myStates = initialStates;
+
+    myStateTracking = GpuResourceHazardData();
     myStateTracking.myCanChangeStates = canChangeStates;
-    myStateTracking.myDefaultState = defaultState;
+    myStateTracking.myDx12Data.mySubresources.push_back(subHazardData);
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;
 
@@ -108,7 +116,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, RenderCore_PlatformDX12::ResolveResourceUsageState(defaultState), nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
 
     std::wstring wName = StringUtil::ToWideString(myName);
     dataDx12->myResource->SetName(wName.c_str());
@@ -127,9 +135,7 @@ namespace Fancy {
       else
       {
         CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-        ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
         ctx->UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes);
-        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }
@@ -159,23 +165,23 @@ namespace Fancy {
   {
     GpuResourceViewDataDX12 nativeData;
     nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, "GpuBufferView");
-    ASSERT(nativeData.myDescriptor.myCpuHandle.ptr != 0u);
+    ASSERT(nativeData.myDescriptor.myCpuHandle.ptr != UINT_MAX);
 
     bool success = false;
     if (someProperties.myIsConstantBuffer)
     {
       myType = GpuResourceViewType::CBV;
-      success = CreateCBV(aBuffer.get(), someProperties, nativeData.myDescriptor);
+      success = CreateCBVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else if (someProperties.myIsShaderWritable)
     {
       myType = GpuResourceViewType::UAV;
-      success = CreateUAV(aBuffer.get(), someProperties, nativeData.myDescriptor);
+      success = CreateUAVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else
     {
       myType = GpuResourceViewType::SRV;
-      success = CreateSRV(aBuffer.get(), someProperties, nativeData.myDescriptor);
+      success = CreateSRVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
 
     ASSERT(success);
@@ -191,7 +197,7 @@ namespace Fancy {
     RenderCore::GetPlatformDX12()->ReleaseDescriptor(viewData.myDescriptor);
   }
 //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateSRV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  bool GpuBufferViewDX12::CreateSRVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
     GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
@@ -232,7 +238,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateUAV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  bool GpuBufferViewDX12::CreateUAVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
     GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
@@ -272,7 +278,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateCBV(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
+  bool GpuBufferViewDX12::CreateCBVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
     GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
 
@@ -312,3 +318,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

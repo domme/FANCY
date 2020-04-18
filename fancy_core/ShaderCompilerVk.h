@@ -1,6 +1,8 @@
 #pragma once
 #include "ShaderCompiler.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -10,12 +12,12 @@ namespace Fancy
     ShaderCompilerVk();
     virtual ~ShaderCompilerVk();
 
-    String GetShaderPath(const char* aFilename) const override;
-
   protected:
-    bool Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* aCompilerOutput) const override;
+    bool Compile_Internal(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const override;
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif
 
 

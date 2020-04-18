@@ -8,6 +8,8 @@
 #include "CommandListDX12.h"
 #include "GpuResourceDataDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   RenderOutputDX12::RenderOutputDX12(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
@@ -52,15 +54,21 @@ namespace Fancy {
         resource.myNativeData = dataDx12;
       }
 
-      resource.myStateTracking = GpuResourceStateTracking();
+      GpuSubresourceHazardDataDX12 subHazardData;
+      subHazardData.myContext = CommandListType::Graphics;
+      subHazardData.myStates = D3D12_RESOURCE_STATE_PRESENT;
+
+      resource.mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
+      resource.myStateTracking = GpuResourceHazardData();
       resource.myStateTracking.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
       resource.myStateTracking.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
-      resource.myStateTracking.myDefaultState = GpuResourceState::READ_PRESENT;
+      resource.myStateTracking.myDx12Data.mySubresources.push_back(subHazardData);
+      resource.myStateTracking.myCanChangeStates = true;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
       backbufferProps.myIsRenderTarget = true;
-      backbufferProps.eFormat = DataFormat::RGBA_8;
+      backbufferProps.myFormat = DataFormat::RGBA_8;
       backbufferProps.myWidth = aWidth;
       backbufferProps.myHeight = aHeight;
       backbufferProps.myDepthOrArraySize = 1u;
@@ -77,10 +85,15 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::Present()
   {
+    CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+    CommandListDX12* ctxDx12 = static_cast<CommandListDX12*>(ctx);
+    ctxDx12->TrackResourceTransition(GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT);
+    RenderCore::ExecuteAndFreeCommandList(ctx);
+
     mySwapChain->Present(1, 0);
   }
 //---------------------------------------------------------------------------//
-  void RenderOutputDX12::ResizeBackbuffer(uint aWidth, uint aHeight)
+  void RenderOutputDX12::ResizeSwapChain(uint aWidth, uint aHeight)
   {
     CheckD3Dcall(mySwapChain->ResizeBuffers(kBackbufferCount, aWidth, aHeight, DXGI_FORMAT_UNKNOWN, 0));
   }
@@ -94,3 +107,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

@@ -26,8 +26,8 @@ namespace Fancy {
     for(DataFormat& rtvFormat : myRTVformats)
       rtvFormat = DataFormat::UNKNOWN;
 
-    myDepthStencilState = RenderCore::GetDefaultDepthStencilState();
-    myBlendState = RenderCore::GetDefaultBlendState();
+    myDepthStencilState = RenderCore::GetDefaultDepthStencilState().get();
+    myBlendState = RenderCore::GetDefaultBlendState().get();
   }
 //---------------------------------------------------------------------------//
   uint64 GraphicsPipelineState::GetHash() const
@@ -36,9 +36,9 @@ namespace Fancy {
     MathUtil::hash_combine(hash, static_cast<uint>(myFillMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myCullMode));
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myDepthStencilState.get()));
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myBlendState.get()));
-    MathUtil::hash_combine(hash, myShaderPipeline->GetHash());
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myDepthStencilState));
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myBlendState));
+    MathUtil::hash_combine(hash, myShaderPipeline != nullptr ? myShaderPipeline->GetHash() : 0u);  // TODO: This should not be needed, the shaderbytecode hash should be enough
 
     if (myShaderPipeline != nullptr)
       MathUtil::hash_combine(hash, myShaderPipeline->GetShaderByteCodeHash());
@@ -56,7 +56,7 @@ namespace Fancy {
   
 //---------------------------------------------------------------------------//
   ComputePipelineState::ComputePipelineState()
-    : myShader(nullptr)
+    : myShaderPipeline(nullptr)
     , myIsDirty(true)
   {
   }
@@ -64,10 +64,10 @@ namespace Fancy {
   uint64 ComputePipelineState::GetHash() const
   {
     uint64 hash = 0u;
-    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myShader));
+    MathUtil::hash_combine(hash, myShaderPipeline != nullptr ? myShaderPipeline->GetHash() : 0u);  // TODO: This should not be needed, the shaderbytecode hash should be enough
 
-    if (myShader != nullptr)
-      MathUtil::hash_combine(hash, myShader->GetNativeBytecodeHash());
+    if (myShaderPipeline != nullptr)
+      MathUtil::hash_combine(hash, myShaderPipeline->GetShaderByteCodeHash());
 
     return hash;
   }
@@ -96,10 +96,60 @@ namespace Fancy {
     , myClipRectDirty(true)
     , myTopologyDirty(true)
     , myRenderTargetsDirty(true)
-    , myShaderHasUnorderedWrites(false)
+    , myShaderPipelineHasUnorderedWrites(false)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr)
   {
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::CopyTextureToBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource)
+  {
+    const TextureProperties& srcProps = aSrcTexture->GetProperties();
+    uint srcWidth, srcHeight, srcDepth;
+    srcProps.GetSize(aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth);
+
+    CopyTextureToBuffer(aDstBuffer, aDstOffset, aSrcTexture, aSrcSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(srcWidth, srcHeight, srcDepth)));
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource)
+  {
+    const TextureProperties& srcProps = aSrcTexture->GetProperties();
+    uint srcWidth, srcHeight, srcDepth;
+    srcProps.GetSize(aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth);
+
+    const TextureProperties& dstProps = aDstTexture->GetProperties();
+    uint dstWidth, dstHeight, dstDepth;
+    dstProps.GetSize(aDstSubresource.myMipLevel, dstWidth, dstHeight, dstDepth);
+
+    CopyTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)),
+      aSrcTexture, aSrcSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(srcWidth, srcHeight, srcDepth)));
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset)
+  {
+    const TextureProperties& dstProps = aDstTexture->GetProperties();
+    uint dstWidth, dstHeight, dstDepth;
+    dstProps.GetSize(aDstSubresource.myMipLevel, dstWidth, dstHeight, dstDepth);
+
+    CopyBufferToTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)), aSrcBuffer, aSrcOffset);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName, uint anArrayIndex /*= 0u*/)
+  {
+    const uint64 nameHash = Shader::GetParameterNameHash(aName);
+    BindBuffer(aBuffer, someViewProperties, nameHash, anArrayIndex);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::BindResourceView(const GpuResourceView* aView, const char* aName, uint anArrayIndex /*= 0u*/)
+  {
+    const uint64 nameHash = Shader::GetParameterNameHash(aName);
+    BindResourceView(aView, nameHash, anArrayIndex);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::BindSampler(const TextureSampler* aSampler, const char* aName, uint anArrayIndex /*= 0u*/)
+  {
+    const uint64 nameHash = Shader::GetParameterNameHash(aName);
+    BindSampler(aSampler, nameHash, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
@@ -123,62 +173,77 @@ namespace Fancy {
     return GpuQuery(aType, queryIndex, Time::ourFrameIdx, myCommandListType);
   }
 //---------------------------------------------------------------------------//
-  const GpuBuffer* CommandList::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
+  GpuRingBuffer* CommandList::GetUploadBuffer_Internal(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
   {
     DynamicArray<GpuRingBuffer*>* ringBufferList = nullptr;
     uint64 sizeStep = 2 * SIZE_MB;
     String name = "RingBuffer_";
 
     uint bindFlags = 0u;
-    switch(aType) 
-    { 
-      case GpuBufferUsage::STAGING_UPLOAD:
-      {
-        name += "STAGING_UPLOAD";
-        ringBufferList = &myUploadRingBuffers;
-      } break;
-      case GpuBufferUsage::CONSTANT_BUFFER:
-      {
-        name += "CONSTANT_BUFFER";
-        ringBufferList = &myConstantRingBuffers;
-        bindFlags |= (uint)GpuBufferBindFlags::CONSTANT_BUFFER;
-      } break;
-      case GpuBufferUsage::VERTEX_BUFFER:
-      {
-        name += "VERTEX_BUFFER";
-        ringBufferList = &myVertexRingBuffers;
-        sizeStep = 1 * SIZE_MB;
-        bindFlags |= (uint)GpuBufferBindFlags::VERTEX_BUFFER;
-      }
-      break;
-      case GpuBufferUsage::INDEX_BUFFER:
-      {
-        name += "INDEX_BUFFER";
-        ringBufferList = &myIndexRingBuffers;
-        sizeStep = 1 * SIZE_MB;
-        bindFlags |= (uint)GpuBufferBindFlags::INDEX_BUFFER;
-      }
-      break;
-      default:
-      {
-        ASSERT(false, "Buffertype not implemented as a ringBuffer");
-        return nullptr;
-      }
+    switch (aType)
+    {
+    case GpuBufferUsage::STAGING_UPLOAD:
+    {
+      name += "STAGING_UPLOAD";
+      ringBufferList = &myUploadRingBuffers;
+    } break;
+    case GpuBufferUsage::CONSTANT_BUFFER:
+    {
+      name += "CONSTANT_BUFFER";
+      ringBufferList = &myConstantRingBuffers;
+      bindFlags |= (uint)GpuBufferBindFlags::CONSTANT_BUFFER;
+    } break;
+    case GpuBufferUsage::VERTEX_BUFFER:
+    {
+      name += "VERTEX_BUFFER";
+      ringBufferList = &myVertexRingBuffers;
+      sizeStep = 1 * SIZE_MB;
+      bindFlags |= (uint)GpuBufferBindFlags::VERTEX_BUFFER;
+    }
+    break;
+    case GpuBufferUsage::INDEX_BUFFER:
+    {
+      name += "INDEX_BUFFER";
+      ringBufferList = &myIndexRingBuffers;
+      sizeStep = 1 * SIZE_MB;
+      bindFlags |= (uint)GpuBufferBindFlags::INDEX_BUFFER;
+    }
+    break;
+    default:
+    {
+      ASSERT(false, "Buffertype not implemented as a ringBuffer");
+      return nullptr;
+    }
     }
 
     if (ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize() < aDataSize)
-      ringBufferList->push_back(RenderCore::AllocateRingBuffer(CpuMemoryAccessType::CPU_WRITE, bindFlags, MathUtil::Align(aDataSize, sizeStep), name.c_str()));
+      ringBufferList->push_back(RenderCore::AllocateRingBuffer(CpuMemoryAccessType::CPU_WRITE, bindFlags, (uint)MathUtil::Align(aDataSize, sizeStep), name.c_str()));
 
     GpuRingBuffer* ringBuffer = ringBufferList->back();
-    uint64 offset = 0; 
+    uint64 offset = 0;
     bool success = true;
     if (someData != nullptr)
       success = ringBuffer->AllocateAndWrite(someData, aDataSize, offset);
     else
       success = ringBuffer->Allocate(aDataSize, offset);
     ASSERT(success);
-    
+
     anOffsetOut = offset;
+    return ringBuffer;
+  }
+//---------------------------------------------------------------------------//
+  const GpuBuffer* CommandList::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
+  {
+    GpuRingBuffer* ringBuffer = GetUploadBuffer_Internal(anOffsetOut, aType, someData, aDataSize);
+    ASSERT(ringBuffer != nullptr);
+    return ringBuffer->GetBuffer();
+  }
+//---------------------------------------------------------------------------//
+  const GpuBuffer* CommandList::GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize)
+  {
+    GpuRingBuffer* ringBuffer = GetUploadBuffer_Internal(anOffsetOut, aType, nullptr, aDataSize);
+    ASSERT(ringBuffer != nullptr);
+    *someDataPtrOut = ringBuffer->GetData() + anOffsetOut;
     return ringBuffer->GetBuffer();
   }
 //---------------------------------------------------------------------------//
@@ -198,7 +263,7 @@ namespace Fancy {
     BindIndexBuffer(buffer, anIndexSize, offset, aDataSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex)
+  void CommandList::BindConstantBuffer(void* someData, uint64 aDataSize, const char* aName)
   {
     uint64 offset = 0u;
     const GpuBuffer* buffer = GetBuffer(offset, GpuBufferUsage::CONSTANT_BUFFER, someData, aDataSize);
@@ -208,44 +273,52 @@ namespace Fancy {
     viewProperties.myIsConstantBuffer = true;
     viewProperties.myOffset = offset;
 
-    BindBuffer(buffer, viewProperties, aRegisterIndex);
+    BindBuffer(buffer, viewProperties, aName);
   }
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 // Render Context:
 //---------------------------------------------------------------------------//
-  void CommandList::SetShaderPipeline(const SharedPtr<ShaderPipeline>& aShaderPipeline)
+  void CommandList::SetShaderPipeline(const ShaderPipeline* aShaderPipeline)
   {
-    ASSERT(myCommandListType == CommandListType::Graphics);
-    
-    myCurrentContext = CommandListType::Graphics;
-    if (myGraphicsPipelineState.myShaderPipeline != aShaderPipeline)
-    {
-      myGraphicsPipelineState.myShaderPipeline = aShaderPipeline;
-      myGraphicsPipelineState.myIsDirty = true;
-
-      bool hasUnorderedWrites = false;
-      for (const SharedPtr<Shader>& shader : aShaderPipeline->myShaders)
-        if(shader != nullptr)
-          hasUnorderedWrites |= shader->myProperties.myHasUnorderedWrites;
-
-      myShaderHasUnorderedWrites = hasUnorderedWrites;
-    }
+    bool hasChanged = false;
+    SetShaderPipelineInternal(aShaderPipeline, hasChanged);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SetComputeProgram(const Shader* aProgram)
+  void CommandList::SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut)
   {
-    ASSERT(aProgram->myProperties.myShaderStage == ShaderStage::COMPUTE);
-    ASSERT(myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute);
+    ASSERT(myCommandListType != CommandListType::DMA);
 
-    myCurrentContext = CommandListType::Compute;
-    if (myComputePipelineState.myShader != aProgram)
+    aHasPipelineChangedOut = false;
+
+    if (aPipeline->IsComputePipeline())
     {
-      myComputePipelineState.myShader = aProgram;
-      myComputePipelineState.myIsDirty = true;
-      myShaderHasUnorderedWrites = aProgram->myProperties.myHasUnorderedWrites;
+      myCurrentContext = CommandListType::Compute;
+      if (myComputePipelineState.myShaderPipeline != aPipeline)
+      {
+        myComputePipelineState.myShaderPipeline = aPipeline;
+        myComputePipelineState.myIsDirty = true;
+        aHasPipelineChangedOut = true;
+      }
     }
+    else
+    {
+      ASSERT(myCommandListType == CommandListType::Graphics);
+      myCurrentContext = CommandListType::Graphics;
+
+      if (myGraphicsPipelineState.myShaderPipeline != aPipeline)
+      {
+        myGraphicsPipelineState.myShaderPipeline = aPipeline;
+        myGraphicsPipelineState.myIsDirty = true;
+        aHasPipelineChangedOut = true;
+      }
+    }
+
+    bool hasUnorderedWrites = false;
+    for (const SharedPtr<Shader>& shader : aPipeline->myShaders)
+      if (shader != nullptr)
+        hasUnorderedWrites |= shader->myProperties.myHasUnorderedWrites;
+
+    myShaderPipelineHasUnorderedWrites = hasUnorderedWrites;
   }
 //---------------------------------------------------------------------------//
   void CommandList::SetClipRect(const glm::uvec4& aClipRect)
@@ -317,10 +390,10 @@ namespace Fancy {
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
 
-    if (pipelineState.myBlendState == stateToSet)
+    if (pipelineState.myBlendState == stateToSet.get())
       return;
 
-    pipelineState.myBlendState = stateToSet;
+    pipelineState.myBlendState = stateToSet.get();
     pipelineState.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
@@ -331,10 +404,10 @@ namespace Fancy {
 
     GraphicsPipelineState& pipelineState = myGraphicsPipelineState;
 
-    if (pipelineState.myDepthStencilState == stateToSet)
+    if (pipelineState.myDepthStencilState == stateToSet.get())
       return;
 
-    pipelineState.myDepthStencilState = stateToSet;
+    pipelineState.myDepthStencilState = stateToSet.get();
     pipelineState.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
@@ -464,58 +537,12 @@ namespace Fancy {
     
     uint64 srcOffset = 0u;
     const GpuBuffer* uploadBuffer = GetBuffer(srcOffset, GpuBufferUsage::STAGING_UPLOAD, aDataPtr, aByteSize);
-    CopyBufferRegion(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
+    CopyBuffer(aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::UpdateTextureData(const Texture* aDestTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions /*= nullptr*/) // TODO: Support regions
-  {
-    ASSERT(aNumDatas == aSubresourceRange.GetNumSubresources());
-
-    DynamicArray<TextureSubLayout> subresourceLayouts;
-    DynamicArray<uint64> subresourceOffsets;
-    uint64 totalSize;
-    aDestTexture->GetSubresourceLayout(aSubresourceRange, subresourceLayouts, subresourceOffsets, totalSize);
-
-    uint64 uploadBufferOffset;
-    const GpuBuffer* uploadBuffer = GetBuffer(uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize);
-    ASSERT(uploadBuffer);
-
-    uint8* uploadBufferData = (uint8*) uploadBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
-
-    for (uint i = 0; i < aNumDatas; ++i)
-    {
-      const TextureSubLayout& dstLayout = subresourceLayouts[i];
-      const TextureSubData& srcData = someDatas[i];
-
-      const uint64 alignedSliceSize = dstLayout.myAlignedRowSize * dstLayout.myNumRows;
-
-      uint8* dstSubresourceData = uploadBufferData + subresourceOffsets[i];
-      uint8* srcSubresourceData = srcData.myData;
-      for (uint iSlice = 0; iSlice < dstLayout.myDepth; ++iSlice)
-      {
-        uint8* dstSliceData = dstSubresourceData + iSlice * alignedSliceSize;
-        uint8* srcSliceData = srcSubresourceData + iSlice * srcData.mySliceSizeBytes;
-        
-        for (uint iRow = 0; iRow < dstLayout.myNumRows; ++iRow)
-        {
-          uint8* dstRowData = dstSliceData + iRow * dstLayout.myAlignedRowSize;
-          uint8* srcRowData = srcSliceData + iRow * srcData.myRowSizeBytes;
-
-          ASSERT(dstLayout.myRowSize == srcData.myRowSizeBytes);
-          memcpy(dstRowData, srcRowData, srcData.myRowSizeBytes);
-        }
-      }
-    }
-    uploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize);
-
-    int i = 0;
-    for (SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter)
-    {
-      const SubresourceLocation dstLocation = *subIter;
-      CopyTextureRegion(aDestTexture, dstLocation, glm::uvec3(0u), uploadBuffer, uploadBufferOffset + subresourceOffsets[i++]);
-    }
-  }
 //---------------------------------------------------------------------------//
+   /*
+
   void CommandList::SubresourceBarrier(const GpuResource* aResource, const SubresourceLocation& aSubresourceLocation, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
     SubresourceRange subresourceRange(aSubresourceLocation.myMipLevel, 1u, aSubresourceLocation.myArrayIndex, 1u, aSubresourceLocation.myPlaneIndex, 1u);
@@ -566,6 +593,103 @@ namespace Fancy {
   void CommandList::ResourceBarrier(const GpuResource* aResource, GpuResourceState aSrcState, GpuResourceState aDstState)
   {
     ResourceBarrier(aResource, aSrcState, aDstState, myCommandListType, myCommandListType);
+  }
+
+  */
+//---------------------------------------------------------------------------//
+  void CommandList::ValidateTextureCopy(const TextureProperties& aDstProps, const SubresourceLocation& aDstSubresrource, const TextureRegion& aDstRegion,
+    const TextureProperties& aSrcProps, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) const
+  {
+    ASSERT(aSrcRegion.mySize == aDstRegion.mySize);
+    ASSERT(aSrcRegion.mySize != glm::uvec3(0) && aDstRegion.mySize != glm::uvec3(0));
+
+    uint dstWidth, dstHeight, dstDepth;
+    aDstProps.GetSize(aDstSubresrource.myMipLevel, dstWidth, dstHeight, dstDepth);
+
+    const glm::uvec3 dstEndTexel = aDstRegion.myPos + aDstRegion.mySize;
+    ASSERT(dstEndTexel.x <= dstWidth && dstEndTexel.y <= dstHeight && dstEndTexel.z <= dstDepth);
+
+    uint srcWidth, srcHeight, srcDepth;
+    aSrcProps.GetSize(aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth);
+
+    const glm::uvec3 srcEndTexel = aSrcRegion.myPos + aSrcRegion.mySize;
+    ASSERT(srcEndTexel.x <= srcWidth && srcEndTexel.y <= srcHeight && srcEndTexel.z <= srcDepth);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::ValidateTextureToBufferCopy(const GpuBufferProperties& aDstBufferProps, uint64 aDstBufferOffset,
+    const TextureProperties& aSrcTextureProps, const SubresourceLocation& aSrcSubresource,
+    const TextureRegion& aSrcRegion) const
+  {
+    ASSERT(aSrcRegion.mySize != glm::uvec3(0));
+
+    uint subWidth, subHeight, subDepth;
+    aSrcTextureProps.GetSize(aSrcSubresource.myMipLevel, subWidth, subHeight, subDepth);
+
+    const bool entireSubresource = aSrcRegion.mySize == glm::uvec3(subWidth, subHeight, subDepth);
+    if (entireSubresource)
+      ASSERT(MathUtil::IsAligned(aDstBufferOffset, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment));
+
+    const glm::uvec3 srcEndTexel = aSrcRegion.myPos + aSrcRegion.mySize;
+    ASSERT(srcEndTexel.x <= subWidth && srcEndTexel.y <= subHeight && srcEndTexel.z <= subDepth);
+
+    const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+    const uint64 alignedBufferOffset = MathUtil::Align(aDstBufferOffset, caps.myTextureSubresourceBufferAlignment);
+
+    const uint64 bufferCapacity = aDstBufferProps.myElementSizeBytes * aDstBufferProps.myElementSizeBytes;
+    ASSERT(bufferCapacity > alignedBufferOffset);
+
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aSrcTextureProps.myFormat);
+    const uint64 alignedRowSize = MathUtil::Align(aSrcRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aSrcSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    uint64 requiredBufferSize = alignedRowSize * aSrcRegion.mySize.y * aSrcRegion.mySize.z;
+    if (entireSubresource)
+      requiredBufferSize = MathUtil::Align(requiredBufferSize, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
+
+    const uint64 freeBufferSize = bufferCapacity - alignedBufferOffset;
+    ASSERT(freeBufferSize >= requiredBufferSize);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::ValidateBufferToTextureCopy(const TextureProperties& aDstTexProps,
+                                                const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion,
+                                                const GpuBufferProperties& aSrcBufferProps, uint64 aSrcBufferOffset) const
+  {
+    ASSERT(aDstRegion.mySize != glm::uvec3(0));
+
+    uint subWidth, subHeight, subDepth;
+    aDstTexProps.GetSize(aDstSubresource.myMipLevel, subWidth, subHeight, subDepth);
+    ASSERT(aDstRegion.myPos.x + aDstRegion.mySize.x <= subWidth);
+    ASSERT(aDstRegion.myPos.y + aDstRegion.mySize.y <= subHeight);
+    ASSERT(aDstRegion.myPos.z + aDstRegion.mySize.z <= subDepth);
+
+    const bool entireSubresource = aDstRegion.mySize == glm::uvec3(subWidth, subHeight, subDepth);
+    if (entireSubresource)
+      ASSERT(MathUtil::IsAligned(aSrcBufferOffset, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment));
+    
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aDstTexProps.myFormat);
+    const uint64 alignedRowSize = MathUtil::Align(aDstRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aDstSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    uint64 requiredBufferSize = alignedRowSize * aDstRegion.mySize.y * aDstRegion.mySize.z;
+    if (entireSubresource)
+      requiredBufferSize = MathUtil::Align(requiredBufferSize, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
+
+    const uint64 bufferCapacity = aSrcBufferProps.myElementSizeBytes * aSrcBufferProps.myNumElements;
+    ASSERT(aSrcBufferOffset < bufferCapacity);
+    ASSERT(bufferCapacity >= aSrcBufferOffset + requiredBufferSize);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::ValidateBufferCopy(const GpuBufferProperties& aDstProps, uint64 aDstOffset, 
+    const GpuBufferProperties& aSrcProps, uint64 aSrcOffset, uint64 aSize) const
+  {
+    ASSERT(aSize > 0u);
+
+    const uint64 dstBufferCapacity = aDstProps.myNumElements * aDstProps.myElementSizeBytes;
+    ASSERT(aDstOffset < dstBufferCapacity);
+    ASSERT(aDstOffset + aSize <= dstBufferCapacity);
+
+    const uint64 dstFreeSize = dstBufferCapacity - aDstOffset;
+    ASSERT(aSize <= dstFreeSize);
+
+    const uint64 srcBufferCapacity = aSrcProps.myNumElements * aSrcProps.myElementSizeBytes;
+    ASSERT(aSrcOffset < srcBufferCapacity);
+    ASSERT(aSrcOffset + aSize <= srcBufferCapacity);
   }
 //---------------------------------------------------------------------------//
 } 

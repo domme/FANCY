@@ -9,25 +9,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct TextureProperties;
 //---------------------------------------------------------------------------//
-  struct TextureSubLayout
-  {
-    TextureSubLayout()
-      : myWidth(0u)
-      , myHeight(0u)
-      , myDepth(0u)
-      , myAlignedRowSize(0u)
-      , myRowSize(0u)
-      , myNumRows(0u)
-    {}
-
-    uint myWidth;
-    uint myHeight;
-    uint myDepth;
-    uint64 myAlignedRowSize;
-    uint64 myRowSize;
-    uint myNumRows;
-  };
-//---------------------------------------------------------------------------//
   struct SubresourceLocation
   {
     SubresourceLocation(uint aMipLevel = 0u, uint anArrayIndex = 0u, uint aPlaneIndex = 0u)
@@ -35,6 +16,18 @@ namespace Fancy
       , myArrayIndex(anArrayIndex)
       , myPlaneIndex(aPlaneIndex) 
     {}
+
+    bool operator==(const SubresourceLocation& anOther) const 
+    {
+      return myMipLevel == anOther.myMipLevel &&
+        myArrayIndex == anOther.myArrayIndex &&
+        myPlaneIndex == anOther.myPlaneIndex;
+    }
+
+    bool operator !=(const SubresourceLocation& anOther) const
+    {
+      return !(*this == anOther);
+    }
 
     uint myMipLevel;
     uint myArrayIndex;
@@ -60,10 +53,30 @@ namespace Fancy
       , myNumPlanes(aNumPlanes)
     { }
 
+    SubresourceRange(const SubresourceLocation& aLocation)
+      : myFirstMipLevel(aLocation.myMipLevel)
+      , myNumMipLevels(1u)
+      , myFirstArrayIndex(aLocation.myArrayIndex)
+      , myNumArrayIndices(1u)
+      , myFirstPlane(aLocation.myPlaneIndex)
+      , myNumPlanes(1u)
+    { }
+
+    SubresourceRange(const SubresourceLocation& aFirstLocation, const SubresourceLocation& aLastLocation)
+      : myFirstMipLevel(aFirstLocation.myMipLevel)
+      , myNumMipLevels(aLastLocation.myMipLevel - aFirstLocation.myMipLevel + 1)
+      , myFirstArrayIndex(aFirstLocation.myArrayIndex)
+      , myNumArrayIndices(aLastLocation.myArrayIndex - aFirstLocation.myArrayIndex + 1)
+      , myFirstPlane(aFirstLocation.myPlaneIndex)
+      , myNumPlanes(aLastLocation.myPlaneIndex - aFirstLocation.myPlaneIndex + 1)
+    { }
+
     bool operator==(const SubresourceRange& anOther) const;
 
     SubresourceIterator Begin() const;
     SubresourceIterator End() const;
+    SubresourceLocation First() const { return SubresourceLocation(myFirstMipLevel, myFirstArrayIndex, myFirstPlane); }
+    SubresourceLocation Last() const { return SubresourceLocation(myFirstMipLevel + myNumMipLevels - 1, myFirstArrayIndex + myNumArrayIndices - 1, myFirstPlane + myNumPlanes - 1); }
     bool IsEmpty() const;
     uint GetNumSubresources() const;
     uint GetNumSubresourcesPerPlane() const;
@@ -98,14 +111,17 @@ namespace Fancy
   struct TextureRegion
   {
     TextureRegion()
-      : myTexelPos(glm::uvec3(0))
-      , myTexelSize(glm::uvec3(UINT_MAX))
+      : myPos(glm::uvec3(0))
+      , mySize(glm::uvec3(UINT_MAX))
     {}
 
-    static TextureRegion ourMaxRegion;
+    TextureRegion(glm::uvec3 aPos, glm::uvec3 aSize)
+      : myPos(std::move(aPos))
+      , mySize(std::move(aSize))
+    {}
 
-    glm::uvec3 myTexelPos;
-    glm::uvec3 myTexelSize;
+    glm::uvec3 myPos;
+    glm::uvec3 mySize;
   };
 //---------------------------------------------------------------------------//
   struct TextureSubData

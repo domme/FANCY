@@ -2,6 +2,8 @@
 
 #include "DescriptorDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GpuResourceViewDataDX12
@@ -10,3 +12,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

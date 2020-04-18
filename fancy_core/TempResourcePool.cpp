@@ -12,7 +12,7 @@ namespace Fancy
     {
       uint64 hash = 0u;
       MathUtil::hash_combine(hash, static_cast<uint>(someProps.myTextureProperties.myDimension));
-      MathUtil::hash_combine(hash, static_cast<uint>(someProps.myTextureProperties.eFormat));
+      MathUtil::hash_combine(hash, static_cast<uint>(someProps.myTextureProperties.myFormat));
       MathUtil::hash_combine(hash, someProps.myTextureProperties.IsArray() ? 1 : 0);
       MathUtil::hash_combine(hash, someProps.myTextureProperties.myNumMipLevels ? 1 : 0);
       MathUtil::hash_combine(hash, static_cast<uint>(someProps.myTextureProperties.GetDepthSize()));
@@ -152,7 +152,7 @@ namespace Fancy
       ASSERT(listIt != myAvailableBufferBuckets.end());
 
       GpuBufferResource* res = &it->second;
-#if FANCY_RENDERER_HEAVY_VALIDATION
+#if FANCY_RENDERER_USE_VALIDATION
       ASSERT(std::find(listIt->second.begin(), listIt->second.end(), res) == listIt->second.end());
 #endif
       listIt->second.push_back(res);
@@ -168,7 +168,7 @@ namespace Fancy
       ASSERT(listIt != myAvailableTextureBuckets.end());
 
       TextureResource* res = &it->second;
-#if FANCY_RENDERER_HEAVY_VALIDATION
+#if FANCY_RENDERER_USE_VALIDATION
       ASSERT(std::find(listIt->second.begin(), listIt->second.end(), res) == listIt->second.end());
 #endif
       listIt->second.push_back(res);

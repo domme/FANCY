@@ -3,6 +3,8 @@
 #include "DX12Prerequisites.h"
 #include "RenderOutput.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class Window;
@@ -15,7 +17,7 @@ namespace Fancy {
     
   private:
     void CreateBackbufferResources(uint aWidth, uint aHeight) override;
-    void ResizeBackbuffer(uint aWidth, uint aHeight) override;
+    void ResizeSwapChain(uint aWidth, uint aHeight) override;
     void DestroyBackbufferResources() override;
 
     void OnBeginFrame() override;
@@ -25,3 +27,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

@@ -2,6 +2,8 @@
 #include "RenderOutput.h"
 #include "VkPrerequisites.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   class RenderOutputVk : public RenderOutput
@@ -11,10 +13,11 @@ namespace Fancy
     ~RenderOutputVk();
 
   protected:
-    void CreateSwapChain();
+    void CreateSwapChain(uint aWidth, uint aHeight);
+    void DestroySwapChain();
 
     void CreateBackbufferResources(uint aWidth, uint aHeight) override;
-    void ResizeBackbuffer(uint aWidth, uint aHeight) override;
+    void ResizeSwapChain(uint aWidth, uint aHeight) override;
     void DestroyBackbufferResources() override;
     void OnBeginFrame() override;
     void Present() override;
@@ -22,6 +25,7 @@ namespace Fancy
     VkFormat myBackbufferFormat = VK_FORMAT_UNDEFINED;
     VkColorSpaceKHR myBackbufferColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
     VkPresentModeKHR myPresentMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
+    VkSharingMode mySharingMode = VK_SHARING_MODE_MAX_ENUM;
 
     VkSurfaceKHR mySurface = nullptr;
     VkSwapchainKHR mySwapChain = nullptr;
@@ -30,3 +34,5 @@ namespace Fancy
     DynamicArray<bool> myBackbuffersUsed;
   };
 }
+
+#endif

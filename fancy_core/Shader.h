@@ -19,9 +19,12 @@ namespace Fancy {
   class Shader
   {
   public:
+    static uint64 GetParameterNameHash(const char* aName);
+
     virtual ~Shader() = default;
 
     const ShaderDesc& GetDescription() const { return myDesc; }
+    const ShaderProperties& GetProperties() const { return myProperties; }
     virtual void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput);
     virtual uint64 GetNativeBytecodeHash() const = 0;
     

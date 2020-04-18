@@ -10,6 +10,9 @@
 #include "fancy_core/GpuResourceView.h"
 #include "fancy_core/Texture.h"
 #include "fancy_core/Mesh.h"
+#include "fancy_core/TextureSampler.h"
+#include "fancy_core/GeometryVertexLayout.h"
+#include "fancy_core/GeometryData.h"
 
 using namespace Fancy;
 
@@ -42,6 +45,14 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
 
   myDebugGeoShader = locLoadShader("DebugGeo_Colored");
   ASSERT(myDebugGeoShader != nullptr);
+
+  TextureSamplerProperties samplerProps;
+  samplerProps.myAddressModeX = SamplerAddressMode::REPEAT;
+  samplerProps.myAddressModeY = SamplerAddressMode::REPEAT;
+  samplerProps.myAddressModeZ = SamplerAddressMode::REPEAT;
+  samplerProps.myMinFiltering = SamplerFilterMode::TRILINEAR;
+  samplerProps.myMagFiltering = SamplerFilterMode::TRILINEAR;
+  mySampler = RenderCore::CreateTextureSampler(samplerProps);
 
   myCamera.myPosition = glm::float3(0.0f, 0.0f, -10.0f);
   myCamera.myOrientation = glm::quat_cast(glm::lookAt(glm::float3(0.0f, 0.0f, 10.0f), glm::float3(0.0f, 0.0f, 0.0f), glm::float3(0.0f, 1.0f, 0.0f)));
@@ -99,7 +110,7 @@ void Test_ModelViewer::RenderGrid(Fancy::CommandList* ctx)
   ctx->SetFillMode(FillMode::SOLID);
   ctx->SetWindingOrder(WindingOrder::CCW);
 
-  ctx->SetShaderPipeline(myDebugGeoShader);
+  ctx->SetShaderPipeline(myDebugGeoShader.get());
 
   struct Cbuffer_DebugGeo
   {
@@ -111,7 +122,7 @@ void Test_ModelViewer::RenderGrid(Fancy::CommandList* ctx)
     myCamera.myViewProj,
     glm::float4(1.0f, 0.0f, 0.0f, 1.0f),
   };
-  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), 0u);
+  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), "cbPerObject");
 
   struct GridGeoVertex
   {
@@ -149,7 +160,9 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
   ctx->SetWindingOrder(WindingOrder::CCW);
 
   ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-  ctx->SetShaderPipeline(myUnlitTexturedShader);
+  ctx->SetShaderPipeline(myUnlitTexturedShader.get());
+  ctx->BindSampler(mySampler.get(), "sampler_default");
+
   for (int i = 0; i < myScene.myModels.size(); ++i)
   {
     Model* model = myScene.myModels[i].get();
@@ -162,15 +175,22 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     {
       myCamera.myViewProj * myScene.myTransforms[i],
     };
-    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), 0u);
+    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
 
     Material* mat = model->myMaterial.get();
     const GpuResourceView* diffuseTex = mat->mySemanticTextures[(uint)TextureSemantic::BASE_COLOR].get();
     if (diffuseTex)
-      ctx->BindResourceSet(&diffuseTex, 1u, 1u);
+      ctx->BindResourceView(diffuseTex, "tex_diffuse");
 
     Mesh* mesh = model->myMesh.get();
     for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
-      ctx->RenderGeometry(geometry.get());
+    {
+      const GeometryVertexLayout& layout = geometry->getGeometryVertexLayout();
+      ctx->SetTopologyType(layout.myTopology);
+      ctx->BindVertexBuffer(geometry->getVertexBuffer(), layout.myStride);
+      ctx->BindIndexBuffer(geometry->getIndexBuffer(), geometry->getIndexBuffer()->GetProperties().myElementSizeBytes);
+
+      ctx->Render(geometry->getNumIndices(), 1, 0, 0, 0);
+    }
   }
 }

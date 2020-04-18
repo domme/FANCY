@@ -4,6 +4,8 @@
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   /// Shader-visible descriptor heap that can only allocate but not free descriptors. Intended to be used as a temporary staging-heap during commandlist-recording
@@ -40,3 +42,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------// 
 }
+
+#endif

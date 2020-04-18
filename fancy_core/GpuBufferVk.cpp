@@ -3,6 +3,9 @@
 #include "RenderCore_PlatformVk.h"
 #include "RenderCore.h"
 #include "CommandList.h"
+#include "GpuResourceViewDataVk.h"
+
+#if FANCY_ENABLE_VK
 
 namespace Fancy
 {
@@ -42,8 +45,12 @@ namespace Fancy
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.pNext = nullptr;
     bufferInfo.size = sizeBytes;
-    bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
     bufferInfo.flags = 0u;
+
+    const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+    const bool hasAsyncQueues = caps.myHasAsyncCompute || caps.myHasAsyncCopy;
+
+    bufferInfo.sharingMode = hasAsyncQueues ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
     
     bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT;
@@ -68,12 +75,13 @@ namespace Fancy
     }
     if (someProperties.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER)
     { 
-        bufferInfo.usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        bufferInfo.usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT  // (RW)StructuredBuffer, (RW)ByteAddressBuffer
+          | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT  // RWBuffer<Format>
+          | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;  // Buffer<Format>
         readMask |= VK_ACCESS_SHADER_READ_BIT;
     }
 
     VkMemoryPropertyFlags memPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH;
     bool canChangeStates = true;
     if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
     {
@@ -83,15 +91,22 @@ namespace Fancy
     else if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ)  // Readback heap
     {
       memPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-      defaultState = GpuResourceState::WRITE_COPY_DEST;
       readMask |= VK_ACCESS_HOST_READ_BIT;
     }
 
-    myStateTracking = GpuResourceStateTracking();
+    mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
+
+    myStateTracking = GpuResourceHazardData();
     myStateTracking.myCanChangeStates = canChangeStates;
-    myStateTracking.myDefaultState = defaultState;
     myStateTracking.myVkData.myReadAccessMask = readMask;
     myStateTracking.myVkData.myWriteAccessMask = writeMask;
+    myStateTracking.myVkData.myHasExclusiveQueueAccess = bufferInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
+    
+    GpuSubresourceHazardDataVk subHazardData;
+    subHazardData.myContext = CommandListType::Graphics;
+    subHazardData.myImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    subHazardData.myAccessMask = 0u;
+    myStateTracking.myVkData.mySubresources.resize(1u, subHazardData);
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     const uint queueFamilyIndices[] = 
@@ -101,7 +116,7 @@ namespace Fancy
     };
 
     bufferInfo.pQueueFamilyIndices = queueFamilyIndices;
-    bufferInfo.queueFamilyIndexCount = ARRAY_LENGTH(queueFamilyIndices);
+    bufferInfo.queueFamilyIndexCount = caps.myHasAsyncCompute ? ARRAY_LENGTH(queueFamilyIndices) : 1;
 
     VkDevice device = platformVk->myDevice;
     ASSERT_VK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &dataVk->myBuffer));
@@ -111,20 +126,7 @@ namespace Fancy
     ASSERT(memRequirements.alignment <= UINT_MAX);
     myAlignment = (uint) memRequirements.alignment;
 
-    // Find the correct memory type to use
-    const VkPhysicalDeviceMemoryProperties& deviceMemProps = platformVk->GetPhysicalDeviceMemoryProperties();
-    
-    uint memoryTypeIndex = UINT_MAX;
-    for (uint i = 0u; memoryTypeIndex == UINT_MAX && i < deviceMemProps.memoryTypeCount; ++i)
-    {
-      const VkMemoryType& memType = deviceMemProps.memoryTypes[i];
-      if ((memRequirements.memoryTypeBits & (1 << i)) 
-        && (memType.propertyFlags & memPropertyFlags) == memPropertyFlags)
-      {
-        memoryTypeIndex = i;
-      }
-    }
-    ASSERT(memoryTypeIndex != UINT_MAX, "Couldn't find appropriate memory type for allocation vulkan buffer %s", aName);
+    const uint memoryTypeIndex = platformVk->FindMemoryTypeIndex(memRequirements, memPropertyFlags);
 
     // TODO: Replace memory allocation with a dedicated allocator like in DX12
     VkMemoryAllocateInfo memAllocInfo;
@@ -147,9 +149,7 @@ namespace Fancy
       else
       {
         CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-        ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
         ctx->UpdateBufferData(this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes);
-        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }
@@ -167,9 +167,7 @@ namespace Fancy
     const VkMemoryMapFlags mapFlags = static_cast<VkMemoryMapFlags>(0);
 
     void* mappedData = nullptr;
-    ASSERT_VK_RESULT(
-      vkMapMemory(RenderCore::GetPlatformVk()->myDevice, dataVk->myMemory, anOffset, aSize, mapFlags, &mappedData));
-
+    ASSERT_VK_RESULT(vkMapMemory(RenderCore::GetPlatformVk()->myDevice, dataVk->myMemory, anOffset, aSize, mapFlags, &mappedData));
     return mappedData;
   }
 //---------------------------------------------------------------------------//
@@ -195,4 +193,63 @@ namespace Fancy
     myProperties = GpuBufferProperties();
   }
 //---------------------------------------------------------------------------//
+  VkBufferView GpuBufferViewVk::CreateVkBufferView(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties)
+  {
+    ASSERT(someProperties.myFormat != DataFormat::UNKNOWN && !someProperties.myIsStructured && !someProperties.myIsRaw);
+
+    const GpuBufferProperties& bufferProps = aBuffer->GetProperties();
+    ASSERT((bufferProps.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER) != 0u, "A vkBufferView can only be created for buffers created with the SHADER_BUFFER bind flag");
+
+    VkBufferViewCreateInfo info;
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0u;
+    info.buffer = static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBuffer;
+    info.format = RenderCore_PlatformVk::ResolveFormat(someProperties.myFormat);
+    info.offset = someProperties.myOffset;
+    info.range = someProperties.mySize;
+
+    VkBufferView bufferView;
+    ASSERT_VK_RESULT(vkCreateBufferView(RenderCore::GetPlatformVk()->myDevice, &info, nullptr, &bufferView));
+
+    return bufferView;
+  }
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  GpuBufferViewVk::GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
+    : GpuBufferView(aBuffer, someProperties)
+  {
+    // Creating a vkBufferView is only needed for uniform texel buffers or storage texel buffers (Buffer<T> or RWBuffer<T> in HLSL)
+    // For anything else, GpuBufferViewVk just acts as a reference-holder to the GpuBuffer and stores the view-properties needed when binding
+    if (myProperties.myFormat != DataFormat::UNKNOWN && !myProperties.myIsStructured && !myProperties.myIsRaw)
+    {
+      VkBufferView bufferView = CreateVkBufferView(aBuffer.get(), someProperties);
+
+      GpuResourceViewDataVk nativeData;
+      nativeData.myType = GpuResourceViewDataVk::Buffer;
+      nativeData.myView.myBuffer = bufferView;
+      myNativeData = nativeData;
+    }
+  }
+//---------------------------------------------------------------------------//
+  GpuBufferViewVk::~GpuBufferViewVk()
+  {
+    if (myNativeData.HasType<GpuResourceViewDataVk>())
+    {
+      const GpuResourceViewDataVk& nativeData = myNativeData.To<GpuResourceViewDataVk>();
+      if (nativeData.myView.myBuffer != nullptr)
+        vkDestroyBufferView(RenderCore::GetPlatformVk()->myDevice, nativeData.myView.myBuffer, nullptr);
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkBufferView GpuBufferViewVk::GetBufferView() const
+  {
+    if (myNativeData.HasType<GpuResourceViewDataVk>())
+      return myNativeData.To<GpuResourceViewDataVk>().myView.myBuffer;
+
+    return nullptr;
+  }
+//---------------------------------------------------------------------------//
 }
+
+#endif // VK_SUPPORT

@@ -24,7 +24,7 @@ namespace Fancy
 
     return index;
   }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   SubresourceLocation GpuResource::GetSubresourceLocation(uint aSubresourceIndex) const
   {
     SubresourceLocation location;

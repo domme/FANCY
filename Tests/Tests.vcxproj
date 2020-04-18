@@ -35,6 +35,7 @@
     <Import Project="..\property_sheets\lib_xxhash_static_release_x64.props" />
     <Import Project="..\property_sheets\lib_assimp_debug_x64.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
+    <Import Project="..\property_sheets\inc_lib_dxc.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'" />

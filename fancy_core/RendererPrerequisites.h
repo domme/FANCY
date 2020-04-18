@@ -1,13 +1,14 @@
 #pragma once
 
 /// Enables various sanity-checks and validations
-#define FANCY_RENDERER_HEAVY_VALIDATION 1
+#define FANCY_RENDERER_USE_VALIDATION 1
 #define FANCY_RENDERER_DEBUG 1
 #define FANCY_RENDERER_DEBUG_MEMORY_ALLOCS FANCY_RENDERER_DEBUG
 
-// Track the resource barrier-states per resource. Only works in single-threaded commandList-recording!
-#define FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES 0
-#define FANCY_RENDERER_LOG_RESOURCE_BARRIERS 1
+#define FANCY_RENDERER_TRACK_RESOURCE_BARRIER_STATES 1
+#define FANCY_RENDERER_LOG_RESOURCE_BARRIERS 0
+
+#define FANCY_RENDERER_SUPPORT_MESH_SHADERS 0
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -26,7 +27,7 @@ namespace Fancy {
       kMaxNumConstantBufferElements = 128u,
       kMaxNumGeometriesPerSubModel = 128u,
       kMaxNumRenderContexts = 256u,
-      kNumRenderThreads = 1u
+      kNumRenderThreads = 1u,
     };
   }
 //---------------------------------------------------------------------------//
@@ -57,13 +58,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct RenderPlatformCaps
   {
-    RenderPlatformCaps()
-      : myMaxNumVertexAttributes(32)
-      , myCbufferPlacementAlignment(0)
-    {}
-
-    unsigned int myMaxNumVertexAttributes;
-    unsigned int myCbufferPlacementAlignment;
+    unsigned int myMaxNumVertexAttributes = 32u;
+    unsigned int myCbufferPlacementAlignment = 1u;
+    unsigned int myTextureRowAlignment = 1u;
+    unsigned int myTextureSubresourceBufferAlignment = 10;
+    unsigned int myMaxTextureAnisotropy = 16u;
+    bool myHasAsyncCompute = false;
+    bool myHasAsyncCopy = false;
   };
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

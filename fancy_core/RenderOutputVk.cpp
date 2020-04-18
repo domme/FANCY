@@ -10,8 +10,11 @@
 #include "CommandQueueVk.h"
 #include "CommandListVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
   RenderOutputVk::RenderOutputVk(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
     : RenderOutput(aNativeInstanceHandle, someWindowParams)
   {
@@ -89,11 +92,20 @@ namespace Fancy
       myPresentMode = bestPresentMode;
     }
 
+    // Pick the appropriate sharing mode. 
+    {
+      const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+      const bool hasAsyncQueues = caps.myHasAsyncCompute || caps.myHasAsyncCopy;
+
+      // In single - queue scenarios it is a validation error to pick CONCURRENT
+      mySharingMode = hasAsyncQueues ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
+    }
+
     VkSurfaceCapabilitiesKHR surfaceCaps;
     ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(platformVk->myPhysicalDevice, mySurface, &surfaceCaps));
     myNumBackbuffers = glm::clamp(kBackbufferCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
 
-    CreateSwapChain();
+    CreateSwapChain(myWindow->GetWidth(), myWindow->GetHeight());
 
     VkFenceCreateInfo fenceCreateInfo;
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -104,12 +116,12 @@ namespace Fancy
   //---------------------------------------------------------------------------//
   RenderOutputVk::~RenderOutputVk()
   {
+    DestroySwapChain();
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    vkDestroySwapchainKHR(platformVk->myDevice, mySwapChain, nullptr);
     vkDestroySurfaceKHR(platformVk->myInstance, mySurface, nullptr);
   }
 //---------------------------------------------------------------------------//
-  void RenderOutputVk::CreateSwapChain()
+  void RenderOutputVk::CreateSwapChain(uint aWidth, uint aHeight)
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
@@ -118,26 +130,34 @@ namespace Fancy
 
     VkExtent2D swapChainRes = surfaceCaps.currentExtent;
     if (swapChainRes.width == UINT_MAX)
-      swapChainRes.width = glm::clamp(myWindow->GetWidth(), surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
+      swapChainRes.width = glm::clamp(aWidth, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
     if (swapChainRes.height == UINT_MAX)
-      swapChainRes.height = glm::clamp(myWindow->GetHeight(), surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
+      swapChainRes.height = glm::clamp(aHeight, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.pNext = nullptr;
     createInfo.surface = mySurface;
     createInfo.minImageCount = myNumBackbuffers;
     createInfo.imageExtent = swapChainRes;
     createInfo.imageColorSpace = myBackbufferColorSpace;
     createInfo.imageFormat = myBackbufferFormat;
     createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;  // SHARING would only be needed if the present-queue is different from the graphics-queue, which we don't support currently.
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    createInfo.imageSharingMode = mySharingMode;
     createInfo.preTransform = surfaceCaps.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.presentMode = myPresentMode;
     createInfo.clipped = VK_TRUE;
-    createInfo.oldSwapchain = nullptr;  // Needed for swapchain-recreation after resizing later...
+    createInfo.oldSwapchain = nullptr;  // Could be used for a more optimal swapchain-recreation
     ASSERT_VK_RESULT(vkCreateSwapchainKHR(platformVk->myDevice, &createInfo, nullptr, &mySwapChain));
+  }
+//---------------------------------------------------------------------------//
+  void RenderOutputVk::DestroySwapChain()
+  {
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    ASSERT_VK_RESULT(vkDeviceWaitIdle(platformVk->myDevice));
+    vkDestroySwapchainKHR(platformVk->myDevice, mySwapChain, nullptr);
   }
 //---------------------------------------------------------------------------//
   void RenderOutputVk::CreateBackbufferResources(uint aWidth, uint aHeight)
@@ -178,15 +198,30 @@ namespace Fancy
         resource.myNativeData = dataVk;
       }
 
-      resource.myStateTracking = GpuResourceStateTracking();
-      resource.myStateTracking.myDefaultState = GpuResourceState::READ_PRESENT;
+      resource.mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
+
+      resource.myStateTracking = GpuResourceHazardData();
       resource.myStateTracking.myVkData.myReadAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
       resource.myStateTracking.myVkData.myWriteAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+      resource.myStateTracking.myVkData.myHasExclusiveQueueAccess = mySharingMode == VK_SHARING_MODE_EXCLUSIVE;
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_GENERAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR);
+
+      GpuSubresourceHazardDataVk subHazardData;
+      subHazardData.myContext = CommandListType::Graphics;
+      subHazardData.myAccessMask = 0u;
+      subHazardData.myImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+      resource.myStateTracking.myVkData.mySubresources.resize(1u, subHazardData);
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;
       backbufferProps.myIsRenderTarget = true;
-      backbufferProps.eFormat = backbufferFormat;
+      backbufferProps.myFormat = backbufferFormat;
       backbufferProps.myWidth = aWidth;
       backbufferProps.myHeight = aHeight;
       backbufferProps.myDepthOrArraySize = 1u;
@@ -200,10 +235,10 @@ namespace Fancy
     std::fill_n(myBackbuffersUsed.begin(), myBackbuffersUsed.size(), false);
   }
   //---------------------------------------------------------------------------//
-  void RenderOutputVk::ResizeBackbuffer(uint aWidth, uint aHeight)
+  void RenderOutputVk::ResizeSwapChain(uint aWidth, uint aHeight)
   {
-    vkDestroySwapchainKHR(RenderCore::GetPlatformVk()->myDevice, mySwapChain, nullptr);
-    CreateSwapChain();
+    DestroySwapChain();
+    CreateSwapChain(aWidth, aHeight);
   }
   //---------------------------------------------------------------------------//
   void RenderOutputVk::DestroyBackbufferResources()
@@ -218,38 +253,21 @@ namespace Fancy
   {
     VkDevice device = RenderCore::GetPlatformVk()->myDevice;
     ASSERT_VK_RESULT(vkAcquireNextImageKHR(device, mySwapChain, UINT64_MAX, nullptr, myBackbufferReadyFence, &myCurrBackbufferIndex));
-    while (vkWaitForFences(device, 1u, &myBackbufferReadyFence, true, UINT64_MAX) != VK_SUCCESS)
-    {
-      // Wait indefinitely
-    }
+    ASSERT_VK_RESULT(vkWaitForFences(device, 1u, &myBackbufferReadyFence, true, UINT64_MAX));
     ASSERT_VK_RESULT(vkResetFences(device, 1u, &myBackbufferReadyFence));
-
-    // Upon first use, each backbuffer must be transitioned from an unknown image layout into the present-layout that high-level rendering code expects
-    if (!myBackbuffersUsed[myCurrBackbufferIndex])
-    {
-      myBackbuffersUsed[myCurrBackbufferIndex] = true;
-
-      CommandListVk* ctx = static_cast<CommandListVk*>(RenderCore::BeginCommandList(CommandListType::Graphics));
-      const ResourceBarrierInfoVk presentInfo = RenderCore_PlatformVk::ResolveResourceState(GpuResourceState::READ_PRESENT);
-      ctx->SubresourceBarrierInternal(myBackbufferTextures[myCurrBackbufferIndex].get(), myBackbufferTextures[myCurrBackbufferIndex]->GetSubresources(),
-        0u,
-        presentInfo.myAccessMask,
-        0u,
-        presentInfo.myStageMask,
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        presentInfo.myImageLayout,
-        CommandListType::Graphics,
-        CommandListType::Graphics
-      );
-      RenderCore::ExecuteAndFreeCommandList(ctx);
-    }
   }
   //---------------------------------------------------------------------------//
   void RenderOutputVk::Present()
   {
     const CommandQueueVk* graphicsQueue = static_cast<CommandQueueVk*>(RenderCore::GetCommandQueue(CommandListType::Graphics));
 
-    VkPresentInfoKHR presentInfo;
+    CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+    CommandListVk* ctxVk = static_cast<CommandListVk*>(ctx);
+    ctxVk->TrackResourceTransition(GetBackbuffer(), 0, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, 0u);
+    ctxVk->FlushBarriers();
+    RenderCore::ExecuteAndFreeCommandList(ctx);
+
+    VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.pNext = nullptr;
     presentInfo.swapchainCount = 1u;
@@ -262,3 +280,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

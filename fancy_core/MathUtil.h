@@ -52,7 +52,7 @@ namespace Fancy { namespace MathUtil {
   }
 //---------------------------------------------------------------------------//
   template<>
-  inline size_t Hash<const char*&>(const char*& aValue)
+  inline size_t Hash<const char*>(const char* const& aValue)
   {
     return ByteHash(reinterpret_cast<const uint8*>(aValue), strlen(aValue));
   }
@@ -64,9 +64,14 @@ namespace Fancy { namespace MathUtil {
                      (uCombinedSeed << 6) + (uCombinedSeed >> 2);
   }
 //---------------------------------------------------------------------------//
-  inline constexpr uint64 Align(uint64 aVal, uint64 anAlignment)
+  constexpr uint64 Align(uint64 aVal, uint64 anAlignment)
   {
-    return anAlignment == 0u ? aVal : ((aVal + (anAlignment - 1u)) & (~(anAlignment - 1u)));
+    return (aVal + (anAlignment - 1u)) & (~(anAlignment - 1u));
+  }
+//---------------------------------------------------------------------------//
+  constexpr bool IsAligned(uint64 aVal, uint64 anAlignment)
+  {
+    return (aVal & (anAlignment - 1u)) == 0u;
   }
 //---------------------------------------------------------------------------//
   inline glm::mat4 perspectiveFov(float const & fov,

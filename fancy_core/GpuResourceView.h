@@ -23,6 +23,9 @@ namespace Fancy {
       , myType(GpuResourceViewType::NONE)
     { }
 
+    GpuResource* GetResource() const { return myResource.get(); }
+    const SubresourceRange& GetSubresourceRange() const { return mySubresourceRange; }
+
     Any myNativeData;
     SubresourceRange mySubresourceRange;
     SharedPtr<GpuResource> myResource;

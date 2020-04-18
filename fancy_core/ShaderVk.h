@@ -1,45 +1,31 @@
 #pragma once
 #include "Shader.h"
 #include "VkPrerequisites.h"
+#include "ShaderResourceInfoVk.h"
+
+#if FANCY_ENABLE_VK
 
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
   struct ShaderCompilerResult;
 //---------------------------------------------------------------------------//
-  struct ShaderDescriptorBindingVk
-  {
-    uint myBinding;
-    VkDescriptorType myDescriptorType;
-    uint myDescriptorCount;
-  };
-//---------------------------------------------------------------------------//
-  struct ShaderDescriptorSetBindingInfoVk
-  {
-    uint mySet;
-    DynamicArray<ShaderDescriptorBindingVk> myBindings;
-  };
-//---------------------------------------------------------------------------//
-  struct ShaderBindingInfoVk
-  {
-    DynamicArray<ShaderDescriptorSetBindingInfoVk> myDescriptorSets;
-  };
-//---------------------------------------------------------------------------//
   struct ShaderVertexAttributeDescVk
   {
     DynamicArray<VkVertexInputAttributeDescription> myVertexAttributes;
     uint myOverallVertexSize;
   };
-
+//---------------------------------------------------------------------------//
   struct ShaderCompiledDataVk
   {
     VkShaderModule myModule = nullptr;
-    ShaderBindingInfoVk myBindingInfo;
+    DynamicArray<ShaderResourceInfoVk> myResourceInfos;
     ShaderVertexAttributeDescVk myVertexAttributeDesc;
   };
 //---------------------------------------------------------------------------//
-  
-  class ShaderVk : public Shader
+
+//---------------------------------------------------------------------------//
+    class ShaderVk : public Shader
   {
     friend class ShaderCompilerVk;
 
@@ -48,12 +34,18 @@ namespace Fancy
 
     void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
     uint64 GetNativeBytecodeHash() const override;
+
+    const DynamicArray<ShaderResourceInfoVk>& GetResourceInfos() const { return myResourceInfos; }
+    VkShaderModule GetModule() const { return myModule; }
+    const VkPipelineShaderStageCreateInfo& GetStageCreateInfo() const { return myShaderStageCreateInfo; }
     
     VkShaderModule myModule = nullptr;
     VkPipelineShaderStageCreateInfo myShaderStageCreateInfo = {};
     VkPipelineVertexInputStateCreateInfo myVertexInputCreateInfo = {};
-    ShaderBindingInfoVk myBindingInfo;
+    DynamicArray<ShaderResourceInfoVk> myResourceInfos;
     ShaderVertexAttributeDescVk myVertexAttributeDesc;
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

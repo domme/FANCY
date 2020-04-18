@@ -54,7 +54,7 @@ void Test_Synchronization::OnUpdate(bool aDrawProperties)
       myUploadBuffer->Unmap(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
 
       CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-      ctx->CopyBufferRegion(myReadbackBuffer.get(), 0ull, myUploadBuffer.get(), 0ull, myUploadBuffer->GetByteSize());
+      ctx->CopyBuffer(myReadbackBuffer.get(), 0ull, myUploadBuffer.get(), 0ull, myUploadBuffer->GetByteSize());
       myBufferCopyFence = RenderCore::ExecuteAndFreeCommandList(ctx);
 
       myStage = Stage::WAITING_FOR_COPY;

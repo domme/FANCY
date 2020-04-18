@@ -18,12 +18,12 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
 
   myTexture = aTexture;
   TextureViewProperties readProps;
-  readProps.myFormat = aTexture->GetProperties().eFormat;
+  readProps.myFormat = aTexture->GetProperties().myFormat;
   readProps.myDimension = GpuResourceDimension::TEXTURE_2D;
   myTextureView = RenderCore::CreateTextureView(aTexture, readProps);
   ASSERT(myTextureView != nullptr);
 
-  const DataFormatInfo& destTexFormatInfo = DataFormatInfo::GetFormatInfo(destTexProps.eFormat);
+  const DataFormatInfo& destTexFormatInfo = DataFormatInfo::GetFormatInfo(destTexProps.myFormat);
   myIsSRGB = destTexFormatInfo.mySRGB;
 
   readProps.mySubresourceRange.myNumMipLevels = 1;
@@ -53,7 +53,6 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
   mySelectedFilter = AssetManager::FILTER_LINEAR;
 }
 
-
 Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Mipmapping")
@@ -65,12 +64,12 @@ Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Checkerboard.png", loadFlags));
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
 
-  RenderCore::ourOnShaderRecompiled.Connect(this, &Test_Mipmapping::OnShaderRecompiled);
-
+  RenderCore::ourOnShaderPipelineRecompiled.Connect(this, &Test_Mipmapping::OnShaderPipelineRecompiled);
 }
 
 Test_Mipmapping::~Test_Mipmapping()
 {
+  RenderCore::ourOnShaderPipelineRecompiled.DetachObserver(this);
 }
 
 void Test_Mipmapping::OnUpdate(bool aDrawProperties)
@@ -106,7 +105,7 @@ void Test_Mipmapping::OnUpdate(bool aDrawProperties)
   }
 }
 
-void Test_Mipmapping::OnShaderRecompiled(const Fancy::Shader* aShader)
+void Test_Mipmapping::OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aShader)
 {
   if (aShader == myAssetManager->GetResizeShader())
   {

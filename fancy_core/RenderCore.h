@@ -13,6 +13,8 @@
 
 #include <map>
 #include <list>
+#include "TextureSampler.h"
+#include <map>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -29,6 +31,7 @@ namespace Fancy {
   class DepthStencilState;
   class FileWatcher;
   class GpuRingBuffer;
+  class GpuReadbackBuffer;
   class Shader;
   struct ShaderDesc;
   class TempResourcePool;
@@ -41,6 +44,9 @@ namespace Fancy {
   struct TextureSubData;
   class GpuQueryHeap;
   struct GpuQueryStorage;
+  struct ReadbackBufferAllocation;
+  class ReadbackTask;
+  class TextureReadbackTask;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -59,8 +65,8 @@ namespace Fancy {
     static void EndFrame();
     static void Shutdown();
 
-    static const char* ResourceUsageStateToString(GpuResourceState aState);
     static const char* CommandListTypeToString(CommandListType aType);
+    static CommandListType ResolveSupportedCommandListType(CommandListType aType);
 
     static bool IsInitialized();
 
@@ -82,14 +88,11 @@ namespace Fancy {
     static SharedPtr<TextureView> CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, GpuBufferViewProperties someProperties, const char* aName = nullptr);
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, GpuBufferViewProperties someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
-    static uint GetQueryTypeDataSize(GpuQueryType aType);
-    
-    static MappedTempBuffer ReadbackBufferData(const GpuBuffer* aBuffer, uint64 anOffset, uint64 aByteSize);
-    static MappedTempTextureBuffer ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange);
-    static bool ReadbackTextureData(const Texture* aTexture, const SubresourceRange& aSubresourceRange, TextureData& aTextureDataOut);
+    static uint GetQueryTypeDataSize(GpuQueryType aType); 
     
     static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateProperties& aDesc);
+    static SharedPtr<TextureSampler> CreateTextureSampler(const TextureSamplerProperties& someProperties);
     static const SharedPtr<BlendState>& GetDefaultBlendState();
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState();
 
@@ -101,6 +104,12 @@ namespace Fancy {
 
     static GpuRingBuffer* AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName = nullptr);
     static void ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal);
+
+    static GpuBuffer* AllocateReadbackBuffer(uint64 aBlockSize, uint anOffsetAlignment, uint64& anOffsetToBlockOut);
+    static void FreeReadbackBuffer(GpuBuffer* aBuffer, uint64 aBlockSize, uint64 anOffsetToBlock);
+
+    static TextureReadbackTask ReadbackTexture(Texture* aTexture, const SubresourceRange& aSubresourceRange, CommandListType aCommandListType = CommandListType::Graphics);
+    static ReadbackTask ReadbackBuffer(GpuBuffer* aBuffer, uint64 anOffset, uint64 aSize, CommandListType aCommandListType = CommandListType::Graphics);
 
     static CommandList* BeginCommandList(CommandListType aType);
     static uint64 ExecuteAndFreeCommandList(CommandList* aCommandList, SyncMode aSyncMode = SyncMode::ASYNC);
@@ -127,6 +136,7 @@ namespace Fancy {
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
 
     static Slot<void(const Shader*)> ourOnShaderRecompiled;
+    static Slot<void(const ShaderPipeline*)> ourOnShaderPipelineRecompiled;
 
   protected:
     RenderCore() = default;
@@ -160,10 +170,13 @@ namespace Fancy {
     static std::map<uint64, SharedPtr<ShaderPipeline>> ourShaderPipelineCache;
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
-    
+    static std::map<uint64, SharedPtr<TextureSampler>> ourSamplerCache;
+
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
     static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
+
+    static DynamicArray<UniquePtr<GpuReadbackBuffer>> ourReadbackBuffers;
 
     static UniquePtr<CommandQueue> ourCommandQueues[(uint)CommandListType::NUM];  // TODO: Move into RenderCore_Platform
     

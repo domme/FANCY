@@ -17,6 +17,9 @@
 #include "GpuResourceDataDX12.h"
 #include "AdapterDX12.h"
 #include "GpuQueryHeapDX12.h"
+#include "TextureSamplerDX12.h"
+
+#if FANCY_ENABLE_DX12
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -412,6 +415,25 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  DXGI_FORMAT RenderCore_PlatformDX12::GetCopyableFormat(DXGI_FORMAT aFormat, uint aPlaneIndex)
+  {
+    switch(aFormat)
+    {
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+      ASSERT(aPlaneIndex < 2);
+      return aPlaneIndex == 0 ? DXGI_FORMAT_R32_FLOAT : DXGI_FORMAT_R8_UINT;
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+      ASSERT(aPlaneIndex < 2);
+      return aPlaneIndex == 0 ? DXGI_FORMAT_R32_FLOAT : DXGI_FORMAT_R32_UINT;
+    case DXGI_FORMAT_D32_FLOAT:
+      ASSERT(aPlaneIndex == 0u);
+      return DXGI_FORMAT_R32_FLOAT;
+    }
+
+    ASSERT(aPlaneIndex == 0u);
+    return aFormat;
+  }
+//---------------------------------------------------------------------------//
   D3D12_COMMAND_LIST_TYPE RenderCore_PlatformDX12::GetCommandListType(CommandListType aType)
   {
     switch (aType)
@@ -435,41 +457,6 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  D3D12_RESOURCE_STATES RenderCore_PlatformDX12::ResolveResourceUsageState(GpuResourceState aState)
-  {
-    switch (aState)
-    {
-    case GpuResourceState::READ_INDIRECT_ARGUMENT:               return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
-    case GpuResourceState::READ_VERTEX_BUFFER:                   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_INDEX_BUFFER:                    return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-    case GpuResourceState::READ_VERTEX_SHADER_CONSTANT_BUFFER:   return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_VERTEX_SHADER_RESOURCE:          return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_PIXEL_SHADER_CONSTANT_BUFFER:    return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_PIXEL_SHADER_RESOURCE:           return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_COMPUTE_SHADER_CONSTANT_BUFFER:  return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_COMPUTE_SHADER_RESOURCE:         return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_ANY_SHADER_CONSTANT_BUFFER:      return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    case GpuResourceState::READ_ANY_SHADER_RESOURCE:             return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    case GpuResourceState::READ_COPY_SOURCE:                     return D3D12_RESOURCE_STATE_COPY_SOURCE;
-    case GpuResourceState::READ_ANY_SHADER_ALL_BUT_DEPTH:        return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT | D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_INDEX_BUFFER | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
-    case GpuResourceState::READ_DEPTH:                           return D3D12_RESOURCE_STATE_DEPTH_READ;
-    case GpuResourceState::READ_PRESENT:                         return D3D12_RESOURCE_STATE_PRESENT;
-    case GpuResourceState::WRITE_VERTEX_SHADER_UAV:              return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_PIXEL_SHADER_UAV:               return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_COMPUTE_SHADER_UAV:             return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_ANY_SHADER_UAV:                 return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    case GpuResourceState::WRITE_RENDER_TARGET:                  return D3D12_RESOURCE_STATE_RENDER_TARGET;
-    case GpuResourceState::WRITE_COPY_DEST:                      return D3D12_RESOURCE_STATE_COPY_DEST;
-    case GpuResourceState::WRITE_DEPTH:                          return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-    case GpuResourceState::NUM: break;
-    default:
-      ASSERT(false); return D3D12_RESOURCE_STATE_COMMON;
-    }
-
-    return D3D12_RESOURCE_STATE_COMMON;
-  }
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::RenderCore_PlatformDX12()
     : RenderCore_Platform(RenderPlatformType::DX12)
@@ -514,13 +501,21 @@ namespace Fancy {
     // Init Caps
     myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;
     myCaps.myCbufferPlacementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
+    myCaps.myTextureRowAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
+    myCaps.myTextureSubresourceBufferAlignment = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+    myCaps.myMaxTextureAnisotropy = D3D12_DEFAULT_MAX_ANISOTROPY;
+    // DX12 always supports async compute and copy on the API-level, even though there might not
+    // be hardware-support for it.
+    // TODO: Check if there's a way to detect missing HW-support and disable the missing queues
+    myCaps.myHasAsyncCompute = true;
+    myCaps.myHasAsyncCopy = true;
   }
-
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {
     ourCommandAllocatorPools[(uint)CommandListType::Graphics].reset(new CommandAllocatorPoolDX12(CommandListType::Graphics));
-    ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
+    if (myCaps.myHasAsyncCompute)
+      ourCommandAllocatorPools[(uint)CommandListType::Compute].reset(new CommandAllocatorPoolDX12(CommandListType::Compute));
     
     myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)CpuMemoryAccessType::NO_CPU_ACCESS].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, CpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB));
     myGpuMemoryAllocators[(uint)GpuMemoryType::BUFFER][(uint)CpuMemoryAccessType::CPU_WRITE].reset(new GpuMemoryAllocatorDX12(GpuMemoryType::BUFFER, CpuMemoryAccessType::CPU_WRITE, 64 * SIZE_MB));
@@ -682,6 +677,11 @@ namespace Fancy {
    return new GpuBufferDX12();
   }
 //---------------------------------------------------------------------------//
+  TextureSampler* RenderCore_PlatformDX12::CreateTextureSampler(const TextureSamplerProperties& someProperties)
+  {
+    return new TextureSamplerDX12(someProperties);
+  }
+//---------------------------------------------------------------------------//
   CommandList* RenderCore_PlatformDX12::CreateCommandList(CommandListType aType)
   {
     return new CommandListDX12(aType);
@@ -738,3 +738,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 } 
+
+#endif

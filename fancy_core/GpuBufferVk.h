@@ -4,8 +4,11 @@
 #include "VkPrerequisites.h"
 #include "GpuResourceDataVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
   class GpuBufferVk final : public GpuBuffer
   {
   public:
@@ -25,6 +28,18 @@ namespace Fancy
 
     void Destroy();
   };
+//---------------------------------------------------------------------------//
+  class GpuBufferViewVk final : public GpuBufferView
+  {
+  public:
+    static VkBufferView CreateVkBufferView(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
+
+    GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
+    ~GpuBufferViewVk() override;
+
+    VkBufferView GetBufferView() const;
+  };
+//---------------------------------------------------------------------------//
 }
 
-
+#endif

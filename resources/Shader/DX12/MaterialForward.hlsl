@@ -9,10 +9,7 @@
                         "CBV(b0), " \
                         "CBV(b1), " \
                         "DescriptorTable(SRV(t0, numDescriptors = 3), visibility = SHADER_VISIBILITY_PIXEL)," \
-                        "StaticSampler(s0, " \
-                        "addressU = TEXTURE_ADDRESS_WRAP, " \
-                        "addressV = TEXTURE_ADDRESS_WRAP, " \
-                        "filter = FILTER_MIN_MAG_MIP_POINT )"
+                        "DescriptorTable(Sampler(s0))"
 
 ConstantBuffer<PER_LIGHT> cbPerLight : register(b0);
 ConstantBuffer<PER_OBJECT> cbPerObject : register(b1);

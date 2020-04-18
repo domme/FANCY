@@ -5,10 +5,6 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  TextureRegion TextureRegion::ourMaxRegion;
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
   bool SubresourceRange::IsEmpty() const
   {
     return myNumMipLevels == 0u && myNumArrayIndices == 0u && myNumPlanes == 0u;
@@ -111,9 +107,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool SubresourceIterator::IsEnd() const
   {
-    return myCurrentLocation.myMipLevel >= myRange.myNumMipLevels
-      || myCurrentLocation.myArrayIndex >= myRange.myNumArrayIndices
-      || myCurrentLocation.myPlaneIndex >= myRange.myNumPlanes;
+    return myCurrentLocation.myMipLevel >= myRange.myFirstMipLevel + myRange.myNumMipLevels
+      || myCurrentLocation.myArrayIndex >= myRange.myFirstArrayIndex + myRange.myNumArrayIndices
+      || myCurrentLocation.myPlaneIndex >= myRange.myFirstPlane + myRange.myNumPlanes;
   }
 //---------------------------------------------------------------------------//
 
@@ -121,7 +117,7 @@ namespace Fancy
   TextureSubData::TextureSubData(const TextureProperties& someProperties)
     : myData(nullptr)
   {
-    const DataFormatInfo info(someProperties.eFormat);
+    const DataFormatInfo info(someProperties.myFormat);
     myPixelSizeBytes = info.mySizeBytes;
 
     const uint width = someProperties.myWidth;

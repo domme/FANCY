@@ -2,14 +2,16 @@
 
 #include "DX12Prerequisites.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy { 
 //---------------------------------------------------------------------------//
   class DescriptorDX12
   {
   public:
     DescriptorDX12()
-      : myCpuHandle{0u}
-      , myGpuHandle{0u}
+      : myCpuHandle{UINT_MAX}
+      , myGpuHandle{UINT_MAX}
       , myHeapType(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)
       , myIsManagedByAllocator(false)
     {
@@ -31,3 +33,5 @@ namespace Fancy {
   };
 //---------------------------------------------------------------------------//
 }
+
+#endif

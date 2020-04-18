@@ -4,6 +4,8 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//  
   CommandAllocatorPoolDX12::CommandAllocatorPoolDX12(CommandListType aType)
@@ -74,7 +76,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandAllocatorPoolDX12::ReleaseAllocator(ID3D12CommandAllocator* anAllocator, uint64 anAllocatorDoneFenceVal)
   {
-#if defined (FANCY_RENDERER_HEAVY_VALIDATION)
+#if defined (FANCY_RENDERER_USE_VALIDATION)
     for (ID3D12CommandAllocator* allocator : myAvailableAllocators)
       ASSERT(allocator != anAllocator);
 
@@ -86,3 +88,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

@@ -11,6 +11,8 @@
 #include "GpuResourceViewDataDX12.h"
 #include "CommandList.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   TextureDX12::TextureDX12(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable)
@@ -64,77 +66,82 @@ namespace Fancy {
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive");
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsRenderTarget, "Render target and depthstencil are mutually exclusive");
 
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.eFormat);
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.myFormat);
     ASSERT(formatInfo.myNumComponents != 3, "Texture-formats must be 1-, 2-, or 4-component");
-    myProperties.eFormat = someProperties.eFormat;
 
     myProperties.myDepthOrArraySize = glm::max(1u, myProperties.myDepthOrArraySize);
     
-    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::ResolveFormat(myProperties.eFormat);
-    if (!someProperties.myPreferTypedFormat)
+    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::ResolveFormat(myProperties.myFormat);
+    if (!myProperties.myPreferTypedFormat)
     {
-      if (someProperties.bIsDepthStencil)
+      if (myProperties.bIsDepthStencil)
         dxgiFormat = RenderCore_PlatformDX12::GetDepthStencilTextureFormat(dxgiFormat);
       else
         dxgiFormat = RenderCore_PlatformDX12::GetTypelessFormat(dxgiFormat);
     }
 
-    const uint minSide = (someProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(someProperties.myWidth, someProperties.myHeight, someProperties.myDepthOrArraySize) : glm::min(someProperties.myWidth, someProperties.myHeight);
+    const uint minSide = (myProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(myProperties.myWidth, myProperties.myHeight, myProperties.myDepthOrArraySize) : glm::min(myProperties.myWidth, myProperties.myHeight);
     const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(minSide)));
-    myProperties.myNumMipLevels = glm::max(1u, glm::min(someProperties.myNumMipLevels, maxNumMipLevels));
+    myProperties.myNumMipLevels = glm::max(1u, glm::min(myProperties.myNumMipLevels, maxNumMipLevels));
 
     D3D12_RESOURCE_DESC resourceDesc;
     memset(&resourceDesc, 0, sizeof(resourceDesc));
     resourceDesc.Dimension = dimension;
     resourceDesc.Alignment = 0;
-    resourceDesc.Width = glm::max(1u, static_cast<uint>(someProperties.myWidth));
-    resourceDesc.Height = glm::max(1u, static_cast<uint>(someProperties.myHeight));
-    resourceDesc.DepthOrArraySize = glm::max(1u, static_cast<uint>(someProperties.myDepthOrArraySize));
+    resourceDesc.Width = glm::max(1u, static_cast<uint>(myProperties.myWidth));
+    resourceDesc.Height = glm::max(1u, static_cast<uint>(myProperties.myHeight));
+    resourceDesc.DepthOrArraySize = glm::max(1u, static_cast<uint>(myProperties.myDepthOrArraySize));
     resourceDesc.MipLevels = myProperties.myNumMipLevels;
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     resourceDesc.Format = dxgiFormat;
-
-    GpuResourceState defaultState = GpuResourceState::READ_ANY_SHADER_RESOURCE;
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-    if (someProperties.bIsDepthStencil)
+    if (myProperties.bIsDepthStencil)
     {
       resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
     }
     else
     {
-      if (someProperties.myIsShaderWritable)
+      if (myProperties.myIsShaderWritable)
           resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-      else if (someProperties.myIsRenderTarget)
+      else if (myProperties.myIsRenderTarget)
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
     }
 
-    D3D12_RESOURCE_STATES defaultStates = RenderCore_PlatformDX12::ResolveResourceUsageState(defaultState);
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
-    if (someProperties.myIsShaderWritable)
+    if (myProperties.myIsShaderWritable)
       writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    if (someProperties.myIsRenderTarget)
+    if (myProperties.myIsRenderTarget)
       writeStateMask |= D3D12_RESOURCE_STATE_RENDER_TARGET;
-    if (someProperties.bIsDepthStencil)
+    if (myProperties.bIsDepthStencil)
     {
       writeStateMask |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
       readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
     }
-    
-    mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), formatInfo.myNumPlanes);
 
-    myStateTracking = GpuResourceStateTracking();
-    myStateTracking.myDefaultState = defaultState;
+    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
+    // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier
+    const D3D12_RESOURCE_STATES initialStates = hasInitData ? D3D12_RESOURCE_STATE_COPY_DEST : readStateMask;
+    
+    mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes);
+
+    GpuSubresourceHazardDataDX12 subHazardData;
+    subHazardData.myContext = CommandListType::Graphics;
+    subHazardData.myStates = initialStates;
+
+    myStateTracking = GpuResourceHazardData();
+    myStateTracking.myDx12Data.mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
     myStateTracking.myDx12Data.myReadStates = readStateMask;
     myStateTracking.myDx12Data.myWriteStates = writeStateMask;
+    myStateTracking.myDx12Data.myAllSubresourcesSameStates = true;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
 
     D3D12_CLEAR_VALUE clearValue;
-    if (someProperties.bIsDepthStencil)
+    if (myProperties.bIsDepthStencil)
     {
       clearValue.Format = RenderCore_PlatformDX12::GetDepthStencilViewFormat(resourceDesc.Format);
       clearValue.DepthStencil.Depth = 1.0f;
@@ -148,15 +155,15 @@ namespace Fancy {
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device* device = dx12Platform->GetDevice();
-    const CpuMemoryAccessType gpuMemAccess = (CpuMemoryAccessType)someProperties.myAccessType;
+    const CpuMemoryAccessType gpuMemAccess = (CpuMemoryAccessType)myProperties.myAccessType;
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo(0u, 1u, &resourceDesc);
 
-    const GpuMemoryType memoryType = (someProperties.myIsRenderTarget || someProperties.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
+    const GpuMemoryType memoryType = (myProperties.myIsRenderTarget || myProperties.bIsDepthStencil) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
     const GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(memoryType, gpuMemAccess, allocInfo.SizeInBytes, (uint) allocInfo.Alignment, myName.c_str());
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, defaultStates, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
     dataDx12->myGpuMemory = gpuMemory;
 
     // TODO: Decide between placed and committed resources depending on size and alignment requirements (maybe also expose a preference as a flag to the caller?)
@@ -173,76 +180,16 @@ namespace Fancy {
     std::wstring wName = StringUtil::ToWideString(myName);
     dataDx12->myResource->SetName(wName.c_str());
 
-    // Initialize texture data?
-    if (someInitialDatas != nullptr && aNumInitialDatas > 0u)
+    if (hasInitData)
     {
-      const uint lastSubresourceIndex = aNumInitialDatas - 1u;
-      const SubresourceLocation lastSubresourceLocation = GetSubresourceLocation(lastSubresourceIndex);
-      const SubresourceRange subresourceRange(0, lastSubresourceLocation.myMipLevel + 1u, 
-        0u, lastSubresourceLocation.myArrayIndex + 1u, 
-        0u, lastSubresourceLocation.myPlaneIndex + 1u);
-
-      const uint pixelSizeBytes = formatInfo.mySizeBytes;
-
-      if (pixelSizeBytes > someInitialDatas[0].myPixelSizeBytes)
-      {
-        // The DX12 pixel size is bigger than the size provided by the upload data. 
-        // This can happen e.g. if the data is provided as RGB_8 but DX only supports RGBA_8 formats
-        // In this case, we need to manually add some padding per pixel so the upload works
-
-        TextureSubData* newDatas = static_cast<TextureSubData*>(malloc(sizeof(TextureSubData) * aNumInitialDatas));
-        for (uint i = 0u; i < aNumInitialDatas; ++i)
-        {
-          const uint64 width = someInitialDatas[i].myRowSizeBytes / someInitialDatas[i].myPixelSizeBytes;
-          const uint64 height = someInitialDatas[i].mySliceSizeBytes / someInitialDatas[i].myRowSizeBytes;
-          const uint64 depth = someInitialDatas[i].myTotalSizeBytes / someInitialDatas[i].mySliceSizeBytes;
-
-          const uint64 requiredSizeBytes = width * height * depth * pixelSizeBytes;
-          newDatas[i].myData = (uint8*)malloc(requiredSizeBytes);
-          newDatas[i].myTotalSizeBytes = requiredSizeBytes;
-          newDatas[i].myPixelSizeBytes = pixelSizeBytes;
-          newDatas[i].myRowSizeBytes = width * pixelSizeBytes;
-          newDatas[i].mySliceSizeBytes = width * height * pixelSizeBytes;
-          
-          const uint64 oldPixelSizeBytes = someInitialDatas[i].myPixelSizeBytes;
-          const uint64 numPixels = width * height * depth;
-          for (uint64 iPixel = 0u; iPixel < numPixels; ++iPixel)
-          {
-            // Copy the smaller pixel to the new location
-            uint8* destPixelDataPtr = newDatas[i].myData + iPixel * pixelSizeBytes;
-            uint8* srcPixelDataPtr = someInitialDatas[i].myData + iPixel * oldPixelSizeBytes;
-            memcpy(destPixelDataPtr, srcPixelDataPtr, oldPixelSizeBytes);
-
-            // Add the padding value
-            const uint kPaddingValue = ~0u;
-            memset(destPixelDataPtr + oldPixelSizeBytes, kPaddingValue, pixelSizeBytes - oldPixelSizeBytes);
-          }
-        }
-
-
-        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-        ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
-        ctx->UpdateTextureData(this, subresourceRange, newDatas, aNumInitialDatas);
-        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
-        RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
-
-        for (uint i = 0u; i < aNumInitialDatas; ++i)
-          free(newDatas[i].myData);
-
-        free(newDatas);
-      }
-      else
-      {
-        CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-        ctx->ResourceBarrier(this, defaultState, GpuResourceState::WRITE_COPY_DEST);
-        ctx->UpdateTextureData(this, subresourceRange, someInitialDatas, aNumInitialDatas);
-        ctx->ResourceBarrier(this, GpuResourceState::WRITE_COPY_DEST, defaultState);
-        RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
-      }
+      InitTextureData(someInitialDatas, aNumInitialDatas);
     }
   }
 //---------------------------------------------------------------------------//
-  void TextureDX12::GetSubresourceLayout(const SubresourceRange& aSubresourceRange, DynamicArray<TextureSubLayout>& someLayoutsOut, DynamicArray<uint64>& someOffsetsOut, uint64& aTotalSizeOut) const
+  uint64 TextureDX12::GetCopyableFootprints(const SubresourceRange& aSubresourceRange,
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* someFootprintsOut,
+    uint* someNumRowsOut,
+    uint64* someRowSizesOut) const
   {
     ASSERT(IsValid());
     ASSERT(aSubresourceRange.myFirstMipLevel + aSubresourceRange.myNumMipLevels <= mySubresources.myNumMipLevels);
@@ -255,27 +202,11 @@ namespace Fancy {
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
 
     const int startSubresourceIndex = GetSubresourceIndex(SubresourceLocation(aSubresourceRange.myFirstMipLevel, aSubresourceRange.myFirstArrayIndex, aSubresourceRange.myFirstPlane));
-    const int numSubresources = aSubresourceRange.myNumMipLevels * aSubresourceRange.myNumArrayIndices * aSubresourceRange.myNumPlanes;
+    const int numSubresources = aSubresourceRange.GetNumSubresources();
 
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT* placedFootprints = static_cast<D3D12_PLACED_SUBRESOURCE_FOOTPRINT*>(alloca(sizeof(D3D12_PLACED_SUBRESOURCE_FOOTPRINT) * numSubresources));
-    uint64* rowSizes = static_cast<uint64*>(alloca(sizeof(uint64) * numSubresources));
-    uint* numRows = static_cast<uint*>(alloca(sizeof(uint) * numSubresources));
-
-    device->GetCopyableFootprints(&texResourceDesc, startSubresourceIndex, numSubresources, 0u, placedFootprints, numRows, rowSizes, &aTotalSizeOut);
-
-    someLayoutsOut.resize(numSubresources);
-    someOffsetsOut.resize(numSubresources);
-    for (int i = 0; i < numSubresources; ++i)
-    {
-      someOffsetsOut[i] = placedFootprints[i].Offset;
-
-      someLayoutsOut[i].myWidth = placedFootprints[i].Footprint.Width;
-      someLayoutsOut[i].myHeight = placedFootprints[i].Footprint.Height;
-      someLayoutsOut[i].myDepth = placedFootprints[i].Footprint.Depth;
-      someLayoutsOut[i].myAlignedRowSize = placedFootprints[i].Footprint.RowPitch;
-      someLayoutsOut[i].myRowSize = rowSizes[i];
-      someLayoutsOut[i].myNumRows = numRows[i];
-    }
+    uint64 totalSize;
+    device->GetCopyableFootprints(&texResourceDesc, startSubresourceIndex, numSubresources, 0u, someFootprintsOut, someNumRowsOut, someRowSizesOut, &totalSize);
+    return totalSize;
   }
 //---------------------------------------------------------------------------//
   void TextureDX12::Destroy()
@@ -292,7 +223,7 @@ namespace Fancy {
     }
 
     myNativeData.Clear();
-    myStateTracking = GpuResourceStateTracking();
+    myStateTracking = GpuResourceHazardData();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//
@@ -343,7 +274,7 @@ namespace Fancy {
       }
     }
 
-    ASSERT(success && nativeData.myDescriptor.myCpuHandle.ptr != 0u && myType != GpuResourceViewType::NONE);
+    ASSERT(success && nativeData.myDescriptor.myCpuHandle.ptr != UINT_MAX && myType != GpuResourceViewType::NONE);
 
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numTexMips = texProps.myNumMipLevels;
@@ -355,7 +286,7 @@ namespace Fancy {
 
     myCoversAllSubresources = subresourceRange.myNumMipLevels == texProps.myNumMipLevels
       && subresourceRange.myNumArrayIndices == texProps.myDepthOrArraySize
-      && subresourceRange.myNumPlanes == DataFormatInfo::GetFormatInfo(texProps.eFormat).myNumPlanes;
+      && subresourceRange.myNumPlanes == DataFormatInfo::GetFormatInfo(texProps.myFormat).myNumPlanes;
   }
 //---------------------------------------------------------------------------//
   TextureViewDX12::~TextureViewDX12()
@@ -602,3 +533,5 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

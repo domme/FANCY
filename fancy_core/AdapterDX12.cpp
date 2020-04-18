@@ -1,6 +1,8 @@
 #include "fancy_core_precompile.h"
 #include "AdapterDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
 	D3D12_FILL_MODE Adapter::toNativeType(const FillMode& generalType) 
@@ -171,3 +173,4 @@ namespace Fancy {
 }
 
 
+#endif

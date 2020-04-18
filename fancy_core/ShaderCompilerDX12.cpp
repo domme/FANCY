@@ -10,6 +10,11 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
+#include <dxc/dxcapi.h>
+#include <dxc/DxilContainer/DxilContainer.h>
+
+#if FANCY_ENABLE_DX12
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   DataFormat locResolveFormat(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
@@ -235,106 +240,265 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  String ShaderCompilerDX12::GetShaderPath(const char* aPath) const
+  bool locIsRwResource(D3D_SHADER_INPUT_TYPE aType)
   {
-    const StaticFilePath path("%s/DX12/%s.hlsl", ShaderCompiler::GetShaderRootFolderRelative(), aPath);
-    return String(path);
+    switch (aType)
+    {
+      case D3D_SIT_UAV_RWTYPED: 
+      case D3D_SIT_UAV_RWSTRUCTURED: 
+      case D3D_SIT_UAV_RWBYTEADDRESS: 
+      case D3D11_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+        return true;
+      default: return false;
+    }
   }
 //---------------------------------------------------------------------------//
-  bool ShaderCompilerDX12::Compile_Internal(const ShaderDesc& aDesc, const char* aStageDefine, ShaderCompilerResult* anOutput) const
+  bool locAreResourceTypesEqual(D3D_SHADER_INPUT_TYPE anInputType, D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
   {
-    DynamicArray<D3D_SHADER_MACRO> defines;
-    defines.resize(aDesc.myDefines.size() + 2u);
-    defines[0].Name = aStageDefine;
-    defines[0].Definition = "1";
-    for (uint i = 0u, e = (uint) aDesc.myDefines.size(); i < e; ++i)
+    switch (anInputType)
     {
-      defines[i + 1].Name = aDesc.myDefines[i].c_str();
-      defines[i + 1].Definition = "1";
+      case D3D_SIT_CBUFFER: 
+        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+
+      case D3D_SIT_TBUFFER:
+      case D3D_SIT_TEXTURE:
+      case D3D_SIT_STRUCTURED:
+      case D3D_SIT_BYTEADDRESS:
+        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+
+      case D3D_SIT_SAMPLER:
+        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+
+      case D3D_SIT_UAV_RWTYPED:
+      case D3D_SIT_UAV_RWSTRUCTURED:
+      case D3D_SIT_UAV_RWBYTEADDRESS:
+      case D3D_SIT_UAV_APPEND_STRUCTURED:
+      case D3D_SIT_UAV_CONSUME_STRUCTURED:
+      case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+
+      default: return false;
     }
-    defines[defines.size() - 1].Name = nullptr;
-    defines[defines.size() - 1].Definition = nullptr;
-    
-    Microsoft::WRL::ComPtr<ID3DBlob> compiledShaderBytecode;
-    Microsoft::WRL::ComPtr<ID3DBlob> errorData;
-
-    const String actualShaderPath = GetShaderPath(aDesc.myShaderFileName.c_str());
-    std::wstring shaderPathAbs = StringUtil::ToWideString(Resources::FindPath(actualShaderPath));
-
-    HRESULT sucess = D3DCompileFromFile(
-      shaderPathAbs.c_str(),
-      &defines[0],
-      D3D_COMPILE_STANDARD_FILE_INCLUDE,
-      aDesc.myMainFunction.c_str(),
-      GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)),
-      D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_OPTIMIZATION_LEVEL0 | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_WARNINGS_ARE_ERRORS,
-      0u,
-      &compiledShaderBytecode,
-      &errorData);
-
-    if (S_OK != sucess)
+  }
+//---------------------------------------------------------------------------//
+  bool locAreResourceTypesEqual(D3D_SHADER_INPUT_TYPE anInputType, D3D12_ROOT_PARAMETER_TYPE aParamType)
+  {
+    switch (anInputType)
     {
-      if (errorData != nullptr)
-      {
-        const char* errorMsg = (const char*)errorData->GetBufferPointer();
-        LOG_WARNING(errorMsg);
-        errorData.ReleaseAndGetAddressOf();
-      }
+    case D3D_SIT_CBUFFER:
+      return aParamType == D3D12_ROOT_PARAMETER_TYPE_CBV;
 
+    case D3D_SIT_TBUFFER:
+    case D3D_SIT_TEXTURE:
+    case D3D_SIT_STRUCTURED:
+    case D3D_SIT_BYTEADDRESS:
+      return aParamType == D3D12_ROOT_PARAMETER_TYPE_SRV;
+
+    case D3D_SIT_UAV_RWTYPED:
+    case D3D_SIT_UAV_RWSTRUCTURED:
+    case D3D_SIT_UAV_RWBYTEADDRESS:
+    case D3D_SIT_UAV_APPEND_STRUCTURED:
+    case D3D_SIT_UAV_CONSUME_STRUCTURED:
+    case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+      return aParamType == D3D12_ROOT_PARAMETER_TYPE_UAV;
+
+    default: return false;
+    }
+  }
+//---------------------------------------------------------------------------//
+  ShaderResourceTypeDX12 locGetShaderResourceInfoType(D3D12_ROOT_PARAMETER_TYPE aRootParamType)
+  {
+    switch (aRootParamType) 
+    { 
+      case D3D12_ROOT_PARAMETER_TYPE_CBV: return ShaderResourceTypeDX12::CBV;
+      case D3D12_ROOT_PARAMETER_TYPE_SRV: return ShaderResourceTypeDX12::SRV;
+      case D3D12_ROOT_PARAMETER_TYPE_UAV: return ShaderResourceTypeDX12::UAV;
+      default: ASSERT(false); return ShaderResourceTypeDX12::CBV;
+    }
+  }
+//---------------------------------------------------------------------------//
+  ShaderResourceTypeDX12 locGetShaderResourceInfoType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
+  {
+    switch (aRangeType)
+    {
+    case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return ShaderResourceTypeDX12::CBV;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return ShaderResourceTypeDX12::SRV;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return ShaderResourceTypeDX12::UAV;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return ShaderResourceTypeDX12::Sampler;
+    default: ASSERT(false); return ShaderResourceTypeDX12::CBV;
+    }
+  }
+//---------------------------------------------------------------------------//
+  bool locAddShaderResourceInfo(const D3D12_SHADER_INPUT_BIND_DESC& aResourceDesc, const D3D12_ROOT_SIGNATURE_DESC1& aRsDesc, DynamicArray<ShaderResourceInfoDX12>& someResourceInfos)
+  {
+    if (aResourceDesc.Type == D3D_SIT_SAMPLER) // This could be a static sampler that doesn't need an entry in the resourceInfos since its just defined in the root signature
+    {
+      for (uint i = 0u; i < aRsDesc.NumStaticSamplers; ++i)
+      {
+        if (aResourceDesc.BindPoint == aRsDesc.pStaticSamplers[i].ShaderRegister)
+          return true;  // Ignore this resource - not an actual resource that needs binding from the app
+      }
+    }
+
+    const char* name = aResourceDesc.Name;
+
+    ShaderResourceInfoDX12 resourceInfo;
+    resourceInfo.myNameHash = MathUtil::Hash(name);
+    resourceInfo.myName = name;
+
+    for (uint iRootParam = 0u; iRootParam < aRsDesc.NumParameters; ++iRootParam)
+    {
+      const D3D12_ROOT_PARAMETER1& rParam = aRsDesc.pParameters[iRootParam];
+      if (rParam.ParameterType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
+      {
+        const D3D12_ROOT_DESCRIPTOR_TABLE1& rDescTable = rParam.DescriptorTable;
+        uint descriptorOffsetInTable = 0u;
+        for (uint iDescRange = 0u; iDescRange < rDescTable.NumDescriptorRanges; ++iDescRange)
+        {
+          const D3D12_DESCRIPTOR_RANGE1& descRange = rDescTable.pDescriptorRanges[iDescRange];
+
+          if (descRange.BaseShaderRegister == aResourceDesc.BindPoint && locAreResourceTypesEqual(aResourceDesc.Type, descRange.RangeType))
+          {
+            resourceInfo.myIsDescriptorTableEntry = true;
+            resourceInfo.myRootParamIndex = iRootParam;
+            ASSERT(descriptorOffsetInTable != UINT_MAX || descRange.OffsetInDescriptorsFromTableStart != D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND, "Ranges following an unbounded range must have an explicit offset");
+            resourceInfo.myDescriptorOffsetInTable = descRange.OffsetInDescriptorsFromTableStart == D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND ? descriptorOffsetInTable : descRange.OffsetInDescriptorsFromTableStart;
+            resourceInfo.myType = locGetShaderResourceInfoType(descRange.RangeType);
+            resourceInfo.myNumDescriptors = descRange.NumDescriptors;
+
+            someResourceInfos.push_back(resourceInfo);
+
+            return true;
+          }
+
+          if (descRange.NumDescriptors == UINT_MAX)  // Unbounded range. Usually appears as the last range in the table definition
+            descriptorOffsetInTable = UINT_MAX;
+          else
+            descriptorOffsetInTable += descRange.NumDescriptors;
+        }
+      }
+      else if (rParam.ParameterType != D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
+      {
+        if (rParam.Descriptor.ShaderRegister == aResourceDesc.BindPoint && locAreResourceTypesEqual(aResourceDesc.Type, rParam.ParameterType))
+        {
+          resourceInfo.myIsDescriptorTableEntry = false;
+          resourceInfo.myRootParamIndex = iRootParam;
+          resourceInfo.myType = locGetShaderResourceInfoType(rParam.ParameterType);
+          resourceInfo.myNumDescriptors = 1u;
+
+          someResourceInfos.push_back(resourceInfo);
+
+          return true;
+        }
+      }
+      else
+      {
+        LOG_ERROR("Unsupported root parameter type for resource %s. FANCY supports only CBVs as root descriptors and doesn't support any root constants", aResourceDesc.Name);
+      }
+    }
+
+    return false;
+  }
+//---------------------------------------------------------------------------//
+  bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* aRootSignatureDesc, 
+    DynamicArray<ShaderResourceInfoDX12>& someResourceInfosOut, bool& aHasUnorderedWritesOut)
+  {
+    ASSERT(aRootSignatureDesc->Version == D3D_ROOT_SIGNATURE_VERSION_1_1);
+    const D3D12_ROOT_SIGNATURE_DESC1& rsDesc = aRootSignatureDesc->Desc_1_1;
+
+    D3D12_SHADER_DESC shaderDesc;
+    aReflector->GetDesc(&shaderDesc);
+
+    bool hasUnorderedWrites = false;
+    for (uint i = 0u; i < shaderDesc.BoundResources && !hasUnorderedWrites; ++i)
+    {
+      D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
+      CheckD3Dcall(aReflector->GetResourceBindingDesc(i, &resourceDesc));
+
+      hasUnorderedWrites |= locIsRwResource(resourceDesc.Type);
+
+      if (!locAddShaderResourceInfo(resourceDesc, rsDesc, someResourceInfosOut))
+        return false;
+    }
+    aHasUnorderedWritesOut = hasUnorderedWrites;
+
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  bool ShaderCompilerDX12::Compile_Internal(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, ShaderCompilerResult* anOutput) const
+  {
+    DxcShaderCompiler::Config config =
+    {
+      true,
+      false,
+      GetHLSLprofileString((ShaderStage)aDesc.myShaderStage)
+    };
+
+    Microsoft::WRL::ComPtr<IDxcBlob> compiledShaderBytecode;
+    if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, compiledShaderBytecode))
+      return false;
+
+    IDxcContainerReflection* dxcReflection = myDxcCompiler.GetDxcReflector();
+    HRESULT success = dxcReflection->Load(compiledShaderBytecode.Get());
+    if (success != S_OK)
+    {
+      LOG_ERROR("Failed to load the compiled shader bytecode into the dxc reflector");
       return false;
     }
 
     // Extract and parse RootSignature
-    ID3DBlob* rsBlob = nullptr;
-    sucess = D3DGetBlobPart(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), D3D_BLOB_ROOT_SIGNATURE, 0u, &rsBlob);
-
-    if (S_OK != sucess)
-    {
-      LOG_ERROR("Failed extracting the root signature from shader");
-      return false;
-    }
+    uint rootSigPartIdx;
+    success = dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx);
+    ASSERT(success == S_OK);
 
     ID3D12Device* d3dDevice = RenderCore::GetPlatformDX12()->GetDevice();
 
     ShaderCompiledDataDX12 compiledNativeData;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-    sucess = d3dDevice->CreateRootSignature(0u, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+    success = d3dDevice->CreateRootSignature(0u, compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
     compiledNativeData.myRootSignature = rootSignature;
-
-    if (S_OK != sucess)
+    if (S_OK != success)
     {
       LOG_ERROR("Failed creating the root signature from shader");
       return false;
     }
 
+    Microsoft::WRL::ComPtr<ID3D12VersionedRootSignatureDeserializer> rsDeserializer;
+    success = D3D12CreateVersionedRootSignatureDeserializer(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rsDeserializer));
+    if (S_OK != success)
+    {
+      LOG_ERROR("Failed deserializing the shader root signature");
+      return false;
+    }
+
+    const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetUnconvertedRootSignatureDesc();
+
     // Reflect the shader resources
     //---------------------------------------------------------------------------//
-    ID3D12ShaderReflection* reflector;
-    sucess = D3DReflect(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_ID3D12ShaderReflection, (void**)&reflector);
+    uint dxilPartIdx;
+    success = dxcReflection->FindFirstPartKind(hlsl::DFCC_DXIL, &dxilPartIdx);
+    ASSERT(success == S_OK);
 
-    if (S_OK != sucess)
+    Microsoft::WRL::ComPtr<ID3D12ShaderReflection> reflector;
+    success = dxcReflection->GetPartReflection(dxilPartIdx, IID_PPV_ARGS(&reflector));
+    if (S_OK != success)
     {
       LOG_ERROR("Failed reflecting shader");
       return false;
     }
 
-    D3D12_SHADER_DESC shaderDesc;
-    reflector->GetDesc(&shaderDesc);
-
-    bool hasUnorderedWrites = false;
-    for (uint i = 0u; i < shaderDesc.BoundResources && !hasUnorderedWrites; ++i)
+    if (!locReflectResources(reflector.Get(), rsDesc, compiledNativeData.myResourceInfos, anOutput->myProperties.myHasUnorderedWrites))
     {
-      D3D12_SHADER_INPUT_BIND_DESC desc;
-      CheckD3Dcall(reflector->GetResourceBindingDesc(i, &desc));
-
-      hasUnorderedWrites |= (desc.Type == D3D_SIT_UAV_RWTYPED || desc.Type == D3D_SIT_UAV_RWSTRUCTURED ||
-        desc.Type == D3D_SIT_UAV_RWBYTEADDRESS || desc.Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER);
+      LOG_ERROR("Failed reflecting shader resources");
+      return false;
     }
-    anOutput->myProperties.myHasUnorderedWrites = hasUnorderedWrites;
-    
+
     if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::VERTEX))
     {
-      if (!locReflectVertexInputLayout(reflector, shaderDesc, anOutput->myProperties))
+      D3D12_SHADER_DESC shaderDesc;
+      reflector->GetDesc(&shaderDesc);
+
+      if (!locReflectVertexInputLayout(reflector.Get(), shaderDesc, anOutput->myProperties))
       {
         LOG_ERROR("Failed reflecting vertex input layout");
         return false;
@@ -346,11 +510,15 @@ namespace Fancy {
       reflector->GetThreadGroupSize(&x, &y, &z);
       anOutput->myProperties.myNumGroupThreads = glm::int3(static_cast<int>(x), static_cast<int>(y), static_cast<int>(z));
     }
-        
-    compiledNativeData.myBytecodeBlob = compiledShaderBytecode.Detach();  // TODO: Find a safer way to manage this to avoid leaks...
+    
+    compiledNativeData.myBytecode.resize(compiledShaderBytecode->GetBufferSize());
+    memcpy(compiledNativeData.myBytecode.data(), compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize());
+
     anOutput->myNativeData = compiledNativeData;
 
     return true;
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

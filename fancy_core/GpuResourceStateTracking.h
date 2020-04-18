@@ -17,9 +17,12 @@ namespace Fancy
     // Uints are VkAccessFlags
     uint myReadAccessMask;
     uint myWriteAccessMask;
+    bool myHasExclusiveQueueAccess;
+    mutable bool myHasInitialImageLayout;  // True if the image has never been used in a resourceBarrier and still has its initial layout from creation.
+    uint myInitialImageLayout;  // Initial layout given to an image upon creation.
   };
 //---------------------------------------------------------------------------//
-  struct GpuResourceStateTracking
+  struct GpuResourceHazardTracking
   {
     static bool QueueUnderstandsState(CommandListType aCurrQueue, CommandListType aQueue, GpuResourceState aState);
     static bool QueueUnderstandsPartsOfState(CommandListType aCurrQueue, GpuResourceState aState);

@@ -2,7 +2,7 @@
 
 #include "RendererPrerequisites.h"
 #include "Ptr.h"
-#include "GpuResourceStateTracking.h"
+#include "GpuResourceHazardData.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -23,6 +23,8 @@ namespace Fancy {
   class GpuBuffer;
   class GpuQueryHeap;
   class GpuResource;
+  class TextureSampler;
+  struct TextureSamplerProperties;
 //---------------------------------------------------------------------------//  
   class RenderCore_Platform
   {
@@ -33,6 +35,8 @@ namespace Fancy {
     virtual bool IsInitialized() = 0;
     virtual bool InitInternalResources() = 0;
     virtual void Shutdown() = 0;
+    virtual void BeginFrame() {}
+    virtual void EndFrame() {}
 
     RenderPlatformType GetType() const { return myType; }
     const RenderPlatformCaps& GetCaps() const { return myCaps; }
@@ -42,6 +46,7 @@ namespace Fancy {
     virtual ShaderPipeline* CreateShaderPipeline() = 0;
     virtual Texture* CreateTexture() = 0;
     virtual GpuBuffer* CreateBuffer() = 0;
+    virtual TextureSampler* CreateTextureSampler(const TextureSamplerProperties& someProperties) = 0;
     virtual CommandList* CreateCommandList(CommandListType aType) = 0;
     virtual CommandQueue* CreateCommandQueue(CommandListType aType) = 0;
     virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
@@ -49,6 +54,7 @@ namespace Fancy {
     virtual GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) = 0;
     virtual uint GetQueryTypeDataSize(GpuQueryType aType) = 0;
     virtual float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) = 0;
+
   protected:
     RenderPlatformCaps myCaps;
     RenderPlatformType myType;

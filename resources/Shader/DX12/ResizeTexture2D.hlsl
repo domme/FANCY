@@ -1,15 +1,9 @@
-#define ROOT_SIGNATURE  "CBV(b0)," \
-                        "DescriptorTable(SRV(t0), UAV(u0))," \
-                        "StaticSampler(s0, " \
-                        "addressU = TEXTURE_ADDRESS_WRAP, " \
-                        "addressV = TEXTURE_ADDRESS_WRAP, " \
-                        "filter = FILTER_MIN_MAG_LINEAR_MIP_POINT )," \
-                        "StaticSampler(s1, " \
-                        "addressU = TEXTURE_ADDRESS_WRAP, " \
-                        "addressV = TEXTURE_ADDRESS_WRAP, " \
-                        "filter = FILTER_MIN_MAG_MIP_POINT )"
+#include "Vulkan_Support.h"
 
-cbuffer CB0 : register(b0)
+#define ROOT_SIGNATURE  "CBV(b0)," \
+                        "DescriptorTable(SRV(t0), UAV(u0))"
+
+VK_BINDING_SET(0, 0) cbuffer CB0 : register(b0)
 {
   float2 mySrcSize;
   float2 myDestSize;
@@ -22,11 +16,8 @@ cbuffer CB0 : register(b0)
   float2 myAxis;
 };
 
-Texture2D<float4> SrcTexture : register(t0);
-RWTexture2D<float4> DestTexture: register(u0);
-
-SamplerState sampler_linear : register(s0);
-SamplerState sampler_point : register(s1);
+VK_BINDING_SET(1, 0) Texture2D<float4> SrcTexture : register(t0);
+VK_BINDING_SET(2, 0) RWTexture2D<float4> DestTexture: register(u0);
 
 struct SampleParams
 {

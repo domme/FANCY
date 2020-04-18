@@ -4,6 +4,10 @@
 #include "VkPrerequisites.h"
 #include "FancyCoreDefines.h"
 #include "CommandBufferAllocatorVk.h"
+#include "DescriptorPoolAllocatorVk.h"
+#include "PipelineLayoutCacheVk.h"
+
+#if FANCY_ENABLE_VK
 
 namespace Fancy
 {
@@ -28,9 +32,10 @@ namespace Fancy
     static VkPolygonMode ResolveFillMode(FillMode aFillMode);
     static VkFrontFace ResolveWindingOrder(WindingOrder aWindingOrder);
     static VkCullModeFlagBits ResolveCullMode(CullMode aCullMode);
-    static ResourceBarrierInfoVk ResolveResourceState(GpuResourceState aResourceState);
+    // static ResourceBarrierInfoVk ResolveResourceState(GpuResourceState aResourceState);
     static VkImageAspectFlags ResolveAspectMask(uint aFirstPlaneIndex, uint aNumPlanes, DataFormat aFormat);
     static VkImageSubresourceRange ResolveSubresourceRange(const SubresourceRange& aRange, DataFormat aFormat);
+    static VkImageType ResolveImageResourceDimension(GpuResourceDimension aDimension, bool& isArray, bool& isCubeMap);
 
     RenderCore_PlatformVk();
     ~RenderCore_PlatformVk() override;
@@ -41,12 +46,15 @@ namespace Fancy
     bool IsInitialized() override;
     bool InitInternalResources() override;
     void Shutdown() override;
+    void BeginFrame() override;
+
     RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) override;
     ShaderCompiler* CreateShaderCompiler() override;
     Shader* CreateShader() override;
     ShaderPipeline* CreateShaderPipeline() override;
     Texture* CreateTexture() override;
     GpuBuffer* CreateBuffer() override;
+    TextureSampler* CreateTextureSampler(const TextureSamplerProperties& someProperties) override;
     CommandList* CreateCommandList(CommandListType aType) override;
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName) override;
@@ -58,15 +66,24 @@ namespace Fancy
     VkCommandBuffer GetNewCommandBuffer(CommandListType aCommandListType);
     void ReleaseCommandBuffer(VkCommandBuffer aCommandBuffer, CommandListType aCommandListType, uint64 aCommandBufferDoneFence);
 
+    VkDescriptorPool AllocateDescriptorPool();
+    void FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence);
+
+    uint FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags);
     const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return myPhysicalDeviceMemoryProperties; }
+
+    void ReleaseTempBufferView(VkBufferView aBufferView, uint64 aFence);
+    void DestroyTempBufferViews();
 
     struct QueueInfo
     {
-      int myQueueFamilyIndex = -1;
-      int myQueueIndex = -1;
+      uint myQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      uint myQueueIndex = UINT_MAX;
     };
 
     const QueueInfo& GetQueueInfo(CommandListType aCommandListType) { return myQueueInfos[(uint)aCommandListType]; }
+
+    PipelineLayoutCacheVk& GetPipelineLayoutCache() { return myPipelineLayoutCache; }
 
     // TODO: Make these members private and add getter-functions where needed
     VkInstance myInstance = nullptr;
@@ -85,7 +102,12 @@ namespace Fancy
     VkPhysicalDeviceMemoryProperties myPhysicalDeviceMemoryProperties;
 
     UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::NUM];
+    UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
+
+    StaticArray<std::pair<VkBufferView, uint64>, 256> myTempBufferViews;
+
+    PipelineLayoutCacheVk myPipelineLayoutCache;
   };
 }
 
-
+#endif

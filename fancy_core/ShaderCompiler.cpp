@@ -1,5 +1,6 @@
 #include "fancy_core_precompile.h"
 #include "ShaderCompiler.h"
+#include "PathService.h"
 
 namespace Fancy
 {
@@ -29,17 +30,69 @@ namespace Fancy
   {
     switch (aShaderModel)
     {
-      case ShaderModel::SM_5_1: 
+      case ShaderModel::SM_6_0:
       {
         switch (aShaderStage)
         {
-          case ShaderStage::VERTEX: return "vs_5_1";
-          case ShaderStage::FRAGMENT: return "ps_5_1";
-          case ShaderStage::GEOMETRY: return "gs_5_1";
-          case ShaderStage::COMPUTE: return "cs_5_1";
-          default:
-            ASSERT(false, "Unsupported HLSL shader-profile");
-            return "";
+        case ShaderStage::VERTEX: return "vs_6_0";
+        case ShaderStage::FRAGMENT: return "ps_6_0";
+        case ShaderStage::GEOMETRY: return "gs_6_0";
+        case ShaderStage::COMPUTE: return "cs_6_0";
+        default:
+          ASSERT(false, "Unsupported HLSL shader-profile");
+          return "";
+        }
+      }
+      case ShaderModel::SM_6_1:
+      {
+        switch (aShaderStage)
+        {
+        case ShaderStage::VERTEX: return "vs_6_1";
+        case ShaderStage::FRAGMENT: return "ps_6_1";
+        case ShaderStage::GEOMETRY: return "gs_6_1";
+        case ShaderStage::COMPUTE: return "cs_6_1";
+        default:
+          ASSERT(false, "Unsupported HLSL shader-profile");
+          return "";
+        }
+      }
+      case ShaderModel::SM_6_2:
+      {
+        switch (aShaderStage)
+        {
+        case ShaderStage::VERTEX: return "vs_6_2";
+        case ShaderStage::FRAGMENT: return "ps_6_2";
+        case ShaderStage::GEOMETRY: return "gs_6_2";
+        case ShaderStage::COMPUTE: return "cs_6_2";
+        default:
+          ASSERT(false, "Unsupported HLSL shader-profile");
+          return "";
+        }
+      }
+      case ShaderModel::SM_6_3:
+      {
+        switch (aShaderStage)
+        {
+        case ShaderStage::VERTEX: return "vs_6_3";
+        case ShaderStage::FRAGMENT: return "ps_6_3";
+        case ShaderStage::GEOMETRY: return "gs_6_3";
+        case ShaderStage::COMPUTE: return "cs_6_3";
+        default:
+          ASSERT(false, "Unsupported HLSL shader-profile");
+          return "";
+        }
+      }
+      case ShaderModel::SM_6_4:
+      {
+        switch (aShaderStage)
+        {
+        case ShaderStage::VERTEX: return "vs_6_4";
+        case ShaderStage::FRAGMENT: return "ps_6_4";
+        case ShaderStage::GEOMETRY: return "gs_6_4";
+        case ShaderStage::COMPUTE: return "cs_6_4";
+        default:
+          ASSERT(false, "Unsupported HLSL shader-profile");
+          return "";
         }
       }
       default: ASSERT(false, "Unsupported shader model");
@@ -47,12 +100,20 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  String ShaderCompiler::GetShaderPath(const char* aPath) const
+  {
+    const StaticFilePath path("%s/DX12/%s.hlsl", GetShaderRootFolderRelative(), aPath);
+    return String(path);
+  }
+//---------------------------------------------------------------------------//
   bool ShaderCompiler::Compile(const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const
   {
     LOG_INFO("Compiling shader %s...", aDesc.myShaderFileName.c_str());
 
-    const char* stageDefine = ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
-    const bool success = Compile_Internal(aDesc, stageDefine, aCompilerOutput);
+    StaticFilePath hlslSrcPathRel("%s/DX12/%s.hlsl", GetShaderRootFolderRelative(), aDesc.myShaderFileName.c_str());
+    String hlslSrcPathAbs = Resources::FindPath(hlslSrcPathRel.GetBuffer());
+    
+    const bool success = Compile_Internal(hlslSrcPathAbs.c_str(), aDesc, aCompilerOutput);
     if (success)
     {
       aCompilerOutput->myDesc = aDesc;

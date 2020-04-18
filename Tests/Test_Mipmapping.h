@@ -5,10 +5,10 @@
 
 namespace Fancy
 {
+  class ShaderPipeline;
   class Texture;
   class TextureView;
   class AssetManager;
-  class Shader;
 }
 
 struct ImageData
@@ -39,7 +39,7 @@ public:
   void OnUpdate(bool aDrawProperties) override;
 
 private:
-  void OnShaderRecompiled(const Fancy::Shader* aShader);
+  void OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aShader);
 
   Fancy::SharedPtr<Fancy::AssetManager> myAssetManager;
   Fancy::DynamicArray<ImageData> myImageDatas;

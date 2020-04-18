@@ -1,18 +1,16 @@
+#include "Vulkan_Support.h"
 
 #define ROOT_SIGNATURE  "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT )," \
                         "CBV(b0), " \
                         "DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL)," \
-                        "StaticSampler(s0, " \
-                        "addressU = TEXTURE_ADDRESS_WRAP, " \
-                        "addressV = TEXTURE_ADDRESS_WRAP, " \
-                        "filter = FILTER_MIN_MAG_MIP_POINT )"
+                        "DescriptorTable(Sampler(s0))"
 
 struct CBUFFER
 {
   float4x4 c_WorldViewProjectionMatrix;
 };
 
-ConstantBuffer<CBUFFER> cbPerObject : register(b0);
+VK_BINDING_SET(0, 0) ConstantBuffer<CBUFFER> cbPerObject : register(b0);
 
 struct VS_OUT
 {
@@ -41,8 +39,8 @@ VS_OUT main(VS_IN v)
 #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_FRAGMENT)  
-Texture2D tex_diffuse : register(t0);
-SamplerState sampler_default : register(s0);
+VK_BINDING_SET(1, 0) Texture2D tex_diffuse : register(t0);
+VK_BINDING_SET(2, 0) SamplerState sampler_default : register(s0);
 
 [RootSignature(ROOT_SIGNATURE)]
 float4 main(VS_OUT fs_in) : SV_TARGET
