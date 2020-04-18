@@ -1,3 +1,5 @@
+#include "Vulkan_Support.h"
+
 #define ROOT_SIGNATURE  "CBV(b0)," \
 						"DescriptorTable(UAV(u0))"
 

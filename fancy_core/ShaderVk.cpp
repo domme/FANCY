@@ -54,7 +54,7 @@ namespace Fancy
     myShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     myShaderStageCreateInfo.pNext = nullptr;
     myShaderStageCreateInfo.flags = 0;
-    myShaderStageCreateInfo.pName = myDesc.myShaderFileName.c_str();
+    myShaderStageCreateInfo.pName = myDesc.myMainFunction.c_str();
     myShaderStageCreateInfo.pSpecializationInfo = nullptr;
     myShaderStageCreateInfo.module = myModule;
     myShaderStageCreateInfo.stage = Priv_ShaderVk::locResolveShaderStage((ShaderStage) myDesc.myShaderStage);

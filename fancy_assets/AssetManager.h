@@ -15,7 +15,7 @@ namespace Fancy {
   struct ModelDesc;
   struct MaterialDesc;
   class Texture;
-  class Shader;
+  class ShaderPipeline;
 //---------------------------------------------------------------------------//
   class AssetManager
   {
@@ -43,7 +43,7 @@ namespace Fancy {
     SharedPtr<Texture> CreateTexture(const char* aPath, uint someLoadFlags = 0);
     void ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter aFilter = FILTER_LANCZOS);
 
-    Shader* GetResizeShader() const { return myTextureResizeShader.get(); }
+    ShaderPipeline* GetResizeShader() const { return myTextureResizeShader.get(); }
 
     SharedPtr<Material> CreateMaterial(const MaterialDesc& aDesc);
     SharedPtr<Model> CreateModel(const ModelDesc& aDesc);
@@ -57,7 +57,7 @@ namespace Fancy {
     std::map<uint64, SharedPtr<Texture>> myTextures;
     std::map<uint64, SharedPtr<Mesh>> myMeshes;
 
-    SharedPtr<Shader> myTextureResizeShader;
+    SharedPtr<ShaderPipeline> myTextureResizeShader;
   };
 //---------------------------------------------------------------------------//
 }

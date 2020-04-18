@@ -64,12 +64,12 @@ Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Checkerboard.png", loadFlags));
   myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
 
-  RenderCore::ourOnShaderRecompiled.Connect(this, &Test_Mipmapping::OnShaderRecompiled);
+  RenderCore::ourOnShaderPipelineRecompiled.Connect(this, &Test_Mipmapping::OnShaderPipelineRecompiled);
 }
 
 Test_Mipmapping::~Test_Mipmapping()
 {
-  RenderCore::ourOnShaderRecompiled.DetachObserver(this);
+  RenderCore::ourOnShaderPipelineRecompiled.DetachObserver(this);
 }
 
 void Test_Mipmapping::OnUpdate(bool aDrawProperties)
@@ -105,7 +105,7 @@ void Test_Mipmapping::OnUpdate(bool aDrawProperties)
   }
 }
 
-void Test_Mipmapping::OnShaderRecompiled(const Fancy::Shader* aShader)
+void Test_Mipmapping::OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aShader)
 {
   if (aShader == myAssetManager->GetResizeShader())
   {

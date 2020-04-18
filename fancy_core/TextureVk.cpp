@@ -238,7 +238,7 @@ namespace Fancy
       usageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO;
       usageInfo.pNext = nullptr;
       
-      usageInfo.usage = 0u;
+      usageInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
       if (someProperties.myIsShaderWritable)
       {
         usageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;

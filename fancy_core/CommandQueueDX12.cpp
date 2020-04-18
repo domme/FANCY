@@ -5,6 +5,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "AdapterDX12.h"
 #include "CommandListDX12.h"
+#include "GpuResourceDataDX12.h"
 
 #if FANCY_ENABLE_DX12
 

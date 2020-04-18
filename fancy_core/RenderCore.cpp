@@ -70,6 +70,7 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   Slot<void(const Shader*)> RenderCore::ourOnShaderRecompiled;
+  Slot<void(const ShaderPipeline*)> RenderCore::ourOnShaderPipelineRecompiled;
 
   UniquePtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
   UniquePtr<TempResourcePool> RenderCore::ourTempResourcePool;
@@ -415,7 +416,11 @@ namespace Fancy {
     switch (aRenderingApi)
     {
       case RenderPlatformType::DX12:
+#if FANCY_ENABLE_DX12
         ourPlatformImpl = std::make_unique<RenderCore_PlatformDX12>();
+#else
+        ASSERT(false, "DX12 not supported. Recompile with FANCY_ENABLE_DX12 1");
+#endif
         break;
       case RenderPlatformType::VULKAN:
 #if FANCY_ENABLE_VK
@@ -1171,6 +1176,7 @@ namespace Fancy {
     {
       pipeline->CreateFromShaders();
       pipeline->UpdateShaderByteCodeHash();
+      ourOnShaderPipelineRecompiled(pipeline);
     }
 
     for (Shader* program : programsToRecompile)

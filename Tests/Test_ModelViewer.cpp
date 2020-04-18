@@ -110,7 +110,7 @@ void Test_ModelViewer::RenderGrid(Fancy::CommandList* ctx)
   ctx->SetFillMode(FillMode::SOLID);
   ctx->SetWindingOrder(WindingOrder::CCW);
 
-  ctx->SetShaderPipeline(myDebugGeoShader);
+  ctx->SetShaderPipeline(myDebugGeoShader.get());
 
   struct Cbuffer_DebugGeo
   {
@@ -160,7 +160,7 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
   ctx->SetWindingOrder(WindingOrder::CCW);
 
   ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-  ctx->SetShaderPipeline(myUnlitTexturedShader);
+  ctx->SetShaderPipeline(myUnlitTexturedShader.get());
   ctx->BindSampler(mySampler.get(), "sampler_default");
 
   for (int i = 0; i < myScene.myModels.size(); ++i)

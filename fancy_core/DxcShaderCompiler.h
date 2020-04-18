@@ -1,5 +1,7 @@
 #pragma once
 
+#include <wrl.h>
+
 struct IDxcLibrary;
 struct IDxcCompiler;
 struct ID3D10Blob;

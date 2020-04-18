@@ -2,7 +2,6 @@
 #include "Test.h"
 #include "fancy_core/GpuBuffer.h"
 #include "fancy_core/Texture.h"
-#include "fancy_core/GpuMemoryAllocatorDX12.h"
 
 class Test_GpuMemoryAllocator : public Test
 {

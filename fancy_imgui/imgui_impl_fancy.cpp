@@ -262,7 +262,7 @@ namespace Fancy { namespace ImGuiRendering {
     ctx->SetFillMode(FillMode::SOLID);
     ctx->SetWindingOrder(WindingOrder::CCW);
     ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-    ctx->SetShaderPipeline(ourProgramPipeline);
+    ctx->SetShaderPipeline(ourProgramPipeline.get());
     ctx->BindSampler(ourSampler.get(), "sampler_default");
 
     // Update the cbuffer data

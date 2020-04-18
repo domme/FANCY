@@ -21,17 +21,20 @@
 
 #include "Material.h"
 #include "fancy_core/TextureReadbackTask.h"
+#include "fancy_core/ShaderPipelineDesc.h"
 
 using namespace Fancy;
 
 //---------------------------------------------------------------------------//
   AssetManager::AssetManager()
   {
-    ShaderDesc shaderDesc;
+    ShaderPipelineDesc pipelineDesc;
+    ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
     shaderDesc.myShaderFileName = "ResizeTexture2D";
     shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
     shaderDesc.myMainFunction = "main";
-    myTextureResizeShader = RenderCore::CreateShader(shaderDesc);
+
+    myTextureResizeShader = RenderCore::CreateShaderPipeline(pipelineDesc);
     ASSERT(myTextureResizeShader != nullptr);
   }
 //---------------------------------------------------------------------------//
@@ -310,7 +313,7 @@ using namespace Fancy;
     if (texture != aTexture)
       ctx->CopyTexture(texture.get(), SubresourceLocation(0), aTexture.get(), SubresourceLocation(0));
 
-    ctx->SetComputeProgram(myTextureResizeShader.get());
+    ctx->SetShaderPipeline(myTextureResizeShader.get());
     
     struct CBuffer
     {
@@ -331,7 +334,7 @@ using namespace Fancy;
     cBuffer.myFilterMethod = (int) aFilter;
 
     glm::float2 destSize = glm::ceil(srcSize * 0.5f);
-    for (uint mip = 1u; mip < numMips; ++mip)
+    for (uint mip = 1u; mip < 3u; ++mip)
     {
       // Resize horizontal
       glm::float2 tempDestSize(destSize.x, srcSize.y);

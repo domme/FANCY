@@ -10,6 +10,7 @@
 #include "fancy_core/GrowingList.h"
 #include "fancy_core/TimeManager.h"
 #include "fancy_core/StaticString.h"
+#include "fancy_core/ShaderPipelineDesc.h"
 
 using namespace Fancy;
 
@@ -44,15 +45,16 @@ Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Windo
   myReadbackBuffer = RenderCore::CreateBuffer(props, "Async compute test readback buffer", initialData.data());
   ASSERT(myReadbackBuffer);
 
-  ShaderDesc shaderDesc;
+  ShaderPipelineDesc pipelineDesc;
+  ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint) ShaderStage::COMPUTE];
   shaderDesc.myShaderStage = (uint) ShaderStage::COMPUTE;
   shaderDesc.myShaderFileName = "Tests/ModifyBuffer";
   shaderDesc.myMainFunction = "main_increment";
-  myIncrementBufferShader = RenderCore::CreateShader(shaderDesc);
+  myIncrementBufferShader = RenderCore::CreateShaderPipeline(pipelineDesc);
   ASSERT(myIncrementBufferShader);
 
   shaderDesc.myMainFunction = "main_set";
-  mySetBufferValueShader = RenderCore::CreateShader(shaderDesc);
+  mySetBufferValueShader = RenderCore::CreateShaderPipeline(pipelineDesc);
   ASSERT(mySetBufferValueShader);
 }
 
@@ -78,7 +80,7 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
     case Stage::IDLE: 
     {
       CommandList* graphicsContext = RenderCore::BeginCommandList(CommandListType::Graphics);
-      graphicsContext->SetComputeProgram(mySetBufferValueShader.get());
+      graphicsContext->SetShaderPipeline(mySetBufferValueShader.get());
 
       struct CBuffer
       {
@@ -97,7 +99,7 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
 
       CommandList* computeContext = RenderCore::BeginCommandList(CommandListType::Compute);
       RenderCore::GetCommandQueue(CommandListType::Compute)->StallForFence(setValueFence);
-      computeContext->SetComputeProgram(myIncrementBufferShader.get());
+      computeContext->SetShaderPipeline(myIncrementBufferShader.get());
       computeContext->BindResourceView(myBufferUAV.get(), "DstBuffer");
       computeContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
       const uint64 incrementValueFence = RenderCore::ExecuteAndFreeCommandList(computeContext);

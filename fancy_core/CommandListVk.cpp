@@ -14,6 +14,7 @@
 #include "ShaderResourceInfoVk.h"
 #include "TextureSamplerVk.h"
 #include "DynamicArray.h"
+#include "StaticArray.h"
 
 #if FANCY_ENABLE_VK
 
@@ -405,10 +406,10 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     constexpr VkAccessFlags locAccessMaskRead = VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_SHADER_READ_BIT |
       VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_HOST_READ_BIT | VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT | VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT |
-      VK_ACCESS_COMMAND_PROCESS_READ_BIT_NVX | VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT | VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV | VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV | VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;
+      VK_ACCESS_COMMAND_PREPROCESS_READ_BIT_NV | VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT | VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV | VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV | VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;
 //---------------------------------------------------------------------------//
     constexpr VkAccessFlags locAccessMaskWrite = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT |
-      VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT | VK_ACCESS_COMMAND_PROCESS_WRITE_BIT_NVX | VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;
+      VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT | VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_NV | VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;
 //---------------------------------------------------------------------------//
     constexpr VkPipelineStageFlags locPipelineMaskGraphics =
       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
@@ -418,7 +419,7 @@ namespace Fancy
       | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
       | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
       | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT | VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT
-      | VK_PIPELINE_STAGE_COMMAND_PROCESS_BIT_NVX | VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV
+      | VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_NV | VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV
       | VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV
       | VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT
 #if  FANCY_RENDERER_SUPPORT_MESH_SHADERS
@@ -539,6 +540,13 @@ namespace Fancy
     const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     TrackSubresourceTransition(aTextureView->GetResource(), aTextureView->GetSubresourceRange(), VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
     FlushBarriers();
+
+#if FANCY_RENDERER_DEBUG
+    VkFormatProperties formatProperties;
+    const VkFormat format = RenderCore_PlatformVk::ResolveFormat(aTextureView->GetTexture()->GetProperties().myFormat);
+    vkGetPhysicalDeviceFormatProperties(RenderCore::GetPlatformVk()->myPhysicalDevice, format, &formatProperties);
+    ASSERT(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_TRANSFER_DST_BIT);
+#endif
 
     GpuResourceDataVk* dataVk = static_cast<TextureVk*>(aTextureView->GetTexture())->GetData();
     vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, imageLayout, &clearColor, 1u, &subRange);
@@ -1198,8 +1206,6 @@ namespace Fancy
     if (numPossibleSubresourceTransitions == 0u && canEarlyOut)
       return;
 
-    bool canTransitionAllSubresources = numPossibleSubresourceTransitions == aResource->mySubresources.GetNumSubresources();
-
     const bool dstIsRead = (dstAccessFlags & Priv_CommandListVk::locAccessMaskRead) == dstAccessFlags;
 
     LocalHazardData* localData = nullptr;
@@ -1214,63 +1220,14 @@ namespace Fancy
       localData = &it->second;
     }
 
-    if (!canTransitionAllSubresources && aResource->IsTexture())
+    bool canTransitionAllSubresources = numPossibleSubresourceTransitions == aResource->mySubresources.GetNumSubresources();
+    if (canTransitionAllSubresources)
     {
-      ImageMemoryBarrierData imageBarrier;
-      imageBarrier.myImage = aResource->myNativeData.To<GpuResourceDataVk*>()->myImage;
-      imageBarrier.myFormat = static_cast<const Texture*>(aResource)->GetProperties().myFormat;
-      imageBarrier.myDstAccessMask = dstAccessFlags;
-      imageBarrier.myDstLayout = aNewImageLayout;
-
-      SubresourceLocation firstSubresource(*aSubresourceRange.Begin());
-      SubresourceLocation lastSubresource(*aSubresourceRange.Begin());
-
-      i = 0u;
-      for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it, ++i)
-      {
-        if (!subresourceTransitionPossible[i])
-        {
-          if (firstSubresource != lastSubresource)  // Add the barrier we have batched so far since we've reached a discontinuity in subresource-transitions
-          {
-            imageBarrier.mySubresourceRange = SubresourceRange(firstSubresource, lastSubresource);
-            AddBarrier(imageBarrier);
-            firstSubresource = lastSubresource;
-            lastSubresource = firstSubresource;
-          }
-
-          continue;
-        }
-
-        const uint subresourceIndex = aResource->GetSubresourceIndex(*it);
-
-        SubresourceHazardData& subData = localData->mySubresources[subresourceIndex];
-        if (subData.myWasUsed)
-        {
-          // We can add a barrier. Check if we can append the transition to the current barrier or if we have to start a new one.
-          const bool isEmpty = firstSubresource == lastSubresource;
-          const bool canBatch = isEmpty || (imageBarrier.mySrcAccessMask == subData.myAccessFlags && imageBarrier.mySrcLayout == subData.myImageLayout);
-
-          if (canBatch)
-          {
-            imageBarrier.mySrcAccessMask = subData.myAccessFlags;
-            imageBarrier.mySrcLayout = subData.myImageLayout;
-            lastSubresource = *it;
-          }
-          else
-          {
-            imageBarrier.mySubresourceRange = SubresourceRange(firstSubresource, lastSubresource);
-            AddBarrier(imageBarrier);
-            firstSubresource = lastSubresource;
-            lastSubresource = firstSubresource;
-          }
-        }
-      }
+      for (uint sub = 0u; canTransitionAllSubresources && sub < localData->mySubresources.size(); ++sub)
+        canTransitionAllSubresources &= localData->mySubresources[sub].myWasUsed;
     }
 
-    for (uint i = 0u; canTransitionAllSubresources && i < localData->mySubresources.size(); ++i)
-      canTransitionAllSubresources &= localData->mySubresources[i].myWasUsed;
-
-    if (canTransitionAllSubresources)
+    if (canTransitionAllSubresources)  // The simple case: We can transition all subresources in one barrier
     {
       if (aResource->IsBuffer())
       {
@@ -1296,7 +1253,62 @@ namespace Fancy
         AddBarrier(barrier);
       }
     }
+    else if (aResource->IsTexture())
+    {
+      // Create a barrier for each subresource that needs to be transitioned. In a later step, the barriers are merged if possible in order to cover as many subresources as possible with as few barriers as possible
 
+      StaticArray<ImageMemoryBarrierData, 64> potentialSubresourceBarriers;
+
+      ImageMemoryBarrierData imageBarrier;
+      imageBarrier.myImage = aResource->myNativeData.To<GpuResourceDataVk*>()->myImage;
+      imageBarrier.myFormat = static_cast<const Texture*>(aResource)->GetProperties().myFormat;
+      imageBarrier.myDstAccessMask = dstAccessFlags;
+      imageBarrier.myDstLayout = aNewImageLayout;
+
+      i = 0u;
+      for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it, ++i)
+      {
+        if (!subresourceTransitionPossible[i])
+          continue;
+
+        const uint subresourceIndex = aResource->GetSubresourceIndex(*it);
+        SubresourceHazardData& subData = localData->mySubresources[subresourceIndex];
+        if (subData.myWasUsed)  // We can only add a barrier if we already know the current state within the command list
+        {
+          imageBarrier.mySubresourceRange = SubresourceRange(*it);
+          imageBarrier.mySrcAccessMask = subData.myAccessFlags;
+          imageBarrier.mySrcLayout = subData.myImageLayout;
+          potentialSubresourceBarriers.Add(imageBarrier);
+        }
+      }
+
+      // Merge the potential subresource barriers and add them
+      if (!potentialSubresourceBarriers.IsEmpty())
+      {
+        ImageMemoryBarrierData currBarrier = potentialSubresourceBarriers[0];
+        uint currMaxSubresourceIndex = aResource->GetSubresourceIndex(*currBarrier.mySubresourceRange.Begin());
+        for (uint iBarrier = 1u; iBarrier < potentialSubresourceBarriers.Size(); ++iBarrier)
+        {
+          const ImageMemoryBarrierData& nextBarrier = potentialSubresourceBarriers[iBarrier];
+          uint nextSubresourceIndex = aResource->GetSubresourceIndex(*nextBarrier.mySubresourceRange.Begin());
+
+          const bool canBatch = nextSubresourceIndex == currMaxSubresourceIndex + 1u &&
+            currBarrier.mySrcAccessMask == nextBarrier.mySrcAccessMask &&
+            currBarrier.mySrcLayout == nextBarrier.mySrcLayout;
+
+          if (!canBatch)
+          {
+            AddBarrier(currBarrier);
+            currBarrier = nextBarrier;
+          }
+          currMaxSubresourceIndex = nextSubresourceIndex;
+        }
+
+        AddBarrier(currBarrier);
+      }
+    }
+
+    // Finally, write the new states into the local subresource records
     i = 0u;
     for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it, ++i)
     {
