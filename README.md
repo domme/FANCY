@@ -24,4 +24,4 @@ Mostly created for personal learning-purposes and graphics-demos. Most areas are
 
 ## Building
 A Visual Studio 2017 solution is included in the sources. The required dependency binaries for the used libraries can be downloaded here:
-https://www.dropbox.com/s/qctyqc6tbz111s2/dependencies.zip?dl=0
+https://www.dropbox.com/sh/npuok5i4xkiju4o/AAC-UplWpQF970a6dhW3_XCUa?dl=0
