@@ -9,10 +9,11 @@ namespace Fancy
     static const CommandLine* GetInstance() { return ourInstance; }
 
     bool HasArgument(const char* aArgument) const;
+    bool HasStringValue(const char* anArgument) const;
+    bool HasFloatValue(const char* anArgument) const;
 
-    bool GetValue(const char* aArgument, int& aVal) const;
-    bool GetValue(const char* aArgument, float& aVal) const;
-    bool GetValue(const char* aArgument, String& aVal) const;
+    const char* GetStringValue(const char* anArgument) const;
+    float GetFloatValue(const char* anArgument) const;
 
   private:
     enum
@@ -21,15 +22,24 @@ namespace Fancy
       kMaxValSize = 64,
     };
 
+    enum ArgumentType
+    {
+      ARGTYPE_NO_VALUE = 0,
+      ARGTYPE_NUMBER,
+      ARGTYPE_STRING
+    };
+
     struct Argument
     {
       StaticString<kMaxArgSize> myName;
-      StaticString<kMaxValSize> myValue;
+      StaticString<kMaxValSize> myString;
+      ArgumentType myType = ARGTYPE_NO_VALUE;
+      float myNumber = 0.0f;
     };
 
-    bool FindArgument(const char* aArgument, Argument& anArgument) const;
-
     CommandLine(const char** someArguments, uint aNumArguments);
+    bool FindArgument(const char* aArgument, Argument& anArgument) const;
+    void ParseValue(const char* aValue, Argument& anArgument);
 
     static CommandLine* ourInstance;
 

@@ -45,6 +45,25 @@ namespace Fancy
       return myBuffer;
     }
 
+    StaticString<BufferSize>& operator=(const char* aStr)
+    {
+      myNextFree = 0;
+      myBuffer[myNextFree] = '\0';
+
+      const char* currStr = aStr;
+      while (*currStr != '\0')
+      {
+        myBuffer[myNextFree] = *currStr;
+        ++currStr;
+        ++myNextFree;
+        ASSERT(!IsFull());
+      }
+
+      myBuffer[myNextFree] = '\0';
+
+      return *this;
+    }
+
     bool operator==(const char* aStr) const 
     {
       uint len = (uint) strlen(aStr);
@@ -76,10 +95,9 @@ namespace Fancy
       return true;
     }
 
-    uint Size() const 
-    {
-      return myNextFree;
-    }
+    uint Size() const { return myNextFree; }
+    bool IsEmpty() const { return myNextFree == 0u; }
+    bool IsFull() const { return myNextFree == BufferSize; }
 
     const char* GetBuffer() const { return myBuffer; }
     char* GetBuffer() { return myBuffer; }
