@@ -37,7 +37,7 @@ namespace Fancy {
     CommandLine::CreateInstance(someArguments, aNumArguments);
 
     // Init IO-subsystem
-    Resources::InitResourceFolders();
+    Path::InitRootFolders();
 
     ourInstance = new FancyRuntime(anAppInstanceHandle);
 

@@ -6,13 +6,18 @@ namespace Fancy {
 
   namespace Path
   {
+    void InitRootFolders();
+
     String GetAppName();
     String GetAppPath();
     String GetContainingFolder(const String& aFileName);
     
+    const String& GetRootDirectory();
     String GetWorkingDirectory();
-    String GetAbsolutePath(const String& aWorkingDirPath);
+    String GetAbsolutePath(const String& aRelativePath);
     String GetRelativePath(const String& anAbsolutePath);
+    String GetAbsoluteResourcePath(const String& aRelativeResourcePath, bool* aWasFound = nullptr);
+    String GetRelativeResourcePath(const String& anAbsoluteResourcePath, bool* aWasFound = nullptr);
     bool FileExists(const char* aFilePath);
     bool FileExists(const wchar_t* aFilePath);
     bool IsPathAbsolute(const char* aPath);
@@ -31,14 +36,6 @@ namespace Fancy {
     void ConvertToSlash(String& aPath);
     void ConvertToBackslash(String& aPath);
     void CreateDirectoryTreeForPath(const String& aPath);
-  }
-//---------------------------------------------------------------------------//
-  namespace Resources
-  {
-    void InitResourceFolders();
-
-    String FindPath(const String& aRelativeResourcePath, bool* aWasFound = nullptr);
-    String FindName(const String& anAbsoluteResourcePath, bool* aWasFound = nullptr);
   }
 //---------------------------------------------------------------------------//
 }

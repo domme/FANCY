@@ -57,7 +57,7 @@ namespace Fancy {
     GpuQuery InsertTimestamp() override;
     void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
 
-    void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition) override;
+    void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint someUsageFlags = 0u) override;
     void ResourceUAVbarrier(const GpuResource** someResources = nullptr, uint aNumResources = 0u) override;
 
     void Close() override;
@@ -65,7 +65,7 @@ namespace Fancy {
     void Dispatch(const glm::int3& aNumThreads) override;
 
     void TrackResourceTransition(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState, bool aIsSharedReadState = false);
-    void TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, D3D12_RESOURCE_STATES aNewState, bool aIsSharedReadState = false);
+    void TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, D3D12_RESOURCE_STATES aNewState, bool aToSharedReadState = false);
     void AddBarrier(const D3D12_RESOURCE_BARRIER& aBarrier);
 
   protected:

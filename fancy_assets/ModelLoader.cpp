@@ -331,11 +331,11 @@ namespace Fancy { namespace ModelLoader {
     {
       String relativePath = Path::GetContainingFolder(aProcessData.mySourcePath) + "/" + texPathAbs;
       Path::RemoveFolderUpMarkers(relativePath);
-      texPathAbs = Resources::FindPath(relativePath);
+      texPathAbs = Path::GetAbsoluteResourcePath(relativePath);
     }
 
     Path::RemoveFolderUpMarkers(texPathAbs);
-    const String& texPathInResources = Resources::FindName(texPathAbs);
+    const String& texPathInResources = Path::GetRelativeResourcePath(texPathAbs);
     
     return texPathInResources;
   }
@@ -466,7 +466,7 @@ namespace Fancy { namespace ModelLoader {
   {
     ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 
-    String pathAbs = Resources::FindPath(aPath);
+    String pathAbs = Path::GetAbsoluteResourcePath(aPath);
     
     Assimp::Importer importer;
     const aiScene* importedScene = importer.ReadFile(pathAbs.c_str(), GetAiImportOptions(someImportOptions));

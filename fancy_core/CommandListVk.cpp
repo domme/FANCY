@@ -23,6 +23,23 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   namespace Priv_CommandListVk
   {
+//---------------------------------------------------------------------------//
+    VkImageLayout locResolveImageLayout(VkImageLayout aLayout, const GpuResource* aResource, const SubresourceRange& aSubresourceRange)
+    {
+      if (aResource->IsBuffer())
+        return VK_IMAGE_LAYOUT_UNDEFINED;
+
+      const GpuResourceHazardDataVk& globalHazardData = aResource->GetHazardData().myVkData;
+      for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it)
+      {
+        const uint subresourceIdx = aResource->GetSubresourceIndex(*it);
+        if (globalHazardData.mySubresources[subresourceIdx].myContext == CommandListType::SHARED_READ)
+          return VK_IMAGE_LAYOUT_GENERAL;
+      }
+
+      return aLayout;
+    }
+//---------------------------------------------------------------------------//
     VkRenderPass locCreateRenderPass(const TextureView** someRendertargets, uint aNumRenderTargets, const TextureView* aDepthStencilTarget)
     {
       VkRenderPassCreateInfo renderpassInfo;
@@ -73,6 +90,8 @@ namespace Fancy
           layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
         else if (dsvProps.myIsStencilReadOnly)
           layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;
+
+        layout = locResolveImageLayout(layout, aDepthStencilTarget->GetResource(), aDepthStencilTarget->GetSubresourceRange());
 
         attachmentDesc.initialLayout = layout;
         attachmentDesc.finalLayout = layout;
@@ -595,7 +614,7 @@ namespace Fancy
     VkBuffer dstBuffer = static_cast<const GpuBufferVk*>(aDstBuffer)->GetData()->myBuffer;
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
 
-    const VkImageLayout srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    const VkImageLayout srcImageLayout = Priv_CommandListVk::locResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aSrcTexture, SubresourceRange(aSrcSubresource));
     TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
     TrackResourceTransition(aDstBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
     FlushBarriers();
@@ -633,11 +652,11 @@ namespace Fancy
     VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
 
-    const VkImageLayout srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    const VkImageLayout srcImageLayout = Priv_CommandListVk::locResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aSrcTexture, SubresourceRange(aSrcSubresource));
     const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
-    TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT);
-    TrackSubresourceTransition(aDstTexture, SubresourceRange(aDstSubresource), VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackSubresourceTransition(aDstTexture, SubresourceRange(aDstSubresource), VK_ACCESS_TRANSFER_WRITE_BIT, dstImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
     FlushBarriers();
 
     vkCmdCopyImage(myCommandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, 1u, &copyRegion);
@@ -974,7 +993,7 @@ namespace Fancy
     {
       ASSERT(aView->myType == GpuResourceViewType::SRV);
       ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
-      imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+      imageLayout = Priv_CommandListVk::locResolveImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, aView->GetResource(), aView->GetSubresourceRange());
       imageView = viewDataVk.myView.myImage;
       TrackSubresourceTransition(aView->GetResource(), aView->GetSubresourceRange(), VK_ACCESS_SHADER_READ_BIT, imageLayout, pipelineStage);
     } break;
@@ -1129,9 +1148,27 @@ namespace Fancy
     VK_MISSING_IMPLEMENTATION();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition)
+  void CommandListVk::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint /* someUsageFlags = 0u*/)
   {
-    VK_MISSING_IMPLEMENTATION();
+    VkImageLayout newLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkAccessFlags newAccessFlags = 0u;
+    VkPipelineStageFlags newPipelineStageFlags = 0u;
+    bool toSharedRead = false;
+
+    switch (aTransition)
+    {
+    case ResourceTransition::TO_SHARED_CONTEXT_READ:
+      newAccessFlags = (VkAccessFlags)aResource->GetHazardData().myVkData.myReadAccessMask;
+      newPipelineStageFlags = Priv_CommandListVk::locPipelineMaskGraphics;
+      if (aResource->IsTexture())
+        newLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+      toSharedRead = true;
+      break;
+    default: ASSERT(false);
+    }
+
+    TrackSubresourceTransition(aResource, aSubresourceRange, newAccessFlags, newLayout, newPipelineStageFlags, toSharedRead);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources)
@@ -1163,9 +1200,9 @@ namespace Fancy
     vkCmdDispatch(myCommandBuffer, (uint)numGroups.x, (uint)numGroups.y, (uint)numGroups.z);
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, VkPipelineStageFlags aNewPipelineStageFlags, bool aIsSharedReadState)
+  void CommandListVk::TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, VkPipelineStageFlags aNewPipelineStageFlags, bool aToSharedReadState)
   {
-    TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewAccessFlags, aNewImageLayout, aNewPipelineStageFlags, aIsSharedReadState);
+    TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewAccessFlags, aNewImageLayout, aNewPipelineStageFlags, aToSharedReadState);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::TrackSubresourceTransition(
@@ -1174,7 +1211,7 @@ namespace Fancy
     VkAccessFlags aNewAccessFlags, 
     VkImageLayout aNewImageLayout, 
     VkPipelineStageFlags aNewPipelineStageFlags, 
-    bool aIsSharedReadState)
+    bool aToSharedReadState)
   {
     if (aResource->IsBuffer())
     {
@@ -1182,7 +1219,7 @@ namespace Fancy
       ASSERT(aNewImageLayout == VK_IMAGE_LAYOUT_UNDEFINED);
     }
 
-    const bool canEarlyOut = !aIsSharedReadState;
+    const bool canEarlyOut = !aToSharedReadState;
 
     if (!aResource->myStateTracking.myCanChangeStates && canEarlyOut)
       return;
@@ -1314,7 +1351,7 @@ namespace Fancy
     {
       const uint subresourceIndex = aResource->GetSubresourceIndex(*it);
       SubresourceHazardData& subData = localData->mySubresources[subresourceIndex];
-      if (aIsSharedReadState)
+      if (aToSharedReadState)
       {
         subData.myWasWritten = false;
         subData.myIsSharedReadState = true;
@@ -1367,7 +1404,8 @@ namespace Fancy
     CommandListType currGlobalContext = globalData.myVkData.mySubresources[aSubresourceIndex].myContext;
 
     auto it = myLocalHazardData.find(aResource);
-    if (it != myLocalHazardData.end())
+    const bool hasLocalData = it != myLocalHazardData.end();
+    if (hasLocalData)
     {
       currAccess = it->second.mySubresources[aSubresourceIndex].myAccessFlags;
       currImgLayout = it->second.mySubresources[aSubresourceIndex].myImageLayout;
@@ -1376,14 +1414,25 @@ namespace Fancy
     bool currAccessHasAllDstAccessFlags = (currAccess & aDstAccess) == aDstAccess;
     if (aDstAccess == 0u)
       currAccessHasAllDstAccessFlags = currAccess == 0u;
-    
-    if (it != myLocalHazardData.end()   // We can only truly skip this transition if we already have the resource state on the local timeline
-      && currAccessHasAllDstAccessFlags
-      && currImgLayout == aDstImageLayout) 
-      return false;
+
+    bool currImgLayoutIsSame = currImgLayout == aDstImageLayout;
 
     const bool dstIsRead = (aDstAccess & Priv_CommandListVk::locAccessMaskRead) == aDstAccess;
-    if (dstIsRead && currGlobalContext == CommandListType::SHARED_READ)  // A transition to a write-state will make the resource be owned by this context-type again so we only have to check for a read-transition
+    bool isInSharedReadState = dstIsRead && currGlobalContext == CommandListType::SHARED_READ;
+    if (hasLocalData && it->second.mySubresources[aSubresourceIndex].myWasWritten)
+    {
+      // The subresource left the shared read state in this command list
+      isInSharedReadState = false;
+    }
+
+    // We can only truly skip this transition if we already have the resource state on the local timeline. 
+   // If the subresource is on the shared read context and the destination is a read state, we can also skip since the subresource is not expected to transition at all
+    if ((currAccessHasAllDstAccessFlags && currImgLayoutIsSame) && (hasLocalData || isInSharedReadState))
+      return false;
+    
+    // If we reached this point it means that a state is missing in the curr state and we need to add a barrier for this subresource. However, it is an error to transition 
+    // To another read-state if the resource is currently being used by multiple queues. A write-state would take ownership of this resource again however
+    if (isInSharedReadState)
     {
       ASSERT(false, "No resource transitions allowed on SHARED_READ context. Resource must be transitioned to a state mask that incorporates all future read-states");
       return false;
@@ -1472,9 +1521,12 @@ namespace Fancy
     {
       if (dsvProps.myIsDepthReadOnly == dsvProps.myIsStencilReadOnly)
       {
+        VkImageLayout layout = dsvProps.myIsDepthReadOnly ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        layout = Priv_CommandListVk::locResolveImageLayout(layout, myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange());
+
         TrackSubresourceTransition(myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange(),
           dsvProps.myIsDepthReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, 
-          VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+          layout, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
       }
       else
       {
@@ -1482,15 +1534,21 @@ namespace Fancy
         range.myFirstPlane = 0u;
         range.myNumPlanes = 1u;
 
+        VkImageLayout layout = dsvProps.myIsDepthReadOnly ? VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        layout = Priv_CommandListVk::locResolveImageLayout(layout, myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange());
+
         TrackSubresourceTransition(myDepthStencilTarget->GetResource(), range,
           dsvProps.myIsDepthReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-          VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+          layout, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
 
         range.myFirstPlane = 1u;
 
+        layout = dsvProps.myIsStencilReadOnly ? VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        layout = Priv_CommandListVk::locResolveImageLayout(layout, myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange());
+
         TrackSubresourceTransition(myDepthStencilTarget->GetResource(), range,
           dsvProps.myIsStencilReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-          VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+          layout, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
       }
     }
     

@@ -100,18 +100,18 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  String ShaderCompiler::GetShaderPath(const char* aPath) const
+  String ShaderCompiler::GetShaderPathRelative(const char* aPath) const
   {
-    const StaticFilePath path("%s/DX12/%s.hlsl", GetShaderRootFolderRelative(), aPath);
+    const StaticFilePath path("%s/%s", GetShaderRootFolderRelative(), aPath);
     return String(path);
   }
 //---------------------------------------------------------------------------//
   bool ShaderCompiler::Compile(const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const
   {
-    LOG_INFO("Compiling shader %s...", aDesc.myShaderFileName.c_str());
+    LOG_INFO("Compiling shader %s...", aDesc.myPath.c_str());
 
-    StaticFilePath hlslSrcPathRel("%s/DX12/%s.hlsl", GetShaderRootFolderRelative(), aDesc.myShaderFileName.c_str());
-    String hlslSrcPathAbs = Resources::FindPath(hlslSrcPathRel.GetBuffer());
+    StaticFilePath hlslSrcPathRel("%s/%s", GetShaderRootFolderRelative(), aDesc.myPath.c_str());
+    String hlslSrcPathAbs = Path::GetAbsoluteResourcePath(hlslSrcPathRel.GetBuffer());
     
     const bool success = Compile_Internal(hlslSrcPathAbs.c_str(), aDesc, aCompilerOutput);
     if (success)

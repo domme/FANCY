@@ -20,10 +20,10 @@ static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const ch
 {
   ShaderPipelineDesc pipelineDesc;
   ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
-  shaderDesc->myShaderFileName = aShaderPath;
+  shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainVtxFunction;
   shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
-  shaderDesc->myShaderFileName = aShaderPath;
+  shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainFragmentFunction;
   return RenderCore::CreateShaderPipeline(pipelineDesc);
 }
@@ -37,13 +37,13 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
 {
   myAssetManager.reset(new AssetManager());
 
-  myUnlitTexturedShader = locLoadShader("Unlit_Textured");
+  myUnlitTexturedShader = locLoadShader("Unlit_Textured.hlsl");
   ASSERT(myUnlitTexturedShader != nullptr);
 
-  myUnlitVertexColorShader = locLoadShader("Unlit_Colored");
+  myUnlitVertexColorShader = locLoadShader("Unlit_Colored.hlsl");
   ASSERT(myUnlitVertexColorShader != nullptr);
 
-  myDebugGeoShader = locLoadShader("DebugGeo_Colored");
+  myDebugGeoShader = locLoadShader("DebugGeo_Colored.hlsl");
   ASSERT(myDebugGeoShader != nullptr);
 
   TextureSamplerProperties samplerProps;

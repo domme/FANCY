@@ -684,7 +684,7 @@ namespace Fancy {
     ourShaderCache.insert(std::make_pair(hash, program));
 
     const String actualShaderPath =
-      Resources::FindPath(ourShaderCompiler->GetShaderPath(aDesc.myShaderFileName.c_str()));
+      Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(aDesc.myPath.c_str()));
 
     ourShaderFileWatcher->AddFileWatch(actualShaderPath);
 
@@ -702,7 +702,7 @@ namespace Fancy {
     std::array<SharedPtr<Shader>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
-      if (!aDesc.myShader[i].myShaderFileName.empty())
+      if (!aDesc.myShader[i].myPath.empty())
         pipelinePrograms[i] = CreateShader(aDesc.myShader[i]);
     }
 
@@ -1147,7 +1147,7 @@ namespace Fancy {
 
       const ShaderDesc& desc = program->GetDescription();
       String actualShaderPath =
-        Resources::FindPath(ourShaderCompiler->GetShaderPath(desc.myShaderFileName.c_str()));
+        Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(desc.myPath.c_str()));
 
       if (actualShaderPath == aShaderFile)
         programsToRecompile.push_back(program);
@@ -1159,7 +1159,7 @@ namespace Fancy {
       if (ourShaderCompiler->Compile(program->GetDescription(), &compiledOutput))
         program->SetFromCompilerOutput(compiledOutput);
       else
-        LOG_WARNING("Failed compiling shader %s", program->GetDescription().myShaderFileName.c_str());
+        LOG_WARNING("Failed compiling shader %s", program->GetDescription().myPath.c_str());
     }
     
     // Check which pipelines need to be updated...

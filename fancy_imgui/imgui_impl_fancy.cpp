@@ -135,11 +135,11 @@ namespace Fancy { namespace ImGuiRendering {
     {
       ShaderPipelineDesc pipelineDesc;
       ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
-      shaderDesc->myShaderFileName = "Imgui";
+      shaderDesc->myPath = "Imgui.hlsl";
       shaderDesc->myMainFunction = "main";
       shaderDesc->myShaderStage = (uint)ShaderStage::VERTEX;
       shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
-      shaderDesc->myShaderFileName = "Imgui";
+      shaderDesc->myPath = "Imgui.hlsl";
       shaderDesc->myShaderStage = (uint)ShaderStage::FRAGMENT;
       shaderDesc->myMainFunction = "main";
       ourProgramPipeline = RenderCore::CreateShaderPipeline(pipelineDesc);

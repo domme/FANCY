@@ -18,12 +18,13 @@ namespace Fancy {
   class ShaderCompiler
   {
     public:
-      static const char* GetShaderRootFolderRelative() { return "shader"; }
+      static const char* GetShaderRootFolderRelative() { return "resources/shader"; }
       static const char* ShaderStageToDefineString(ShaderStage aShaderStage);
       static const char* GetHLSLprofileString(ShaderStage aShaderStage, ShaderModel aShaderModel = ShaderModel::SM_6_1);
 
       virtual ~ShaderCompiler() = default;
-      virtual String GetShaderPath(const char* aShaderName) const;
+      
+      String GetShaderPathRelative(const char* aRelativeShaderPath) const;
 
       bool Compile(const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const;
 

@@ -66,6 +66,7 @@
     <ClCompile Include="Test_ModelViewer.cpp" />
     <ClCompile Include="Test_Profiler.cpp" />
     <ClCompile Include="Tests_main.cpp" />
+    <ClCompile Include="Test_SharedQueueResourceUsage.cpp" />
     <ClCompile Include="Test_Synchronization.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +77,7 @@
     <ClInclude Include="Test_Mipmapping.h" />
     <ClInclude Include="Test_ModelViewer.h" />
     <ClInclude Include="Test_Profiler.h" />
+    <ClInclude Include="Test_SharedQueueResourceUsage.h" />
     <ClInclude Include="Test_Synchronization.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

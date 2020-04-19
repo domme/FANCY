@@ -322,7 +322,14 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   enum class ResourceTransition
   {
-    TO_SHARED_CONTEXT_READ,
+    TO_SHARED_CONTEXT_READ,  // Transition to all allowed read states on a subresource and mark it for being used simultaneously on different queues
+  };
+//---------------------------------------------------------------------------//
+  enum class ResourceUsageFlags
+  {
+    SHADER_READ = 1 << 0,
+    COPY_SRC = 1 << 1,
+    DEPTH_STENCIL_READ = 1 << 2
   };
 //---------------------------------------------------------------------------//
 }

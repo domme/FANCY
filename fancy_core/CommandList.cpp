@@ -330,6 +330,11 @@ namespace Fancy {
     myClipRectDirty = true;
   }
 //---------------------------------------------------------------------------//
+  void CommandList::TransitionResource(const GpuResource* aResource, ResourceTransition aTransition, uint someUsageFlags /* = 0u */)
+  {
+    TransitionResource(aResource, aResource->GetSubresources(), aTransition, someUsageFlags);
+  }
+//---------------------------------------------------------------------------//
   void CommandList::PostExecute(uint64 aFenceVal)
   {
     for (GpuRingBuffer* buf : myUploadRingBuffers)

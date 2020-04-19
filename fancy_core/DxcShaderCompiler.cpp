@@ -187,7 +187,6 @@ namespace Fancy
     {
       Path::GetContainingFolder(anHlslSrcPathAbs),
       Path::GetAbsolutePath(ShaderCompiler::GetShaderRootFolderRelative()),
-      Path::GetAbsolutePath(String(ShaderCompiler::GetShaderRootFolderRelative()) + "/DX12"),
     };
     Microsoft::WRL::ComPtr<Priv_DxcShaderCompiler::IncludeHandler> includeHandler =
       new Priv_DxcShaderCompiler::IncludeHandler(myDxcLibrary.Get(), includePaths, ARRAY_LENGTH(includePaths));
@@ -195,7 +194,7 @@ namespace Fancy
     IDxcOperationResult* compiledResult;
     HRESULT result = myDxcCompiler->Compile(
       sourceBlob,
-      StringUtil::ToWideString(aDesc.myShaderFileName).c_str(),
+      StringUtil::ToWideString(aDesc.myPath).c_str(),
       StringUtil::ToWideString(aDesc.myMainFunction).c_str(),
       StringUtil::ToWideString(ShaderCompiler::GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage))).c_str(),
       args,
@@ -215,7 +214,7 @@ namespace Fancy
 
       if (errorBlob8 != nullptr && errorBlob8->GetBufferPointer() != nullptr && static_cast<const char*>(errorBlob8->GetBufferPointer())[0] != '\0')
       {
-        LOG_ERROR("Error compiling shader %s: %s", aDesc.myShaderFileName.c_str(), static_cast<const char*>(errorBlob8->GetBufferPointer()));
+        LOG_ERROR("Error compiling shader %s: %s", aDesc.myPath.c_str(), static_cast<const char*>(errorBlob8->GetBufferPointer()));
         return false;
       }
     }
@@ -224,7 +223,7 @@ namespace Fancy
     result = compiledResult->GetResult(&resultBlob);
     if (result != S_OK)
     {
-      LOG_ERROR("Failed getting compiled binary result of shader %s", aDesc.myShaderFileName.c_str());
+      LOG_ERROR("Failed getting compiled binary result of shader %s", aDesc.myPath.c_str());
       return false;
     }
 

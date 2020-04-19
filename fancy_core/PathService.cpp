@@ -11,7 +11,25 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Path
   {
-  //---------------------------------------------------------------------------//
+    static std::vector<String> ourResourceFolders;
+    static String ourRootFolder;
+//---------------------------------------------------------------------------//
+    void InitRootFolders()
+    {
+      const String& appPath = Path::GetAppPath();
+      ourRootFolder = StaticString<260>("%s/../../../", appPath.c_str());
+      Path::RemoveFolderUpMarkers(ourRootFolder);
+      
+      const String appResourceFolder(StaticString<260>("%s%s/resources/", ourRootFolder.c_str(), Path::GetAppName().c_str()));
+      const String coreResourceFolder(StaticString<260>("%sresources/", ourRootFolder.c_str()));
+
+      // Folders are ordered in descending priority. 
+      // Resources in earlier folders can "override" resources in later folders
+      ourResourceFolders.clear();
+      ourResourceFolders.push_back(appResourceFolder);
+      ourResourceFolders.push_back(coreResourceFolder);
+    }
+//---------------------------------------------------------------------------//
     String GetAppName()
     {
       TCHAR buf[FILENAME_MAX] = {0};
@@ -47,6 +65,11 @@ namespace Fancy {
       return aPath.substr(0, slashPos);
     }
 //---------------------------------------------------------------------------//
+    const String& GetRootDirectory()
+    {
+      return ourRootFolder;
+    }
+//---------------------------------------------------------------------------//
     String GetWorkingDirectory()
     {
       TCHAR buf[MAX_PATH];
@@ -59,12 +82,12 @@ namespace Fancy {
       return workingDir;
     }
 //---------------------------------------------------------------------------//
-    String GetAbsolutePath(const String& aWorkingDirPath)
+    String GetAbsolutePath(const String& aRelativePath)
     {
-      if (IsPathAbsolute(aWorkingDirPath))
-        return aWorkingDirPath;
+      if (IsPathAbsolute(aRelativePath))
+        return aRelativePath;
 
-      return GetWorkingDirectory() + "/" + aWorkingDirPath;
+      return GetRootDirectory() + aRelativePath;
     }
 //---------------------------------------------------------------------------//
     String GetRelativePath(const String& anAbsolutePath)
@@ -72,14 +95,14 @@ namespace Fancy {
       if (!IsPathAbsolute(anAbsolutePath))
         return anAbsolutePath;
 
-      const String& workingDir = GetWorkingDirectory();
+      const String& rootDir = GetRootDirectory();
 
-      const size_t workingDirPos = anAbsolutePath.rfind(workingDir);
+      const size_t rootDirPath = anAbsolutePath.rfind(rootDir);
 
-      if (workingDirPos == String::npos)
-        return ""; // Path is absolute but not relative to our working directory
+      if (rootDirPath == String::npos)
+        return ""; // Path is absolute but not relative to our root directory
 
-      return anAbsolutePath.substr(workingDirPos + 1);
+      return anAbsolutePath.substr(rootDirPath + 1);
     }
 //---------------------------------------------------------------------------//
     bool FileExists(const char* aFilePath)
@@ -273,35 +296,13 @@ namespace Fancy {
         ++i;
       }
     }
-  //---------------------------------------------------------------------------//
-  }
-  
-  namespace Resources 
-  {
-    //---------------------------------------------------------------------------//
-    static std::vector<String> ourResourceFolders;
-    //---------------------------------------------------------------------------//
-    void InitResourceFolders()
-    {
-      const String& appPath = Path::GetAppPath();
-      String appResourceFolder(StaticString<260>("%s/../../../%s/resources/", appPath.c_str(), Path::GetAppName().c_str()));
-      Path::RemoveFolderUpMarkers(appResourceFolder);
-
-      String coreResourceFolder(StaticString<260>("%s/../../../resources/", appPath.c_str()));
-      Path::RemoveFolderUpMarkers(coreResourceFolder);
-
-      // Folders are ordered in descending priority. 
-      // Resources in earlier folders can "override" resources in later folders
-      ourResourceFolders.clear();
-      ourResourceFolders.push_back(appResourceFolder);
-      ourResourceFolders.push_back(coreResourceFolder);
-    }
-  //---------------------------------------------------------------------------//
-    String FindPath(const String& aResourceName, bool* aWasFound /*=nullptr*/)
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+    String GetAbsoluteResourcePath(const String& aRelativeResourcePath, bool* aWasFound /*=nullptr*/)
     {
       for (const String& resourceFolder : ourResourceFolders)
       {
-        String resourcePath = resourceFolder + aResourceName;
+        String resourcePath = resourceFolder + aRelativeResourcePath;
         if (Path::FileExists(resourcePath.c_str()))
         {
           if (aWasFound)
@@ -311,17 +312,17 @@ namespace Fancy {
         }
       }
 
-      // Fall back to the working dir if the resource hasn't been found in any of the registered resource folders
-      const String& absPathInWorkDir = Path::GetAbsolutePath(aResourceName);
-      const bool existsInWorkDir = Path::FileExists(absPathInWorkDir.c_str());
+      // Fall back to the root dir if the resource hasn't been found in any of the registered resource folders
+      const String& absPathInRootDir = Path::GetAbsolutePath(aRelativeResourcePath);
+      const bool existsInRootDir = Path::FileExists(absPathInRootDir.c_str());
 
       if (aWasFound)
-        *aWasFound = existsInWorkDir;
+        *aWasFound = existsInRootDir;
 
-      return existsInWorkDir ? absPathInWorkDir : "";
+      return existsInRootDir ? absPathInRootDir : "";
     }
-  //---------------------------------------------------------------------------//
-    String FindName(const String& anAbsoluteResourcePath, bool* aWasFound /*=nullptr*/)
+//---------------------------------------------------------------------------//
+    String GetRelativeResourcePath(const String& anAbsoluteResourcePath, bool* aWasFound /*=nullptr*/)
     {
       for (const String& resourceFolder : ourResourceFolders)
       {
@@ -335,13 +336,13 @@ namespace Fancy {
         }
       }
 
-      const String& relPathWorkDir = Path::GetRelativePath(anAbsoluteResourcePath);
-      const bool isAbsoluteWorkDirPath = relPathWorkDir.size() > 0;
-      
+      const String& relPathToRootDir = Path::GetRelativePath(anAbsoluteResourcePath);
+      const bool isAbsoluteRootDirPath = !relPathToRootDir.empty();
+
       if (aWasFound)
-        *aWasFound = isAbsoluteWorkDirPath;
-      
-      return relPathWorkDir;
+        *aWasFound = isAbsoluteRootDirPath;
+
+      return relPathToRootDir;
     }
 //---------------------------------------------------------------------------//
   }

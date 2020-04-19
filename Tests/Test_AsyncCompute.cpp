@@ -48,7 +48,7 @@ Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Windo
   ShaderPipelineDesc pipelineDesc;
   ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint) ShaderStage::COMPUTE];
   shaderDesc.myShaderStage = (uint) ShaderStage::COMPUTE;
-  shaderDesc.myShaderFileName = "Tests/ModifyBuffer";
+  shaderDesc.myPath = "Tests/ModifyBuffer.hlsl";
   shaderDesc.myMainFunction = "main_increment";
   myIncrementBufferShader = RenderCore::CreateShaderPipeline(pipelineDesc);
   ASSERT(myIncrementBufferShader);

@@ -30,7 +30,7 @@ using namespace Fancy;
   {
     ShaderPipelineDesc pipelineDesc;
     ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
-    shaderDesc.myShaderFileName = "ResizeTexture2D";
+    shaderDesc.myPath = "ResizeTexture2D.hlsl";
     shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
     shaderDesc.myMainFunction = "main";
 
@@ -51,9 +51,9 @@ using namespace Fancy;
     String texPathAbs = aPath;
     String texPathRel = aPath;
     if (!Path::IsPathAbsolute(texPathAbs))
-      texPathAbs = Resources::FindPath(texPathAbs);
+      texPathAbs = Path::GetAbsoluteResourcePath(texPathAbs);
     else
-      texPathRel = Resources::FindName(texPathAbs);
+      texPathRel = Path::GetRelativeResourcePath(texPathAbs);
 
     uint64 texPathRelHash = MathUtil::Hash(texPathRel);
     MathUtil::hash_combine(texPathRelHash, ((uint64) someFlags & SHADER_WRITABLE));
@@ -109,9 +109,9 @@ using namespace Fancy;
     String texPathAbs = aPath;
     String texPathRel = aPath;
     if (!Path::IsPathAbsolute(texPathAbs))
-      texPathAbs = Resources::FindPath(texPathAbs);
+      texPathAbs = Path::GetAbsoluteResourcePath(texPathAbs);
     else
-      texPathRel = Resources::FindName(texPathAbs);
+      texPathRel = Path::GetRelativeResourcePath(texPathAbs);
 
     if ((someLoadFlags & NO_MEM_CACHE) == 0)
       if (SharedPtr<Texture> texFromMemCache = GetTexture(texPathRel.c_str()))

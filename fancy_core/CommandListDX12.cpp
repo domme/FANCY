@@ -987,7 +987,7 @@ namespace Fancy {
       aBufferOffset);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition)
+  void CommandListDX12::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint /* someUsageFlags = 0u*/)
   {
     D3D12_RESOURCE_STATES newStates = (D3D12_RESOURCE_STATES) 0;
     bool toSharedRead = false;
@@ -1356,9 +1356,9 @@ namespace Fancy {
     TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewState);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, D3D12_RESOURCE_STATES aNewState, bool aIsSharedReadState /* = false */)
+  void CommandListDX12::TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, D3D12_RESOURCE_STATES aNewState, bool aToSharedReadState /* = false */)
   {
-    const bool canEarlyOut = !aIsSharedReadState;
+    const bool canEarlyOut = !aToSharedReadState;
 
     if (!aResource->myStateTracking.myCanChangeStates && canEarlyOut)
       return;
@@ -1435,7 +1435,7 @@ namespace Fancy {
     {
       const uint subresourceIndex = aResource->GetSubresourceIndex(*it);
       SubresourceHazardData& subData = localData->mySubresources[subresourceIndex];
-      if (aIsSharedReadState)
+      if (aToSharedReadState)
       {
         subData.myWasWritten = false;
         subData.myIsSharedReadState = true;
@@ -1488,18 +1488,30 @@ namespace Fancy {
     CommandListType currGlobalContext = globalData.myDx12Data.mySubresources[aSubresourceIndex].myContext;
 
     auto it = myLocalHazardData.find(aResource);
-    if (it != myLocalHazardData.end())
+    const bool hasLocalData = it != myLocalHazardData.end();
+    if (hasLocalData)
       currStates = it->second.mySubresources[aSubresourceIndex].myStates;
 
     bool currStateHasAllDstStates = (currStates & aDstStates) == aDstStates;
     if (aDstStates == D3D12_RESOURCE_STATE_COMMON)
       currStateHasAllDstStates = currStates == D3D12_RESOURCE_STATE_COMMON;
 
-    if (it != myLocalHazardData.end() && currStateHasAllDstStates)  // We can only truly skip this transition if we already have the resource state on the local timeline
+    const bool dstIsRead = (aDstStates & DX12_READ_STATES) == aDstStates;
+    bool isInSharedReadState = dstIsRead && currGlobalContext == CommandListType::SHARED_READ;
+    if (hasLocalData && it->second.mySubresources[aSubresourceIndex].myWasWritten)
+    {
+      // The subresource left the shared read state in this command list
+      isInSharedReadState = false;
+    }
+
+    // We can only truly skip this transition if we already have the resource state on the local timeline. 
+    // If the subresource is on the shared read context and the destination is a read state, we can also skip since the subresource is not expected to transition at all
+    if (currStateHasAllDstStates && (hasLocalData || isInSharedReadState)) 
       return false;
 
-    const bool dstIsRead = (aDstStates & DX12_READ_STATES) == aDstStates;
-    if (dstIsRead && currGlobalContext == CommandListType::SHARED_READ)  // A transition to a write-state will make the resource be owned by this context-type again so we only have to check for a read-transition
+    // If we reached this point it means that a state is missing in the curr state and we need to add a barrier for this subresource. However, it is an error to transition 
+    // To another read-state if the resource is currently being used by multiple queues. A write-state would take ownership of this resource again however
+    if (isInSharedReadState)
     {
       ASSERT(false, "No resource transitions allowed on SHARED_READ context. Resource must be transitioned to a state mask that incorporates all future read-states");
       return false;

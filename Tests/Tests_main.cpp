@@ -21,6 +21,7 @@
 #include "Tests/Test_Mipmapping.h"
 #include "Test_ModelViewer.h"
 #include "fancy_core/StringUtil.h"
+#include "Tests/Test_SharedQueueResourceUsage.h"
 
 using namespace Fancy;
 
@@ -37,6 +38,7 @@ bool test_sychronization = false;
 bool test_asyncCompute = false;
 bool test_mipmapping = false;
 bool test_modelviewer = false;
+bool test_sharedQueueResources = false;
 
 constexpr bool kEnableImGui = true; // Deactivate IMGUI for Vulkan development?
 
@@ -130,6 +132,13 @@ void Update()
       myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ModelViewer*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(std::make_unique<Test_ModelViewer>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+  if (ImGui::Checkbox("Test Shared Queue Resources", &test_sharedQueueResources))
+  {
+    if (!test_sharedQueueResources)
+      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_SharedQueueResourceUsage*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(std::make_unique<Test_SharedQueueResourceUsage>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
 
   ImGui::Separator();
