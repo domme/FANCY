@@ -334,7 +334,7 @@ using namespace Fancy;
     cBuffer.myFilterMethod = (int) aFilter;
 
     glm::float2 destSize = glm::ceil(srcSize * 0.5f);
-    for (uint mip = 1u; mip < 3u; ++mip)
+    for (uint mip = 1u; mip < 2u; ++mip)
     {
       // Resize horizontal
       glm::float2 tempDestSize(destSize.x, srcSize.y);

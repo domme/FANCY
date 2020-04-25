@@ -130,7 +130,7 @@ namespace Fancy {
     // void SetTrackSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const;
     // void SetTrackSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const;
 
-    DescriptorDX12 CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount);
+    bool CreateDescriptorTable(const DescriptorDX12* someResources, uint aResourceCount, DescriptorDX12& aStartDescriptorOut);
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
 

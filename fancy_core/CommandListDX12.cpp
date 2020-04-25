@@ -237,39 +237,71 @@ namespace Fancy {
       myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 CommandListDX12::CopyDescriptorsToDynamicHeapRange(const DescriptorDX12* someResources, uint aResourceCount)
+  bool CommandListDX12::CreateDescriptorTable(const DescriptorDX12* someResources, uint aResourceCount, DescriptorDX12& aStartDescriptorOut)
   {
     ASSERT(aResourceCount > 0u);
-
-    const DescriptorDX12& firstDescriptor = someResources[0];
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
 
-    const D3D12_DESCRIPTOR_HEAP_TYPE heapType = firstDescriptor.myHeapType;
-    DynamicDescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
+    D3D12_DESCRIPTOR_HEAP_TYPE heapType = D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
+    uint firstValidResource = UINT_MAX;
+    for (uint i = 0u; heapType == D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES && i < aResourceCount; ++i)
+    {
+      heapType = someResources[i].myHeapType;
+      firstValidResource = i;
+    }
+    if (heapType == D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)
+      return false;  // No valid src descriptors
 
+    DynamicDescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
     if (dynamicHeap == nullptr || dynamicHeap->GetNumFreeDescriptors() < aResourceCount)
     {
       dynamicHeap = platformDx12->AllocateDynamicDescriptorHeap(aResourceCount, heapType);
       SetDescriptorHeap(heapType, dynamicHeap);
     }
-
     DescriptorDX12 destRangeStartDescriptor = dynamicHeap->AllocateDescriptorRangeGetFirst(aResourceCount);
+    const uint dstIncrement = dynamicHeap->GetHandleIncrementSize();
 
-    const uint numSrcRanges = aResourceCount;
-    uint* const srcRangeSizes = static_cast<uint*>(alloca(sizeof(uint) * numSrcRanges));
-    D3D12_CPU_DESCRIPTOR_HANDLE* const srcDescriptors = static_cast<D3D12_CPU_DESCRIPTOR_HANDLE*>(alloca(sizeof(D3D12_CPU_DESCRIPTOR_HANDLE) * numSrcRanges));
-    for (uint i = 0u; i < aResourceCount; ++i)
+    D3D12_CPU_DESCRIPTOR_HANDLE* dstDescriptorRangeStarts = (D3D12_CPU_DESCRIPTOR_HANDLE*)alloca(sizeof(D3D12_CPU_DESCRIPTOR_HANDLE) * aResourceCount);
+    uint* dstRangeSizes = (uint*)alloca(sizeof(uint) * aResourceCount);
+
+    dstDescriptorRangeStarts[0] = destRangeStartDescriptor.myCpuHandle;
+    dstDescriptorRangeStarts[0].ptr += firstValidResource * dstIncrement;
+    dstRangeSizes[0] = 0u;  // Incremented in first loop-iteration
+    uint currDstRangeIdx = 0u;
+    uint nextDstIdx = firstValidResource;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE* srcDescriptors = (D3D12_CPU_DESCRIPTOR_HANDLE*)alloca(sizeof(D3D12_CPU_DESCRIPTOR_HANDLE) * aResourceCount);
+    uint* srcRangeSizes = (uint*)alloca(sizeof(uint) * aResourceCount);
+    uint numSrcRanges = 0u;
+    for (uint i = firstValidResource; i < aResourceCount; ++i)
     {
-      ASSERT(heapType == someResources[i].myHeapType);
-      srcRangeSizes[i] = 1;
-      srcDescriptors[i] = someResources[i].myCpuHandle;
+      const DescriptorDX12& desc = someResources[i];
+      if (desc.myHeapType == D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)
+        continue;
+      
+      srcDescriptors[numSrcRanges] = desc.myCpuHandle;
+      srcRangeSizes[numSrcRanges] = 1;
+      ++numSrcRanges;
+
+      if (nextDstIdx == i)  // can add to curr range
+      {
+        ++dstRangeSizes[currDstRangeIdx];
+      }
+      else  // new dst range
+      {
+        ++currDstRangeIdx;
+        dstDescriptorRangeStarts[currDstRangeIdx].ptr = destRangeStartDescriptor.myCpuHandle.ptr + nextDstIdx * dstIncrement;
+        dstRangeSizes[currDstRangeIdx] = 1u;
+      }
+
+      ++nextDstIdx;
     }
 
-    platformDx12->GetDevice()->CopyDescriptors(
-      1, &destRangeStartDescriptor.myCpuHandle, &aResourceCount,
-      aResourceCount, srcDescriptors, srcRangeSizes, heapType);
+    platformDx12->GetDevice()->CopyDescriptors(currDstRangeIdx + 1, dstDescriptorRangeStarts, dstRangeSizes,
+      numSrcRanges, srcDescriptors, srcRangeSizes, heapType);
 
-    return destRangeStartDescriptor;
+    aStartDescriptorOut = destRangeStartDescriptor;
+    return true;
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
@@ -766,7 +798,7 @@ namespace Fancy {
 
     if (it == shaderResources.end())
     {
-      LOG_WARNING("Resource %ull not found in shader", aNameHash);
+      // LOG_WARNING("Resource %ull not found in shader", aNameHash);
       return false;
     }
 
@@ -832,10 +864,10 @@ namespace Fancy {
       }
     }
 
-
-
     const GpuResourceDataDX12* resourceDataDx12 = aBuffer->myNativeData.To<GpuResourceDataDX12*>();
-    BindInternal(resourceInfo, tempDescriptor, resourceDataDx12->myResource->GetGPUVirtualAddress(), anArrayIndex);
+    const D3D12_GPU_VIRTUAL_ADDRESS address = resourceDataDx12->myResource->GetGPUVirtualAddress() + someViewProperties.myOffset;
+
+    BindInternal(resourceInfo, tempDescriptor, address, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex /* = 0u */)
@@ -1117,6 +1149,7 @@ namespace Fancy {
   void CommandListDX12::SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut)
   {
     CommandList::SetShaderPipelineInternal(aPipeline, aHasPipelineChangedOut);
+    ClearResourceBindings();
 
     const ShaderPipelineDX12* pipelineDx12 = static_cast<const ShaderPipelineDX12*>(aPipeline);
     ID3D12RootSignature* rootSignature = pipelineDx12->GetRootSignature();
@@ -1294,17 +1327,16 @@ namespace Fancy {
       {
         const ResourceState::DescriptorTable& descTable = rootParam.myDescriptorTable;
         if (descTable.myDescriptors.size() == 0)
-          continue;  // This is valid since a shader might not actually use all root parameters
+          continue;  // This is valid since a shader might not actually use any root parameter
 
-#if FANCY_RENDERER_DEBUG
-        for (uint iTableEntry = 0u; iTableEntry < descTable.myDescriptors.size(); ++iTableEntry)
-          ASSERT(descTable.myDescriptors[iTableEntry].myCpuHandle.ptr != UINT_MAX, "Missing descriptor binding %d in descriptor table %d", iTableEntry, i);
-#endif  // FANCY_RENDERER_DEBUG
-        const DescriptorDX12 firstGpuVisibleDescriptor = CopyDescriptorsToDynamicHeapRange(descTable.myDescriptors.data(), static_cast<uint>(descTable.myDescriptors.size()));
-        if (myCurrentContext == CommandListType::Graphics)
-          myCommandList->SetGraphicsRootDescriptorTable(i, firstGpuVisibleDescriptor.myGpuHandle);
-        else
-          myCommandList->SetComputeRootDescriptorTable(i, firstGpuVisibleDescriptor.myGpuHandle);
+        DescriptorDX12 descriptorTableStart;
+        if (CreateDescriptorTable(descTable.myDescriptors.data(), static_cast<uint>(descTable.myDescriptors.size()), descriptorTableStart))
+        {
+          if (myCurrentContext == CommandListType::Graphics)
+            myCommandList->SetGraphicsRootDescriptorTable(i, descriptorTableStart.myGpuHandle);
+          else
+            myCommandList->SetComputeRootDescriptorTable(i, descriptorTableStart.myGpuHandle);
+        }
       }
       else
       {

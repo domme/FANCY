@@ -149,6 +149,7 @@ namespace Fancy
     {
       AddArgument(L"/Zi");                    // Enable debug information
       AddArgument(L"/o0");                    // Optimization level 0
+      AddArgument(L"/od");                    // Disable optimizations
       AddArgument(L"/Qembed_debug");          // Silence warning about embedding PDBs into the shader container
     }
 

@@ -18,7 +18,7 @@ namespace Fancy {
     DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors);
 
     const D3D12_DESCRIPTOR_HEAP_DESC& GetDesc() const { return myDesc; }
-    const uint& GetHandleIncrementSize() const { return myHandleIncrementSize; }
+    uint GetHandleIncrementSize() const { return myHandleIncrementSize; }
     const D3D12_CPU_DESCRIPTOR_HANDLE& GetCpuHeapStart() const { return myCpuHeapStart; }
     const D3D12_GPU_DESCRIPTOR_HANDLE& GetGpuHeapStart() const { return myGpuHeapStart; }
     ID3D12DescriptorHeap* GetHeap() const { return myDescriptorHeap.Get(); }

@@ -118,7 +118,7 @@ float4 Resize_Lanczos(int2 aDestTexel)
 }
 
 [RootSignature(ROOT_SIGNATURE)]
-[numthreads(1, 1, 1)]
+[numthreads(8, 8, 1)]
 void main(uint3 aGroupID : SV_GroupID, 
           uint3 aDispatchThreadID : SV_DispatchThreadID, 
           uint3 aGroupThreadID : SV_GroupThreadID, 
@@ -135,5 +135,7 @@ void main(uint3 aGroupID : SV_GroupID,
     if (myIsSRGB)
       filteredCol = pow(filteredCol, 1.0 / 2.2);
 
-    DestTexture[destTexel] = filteredCol;
+    DestTexture[destTexel] = float4(0,1,0,1);
+
+    // DestTexture[destTexel] = filteredCol;
 }
