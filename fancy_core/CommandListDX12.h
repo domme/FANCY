@@ -7,6 +7,7 @@
 #include "RenderEnums.h"
 #include "StaticArray.h"
 #include "ShaderResourceInfoDX12.h"
+#include "RootSignatureDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -19,6 +20,8 @@ namespace Fancy {
   struct GpuResourceDataDX12;
   class Shader;
   class GpuBuffer;
+  struct RootSignatureLayoutDX12;
+  struct RootSignatureBindingsDX12;
 //---------------------------------------------------------------------------//
   class CommandListDX12 final : public CommandList
   {
@@ -71,31 +74,6 @@ namespace Fancy {
   protected:
     void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut) override;
 
-    struct ResourceState
-    {
-      struct DescriptorTable
-      {
-        DynamicArray<DescriptorDX12> myDescriptors;
-      };
-
-      struct RootDescriptor
-      {
-        ShaderResourceTypeDX12 myType = ShaderResourceTypeDX12::None;
-        uint64 myGpuVirtualAddress = UINT64_MAX;
-      };
-
-      struct RootParameter
-      {
-        bool myIsDescriptorTable = false;
-        RootDescriptor myRootDescriptor;
-        DescriptorTable myDescriptorTable;
-      };
-
-      StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;
-      RootParameter myRootParameters[256];
-      uint myNumBoundRootParameters = 0u;
-    };
-
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
     static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
     static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
@@ -130,14 +108,15 @@ namespace Fancy {
     // void SetTrackSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const;
     // void SetTrackSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const;
 
-    bool CreateDescriptorTable(const DescriptorDX12* someResources, uint aResourceCount, DescriptorDX12& aStartDescriptorOut);
+    bool CreateDescriptorTable(const RootSignatureBindingsDX12::DescriptorTable& aTable, DescriptorDX12& aStartDescriptorOut);
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
 
-    ResourceState myResourceState;
+    const RootSignatureLayoutDX12* myRootSignatureLayout;
+    RootSignatureBindingsDX12 myRootSignatureBindings;
+    StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;
     
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
-    ID3D12RootSignature* myComputeRootSignature;
     ID3D12GraphicsCommandList* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
     StaticArray<D3D12_RESOURCE_BARRIER, kNumCachedBarriers> myPendingBarriers;

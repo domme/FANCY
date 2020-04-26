@@ -534,7 +534,57 @@ namespace Fancy {
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 64u));
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 64u));
 
+    InitNullDescriptors();
+
     return true;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformDX12::InitNullDescriptors()
+  {
+    // Create null descriptors to use as binding-dummies in descriptor tables where some elements are optimized away (e.g. because of unused resources)
+    DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = 1;
+    ourDevice->CreateShaderResourceView(nullptr, &srvDesc, descriptor.myCpuHandle);
+    myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_SRV] = descriptor;
+
+    descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+    uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+    uavDesc.Buffer.FirstElement = 0;
+    uavDesc.Buffer.NumElements = 1;
+    ourDevice->CreateUnorderedAccessView(nullptr, nullptr, &uavDesc, descriptor.myCpuHandle);
+    myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_UAV] = descriptor;
+
+    descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+    cbvDesc.BufferLocation = 0ull;
+    cbvDesc.SizeInBytes = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
+    ourDevice->CreateConstantBufferView(&cbvDesc, descriptor.myCpuHandle);
+    myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_CBV] = descriptor;
+
+    descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+    D3D12_SAMPLER_DESC samplerDesc = {};
+    samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+    samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+    samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+    for (uint i = 0u; i < 4u; ++i)
+      samplerDesc.BorderColor[i] = 0.0f;
+    samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+    samplerDesc.MaxAnisotropy = 0u;
+    samplerDesc.MaxLOD = 1.0f;
+    samplerDesc.MinLOD = 0.0f;
+    samplerDesc.MipLODBias = 0.0f;
+    ourDevice->CreateSampler(&samplerDesc, descriptor.myCpuHandle);
+    myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER] = descriptor;
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::Shutdown()

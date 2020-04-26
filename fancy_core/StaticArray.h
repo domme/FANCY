@@ -21,12 +21,6 @@ namespace Fancy
       memcpy(myData, anOther.myData, sizeof(T) * mySize);
     }
 
-    StaticArray(const StaticArray<T, N>&& anOther) noexcept
-    {
-      myData = std::move(anOther.myData);
-      mySize = anOther.mySize;
-    }
-
     StaticArray<T, N>& operator=(const StaticArray<T, N>& anOther)
     {
       for (uint i = 0u; i < mySize; ++i)
@@ -35,13 +29,6 @@ namespace Fancy
       mySize = anOther.mySize;
       memcpy(myData, anOther.myData, sizeof(T) * mySize);
 
-      return *this;
-    }
-
-    StaticArray<T, N>& operator=(StaticArray<T, N>&& anOther) noexcept
-    {
-      myData = std::move(anOther.myData);
-      mySize = anOther.mySize;
       return *this;
     }
 

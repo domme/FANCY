@@ -13,6 +13,7 @@ void Fancy::ShaderPipelineDX12::CreateFromShaders()
     {
       const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(shader.get());
       myRootSignature = shaderDx12->GetRootSignature();
+      myRootSignatureLayout = shaderDx12->GetRootSignatureLayout();
       break;
     }
   }

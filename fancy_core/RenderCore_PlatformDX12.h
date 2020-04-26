@@ -51,6 +51,8 @@ namespace Fancy {
     bool InitInternalResources() override;
     void Shutdown() override;
 
+    void InitNullDescriptors();
+
     ID3D12Device* GetDevice() const { return ourDevice.Get(); }
 
     ID3D12CommandAllocator* GetCommandAllocator(CommandListType aCmdListType);
@@ -82,6 +84,8 @@ namespace Fancy {
     
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
+    const DescriptorDX12& GetNullDescriptor(D3D12_DESCRIPTOR_RANGE_TYPE aType) const { return myNullDescriptors[aType]; }
+
   // protected:
     void UpdateAvailableDynamicDescriptorHeaps();
     CommandQueueDX12* GetCommandQueueDX12(CommandListType aCommandListType);
@@ -98,11 +102,7 @@ namespace Fancy {
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
     float64 myGpuTicksToMsFactor[(uint)CommandListType::NUM];
 
-  private:
-    static bool CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
-    static bool CreateUAV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
-    static bool CreateRTV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
-    static bool CreateDSV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor);
+    DescriptorDX12 myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER + 1];
   };
 //---------------------------------------------------------------------------//
 }

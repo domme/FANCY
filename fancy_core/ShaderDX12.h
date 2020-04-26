@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "RenderEnums.h"
 #include "ShaderResourceInfoDX12.h"
+#include "RootSignatureLayoutDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -15,6 +16,7 @@ namespace Fancy {
     DynamicArray<uint8> myBytecode;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
     DynamicArray<ShaderResourceInfoDX12> myResourceInfos;
+    RootSignatureLayoutDX12 myRootSignatureLayout;
   };
 //---------------------------------------------------------------------------//
   class ShaderDX12 : public Shader
@@ -38,6 +40,7 @@ namespace Fancy {
     uint64 GetNativeBytecodeHash() const override;
 
     ID3D12RootSignature* GetRootSignature() const { return myRootSignature.Get(); }
+    const RootSignatureLayoutDX12& GetRootSignatureLayout() const { return myRootSignatureLayout; }
     const DynamicArray<ShaderResourceInfoDX12>& GetResourceInfos() const { return myResourceInfos; }
 
   private:
@@ -47,6 +50,7 @@ namespace Fancy {
     DynamicArray<uint8> myBytecode;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
     DynamicArray<ShaderResourceInfoDX12> myResourceInfos;
+    RootSignatureLayoutDX12 myRootSignatureLayout;
     
     D3D12_SHADER_BYTECODE myNativeByteCode = {};
   };

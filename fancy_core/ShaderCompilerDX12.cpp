@@ -9,6 +9,7 @@
 #include "ShaderDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
+#include "RootSignatureDX12.h"
 
 #include <dxc/dxcapi.h>
 #include <dxc/DxilContainer/DxilContainer.h>
@@ -365,6 +366,7 @@ namespace Fancy {
             resourceInfo.myDescriptorOffsetInTable = descRange.OffsetInDescriptorsFromTableStart == D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND ? descriptorOffsetInTable : descRange.OffsetInDescriptorsFromTableStart;
             resourceInfo.myType = locGetShaderResourceInfoType(descRange.RangeType);
             resourceInfo.myNumDescriptors = descRange.NumDescriptors;
+            resourceInfo.myDescriptorTableRangeIdx = iDescRange;
 
             someResourceInfos.push_back(resourceInfo);
 
@@ -472,6 +474,8 @@ namespace Fancy {
     }
 
     const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetUnconvertedRootSignatureDesc();
+    ASSERT(rsDesc->Version == D3D_ROOT_SIGNATURE_VERSION_1_1);
+    compiledNativeData.myRootSignatureLayout = RootSignatureLayoutDX12(rsDesc->Desc_1_1);
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//

@@ -98,6 +98,7 @@
     <ClInclude Include="GpuReadbackBuffer.h" />
     <ClInclude Include="PipelineDescriptorSetLayoutsVk.h" />
     <ClInclude Include="PipelineLayoutCacheVk.h" />
+    <ClInclude Include="RootSignatureDX12.h" />
     <ClInclude Include="ShaderCompilerVk.h" />
     <ClInclude Include="ShaderPipelineDX12.h" />
     <ClInclude Include="ShaderPipelineVk.h" />
@@ -216,6 +217,7 @@
     <ClCompile Include="GpuReadbackBuffer.cpp" />
     <ClCompile Include="GpuResource.cpp" />
     <ClCompile Include="PipelineLayoutCacheVk.cpp" />
+    <ClCompile Include="RootSignatureDX12.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="ShaderCompilerDX12.cpp" />

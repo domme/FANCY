@@ -401,6 +401,9 @@
     <ClInclude Include="CommandLine.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="RootSignatureDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -613,6 +616,9 @@
     </ClCompile>
     <ClCompile Include="CommandLine.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="RootSignatureDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
