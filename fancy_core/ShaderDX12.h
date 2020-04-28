@@ -5,7 +5,7 @@
 #include "Shader.h"
 #include "RenderEnums.h"
 #include "ShaderResourceInfoDX12.h"
-#include "RootSignatureLayoutDX12.h"
+#include "RootSignatureDX12.h"
 
 #if FANCY_ENABLE_DX12
 

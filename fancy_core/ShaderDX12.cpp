@@ -81,6 +81,7 @@ namespace Fancy {
 
     myBytecode = data.myBytecode;
     myRootSignature = data.myRootSignature;
+    myRootSignatureLayout = data.myRootSignatureLayout;
 
     myNativeByteCode.pShaderBytecode = myBytecode.data();
     myNativeByteCode.BytecodeLength = myBytecode.size();

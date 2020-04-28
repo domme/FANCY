@@ -102,7 +102,6 @@ namespace Fancy {
   CommandListDX12::CommandListDX12(CommandListType aCommandListType)
     : CommandList(aCommandListType)
     , myRootSignature(nullptr)
-    , myRootSignatureLayout(nullptr)
     , myCommandList(nullptr)
     , myCommandAllocator(nullptr)
     , myResourceStateMask(locGetResourceStatesForContext(aCommandListType))
@@ -569,6 +568,7 @@ namespace Fancy {
     CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
 
     myRootSignature = nullptr;
+    myRootSignatureBindings = nullptr;
     myPendingBarriers.ClearDiscard();
     ClearResourceBindings();
     myLocalHazardData.clear();
@@ -901,10 +901,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex)
   {
-    ASSERT(aResourceInfo.myRootParamIndex < myRootSignatureBindings.myRootParameters.Size());
+    ASSERT(myRootSignatureBindings != nullptr);
+    ASSERT(aResourceInfo.myRootParamIndex < myRootSignatureBindings->myRootParameters.Size());
     ASSERT(aResourceInfo.myNumDescriptors > anArrayIndex);
 
-    RootSignatureBindingsDX12::RootParameter& rootParam = myRootSignatureBindings.myRootParameters[aResourceInfo.myRootParamIndex];
+    RootSignatureBindingsDX12::RootParameter& rootParam = myRootSignatureBindings->myRootParameters[aResourceInfo.myRootParamIndex];
     ASSERT(aResourceInfo.myIsDescriptorTableEntry == rootParam.myIsDescriptorTable);
 
     if (aResourceInfo.myIsDescriptorTableEntry)
@@ -930,7 +931,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::ClearResourceBindings()
   {
-    myRootSignatureBindings.Clear();
+    if (myRootSignatureBindings)
+      myRootSignatureBindings->Clear();
 
     for (uint i = 0u; i < myTempAllocatedDescriptors.Size(); ++i)
       RenderCore::GetPlatformDX12()->ReleaseDescriptor(myTempAllocatedDescriptors[i]);
@@ -1151,8 +1153,7 @@ namespace Fancy {
     }
     
     // TODO: Only mark the bindings dirty partially if some parts of the new rootsig layout matches with the old one
-    myRootSignatureLayout = &pipelineDx12->GetRootSignatureLayout();
-    myRootSignatureBindings = myRootSignatureLayout->Instantiate();
+    myRootSignatureBindings.reset(new RootSignatureBindingsDX12(pipelineDx12->GetRootSignatureLayout()));
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset /*= 0u*/, uint64 aSize /*= ~0ULL*/)
@@ -1293,16 +1294,16 @@ namespace Fancy {
   void CommandListDX12::ApplyResourceBindings()
   {
     ASSERT(myRootSignature != nullptr);
-    ASSERT(myRootSignatureLayout != nullptr);
+    ASSERT(myRootSignatureBindings != nullptr);
 
-    if (myRootSignatureBindings.myRootParameters.IsEmpty())
+    if (myRootSignatureBindings->myRootParameters.IsEmpty())
       return;
 
     FlushBarriers();  // D3D12 needs a barrier flush here so the debug layer doesn't complain about expecting static descriptors and data at this point
 
-    for (uint i = 0u; i < myRootSignatureBindings.myRootParameters.Size(); ++i)
+    for (uint i = 0u; i < myRootSignatureBindings->myRootParameters.Size(); ++i)
     {
-      const RootSignatureBindingsDX12::RootParameter& rootParam = myRootSignatureBindings.myRootParameters[i];
+      const RootSignatureBindingsDX12::RootParameter& rootParam = myRootSignatureBindings->myRootParameters[i];
 
       if (rootParam.myIsDescriptorTable)
       {

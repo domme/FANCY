@@ -49,6 +49,7 @@
       </ForcedIncludeFiles>
       <PrecompiledHeaderFile>fancy_core_precompile.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>/d1reportSingleClassLayoutRootSignatureBindingsDX12 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

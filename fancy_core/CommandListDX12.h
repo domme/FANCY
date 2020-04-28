@@ -20,8 +20,6 @@ namespace Fancy {
   struct GpuResourceDataDX12;
   class Shader;
   class GpuBuffer;
-  struct RootSignatureLayoutDX12;
-  struct RootSignatureBindingsDX12;
 //---------------------------------------------------------------------------//
   class CommandListDX12 final : public CommandList
   {
@@ -112,8 +110,7 @@ namespace Fancy {
 
     static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
 
-    const RootSignatureLayoutDX12* myRootSignatureLayout;
-    RootSignatureBindingsDX12 myRootSignatureBindings;
+    UniquePtr<RootSignatureBindingsDX12> myRootSignatureBindings;
     StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;
     
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList

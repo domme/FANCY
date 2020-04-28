@@ -61,17 +61,16 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  RootSignatureBindingsDX12 RootSignatureLayoutDX12::Instantiate() const
+  RootSignatureBindingsDX12::RootSignatureBindingsDX12(const RootSignatureLayoutDX12& aLayout)
   {
-    RootSignatureBindingsDX12 data;
-    data.myRootParameters.GrowToSize(myRootParameters.Size());
+    myRootParameters.GrowToSize(aLayout.myRootParameters.Size());
 
     for (uint iParam = 0u; iParam < myRootParameters.Size(); ++iParam)
     {
-      const RootParameter& srcParam = myRootParameters[iParam];
-      RootSignatureBindingsDX12::RootParameter& dstParam = data.myRootParameters[iParam];
+      const RootSignatureLayoutDX12::RootParameter& srcParam = aLayout.myRootParameters[iParam];
+      RootParameter& dstParam = myRootParameters[iParam];
       ASSERT(srcParam.myType != D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS, "Nu support for root constants implemented yet");
-      
+
       dstParam.myIsDescriptorTable = srcParam.myType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
       if (dstParam.myIsDescriptorTable)
       {
@@ -82,22 +81,22 @@ namespace Fancy
           const D3D12_DESCRIPTOR_RANGE1& srcRange = srcParam.myDescriptorTable.myRanges.GetFirst();
           switch (srcRange.RangeType)
           {
-            case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: 
-            case D3D12_DESCRIPTOR_RANGE_TYPE_UAV:
-            case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
-              dstParam.myDescriptorTable.myHeapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-              break;
-            case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: 
-              dstParam.myDescriptorTable.myHeapType = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-              break;
-            default: ASSERT(false);
+          case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
+          case D3D12_DESCRIPTOR_RANGE_TYPE_UAV:
+          case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
+            dstParam.myDescriptorTable.myHeapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            break;
+          case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER:
+            dstParam.myDescriptorTable.myHeapType = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+            break;
+          default: ASSERT(false);
           }
 
           dstParam.myDescriptorTable.myNumDescriptors = 0u;
           for (uint iRange = 0u; iRange < dstParam.myDescriptorTable.myRanges.Size(); ++iRange)
           {
             const D3D12_DESCRIPTOR_RANGE1& srcRange = srcParam.myDescriptorTable.myRanges[iRange];
-            RootSignatureBindingsDX12::DescriptorRange& dstRange = dstParam.myDescriptorTable.myRanges[iRange];
+            DescriptorRange& dstRange = dstParam.myDescriptorTable.myRanges[iRange];
 
             dstRange.myType = srcRange.RangeType;
 
@@ -111,8 +110,6 @@ namespace Fancy
         }
       }
     }
-
-    return data;
   }
 //---------------------------------------------------------------------------//
 }
