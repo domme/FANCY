@@ -171,7 +171,7 @@ namespace Fancy
       ASSERT(aState.myShaderPipeline != nullptr);
       const ShaderPipelineVk* shaderPipeline = static_cast<const ShaderPipelineVk*>(aState.myShaderPipeline);
       ASSERT(shaderPipeline->IsComputePipeline());
-      const ShaderVk* computeShader = static_cast<const ShaderVk*>(shaderPipeline->myShaders[(uint)ShaderStage::COMPUTE].get());
+      const ShaderVk* computeShader = static_cast<const ShaderVk*>(shaderPipeline->GetShader(ShaderStage::COMPUTE));
 
       VkComputePipelineCreateInfo createInfo = {};
       createInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
@@ -220,11 +220,12 @@ namespace Fancy
       // Shader state
       uint numShaderStages = 0;
       VkPipelineShaderStageCreateInfo pipeShaderCreateInfos[(uint)ShaderStage::NUM_NO_COMPUTE] = {};
-      for (const SharedPtr<Shader>& shader : aState.myShaderPipeline->myShaders)
+      for (uint i = 0u; i < (uint) ShaderStage::NUM_NO_COMPUTE; ++i)
       {
+        const Shader* shader = aState.myShaderPipeline->GetShader(i);
         if (shader != nullptr)
         {
-          const ShaderVk* shaderVk = static_cast<const ShaderVk*>(shader.get());
+          const ShaderVk* shaderVk = static_cast<const ShaderVk*>(shader);
           pipeShaderCreateInfos[numShaderStages++] = shaderVk->myShaderStageCreateInfo;
         }
       }

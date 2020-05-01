@@ -37,7 +37,7 @@ namespace Fancy {
     const D3D12_SHADER_BYTECODE& getNativeByteCode() const { return myNativeByteCode; }
 
     void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
-    uint64 GetNativeBytecodeHash() const override;
+    uint64 GetNativeBytecodeHash() const override { return myNativeByteCodeHash; }
 
     ID3D12RootSignature* GetRootSignature() const { return myRootSignature.Get(); }
     const RootSignatureLayoutDX12& GetRootSignatureLayout() const { return myRootSignatureLayout; }
@@ -53,6 +53,7 @@ namespace Fancy {
     RootSignatureLayoutDX12 myRootSignatureLayout;
     
     D3D12_SHADER_BYTECODE myNativeByteCode = {};
+    uint64 myNativeByteCodeHash = 0ull;
   };
 //---------------------------------------------------------------------------//
 }

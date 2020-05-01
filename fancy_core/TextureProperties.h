@@ -10,7 +10,7 @@ namespace Fancy {
   struct TextureProperties
   {
     TextureProperties()
-      : myDimension(GpuResourceDimension::UNKONWN)
+      : myDimension(GpuResourceDimension::TEXTURE_2D)
       , path("")
       , myWidth(0u)
       , myHeight(0u)

@@ -886,8 +886,7 @@ namespace Fancy
 
   GpuBufferView* RenderCore_PlatformVk::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName)
   {
-    VK_MISSING_IMPLEMENTATION();
-    return nullptr;
+    return new GpuBufferViewVk(aBuffer, someProperties);
   }
 
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

@@ -85,15 +85,11 @@ namespace Fancy {
 
     myNativeByteCode.pShaderBytecode = myBytecode.data();
     myNativeByteCode.BytecodeLength = myBytecode.size();
+    myNativeByteCodeHash = MathUtil::ByteHash(myBytecode.data(), myBytecode.size());
     
     CreateNativeInputLayout(myProperties.myVertexInputLayout, myNativeInputElements);
 
     myResourceInfos = data.myResourceInfos;
-  }
-//---------------------------------------------------------------------------//
-  uint64 ShaderDX12::GetNativeBytecodeHash() const
-  {
-    return reinterpret_cast<uint64>(myNativeByteCode.pShaderBytecode);
   }
 //---------------------------------------------------------------------------//
 }

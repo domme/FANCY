@@ -230,6 +230,8 @@ namespace Fancy
       nativeData.myView.myBuffer = bufferView;
       myNativeData = nativeData;
     }
+
+    
   }
 //---------------------------------------------------------------------------//
   GpuBufferViewVk::~GpuBufferViewVk()

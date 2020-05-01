@@ -61,6 +61,7 @@
   <ItemGroup>
     <ClCompile Include="Test_AsyncCompute.cpp" />
     <ClCompile Include="Test_GpuMemoryAllocator.cpp" />
+    <ClCompile Include="Test_HazardTracking.cpp" />
     <ClCompile Include="Test_ImGui.cpp" />
     <ClCompile Include="Test_Mipmapping.cpp" />
     <ClCompile Include="Test_ModelViewer.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="Test.h" />
     <ClInclude Include="Test_AsyncCompute.h" />
     <ClInclude Include="Test_GpuMemoryAllocator.h" />
+    <ClInclude Include="Test_HazardTracking.h" />
     <ClInclude Include="Test_ImGui.h" />
     <ClInclude Include="Test_Mipmapping.h" />
     <ClInclude Include="Test_ModelViewer.h" />

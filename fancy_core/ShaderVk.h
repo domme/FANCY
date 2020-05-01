@@ -21,6 +21,7 @@ namespace Fancy
     VkShaderModule myModule = nullptr;
     DynamicArray<ShaderResourceInfoVk> myResourceInfos;
     ShaderVertexAttributeDescVk myVertexAttributeDesc;
+    uint64 myBytecodeHash = 0ull;
   };
 //---------------------------------------------------------------------------//
 
@@ -33,7 +34,7 @@ namespace Fancy
     ~ShaderVk() override;
 
     void SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput) override;
-    uint64 GetNativeBytecodeHash() const override;
+    uint64 GetNativeBytecodeHash() const override { return myBytecodeHash; }
 
     const DynamicArray<ShaderResourceInfoVk>& GetResourceInfos() const { return myResourceInfos; }
     VkShaderModule GetModule() const { return myModule; }
@@ -44,6 +45,7 @@ namespace Fancy
     VkPipelineVertexInputStateCreateInfo myVertexInputCreateInfo = {};
     DynamicArray<ShaderResourceInfoVk> myResourceInfos;
     ShaderVertexAttributeDescVk myVertexAttributeDesc;
+    uint64 myBytecodeHash = 0ull;
   };
 //---------------------------------------------------------------------------//
 }

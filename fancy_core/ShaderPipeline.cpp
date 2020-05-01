@@ -29,14 +29,19 @@ namespace Fancy {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void ShaderPipeline::SetFromShaders(const FixedArray<SharedPtr<Shader>, (uint)ShaderStage::NUM>& someShaders)
+  void ShaderPipeline::Create(const FixedArray<SharedPtr<Shader>, (uint)ShaderStage::NUM>& someShaders)
   {
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
       myShaders[i] = someShaders[i];
 
+    Recreate();
+  }
+//---------------------------------------------------------------------------//
+  void ShaderPipeline::Recreate()
+  {
     CreateFromShaders();
     UpdateShaderByteCodeHash();
-  }  
+  }
 //---------------------------------------------------------------------------//
   void ShaderPipeline::UpdateShaderByteCodeHash()
   {

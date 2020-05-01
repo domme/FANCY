@@ -314,9 +314,9 @@ namespace Fancy {
     }
 
     bool hasUnorderedWrites = false;
-    for (const SharedPtr<Shader>& shader : aPipeline->myShaders)
-      if (shader != nullptr)
-        hasUnorderedWrites |= shader->myProperties.myHasUnorderedWrites;
+    for (uint i = 0u; i < (uint) ShaderStage::NUM; ++i)
+      if (aPipeline->GetShader(i) != nullptr)
+        hasUnorderedWrites |= aPipeline->GetShader(i)->myProperties.myHasUnorderedWrites;
 
     myShaderPipelineHasUnorderedWrites = hasUnorderedWrites;
   }

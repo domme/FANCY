@@ -135,7 +135,7 @@ void main(uint3 aGroupID : SV_GroupID,
     if (myIsSRGB)
       filteredCol = pow(filteredCol, 1.0 / 2.2);
 
-    // DestTexture[destTexel] = float4(0,1,0,1);
+    //DestTexture[destTexel] = float4(0,1,0,1);
 
     DestTexture[destTexel] = filteredCol;
 }

@@ -144,6 +144,8 @@ namespace Fancy
 
     ShaderCompiledDataVk compiledDataVk;
     ASSERT_VK_RESULT(vkCreateShaderModule(platformVk->myDevice, &moduleCreateInfo, nullptr, &compiledDataVk.myModule));
+
+    compiledDataVk.myBytecodeHash = MathUtil::ByteHash(spvBinaryData.data(), spvBinaryData.size());
     
     // Reflect the spirv data
     SpvReflectShaderModule reflectModule;

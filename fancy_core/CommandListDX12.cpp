@@ -598,12 +598,11 @@ namespace Fancy {
     {
       for (uint i = 0u; i < (uint)ShaderStage::NUM_NO_COMPUTE; ++i)
       {
-        if (nullptr == aState.myShaderPipeline->myShaders[i])
+        if (nullptr == aState.myShaderPipeline->GetShader(i))
           continue;
 
-        const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShaderPipeline->myShaders[i].get());
-
-        (*shaderDescs[i]) = shaderDx12->getNativeByteCode();
+        const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShaderPipeline->GetShader(i));
+        *shaderDescs[i] = shaderDx12->getNativeByteCode();
       }
     }
 
@@ -714,10 +713,10 @@ namespace Fancy {
     // INPUT LAYOUT
 
     if (aState.myShaderPipeline != nullptr &&
-      aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX] != nullptr)
+      aState.myShaderPipeline->GetShader(ShaderStage::VERTEX) != nullptr)
     {
       const ShaderDX12* vertexShader =
-        static_cast<const ShaderDX12*>(aState.myShaderPipeline->myShaders[(uint)ShaderStage::VERTEX].get());
+        static_cast<const ShaderDX12*>(aState.myShaderPipeline->GetShader(ShaderStage::VERTEX));
 
       D3D12_INPUT_LAYOUT_DESC& inputLayout = psoDesc.InputLayout;
       inputLayout.NumElements = vertexShader->GetNumNativeInputElements();
@@ -755,7 +754,7 @@ namespace Fancy {
 
     if (aState.myShaderPipeline != nullptr)
     {
-      const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShaderPipeline->myShaders[(uint) ShaderStage::COMPUTE].get());
+      const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShaderPipeline->GetShader(ShaderStage::COMPUTE));
 
       desc.pRootSignature = shaderDx12->GetRootSignature();
       desc.CS = shaderDx12->getNativeByteCode();

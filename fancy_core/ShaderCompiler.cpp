@@ -112,6 +112,10 @@ namespace Fancy
 
     StaticFilePath hlslSrcPathRel("%s/%s", GetShaderRootFolderRelative(), aDesc.myPath.c_str());
     String hlslSrcPathAbs = Path::GetAbsoluteResourcePath(hlslSrcPathRel.GetBuffer());
+
+    ASSERT(!hlslSrcPathAbs.empty());
+    if (hlslSrcPathAbs.empty())
+      return false;
     
     const bool success = Compile_Internal(hlslSrcPathAbs.c_str(), aDesc, aCompilerOutput);
     if (success)

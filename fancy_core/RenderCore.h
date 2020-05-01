@@ -134,8 +134,7 @@ namespace Fancy {
     
     static CommandQueue* GetCommandQueue(CommandListType aType);
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
-
-    static Slot<void(const Shader*)> ourOnShaderRecompiled;
+    
     static Slot<void(const ShaderPipeline*)> ourOnShaderPipelineRecompiled;
 
   protected:
@@ -151,6 +150,7 @@ namespace Fancy {
 
     static void UpdateAvailableRingBuffers();
     static void ResolveUsedQueryData();
+    static void UpdateChangedShaders();
 
     static void OnShaderFileUpdated(const String& aShaderFile);
     static void OnShaderFileDeletedMoved(const String& aShaderFile);
@@ -195,6 +195,8 @@ namespace Fancy {
 
     static const uint8* ourMappedQueryBufferData[(uint)GpuQueryType::NUM];
     static uint ourMappedQueryBufferIdx[(uint)GpuQueryType::NUM];
+
+    static DynamicArray<String> ourChangedShaderFiles;
   };
 //---------------------------------------------------------------------------//
 }

@@ -217,6 +217,7 @@
     <ClCompile Include="GpuQueryHeapVk.cpp" />
     <ClCompile Include="GpuReadbackBuffer.cpp" />
     <ClCompile Include="GpuResource.cpp" />
+    <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="PipelineLayoutCacheVk.cpp" />
     <ClCompile Include="RootSignatureDX12.cpp" />
     <ClCompile Include="Shader.cpp" />

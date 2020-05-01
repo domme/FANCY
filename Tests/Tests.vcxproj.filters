@@ -26,6 +26,9 @@
     <ClCompile Include="Test_SharedQueueResourceUsage.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="Test_HazardTracking.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Tests">
@@ -58,6 +61,9 @@
       <Filter>Tests</Filter>
     </ClInclude>
     <ClInclude Include="Test_SharedQueueResourceUsage.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="Test_HazardTracking.h">
       <Filter>Tests</Filter>
     </ClInclude>
   </ItemGroup>

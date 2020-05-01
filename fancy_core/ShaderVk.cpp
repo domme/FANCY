@@ -50,6 +50,7 @@ namespace Fancy
     myModule = data.myModule;
     myResourceInfos = data.myResourceInfos;
     myVertexAttributeDesc = data.myVertexAttributeDesc;
+    myBytecodeHash = data.myBytecodeHash;
 
     myShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     myShaderStageCreateInfo.pNext = nullptr;
@@ -58,11 +59,6 @@ namespace Fancy
     myShaderStageCreateInfo.pSpecializationInfo = nullptr;
     myShaderStageCreateInfo.module = myModule;
     myShaderStageCreateInfo.stage = Priv_ShaderVk::locResolveShaderStage((ShaderStage) myDesc.myShaderStage);
-  }
-//---------------------------------------------------------------------------//
-  uint64 ShaderVk::GetNativeBytecodeHash() const
-  {
-    return reinterpret_cast<uint64>(myModule);
   }
 //---------------------------------------------------------------------------//
 }

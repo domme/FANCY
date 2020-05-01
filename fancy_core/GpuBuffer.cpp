@@ -47,4 +47,18 @@ namespace Fancy {
     Unmap_Internal(aMapMode, anOffset, aSize);
   }
 //---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+  GpuBufferView::GpuBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties) :
+    GpuResourceView(std::static_pointer_cast<GpuResource>(aBuffer))
+    , myProperties(someProperties)
+  {
+    if (someProperties.myIsConstantBuffer)
+      myType = GpuResourceViewType::CBV;
+    else if (someProperties.myIsShaderWritable)
+      myType = GpuResourceViewType::UAV;
+    else
+      myType = GpuResourceViewType::SRV;
+  }
+//---------------------------------------------------------------------------//
 }

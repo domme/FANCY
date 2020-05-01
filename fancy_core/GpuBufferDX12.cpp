@@ -170,17 +170,17 @@ namespace Fancy {
     bool success = false;
     if (someProperties.myIsConstantBuffer)
     {
-      myType = GpuResourceViewType::CBV;
+      ASSERT(myType == GpuResourceViewType::CBV);
       success = CreateCBVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else if (someProperties.myIsShaderWritable)
     {
-      myType = GpuResourceViewType::UAV;
+      ASSERT(myType == GpuResourceViewType::UAV);
       success = CreateUAVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
     else
     {
-      myType = GpuResourceViewType::SRV;
+      ASSERT(myType == GpuResourceViewType::SRV);
       success = CreateSRVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
 

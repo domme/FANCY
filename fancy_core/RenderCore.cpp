@@ -27,8 +27,6 @@
 #include "TimeManager.h"
 #include "TextureReadbackTask.h"
 #include "CommandLine.h"
-
-#include <xxHash/xxhash.h>
 #include "TextureSampler.h"
 
 //---------------------------------------------------------------------------//
@@ -49,28 +47,19 @@ namespace Fancy {
 
     uint64 locComputeHashFromVertexData(const MeshData* someMeshDatas, uint aNumMeshDatas)
     {
-      XXH64_state_t* xxHashState = XXH64_createState();
-      XXH64_reset(xxHashState, 0u);
+      MathUtil::BeginMultiHash();
 
       for (uint i = 0u; i < aNumMeshDatas; ++i)
       {
         const MeshData& meshData = someMeshDatas[i];
-        XXH64_update(xxHashState, meshData.myVertexData.data(), DYN_ARRAY_BYTESIZE(meshData.myVertexData));
-        XXH64_update(xxHashState, meshData.myIndexData.data(), DYN_ARRAY_BYTESIZE(meshData.myIndexData));
+        MathUtil::AddToMultiHash(meshData.myVertexData.data(), DYN_ARRAY_BYTESIZE(meshData.myVertexData));
+        MathUtil::AddToMultiHash(meshData.myIndexData.data(), DYN_ARRAY_BYTESIZE(meshData.myIndexData));
       }
 
-      uint64 hash = XXH64_digest(xxHashState);
-      XXH64_freeState(xxHashState);
-      return hash;
+      return MathUtil::EndMultiHash();
     }
   }
 //---------------------------------------------------------------------------//
-  namespace
-  {
-    
-  }
-//---------------------------------------------------------------------------//
-  Slot<void(const Shader*)> RenderCore::ourOnShaderRecompiled;
   Slot<void(const ShaderPipeline*)> RenderCore::ourOnShaderPipelineRecompiled;
 
   UniquePtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
@@ -113,6 +102,8 @@ namespace Fancy {
 
   const uint8* RenderCore::ourMappedQueryBufferData[(uint)GpuQueryType::NUM] = { nullptr };
   uint RenderCore::ourMappedQueryBufferIdx[(uint)GpuQueryType::NUM] = { 0u };
+
+  DynamicArray<String> RenderCore::ourChangedShaderFiles;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -168,6 +159,8 @@ namespace Fancy {
 
     ourCurrQueryBufferIdx = (ourCurrQueryBufferIdx + 1) % NUM_QUERY_BUFFERS;
     ourQueryBufferFrames[ourCurrQueryBufferIdx] = Time::ourFrameIdx;
+
+    UpdateChangedShaders();
 
     ourPlatformImpl->BeginFrame();
   }
@@ -660,6 +653,63 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  void RenderCore::UpdateChangedShaders()
+  {
+    StaticArray<Shader*, 32> shadersToRecompile;
+    for (const String& shaderFile : ourChangedShaderFiles)
+    {
+      // Find GpuPrograms for this file
+      for (auto it = ourShaderCache.begin(); it != ourShaderCache.end(); ++it)
+      {
+        Shader* program = it->second.get();
+
+        const ShaderDesc& desc = program->GetDescription();
+        String actualShaderPath =
+          Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(desc.myPath.c_str()));
+
+        if (actualShaderPath == shaderFile)
+          shadersToRecompile.Add(program);
+      }
+    }
+    ourChangedShaderFiles.clear();
+
+    for (uint i = 0u; i < shadersToRecompile.Size(); ++i)
+    {
+      Shader* shader = shadersToRecompile[i];
+
+      ShaderCompilerResult compiledOutput;
+      if (ourShaderCompiler->Compile(shader->GetDescription(), &compiledOutput))
+        shader->SetFromCompilerOutput(compiledOutput);
+      else
+        LOG_WARNING("Failed compiling shader %s", shader->GetDescription().myPath.c_str());
+    }
+
+    // Check which pipelines need to be updated...
+    StaticArray<ShaderPipeline*, 32> changedPipelines;
+    for (auto it = ourShaderPipelineCache.begin(); it != ourShaderPipelineCache.end(); ++it)
+    {
+      ShaderPipeline* pipeline = it->second.get();
+
+      for (uint i = 0u; i < shadersToRecompile.Size(); ++i)
+      {
+        Shader* changedShader = shadersToRecompile[i];
+        const uint stage = static_cast<uint>(changedShader->myProperties.myShaderStage);
+        if (changedShader == pipeline->GetShader(stage))
+        {
+          changedPipelines.Add(pipeline);
+          break;
+        }
+      }
+    }
+
+    for (uint i = 0u; i < changedPipelines.Size(); ++i)
+    {
+      ShaderPipeline* pipeline = changedPipelines[i];
+      pipeline->Recreate();
+      ourOnShaderPipelineRecompiled(pipeline);
+    }
+  }
+//---------------------------------------------------------------------------//
   SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
   {
     SharedPtr<RenderOutput> output(ourPlatformImpl->CreateRenderOutput(aNativeInstanceHandle, someWindowParams));
@@ -707,7 +757,7 @@ namespace Fancy {
     }
 
     SharedPtr<ShaderPipeline> pipeline(ourPlatformImpl->CreateShaderPipeline());
-    pipeline->SetFromShaders(pipelinePrograms);
+    pipeline->Create(pipelinePrograms);
 
     ourShaderPipelineCache.insert(std::make_pair(hash, pipeline));
 
@@ -1139,55 +1189,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::OnShaderFileUpdated(const String& aShaderFile)
   {
-    // Find GpuPrograms for this file
-    std::vector<Shader*> programsToRecompile;
-    for (auto it = ourShaderCache.begin(); it != ourShaderCache.end(); ++it)
-    {
-      Shader* program = it->second.get();
-
-      const ShaderDesc& desc = program->GetDescription();
-      String actualShaderPath =
-        Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(desc.myPath.c_str()));
-
-      if (actualShaderPath == aShaderFile)
-        programsToRecompile.push_back(program);
-    }
-    
-    for (Shader* program : programsToRecompile)
-    {
-      ShaderCompilerResult compiledOutput;
-      if (ourShaderCompiler->Compile(program->GetDescription(), &compiledOutput))
-        program->SetFromCompilerOutput(compiledOutput);
-      else
-        LOG_WARNING("Failed compiling shader %s", program->GetDescription().myPath.c_str());
-    }
-    
-    // Check which pipelines need to be updated...
-    std::vector<ShaderPipeline*> changedPipelines;
-    for (auto it = ourShaderPipelineCache.begin(); it != ourShaderPipelineCache.end(); ++it)
-    {
-      ShaderPipeline* pipeline = it->second.get();
-
-      for (Shader* changedProgram : programsToRecompile)
-      {
-        const uint stage = static_cast<uint>(changedProgram->myProperties.myShaderStage);
-        if (changedProgram == pipeline->myShaders[stage].get())
-        {
-          changedPipelines.push_back(pipeline);
-          break;
-        }
-      }
-    }
-
-    for (ShaderPipeline* pipeline : changedPipelines)
-    {
-      pipeline->CreateFromShaders();
-      pipeline->UpdateShaderByteCodeHash();
-      ourOnShaderPipelineRecompiled(pipeline);
-    }
-
-    for (Shader* program : programsToRecompile)
-      ourOnShaderRecompiled(program);
+    ourChangedShaderFiles.push_back(aShaderFile);
   }
 //---------------------------------------------------------------------------//
   void RenderCore::OnShaderFileDeletedMoved(const String& aShaderFile)
