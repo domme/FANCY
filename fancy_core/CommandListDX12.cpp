@@ -1004,10 +1004,12 @@ namespace Fancy {
     D3D12_RESOURCE_STATES newStates = (D3D12_RESOURCE_STATES) 0;
     bool toSharedRead = false;
 
+    const GpuResourceHazardDataDX12& hazardData = aResource->GetDX12Data()->myHazardData;
+
     switch (aTransition)
     {
       case ResourceTransition::TO_SHARED_CONTEXT_READ: 
-        newStates = (D3D12_RESOURCE_STATES) aResource->GetHazardData().myDx12Data.myReadStates;
+        newStates = (D3D12_RESOURCE_STATES) hazardData.myReadStates;
         toSharedRead = true;
         break;
       default: ASSERT(false); 
@@ -1371,7 +1373,7 @@ namespace Fancy {
   {
     const bool canEarlyOut = !aToSharedReadState;
 
-    if (!aResource->myStateTracking.myCanChangeStates && canEarlyOut)
+    if (!aResource->GetDX12Data()->myHazardData.myCanChangeStates && canEarlyOut)
       return;
 
     D3D12_RESOURCE_STATES dstStates = ResolveValidateDstStates(aResource, aNewState);
@@ -1485,7 +1487,7 @@ namespace Fancy {
     ASSERT((dstStates & DX12_READ_STATES) == dstStates || (dstStates & DX12_WRITE_STATES) == dstStates, "Simulataneous read- and write states are not allowed");
 
     const bool dstIsRead = (dstStates & DX12_READ_STATES) == dstStates;
-    dstStates = (dstIsRead ? (D3D12_RESOURCE_STATES)aResource->GetHazardData().myDx12Data.myReadStates : (D3D12_RESOURCE_STATES)aResource->GetHazardData().myDx12Data.myWriteStates) & dstStates;
+    dstStates = (dstIsRead ? aResource->GetDX12Data()->myHazardData.myReadStates : aResource->GetDX12Data()->myHazardData.myWriteStates) & dstStates;
     ASSERT(wasEmpty || dstStates != 0u, "Dst resource states not supported by resource");
 
     return dstStates;
@@ -1493,10 +1495,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool CommandListDX12::ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, D3D12_RESOURCE_STATES aDstStates)
   {
-    const GpuResourceHazardData& globalData = aResource->GetHazardData();
+    const GpuResourceHazardDataDX12& globalData = aResource->GetDX12Data()->myHazardData;
 
-    D3D12_RESOURCE_STATES currStates = (D3D12_RESOURCE_STATES) globalData.myDx12Data.mySubresources[aSubresourceIndex].myStates;
-    CommandListType currGlobalContext = globalData.myDx12Data.mySubresources[aSubresourceIndex].myContext;
+    D3D12_RESOURCE_STATES currStates = (D3D12_RESOURCE_STATES) globalData.mySubresources[aSubresourceIndex].myStates;
+    CommandListType currGlobalContext = globalData.mySubresources[aSubresourceIndex].myContext;
 
     auto it = myLocalHazardData.find(aResource);
     const bool hasLocalData = it != myLocalHazardData.end();

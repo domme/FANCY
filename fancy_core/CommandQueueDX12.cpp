@@ -113,15 +113,15 @@ namespace Fancy
     {
       const GpuResource* resource = it.first;
 
-      GpuResourceHazardData& globalHazardData = resource->GetHazardData();
+      GpuResourceHazardDataDX12& globalHazardData = resource->GetDX12Data()->myHazardData;
       const CommandListDX12::LocalHazardData& localHazardData = it.second;
-      ASSERT(globalHazardData.myDx12Data.mySubresources.size() == localHazardData.mySubresources.size());
+      ASSERT(globalHazardData.mySubresources.size() == localHazardData.mySubresources.size());
 
       StaticArray<D3D12_RESOURCE_BARRIER, 1024> subresourceTransitions;
       bool canTransitionAllSubresources = true;
       for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.size(); ++subIdx)
       {
-        GpuSubresourceHazardDataDX12& globalSubData = globalHazardData.myDx12Data.mySubresources[subIdx];
+        GpuSubresourceHazardDataDX12& globalSubData = globalHazardData.mySubresources[subIdx];
         const CommandListDX12::SubresourceHazardData& localSubData = localHazardData.mySubresources[subIdx];
 
         if (localSubData.myIsSharedReadState)
@@ -173,14 +173,14 @@ namespace Fancy
         }
 
         bool allSubresourcesSameState = true;
-        D3D12_RESOURCE_STATES firstState = (D3D12_RESOURCE_STATES)globalHazardData.myDx12Data.mySubresources[0].myStates;
-        CommandListType firstContext = globalHazardData.myDx12Data.mySubresources[0].myContext;
-        for (uint subIdx = 1u; allSubresourcesSameState && subIdx < globalHazardData.myDx12Data.mySubresources.size(); ++subIdx)
+        D3D12_RESOURCE_STATES firstState = globalHazardData.mySubresources[0].myStates;
+        CommandListType firstContext = globalHazardData.mySubresources[0].myContext;
+        for (uint subIdx = 1u; allSubresourcesSameState && subIdx < globalHazardData.mySubresources.size(); ++subIdx)
           allSubresourcesSameState &=
-          (firstState == globalHazardData.myDx12Data.mySubresources[subIdx].myStates &&
-            firstContext == globalHazardData.myDx12Data.mySubresources[subIdx].myContext);
+          (firstState == globalHazardData.mySubresources[subIdx].myStates &&
+            firstContext == globalHazardData.mySubresources[subIdx].myContext);
 
-        globalHazardData.myDx12Data.myAllSubresourcesSameStates = allSubresourcesSameState;
+        globalHazardData.myAllSubresourcesSameStates = allSubresourcesSameState;
       }
     }
 

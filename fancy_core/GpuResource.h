@@ -2,12 +2,13 @@
 
 #include "Any.h"
 #include "RenderEnums.h"
-#include "DynamicArray.h"
 #include "FancyCoreDefines.h"
-#include "GpuResourceHazardData.h"
 #include "TextureData.h"
 
 namespace Fancy {
+//---------------------------------------------------------------------------//
+  struct GpuResourceDataDX12;
+  struct GpuResourceDataVk;
 //---------------------------------------------------------------------------//
   class GpuResource
   {
@@ -24,7 +25,6 @@ namespace Fancy {
       myCategory = anOtherResource.myCategory;
       myNativeData = anOtherResource.myNativeData;
       myName = anOtherResource.myName;
-      myStateTracking = anOtherResource.myStateTracking;
       mySubresources = anOtherResource.mySubresources;
     }
 
@@ -33,9 +33,10 @@ namespace Fancy {
 
     uint GetSubresourceIndex(const SubresourceLocation& aSubresourceLocation) const;
     SubresourceLocation GetSubresourceLocation(uint aSubresourceIndex) const;
-
     const SubresourceRange& GetSubresources() const { return mySubresources; }
-    GpuResourceHazardData& GetHazardData() const { return myStateTracking; }
+
+    GpuResourceDataDX12* GetDX12Data() const;
+    GpuResourceDataVk* GetVkData() const;
 
     bool IsBuffer() const { return myCategory == GpuResourceCategory::BUFFER; }
     bool IsTexture() const { return myCategory == GpuResourceCategory::TEXTURE; }
@@ -47,7 +48,6 @@ namespace Fancy {
     SubresourceRange mySubresources;
     String myName;
     GpuResourceCategory myCategory;
-    mutable GpuResourceHazardData myStateTracking;
     Any myNativeData;
   };
 //---------------------------------------------------------------------------//

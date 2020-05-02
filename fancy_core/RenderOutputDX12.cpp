@@ -46,24 +46,24 @@ namespace Fancy {
       GpuResource resource(GpuResourceCategory::TEXTURE);
       resource.myName = "Backbuffer Texture " + i;
 
-      {
-        GpuResourceDataDX12* dataDx12(new GpuResourceDataDX12);
-        CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12->myResource)));
-        std::wstring wName = StringUtil::ToWideString(resource.myName);
-        dataDx12->myResource->SetName(wName.c_str());
-        resource.myNativeData = dataDx12;
-      }
+      GpuResourceDataDX12* dataDx12(new GpuResourceDataDX12);
+      CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12->myResource)));
+      std::wstring wName = StringUtil::ToWideString(resource.myName);
+      dataDx12->myResource->SetName(wName.c_str());
 
       GpuSubresourceHazardDataDX12 subHazardData;
       subHazardData.myContext = CommandListType::Graphics;
       subHazardData.myStates = D3D12_RESOURCE_STATE_PRESENT;
 
       resource.mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
-      resource.myStateTracking = GpuResourceHazardData();
-      resource.myStateTracking.myDx12Data.myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
-      resource.myStateTracking.myDx12Data.myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
-      resource.myStateTracking.myDx12Data.mySubresources.push_back(subHazardData);
-      resource.myStateTracking.myCanChangeStates = true;
+
+      GpuResourceHazardDataDX12* hazardData = &dataDx12->myHazardData;
+      hazardData->myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+      hazardData->myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
+      hazardData->mySubresources.push_back(subHazardData);
+      hazardData->myCanChangeStates = true;
+
+      resource.myNativeData = dataDx12;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

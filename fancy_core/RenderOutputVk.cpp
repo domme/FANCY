@@ -191,32 +191,31 @@ namespace Fancy
       GpuResource resource(GpuResourceCategory::TEXTURE);
       resource.myName = name.GetBuffer();
 
-      {
-        GpuResourceDataVk* dataVk(new GpuResourceDataVk);
-        dataVk->myType = GpuResourceCategory::TEXTURE;
-        dataVk->myImage = swapChainImages[i];
-        resource.myNativeData = dataVk;
-      }
+      GpuResourceDataVk* dataVk(new GpuResourceDataVk);
+      dataVk->myType = GpuResourceCategory::TEXTURE;
+      dataVk->myImage = swapChainImages[i];
 
       resource.mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
 
-      resource.myStateTracking = GpuResourceHazardData();
-      resource.myStateTracking.myVkData.myReadAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
-      resource.myStateTracking.myVkData.myWriteAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-      resource.myStateTracking.myVkData.myHasExclusiveQueueAccess = mySharingMode == VK_SHARING_MODE_EXCLUSIVE;
-      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_GENERAL);
-      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-      resource.myStateTracking.myVkData.mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR);
+      GpuResourceHazardDataVk* hazardData = &dataVk->myHazardData;
+      hazardData->myReadAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT;
+      hazardData->myWriteAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+      hazardData->myHasExclusiveQueueAccess = mySharingMode == VK_SHARING_MODE_EXCLUSIVE;
+      hazardData->mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_GENERAL);
+      hazardData->mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+      hazardData->mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+      hazardData->mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+      hazardData->mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      hazardData->mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+      hazardData->mySupportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR);
 
       GpuSubresourceHazardDataVk subHazardData;
       subHazardData.myContext = CommandListType::Graphics;
       subHazardData.myAccessMask = 0u;
       subHazardData.myImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-      resource.myStateTracking.myVkData.mySubresources.resize(1u, subHazardData);
+      hazardData->mySubresources.resize(1u, subHazardData);
+
+      resource.myNativeData = dataVk;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

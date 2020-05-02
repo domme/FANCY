@@ -29,7 +29,7 @@ namespace Fancy
       if (aResource->IsBuffer())
         return VK_IMAGE_LAYOUT_UNDEFINED;
 
-      const GpuResourceHazardDataVk& globalHazardData = aResource->GetHazardData().myVkData;
+      const GpuResourceHazardDataVk& globalHazardData = aResource->GetVkData()->myHazardData;
       for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it)
       {
         const uint subresourceIdx = aResource->GetSubresourceIndex(*it);
@@ -480,7 +480,7 @@ namespace Fancy
       ASSERT((dstFlags & Priv_CommandListVk::locAccessMaskRead) == dstFlags || (dstFlags & Priv_CommandListVk::locAccessMaskWrite) == dstFlags, "Simulataneous read- and write access flags are not allowed");
 
       const bool dstIsRead = (dstFlags & Priv_CommandListVk::locAccessMaskRead) == dstFlags;
-      dstFlags = dstFlags & (dstIsRead ? aResource->GetHazardData().myVkData.myReadAccessMask : aResource->GetHazardData().myVkData.myWriteAccessMask);
+      dstFlags = dstFlags & (dstIsRead ? aResource->GetVkData()->myHazardData.myReadAccessMask : aResource->GetVkData()->myHazardData.myWriteAccessMask);
       ASSERT(accessWas0 || dstFlags != 0, "Dst access flags not supported by resource");
 
       return dstFlags;
@@ -495,7 +495,7 @@ namespace Fancy
       }
       else
       {
-        DynamicArray<uint>& supportedLayouts = aResource->GetHazardData().myVkData.mySupportedImageLayouts;
+        DynamicArray<uint>& supportedLayouts = aResource->GetVkData()->myHazardData.mySupportedImageLayouts;
         const bool supportsLayout = std::find(supportedLayouts.begin(), supportedLayouts.end(), (uint) anImageLayout) != supportedLayouts.end();
         ASSERT(supportsLayout);
         return supportsLayout;
@@ -1159,7 +1159,7 @@ namespace Fancy
     switch (aTransition)
     {
     case ResourceTransition::TO_SHARED_CONTEXT_READ:
-      newAccessFlags = (VkAccessFlags)aResource->GetHazardData().myVkData.myReadAccessMask;
+      newAccessFlags = aResource->GetVkData()->myHazardData.myReadAccessMask;
       newPipelineStageFlags = Priv_CommandListVk::locPipelineMaskGraphics;
       if (aResource->IsTexture())
         newLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1220,11 +1220,6 @@ namespace Fancy
       ASSERT(aNewImageLayout == VK_IMAGE_LAYOUT_UNDEFINED);
     }
 
-    const bool canEarlyOut = !aToSharedReadState;
-
-    if (!aResource->myStateTracking.myCanChangeStates && canEarlyOut)
-      return;
-
     VkAccessFlags dstAccessFlags = Priv_CommandListVk::locResolveValidateDstAccessMask(aResource, myCommandListType, aNewAccessFlags);
 
     if (!Priv_CommandListVk::locValidateDstImageLayout(aResource, aNewImageLayout))
@@ -1241,6 +1236,7 @@ namespace Fancy
       subresourceTransitionPossible[i++] = transitionPossible;
     }
 
+    const bool canEarlyOut = !aToSharedReadState;
     if (numPossibleSubresourceTransitions == 0u && canEarlyOut)
       return;
 
@@ -1397,12 +1393,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool CommandListVk::ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout)
   {
-    const GpuResourceHazardData& globalData = aResource->GetHazardData();
+    const GpuResourceHazardDataVk& globalData = aResource->GetVkData()->myHazardData;
 
-    VkAccessFlags currAccess = globalData.myVkData.mySubresources[aSubresourceIndex].myAccessMask;
-    VkImageLayout currImgLayout = (VkImageLayout) globalData.myVkData.mySubresources[aSubresourceIndex].myImageLayout;
+    VkAccessFlags currAccess = globalData.mySubresources[aSubresourceIndex].myAccessMask;
+    VkImageLayout currImgLayout = (VkImageLayout) globalData.mySubresources[aSubresourceIndex].myImageLayout;
 
-    CommandListType currGlobalContext = globalData.myVkData.mySubresources[aSubresourceIndex].myContext;
+    CommandListType currGlobalContext = globalData.mySubresources[aSubresourceIndex].myContext;
 
     auto it = myLocalHazardData.find(aResource);
     const bool hasLocalData = it != myLocalHazardData.end();

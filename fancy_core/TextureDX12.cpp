@@ -130,12 +130,13 @@ namespace Fancy {
     GpuSubresourceHazardDataDX12 subHazardData;
     subHazardData.myContext = CommandListType::Graphics;
     subHazardData.myStates = initialStates;
-
-    myStateTracking = GpuResourceHazardData();
-    myStateTracking.myDx12Data.mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
-    myStateTracking.myDx12Data.myReadStates = readStateMask;
-    myStateTracking.myDx12Data.myWriteStates = writeStateMask;
-    myStateTracking.myDx12Data.myAllSubresourcesSameStates = true;
+    
+    GpuResourceHazardDataDX12* hazardData = &dataDx12->myHazardData;
+    *hazardData = GpuResourceHazardDataDX12();
+    hazardData->mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
+    hazardData->myReadStates = readStateMask;
+    hazardData->myWriteStates = writeStateMask;
+    hazardData->myAllSubresourcesSameStates = true;
 
     const bool useOptimizeClearValue = (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0u
       || (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0u;
@@ -223,7 +224,6 @@ namespace Fancy {
     }
 
     myNativeData.Clear();
-    myStateTracking = GpuResourceHazardData();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//

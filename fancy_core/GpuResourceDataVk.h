@@ -7,12 +7,31 @@
 
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
+  struct GpuSubresourceHazardDataVk
+  {
+    uint myImageLayout;
+    uint myAccessMask;
+    // uint myLastWrittenPipelineStageMask;  // TODO: Support this
+    CommandListType myContext;
+  };
+//---------------------------------------------------------------------------//
+  struct GpuResourceHazardDataVk
+  {
+    // Uints are VkAccessFlags
+    VkAccessFlags myReadAccessMask;
+    VkAccessFlags myWriteAccessMask;
+    bool myHasExclusiveQueueAccess;
+    DynamicArray<GpuSubresourceHazardDataVk> mySubresources;
+    DynamicArray<uint> mySupportedImageLayouts;
+  };
+//---------------------------------------------------------------------------//
   struct GpuResourceDataVk
   {
+    GpuResourceHazardDataVk myHazardData;
     GpuResourceCategory myType;
     VkDeviceMemory myMemory;
-    union
-    {
+    union {
       VkBuffer myBuffer;
       VkImage myImage;
     };

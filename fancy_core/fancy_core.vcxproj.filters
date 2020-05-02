@@ -389,9 +389,6 @@
     <ClInclude Include="ShaderResourceInfoDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="GpuResourceHazardData.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="PipelineLayoutCacheVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>

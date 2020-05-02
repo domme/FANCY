@@ -192,6 +192,19 @@ namespace Fancy
     }
 
     template<class T>
+    T& To()
+    {
+      ASSERT(!IsEmpty(), "Any is empty!");
+
+      using RawType = std::remove_const_t<std::remove_reference_t<T>>;
+
+      if (sizeof(RawType) <= MaxBufferSize)
+        return *reinterpret_cast<T*>(myDataStorage.myBuffer);
+      else
+        return *reinterpret_cast<T*>(myDataStorage.myPtr);
+    }
+
+    template<class T>
     bool operator==(const T& anObject) const
     {
       return !IsEmpty() && To<T>() == anObject;

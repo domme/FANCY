@@ -205,14 +205,14 @@ namespace Fancy
     {
       const GpuResource* resource = it.first;
 
-      GpuResourceHazardData& globalHazardData = resource->GetHazardData();
+      GpuResourceHazardDataVk& globalHazardData = resource->GetVkData()->myHazardData;
       const CommandListVk::LocalHazardData& localHazardData = it.second;
 
       DynamicArray<CommandListVk::BufferMemoryBarrierData> subresourceBufferBarriers;
       DynamicArray<CommandListVk::ImageMemoryBarrierData> subresourceImageBarriers;
       for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.size(); ++subIdx)
       {
-        GpuSubresourceHazardDataVk& globalSubData = globalHazardData.myVkData.mySubresources[subIdx];
+        GpuSubresourceHazardDataVk& globalSubData = globalHazardData.mySubresources[subIdx];
         const CommandListVk::SubresourceHazardData& localSubData = localHazardData.mySubresources[subIdx];
         const SubresourceLocation subresource = resource->GetSubresourceLocation(subIdx);
 

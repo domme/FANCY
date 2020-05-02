@@ -141,13 +141,13 @@ namespace Fancy
     
     mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes);
 
-    myStateTracking = GpuResourceHazardData();
-    myStateTracking.myCanChangeStates = true;
+    GpuResourceHazardDataVk* hazardData = &dataVk->myHazardData;
+    *hazardData = GpuResourceHazardDataVk();
 
-    myStateTracking.myVkData.myReadAccessMask = readMask;
-    myStateTracking.myVkData.myWriteAccessMask = writeMask;
-    myStateTracking.myVkData.myHasExclusiveQueueAccess = imageInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
-    myStateTracking.myVkData.mySupportedImageLayouts = std::move(supportedImageLayouts);
+    hazardData->myReadAccessMask = readMask;
+    hazardData->myWriteAccessMask = writeMask;
+    hazardData->myHasExclusiveQueueAccess = imageInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
+    hazardData->mySupportedImageLayouts = std::move(supportedImageLayouts);
 
     const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
     const VkImageLayout initialImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -156,7 +156,7 @@ namespace Fancy
     subHazardData.myContext = CommandListType::Graphics;
     subHazardData.myAccessMask = 0u;
     subHazardData.myImageLayout = initialImageLayout; // Initial layout must be either UNDEFINED or PREINITIALIZED
-    myStateTracking.myVkData.mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
+    hazardData->mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
     
     imageInfo.initialLayout = initialImageLayout;
 
@@ -201,7 +201,6 @@ namespace Fancy
     }
 
     myNativeData.Clear();
-    myStateTracking = GpuResourceHazardData();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//

@@ -96,16 +96,16 @@ namespace Fancy {
       initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
     }
 
-
     GpuSubresourceHazardDataDX12 subHazardData;
     subHazardData.myContext = CommandListType::Graphics;
     subHazardData.myStates = initialStates;
 
-    myStateTracking = GpuResourceHazardData();
-    myStateTracking.myCanChangeStates = canChangeStates;
-    myStateTracking.myDx12Data.mySubresources.push_back(subHazardData);
-    myStateTracking.myDx12Data.myReadStates = readStateMask;
-    myStateTracking.myDx12Data.myWriteStates = writeStateMask;
+    GpuResourceHazardDataDX12* hazardData = &dataDx12->myHazardData;
+    *hazardData = GpuResourceHazardDataDX12();
+    hazardData->myCanChangeStates = canChangeStates;
+    hazardData->mySubresources.push_back(subHazardData);
+    hazardData->myReadStates = readStateMask;
+    hazardData->myWriteStates = writeStateMask;
 
     mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
 

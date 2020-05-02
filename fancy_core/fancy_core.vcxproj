@@ -49,7 +49,6 @@
       </ForcedIncludeFiles>
       <PrecompiledHeaderFile>fancy_core_precompile.h</PrecompiledHeaderFile>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalOptions>/d1reportSingleClassLayoutRootSignatureBindingsDX12 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -110,7 +109,6 @@
     <ClInclude Include="GpuQueryHeap.h" />
     <ClInclude Include="GpuQueryHeapDX12.h" />
     <ClInclude Include="GpuResourceDataVk.h" />
-    <ClInclude Include="GpuResourceHazardData.h" />
     <ClInclude Include="GpuResourceView.h" />
     <ClInclude Include="GpuResourceViewDataDX12.h" />
     <ClInclude Include="GpuRingBuffer.h" />

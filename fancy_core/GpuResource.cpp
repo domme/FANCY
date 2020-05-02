@@ -1,5 +1,7 @@
 #include "fancy_core_precompile.h"
 #include "GpuResource.h"
+#include "GpuResourceDataDX12.h"
+#include "GpuResourceDataVk.h"
 
 namespace Fancy
 {
@@ -37,6 +39,16 @@ namespace Fancy
       && location.myPlaneIndex < mySubresources.myNumPlanes);
 
     return location;
+  }
+//---------------------------------------------------------------------------//
+  GpuResourceDataDX12* GpuResource::GetDX12Data() const
+  {
+    return myNativeData.To<GpuResourceDataDX12*>();
+  }
+//---------------------------------------------------------------------------//
+  GpuResourceDataVk* GpuResource::GetVkData() const
+  {
+    return myNativeData.To<GpuResourceDataVk*>();
   }
 //---------------------------------------------------------------------------//
 }
