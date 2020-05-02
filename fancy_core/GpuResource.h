@@ -34,6 +34,7 @@ namespace Fancy {
     uint GetSubresourceIndex(const SubresourceLocation& aSubresourceLocation) const;
     SubresourceLocation GetSubresourceLocation(uint aSubresourceIndex) const;
     const SubresourceRange& GetSubresources() const { return mySubresources; }
+    const char* GetName() const { return myName.c_str(); }
 
     GpuResourceDataDX12* GetDX12Data() const;
     GpuResourceDataVk* GetVkData() const;

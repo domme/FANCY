@@ -6,6 +6,8 @@
 #include "AdapterDX12.h"
 #include "CommandListDX12.h"
 #include "GpuResourceDataDX12.h"
+#include "Log.h"
+#include "DebugUtilsDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -118,11 +120,15 @@ namespace Fancy
       ASSERT(globalHazardData.mySubresources.size() == localHazardData.mySubresources.size());
 
       StaticArray<D3D12_RESOURCE_BARRIER, 1024> subresourceTransitions;
-      bool canTransitionAllSubresources = true;
       for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.size(); ++subIdx)
       {
         GpuSubresourceHazardDataDX12& globalSubData = globalHazardData.mySubresources[subIdx];
         const CommandListDX12::SubresourceHazardData& localSubData = localHazardData.mySubresources[subIdx];
+
+        if (!localSubData.myWasUsed)
+          continue;
+
+        const D3D12_RESOURCE_STATES oldGlobalStates = globalSubData.myStates;
 
         if (localSubData.myIsSharedReadState)
         {
@@ -130,35 +136,49 @@ namespace Fancy
           globalSubData.myContext = CommandListType::SHARED_READ;
         }
 
-        if (!localSubData.myWasUsed || globalSubData.myStates == localSubData.myFirstDstStates)
+        globalSubData.myStates = localSubData.myStates;
+        if (localSubData.myWasWritten)
+          globalSubData.myContext = aCommandList->GetType();
+
+        if (oldGlobalStates == localSubData.myFirstDstStates)
         {
-          canTransitionAllSubresources = false;
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+          if (RenderCore::ourDebugLogResourceBarriers && oldGlobalStates == localSubData.myFirstDstStates)
+            LOG_DEBUG("Patching subresource transition: %s (subresource %d): No transition needed (global state %s == first dst state on commandlist %s)", resource->GetName(), subIdx,
+              DebugUtilsDX12::ResourceStatesToString(oldGlobalStates).c_str(), DebugUtilsDX12::ResourceStatesToString(localSubData.myFirstDstStates).c_str());
+#endif
           continue;
         }
 
         D3D12_RESOURCE_BARRIER barrier = {};
         barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Transition.StateBefore = (D3D12_RESOURCE_STATES)globalSubData.myStates;
+        barrier.Transition.StateBefore = oldGlobalStates;
         barrier.Transition.StateAfter = localSubData.myFirstDstStates;
         barrier.Transition.Subresource = subIdx;
         barrier.Transition.pResource = resource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
 
-        if (subresourceTransitions.Size() > 0
-          && (subresourceTransitions.GetLast().Transition.StateBefore != barrier.Transition.StateBefore
-          || subresourceTransitions.GetLast().Transition.StateAfter != barrier.Transition.StateAfter))
-        {
-          canTransitionAllSubresources = false;
-        }
-
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        if (RenderCore::ourDebugLogResourceBarriers)
+          LOG_DEBUG("Patching subresource transition: %s (subresource %d): %s -> %s", resource->GetName(), subIdx,
+            DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateBefore).c_str(), DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateAfter).c_str());
+#endif
+        
         subresourceTransitions.Add(barrier);
-
-        globalSubData.myStates = localSubData.myStates;
-        if (localSubData.myWasWritten)
-          globalSubData.myContext = aCommandList->GetType();
       }
 
       if (!subresourceTransitions.IsEmpty())
       {
+        bool canTransitionAllSubresources = subresourceTransitions.Size() == globalHazardData.mySubresources.size();
+        if (canTransitionAllSubresources)
+        {
+          const D3D12_RESOURCE_BARRIER& firstBarrier = subresourceTransitions.GetFirst();
+          for (uint i = 1u; canTransitionAllSubresources && i < subresourceTransitions.Size(); ++i)
+          {
+            canTransitionAllSubresources &= firstBarrier.Transition.StateBefore == subresourceTransitions[i].Transition.StateBefore &&
+              firstBarrier.Transition.StateAfter == subresourceTransitions[i].Transition.StateAfter;
+          }
+        }
+
         if (canTransitionAllSubresources)
         {
           D3D12_RESOURCE_BARRIER barrier = subresourceTransitions.GetFirst();

@@ -214,7 +214,14 @@ namespace Fancy
       {
         GpuSubresourceHazardDataVk& globalSubData = globalHazardData.mySubresources[subIdx];
         const CommandListVk::SubresourceHazardData& localSubData = localHazardData.mySubresources[subIdx];
+
+        if (!localSubData.myWasUsed)
+          continue;
+
         const SubresourceLocation subresource = resource->GetSubresourceLocation(subIdx);
+
+        const VkAccessFlags oldGlobalAccessMask = globalSubData.myAccessMask;
+        const VkImageLayout oldGlobalImageLayout = (VkImageLayout) globalSubData.myImageLayout;
 
         if (localSubData.myIsSharedReadState)
         {
@@ -222,7 +229,12 @@ namespace Fancy
           globalSubData.myContext = CommandListType::SHARED_READ;
         }
 
-        if (!localSubData.myWasUsed || (globalSubData.myAccessMask == localSubData.myFirstDstAccessFlags && globalSubData.myImageLayout == localSubData.myFirstDstImageLayout))
+        globalSubData.myAccessMask = localSubData.myAccessFlags;
+        globalSubData.myImageLayout = localSubData.myImageLayout;
+        if (localSubData.myWasWritten)
+          globalSubData.myContext = aCommandList->GetType();
+
+        if (oldGlobalAccessMask == localSubData.myFirstDstAccessFlags && oldGlobalImageLayout == localSubData.myFirstDstImageLayout)
           continue;
 
         if (resource->IsTexture())
@@ -232,8 +244,8 @@ namespace Fancy
           {
             ASSERT(subIdx > 0);  // Otherwise subresourceImageBarriers should be empty.
             CommandListVk::ImageMemoryBarrierData& lastBarrier = subresourceImageBarriers.back();
-            couldMerge = lastBarrier.mySrcAccessMask == globalSubData.myAccessMask &&
-              lastBarrier.mySrcLayout == globalSubData.myImageLayout &&
+            couldMerge = lastBarrier.mySrcAccessMask == oldGlobalAccessMask &&
+              lastBarrier.mySrcLayout == oldGlobalImageLayout &&
               lastBarrier.myDstAccessMask == localSubData.myFirstDstAccessFlags &&
               lastBarrier.myDstLayout == localSubData.myFirstDstImageLayout &&
               resource->GetSubresourceIndex(lastBarrier.mySubresourceRange.Last()) == subIdx - 1u;
@@ -246,8 +258,8 @@ namespace Fancy
           {
             CommandListVk::ImageMemoryBarrierData barrier;
             barrier.myImage = resource->myNativeData.To<GpuResourceDataVk*>()->myImage;
-            barrier.mySrcAccessMask = globalSubData.myAccessMask;
-            barrier.mySrcLayout = (VkImageLayout)globalSubData.myImageLayout;
+            barrier.mySrcAccessMask = oldGlobalAccessMask;
+            barrier.mySrcLayout = oldGlobalImageLayout;
             barrier.myDstAccessMask = localSubData.myFirstDstAccessFlags;
             barrier.myDstLayout = localSubData.myFirstDstImageLayout;
             barrier.mySubresourceRange = SubresourceRange(subresource);
@@ -260,15 +272,10 @@ namespace Fancy
           CommandListVk::BufferMemoryBarrierData barrier;
           barrier.myBuffer = resource->myNativeData.To<GpuResourceDataVk*>()->myBuffer;
           barrier.myBufferSize = static_cast<const GpuBuffer*>(resource)->GetByteSize();
-          barrier.mySrcAccessMask = globalSubData.myAccessMask;
+          barrier.mySrcAccessMask = oldGlobalAccessMask;
           barrier.myDstAccessMask = localSubData.myFirstDstAccessFlags;
           subresourceBufferBarriers.push_back(barrier);
         }
-
-        globalSubData.myAccessMask = localSubData.myAccessFlags;
-        globalSubData.myImageLayout = localSubData.myImageLayout;
-        if (localSubData.myWasWritten)
-          globalSubData.myContext = aCommandList->GetType();
       }
 
       if (!subresourceBufferBarriers.empty())

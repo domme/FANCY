@@ -84,6 +84,7 @@
     <ClInclude Include="DataFormat.h" />
     <ClInclude Include="DataFormatList.h" />
     <ClInclude Include="DataFormatList_Dummy.h" />
+    <ClInclude Include="DebugUtilsDX12.h" />
     <ClInclude Include="DescriptorDX12.h" />
     <ClInclude Include="DescriptorPoolAllocatorVk.h" />
     <ClInclude Include="DxcShaderCompiler.h" />
@@ -201,6 +202,7 @@
     <ClCompile Include="CommandQueueDX12.cpp" />
     <ClCompile Include="CommandQueueVk.cpp" />
     <ClCompile Include="DataFormat.cpp" />
+    <ClCompile Include="DebugUtilsDX12.cpp" />
     <ClCompile Include="DescriptorPoolAllocatorVk.cpp" />
     <ClCompile Include="DxcShaderCompiler.cpp" />
     <ClCompile Include="DynamicDescriptorHeapDX12.cpp" />

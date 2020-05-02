@@ -44,7 +44,7 @@ namespace Fancy {
     for (uint i = 0u; i < kBackbufferCount; ++i)
     {
       GpuResource resource(GpuResourceCategory::TEXTURE);
-      resource.myName = "Backbuffer Texture " + i;
+      resource.myName = StaticString<32>("Backbuffer Texture %d", i);
 
       GpuResourceDataDX12* dataDx12(new GpuResourceDataDX12);
       CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12->myResource)));

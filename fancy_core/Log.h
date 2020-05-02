@@ -28,7 +28,7 @@ namespace Fancy {
     std::cout << logBuffer;
   }
 
-  inline void Log(const char* aSeverity, const char* aFile, const int aLine, const char* aMessageFormat, ...)
+  inline void LogWithLocation(const char* aSeverity, const char* aFile, const int aLine, const char* aMessageFormat, ...)
   {
     va_list args;
     va_start(args, aMessageFormat);
@@ -61,9 +61,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   #define LOG(aFormat, ...)         Log(aFormat, ##__VA_ARGS__)
   #define LOG_DEBUG(aFormat, ...)   Log(aFormat, ##__VA_ARGS__)
-  #define LOG_INFO(aFormat, ...)    Log("Info", __FILE__, __LINE__,  aFormat, ##__VA_ARGS__)
-  #define LOG_WARNING(aFormat, ...) Log("Warning", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
-  #define LOG_ERROR(aFormat, ...)   Log("Error", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
+  #define LOG_INFO(aFormat, ...)    LogWithLocation("Info", __FILE__, __LINE__,  aFormat, ##__VA_ARGS__)
+  #define LOG_WARNING(aFormat, ...) LogWithLocation("Warning", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
+  #define LOG_ERROR(aFormat, ...)   LogWithLocation("Error", __FILE__, __LINE__, aFormat, ##__VA_ARGS__)
 //---------------------------------------------------------------------------//
   #define ASSERT(aValue, ...) { if(!(aValue)) { LOG_ERROR("", ##__VA_ARGS__); assert(aValue); } }
   #define STATIC_ASSERT( condition, message ) { static_assert(condition, message); }

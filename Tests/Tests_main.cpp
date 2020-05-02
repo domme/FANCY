@@ -86,6 +86,8 @@ void Update()
   if (!kEnableImGui)
     return;
 
+  ImGui::Checkbox("Log resource barriers", &RenderCore::ourDebugLogResourceBarriers);
+
   if (ImGui::Checkbox("Test Profiler", &test_profiler))
   {
     if (!test_profiler)

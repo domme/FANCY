@@ -61,6 +61,7 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   Slot<void(const ShaderPipeline*)> RenderCore::ourOnShaderPipelineRecompiled;
+  bool RenderCore::ourDebugLogResourceBarriers = false;
 
   UniquePtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
   UniquePtr<TempResourcePool> RenderCore::ourTempResourcePool;
@@ -163,6 +164,11 @@ namespace Fancy {
     UpdateChangedShaders();
 
     ourPlatformImpl->BeginFrame();
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+    if (ourDebugLogResourceBarriers)
+      LOG_DEBUG("\n---Frame Begin---");
+#endif
   }
 //---------------------------------------------------------------------------//
   void RenderCore::EndFrame()
@@ -454,6 +460,10 @@ namespace Fancy {
     ourShaderFileWatcher->myOnFileDeletedMoved.Connect(onDeletedFn);
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+    ourDebugLogResourceBarriers = CommandLine::GetInstance()->HasArgument("logBarriers");
+#endif
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_2_Resources()

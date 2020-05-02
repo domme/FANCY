@@ -136,6 +136,7 @@ namespace Fancy {
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
     
     static Slot<void(const ShaderPipeline*)> ourOnShaderPipelineRecompiled;
+    static bool ourDebugLogResourceBarriers;
 
   protected:
     RenderCore() = default;

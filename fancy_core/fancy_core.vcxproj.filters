@@ -401,6 +401,9 @@
     <ClInclude Include="RootSignatureDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="DebugUtilsDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -619,6 +622,9 @@
     </ClCompile>
     <ClCompile Include="MathUtil.cpp">
       <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugUtilsDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -18,6 +18,7 @@
 #include "TimeManager.h"
 #include "GpuQueryHeapDX12.h"
 #include "TextureSamplerDX12.h"
+#include "DebugUtilsDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -1426,6 +1427,12 @@ namespace Fancy {
         barrier.Transition.Subresource = subresourceIndex;
         barrier.Transition.pResource = aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
         AddBarrier(barrier);
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        if (RenderCore::ourDebugLogResourceBarriers)
+          LOG_DEBUG("Subresource transition: %s (subresource %d): %s -> %s", aResource->GetName(), subresourceIndex,
+            DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateBefore).c_str(), DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateAfter).c_str());
+#endif
       }
     }
 
@@ -1441,6 +1448,12 @@ namespace Fancy {
       barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
       barrier.Transition.pResource = aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
       AddBarrier(barrier);
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+      if (RenderCore::ourDebugLogResourceBarriers)
+        LOG_DEBUG("Subresource transition: %s (all subresources): %s -> %s", aResource->GetName(), 
+          DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateBefore).c_str(), DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateAfter).c_str());
+#endif
     }
 
     i = 0u;
@@ -1458,7 +1471,14 @@ namespace Fancy {
         continue;
 
       if (!subData.myWasUsed)
+      {
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        if (RenderCore::ourDebugLogResourceBarriers)
+          LOG_DEBUG("Open subresource transition: %s (subresource %d): ? -> %s", aResource->GetName(), subresourceIndex, DebugUtilsDX12::ResourceStatesToString(dstStates).c_str());
+#endif
         subData.myFirstDstStates = dstStates;
+      }
+        
 
       subData.myWasUsed = true;
       subData.myStates = dstStates;
