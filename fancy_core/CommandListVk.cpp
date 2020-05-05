@@ -15,6 +15,7 @@
 #include "TextureSamplerVk.h"
 #include "DynamicArray.h"
 #include "StaticArray.h"
+#include "DebugUtilsVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -1257,8 +1258,15 @@ namespace Fancy
     bool canTransitionAllSubresources = numPossibleSubresourceTransitions == aResource->mySubresources.GetNumSubresources();
     if (canTransitionAllSubresources)
     {
+      const VkAccessFlags firstSrcAccessMask = localData->mySubresources[0].myAccessFlags;
+      const VkImageLayout firstSrcImageLayout = localData->mySubresources[0].myImageLayout;
+
       for (uint sub = 0u; canTransitionAllSubresources && sub < localData->mySubresources.size(); ++sub)
-        canTransitionAllSubresources &= localData->mySubresources[sub].myWasUsed;
+      {
+        canTransitionAllSubresources &= localData->mySubresources[sub].myWasUsed
+          && localData->mySubresources[sub].myAccessFlags == firstSrcAccessMask
+          && localData->mySubresources[sub].myImageLayout == firstSrcImageLayout;
+      }
     }
 
     if (canTransitionAllSubresources)  // The simple case: We can transition all subresources in one barrier
@@ -1271,6 +1279,13 @@ namespace Fancy
         barrier.myDstAccessMask = dstAccessFlags;
         barrier.mySrcAccessMask = localData->mySubresources[0].myAccessFlags;
         AddBarrier(barrier);
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        if (RenderCore::ourDebugLogResourceBarriers)
+          LOG_DEBUG("Transition buffer %s: %s -> %s", aResource->GetName(), 
+            DebugUtilsVk::AccessMaskToString(barrier.mySrcAccessMask).c_str(),
+            DebugUtilsVk::AccessMaskToString(barrier.myDstAccessMask).c_str());
+#endif
       }
       else
       {
@@ -1285,6 +1300,15 @@ namespace Fancy
         barrier.mySrcLayout = localData->mySubresources[0].myImageLayout;
         barrier.mySubresourceRange = aResource->GetSubresources();
         AddBarrier(barrier);
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        if (RenderCore::ourDebugLogResourceBarriers)
+          LOG_DEBUG("Transition image %s (all subresources): %s -> %s / %s -> %s", aResource->GetName(),
+            DebugUtilsVk::AccessMaskToString(barrier.mySrcAccessMask).c_str(),
+            DebugUtilsVk::AccessMaskToString(barrier.myDstAccessMask).c_str(),
+            DebugUtilsVk::ImageLayoutToString(barrier.mySrcLayout).c_str(),
+            DebugUtilsVk::ImageLayoutToString(barrier.myDstLayout).c_str());
+#endif
       }
     }
     else if (aResource->IsTexture())
@@ -1313,6 +1337,16 @@ namespace Fancy
           imageBarrier.mySrcAccessMask = subData.myAccessFlags;
           imageBarrier.mySrcLayout = subData.myImageLayout;
           potentialSubresourceBarriers.Add(imageBarrier);
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+          if (RenderCore::ourDebugLogResourceBarriers)
+            LOG_DEBUG("Transition image %s (subresource %d): %s -> %s / %s -> %s", aResource->GetName(),
+              subresourceIndex,
+              DebugUtilsVk::AccessMaskToString(imageBarrier.mySrcAccessMask).c_str(),
+              DebugUtilsVk::AccessMaskToString(imageBarrier.myDstAccessMask).c_str(),
+              DebugUtilsVk::ImageLayoutToString(imageBarrier.mySrcLayout).c_str(),
+              DebugUtilsVk::ImageLayoutToString(imageBarrier.myDstLayout).c_str());
+#endif
         }
       }
 
@@ -1361,6 +1395,19 @@ namespace Fancy
       {
         subData.myFirstDstAccessFlags = dstAccessFlags;
         subData.myFirstDstImageLayout = aNewImageLayout;
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        if (RenderCore::ourDebugLogResourceBarriers)
+        {
+          if (aResource->IsBuffer())
+            LOG_DEBUG("Open transition buffer %s: ? -> %s", aResource->GetName(), DebugUtilsVk::AccessMaskToString(dstAccessFlags).c_str());
+          else
+            LOG_DEBUG("Open transition image %s (subresource %d): ? -> %s / ? -> %s", 
+              aResource->GetName(), subresourceIndex,
+              DebugUtilsVk::AccessMaskToString(dstAccessFlags).c_str(),
+              DebugUtilsVk::ImageLayoutToString(aNewImageLayout).c_str());
+        }
+#endif
       }
 
       subData.myWasUsed = true;
@@ -1840,4 +1887,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
-#endif
+#endif 

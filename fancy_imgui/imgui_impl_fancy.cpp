@@ -181,9 +181,9 @@ namespace Fancy { namespace ImGuiRendering {
     // Sampler
     {
       TextureSamplerProperties props;
-      props.myAddressModeX = SamplerAddressMode::CLAMP_BORDER;
-      props.myAddressModeY = SamplerAddressMode::CLAMP_BORDER;
-      props.myAddressModeZ = SamplerAddressMode::CLAMP_BORDER;
+      props.myAddressModeX = SamplerAddressMode::CLAMP_EDGE;
+      props.myAddressModeY = SamplerAddressMode::CLAMP_EDGE;
+      props.myAddressModeZ = SamplerAddressMode::CLAMP_EDGE;
       props.myMinFiltering = SamplerFilterMode::TRILINEAR;
       props.myMagFiltering = SamplerFilterMode::TRILINEAR;
 

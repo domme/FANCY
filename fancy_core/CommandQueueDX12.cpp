@@ -143,7 +143,7 @@ namespace Fancy
         if (oldGlobalStates == localSubData.myFirstDstStates)
         {
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          if (RenderCore::ourDebugLogResourceBarriers && oldGlobalStates == localSubData.myFirstDstStates)
+          if (RenderCore::ourDebugLogResourceBarriers)
             LOG_DEBUG("Patching subresource transition: %s (subresource %d): No transition needed (global state %s == first dst state on commandlist %s)", resource->GetName(), subIdx,
               DebugUtilsDX12::ResourceStatesToString(oldGlobalStates).c_str(), DebugUtilsDX12::ResourceStatesToString(localSubData.myFirstDstStates).c_str());
 #endif

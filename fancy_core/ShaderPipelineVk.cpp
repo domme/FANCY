@@ -42,13 +42,6 @@ namespace Fancy
     }
 #endif
 
-    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    if (myPipelineLayout != nullptr)
-    {
-      vkDestroyPipelineLayout(platformVk->myDevice, myPipelineLayout, nullptr);
-      myPipelineLayout = nullptr;
-    }
-
     // Merge Resource infos
     myResourceInfos.clear();
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
@@ -101,14 +94,14 @@ myBindingInSet);
       targetBindingsInSet.push_back(vkBinding);
     }
 
-    std::stable_sort(descriptorSets.begin(), descriptorSets.end(), [](const PipelineLayoutCacheVk::DescriptorSetInfo& aLeft, const PipelineLayoutCacheVk::DescriptorSetInfo& aRight) {
+    std::stable_sort(descriptorSets.begin(), descriptorSets.begin() + descriptorSets.size() - 1, [](const PipelineLayoutCacheVk::DescriptorSetInfo& aLeft, const PipelineLayoutCacheVk::DescriptorSetInfo& aRight) {
       return aLeft.mySet < aRight.mySet;
     });
  
     for (uint i = 0u; i < (uint)descriptorSets.size(); ++i)
     {
      PipelineLayoutCacheVk::DescriptorSetInfo& descriptorSet = descriptorSets[i];
-     std::stable_sort(descriptorSet.myBindings.begin(), descriptorSet.myBindings.end(), [](const VkDescriptorSetLayoutBinding& aLeft, const VkDescriptorSetLayoutBinding& aRight) {
+     std::stable_sort(descriptorSet.myBindings.begin(), descriptorSet.myBindings.begin() + descriptorSet.myBindings.size() - 1, [](const VkDescriptorSetLayoutBinding& aLeft, const VkDescriptorSetLayoutBinding& aRight) {
         return aLeft.binding < aRight.binding;
      });
     }

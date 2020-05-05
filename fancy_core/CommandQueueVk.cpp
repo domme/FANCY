@@ -8,6 +8,7 @@
 #include "Texture.h"
 #include "GpuBuffer.h"
 #include "GpuResourceDataVk.h"
+#include "DebugUtilsVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -235,7 +236,33 @@ namespace Fancy
           globalSubData.myContext = aCommandList->GetType();
 
         if (oldGlobalAccessMask == localSubData.myFirstDstAccessFlags && oldGlobalImageLayout == localSubData.myFirstDstImageLayout)
+        {
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+          if (RenderCore::ourDebugLogResourceBarriers)
+          {
+            if (resource->IsBuffer())
+              LOG_DEBUG("Patching open transition for buffer %s: No transition needed (global/local access mask == local access mask == %s)", resource->GetName(), 
+                DebugUtilsVk::AccessMaskToString(oldGlobalAccessMask).c_str());
+            else
+              LOG_DEBUG("Patching open transition for image %s (subresource %d): No transition needed (global/local access mask == %s // global/local image layout %s)", resource->GetName(),
+                subIdx, DebugUtilsVk::AccessMaskToString(oldGlobalAccessMask).c_str(), DebugUtilsVk::ImageLayoutToString(oldGlobalImageLayout).c_str());
+          }
+#endif
           continue;
+        }
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+        if (RenderCore::ourDebugLogResourceBarriers)
+        {
+          if (resource->IsBuffer())
+            LOG_DEBUG("Patching open transition for buffer %s: %s -> %s", resource->GetName(),
+              DebugUtilsVk::AccessMaskToString(oldGlobalAccessMask).c_str(), DebugUtilsVk::AccessMaskToString(localSubData.myFirstDstAccessFlags).c_str());
+          else
+            LOG_DEBUG("Patching open transition for image %s (subresource %d): %s -> %s / %s -> %s", resource->GetName(),
+              subIdx, DebugUtilsVk::AccessMaskToString(oldGlobalAccessMask).c_str(), DebugUtilsVk::AccessMaskToString(localSubData.myFirstDstAccessFlags).c_str(),
+              DebugUtilsVk::ImageLayoutToString(oldGlobalImageLayout).c_str(), DebugUtilsVk::ImageLayoutToString(localSubData.myFirstDstImageLayout).c_str());
+        }
+#endif
 
         if (resource->IsTexture())
         {

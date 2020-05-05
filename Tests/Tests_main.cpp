@@ -3,11 +3,9 @@
 #include <fancy_imgui/imgui_impl_fancy.h>
 #include <fancy_core/RenderOutput.h>
 #include <fancy_core/RenderCore.h>
-#include <fancy_core/RendererPrerequisites.h>
 #include "fancy_core/CommandList.h"
 #include <fancy_core/Fancy.h>
 #include <fancy_core/Window.h>
-#include <fancy_core/CommandQueue.h>
 #include <fancy_core/Profiler.h>
 #include <fancy_core/Input.h>
 

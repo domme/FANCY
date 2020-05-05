@@ -30,7 +30,7 @@ using namespace Fancy;
   {
     ShaderPipelineDesc pipelineDesc;
     ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
-    shaderDesc.myPath = "ResizeTexture2D.hlsl";
+    shaderDesc.myPath = "Downsample.hlsl";
     shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
     shaderDesc.myMainFunction = "main";
 
@@ -269,8 +269,7 @@ using namespace Fancy;
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;
-    glm::float2 srcSize(texProps.myWidth, texProps.myHeight);
-
+    
     SharedPtr<Texture> texture = aTexture;
     if (!texProps.myIsShaderWritable)
     {
@@ -317,48 +316,24 @@ using namespace Fancy;
     
     struct CBuffer
     {
-      glm::float2 mySrcSize;
-      glm::float2 myDestSize;
-
-      glm::float2 mySrcScale;
-      glm::float2 myDestScale;
-
+      glm::int2 mySrcTextureSize;
       int myIsSRGB;
-      int myFilterMethod;
-      glm::float2 myAxis;
     } cBuffer;
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
-    
     cBuffer.myIsSRGB = formatInfo.mySRGB ? 1 : 0;
-    cBuffer.myFilterMethod = (int) aFilter;
 
-    glm::float2 destSize = glm::ceil(srcSize * 0.5f);
+    const glm::int2 fullSize(texProps.myWidth, texProps.myHeight);
     for (uint mip = 1u; mip < numMips; ++mip)
     {
-      // Resize horizontal
-      glm::float2 tempDestSize(destSize.x, srcSize.y);
-      cBuffer.mySrcSize = srcSize;
-      cBuffer.myDestSize = tempDestSize;
-      cBuffer.mySrcScale = tempDestSize / srcSize;
-      cBuffer.myDestScale = srcSize / tempDestSize;
-      cBuffer.myAxis = glm::float2(1.0f, 0.0f);
+      const glm::int2 srcSize = fullSize >> (int)(mip-1);
+      const glm::int2 dstSize = fullSize >> (int) mip;
+
+      cBuffer.mySrcTextureSize = glm::int2((int)srcSize.x, (int) srcSize.y);
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), "CB0");
       ctx->BindResourceView(readViews[mip - 1].get(), "SrcTexture");
-      ctx->BindResourceView(tempTexture.myWriteView, "DestTexture");
-      ctx->Dispatch(glm::int3((int)destSize.x, (int)srcSize.y, 1));
-      ctx->ResourceUAVbarrier();
-
-      // Resize vertical
-      cBuffer.mySrcSize = tempDestSize;
-      cBuffer.myDestSize = destSize;
-      cBuffer.mySrcScale = destSize / tempDestSize;
-      cBuffer.myDestScale = tempDestSize / destSize;
-      cBuffer.myAxis = glm::float2(0.0f, 1.0f);
-      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), "CB0");
-      ctx->BindResourceView(tempTexture.myReadView, "SrcTexture");
       ctx->BindResourceView(writeViews[mip].get(), "DestTexture");
-      ctx->Dispatch(glm::int3((int)destSize.x, (int)destSize.y, 1));
+      ctx->Dispatch(glm::int3(dstSize.x, dstSize.y, 1));
       ctx->ResourceUAVbarrier();
     }
 
