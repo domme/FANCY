@@ -6,6 +6,9 @@
 #include "CommandBufferAllocatorVk.h"
 #include "DescriptorPoolAllocatorVk.h"
 #include "PipelineLayoutCacheVk.h"
+#include "FrameBufferCacheVk.h"
+#include "RenderPassCacheVk.h"
+#include "PipelineStateCacheVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -83,7 +86,12 @@ namespace Fancy
 
     const QueueInfo& GetQueueInfo(CommandListType aCommandListType) { return myQueueInfos[(uint)aCommandListType]; }
 
+    VkDevice GetDevice() const { return myDevice; }
+
     PipelineLayoutCacheVk& GetPipelineLayoutCache() { return myPipelineLayoutCache; }
+    FrameBufferCacheVk& GetFrameBufferCache() { return myFrameBufferCache; }
+    RenderPassCacheVk& GetRenderPassCache() { return myRenderPassCache; }
+    PipelineStateCacheVk& GetPipelineStateCache() { return myPipelineStateCache; }
 
     // TODO: Make these members private and add getter-functions where needed
     VkInstance myInstance = nullptr;
@@ -107,6 +115,9 @@ namespace Fancy
     StaticArray<std::pair<VkBufferView, uint64>, 256> myTempBufferViews;
 
     PipelineLayoutCacheVk myPipelineLayoutCache;
+    FrameBufferCacheVk myFrameBufferCache;
+    RenderPassCacheVk myRenderPassCache;
+    PipelineStateCacheVk myPipelineStateCache;
   };
 }
 

@@ -41,5 +41,7 @@ void main(uint3 aDTid : SV_DispatchThreadID)
     if (myIsSRGB)
       outCol = pow(outCol, 1.0 / 2.2);
 
+      
+
     DestTexture[destTexel] = outCol;
 }

@@ -1272,7 +1272,7 @@ namespace Fancy {
       const D3D12_RESOURCE_STATES depthState = myDepthStencilTarget->GetProperties().myIsDepthReadOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
       TrackSubresourceTransition(myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange(), depthState);
 
-      if (myRenderTargets)
+      if (myRenderTargetsDirty)
         myCommandList->OMSetRenderTargets(numRtsToSet, rtDescriptors, false, &dsvViewData.myDescriptor.myCpuHandle);
     }
     else

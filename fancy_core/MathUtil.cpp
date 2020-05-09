@@ -21,7 +21,7 @@ namespace Fancy { namespace MathUtil {
     XXH64_reset(Priv_MathUtil::ourXXHashState, 0u);
   }
 //---------------------------------------------------------------------------//
-  void AddToMultiHash(const uint8* aValue, uint64 aSize)
+  void AddToMultiHash(const void* aValue, uint64 aSize)
   {
     ASSERT(Priv_MathUtil::ourMultiHashStarted, "Multi hash not started. Did you forget to call BeginMultiHash()?");
     ASSERT(XXH64_update(Priv_MathUtil::ourXXHashState, aValue, aSize) == XXH_OK);
@@ -34,7 +34,7 @@ namespace Fancy { namespace MathUtil {
     return XXH64_digest(Priv_MathUtil::ourXXHashState);
   }
 //---------------------------------------------------------------------------//
-  uint64 ByteHash(const uint8* aValue, uint64 aSize)
+  uint64 ByteHash(const void* aValue, uint64 aSize)
   {
     return XXH64(aValue, aSize, 0ull);
   }

@@ -26,6 +26,7 @@
 #include <climits>
 #include <chrono>
 #include <cstdlib>
+#include <mutex>
 
 #include "FancyCoreDefines.h"
 #include "MathIncludes.h"

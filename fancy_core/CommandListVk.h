@@ -109,10 +109,6 @@ namespace Fancy
 
     void BeginCommandBuffer();
 
-    static std::unordered_map<uint64, VkPipeline> ourPipelineCache;
-    static std::unordered_map<uint64, VkRenderPass> ourRenderpassCache;
-    static std::unordered_map<uint64, VkFramebuffer> ourFramebufferCache;
-
     VkCommandBuffer myCommandBuffer;
     VkRenderPass myRenderPass;
     VkFramebuffer myFramebuffer;

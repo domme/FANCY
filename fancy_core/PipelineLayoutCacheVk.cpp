@@ -10,13 +10,7 @@ namespace Fancy
 {
   PipelineLayoutCacheVk::~PipelineLayoutCacheVk()
   {
-    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-
-    for (auto layout : myPipelineLayouts)
-      vkDestroyPipelineLayout(platformVk->myDevice, layout.second, nullptr);
-
-    for (auto layout : myDescriptorSetLayouts)
-      vkDestroyDescriptorSetLayout(platformVk->myDevice, layout.second, nullptr);
+    PipelineLayoutCacheVk::Clear();
   }
 
   VkPipelineLayout PipelineLayoutCacheVk::GetPipelineLayout(const DynamicArray<DescriptorSetInfo>& someDescriptorSetInfos, PipelineDescriptorSetLayoutsVk& aDescriptorSetLayoutsOut)
@@ -41,6 +35,7 @@ namespace Fancy
 
       MathUtil::hash_combine(pipelineLayoutHash, setLayoutHash);
 
+      std::lock_guard<std::mutex> lock(myCacheMutex);
       auto it = myDescriptorSetLayouts.find(setLayoutHash);
       if (it != myDescriptorSetLayouts.end())
       {
@@ -64,10 +59,13 @@ namespace Fancy
       aDescriptorSetLayoutsOut[setInfo.mySet] = descSetLayouts.GetLast();
     }
 
-    auto it = myPipelineLayouts.find(pipelineLayoutHash);
-    if (it != myPipelineLayouts.end())
     {
-      return it->second;
+      std::lock_guard<std::mutex> lock(myCacheMutex);
+      auto it = myCache.find(pipelineLayoutHash);
+      if (it != myCache.end())
+      {
+        return it->second;
+      }
     }
 
     VkPipelineLayoutCreateInfo layoutCreateInfo;
@@ -82,10 +80,34 @@ namespace Fancy
     VkPipelineLayout pipelineLayout = nullptr;
     ASSERT_VK_RESULT(vkCreatePipelineLayout(platformVk->myDevice, &layoutCreateInfo, nullptr, &pipelineLayout));
 
-    myPipelineLayouts[pipelineLayoutHash] = pipelineLayout;
+    std::lock_guard<std::mutex> lock(myCacheMutex);
+    auto it = myCache.find(pipelineLayoutHash);
+    if (it != myCache.end())
+    {
+      vkDestroyPipelineLayout(platformVk->myDevice, pipelineLayout, nullptr);
+      return it->second;
+    }
 
+    myCache[pipelineLayoutHash] = pipelineLayout;
     return pipelineLayout;
   }
+//---------------------------------------------------------------------------//
+  void PipelineLayoutCacheVk::Clear()
+  {
+    RenderCore::WaitForIdle(CommandListType::Graphics);
+    RenderCore::WaitForIdle(CommandListType::Compute);
+
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+
+    std::lock_guard<std::mutex> lock(myCacheMutex);
+
+    for (auto layout : myCache)
+      vkDestroyPipelineLayout(platformVk->myDevice, layout.second, nullptr);
+
+    for (auto layout : myDescriptorSetLayouts)
+      vkDestroyDescriptorSetLayout(platformVk->myDevice, layout.second, nullptr);
+  }
+//---------------------------------------------------------------------------//
 }
 
 #endif

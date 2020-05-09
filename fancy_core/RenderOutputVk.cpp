@@ -158,6 +158,9 @@ namespace Fancy
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     ASSERT_VK_RESULT(vkDeviceWaitIdle(platformVk->myDevice));
     vkDestroySwapchainKHR(platformVk->myDevice, mySwapChain, nullptr);
+
+    // Clear the framebuffer cache so it doesn't have any stale framebuffers that point to the swapchain rendertargets
+    platformVk->GetFrameBufferCache().Clear(); 
   }
 //---------------------------------------------------------------------------//
   void RenderOutputVk::CreateBackbufferResources(uint aWidth, uint aHeight)
@@ -229,9 +232,6 @@ namespace Fancy
       myBackbufferTextures[i].reset(new TextureVk(std::move(resource), backbufferProps, true));
       myBackbufferTextures[i]->SetName(name.GetBuffer());
     }
-
-    myBackbuffersUsed.resize(myNumBackbuffers);
-    std::fill_n(myBackbuffersUsed.begin(), myBackbuffersUsed.size(), false);
   }
   //---------------------------------------------------------------------------//
   void RenderOutputVk::ResizeSwapChain(uint aWidth, uint aHeight)

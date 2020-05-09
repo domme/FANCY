@@ -8,17 +8,17 @@
 namespace Fancy { namespace MathUtil {
 //---------------------------------------------------------------------------//
   void BeginMultiHash();
-  void AddToMultiHash(const uint8* aValue, uint64 aSize);
+  void AddToMultiHash(const void* aValue, uint64 aSize);
+  template<class T>
+  void AddToMultiHash(const T& aValue) { AddToMultiHash(&aValue, sizeof(T)); }
   uint64 EndMultiHash();
 //---------------------------------------------------------------------------//
-  uint64 ByteHash(const uint8* aValue, uint64 aSize);
+  uint64 ByteHash(const void* aValue, uint64 aSize);
 //---------------------------------------------------------------------------//
   template<class T>
   inline size_t ByteHash(const T& aValue)
   {
-    const size_t sizeBytes = sizeof(T);
-    const uint8* byteBlock = reinterpret_cast<const uint8*>(&aValue);
-    return ByteHash(byteBlock, sizeBytes);
+    return ByteHash(&aValue, sizeof(T));
   }
 //---------------------------------------------------------------------------//
   template<class T>

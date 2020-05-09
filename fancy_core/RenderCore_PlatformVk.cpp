@@ -821,6 +821,11 @@ namespace Fancy
 
     myDescriptorPoolAllocator.reset();
 
+    myPipelineLayoutCache.Clear();
+    myFrameBufferCache.Clear();
+    myRenderPassCache.Clear();
+    myPipelineStateCache.Clear();
+
     vkDestroyInstance(myInstance, nullptr);
     vkDestroyDevice(myDevice, nullptr);
   }
