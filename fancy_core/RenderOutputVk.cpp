@@ -150,6 +150,16 @@ namespace Fancy
     createInfo.presentMode = myPresentMode;
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = nullptr;  // Could be used for a more optimal swapchain-recreation
+
+    const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+    const uint queueFamilyIndices[] =
+    {
+      (uint)platformVk->GetQueueInfo(CommandListType::Graphics).myQueueFamilyIndex,
+      (uint)platformVk->GetQueueInfo(CommandListType::Compute).myQueueFamilyIndex,
+    };
+    createInfo.pQueueFamilyIndices = queueFamilyIndices;
+    createInfo.queueFamilyIndexCount = caps.myHasAsyncCompute ? ARRAY_LENGTH(queueFamilyIndices) : 1u;
+    
     ASSERT_VK_RESULT(vkCreateSwapchainKHR(platformVk->myDevice, &createInfo, nullptr, &mySwapChain));
   }
 //---------------------------------------------------------------------------//
@@ -191,11 +201,11 @@ namespace Fancy
     {
       StaticString<32> name("Backbuffer Texture %d", i);
 
-      GpuResource resource(GpuResourceCategory::TEXTURE);
+      GpuResource resource(GpuResourceType::TEXTURE);
       resource.myName = name.GetBuffer();
 
       GpuResourceDataVk* dataVk(new GpuResourceDataVk);
-      dataVk->myType = GpuResourceCategory::TEXTURE;
+      dataVk->myType = GpuResourceType::TEXTURE;
       dataVk->myImage = swapChainImages[i];
 
       resource.mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);

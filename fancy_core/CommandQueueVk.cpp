@@ -14,7 +14,7 @@
 
 // The validation layer reports false-positive errors when resetting commandpools when timeline semaphores are used.
 // This define will always wait after each submit to not stall the output with meaningless errors.
-#define FANCY_VK_WAIT_AFTER_EACH_SUBMIT 1
+#define FANCY_VK_WAIT_AFTER_EACH_SUBMIT 0
 
 namespace Fancy
 {
@@ -152,6 +152,7 @@ namespace Fancy
       waitSemaphores.Add(myPendingStallSemaphores[i].first);
       waitValues.Add(myPendingStallSemaphores[i].second);
     }
+    myPendingStallSemaphores.ClearDiscard();
 
     uint64 fenceValPostSubmit = myNextFenceVal++;
 

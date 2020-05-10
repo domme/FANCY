@@ -144,7 +144,7 @@ namespace Fancy
   void TempResourcePool::FreeResource(void* aResource, uint64 aBucketHash)
   {
     GpuResource* resource = static_cast<GpuResource*>(aResource);
-    if (resource->myCategory == GpuResourceCategory::BUFFER)
+    if (resource->myType == GpuResourceType::BUFFER)
     {
       auto it = myBufferPool.find(static_cast<GpuBuffer*>(aResource));
       ASSERT(it != myBufferPool.end());

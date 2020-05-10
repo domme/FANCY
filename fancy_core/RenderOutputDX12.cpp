@@ -43,7 +43,7 @@ namespace Fancy {
   {
     for (uint i = 0u; i < kBackbufferCount; ++i)
     {
-      GpuResource resource(GpuResourceCategory::TEXTURE);
+      GpuResource resource(GpuResourceType::TEXTURE);
       resource.myName = StaticString<32>("Backbuffer Texture %d", i);
 
       GpuResourceDataDX12* dataDx12(new GpuResourceDataDX12);

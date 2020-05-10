@@ -48,7 +48,7 @@ namespace Fancy
 
     Destroy();
     GpuResourceDataVk* dataVk = new GpuResourceDataVk();
-    dataVk->myType = GpuResourceCategory::TEXTURE;
+    dataVk->myType = GpuResourceType::TEXTURE;
     myNativeData = dataVk;
 
     myProperties = someProperties;
@@ -75,7 +75,7 @@ namespace Fancy
     imageInfo.arrayLayers = glm::max(1u, myProperties.GetArraySize());
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-
+    
     const uint minSide = (myProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(myProperties.myWidth, myProperties.myHeight, myProperties.myDepthOrArraySize) : glm::min(myProperties.myWidth, myProperties.myHeight);
     const uint maxNumMipLevels = 1u + static_cast<uint>(glm::floor(glm::log2(minSide)));
     imageInfo.mipLevels = glm::max(1u, glm::min(myProperties.myNumMipLevels, maxNumMipLevels));

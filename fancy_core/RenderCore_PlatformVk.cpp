@@ -694,11 +694,19 @@ namespace Fancy
         LOG("No dedicated COMPUTE-queue found. Async compute will be disabled");
         myCaps.myHasAsyncCompute = false;
       }
+      else
+      {
+        myCaps.myHasAsyncCompute = true;
+      }
 
       if (myQueueInfos[(uint)CommandListType::DMA].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
       {
         LOG("No dedicated COPY-queue found. Async copy will be disabled");
         myCaps.myHasAsyncCopy = false;
+      }
+      else
+      {
+        myCaps.myHasAsyncCopy = true;
       }
 
       LOG("Creating logical Vulkan device...");

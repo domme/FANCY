@@ -19,7 +19,7 @@ namespace Fancy
   {
     GpuResourceDataVk* dataVk = GetData();
     return dataVk != nullptr 
-      && dataVk->myType == GpuResourceCategory::BUFFER 
+      && dataVk->myType == GpuResourceType::BUFFER 
       && dataVk->myBuffer != nullptr;
   }
 //---------------------------------------------------------------------------//
@@ -33,7 +33,7 @@ namespace Fancy
 
     Destroy();
     GpuResourceDataVk* dataVk = new GpuResourceDataVk();
-    dataVk->myType = GpuResourceCategory::BUFFER;
+    dataVk->myType = GpuResourceType::BUFFER;
     myNativeData = dataVk;
 
     myProperties = someProperties;

@@ -29,7 +29,7 @@ namespace Fancy
   struct GpuResourceDataVk
   {
     GpuResourceHazardDataVk myHazardData;
-    GpuResourceCategory myType;
+    GpuResourceType myType;
     VkDeviceMemory myMemory;
     union {
       VkBuffer myBuffer;

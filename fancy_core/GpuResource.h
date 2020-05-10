@@ -15,14 +15,14 @@ namespace Fancy {
   public:
     GpuResource(GpuResource&& anOther) = default;
 
-    explicit GpuResource(GpuResourceCategory aType)
+    explicit GpuResource(GpuResourceType aType)
       : mySubresources(0, 1u, 0u, 1u, 0u, 1u)
-      , myCategory(aType)
+      , myType(aType)
     {}
 
     void operator=(GpuResource&& anOtherResource) noexcept
     {
-      myCategory = anOtherResource.myCategory;
+      myType = anOtherResource.myType;
       myNativeData = anOtherResource.myNativeData;
       myName = anOtherResource.myName;
       mySubresources = anOtherResource.mySubresources;
@@ -39,8 +39,9 @@ namespace Fancy {
     GpuResourceDataDX12* GetDX12Data() const;
     GpuResourceDataVk* GetVkData() const;
 
-    bool IsBuffer() const { return myCategory == GpuResourceCategory::BUFFER; }
-    bool IsTexture() const { return myCategory == GpuResourceCategory::TEXTURE; }
+    bool IsBuffer() const { return myType == GpuResourceType::BUFFER; }
+    bool IsTexture() const { return myType == GpuResourceType::TEXTURE; }
+    GpuResourceType GetType() const { return myType; }
 
     virtual ~GpuResource() = default;
     virtual bool IsValid() const { return false; }
@@ -48,7 +49,7 @@ namespace Fancy {
 
     SubresourceRange mySubresources;
     String myName;
-    GpuResourceCategory myCategory;
+    GpuResourceType myType;
     Any myNativeData;
   };
 //---------------------------------------------------------------------------//

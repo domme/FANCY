@@ -109,7 +109,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     bool locValidateDstImageLayout(const GpuResource* aResource, VkImageLayout anImageLayout)
     {
-      if (aResource->myCategory == GpuResourceCategory::BUFFER)
+      if (aResource->myType == GpuResourceType::BUFFER)
       {
         ASSERT(anImageLayout == VK_IMAGE_LAYOUT_UNDEFINED);
         return anImageLayout == VK_IMAGE_LAYOUT_UNDEFINED;
@@ -191,17 +191,167 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
   {
-    VK_MISSING_IMPLEMENTATION();
+    const DataFormat format = aTextureView->GetTexture()->GetProperties().myFormat;
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
+    ASSERT(aTextureView->myType == GpuResourceViewType::DSV);
+    ASSERT(formatInfo.myIsDepthStencil);
+
+    const bool clearDepth = someClearFlags & (uint)DepthStencilClearFlags::CLEAR_DEPTH;
+    const bool clearStencil = someClearFlags & (uint)DepthStencilClearFlags::CLEAR_STENCIL;
+
+    SubresourceRange subresources = aTextureView->GetSubresourceRange();
+
+    if (clearDepth && !clearStencil)
+    {
+      ASSERT(subresources.myFirstPlane == 0, "The texture view doesn't cover the depth plane");
+      subresources.myFirstPlane = 0u;
+      subresources.myNumPlanes = 1u;
+    }
+    else if (clearStencil && !clearDepth)
+    {
+      ASSERT(formatInfo.myNumPlanes == 2);
+      ASSERT(subresources.myFirstPlane + subresources.myNumPlanes >= 2, "The texture view doesn't cover the stencil plane");
+      subresources.myFirstPlane = 1u;
+      subresources.myNumPlanes = 1u;
+    }
+    else
+    {
+      ASSERT(formatInfo.myNumPlanes == 2);
+      ASSERT(subresources.myFirstPlane == 0, "The texture view doesn't cover the depth plane");
+      ASSERT(subresources.myFirstPlane + subresources.myNumPlanes >= 2, "The texture view doesn't cover the stencil plane");
+      subresources.myFirstPlane = 0u;
+      subresources.myNumPlanes = 2u;
+    }
+    
+    const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    TrackSubresourceTransition(aTextureView->GetResource(), subresources, VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    FlushBarriers();
+
+#if FANCY_RENDERER_DEBUG
+    VkFormatProperties formatProperties;
+    const VkFormat formatVk = RenderCore_PlatformVk::ResolveFormat(format);
+    vkGetPhysicalDeviceFormatProperties(RenderCore::GetPlatformVk()->myPhysicalDevice, formatVk, &formatProperties);
+    ASSERT(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_TRANSFER_DST_BIT);
+#endif
+
+    VkClearDepthStencilValue clearValue;
+    clearValue.depth = aDepthClear;
+    clearValue.stencil = aStencilClear;
+
+    VkImageSubresourceRange subRange = RenderCore_PlatformVk::ResolveSubresourceRange(aTextureView->mySubresourceRange, format);
+    vkCmdClearDepthStencilImage(myCommandBuffer, aTextureView->GetResource()->GetVkData()->myImage, imageLayout, &clearValue, 1u, &subRange);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyResource(GpuResource* aDstResource, GpuResource* aSrcResource)
   {
-    VK_MISSING_IMPLEMENTATION();
+    ASSERT(aDstResource != aSrcResource);
+    ASSERT(aDstResource->GetType() == aSrcResource->GetType());
+
+    if (aDstResource->GetType() == GpuResourceType::BUFFER)
+    {
+      GpuBuffer* dstBuffer = static_cast<GpuBuffer*>(aDstResource);
+      GpuBuffer* srcBuffer = static_cast<GpuBuffer*>(aSrcResource);
+      const uint64 size = srcBuffer->GetByteSize();
+      ASSERT(size == dstBuffer->GetByteSize());
+      CopyBuffer(dstBuffer, 0u, srcBuffer, 0u, size);
+    }
+    else
+    {
+      Texture* dstTexture = static_cast<Texture*>(aDstResource);
+      Texture* srcTexture = static_cast<Texture*>(aSrcResource);
+
+      const TextureProperties& dstTexProps = dstTexture->GetProperties();
+      const TextureProperties& srcTexProps = srcTexture->GetProperties();
+
+      const DataFormatInfo& dstFormatInfo = DataFormatInfo::GetFormatInfo(dstTexProps.myFormat);
+      const DataFormatInfo& srcFormatInfo = DataFormatInfo::GetFormatInfo(srcTexProps.myFormat);
+
+      ASSERT(dstTexProps.myWidth == srcTexProps.myWidth &&
+        dstTexProps.myHeight == srcTexProps.myHeight &&
+        dstTexProps.myDepthOrArraySize == srcTexProps.myDepthOrArraySize &&
+        dstTexProps.myDimension == srcTexProps.myDimension &&
+        dstFormatInfo.mySizeBytes == srcFormatInfo.mySizeBytes &&
+        dstFormatInfo.myNumPlanes == srcFormatInfo.myNumPlanes);
+
+      const SubresourceRange& subresourceRange = srcTexture->GetSubresources();
+      ASSERT(subresourceRange == dstTexture->GetSubresources());
+
+      const uint baseWidth = srcTexProps.myWidth;
+      const uint baseHeight = srcTexProps.myHeight;
+      const uint baseDepth = srcTexProps.IsArray() ? 1u : srcTexProps.myDepthOrArraySize;
+      const uint numArrayLayers = srcTexProps.IsArray() ? srcTexProps.myDepthOrArraySize : 1u;
+
+      const VkImageLayout srcImageLayout = Priv_CommandListVk::locResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, srcTexture, subresourceRange);
+      const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+      TrackResourceTransition(srcTexture, VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+      TrackResourceTransition(dstTexture, VK_ACCESS_TRANSFER_WRITE_BIT, dstImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+      FlushBarriers();
+
+      StaticArray<VkImageCopy, 256> copyRegions;
+      for (SubresourceIterator it = subresourceRange.Begin(); it != subresourceRange.End(); ++it)
+      {
+        const SubresourceLocation subresource = *it;
+
+        TextureRegion texelRegion;
+        texelRegion.myPos = glm::uvec3(0);
+        texelRegion.mySize.x = baseWidth >> subresource.myMipLevel;
+        texelRegion.mySize.y = baseHeight >> subresource.myMipLevel;
+        texelRegion.mySize.z = srcTexProps.IsArray() ? 1u : baseDepth >> subresource.myMipLevel;
+
+#if FANCY_RENDERER_USE_VALIDATION
+        ValidateTextureCopy(dstTexProps, subresource, texelRegion, srcTexProps, subresource, texelRegion);
+#endif
+
+        VkImageAspectFlags aspectMask = RenderCore_PlatformVk::ResolveAspectMask(subresource.myPlaneIndex, 1u, srcTexProps.myFormat);
+
+        VkImageCopy& copyRegion = copyRegions.Add();
+        copyRegion.extent.width = texelRegion.mySize.x;
+        copyRegion.extent.height = texelRegion.mySize.y;
+        copyRegion.extent.depth = texelRegion.mySize.z;
+        copyRegion.dstOffset.x = texelRegion.myPos.x;
+        copyRegion.dstOffset.y = texelRegion.myPos.y;
+        copyRegion.dstOffset.z = texelRegion.myPos.z;
+        copyRegion.srcOffset.x = texelRegion.myPos.x;
+        copyRegion.srcOffset.y = texelRegion.myPos.y;
+        copyRegion.srcOffset.z = texelRegion.myPos.z;
+        copyRegion.srcSubresource.mipLevel = subresource.myMipLevel;
+        copyRegion.srcSubresource.baseArrayLayer = subresource.myArrayIndex;
+        copyRegion.srcSubresource.layerCount = 1u;
+        copyRegion.srcSubresource.aspectMask = aspectMask;
+        copyRegion.dstSubresource.mipLevel = subresource.myMipLevel;
+        copyRegion.dstSubresource.baseArrayLayer = subresource.myArrayIndex;
+        copyRegion.dstSubresource.layerCount = 1u;
+        copyRegion.dstSubresource.aspectMask = aspectMask;
+      }
+
+      VkImage dstImage = dstTexture->GetVkData()->myImage;
+      VkImage srcImage = srcTexture->GetVkData()->myImage;
+      vkCmdCopyImage(myCommandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, copyRegions.Size(), copyRegions.GetBuffer());
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize)
   {
-    VK_MISSING_IMPLEMENTATION();
+    ASSERT(aDstBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)");
+
+#if FANCY_RENDERER_USE_VALIDATION
+    ValidateBufferCopy(aDstBuffer->GetProperties(), aDstOffset, aSrcBuffer->GetProperties(), aSrcOffset, aSize);
+#endif
+
+    TrackResourceTransition(aSrcBuffer, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackResourceTransition(aDstBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+    FlushBarriers();
+
+    const VkBuffer srcBuffer = aSrcBuffer->GetVkData()->myBuffer;
+    const VkBuffer dstBuffer = aDstBuffer->GetVkData()->myBuffer;
+
+    VkBufferCopy copyInfo;
+    copyInfo.size = aSize;
+    copyInfo.srcOffset = aSrcOffset;
+    copyInfo.dstOffset = aDstOffset;
+    vkCmdCopyBuffer(myCommandBuffer, srcBuffer, dstBuffer, 1u, &copyInfo);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyTextureToBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const
@@ -610,7 +760,7 @@ namespace Fancy
     case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
     {
       ASSERT(aView->myType == GpuResourceViewType::SRV);
-      ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::TEXTURE);
       imageLayout = Priv_CommandListVk::locResolveImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, aView->GetResource(), aView->GetSubresourceRange());
       imageView = viewDataVk.myView.myImage;
       TrackSubresourceTransition(aView->GetResource(), aView->GetSubresourceRange(), VK_ACCESS_SHADER_READ_BIT, imageLayout, pipelineStage);
@@ -618,7 +768,7 @@ namespace Fancy
     case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
     {
       ASSERT(aView->myType == GpuResourceViewType::UAV);
-      ASSERT(aView->myResource->myCategory == GpuResourceCategory::TEXTURE);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::TEXTURE);
       imageLayout = VK_IMAGE_LAYOUT_GENERAL;
       imageView = viewDataVk.myView.myImage;
       TrackSubresourceTransition(aView->GetResource(), aView->GetSubresourceRange(), VK_ACCESS_SHADER_WRITE_BIT, imageLayout, pipelineStage);
@@ -626,7 +776,7 @@ namespace Fancy
     case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
     {
       ASSERT(aView->myType == GpuResourceViewType::UAV);
-      ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
       const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
       ASSERT(bufferViewVk->GetBufferView() != nullptr);
       bufferView = bufferViewVk->GetBufferView();
@@ -635,7 +785,7 @@ namespace Fancy
     case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
     {
       ASSERT(aView->myType == GpuResourceViewType::UAV);
-      ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
       buffer = resourceDataVk->myBuffer;
       bufferOffset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
       bufferSize = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
@@ -647,7 +797,7 @@ namespace Fancy
     case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
     {
       ASSERT(aView->myType == GpuResourceViewType::SRV);
-      ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
       const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
       ASSERT(bufferViewVk->GetBufferView() != nullptr);
       bufferView = bufferViewVk->GetBufferView();
@@ -656,7 +806,7 @@ namespace Fancy
     case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
     {
       ASSERT(aView->myType == GpuResourceViewType::CBV);
-      ASSERT(aView->myResource->myCategory == GpuResourceCategory::BUFFER);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
       buffer = resourceDataVk->myBuffer;
       bufferOffset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
       bufferSize = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;

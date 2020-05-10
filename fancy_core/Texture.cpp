@@ -6,7 +6,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   Texture::Texture()
-    : GpuResource(GpuResourceCategory::TEXTURE)
+    : GpuResource(GpuResourceType::TEXTURE)
     , myIsSwapChainTexture(false)
   {
   }

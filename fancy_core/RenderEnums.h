@@ -165,7 +165,7 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class GpuResourceCategory
+  enum class GpuResourceType
   {
     TEXTURE = 0,
     BUFFER

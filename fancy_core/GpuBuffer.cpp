@@ -5,7 +5,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBuffer::GpuBuffer()
-    : GpuResource(GpuResourceCategory::BUFFER)
+    : GpuResource(GpuResourceType::BUFFER)
     , myAlignment(0u)
   {
   }

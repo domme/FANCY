@@ -880,7 +880,7 @@ namespace Fancy {
     const GpuResourceDataDX12* resourceDataDx12 = aView->myResource->myNativeData.To<GpuResourceDataDX12*>();
 
     uint64 gpuVirtualAddress = 0u;
-    if (aView->myResource->myCategory == GpuResourceCategory::BUFFER)
+    if (aView->myResource->myType == GpuResourceType::BUFFER)
       gpuVirtualAddress = resourceDataDx12->myResource->GetGPUVirtualAddress();
 
     BindInternal(resourceInfo, viewDataDx12.myDescriptor, gpuVirtualAddress, anArrayIndex);
