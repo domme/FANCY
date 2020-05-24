@@ -92,7 +92,7 @@ namespace Fancy
     const uint64 fenceVal = SignalAndIncrementFence();
     aCommandList->PostExecute(fenceVal);
 
-    if (aSyncMode == SyncMode::BLOCKING)
+    if (aSyncMode == SyncMode::BLOCKING || RenderCore::ourDebugWaitAfterEachSubmit)
       WaitForFence(fenceVal);
 
     return fenceVal;

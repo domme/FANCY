@@ -467,7 +467,7 @@ namespace Fancy
 
       if (aFirstPlaneIndex == 0)
         aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
-      if (aFirstPlaneIndex + aNumPlanes >= 1)
+      if (aFirstPlaneIndex + aNumPlanes >= 2)
         aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
     else

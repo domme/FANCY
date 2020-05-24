@@ -137,6 +137,7 @@ namespace Fancy {
     
     static Slot<void(const ShaderPipeline*)> ourOnShaderPipelineRecompiled;
     static bool ourDebugLogResourceBarriers;
+    static bool ourDebugWaitAfterEachSubmit;
 
   protected:
     RenderCore() = default;

@@ -172,7 +172,7 @@ void Render()
   GPU_BEGIN_PROFILE(ctx, "ClearRenderTarget", 0u);
   float clearColor[] = { 1.0f, 0.3f, 0.3f, 0.0f };
   ctx->ClearRenderTarget(myRenderOutput->GetBackbufferRtv(), clearColor);
-  ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), FLT_MAX, 0u);
+  ctx->ClearDepthStencilTarget(myRenderOutput->GetDepthStencilDsv(), FLT_MAX, 0u, (uint) DepthStencilClearFlags::CLEAR_DEPTH);
   GPU_END_PROFILE(ctx);
   RenderCore::ExecuteAndFreeCommandList(ctx);
 

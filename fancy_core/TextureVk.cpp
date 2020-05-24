@@ -101,6 +101,7 @@ namespace Fancy
 
         imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
+        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
         supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL);
         supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL);
         supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);

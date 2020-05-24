@@ -305,6 +305,31 @@ namespace Fancy {
     const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myNativeData.To<GpuResourceViewDataDX12>();
     ASSERT(aTextureView->myType == GpuResourceViewType::DSV);
 
+    const DataFormat format = aTextureView->GetTexture()->GetProperties().myFormat;
+    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
+    ASSERT(formatInfo.myIsDepthStencil);
+
+    const bool clearDepth = someClearFlags & (uint)DepthStencilClearFlags::CLEAR_DEPTH;
+    const bool clearStencil = someClearFlags & (uint)DepthStencilClearFlags::CLEAR_STENCIL;
+
+    const SubresourceRange& subresources = aTextureView->GetSubresourceRange();
+
+    if (clearDepth && !clearStencil)
+    {
+      ASSERT(subresources.myFirstPlane == 0, "The texture view doesn't cover the depth plane");
+    }
+    else if (clearStencil && !clearDepth)
+    {
+      ASSERT(formatInfo.myNumPlanes == 2);
+      ASSERT(subresources.myFirstPlane + subresources.myNumPlanes >= 2, "The texture view doesn't cover the stencil plane");
+    }
+    else
+    {
+      ASSERT(formatInfo.myNumPlanes == 2);
+      ASSERT(subresources.myFirstPlane == 0, "The texture view doesn't cover the depth plane");
+      ASSERT(subresources.myFirstPlane + subresources.myNumPlanes >= 2, "The texture view doesn't cover the stencil plane");
+    }
+
     TrackResourceTransition(aTextureView->GetTexture(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
     FlushBarriers();
     

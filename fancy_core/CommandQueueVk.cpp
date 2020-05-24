@@ -182,9 +182,8 @@ namespace Fancy
     if (aSyncMode == SyncMode::BLOCKING)
       WaitForFence(fenceValPostSubmit);
 
-#if FANCY_VK_WAIT_AFTER_EACH_SUBMIT
-    vkQueueWaitIdle(myQueue);
-#endif
+    if (RenderCore::ourDebugWaitAfterEachSubmit)
+      vkQueueWaitIdle(myQueue);
     
     return fenceValPostSubmit;
   }
@@ -286,6 +285,7 @@ namespace Fancy
           {
             CommandListVk::ImageMemoryBarrierData barrier;
             barrier.myImage = resource->myNativeData.To<GpuResourceDataVk*>()->myImage;
+            barrier.myFormat = static_cast<const Texture*>(resource)->GetProperties().myFormat;
             barrier.mySrcAccessMask = oldGlobalAccessMask;
             barrier.mySrcLayout = oldGlobalImageLayout;
             barrier.myDstAccessMask = localSubData.myFirstDstAccessFlags;

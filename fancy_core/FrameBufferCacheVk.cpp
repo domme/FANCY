@@ -27,7 +27,7 @@ namespace Fancy
     const bool hasDepthStencilTarget = aDepthStencilTarget != nullptr;
     if (hasDepthStencilTarget)
     {
-      const GpuResourceViewDataVk& viewDataVk = someRendertargets[aNumRenderTargets]->myNativeData.To<GpuResourceViewDataVk>();
+      const GpuResourceViewDataVk& viewDataVk = aDepthStencilTarget->myNativeData.To<GpuResourceViewDataVk>();
       attachments[aNumRenderTargets] = viewDataVk.myView.myImage;
     }
 

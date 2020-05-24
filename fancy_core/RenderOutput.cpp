@@ -86,7 +86,7 @@ namespace Fancy {
     dsTexProps.myDimension = GpuResourceDimension::TEXTURE_2D;
     dsTexProps.bIsDepthStencil = true;
     dsTexProps.myFormat = DataFormat::D_24UNORM_S_8UI;
-    dsTexProps.myIsRenderTarget = false;
+    dsTexProps.myIsRenderTarget = true;
     dsTexProps.myIsShaderWritable = false;
     dsTexProps.myWidth = width;
     dsTexProps.myHeight = height;
@@ -101,6 +101,7 @@ namespace Fancy {
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myIsRenderTarget = true;
       props.myFormat = DataFormat::D_24UNORM_S_8UI;
+      props.mySubresourceRange = dsTexture->mySubresources;
       myDepthStencilDsv = RenderCore::CreateTextureView(dsTexture, props);
       ASSERT(myDepthStencilDsv != nullptr);
 

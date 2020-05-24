@@ -57,10 +57,8 @@ namespace Fancy {
 
     CommandListType GetType() const { return myCommandListType; }
 
-    /// Clears the RenderTargetView with aColor. The texture needs to be in the WRITE_RENDERTARGET state
     virtual void ClearRenderTarget(TextureView* aTextureView, const float* aColor) = 0;
-    /// Clears the depth and stencil planes of aTextureView with aDepthClear and aStencilClear. Texture needs to be in the WRITE_RENDERTARGET state
-    virtual void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags = (uint)DepthStencilClearFlags::CLEAR_ALL) = 0;
+    virtual void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags) = 0;
     virtual void CopyResource(GpuResource* aDstResource, GpuResource* aSrcResource) = 0;
 
     virtual void CopyBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset, uint64 aSize) = 0;

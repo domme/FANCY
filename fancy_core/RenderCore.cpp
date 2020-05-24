@@ -62,6 +62,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   Slot<void(const ShaderPipeline*)> RenderCore::ourOnShaderPipelineRecompiled;
   bool RenderCore::ourDebugLogResourceBarriers = false;
+  bool RenderCore::ourDebugWaitAfterEachSubmit = false;
 
   UniquePtr<RenderCore_Platform> RenderCore::ourPlatformImpl;
   UniquePtr<TempResourcePool> RenderCore::ourTempResourcePool;
@@ -461,9 +462,11 @@ namespace Fancy {
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
 
+    const CommandLine* cmdLine = CommandLine::GetInstance();
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-    ourDebugLogResourceBarriers = CommandLine::GetInstance()->HasArgument("logBarriers");
+    ourDebugLogResourceBarriers = cmdLine->HasArgument("logBarriers");
 #endif
+    ourDebugWaitAfterEachSubmit = cmdLine->HasArgument("waitAfterSubmit");
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_2_Resources()
