@@ -23,4 +23,10 @@ namespace Fancy
     return firstQuery;
   }
 //---------------------------------------------------------------------------//
+  void GpuQueryHeap::Reset(uint64 aFrame)
+  {
+    myNextFreeQuery = 0u; 
+    myLastUsedFrame = aFrame;
+  }
+//---------------------------------------------------------------------------//
 }

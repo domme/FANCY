@@ -972,7 +972,7 @@ namespace Fancy {
     const GpuQuery query = AllocateQuery(aType);
     GpuQueryHeap* heap = RenderCore::GetQueryHeap(aType);
 
-    const GpuQueryHeapDX12* queryHeapDx12 = (const GpuQueryHeapDX12*) heap;
+    const GpuQueryHeapDX12* queryHeapDx12 = static_cast<const GpuQueryHeapDX12*>(heap);
     const D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(aType);
 
     myCommandList->BeginQuery(queryHeapDx12->myHeap.Get(), queryTypeDx12, query.myIndexInHeap);
@@ -990,7 +990,7 @@ namespace Fancy {
     const GpuQueryType queryType = aQuery.myType;
     GpuQueryHeap* heap = RenderCore::GetQueryHeap(queryType);
 
-    const GpuQueryHeapDX12* queryHeapDx12 = (const GpuQueryHeapDX12*)heap;
+    const GpuQueryHeapDX12* queryHeapDx12 = static_cast<const GpuQueryHeapDX12*>(heap);
     const D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType(queryType);
 
     myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), queryTypeDx12, aQuery.myIndexInHeap);
@@ -1002,7 +1002,7 @@ namespace Fancy {
     query.myIsOpen = false;
 
     GpuQueryHeap* heap = RenderCore::GetQueryHeap(GpuQueryType::TIMESTAMP);
-    const GpuQueryHeapDX12* queryHeapDx12 = (const GpuQueryHeapDX12*)heap;
+    const GpuQueryHeapDX12* queryHeapDx12 = static_cast<const GpuQueryHeapDX12*>(heap);
 
     myCommandList->EndQuery(queryHeapDx12->myHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, query.myIndexInHeap);
     return query;
@@ -1010,11 +1010,12 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset)
   {
-    const GpuQueryHeapDX12* queryHeapDx12 = (const GpuQueryHeapDX12*)aQueryHeap;
-    const GpuBufferDX12* bufferDx12 = (const GpuBufferDX12*)aBuffer;
+    const GpuQueryHeapDX12* queryHeapDx12 = static_cast<const GpuQueryHeapDX12*>(aQueryHeap);
+    const GpuBufferDX12* bufferDx12 = static_cast<const GpuBufferDX12*>(aBuffer);
     GpuResourceDataDX12* resourceDataDx12 = bufferDx12->GetData();
 
     TrackResourceTransition(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
+    FlushBarriers();
 
     myCommandList->ResolveQueryData(
       queryHeapDx12->myHeap.Get(),

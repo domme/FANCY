@@ -12,7 +12,7 @@ namespace Fancy
     GpuQueryHeap(GpuQueryType aQueryType, uint aNumQueries);
     virtual ~GpuQueryHeap();
 
-    void Reset(uint64 aFrame) { myNextFreeQuery = 0u; myLastUsedFrame = aFrame; }
+    virtual void Reset(uint64 aFrame);
     uint Allocate(uint aNumQueries);
 
     uint64 myLastUsedFrame = UINT64_MAX;

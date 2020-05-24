@@ -15,6 +15,7 @@
 #include "DynamicArray.h"
 #include "StaticArray.h"
 #include "DebugUtilsVk.h"
+#include "GpuQueryHeapVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -907,13 +908,29 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuQuery CommandListVk::InsertTimestamp()
   {
-    VK_MISSING_IMPLEMENTATION();
-    return GpuQuery();
+    const GpuQuery query = AllocateQuery(GpuQueryType::TIMESTAMP);
+    query.myIsOpen = false;
+
+    GpuQueryHeap* heap = RenderCore::GetQueryHeap(GpuQueryType::TIMESTAMP);
+    const GpuQueryHeapVk* queryHeapVk = static_cast<const GpuQueryHeapVk*>(heap);
+
+    VkPipelineStageFlagBits stageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    vkCmdWriteTimestamp(myCommandBuffer, stageMask, queryHeapVk->GetQueryPool(), query.myIndexInHeap);
+
+    return query;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset)
   {
-    VK_MISSING_IMPLEMENTATION();
+    const GpuQueryHeapVk* queryHeapVk = static_cast<const GpuQueryHeapVk*>(aQueryHeap);
+    GpuResourceDataVk* bufferDataVk = aBuffer->GetVkData();
+
+    TrackResourceTransition(aBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT, false);
+    FlushBarriers();
+
+    const uint64 stride = RenderCore::GetPlatformVk()->GetQueryTypeDataSize(aQueryHeap->myType);
+    const VkQueryResultFlags resultFlags = stride == sizeof(uint64) ? VK_QUERY_RESULT_64_BIT : 0u;
+    vkCmdCopyQueryPoolResults(myCommandBuffer, queryHeapVk->GetQueryPool(), aFirstQueryIndex, aNumQueries, bufferDataVk->myBuffer, aBufferOffset, stride, resultFlags);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint /* someUsageFlags = 0u*/)

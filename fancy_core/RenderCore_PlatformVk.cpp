@@ -545,6 +545,16 @@ namespace Fancy
     return imageType;
   }
 //---------------------------------------------------------------------------//
+  VkQueryType RenderCore_PlatformVk::ResolveQueryType(GpuQueryType aType)
+  {
+    switch(aType) 
+    { 
+      case GpuQueryType::TIMESTAMP: return VK_QUERY_TYPE_TIMESTAMP;
+      case GpuQueryType::OCCLUSION: return VK_QUERY_TYPE_OCCLUSION;
+      default: ASSERT(false, "Missing implementation"); return VK_QUERY_TYPE_TIMESTAMP;
+    }
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)
@@ -795,6 +805,9 @@ namespace Fancy
     myCaps.myMaxNumVertexAttributes = myPhysicalDeviceProperties.limits.maxVertexInputAttributes;
     myCaps.myCbufferPlacementAlignment = (uint) myPhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
     myCaps.myMaxTextureAnisotropy = (uint) myPhysicalDeviceProperties.limits.maxSamplerAnisotropy;
+
+    constexpr float64 nsToMs = 1e-6;
+    myTimestampTicksToMsFactor = myPhysicalDeviceProperties.limits.timestampPeriod * nsToMs;
   }
   
   RenderCore_PlatformVk::~RenderCore_PlatformVk()
@@ -882,7 +895,7 @@ namespace Fancy
   {
     return new CommandListVk(aType);
   }
-
+//---------------------------------------------------------------------------//
   CommandQueue* RenderCore_PlatformVk::CreateCommandQueue(CommandListType aType)
   {
     const QueueInfo& queueInfo = myQueueInfos[(uint)aType];
@@ -891,32 +904,35 @@ namespace Fancy
 
     return new CommandQueueVk(aType);
   }
-
+//---------------------------------------------------------------------------//
   TextureView* RenderCore_PlatformVk::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName)
   {
     return new TextureViewVk(aTexture, someProperties);
   }
-
+//---------------------------------------------------------------------------//
   GpuBufferView* RenderCore_PlatformVk::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName)
   {
     return new GpuBufferViewVk(aBuffer, someProperties);
   }
-
+//---------------------------------------------------------------------------//
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)
   {
     return new GpuQueryHeapVk(aType, aNumQueries);
   }
-
+//---------------------------------------------------------------------------//
   uint RenderCore_PlatformVk::GetQueryTypeDataSize(GpuQueryType aType)
   {
-    VK_MISSING_IMPLEMENTATION();
-    return sizeof(uint64);
+    switch (aType)
+    {
+      case GpuQueryType::TIMESTAMP: return sizeof(uint64);
+      case GpuQueryType::OCCLUSION: return sizeof(uint64);
+      default: ASSERT(false, "Missing implementation"); return sizeof(uint64);
+    }
   }
-
+//---------------------------------------------------------------------------//
   float64 RenderCore_PlatformVk::GetGpuTicksToMsFactor(CommandListType aCommandListType)
   {
-    VK_MISSING_IMPLEMENTATION();
-    return 1.0;
+    return myTimestampTicksToMsFactor;
   }
 //---------------------------------------------------------------------------//
   VkCommandBuffer RenderCore_PlatformVk::GetNewCommandBuffer(CommandListType aCommandListType)
