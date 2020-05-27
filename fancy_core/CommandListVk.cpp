@@ -16,6 +16,7 @@
 #include "StaticArray.h"
 #include "DebugUtilsVk.h"
 #include "GpuQueryHeapVk.h"
+#include "TimeManager.h"
 
 #if FANCY_ENABLE_VK
 
@@ -897,13 +898,34 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuQuery CommandListVk::BeginQuery(GpuQueryType aType)
   {
-    VK_MISSING_IMPLEMENTATION();
-    return GpuQuery(GpuQueryType::TIMESTAMP, 0u, 0ull, myCommandListType);
+    ASSERT(aType != GpuQueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
+
+    const GpuQuery query = AllocateQuery(aType);
+    GpuQueryHeap* heap = RenderCore::GetQueryHeap(aType);
+    const GpuQueryHeapVk* queryHeapVk = static_cast<const GpuQueryHeapVk*>(heap);
+
+    VkQueryControlFlags flags = 0u;
+    if (aType == GpuQueryType::OCCLUSION)
+      flags |= VK_QUERY_CONTROL_PRECISE_BIT;
+
+    vkCmdBeginQuery(myCommandBuffer, queryHeapVk->GetQueryPool(), query.myIndexInHeap, flags);
+
+    return query;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::EndQuery(const GpuQuery& aQuery)
   {
-    VK_MISSING_IMPLEMENTATION();
+    ASSERT(aQuery.myFrame == Time::ourFrameIdx);
+    ASSERT(aQuery.myType != GpuQueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
+    ASSERT(aQuery.myIsOpen);
+
+    aQuery.myIsOpen = false;
+
+    const GpuQueryType queryType = aQuery.myType;
+    GpuQueryHeap* heap = RenderCore::GetQueryHeap(queryType);
+    const GpuQueryHeapVk* queryHeapVk = static_cast<const GpuQueryHeapVk*>(heap);
+
+    vkCmdEndQuery(myCommandBuffer, queryHeapVk->GetQueryPool(), aQuery.myIndexInHeap);
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandListVk::InsertTimestamp()

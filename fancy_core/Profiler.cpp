@@ -182,8 +182,7 @@ namespace Fancy
             sample.myDuration = sample.myEnd.myTime - sample.myStart.myTime;
             sample.myHasValidTimes = true;
 
-            const SampleNodeInfo& info = GetSampleInfo(sample.myNodeInfo);
-            LOG_INFO("Frame %d Duration %0.7f", frame.myFrame, sample.myDuration);
+            // LOG_INFO("Frame %d Duration %0.7f", frame.myFrame, sample.myDuration);
           }
         }
 
