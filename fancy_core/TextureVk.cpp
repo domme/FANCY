@@ -22,7 +22,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool TextureVk::IsValid() const
   {
-    const GpuResourceDataVk* const nativeData = GetData();
+    const GpuResourceDataVk* nativeData = GetData();
     return nativeData != nullptr && nativeData->myImage != nullptr;
   }
 //---------------------------------------------------------------------------//
@@ -31,9 +31,7 @@ namespace Fancy
     Texture::SetName(aName);
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-
-    GpuResourceDataVk* const nativeData = GetData();
-
+    const GpuResourceDataVk* const nativeData = GetData();
     VkDebugUtilsObjectNameInfoEXT nameInfo = {};
     nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     nameInfo.objectHandle = (uint64)nativeData->myImage;
@@ -47,10 +45,10 @@ namespace Fancy
     ASSERT((aNumInitialDatas == 0) == (someInitialDatas == nullptr));
 
     Destroy();
-    GpuResourceDataVk* dataVk = new GpuResourceDataVk();
-    dataVk->myType = GpuResourceType::TEXTURE;
-    myNativeData = dataVk;
 
+    GpuResourceDataVk dataVk;
+    dataVk.myType = GpuResourceType::TEXTURE;
+    
     myProperties = someProperties;
     
     bool isArray = false;
@@ -84,11 +82,11 @@ namespace Fancy
     VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_MEMORY_READ_BIT;
     VkAccessFlags writeMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
 
-    DynamicArray<uint> supportedImageLayouts;
-    supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_GENERAL);
-    supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    uint supportedImageLayoutMask = 0u;
+    supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_GENERAL);
+    supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.myFormat);
     imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -101,13 +99,13 @@ namespace Fancy
 
         imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
-        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL);
-        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL);
-        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
-        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL);
-        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL);
-        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL);
+        supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL);
+        supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL);
+        supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+        supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL);
+        supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL);
+        supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL);
       }
       else
       {
@@ -116,7 +114,7 @@ namespace Fancy
 
         imageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        supportedImageLayouts.push_back(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        supportedImageLayoutMask |= RenderCore_PlatformVk::ImageLayoutToFlag(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
       }  
     }
     if (myProperties.myIsShaderWritable)
@@ -142,13 +140,13 @@ namespace Fancy
     
     mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes);
 
-    GpuResourceHazardDataVk* hazardData = &dataVk->myHazardData;
-    *hazardData = GpuResourceHazardDataVk();
+    GpuResourceHazardDataVk& hazardData = dataVk.myHazardData;
+    hazardData = GpuResourceHazardDataVk();
 
-    hazardData->myReadAccessMask = readMask;
-    hazardData->myWriteAccessMask = writeMask;
-    hazardData->myHasExclusiveQueueAccess = imageInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
-    hazardData->mySupportedImageLayouts = std::move(supportedImageLayouts);
+    hazardData.myReadAccessMask = readMask;
+    hazardData.myWriteAccessMask = writeMask;
+    hazardData.myHasExclusiveQueueAccess = imageInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
+    hazardData.mySupportedImageLayoutMask = supportedImageLayoutMask;
 
     const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
     const VkImageLayout initialImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -157,15 +155,15 @@ namespace Fancy
     subHazardData.myContext = CommandListType::Graphics;
     subHazardData.myAccessMask = 0u;
     subHazardData.myImageLayout = initialImageLayout; // Initial layout must be either UNDEFINED or PREINITIALIZED
-    hazardData->mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
+    hazardData.mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
     
     imageInfo.initialLayout = initialImageLayout;
 
     VkDevice device = platformVk->myDevice;
-    ASSERT_VK_RESULT(vkCreateImage(device, &imageInfo, nullptr, &dataVk->myImage));
+    ASSERT_VK_RESULT(vkCreateImage(device, &imageInfo, nullptr, &dataVk.myImage));
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(device, dataVk->myImage, &memRequirements);
+    vkGetImageMemoryRequirements(device, dataVk.myImage, &memRequirements);
 
     const uint memoryTypeIndex = platformVk->FindMemoryTypeIndex(memRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
@@ -174,8 +172,10 @@ namespace Fancy
     memAllocInfo.pNext = nullptr;
     memAllocInfo.allocationSize = memRequirements.size;
     memAllocInfo.memoryTypeIndex = memoryTypeIndex;
-    ASSERT_VK_RESULT(vkAllocateMemory(device, &memAllocInfo, nullptr, &dataVk->myMemory));
-    ASSERT_VK_RESULT(vkBindImageMemory(device, dataVk->myImage, dataVk->myMemory, 0));
+    ASSERT_VK_RESULT(vkAllocateMemory(device, &memAllocInfo, nullptr, &dataVk.myMemory));
+    ASSERT_VK_RESULT(vkBindImageMemory(device, dataVk.myImage, dataVk.myMemory, 0));
+
+    myNativeData = dataVk;
 
     SetName(aName != nullptr ? aName : "Texture_Unnamed");
 
@@ -183,9 +183,14 @@ namespace Fancy
       InitTextureData(someInitialDatas, aNumInitialDatas);
   }
 //---------------------------------------------------------------------------//
-  GpuResourceDataVk* TextureVk::GetData() const
+  GpuResourceDataVk* TextureVk::GetData()
   {
-    return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataVk*>();
+    return myNativeData.IsEmpty() ? nullptr : &myNativeData.To<GpuResourceDataVk>();
+  }
+//---------------------------------------------------------------------------//
+  const GpuResourceDataVk* TextureVk::GetData() const
+  {
+    return myNativeData.IsEmpty() ? nullptr : &myNativeData.To<GpuResourceDataVk>();
   }
 //---------------------------------------------------------------------------//
   void TextureVk::Destroy()
@@ -197,8 +202,6 @@ namespace Fancy
 
       if (!myIsSwapChainTexture)  // Memory is managed by the swapchain and shouldn't be released here
         vkDestroyImage(platformVk->myDevice, dataVk->myImage, nullptr);
-
-      delete dataVk;
     }
 
     myNativeData.Clear();

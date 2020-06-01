@@ -40,6 +40,8 @@ namespace Fancy
     static VkImageSubresourceRange ResolveSubresourceRange(const SubresourceRange& aRange, DataFormat aFormat);
     static VkImageType ResolveImageResourceDimension(GpuResourceDimension aDimension, bool& isArray, bool& isCubeMap);
     static VkQueryType ResolveQueryType(GpuQueryType aType);
+    static uint ImageLayoutToFlag(VkImageLayout aLayout);
+
 
     RenderCore_PlatformVk();
     ~RenderCore_PlatformVk() override;

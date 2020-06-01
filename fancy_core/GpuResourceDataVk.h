@@ -22,8 +22,8 @@ namespace Fancy
     VkAccessFlags myReadAccessMask;
     VkAccessFlags myWriteAccessMask;
     bool myHasExclusiveQueueAccess;
+    uint mySupportedImageLayoutMask;
     DynamicArray<GpuSubresourceHazardDataVk> mySubresources;
-    DynamicArray<uint> mySupportedImageLayouts;
   };
 //---------------------------------------------------------------------------//
   struct GpuResourceDataVk

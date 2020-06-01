@@ -40,8 +40,6 @@ bool test_modelviewer = false;
 bool test_sharedQueueResources = false;
 bool test_hazardTracking = false;
 
-constexpr bool kEnableImGui = true; // Deactivate IMGUI for Vulkan development?
-
 DynamicArray<UniquePtr<Test>> myTests;
 
 void OnWindowResized(uint aWidth, uint aHeight)
@@ -67,22 +65,15 @@ void Init(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArgum
   myWindow->myOnResize.Connect(onWindowResized);
   myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
 
-  if (kEnableImGui)
-  {
-    myImGuiContext = ImGui::CreateContext();
-    ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
-  }
+  myImGuiContext = ImGui::CreateContext();
+  ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 }
 
 void Update()
 {
   myRuntime->BeginFrame();
-  if (kEnableImGui)
-    ImGuiRendering::NewFrame();
+  ImGuiRendering::NewFrame();
   myRuntime->Update(0.016f);
-
-  if (!kEnableImGui)
-    return;
 
   ImGui::Checkbox("Log resource barriers", &RenderCore::ourDebugLogResourceBarriers);
 
@@ -179,8 +170,7 @@ void Render()
   for (UniquePtr<Test>& testItem : myTests)
     testItem->OnRender();
 
-  if (kEnableImGui)
-    ImGui::Render();
+  ImGui::Render();
 
   myRuntime->EndFrame();
 }

@@ -555,6 +555,33 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  uint RenderCore_PlatformVk::ImageLayoutToFlag(VkImageLayout aLayout)
+  {
+    switch (aLayout)
+    {
+      case VK_IMAGE_LAYOUT_UNDEFINED: return 0u;
+      case VK_IMAGE_LAYOUT_GENERAL: return 1 << 0;
+      case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: return 1 << 1;
+      case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: return 1 << 2;
+      case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL: return 1 << 3;
+      case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: return 1 << 4;
+      case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: return 1 << 5;
+      case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: return 1 << 6;
+      case VK_IMAGE_LAYOUT_PREINITIALIZED: return 1 << 7;
+      case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL: return 1 << 8;
+      case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL: return 1 << 9;
+      case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL: return 1 << 10;
+      case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL: return 1 << 11;
+      case VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL: return 1 << 12;
+      case VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL: return 1 << 13;
+      case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR: return 1 << 14;
+      case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR: return 1 << 15;
+      case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV: return 1 << 16;
+      case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT: return 1 << 17;
+      default: ASSERT(false, "Missing implementation"); return 0u;
+    }
+  }
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)

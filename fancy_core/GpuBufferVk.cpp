@@ -17,7 +17,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool GpuBufferVk::IsValid() const
   {
-    GpuResourceDataVk* dataVk = GetData();
+    const GpuResourceDataVk* dataVk = GetData();
     return dataVk != nullptr 
       && dataVk->myType == GpuResourceType::BUFFER 
       && dataVk->myBuffer != nullptr;
@@ -25,6 +25,14 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void GpuBufferVk::SetName(const char* aName)
   {
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    const GpuResourceDataVk* const nativeData = GetData();
+    VkDebugUtilsObjectNameInfoEXT nameInfo = {};
+    nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    nameInfo.objectHandle = (uint64)nativeData->myBuffer;
+    nameInfo.objectType = VK_OBJECT_TYPE_BUFFER;
+    nameInfo.pObjectName = aName;
+    ASSERT_VK_RESULT(platformVk->VkSetDebugUtilsObjectNameEXT(platformVk->myDevice, &nameInfo));
   }
 //---------------------------------------------------------------------------//
   void GpuBufferVk::Create(const GpuBufferProperties& someProperties, const char* aName, const void* pInitialData)
@@ -32,10 +40,9 @@ namespace Fancy
     ASSERT(someProperties.myElementSizeBytes > 0 && someProperties.myNumElements > 0, "Invalid buffer size specified");
 
     Destroy();
-    GpuResourceDataVk* dataVk = new GpuResourceDataVk();
-    dataVk->myType = GpuResourceType::BUFFER;
-    myNativeData = dataVk;
-
+    GpuResourceDataVk dataVk;
+    dataVk.myType = GpuResourceType::BUFFER;
+    
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "GpuBuffer_Unnamed";
 
@@ -95,17 +102,18 @@ namespace Fancy
 
     mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
 
-    GpuResourceHazardDataVk* hazardData = &dataVk->myHazardData;
-    *hazardData = GpuResourceHazardDataVk();
-    hazardData->myReadAccessMask = readMask;
-    hazardData->myWriteAccessMask = writeMask;
-    hazardData->myHasExclusiveQueueAccess = bufferInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
+    GpuResourceHazardDataVk& hazardData = dataVk.myHazardData;
+    hazardData = GpuResourceHazardDataVk();
+    hazardData.myReadAccessMask = readMask;
+    hazardData.myWriteAccessMask = writeMask;
+    hazardData.mySupportedImageLayoutMask = 0u;
+    hazardData.myHasExclusiveQueueAccess = bufferInfo.sharingMode == VK_SHARING_MODE_EXCLUSIVE;
     
     GpuSubresourceHazardDataVk subHazardData;
     subHazardData.myContext = CommandListType::Graphics;
     subHazardData.myImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     subHazardData.myAccessMask = 0u;
-    hazardData->mySubresources.resize(1u, subHazardData);
+    hazardData.mySubresources.resize(1u, subHazardData);
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     const uint queueFamilyIndices[] = 
@@ -118,10 +126,10 @@ namespace Fancy
     bufferInfo.queueFamilyIndexCount = caps.myHasAsyncCompute ? ARRAY_LENGTH(queueFamilyIndices) : 1;
 
     VkDevice device = platformVk->myDevice;
-    ASSERT_VK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &dataVk->myBuffer));
+    ASSERT_VK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &dataVk.myBuffer));
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, dataVk->myBuffer, &memRequirements);
+    vkGetBufferMemoryRequirements(device, dataVk.myBuffer, &memRequirements);
     ASSERT(memRequirements.alignment <= UINT_MAX);
     myAlignment = (uint) memRequirements.alignment;
 
@@ -133,8 +141,10 @@ namespace Fancy
     memAllocInfo.pNext = nullptr;
     memAllocInfo.allocationSize = memRequirements.size;
     memAllocInfo.memoryTypeIndex = memoryTypeIndex;
-    ASSERT_VK_RESULT(vkAllocateMemory(device, &memAllocInfo, nullptr, &dataVk->myMemory));
-    ASSERT_VK_RESULT(vkBindBufferMemory(device, dataVk->myBuffer, dataVk->myMemory, 0));
+    ASSERT_VK_RESULT(vkAllocateMemory(device, &memAllocInfo, nullptr, &dataVk.myMemory));
+    ASSERT_VK_RESULT(vkBindBufferMemory(device, dataVk.myBuffer, dataVk.myMemory, 0));
+
+    myNativeData = dataVk;
 
     if (pInitialData != nullptr)
     {
@@ -154,14 +164,19 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  GpuResourceDataVk* GpuBufferVk::GetData() const
+  GpuResourceDataVk* GpuBufferVk::GetData()
   {
-    return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataVk*>();
+    return myNativeData.IsEmpty() ? nullptr : &myNativeData.To<GpuResourceDataVk>();
+  }
+//---------------------------------------------------------------------------//
+  const GpuResourceDataVk* GpuBufferVk::GetData() const
+  {
+    return myNativeData.IsEmpty() ? nullptr : &myNativeData.To<GpuResourceDataVk>();
   }
 //---------------------------------------------------------------------------//
   void* GpuBufferVk::Map_Internal(uint64 anOffset, uint64 aSize) const
   {
-    GpuResourceDataVk* dataVk = GetData();
+    const GpuResourceDataVk* dataVk = GetData();
 
     const VkMemoryMapFlags mapFlags = static_cast<VkMemoryMapFlags>(0);
 
@@ -172,7 +187,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void GpuBufferVk::Unmap_Internal(GpuResourceMapMode /*aMapMode*/, uint64 /*anOffset*/, uint64 /*aSize*/) const
   {
-    GpuResourceDataVk* dataVk = GetData();
+    const GpuResourceDataVk* dataVk = GetData();
     vkUnmapMemory(RenderCore::GetPlatformVk()->myDevice, dataVk->myMemory);
   }
 //---------------------------------------------------------------------------//

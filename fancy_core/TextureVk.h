@@ -22,7 +22,8 @@ namespace Fancy {
 
     void Create(const TextureProperties& someProperties, const char* aName = nullptr, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) override;
 
-    GpuResourceDataVk* GetData() const;
+    GpuResourceDataVk* GetData();
+    const GpuResourceDataVk* GetData() const;
   protected:
     void Destroy() override;
   };

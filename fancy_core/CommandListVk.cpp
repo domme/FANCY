@@ -118,8 +118,8 @@ namespace Fancy
       }
       else
       {
-        DynamicArray<uint>& supportedLayouts = aResource->GetVkData()->myHazardData.mySupportedImageLayouts;
-        const bool supportsLayout = std::find(supportedLayouts.begin(), supportedLayouts.end(), (uint) anImageLayout) != supportedLayouts.end();
+        const uint supportedLayoutMask = aResource->GetVkData()->myHazardData.mySupportedImageLayoutMask;
+        const bool supportsLayout = (supportedLayoutMask & RenderCore_PlatformVk::ImageLayoutToFlag(anImageLayout)) != 0u;
         ASSERT(supportsLayout);
         return supportsLayout;
       }
@@ -607,7 +607,7 @@ namespace Fancy
   {
     TrackResourceTransition(aBuffer, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
 
-    GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
+    const GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
     vkCmdBindVertexBuffers(myCommandBuffer, 0u, 1u, &resourceDataVk->myBuffer, &anOffset);
   }
 //---------------------------------------------------------------------------//
@@ -618,7 +618,7 @@ namespace Fancy
 
     TrackResourceTransition(aBuffer, VK_ACCESS_INDEX_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
 
-    GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
+    const GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
     vkCmdBindIndexBuffer(myCommandBuffer, resourceDataVk->myBuffer, anOffset, indexType);
   }
 //---------------------------------------------------------------------------//
