@@ -22,6 +22,7 @@ namespace Fancy {
     , myDSVformat(DataFormat::UNKNOWN)
     , myTopologyType(TopologyType::TRIANGLE_LIST)
     , myIsDirty(true)
+    , myVertexInputLayout(nullptr)
   {
     for(DataFormat& rtvFormat : myRTVformats)
       rtvFormat = DataFormat::UNKNOWN;
@@ -38,6 +39,7 @@ namespace Fancy {
     MathUtil::hash_combine(hash, static_cast<uint>(myWindingOrder));
     MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myDepthStencilState));
     MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myBlendState));
+    MathUtil::hash_combine(hash, reinterpret_cast<uint64>(myVertexInputLayout));
     MathUtil::hash_combine(hash, myShaderPipeline != nullptr ? myShaderPipeline->GetHash() : 0u);  // TODO: This should not be needed, the shaderbytecode hash should be enough
 
     if (myShaderPipeline != nullptr)
@@ -247,12 +249,12 @@ namespace Fancy {
     return ringBuffer->GetBuffer();
   }
 //---------------------------------------------------------------------------//
-  void CommandList::BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize)
+  void CommandList::BindVertexBuffer(void* someData, uint64 aDataSize)
   {
     uint64 offset = 0u;
     const GpuBuffer* buffer = GetBuffer(offset, GpuBufferUsage::VERTEX_BUFFER, someData, aDataSize);
 
-    BindVertexBuffer(buffer, aVertexSize, offset, aDataSize);
+    BindVertexBuffers(&buffer, &offset, &aDataSize, 1u);
   }
 //---------------------------------------------------------------------------//
   void CommandList::BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize)
@@ -445,6 +447,17 @@ namespace Fancy {
     myTopologyDirty |= dirty;
     state.myIsDirty |= dirty;
     state.myTopologyType = aType;
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::SetVertexInputLayout(const VertexInputLayout* anInputLayout)
+  {
+    GraphicsPipelineState& state = myGraphicsPipelineState;
+
+    if (state.myVertexInputLayout != anInputLayout)
+    {
+      state.myIsDirty = true;
+      state.myVertexInputLayout = anInputLayout;
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandList::SetRenderTarget(TextureView* aColorTarget, TextureView* aDepthStencil)

@@ -10,14 +10,15 @@
 #include "GpuQuery.h"
 #include "CircularArray.h"
 #include "FixedArray.h"
+#include "TextureSampler.h"
 
 #include <map>
 #include <list>
-#include "TextureSampler.h"
 #include <map>
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  struct VertexInputLayoutProperties;
+  //---------------------------------------------------------------------------//
   class Mesh;
   struct MeshDesc;
   struct MeshData;
@@ -47,6 +48,7 @@ namespace Fancy {
   struct ReadbackBufferAllocation;
   class ReadbackTask;
   class TextureReadbackTask;
+  struct VertexInputLayout;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -93,6 +95,7 @@ namespace Fancy {
     static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateProperties& aDesc);
     static SharedPtr<TextureSampler> CreateTextureSampler(const TextureSamplerProperties& someProperties);
+    static SharedPtr<VertexInputLayout> CreateVertexInputLayout(const VertexInputLayoutProperties& aDesc);
     static const SharedPtr<BlendState>& GetDefaultBlendState();
     static const SharedPtr<DepthStencilState>& GetDefaultDepthStencilState();
 
@@ -173,6 +176,7 @@ namespace Fancy {
     static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
     static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
     static std::map<uint64, SharedPtr<TextureSampler>> ourSamplerCache;
+    static std::map<uint64, SharedPtr<VertexInputLayout>> ourVertexInputLayoutCache;
 
     static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static std::list<GpuRingBuffer*> ourAvailableRingBuffers;

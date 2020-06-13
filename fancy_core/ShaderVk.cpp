@@ -49,8 +49,8 @@ namespace Fancy
 
     myModule = data.myModule;
     myResourceInfos = data.myResourceInfos;
-    myVertexAttributeDesc = data.myVertexAttributeDesc;
     myBytecodeHash = data.myBytecodeHash;
+    myVertexAttributeLocations = data.myVertexAttributeLocations;
 
     myShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     myShaderStageCreateInfo.pNext = nullptr;

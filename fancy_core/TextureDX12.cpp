@@ -64,7 +64,6 @@ namespace Fancy {
     ASSERT(someProperties.myHeight > 0u || dimension == D3D12_RESOURCE_DIMENSION_TEXTURE1D, "Non-1D textures always need a nonzero height" )
     ASSERT(someProperties.myDepthOrArraySize > 0 || (!isArray && dimension != D3D12_RESOURCE_DIMENSION_TEXTURE3D), "Array or 3D-texture need a nonzero depthOrArraySize");
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive");
-    ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsRenderTarget, "Render target and depthstencil are mutually exclusive");
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.myFormat);
     ASSERT(formatInfo.myNumComponents != 3, "Texture-formats must be 1-, 2-, or 4-component");
@@ -113,13 +112,13 @@ namespace Fancy {
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (myProperties.myIsShaderWritable)
       writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    if (myProperties.myIsRenderTarget)
-      writeStateMask |= D3D12_RESOURCE_STATE_RENDER_TARGET;
     if (myProperties.bIsDepthStencil)
     {
       writeStateMask |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
       readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
     }
+    else if (myProperties.myIsRenderTarget)
+      writeStateMask |= D3D12_RESOURCE_STATE_RENDER_TARGET;
 
     const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
     // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier

@@ -7,6 +7,7 @@
 #include "RenderEnums.h"
 #include "DataFormat.h"
 #include "GpuResource.h"
+#include "VertexInputLayoutProperties.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -30,11 +31,12 @@ namespace Fancy {
     const DepthStencilState* myDepthStencilState;
     const BlendState* myBlendState;
     const ShaderPipeline* myShaderPipeline;
+    const VertexInputLayout* myVertexInputLayout;
     uint8 myNumRenderTargets;
     DataFormat myRTVformats[RenderConstants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
     TopologyType myTopologyType;
-
+    
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//
@@ -74,7 +76,7 @@ namespace Fancy {
 
     virtual void Dispatch(const glm::int3& aNumThreads) = 0;
 
-    virtual void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
+    virtual void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) = 0;
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
 
     void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName, uint anArrayIndex = 0u);
@@ -111,7 +113,7 @@ namespace Fancy {
     void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
     const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
     const GpuBuffer* GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize);
-    void BindVertexBuffer(void* someData, uint64 aDataSize, uint aVertexSize);
+    void BindVertexBuffer(void* someData, uint64 aDataSize);
     void BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize);
     void BindConstantBuffer(void* someData, uint64 aDataSize, const char* aName);
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
@@ -123,6 +125,7 @@ namespace Fancy {
     void SetCullMode(const CullMode eCullMode);
     void SetWindingOrder(const WindingOrder eWindingOrder);
     void SetTopologyType(TopologyType aType);
+    void SetVertexInputLayout(const VertexInputLayout* anInputLayout);
     void SetRenderTarget(TextureView* aColorTarget, TextureView* aDepthStencil);
     void SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil);
     void RemoveAllRenderTargets();

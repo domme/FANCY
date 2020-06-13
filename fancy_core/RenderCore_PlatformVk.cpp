@@ -555,6 +555,16 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  VkVertexInputRate RenderCore_PlatformVk::ResolveVertexInputRate(VertexInputRate aRate)
+  {
+    switch (aRate)
+    {
+      case VertexInputRate::PER_VERTEX: return VK_VERTEX_INPUT_RATE_VERTEX;
+      case VertexInputRate::PER_INSTANCE: return VK_VERTEX_INPUT_RATE_INSTANCE;
+      default: ASSERT(false, "Missing implementation"); return VK_VERTEX_INPUT_RATE_VERTEX;
+    }
+  }
+//---------------------------------------------------------------------------//
   uint RenderCore_PlatformVk::ImageLayoutToFlag(VkImageLayout aLayout)
   {
     switch (aLayout)

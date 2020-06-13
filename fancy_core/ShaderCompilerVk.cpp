@@ -39,7 +39,7 @@ namespace Fancy
       }
     }
 //---------------------------------------------------------------------------//
-    void locResolveSemantic(const char* aSemanticString, VertexSemantics& aSemanticOut, uint& aSemanticIndexOut)
+    void locResolveSemantic(const char* aSemanticString, VertexAttributeSemantic& aSemanticOut, uint& aSemanticIndexOut)
     {
       const int strLen = (int)strlen(aSemanticString);
       int indexStartPos = -1;
@@ -69,17 +69,17 @@ namespace Fancy
       }
   
       if (strncmp(aSemanticString, "POSITION", strlen("POSITION")) == 0)
-        aSemanticOut = VertexSemantics::POSITION;
+        aSemanticOut = VertexAttributeSemantic::POSITION;
       else if (strncmp(aSemanticString, "NORMAL", strlen("NORMAL")) == 0)
-        aSemanticOut = VertexSemantics::NORMAL;
+        aSemanticOut = VertexAttributeSemantic::NORMAL;
       else if (strncmp(aSemanticString, "TANGENT", strlen("TANGENT")) == 0)
-        aSemanticOut = VertexSemantics::TANGENT;
+        aSemanticOut = VertexAttributeSemantic::TANGENT;
       else if (strncmp(aSemanticString, "BINORMAL", strlen("BINORMAL")) == 0)
-        aSemanticOut = VertexSemantics::BITANGENT;
+        aSemanticOut = VertexAttributeSemantic::BINORMAL;
       else if (strncmp(aSemanticString, "TEXCOORD", strlen("TEXCOORD")) == 0)
-        aSemanticOut = VertexSemantics::TEXCOORD;
+        aSemanticOut = VertexAttributeSemantic::TEXCOORD;
       else if (strncmp(aSemanticString, "COLOR", strlen("COLOR")) == 0)
-        aSemanticOut = VertexSemantics::COLOR;
+        aSemanticOut = VertexAttributeSemantic::COLOR;
       else
         ASSERT(false, "Unrecognized vertex semantic %s", aSemanticString);
     }
@@ -180,17 +180,11 @@ namespace Fancy
       }
     }
 
-    // Build the vertex input layout in case of vertex-shader
     if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
     {
-      ShaderVertexInputLayout& vertexInputlayout = aCompilerOutput->myProperties.myVertexInputLayout;
-      vertexInputlayout.myVertexInputElements.reserve(reflectModule.input_variable_count);
-
-      DynamicArray<VkVertexInputAttributeDescription>& vertexAttributes = compiledDataVk.myVertexAttributeDesc.myVertexAttributes;
-      vertexAttributes.reserve(reflectModule.input_variable_count);
-
-      // TODO: For simplicity, the code below assumes that all vertex attributes will be pulled from only one binding buffer in interleaved format
-      uint overallVertexSize = 0u;
+      StaticArray<VertexShaderAttributeDesc, 16>& vertexAttributes = aCompilerOutput->myVertexAttributes;
+      StaticArray<uint, 16>& vertexAttributeLocations = compiledDataVk.myVertexAttributeLocations;
+      
       for (uint i = 0u; i < reflectModule.input_variable_count; ++i)
       {
         const SpvReflectInterfaceVariable& reflectedInput = reflectModule.input_variables[i];
@@ -198,33 +192,27 @@ namespace Fancy
         const DataFormat format = Priv_ShaderCompilerVk::locResolveFormat(reflectedInput.format);
         ASSERT(format != DataFormat::NONE);
 
-        const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
-
-        VertexSemantics semantic;
+        VertexAttributeSemantic semantic;
         uint semanticIndex;
         Priv_ShaderCompilerVk::locResolveSemantic(reflectedInput.semantic, semantic, semanticIndex);
-
-        ShaderVertexInputElement elem =
-        {
-          reflectedInput.name,
-          semantic,
-          semanticIndex,
-          formatInfo.mySizeBytes,
-          format,
-          (uint8) formatInfo.myNumComponents
-        };
-        vertexInputlayout.myVertexInputElements.push_back(elem);
-
-        VkVertexInputAttributeDescription attribute;
-        attribute.binding = 0;  
-        attribute.format = RenderCore_PlatformVk::ResolveFormat(format);
-        attribute.offset = overallVertexSize;
-        attribute.location = reflectedInput.location;
-        vertexAttributes.push_back(attribute);
-
-        overallVertexSize += formatInfo.mySizeBytes;
+        
+        vertexAttributes.Add({ semantic, semanticIndex, format});
+        vertexAttributeLocations.Add(reflectedInput.location);
       }
-      compiledDataVk.myVertexAttributeDesc.myOverallVertexSize = overallVertexSize;
+
+      // Create a default vertex input layout that assumes that all vertex attributes come from one interleaved vertex buffer.
+      // A custom vertex input layout can be set using using CommandList::SetVertexInputLayout()
+      uint overallVertexSize = 0u;
+      VertexInputLayoutProperties props;
+      for (uint i = 0u; i < vertexAttributes.Size(); ++i)
+      {
+        const VertexShaderAttributeDesc& shaderAttribute = vertexAttributes[i];
+        props.myAttributes.Add({ shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u });
+        overallVertexSize += DataFormatInfo::GetFormatInfo(shaderAttribute.myFormat).mySizeBytes;
+      }
+
+      props.myBufferBindings.Add({ overallVertexSize, VertexInputRate::PER_VERTEX });
+      aCompilerOutput->myDefaultVertexInputLayout = RenderCore::CreateVertexInputLayout(props);
     }
     else if (aDesc.myShaderStage == (uint)ShaderStage::COMPUTE)
     {

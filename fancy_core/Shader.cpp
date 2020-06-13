@@ -14,6 +14,8 @@ namespace Fancy {
   {
     myProperties = aCompilerOutput.myProperties;
     myDesc = aCompilerOutput.myDesc;
+    myVertexAttributes = aCompilerOutput.myVertexAttributes;
+    myDefaultVertexInputLayout = aCompilerOutput.myDefaultVertexInputLayout;
   }
 //---------------------------------------------------------------------------//
 }

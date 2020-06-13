@@ -1,8 +1,8 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
-#include "GeometryVertexLayout.h"
 #include "DynamicArray.h"
+#include "VertexInputLayoutProperties.h"
 
 namespace Fancy
 {
@@ -10,6 +10,6 @@ namespace Fancy
   {
     DynamicArray<uint8> myVertexData;
     DynamicArray<uint8> myIndexData;
-    GeometryVertexLayout myLayout;
+    VertexInputLayoutProperties myVertexLayout;
   };
 }

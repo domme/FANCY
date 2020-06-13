@@ -9,29 +9,39 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct VertexInputAttributeDesc 
   {
-    bool operator==(const VertexInputAttributeDesc& anOther) const { return memcmp(this, &anOther, sizeof(VertexInputAttributeDesc)) == 0u; }
-    VertexAttributeSemantic mySemantic = VertexAttributeSemantic::NONE;
-    DataFormat myFormat = DataFormat::NONE;
-    uint mySemanticIndex = 0u;
-    uint myBufferIndex = 0u;
-    uint myOffsetInBuffer = 0u;
+    VertexInputAttributeDesc(DataFormat aFormat = DataFormat::NONE, VertexAttributeSemantic aSemantic = VertexAttributeSemantic::NONE, 
+      uint aSemanticIndex = 0u, uint aBufferIndex = 0u)
+      : myFormat(aFormat)
+      , mySemantic(aSemantic)
+      , mySemanticIndex(aSemanticIndex)
+      , myBufferIndex(aBufferIndex)
+    { }
+
+    DataFormat myFormat;
+    VertexAttributeSemantic mySemantic;
+    uint mySemanticIndex;
+    uint myBufferIndex;
   };
 //---------------------------------------------------------------------------//
   struct VertexBufferBindDesc
   {
-    bool operator==(const VertexBufferBindDesc& anOther) const { return memcmp(this, &anOther, sizeof(VertexBufferBindDesc)) == 0; }
     uint myStride = 0u;
     VertexInputRate myInputRate = VertexInputRate::PER_VERTEX;
   };
 //---------------------------------------------------------------------------//
-  struct VertexInputLayoutDesc
+  struct VertexInputLayoutProperties
   {
-    bool operator==(const VertexInputLayoutDesc& anOther) const;
-    bool operator !=(const VertexInputLayoutDesc& anOther) const { return !operator==(anOther); }
     uint64 GetHash() const;
 
     StaticArray<VertexInputAttributeDesc, 16> myAttributes;
     StaticArray<VertexBufferBindDesc, 16> myBufferBindings;
+  };
+//---------------------------------------------------------------------------//
+  struct VertexInputLayout
+  {
+    VertexInputLayout(const VertexInputLayoutProperties& someProperties);
+    StaticArray<uint, 16> myAttributeOffsetsInBuffer;
+    VertexInputLayoutProperties myProperties;
   };
 //---------------------------------------------------------------------------//
 }

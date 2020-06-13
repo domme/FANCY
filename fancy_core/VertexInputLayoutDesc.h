@@ -24,14 +24,23 @@ namespace Fancy {
     VertexInputRate myInputRate = VertexInputRate::PER_VERTEX;
   };
 //---------------------------------------------------------------------------//
-  struct VertexInputLayoutDesc
+  struct VertexInputLayoutProperties
   {
-    bool operator==(const VertexInputLayoutDesc& anOther) const;
-    bool operator !=(const VertexInputLayoutDesc& anOther) const { return !operator==(anOther); }
+    bool operator==(const VertexInputLayoutProperties& anOther) const;
+    bool operator !=(const VertexInputLayoutProperties& anOther) const { return !operator==(anOther); }
     uint64 GetHash() const;
 
     StaticArray<VertexInputAttributeDesc, 16> myAttributes;
     StaticArray<VertexBufferBindDesc, 16> myBufferBindings;
+  };
+//---------------------------------------------------------------------------//
+  struct VertexInputLayout
+  {
+    VertexInputLayout(const VertexInputLayoutProperties& aDesc) 
+    : myDesc(aDesc)
+    { }
+
+    VertexInputLayoutProperties myDesc;
   };
 //---------------------------------------------------------------------------//
 }

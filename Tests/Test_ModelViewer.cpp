@@ -8,11 +8,12 @@
 #include "fancy_assets/Model.h"
 #include "fancy_assets/Material.h"
 #include "fancy_core/GpuResourceView.h"
-#include "fancy_core/Texture.h"
 #include "fancy_core/Mesh.h"
 #include "fancy_core/TextureSampler.h"
-#include "fancy_core/GeometryVertexLayout.h"
 #include "fancy_core/GeometryData.h"
+#include "fancy_core/ShaderPipeline.h"
+#include "fancy_core/Shader.h"
+#include "fancy_core/Texture.h"
 
 using namespace Fancy;
 
@@ -67,8 +68,10 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   myCamera.UpdateView();
   myCamera.UpdateProjection();
 
-  const bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", *(myAssetManager.get()), myScene);
-  ASSERT(importSuccess)
+  const Shader* vertexShader = myUnlitTexturedShader->GetShader(ShaderStage::VERTEX);
+
+  const bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", vertexShader->myVertexAttributes, *(myAssetManager.get()), myScene);
+  ASSERT(importSuccess);
 }
 
 Test_ModelViewer::~Test_ModelViewer()
@@ -127,16 +130,16 @@ void Test_ModelViewer::RenderGrid(Fancy::CommandList* ctx)
   struct GridGeoVertex
   {
     glm::float3 myPos;
-    glm::u8vec4 myColor;
+    glm::float4 myColor;
   };
 
   GridGeoVertex vertices[4] = {
-    { { 0.0f, 0.0f, -1.0f }, {0,0,255,255} },
+    { { 0.0f, 0.0f, -1.0f }, {0,0, 1.0f,1.0f} },
     { { 0.0f, 0.0f, 1.0f }, {0.0f, 0.0f, 1.0f, 1.0f} },
     { { -1.0f, 0.0f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f } },
     { { 1.0f, 0.0f, 0.0f },{1.0f, 0.0f, 0.0f, 1.0f } }
   };
-  ctx->BindVertexBuffer(vertices, sizeof(vertices), sizeof(vertices[0]));
+  ctx->BindVertexBuffer(vertices, sizeof(vertices));
 
   uint indices[] = {
     0, 1, 2, 3
@@ -185,12 +188,16 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     Mesh* mesh = model->myMesh.get();
     for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
     {
-      const GeometryVertexLayout& layout = geometry->getGeometryVertexLayout();
-      ctx->SetTopologyType(layout.myTopology);
-      ctx->BindVertexBuffer(geometry->getVertexBuffer(), layout.myStride);
-      ctx->BindIndexBuffer(geometry->getIndexBuffer(), geometry->getIndexBuffer()->GetProperties().myElementSizeBytes);
+      const VertexInputLayout* layout = geometry->GetVertexInputLayout();
+      ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
+      ctx->SetVertexInputLayout(layout);
+      uint64 offset = 0u;
+      uint64 size = geometry->GetVertexBuffer()->GetByteSize();
+      const GpuBuffer* buffer = geometry->GetVertexBuffer();
+      ctx->BindVertexBuffers(&buffer, &offset, &size, 1u);
+      ctx->BindIndexBuffer(geometry->GetIndexBuffer(), geometry->GetIndexBuffer()->GetProperties().myElementSizeBytes);
 
-      ctx->Render(geometry->getNumIndices(), 1, 0, 0, 0);
+      ctx->Render(geometry->GetNumIndices(), 1, 0, 0, 0);
     }
   }
 }

@@ -12,6 +12,8 @@ namespace Fancy {
   { 
     ShaderDesc myDesc;
     ShaderProperties myProperties;
+    StaticArray<VertexShaderAttributeDesc, 16> myVertexAttributes;
+    SharedPtr<VertexInputLayout> myDefaultVertexInputLayout;
     Any myNativeData;
   };
 //---------------------------------------------------------------------------//

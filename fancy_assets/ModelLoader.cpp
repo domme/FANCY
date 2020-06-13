@@ -15,7 +15,7 @@
 #include <fancy_core/MathUtil.h>
 #include <fancy_core/RenderCore.h>
 #include <fancy_core/Mesh.h>
-#include <fancy_core/VertexInputLayout.h>
+#include <fancy_core/VertexInputLayoutProperties.h>
 #include <fancy_core/PathService.h>
 #include <fancy_core/RendererPrerequisites.h>
 #include <fancy_core/MeshData.h>
@@ -25,6 +25,7 @@
 
 #include "ModelDesc.h"
 #include "fancy_core/StaticString.h"
+#include "fancy_core/StaticArray.h"
 
 namespace Fancy { namespace ModelLoader {
 //---------------------------------------------------------------------------//
@@ -70,6 +71,7 @@ namespace Fancy { namespace ModelLoader {
     const char* mySourcePath;
     const aiScene* myScene;
     uint64 mySceneFileTimeStamp;
+    StaticArray<VertexShaderAttributeDesc, 16> myVertexAttributes;
     std::unordered_map<const aiMaterial*, SharedPtr<Material>> myMaterialCache;
     std::unordered_map<uint64, SharedPtr<Mesh>> myMeshCache;
   };
@@ -98,10 +100,12 @@ namespace Fancy { namespace ModelLoader {
 
       struct ImportVertexStream
       {
-        void* mySourceData;
+        const uint8* mySourceData;
         uint mySourceDataStride;
-        VertexSemantics mySourceSemantic;
+        uint myDataSize;
+        VertexAttributeSemantic mySourceSemantic;
         uint mySourceSemanticIndex;
+        uint myReadOffset = 0u;
       };
       DynamicArray<ImportVertexStream> importStreams;
 
@@ -109,8 +113,9 @@ namespace Fancy { namespace ModelLoader {
       {
         ImportVertexStream stream;
         stream.mySourceDataStride = sizeof(aiMesh->mVertices[0]);
-        stream.mySourceData = aiMesh->mVertices;
-        stream.mySourceSemantic = VertexSemantics::POSITION;
+        stream.myDataSize = sizeof(aiMesh->mVertices[0]);
+        stream.mySourceData = reinterpret_cast<const uint8*>(aiMesh->mVertices);
+        stream.mySourceSemantic = VertexAttributeSemantic::POSITION;
         stream.mySourceSemanticIndex = 0u;
         importStreams.push_back(stream);
       }
@@ -119,8 +124,9 @@ namespace Fancy { namespace ModelLoader {
       {
         ImportVertexStream stream;
         stream.mySourceDataStride = sizeof(aiMesh->mNormals[0]);
-        stream.mySourceData = aiMesh->mNormals;
-        stream.mySourceSemantic = VertexSemantics::NORMAL;
+        stream.myDataSize = sizeof(aiMesh->mNormals[0]);
+        stream.mySourceData = reinterpret_cast<const uint8*>(aiMesh->mNormals);
+        stream.mySourceSemantic = VertexAttributeSemantic::NORMAL;
         stream.mySourceSemanticIndex = 0u;
         importStreams.push_back(stream);
       }
@@ -130,16 +136,18 @@ namespace Fancy { namespace ModelLoader {
         {
           ImportVertexStream stream;
           stream.mySourceDataStride = sizeof(aiMesh->mTangents[0]);
-          stream.mySourceData = aiMesh->mTangents;
-          stream.mySourceSemantic = VertexSemantics::TANGENT;
+          stream.myDataSize = sizeof(aiMesh->mTangents[0]);
+          stream.mySourceData = reinterpret_cast<const uint8*>(aiMesh->mTangents);
+          stream.mySourceSemantic = VertexAttributeSemantic::TANGENT;
           stream.mySourceSemanticIndex = 0u;
           importStreams.push_back(stream);
         }
         {
           ImportVertexStream stream;
           stream.mySourceDataStride = sizeof(aiMesh->mBitangents[0]);
-          stream.mySourceData = aiMesh->mBitangents;
-          stream.mySourceSemantic = VertexSemantics::BITANGENT;
+          stream.myDataSize = sizeof(aiMesh->mBitangents[0]);
+          stream.mySourceData = reinterpret_cast<const uint8*>(aiMesh->mBitangents);
+          stream.mySourceSemantic = VertexAttributeSemantic::BINORMAL;
           stream.mySourceSemanticIndex = 0u;
           importStreams.push_back(stream);
         }
@@ -151,8 +159,9 @@ namespace Fancy { namespace ModelLoader {
         {
           ImportVertexStream stream;
           stream.mySourceDataStride = sizeof(aiMesh->mTextureCoords[iUVchannel][0]);
-          stream.mySourceData = aiMesh->mTextureCoords[iUVchannel];
-          stream.mySourceSemantic = VertexSemantics::TEXCOORD;
+          stream.myDataSize = sizeof(aiMesh->mTextureCoords[iUVchannel][0].x) * aiMesh->mNumUVComponents[iUVchannel];
+          stream.mySourceData = reinterpret_cast<const uint8*>(aiMesh->mTextureCoords[iUVchannel]);
+          stream.mySourceSemantic = VertexAttributeSemantic::TEXCOORD;
           stream.mySourceSemanticIndex = iUVchannel;
           importStreams.push_back(stream);
         }
@@ -164,8 +173,8 @@ namespace Fancy { namespace ModelLoader {
         {
           ImportVertexStream stream;
           stream.mySourceDataStride = sizeof(aiMesh->mColors[iColorChannel][0]);
-          stream.mySourceData = aiMesh->mColors[iColorChannel];
-          stream.mySourceSemantic = VertexSemantics::COLOR;
+          stream.mySourceData = reinterpret_cast<const uint8*>(aiMesh->mColors[iColorChannel]);
+          stream.mySourceSemantic = VertexAttributeSemantic::COLOR;
           stream.mySourceSemanticIndex = iColorChannel;
           importStreams.push_back(stream);
         }
@@ -173,113 +182,66 @@ namespace Fancy { namespace ModelLoader {
 
       ASSERT(importStreams.size() <= RenderCore::GetPlatformCaps().myMaxNumVertexAttributes);
 
-      const ShaderVertexInputLayout* expectedLayout = &ShaderVertexInputLayout::ourDefaultModelLayout;
-      const DynamicArray<ShaderVertexInputElement>& expectedInputList = expectedLayout->myVertexInputElements;
-
-      // Check if we need additional patching-streams when the model-shaders expect more data than this model has
-
-      DynamicArray<ImportVertexStream> actualImportStreams;
-      actualImportStreams.resize(expectedInputList.size());
-
-      DynamicArray<void*> patchingDatas;
-
-      for (uint i = 0u; i < expectedInputList.size(); ++i)
+      const StaticArray<VertexShaderAttributeDesc, 16>& expectedAttributes = aProcessData.myVertexAttributes;
+      uint attributeSizes[16] = { 0u };
+      int importStreamForAttribute[16];
+      for (uint i = 0u; i < 16; ++i)
+        importStreamForAttribute[i] = -1;
+      uint overallVertexSize = 0u;
+      for (uint i = 0u; i < expectedAttributes.Size(); ++i)
       {
-        const ShaderVertexInputElement& expectedElem = expectedInputList[i];
-
-        bool foundInImportStreams = false;
+        const VertexShaderAttributeDesc& expectedAttribute = expectedAttributes[i];
+        uint expectedSize = DataFormatInfo::GetFormatInfo(expectedAttribute.myFormat).mySizeBytes;
+        attributeSizes[i] = expectedSize;
+        overallVertexSize += expectedSize;
         for (uint k = 0u; k < importStreams.size(); ++k)
         {
-          ImportVertexStream& stream = importStreams[k];
-
-          if (expectedElem.mySemantics != stream.mySourceSemantic)
-            continue;
-
-          foundInImportStreams = true;
-
-          // Stride-mismatch? Then we have to patch! 
-          // Either we have more data we need or not enough. Below accounts for both cases
-          if (stream.mySourceDataStride != expectedElem.mySizeBytes)
+          const ImportVertexStream& stream = importStreams[k];
+          if (stream.mySourceSemantic == expectedAttribute.mySemantic && stream.mySourceSemanticIndex == expectedAttribute.mySemanticIndex)
           {
-            void* patchedData = malloc(expectedElem.mySizeBytes * aiMesh->mNumVertices);
-            patchingDatas.push_back(patchedData);
+            ASSERT(stream.myDataSize == expectedSize, "Mismatching vertex attribute size for semantic %d: Expected %d bytes - has %d bytes",
+              (uint) expectedAttribute.mySemantic, expectedSize, stream.myDataSize);
+            importStreamForAttribute[i] = (int) k;
+            break;
+          }
+        }
+      }
 
-            for (uint iVertex = 0u; iVertex < aiMesh->mNumVertices; ++iVertex)
-            {
-              uint8* dest = ((uint8*)patchedData) + iVertex * expectedElem.mySizeBytes;
-              uint8* src = ((uint8*)stream.mySourceData) + iVertex * stream.mySourceDataStride;
+      // Create an interleaved vertex buffer
+      MeshData meshData;
+      meshData.myVertexData.resize(overallVertexSize * aiMesh->mNumVertices);
 
-              memcpy(dest, src, glm::min(expectedElem.mySizeBytes, stream.mySourceDataStride));
-
-              if (expectedElem.mySizeBytes > stream.mySourceDataStride)
-                memset(dest + stream.mySourceDataStride, 0, (expectedElem.mySizeBytes - stream.mySourceDataStride));
-            }
-
-            stream.mySourceDataStride = expectedElem.mySizeBytes;
-            stream.mySourceData = patchedData;
+      uint8* dstPtr = meshData.myVertexData.data();
+      for (uint v = 0u; v < aiMesh->mNumVertices; ++v)
+      {
+        for (uint i = 0u; i < expectedAttributes.Size(); ++i)
+        {
+          if (importStreamForAttribute[i] != -1)
+          {
+            ImportVertexStream& stream = importStreams[importStreamForAttribute[i]];
+            ASSERT(attributeSizes[i] <= stream.myDataSize);
+            memcpy(dstPtr, stream.mySourceData + stream.myReadOffset, attributeSizes[i]);
+            stream.myReadOffset += stream.mySourceDataStride;
+          }
+          else
+          {
+            memset(dstPtr, 0u, attributeSizes[i]);
           }
 
-          actualImportStreams[i] = stream;
-        }
-
-        // Is this semantic missing entirely? 
-        if (!foundInImportStreams)
-        {
-          void* patchedData = malloc(expectedElem.mySizeBytes * aiMesh->mNumVertices);
-          patchingDatas.push_back(patchedData);
-          memset(patchedData, 0, expectedElem.mySizeBytes * aiMesh->mNumVertices);
-
-          actualImportStreams[i].mySourceDataStride = expectedElem.mySizeBytes;
-          actualImportStreams[i].mySourceData = patchedData;
-          actualImportStreams[i].mySourceSemantic = expectedElem.mySemantics;
-          actualImportStreams[i].mySourceSemanticIndex = expectedElem.mySemanticIndex;
+          dstPtr += attributeSizes[i];
         }
       }
 
-      // Construct the vertex layout description.
-      // After doing the patching-work above, this can be set up to exactly match the input layout expected by the shaders
-      GeometryVertexLayout vertexLayout;
+      VertexBufferBindDesc bufferBindDesc;
+      bufferBindDesc.myInputRate = VertexInputRate::PER_VERTEX;
+      bufferBindDesc.myStride = overallVertexSize;
+      meshData.myVertexLayout.myBufferBindings.Add(bufferBindDesc);
 
-      uint offset = 0u;
-      for (uint i = 0u; i < expectedInputList.size(); ++i)
+      for (uint i = 0u; i < expectedAttributes.Size(); ++i)
       {
-        const ShaderVertexInputElement& expectedInput = expectedInputList[i];
-
-        GeometryVertexElement vertexElem;
-        vertexElem.u32OffsetBytes = offset;
-        vertexElem.eFormat = expectedInput.myFormat;
-        vertexElem.mySemanticIndex = expectedInput.mySemanticIndex;
-        vertexElem.eSemantics = expectedInput.mySemantics;
-        vertexElem.name = expectedInput.myName;
-        vertexElem.u32SizeBytes = expectedInput.mySizeBytes;
-
-        offset += vertexElem.u32SizeBytes;
-        vertexLayout.addVertexElement(vertexElem);
+        const VertexShaderAttributeDesc& expectedAttribute = expectedAttributes[i];
+        meshData.myVertexLayout.myAttributes.Add({ expectedAttribute.myFormat, expectedAttribute.mySemantic, expectedAttribute.mySemanticIndex, 0u });
       }
-
-      MeshData meshData;
-      meshData.myLayout = vertexLayout;
-      meshData.myVertexData.resize(vertexLayout.myStride * aiMesh->mNumVertices);
-
-      // Construct an interleaved vertex array
-      for (uint iVertex = 0u; iVertex < aiMesh->mNumVertices; ++iVertex)
-      {
-        for (uint iVertexElement = 0u; iVertexElement < vertexLayout.myElements.size(); ++iVertexElement)
-        {
-          const GeometryVertexElement& vertexElem = vertexLayout.myElements[iVertexElement];
-          uint destInterleavedOffset = iVertex * vertexLayout.myStride + vertexElem.u32OffsetBytes;
-          uint srcOffset = iVertex * actualImportStreams[iVertexElement].mySourceDataStride;
-
-          uint8* dest = (meshData.myVertexData.data()) + destInterleavedOffset;
-          uint8* src = ((uint8*)actualImportStreams[iVertexElement].mySourceData) + srcOffset;
-
-          memcpy(dest, src, vertexElem.u32SizeBytes);
-        }
-      }
-
-      for (uint i = 0u; i < patchingDatas.size(); ++i)
-        free(patchingDatas[i]);
-      patchingDatas.clear();
 
       /// Construct the index buffer
 #if defined (FANCY_IMPORTER_USE_VALIDATION)
@@ -462,7 +424,7 @@ namespace Fancy { namespace ModelLoader {
     return true;
   }
 
-  bool LoadFromFile(const char* aPath, AssetManager& aStorage, Scene& aSceneOut, ImportOptions someImportOptions/* = ALL*/)
+  bool LoadFromFile(const char* aPath, const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes, AssetManager& aStorage, Scene& aSceneOut, ImportOptions someImportOptions/* = ALL*/)
   {
     ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 
@@ -478,6 +440,7 @@ namespace Fancy { namespace ModelLoader {
     data.myScene = importedScene;
     data.mySourcePath = aPath;
     data.mySceneFileTimeStamp = Path::GetFileWriteTime(pathAbs.c_str());
+    data.myVertexAttributes = someVertexAttributes;
 
     aiNode* rootNode = importedScene->mRootNode;
     return ProcessNodeRecursive(rootNode, matFromAiMat(rootNode->mTransformation), data, aStorage, aSceneOut);

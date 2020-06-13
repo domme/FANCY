@@ -10,17 +10,11 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct ShaderCompilerResult;
 //---------------------------------------------------------------------------//
-  struct ShaderVertexAttributeDescVk
-  {
-    DynamicArray<VkVertexInputAttributeDescription> myVertexAttributes;
-    uint myOverallVertexSize;
-  };
-//---------------------------------------------------------------------------//
   struct ShaderCompiledDataVk
   {
     VkShaderModule myModule = nullptr;
     DynamicArray<ShaderResourceInfoVk> myResourceInfos;
-    ShaderVertexAttributeDescVk myVertexAttributeDesc;
+    StaticArray<uint, 16> myVertexAttributeLocations;
     uint64 myBytecodeHash = 0ull;
   };
 //---------------------------------------------------------------------------//
@@ -42,9 +36,8 @@ namespace Fancy
     
     VkShaderModule myModule = nullptr;
     VkPipelineShaderStageCreateInfo myShaderStageCreateInfo = {};
-    VkPipelineVertexInputStateCreateInfo myVertexInputCreateInfo = {};
+    StaticArray<uint, 16> myVertexAttributeLocations;
     DynamicArray<ShaderResourceInfoVk> myResourceInfos;
-    ShaderVertexAttributeDescVk myVertexAttributeDesc;
     uint64 myBytecodeHash = 0ull;
   };
 //---------------------------------------------------------------------------//

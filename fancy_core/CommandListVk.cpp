@@ -603,12 +603,20 @@ namespace Fancy
     return static_cast<const ShaderPipelineVk*>(myComputePipelineState.myShaderPipeline);
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset, uint64 /*aSize*/)
+  void CommandListVk::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* /*someSizes*/, uint aNumBuffers)
   {
-    TrackResourceTransition(aBuffer, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
+    ASSERT(!myGraphicsPipelineState.myVertexInputLayout.myBufferBindings.IsEmpty());
+    ASSERT(aNumBuffers == myGraphicsPipelineState.myVertexInputLayout.myBufferBindings.Size());
 
-    const GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
-    vkCmdBindVertexBuffers(myCommandBuffer, 0u, 1u, &resourceDataVk->myBuffer, &anOffset);
+    StaticArray<VkBuffer, 16> vkBuffers;
+    for (uint i = 0u; i < aNumBuffers; ++i)
+    {
+      TrackResourceTransition(someBuffers[i], VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
+      const GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(someBuffers[i])->GetData();
+      vkBuffers.Add(resourceDataVk->myBuffer);
+    }
+
+    vkCmdBindVertexBuffers(myCommandBuffer, 0u, aNumBuffers, vkBuffers.GetBuffer(), someOffsets);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset, uint64 /*aSize*/)

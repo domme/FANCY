@@ -1,9 +1,9 @@
 #include "fancy_core_precompile.h"
-#include "VertexInputLayoutDesc.h"
+#include "VertexInputLayoutProperties.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  bool VertexInputLayoutDesc::operator==(const VertexInputLayoutDesc& anOther) const
+  bool VertexInputLayoutProperties::operator==(const VertexInputLayoutProperties& anOther) const
   {
     if (myAttributes.Size() != anOther.myAttributes.Size())
       return false;
@@ -22,7 +22,7 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//
-  uint64 VertexInputLayoutDesc::GetHash() const
+  uint64 VertexInputLayoutProperties::GetHash() const
   {
     if (myAttributes.IsEmpty() && myBufferBindings.IsEmpty())
       return 0ull;

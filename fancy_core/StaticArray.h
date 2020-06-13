@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
+#include "Log.h"
 
 namespace Fancy
 {
@@ -161,6 +162,7 @@ namespace Fancy
     bool IsEmpty() const { return mySize == 0u; }
     bool IsFull() const { return mySize == N; }
     uint Size() const { return mySize; }
+    uint64 ByteSize() const { return sizeof(T) * mySize; }
     static uint Capacity() { return N; }
     T* GetBuffer() { return myData; }
     const T* GetBuffer() const { return myData; }

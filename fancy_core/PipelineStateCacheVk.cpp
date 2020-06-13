@@ -77,21 +77,59 @@ namespace Fancy
 
     // Vertex input state
     const ShaderVk* vertexShader = static_cast<const ShaderVk*>(aState.myShaderPipeline->GetShader(ShaderStage::VERTEX));
+    const VertexInputLayout* inputLayout = aState.myVertexInputLayout ? aState.myVertexInputLayout : vertexShader->myDefaultVertexInputLayout.get();
+    ASSERT(inputLayout);
 
-    VkVertexInputBindingDescription vertexBindingDesc = {};
-    vertexBindingDesc.binding = 0;
-    vertexBindingDesc.stride = vertexShader->myVertexAttributeDesc.myOverallVertexSize;
-    vertexBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    StaticArray<VkVertexInputBindingDescription, 16> bindingDescs;
+    StaticArray<VkVertexInputAttributeDescription, 16> vkAttributeDescs;
 
-    // TODO: Rework this part so that the user can define how the vertex-binding is to be set up.
+    const VertexInputLayoutProperties& inputLayoutProps = inputLayout->myProperties;
+    for (uint i = 0u; i < inputLayoutProps.myBufferBindings.Size(); ++i)
+    {
+      VkVertexInputBindingDescription& bindingDesc = bindingDescs.Add();
+      bindingDesc.binding = i;
+      bindingDesc.inputRate = RenderCore_PlatformVk::ResolveVertexInputRate(inputLayoutProps.myBufferBindings[i].myInputRate);
+      bindingDesc.stride = inputLayoutProps.myBufferBindings[i].myStride;
+    }
+
+    const StaticArray<VertexShaderAttributeDesc, 16>& shaderAttributes = vertexShader->myVertexAttributes;
+    const StaticArray<uint, 16>& shaderAttributeLocations = vertexShader->myVertexAttributeLocations;
+    const StaticArray<VertexInputAttributeDesc, 16>& inputAttributes = inputLayoutProps.myAttributes;
+    for (uint i = 0u; i < shaderAttributes.Size(); ++i)
+    {
+      const VertexShaderAttributeDesc& shaderAttribute = shaderAttributes[i];
+      const uint shaderAttributeLocation = shaderAttributeLocations[i];
+      int inputAttributeIndex = -1;
+      for (uint k = 0u; k < inputAttributes.Size(); ++k)
+      {
+        const VertexInputAttributeDesc& input = inputAttributes[k];
+        if (shaderAttribute.mySemantic == input.mySemantic && shaderAttribute.mySemanticIndex == input.mySemanticIndex)
+        {
+          inputAttributeIndex = (int) k;
+          break;
+        }
+      }
+
+      if (inputAttributeIndex != -1)
+      {
+        const VertexInputAttributeDesc& input = inputAttributes[inputAttributeIndex];
+        VkVertexInputAttributeDescription& attributeDesc = vkAttributeDescs.Add();
+        ASSERT(input.myBufferIndex < bindingDescs.Size());
+        attributeDesc.binding = input.myBufferIndex;
+        attributeDesc.format = RenderCore_PlatformVk::ResolveFormat(input.myFormat);
+        attributeDesc.location = shaderAttributeLocation;
+        attributeDesc.offset = inputLayout->myAttributeOffsetsInBuffer[inputAttributeIndex];
+      }
+    }
+
     VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
     vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputCreateInfo.pNext = nullptr;
     vertexInputCreateInfo.flags = 0u;
-    vertexInputCreateInfo.pVertexAttributeDescriptions = vertexShader->myVertexAttributeDesc.myVertexAttributes.data();
-    vertexInputCreateInfo.vertexAttributeDescriptionCount = (uint)vertexShader->myVertexAttributeDesc.myVertexAttributes.size();
-    vertexInputCreateInfo.pVertexBindingDescriptions = &vertexBindingDesc;
-    vertexInputCreateInfo.vertexBindingDescriptionCount = 1u;
+    vertexInputCreateInfo.pVertexAttributeDescriptions = vkAttributeDescs.GetBuffer();
+    vertexInputCreateInfo.vertexAttributeDescriptionCount = vkAttributeDescs.Size();
+    vertexInputCreateInfo.pVertexBindingDescriptions = bindingDescs.GetBuffer();
+    vertexInputCreateInfo.vertexBindingDescriptionCount = bindingDescs.Size();
 
     pipelineCreateInfo.pVertexInputState = &vertexInputCreateInfo;
 

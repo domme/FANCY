@@ -11,7 +11,7 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  const uint kMeshVersion = 1;
+  const uint kMeshVersion = 3;
   const uint kTextureVersion = 4;
 //---------------------------------------------------------------------------//
   enum SERIALIZE_MODE
@@ -241,24 +241,33 @@ namespace Fancy {
     {
       const GeometryData* geoData = vGeoData[i].get();
 
-      const GeometryVertexLayout& vertexLayout = geoData->getGeometryVertexLayout();
-      const DynamicArray<GeometryVertexElement>& vVertexElements = vertexLayout.myElements;
-      const uint64 numVertexElements = vVertexElements.size();
+      const VertexInputLayoutProperties& vertexLayout = geoData->GetVertexInputLayout()->myProperties;
+      const StaticArray<VertexInputAttributeDesc, 16>& vertexAttributes = vertexLayout.myAttributes;
+      const uint numVertexElements = vertexAttributes.Size();
       serializer.Write(numVertexElements);
 
-      for (uint iVertexElem = 0u; iVertexElem < vVertexElements.size(); ++iVertexElem)
+      for (uint iVertexElem = 0u; iVertexElem < vertexAttributes.Size(); ++iVertexElem)
       {
-        const GeometryVertexElement& vertexElement = vVertexElements[iVertexElem];
-        serializer.Write(vertexElement.name);
-        serializer.Write((uint) vertexElement.eSemantics);
-        serializer.Write(vertexElement.u32OffsetBytes);
-        serializer.Write(vertexElement.u32SizeBytes);
-        serializer.Write((uint)vertexElement.eFormat);
+        const VertexInputAttributeDesc& vertexElement = vertexAttributes[iVertexElem];
+        serializer.Write((uint) vertexElement.myFormat);
+        serializer.Write(vertexElement.myBufferIndex);
+        serializer.Write((uint) vertexElement.mySemantic);
+        serializer.Write(vertexElement.mySemanticIndex);
+      }
+
+      const StaticArray<VertexBufferBindDesc, 16>& vertexBuffers = vertexLayout.myBufferBindings;
+      serializer.Write(vertexBuffers.Size());
+
+      for (uint iBuffer = 0u; iBuffer < vertexBuffers.Size(); ++iBuffer)
+      {
+        const VertexBufferBindDesc& buffer = vertexBuffers[iBuffer];
+        serializer.Write((uint)buffer.myInputRate);
+        serializer.Write(buffer.myStride);
       }
 
       // Vertex data
       {
-        const GpuBuffer* buffer = geoData->getVertexBuffer();
+        const GpuBuffer* buffer = geoData->GetVertexBuffer();
         const GpuBufferProperties& bufferParams = buffer->GetProperties();
         serializer.Write(reinterpret_cast<const uint8*>(&bufferParams), sizeof(GpuBufferProperties));
         const uint64 buffersize = buffer->GetByteSize();
@@ -268,7 +277,7 @@ namespace Fancy {
 
       // Index data
       {
-        const GpuBuffer* buffer = geoData->getIndexBuffer();
+        const GpuBuffer* buffer = geoData->GetIndexBuffer();
         const GpuBufferProperties& bufferParams = buffer->GetProperties();
         serializer.Write(reinterpret_cast<const uint8*>(&bufferParams), sizeof(GpuBufferProperties));
         const uint64 buffersize = buffer->GetByteSize();
@@ -312,29 +321,37 @@ namespace Fancy {
       SharedPtr<GeometryData> geoData(FANCY_NEW(GeometryData, MemoryCategory::Geometry));
       vGeoDatas[i] = geoData;
 
-      GeometryVertexLayout vertexLayout;
-      uint64 numVertexElements;
+      VertexInputLayoutProperties vertexLayout;
+      uint numVertexElements;
       serializer.Read(numVertexElements);
 
       for (uint iVertexElem = 0u; iVertexElem < numVertexElements; ++iVertexElem)
       {
-        GeometryVertexElement elem;
-
-        serializer.Read(elem.name);
-        uint semantics;
-        serializer.Read(semantics);
-        elem.eSemantics = static_cast<VertexSemantics>(semantics);
-        serializer.Read(elem.u32OffsetBytes);
-        serializer.Read(elem.u32SizeBytes);
+        VertexInputAttributeDesc elem;
         uint format;
         serializer.Read(format);
-        elem.eFormat = static_cast<DataFormat>(format);
-
-        vertexLayout.addVertexElement(elem);
+        elem.myFormat = static_cast<DataFormat>(format);
+        serializer.Read(elem.myBufferIndex);
+        uint semantic;
+        serializer.Read(semantic);
+        elem.mySemantic = static_cast<VertexAttributeSemantic>(semantic);
+        serializer.Read(elem.mySemanticIndex);
+        vertexLayout.myAttributes.Add(elem);
       }
 
-      geoData->setVertexLayout(vertexLayout);
+      uint numBufferBindings;
+      serializer.Read(numBufferBindings);
 
+      for (uint iBufferBinding = 0u; iBufferBinding < numBufferBindings; ++iBufferBinding)
+      {
+        VertexBufferBindDesc buffer;
+        uint inputRate;
+        serializer.Read(inputRate);
+        buffer.myInputRate = static_cast<VertexInputRate>(inputRate);
+        serializer.Read(buffer.myStride);
+      }
+
+      geoData->SetVertexLayout(RenderCore::CreateVertexInputLayout(vertexLayout));
 
       // Vertex data
       {
@@ -348,7 +365,7 @@ namespace Fancy {
 
         String name = "VertexBuffer_Mesh_" + aDesc.myUniqueName;
         SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, name.c_str(), bufferData);
-        geoData->setVertexBuffer(buffer);
+        geoData->SetVertexBuffer(buffer);
 
         FANCY_FREE(bufferData, MemoryCategory::Geometry);
       }
@@ -365,7 +382,7 @@ namespace Fancy {
 
         String name = "IndexBuffer_Mesh_" + aDesc.myUniqueName;
         SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, name.c_str(), bufferData);
-        geoData->setIndexBuffer(buffer);
+        geoData->SetIndexBuffer(buffer);
 
         FANCY_FREE(bufferData, MemoryCategory::Geometry);
       }

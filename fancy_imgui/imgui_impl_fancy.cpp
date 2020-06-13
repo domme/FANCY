@@ -37,6 +37,7 @@ namespace Fancy { namespace ImGuiRendering {
   SharedPtr<BlendState> ourBlendState;
   SharedPtr<DepthStencilState> ourDepthStencilState;
   SharedPtr<TextureSampler> ourSampler;
+  SharedPtr<VertexInputLayout> ourInputLayout;
       
   HWND ourHwnd = nullptr;
   INT64 ourTicksPerSecond = 0;
@@ -210,6 +211,15 @@ namespace Fancy { namespace ImGuiRendering {
       ourDepthStencilState = RenderCore::CreateDepthStencilState(desc);
       ASSERT(ourDepthStencilState != nullptr);
     }
+
+    {
+      VertexInputLayoutProperties inputLayout;
+      inputLayout.myAttributes.Add(VertexInputAttributeDesc(DataFormat::RG_32F, VertexAttributeSemantic::POSITION));
+      inputLayout.myAttributes.Add(VertexInputAttributeDesc(DataFormat::RG_32F, VertexAttributeSemantic::TEXCOORD));
+      inputLayout.myAttributes.Add(VertexInputAttributeDesc(DataFormat::R_32UI, VertexAttributeSemantic::COLOR));
+      inputLayout.myBufferBindings.Add({ sizeof(ImDrawVert), VertexInputRate::PER_VERTEX });
+      ourInputLayout = RenderCore::CreateVertexInputLayout(inputLayout);
+    }
     
     return true;
   }
@@ -262,6 +272,7 @@ namespace Fancy { namespace ImGuiRendering {
     ctx->SetFillMode(FillMode::SOLID);
     ctx->SetWindingOrder(WindingOrder::CCW);
     ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
+    ctx->SetVertexInputLayout(ourInputLayout.get());
     ctx->SetShaderPipeline(ourProgramPipeline.get());
     ctx->BindSampler(ourSampler.get(), "sampler_default");
 
@@ -289,7 +300,7 @@ namespace Fancy { namespace ImGuiRendering {
     {
       const ImDrawList* cmd_list = _draw_data->CmdLists[iCmdList];
 
-      ctx->BindVertexBuffer(cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), sizeof(ImDrawVert));
+      ctx->BindVertexBuffer(cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
       ctx->BindIndexBuffer(cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), sizeof(ImDrawIdx));
 
       uint cmdIndexOffset = 0;

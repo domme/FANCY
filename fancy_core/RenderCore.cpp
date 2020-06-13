@@ -80,6 +80,7 @@ namespace Fancy {
   std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
   std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
   std::map<uint64, SharedPtr<TextureSampler>> RenderCore::ourSamplerCache;
+  std::map<uint64, SharedPtr<VertexInputLayout>> RenderCore::ourVertexInputLayoutCache;
   
   DynamicArray<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
@@ -835,6 +836,19 @@ namespace Fancy {
     return sampler;
   }
 //---------------------------------------------------------------------------//
+  SharedPtr<VertexInputLayout> RenderCore::CreateVertexInputLayout(const VertexInputLayoutProperties& aDesc)
+  {
+    const uint64 hash = aDesc.GetHash();
+
+    auto it = ourVertexInputLayoutCache.find(hash);
+    if (it != ourVertexInputLayoutCache.end())
+      return it->second;
+
+    SharedPtr<VertexInputLayout> layout(new VertexInputLayout(aDesc));
+    ourVertexInputLayoutCache.insert(std::make_pair(hash, layout));
+    return layout;
+  }
+//---------------------------------------------------------------------------//
   const SharedPtr<BlendState>& RenderCore::GetDefaultBlendState()
   {
     return ourDefaultBlendState;
@@ -866,13 +880,14 @@ namespace Fancy {
     for (uint i = 0u; i < aNumMeshDatas; ++i)
     {
       const MeshData& meshData = someMeshDatas[i];
-      const GeometryVertexLayout& vertexLayout = meshData.myLayout;
+      const VertexInputLayoutProperties& vertexLayoutProperties = meshData.myVertexLayout;
+      SharedPtr<VertexInputLayout> vertexLayout = CreateVertexInputLayout(vertexLayoutProperties);
 
       SharedPtr<GeometryData> pGeometryData (FANCY_NEW(GeometryData, MemoryCategory::GEOMETRY));
 
       // Construct the vertex buffer
       const uint8* ptrToVertexData = meshData.myVertexData.data();
-      const uint64 numVertices = (meshData.myVertexData.size() * sizeof(uint8)) / vertexLayout.myStride;
+      const uint64 numVertices = (meshData.myVertexData.size() * sizeof(uint8)) / vertexLayout->myProperties.myBufferBindings[0].myStride;
 
       SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateBuffer());
 
@@ -880,12 +895,12 @@ namespace Fancy {
       bufferParams.myBindFlags = (uint) GpuBufferBindFlags::VERTEX_BUFFER;
       bufferParams.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
       bufferParams.myNumElements = numVertices;
-      bufferParams.myElementSizeBytes = vertexLayout.myStride;
+      bufferParams.myElementSizeBytes = vertexLayout->myProperties.myBufferBindings[0].myStride;
 
       String name = "VertexBuffer_Mesh_" + aDesc.myUniqueName;
       vertexBuffer->Create(bufferParams, name.c_str(), ptrToVertexData);
-      pGeometryData->setVertexLayout(vertexLayout);
-      pGeometryData->setVertexBuffer(vertexBuffer);
+      pGeometryData->SetVertexLayout(vertexLayout);
+      pGeometryData->SetVertexBuffer(vertexBuffer);
 
       // Construct the index buffer
       const uint8* ptrToIndexData = meshData.myIndexData.data();
@@ -901,7 +916,7 @@ namespace Fancy {
 
       name = "IndexBuffer_Mesh_" + aDesc.myUniqueName;
       indexBuffer->Create(indexBufParams, name.c_str(), ptrToIndexData);
-      pGeometryData->setIndexBuffer(indexBuffer);
+      pGeometryData->SetIndexBuffer(indexBuffer);
 
       vGeometryDatas.push_back(pGeometryData);
     }

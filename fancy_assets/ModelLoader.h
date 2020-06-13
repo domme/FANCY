@@ -2,9 +2,12 @@
 
 #include <fancy_core/DynamicArray.h>
 #include <fancy_core/MathIncludes.h>
+#include "fancy_core/StaticArray.h"
+#include "fancy_core/RenderEnums.h"
+#include "fancy_core/Shader.h"
 
 namespace Fancy {
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   struct Model;
   class AssetManager;
 //---------------------------------------------------------------------------//
@@ -28,7 +31,7 @@ namespace Fancy {
       DynamicArray<SharedPtr<Model>> myModels;
     };
 
-    bool LoadFromFile(const char* aPath, AssetManager& aStorage, Scene& aSceneOut, ImportOptions someImportOptions = ALL);
+    bool LoadFromFile(const char* aPath, const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes, AssetManager& aStorage, Scene& aSceneOut, ImportOptions someImportOptions = ALL);
   }
 //---------------------------------------------------------------------------//
 }

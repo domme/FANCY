@@ -186,8 +186,7 @@
     <ClInclude Include="TextureSamplerVk.h" />
     <ClInclude Include="TextureVk.h" />
     <ClInclude Include="TimeManager.h" />
-    <ClInclude Include="VertexInputLayout.h" />
-    <ClInclude Include="GeometryVertexLayout.h" />
+    <ClInclude Include="VertexInputLayoutProperties.h" />
     <ClInclude Include="VkPrerequisites.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowsIncludes.h" />
@@ -273,8 +272,7 @@
     <ClCompile Include="TextureSamplerVk.cpp" />
     <ClCompile Include="TextureVk.cpp" />
     <ClCompile Include="TimeManager.cpp" />
-    <ClCompile Include="VertexInputLayout.cpp" />
-    <ClCompile Include="GeometryVertexLayout.cpp" />
+    <ClCompile Include="VertexInputLayoutProperties.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

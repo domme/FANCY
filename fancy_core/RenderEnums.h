@@ -204,14 +204,14 @@ namespace Fancy
     SHADER_BUFFER,
   };
 //---------------------------------------------------------------------------//
-  enum class VertexSemantics
+  enum class VertexAttributeSemantic
   {
     NONE = 0,
 
     POSITION,
     NORMAL,
     TANGENT,
-    BITANGENT,
+    BINORMAL,
     COLOR,
     TEXCOORD,
 
@@ -330,6 +330,14 @@ namespace Fancy
     SHADER_READ = 1 << 0,
     COPY_SRC = 1 << 1,
     DEPTH_STENCIL_READ = 1 << 2
+  };
+//---------------------------------------------------------------------------//
+  enum class VertexInputRate
+  {
+    PER_VERTEX = 0,
+    PER_INSTANCE,
+
+    NUM
   };
 //---------------------------------------------------------------------------//
 }

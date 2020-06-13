@@ -1,5 +1,8 @@
 #include "fancy_core_precompile.h"
 #include "RootSignatureDX12.h"
+#include "FancyCoreDefines.h"
+
+#if FANCY_ENABLE_DX12
 
 namespace Fancy
 {
@@ -114,4 +117,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
-
+#endif  // FANCYFANCY_ENABLE_DX12
