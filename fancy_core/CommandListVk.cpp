@@ -605,9 +605,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* /*someSizes*/, uint aNumBuffers)
   {
-    ASSERT(!myGraphicsPipelineState.myVertexInputLayout.myBufferBindings.IsEmpty());
-    ASSERT(aNumBuffers == myGraphicsPipelineState.myVertexInputLayout.myBufferBindings.Size());
+    const Shader* vertexShader = myGraphicsPipelineState.myShaderPipeline ? myGraphicsPipelineState.myShaderPipeline->GetShader(ShaderStage::VERTEX) : nullptr;
+    const VertexInputLayout* shaderInputLayout = vertexShader ? vertexShader->myDefaultVertexInputLayout.get() : nullptr;
+    const VertexInputLayout* inputLayout = myGraphicsPipelineState.myVertexInputLayout ? myGraphicsPipelineState.myVertexInputLayout : shaderInputLayout;
 
+    ASSERT(inputLayout && inputLayout->myProperties.myBufferBindings.Size() == aNumBuffers);
+    
     StaticArray<VkBuffer, 16> vkBuffers;
     for (uint i = 0u; i < aNumBuffers; ++i)
     {

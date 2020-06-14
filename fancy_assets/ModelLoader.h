@@ -29,6 +29,7 @@ namespace Fancy {
       void Clear() { myTransforms.clear(); myModels.clear(); }
       DynamicArray<glm::mat4> myTransforms;
       DynamicArray<SharedPtr<Model>> myModels;
+      SharedPtr<VertexInputLayout> myVertexInputLayout;
     };
 
     bool LoadFromFile(const char* aPath, const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes, AssetManager& aStorage, Scene& aSceneOut, ImportOptions someImportOptions = ALL);

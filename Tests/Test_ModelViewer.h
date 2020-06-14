@@ -12,6 +12,8 @@ namespace Fancy
   class AssetManager;
   class ShaderPipeline;
   class TextureSampler;
+  struct VertexInputLayout;
+  class GpuBuffer;
 }
 
 class Test_ModelViewer : public Test
@@ -34,8 +36,12 @@ private:
   Fancy::CameraController myCameraController;
 
   Fancy::SharedPtr<Fancy::ShaderPipeline> myUnlitTexturedShader;
+  Fancy::SharedPtr<Fancy::ShaderPipeline> myInstancedUnlitTexturedShader;
   Fancy::SharedPtr<Fancy::ShaderPipeline> myUnlitVertexColorShader;
   Fancy::SharedPtr<Fancy::ShaderPipeline> myDebugGeoShader;
   Fancy::SharedPtr<Fancy::TextureSampler> mySampler;
+  Fancy::SharedPtr<Fancy::VertexInputLayout> myInstancedVertexLayout;
+  Fancy::SharedPtr<Fancy::GpuBuffer> myInstancePositions;
+  int myNumInstances;
 };
 

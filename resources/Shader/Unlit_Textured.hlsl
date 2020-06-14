@@ -21,18 +21,22 @@ struct VS_OUT
 #if defined(PROGRAM_TYPE_VERTEX)
 struct VS_IN
 {
-  float3 position : POSITION;
-  float3 normal : NORMAL;
-  float3 tangent : TANGENT;
-  float3 bitangent : BINORMAL;
+  float3 position : POSITION0;
   float2 texcoord0 : TEXCOORD0;
+#if defined(INSTANCED)
+  float3 instance_position : POSITION1;
+#endif
 };
 
 [RootSignature(ROOT_SIGNATURE)]
 VS_OUT main(VS_IN v)
 {
   VS_OUT vs_out = (VS_OUT)0;
-  vs_out.pos = mul(cbPerObject.c_WorldViewProjectionMatrix, float4(v.position, 1.0f));
+  float3 pos = v.position;
+#if defined(INSTANCED)
+  pos += v.instance_position;
+#endif
+  vs_out.pos = mul(cbPerObject.c_WorldViewProjectionMatrix, float4(pos, 1.0f));
   vs_out.uv = v.texcoord0;
   return vs_out;
 }

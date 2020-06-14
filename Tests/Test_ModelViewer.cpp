@@ -14,18 +14,33 @@
 #include "fancy_core/ShaderPipeline.h"
 #include "fancy_core/Shader.h"
 #include "fancy_core/Texture.h"
+#include "fancy_core/StringUtil.h"
+#include "fancy_imgui/imgui.h"
 
 using namespace Fancy;
 
-static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main")
+bool ourDrawInstanced = true;
+
+static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main", const char* someDefines = nullptr)
 {
+  DynamicArray<String> defines;
+  if (someDefines)
+    StringUtil::Tokenize(someDefines, ",", defines);
+
   ShaderPipelineDesc pipelineDesc;
+
   ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainVtxFunction;
+  for (const String& str : defines)
+    shaderDesc->myDefines.push_back(str);
+
   shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainFragmentFunction;
+  for (const String& str : defines)
+    shaderDesc->myDefines.push_back(str);
+
   return RenderCore::CreateShaderPipeline(pipelineDesc);
 }
 
@@ -40,6 +55,9 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
 
   myUnlitTexturedShader = locLoadShader("Unlit_Textured.hlsl");
   ASSERT(myUnlitTexturedShader != nullptr);
+
+  myInstancedUnlitTexturedShader = locLoadShader("Unlit_Textured.hlsl", "main", "main", "INSTANCED");
+  ASSERT(myInstancedUnlitTexturedShader != nullptr);
 
   myUnlitVertexColorShader = locLoadShader("Unlit_Colored.hlsl");
   ASSERT(myUnlitVertexColorShader != nullptr);
@@ -68,10 +86,34 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   myCamera.UpdateView();
   myCamera.UpdateProjection();
 
-  const Shader* vertexShader = myUnlitTexturedShader->GetShader(ShaderStage::VERTEX);
+  StaticArray<VertexShaderAttributeDesc, 16> vertexAttributes;
+  vertexAttributes.Add({ VertexAttributeSemantic::POSITION, 0u, DataFormat::RGB_32F });
+  vertexAttributes.Add({ VertexAttributeSemantic::TEXCOORD, 0u, DataFormat::RG_32F });
 
-  const bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", vertexShader->myVertexAttributes, *(myAssetManager.get()), myScene);
+  const bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", vertexAttributes, *(myAssetManager.get()), myScene);
   ASSERT(importSuccess);
+
+  VertexInputLayoutProperties instancedVertexLayoutProps = myScene.myModels[0]->myMesh->myGeometryDatas[0]->GetVertexInputLayout()->myProperties;
+  instancedVertexLayoutProps.myAttributes.Add({ DataFormat::RGB_32F, VertexAttributeSemantic::POSITION, 1u, 1u });
+  instancedVertexLayoutProps.myBufferBindings.Add({ 12u, VertexInputRate::PER_INSTANCE });
+  myInstancedVertexLayout = RenderCore::CreateVertexInputLayout(instancedVertexLayoutProps);
+
+  int numInstancesOneSide = 20;
+  int numInstances = numInstancesOneSide * numInstancesOneSide * numInstancesOneSide;
+  myNumInstances = numInstances;
+  float offsetBetweenInstances = 7.0f;
+  DynamicArray<glm::float3> instancePositions;
+  instancePositions.reserve(numInstances);
+  for (int x = -numInstancesOneSide / 2; x < numInstancesOneSide / 2; ++x)
+    for (int y = -numInstancesOneSide / 2; y < numInstancesOneSide / 2; ++y)
+      for (int z = -numInstancesOneSide / 2; z < numInstancesOneSide / 2; ++z)
+        instancePositions.push_back(glm::float3(x * offsetBetweenInstances, y * offsetBetweenInstances, z * offsetBetweenInstances));
+
+  GpuBufferProperties bufferProps;
+  bufferProps.myBindFlags = (uint) GpuBufferBindFlags::VERTEX_BUFFER;
+  bufferProps.myElementSizeBytes = sizeof(glm::float3);
+  bufferProps.myNumElements = numInstances;
+  myInstancePositions = RenderCore::CreateBuffer(bufferProps, "Test_ModelViewer/InstancePositions", instancePositions.data());
 }
 
 Test_ModelViewer::~Test_ModelViewer()
@@ -89,6 +131,11 @@ void Test_ModelViewer::OnWindowResized(uint aWidth, uint aHeight)
 void Test_ModelViewer::OnUpdate(bool aDrawProperties)
 {
   myCameraController.Update(0.016f, *myInput);
+
+  if (aDrawProperties)
+  {
+    ImGui::Checkbox("Instanced", &ourDrawInstanced);
+  }
 }
 
 void Test_ModelViewer::OnRender()
@@ -163,7 +210,7 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
   ctx->SetWindingOrder(WindingOrder::CCW);
 
   ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-  ctx->SetShaderPipeline(myUnlitTexturedShader.get());
+  ctx->SetShaderPipeline(ourDrawInstanced ? myInstancedUnlitTexturedShader.get() : myUnlitTexturedShader.get());
   ctx->BindSampler(mySampler.get(), "sampler_default");
 
   for (int i = 0; i < myScene.myModels.size(); ++i)
@@ -190,14 +237,15 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     {
       const VertexInputLayout* layout = geometry->GetVertexInputLayout();
       ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-      ctx->SetVertexInputLayout(layout);
-      uint64 offset = 0u;
-      uint64 size = geometry->GetVertexBuffer()->GetByteSize();
-      const GpuBuffer* buffer = geometry->GetVertexBuffer();
-      ctx->BindVertexBuffers(&buffer, &offset, &size, 1u);
+      ctx->SetVertexInputLayout(ourDrawInstanced ? myInstancedVertexLayout.get() : layout);
+
+      uint64 offsets[] = { 0u, 0u };
+      uint64 sizes[] = { geometry->GetVertexBuffer()->GetByteSize(), myInstancePositions->GetByteSize() };
+      const GpuBuffer* buffers[] = { geometry->GetVertexBuffer(), myInstancePositions.get() };
+      ctx->BindVertexBuffers(buffers, offsets, sizes, ourDrawInstanced ? 2u : 1u);
       ctx->BindIndexBuffer(geometry->GetIndexBuffer(), geometry->GetIndexBuffer()->GetProperties().myElementSizeBytes);
 
-      ctx->Render(geometry->GetNumIndices(), 1, 0, 0, 0);
+      ctx->Render(geometry->GetNumIndices(), (uint) myNumInstances, 0, 0, 0);
     }
   }
 }
