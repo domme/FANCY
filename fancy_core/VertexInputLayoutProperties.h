@@ -32,6 +32,7 @@ namespace Fancy {
   struct VertexInputLayoutProperties
   {
     uint64 GetHash() const;
+    uint64 GetOverallVertexSize() const;
 
     StaticArray<VertexInputAttributeDesc, 16> myAttributes;
     StaticArray<VertexBufferBindDesc, 16> myBufferBindings;

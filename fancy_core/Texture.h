@@ -41,6 +41,7 @@ namespace Fancy {
 
     const TextureViewProperties& GetProperties() const { return myProperties; }
     Texture* GetTexture() const { return static_cast<Texture*>(myResource.get()); }
+    SharedPtr<Texture> GetTexturePtr() const { return std::static_pointer_cast<Texture>(myResource); }
 
   protected:
     TextureViewProperties myProperties;

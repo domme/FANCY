@@ -8,14 +8,13 @@ namespace Fancy
   class ShaderPipeline;
   class Texture;
   class TextureView;
-  class AssetManager;
 }
 
 struct ImageData
 {
-  ImageData(Fancy::SharedPtr<Fancy::Texture> aTexture) { Create(aTexture); }
+  ImageData(Fancy::SharedPtr<Fancy::TextureView> aTexture) { Create(aTexture); }
   ImageData() {}
-  void Create(Fancy::SharedPtr<Fancy::Texture> aTexture);
+  void Create(Fancy::SharedPtr<Fancy::TextureView> aTexture);
   void Clear() { myTexture.reset(); myTextureView.reset(); myMipLevelReadViews.clear(); myMipLevelWriteViews.clear(); }
   bool myIsSRGB = false;
 
@@ -40,8 +39,7 @@ public:
 
 private:
   void OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aShader);
-
-  Fancy::SharedPtr<Fancy::AssetManager> myAssetManager;
+  
   Fancy::DynamicArray<ImageData> myImageDatas;
   int mySelectedMipLevel = 0;
   bool myUpdateAlways = false;

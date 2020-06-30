@@ -1,10 +1,7 @@
 #include "Test_HazardTracking.h"
 #include "fancy_core/TextureProperties.h"
-#include "fancy_core/Log.h"
 #include "fancy_core/Texture.h"
 #include "fancy_core/RenderCore.h"
-#include "fancy_assets/AssetManager.h"
-#include "fancy_imgui/imgui.h"
 #include "fancy_core/CommandList.h"
 
 using namespace Fancy;

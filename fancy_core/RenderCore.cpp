@@ -14,12 +14,10 @@
 #include "PathService.h"
 #include "ShaderPipeline.h"
 #include "Mesh.h"
-#include "GeometryData.h"
 #include "BlendState.h"
 #include "Shader.h"
 #include "RenderOutput.h"
 #include "CommandList.h"
-#include "MeshData.h"
 #include "TextureProperties.h"
 #include "Texture.h"
 #include "TempResourcePool.h"
@@ -28,6 +26,7 @@
 #include "TextureReadbackTask.h"
 #include "CommandLine.h"
 #include "TextureSampler.h"
+#include "Material.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -43,20 +42,6 @@ namespace Fancy {
       case GpuQueryType::NUM:
       default: ASSERT(false); return "";
       }
-    }
-
-    uint64 locComputeHashFromVertexData(const MeshData* someMeshDatas, uint aNumMeshDatas)
-    {
-      MathUtil::BeginMultiHash();
-
-      for (uint i = 0u; i < aNumMeshDatas; ++i)
-      {
-        const MeshData& meshData = someMeshDatas[i];
-        MathUtil::AddToMultiHash(meshData.myVertexData.data(), DYN_ARRAY_BYTESIZE(meshData.myVertexData));
-        MathUtil::AddToMultiHash(meshData.myIndexData.data(), DYN_ARRAY_BYTESIZE(meshData.myIndexData));
-      }
-
-      return MathUtil::EndMultiHash();
     }
   }
 //---------------------------------------------------------------------------//
@@ -872,61 +857,6 @@ namespace Fancy {
   RenderCore_Platform* RenderCore::GetPlatform()
   {
     return ourPlatformImpl.get();
-  }
-//---------------------------------------------------------------------------//
-  SharedPtr<Mesh> RenderCore::CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas)
-  {
-    DynamicArray<SharedPtr<GeometryData>> vGeometryDatas;
-    for (uint i = 0u; i < aNumMeshDatas; ++i)
-    {
-      const MeshData& meshData = someMeshDatas[i];
-      const VertexInputLayoutProperties& vertexLayoutProperties = meshData.myVertexLayout;
-      SharedPtr<VertexInputLayout> vertexLayout = CreateVertexInputLayout(vertexLayoutProperties);
-
-      SharedPtr<GeometryData> pGeometryData (FANCY_NEW(GeometryData, MemoryCategory::GEOMETRY));
-
-      // Construct the vertex buffer
-      const uint8* ptrToVertexData = meshData.myVertexData.data();
-      const uint64 numVertices = (meshData.myVertexData.size() * sizeof(uint8)) / vertexLayout->myProperties.myBufferBindings[0].myStride;
-
-      SharedPtr<GpuBuffer> vertexBuffer(ourPlatformImpl->CreateBuffer());
-
-      GpuBufferProperties bufferParams;
-      bufferParams.myBindFlags = (uint) GpuBufferBindFlags::VERTEX_BUFFER;
-      bufferParams.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
-      bufferParams.myNumElements = numVertices;
-      bufferParams.myElementSizeBytes = vertexLayout->myProperties.myBufferBindings[0].myStride;
-
-      String name = "VertexBuffer_Mesh_" + aDesc.myUniqueName;
-      vertexBuffer->Create(bufferParams, name.c_str(), ptrToVertexData);
-      pGeometryData->SetVertexLayout(vertexLayout);
-      pGeometryData->SetVertexBuffer(vertexBuffer);
-
-      // Construct the index buffer
-      const uint8* ptrToIndexData = meshData.myIndexData.data();
-      const uint64 numIndices = (meshData.myIndexData.size() * sizeof(uint8)) / sizeof(uint);
-
-      SharedPtr<GpuBuffer> indexBuffer(ourPlatformImpl->CreateBuffer());
-
-      GpuBufferProperties indexBufParams;
-      indexBufParams.myBindFlags = (uint) GpuBufferBindFlags::INDEX_BUFFER;
-      indexBufParams.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
-      indexBufParams.myNumElements = numIndices;
-      indexBufParams.myElementSizeBytes = sizeof(uint);
-
-      name = "IndexBuffer_Mesh_" + aDesc.myUniqueName;
-      indexBuffer->Create(indexBufParams, name.c_str(), ptrToIndexData);
-      pGeometryData->SetIndexBuffer(indexBuffer);
-
-      vGeometryDatas.push_back(pGeometryData);
-    }
-
-    SharedPtr<Mesh> mesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
-    mesh->myGeometryDatas = vGeometryDatas;
-    mesh->myDesc = aDesc;
-    mesh->myVertexAndIndexHash = locComputeHashFromVertexData(someMeshDatas, aNumMeshDatas);
-
-    return mesh;
   }
 //---------------------------------------------------------------------------//
   SharedPtr<Texture> RenderCore::CreateTexture(const TextureProperties& someProperties, const char* aName /*= nullptr*/, TextureSubData* someUploadDatas, uint aNumUploadDatas)

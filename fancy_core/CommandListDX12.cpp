@@ -12,7 +12,6 @@
 #include "ShaderPipelineDX12.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
-#include "GeometryData.h"
 #include "GpuResourceDataDX12.h"
 #include "GpuResourceViewDataDX12.h"
 #include "TimeManager.h"

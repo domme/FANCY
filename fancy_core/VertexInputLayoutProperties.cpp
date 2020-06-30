@@ -18,6 +18,15 @@ namespace Fancy {
     return MathUtil::EndMultiHash();
   }
 //---------------------------------------------------------------------------//
+  uint64 VertexInputLayoutProperties::GetOverallVertexSize() const
+  {
+    uint64 overallSize = 0ull;
+    for (uint i = 0; i < myAttributes.Size(); ++i)
+      overallSize += DataFormatInfo::GetFormatInfo(myAttributes[i].myFormat).mySizeBytes;
+
+    return overallSize;
+  }
+//---------------------------------------------------------------------------//
   VertexInputLayout::VertexInputLayout(const VertexInputLayoutProperties& someProperties)
     : myProperties(someProperties)
   {

@@ -199,8 +199,6 @@ namespace Fancy
       GpuResourceDataVk* dataVk = GetData();
       vkDestroyBuffer(device, dataVk->myBuffer, nullptr);
       vkFreeMemory(device, dataVk->myMemory, nullptr);
-      delete dataVk;
-      dataVk = nullptr;
     }
 
     myNativeData.Clear();

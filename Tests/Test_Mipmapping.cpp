@@ -3,24 +3,24 @@
 #include "fancy_core/Log.h"
 #include "fancy_core/Texture.h"
 #include "fancy_core/RenderCore.h"
-#include "fancy_assets/AssetManager.h"
 #include "fancy_imgui/imgui.h"
+#include "fancy_core/Assets.h"
 
 using namespace Fancy;
 
 static const char* locResampleFilterNames[] = { "Linear", "Lanczos" };
 
-void ImageData::Create(SharedPtr<Texture> aTexture)
+void ImageData::Create(SharedPtr<TextureView> aTexture)
 {
-  const TextureProperties& destTexProps = aTexture->GetProperties();
+  const TextureProperties& destTexProps = aTexture->GetTexture()->GetProperties();
   if (destTexProps.myNumMipLevels == 1)
     return;
 
-  myTexture = aTexture;
+  myTextureView = aTexture;
+  myTexture = aTexture->GetTexturePtr();
   TextureViewProperties readProps;
   readProps.myFormat = aTexture->GetProperties().myFormat;
   readProps.myDimension = GpuResourceDimension::TEXTURE_2D;
-  myTextureView = RenderCore::CreateTextureView(aTexture, readProps);
   ASSERT(myTextureView != nullptr);
 
   const DataFormatInfo& destTexFormatInfo = DataFormatInfo::GetFormatInfo(destTexProps.myFormat);
@@ -40,8 +40,8 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
   {
     readProps.mySubresourceRange.myFirstMipLevel = mip;
     writeProps.mySubresourceRange.myFirstMipLevel = mip;
-    myMipLevelReadViews[mip] = RenderCore::CreateTextureView(aTexture, readProps);
-    myMipLevelWriteViews[mip] = RenderCore::CreateTextureView(aTexture, writeProps);
+    myMipLevelReadViews[mip] = RenderCore::CreateTextureView(myTexture, readProps);
+    myMipLevelWriteViews[mip] = RenderCore::CreateTextureView(myTexture, writeProps);
     ASSERT(myMipLevelReadViews[mip] != nullptr && myMipLevelWriteViews[mip] != nullptr);
   }
 
@@ -50,19 +50,17 @@ void ImageData::Create(SharedPtr<Texture> aTexture)
   myIsWindowOpen = false;
   myIsDirty = false;
   mySelectedMipLevel = 0;
-  mySelectedFilter = AssetManager::FILTER_LINEAR;
+  mySelectedFilter = Assets::FILTER_LINEAR;
 }
 
 Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Mipmapping")
 {
-  myAssetManager.reset(new AssetManager());
-
-  const uint loadFlags = AssetManager::SHADER_WRITABLE;
-  myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/kamen.png", loadFlags));
-  myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Checkerboard.png", loadFlags));
-  myImageDatas.push_back(myAssetManager->CreateTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
+  const uint loadFlags = Assets::SHADER_WRITABLE;
+  myImageDatas.push_back(Assets::LoadTexture("Textures/Sibenik/kamen.png", loadFlags));
+  myImageDatas.push_back(Assets::LoadTexture("Textures/Checkerboard.png", loadFlags));
+  myImageDatas.push_back(Assets::LoadTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
 
   RenderCore::ourOnShaderPipelineRecompiled.Connect(this, &Test_Mipmapping::OnShaderPipelineRecompiled);
 }
@@ -95,7 +93,7 @@ void Test_Mipmapping::OnUpdate(bool aDrawProperties)
 
       if (data.myIsDirty | myUpdateAlways)
       {
-        myAssetManager->ComputeMipmaps(data.myTexture, (AssetManager::ResampleFilter) data.mySelectedFilter);
+        Assets::ComputeMipmaps(data.myTexture, (Assets::ResampleFilter) data.mySelectedFilter);
         data.myIsDirty = false;
       }
 
@@ -107,7 +105,7 @@ void Test_Mipmapping::OnUpdate(bool aDrawProperties)
 
 void Test_Mipmapping::OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aShader)
 {
-  if (aShader == myAssetManager->GetResizeShader())
+  if (aShader == Assets::GetMipDownsampleShader())
   {
     for (ImageData& data : myImageDatas)
       data.myIsDirty = true;

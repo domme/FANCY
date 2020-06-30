@@ -31,6 +31,12 @@
     <Filter Include="Rendering\Vulkan\spirv_reflect">
       <UniqueIdentifier>{a058e921-3fc2-4bb9-a31a-f9a3a63fac13}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Object">
+      <UniqueIdentifier>{177a2a68-c25d-48be-8570-46152ebfc05f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\stb">
+      <UniqueIdentifier>{a7c9159b-9ee7-483b-a025-357f82811e0b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdapterDX12.h">
@@ -90,9 +96,6 @@
     <ClInclude Include="FileReader.h">
       <Filter>IO</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryData.h">
-      <Filter>Geometry</Filter>
-    </ClInclude>
     <ClInclude Include="GpuBuffer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -106,9 +109,6 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
-      <Filter>Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshDesc.h">
       <Filter>Geometry</Filter>
     </ClInclude>
     <ClInclude Include="PathService.h">
@@ -152,9 +152,6 @@
     </ClInclude>
     <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshData.h">
-      <Filter>Geometry</Filter>
     </ClInclude>
     <ClInclude Include="Input.h">
       <Filter>IO</Filter>
@@ -416,6 +413,21 @@
     <ClInclude Include="VertexInputLayoutProperties.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="MeshImporter.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageLoader.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="stb\stb_image.h">
+      <Filter>IO\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="Assets.h">
+      <Filter>Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -456,9 +468,6 @@
     </ClCompile>
     <ClCompile Include="GpuBuffer.cpp">
       <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Geometry</Filter>
     </ClCompile>
     <ClCompile Include="PathService.cpp">
       <Filter>IO</Filter>
@@ -646,6 +655,18 @@
     </ClCompile>
     <ClCompile Include="VertexInputLayoutProperties.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshImporter.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageLoader.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Assets.cpp">
+      <Filter>Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

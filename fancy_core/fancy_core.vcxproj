@@ -99,6 +99,10 @@
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
     <ClInclude Include="GpuQueryHeapVk.h" />
     <ClInclude Include="GpuReadbackBuffer.h" />
+    <ClInclude Include="ImageLoader.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="MeshImporter.h" />
+    <ClInclude Include="Assets.h" />
     <ClInclude Include="PipelineDescriptorSetLayoutsVk.h" />
     <ClInclude Include="PipelineLayoutCacheVk.h" />
     <ClInclude Include="PipelineStateCacheVk.h" />
@@ -129,12 +133,11 @@
     <ClInclude Include="spirv_reflect\spirv_reflect.h" />
     <ClInclude Include="StaticArray.h" />
     <ClInclude Include="StaticString.h" />
+    <ClInclude Include="stb\stb_image.h" />
     <ClInclude Include="TempResourcePool.h" />
     <ClInclude Include="Input.h" />
-    <ClInclude Include="MeshData.h" />
     <ClInclude Include="PagedLinearAllocator.h" />
     <ClInclude Include="FileWatcher.h" />
-    <ClInclude Include="GeometryData.h" />
     <ClInclude Include="GpuBufferDX12.h" />
     <ClInclude Include="DepthStencilState.h" />
     <ClInclude Include="DX12Prerequisites.h" />
@@ -156,7 +159,6 @@
     <ClInclude Include="Log.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshDesc.h" />
     <ClInclude Include="PathService.h" />
     <ClInclude Include="RenderCore.h" />
     <ClInclude Include="RenderCore_Platform.h" />
@@ -223,7 +225,11 @@
     <ClCompile Include="GpuQueryHeapVk.cpp" />
     <ClCompile Include="GpuReadbackBuffer.cpp" />
     <ClCompile Include="GpuResource.cpp" />
+    <ClCompile Include="ImageLoader.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="MathUtil.cpp" />
+    <ClCompile Include="MeshImporter.cpp" />
+    <ClCompile Include="Assets.cpp" />
     <ClCompile Include="PipelineLayoutCacheVk.cpp" />
     <ClCompile Include="PipelineStateCacheVk.cpp" />
     <ClCompile Include="RenderPassCacheVk.cpp" />
@@ -250,7 +256,6 @@
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="TempResourcePool.cpp" />
     <ClCompile Include="Input.cpp" />
-    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="PathService.cpp" />
     <ClCompile Include="RenderCore.cpp" />
     <ClCompile Include="RenderCore_PlatformDX12.cpp" />

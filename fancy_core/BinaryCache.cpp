@@ -1,13 +1,12 @@
 #include "fancy_core_precompile.h"
 #include "BinaryCache.h"
-#include "GeometryData.h"
 #include "Mesh.h"
 #include "RenderCore.h"
 #include "PathService.h"
 #include "StringUtil.h"
-#include "MeshData.h"
 #include "DynamicArray.h"
 #include "TextureProperties.h"
+#include "GpuBuffer.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -211,10 +210,10 @@ namespace Fancy {
     return true;
   }
 //---------------------------------------------------------------------------//  
-  bool BinaryCache::WriteMesh(const Mesh* aMesh, const MeshData* someMeshDatas, uint aNumMeshDatas)
+  bool BinaryCache::WriteMesh(const Mesh* aMesh, const MeshPartData* someMeshDatas, uint aNumMeshDatas)
   {
     const MeshDesc& desc = aMesh->myDesc;
-    uint64 descHash = desc.GetHash();
+    uint64 descHash = desc.myHash;
 
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(descHash));
     Path::CreateDirectoryTreeForPath(cacheFilePath);
@@ -228,20 +227,20 @@ namespace Fancy {
     }
 
     serializer.Write(kMeshVersion);
-    serializer.Write(aMesh->myVertexAndIndexHash);
+    serializer.Write(descHash);
 
-    const DynamicArray<SharedPtr<GeometryData>>& vGeoData = aMesh->myGeometryDatas;
-    const uint numGeoDatas = static_cast<uint>(vGeoData.size());
+    const DynamicArray<SharedPtr<MeshPart>>& meshParts = aMesh->myParts;
+    const uint numMeshParts = static_cast<uint>(meshParts.size());
 
-    ASSERT(numGeoDatas == aNumMeshDatas);
+    ASSERT(numMeshParts == aNumMeshDatas);
 
-    serializer.Write(numGeoDatas);
+    serializer.Write(numMeshParts);
     
-    for (uint i = 0u; i < vGeoData.size(); ++i)
+    for (uint i = 0u; i < meshParts.size(); ++i)
     {
-      const GeometryData* geoData = vGeoData[i].get();
+      const MeshPart* meshPart = meshParts[i].get();
 
-      const VertexInputLayoutProperties& vertexLayout = geoData->GetVertexInputLayout()->myProperties;
+      const VertexInputLayoutProperties& vertexLayout = meshPart->myVertexInputLayout->myProperties;
       const StaticArray<VertexInputAttributeDesc, 16>& vertexAttributes = vertexLayout.myAttributes;
       const uint numVertexElements = vertexAttributes.Size();
       serializer.Write(numVertexElements);
@@ -267,7 +266,7 @@ namespace Fancy {
 
       // Vertex data
       {
-        const GpuBuffer* buffer = geoData->GetVertexBuffer();
+        const GpuBuffer* buffer = meshPart->myVertexBuffer.get();
         const GpuBufferProperties& bufferParams = buffer->GetProperties();
         serializer.Write(reinterpret_cast<const uint8*>(&bufferParams), sizeof(GpuBufferProperties));
         const uint64 buffersize = buffer->GetByteSize();
@@ -277,7 +276,7 @@ namespace Fancy {
 
       // Index data
       {
-        const GpuBuffer* buffer = geoData->GetIndexBuffer();
+        const GpuBuffer* buffer = meshPart->myIndexBuffer.get();
         const GpuBufferProperties& bufferParams = buffer->GetProperties();
         serializer.Write(reinterpret_cast<const uint8*>(&bufferParams), sizeof(GpuBufferProperties));
         const uint64 buffersize = buffer->GetByteSize();
@@ -291,7 +290,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   SharedPtr<Mesh> BinaryCache::ReadMesh(const MeshDesc& aDesc, uint64 aTimeStamp)
   {
-    uint64 descHash = aDesc.GetHash();
+    uint64 descHash = aDesc.myHash;
     const String cacheFilePath = getCacheFilePathAbs(StringUtil::toString(descHash));
 
     BinarySerializer serializer(cacheFilePath.c_str(), READ);
@@ -304,22 +303,23 @@ namespace Fancy {
     uint meshVersion;
     serializer.Read(meshVersion);
     
-    uint64 vertexIndexHash;
-    serializer.Read(vertexIndexHash);
+    uint64 descHashInFile;
+    serializer.Read(descHashInFile);
+    ASSERT(descHashInFile == descHash);
 
     if (meshVersion != kMeshVersion)
       return nullptr;
 
-    uint numGeometryDatas;
-    serializer.Read(numGeometryDatas);
+    uint numMeshParts;
+    serializer.Read(numMeshParts);
 
-    DynamicArray<SharedPtr<GeometryData>> vGeoDatas;
-    vGeoDatas.resize(numGeometryDatas);
+    DynamicArray<SharedPtr<MeshPart>> meshParts;
+    meshParts.resize(numMeshParts);
 
-    for (uint i = 0u; i < vGeoDatas.size(); ++i)
+    for (uint i = 0u; i < meshParts.size(); ++i)
     {
-      SharedPtr<GeometryData> geoData(FANCY_NEW(GeometryData, MemoryCategory::Geometry));
-      vGeoDatas[i] = geoData;
+      SharedPtr<MeshPart> meshPart(new MeshPart());
+      meshParts[i] = meshPart;
 
       VertexInputLayoutProperties vertexLayout;
       uint numVertexElements;
@@ -351,7 +351,7 @@ namespace Fancy {
         serializer.Read(buffer.myStride);
       }
 
-      geoData->SetVertexLayout(RenderCore::CreateVertexInputLayout(vertexLayout));
+      meshPart->myVertexInputLayout = RenderCore::CreateVertexInputLayout(vertexLayout);
 
       // Vertex data
       {
@@ -363,9 +363,9 @@ namespace Fancy {
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         serializer.Read((uint8*)(bufferData), totalBufferBytes);
 
-        String name = "VertexBuffer_Mesh_" + aDesc.myUniqueName;
+        String name = "VertexBuffer_Mesh_" + aDesc.myName;
         SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, name.c_str(), bufferData);
-        geoData->SetVertexBuffer(buffer);
+        meshPart->myVertexBuffer = buffer;
 
         FANCY_FREE(bufferData, MemoryCategory::Geometry);
       }
@@ -380,20 +380,20 @@ namespace Fancy {
         void* bufferData = FANCY_ALLOCATE(totalBufferBytes, MemoryCategory::Geometry);
         serializer.Read(static_cast<uint8*>(bufferData), totalBufferBytes);
 
-        String name = "IndexBuffer_Mesh_" + aDesc.myUniqueName;
+        String name = "IndexBuffer_Mesh_" + aDesc.myName;
         SharedPtr<GpuBuffer> buffer = RenderCore::CreateBuffer(bufferParams, name.c_str(), bufferData);
-        geoData->SetIndexBuffer(buffer);
+        meshPart->myIndexBuffer = buffer;
 
         FANCY_FREE(bufferData, MemoryCategory::Geometry);
       }
     }
 
-    if (vGeoDatas.empty())
+    if (meshParts.empty())
       return nullptr;
 
     SharedPtr<Mesh> newMesh(FANCY_NEW(Mesh, MemoryCategory::GEOMETRY));
-    newMesh->myVertexAndIndexHash = vertexIndexHash;
-    newMesh->myGeometryDatas = vGeoDatas;
+    newMesh->myDesc = aDesc;
+    newMesh->myParts = meshParts;
     return newMesh;
   }
 //---------------------------------------------------------------------------//

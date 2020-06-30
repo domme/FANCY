@@ -12,6 +12,7 @@
 #include "RenderOutput.h"
 #include "Profiler.h"
 #include "CommandLine.h"
+#include "Assets.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -46,6 +47,8 @@ namespace Fancy {
       RenderCore::Init();
 
     ASSERT(RenderCore::IsInitialized());
+
+    Assets::Init();
 
     // Create the output
     ourInstance->myRenderOutput = RenderCore::CreateRenderOutput(anAppInstanceHandle, someWindowParams);

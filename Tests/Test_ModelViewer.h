@@ -2,18 +2,20 @@
 
 #include "Test.h"
 #include "fancy_core/Ptr.h"
-#include "fancy_assets/ModelLoader.h"
 #include "fancy_core/Camera.h"
 #include "fancy_core/CameraController.h"
+#include "fancy_core/MeshImporter.h"
+#include "fancy_core/MathIncludes.h"
 
 namespace Fancy
 {
   class CommandList;
-  class AssetManager;
   class ShaderPipeline;
   class TextureSampler;
   struct VertexInputLayout;
   class GpuBuffer;
+  struct Material;
+
 }
 
 class Test_ModelViewer : public Test
@@ -26,14 +28,19 @@ public:
   void OnRender() override;
 
 private:
+  struct Scene
+  {
+    std::vector<std::shared_ptr<Fancy::Mesh>> myMeshes;
+    std::vector<glm::float4x4> myTransforms;
+    std::vector<std::shared_ptr<Fancy::Material>> myMaterials;
+  };
+
   void RenderGrid(Fancy::CommandList* ctx);
   void RenderScene(Fancy::CommandList* ctx);
 
-  Fancy::SharedPtr<Fancy::AssetManager> myAssetManager;
-  Fancy::ModelLoader::Scene myScene;
-
   Fancy::Camera myCamera;
   Fancy::CameraController myCameraController;
+  Scene myScene;
 
   Fancy::SharedPtr<Fancy::ShaderPipeline> myUnlitTexturedShader;
   Fancy::SharedPtr<Fancy::ShaderPipeline> myInstancedUnlitTexturedShader;
@@ -44,4 +51,3 @@ private:
   Fancy::SharedPtr<Fancy::GpuBuffer> myInstancePositions;
   int myNumInstances;
 };
-

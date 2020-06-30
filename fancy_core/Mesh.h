@@ -2,22 +2,38 @@
 
 #include "FancyCoreDefines.h"
 #include "DynamicArray.h"
-#include "MeshDesc.h"
+#include "VertexInputLayoutProperties.h"
 
-namespace Fancy {
+namespace Fancy 
+{
 //---------------------------------------------------------------------------//
-  class GeometryData;
+  struct VertexInputLayout;
+  class GpuBuffer;
 //---------------------------------------------------------------------------//
-  class Mesh
+  struct MeshPartData
   {
-  public:
-    Mesh();
-
-    const MeshDesc& GetDescription() const { return myDesc; }
-
+    DynamicArray<uint8> myVertexData;
+    DynamicArray<uint8> myIndexData;
+    VertexInputLayoutProperties myVertexLayoutProperties;
+  };
+//---------------------------------------------------------------------------//
+  struct MeshPart
+  {
+    SharedPtr<GpuBuffer> myVertexBuffer;
+    SharedPtr<GpuBuffer> myIndexBuffer;
+    SharedPtr<VertexInputLayout> myVertexInputLayout;
+  };
+//---------------------------------------------------------------------------//
+  struct MeshDesc
+  {
+    String myName;
+    uint64 myHash = 0ull;
+  };
+//---------------------------------------------------------------------------//
+  struct Mesh
+  {
     MeshDesc myDesc;
-    uint64 myVertexAndIndexHash;
-    DynamicArray<SharedPtr<GeometryData>> myGeometryDatas;
+    DynamicArray<SharedPtr<MeshPart>> myParts;
   };
   //---------------------------------------------------------------------------//
 }

@@ -17,11 +17,13 @@
 #include <map>
 
 namespace Fancy {
-  struct VertexInputLayoutProperties;
-  //---------------------------------------------------------------------------//
-  class Mesh;
+  struct MaterialDesc;
+  struct Material;
   struct MeshDesc;
-  struct MeshData;
+  //---------------------------------------------------------------------------//
+  struct MeshPartData;
+  struct VertexInputLayoutProperties;
+  struct Mesh;
   struct ShaderPipelineDesc;
   struct DepthStencilStateProperties;
   struct BlendStateProperties;
@@ -79,7 +81,6 @@ namespace Fancy {
     
     static SharedPtr<Shader> GetShader(uint64 aDescHash);
     static SharedPtr<ShaderPipeline> GetShaderPipeline(uint64 aDescHash);
-    static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, const MeshData* someMeshDatas, uint aNumMeshDatas);
 
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     static SharedPtr<Shader> CreateShader(const ShaderDesc& aDesc);

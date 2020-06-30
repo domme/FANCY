@@ -2,20 +2,21 @@
 #include "fancy_core/Window.h"
 #include "fancy_core/ShaderPipelineDesc.h"
 #include "fancy_core/RenderCore.h"
-#include "fancy_assets/AssetManager.h"
 #include "fancy_core/CommandList.h"
 #include "fancy_core/RenderOutput.h"
-#include "fancy_assets/Model.h"
-#include "fancy_assets/Material.h"
 #include "fancy_core/GpuResourceView.h"
 #include "fancy_core/Mesh.h"
 #include "fancy_core/TextureSampler.h"
-#include "fancy_core/GeometryData.h"
+#include "fancy_core/Mesh.h"
 #include "fancy_core/ShaderPipeline.h"
 #include "fancy_core/Shader.h"
 #include "fancy_core/Texture.h"
 #include "fancy_core/StringUtil.h"
 #include "fancy_imgui/imgui.h"
+#include "fancy_core/Assets.h"
+#include "fancy_core/GpuBufferProperties.h"
+#include "fancy_core/GpuBuffer.h"
+#include "fancy_core/Material.h"
 
 using namespace Fancy;
 
@@ -51,8 +52,6 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Model Viewer")
   , myCameraController(&myCamera)
 {
-  myAssetManager.reset(new AssetManager());
-
   myUnlitTexturedShader = locLoadShader("Unlit_Textured.hlsl");
   ASSERT(myUnlitTexturedShader != nullptr);
 
@@ -90,10 +89,15 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   vertexAttributes.Add({ VertexAttributeSemantic::POSITION, 0u, DataFormat::RGB_32F });
   vertexAttributes.Add({ VertexAttributeSemantic::TEXCOORD, 0u, DataFormat::RG_32F });
 
-  const bool importSuccess = ModelLoader::LoadFromFile("models/cube.obj", vertexAttributes, *(myAssetManager.get()), myScene);
+  MeshImporter::ImportResult importResult;
+  const bool importSuccess = Assets::GetMeshImporter().Import("models/cube.obj", vertexAttributes, importResult);
   ASSERT(importSuccess);
 
-  VertexInputLayoutProperties instancedVertexLayoutProps = myScene.myModels[0]->myMesh->myGeometryDatas[0]->GetVertexInputLayout()->myProperties;
+  myScene.myMeshes.insert(myScene.myMeshes.end(), importResult.myMeshes.begin(), importResult.myMeshes.end());
+  myScene.myMaterials.insert(myScene.myMaterials.end(), importResult.myMaterials.begin(), importResult.myMaterials.end());
+  myScene.myTransforms.insert(myScene.myTransforms.end(), importResult.myTransforms.begin(), importResult.myTransforms.end());
+
+  VertexInputLayoutProperties instancedVertexLayoutProps = importResult.myVertexInputLayout->myProperties;
   instancedVertexLayoutProps.myAttributes.Add({ DataFormat::RGB_32F, VertexAttributeSemantic::POSITION, 1u, 1u });
   instancedVertexLayoutProps.myBufferBindings.Add({ 12u, VertexInputRate::PER_INSTANCE });
   myInstancedVertexLayout = RenderCore::CreateVertexInputLayout(instancedVertexLayoutProps);
@@ -213,9 +217,11 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
   ctx->SetShaderPipeline(ourDrawInstanced ? myInstancedUnlitTexturedShader.get() : myUnlitTexturedShader.get());
   ctx->BindSampler(mySampler.get(), "sampler_default");
 
-  for (int i = 0; i < myScene.myModels.size(); ++i)
+  for (int i = 0; i < myScene.myMeshes.size(); ++i)
   {
-    Model* model = myScene.myModels[i].get();
+    Mesh* mesh = myScene.myMeshes[i].get();
+    const glm::float4x4& transform = myScene.myTransforms[i];
+    Material* material = myScene.myMaterials[i].get();
 
     struct Cbuffer_PerObject
     {
@@ -227,25 +233,22 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     };
     ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
 
-    Material* mat = model->myMaterial.get();
-    const GpuResourceView* diffuseTex = mat->mySemanticTextures[(uint)TextureSemantic::BASE_COLOR].get();
+    const GpuResourceView* diffuseTex = material->myTextures[(uint)MaterialTextureType::BASE_COLOR].get();
     if (diffuseTex)
       ctx->BindResourceView(diffuseTex, "tex_diffuse");
 
-    Mesh* mesh = model->myMesh.get();
-    for (SharedPtr<GeometryData>& geometry : mesh->myGeometryDatas)
+    for (SharedPtr<MeshPart>& meshPart : mesh->myParts)
     {
-      const VertexInputLayout* layout = geometry->GetVertexInputLayout();
-      ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
+      const VertexInputLayout* layout = meshPart->myVertexInputLayout.get();
       ctx->SetVertexInputLayout(ourDrawInstanced ? myInstancedVertexLayout.get() : layout);
 
       uint64 offsets[] = { 0u, 0u };
-      uint64 sizes[] = { geometry->GetVertexBuffer()->GetByteSize(), myInstancePositions->GetByteSize() };
-      const GpuBuffer* buffers[] = { geometry->GetVertexBuffer(), myInstancePositions.get() };
+      uint64 sizes[] = { meshPart->myVertexBuffer->GetByteSize(), myInstancePositions->GetByteSize() };
+      const GpuBuffer* buffers[] = { meshPart->myVertexBuffer.get(), myInstancePositions.get() };
       ctx->BindVertexBuffers(buffers, offsets, sizes, ourDrawInstanced ? 2u : 1u);
-      ctx->BindIndexBuffer(geometry->GetIndexBuffer(), geometry->GetIndexBuffer()->GetProperties().myElementSizeBytes);
+      ctx->BindIndexBuffer(meshPart->myIndexBuffer.get(), meshPart->myIndexBuffer->GetProperties().myElementSizeBytes);
 
-      ctx->Render(geometry->GetNumIndices(), (uint) myNumInstances, 0, 0, 0);
+      ctx->Render(meshPart->myIndexBuffer->GetProperties().myNumElements, (uint) myNumInstances, 0, 0, 0);
     }
   }
 }
