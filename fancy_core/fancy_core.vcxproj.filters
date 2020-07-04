@@ -428,6 +428,7 @@
     <ClInclude Include="Assets.h">
       <Filter>Object</Filter>
     </ClInclude>
+    <ClInclude Include="PipelineStateCacheDX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -668,6 +669,7 @@
     <ClCompile Include="Assets.cpp">
       <Filter>Object</Filter>
     </ClCompile>
+    <ClCompile Include="PipelineStateCacheDX12.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

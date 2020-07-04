@@ -20,7 +20,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-    class ShaderVk : public Shader
+  class ShaderVk : public Shader
   {
     friend class ShaderCompilerVk;
 

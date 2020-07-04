@@ -31,7 +31,7 @@ namespace Fancy {
 
     ASSERT(swapChain != nullptr);
 
-    CheckD3Dcall(swapChain.As(&mySwapChain));
+    ASSERT_HRESULT(swapChain.As(&mySwapChain));
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
   //---------------------------------------------------------------------------//
@@ -47,7 +47,7 @@ namespace Fancy {
       resource.myName = StaticString<32>("Backbuffer Texture %d", i);
 
       GpuResourceDataDX12* dataDx12(new GpuResourceDataDX12);
-      CheckD3Dcall(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12->myResource)));
+      ASSERT_HRESULT(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12->myResource)));
       std::wstring wName = StringUtil::ToWideString(resource.myName);
       dataDx12->myResource->SetName(wName.c_str());
 
@@ -95,7 +95,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::ResizeSwapChain(uint aWidth, uint aHeight)
   {
-    CheckD3Dcall(mySwapChain->ResizeBuffers(kBackbufferCount, aWidth, aHeight, DXGI_FORMAT_UNKNOWN, 0));
+    ASSERT_HRESULT(mySwapChain->ResizeBuffers(kBackbufferCount, aWidth, aHeight, DXGI_FORMAT_UNKNOWN, 0));
   }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::DestroyBackbufferResources()

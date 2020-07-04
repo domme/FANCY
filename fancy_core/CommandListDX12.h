@@ -43,9 +43,9 @@ namespace Fancy {
 
     void PostExecute(uint64 aFenceVal) override;
     void PreBegin() override;
-
     void FlushBarriers() override;
-    void BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
+
+    void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     
@@ -73,22 +73,10 @@ namespace Fancy {
     void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut) override;
 
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
-    static D3D12_GRAPHICS_PIPELINE_STATE_DESC GetNativePSOdesc(const GraphicsPipelineState& aState);
-    static D3D12_COMPUTE_PIPELINE_STATE_DESC GetNativePSOdesc(const ComputePipelineState& aState);
 
     bool FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoDX12& aResourceInfoOut) const;
     void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex);
     void ClearResourceBindings();
-
-    /*
-    bool SubresourceBarrierInternal(
-      const GpuResource* aResource,
-      const SubresourceRange& aSubresourceRange,
-      GpuResourceState aSrcState,
-      GpuResourceState aDstState,
-      CommandListType aSrcQueue,
-      CommandListType aDstQueue) override;
-      */
 
     void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DynamicDescriptorHeapDX12* aDescriptorHeap);
     void ApplyDescriptorHeaps();
@@ -103,12 +91,7 @@ namespace Fancy {
     D3D12_RESOURCE_STATES ResolveValidateDstStates(const GpuResource* aResource, D3D12_RESOURCE_STATES aDstStates);
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, D3D12_RESOURCE_STATES aDstStates);
 
-    // void SetTrackSubresourceTransitionBarrier(const GpuResource* aResource, uint16 aSubresourceIndex, D3D12_RESOURCE_STATES aNewState) const;
-    // void SetTrackSubresourceTransitionBarriers(const GpuResource** someResources, const D3D12_RESOURCE_STATES* someNewStates, const uint16** someSubresourceLists, const uint* someNumSubresources, uint aNumStates) const;
-
     bool CreateDescriptorTable(const RootSignatureBindingsDX12::DescriptorTable& aTable, DescriptorDX12& aStartDescriptorOut);
-
-    static std::unordered_map<uint64, ID3D12PipelineState*> ourPSOcache;
 
     UniquePtr<RootSignatureBindingsDX12> myRootSignatureBindings;
     StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;

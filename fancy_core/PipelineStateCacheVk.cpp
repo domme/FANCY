@@ -326,6 +326,7 @@ namespace Fancy
 
     VkPipeline pipeline = nullptr;
     ASSERT_VK_RESULT(vkCreateComputePipelines(RenderCore::GetPlatformVk()->myDevice, nullptr, 1u, &createInfo, nullptr, &pipeline));
+    myCache[hash] = pipeline;
 
     return pipeline;
   }

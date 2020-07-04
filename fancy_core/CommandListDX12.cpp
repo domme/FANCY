@@ -97,8 +97,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  std::unordered_map<uint64, ID3D12PipelineState*> CommandListDX12::ourPSOcache;
-//---------------------------------------------------------------------------//
   CommandListDX12::CommandListDX12(CommandListType aCommandListType)
     : CommandList(aCommandListType)
     , myRootSignature(nullptr)
@@ -111,7 +109,7 @@ namespace Fancy {
 
     D3D12_COMMAND_LIST_TYPE nativeCmdListType = locResolveCommandListType(aCommandListType);
 
-    CheckD3Dcall(
+    ASSERT_HRESULT(
       RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandList(0, nativeCmdListType,
         myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
     );
@@ -590,8 +588,9 @@ namespace Fancy {
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
     
-    CheckD3Dcall(myCommandList->Reset(myCommandAllocator, nullptr));
+    ASSERT_HRESULT(myCommandList->Reset(myCommandAllocator, nullptr));
 
+    myTopologyDirty = true;
     myRootSignature = nullptr;
     myRootSignatureBindings = nullptr;
     myPendingBarriers.ClearDiscard();
@@ -606,187 +605,6 @@ namespace Fancy {
       myCommandList->ResourceBarrier(myPendingBarriers.Size(), myPendingBarriers.GetBuffer());
       myPendingBarriers.ClearDiscard();
     }
-  }
-//---------------------------------------------------------------------------//
-  D3D12_GRAPHICS_PIPELINE_STATE_DESC CommandListDX12::GetNativePSOdesc(const GraphicsPipelineState& aState)
-  {
-    // TODO: Remove all those memsets, they shouldn't be necessary
-
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
-    memset(&psoDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-
-    // SHADER BYTECODES
-    D3D12_SHADER_BYTECODE* shaderDescs[]{ &psoDesc.VS, &psoDesc.PS, &psoDesc.DS, &psoDesc.HS, &psoDesc.GS };
-    ASSERT(ARRAY_LENGTH(shaderDescs) == (uint)ShaderStage::NUM_NO_COMPUTE);
-
-    if (aState.myShaderPipeline != nullptr)
-    {
-      for (uint i = 0u; i < (uint)ShaderStage::NUM_NO_COMPUTE; ++i)
-      {
-        if (nullptr == aState.myShaderPipeline->GetShader(i))
-          continue;
-
-        const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShaderPipeline->GetShader(i));
-        *shaderDescs[i] = shaderDx12->getNativeByteCode();
-      }
-    }
-
-    // ROOT SIGNATURE
-    const ShaderPipelineDX12* shaderPipelineDx12 = static_cast<const ShaderPipelineDX12*>(aState.myShaderPipeline);
-    psoDesc.pRootSignature = shaderPipelineDx12->GetRootSignature();
-
-    // BLEND DESC
-    D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
-    const BlendStateProperties& blendProps = aState.myBlendState->GetProperties();
-
-    memset(&blendDesc, 0u, sizeof(D3D12_BLEND_DESC));
-    blendDesc.AlphaToCoverageEnable = blendProps.myAlphaToCoverageEnabled;
-    blendDesc.IndependentBlendEnable = blendProps.myBlendStatePerRT;
-    uint rtCount = blendDesc.IndependentBlendEnable ? RenderConstants::kMaxNumRenderTargets : 1u;
-    for (uint rt = 0u; rt < rtCount; ++rt)
-    {
-      D3D12_RENDER_TARGET_BLEND_DESC& rtBlendDesc = blendDesc.RenderTarget[rt];
-      const BlendStateRenderTargetProperties& rtBlendProps = blendProps.myRendertargetProperties[rt];
-
-      memset(&rtBlendDesc, 0u, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
-      rtBlendDesc.BlendEnable = rtBlendProps.myBlendEnabled;
-
-      rtBlendDesc.BlendOp = Adapter::toNativeType(rtBlendProps.myBlendOp);
-      rtBlendDesc.BlendOpAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType(rtBlendProps.myBlendOpAlpha) : rtBlendDesc.BlendOp;
-
-      rtBlendDesc.DestBlend = Adapter::toNativeType(rtBlendProps.myDstBlendFactor);
-      rtBlendDesc.DestBlendAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType(rtBlendProps.myDstBlendAlphaFactor) : rtBlendDesc.DestBlend;
-
-      rtBlendDesc.SrcBlend = Adapter::toNativeType(rtBlendProps.mySrcBlendFactor);
-      rtBlendDesc.SrcBlendAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType(rtBlendProps.mySrcBlendAlphaFactor) : rtBlendDesc.SrcBlend;
-
-      rtBlendDesc.LogicOpEnable = blendProps.myLogicOpEnabled;
-      rtBlendDesc.LogicOp = RenderCore_PlatformDX12::ResolveLogicOp(blendProps.myLogicOp);
-
-      const uint channelWriteMask = rtBlendProps.myColorChannelWriteMask;
-      if ((channelWriteMask & 0xFFFFFF) > 0u)
-      {
-        rtBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-      }
-      else
-      {
-        const bool red =    (channelWriteMask & 0xFF000000) > 0u;
-        const bool green =  (channelWriteMask & 0x00FF0000) > 0u;
-        const bool blue =   (channelWriteMask & 0x0000FF00) > 0u;
-        const bool alpha =  (channelWriteMask & 0x000000FF) > 0u;
-        rtBlendDesc.RenderTargetWriteMask |= red ? D3D12_COLOR_WRITE_ENABLE_RED : 0u;
-        rtBlendDesc.RenderTargetWriteMask |= green ? D3D12_COLOR_WRITE_ENABLE_GREEN : 0u;
-        rtBlendDesc.RenderTargetWriteMask |= blue ? D3D12_COLOR_WRITE_ENABLE_BLUE : 0u;
-        rtBlendDesc.RenderTargetWriteMask |= alpha ? D3D12_COLOR_WRITE_ENABLE_ALPHA : 0u;
-      }
-    }
-
-    // STREAM OUTPUT
-    // FEATURE: Add support for StreamOutput
-    D3D12_STREAM_OUTPUT_DESC& streamOutDesc = psoDesc.StreamOutput;
-    memset(&streamOutDesc, 0u, sizeof(D3D12_STREAM_OUTPUT_DESC));
-
-    // SAMPLE MASK / DESC
-    psoDesc.SampleMask = ~0u;
-    psoDesc.SampleDesc.Count = 1u;
-
-    // RASTERIZER STATE
-    D3D12_RASTERIZER_DESC& rasterizerDesc = psoDesc.RasterizerState;
-    memset(&rasterizerDesc, 0u, sizeof(D3D12_RASTERIZER_DESC));
-    rasterizerDesc.AntialiasedLineEnable = false;
-    rasterizerDesc.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-    rasterizerDesc.FillMode = Adapter::toNativeType(aState.myFillMode);
-    rasterizerDesc.CullMode = Adapter::toNativeType(aState.myCullMode);
-    rasterizerDesc.MultisampleEnable = false;
-    rasterizerDesc.FrontCounterClockwise = aState.myWindingOrder == WindingOrder::CCW;
-    rasterizerDesc.DepthBias = 0;
-    rasterizerDesc.DepthBiasClamp = 0;
-    rasterizerDesc.SlopeScaledDepthBias = 0;
-    rasterizerDesc.DepthClipEnable = false;
-
-    // DEPTH STENCIL STATE
-    D3D12_DEPTH_STENCIL_DESC& dsState = psoDesc.DepthStencilState;
-    const DepthStencilStateProperties& dsProps = aState.myDepthStencilState->GetProperties();
-
-    dsState.DepthEnable = dsProps.myDepthTestEnabled;
-    dsState.DepthWriteMask = dsProps.myDepthWriteEnabled ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
-    dsState.DepthFunc = RenderCore_PlatformDX12::ResolveCompFunc(dsProps.myDepthCompFunc);
-    dsState.StencilEnable = dsProps.myStencilEnabled;
-    dsState.StencilReadMask = static_cast<uint8>(dsProps.myStencilReadMask);
-    dsState.StencilWriteMask = static_cast<uint8>(dsProps.myStencilWriteMask);
-
-    // FrontFace
-    {
-      D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.FrontFace;
-      const DepthStencilFaceProperties& faceProps = dsProps.myFrontFace;
-      faceDesc.StencilFunc = RenderCore_PlatformDX12::ResolveCompFunc(faceProps.myStencilCompFunc);
-      faceDesc.StencilDepthFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilDepthFailOp);
-      faceDesc.StencilFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilFailOp);
-      faceDesc.StencilPassOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilPassOp);
-    }
-
-    // BackFace
-    {
-      D3D12_DEPTH_STENCILOP_DESC& faceDesc = dsState.BackFace;
-      const DepthStencilFaceProperties& faceProps = dsProps.myBackFace;
-      faceDesc.StencilFunc = RenderCore_PlatformDX12::ResolveCompFunc(faceProps.myStencilCompFunc);
-      faceDesc.StencilDepthFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilDepthFailOp);
-      faceDesc.StencilFailOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilFailOp);
-      faceDesc.StencilPassOp = RenderCore_PlatformDX12::ResolveStencilOp(faceProps.myStencilPassOp);
-    }
-
-    // INPUT LAYOUT
-
-    if (aState.myShaderPipeline != nullptr &&
-      aState.myShaderPipeline->GetShader(ShaderStage::VERTEX) != nullptr)
-    {
-      const ShaderDX12* vertexShader =
-        static_cast<const ShaderDX12*>(aState.myShaderPipeline->GetShader(ShaderStage::VERTEX));
-
-      D3D12_INPUT_LAYOUT_DESC& inputLayout = psoDesc.InputLayout;
-      inputLayout.NumElements = vertexShader->GetNumNativeInputElements();
-      inputLayout.pInputElementDescs = vertexShader->GetNativeInputElements();
-    }
-
-    // IB STRIP CUT VALUE
-    psoDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
-
-    // TOPOLOGY TYPE
-    psoDesc.PrimitiveTopologyType = Adapter::ResolveTopologyType(aState.myTopologyType);
-
-    // NUM RENDER TARGETS
-    psoDesc.NumRenderTargets = aState.myNumRenderTargets;
-
-    // RTV-FORMATS
-    for (uint i = 0u; i < aState.myNumRenderTargets; ++i)
-    {
-      psoDesc.RTVFormats[i] = RenderCore_PlatformDX12::ResolveFormat(aState.myRTVformats[i]);
-    }
-
-    // DSV FORMAT
-    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat(RenderCore_PlatformDX12::ResolveFormat(aState.myDSVformat));
-
-    // NODE MASK
-    psoDesc.NodeMask = 0u;
-
-    return psoDesc;
-  }
-//---------------------------------------------------------------------------//
-  D3D12_COMPUTE_PIPELINE_STATE_DESC CommandListDX12::GetNativePSOdesc(const ComputePipelineState& aState)
-  {
-    D3D12_COMPUTE_PIPELINE_STATE_DESC desc;
-    memset(&desc, 0u, sizeof(desc));
-
-    if (aState.myShaderPipeline != nullptr)
-    {
-      const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(aState.myShaderPipeline->GetShader(ShaderStage::COMPUTE));
-
-      desc.pRootSignature = shaderDx12->GetRootSignature();
-      desc.CS = shaderDx12->getNativeByteCode();
-    }
-
-    desc.NodeMask = 0u;
-    return desc;
   }
 //---------------------------------------------------------------------------//
   bool CommandListDX12::FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoDX12& aResourceInfoOut) const
@@ -1102,26 +920,32 @@ namespace Fancy {
     myRootSignatureBindings.reset(new RootSignatureBindingsDX12(pipelineDx12->GetRootSignatureLayout()));
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::BindVertexBuffer(const GpuBuffer* aBuffer, uint aVertexSize, uint64 anOffset /*= 0u*/, uint64 aSize /*= ~0ULL*/)
+  void CommandListDX12::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers)
   {
-    D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+    const Shader* vertexShader = myGraphicsPipelineState.myShaderPipeline ? myGraphicsPipelineState.myShaderPipeline->GetShader(ShaderStage::VERTEX) : nullptr;
+    const VertexInputLayout* shaderInputLayout = vertexShader ? vertexShader->myDefaultVertexInputLayout.get() : nullptr;
+    const VertexInputLayout* inputLayout = myGraphicsPipelineState.myVertexInputLayout ? myGraphicsPipelineState.myVertexInputLayout : shaderInputLayout;
 
-    GpuResourceDataDX12* storage = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
+    ASSERT(inputLayout && inputLayout->myProperties.myBufferBindings.Size() == aNumBuffers);
 
-    uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
-    vertexBufferView.BufferLocation = resourceStartAddress + anOffset;
+    StaticArray<D3D12_VERTEX_BUFFER_VIEW, 16> vertexBufferViews;
+    for (uint i = 0u; i < aNumBuffers; ++i)
+    {
+      const GpuBuffer* buffer = someBuffers[i];
+      TrackResourceTransition(buffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
-    const uint64 byteSize = glm::min(aSize, aBuffer->GetByteSize());
-    ASSERT(byteSize <= UINT_MAX);
+      GpuResourceDataDX12* resourceDataDx12 = buffer->GetDX12Data();
+      const uint64 resourceStartAddress = resourceDataDx12->myResource->GetGPUVirtualAddress();
 
-    vertexBufferView.SizeInBytes = static_cast<uint>(byteSize);
-    vertexBufferView.StrideInBytes = static_cast<uint>(aVertexSize);
+      D3D12_VERTEX_BUFFER_VIEW& vertexBufferView = vertexBufferViews.Add();
+      vertexBufferView.BufferLocation = resourceStartAddress + someOffsets[i];
+      ASSERT(someSizes[i] <= UINT_MAX);
+      vertexBufferView.SizeInBytes = static_cast<uint>(someSizes[i]);
 
-    TrackResourceTransition(aBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+      vertexBufferView.StrideInBytes = inputLayout->myProperties.myBufferBindings[i].myStride;
+    }
 
-    // TODO: Don't set the primitive topology here: Changing the topology after binding the vertex buffer won't work otherwise...
-    myCommandList->IASetPrimitiveTopology(Adapter::ResolveTopology(myGraphicsPipelineState.myTopologyType));
-    myCommandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+    myCommandList->IASetVertexBuffers(0, vertexBufferViews.Size(), vertexBufferViews.GetBuffer());
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anIndexOffset /* = 0u */, uint64 aNumIndices /* =~0ULL*/)
@@ -1337,8 +1161,6 @@ namespace Fancy {
     if (numPossibleSubresourceTransitions == 0u && canEarlyOut)
       return;
 
-    bool canTransitionAllSubresources = numPossibleSubresourceTransitions == aResource->mySubresources.GetNumSubresources();
-
     const bool dstIsRead = (dstStates & DX12_READ_STATES) == dstStates;
 
     LocalHazardData* localData = nullptr;
@@ -1353,35 +1175,17 @@ namespace Fancy {
       localData = &it->second;
     }
 
-    i = 0u;
-    for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it, ++i)
+    bool canTransitionAllSubresources = numPossibleSubresourceTransitions == aResource->mySubresources.GetNumSubresources();
+    if (canTransitionAllSubresources)
     {
-      if (!subresourceTransitionPossible[i])
-        continue;
+      const D3D12_RESOURCE_STATES firstSrcStates = localData->mySubresources[0].myStates;
 
-      const uint subresourceIndex = aResource->GetSubresourceIndex(*it);
-
-      SubresourceHazardData& subData = localData->mySubresources[subresourceIndex];
-      if (subData.myWasUsed && !canTransitionAllSubresources)
+      for (uint sub = 0u; canTransitionAllSubresources && sub < localData->mySubresources.size(); ++sub)
       {
-        D3D12_RESOURCE_BARRIER barrier = {};
-        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Transition.StateBefore = subData.myStates;
-        barrier.Transition.StateAfter = dstStates;
-        barrier.Transition.Subresource = subresourceIndex;
-        barrier.Transition.pResource = aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
-        AddBarrier(barrier);
-
-#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-        if (RenderCore::ourDebugLogResourceBarriers)
-          LOG_DEBUG("Subresource transition: %s (subresource %d): %s -> %s", aResource->GetName(), subresourceIndex,
-            DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateBefore).c_str(), DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateAfter).c_str());
-#endif
+        canTransitionAllSubresources &= localData->mySubresources[sub].myWasUsed &&
+          localData->mySubresources[sub].myStates == firstSrcStates;
       }
     }
-
-    for (uint i = 0u; canTransitionAllSubresources && i < localData->mySubresources.size(); ++i)
-      canTransitionAllSubresources &= localData->mySubresources[i].myWasUsed;
 
     if (canTransitionAllSubresources)
     {
@@ -1395,9 +1199,38 @@ namespace Fancy {
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
       if (RenderCore::ourDebugLogResourceBarriers)
-        LOG_DEBUG("Subresource transition: %s (all subresources): %s -> %s", aResource->GetName(), 
+        LOG_DEBUG("Subresource transition: %s (all subresources): %s -> %s", aResource->GetName(),
           DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateBefore).c_str(), DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateAfter).c_str());
 #endif
+    }
+    else
+    {
+      i = 0u;
+      for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it, ++i)
+      {
+        if (!subresourceTransitionPossible[i])
+          continue;
+
+        const uint subresourceIndex = aResource->GetSubresourceIndex(*it);
+
+        SubresourceHazardData& subData = localData->mySubresources[subresourceIndex];
+        if (subData.myWasUsed)
+        {
+          D3D12_RESOURCE_BARRIER barrier = {};
+          barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+          barrier.Transition.StateBefore = subData.myStates;
+          barrier.Transition.StateAfter = dstStates;
+          barrier.Transition.Subresource = subresourceIndex;
+          barrier.Transition.pResource = aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
+          AddBarrier(barrier);
+
+#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
+          if (RenderCore::ourDebugLogResourceBarriers)
+            LOG_DEBUG("Subresource transition: %s (subresource %d): %s -> %s", aResource->GetName(), subresourceIndex,
+              DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateBefore).c_str(), DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateAfter).c_str());
+#endif
+        }
+      }
     }
 
     i = 0u;
@@ -1422,7 +1255,6 @@ namespace Fancy {
 #endif
         subData.myFirstDstStates = dstStates;
       }
-        
 
       subData.myWasUsed = true;
       subData.myStates = dstStates;
@@ -1504,23 +1336,7 @@ namespace Fancy {
 
     myGraphicsPipelineState.myIsDirty = false;
 
-    const uint64 requestedHash = myGraphicsPipelineState.GetHash();
-
-    ID3D12PipelineState* pso = nullptr;
-
-    const auto cachedPSOIter = ourPSOcache.find(requestedHash);
-    if (cachedPSOIter != ourPSOcache.end())
-    {
-      pso = cachedPSOIter->second;
-    }
-    else
-    {
-      const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc = GetNativePSOdesc(myGraphicsPipelineState);
-      const HRESULT result = RenderCore::GetPlatformDX12()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
-      ASSERT(result == S_OK, "Error creating graphics PSO");
-
-      ourPSOcache[requestedHash] = pso;
-    }
+    ID3D12PipelineState* pso = RenderCore::GetPlatformDX12()->GetPipelineStateCache().GetCreateGraphicsPSO(myGraphicsPipelineState);
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
@@ -1530,24 +1346,8 @@ namespace Fancy {
       return;
 
     myComputePipelineState.myIsDirty = false;
-
-    const uint64 requestedHash = myComputePipelineState.GetHash();
     
-    ID3D12PipelineState* pso = nullptr;
-
-    const auto cachedPSOIter = ourPSOcache.find(requestedHash);
-    if (cachedPSOIter != ourPSOcache.end())
-    {
-      pso = cachedPSOIter->second;
-    }
-    else
-    {
-      const D3D12_COMPUTE_PIPELINE_STATE_DESC& psoDesc = GetNativePSOdesc(myComputePipelineState);
-      HRESULT result = RenderCore::GetPlatformDX12()->GetDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pso));
-      ASSERT(result == S_OK, "Error creating compute PSO");
-
-      ourPSOcache[requestedHash] = pso;
-    }
+    ID3D12PipelineState* pso = RenderCore::GetPlatformDX12()->GetPipelineStateCache().GetCreateComputePSO(myComputePipelineState);
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
@@ -1570,7 +1370,7 @@ namespace Fancy {
   void CommandListDX12::Close()
   {
     if (myIsOpen)
-      CheckD3Dcall(myCommandList->Close());
+      ASSERT_HRESULT(myCommandList->Close());
 
     myIsOpen = false;
   }

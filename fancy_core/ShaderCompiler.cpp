@@ -100,6 +100,25 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  VertexAttributeSemantic ShaderCompiler::GetVertexAttributeSemantic(const char* aSemanticName)
+  {
+    if (strncmp(aSemanticName, "POSITION", strlen("POSITION")) == 0)
+      return VertexAttributeSemantic::POSITION;
+    if (strncmp(aSemanticName, "NORMAL", strlen("NORMAL")) == 0)
+      return VertexAttributeSemantic::NORMAL;
+    if (strncmp(aSemanticName, "TANGENT", strlen("TANGENT")) == 0)
+      return VertexAttributeSemantic::TANGENT;
+    if (strncmp(aSemanticName, "BINORMAL", strlen("BINORMAL")) == 0)
+      return VertexAttributeSemantic::BINORMAL;
+    if (strncmp(aSemanticName, "TEXCOORD", strlen("TEXCOORD")) == 0)
+      return VertexAttributeSemantic::TEXCOORD;
+    if (strncmp(aSemanticName, "COLOR", strlen("COLOR")) == 0)
+      return VertexAttributeSemantic::COLOR;
+    
+    ASSERT(false, "Unrecognized vertex semantic %s", aSemanticName);
+    return VertexAttributeSemantic::NONE;
+  }
+//---------------------------------------------------------------------------//
   String ShaderCompiler::GetShaderPathRelative(const char* aPath) const
   {
     const StaticFilePath path("%s/%s", GetShaderRootFolderRelative(), aPath);

@@ -470,7 +470,7 @@ namespace Fancy {
     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
       debugInterface->EnableDebugLayer();
 
-    CheckD3Dcall(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
+    ASSERT_HRESULT(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
 
     // CheckD3Dcall(ourDevice->SetStablePowerState(true));
 
@@ -595,6 +595,7 @@ namespace Fancy {
     myAvailableDynamicHeaps.clear();
     myUsedDynamicHeaps.clear();
     myDynamicHeapPool.clear();
+    myPipelineStateCache.Clear();
 
     for (uint i = 0u; i < ARRAY_LENGTH(myStaticDescriptorAllocators); ++i)
       myStaticDescriptorAllocators[i].reset();
@@ -771,19 +772,19 @@ namespace Fancy {
   float64 RenderCore_PlatformDX12::GetGpuTicksToMsFactor(CommandListType aCommandListType)
   {
     uint64 timestampFrequency = 1u;
-    CheckD3Dcall(GetCommandQueueDX12(aCommandListType)->myQueue->GetTimestampFrequency(&timestampFrequency));
+    ASSERT_HRESULT(GetCommandQueueDX12(aCommandListType)->myQueue->GetTimestampFrequency(&timestampFrequency));
     return 1000.0f / timestampFrequency;
   }
 //---------------------------------------------------------------------------//
   Microsoft::WRL::ComPtr<IDXGISwapChain> RenderCore_PlatformDX12::CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc)
   {
     Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
-    CheckD3Dcall(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
+    ASSERT_HRESULT(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
 
     DXGI_SWAP_CHAIN_DESC swapChainDesc = aSwapChainDesc;
 
     Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
-    CheckD3Dcall(dxgiFactory->CreateSwapChain(GetCommandQueueDX12(CommandListType::Graphics)->myQueue.Get(), &swapChainDesc, &swapChain));
+    ASSERT_HRESULT(dxgiFactory->CreateSwapChain(GetCommandQueueDX12(CommandListType::Graphics)->myQueue.Get(), &swapChainDesc, &swapChain));
     return swapChain;
   }
 //---------------------------------------------------------------------------//

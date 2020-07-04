@@ -11,6 +11,7 @@
 #include "CommandAllocatorPoolDX12.h"
 #include "CommandQueueDX12.h"
 #include "GpuQueryHeap.h"
+#include "PipelineStateCacheDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -81,10 +82,11 @@ namespace Fancy {
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
-    
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
     const DescriptorDX12& GetNullDescriptor(D3D12_DESCRIPTOR_RANGE_TYPE aType) const { return myNullDescriptors[aType]; }
+
+    PipelineStateCacheDX12& GetPipelineStateCache() { return myPipelineStateCache; }
 
   // protected:
     void UpdateAvailableDynamicDescriptorHeaps();
@@ -103,6 +105,8 @@ namespace Fancy {
     float64 myGpuTicksToMsFactor[(uint)CommandListType::NUM];
 
     DescriptorDX12 myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER + 1];
+
+    PipelineStateCacheDX12 myPipelineStateCache;
   };
 //---------------------------------------------------------------------------//
 }

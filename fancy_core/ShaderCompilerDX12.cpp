@@ -54,26 +54,6 @@ namespace Fancy {
     return DataFormat::NONE;
   }
 //---------------------------------------------------------------------------//
-  uint locResolveSizeBytes(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
-  {
-    switch (aParamDesc.ComponentType)
-    {
-      case D3D_REGISTER_COMPONENT_SINT32:
-      case D3D_REGISTER_COMPONENT_UINT32:
-      case D3D_REGISTER_COMPONENT_FLOAT32:
-      {
-        if (aParamDesc.Mask <= 1) return 4u;
-        else if (aParamDesc.Mask <= 3) return 8u;
-        else if (aParamDesc.Mask <= 7) return 12u;
-        else if (aParamDesc.Mask <= 15) return 16u;
-      }
-      break;
-    }
-
-    ASSERT(false, "Component type not implemented");
-    return 0u;
-  }
-//---------------------------------------------------------------------------//
   uint locResolveComponentCount(const D3D12_SIGNATURE_PARAMETER_DESC& aParamDesc)
   {
     if (aParamDesc.Mask <= 1) return 1u;
@@ -212,33 +192,6 @@ namespace Fancy {
     aDataFormatOut = format;
 
 #undef CHECK
-  }
-//---------------------------------------------------------------------------//
-  bool locReflectVertexInputLayout(ID3D12ShaderReflection* aReflector, 
-    const D3D12_SHADER_DESC& aShaderDesc, ShaderProperties& someProps)
-  {
-    if (aShaderDesc.InputParameters == 0u)
-      return false;
-
-    someProps.myVertexInputLayout.myVertexInputElements.clear();
-    someProps.myVertexInputLayout.myVertexInputElements.reserve(aShaderDesc.InputParameters);
-
-    D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
-    for (uint i = 0u; i < aShaderDesc.InputParameters; ++i)
-    {
-      aReflector->GetInputParameterDesc(i, &paramDesc);
-      
-      ShaderVertexInputElement inputElem;
-      inputElem.mySemantics = ShaderDX12::GetVertexSemanticFromShaderString(paramDesc.SemanticName);
-      inputElem.mySemanticIndex = paramDesc.SemanticIndex;
-      inputElem.myFormat = locResolveFormat(paramDesc);
-      inputElem.mySizeBytes = locResolveSizeBytes(paramDesc);
-      inputElem.myName = paramDesc.SemanticName;
-      inputElem.myFormatComponentCount = locResolveComponentCount(paramDesc);
-      someProps.myVertexInputLayout.myVertexInputElements.push_back(inputElem);
-    }
-
-    return true;
   }
 //---------------------------------------------------------------------------//
   bool locIsRwResource(D3D_SHADER_INPUT_TYPE aType)
@@ -415,7 +368,7 @@ namespace Fancy {
     for (uint i = 0u; i < shaderDesc.BoundResources && !hasUnorderedWrites; ++i)
     {
       D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
-      CheckD3Dcall(aReflector->GetResourceBindingDesc(i, &resourceDesc));
+      ASSERT_HRESULT(aReflector->GetResourceBindingDesc(i, &resourceDesc));
 
       hasUnorderedWrites |= locIsRwResource(resourceDesc.Type);
 
@@ -502,11 +455,32 @@ namespace Fancy {
       D3D12_SHADER_DESC shaderDesc;
       reflector->GetDesc(&shaderDesc);
 
-      if (!locReflectVertexInputLayout(reflector.Get(), shaderDesc, anOutput->myProperties))
+      StaticArray<VertexShaderAttributeDesc, 16>& vertexAttributes = anOutput->myVertexAttributes;
+      for (uint i = 0u; i < shaderDesc.InputParameters; ++i)
       {
-        LOG_ERROR("Failed reflecting vertex input layout");
-        return false;
+        D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
+        reflector->GetInputParameterDesc(i, &paramDesc);
+
+        VertexShaderAttributeDesc& attributeDesc = vertexAttributes.Add();
+        attributeDesc.myFormat = locResolveFormat(paramDesc);
+        ASSERT(attributeDesc.myFormat != DataFormat::NONE);
+        attributeDesc.mySemantic = ShaderCompiler::GetVertexAttributeSemantic(paramDesc.SemanticName);
+        attributeDesc.mySemanticIndex = paramDesc.SemanticIndex;
       }
+
+      // Create a default vertex input layout that assumes that all vertex attributes come from one interleaved vertex buffer.
+     // A custom vertex input layout can be set using using CommandList::SetVertexInputLayout()
+      uint overallVertexSize = 0u;
+      VertexInputLayoutProperties props;
+      for (uint i = 0u; i < vertexAttributes.Size(); ++i)
+      {
+        const VertexShaderAttributeDesc& shaderAttribute = vertexAttributes[i];
+        props.myAttributes.Add({ shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u });
+        overallVertexSize += DataFormatInfo::GetFormatInfo(shaderAttribute.myFormat).mySizeBytes;
+      }
+
+      props.myBufferBindings.Add({ overallVertexSize, VertexInputRate::PER_VERTEX });
+      anOutput->myDefaultVertexInputLayout = RenderCore::CreateVertexInputLayout(props);
     }
     else if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::COMPUTE))
     {

@@ -21,7 +21,7 @@ namespace Fancy {
 
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
 
-    CheckD3Dcall(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&myDescriptorHeap)));
+    ASSERT_HRESULT(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&myDescriptorHeap)));
     myDesc = heapDesc;
 
     myHandleIncrementSize = device->GetDescriptorHandleIncrementSize(aType);

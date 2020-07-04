@@ -1,2 +1,0 @@
-- Replace std::lists with Fancy::GrowingList where appropriate
-	- RenderCore::AllocateRingBuffer()

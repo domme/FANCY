@@ -23,9 +23,9 @@ namespace Fancy
 	  D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	  queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
     queueDesc.Type = Adapter::ResolveCommandListType(aType); 
-	  CheckD3Dcall(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&myQueue)));
+	  ASSERT_HRESULT(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&myQueue)));
 
-    CheckD3Dcall(device->CreateFence(myLastCompletedFenceVal, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myFence)));
+    ASSERT_HRESULT(device->CreateFence(myLastCompletedFenceVal, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&myFence)));
   }
 //---------------------------------------------------------------------------//
   bool CommandQueueDX12::IsFenceDone(uint64 aFenceVal)
@@ -40,7 +40,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   uint64 CommandQueueDX12::SignalAndIncrementFence()
   {
-    CheckD3Dcall(myQueue->Signal(myFence.Get(), myNextFenceVal));
+    ASSERT_HRESULT(myQueue->Signal(myFence.Get(), myNextFenceVal));
     return myNextFenceVal++;
   }
 //---------------------------------------------------------------------------//
@@ -51,7 +51,7 @@ namespace Fancy
     if (IsFenceDone(aFenceVal))
       return;
 
-    CheckD3Dcall(myFence->SetEventOnCompletion(aFenceVal, myFenceCompletedEvent));
+    ASSERT_HRESULT(myFence->SetEventOnCompletion(aFenceVal, myFenceCompletedEvent));
     WaitForSingleObject(myFenceCompletedEvent, INFINITE);
     myLastCompletedFenceVal = glm::max(myLastCompletedFenceVal, aFenceVal);
   }
@@ -66,14 +66,14 @@ namespace Fancy
   {
     const CommandQueueDX12* otherQueue = static_cast<const CommandQueueDX12*>(aCommandQueue);
     if (otherQueue != this)
-      CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), otherQueue->myNextFenceVal - 1u));
+      ASSERT_HRESULT(myQueue->Wait(otherQueue->myFence.Get(), otherQueue->myNextFenceVal - 1u));
   }
 //---------------------------------------------------------------------------//
   void CommandQueueDX12::StallForFence(uint64 aFenceVal)
   {
     const CommandQueueDX12* otherQueue = static_cast<const CommandQueueDX12*>(RenderCore::GetCommandQueue(aFenceVal));
     if (otherQueue != this)
-      CheckD3Dcall(myQueue->Wait(otherQueue->myFence.Get(), aFenceVal));
+      ASSERT_HRESULT(myQueue->Wait(otherQueue->myFence.Get(), aFenceVal));
   }
 //---------------------------------------------------------------------------//
   uint64 CommandQueueDX12::ExecuteCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode/* = SyncMode::ASYNC*/)

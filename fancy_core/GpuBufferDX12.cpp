@@ -116,7 +116,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    ASSERT_HRESULT(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
 
     std::wstring wName = StringUtil::ToWideString(myName);
     dataDx12->myResource->SetName(wName.c_str());
@@ -150,8 +150,6 @@ namespace Fancy {
 
       if(dataDx12->myGpuMemory.myHeap != nullptr)
         RenderCore::GetPlatformDX12()->ReleaseGpuMemory(dataDx12->myGpuMemory);
-
-      delete dataDx12;
     }
 
     myNativeData.Clear();
@@ -299,7 +297,7 @@ namespace Fancy {
     range.End = range.Begin + aSize;
 
     void* mappedData = nullptr;
-    CheckD3Dcall(GetData()->myResource->Map(0, &range, &mappedData));
+    ASSERT_HRESULT(GetData()->myResource->Map(0, &range, &mappedData));
 
     return mappedData;
   }

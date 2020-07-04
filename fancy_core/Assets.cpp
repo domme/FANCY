@@ -12,6 +12,7 @@
 #include "ImageLoader.h"
 #include "TextureReadbackTask.h"
 #include "GraphicsResources.h"
+#include "CommandLine.h"
 
 namespace Fancy
 {
@@ -172,7 +173,7 @@ namespace Fancy
     uint64 texPathRelHash = MathUtil::Hash(texPathRel);
     MathUtil::hash_combine(texPathRelHash, ((uint64)someLoadFlags & SHADER_WRITABLE));
 
-    if ((someLoadFlags & NO_DISK_CACHE) == 0)
+    if ((someLoadFlags & NO_DISK_CACHE) == 0 && !CommandLine::GetInstance()->HasArgument("noDiskCache"))
     {
       uint64 timestamp = Path::GetFileWriteTime(texPathAbs);
 
@@ -289,7 +290,7 @@ namespace Fancy
       TextureProperties props = aTexture->GetProperties();
       props.myIsRenderTarget = false;
       props.myIsShaderWritable = true;
-      texture = RenderCore::CreateTexture(props, "Mipmapping temp texture");
+      texture = RenderCore::CreateTexture(props, "Mipmap target UAV copy");
     }
 
     TextureResourceProperties tempTexProps;

@@ -16,7 +16,7 @@ namespace Fancy
     heapDesc.Type = Adapter::ResolveQueryHeapType(aQueryType);
 
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
-    CheckD3Dcall(platformDx12->GetDevice()->CreateQueryHeap(&heapDesc, IID_PPV_ARGS(&myHeap)));
+    ASSERT_HRESULT(platformDx12->GetDevice()->CreateQueryHeap(&heapDesc, IID_PPV_ARGS(&myHeap)));
   }
 
   GpuQueryHeapDX12::~GpuQueryHeapDX12()

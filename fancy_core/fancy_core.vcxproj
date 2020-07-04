@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug_DX12|x64">
-      <Configuration>Debug_DX12</Configuration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -12,7 +12,7 @@
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
@@ -21,22 +21,22 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\property_sheets\inc_lib_dependencies.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
     <Import Project="..\property_sheets\output_lib.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IntDir>$(SolutionDir)/_build_temp/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.lib</TargetExt>
     <OutDir>$(SolutionDir)lib/$(Platform)/$(Configuration)/</OutDir>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
@@ -105,6 +105,7 @@
     <ClInclude Include="Assets.h" />
     <ClInclude Include="PipelineDescriptorSetLayoutsVk.h" />
     <ClInclude Include="PipelineLayoutCacheVk.h" />
+    <ClInclude Include="PipelineStateCacheDX12.h" />
     <ClInclude Include="PipelineStateCacheVk.h" />
     <ClInclude Include="RenderPassCacheVk.h" />
     <ClInclude Include="RenderPlatformObjectCache.h" />
@@ -231,6 +232,7 @@
     <ClCompile Include="MeshImporter.cpp" />
     <ClCompile Include="Assets.cpp" />
     <ClCompile Include="PipelineLayoutCacheVk.cpp" />
+    <ClCompile Include="PipelineStateCacheDX12.cpp" />
     <ClCompile Include="PipelineStateCacheVk.cpp" />
     <ClCompile Include="RenderPassCacheVk.cpp" />
     <ClCompile Include="RootSignatureDX12.cpp" />
@@ -251,7 +253,7 @@
     <ClCompile Include="RenderCore_PlatformVk.cpp" />
     <ClCompile Include="RenderOutputVk.cpp" />
     <ClCompile Include="spirv_reflect\spirv_reflect.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="TempResourcePool.cpp" />
@@ -263,8 +265,8 @@
     <ClCompile Include="RenderOutputDX12.cpp" />
     <ClCompile Include="StaticDescriptorAllocatorDX12.cpp" />
     <ClCompile Include="fancy_core_precompile.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug_DX12|x64'">fancy_core_precompile.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">fancy_core_precompile.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="TempResources.cpp" />
     <ClCompile Include="Texture.cpp" />

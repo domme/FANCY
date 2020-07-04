@@ -163,7 +163,7 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);
-    CheckD3Dcall(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    ASSERT_HRESULT(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
     dataDx12->myGpuMemory = gpuMemory;
 
     // TODO: Decide between placed and committed resources depending on size and alignment requirements (maybe also expose a preference as a flag to the caller?)
@@ -218,8 +218,6 @@ namespace Fancy {
 
       if(dataDx12->myGpuMemory.myHeap != nullptr)
         RenderCore::GetPlatformDX12()->ReleaseGpuMemory(dataDx12->myGpuMemory);
-
-      delete dataDx12;
     }
 
     myNativeData.Clear();

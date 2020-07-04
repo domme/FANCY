@@ -1,5 +1,8 @@
 #pragma once
 
+#include <mutex>
+#include <unordered_map>
+
 namespace Fancy
 {
   template<class T>

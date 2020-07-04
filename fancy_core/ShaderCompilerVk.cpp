@@ -68,20 +68,7 @@ namespace Fancy
         aSemanticIndexOut = (uint)atoi(buf);
       }
   
-      if (strncmp(aSemanticString, "POSITION", strlen("POSITION")) == 0)
-        aSemanticOut = VertexAttributeSemantic::POSITION;
-      else if (strncmp(aSemanticString, "NORMAL", strlen("NORMAL")) == 0)
-        aSemanticOut = VertexAttributeSemantic::NORMAL;
-      else if (strncmp(aSemanticString, "TANGENT", strlen("TANGENT")) == 0)
-        aSemanticOut = VertexAttributeSemantic::TANGENT;
-      else if (strncmp(aSemanticString, "BINORMAL", strlen("BINORMAL")) == 0)
-        aSemanticOut = VertexAttributeSemantic::BINORMAL;
-      else if (strncmp(aSemanticString, "TEXCOORD", strlen("TEXCOORD")) == 0)
-        aSemanticOut = VertexAttributeSemantic::TEXCOORD;
-      else if (strncmp(aSemanticString, "COLOR", strlen("COLOR")) == 0)
-        aSemanticOut = VertexAttributeSemantic::COLOR;
-      else
-        ASSERT(false, "Unrecognized vertex semantic %s", aSemanticString);
+      aSemanticOut = ShaderCompiler::GetVertexAttributeSemantic(aSemanticString);
     }
 //---------------------------------------------------------------------------//
     VkDescriptorType locResolveDescriptorType(SpvReflectDescriptorType aReflDescType)
