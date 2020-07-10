@@ -11,7 +11,7 @@ namespace Fancy
   struct MeshPartData;
   struct MeshDesc;
 
-  class Assets
+  class ObjectCore
   {
   public:
     enum TextureLoadFlags
@@ -29,14 +29,13 @@ namespace Fancy
       FILTER_NUM
     };
 
-    Assets() = delete;
-    ~Assets() = delete;
+    ObjectCore() = delete;
+    ~ObjectCore() = delete;
 
     static void Init();
-    
-    static MeshImporter& GetMeshImporter() { return ourMeshImporter; }
+  
     static SharedPtr<Mesh> GetMesh(const MeshDesc& aDesc);
-    static SharedPtr<Mesh> CreateMesh(const MeshDesc& aDesc, const MeshPartData* someMeshDatas, uint aNumMeshDatas);
+    static SharedPtr<Mesh> CreateMesh(const MeshData& aMeshData);
     static uint64 ComputeMeshVertexHash(const MeshPartData* someMeshPartDatas, uint aNumParts);
 
     static SharedPtr<Material> GetMaterial(const MaterialDesc& aDesc);
@@ -53,7 +52,6 @@ namespace Fancy
     static std::map<uint64, SharedPtr<Mesh>> ourMeshCache;
     static std::map<uint64, SharedPtr<Material>> ourMaterialCache;
     static SharedPtr<ShaderPipeline> ourMipDownsampleShader;
-    static MeshImporter ourMeshImporter;
   };
 }
 

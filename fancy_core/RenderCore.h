@@ -14,7 +14,6 @@
 
 #include <map>
 #include <list>
-#include <map>
 
 namespace Fancy {
   struct MaterialDesc;

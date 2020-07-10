@@ -102,7 +102,7 @@
     <ClInclude Include="ImageLoader.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshImporter.h" />
-    <ClInclude Include="Assets.h" />
+    <ClInclude Include="ObjectCore.h" />
     <ClInclude Include="PipelineDescriptorSetLayoutsVk.h" />
     <ClInclude Include="PipelineLayoutCacheVk.h" />
     <ClInclude Include="PipelineStateCacheDX12.h" />
@@ -110,6 +110,7 @@
     <ClInclude Include="RenderPassCacheVk.h" />
     <ClInclude Include="RenderPlatformObjectCache.h" />
     <ClInclude Include="RootSignatureDX12.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="ShaderCompilerVk.h" />
     <ClInclude Include="ShaderPipelineDX12.h" />
     <ClInclude Include="ShaderPipelineVk.h" />
@@ -230,12 +231,13 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MeshImporter.cpp" />
-    <ClCompile Include="Assets.cpp" />
+    <ClCompile Include="ObjectCore.cpp" />
     <ClCompile Include="PipelineLayoutCacheVk.cpp" />
     <ClCompile Include="PipelineStateCacheDX12.cpp" />
     <ClCompile Include="PipelineStateCacheVk.cpp" />
     <ClCompile Include="RenderPassCacheVk.cpp" />
     <ClCompile Include="RootSignatureDX12.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="ShaderCompilerDX12.cpp" />

@@ -30,6 +30,12 @@ namespace Fancy
     uint64 myHash = 0ull;
   };
 //---------------------------------------------------------------------------//
+  struct MeshData
+  {
+    MeshDesc myDesc;
+    DynamicArray<MeshPartData> myParts;
+  };
+//---------------------------------------------------------------------------//
   struct Mesh
   {
     MeshDesc myDesc;

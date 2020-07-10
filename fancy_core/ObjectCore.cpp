@@ -1,5 +1,5 @@
 #include "fancy_core_precompile.h"
-#include "Assets.h"
+#include "ObjectCore.h"
 #include "RenderCore.h"
 #include "ShaderPipeline.h"
 #include "PathService.h"
@@ -17,13 +17,12 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  std::map<uint64, SharedPtr<TextureView>> Assets::ourTextureCache;
-  std::map<uint64, SharedPtr<Mesh>> Assets::ourMeshCache;
-  std::map<uint64, SharedPtr<Material>> Assets::ourMaterialCache;
-  SharedPtr<ShaderPipeline> Assets::ourMipDownsampleShader;
-  MeshImporter Assets::ourMeshImporter;
+  std::map<uint64, SharedPtr<TextureView>> ObjectCore::ourTextureCache;
+  std::map<uint64, SharedPtr<Mesh>> ObjectCore::ourMeshCache;
+  std::map<uint64, SharedPtr<Material>> ObjectCore::ourMaterialCache;
+  SharedPtr<ShaderPipeline> ObjectCore::ourMipDownsampleShader;
 //---------------------------------------------------------------------------//
-  void Assets::Init()
+  void ObjectCore::Init()
   {
     ShaderPipelineDesc pipelineDesc;
     ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
@@ -34,8 +33,8 @@ namespace Fancy
     ourMipDownsampleShader = RenderCore::CreateShaderPipeline(pipelineDesc);
     ASSERT(ourMipDownsampleShader != nullptr);
   }
-//---------------------------------------------------------------------------//
-  SharedPtr<Mesh> Assets::GetMesh(const MeshDesc& aDesc)
+ //---------------------------------------------------------------------------//
+  SharedPtr<Mesh> ObjectCore::GetMesh(const MeshDesc& aDesc)
   {
     auto it = ourMeshCache.find(aDesc.myHash);
     if (it != ourMeshCache.end())
@@ -44,18 +43,18 @@ namespace Fancy
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> Assets::CreateMesh(const MeshDesc& aDesc, const MeshPartData* someMeshDatas, uint aNumMeshDatas)
+  SharedPtr<Mesh> ObjectCore::CreateMesh(const MeshData& aMeshData)
   {
-    SharedPtr<Mesh> cachedMesh = GetMesh(aDesc);
+    SharedPtr<Mesh> cachedMesh = GetMesh(aMeshData.myDesc);
     if (cachedMesh)
       return cachedMesh;
 
     SharedPtr<Mesh> mesh(new Mesh());
-    mesh->myDesc = aDesc;
+    mesh->myDesc = aMeshData.myDesc;
 
-    for (uint i = 0u; i < aNumMeshDatas; ++i)
+    for (uint i = 0u; i < aMeshData.myParts.size(); ++i)
     {
-      const MeshPartData& partData = someMeshDatas[i];
+      const MeshPartData& partData = aMeshData.myParts[i];
       SharedPtr<MeshPart> meshPart(new MeshPart());
 
       const VertexInputLayoutProperties& vertexLayoutProperties = partData.myVertexLayoutProperties;
@@ -72,7 +71,7 @@ namespace Fancy
       bufferParams.myNumElements = numVertices;
       bufferParams.myElementSizeBytes = overallVertexSize;
 
-      StaticString<256> name("VertexBuffer_Mesh_%s_%lld", aDesc.myName.c_str(), aDesc.myHash);
+      StaticString<256> name("VertexBuffer_Mesh_%d_%s_%lld", i, aMeshData.myDesc.myName.c_str(), aMeshData.myDesc.myHash);
       meshPart->myVertexBuffer = RenderCore::CreateBuffer(bufferParams, name, ptrToVertexData);
 
       const uint8* ptrToIndexData = partData.myIndexData.data();
@@ -84,18 +83,18 @@ namespace Fancy
       indexBufParams.myNumElements = numIndices;
       indexBufParams.myElementSizeBytes = sizeof(uint);
 
-      name.Format("IndexBuffer_Mesh_%s_%lld", aDesc.myName.c_str(), aDesc.myHash);
+      name.Format("IndexBuffer_Mesh_%d_%s_%lld", i, aMeshData.myDesc.myName.c_str(), aMeshData.myDesc.myHash);
       meshPart->myIndexBuffer = RenderCore::CreateBuffer(indexBufParams, name, ptrToIndexData);
 
       mesh->myParts.push_back(meshPart);
     }
 
-    ourMeshCache[aDesc.myHash] = mesh;
+    ourMeshCache[aMeshData.myDesc.myHash] = mesh;
 
     return mesh;
   }
 //---------------------------------------------------------------------------//
-  uint64 Assets::ComputeMeshVertexHash(const MeshPartData* someMeshPartDatas, uint aNumParts)
+  uint64 ObjectCore::ComputeMeshVertexHash(const MeshPartData* someMeshPartDatas, uint aNumParts)
   {
     MathUtil::BeginMultiHash();
 
@@ -105,7 +104,7 @@ namespace Fancy
     return MathUtil::EndMultiHash();
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Material> Assets::GetMaterial(const MaterialDesc& aDesc)
+  SharedPtr<Material> ObjectCore::GetMaterial(const MaterialDesc& aDesc)
   {
     const uint64 hash = aDesc.GetHash();
 
@@ -116,7 +115,7 @@ namespace Fancy
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Material> Assets::CreateMaterial(const MaterialDesc& aDesc)
+  SharedPtr<Material> ObjectCore::CreateMaterial(const MaterialDesc& aDesc)
   {
     SharedPtr<Material> mat = GetMaterial(aDesc);
     if (mat)
@@ -135,7 +134,7 @@ namespace Fancy
     return mat;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<TextureView> Assets::GetTexture(const char* aPath, uint someFlags)
+  SharedPtr<TextureView> ObjectCore::GetTexture(const char* aPath, uint someFlags)
   {
     String texPathAbs = aPath;
     String texPathRel = aPath;
@@ -154,7 +153,7 @@ namespace Fancy
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<TextureView> Assets::LoadTexture(const char* aPath, uint someLoadFlags /* = 0 */)
+  SharedPtr<TextureView> ObjectCore::LoadTexture(const char* aPath, uint someLoadFlags /* = 0 */)
   {
     if (strlen(aPath) == 0)
       return nullptr;
@@ -279,7 +278,7 @@ namespace Fancy
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  void Assets::ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter aFilter)
+  void ObjectCore::ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter aFilter)
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;

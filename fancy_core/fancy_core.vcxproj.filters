@@ -425,10 +425,13 @@
     <ClInclude Include="stb\stb_image.h">
       <Filter>IO\stb</Filter>
     </ClInclude>
-    <ClInclude Include="Assets.h">
+    <ClInclude Include="PipelineStateCacheDX12.h" />
+    <ClInclude Include="Scene.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectCore.h">
       <Filter>Object</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineStateCacheDX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -666,10 +669,13 @@
     <ClCompile Include="ImageLoader.cpp">
       <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="Assets.cpp">
+    <ClCompile Include="PipelineStateCacheDX12.cpp" />
+    <ClCompile Include="Scene.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectCore.cpp">
       <Filter>Object</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineStateCacheDX12.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

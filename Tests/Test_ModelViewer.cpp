@@ -13,10 +13,11 @@
 #include "fancy_core/Texture.h"
 #include "fancy_core/StringUtil.h"
 #include "fancy_imgui/imgui.h"
-#include "fancy_core/Assets.h"
+#include "fancy_core/ObjectCore.h"
 #include "fancy_core/GpuBufferProperties.h"
 #include "fancy_core/GpuBuffer.h"
 #include "fancy_core/Material.h"
+#include "fancy_core/Scene.h"
 
 using namespace Fancy;
 
@@ -89,15 +90,14 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   vertexAttributes.Add({ VertexAttributeSemantic::POSITION, 0u, DataFormat::RGB_32F });
   vertexAttributes.Add({ VertexAttributeSemantic::TEXCOORD, 0u, DataFormat::RG_32F });
 
-  MeshImporter::ImportResult importResult;
-  const bool importSuccess = Assets::GetMeshImporter().Import("models/cube.obj", vertexAttributes, importResult);
+  SceneData sceneData;
+  MeshImporter importer;
+  const bool importSuccess = importer.Import("models/cube.obj", vertexAttributes, sceneData);
   ASSERT(importSuccess);
 
-  myScene.myMeshes.insert(myScene.myMeshes.end(), importResult.myMeshes.begin(), importResult.myMeshes.end());
-  myScene.myMaterials.insert(myScene.myMaterials.end(), importResult.myMaterials.begin(), importResult.myMaterials.end());
-  myScene.myTransforms.insert(myScene.myTransforms.end(), importResult.myTransforms.begin(), importResult.myTransforms.end());
+  myScene = std::make_shared<Scene>(sceneData);
 
-  VertexInputLayoutProperties instancedVertexLayoutProps = importResult.myVertexInputLayout->myProperties;
+  VertexInputLayoutProperties instancedVertexLayoutProps = sceneData.myVertexInputLayoutProperties;
   instancedVertexLayoutProps.myAttributes.Add({ DataFormat::RGB_32F, VertexAttributeSemantic::POSITION, 1u, 1u });
   instancedVertexLayoutProps.myBufferBindings.Add({ 12u, VertexInputRate::PER_INSTANCE });
   myInstancedVertexLayout = RenderCore::CreateVertexInputLayout(instancedVertexLayoutProps);
@@ -217,11 +217,11 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
   ctx->SetShaderPipeline(ourDrawInstanced ? myInstancedUnlitTexturedShader.get() : myUnlitTexturedShader.get());
   ctx->BindSampler(mySampler.get(), "sampler_default");
 
-  for (int i = 0; i < myScene.myMeshes.size(); ++i)
+  for (SceneMeshInstance& meshInstance : myScene->myInstances)
   {
-    Mesh* mesh = myScene.myMeshes[i].get();
-    const glm::float4x4& transform = myScene.myTransforms[i];
-    Material* material = myScene.myMaterials[i].get();
+    Mesh* mesh = myScene->myMeshes[meshInstance.myMeshIndex].get();
+    const glm::float4x4& transform = meshInstance.myTransform;
+    Material* material = myScene->myMaterials[meshInstance.myMaterialIndex].get();
 
     struct Cbuffer_PerObject
     {
@@ -229,7 +229,7 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     };
     Cbuffer_PerObject cbuffer_perObject
     {
-      myCamera.myViewProj * myScene.myTransforms[i],
+      myCamera.myViewProj * transform
     };
     ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
 

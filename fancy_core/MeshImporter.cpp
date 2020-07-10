@@ -20,9 +20,8 @@
 #include "RendererPrerequisites.h"
 #include "StaticString.h"
 #include "StaticArray.h"
-#include "Assets.h"
-
 #include "Material.h"
+#include "BinaryCache.h"
 
 namespace Fancy 
 {
@@ -60,7 +59,7 @@ namespace Fancy
       return aiOptions;
     }
   //---------------------------------------------------------------------------//
-    SharedPtr<VertexInputLayout> CreateVertexInputLayout(const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes)
+    VertexInputLayoutProperties CreateVertexInputLayout(const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes)
     {
       VertexInputLayoutProperties layoutProps;
 
@@ -77,7 +76,7 @@ namespace Fancy
       bufferBindDesc.myStride = overallVertexSize;
       layoutProps.myBufferBindings.Add(bufferBindDesc);
 
-      return RenderCore::CreateVertexInputLayout(layoutProps);
+      return layoutProps;
     }
   //---------------------------------------------------------------------------//
     String BuildTexturePath(const aiMaterial* anAiMaterial, uint anAiTextureType, uint aTexIndex, const String& aSceneSourcePath)
@@ -108,8 +107,11 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  bool MeshImporter::Import(const char* aPath, const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes, ImportResult& aResultOut, ImportOptions someImportOptions)
+  bool MeshImporter::Import(const char* aPath, const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes, SceneData& aResultOut, ImportOptions someImportOptions)
   {
+    if (BinaryCache::ReadScene(aPath, aResultOut))
+      return true;
+
     Priv_MeshImporter::ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 
     String pathAbs = Path::GetAbsoluteResourcePath(aPath);
@@ -125,21 +127,24 @@ namespace Fancy
     mySceneFileTimeStamp = Path::GetFileWriteTime(pathAbs);
     myVertexAttributes = someVertexAttributes;
     myVertexInputLayout = Priv_MeshImporter::CreateVertexInputLayout(someVertexAttributes);
-    aResultOut.myVertexInputLayout = myVertexInputLayout;
+    aResultOut.myVertexInputLayoutProperties = myVertexInputLayout;
 
     aiNode* rootNode = importedScene->mRootNode;
     bool success = ProcessNodeRecursive(rootNode, Priv_MeshImporter::MatFromAiMat(rootNode->mTransformation), aResultOut);
+
+    if (success)
+      BinaryCache::WriteScene(aPath, aResultOut);
 
     myScene = nullptr;
     mySourcePath.clear();
     mySceneFileTimeStamp = 0ull;
     myVertexAttributes.Clear();
-    myVertexInputLayout.reset();
+    myVertexInputLayout = VertexInputLayoutProperties();
 
     return success;
   }
 //---------------------------------------------------------------------------//
-  bool MeshImporter::ProcessNodeRecursive(const aiNode* aNode, const glm::float4x4& aParentTransform, ImportResult& aResultOut)
+  bool MeshImporter::ProcessNodeRecursive(const aiNode* aNode, const glm::float4x4& aParentTransform, SceneData& aResultOut)
   {
     if (!aNode)
       return false;
@@ -156,7 +161,7 @@ namespace Fancy
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool MeshImporter::ProcessMeshes(const aiNode* aNode, const glm::float4x4& aTransform, ImportResult& aResultOut)
+  bool MeshImporter::ProcessMeshes(const aiNode* aNode, const glm::float4x4& aTransform, SceneData& aResultOut)
   {
     if (aNode->mNumMeshes == 0)
       return true;
@@ -171,31 +176,24 @@ namespace Fancy
         meshList.push_back(mesh);
     }
     
-    bool hasValidMeshes = false;
     for (auto it = materialMeshMap.begin(); it != materialMeshMap.end(); ++it)
     {
       DynamicArray<aiMesh*>& meshList = it->second;
-      const uint materialIndex = it->first;
+      const uint aiMatIndex = it->first;
 
-      SharedPtr<Mesh> mesh = CreateMesh(aNode, meshList.data(), (uint)meshList.size());
+      aiMaterial* aiMaterial = myScene->mMaterials[aiMatIndex];
 
-      aiMaterial* aiMaterial = myScene->mMaterials[materialIndex];
-      SharedPtr<Material> material = CreateMaterial(aiMaterial);
-
-      if (!mesh || !material)
-        continue;
-
-      hasValidMeshes = true;
-      
-      aResultOut.myMaterials.push_back(material);
-      aResultOut.myMeshes.push_back(mesh);
-      aResultOut.myTransforms.push_back(aTransform);
+      SceneMeshInstance meshInstance;
+      meshInstance.myMeshIndex = CreateMesh(aNode, meshList.data(), (uint)meshList.size(), aResultOut);
+      meshInstance.myMaterialIndex = CreateMaterial(aiMaterial, aResultOut);
+      meshInstance.myTransform = aTransform;
+      aResultOut.myInstances.push_back(meshInstance);
     }
 
-    return hasValidMeshes;
+    return true;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Mesh> MeshImporter::CreateMesh(const aiNode* aNode, aiMesh** someMeshes, uint aMeshCount)
+  uint MeshImporter::CreateMesh(const aiNode* aNode, aiMesh** someMeshes, uint aMeshCount, SceneData& aResultOut)
   {
     // Mesh already created during this import-process?
     uint64 assimpMeshListHash = 0u;
@@ -205,8 +203,9 @@ namespace Fancy
     auto it = myMeshCache.find(assimpMeshListHash);
     if (it != myMeshCache.end())
       return it->second;
- 
-    DynamicArray<MeshPartData> meshPartDatas;
+
+    MeshData meshData;
+    DynamicArray<MeshPartData>& meshPartDatas = meshData.myParts;
     for (uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
     {
       const aiMesh* aiMesh = someMeshes[iAiMesh];
@@ -322,7 +321,7 @@ namespace Fancy
 
       // Create an interleaved vertex buffer
       MeshPartData partData;
-      partData.myVertexLayoutProperties = myVertexInputLayout->myProperties;
+      partData.myVertexLayoutProperties = myVertexInputLayout;
       partData.myVertexData.resize(overallVertexSize * aiMesh->mNumVertices);
 
       uint8* dstPtr = partData.myVertexData.data();
@@ -367,12 +366,12 @@ namespace Fancy
       meshPartDatas.push_back(partData);
     }
     
-    MeshDesc desc = CreateMeshDesc(assimpMeshListHash);
-    SharedPtr<Mesh> mesh = Assets::CreateMesh(desc, meshPartDatas.data(), (uint) meshPartDatas.size());
-    ASSERT(mesh != nullptr);
-    
-    myMeshCache[assimpMeshListHash] = mesh;
-    return mesh;
+    meshData.myDesc = CreateMeshDesc(assimpMeshListHash);
+    aResultOut.myMeshes.push_back(std::move(meshData));
+
+    uint index = (uint) aResultOut.myMeshes.size() - 1;
+    myMeshCache[assimpMeshListHash] = index;
+    return index;
   }
 //---------------------------------------------------------------------------//
   MeshDesc MeshImporter::CreateMeshDesc(uint64 anAssimpMeshListHash)
@@ -383,7 +382,7 @@ namespace Fancy
     return desc;
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<Material> MeshImporter::CreateMaterial(const aiMaterial* anAiMaterial)
+  uint MeshImporter::CreateMaterial(const aiMaterial* anAiMaterial, SceneData& aResultOut)
   {
     // Did we already import this material?
     {
@@ -438,7 +437,11 @@ namespace Fancy
     matDesc.myParameters[(uint)MaterialParameterType::SPECULAR_POWER] = glm::float4(specularPower);
     matDesc.myParameters[(uint)MaterialParameterType::OPACITY] = glm::float4(opacity);
 
-    return Assets::CreateMaterial(matDesc);
+    aResultOut.myMaterials.push_back(std::move(matDesc));
+    uint index = (uint) aResultOut.myMaterials.size() - 1;
+
+    myMaterialCache[anAiMaterial] = index;
+    return index;
   }
 //---------------------------------------------------------------------------//
 }

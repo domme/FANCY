@@ -1,11 +1,10 @@
 #pragma once
 
-#include "DynamicArray.h"
-#include "MathIncludes.h"
 #include "StaticArray.h"
 #include "Shader.h"
 #include "Mesh.h"
 #include "Ptr.h"
+#include "Scene.h"
 
 #include <unordered_map>
 
@@ -32,32 +31,24 @@ namespace Fancy {
       ALL = ~0u
     };
 
-    struct ImportResult
-    {
-      DynamicArray<glm::float4x4> myTransforms;
-      DynamicArray<SharedPtr<Mesh>> myMeshes;
-      DynamicArray<SharedPtr<Material>> myMaterials;
-      SharedPtr<VertexInputLayout> myVertexInputLayout;
-    };
-
-    bool Import(const char* aPath, const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes, ImportResult& aResultOut, ImportOptions someImportOptions = ALL);
+    bool Import(const char* aPath, const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes, SceneData& aResultOut, ImportOptions someImportOptions = ALL);
     
   private:
-    bool ProcessNodeRecursive(const aiNode* aNode, const glm::float4x4& aParentTransform, ImportResult& aResultOut);
-    bool ProcessMeshes(const aiNode* aNode, const glm::float4x4& aTransform, ImportResult& aResultOut);
+    bool ProcessNodeRecursive(const aiNode* aNode, const glm::float4x4& aParentTransform, SceneData& aResultOut);
+    bool ProcessMeshes(const aiNode* aNode, const glm::float4x4& aTransform, SceneData& aResultOut);
 
-    SharedPtr<Mesh> CreateMesh(const aiNode* aNode, aiMesh** someMeshes, uint aMeshCount);
+    uint CreateMesh(const aiNode* aNode, aiMesh** someMeshes, uint aMeshCount, SceneData& aResultOut);
     MeshDesc CreateMeshDesc(uint64 anAssimpMeshListHash);
 
-    SharedPtr<Material> CreateMaterial(const aiMaterial* anAiMaterial);
+    uint CreateMaterial(const aiMaterial* anAiMaterial, SceneData& aResultOut);
     
     String mySourcePath;
     const aiScene* myScene = nullptr;
     uint64 mySceneFileTimeStamp = 0u;
-    SharedPtr<VertexInputLayout> myVertexInputLayout;
+    VertexInputLayoutProperties myVertexInputLayout;
     StaticArray<VertexShaderAttributeDesc, 16> myVertexAttributes;
-    std::unordered_map<const aiMaterial*, SharedPtr<Material>> myMaterialCache;
-    std::unordered_map<uint64, SharedPtr<Mesh>> myMeshCache;
+    std::unordered_map<const aiMaterial*, uint> myMaterialCache;
+    std::unordered_map<uint64, uint> myMeshCache; 
   };
 //---------------------------------------------------------------------------//
 }

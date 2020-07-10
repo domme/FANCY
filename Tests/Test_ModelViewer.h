@@ -15,6 +15,7 @@ namespace Fancy
   struct VertexInputLayout;
   class GpuBuffer;
   struct Material;
+  struct Scene;
 
 }
 
@@ -28,19 +29,12 @@ public:
   void OnRender() override;
 
 private:
-  struct Scene
-  {
-    std::vector<std::shared_ptr<Fancy::Mesh>> myMeshes;
-    std::vector<glm::float4x4> myTransforms;
-    std::vector<std::shared_ptr<Fancy::Material>> myMaterials;
-  };
-
   void RenderGrid(Fancy::CommandList* ctx);
   void RenderScene(Fancy::CommandList* ctx);
 
   Fancy::Camera myCamera;
   Fancy::CameraController myCameraController;
-  Scene myScene;
+  Fancy::SharedPtr<Fancy::Scene> myScene;
 
   Fancy::SharedPtr<Fancy::ShaderPipeline> myUnlitTexturedShader;
   Fancy::SharedPtr<Fancy::ShaderPipeline> myInstancedUnlitTexturedShader;

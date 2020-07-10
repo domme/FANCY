@@ -4,7 +4,7 @@
 #include "fancy_core/Texture.h"
 #include "fancy_core/RenderCore.h"
 #include "fancy_imgui/imgui.h"
-#include "fancy_core/Assets.h"
+#include "fancy_core/ObjectCore.h"
 
 using namespace Fancy;
 
@@ -50,17 +50,17 @@ void ImageData::Create(SharedPtr<TextureView> aTexture)
   myIsWindowOpen = false;
   myIsDirty = false;
   mySelectedMipLevel = 0;
-  mySelectedFilter = Assets::FILTER_LINEAR;
+  mySelectedFilter = ObjectCore::FILTER_LINEAR;
 }
 
 Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Mipmapping")
 {
-  const uint loadFlags = Assets::SHADER_WRITABLE;
-  myImageDatas.push_back(Assets::LoadTexture("Textures/Sibenik/kamen.png", loadFlags));
-  myImageDatas.push_back(Assets::LoadTexture("Textures/Checkerboard.png", loadFlags));
-  myImageDatas.push_back(Assets::LoadTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
+  const uint loadFlags = ObjectCore::SHADER_WRITABLE;
+  myImageDatas.push_back(ObjectCore::LoadTexture("Textures/Sibenik/kamen.png", loadFlags));
+  myImageDatas.push_back(ObjectCore::LoadTexture("Textures/Checkerboard.png", loadFlags));
+  myImageDatas.push_back(ObjectCore::LoadTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
 
   RenderCore::ourOnShaderPipelineRecompiled.Connect(this, &Test_Mipmapping::OnShaderPipelineRecompiled);
 }
@@ -93,7 +93,7 @@ void Test_Mipmapping::OnUpdate(bool aDrawProperties)
 
       if (data.myIsDirty | myUpdateAlways)
       {
-        Assets::ComputeMipmaps(data.myTexture, (Assets::ResampleFilter) data.mySelectedFilter);
+        ObjectCore::ComputeMipmaps(data.myTexture, (ObjectCore::ResampleFilter) data.mySelectedFilter);
         data.myIsDirty = false;
       }
 
@@ -105,7 +105,7 @@ void Test_Mipmapping::OnUpdate(bool aDrawProperties)
 
 void Test_Mipmapping::OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aShader)
 {
-  if (aShader == Assets::GetMipDownsampleShader())
+  if (aShader == ObjectCore::GetMipDownsampleShader())
   {
     for (ImageData& data : myImageDatas)
       data.myIsDirty = true;
