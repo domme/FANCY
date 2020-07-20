@@ -607,7 +607,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  bool CommandListDX12::FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoDX12& aResourceInfoOut) const
+  const ShaderResourceInfoDX12* CommandListDX12::FindShaderResourceInfo(uint64 aNameHash) const
   {
     ASSERT(myGraphicsPipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Graphics);
     ASSERT(myComputePipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Compute);
@@ -623,17 +623,17 @@ namespace Fancy {
     if (it == shaderResources.end())
     {
       // LOG_WARNING("Resource %ull not found in shader", aNameHash);
-      return false;
+      return nullptr;
     }
 
-    aResourceInfoOut = *it;
-    return true;
+    const ShaderResourceInfoDX12& info = *it;
+    return &info;
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex /*= 0u*/)
   {
-    ShaderResourceInfoDX12 resourceInfo;
-    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+    const ShaderResourceInfoDX12* resourceInfo = FindShaderResourceInfo(aNameHash);
+    if (!resourceInfo)
       return;
 
     GpuResourceViewType viewType = GpuResourceViewType::NONE;
@@ -652,7 +652,7 @@ namespace Fancy {
       viewType = GpuResourceViewType::SRV;
     }
 
-    switch (resourceInfo.myType)
+    switch (resourceInfo->myType)
     {
     case ShaderResourceTypeDX12::CBV:
       ASSERT(viewType == GpuResourceViewType::CBV);
@@ -671,7 +671,7 @@ namespace Fancy {
     }
 
     DescriptorDX12 tempDescriptor;
-    if (resourceInfo.myIsDescriptorTableEntry)
+    if (resourceInfo->myIsDescriptorTableEntry)
     {
       // We need to create a temporary descriptor that can be bound to the table.
       tempDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, "buffer temp descriptor");
@@ -691,16 +691,16 @@ namespace Fancy {
     const GpuResourceDataDX12* resourceDataDx12 = aBuffer->myNativeData.To<GpuResourceDataDX12*>();
     const D3D12_GPU_VIRTUAL_ADDRESS address = resourceDataDx12->myResource->GetGPUVirtualAddress() + someViewProperties.myOffset;
 
-    BindInternal(resourceInfo, tempDescriptor, address, anArrayIndex);
+    BindInternal(*resourceInfo, tempDescriptor, address, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex /* = 0u */)
   {
-    ShaderResourceInfoDX12 resourceInfo;
-    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+    const ShaderResourceInfoDX12* resourceInfo = FindShaderResourceInfo(aNameHash);
+    if (!resourceInfo)
       return;
 
-    switch (resourceInfo.myType)
+    switch (resourceInfo->myType)
     {
     case ShaderResourceTypeDX12::CBV:
       ASSERT(aView->myType == GpuResourceViewType::CBV);
@@ -725,20 +725,20 @@ namespace Fancy {
     if (aView->myResource->myType == GpuResourceType::BUFFER)
       gpuVirtualAddress = resourceDataDx12->myResource->GetGPUVirtualAddress();
 
-    BindInternal(resourceInfo, viewDataDx12.myDescriptor, gpuVirtualAddress, anArrayIndex);
+    BindInternal(*resourceInfo, viewDataDx12.myDescriptor, gpuVirtualAddress, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex /*= 0u*/)
   {
-    ShaderResourceInfoDX12 resourceInfo;
-    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+    const ShaderResourceInfoDX12* resourceInfo = FindShaderResourceInfo(aNameHash);
+    if (!resourceInfo)
       return;
 
-    ASSERT(resourceInfo.myIsDescriptorTableEntry, "Samplers can only be bound in descriptor tables");
+    ASSERT(resourceInfo->myIsDescriptorTableEntry, "Samplers can only be bound in descriptor tables");
 
     const TextureSamplerDX12* samplerDx12 = static_cast<const TextureSamplerDX12*>(aSampler);
 
-    BindInternal(resourceInfo, samplerDx12->GetDescriptor(), UINT64_MAX, anArrayIndex);
+    BindInternal(*resourceInfo, samplerDx12->GetDescriptor(), UINT64_MAX, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex)
@@ -1148,7 +1148,10 @@ namespace Fancy {
     D3D12_RESOURCE_STATES dstStates = ResolveValidateDstStates(aResource, aNewState);
     
     uint numPossibleSubresourceTransitions = 0u;
-    DynamicArray<bool> subresourceTransitionPossible(aSubresourceRange.GetNumSubresources(), false);
+    StaticArray<bool, 64> subresourceTransitionPossible;
+    subresourceTransitionPossible.GrowToSize(aSubresourceRange.GetNumSubresources());
+    memset(subresourceTransitionPossible.GetBuffer(), 0, subresourceTransitionPossible.ByteSize());
+
     uint i = 0u;
     for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it)
     {
@@ -1168,7 +1171,7 @@ namespace Fancy {
     if (it == myLocalHazardData.end())  // We don't have a local record of this resource yet
     {
       localData = &myLocalHazardData[aResource];
-      localData->mySubresources.resize(aResource->mySubresources.GetNumSubresources());
+      localData->mySubresources.GrowToSize(aResource->mySubresources.GetNumSubresources());
     }
     else
     {
@@ -1180,7 +1183,7 @@ namespace Fancy {
     {
       const D3D12_RESOURCE_STATES firstSrcStates = localData->mySubresources[0].myStates;
 
-      for (uint sub = 0u; canTransitionAllSubresources && sub < localData->mySubresources.size(); ++sub)
+      for (uint sub = 0u; canTransitionAllSubresources && sub < localData->mySubresources.Size(); ++sub)
       {
         canTransitionAllSubresources &= localData->mySubresources[sub].myWasUsed &&
           localData->mySubresources[sub].myStates == firstSrcStates;

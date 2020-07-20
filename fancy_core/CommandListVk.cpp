@@ -751,8 +751,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex /* = 0u */)
   {
-    ShaderResourceInfoVk resourceInfo;
-    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+    const ShaderResourceInfoVk* resourceInfo = FindShaderResourceInfo(aNameHash);
+    if (!resourceInfo)
       return;
 
     const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
@@ -766,7 +766,7 @@ namespace Fancy
     VkBuffer buffer = nullptr;
     uint64 bufferOffset = 0ull;
     uint64 bufferSize = 0ull;
-    switch (resourceInfo.myType)
+    switch (resourceInfo->myType)
     {
     case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
     case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
@@ -831,13 +831,13 @@ namespace Fancy
     default: ASSERT(false);
     }
 
-    BindInternal(resourceInfo, anArrayIndex, bufferView, buffer, bufferOffset, bufferSize, imageView, imageLayout, nullptr);
+    BindInternal(*resourceInfo, anArrayIndex, bufferView, buffer, bufferOffset, bufferSize, imageView, imageLayout, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
   {
-    ShaderResourceInfoVk resourceInfo;
-    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+    const ShaderResourceInfoVk* resourceInfo = FindShaderResourceInfo(aNameHash);
+    if (!resourceInfo)
       return;
 
     const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
@@ -845,7 +845,7 @@ namespace Fancy
     const GpuBufferProperties& bufferProps = aBuffer->GetProperties();
 
     bool needsTempBufferView = false;
-    switch (resourceInfo.myType)
+    switch (resourceInfo->myType)
     {
     case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
     case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
@@ -891,20 +891,20 @@ namespace Fancy
       myResourceState.myTempBufferViews.Add({ bufferView, 0u });
     }
 
-    BindInternal(resourceInfo, anArrayIndex, bufferView, static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBuffer, 
+    BindInternal(*resourceInfo, anArrayIndex, bufferView, static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBuffer, 
       someViewProperties.myOffset, someViewProperties.mySize, nullptr, VK_IMAGE_LAYOUT_UNDEFINED, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
   {
-    ShaderResourceInfoVk resourceInfo;
-    if (!FindShaderResourceInfo(aNameHash, resourceInfo))
+    const ShaderResourceInfoVk* resourceInfo = FindShaderResourceInfo(aNameHash);
+    if (!resourceInfo)
       return;
   
-    ASSERT(resourceInfo.myType == VK_DESCRIPTOR_TYPE_SAMPLER);
+    ASSERT(resourceInfo->myType == VK_DESCRIPTOR_TYPE_SAMPLER);
 
     VkSampler sampler = static_cast<const TextureSamplerVk*>(aSampler)->GetVkSampler();
-    BindInternal(resourceInfo, anArrayIndex, nullptr, nullptr, 0ull, 0ull, nullptr, VK_IMAGE_LAYOUT_UNDEFINED, sampler);
+    BindInternal(*resourceInfo, anArrayIndex, nullptr, nullptr, 0ull, 0ull, nullptr, VK_IMAGE_LAYOUT_UNDEFINED, sampler);
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandListVk::BeginQuery(GpuQueryType aType)
@@ -1043,7 +1043,9 @@ namespace Fancy
       return;
 
     uint numPossibleSubresourceTransitions = 0u;
-    DynamicArray<bool> subresourceTransitionPossible(aSubresourceRange.GetNumSubresources(), false);
+    StaticArray<bool, 64> subresourceTransitionPossible;
+    subresourceTransitionPossible.GrowToSize(aSubresourceRange.GetNumSubresources());
+    memset(subresourceTransitionPossible.GetBuffer(), 0, subresourceTransitionPossible.ByteSize());
     uint i = 0u;
     for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it)
     {
@@ -1064,7 +1066,7 @@ namespace Fancy
     if (it == myLocalHazardData.end())  // We don't have a local record of this resource yet
     {
       localData = &myLocalHazardData[aResource];
-      localData->mySubresources.resize(aResource->mySubresources.GetNumSubresources());
+      localData->mySubresources.GrowToSize(aResource->mySubresources.GetNumSubresources());
     }
     else
     {
@@ -1077,7 +1079,7 @@ namespace Fancy
       const VkAccessFlags firstSrcAccessMask = localData->mySubresources[0].myAccessFlags;
       const VkImageLayout firstSrcImageLayout = localData->mySubresources[0].myImageLayout;
 
-      for (uint sub = 0u; canTransitionAllSubresources && sub < localData->mySubresources.size(); ++sub)
+      for (uint sub = 0u; canTransitionAllSubresources && sub < localData->mySubresources.Size(); ++sub)
       {
         canTransitionAllSubresources &= localData->mySubresources[sub].myWasUsed
           && localData->mySubresources[sub].myAccessFlags == firstSrcAccessMask
@@ -1301,7 +1303,7 @@ namespace Fancy
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool CommandListVk::FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoVk& aResourceInfoOut) const
+  const ShaderResourceInfoVk* CommandListVk::FindShaderResourceInfo(uint64 aNameHash) const
   {
     ASSERT(myGraphicsPipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Graphics);
     ASSERT(myComputePipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Compute);
@@ -1316,11 +1318,11 @@ namespace Fancy
     if (it == shaderResources.end())
     {
       LOG_WARNING("Resource not found in shader");
-      return false;
+      return nullptr;
     }
 
-    aResourceInfoOut = *it;
-    return true;
+    const ShaderResourceInfoVk& info = *it;
+    return &info;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyViewportAndClipRect()

@@ -74,7 +74,7 @@ namespace Fancy {
 
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
 
-    bool FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoDX12& aResourceInfoOut) const;
+    const ShaderResourceInfoDX12* FindShaderResourceInfo(uint64 aNameHash) const;
     void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex);
     void ClearResourceBindings();
 
@@ -107,17 +107,23 @@ namespace Fancy {
 
     struct SubresourceHazardData
     {
+      SubresourceHazardData()
+        : myWasWritten(false)
+        , myWasUsed(false)
+        , myIsSharedReadState(false)
+      { }
+
       D3D12_RESOURCE_STATES myFirstDstStates = (D3D12_RESOURCE_STATES) 0;
       D3D12_RESOURCE_STATES myStates = (D3D12_RESOURCE_STATES) 0;
-      bool myWasWritten = false;
-      bool myWasUsed = false;
-      bool myIsSharedReadState = false;
+      uint myWasWritten : 1;
+      uint myWasUsed : 1;
+      uint myIsSharedReadState : 1;
     };
     struct LocalHazardData
     {
-      DynamicArray<SubresourceHazardData> mySubresources;
+      StaticArray<SubresourceHazardData, 64> mySubresources;
     };
-    std::map<const GpuResource*, LocalHazardData> myLocalHazardData;
+    std::unordered_map<const GpuResource*, LocalHazardData> myLocalHazardData;
   };
 //---------------------------------------------------------------------------//
 }

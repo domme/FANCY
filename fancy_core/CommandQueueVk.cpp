@@ -211,7 +211,7 @@ namespace Fancy
 
       DynamicArray<CommandListVk::BufferMemoryBarrierData> subresourceBufferBarriers;
       DynamicArray<CommandListVk::ImageMemoryBarrierData> subresourceImageBarriers;
-      for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.size(); ++subIdx)
+      for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.Size(); ++subIdx)
       {
         GpuSubresourceHazardDataVk& globalSubData = globalHazardData.mySubresources[subIdx];
         const CommandListVk::SubresourceHazardData& localSubData = localHazardData.mySubresources[subIdx];

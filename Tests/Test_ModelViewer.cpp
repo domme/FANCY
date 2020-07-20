@@ -21,7 +21,7 @@
 
 using namespace Fancy;
 
-bool ourDrawInstanced = true;
+bool ourDrawInstanced = false;
 
 static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main", const char* someDefines = nullptr)
 {
@@ -76,9 +76,11 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   myCamera.myPosition = glm::float3(0.0f, 0.0f, -10.0f);
   myCamera.myOrientation = glm::quat_cast(glm::lookAt(glm::float3(0.0f, 0.0f, 10.0f), glm::float3(0.0f, 0.0f, 0.0f), glm::float3(0.0f, 1.0f, 0.0f)));
 
+  myCameraController.myMoveSpeed = 500.0f;
+
   myCamera.myFovDeg = 60.0f;
   myCamera.myNear = 1.0f;
-  myCamera.myFar = 100.0f;
+  myCamera.myFar = 10000.0f;
   myCamera.myWidth = myWindow->GetWidth();
   myCamera.myHeight = myWindow->GetHeight();
   myCamera.myIsOrtho = false;
@@ -92,7 +94,7 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
 
   SceneData sceneData;
   MeshImporter importer;
-  const bool importSuccess = importer.Import("models/cube.obj", vertexAttributes, sceneData);
+  const bool importSuccess = importer.Import("models/sponza/sponza.obj", vertexAttributes, sceneData);
   ASSERT(importSuccess);
 
   myScene = std::make_shared<Scene>(sceneData);
@@ -217,6 +219,8 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
   ctx->SetShaderPipeline(ourDrawInstanced ? myInstancedUnlitTexturedShader.get() : myUnlitTexturedShader.get());
   ctx->BindSampler(mySampler.get(), "sampler_default");
 
+  const uint numInstances = ourDrawInstanced ? (uint) myNumInstances : 1u;
+
   for (SceneMeshInstance& meshInstance : myScene->myInstances)
   {
     Mesh* mesh = myScene->myMeshes[meshInstance.myMeshIndex].get();
@@ -248,7 +252,7 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
       ctx->BindVertexBuffers(buffers, offsets, sizes, ourDrawInstanced ? 2u : 1u);
       ctx->BindIndexBuffer(meshPart->myIndexBuffer.get(), meshPart->myIndexBuffer->GetProperties().myElementSizeBytes);
 
-      ctx->Render(meshPart->myIndexBuffer->GetProperties().myNumElements, (uint) myNumInstances, 0, 0, 0);
+      ctx->Render(meshPart->myIndexBuffer->GetProperties().myNumElements, numInstances, 0, 0, 0);
     }
   }
 }

@@ -18,6 +18,7 @@
 #include "AdapterDX12.h"
 #include "GpuQueryHeapDX12.h"
 #include "TextureSamplerDX12.h"
+#include "CommandLine.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -466,37 +467,44 @@ namespace Fancy {
 
     memset(ourCommandAllocatorPools, 0u, sizeof(ourCommandAllocatorPools));
 
-    ComPtr<ID3D12Debug> debugInterface;
-    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
-      debugInterface->EnableDebugLayer();
+    const bool enableDebugLayer = CommandLine::GetInstance()->HasArgument("DebugLayer");
+
+    if (enableDebugLayer)
+    {
+      ComPtr<ID3D12Debug> debugInterface;
+      if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
+        debugInterface->EnableDebugLayer();
+    }
 
     ASSERT_HRESULT(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
 
-    // CheckD3Dcall(ourDevice->SetStablePowerState(true));
-
-    ComPtr<ID3D12InfoQueue> infoQueue;
-    if (SUCCEEDED(ourDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+    if (enableDebugLayer)
     {
-      D3D12_MESSAGE_SEVERITY severityIds[] =
+      ComPtr<ID3D12InfoQueue> infoQueue;
+      if (SUCCEEDED(ourDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
       {
-        D3D12_MESSAGE_SEVERITY_INFO
-      };
+        D3D12_MESSAGE_SEVERITY severityIds[] =
+        {
+          D3D12_MESSAGE_SEVERITY_INFO
+        };
 
-      D3D12_MESSAGE_ID denyIds[] =
-      {
-        D3D12_MESSAGE_ID_COPY_DESCRIPTORS_INVALID_RANGES
-      };
+        D3D12_MESSAGE_ID denyIds[] =
+        {
+          D3D12_MESSAGE_ID_COPY_DESCRIPTORS_INVALID_RANGES
+        };
 
-      D3D12_INFO_QUEUE_FILTER filter = {};
-      filter.DenyList.NumSeverities = ARRAYSIZE(severityIds);
-      filter.DenyList.pSeverityList = severityIds;
-      filter.DenyList.NumIDs = ARRAYSIZE(denyIds);
-      filter.DenyList.pIDList = denyIds;
+        D3D12_INFO_QUEUE_FILTER filter = {};
+        filter.DenyList.NumSeverities = ARRAYSIZE(severityIds);
+        filter.DenyList.pSeverityList = severityIds;
+        filter.DenyList.NumIDs = ARRAYSIZE(denyIds);
+        filter.DenyList.pIDList = denyIds;
 
-      infoQueue->PushStorageFilter(&filter);
+        infoQueue->PushStorageFilter(&filter);
+
+        if (CommandLine::GetInstance()->HasArgument("DebugLayerBreak"))
+          infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, false);
+      }
     }
-
-    //infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, false);
 
     // Init Caps
     myCaps.myMaxNumVertexAttributes = D3D12_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT;

@@ -117,10 +117,10 @@ namespace Fancy
 
       GpuResourceHazardDataDX12& globalHazardData = resource->GetDX12Data()->myHazardData;
       const CommandListDX12::LocalHazardData& localHazardData = it.second;
-      ASSERT(globalHazardData.mySubresources.size() == localHazardData.mySubresources.size());
+      ASSERT(globalHazardData.mySubresources.size() == localHazardData.mySubresources.Size());
 
       StaticArray<D3D12_RESOURCE_BARRIER, 1024> subresourceTransitions;
-      for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.size(); ++subIdx)
+      for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.Size(); ++subIdx)
       {
         GpuSubresourceHazardDataDX12& globalSubData = globalHazardData.mySubresources[subIdx];
         const CommandListDX12::SubresourceHazardData& localSubData = localHazardData.mySubresources[subIdx];

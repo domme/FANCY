@@ -87,7 +87,7 @@ namespace Fancy
 
     const ShaderPipelineVk* GetShaderPipeline() const;
 
-    bool FindShaderResourceInfo(uint64 aNameHash, ShaderResourceInfoVk& aResourceInfoOut) const;
+    const ShaderResourceInfoVk* FindShaderResourceInfo(uint64 aNameHash) const;
     void BindInternal(const ShaderResourceInfoVk &aResourceInfo,
       uint anArrayIndex,
       VkBufferView aBufferView,
@@ -150,19 +150,25 @@ namespace Fancy
 
     struct SubresourceHazardData
     {
+      SubresourceHazardData()
+        : myWasWritten(false)
+        , myWasUsed(false)
+        , myIsSharedReadState(false)
+      { }
+
       VkAccessFlags myFirstDstAccessFlags = 0u;
       VkImageLayout myFirstDstImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
       VkAccessFlags myAccessFlags = 0u;
       VkImageLayout myImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-      bool myWasWritten = false;
-      bool myWasUsed = false;
-      bool myIsSharedReadState = false;
+      uint myWasWritten : 1;
+      uint myWasUsed : 1;
+      uint myIsSharedReadState : 1;
     };
     struct LocalHazardData
     {
-      DynamicArray<SubresourceHazardData> mySubresources;
+      StaticArray<SubresourceHazardData, 64> mySubresources;
     };
-    std::map<const GpuResource*, LocalHazardData> myLocalHazardData;
+    std::unordered_map<const GpuResource*, LocalHazardData> myLocalHazardData;
     
     StaticArray<VkDescriptorPool, 16> myUsedDescriptorPools;
     StaticArray<BufferMemoryBarrierData, kNumCachedBarriers> myPendingBufferBarriers;

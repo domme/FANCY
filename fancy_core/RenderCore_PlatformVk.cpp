@@ -12,6 +12,7 @@
 #include "GpuBufferVk.h"
 #include "GpuQueryHeapVk.h"
 #include "TextureSamplerVk.h"
+#include "CommandLine.h"
 
 #if FANCY_ENABLE_VK
 
@@ -621,9 +622,10 @@ namespace Fancy
       createInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
       createInfo.ppEnabledExtensionNames = extensions;
 
+      const bool enableDebugLayer = CommandLine::GetInstance()->HasArgument("DebugLayer");
       const char* const layers[] = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_standard_validation", "VK_LAYER_LUNARG_monitor"  };
-      createInfo.enabledLayerCount = ARRAY_LENGTH(layers);
-      createInfo.ppEnabledLayerNames = layers;
+      createInfo.enabledLayerCount = enableDebugLayer ? ARRAY_LENGTH(layers) : 0;
+      createInfo.ppEnabledLayerNames = enableDebugLayer ? layers : nullptr;
       
       ASSERT_VK_RESULT(vkCreateInstance(&createInfo, nullptr, &myInstance));
       LOG("Initialized Vulkan instance");
