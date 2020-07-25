@@ -13,6 +13,7 @@
 #include "Profiler.h"
 #include "CommandLine.h"
 #include "ObjectCore.h"
+#include "BinaryCache.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -52,6 +53,8 @@ namespace Fancy {
 
     // Create the output
     ourInstance->myRenderOutput = RenderCore::CreateRenderOutput(anAppInstanceHandle, someWindowParams);
+
+    BinaryCache::DebugTest();
     
     return ourInstance;
   }

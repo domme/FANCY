@@ -432,6 +432,9 @@
     <ClInclude Include="ObjectCore.h">
       <Filter>Object</Filter>
     </ClInclude>
+    <ClInclude Include="BinarySerializer.h">
+      <Filter>IO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">

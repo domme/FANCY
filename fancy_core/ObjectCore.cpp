@@ -174,6 +174,7 @@ namespace Fancy
 
     if ((someLoadFlags & NO_DISK_CACHE) == 0 && !CommandLine::GetInstance()->HasArgument("noDiskCache"))
     {
+      /*
       uint64 timestamp = Path::GetFileWriteTime(texPathAbs);
 
       TextureData textureData;
@@ -193,6 +194,8 @@ namespace Fancy
         ourTextureCache[texPathRelHash] = texView;
         return texView;
       }
+
+      */
     }
 
     Image image;
@@ -261,7 +264,7 @@ namespace Fancy
       }
 
       textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
-      BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), (uint)textureData.mySubDatas.size());
+      // BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), (uint)textureData.mySubDatas.size());
 
       // Debug for testing binary cache by reloading the texture right away:
       //tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), textureData.mySubDatas.data(), textureData.mySubDatas.size());

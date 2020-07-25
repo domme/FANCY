@@ -8,90 +8,144 @@
 #include "TextureProperties.h"
 #include "GpuBuffer.h"
 #include "Scene.h"
+#include "BinarySerializer.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  const uint kCacheVersion = 4;
-//---------------------------------------------------------------------------//
-  enum SERIALIZE_MODE
+  template<>
+  struct GetSerializeFunc<VertexInputAttributeDesc>
   {
-    READ, WRITE
-  };
-
-  struct BinaryCache::BinarySerializer
-  {
-    BinarySerializer(const char* aPath, SERIALIZE_MODE aMode)
-      : myMode(aMode)
-      , myStream(std::fstream(aPath, std::ios::binary | (aMode == WRITE ? std::ios::out : std::ios::in))) 
-    { }
-
-    bool IsGood() const { return myStream.good(); }
-
-    void Write(const uint8* someData, uint64 aDataSize);
-    void Read(uint8* someData, uint64 aDataSize);
-    
-    template<class T> void Write(const T& aVal);
-    template<class T> void Read(T& aVal);
-
-    SERIALIZE_MODE myMode;
-    std::fstream myStream;
+    void operator()(VertexInputAttributeDesc& aVal, BinarySerializer& aSerializer)
+    {
+      aSerializer.Serialize((uint8*)&aVal, sizeof(aVal));
+    }
   };
 //---------------------------------------------------------------------------//
-  void BinaryCache::BinarySerializer::Write(const uint8* someData, uint64 aDataSize)
+  template<>
+  struct GetSerializeFunc<VertexBufferBindDesc>
   {
-    ASSERT(myMode == WRITE);
-    myStream.write((const char*) someData, aDataSize);
-  }
-//---------------------------------------------------------------------------//
-  void BinaryCache::BinarySerializer::Read(uint8* someData, uint64 aDataSize)
-  {
-    ASSERT(myMode == READ);
-    myStream.read((char*)someData, aDataSize);
-  }
-//---------------------------------------------------------------------------//
-  template <class T>
-  void BinaryCache::BinarySerializer::Write(const T& aVal)
-  {
-    ASSERT(myMode == WRITE);
-    Write((const uint8*)(&aVal), sizeof(T));
-  }
+    void operator()(VertexBufferBindDesc& aVal, BinarySerializer& aSerializer)
+    {
+      aSerializer.Serialize((uint8*)&aVal, sizeof(aVal));
+    }
+  };
 //---------------------------------------------------------------------------//
   template<>
-  void BinaryCache::BinarySerializer::Write<String>(const String& aVal)
+  struct GetSerializeFunc<VertexInputLayoutProperties> 
   {
-    ASSERT(myMode == WRITE);
-    const char* name_cstr = aVal.c_str();
-    const uint64 name_size = static_cast<uint>(aVal.size()) + 1u; // size + '/0'
-    Write(name_size);
-    Write((const uint8*)name_cstr, name_size);
-  }
-//---------------------------------------------------------------------------//
-  template <class T>
-  void BinaryCache::BinarySerializer::Read(T& aVal)
-  {
-    ASSERT(myMode == READ);
-    myStream.read((char*) &aVal, sizeof(T));
-  }
+    void operator()(VertexInputLayoutProperties& aVal, BinarySerializer& aSerializer)
+    {
+      aSerializer.Serialize(aVal.myAttributes);
+      aSerializer.Serialize(aVal.myBufferBindings);
+    }
+  };
+
 //---------------------------------------------------------------------------//
   template<>
-  void BinaryCache::BinarySerializer::Read<String>(String& aVal)
+  struct GetSerializeFunc<MeshDesc>
   {
-    ASSERT(myMode == READ);
-    uint64 name_size;
-    Read(name_size);
-    
-    const uint kExpectedMaxLength = 64u;
-    char buf[kExpectedMaxLength];
-    char* name_cstr = buf;
+    void operator()(MeshDesc& aVal, BinarySerializer& aSerializer)
+    {
+      aSerializer.Serialize(aVal.myHash);
+      aSerializer.Serialize(aVal.myName);
+    }
+  };
+//---------------------------------------------------------------------------//
+  template<>
+  struct GetSerializeFunc<MeshPartData>
+  {
+    void operator()(MeshPartData& aVal, BinarySerializer& aSerializer)
+    {
+      aSerializer.Serialize(aVal.myVertexLayoutProperties);
+      aSerializer.Serialize(aVal.myVertexData);
+      aSerializer.Serialize(aVal.myIndexData);
+    }
+  };
+//---------------------------------------------------------------------------//
+  template<>
+  struct GetSerializeFunc<MeshData>
+  {
+    void operator()(MeshData& aVal, BinarySerializer& aSerializer)
+    {
+      aSerializer.Serialize(aVal.myDesc);
+      aSerializer.Serialize(aVal.myParts);
+    }
+  };
+//---------------------------------------------------------------------------//
+  template<>
+  struct GetSerializeFunc<MaterialDesc>
+  {
+    void operator()(MaterialDesc& aVal, BinarySerializer& aSerializer)
+    {
+      aSerializer.Serialize(aVal.myParameters);
+      aSerializer.Serialize(aVal.myTextures);
+    }
+  };
+//---------------------------------------------------------------------------//
+  template<>
+  struct GetSerializeFunc<SceneMeshInstance>
+  {
+    void operator()(SceneMeshInstance& aVal, BinarySerializer& aSerializer)
+    {
+      aSerializer.Serialize((uint8*) &aVal, sizeof(aVal));
+    }
+  };
 
-    if (name_size > kExpectedMaxLength)
-      name_cstr = new char[name_size];
+  struct ComplexData
+  {
+    DynamicArray<uint> myData;
+    String myName;
+    uint myUint;
+  };
 
-    myStream.read(name_cstr, name_size);
-    aVal = name_cstr;
+  template<>
+  struct GetSerializeFunc<ComplexData>
+  {
+    void operator()(ComplexData& aVal, BinarySerializer& aSerializer)
+    {
+      aSerializer.Serialize(aVal.myData);
+      aSerializer.Serialize(aVal.myName);
+      aSerializer.Serialize(aVal.myUint);
+    }
+  };
 
-    if (name_size > kExpectedMaxLength)
-      delete[] name_cstr;
+//---------------------------------------------------------------------------//
+  const uint kCacheVersion = 5;
+
+  void BinaryCache::DebugTest()
+  {
+    String testPath = Path::GetUserDataPath() + "Debug/SerializeTest.bin";
+    Path::CreateDirectoryTreeForPath(testPath);
+
+    {
+      BinarySerializer serializer(testPath.c_str(), BinarySerializer::WRITE);
+
+      uint a = 5;
+      serializer.Serialize(a);
+
+      String str = "Hello";
+      serializer.Serialize(str);
+
+      ComplexData data;
+      data.myData.resize(10, 255);
+      data.myName = "World";
+      data.myUint = 200;
+
+      serializer.Serialize(data);
+    }
+
+    {
+      BinarySerializer serializer(testPath.c_str(), BinarySerializer::READ);
+
+      uint a;
+      serializer.Serialize(a);
+
+      String str;
+      serializer.Serialize(str);
+
+      ComplexData data;
+      serializer.Serialize(data);
+    }
   }
 //---------------------------------------------------------------------------//
   String BinaryCache::GetCacheFilePathAbs(const char* aPathInResources)
@@ -99,38 +153,47 @@ namespace Fancy {
     return Path::GetUserDataPath() + "ResourceCache/" + aPathInResources + ".bin";
   }
 //---------------------------------------------------------------------------//
-  void BinaryCache::WriteScene(const char* aSourceFilePath, const SceneData& aSceneData)
+  bool BinaryCache::SerializeScene(BinarySerializer& aSerializer, SceneData& aSceneData)
+  {
+    if (aSerializer.IsReading())
+    {
+      uint version = 0;
+      aSerializer.Serialize(version);
+      if (version != kCacheVersion)
+        return false;
+    }
+    else
+    {
+      uint version = kCacheVersion;
+      aSerializer.Serialize(version);
+    }
+
+    aSerializer.Serialize(aSceneData.myVertexInputLayoutProperties);
+    aSerializer.Serialize(aSceneData.myMeshes);
+    aSerializer.Serialize(aSceneData.myMaterials);
+    aSerializer.Serialize(aSceneData.myInstances);
+
+    return true;
+  }
+//---------------------------------------------------------------------------//
+  void BinaryCache::WriteScene(const char* aSourceFilePath, SceneData& aSceneData)
   {
     const String cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
     Path::CreateDirectoryTreeForPath(cacheFilePath);
-    BinarySerializer serializer(cacheFilePath.c_str(), WRITE);
-
+    BinarySerializer serializer(cacheFilePath.c_str(), BinarySerializer::WRITE);
     if (!serializer.IsGood())
     {
       LOG_WARNING("Failed to open scene cache file path %s for write", cacheFilePath.c_str());
       return;
     }
-  
-    serializer.Write(kCacheVersion);
-    WriteVertexInputLayout(aSceneData.myVertexInputLayoutProperties, serializer);
 
-    serializer.Write((uint)aSceneData.myMeshes.size());
-    for (const MeshData& meshData : aSceneData.myMeshes)
-      WriteMeshDataInternal(meshData, serializer);
-
-    serializer.Write((uint)aSceneData.myMaterials.size());
-    for (const MaterialDesc& materialDesc : aSceneData.myMaterials)
-      WriteMaterialInternal(materialDesc, serializer);
-
-    serializer.Write((uint)aSceneData.myInstances.size());
-    for (const SceneMeshInstance& meshInstance : aSceneData.myInstances)
-      serializer.Write(meshInstance);
+    SerializeScene(serializer, aSceneData);
   }
 //---------------------------------------------------------------------------//
   bool BinaryCache::ReadScene(const char* aSourceFilePath, SceneData& aSceneData)
   {
     const String cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
-
+    
     bool foundSourceFile = false;
     String absSourcePath = Path::GetAbsoluteResourcePath(aSourceFilePath, &foundSourceFile);
 
@@ -140,45 +203,20 @@ namespace Fancy {
     if (Path::GetFileWriteTime(cacheFilePath) < Path::GetFileWriteTime(absSourcePath))
       return false;
 
-    BinarySerializer serializer(cacheFilePath.c_str(), READ);
-
+    BinarySerializer serializer(cacheFilePath.c_str(), BinarySerializer::READ);
     if (!serializer.IsGood())
     {
       LOG_WARNING("Failed to open scene cache file path %s for read", cacheFilePath.c_str());
       return false;
     }
 
-    uint cacheVersion;
-    serializer.Read(cacheVersion);
-
-    if (cacheVersion != kCacheVersion)
+    if (!SerializeScene(serializer, aSceneData))
       return false;
 
-    bool success = true;
-
-    success &= ReadVertexInputLayout(aSceneData.myVertexInputLayoutProperties, serializer);
-
-    uint numMeshes = 0;
-    serializer.Read(numMeshes);
-    aSceneData.myMeshes.resize(numMeshes);
-    for (MeshData& meshData : aSceneData.myMeshes)
-      success &= ReadMeshDataInternal(meshData, serializer);
-
-    uint numMaterials = 0;
-    serializer.Read(numMaterials);
-    aSceneData.myMaterials.resize(numMaterials);
-    for (MaterialDesc& materialDesc : aSceneData.myMaterials)
-      success &= ReadMaterialInternal(materialDesc, serializer);
-
-    uint numInstances = 0;
-    serializer.Read(numInstances);
-    aSceneData.myInstances.resize(numInstances);
-    for (SceneMeshInstance& meshInstance : aSceneData.myInstances)
-      serializer.Read(meshInstance);
-
-    return success;
+    return true;
   }
 //---------------------------------------------------------------------------//  
+  /*
   void BinaryCache::WriteTextureData(const TextureProperties& someTexProps, const TextureSubData* someSubDatas, uint aNumSubDatas)
   {
     const String cacheFilePath = GetCacheFilePathAbs(someTexProps.path.c_str());
@@ -551,4 +589,5 @@ namespace Fancy {
     return !aMeshDataOut.myParts.empty();
   }
 //---------------------------------------------------------------------------//
+*/
 }

@@ -94,7 +94,8 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
 
   SceneData sceneData;
   MeshImporter importer;
-  const bool importSuccess = importer.Import("models/sponza/sponza.obj", vertexAttributes, sceneData);
+  // const bool importSuccess = importer.Import("models/sponza/sponza.obj", vertexAttributes, sceneData);
+  const bool importSuccess = importer.Import("models/cube.obj", vertexAttributes, sceneData);
   ASSERT(importSuccess);
 
   myScene = std::make_shared<Scene>(sceneData);
