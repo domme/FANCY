@@ -174,12 +174,9 @@ namespace Fancy
 
     if ((someLoadFlags & NO_DISK_CACHE) == 0 && !CommandLine::GetInstance()->HasArgument("noDiskCache"))
     {
-      /*
-      uint64 timestamp = Path::GetFileWriteTime(texPathAbs);
-
       TextureData textureData;
       TextureProperties texProps;
-      if (BinaryCache::ReadTextureData(texPathRel.c_str(), timestamp, texProps, textureData))
+      if (BinaryCache::ReadTextureData(texPathRel.c_str(), texProps, textureData))
       {
         texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
         SharedPtr<Texture> texFromDiskCache = RenderCore::CreateTexture(texProps, texProps.path.c_str(), textureData.mySubDatas.data(), (uint)textureData.mySubDatas.size());
@@ -194,8 +191,6 @@ namespace Fancy
         ourTextureCache[texPathRelHash] = texView;
         return texView;
       }
-
-      */
     }
 
     Image image;
@@ -264,7 +259,7 @@ namespace Fancy
       }
 
       textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
-      // BinaryCache::WriteTextureData(tex->GetProperties(), textureData.mySubDatas.data(), (uint)textureData.mySubDatas.size());
+      BinaryCache::WriteTextureData(texPathRel.c_str(), const_cast<TextureProperties&>(tex->GetProperties()), textureData);
 
       // Debug for testing binary cache by reloading the texture right away:
       //tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), textureData.mySubDatas.data(), textureData.mySubDatas.size());
