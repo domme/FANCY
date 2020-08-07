@@ -38,7 +38,7 @@ namespace Fancy
     };
 
     CommandLine(const char** someArguments, uint aNumArguments);
-    bool FindArgument(const char* aArgument, Argument& anArgument) const;
+    const Argument* FindArgument(const char* aArgument) const;
     void ParseValue(const char* aValue, Argument& anArgument);
 
     static CommandLine* ourInstance;

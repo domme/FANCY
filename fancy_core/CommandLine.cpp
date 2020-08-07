@@ -73,69 +73,64 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  bool CommandLine::FindArgument(const char* aArgument, Argument& anArgument) const
+  const CommandLine::Argument* CommandLine::FindArgument(const char* aArgument) const
   {
-    if (myArguments.empty())
-      return false;
-
     for (uint i = 0u; i < myArguments.size(); ++i)
     {
       if (myArguments[i].myName == aArgument)
       {
-        anArgument = myArguments[i];
-        return true;
+        return &myArguments[i];
       }
     }
 
-    return false;
+    return nullptr;
   }
 //---------------------------------------------------------------------------//
   bool CommandLine::HasArgument(const char* aArgument) const
   {
-    Argument arg;
-    return FindArgument(aArgument, arg);
+    return FindArgument(aArgument) != nullptr;
   }
 //---------------------------------------------------------------------------//
   bool CommandLine::HasStringValue(const char* anArgument) const
   {
-    Argument arg;
-    if (!FindArgument(anArgument, arg))
+    const Argument* arg = FindArgument(anArgument);
+    if (!arg)
       return false;
 
-    return arg.myType == ARGTYPE_STRING;
+    return arg->myType == ARGTYPE_STRING;
   }
 //---------------------------------------------------------------------------//
   bool CommandLine::HasFloatValue(const char* anArgument) const
   {
-    Argument arg;
-    if (!FindArgument(anArgument, arg))
+    const Argument* arg = FindArgument(anArgument);
+    if (!arg)
       return false;
 
-    return arg.myType == ARGTYPE_NUMBER;
+    return arg->myType == ARGTYPE_NUMBER;
   }
 //---------------------------------------------------------------------------//
   const char* CommandLine::GetStringValue(const char* anArgument) const
   {
-    Argument arg;
-    if (!FindArgument(anArgument, arg))
+    const Argument* arg = FindArgument(anArgument);
+    if (!arg)
       return "";
 
-    if (arg.myType != ARGTYPE_STRING)
+    if (arg->myType != ARGTYPE_STRING)
       return "";
 
-    return arg.myString.GetBuffer();
+    return arg->myString.GetBuffer();
   }
 //---------------------------------------------------------------------------//
   float CommandLine::GetFloatValue(const char* anArgument) const
   {
-    Argument arg;
-    if (!FindArgument(anArgument, arg))
+    const Argument* arg = FindArgument(anArgument);
+    if (!arg)
       return 0.0f;
 
-    if (arg.myType != ARGTYPE_NUMBER)
+    if (arg->myType != ARGTYPE_NUMBER)
       return 0.0f;
 
-    return arg.myNumber;
+    return arg->myNumber;
   }
 //---------------------------------------------------------------------------//
 }

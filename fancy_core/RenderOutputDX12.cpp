@@ -46,10 +46,10 @@ namespace Fancy {
       GpuResource resource(GpuResourceType::TEXTURE);
       resource.myName = StaticString<32>("Backbuffer Texture %d", i);
 
-      GpuResourceDataDX12* dataDx12(new GpuResourceDataDX12);
-      ASSERT_HRESULT(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12->myResource)));
+      GpuResourceDataDX12 dataDx12;
+      ASSERT_HRESULT(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12.myResource)));
       std::wstring wName = StringUtil::ToWideString(resource.myName);
-      dataDx12->myResource->SetName(wName.c_str());
+      dataDx12.myResource->SetName(wName.c_str());
 
       GpuSubresourceHazardDataDX12 subHazardData;
       subHazardData.myContext = CommandListType::Graphics;
@@ -57,7 +57,7 @@ namespace Fancy {
 
       resource.mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
 
-      GpuResourceHazardDataDX12* hazardData = &dataDx12->myHazardData;
+      GpuResourceHazardDataDX12* hazardData = &dataDx12.myHazardData;
       hazardData->myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
       hazardData->myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
       hazardData->mySubresources.push_back(subHazardData);

@@ -36,7 +36,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuResourceDataDX12* GpuBufferDX12::GetData() const
   {
-    return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataDX12*>();
+    return myNativeData.IsEmpty() ? nullptr : const_cast<GpuResourceDataDX12*>(&myNativeData.To<GpuResourceDataDX12>());
   }
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::Create(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* pInitialData /*= nullptr*/)
@@ -44,9 +44,8 @@ namespace Fancy {
     ASSERT(someProperties.myElementSizeBytes > 0 && someProperties.myNumElements > 0, "Invalid buffer size specified");
 
     Destroy();
-    GpuResourceDataDX12* dataDx12 = new GpuResourceDataDX12();
-    myNativeData = dataDx12;
-
+    GpuResourceDataDX12 dataDx12;
+    
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "GpuBuffer_Unnamed";
 
@@ -100,7 +99,7 @@ namespace Fancy {
     subHazardData.myContext = CommandListType::Graphics;
     subHazardData.myStates = initialStates;
 
-    GpuResourceHazardDataDX12* hazardData = &dataDx12->myHazardData;
+    GpuResourceHazardDataDX12* hazardData = &dataDx12.myHazardData;
     *hazardData = GpuResourceHazardDataDX12();
     hazardData->myCanChangeStates = canChangeStates;
     hazardData->mySubresources.push_back(subHazardData);
@@ -116,12 +115,13 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
-    ASSERT_HRESULT(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
+    ASSERT_HRESULT(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, nullptr, IID_PPV_ARGS(&dataDx12.myResource)));
 
     std::wstring wName = StringUtil::ToWideString(myName);
-    dataDx12->myResource->SetName(wName.c_str());
+    dataDx12.myResource->SetName(wName.c_str());
+    dataDx12.myGpuMemory = gpuMemory;
 
-    dataDx12->myGpuMemory = gpuMemory;
+    myNativeData = dataDx12;
 
     if (pInitialData != nullptr)
     {

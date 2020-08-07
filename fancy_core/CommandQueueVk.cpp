@@ -284,7 +284,7 @@ namespace Fancy
           if (!couldMerge)
           {
             CommandListVk::ImageMemoryBarrierData barrier;
-            barrier.myImage = resource->myNativeData.To<GpuResourceDataVk*>()->myImage;
+            barrier.myImage = resource->myNativeData.To<GpuResourceDataVk>().myImage;
             barrier.myFormat = static_cast<const Texture*>(resource)->GetProperties().myFormat;
             barrier.mySrcAccessMask = oldGlobalAccessMask;
             barrier.mySrcLayout = oldGlobalImageLayout;
@@ -298,7 +298,7 @@ namespace Fancy
         {
           ASSERT(subIdx == 0);
           CommandListVk::BufferMemoryBarrierData barrier;
-          barrier.myBuffer = resource->myNativeData.To<GpuResourceDataVk*>()->myBuffer;
+          barrier.myBuffer = resource->myNativeData.To<GpuResourceDataVk>().myBuffer;
           barrier.myBufferSize = static_cast<const GpuBuffer*>(resource)->GetByteSize();
           barrier.mySrcAccessMask = oldGlobalAccessMask;
           barrier.myDstAccessMask = localSubData.myFirstDstAccessFlags;

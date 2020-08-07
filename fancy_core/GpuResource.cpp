@@ -43,12 +43,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuResourceDataDX12* GpuResource::GetDX12Data() const
   {
-    return myNativeData.To<GpuResourceDataDX12*>();
+    return const_cast<GpuResourceDataDX12*>(&myNativeData.To<GpuResourceDataDX12>());
   }
 //---------------------------------------------------------------------------//
   GpuResourceDataVk* GpuResource::GetVkData() const
   {
-    return myNativeData.To<GpuResourceDataVk*>();
+    return const_cast<GpuResourceDataVk*>(&myNativeData.To<GpuResourceDataVk>());
   }
 //---------------------------------------------------------------------------//
 }

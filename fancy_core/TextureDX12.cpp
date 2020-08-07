@@ -43,15 +43,14 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuResourceDataDX12* TextureDX12::GetData() const
   {
-    return myNativeData.IsEmpty() ? nullptr : myNativeData.To<GpuResourceDataDX12*>();
+    return myNativeData.IsEmpty() ? nullptr : const_cast<GpuResourceDataDX12*>(&myNativeData.To<GpuResourceDataDX12>());
   }
 //---------------------------------------------------------------------------//
   void TextureDX12::Create(const TextureProperties& someProperties, const char* aName /* = nullptr */, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
   {
     Destroy();
-    GpuResourceDataDX12* dataDx12 = new GpuResourceDataDX12();
-    myNativeData = dataDx12;
-
+    GpuResourceDataDX12 dataDx12;
+    
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "Texture_Unnamed";
 
@@ -130,7 +129,7 @@ namespace Fancy {
     subHazardData.myContext = CommandListType::Graphics;
     subHazardData.myStates = initialStates;
     
-    GpuResourceHazardDataDX12* hazardData = &dataDx12->myHazardData;
+    GpuResourceHazardDataDX12* hazardData = &dataDx12.myHazardData;
     *hazardData = GpuResourceHazardDataDX12();
     hazardData->mySubresources.resize(mySubresources.GetNumSubresources(), subHazardData);
     hazardData->myReadStates = readStateMask;
@@ -163,8 +162,8 @@ namespace Fancy {
     ASSERT(gpuMemory.myHeap != nullptr);
 
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, allocInfo.Alignment);
-    ASSERT_HRESULT(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12->myResource)));
-    dataDx12->myGpuMemory = gpuMemory;
+    ASSERT_HRESULT(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&dataDx12.myResource)));
+    dataDx12.myGpuMemory = gpuMemory;
 
     // TODO: Decide between placed and committed resources depending on size and alignment requirements (maybe also expose a preference as a flag to the caller?)
     /*
@@ -178,7 +177,9 @@ namespace Fancy {
     */
 
     std::wstring wName = StringUtil::ToWideString(myName);
-    dataDx12->myResource->SetName(wName.c_str());
+    dataDx12.myResource->SetName(wName.c_str());
+
+    myNativeData = dataDx12;
 
     if (hasInitData)
     {

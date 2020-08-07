@@ -94,9 +94,12 @@ myBindingInSet);
       targetBindingsInSet.push_back(vkBinding);
     }
 
-    std::stable_sort(descriptorSets.begin(), descriptorSets.begin() + descriptorSets.size() - 1, [](const PipelineLayoutCacheVk::DescriptorSetInfo& aLeft, const PipelineLayoutCacheVk::DescriptorSetInfo& aRight) {
-      return aLeft.mySet < aRight.mySet;
-    });
+    if (!descriptorSets.empty())
+    {
+      std::stable_sort(descriptorSets.begin(), descriptorSets.begin() + descriptorSets.size() - 1, [](const PipelineLayoutCacheVk::DescriptorSetInfo& aLeft, const PipelineLayoutCacheVk::DescriptorSetInfo& aRight) {
+        return aLeft.mySet < aRight.mySet;
+      });
+    }
  
     for (uint i = 0u; i < (uint)descriptorSets.size(); ++i)
     {

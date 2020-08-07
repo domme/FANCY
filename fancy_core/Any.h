@@ -182,6 +182,7 @@ namespace Fancy
     const T& To() const
     {
       ASSERT(!IsEmpty(), "Any is empty!");
+      ASSERT(HasType<T>());
 
       using RawType = std::remove_const_t<std::remove_reference_t<T>>;
 

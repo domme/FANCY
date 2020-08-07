@@ -346,8 +346,8 @@ namespace Fancy {
 
     FlushBarriers();
 
-    GpuResourceDataDX12* destData = aDstResource->myNativeData.To<GpuResourceDataDX12*>();
-    GpuResourceDataDX12* srcData = aSrcResource->myNativeData.To<GpuResourceDataDX12*>();
+    GpuResourceDataDX12* destData = aDstResource->GetDX12Data();
+    GpuResourceDataDX12* srcData = aSrcResource->GetDX12Data();
 
     myCommandList->CopyResource(destData->myResource.Get(), srcData->myResource.Get());
   }
@@ -688,7 +688,7 @@ namespace Fancy {
       }
     }
 
-    const GpuResourceDataDX12* resourceDataDx12 = aBuffer->myNativeData.To<GpuResourceDataDX12*>();
+    const GpuResourceDataDX12* resourceDataDx12 = aBuffer->GetDX12Data();
     const D3D12_GPU_VIRTUAL_ADDRESS address = resourceDataDx12->myResource->GetGPUVirtualAddress() + someViewProperties.myOffset;
 
     BindInternal(*resourceInfo, tempDescriptor, address, anArrayIndex);
@@ -719,7 +719,7 @@ namespace Fancy {
     }
 
     const GpuResourceViewDataDX12& viewDataDx12 = aView->myNativeData.To<GpuResourceViewDataDX12>();
-    const GpuResourceDataDX12* resourceDataDx12 = aView->myResource->myNativeData.To<GpuResourceDataDX12*>();
+    const GpuResourceDataDX12* resourceDataDx12 = aView->myResource->GetDX12Data();
 
     uint64 gpuVirtualAddress = 0u;
     if (aView->myResource->myType == GpuResourceType::BUFFER)
@@ -879,7 +879,7 @@ namespace Fancy {
       for (uint iRes = 0u; iRes < aNumResources; ++iRes)
       {
         const GpuResource* resource = someResources[iRes];
-        ID3D12Resource* resourceDx12 = resource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
+        ID3D12Resource* resourceDx12 = resource->GetDX12Data()->myResource.Get();
 
         D3D12_RESOURCE_BARRIER& barrier = barriers[iRes];
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -1197,7 +1197,7 @@ namespace Fancy {
       barrier.Transition.StateBefore = localData->mySubresources[0].myStates;
       barrier.Transition.StateAfter = dstStates;
       barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-      barrier.Transition.pResource = aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
+      barrier.Transition.pResource = aResource->GetDX12Data()->myResource.Get();
       AddBarrier(barrier);
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
@@ -1224,7 +1224,7 @@ namespace Fancy {
           barrier.Transition.StateBefore = subData.myStates;
           barrier.Transition.StateAfter = dstStates;
           barrier.Transition.Subresource = subresourceIndex;
-          barrier.Transition.pResource = aResource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
+          barrier.Transition.pResource = aResource->GetDX12Data()->myResource.Get();
           AddBarrier(barrier);
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS

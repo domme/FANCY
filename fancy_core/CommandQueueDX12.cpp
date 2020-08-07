@@ -155,7 +155,7 @@ namespace Fancy
         barrier.Transition.StateBefore = oldGlobalStates;
         barrier.Transition.StateAfter = localSubData.myFirstDstStates;
         barrier.Transition.Subresource = subIdx;
-        barrier.Transition.pResource = resource->myNativeData.To<GpuResourceDataDX12*>()->myResource.Get();
+        barrier.Transition.pResource = resource->myNativeData.To<GpuResourceDataDX12>().myResource.Get();
 
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
         if (RenderCore::ourDebugLogResourceBarriers)
