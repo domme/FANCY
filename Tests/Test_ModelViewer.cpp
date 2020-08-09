@@ -1,4 +1,7 @@
 #include "Test_ModelViewer.h"
+
+#include <EASTL/fixed_vector.h>
+
 #include "fancy_core/Window.h"
 #include "fancy_core/ShaderPipelineDesc.h"
 #include "fancy_core/RenderCore.h"
@@ -88,9 +91,9 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   myCamera.UpdateView();
   myCamera.UpdateProjection();
 
-  StaticArray<VertexShaderAttributeDesc, 16> vertexAttributes;
-  vertexAttributes.Add({ VertexAttributeSemantic::POSITION, 0u, DataFormat::RGB_32F });
-  vertexAttributes.Add({ VertexAttributeSemantic::TEXCOORD, 0u, DataFormat::RG_32F });
+  eastl::fixed_vector<VertexShaderAttributeDesc, 16> vertexAttributes;
+  vertexAttributes.push_back({ VertexAttributeSemantic::POSITION, 0u, DataFormat::RGB_32F });
+  vertexAttributes.push_back({ VertexAttributeSemantic::TEXCOORD, 0u, DataFormat::RG_32F });
 
   SceneData sceneData;
   MeshImporter importer;
@@ -101,8 +104,8 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   myScene = std::make_shared<Scene>(sceneData);
 
   VertexInputLayoutProperties instancedVertexLayoutProps = sceneData.myVertexInputLayoutProperties;
-  instancedVertexLayoutProps.myAttributes.Add({ DataFormat::RGB_32F, VertexAttributeSemantic::POSITION, 1u, 1u });
-  instancedVertexLayoutProps.myBufferBindings.Add({ 12u, VertexInputRate::PER_INSTANCE });
+  instancedVertexLayoutProps.myAttributes.push_back({ DataFormat::RGB_32F, VertexAttributeSemantic::POSITION, 1u, 1u });
+  instancedVertexLayoutProps.myBufferBindings.push_back({ 12u, VertexInputRate::PER_INSTANCE });
   myInstancedVertexLayout = RenderCore::CreateVertexInputLayout(instancedVertexLayoutProps);
 
   int numInstancesOneSide = 20;

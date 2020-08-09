@@ -80,27 +80,27 @@ namespace Fancy
     const VertexInputLayout* inputLayout = aState.myVertexInputLayout ? aState.myVertexInputLayout : vertexShader->myDefaultVertexInputLayout.get();
     ASSERT(inputLayout);
 
-    StaticArray<VkVertexInputBindingDescription, 16> bindingDescs;
-    StaticArray<VkVertexInputAttributeDescription, 16> vkAttributeDescs;
+    eastl::fixed_vector<VkVertexInputBindingDescription, 16> bindingDescs;
+    eastl::fixed_vector<VkVertexInputAttributeDescription, 16> vkAttributeDescs;
 
     const VertexInputLayoutProperties& inputLayoutProps = inputLayout->myProperties;
-    for (uint i = 0u; i < inputLayoutProps.myBufferBindings.Size(); ++i)
+    for (uint i = 0u; i < inputLayoutProps.myBufferBindings.size(); ++i)
     {
-      VkVertexInputBindingDescription& bindingDesc = bindingDescs.Add();
+      VkVertexInputBindingDescription& bindingDesc = bindingDescs.push_back();
       bindingDesc.binding = i;
       bindingDesc.inputRate = RenderCore_PlatformVk::ResolveVertexInputRate(inputLayoutProps.myBufferBindings[i].myInputRate);
       bindingDesc.stride = inputLayoutProps.myBufferBindings[i].myStride;
     }
 
-    const StaticArray<VertexShaderAttributeDesc, 16>& shaderAttributes = vertexShader->myVertexAttributes;
-    const StaticArray<uint, 16>& shaderAttributeLocations = vertexShader->myVertexAttributeLocations;
-    const StaticArray<VertexInputAttributeDesc, 16>& inputAttributes = inputLayoutProps.myAttributes;
-    for (uint i = 0u; i < shaderAttributes.Size(); ++i)
+    const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& shaderAttributes = vertexShader->myVertexAttributes;
+    const eastl::fixed_vector<uint, 16>& shaderAttributeLocations = vertexShader->myVertexAttributeLocations;
+    const eastl::fixed_vector<VertexInputAttributeDesc, 8>& inputAttributes = inputLayoutProps.myAttributes;
+    for (uint i = 0u; i < shaderAttributes.size(); ++i)
     {
       const VertexShaderAttributeDesc& shaderAttribute = shaderAttributes[i];
       const uint shaderAttributeLocation = shaderAttributeLocations[i];
       int inputAttributeIndex = -1;
-      for (uint k = 0u; k < inputAttributes.Size(); ++k)
+      for (uint k = 0u; k < inputAttributes.size(); ++k)
       {
         const VertexInputAttributeDesc& input = inputAttributes[k];
         if (shaderAttribute.mySemantic == input.mySemantic && shaderAttribute.mySemanticIndex == input.mySemanticIndex)
@@ -113,8 +113,8 @@ namespace Fancy
       if (inputAttributeIndex != -1)
       {
         const VertexInputAttributeDesc& input = inputAttributes[inputAttributeIndex];
-        VkVertexInputAttributeDescription& attributeDesc = vkAttributeDescs.Add();
-        ASSERT(input.myBufferIndex < bindingDescs.Size());
+        VkVertexInputAttributeDescription& attributeDesc = vkAttributeDescs.push_back();
+        ASSERT(input.myBufferIndex < bindingDescs.size());
         attributeDesc.binding = input.myBufferIndex;
         attributeDesc.format = RenderCore_PlatformVk::ResolveFormat(input.myFormat);
         attributeDesc.location = shaderAttributeLocation;
@@ -126,10 +126,10 @@ namespace Fancy
     vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputCreateInfo.pNext = nullptr;
     vertexInputCreateInfo.flags = 0u;
-    vertexInputCreateInfo.pVertexAttributeDescriptions = vkAttributeDescs.GetBuffer();
-    vertexInputCreateInfo.vertexAttributeDescriptionCount = vkAttributeDescs.Size();
-    vertexInputCreateInfo.pVertexBindingDescriptions = bindingDescs.GetBuffer();
-    vertexInputCreateInfo.vertexBindingDescriptionCount = bindingDescs.Size();
+    vertexInputCreateInfo.pVertexAttributeDescriptions = vkAttributeDescs.data();
+    vertexInputCreateInfo.vertexAttributeDescriptionCount = static_cast<uint>(vkAttributeDescs.size());
+    vertexInputCreateInfo.pVertexBindingDescriptions = bindingDescs.data();
+    vertexInputCreateInfo.vertexBindingDescriptionCount = static_cast<uint>(bindingDescs.size());
 
     pipelineCreateInfo.pVertexInputState = &vertexInputCreateInfo;
 

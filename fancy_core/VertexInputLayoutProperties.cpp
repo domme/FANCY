@@ -5,15 +5,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   uint64 VertexInputLayoutProperties::GetHash() const
   {
-    if (myAttributes.IsEmpty() && myBufferBindings.IsEmpty())
+    if (myAttributes.empty() && myBufferBindings.empty())
       return 0ull;
 
     MathUtil::BeginMultiHash();
-    
-    if (!myAttributes.IsEmpty())
-      MathUtil::AddToMultiHash(myAttributes.GetBuffer(), myAttributes.ByteSize());
-    if (!myBufferBindings.IsEmpty())
-      MathUtil::AddToMultiHash(myBufferBindings.GetBuffer(), myBufferBindings.ByteSize());
+
+    MathUtil::AddToMultiHash(myAttributes.data(), VECTOR_BYTESIZE(myAttributes));
+    MathUtil::AddToMultiHash(myBufferBindings.data(), VECTOR_BYTESIZE(myBufferBindings));
 
     return MathUtil::EndMultiHash();
   }
@@ -21,8 +19,8 @@ namespace Fancy {
   uint64 VertexInputLayoutProperties::GetOverallVertexSize() const
   {
     uint64 overallSize = 0ull;
-    for (uint i = 0; i < myAttributes.Size(); ++i)
-      overallSize += DataFormatInfo::GetFormatInfo(myAttributes[i].myFormat).mySizeBytes;
+    for (const VertexInputAttributeDesc& attribute : myAttributes)
+      overallSize += DataFormatInfo::GetFormatInfo(attribute.myFormat).mySizeBytes;
 
     return overallSize;
   }
@@ -32,16 +30,14 @@ namespace Fancy {
   {
     // Check for validity and compute the buffer-offsets
     uint bufferSize[16] = { 0u };
-    for (uint i = 0; i < myProperties.myAttributes.Size(); ++i)
+    for (const VertexInputAttributeDesc& attributeDesc : myProperties.myAttributes)
     {
-      VertexInputAttributeDesc& attributeDesc = myProperties.myAttributes[i];
-      
       const uint bufferIndex = attributeDesc.myBufferIndex;
 
-      ASSERT(bufferIndex < myProperties.myBufferBindings.Size());
+      ASSERT(bufferIndex < myProperties.myBufferBindings.size());
       ASSERT(bufferIndex < ARRAY_LENGTH(bufferSize));
 
-      myAttributeOffsetsInBuffer.Add(bufferSize[bufferIndex]);
+      myAttributeOffsetsInBuffer.push_back(bufferSize[bufferIndex]);
 
       const uint size = DataFormatInfo::GetFormatInfo(attributeDesc.myFormat).mySizeBytes;
       bufferSize[attributeDesc.myBufferIndex] += size;

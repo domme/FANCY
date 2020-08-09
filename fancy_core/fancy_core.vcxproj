@@ -37,6 +37,7 @@
     <Import Project="..\property_sheets\inc_lib_dependencies.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
     <Import Project="..\property_sheets\output_lib.props" />
+    <Import Project="..\property_sheets\lib_EASTL.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -45,6 +46,7 @@
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
     <Import Project="..\property_sheets\output_lib.props" />
     <Import Project="..\property_sheets\release_optimizations.props" />
+    <Import Project="..\property_sheets\lib_EASTL.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
@@ -61,6 +63,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.lib</TargetExt>
     <OutDir>$(SolutionDir)lib/$(Platform)/$(Configuration)/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -139,6 +147,7 @@
     <ClInclude Include="DxcShaderCompiler.h" />
     <ClInclude Include="DynamicArray.h" />
     <ClInclude Include="DynamicDescriptorHeapDX12.h" />
+    <ClInclude Include="EASTLAllocator.h" />
     <ClInclude Include="FixedArray.h" />
     <ClInclude Include="FrameBufferCacheVk.h" />
     <ClInclude Include="GpuBufferProperties.h" />

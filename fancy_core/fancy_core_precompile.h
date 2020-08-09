@@ -28,6 +28,24 @@
 #include <cstdlib>
 #include <mutex>
 
+#include "EASTLAllocator.h"
+#include "EASTL/fixed_vector.h"
+#include "EASTL/any.h"
+#include "EASTL/fixed_hash_map.h"
+#include "EASTL/fixed_hash_set.h"
+#include "EASTL/fixed_list.h"
+#include "EASTL/fixed_string.h"
+#include "EASTL/fixed_substring.h"
+#include "EASTL/functional.h"
+#include "EASTL/optional.h"
+#include "EASTL/unique_ptr.h"
+#include "EASTL/shared_ptr.h"
+#include "EASTL/safe_ptr.h"
+#include "EASTL/string.h"
+#include "EASTL/chrono.h"
+#include "EASTL/memory.h"
+#include "EASTL/utility.h"
+
 #include "FancyCoreDefines.h"
 #include "MathIncludes.h"
 #include "WindowsIncludes.h"

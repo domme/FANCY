@@ -214,10 +214,10 @@ namespace Fancy { namespace ImGuiRendering {
 
     {
       VertexInputLayoutProperties inputLayout;
-      inputLayout.myAttributes.Add(VertexInputAttributeDesc(DataFormat::RG_32F, VertexAttributeSemantic::POSITION));
-      inputLayout.myAttributes.Add(VertexInputAttributeDesc(DataFormat::RG_32F, VertexAttributeSemantic::TEXCOORD));
-      inputLayout.myAttributes.Add(VertexInputAttributeDesc(DataFormat::R_32UI, VertexAttributeSemantic::COLOR));
-      inputLayout.myBufferBindings.Add({ sizeof(ImDrawVert), VertexInputRate::PER_VERTEX });
+      inputLayout.myAttributes.push_back(VertexInputAttributeDesc(DataFormat::RG_32F, VertexAttributeSemantic::POSITION));
+      inputLayout.myAttributes.push_back(VertexInputAttributeDesc(DataFormat::RG_32F, VertexAttributeSemantic::TEXCOORD));
+      inputLayout.myAttributes.push_back(VertexInputAttributeDesc(DataFormat::R_32UI, VertexAttributeSemantic::COLOR));
+      inputLayout.myBufferBindings.push_back({ sizeof(ImDrawVert), VertexInputRate::PER_VERTEX });
       ourInputLayout = RenderCore::CreateVertexInputLayout(inputLayout);
     }
     

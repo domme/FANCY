@@ -59,22 +59,21 @@ namespace Fancy
       return aiOptions;
     }
   //---------------------------------------------------------------------------//
-    VertexInputLayoutProperties CreateVertexInputLayout(const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes)
+    VertexInputLayoutProperties CreateVertexInputLayout(const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& someVertexAttributes)
     {
       VertexInputLayoutProperties layoutProps;
 
       uint overallVertexSize = 0u;
-      for (uint i = 0u; i < someVertexAttributes.Size(); ++i)
+      for (const VertexShaderAttributeDesc& expectedAttribute : someVertexAttributes)
       {
-        const VertexShaderAttributeDesc& expectedAttribute = someVertexAttributes[i];
         overallVertexSize += DataFormatInfo::GetFormatInfo(expectedAttribute.myFormat).mySizeBytes;
-        layoutProps.myAttributes.Add({ expectedAttribute.myFormat, expectedAttribute.mySemantic, expectedAttribute.mySemanticIndex, 0u });
+        layoutProps.myAttributes.push_back({ expectedAttribute.myFormat, expectedAttribute.mySemantic, expectedAttribute.mySemanticIndex, 0u });
       }
 
       VertexBufferBindDesc bufferBindDesc;
       bufferBindDesc.myInputRate = VertexInputRate::PER_VERTEX;
       bufferBindDesc.myStride = overallVertexSize;
-      layoutProps.myBufferBindings.Add(bufferBindDesc);
+      layoutProps.myBufferBindings.push_back(bufferBindDesc);
 
       return layoutProps;
     }
@@ -107,7 +106,7 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  bool MeshImporter::Import(const char* aPath, const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes, SceneData& aResultOut, ImportOptions someImportOptions)
+  bool MeshImporter::Import(const char* aPath, const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& someVertexAttributes, SceneData& aResultOut, ImportOptions someImportOptions)
   {
     if (BinaryCache::ReadScene(aPath, aResultOut))
       return true;
@@ -138,7 +137,7 @@ namespace Fancy
     myScene = nullptr;
     mySourcePath.clear();
     mySceneFileTimeStamp = 0ull;
-    myVertexAttributes.Clear();
+    myVertexAttributes.clear();
     myVertexInputLayout = VertexInputLayoutProperties();
 
     return success;
@@ -294,13 +293,13 @@ namespace Fancy
 
       ASSERT(importStreams.size() <= RenderCore::GetPlatformCaps().myMaxNumVertexAttributes);
 
-      const StaticArray<VertexShaderAttributeDesc, 16>& expectedAttributes = myVertexAttributes;
+      const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& expectedAttributes = myVertexAttributes;
       uint attributeSizes[16] = { 0u };
       int importStreamForAttribute[16];
       for (uint i = 0u; i < 16; ++i)
         importStreamForAttribute[i] = -1;
       uint overallVertexSize = 0u;
-      for (uint i = 0u; i < expectedAttributes.Size(); ++i)
+      for (uint i = 0u; i < expectedAttributes.size(); ++i)
       {
         const VertexShaderAttributeDesc& expectedAttribute = expectedAttributes[i];
         uint expectedSize = DataFormatInfo::GetFormatInfo(expectedAttribute.myFormat).mySizeBytes;
@@ -327,7 +326,7 @@ namespace Fancy
       uint8* dstPtr = partData.myVertexData.data();
       for (uint v = 0u; v < aiMesh->mNumVertices; ++v)
       {
-        for (uint i = 0u; i < expectedAttributes.Size(); ++i)
+        for (uint i = 0u; i < expectedAttributes.size(); ++i)
         {
           if (importStreamForAttribute[i] != -1)
           {

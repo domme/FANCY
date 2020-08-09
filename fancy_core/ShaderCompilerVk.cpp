@@ -169,8 +169,8 @@ namespace Fancy
 
     if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
     {
-      StaticArray<VertexShaderAttributeDesc, 16>& vertexAttributes = aCompilerOutput->myVertexAttributes;
-      StaticArray<uint, 16>& vertexAttributeLocations = compiledDataVk.myVertexAttributeLocations;
+      eastl::fixed_vector<VertexShaderAttributeDesc, 16>& vertexAttributes = aCompilerOutput->myVertexAttributes;
+      eastl::fixed_vector<uint, 16>& vertexAttributeLocations = compiledDataVk.myVertexAttributeLocations;
       
       for (uint i = 0u; i < reflectModule.input_variable_count; ++i)
       {
@@ -183,22 +183,22 @@ namespace Fancy
         uint semanticIndex;
         Priv_ShaderCompilerVk::locResolveSemantic(reflectedInput.semantic, semantic, semanticIndex);
         
-        vertexAttributes.Add({ semantic, semanticIndex, format});
-        vertexAttributeLocations.Add(reflectedInput.location);
+        vertexAttributes.push_back({ semantic, semanticIndex, format});
+        vertexAttributeLocations.push_back(reflectedInput.location);
       }
 
       // Create a default vertex input layout that assumes that all vertex attributes come from one interleaved vertex buffer.
       // A custom vertex input layout can be set using using CommandList::SetVertexInputLayout()
       uint overallVertexSize = 0u;
       VertexInputLayoutProperties props;
-      for (uint i = 0u; i < vertexAttributes.Size(); ++i)
+      for (uint i = 0u; i < vertexAttributes.size(); ++i)
       {
         const VertexShaderAttributeDesc& shaderAttribute = vertexAttributes[i];
-        props.myAttributes.Add({ shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u });
+        props.myAttributes.push_back({ shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u });
         overallVertexSize += DataFormatInfo::GetFormatInfo(shaderAttribute.myFormat).mySizeBytes;
       }
 
-      props.myBufferBindings.Add({ overallVertexSize, VertexInputRate::PER_VERTEX });
+      props.myBufferBindings.push_back({ overallVertexSize, VertexInputRate::PER_VERTEX });
       aCompilerOutput->myDefaultVertexInputLayout = RenderCore::CreateVertexInputLayout(props);
     }
     else if (aDesc.myShaderStage == (uint)ShaderStage::COMPUTE)

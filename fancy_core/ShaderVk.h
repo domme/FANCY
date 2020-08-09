@@ -14,7 +14,7 @@ namespace Fancy
   {
     VkShaderModule myModule = nullptr;
     DynamicArray<ShaderResourceInfoVk> myResourceInfos;
-    StaticArray<uint, 16> myVertexAttributeLocations;
+    eastl::fixed_vector<uint, 16> myVertexAttributeLocations;
     uint64 myBytecodeHash = 0ull;
   };
 //---------------------------------------------------------------------------//
@@ -36,7 +36,7 @@ namespace Fancy
     
     VkShaderModule myModule = nullptr;
     VkPipelineShaderStageCreateInfo myShaderStageCreateInfo = {};
-    StaticArray<uint, 16> myVertexAttributeLocations;
+    eastl::fixed_vector<uint, 16> myVertexAttributeLocations;
     DynamicArray<ShaderResourceInfoVk> myResourceInfos;
     uint64 myBytecodeHash = 0ull;
   };

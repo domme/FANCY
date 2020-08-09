@@ -179,16 +179,16 @@ namespace Fancy
     ASSERT(inputLayout);
     const VertexInputLayoutProperties& inputLayoutProps = inputLayout->myProperties;
 
-    const StaticArray<VertexShaderAttributeDesc, 16>& shaderAttributes = vertexShader->myVertexAttributes;
+    const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& shaderAttributes = vertexShader->myVertexAttributes;
 
-    StaticArray<D3D12_INPUT_ELEMENT_DESC, 16> inputElementDescs;
-    const StaticArray<VertexInputAttributeDesc, 16>& inputAttributes = inputLayoutProps.myAttributes;
-    for (uint i = 0u; i < shaderAttributes.Size(); ++i)
+    eastl::fixed_vector<D3D12_INPUT_ELEMENT_DESC, 16> inputElementDescs;
+    const eastl::fixed_vector<VertexInputAttributeDesc, 8>& inputAttributes = inputLayoutProps.myAttributes;
+    for (uint i = 0u; i < shaderAttributes.size(); ++i)
     {
       const VertexShaderAttributeDesc& shaderAttribute = shaderAttributes[i];
 
       int inputAttributeIndex = -1;
-      for (uint k = 0u; k < inputAttributes.Size(); ++k)
+      for (uint k = 0u; k < inputAttributes.size(); ++k)
       {
         const VertexInputAttributeDesc& input = inputAttributes[k];
         if (shaderAttribute.mySemantic == input.mySemantic && shaderAttribute.mySemanticIndex == input.mySemanticIndex)
@@ -202,12 +202,12 @@ namespace Fancy
       {
         const VertexInputAttributeDesc& input = inputAttributes[inputAttributeIndex];
         
-        D3D12_INPUT_ELEMENT_DESC& elementDesc = inputElementDescs.Add();
+        D3D12_INPUT_ELEMENT_DESC& elementDesc = inputElementDescs.push_back();
         elementDesc.Format = RenderCore_PlatformDX12::ResolveFormat(input.myFormat);
         elementDesc.AlignedByteOffset = inputLayout->myAttributeOffsetsInBuffer[inputAttributeIndex];
         elementDesc.SemanticName = Priv_PipelineStateCacheDX12::VertexAttributeSemanticToString(input.mySemantic);
         elementDesc.SemanticIndex = input.mySemanticIndex;
-        ASSERT(input.myBufferIndex < inputLayoutProps.myBufferBindings.Size());
+        ASSERT(input.myBufferIndex < inputLayoutProps.myBufferBindings.size());
         elementDesc.InputSlot = input.myBufferIndex;
 
         const VertexBufferBindDesc& bufferBindDesc = inputLayoutProps.myBufferBindings[input.myBufferIndex];
@@ -217,8 +217,8 @@ namespace Fancy
     }
 
     D3D12_INPUT_LAYOUT_DESC& inputLayoutDesc = psoDesc.InputLayout;
-    inputLayoutDesc.NumElements = inputElementDescs.Size();
-    inputLayoutDesc.pInputElementDescs = inputElementDescs.GetBuffer();
+    inputLayoutDesc.NumElements = static_cast<uint>(inputElementDescs.size());
+    inputLayoutDesc.pInputElementDescs = inputElementDescs.data();
 
     // IB STRIP CUT VALUE
     psoDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;

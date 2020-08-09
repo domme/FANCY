@@ -46,6 +46,7 @@
     <Import Project="..\property_sheets\lib_assimp_debug_x64.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
     <Import Project="..\property_sheets\inc_lib_dxc.props" />
+    <Import Project="..\property_sheets\lib_EASTL.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -60,10 +61,17 @@
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
     <Import Project="..\property_sheets\inc_lib_dxc.props" />
     <Import Project="..\property_sheets\release_optimizations.props" />
+    <Import Project="..\property_sheets\lib_EASTL.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>

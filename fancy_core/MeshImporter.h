@@ -31,7 +31,7 @@ namespace Fancy {
       ALL = ~0u
     };
 
-    bool Import(const char* aPath, const StaticArray<VertexShaderAttributeDesc, 16>& someVertexAttributes, SceneData& aResultOut, ImportOptions someImportOptions = ALL);
+    bool Import(const char* aPath, const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& someVertexAttributes, SceneData& aResultOut, ImportOptions someImportOptions = ALL);
     
   private:
     bool ProcessNodeRecursive(const aiNode* aNode, const glm::float4x4& aParentTransform, SceneData& aResultOut);
@@ -46,7 +46,7 @@ namespace Fancy {
     const aiScene* myScene = nullptr;
     uint64 mySceneFileTimeStamp = 0u;
     VertexInputLayoutProperties myVertexInputLayout;
-    StaticArray<VertexShaderAttributeDesc, 16> myVertexAttributes;
+    eastl::fixed_vector<VertexShaderAttributeDesc, 16> myVertexAttributes;
     std::unordered_map<const aiMaterial*, uint> myMaterialCache;
     std::unordered_map<uint64, uint> myMeshCache; 
   };

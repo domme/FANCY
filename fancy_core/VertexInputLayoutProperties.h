@@ -5,6 +5,8 @@
 #include "StaticArray.h"
 #include "DataFormat.h"
 
+#include "EASTL/fixed_vector.h"
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct VertexInputAttributeDesc 
@@ -34,14 +36,14 @@ namespace Fancy {
     uint64 GetHash() const;
     uint64 GetOverallVertexSize() const;
 
-    StaticArray<VertexInputAttributeDesc, 16> myAttributes;
-    StaticArray<VertexBufferBindDesc, 16> myBufferBindings;
+    eastl::fixed_vector<VertexInputAttributeDesc, 8> myAttributes;
+    eastl::fixed_vector<VertexBufferBindDesc, 4> myBufferBindings;
   };
 //---------------------------------------------------------------------------//
   struct VertexInputLayout
   {
     VertexInputLayout(const VertexInputLayoutProperties& someProperties);
-    StaticArray<uint, 16> myAttributeOffsetsInBuffer;
+    eastl::fixed_vector<uint, 4> myAttributeOffsetsInBuffer;
     VertexInputLayoutProperties myProperties;
   };
 //---------------------------------------------------------------------------//

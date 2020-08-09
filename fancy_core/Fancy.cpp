@@ -14,6 +14,7 @@
 #include "CommandLine.h"
 #include "ObjectCore.h"
 #include "BinaryCache.h"
+#include "EASTL/fixed_vector.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -22,7 +23,7 @@ namespace Fancy {
   FancyRuntime::FancyRuntime(HINSTANCE anAppInstanceHandle)
     : myAppInstanceHandle(anAppInstanceHandle)
   {
-    
+    eastl::fixed_vector<uint, 100> testVector;
   }
 //---------------------------------------------------------------------------//
   FancyRuntime::~FancyRuntime()

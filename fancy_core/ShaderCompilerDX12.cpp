@@ -455,13 +455,13 @@ namespace Fancy {
       D3D12_SHADER_DESC shaderDesc;
       reflector->GetDesc(&shaderDesc);
 
-      StaticArray<VertexShaderAttributeDesc, 16>& vertexAttributes = anOutput->myVertexAttributes;
+      eastl::fixed_vector<VertexShaderAttributeDesc, 16>& vertexAttributes = anOutput->myVertexAttributes;
       for (uint i = 0u; i < shaderDesc.InputParameters; ++i)
       {
         D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
         reflector->GetInputParameterDesc(i, &paramDesc);
 
-        VertexShaderAttributeDesc& attributeDesc = vertexAttributes.Add();
+        VertexShaderAttributeDesc& attributeDesc = vertexAttributes.push_back();
         attributeDesc.myFormat = locResolveFormat(paramDesc);
         ASSERT(attributeDesc.myFormat != DataFormat::NONE);
         attributeDesc.mySemantic = ShaderCompiler::GetVertexAttributeSemantic(paramDesc.SemanticName);
@@ -472,14 +472,14 @@ namespace Fancy {
      // A custom vertex input layout can be set using using CommandList::SetVertexInputLayout()
       uint overallVertexSize = 0u;
       VertexInputLayoutProperties props;
-      for (uint i = 0u; i < vertexAttributes.Size(); ++i)
+      for (uint i = 0u; i < vertexAttributes.size(); ++i)
       {
         const VertexShaderAttributeDesc& shaderAttribute = vertexAttributes[i];
-        props.myAttributes.Add({ shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u });
+        props.myAttributes.push_back({ shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u });
         overallVertexSize += DataFormatInfo::GetFormatInfo(shaderAttribute.myFormat).mySizeBytes;
       }
 
-      props.myBufferBindings.Add({ overallVertexSize, VertexInputRate::PER_VERTEX });
+      props.myBufferBindings.push_back({ overallVertexSize, VertexInputRate::PER_VERTEX });
       anOutput->myDefaultVertexInputLayout = RenderCore::CreateVertexInputLayout(props);
     }
     else if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::COMPUTE))

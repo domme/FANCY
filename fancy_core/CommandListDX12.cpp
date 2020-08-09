@@ -926,7 +926,7 @@ namespace Fancy {
     const VertexInputLayout* shaderInputLayout = vertexShader ? vertexShader->myDefaultVertexInputLayout.get() : nullptr;
     const VertexInputLayout* inputLayout = myGraphicsPipelineState.myVertexInputLayout ? myGraphicsPipelineState.myVertexInputLayout : shaderInputLayout;
 
-    ASSERT(inputLayout && inputLayout->myProperties.myBufferBindings.Size() == aNumBuffers);
+    ASSERT(inputLayout && inputLayout->myProperties.myBufferBindings.size() == aNumBuffers);
 
     StaticArray<D3D12_VERTEX_BUFFER_VIEW, 16> vertexBufferViews;
     for (uint i = 0u; i < aNumBuffers; ++i)

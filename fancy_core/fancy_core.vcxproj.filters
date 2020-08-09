@@ -435,6 +435,9 @@
     <ClInclude Include="BinarySerializer.h">
       <Filter>IO</Filter>
     </ClInclude>
+    <ClInclude Include="EASTLAllocator.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">

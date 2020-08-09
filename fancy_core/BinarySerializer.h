@@ -41,10 +41,14 @@ namespace Fancy
     template <class T>
     void Serialize(T& aVal);
 
+    template <class T> void Serialize(eastl::vector<T>& aVal);
     template <class T> void Serialize(DynamicArray<T>& aVal);
+    template <class T, uint N> void Serialize(eastl::fixed_vector<T, N>& aVal);
     template <class T, uint N> void Serialize(StaticArray<T, N>& aVal);
     template <class T, uint N> void Serialize(T(&aVal)[N]);
     void Serialize(String& aString);
+    void Serialize(eastl::string& aString);
+    template <class T, uint N> void Serialize(eastl::fixed_string<T, N>& aVal);
 
     SERIALIZE_MODE myMode;
     std::fstream myStream;
@@ -65,10 +69,62 @@ namespace Fancy
       Serialize((uint8*)&aVal, sizeof(T));
     else
       GetSerializeFunc<T>()(aVal, *this);
-  } 
+  }
+//---------------------------------------------------------------------------//
+  template <class T>
+  void BinarySerializer::Serialize(eastl::vector<T>& aVal)
+  {
+    if (IsReading())
+    {
+      uint size = 0u;
+      Serialize(size);
+      aVal.resize(size);
+    }
+    else
+    {
+      uint size = static_cast<uint>(aVal.size());
+      Serialize(size);
+    }
+
+    if (std::is_trivially_copyable<T>::value)
+    {
+      Serialize((uint8*)aVal.data(), aVal.size() * sizeof(T));
+    }
+    else
+    {
+      for (T& element : aVal)
+        Serialize(element);
+    }
+  }
 //---------------------------------------------------------------------------//
   template <class T>
   void BinarySerializer::Serialize(DynamicArray<T>& aVal)
+  {
+    if (IsReading())
+    {
+      uint size = 0u;
+      Serialize(size);
+      aVal.resize(size);
+    }
+    else
+    {
+      uint size = static_cast<uint>(aVal.size());
+      Serialize(size);
+    }
+
+    if (std::is_trivially_copyable<T>::value)
+    {
+      Serialize((uint8*)aVal.data(), aVal.size() * sizeof(T));
+    }
+    else
+    {
+      for (T& element : aVal)
+        Serialize(element);
+    }
+  }
+//---------------------------------------------------------------------------//
+  template <class T, uint N>
+  void BinarySerializer::Serialize(eastl::fixed_vector<T, N>& aVal)
   {
     if (IsReading())
     {
@@ -135,6 +191,65 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
   inline void BinarySerializer::Serialize(String& aString)
+  {
+    if (IsReading())
+    {
+      uint name_size;
+      Serialize(name_size);
+
+      const uint kExpectedMaxLength = 64u;
+      char buf[kExpectedMaxLength];
+      char* name_cstr = buf;
+
+      if (name_size > kExpectedMaxLength)
+        name_cstr = new char[name_size];
+
+      Serialize((uint8*)name_cstr, name_size);
+      aString = name_cstr;
+
+      if (name_size > kExpectedMaxLength)
+        delete[] name_cstr;
+    }
+    else
+    {
+      const char* name_cstr = aString.c_str();
+      const uint name_size = static_cast<uint>(aString.size()) + 1u; // size + '/0'
+      Serialize(name_size);
+      Serialize((uint8*)name_cstr, name_size);
+    }
+  }
+//---------------------------------------------------------------------------//
+  inline void BinarySerializer::Serialize(eastl::string& aString)
+  {
+    if (IsReading())
+    {
+      uint name_size;
+      Serialize(name_size);
+
+      const uint kExpectedMaxLength = 64u;
+      char buf[kExpectedMaxLength];
+      char* name_cstr = buf;
+
+      if (name_size > kExpectedMaxLength)
+        name_cstr = new char[name_size];
+
+      Serialize((uint8*)name_cstr, name_size);
+      aString = name_cstr;
+
+      if (name_size > kExpectedMaxLength)
+        delete[] name_cstr;
+    }
+    else
+    {
+      const char* name_cstr = aString.c_str();
+      const uint name_size = static_cast<uint>(aString.size()) + 1u; // size + '/0'
+      Serialize(name_size);
+      Serialize((uint8*)name_cstr, name_size);
+    }
+  }
+//---------------------------------------------------------------------------//
+  template <class T, uint N>
+  void BinarySerializer::Serialize(eastl::fixed_string<T, N>& aString)
   {
     if (IsReading())
     {

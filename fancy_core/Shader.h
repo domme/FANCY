@@ -36,7 +36,7 @@ namespace Fancy {
     
     ShaderDesc myDesc;
     ShaderProperties myProperties;
-    StaticArray<VertexShaderAttributeDesc, 16> myVertexAttributes;
+    eastl::fixed_vector<VertexShaderAttributeDesc, 16> myVertexAttributes;
     SharedPtr<VertexInputLayout> myDefaultVertexInputLayout;
   };
 //---------------------------------------------------------------------------//

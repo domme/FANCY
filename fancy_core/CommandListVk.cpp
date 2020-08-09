@@ -609,7 +609,7 @@ namespace Fancy
     const VertexInputLayout* shaderInputLayout = vertexShader ? vertexShader->myDefaultVertexInputLayout.get() : nullptr;
     const VertexInputLayout* inputLayout = myGraphicsPipelineState.myVertexInputLayout ? myGraphicsPipelineState.myVertexInputLayout : shaderInputLayout;
 
-    ASSERT(inputLayout && inputLayout->myProperties.myBufferBindings.Size() == aNumBuffers);
+    ASSERT(inputLayout && inputLayout->myProperties.myBufferBindings.size() == aNumBuffers);
     
     StaticArray<VkBuffer, 16> vkBuffers;
     for (uint i = 0u; i < aNumBuffers; ++i)

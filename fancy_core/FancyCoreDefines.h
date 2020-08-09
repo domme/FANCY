@@ -35,6 +35,7 @@
 //---------------------------------------------------------------------------//
 #define ARRAY_LENGTH(array) GetArraySize(array)
 #define DYN_ARRAY_BYTESIZE(array) (array.size() * sizeof(decltype(array)::value_type))
+#define VECTOR_BYTESIZE(array) (array.size() * sizeof(decltype(array)::value_type))
 //---------------------------------------------------------------------------//
   
 //---------------------------------------------------------------------------//

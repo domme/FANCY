@@ -13,7 +13,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace RenderConstants 
   {
-    enum 
+    enum
     {
       kMaxNumRenderTargets = 8u,
       kMaxNumTextureSamplers = 32u,
@@ -27,6 +27,7 @@ namespace Fancy {
       kMaxNumGeometriesPerSubModel = 128u,
       kMaxNumRenderContexts = 256u,
       kNumRenderThreads = 1u,
+      kDefaultNumAttributes = 16u,
     };
   }
 //---------------------------------------------------------------------------//
