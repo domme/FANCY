@@ -21,7 +21,8 @@ Mostly created for personal learning-purposes and graphics-demos. Most areas are
 * [SPIRV-Reflect](https://github.com/chaoticbob/SPIRV-Reflect)
 * [STB-Image](https://github.com/nothings/stb)
 * [xxHash](https://github.com/Cyan4973/xxHash)
+* [EASTL](https://github.com/electronicarts/EASTL)
 
 ## Building
-A Visual Studio 2017 solution is included in the sources. The required dependency binaries for the used libraries can be downloaded here:
-https://www.dropbox.com/sh/npuok5i4xkiju4o/AAC-UplWpQF970a6dhW3_XCUa?dl=0
+A Visual Studio 2017 solution is included in the sources. The required data (binaries, libs, models, textures,...) is not included in this repository and needs to be downloaded here:
+https://www.dropbox.com/s/0vh9ktvtxa8mztg/Fancy_Data.zip?dl=0
